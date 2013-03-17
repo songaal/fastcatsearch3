@@ -11,8 +11,13 @@
 
 package org.fastcatsearch.job;
 
+import java.io.IOException;
 
-public class TestJob extends Job{
+import org.fastcatsearch.common.io.StreamInput;
+import org.fastcatsearch.common.io.StreamOutput;
+
+
+public class TestJob extends StreamableJob{
 
 	public TestJob(){ }
 	
@@ -28,6 +33,16 @@ public class TestJob extends Job{
 		logger.debug("This is Test Job!! args="+str);
 		
 		return str;
+	}
+
+	@Override
+	public void readFrom(StreamInput input) throws IOException {
+		
+	}
+
+	@Override
+	public void writeTo(StreamOutput output) throws IOException {
+		
 	}
 
 }

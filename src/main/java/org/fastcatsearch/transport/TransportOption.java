@@ -21,7 +21,7 @@ package org.fastcatsearch.transport;
 
 /**
  */
-public class TransportStatus {
+public class TransportOption {
 
     private static final byte STATUS_REQRES = 1 << 0;
     private static final byte STATUS_ERROR = 1 << 1;

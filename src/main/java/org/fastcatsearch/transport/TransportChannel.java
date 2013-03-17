@@ -46,9 +46,9 @@ public class TransportChannel {
 
 
     public void sendResponse(Streamable response) throws IOException {
+    	byte type = 0;//0이면 메시지, setFile이면 파일전송.
     	byte status = 0;
-    	status = TransportStatus.setResponse(status);
-        
+    	status = TransportOption.setResponse(status);
         CachedStreamOutput.Entry cachedEntry = CachedStreamOutput.popEntry();
         BytesStreamOutput stream = cachedEntry.bytes();
         stream.skip(MessageProtocol.HEADER_SIZE);
@@ -56,14 +56,15 @@ public class TransportChannel {
         stream.close();
         
         ChannelBuffer buffer = stream.bytes().toChannelBuffer();
-        MessageProtocol.writeHeader(buffer, requestId, status);
+        MessageProtocol.writeHeader(buffer, type, requestId, status);
         ChannelFuture future = channel.write(buffer);
         future.addListener(new TransportService.CacheFutureListener(cachedEntry));
     }
     
     public void sendResponse(Throwable error) throws IOException {
+    	byte type = 0;
     	byte status = 0;
-        status = TransportStatus.setError(status);
+        status = TransportOption.setError(status);
         
         CachedStreamOutput.Entry cachedEntry = CachedStreamOutput.popEntry();
         BytesStreamOutput stream = cachedEntry.bytes();
@@ -74,7 +75,7 @@ public class TransportChannel {
         stream.close();
         
         ChannelBuffer buffer = stream.bytes().toChannelBuffer();
-        MessageProtocol.writeHeader(buffer, requestId, status);
+        MessageProtocol.writeHeader(buffer, type, requestId, status);
         ChannelFuture future = channel.write(buffer);
         future.addListener(new TransportService.CacheFutureListener(cachedEntry));
     }

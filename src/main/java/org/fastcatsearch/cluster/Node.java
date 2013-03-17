@@ -11,12 +11,11 @@ public class Node implements Streamable{
 	private String nodeName;
 	private String nodeId;
 	private InetSocketAddress address;
-	private int port;
 	
 	public Node(){
 	}
 	
-	public Node(String nodeName, String nodeId, InetSocketAddress address, int port) {
+	public Node(String nodeName, String nodeId, InetSocketAddress address) {
         if (nodeName == null) {
             this.nodeName = "".intern();
         } else {
@@ -25,9 +24,11 @@ public class Node implements Streamable{
 
         this.nodeId = nodeId.intern();
         this.address = address;
-        this.port = port;
     }
 	
+	public String toString(){
+		return nodeName+"/"+nodeId+"/"+address;
+	}
 	public String id() {
 		return nodeId;
 	}
@@ -41,7 +42,7 @@ public class Node implements Streamable{
 	}
 	
 	public int port(){
-		return port;
+		return address.getPort();
 	}
 	
 	public static Node readNode(StreamInput in) throws IOException {
@@ -54,16 +55,17 @@ public class Node implements Streamable{
     public void readFrom(StreamInput in) throws IOException {
         nodeName = in.readString().intern();
         nodeId = in.readString().intern();
-//        address = TransportAddressSerializers.addressFromStream(in);
-        port = in.readInt();
+        String hostName = in.readString().intern();
+        int port = in.readInt();
+        address = new InetSocketAddress(hostName, port);
     }
 
     @Override
     public void writeTo(StreamOutput out) throws IOException {
         out.writeString(nodeName);
         out.writeString(nodeId);
-//        addressToStream(out, address);
-        out.writeInt(port);
+        out.writeString(address.getHostName());
+        out.writeInt(address.getPort());
     }
 
     @Override

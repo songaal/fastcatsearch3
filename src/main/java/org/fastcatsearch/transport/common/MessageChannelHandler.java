@@ -10,6 +10,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
+import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.slf4j.Logger;
@@ -22,7 +23,7 @@ import org.fastcatsearch.transport.ChannelBufferStreamInput;
 import org.fastcatsearch.transport.TransportService;
 import org.fastcatsearch.transport.TransportChannel;
 import org.fastcatsearch.transport.TransportException;
-import org.fastcatsearch.transport.TransportStatus;
+import org.fastcatsearch.transport.TransportOption;
 
 
 public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
@@ -37,7 +38,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
 	@Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
             throws Exception {
-		
+		logger.debug("messageReceived >> {}, {}", ctx, e);
 		Object m = e.getMessage();
         if (!(m instanceof ChannelBuffer)) {
             ctx.sendUpstream(e);
@@ -46,25 +47,29 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         
         ChannelBuffer buffer = (ChannelBuffer) m;
         int readerIndex = buffer.readerIndex();
-        readerIndex += 12;
-        byte status = buffer.getByte(readerIndex);
+        byte type = buffer.getByte(readerIndex);
         
         //파일전송이면 올려보낸다.
-        if (TransportStatus.isFile(status)) {
+        if (TransportOption.isFile(type)) {
         	ctx.sendUpstream(e);
             return;
         }
         
+        buffer.readByte();
         int dataLength = buffer.readInt();
-        long requestId = buffer.readLong();
-		status = buffer.readByte();
-
+        
         int markedReaderIndex = buffer.readerIndex();
         int expectedIndexReader = markedReaderIndex + dataLength;
-        
         StreamInput wrappedStream = new ChannelBufferStreamInput(buffer, dataLength);
-
-        if (TransportStatus.isRequest(status)) {
+        
+        long requestId = buffer.readLong();
+		byte status = buffer.readByte();
+		
+		
+		logger.debug("length={}:{}", dataLength, buffer.readableBytes());
+		
+		
+        if (TransportOption.isRequest(status)) {
             handleRequest(ctx.getChannel(), wrappedStream, requestId);
             if (buffer.readerIndex() != expectedIndexReader) {
                 if (buffer.readerIndex() < expectedIndexReader) {
@@ -76,7 +81,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
             }
         } else {
         	
-            if (TransportStatus.isError(status)) {
+            if (TransportOption.isError(status)) {
                 handlerResponseError(wrappedStream, requestId);
             } else {
                 handleResponse(wrappedStream, requestId);
@@ -84,9 +89,9 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
             
             if (buffer.readerIndex() != expectedIndexReader) {
                 if (buffer.readerIndex() < expectedIndexReader) {
-                    logger.warn("Message not fully read (response) for [{}] , error [{}], resetting", requestId, TransportStatus.isError(status));
+                    logger.warn("Message not fully read (response) for [{}] , error [{}], resetting", requestId, TransportOption.isError(status));
                 } else {
-                    logger.warn("Message read past expected size (response) for [{}] , error [{}], resetting", requestId, TransportStatus.isError(status));
+                    logger.warn("Message read past expected size (response) for [{}] , error [{}], resetting", requestId, TransportOption.isError(status));
                 }
                 buffer.readerIndex(expectedIndexReader);
             }
@@ -97,11 +102,14 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
     }
 
     @Override
-    public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
-            throws Exception {
+    public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
         super.channelClosed(ctx, e);
     }
     
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
+    	logger.error("에러발생. 커넥션을 끊을까?", e.getCause());
+    }
     private void handleRequest(Channel channel, StreamInput input, long requestId) throws IOException {
 
         final TransportChannel transportChannel = new TransportChannel(channel, requestId);

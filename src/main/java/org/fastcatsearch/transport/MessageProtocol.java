@@ -11,7 +11,7 @@ public class MessageProtocol {
 	
 	private static Logger logger = LoggerFactory.getLogger(MessageProtocol.class);
 	//MESSAGE_PREFIX
-	public static final int HEADER_SIZE = 2 + 4 + 8 + 1; //HEADER(2) + data-length(4) + requestId(8) + status(1)
+	public static final int HEADER_SIZE = 2 + 1 + 4 + 8 + 1; //HEADER(2) + type(1) + data-length(4) + requestId(8) + status(1)
 	
 	private static byte[] handShakeRequestData = new byte[]{'R','E','Q','?'};
 	private static byte[] handShakeEstablishedData = new byte[]{'F','I','N','E'};
@@ -70,13 +70,15 @@ public class MessageProtocol {
 //		return true;
 //	}
 	
-	public static void writeHeader(ChannelBuffer buffer, long requestId, byte status) {
+	public static void writeHeader(ChannelBuffer buffer, byte type, long requestId, byte status) {
 		int index = buffer.readerIndex();
         buffer.setByte(index, HEADER[0]);
         index += 1;
         buffer.setByte(index, HEADER[1]);
         index += 1;
-        buffer.setInt(index, buffer.readableBytes() - 6);
+        buffer.setByte(index, type);
+        index += 1;
+        buffer.setInt(index, buffer.readableBytes() - 7);
         index += 4;
         buffer.setLong(index, requestId);
         index += 8;
@@ -201,12 +203,19 @@ public class MessageProtocol {
 		//prefix + version + status + dataLength
 		
 		int readAhead = 0;
-		
+		logger.debug("readerIndex = {}, buffer={}", readerIndex, buffer);
+		logger.debug("{}:{}", buffer.getByte(readerIndex), HEADER[0]);
+        logger.debug("{}:{}", buffer.getByte(readerIndex+1), HEADER[1]);
+        
+        
 		if (buffer.getByte(readerIndex) != HEADER[0]
 				|| buffer.getByte(readerIndex + 1) != HEADER[1]) {
 			throw new StreamCorruptedException("Invalid protocol data format");
 		}
 		readAhead += 2;
+		
+		int type = buffer.getByte(readerIndex + readAhead);
+		readAhead += 1;
 		
 		int dataLength = buffer.getInt(readerIndex + readAhead);
 		readAhead += 4;
@@ -228,10 +237,12 @@ public class MessageProtocol {
 //			throw new Exception
 //		}
 
-		if (buffer.readableBytes() < dataLength + 6) {
+		if (buffer.readableBytes() < 7 + dataLength) {
+			logger.debug("버퍼가 아직은 모자람.{} < {}", buffer.readableBytes(), dataLength + 7);
 			return false;
 		}
 		
+		logger.debug("버퍼가 충분함.{} : {}", buffer.readableBytes(), dataLength + 7);
 		return true;
 	}
 

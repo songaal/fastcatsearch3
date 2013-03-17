@@ -6,21 +6,17 @@ import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.WriteCompletionEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * @author <a href="mailto:bruno@biasedbit.com">Bruno de Carvalho</a>
- */
 public class ByteCounter extends SimpleChannelUpstreamHandler {
-
-    // internal vars ----------------------------------------------------------
-
+	private static Logger logger = LoggerFactory.getLogger(ByteCounter.class);
+	
     private final String id;
     private final AtomicLong writtenBytes;
     private final AtomicLong readBytes;
-
-    // constructors -----------------------------------------------------------
 
     public ByteCounter(String id) {
         this.id = id;
@@ -28,11 +24,10 @@ public class ByteCounter extends SimpleChannelUpstreamHandler {
         this.readBytes = new AtomicLong();
     }
 
-    // SimpleChannelUpstreamHandler -------------------------------------------
-
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
             throws Exception {
+    	logger.debug("messageReceived >> {}, {}", ctx, e);
         if (e.getMessage() instanceof ChannelBuffer) {
             this.readBytes.addAndGet(((ChannelBuffer) e.getMessage())
                     .readableBytes());
@@ -47,17 +42,28 @@ public class ByteCounter extends SimpleChannelUpstreamHandler {
         super.writeComplete(ctx, e);
         this.writtenBytes.addAndGet(e.getWrittenAmount());
     }
-
+    @Override
+    public void channelConnected(
+            ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+        ctx.sendUpstream(e);
+        logger.debug("Connected! {} {}", id, ctx.getChannel());
+    }
+    public void channelOpen(
+            ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+        ctx.sendUpstream(e);
+        logger.debug("Opened! {} {}", id, ctx.getChannel());
+    }
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
         super.channelClosed(ctx, e);
-        System.out.println(this.id + ctx.getChannel() + " -> sent: " +
-                           this.getWrittenBytes() + "b, recv: " +
-                           this.getReadBytes() + "b");
+        logger.debug("CLOSED! {} {} -> sent: {}b, recv: {}b", new Object[]{id, ctx.getChannel(), writtenBytes, readBytes});
     }
-
-    // getters & setters ------------------------------------------------------
+    public void channelDisconnected(
+            ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+        ctx.sendUpstream(e);
+        logger.debug("Disconnected! {} {}", id, ctx.getChannel());
+    }
 
     public long getWrittenBytes() {
         return writtenBytes.get();

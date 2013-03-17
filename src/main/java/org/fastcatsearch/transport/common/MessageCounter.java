@@ -4,21 +4,17 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * @author <a href="mailto:bruno@biasedbit.com">Bruno de Carvalho</a>
- */
 public class MessageCounter extends SimpleChannelHandler {
-
-    // internal vars ----------------------------------------------------------
-
+	private static Logger logger = LoggerFactory.getLogger(MessageCounter.class);
+	
     private final String id;
     private final AtomicLong writtenMessages;
     private final AtomicLong readMessages;
-
-    // constructors -----------------------------------------------------------
 
     public MessageCounter(String id) {
         this.id = id;
@@ -26,11 +22,10 @@ public class MessageCounter extends SimpleChannelHandler {
         this.readMessages = new AtomicLong();
     }
 
-    // SimpleChannelHandler ---------------------------------------------------
-
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
             throws Exception {
+    	logger.debug("messageReceived >> {}, {}", ctx, e);
         this.readMessages.incrementAndGet();
         super.messageReceived(ctx, e);
     }
@@ -46,12 +41,8 @@ public class MessageCounter extends SimpleChannelHandler {
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
         super.channelClosed(ctx, e);
-        System.out.println(this.id + ctx.getChannel() + " -> sent: " +
-                           this.getWrittenMessages() + ", recv: " +
-                           this.getReadMessages());
+        logger.debug("{} {} -> sent: {}b, recv: {}b", new Object[]{id, ctx.getChannel(), writtenMessages, readMessages});
     }
-
-    // getters & setters ------------------------------------------------------
 
     public long getWrittenMessages() {
         return writtenMessages.get();

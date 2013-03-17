@@ -42,6 +42,8 @@ public class ChannelBufferStreamInput extends StreamInput {
     }
 
     public ChannelBufferStreamInput(ChannelBuffer buffer, int length) {
+    	
+    	
         if (length > buffer.readableBytes()) {
             throw new IndexOutOfBoundsException();
         }

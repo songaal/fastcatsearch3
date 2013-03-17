@@ -3,14 +3,8 @@ package org.fastcatsearch.transport;
 
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
@@ -24,10 +18,24 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
+import org.fastcatsearch.cluster.Node;
+import org.fastcatsearch.common.BytesReference;
+import org.fastcatsearch.common.io.BytesStreamOutput;
+import org.fastcatsearch.common.io.CachedStreamOutput;
+import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.ir.config.IRConfig;
+import org.fastcatsearch.ir.config.IRSettings;
+import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.service.CatServiceComponent;
+import org.fastcatsearch.transport.common.ByteCounter;
+import org.fastcatsearch.transport.common.FileChannelHandler;
+import org.fastcatsearch.transport.common.FileTransportHandler;
+import org.fastcatsearch.transport.common.MessageChannelHandler;
+import org.fastcatsearch.transport.common.MessageCounter;
+import org.fastcatsearch.transport.common.ReadableFrameDecoder;
+import org.fastcatsearch.transport.common.ResultFuture;
+import org.fastcatsearch.transport.common.SendFileResultFuture;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -44,21 +52,6 @@ import org.jboss.netty.channel.socket.nio.NioWorkerPool;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.fastcatsearch.cluster.Node;
-import org.fastcatsearch.common.BytesReference;
-import org.fastcatsearch.common.io.BytesStreamOutput;
-import org.fastcatsearch.common.io.CachedStreamOutput;
-import org.fastcatsearch.common.io.Streamable;
-import org.fastcatsearch.job.StreamableJob;
-import org.fastcatsearch.transport.common.ByteCounter;
-import org.fastcatsearch.transport.common.FileChannelHandler;
-import org.fastcatsearch.transport.common.FileTransportHandler;
-import org.fastcatsearch.transport.common.MessageChannelHandler;
-import org.fastcatsearch.transport.common.MessageCounter;
-import org.fastcatsearch.transport.common.ReadableFrameDecoder;
-import org.fastcatsearch.transport.common.ResultFuture;
-import org.fastcatsearch.transport.common.SendFileResultFuture;
 
 public class TransportService extends CatServiceComponent {
 	private static Logger logger = LoggerFactory.getLogger(TransportService.class);
@@ -98,8 +91,15 @@ public class TransportService extends CatServiceComponent {
     
     private final ReadWriteLock globalLock = new ReentrantReadWriteLock();
     private FileTransportHandler fileTransportHandler;
+    private static TransportService instance;
     
-	public TransportService(IRConfig config){
+    public static TransportService getInstance(){
+    	if(instance == null){
+    		instance = new TransportService(IRSettings.getConfig());
+    	}
+    	return instance;
+    }
+	protected TransportService(IRConfig config){
 		
 		this.connectMutex = new Object[500];
         for (int i = 0; i < connectMutex.length; i++) {
@@ -114,7 +114,7 @@ public class TransportService extends CatServiceComponent {
         this.reuseAddress = config.getBoolean("reuse_address", true);
         this.tcpSendBufferSize = config.getInt("tcp_send_buffer_size", 8192);
         this.tcpReceiveBufferSize = config.getInt("tcp_receive_buffer_size", 8192);
-        this.sendFileChunkSize = config.getInt("tcp_receive_buffer_size", 3 * 1024 * 1024);
+        this.sendFileChunkSize = config.getInt("send_file_chunk_size", 3 * 1024 * 1024);
         
         logger.debug("Transport setting worker_count[{}], port[{}], connect_timeout[{}]",
                 new Object[]{workerCount, port, connectTimeout});
@@ -136,8 +136,8 @@ public class TransportService extends CatServiceComponent {
 		clientBootstrap.setPipelineFactory(new ChannelPipelineFactory() {
 			public ChannelPipeline getPipeline() throws Exception {
 				ChannelHandler readableDecoder = new ReadableFrameDecoder();
-				ByteCounter byteCounter = new ByteCounter("--- CLIENT-COUNTER :: ");
-				MessageCounter messageCounter = new MessageCounter("--- CLIENT-MSGCOUNTER :: ");
+				ByteCounter byteCounter = new ByteCounter("ClientByteCounter");
+				MessageCounter messageCounter = new MessageCounter("ClientMessageCounter");
 				return Channels.pipeline(byteCounter, 
 						readableDecoder,
 						messageCounter, 
@@ -168,8 +168,8 @@ public class TransportService extends CatServiceComponent {
 		serverBootstrap.setPipelineFactory(new ChannelPipelineFactory() {
 			public ChannelPipeline getPipeline() throws Exception {
 				ChannelHandler readableDecoder = new ReadableFrameDecoder();
-				ByteCounter byteCounter = new ByteCounter("--- CLIENT-COUNTER :: ");
-				MessageCounter messageCounter = new MessageCounter("--- CLIENT-MSGCOUNTER :: ");
+				ByteCounter byteCounter = new ByteCounter("ServerByteCounter");
+				MessageCounter messageCounter = new MessageCounter("ServerMessageCounter");
 				return Channels.pipeline(byteCounter, 
 						readableDecoder,
 						messageCounter,
@@ -410,17 +410,19 @@ public class TransportService extends CatServiceComponent {
     private void sendMessageRequest(final Node node, long requestId, StreamableJob request) throws IOException, TransportException {
 		NodeChannels channels = getNodeChannels(node);
 		Channel targetChannel = channels.getHighChannel();
+		byte type = 0;
         byte status = 0;
-        status = TransportStatus.setRequest(status);
+        status = TransportOption.setRequest(status);
         CachedStreamOutput.Entry cachedEntry = CachedStreamOutput.popEntry();
         BytesStreamOutput stream = cachedEntry.bytes();
         stream.skip(MessageProtocol.HEADER_SIZE);
+        stream.writeString(request.getClass().getName());
         request.writeTo(stream);
         stream.close();
         
         
         ChannelBuffer buffer = stream.bytes().toChannelBuffer();
-        MessageProtocol.writeHeader(buffer, requestId, status);
+        MessageProtocol.writeHeader(buffer, type, requestId, status);
 
         ChannelFuture future = targetChannel.write(buffer);
         future.addListener(new CacheFutureListener(cachedEntry));
@@ -437,9 +439,9 @@ public class TransportService extends CatServiceComponent {
 	private void sendFileRequest(final Node node, final long requestId, File file, SendFileResultFuture resultFuture) throws IOException, TransportException {
 		NodeChannels channels = getNodeChannels(node);
 		Channel targetChannel = channels.getLowChannel();
-		
+		byte type = 0;
+		type = TransportOption.setFile(type);
 		byte status = 0;
-        status = TransportStatus.setFile(status);
         FileChunkEnumeration enumeration = null;
         try{
         	enumeration = new FileChunkEnumeration(file, sendFileChunkSize);
@@ -483,7 +485,7 @@ public class TransportService extends CatServiceComponent {
 	            //TODO 만약 이 라인 이전에 에러발생시 cache가 리턴되지 않고 누락되는 잠재버그가 발생할수있다.
 	            
 	            ChannelBuffer buffer = stream.bytes().toChannelBuffer();
-	            MessageProtocol.writeHeader(buffer, requestId, status);
+	            MessageProtocol.writeHeader(buffer, type, requestId, status);
 	            
 	            ChannelFuture future = targetChannel.write(buffer);
 	            future.addListener(new CacheFutureListener(cachedEntry));
