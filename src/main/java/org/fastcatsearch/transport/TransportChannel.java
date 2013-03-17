@@ -52,6 +52,7 @@ public class TransportChannel {
         CachedStreamOutput.Entry cachedEntry = CachedStreamOutput.popEntry();
         BytesStreamOutput stream = cachedEntry.bytes();
         stream.skip(MessageProtocol.HEADER_SIZE);
+        stream.writeString(response.getClass().getName());
         response.writeTo(stream);
         stream.close();
         

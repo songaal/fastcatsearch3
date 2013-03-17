@@ -37,12 +37,12 @@ public class TestJob extends StreamableJob{
 
 	@Override
 	public void readFrom(StreamInput input) throws IOException {
-		
+		args = new String[]{input.readString()};
 	}
 
 	@Override
 	public void writeTo(StreamOutput output) throws IOException {
-		
+		output.writeString(getStringArrayArgs()[0]);
 	}
 
 }

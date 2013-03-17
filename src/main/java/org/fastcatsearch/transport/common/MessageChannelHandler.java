@@ -65,12 +65,9 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         long requestId = buffer.readLong();
 		byte status = buffer.readByte();
 		
-		
-		logger.debug("length={}:{}", dataLength, buffer.readableBytes());
-		
-		
         if (TransportOption.isRequest(status)) {
             handleRequest(ctx.getChannel(), wrappedStream, requestId);
+            logger.debug("buffer.readerIndex()={}, expectedIndexReader={}", buffer.readerIndex(), expectedIndexReader);
             if (buffer.readerIndex() != expectedIndexReader) {
                 if (buffer.readerIndex() < expectedIndexReader) {
                     logger.warn("Message not fully read (request) for [{}] and action [{}], resetting", requestId);

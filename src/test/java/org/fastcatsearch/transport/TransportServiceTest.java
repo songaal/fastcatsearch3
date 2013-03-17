@@ -44,7 +44,7 @@ public class TransportServiceTest {
 		transportService1.connectToNode(node2);
 		transportService2.connectToNode(node1);
 		
-		TestJob request = new TestJob();
+		TestJob request = new TestJob("transport-test");
 		
 		ResultFuture future = transportService1.sendRequest(node2, request);
 		Object obj = future.take();

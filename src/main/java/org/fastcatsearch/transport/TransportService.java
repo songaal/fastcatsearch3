@@ -417,6 +417,7 @@ public class TransportService extends CatServiceComponent {
         BytesStreamOutput stream = cachedEntry.bytes();
         stream.skip(MessageProtocol.HEADER_SIZE);
         stream.writeString(request.getClass().getName());
+        logger.debug("write class {}", request.getClass().getName());
         request.writeTo(stream);
         stream.close();
         
