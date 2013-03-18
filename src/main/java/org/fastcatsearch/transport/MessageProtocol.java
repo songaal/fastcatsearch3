@@ -238,7 +238,7 @@ public class MessageProtocol {
 //		}
 
 		if (buffer.readableBytes() < 7 + dataLength) {
-			logger.debug("버퍼가 아직은 모자람.{} < {}", buffer.readableBytes(), dataLength + 7);
+//			logger.debug("버퍼가 아직은 모자람.{} < {}", buffer.readableBytes(), dataLength + 7);
 			return false;
 		}
 		

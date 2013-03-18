@@ -46,7 +46,8 @@ public class FileTransportHandler {
 		if(fileHandle == null){
 			//null일경우는 이전 seq에서 에러발생한 경우.
 			//더 이상 파일을 기록하지 않는다.
-			return;
+			throw new IOException("파일핸들이 없습니다.");
+//			return;
 		}
 		
 		try{
@@ -62,9 +63,9 @@ public class FileTransportHandler {
 			} finally {
 				fileMap.remove(fileHandle);
 			}
+			fileHandle.doChecksumValidation();
 		}
 		
-		fileHandle.doChecksumValidation();
 		
 	}
 	
@@ -97,6 +98,7 @@ public class FileTransportHandler {
 		}
 
 		public boolean isDone() {
+			logger.debug("isDone wrote = {}/ {}", wroteBytes, fileSize);
 			return wroteBytes >= fileSize;
 		}
 		
@@ -111,6 +113,7 @@ public class FileTransportHandler {
 
 		public synchronized void write(StreamInput input) throws IOException {
 			int dataLength = input.readVInt();
+			logger.debug("fileHandler write dataLength={}", dataLength);
 			int nRead = 0;
 			//파일사이즈가 0이라면 루프를 돌지 않는다.
 			while(nRead < dataLength){

@@ -25,7 +25,7 @@ public class MessageCounter extends SimpleChannelHandler {
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
             throws Exception {
-    	logger.debug("messageReceived >> {}, {}", ctx, e);
+//    	logger.debug("messageReceived >> {}, {}", ctx, e);
         this.readMessages.incrementAndGet();
         super.messageReceived(ctx, e);
     }

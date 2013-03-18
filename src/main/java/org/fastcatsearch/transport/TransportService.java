@@ -449,7 +449,9 @@ public class TransportService extends CatServiceComponent {
         FileChunkEnumeration enumeration = null;
         try{
         	File file = new File(IRSettings.path(filePath));
-        	if(!file.exists()){
+        	if(file.exists()){
+        		logger.debug("Send filesize ={}, crc={}, file={}", new Object[]{file.length(), FileUtils.checksumCRC32(file), filePath});
+        	}else{
         		throw new IOException("파일을 찾을수 없습니다.file = " + file.getAbsolutePath());
         	}
         	enumeration = new FileChunkEnumeration(file, sendFileChunkSize);
@@ -470,6 +472,8 @@ public class TransportService extends CatServiceComponent {
 	    		}
 	    		
 	    		BytesReference bytesRef = enumeration.nextElement();
+	    		logger.debug("write file seq ={}, length={}", seq, bytesRef.length());
+	    		
 	    		writeSize += bytesRef.length();
 	    		
 	    		CachedStreamOutput.Entry cachedEntry = CachedStreamOutput.popEntry();
@@ -489,6 +493,7 @@ public class TransportService extends CatServiceComponent {
 	            }
 	            
 	            stream.writeString(hashedFilePath);
+	            
 	            
 	            //write file data
 	            stream.writeVInt(bytesRef.length());

@@ -16,7 +16,7 @@ public class StreamInputOutputTest {
 		output.writeInt(4);
 		output.writeString(str);
 		output.writeLong(1024*1024*1024*1024);
-		
+		output.writeVInt(8);
 		output.close();
 		BytesReference ref = output.bytes();
 		
@@ -24,6 +24,7 @@ public class StreamInputOutputTest {
 		assertEquals(4, input.readInt());
 		assertEquals(str, input.readString());
 		assertEquals(l, input.readLong());
+		assertEquals(8, input.readVInt());
 	}
 
 }

@@ -11,6 +11,7 @@ import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.transport.ChannelBufferStreamInput;
 import org.fastcatsearch.transport.TransportChannel;
@@ -32,7 +33,8 @@ public class FileChannelHandler extends SimpleChannelUpstreamHandler {
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
 			throws Exception {
-		logger.debug("messageReceived >> {}, {}", ctx, e);
+//		logger.debug("messageReceived >> {}, {}", ctx, e);
+		logger.debug("file received >> {}", e);
 		Object m = e.getMessage();
 		if (!(m instanceof ChannelBuffer)) {
 			ctx.sendUpstream(e);
@@ -60,9 +62,9 @@ public class FileChannelHandler extends SimpleChannelUpstreamHandler {
 			try {
 				handleFileTransportRequest(ctx.getChannel(), wrappedStream, requestId);
 			} catch (IOException e1) {
+				logger.error("파일기록중 에러발생", e1);
 				// 파일기록중 에러발생하면, 에러메시지 전송.
-				final TransportChannel transportChannel = new TransportChannel(
-						ctx.getChannel(), requestId);
+				final TransportChannel transportChannel = new TransportChannel(ctx.getChannel(), requestId);
 				transportChannel.sendResponse(e1);
 
 			} finally {
@@ -106,11 +108,11 @@ public class FileChannelHandler extends SimpleChannelUpstreamHandler {
 			filePath = input.readString();
 			fileSize = input.readLong();
 			checksumCRC32 = input.readLong();
+			logger.debug("File Receive filesize ={}, crc={}, file={}", new Object[]{fileSize, checksumCRC32, filePath});
 		}
 		String hashedFilePath = input.readString();
 
-		fileHandler.handleFile(seq, filePath, fileSize, checksumCRC32,
-				hashedFilePath, input);
+		fileHandler.handleFile(seq, filePath, fileSize, checksumCRC32, hashedFilePath, input);
 		// 파일에 쓰는것은 비동기적으로 수행하도록 놓아둔다.
 	}
 

@@ -116,7 +116,7 @@ public abstract class StreamOutput extends OutputStream{
 	}
     public void writeString(String str) throws IOException {
         int charCount = str.length();
-//        logger.debug("writeString len = {}", charCount);
+        logger.debug("writeString len = {}", charCount);
         writeVInt(charCount);
         int c;
         for (int i = 0; i < charCount; i++) {

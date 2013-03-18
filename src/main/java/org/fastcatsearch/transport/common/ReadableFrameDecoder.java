@@ -21,7 +21,7 @@ public class ReadableFrameDecoder extends FrameDecoder {
 		}
 
 		int readerIndex = buffer.readerIndex();
-		logger.debug("ctx = {}, channel={}", ctx, channel);
+//		logger.debug("ctx = {}, channel={}", ctx, channel);
 		if (MessageProtocol.isBufferReady(buffer, readerIndex)) {
 			buffer.skipBytes(2); // 2byte 헤더 prefix만 스킵.
 			return buffer;

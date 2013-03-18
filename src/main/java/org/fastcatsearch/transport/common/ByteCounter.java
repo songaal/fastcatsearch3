@@ -27,10 +27,10 @@ public class ByteCounter extends SimpleChannelUpstreamHandler {
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
             throws Exception {
-    	logger.debug("messageReceived >> {}, {}", ctx, e);
+//    	logger.debug("messageReceived >> {}, {}", ctx, e);
         if (e.getMessage() instanceof ChannelBuffer) {
             this.readBytes.addAndGet(((ChannelBuffer) e.getMessage()).readableBytes());
-            logger.debug("ByteCounter {} -> sent: {}b, recv: {}b", new Object[]{id, writtenBytes, readBytes});
+//            logger.debug("ByteCounter {} -> sent: {}b, recv: {}b", new Object[]{id, writtenBytes, readBytes});
         }
 
         super.messageReceived(ctx, e);
