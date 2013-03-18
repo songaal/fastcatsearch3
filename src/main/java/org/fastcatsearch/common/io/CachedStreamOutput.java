@@ -49,13 +49,6 @@ public class CachedStreamOutput {
         public BytesStreamOutput bytes() {
             return bytes;
         }
-
-//        public StreamOutput handles(Compressor compressor) throws IOException {
-//            StreamOutput compressed = compressor.streamOutput(bytes);
-//            handles.clear();
-//            handles.setOut(compressed);
-//            return handles;
-//        }
     }
 
     static class SoftWrapper<T> {
@@ -79,7 +72,7 @@ public class CachedStreamOutput {
 
     private static final SoftWrapper<Queue<Entry>> cache = new SoftWrapper<Queue<Entry>>();
     private static final AtomicInteger counter = new AtomicInteger();
-    public static int BYTES_LIMIT = 500 * 1024 * 1024; // don't cache entries that are bigger than that...
+    public static int BYTES_LIMIT = 2 * 1024 * 1024; // don't cache entries that are bigger than that...
     public static int COUNT_LIMIT = 100; // number of concurrent entries cached
 
     public static void clear() {

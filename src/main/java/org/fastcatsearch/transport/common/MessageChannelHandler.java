@@ -65,7 +65,13 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         long requestId = buffer.readLong();
 		byte status = buffer.readByte();
 		
+		logger.debug("## readIndex={}, writerIndex={}", buffer.readerIndex(), buffer.writerIndex());
+		//logger.debug("## readString={}", wrappedStream.readString());
         if (TransportOption.isRequest(status)) {
+//        	int readTo = wrappedStream.available();
+//        	for (int i = 0; i < readTo; i++) {
+//        		wrappedStream.read();
+//			}
             handleRequest(ctx.getChannel(), wrappedStream, requestId);
             logger.debug("buffer.readerIndex()={}, expectedIndexReader={}", buffer.readerIndex(), expectedIndexReader);
             if (buffer.readerIndex() != expectedIndexReader) {
@@ -108,14 +114,17 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
     	logger.error("에러발생. 커넥션을 끊을까?", e.getCause());
     }
     private void handleRequest(Channel channel, StreamInput input, long requestId) throws IOException {
-
+    	logger.debug("handleRequest ");
         final TransportChannel transportChannel = new TransportChannel(channel, requestId);
         try {
         	String jobName = input.readString();
+        	logger.debug("#### READ job = {}", jobName);
         	StreamableJob requestJob = (StreamableJob)IRClassLoader.getInstance().loadObject(jobName);
         	requestJob.readFrom(input);
+        	
         	transport.execute(new RequestHandler(requestJob, transportChannel));
         } catch (Exception e) {
+        	logger.error("", e);
             try {
                 transportChannel.sendResponse(e);
             } catch (IOException e1) {
@@ -130,6 +139,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         	String className = input.readString();
         	Streamable streamableResult = (Streamable) IRClassLoader.getInstance().loadObject(className);
         	streamableResult.readFrom(input);
+        	logger.debug("## Response-{} >> {}", requestId, streamableResult.toString());
         	
         	transport.resultReceived(requestId, streamableResult);
         } catch (Exception e) {
@@ -153,6 +163,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         private final TransportChannel transportChannel;
 
         public RequestHandler(StreamableJob requestJob, TransportChannel transportChannel) {
+        	logger.debug("Request Job >> {}", requestJob.getClass().getName());
             this.requestJob = requestJob;
             this.transportChannel = transportChannel;
         }
@@ -162,6 +173,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
             try {
             	JobResult jobResult = JobController.getInstance().offer(requestJob);
             	Object result = jobResult.take();
+            	logger.debug("Request Job Result >> {}", result);
             	if(result instanceof Streamable){
             		Streamable streamableResult = (Streamable) result;
             		transportChannel.sendResponse(streamableResult);

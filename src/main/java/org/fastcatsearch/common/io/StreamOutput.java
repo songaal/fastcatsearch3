@@ -8,9 +8,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.fastcatsearch.common.BytesReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class StreamOutput extends OutputStream{
-
+	protected static Logger logger = LoggerFactory.getLogger(StreamOutput.class);
+	
 	public boolean seekPositionSupported() {
         return false;
     }
@@ -113,6 +116,7 @@ public abstract class StreamOutput extends OutputStream{
 	}
     public void writeString(String str) throws IOException {
         int charCount = str.length();
+//        logger.debug("writeString len = {}", charCount);
         writeVInt(charCount);
         int c;
         for (int i = 0; i < charCount; i++) {

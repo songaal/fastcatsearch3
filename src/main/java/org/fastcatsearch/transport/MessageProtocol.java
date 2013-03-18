@@ -203,9 +203,9 @@ public class MessageProtocol {
 		//prefix + version + status + dataLength
 		
 		int readAhead = 0;
-		logger.debug("readerIndex = {}, buffer={}", readerIndex, buffer);
-		logger.debug("{}:{}", buffer.getByte(readerIndex), HEADER[0]);
-        logger.debug("{}:{}", buffer.getByte(readerIndex+1), HEADER[1]);
+//		logger.debug("readerIndex = {}, buffer={}", readerIndex, buffer);
+//		logger.debug("{}:{}", buffer.getByte(readerIndex), HEADER[0]);
+//        logger.debug("{}:{}", buffer.getByte(readerIndex+1), HEADER[1]);
         
         
 		if (buffer.getByte(readerIndex) != HEADER[0]

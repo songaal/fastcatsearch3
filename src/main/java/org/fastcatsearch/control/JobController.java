@@ -62,12 +62,18 @@ public class JobController extends CatServiceComponent{
 	private JobControllerWorker worker;
 	private JobScheduler jobScheduler;
 	private IndexingMutex indexingMutex;
+	private boolean useJobScheduler;
 	
 	public static JobController getInstance(){
 		if(instance == null)
 			instance = new JobController();
 		return instance;
 	}
+	
+	public void setUseJobScheduler(boolean useJobScheduler){
+		this.useJobScheduler = useJobScheduler;
+	}
+	
 	public Collection<Job> getRunningJobs(){
 		return runningJobList.values();
 	}
@@ -75,22 +81,25 @@ public class JobController extends CatServiceComponent{
 		return indexingMutex.getIndexingList();
 	}
 	public void setSchedule(String key, String jobClassName, String args, Timestamp startTime, int period, boolean isYN) throws SettingException{
-//		if(!isManager) 
-//			return;
+		if(!useJobScheduler){
+			return;
+		}
 		
 		jobScheduler.setSchedule(key, jobClassName, args, startTime, period, isYN);
 	}
 	
 	public boolean reloadSchedules() throws SettingException{
-//		if(!isManager) 
-//			return false;
+		if(!useJobScheduler){
+			return false;
+		}
 		
 		return jobScheduler.reload();
 	}
 	
 	public boolean toggleIndexingSchedule(String collection, String type, boolean isActive){
-//		if(!isManager) 
-//			return false;
+		if(!useJobScheduler){
+			return false;
+		}
 		
 		return jobScheduler.reloadIndexingSchedule(collection, type, isActive);
 	}
@@ -165,7 +174,9 @@ public class JobController extends CatServiceComponent{
 				if(result != null){
 					resultStr = result.toString();
 				}
-				dbHandler.JobHistory.insert(jobId, job.getClass().getName(), jobArgs, isSuccess, resultStr, job.isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
+				if(dbHandler.JobHistory != null){
+					dbHandler.JobHistory.insert(jobId, job.getClass().getName(), jobArgs, isSuccess, resultStr, job.isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
+				}
 //				dbHandler.commit();
 			}
 			
@@ -250,7 +261,9 @@ public class JobController extends CatServiceComponent{
 //			worker = new JobControllerWorker();
 //			worker.start();
 //		}
-		jobScheduler.start();
+		if(useJobScheduler){
+			jobScheduler.start();
+		}
 		logger.debug("JobController started!");
 		
 		return true;
@@ -263,7 +276,9 @@ public class JobController extends CatServiceComponent{
 		jobQueue.clear();
 		runningJobList.clear();
 		jobExecutor.shutdownNow();
-		jobScheduler.stop();
+		if(useJobScheduler){
+			jobScheduler.stop();
+		}
 		logger.debug("JobController shutdown OK!");
 		return true;
 	}

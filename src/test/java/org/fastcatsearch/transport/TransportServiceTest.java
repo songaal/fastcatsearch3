@@ -3,6 +3,7 @@ package org.fastcatsearch.transport;
 import java.net.InetSocketAddress;
 
 import org.fastcatsearch.cluster.Node;
+import org.fastcatsearch.control.JobController;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.job.TestJob;
@@ -14,6 +15,10 @@ import org.junit.Test;
 public class TransportServiceTest {
 
 	public static void main(String[] args) throws ServiceException, TransportException {
+		IRSettings.setHome("testHome/fastcatsearch");
+		JobController jobController = JobController.getInstance();
+		jobController.setUseJobScheduler(false);
+		jobController.start();
 		new TransportServiceTest().test1();
 	}
 	public void test1() throws ServiceException, TransportException {
@@ -28,7 +33,7 @@ public class TransportServiceTest {
 //			}
 //		}.start();
 		
-		IRSettings.setHome("testHome/fastcatsearch");
+		
 		
 		IRConfig config = IRSettings.getConfig();
 		IRConfig config2 = IRSettings.getConfig(true);

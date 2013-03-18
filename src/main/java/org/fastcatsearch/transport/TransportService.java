@@ -173,8 +173,9 @@ public class TransportService extends CatServiceComponent {
 				return Channels.pipeline(byteCounter, 
 						readableDecoder,
 						messageCounter,
-						new FileChannelHandler(TransportService.this, fileTransportHandler),
-						new MessageChannelHandler(TransportService.this));
+						new MessageChannelHandler(TransportService.this),
+						new FileChannelHandler(TransportService.this, fileTransportHandler)
+						);
 			}
 		});
         serverBootstrap.setOption("child.tcpNoDelay", tcpNoDelay);

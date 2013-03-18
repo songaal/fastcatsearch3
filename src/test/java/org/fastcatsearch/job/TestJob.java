@@ -15,6 +15,8 @@ import java.io.IOException;
 
 import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.common.io.StreamOutput;
+import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.transport.vo.StreamableString;
 
 
 public class TestJob extends StreamableJob{
@@ -26,18 +28,20 @@ public class TestJob extends StreamableJob{
 	}
 	
 	@Override
-	public Object run0() {
+	public Streamable run0() {
 		String[] args = getStringArrayArgs();
-		String str = args[0];
+		StreamableString str = new StreamableString(args[0]);
 
-		logger.debug("This is Test Job!! args="+str);
+		logger.debug("This is Test Job!! args="+str.value());
 		
 		return str;
 	}
 
 	@Override
 	public void readFrom(StreamInput input) throws IOException {
-		args = new String[]{input.readString()};
+		String arg = input.readString();
+		logger.debug("read arg >> {}", arg);
+		args = new String[]{arg};
 	}
 
 	@Override
