@@ -345,8 +345,10 @@ public class TransportService extends CatServiceComponent {
 	private NodeChannels getNodeChannels(Node node) throws TransportException {
 		NodeChannels channels = connectedNodes.get(node);
 		if(channels == null){
-			//TODO 연결시도.
-			throw new TransportException(node, "연결할수 없습니다.");
+			//연결시도.
+			connectToNode(node);
+			channels = connectedNodes.get(node);
+//			throw new TransportException(node, "연결할수 없습니다.");
 		}
 		
 		return channels;
@@ -367,12 +369,12 @@ public class TransportService extends CatServiceComponent {
         }
     }
     
-    public SendFileResultFuture sendFile(final Node node, final File file) throws TransportException {
+    public SendFileResultFuture sendFile(final Node node, final String filePath) throws TransportException {
     	final long requestId = newRequestId();
     	try {
     		SendFileResultFuture resultFuture = new SendFileResultFuture(requestId, resultFutureMap, System.currentTimeMillis());
             resultFutureMap.put(requestId, resultFuture);
-            sendFileRequest(node, requestId, file, resultFuture);
+            sendFileRequest(node, requestId, filePath, resultFuture);
             
             return resultFuture;
         } catch (final Exception e) {
@@ -438,7 +440,7 @@ public class TransportService extends CatServiceComponent {
     /*
      * header + seq(4) + [filepath(string) + filesize(long) + checksumCRC32(long)]+ hashfilepath(string) + datalength(vint) + data 
      * */
-	private void sendFileRequest(final Node node, final long requestId, File file, SendFileResultFuture resultFuture) throws IOException, TransportException {
+	private void sendFileRequest(final Node node, final long requestId, String filePath, SendFileResultFuture resultFuture) throws IOException, TransportException {
 		NodeChannels channels = getNodeChannels(node);
 		Channel targetChannel = channels.getLowChannel();
 		byte type = 0;
@@ -446,12 +448,21 @@ public class TransportService extends CatServiceComponent {
 		byte status = 0;
         FileChunkEnumeration enumeration = null;
         try{
+        	File file = new File(IRSettings.path(filePath));
+        	if(!file.exists()){
+        		throw new IOException("파일을 찾을수 없습니다.file = " + file.getAbsolutePath());
+        	}
         	enumeration = new FileChunkEnumeration(file, sendFileChunkSize);
-	    	String filePath = file.getAbsolutePath();
 	    	long checksumCRC32 = FileUtils.checksumCRC32(file);
 	        long fileSize = file.length();
 	        long writeSize = 0;
 	        String hashedFilePath = getHashedFilePath(filePath);
+	        
+	        
+	        //FIXME test용도.
+	        filePath = filePath + ".1";
+	        
+	        
 	    	for(int seq = 0; enumeration.hasMoreElements(); seq++){
 	    		if(resultFuture.isCanceled()){
 	    			logger.info("파일전송이 중단되었습니다. file={}", file.getAbsolutePath());
@@ -500,7 +511,9 @@ public class TransportService extends CatServiceComponent {
 	    		logger.error("File Write Success filesize={}, file={}", writeSize, filePath);
 	    	}
         }finally{
-        	enumeration.close();
+        	if(enumeration != null){
+        		enumeration.close();
+        	}
         }
 	}
 	
