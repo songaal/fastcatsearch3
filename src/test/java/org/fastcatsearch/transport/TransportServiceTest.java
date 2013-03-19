@@ -2,6 +2,8 @@ package org.fastcatsearch.transport;
 
 import java.io.File;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.control.JobController;
@@ -9,6 +11,7 @@ import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.job.TestJob;
 import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.transport.common.ResultFuture;
 import org.fastcatsearch.transport.common.SendFileResultFuture;
 import org.junit.Test;
@@ -28,14 +31,15 @@ public class TransportServiceTest {
 	}
 	
 	public void testSendMessage() throws ServiceException, TransportException {
-		IRConfig config = IRSettings.getConfig();
-		IRConfig config2 = IRSettings.getConfig(true);
-		config2.getProperties().put("node_port", "9200");
+		Settings settings = new Settings();
+		settings.putValueKey("9100", "node_port");
+		Settings settings2 = new Settings();
+		settings2.putValueKey("9200", "node_port");
 		
-		TransportService transportService1 = new TransportService(config);
-		TransportService transportService2 = new TransportService(config2);
-		transportService1.start();
-		transportService2.start();
+		TransportModule transportService1 = new TransportModule(settings);
+		TransportModule transportService2 = new TransportModule(settings2);
+		transportService1.load();
+		transportService2.load();
 		
 		Node node1 = new Node("node-1", "node-1", new InetSocketAddress("localhost", 9100));
 		Node node2 = new Node("node-2", "node-2", new InetSocketAddress("localhost", 9200));
@@ -50,20 +54,23 @@ public class TransportServiceTest {
 		logger.debug("result >> {}", obj);
 		
 		
-		transportService1.shutdown();
-		transportService2.shutdown();
+		transportService1.unload();
+		transportService2.unload();
 	}
 
 	
 	public void testSendFile() throws ServiceException, TransportException {
-		IRConfig config = IRSettings.getConfig();
-		IRConfig config2 = IRSettings.getConfig(true);
-		config2.getProperties().put("node_port", "9200");
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("9100", "node_port");
+		Map<String, Object> map2 = new HashMap<String, Object>();
+		map2.put("9200", "node_port");
+		Settings settings = new Settings(map);
+		Settings settings2 = new Settings(map);
 		
-		TransportService transportService1 = new TransportService(config);
-		TransportService transportService2 = new TransportService(config2);
-		transportService1.start();
-		transportService2.start();
+		TransportModule transportService1 = new TransportModule(settings);
+		TransportModule transportService2 = new TransportModule(settings2);
+		transportService1.load();
+		transportService2.load();
 		
 		Node node1 = new Node("node-1", "node-1", new InetSocketAddress("localhost", 9100));
 		Node node2 = new Node("node-2", "node-2", new InetSocketAddress("localhost", 9200));

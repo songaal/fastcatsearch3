@@ -24,10 +24,9 @@ import org.fastcatsearch.common.BytesReference;
 import org.fastcatsearch.common.io.BytesStreamOutput;
 import org.fastcatsearch.common.io.CachedStreamOutput;
 import org.fastcatsearch.common.io.Streamable;
-import org.fastcatsearch.ir.config.IRConfig;
-import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.job.StreamableJob;
-import org.fastcatsearch.service.CatServiceComponent;
+import org.fastcatsearch.module.AbstractModule;
+import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.transport.common.ByteCounter;
 import org.fastcatsearch.transport.common.FileChannelHandler;
 import org.fastcatsearch.transport.common.FileTransportHandler;
@@ -53,8 +52,8 @@ import org.jboss.netty.util.HashedWheelTimer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TransportService extends CatServiceComponent {
-	private static Logger logger = LoggerFactory.getLogger(TransportService.class);
+public class TransportModule extends AbstractModule {
+	private static Logger logger = LoggerFactory.getLogger(TransportModule.class);
 	
 	public static final int OPTION_COMPRESS_CHANNEL = 1 >> 1;
 	
@@ -91,36 +90,30 @@ public class TransportService extends CatServiceComponent {
     
     private final ReadWriteLock globalLock = new ReentrantReadWriteLock();
     private FileTransportHandler fileTransportHandler;
-    private static TransportService instance;
-    
-    public static TransportService getInstance(){
-    	if(instance == null){
-    		instance = new TransportService(IRSettings.getConfig());
-    	}
-    	return instance;
-    }
-	protected TransportService(IRConfig config){
+   
+	public TransportModule(Settings settings){
+		super(settings);
 		
 		this.connectMutex = new Object[500];
         for (int i = 0; i < connectMutex.length; i++) {
             connectMutex[i] = new Object();
         }
-        this.workerCount = config.getInt("worker_count", Runtime.getRuntime().availableProcessors() * 2);
-        this.port = config.getInt("node_port");
-        this.connectTimeout = config.getInt("connect_timeout", 1000);
-        this.bossCount = config.getInt("boss_count", 1);
-        this.tcpNoDelay = config.getBoolean("tcp_no_delay", true);
-        this.tcpKeepAlive = config.getBoolean("tcp_keep_alive", true);
-        this.reuseAddress = config.getBoolean("reuse_address", true);
-        this.tcpSendBufferSize = config.getInt("tcp_send_buffer_size", 8192);
-        this.tcpReceiveBufferSize = config.getInt("tcp_receive_buffer_size", 8192);
-        this.sendFileChunkSize = config.getInt("send_file_chunk_size", 3 * 1024 * 1024);
+        this.workerCount = settings.getInt(Runtime.getRuntime().availableProcessors() * 2, "worker_count");
+        this.port = settings.getInt("node_port");
+        this.connectTimeout = settings.getInt(1000, "connect_timeout");
+        this.bossCount = settings.getInt(1, "boss_count");
+        this.tcpNoDelay = settings.getBoolean(true, "tcp_no_delay");
+        this.tcpKeepAlive = settings.getBoolean(true, "tcp_keep_alive");
+        this.reuseAddress = settings.getBoolean(true, "reuse_address");
+        this.tcpSendBufferSize = settings.getInt(8192, "tcp_send_buffer_size");
+        this.tcpReceiveBufferSize = settings.getInt(8192, "tcp_receive_buffer_size");
+        this.sendFileChunkSize = settings.getInt(3 * 1024 * 1024, "send_file_chunk_size");
         
         logger.debug("Transport setting worker_count[{}], port[{}], connect_timeout[{}]",
                 new Object[]{workerCount, port, connectTimeout});
 	}
 	
-	public boolean start0(){
+	public boolean load(){
 		
 		this.executorService = Executors.newCachedThreadPool();
 		/*
@@ -141,7 +134,7 @@ public class TransportService extends CatServiceComponent {
 				return Channels.pipeline(byteCounter, 
 						readableDecoder,
 						messageCounter, 
-						new MessageChannelHandler(TransportService.this));
+						new MessageChannelHandler(TransportModule.this));
 			}
 		});
 		clientBootstrap.setOption("connectTimeoutMillis", connectTimeout);
@@ -173,8 +166,8 @@ public class TransportService extends CatServiceComponent {
 				return Channels.pipeline(byteCounter, 
 						readableDecoder,
 						messageCounter,
-						new MessageChannelHandler(TransportService.this),
-						new FileChannelHandler(TransportService.this, fileTransportHandler)
+						new MessageChannelHandler(TransportModule.this),
+						new FileChannelHandler(TransportModule.this, fileTransportHandler)
 						);
 			}
 		});
@@ -198,8 +191,8 @@ public class TransportService extends CatServiceComponent {
         
         return true;
 	}
-	
-	protected boolean shutdown0() {
+	@Override
+	public boolean unload() {
         final CountDownLatch latch = new CountDownLatch(1);
         // make sure we run it on another thread than a possible IO handler thread
         execute(new Runnable() {

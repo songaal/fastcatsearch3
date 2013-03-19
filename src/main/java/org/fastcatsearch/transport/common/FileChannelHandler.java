@@ -15,16 +15,16 @@ import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.transport.ChannelBufferStreamInput;
 import org.fastcatsearch.transport.TransportChannel;
-import org.fastcatsearch.transport.TransportService;
+import org.fastcatsearch.transport.TransportModule;
 import org.fastcatsearch.transport.TransportOption;
 
 public class FileChannelHandler extends SimpleChannelUpstreamHandler {
 
 	private static Logger logger = LoggerFactory.getLogger(FileChannelHandler.class);
-	private TransportService transport;
+	private TransportModule transport;
 	private FileTransportHandler fileHandler;
 
-	public FileChannelHandler(TransportService transport,
+	public FileChannelHandler(TransportModule transport,
 			FileTransportHandler fileHandler) {
 		this.transport = transport;
 		this.fileHandler = fileHandler;

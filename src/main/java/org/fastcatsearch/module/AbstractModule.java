@@ -7,7 +7,8 @@ public abstract class AbstractModule {
 	public AbstractModule(Settings settings){
 		this.settings = settings;
 	}
-	public abstract void start();
-	public abstract void stop();
+	
+	public abstract boolean load();
+	public abstract boolean unload();
 	
 }

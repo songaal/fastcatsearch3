@@ -1,5 +1,6 @@
 package org.fastcatsearch.settings;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,11 +15,19 @@ public class Settings {
 	
 	Map<String, Object> map;
 	
+	public Settings(){
+		map = new HashMap<String, Object>();
+	}
 	public Settings(Map<String, Object> map) {
 		this.map = map;
 	}
-	
 	public Settings getSubSettings(String... keys) {
+		return getSubSettings(false, keys);
+	}
+	public Settings getCopiedSubSettings(String... keys) {
+		return getSubSettings(true, keys);
+	}
+	public synchronized Settings getSubSettings(boolean copy, String... keys) {
 		Map<String, Object> workMap = map;
 		for (int i = 0; i < keys.length; i++) {
 			String key = keys[i];
@@ -32,8 +41,11 @@ public class Settings {
 				return null;
 			}
 		}
-		
-		return new Settings(workMap);
+		if(copy){
+			return new Settings(workMap);
+		}else{
+			return new Settings(new HashMap<String, Object>(workMap));
+		}
 	}
 
 	public int getInt(String... keys) {
@@ -131,7 +143,7 @@ public class Settings {
 	}
 	
 	
-	public Object getValue(String... keys){
+	public synchronized Object getValue(String... keys){
 		Map<String, Object> workMap = this.map;
 		for (int i = 0; i < keys.length; i++) {
 			String key = keys[i];
@@ -149,7 +161,7 @@ public class Settings {
 		return null;
 	}
 	
-	public String toString(){
+	public synchronized String toString(){
 		DumperOptions options = new DumperOptions();
 		options.setWidth(50);
 		options.setIndent(4);
@@ -187,6 +199,28 @@ public class Settings {
 		}catch(NumberFormatException e){
 			
 			return defaultValue;
+		}
+	}
+	public synchronized void putValueKey(Object newValue, String... keys) {
+		Map<String, Object> workMap = this.map;
+		
+		for (int i = 0; i < keys.length; i++) {
+			boolean isLeaf = (i == keys.length - 1);
+			String key = keys[i];
+			if(isLeaf){
+				workMap.put(key, newValue);
+				return;
+			}
+			
+			Object value = workMap.get(key);
+			if(value == null || !(value instanceof Map)){
+				//키가 없다면 하위맵을 만들어준다.
+				Map<String, Object> newWorkMap = new HashMap<String, Object>();
+				workMap.put(key, newWorkMap);
+				workMap = newWorkMap; 
+			}else{
+				workMap = (Map<String, Object>) value;
+			}
 		}
 	}
 

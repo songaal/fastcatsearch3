@@ -69,5 +69,25 @@ public class SettingsTest {
         System.out.println(nodeList);
 	}
 	
+	@Test
+	public void testModifyYamlSetting() throws IOException {
+		InputStream input = new FileInputStream(new File("src/test/resources/test.yaml"));
+        Yaml yaml = new Yaml();
+        Map<String, Object> data = (Map<String, Object>) yaml.load(input);
+        input.close();
+        Settings settings = new Settings(data);
+        System.out.println(settings);
+        System.out.println(settings.getString("service", "server", "host"));
+        System.out.println(settings.getString("module"));
+        System.out.println(settings.getString("module", "transport", "node_list"));
+        Settings transportSettings = settings.getSubSettings("module", "transport");
+        transportSettings.putValueKey("fastcatsearch.org", "service", "server", "host");
+        transportSettings.putValueKey(1000, "tcp", "delay");
+        transportSettings.putValueKey("nocache", "tcp", "option");
+        System.out.println("sub=>\n"+transportSettings);
+        
+        List<Object> nodeList = transportSettings.getList("node_list");
+        System.out.println(nodeList);
+	}
 
 }

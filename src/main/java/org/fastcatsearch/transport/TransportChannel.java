@@ -60,7 +60,7 @@ public class TransportChannel {
         ChannelBuffer buffer = stream.bytes().toChannelBuffer();
         MessageProtocol.writeHeader(buffer, type, requestId, status);
         ChannelFuture future = channel.write(buffer);
-        future.addListener(new TransportService.CacheFutureListener(cachedEntry));
+        future.addListener(new TransportModule.CacheFutureListener(cachedEntry));
     }
     
     public void sendResponse(Throwable error) throws IOException {
@@ -80,7 +80,7 @@ public class TransportChannel {
         ChannelBuffer buffer = stream.bytes().toChannelBuffer();
         MessageProtocol.writeHeader(buffer, type, requestId, status);
         ChannelFuture future = channel.write(buffer);
-        future.addListener(new TransportService.CacheFutureListener(cachedEntry));
+        future.addListener(new TransportModule.CacheFutureListener(cachedEntry));
     }
    
     	

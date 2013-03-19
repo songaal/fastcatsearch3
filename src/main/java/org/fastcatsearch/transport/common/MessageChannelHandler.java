@@ -20,7 +20,7 @@ import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.transport.ChannelBufferStreamInput;
-import org.fastcatsearch.transport.TransportService;
+import org.fastcatsearch.transport.TransportModule;
 import org.fastcatsearch.transport.TransportChannel;
 import org.fastcatsearch.transport.TransportException;
 import org.fastcatsearch.transport.TransportOption;
@@ -29,9 +29,9 @@ import org.fastcatsearch.transport.TransportOption;
 public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
 	
 	private static Logger logger = LoggerFactory.getLogger(MessageChannelHandler.class);
-	private TransportService transport;
+	private TransportModule transport;
 	
-	public MessageChannelHandler(TransportService transport){
+	public MessageChannelHandler(TransportModule transport){
 		this.transport = transport;
 	}
 	
