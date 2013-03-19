@@ -23,10 +23,12 @@ package org.fastcatsearch.transport;
  */
 public class TransportOption {
 
+	private static final byte TYPE_MESSAGE = 1 << 0;
+	private static final byte TYPE_FILE = 1 << 1;
+	
     private static final byte STATUS_REQRES = 1 << 0;
     private static final byte STATUS_ERROR = 1 << 1;
     private static final byte STATUS_COMPRESS = 1 << 2;
-    private static final byte STATUS_FILE = 1 << 3;
 
     public static boolean isRequest(byte value) {
         return (value & STATUS_REQRES) == 0;
@@ -60,12 +62,22 @@ public class TransportOption {
         return value;
     }
     
-    public static boolean isFile(byte value) {
-        return (value & STATUS_FILE) != 0;
+    
+    public static boolean isTypeMessage(byte value) {
+        return (value & TYPE_MESSAGE) != 0;
     }
     
-    public static byte setFile(byte value) {
-        value |= STATUS_FILE;
+    public static byte setTypeMessage(byte value) {
+        value |= TYPE_MESSAGE;
+        return value;
+    }
+    
+    public static boolean isTypeFile(byte value) {
+        return (value & TYPE_FILE) != 0;
+    }
+    
+    public static byte setTypeFile(byte value) {
+        value |= TYPE_FILE;
         return value;
     }
 }

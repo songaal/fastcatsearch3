@@ -242,7 +242,7 @@ public class MessageProtocol {
 			return false;
 		}
 		
-		logger.debug("버퍼가 충분함.{} : {}", buffer.readableBytes(), dataLength + 7);
+//		logger.debug("버퍼가 충분함.{} : {}", buffer.readableBytes(), dataLength + 7);
 		return true;
 	}
 

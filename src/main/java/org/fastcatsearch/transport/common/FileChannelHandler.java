@@ -33,8 +33,7 @@ public class FileChannelHandler extends SimpleChannelUpstreamHandler {
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
 			throws Exception {
-//		logger.debug("messageReceived >> {}, {}", ctx, e);
-		logger.debug("file received >> {}", e);
+		
 		Object m = e.getMessage();
 		if (!(m instanceof ChannelBuffer)) {
 			ctx.sendUpstream(e);
@@ -45,46 +44,47 @@ public class FileChannelHandler extends SimpleChannelUpstreamHandler {
 		int readerIndex = buffer.readerIndex();
 		byte type = buffer.getByte(readerIndex);
 		
-		if (!TransportOption.isFile(type)) {
+		if (!TransportOption.isTypeFile(type)) {
 			ctx.sendUpstream(e);
 			return;
-		}else{
-			buffer.readByte();
-			int dataLength = buffer.readInt();
-
-			int markedReaderIndex = buffer.readerIndex();
-			int expectedIndexReader = markedReaderIndex + dataLength;
-			StreamInput wrappedStream = new ChannelBufferStreamInput(buffer,dataLength);
-
-			long requestId = buffer.readLong();
-			byte status = buffer.readByte();
-			
-			try {
-				handleFileTransportRequest(ctx.getChannel(), wrappedStream, requestId);
-			} catch (IOException e1) {
-				logger.error("파일기록중 에러발생", e1);
-				// 파일기록중 에러발생하면, 에러메시지 전송.
-				final TransportChannel transportChannel = new TransportChannel(ctx.getChannel(), requestId);
-				transportChannel.sendResponse(e1);
-
-			} finally {
-				wrappedStream.close();
-			}
-			
-			if (buffer.readerIndex() != expectedIndexReader) {
-				if (buffer.readerIndex() < expectedIndexReader) {
-					logger.warn(
-							"Message not fully read (request) for [{}] and action [{}], resetting",
-							requestId);
-				} else {
-					logger.warn(
-							"Message read past expected size (request) for [{}] and action [{}], resetting",
-							requestId);
-				}
-				buffer.readerIndex(expectedIndexReader);
-			}
-			
 		}
+		
+		logger.debug("file received[{}]>> {}", type, e);
+		buffer.readByte();//type을 읽어서 버린다.
+		int dataLength = buffer.readInt();
+
+		int markedReaderIndex = buffer.readerIndex();
+		int expectedIndexReader = markedReaderIndex + dataLength;
+		StreamInput wrappedStream = new ChannelBufferStreamInput(buffer,dataLength);
+
+		long requestId = wrappedStream.readLong();
+		byte status = wrappedStream.readByte();
+		
+		try {
+			handleFileTransportRequest(ctx.getChannel(), wrappedStream, requestId);
+		} catch (IOException e1) {
+			logger.error("파일기록중 에러발생", e1);
+			// 파일기록중 에러발생하면, 에러메시지 전송.
+			final TransportChannel transportChannel = new TransportChannel(ctx.getChannel(), requestId);
+			transportChannel.sendResponse(e1);
+
+		} finally {
+			wrappedStream.close();
+		}
+		
+		if (buffer.readerIndex() != expectedIndexReader) {
+			if (buffer.readerIndex() < expectedIndexReader) {
+				logger.warn(
+						"Message not fully read (request) for [{}] and action [{}], resetting",
+						requestId);
+			} else {
+				logger.warn(
+						"Message read past expected size (request) for [{}] and action [{}], resetting",
+						requestId);
+			}
+			buffer.readerIndex(expectedIndexReader);
+		}
+			
 
 
 	}
@@ -97,7 +97,6 @@ public class FileChannelHandler extends SimpleChannelUpstreamHandler {
 
 	private void handleFileTransportRequest(Channel channel, StreamInput input,
 			long requestId) throws IOException {
-		//TODO 모두 메모리로 읽어들여 내부 Q에 저장한다. Q 최대한계에 다다르면 일단 blocking대기..
 
 		// seq(4) + [filepath(string) + filesize(long) + checksumCRC32(long)]+hashfilepath(string) + datalength(vint) + data
 		int seq = input.readInt();
@@ -108,11 +107,11 @@ public class FileChannelHandler extends SimpleChannelUpstreamHandler {
 			filePath = input.readString();
 			fileSize = input.readLong();
 			checksumCRC32 = input.readLong();
-			logger.debug("File Receive filesize ={}, crc={}, file={}", new Object[]{fileSize, checksumCRC32, filePath});
+			logger.debug("File Receive seq={}, filesize={}, crc={}, file={}", new Object[]{seq, fileSize, checksumCRC32, filePath});
 		}
-		String hashedFilePath = input.readString();
+		String fileKey = input.readString();
 
-		fileHandler.handleFile(seq, filePath, fileSize, checksumCRC32, hashedFilePath, input);
+		fileHandler.handleFile(seq, filePath, fileSize, checksumCRC32, fileKey, input);
 		// 파일에 쓰는것은 비동기적으로 수행하도록 놓아둔다.
 	}
 

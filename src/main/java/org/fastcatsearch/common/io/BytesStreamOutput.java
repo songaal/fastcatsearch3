@@ -68,12 +68,12 @@ public class BytesStreamOutput extends StreamOutput implements BytesStream {
     }
 
     @Override
-    public void writeByte(int b) throws IOException {
+    public void writeByte(byte b) throws IOException {
         int newcount = count + 1;
         if (newcount > buf.length) {
             buf = Arrays.copyOf(buf, Bytes.oversize(newcount, 1));
         }
-        buf[count] = (byte)b;
+        buf[count] = b;
         count = newcount;
     }
 

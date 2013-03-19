@@ -38,7 +38,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
 	@Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
             throws Exception {
-		logger.debug("message received >> {}", e);
+		
 		Object m = e.getMessage();
         if (!(m instanceof ChannelBuffer)) {
             ctx.sendUpstream(e);
@@ -48,22 +48,23 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         ChannelBuffer buffer = (ChannelBuffer) m;
         int readerIndex = buffer.readerIndex();
         byte type = buffer.getByte(readerIndex);
-        logger.debug("## TYPE = {}", type);
-        //파일전송이면 올려보낸다.
-        if (TransportOption.isFile(type)) {
+        
+        //타입이 메시지가 아니면 올려보낸다.
+        if (!TransportOption.isTypeMessage(type)) {
         	ctx.sendUpstream(e);
             return;
         }
         
-        buffer.readByte();
+        logger.debug("message received[{}]>> {}", type, e);
+        buffer.readByte();//type을 읽어서 버린다.
         int dataLength = buffer.readInt();
         
         int markedReaderIndex = buffer.readerIndex();
         int expectedIndexReader = markedReaderIndex + dataLength;
         StreamInput wrappedStream = new ChannelBufferStreamInput(buffer, dataLength);
         
-        long requestId = buffer.readLong();
-		byte status = buffer.readByte();
+        long requestId = wrappedStream.readLong();
+		byte status = wrappedStream.readByte();
 		
 		logger.debug("## readIndex={}, writerIndex={}", buffer.readerIndex(), buffer.writerIndex());
 		//logger.debug("## readString={}", wrappedStream.readString());

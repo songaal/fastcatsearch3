@@ -46,7 +46,8 @@ public class TransportChannel {
 
 
     public void sendResponse(Streamable response) throws IOException {
-    	byte type = 0;//0이면 메시지, setFile이면 파일전송.
+    	byte type = 0;
+    	type = TransportOption.setTypeMessage(type);
     	byte status = 0;
     	status = TransportOption.setResponse(status);
         CachedStreamOutput.Entry cachedEntry = CachedStreamOutput.popEntry();
@@ -64,6 +65,7 @@ public class TransportChannel {
     
     public void sendResponse(Throwable error) throws IOException {
     	byte type = 0;
+    	type = TransportOption.setTypeMessage(type);
     	byte status = 0;
         status = TransportOption.setError(status);
         

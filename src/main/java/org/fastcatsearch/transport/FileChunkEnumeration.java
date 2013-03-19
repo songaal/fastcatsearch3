@@ -47,7 +47,7 @@ public class FileChunkEnumeration implements Enumeration<BytesReference>{
 		try {
 			int n = fis.read(buffer);
 			nRead += n;
-			logger.debug("totalread = {}", nRead);
+//			logger.debug("totalread = {}", nRead);
 			return new BytesArray(buffer, 0, n);
 		} catch (IOException e) {
 			logger.error("", e);

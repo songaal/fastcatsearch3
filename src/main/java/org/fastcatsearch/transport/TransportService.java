@@ -414,6 +414,7 @@ public class TransportService extends CatServiceComponent {
 		NodeChannels channels = getNodeChannels(node);
 		Channel targetChannel = channels.getHighChannel();
 		byte type = 0;
+		type = TransportOption.setTypeMessage(type);
         byte status = 0;
         status = TransportOption.setRequest(status);
         CachedStreamOutput.Entry cachedEntry = CachedStreamOutput.popEntry();
@@ -444,8 +445,9 @@ public class TransportService extends CatServiceComponent {
 		NodeChannels channels = getNodeChannels(node);
 		Channel targetChannel = channels.getLowChannel();
 		byte type = 0;
-		type = TransportOption.setFile(type);
+		type = TransportOption.setTypeFile(type);
 		byte status = 0;
+		logger.debug("sendFileRequest type={}, file={}", type, filePath);
         FileChunkEnumeration enumeration = null;
         try{
         	File file = new File(IRSettings.path(filePath));
@@ -497,19 +499,38 @@ public class TransportService extends CatServiceComponent {
 	            
 	            //write file data
 	            stream.writeVInt(bytesRef.length());
-	            stream.write(bytesRef.array());
+	            stream.write(bytesRef.array(), bytesRef.arrayOffset(), bytesRef.length());
 	            
 	            stream.close();
 	            //TODO 만약 이 라인 이전에 에러발생시 cache가 리턴되지 않고 누락되는 잠재버그가 발생할수있다.
 	            
 	            ChannelBuffer buffer = stream.bytes().toChannelBuffer();
 	            MessageProtocol.writeHeader(buffer, type, requestId, status);
+	            //
+	            //TEST buffer 검증.
+	            //
+	            int readerIndex = buffer.readerIndex();
+	            readerIndex += 2;
+	            assert type == buffer.getByte(readerIndex);
+	            readerIndex += 1;
+	            readerIndex += 4;
+	            
+	            assert requestId == buffer.getLong(readerIndex);
+	            readerIndex += 8;
+	            assert status == buffer.getByte(readerIndex);
+	            readerIndex += 1;
+	            assert seq == buffer.getInt(readerIndex);
+	            readerIndex += 4;
+	            
+	            
+	            
 	            
 	            ChannelFuture future = targetChannel.write(buffer);
 	            future.addListener(new CacheFutureListener(cachedEntry));
 	    	}
         
-	    	assert fileSize != writeSize: "파일사이즈가 다릅니다.";
+	    	assert fileSize == writeSize: "파일사이즈가 다릅니다.";
+	    	
 	    	if(fileSize != writeSize){
 	    		logger.error("파일사이즈가 다릅니다. expected={}, actual={}, file={}", new Object[]{fileSize, writeSize, filePath});
 	    	}else{

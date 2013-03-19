@@ -6,12 +6,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.common.io.StreamInput;
 
 public class FileTransportHandler {
@@ -20,7 +22,7 @@ public class FileTransportHandler {
 	private Map<String, FileStreamHandle> fileMap;
 	
 	public FileTransportHandler(){
-		fileMap = new HashMap<String, FileStreamHandle>();
+		fileMap = new ConcurrentHashMap<String, FileStreamHandle>();
 	}
 	
 	public void handleFile(int seq, String filePath, long fileSize, long checksumCRC32, String fileKey, StreamInput input) throws IOException {
@@ -77,7 +79,7 @@ public class FileTransportHandler {
 		FileOutputStream fos;
 		long wroteBytes;
 		byte[] buf = new byte[1024];
-		
+		long startTime = System.currentTimeMillis();
 		
 		public FileStreamHandle(String filePath, long fileSize, long checksumCRC32) throws IOException{
 			this.file = new File(filePath);
@@ -98,8 +100,13 @@ public class FileTransportHandler {
 		}
 
 		public boolean isDone() {
-			logger.debug("isDone wrote = {}/ {}", wroteBytes, fileSize);
-			return wroteBytes >= fileSize;
+//			logger.debug("isDone wrote = {}/ {}", wroteBytes, fileSize);
+			if(wroteBytes == fileSize){
+				logger.info("파일전송완료. time={}, file={}", Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - startTime), filePath);
+			}else if(wroteBytes > fileSize) {
+				logger.error("파일 사이즈가 더 큽니다. actual={}, expected={}, file={}", new Object[]{wroteBytes, fileSize, filePath});
+			}
+			return wroteBytes == fileSize;
 		}
 		
 		public void doChecksumValidation() throws IOException{
@@ -107,6 +114,8 @@ public class FileTransportHandler {
 			long actualChecksum = FileUtils.checksumCRC32(file);
 			if(actualChecksum != checksumCRC32){
 				throw new IOException("파일의 checksum이 일치하지 않습니다.expected="+checksumCRC32+", actual="+actualChecksum+", file="+filePath);
+			}else{
+				logger.debug("파일검증완료. checksum={}, file={}", checksumCRC32, filePath);
 			}
 			
 		}

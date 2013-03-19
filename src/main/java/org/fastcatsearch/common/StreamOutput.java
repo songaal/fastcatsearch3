@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.fastcatsearch.common.io;
+package org.fastcatsearch.common;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -25,8 +25,6 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.fastcatsearch.common.BytesReference;
 
 /**
  *
