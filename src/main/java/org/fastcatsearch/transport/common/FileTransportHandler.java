@@ -31,8 +31,14 @@ public class FileTransportHandler {
 			//새로 생성.
 			if(fileHandle == null){
 				String absolutePath = IRSettings.path(filePath);
+				logger.debug("## {} >> {}", filePath, absolutePath);
 				try {
-					fileHandle = new FileStreamHandle(absolutePath, fileSize, checksumCRC32);
+					File file = new File(absolutePath);
+					File dir = file.getParentFile();
+					if(dir != null){
+						dir.mkdirs();
+					}
+					fileHandle = new FileStreamHandle(file, fileSize, checksumCRC32);
 					fileMap.put(fileKey, fileHandle);
 					logger.debug("File handle map size = {}", fileMap.size());
 				} catch (FileNotFoundException e) {
@@ -81,9 +87,9 @@ public class FileTransportHandler {
 		byte[] buf = new byte[1024];
 		long startTime = System.currentTimeMillis();
 		
-		public FileStreamHandle(String filePath, long fileSize, long checksumCRC32) throws IOException{
-			this.file = new File(filePath);
-			this.filePath = filePath;
+		public FileStreamHandle(File file, long fileSize, long checksumCRC32) throws IOException{
+			this.file = file;
+			this.filePath = file.getAbsolutePath();
 			this.fileSize = fileSize;
 			this.checksumCRC32 = checksumCRC32;
 			try {

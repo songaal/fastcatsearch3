@@ -71,8 +71,10 @@ public class TransportServiceTest {
 //		transportService1.connectToNode(node2);
 //		transportService2.connectToNode(node1);
 		
-		String filePath = "git-1.8.1.3-intel-universal-snow-leopard.dmg";
-		SendFileResultFuture future = transportService1.sendFile(node2, filePath);
+		String filePath = "/Users/swsong/Downloads/git-1.8.1.3-intel-universal-snow-leopard.dmg";
+		File sourceFile = new File(filePath);
+		File tartgetFile = new File("collection/a.dmg");
+		SendFileResultFuture future = transportService1.sendFile(node2, sourceFile, tartgetFile);
 		Object obj = future.take();
 		logger.debug("result >> {}", obj);
 		

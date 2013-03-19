@@ -369,12 +369,12 @@ public class TransportService extends CatServiceComponent {
         }
     }
     
-    public SendFileResultFuture sendFile(final Node node, final String filePath) throws TransportException {
+    public SendFileResultFuture sendFile(final Node node, File sourcefile, File targetFile) throws TransportException {
     	final long requestId = newRequestId();
     	try {
     		SendFileResultFuture resultFuture = new SendFileResultFuture(requestId, resultFutureMap, System.currentTimeMillis());
             resultFutureMap.put(requestId, resultFuture);
-            sendFileRequest(node, requestId, filePath, resultFuture);
+            sendFileRequest(node, requestId, sourcefile, targetFile, resultFuture);
             
             return resultFuture;
         } catch (final Exception e) {
@@ -441,35 +441,30 @@ public class TransportService extends CatServiceComponent {
     /*
      * header + seq(4) + [filepath(string) + filesize(long) + checksumCRC32(long)]+ hashfilepath(string) + datalength(vint) + data 
      * */
-	private void sendFileRequest(final Node node, final long requestId, String filePath, SendFileResultFuture resultFuture) throws IOException, TransportException {
+	private void sendFileRequest(final Node node, final long requestId, File sourcefile, File targetFile, SendFileResultFuture resultFuture) throws IOException, TransportException {
 		NodeChannels channels = getNodeChannels(node);
 		Channel targetChannel = channels.getLowChannel();
 		byte type = 0;
 		type = TransportOption.setTypeFile(type);
 		byte status = 0;
-		logger.debug("sendFileRequest type={}, file={}", type, filePath);
+		logger.debug("sendFileRequest type={}, {} >> {}", new Object[]{type, sourcefile.getAbsolutePath(), targetFile.getAbsolutePath()});
         FileChunkEnumeration enumeration = null;
         try{
-        	File file = new File(IRSettings.path(filePath));
-        	if(file.exists()){
-        		logger.debug("Send filesize ={}, crc={}, file={}", new Object[]{file.length(), FileUtils.checksumCRC32(file), filePath});
-        	}else{
-        		throw new IOException("파일을 찾을수 없습니다.file = " + file.getAbsolutePath());
+        	if(!sourcefile.exists()){
+        		throw new IOException("파일을 찾을수 없습니다.file = " + sourcefile.getAbsolutePath());
         	}
-        	enumeration = new FileChunkEnumeration(file, sendFileChunkSize);
-	    	long checksumCRC32 = FileUtils.checksumCRC32(file);
-	        long fileSize = file.length();
+        	enumeration = new FileChunkEnumeration(sourcefile, sendFileChunkSize);
+	    	long checksumCRC32 = FileUtils.checksumCRC32(sourcefile);
+	        long fileSize = sourcefile.length();
 	        long writeSize = 0;
-	        String hashedFilePath = getHashedFilePath(filePath);
-	        
-	        
-	        //FIXME test용도.
-	        filePath = filePath + ".1";
-	        
+	        String sourceFilePath = sourcefile.getAbsolutePath();
+	        String targetFilePath = targetFile.getPath();
+	        String hashedFilePath = getHashedFilePath(sourceFilePath);
+	        logger.debug("Send filesize ={}, crc={}, file={}", new Object[]{fileSize, checksumCRC32, sourceFilePath});	        
 	        
 	    	for(int seq = 0; enumeration.hasMoreElements(); seq++){
 	    		if(resultFuture.isCanceled()){
-	    			logger.info("파일전송이 중단되었습니다. file={}", file.getAbsolutePath());
+	    			logger.info("파일전송이 중단되었습니다. file={}", sourceFilePath);
 	    			break;
 	    		}
 	    		
@@ -488,7 +483,7 @@ public class TransportService extends CatServiceComponent {
 	            if(seq == 0){
 	            	//시작시에는 파일명과 총파일크기를 보낸다.
 	                //write file path
-	                stream.writeString(filePath);
+	                stream.writeString(targetFilePath);
 	                //write file size
 	                stream.writeLong(fileSize);
 	                stream.writeLong(checksumCRC32);
@@ -532,9 +527,9 @@ public class TransportService extends CatServiceComponent {
 	    	assert fileSize == writeSize: "파일사이즈가 다릅니다.";
 	    	
 	    	if(fileSize != writeSize){
-	    		logger.error("파일사이즈가 다릅니다. expected={}, actual={}, file={}", new Object[]{fileSize, writeSize, filePath});
+	    		logger.error("파일사이즈가 다릅니다. expected={}, actual={}, file={}", new Object[]{fileSize, writeSize, sourceFilePath});
 	    	}else{
-	    		logger.error("File Write Success filesize={}, file={}", writeSize, filePath);
+	    		logger.error("File Write Success filesize={}, file={}", writeSize, sourceFilePath);
 	    	}
         }finally{
         	if(enumeration != null){
