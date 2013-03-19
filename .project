@@ -3,6 +3,7 @@
 	<name>fastcatsearch</name>
 	<comment></comment>
 	<projects>
+		<project>fastcatsearch-ir</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
