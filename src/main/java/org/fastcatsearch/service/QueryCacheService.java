@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class QueryCacheService extends CatServiceComponent{
+public class QueryCacheService extends AbstractService{
 	private static QueryCacheService instance = new QueryCacheService();
 	
 	private LinkedHashMap<String, Result> LRUCache;

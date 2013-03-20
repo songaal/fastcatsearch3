@@ -24,6 +24,7 @@ import org.fastcatsearch.common.BytesReference;
 import org.fastcatsearch.common.io.BytesStreamOutput;
 import org.fastcatsearch.common.io.CachedStreamOutput;
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.module.AbstractModule;
 import org.fastcatsearch.settings.Settings;
@@ -54,8 +55,6 @@ import org.slf4j.LoggerFactory;
 
 public class TransportModule extends AbstractModule {
 	private static Logger logger = LoggerFactory.getLogger(TransportModule.class);
-	
-	public static final int OPTION_COMPRESS_CHANNEL = 1 >> 1;
 	
 	private Map<Long, ResultFuture> resultFutureMap;
 
@@ -91,8 +90,8 @@ public class TransportModule extends AbstractModule {
     private final ReadWriteLock globalLock = new ReentrantReadWriteLock();
     private FileTransportHandler fileTransportHandler;
    
-	public TransportModule(Settings settings){
-		super(settings);
+	public TransportModule(Environment environment, Settings settings){
+		super(environment, settings);
 		logger.debug("settings>>{}", settings);
 		this.connectMutex = new Object[500];
         for (int i = 0; i < connectMutex.length; i++) {
@@ -107,7 +106,7 @@ public class TransportModule extends AbstractModule {
         this.reuseAddress = settings.getBoolean("reuse_address", true);
         this.tcpSendBufferSize = settings.getInt("tcp_send_buffer_size", 8192);
         this.tcpReceiveBufferSize = settings.getInt("tcp_receive_buffer_size", 8192);
-        this.sendFileChunkSize = settings.getInt("send_file_chunk_size", 3 * 1024 * 1024);
+        this.sendFileChunkSize = (int) settings.getByteSize("send_file_chunk_size", 3 * 1024 * 1024);
         
         logger.debug("Transport setting worker_count[{}], port[{}], connect_timeout[{}]",
                 new Object[]{workerCount, port, connectTimeout});

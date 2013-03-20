@@ -22,7 +22,7 @@ import org.fastcatsearch.db.object.IndexingResult;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentInfo;
-import org.fastcatsearch.service.CatServiceComponent;
+import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.ServiceException;
 
@@ -33,7 +33,7 @@ import org.fastcatsearch.service.ServiceException;
  * @author swsong
  *
  */
-public class StatisticsInfoService extends CatServiceComponent {
+public class StatisticsInfoService extends AbstractService {
 
 	private static final String GLOBAL_COLLECTION_NAME = "__global__";
 	private static long PERIOD = 1000; //1초마다 Task를 수행한다.

@@ -36,7 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class KeywordService extends CatServiceComponent{
+public class KeywordService extends AbstractService{
 
 	private static final Logger logger = LoggerFactory.getLogger(KeywordService.class);
 	

@@ -4,12 +4,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONStringer;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
+
+import com.google.gson.Gson;
 
 public class SettingsTest {
 
@@ -89,6 +93,38 @@ public class SettingsTest {
         System.out.println("---");
         List<Object> nodeList = transportSettings.getList("node_list");
         System.out.println(nodeList);
+	}
+	
+	@Test
+	public void testMapListSetting() throws IOException {
+		Map<String, Object> serviceSettings = new HashMap<String, Object>();
+		serviceSettings.put("node", 123);
+		serviceSettings.put("name", "dbservice");
+		List<Object> list = new ArrayList<Object>();
+		Map<String, Object> el1 = new HashMap<String, Object>();
+		el1.put("name", "id");
+		el1.put("size", 5);
+		list.add(el1);
+		Map<String, Object> el2 = new HashMap<String, Object>();
+		el2.put("name", "id2");
+		el1.put("size", 10);
+		list.add(el2);
+		Map<String, Object> el3 = new HashMap<String, Object>();
+		el2.put("name", "id3");
+		el1.put("size", new int[]{1,2,3,4,5});
+		el1.put("list", new String[]{"a","b","c"});
+		list.add(el3);
+		
+//		serviceSettings.put("field_list", list);
+//		
+//		Settings settings = new Settings(serviceSettings);
+//		System.out.println(settings.toString());
+		
+		JSONStringer s = new JSONStringer();
+//		s.object().key("aa").array().
+		Gson gson = new Gson();
+		System.out.println(gson.toJson(list));
+		
 	}
 
 }

@@ -32,11 +32,11 @@ import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.keyword.KeywordFail;
 import org.fastcatsearch.keyword.KeywordHit;
-import org.fastcatsearch.service.CatServiceComponent;
+import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceException;
 
 
-public class DBHandler extends CatServiceComponent {
+public class DBHandler extends AbstractService {
 
 	public final static String DB_NAME = "db";
 	private String JDBC_URL;

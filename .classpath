@@ -37,6 +37,7 @@
 	<classpathentry kind="lib" path="lib/httpclient/httpcore-4.2.1.jar"/>
 	<classpathentry kind="lib" path="lib/netty-3.6.2.Final.jar" sourcepath="/Users/swsong/workspace/LIB_SOURCE/netty-3.6.3.Final-sources.jar"/>
 	<classpathentry kind="lib" path="lib/snakeyaml-1.11.jar" sourcepath="/Users/swsong/workspace/LIB_SOURCE/snakeyaml-1.11-sources.jar"/>
+	<classpathentry kind="lib" path="lib/gson-2.2.2.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/fastcatsearch-ir"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

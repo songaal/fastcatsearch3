@@ -12,32 +12,36 @@
 package org.fastcatsearch.control;
 
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.fastcatsearch.common.ThreadPoolFactory;
 import org.fastcatsearch.db.DBHandler;
 import org.fastcatsearch.db.object.IndexingResult;
+import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.SettingException;
-import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.job.FullIndexJob;
 import org.fastcatsearch.job.IncIndexJob;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.SearchJob;
 import org.fastcatsearch.job.result.JobResultIndex;
 import org.fastcatsearch.log.EventDBLogger;
-import org.fastcatsearch.service.CatServiceComponent;
+import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.settings.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +52,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 
-public class JobController extends CatServiceComponent{
+public class JobController extends AbstractService {
 	private static Logger logger = LoggerFactory.getLogger(JobController.class);
 	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 	
@@ -58,16 +62,20 @@ public class JobController extends CatServiceComponent{
 	private AtomicLong jobId;
 	
 	private static JobController instance;
-	private ThreadPoolExecutor jobExecutor;
+	private ExecutorService jobExecutor;
+	private ExecutorService searchJobExecutor;
+	private ExecutorService otherJobExecutor;
+	private ScheduledExecutorService scheduledJobExecutor;
+	private ScheduledExecutorService otherScheduledJobExecutor;
+	
 	private JobControllerWorker worker;
 	private JobScheduler jobScheduler;
 	private IndexingMutex indexingMutex;
 	private boolean useJobScheduler;
 	
-	public static JobController getInstance(){
-		if(instance == null)
-			instance = new JobController();
-		return instance;
+	
+	public JobController(Environment environment, Settings settings){
+		super(environment, settings);
 	}
 	
 	public void setUseJobScheduler(boolean useJobScheduler){
@@ -103,7 +111,7 @@ public class JobController extends CatServiceComponent{
 		
 		return jobScheduler.reloadIndexingSchedule(collection, type, isActive);
 	}
-	public ThreadPoolExecutor getJobExecutor(){
+	public ExecutorService getJobExecutor(){
 		return jobExecutor;
 	}
 	
@@ -238,7 +246,7 @@ public class JobController extends CatServiceComponent{
 		
 	}
 	
-	protected boolean start0() throws ServiceException {
+	protected boolean doStart() throws ServiceException {
 		jobId = new AtomicLong();
 		resultMap = new ConcurrentHashMap<Long, JobResult>();
 		runningJobList = new ConcurrentHashMap<Long, Job>();
@@ -249,11 +257,19 @@ public class JobController extends CatServiceComponent{
 //		}
 		
 		IRConfig irconfig = IRSettings.getConfig();
-		int executorCorePoolSize = irconfig.getInt("jobExecutor.core.poolsize");
 		int executorMaxPoolSize = irconfig.getInt("jobExecutor.max.poolsize");
-		int executorKeepAliveTime = irconfig.getInt("jobExecutor.keepAliveTime");
-		jobExecutor = new ThreadPoolExecutor(executorCorePoolSize, executorMaxPoolSize
-				, executorKeepAliveTime, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(executorMaxPoolSize), new ThreadPoolExecutor.CallerRunsPolicy());
+		
+		int indexJobMaxSize = 100;
+		int searchJobMaxSize = 100;
+		int otherJobMaxSize = 100;
+		int indexScheduledJobMaxSize = 100;
+		
+		jobExecutor = ThreadPoolFactory.newUnlimitedCachedThreadPool("IndexJobExecutor");
+		searchJobExecutor = ThreadPoolFactory.newUnlimitedCachedDaemonThreadPool("SearchJobExecutor");
+		otherJobExecutor = ThreadPoolFactory.newUnlimitedCachedDaemonThreadPool("OtherJobExecutor");
+		scheduledJobExecutor = ThreadPoolFactory.newScheduledThreadPool("IndexScheduledJobExecutor");
+		otherScheduledJobExecutor = ThreadPoolFactory.newScheduledThreadPool("OtherScheduledJobExecutor");
+		
 //		try{
 		worker = new JobControllerWorker();
 		worker.start();
@@ -269,7 +285,7 @@ public class JobController extends CatServiceComponent{
 		return true;
 	}
 	
-	protected boolean shutdown0() {
+	protected boolean doStop() {
 		logger.debug("JobController shutdown requested.");
 		worker.interrupt();
 		resultMap.clear();
@@ -282,7 +298,9 @@ public class JobController extends CatServiceComponent{
 		logger.debug("JobController shutdown OK!");
 		return true;
 	}
-
+	protected boolean doClose() {
+		return true;
+	}
 	class JobControllerWorker extends Thread{
 		
 		public void run(){

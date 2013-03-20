@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 
 
 
-public class ServiceHandler extends CatServiceComponent{
+public class ServiceHandler extends AbstractService{
 	private static Logger logger = LoggerFactory.getLogger(ServiceHandler.class);
 	
 	//always use Root context

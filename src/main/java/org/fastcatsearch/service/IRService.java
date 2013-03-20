@@ -33,7 +33,7 @@ import org.fastcatsearch.ir.dic.Dic;
 import org.fastcatsearch.ir.search.CollectionHandler;
 
 
-public class IRService extends CatServiceComponent{
+public class IRService extends AbstractService{
 	private static IRService instance;
 	
 	private Map<String, CollectionHandler> collectionHandlerMap = new HashMap<String, CollectionHandler>();

@@ -24,6 +24,7 @@ import org.fastcatsearch.db.object.IndexingSchedule;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.job.Job;
+import org.fastcatsearch.service.ServiceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -152,7 +153,8 @@ public class JobScheduler {
 			JobResult jobResult = null;
 			
 			try {
-				jobResult = JobController.getInstance().offer(job);
+				jobResult = ServiceFactory.getInstance().getService(JobController.class).offer(job);
+//				jobResult = JobController.getInstance().offer(job);
 			} catch (NullPointerException e) {
 				logger.error(e.getMessage(),e);
 			}

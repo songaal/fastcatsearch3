@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.control.JobController;
+import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.job.TestJob;
@@ -18,26 +19,27 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TransportServiceTest {
-	private static Logger logger = LoggerFactory.getLogger(TransportServiceTest.class);
+public class TransportModuleTest {
+	private static Logger logger = LoggerFactory.getLogger(TransportModuleTest.class);
 	
 	public static void main(String[] args) throws ServiceException, TransportException {
 		IRSettings.setHome("testHome/fastcatsearch");
+		Environment environment = new Environment("testHome/fastcatsearch");
 		JobController jobController = JobController.getInstance();
 		jobController.setUseJobScheduler(false);
 		jobController.start();
-//		new TransportServiceTest().testSendMessage();
-		new TransportServiceTest().testSendFile();
+//		new TransportServiceTest().testSendMessage(environment);
+		new TransportModuleTest().testSendFile(environment);
 	}
 	
-	public void testSendMessage() throws ServiceException, TransportException {
+	public void testSendMessage(Environment environment) throws ServiceException, TransportException {
 		Settings settings = new Settings();
 		settings.put("node_port", 9100);
 		Settings settings2 = new Settings();
 		settings2.put("node_port", 9200);
 		
-		TransportModule transportService1 = new TransportModule(settings);
-		TransportModule transportService2 = new TransportModule(settings2);
+		TransportModule transportService1 = new TransportModule(environment, settings);
+		TransportModule transportService2 = new TransportModule(environment, settings2);
 		transportService1.load();
 		transportService2.load();
 		
@@ -59,14 +61,14 @@ public class TransportServiceTest {
 	}
 
 	
-	public void testSendFile() throws ServiceException, TransportException {
+	public void testSendFile(Environment environment) throws ServiceException, TransportException {
 		Settings settings = new Settings();
 		settings.put("node_port", 9100);
 		Settings settings2 = new Settings();
 		settings2.put("node_port", 9200);
 		
-		TransportModule transportService1 = new TransportModule(settings);
-		TransportModule transportService2 = new TransportModule(settings2);
+		TransportModule transportService1 = new TransportModule(environment, settings);
+		TransportModule transportService2 = new TransportModule(environment, settings2);
 		transportService1.load();
 		transportService2.load();
 		

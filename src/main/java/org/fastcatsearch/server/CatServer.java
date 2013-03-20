@@ -35,7 +35,6 @@ public class CatServer {
 	private JobController jobController;
 	private DBHandler dbHandler;
 	private KeywordService keywordService;
-	private PreparedLoader preparedLoader;
 	private QueryCacheService cacheService;
 	private StatisticsInfoService statisticsInfoService;
 	
@@ -90,7 +89,6 @@ public class CatServer {
 		jobController = JobController.getInstance();
 		irService = IRService.getInstance();
 		cacheService = QueryCacheService.getInstance();
-		preparedLoader = new PreparedLoader();
 		statisticsInfoService = StatisticsInfoService.getInstance();
 		
 		try{
@@ -106,8 +104,6 @@ public class CatServer {
 		try{
 			dbHandler.start();
 			jobController.start();
-			
-			preparedLoader.load();
 			
 			if(serviceHandler != null)
 				serviceHandler.start();
@@ -131,28 +127,33 @@ public class CatServer {
 	}
 	
 	public boolean stop() throws ServiceException{
-		preparedLoader.unload();
-		statisticsInfoService.shutdown();
-		keywordService.shutdown();
-		irService.shutdown();
+		statisticsInfoService.stop();
+		keywordService.stop();
+		irService.stop();
 		if(serviceHandler != null)
-			serviceHandler.shutdown();
-		jobController.shutdown();
-		dbHandler.shutdown();
-		cacheService.shutdown();
-		logger.info("CatServer shutdown!");
+			serviceHandler.stop();
+		jobController.stop();
+		dbHandler.stop();
+		cacheService.stop();
+		logger.info("CatServer stop!");
 		EventDBLogger.info(EventDBLogger.CATE_MANAGEMENT, "검색엔진이 정지했습니다.", "");
 		isRunning = false;
 		return true;
 	}
 	
 	public void destroy() throws ServiceException{
+		dbHandler.close();
+		irService.close();
+		serviceHandler.close();
+		jobController.close();
+		keywordService.close();
+		cacheService.close();
+		statisticsInfoService.close();
 		dbHandler = null;
 		irService = null;
 		serviceHandler = null;
 		jobController = null;
 		keywordService = null;
-		preparedLoader = null;
 		cacheService = null;
 		statisticsInfoService = null;
 	}
