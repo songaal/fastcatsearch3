@@ -4,11 +4,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 
 public class Settings {
+	private static Logger logger = LoggerFactory.getLogger(Settings.class);
+	
 	private static final int K = 1024;
 	private static final int M = K * K;
 	private static final int G = K * K * K;
@@ -21,17 +25,17 @@ public class Settings {
 	public Settings(Map<String, Object> map) {
 		this.map = map;
 	}
-	public Settings getSubSettings(String... keys) {
-		return getSubSettings(false, keys);
+	public Settings getSubSettings(String key) {
+		return getSubSettings(key, false);
 	}
-	public Settings getCopiedSubSettings(String... keys) {
-		return getSubSettings(true, keys);
+	public Settings getCopiedSubSettings(String key) {
+		return getSubSettings(key, true);
 	}
-	public synchronized Settings getSubSettings(boolean copy, String... keys) {
+	public synchronized Settings getSubSettings(String key, boolean deepCopy) {
+		String[] keys = key.split("\\.");
 		Map<String, Object> workMap = map;
 		for (int i = 0; i < keys.length; i++) {
-			String key = keys[i];
-			Object value = workMap.get(key);
+			Object value = workMap.get(keys[i]);
 			if(value == null){
 				return null;
 			}
@@ -41,34 +45,39 @@ public class Settings {
 				return null;
 			}
 		}
-		if(copy){
+		if(deepCopy){
 			return new Settings(workMap);
 		}else{
 			return new Settings(new HashMap<String, Object>(workMap));
 		}
 	}
 
-	public int getInt(String... keys) {
-		return getInt(-1, keys);
+	public int getInt(String key) {
+		return getInt(key, -1);
 	}
 
-	public long getLong(String keys) {
-		return getLong(-1, keys);
+	public long getLong(String key) {
+		return getLong(key, -1);
 	}
 
-	public float getFloat(String keys) {
-		return getFloat(-1, keys);
+	public float getFloat(String key) {
+		return getFloat(key, -1);
 	}
 
-	public double getDouble(String keys) {
-		return getDouble(-1, keys);
+	public double getDouble(String key) {
+		return getDouble(key, -1);
 	}
 
-	public boolean getBoolean(String keys) {
-		return getBoolean(false, keys);
+	public boolean getBoolean(String key) {
+		return getBoolean(key, false);
 	}
-	public int getInt(int defaultValue, String... keys){
-		String value = getString(keys);
+	
+	public String getString(String key) {
+		return getString(key, null);
+	}
+	
+	public int getInt(String key, int defaultValue){
+		String value = getString(key);
 		if(value == null){
 			return defaultValue;
 		}else{
@@ -79,8 +88,8 @@ public class Settings {
 			}
 		}
 	}
-	public long getLong(long defaultValue, String... keys){
-		String value = getString(keys);
+	public long getLong(String key, long defaultValue){
+		String value = getString(key);
 		if(value == null){
 			return defaultValue;
 		}else{
@@ -91,8 +100,8 @@ public class Settings {
 			}
 		}
 	}
-	public float getFloat(float defaultValue, String... keys){
-		String value = getString(keys);
+	public float getFloat(String key, float defaultValue){
+		String value = getString(key);
 		if(value == null){
 			return defaultValue;
 		}else{
@@ -103,8 +112,8 @@ public class Settings {
 			}
 		}
 	}
-	public double getDouble(double defaultValue, String... keys){
-		String value = getString(keys);
+	public double getDouble(String key, double defaultValue){
+		String value = getString(key);
 		if(value == null){
 			return defaultValue;
 		}else{
@@ -115,8 +124,8 @@ public class Settings {
 			}
 		}
 	}
-	public boolean getBoolean(boolean defaultValue, String... keys){
-		String value = getString(keys);
+	public boolean getBoolean(String key, boolean defaultValue){
+		String value = getString(key);
 		if(value == null){
 			return defaultValue;
 		}else{
@@ -124,17 +133,17 @@ public class Settings {
 		}
 	}
 	
-	public String getString(String... keys){
-		Object value = getValue(keys);
+	public String getString(String key, String defaultValue){
+		Object value = getValue(key);
 		if(value != null){
 			return value.toString();
 		}else{
-			return null;
+			return defaultValue;
 		}
 	}
 	
-	public List<Object> getList(String... keys){
-		Object value =  getValue(keys);
+	public List<Object> getList(String key){
+		Object value =  getValue(key);
 		if(value instanceof List){
 			return (List<Object>) value;
 		}else{
@@ -143,11 +152,11 @@ public class Settings {
 	}
 	
 	
-	public synchronized Object getValue(String... keys){
+	public synchronized Object getValue(String key){
+		String[] keys = key.split("\\.");
 		Map<String, Object> workMap = this.map;
 		for (int i = 0; i < keys.length; i++) {
-			String key = keys[i];
-			Object value = workMap.get(key);
+			Object value = workMap.get(keys[i]);
 			if(value == null){
 				return null;
 			}
@@ -172,8 +181,8 @@ public class Settings {
 	}
 	
 	
-	public long getByteSize(long defaultValue, String... keys){
-		String str = getString(keys);
+	public long getByteSize(String key, long defaultValue){
+		String str = getString(key);
 		if(str == null)
 			return defaultValue;
 		
@@ -201,22 +210,23 @@ public class Settings {
 			return defaultValue;
 		}
 	}
-	public synchronized void putValueKey(Object newValue, String... keys) {
+	public synchronized void put(String key, Object newValue) {
+		String[] keys = key.split("\\.");
 		Map<String, Object> workMap = this.map;
 		
 		for (int i = 0; i < keys.length; i++) {
 			boolean isLeaf = (i == keys.length - 1);
-			String key = keys[i];
+			String nodeKey = keys[i];
 			if(isLeaf){
-				workMap.put(key, newValue);
+				workMap.put(nodeKey, newValue);
 				return;
 			}
 			
-			Object value = workMap.get(key);
+			Object value = workMap.get(nodeKey);
 			if(value == null || !(value instanceof Map)){
 				//키가 없다면 하위맵을 만들어준다.
 				Map<String, Object> newWorkMap = new HashMap<String, Object>();
-				workMap.put(key, newWorkMap);
+				workMap.put(nodeKey, newWorkMap);
 				workMap = newWorkMap; 
 			}else{
 				workMap = (Map<String, Object>) value;

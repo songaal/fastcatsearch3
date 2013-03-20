@@ -59,10 +59,10 @@ public class SettingsTest {
         input.close();
         Settings settings = new Settings(data);
         System.out.println(settings);
-        System.out.println(settings.getString("service", "server", "host"));
+        System.out.println(settings.getString("service.server.host"));
         System.out.println(settings.getString("module"));
-        System.out.println(settings.getString("module", "transport", "node_list"));
-        Settings transportSettings = settings.getSubSettings("module", "transport");
+        System.out.println(settings.getString("module.transport.node_list"));
+        Settings transportSettings = settings.getSubSettings("module.transport");
         System.out.println("sub=>\n"+transportSettings);
         
         List<Object> nodeList = transportSettings.getList("node_list");
@@ -77,15 +77,16 @@ public class SettingsTest {
         input.close();
         Settings settings = new Settings(data);
         System.out.println(settings);
-        System.out.println(settings.getString("service", "server", "host"));
+        System.out.println(settings.getString("service.server.host"));
         System.out.println(settings.getString("module"));
-        System.out.println(settings.getString("module", "transport", "node_list"));
-        Settings transportSettings = settings.getSubSettings("module", "transport");
-        transportSettings.putValueKey("fastcatsearch.org", "service", "server", "host");
-        transportSettings.putValueKey(1000, "tcp", "delay");
-        transportSettings.putValueKey("nocache", "tcp", "option");
+        System.out.println(settings.getString("module.transport.node_list"));
+        Settings transportSettings = settings.getSubSettings("module.transport");
+        transportSettings.put("service.server.host", "fastcatsearch.org");
+        transportSettings.put("tcp.delay", 1000);
+        transportSettings.put("tcp.option", "nocache");
+        System.out.println("---");
         System.out.println("sub=>\n"+transportSettings);
-        
+        System.out.println("---");
         List<Object> nodeList = transportSettings.getList("node_list");
         System.out.println(nodeList);
 	}

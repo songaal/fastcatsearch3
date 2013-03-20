@@ -93,21 +93,21 @@ public class TransportModule extends AbstractModule {
    
 	public TransportModule(Settings settings){
 		super(settings);
-		
+		logger.debug("settings>>{}", settings);
 		this.connectMutex = new Object[500];
         for (int i = 0; i < connectMutex.length; i++) {
             connectMutex[i] = new Object();
         }
-        this.workerCount = settings.getInt(Runtime.getRuntime().availableProcessors() * 2, "worker_count");
+        this.workerCount = settings.getInt("worker_count", Runtime.getRuntime().availableProcessors() * 2);
         this.port = settings.getInt("node_port");
-        this.connectTimeout = settings.getInt(1000, "connect_timeout");
-        this.bossCount = settings.getInt(1, "boss_count");
-        this.tcpNoDelay = settings.getBoolean(true, "tcp_no_delay");
-        this.tcpKeepAlive = settings.getBoolean(true, "tcp_keep_alive");
-        this.reuseAddress = settings.getBoolean(true, "reuse_address");
-        this.tcpSendBufferSize = settings.getInt(8192, "tcp_send_buffer_size");
-        this.tcpReceiveBufferSize = settings.getInt(8192, "tcp_receive_buffer_size");
-        this.sendFileChunkSize = settings.getInt(3 * 1024 * 1024, "send_file_chunk_size");
+        this.connectTimeout = settings.getInt("connect_timeout", 1000);
+        this.bossCount = settings.getInt("boss_count", 1);
+        this.tcpNoDelay = settings.getBoolean("tcp_no_delay", true);
+        this.tcpKeepAlive = settings.getBoolean("tcp_keep_alive", true);
+        this.reuseAddress = settings.getBoolean("reuse_address", true);
+        this.tcpSendBufferSize = settings.getInt("tcp_send_buffer_size", 8192);
+        this.tcpReceiveBufferSize = settings.getInt("tcp_receive_buffer_size", 8192);
+        this.sendFileChunkSize = settings.getInt("send_file_chunk_size", 3 * 1024 * 1024);
         
         logger.debug("Transport setting worker_count[{}], port[{}], connect_timeout[{}]",
                 new Object[]{workerCount, port, connectTimeout});

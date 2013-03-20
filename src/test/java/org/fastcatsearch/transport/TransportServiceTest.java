@@ -32,9 +32,9 @@ public class TransportServiceTest {
 	
 	public void testSendMessage() throws ServiceException, TransportException {
 		Settings settings = new Settings();
-		settings.putValueKey("9100", "node_port");
+		settings.put("node_port", 9100);
 		Settings settings2 = new Settings();
-		settings2.putValueKey("9200", "node_port");
+		settings2.put("node_port", 9200);
 		
 		TransportModule transportService1 = new TransportModule(settings);
 		TransportModule transportService2 = new TransportModule(settings2);
@@ -60,12 +60,10 @@ public class TransportServiceTest {
 
 	
 	public void testSendFile() throws ServiceException, TransportException {
-		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("9100", "node_port");
-		Map<String, Object> map2 = new HashMap<String, Object>();
-		map2.put("9200", "node_port");
-		Settings settings = new Settings(map);
-		Settings settings2 = new Settings(map);
+		Settings settings = new Settings();
+		settings.put("node_port", 9100);
+		Settings settings2 = new Settings();
+		settings2.put("node_port", 9200);
 		
 		TransportModule transportService1 = new TransportModule(settings);
 		TransportModule transportService2 = new TransportModule(settings2);
