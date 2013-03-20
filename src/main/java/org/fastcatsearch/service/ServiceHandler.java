@@ -16,6 +16,7 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.FastcatSearchEnv;
+import org.fastcatsearch.cli.ConsoleActionServlet;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.servlet.DocumentListServlet;
@@ -41,6 +42,7 @@ public class ServiceHandler extends CatServiceComponent{
 	private String KEYWORD_CONTEXT = "/keyword";
 	private String DOCUMENT_LIST_CONTEXT = "/doclist";
 	private String DOCUMENT_SEARCH_CONTEXT = "/docsearch";
+	private String CONSOLE_CONTEXT = "/console";
 	
 	private Server server;
 	private int SERVER_PORT;
@@ -104,6 +106,9 @@ public class ServiceHandler extends CatServiceComponent{
 		context5.addServlet(new ServletHolder(new DocumentSearchServlet(DocumentSearchServlet.XML_TYPE)),"/xml");
 		handlerList.addHandler(context5);
 		
+		final Context context6 = new Context(server, CONSOLE_CONTEXT, Context.SESSIONS);
+		context6.addServlet(new ServletHolder(new ConsoleActionServlet()), "/command");
+		handlerList.addHandler(context6);
 		
         server.setHandler(handlerList);
         

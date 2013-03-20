@@ -23,11 +23,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.cli.CommandResult.Status;
+import org.fastcatsearch.cli.command.ListCollectionCommand;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class ConsoleActionServlet extends HttpServlet {
 	
 	private static final long serialVersionUID = 4849511865192716149L;
+	private static final Logger logger = LoggerFactory.getLogger(ConsoleActionServlet.class);
 
 	String[] CMD_INFO_SYSTEM = new String[]{"sysinfo"}; //시스템 정보.
 	String[] CMD_SHOW_DICTIONARY = new String[]{"show", "dictionary"};
@@ -47,8 +51,11 @@ public class ConsoleActionServlet extends HttpServlet {
 	String[] CMD_SET_SCHEDULE_FULLINDEX = new String[]{"set", "schedule", "full"};
 	String[] CMD_SET_SCHEDULE_INCINDEX = new String[]{"set", "schedule", "inc"};
 	
+	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		doPost(request,response);
+	}
 	
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String command = request.getParameter("command");
 		String[] commandList = command.split(" ");
 		
@@ -65,6 +72,8 @@ public class ConsoleActionServlet extends HttpServlet {
 		}else if(isCommand(CMD_SHOW_DICTIONARY, commandList)){
 			result = new IndexCollectionCommand().doCommand();
 			
+		}else if(isCommand(CMD_LIST_COLLECTION , commandList)){
+			result = new ListCollectionCommand().doCommand();
 		}else{
 			responseError(response, "Unknown Command : "+command);
 			return;

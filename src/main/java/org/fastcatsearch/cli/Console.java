@@ -10,6 +10,25 @@
  */
 
 package org.fastcatsearch.cli;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+
 /**
  * CLI환경에서 명령을 내리는 프로그램.
  * 
@@ -20,12 +39,21 @@ package org.fastcatsearch.cli;
 
 public class Console {
 	
+	String host;
+	int port;
+	
 	String[] CMD_USE_COLLECTION = new String[]{"use"};
 	
 	String currentCollection;
 	
-	/*
-	 * 항상 처음에는 use [collection명]으로 컬렉션을 선택하고, 향후 계속 해당 collection명을 사용해 함께 전달하도록 한다.
+	public Console(String host, int port) {
+		this.host = host;
+		this.port = port;
+	}
+	
+	/**
+	 * 
+	 * First Of All You Must Call "use ${Collection-Name} "  And Use It (Collection) Until Session Close
 	 * 
 	 * */
 	public static void main(String[] args) {
@@ -38,17 +66,156 @@ public class Console {
 		}
 		
 		String host = args[0];
-		String port = args[1];
+		String portStr = args[1];
 		
-		//TODO 1. HttpClient를 사용하여 접속한다.
+		int port = 8080; // default port
 		
-		//TODO 2. System.in을 라인별로 받아들여 command를 전송한다.
+		try {
+			port = Integer.parseInt(portStr);
+		} catch (NumberFormatException e) {
+			System.out.println("port number is not numeric");
+			printUsage();
+			System.exit(0);
+		}
 		
-		//결과는 json형식이며,
-		//실제 로직은 ConsoleActionServlet에 있으며 모든 요청은 대기없이 즉시 리턴하도록한다.
+		Console console = new Console(host,port);
+		console.interpret();
+	}
+	
+	public void interpret() {
+		
+		//
+		// Return Type Will JSON String
+		// Real Command Logic Described To ConsoleActionServlet.java (?)
+		// It Uses Simple Interpret Logic Without Call-Wait Thread 
+		// 
+		
+		//
+		// Show One Of Two Prompt When Command Phrase Complete Or Not
+		// (Like Mysql Prompt)
+		//
+		boolean completed = true;
+		String[] prompt = new String[] {
+			"fastcatsearch> ", 
+			"            -> "
+		};
+		StringBuilder cmdBuf = new StringBuilder();
+		
+		while(true) {
+			String cmd = readLine(
+					completed?prompt[0]:prompt[1]);
+			//
+			// Command Phrase Will Completed When ';' Appears At End
+			// Except System Command ( help, exit ...)
+			//
+			if(cmd.endsWith(";")) {
+				cmd = cmd.substring(0,cmd.length() -1);
+				completed = true;
+			} else {
+				completed = false;
+			}
+			cmdBuf.append(cmd);
 
+			//
+			// System Command ( help, exit ... )
+			//
+			if(cmdBuf.toString().equals("help")) {
+				printHelp();
+				cmdBuf.setLength(0);
+				completed = true;
+				continue;
+			} else if(cmdBuf.toString().equals("exit")) {
+				System.exit(1);
+			}
+			
+			//
+			// Append Command Buffer When Command Phrase Not Completed
+			//
+			if(!completed) {
+				cmdBuf.append(" ");
+			} else {
+				cmd = cmdBuf.toString();
+				cmdBuf.setLength(0);
+			}
+
+			//
+			// Execute Command (Completed Command Phrase)
+			//
+			if(completed) {
+				String result = communicate(cmd);
+				//우선 임시로 json string 을 그대로 출력하도록 한다.
+				printf("command : %s \nresult : \n%s\n", cmd, result);
+			}
+		}
+	}
+	
+	private HttpClient httpClient;
+	private HttpPost httpPost;
+	private HttpResponse httpResponse;
+	private PrintStream err;
+	
+	public String communicate (String command) {
 		
+		if(httpClient==null) {
+			httpClient = new DefaultHttpClient();
+			String url = "http://"+host+":"+port+"/console/command";
+			httpPost = new HttpPost(url);
+		}
 		
+		InputStreamReader ir = null;
+		BufferedReader br = null;
+		String result = null;
+		try {
+			if(httpPost!=null) {
+				List<NameValuePair>npList = new ArrayList<NameValuePair>();
+				npList.add(new BasicNameValuePair("command", command));
+				httpPost.setEntity(new UrlEncodedFormEntity(npList));
+				httpResponse = httpClient.execute(httpPost);
+				StringBuffer sb = new StringBuffer();
+				if(httpResponse != null){
+					ir = new InputStreamReader(httpResponse.getEntity().getContent());
+					br = new BufferedReader(ir);
+					int inx=0;
+					for(String rline; (rline = br.readLine()) !=null; inx++) {
+						if(inx==0) {
+							result = rline;
+						} else {
+							sb.append(rline).append("\n");
+						}	
+					}
+					
+					if("ERROR".equals(result)) {
+						
+					} else if("SUCCESS".equals(result)) {
+						
+					} else {
+						
+					}
+				}
+				return sb.toString();
+			}
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace(err);
+		} catch (ClientProtocolException e) {
+			e.printStackTrace(err);
+		} catch (IOException e) {
+			e.printStackTrace(err);
+		} finally {
+			if(br!=null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+				}
+			}
+			if(ir!=null) {
+				try {
+					ir.close();
+				} catch (IOException e) {
+				}
+			}
+		}
+		
+		return null;
 	}
 
 	private static void printLicenseHeader() {
@@ -62,6 +229,47 @@ public class Console {
 	private static void printUsage() {
 		
 		System.err.println("[Usage] java Console [host] [port]");
+	}
+	
+	private static void printHelp() {
 		
+		System.out.println("\nhelp : \n");
+	}
+
+	/**
+	 * Read Input Line With Showing Prompt
+	 * @param prompt
+	 * @return
+	 */
+	private static String readLine(String prompt) {
+		String line = null;
+		java.io.Console c = System.console();
+		if (c != null) {
+			line = c.readLine(prompt);
+		} else {
+			// For Eclipse User
+			System.out.print(prompt);
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+			try {
+				line = bufferedReader.readLine();
+			} catch (IOException ignore) { 
+			}
+		}
+		return line;
+	}
+	
+	/**
+	 * Printout Formatted String
+	 * @param format
+	 * @param args
+	 */
+	private static void printf(String format, Object... args) {
+		java.io.Console c = System.console();
+		if (c != null) {
+			c.printf(format, args);
+		} else {
+			// For Eclipse User
+			System.out.print(String.format(format, args));
+		}
 	}
 }

@@ -26,24 +26,21 @@ public class ListCollectionCommand extends Command {
 				sb.append("-");
 			}
 			sb.append("-+");
+			sb.append("\n");
 			
 			for(int i=0;i<collectionNames.length;i++) {
-				sb.append("| ");
-				sb.append(String.format("%"+maxColumnLength+"s", collectionNames[i]));
-				sb.append("| ");
+				sb.append("|");
+				sb.append(String.format(" %"+maxColumnLength+"s ", collectionNames[i]));
+				sb.append("|");
 			}
+			sb.append("\n");
 			
 			sb.append("+-");
 			for(int i=0;i<maxColumnLength;i++) {
 				sb.append("-");
 			}
 			sb.append("-+");
-			
-			sb.append("+-");
-			for(int i=0;i<maxColumnLength;i++) {
-				sb.append("-");
-			}
-			sb.append("-+");
+			sb.append("\n");
 			
 			return new CommandResult(sb.toString(), CommandResult.Status.SUCCESS);
 		} catch (Exception e) {
