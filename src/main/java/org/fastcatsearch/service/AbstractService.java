@@ -22,8 +22,6 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractService {
 	protected static Logger logger = LoggerFactory.getLogger(AbstractService.class);
 	
-	private static AbstractService instance;
-	
 	protected Lifecycle lifecycle;
 	protected Environment environment;
 	protected Settings settings;
@@ -35,15 +33,9 @@ public abstract class AbstractService {
 	}
 	
 	
-	public void asSingleton(){
-		instance = this;
-	}
+	public abstract void asSingleton();
 	
-	public static <T extends AbstractService> T getInstance(){
-		return (T) instance;
-	}
-	
-	public boolean isRunning() throws ServiceException{
+	public boolean isRunning() {
 		return lifecycle.started();
 	}
 	

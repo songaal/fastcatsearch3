@@ -28,21 +28,21 @@ import org.fastcatsearch.db.object.SearchEvent;
 import org.fastcatsearch.db.object.SearchMonInfoHDWMY;
 import org.fastcatsearch.db.object.SearchMonInfoMinute;
 import org.fastcatsearch.db.object.SynonymDictionary;
+import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.keyword.KeywordFail;
 import org.fastcatsearch.keyword.KeywordHit;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.settings.Settings;
 
 
-public class DBHandler extends AbstractService {
+public class DBService extends AbstractService {
 
 	public final static String DB_NAME = "db";
 	private String JDBC_URL;
 	protected Connection conn = null;
-	protected static DBHandler instance;
-
 	
 	public IndexingResult IndexingResult;
 	public SynonymDictionary SynonymDictionary;
@@ -59,16 +59,20 @@ public class DBHandler extends AbstractService {
 	public SearchMonInfoMinute SearchMonInfoMinute;
 	public SearchMonInfoHDWMY SearchMonInfoHDWMY;
 	
-	public static DBHandler getInstance() {
-		if(instance == null){
-			instance = new DBHandler();
-		}
+	protected static DBService instance;
+	
+	public static DBService getInstance(){
 		return instance;
 	}
-
-	protected DBHandler() { }
+	public void asSingleton() {
+		instance = this;
+	}
 	
-	protected boolean start0() throws ServiceException {
+	protected DBService(Environment environment, Settings settings){
+		super(environment, settings);
+	}
+	
+	protected boolean doStart() throws ServiceException {
 		JDBC_URL = "jdbc:derby:" + IRSettings.path(DB_NAME);
 		
 		IRConfig config = IRSettings.getConfig();
@@ -217,7 +221,7 @@ public class DBHandler extends AbstractService {
 		return null;
 	}
 
-	protected boolean shutdown0() throws ServiceException {
+	protected boolean doStop() throws ServiceException {
 		try {
 			logger.info("DBHandler shutdown! " + conn);
 			conn.close();
@@ -244,6 +248,11 @@ public class DBHandler extends AbstractService {
 	//for batch insert
 	public Connection getConn() {
 		return conn;
+	}
+
+	@Override
+	protected boolean doClose() throws ServiceException {
+		return true;
 	}
 
 }

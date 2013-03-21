@@ -41,16 +41,17 @@ public class SearchJob extends Job {
 		String[] args = getStringArrayArgs();
 		String queryString = args[0];
 		
+		StatisticsInfoService statisticsInfoService = StatisticsInfoService.getInstance();
 		Query q = null;
 		try {
 			q = QueryParser.getInstance().parseQuery(queryString);
 		} catch (QueryParseException e) {
-			if(StatisticsInfoService.getInstance().isEnabled()){
-				StatisticsInfoService.getInstance().addSearchHit();
+			if(statisticsInfoService.isEnabled()){
+				statisticsInfoService.addSearchHit();
 				long searchTime = System.currentTimeMillis() - st;
 				logger.debug("fail searchTime ={}",searchTime);
-				StatisticsInfoService.getInstance().addFailHit();
-				StatisticsInfoService.getInstance().addSearchTime(searchTime);
+				statisticsInfoService.addFailHit();
+				statisticsInfoService.addSearchTime(searchTime);
 			}
 			throw new JobException("[Query Parsing Error] "+e.getMessage());
 		}
@@ -62,9 +63,9 @@ public class SearchJob extends Job {
 			keyword = userData.get("keyword");
 		
 		String collection = meta.collectionName();
-		if(StatisticsInfoService.getInstance().isEnabled()){
-			StatisticsInfoService.getInstance().addSearchHit();
-			StatisticsInfoService.getInstance().addSearchHit(collection);
+		if(statisticsInfoService.isEnabled()){
+			statisticsInfoService.addSearchHit();
+			statisticsInfoService.addSearchHit(collection);
 		}
 //		logger.debug("collection = "+collection);
 		try {
@@ -99,32 +100,32 @@ public class SearchJob extends Job {
 				}else{
 					KeywordService.getInstance().addFailKeyword(keyword);
 				}
-				StatisticsInfoService.getInstance().addSearchKeyword(keyword);
+				statisticsInfoService.addSearchKeyword(keyword);
 			}
 //			if(result.getCount() > 0 && keyword != null){
 //				KeywordService.getInstance().addKeyword(keyword);
 //			}
 
 			long searchTime = System.currentTimeMillis() - st;
-			if(StatisticsInfoService.getInstance().isEnabled()){
-				StatisticsInfoService.getInstance().addSearchTime(searchTime);
-				StatisticsInfoService.getInstance().addSearchTime(collection, searchTime);
+			if(statisticsInfoService.isEnabled()){
+				statisticsInfoService.addSearchTime(searchTime);
+				statisticsInfoService.addSearchTime(collection, searchTime);
 			}
 			return result;
 			
 		} catch(Exception e){
-			if(StatisticsInfoService.getInstance().isEnabled()){
+			if(statisticsInfoService.isEnabled()){
 				long searchTime = System.currentTimeMillis() - st;
 				//통합 통계
-				StatisticsInfoService.getInstance().addFailHit();
-				StatisticsInfoService.getInstance().addSearchTime(searchTime);
+				statisticsInfoService.addFailHit();
+				statisticsInfoService.addSearchTime(searchTime);
 				if(keyword != null){
-					StatisticsInfoService.getInstance().addSearchKeyword(keyword);
+					statisticsInfoService.addSearchKeyword(keyword);
 				}
 				
 				//컬렉션별 통계
-				StatisticsInfoService.getInstance().addFailHit(collection);
-				StatisticsInfoService.getInstance().addSearchTime(collection, searchTime);
+				statisticsInfoService.addFailHit(collection);
+				statisticsInfoService.addSearchTime(collection, searchTime);
 			}
 			EventDBLogger.error(EventDBLogger.CATE_SEARCH, "검색에러..", EventDBLogger.getStackTrace(e));
 			throw new JobException(e);

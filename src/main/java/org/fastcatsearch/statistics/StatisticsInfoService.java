@@ -17,14 +17,16 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.fastcatsearch.db.DBHandler;
+import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.object.IndexingResult;
+import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.settings.Settings;
 
 
 /**
@@ -42,7 +44,6 @@ public class StatisticsInfoService extends AbstractService {
 	private static long PERIOD_1H = 1000 * 60 * 60;
 	private static long PERIOD_1D = 1000 * 60 * 60 * 24;
 	private static long START_DELAY = 100;
-	private static StatisticsInfoService instance = new StatisticsInfoService();
 	private Timer timer;
 	private boolean isEnabled = false; //기본적으로 사용한다.
 	private AsciiCharTrie collectionSeq;
@@ -68,17 +69,93 @@ public class StatisticsInfoService extends AbstractService {
 	private int countPerDay; //1시간에 몇번의 초별 계산이 수행되었는가? 60이 정상.
 	private int countPerMonth; //1시간에 몇번의 초별 계산이 수행되었는가? 60이 정상.
 	
+	private static StatisticsInfoService instance;
 	
-	public static StatisticsInfoService getInstance() {
+	public static StatisticsInfoService getInstance(){
 		return instance;
 	}
+	public void asSingleton() {
+		instance = this;
+	}
 	
-	private StatisticsInfoService(){
-		//처음 update시간을 0으로 줌으로써 처음엔 무조건 데이터를 갱신하도록 한다.
+	public StatisticsInfoService(Environment environment, Settings settings) {
+		super(environment, settings);
+	}
+	
+	@Override
+	protected boolean doStart() throws ServiceException {
+		
 		lastUpdatedIndexingTime = new Timestamp(0);
 		lastUpdatedPopularKeywordTime = new Timestamp(0);
 		lastUpdatedEventTime = new Timestamp(0);
 		keywordCache = new SearchKeywordCache();
+		
+		collectionNameList = IRService.getInstance().getCollectionNames();
+		collectionSeq = new AsciiCharTrie();
+		collectionStatisticsList = new RealTimeCollectionStatistics[collectionNameList.length];
+		collectionStatisticsListPerMinute = new RealTimeCollectionStatistics[collectionNameList.length];
+		collectionStatisticsListPerHour = new RealTimeCollectionStatistics[collectionNameList.length];
+		collectionStatisticsListPerDay = new RealTimeCollectionStatistics[collectionNameList.length];
+		collectionStatisticsListPerMonth = new RealTimeCollectionStatistics[collectionNameList.length];
+		
+		globalCollectionStatistics = new RealTimeCollectionStatistics(GLOBAL_COLLECTION_NAME);
+		globalCollectionStatisticsPerMinute = new RealTimeCollectionStatistics(GLOBAL_COLLECTION_NAME);
+		globalCollectionStatisticsPerHour = new RealTimeCollectionStatistics(GLOBAL_COLLECTION_NAME);
+		globalCollectionStatisticsPerDay = new RealTimeCollectionStatistics(GLOBAL_COLLECTION_NAME);
+		globalCollectionStatisticsPerMonth = new RealTimeCollectionStatistics(GLOBAL_COLLECTION_NAME);
+		
+		indexingInfoList = new IndexingInfo[collectionNameList.length];
+		
+		for(int i = 0; i < collectionNameList.length; i++){
+			String collectionName = collectionNameList[i];
+			collectionSeq.put(collectionName, i);
+			collectionStatisticsList[i] = new RealTimeCollectionStatistics(collectionName);
+			indexingInfoList[i] = new IndexingInfo(collectionName);
+			
+			collectionStatisticsListPerMinute[i] = new RealTimeCollectionStatistics(collectionName);
+			collectionStatisticsListPerHour[i] = new RealTimeCollectionStatistics(collectionName);
+			collectionStatisticsListPerDay[i] = new RealTimeCollectionStatistics(collectionName);
+			collectionStatisticsListPerMonth[i] = new RealTimeCollectionStatistics(collectionName);
+		}
+		
+		timer = new Timer(true);
+		timer.schedule(new StatisticsTask(), START_DELAY, PERIOD);
+		timer.schedule(new IndexingInfoTask(), START_DELAY, PERIOD_2S);
+		timer.schedule(new SearchKeywordTask(), START_DELAY, PERIOD);
+		Calendar startTime = Calendar.getInstance();
+		startTime.set(Calendar.SECOND, 0);
+		startTime.add(Calendar.MINUTE, 1);
+		//다음 minute의 0초에 시작한다.
+		timer.schedule(new StatisticsPerMinuteTask(), startTime.getTime(), PERIOD_1M);
+		startTime.set(Calendar.SECOND, 0);
+		startTime.set(Calendar.MINUTE, 0);
+		startTime.add(Calendar.HOUR, 1);
+		timer.schedule(new StatisticsPerHourTask(), startTime.getTime(), PERIOD_1H);
+		startTime.set(Calendar.SECOND, 0);
+		startTime.set(Calendar.MINUTE, 0);
+		startTime.set(Calendar.HOUR, 0);
+		startTime.add(Calendar.DATE, 1);
+		timer.schedule(new StatisticsPerDayTask(), startTime.getTime(), PERIOD_1D);
+		
+		//PopularKeywordUpdatedCheckTask는 2초마다 수행.
+		timer.schedule(new PopularKeywordUpdatedCheckTask(), START_DELAY, PERIOD_2S);
+		timer.schedule(new EventUpdatedCheckTask(), START_DELAY, PERIOD_2S);
+		getCollectionStatus();
+		
+		isEnabled = true;
+		return true;
+	}
+
+	@Override
+	protected boolean doStop() throws ServiceException {
+		timer.cancel();
+		timer = null;
+		isEnabled = false;
+		return true;
+	}
+	@Override
+	protected boolean doClose() throws ServiceException {
+		return true;
 	}
 	
 	public void setEnable(){
@@ -94,21 +171,21 @@ public class StatisticsInfoService extends AbstractService {
 	}
 	
 	public RealTimeCollectionStatistics[] getCollectionStatisticsList(){
-		if(!isRunning)
+		if(!isRunning())
 			return null;
 		
 		return collectionStatisticsList;
 	}
 	
 	public RealTimeCollectionStatistics getGlobalCollectionStatistics(){
-		if(!isRunning)
+		if(!isRunning())
 			return null;
 		
 		return globalCollectionStatistics;
 	}
 	
 	public IndexingInfo[] getIndexingInfoList(){
-		if(!isRunning)
+		if(!isRunning())
 			return null;
 		
 		synchronized(indexingInfoList){
@@ -227,14 +304,14 @@ public class StatisticsInfoService extends AbstractService {
 			RealTimeCollectionStatistics stat = globalCollectionStatisticsPerMinute.getAverage(countPerMinute);
 			stat.print();
 			//DB에 입력한다.
-			DBHandler.getInstance().SearchMonInfoMinute.insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when);
+			DBService.getInstance().SearchMonInfoMinute.insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when);
 			//컬렉션별 정보입력
 			for (int i = 0; i < isCollectionLive.length; i++) {
 				if(isCollectionLive[i]){
 					stat = collectionStatisticsListPerMinute[i].getAverage(countPerMinute);
 					stat.print();
 					//DB에 입력한다.
-					DBHandler.getInstance().SearchMonInfoMinute.insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when);
+					DBService.getInstance().SearchMonInfoMinute.insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when);
 					collectionStatisticsListPerHour[i].add(stat);
 				}
 			}
@@ -264,7 +341,7 @@ public class StatisticsInfoService extends AbstractService {
 			RealTimeCollectionStatistics stat = globalCollectionStatisticsPerHour.getAverage(countPerHour);
 			stat.print();
 			//DB에 입력한다.
-			DBHandler.getInstance().SearchMonInfoHDWMY.insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when, "h");
+			DBService.getInstance().SearchMonInfoHDWMY.insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when, "h");
 			
 			globalCollectionStatisticsPerDay.add(stat);
 			countPerDay++;
@@ -275,7 +352,7 @@ public class StatisticsInfoService extends AbstractService {
 					stat = collectionStatisticsListPerHour[i].getAverage(countPerHour);
 					stat.print();
 					//DB에 입력한다.
-					DBHandler.getInstance().SearchMonInfoHDWMY.insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when, "h");
+					DBService.getInstance().SearchMonInfoHDWMY.insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when, "h");
 					collectionStatisticsListPerDay[i].add(stat);
 				}
 			}
@@ -302,7 +379,7 @@ public class StatisticsInfoService extends AbstractService {
 			RealTimeCollectionStatistics stat = globalCollectionStatisticsPerDay.getAverage(countPerDay);
 			stat.print();
 			//DB에 입력한다.
-			DBHandler.getInstance().SearchMonInfoHDWMY.insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when, "d");
+			DBService.getInstance().SearchMonInfoHDWMY.insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when, "d");
 			
 			// 매월 1일 전달 통계저장하기.
 			Calendar calendar = Calendar.getInstance();
@@ -312,7 +389,7 @@ public class StatisticsInfoService extends AbstractService {
 				RealTimeCollectionStatistics stat_m = globalCollectionStatisticsPerMonth.getAverage(countPerMonth);
 				stat_m.print();
 				//DB에 입력한다.
-				DBHandler.getInstance().SearchMonInfoHDWMY.insert(stat_m.getCollectionName(), stat_m.getHitPerUnitTime(), stat_m.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat_m.getMeanResponseTime(), stat_m.getMaxResponseTime(), when, "m");
+				DBService.getInstance().SearchMonInfoHDWMY.insert(stat_m.getCollectionName(), stat_m.getHitPerUnitTime(), stat_m.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat_m.getMeanResponseTime(), stat_m.getMaxResponseTime(), when, "m");
 			}
 			globalCollectionStatisticsPerMonth.add(stat);
 			countPerMonth++;
@@ -323,12 +400,12 @@ public class StatisticsInfoService extends AbstractService {
 					stat = collectionStatisticsListPerDay[i].getAverage(countPerDay);
 					stat.print();
 					//DB에 입력한다.
-					DBHandler.getInstance().SearchMonInfoHDWMY.insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when, "d");
+					DBService.getInstance().SearchMonInfoHDWMY.insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when, "d");
 					if (day == 1) {
 						RealTimeCollectionStatistics stat_m = collectionStatisticsListPerMonth[i].getAverage(countPerMonth);
 						stat_m.print();
 						//DB에 입력한다.
-						DBHandler.getInstance().SearchMonInfoHDWMY.insert(stat_m.getCollectionName(), stat_m.getHitPerUnitTime(), stat_m.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat_m.getMeanResponseTime(), stat_m.getMaxResponseTime(), when, "m");
+						DBService.getInstance().SearchMonInfoHDWMY.insert(stat_m.getCollectionName(), stat_m.getHitPerUnitTime(), stat_m.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat_m.getMeanResponseTime(), stat_m.getMaxResponseTime(), when, "m");
 					}
 					collectionStatisticsListPerMonth[i].add(stat);
 				}
@@ -339,7 +416,7 @@ public class StatisticsInfoService extends AbstractService {
 			/*
 			 * 2. 이전 데이터 지워주기.
 			 * */
-			DBHandler.getInstance().SearchMonInfoHDWMY.deleteOld(1);//1달 이전은 삭제 
+			DBService.getInstance().SearchMonInfoHDWMY.deleteOld(1);//1달 이전은 삭제 
 			
 			
 //			DBHandler.getInstance().commitMon();
@@ -350,7 +427,7 @@ public class StatisticsInfoService extends AbstractService {
 
 		@Override
 		public void run() {
-	    	DBHandler dbHandler = DBHandler.getInstance();
+	    	DBService dbHandler = DBService.getInstance();
 			//색인시간이 업데이트 되었는가?
 	    	Timestamp updateTime = dbHandler.IndexingResult.isUpdated(lastUpdatedIndexingTime);
 
@@ -367,7 +444,7 @@ public class StatisticsInfoService extends AbstractService {
 						if(isCollectionLive[i]){
 			    			IndexingResult fullResult = dbHandler.IndexingResult.select(collectionNameList[i], "F");
 			    			IndexingResult incResult = dbHandler.IndexingResult.select(collectionNameList[i], "I");
-			    			CollectionHandler collectionHandler = IRService.getInstance().getCollectionHandler(collectionNameList[i]);
+			    			CollectionHandler collectionHandler = ((IRService)IRService.getInstance()).getCollectionHandler(collectionNameList[i]);
 			    			int docCount = 0;
 			    			if(collectionHandler != null){
 			    				docCount = 0;
@@ -419,7 +496,7 @@ public class StatisticsInfoService extends AbstractService {
 
 		@Override
 		public void run() {
-			DBHandler dbHandler = DBHandler.getInstance();
+			DBService dbHandler = DBService.getInstance();
 			//업데이트 되었는가?
 	    	Timestamp updateTime = dbHandler.KeywordHit.isPoluarKeywordUpdated(lastUpdatedPopularKeywordTime);
 
@@ -437,7 +514,7 @@ public class StatisticsInfoService extends AbstractService {
 
 		@Override
 		public void run() {
-			DBHandler dbHandler = DBHandler.getInstance();
+			DBService dbHandler = DBService.getInstance();
 			//업데이트 되었는가?
 	    	Timestamp updateTime = dbHandler.SearchEvent.isUpdated(lastUpdatedEventTime);
 			//만약 업데이트 되었다면 시간을 갱신한다.
@@ -450,74 +527,9 @@ public class StatisticsInfoService extends AbstractService {
 		}
 		
 	}
-	@Override
-	protected boolean start0() throws ServiceException {
-		collectionNameList = IRService.getInstance().getCollectionNames();
-		collectionSeq = new AsciiCharTrie();
-		collectionStatisticsList = new RealTimeCollectionStatistics[collectionNameList.length];
-		collectionStatisticsListPerMinute = new RealTimeCollectionStatistics[collectionNameList.length];
-		collectionStatisticsListPerHour = new RealTimeCollectionStatistics[collectionNameList.length];
-		collectionStatisticsListPerDay = new RealTimeCollectionStatistics[collectionNameList.length];
-		collectionStatisticsListPerMonth = new RealTimeCollectionStatistics[collectionNameList.length];
-		
-		globalCollectionStatistics = new RealTimeCollectionStatistics(GLOBAL_COLLECTION_NAME);
-		globalCollectionStatisticsPerMinute = new RealTimeCollectionStatistics(GLOBAL_COLLECTION_NAME);
-		globalCollectionStatisticsPerHour = new RealTimeCollectionStatistics(GLOBAL_COLLECTION_NAME);
-		globalCollectionStatisticsPerDay = new RealTimeCollectionStatistics(GLOBAL_COLLECTION_NAME);
-		globalCollectionStatisticsPerMonth = new RealTimeCollectionStatistics(GLOBAL_COLLECTION_NAME);
-		
-		indexingInfoList = new IndexingInfo[collectionNameList.length];
-		
-		for(int i = 0; i < collectionNameList.length; i++){
-			String collectionName = collectionNameList[i];
-			collectionSeq.put(collectionName, i);
-			collectionStatisticsList[i] = new RealTimeCollectionStatistics(collectionName);
-			indexingInfoList[i] = new IndexingInfo(collectionName);
-			
-			collectionStatisticsListPerMinute[i] = new RealTimeCollectionStatistics(collectionName);
-			collectionStatisticsListPerHour[i] = new RealTimeCollectionStatistics(collectionName);
-			collectionStatisticsListPerDay[i] = new RealTimeCollectionStatistics(collectionName);
-			collectionStatisticsListPerMonth[i] = new RealTimeCollectionStatistics(collectionName);
-		}
-		
-		timer = new Timer(true);
-		timer.schedule(new StatisticsTask(), START_DELAY, PERIOD);
-		timer.schedule(new IndexingInfoTask(), START_DELAY, PERIOD_2S);
-		timer.schedule(new SearchKeywordTask(), START_DELAY, PERIOD);
-		Calendar startTime = Calendar.getInstance();
-		startTime.set(Calendar.SECOND, 0);
-		startTime.add(Calendar.MINUTE, 1);
-		//다음 minute의 0초에 시작한다.
-		timer.schedule(new StatisticsPerMinuteTask(), startTime.getTime(), PERIOD_1M);
-		startTime.set(Calendar.SECOND, 0);
-		startTime.set(Calendar.MINUTE, 0);
-		startTime.add(Calendar.HOUR, 1);
-		timer.schedule(new StatisticsPerHourTask(), startTime.getTime(), PERIOD_1H);
-		startTime.set(Calendar.SECOND, 0);
-		startTime.set(Calendar.MINUTE, 0);
-		startTime.set(Calendar.HOUR, 0);
-		startTime.add(Calendar.DATE, 1);
-		timer.schedule(new StatisticsPerDayTask(), startTime.getTime(), PERIOD_1D);
-		
-		//PopularKeywordUpdatedCheckTask는 2초마다 수행.
-		timer.schedule(new PopularKeywordUpdatedCheckTask(), START_DELAY, PERIOD_2S);
-		timer.schedule(new EventUpdatedCheckTask(), START_DELAY, PERIOD_2S);
-		getCollectionStatus();
-		
-		isEnabled = true;
-		return true;
-	}
-
-	@Override
-	protected boolean shutdown0() throws ServiceException {
-		timer.cancel();
-		timer = null;
-		isEnabled = false;
-		return true;
-	}
 
 	public boolean isIndexingInfoUpdated(long lastUpdateTime) {
-		if(!isRunning)
+		if(!isRunning())
 			return false;
 		
 		if(lastUpdatedIndexingTime.getTime() >  lastUpdateTime){
@@ -528,7 +540,7 @@ public class StatisticsInfoService extends AbstractService {
 	}
 
 	public boolean isPopularKeywordUpdated(long lastUpdateTime) {
-		if(!isRunning)
+		if(!isRunning())
 			return false;
 		
 		if(lastUpdatedPopularKeywordTime.getTime() >  lastUpdateTime){
@@ -539,7 +551,7 @@ public class StatisticsInfoService extends AbstractService {
 	}
 	
 	public boolean isEventUpdated(long lastUpdateTime) {
-		if(!isRunning)
+		if(!isRunning())
 			return false;
 		
 		if(lastUpdatedEventTime.getTime() >  lastUpdateTime){

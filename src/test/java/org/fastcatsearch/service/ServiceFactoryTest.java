@@ -1,7 +1,7 @@
 package org.fastcatsearch.service;
 
 import org.fastcatsearch.common.FastcatSearchTest;
-import org.fastcatsearch.control.JobController;
+import org.fastcatsearch.control.JobService;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -9,19 +9,19 @@ public class ServiceFactoryTest extends FastcatSearchTest {
 
 	@Test
 	public void test() {
-		ServiceFactory serviceFactory = new ServiceFactory(environment);
+		ServiceManager serviceFactory = new ServiceManager(environment);
 		serviceFactory.asSingleton();
-		ServiceFactory serviceFactory2 = ServiceFactory.getInstance();
+		ServiceManager serviceFactory2 = ServiceManager.getInstance();
 		assertEquals(serviceFactory, serviceFactory2);
 		
 		
-		JobController expected = serviceFactory.createService("jobController", JobController.class);
+		JobService expected = serviceFactory.createService("jobController", JobService.class);
 		expected.asSingleton();
 		
-		JobController actual = serviceFactory.getService(JobController.class);
+		JobService actual = serviceFactory.getService(JobService.class);
 		assertEquals(expected, actual);
 		
-		JobController actual2 = actual.getInstance();
+		JobService actual2 = JobService.getInstance();
 		assertEquals(expected, actual2);
 		assertEquals(actual, actual2);
 	}

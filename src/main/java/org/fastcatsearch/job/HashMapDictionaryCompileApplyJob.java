@@ -15,7 +15,7 @@ import java.io.File;
 import java.util.List;
 
 import org.fastcatsearch.control.JobException;
-import org.fastcatsearch.db.DBHandler;
+import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.object.MAPDictionaryDAO;
 import org.fastcatsearch.db.object.SynonymDictionary;
 import org.fastcatsearch.ir.common.IRException;
@@ -59,7 +59,7 @@ public class HashMapDictionaryCompileApplyJob extends Job {
 		
 		HashMapDictionary dic = new HashMapDictionary(BUCKET_SIZE);
 		
-		DBHandler dbHandler = DBHandler.getInstance();
+		DBService dbHandler = DBService.getInstance();
 		
 		int count = dbHandler.SynonymDictionary.selectCount();
 		

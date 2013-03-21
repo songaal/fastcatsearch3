@@ -27,11 +27,12 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.fastcatsearch.db.DBHandler;
-import org.fastcatsearch.ir.config.IRSettings;
+import org.fastcatsearch.db.DBService;
+import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.keyword.KeywordFail;
 import org.fastcatsearch.keyword.KeywordHit;
 import org.fastcatsearch.keyword.MemoryKeyword;
+import org.fastcatsearch.settings.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,6 @@ public class KeywordService extends AbstractService{
 
 	private static final Logger logger = LoggerFactory.getLogger(KeywordService.class);
 	
-	private static KeywordService instance = new KeywordService();
 	public static final long FIVE_MINUTE_PERIOD = 5 * 60 * 1000;
 	public static final long ONE_SECOND_PERIOD = 1000;
 	public static final int MAX_KEYWORD_COUNT = 100;
@@ -56,19 +56,23 @@ public class KeywordService extends AbstractService{
 	private Timer timer;
 	private int hourOfDay;
 	private int sequence;
-	private String logPath = IRSettings.path("logs/.keyword.");
-	private String logPathFail = IRSettings.path("logs/.keyword.fail.");
+	private String logPath = environment.filePaths().makePath("logs").append(".keyword.").toString();
+	private String logPathFail = environment.filePaths().makePath("logs").append(".keyword.fail.").toString();
 	private PrintWriter keywordWriter;
 	private PrintWriter keywordWriterFail;
 	
-	public static KeywordService getInstance() {
+	private static KeywordService instance;
+	
+	public static KeywordService getInstance(){
 		return instance;
 	}
-	
-	private KeywordService(){
-		
+	public void asSingleton() {
+		instance = this;
 	}
 	
+	public KeywordService(Environment environment, Settings settings) {
+		super(environment, settings);
+	}
 	public void addKeyword(String keyword){
 		//1hour 파일에 기록
 		if(keywordWriter != null){
@@ -127,7 +131,7 @@ public class KeywordService extends AbstractService{
 		return old;
 	}
 	
-	protected boolean start0() throws ServiceException {
+	protected boolean doStart() throws ServiceException {
 		//현재 시각에서 가장 가까운 5로 나누어 떨어지는 이전 시각의 분 숫자를 구함. nowMin
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(new Date());
@@ -166,7 +170,7 @@ public class KeywordService extends AbstractService{
 		return true;
 	}
 	
-	protected boolean shutdown0() throws ServiceException {
+	protected boolean doStop() throws ServiceException {
 		timer.cancel();
 		return true;
 	}
@@ -285,7 +289,7 @@ public class KeywordService extends AbstractService{
 			Calendar scal = Calendar.getInstance();
 			scal.setTimeInMillis(this.scheduledExecutionTime());
 			logger.debug("this.scheduledExecutionTime()= {}",scal);
-			DBHandler dbHandler = DBHandler.getInstance();
+			DBService dbHandler = DBService.getInstance();
 
 			//remove old data
 			List<KeywordHit> list = null;
@@ -376,7 +380,7 @@ public class KeywordService extends AbstractService{
 		 */
 		public void makeKeywordStatistics() {
 			Calendar todayCalendar = Calendar.getInstance();
-			DBHandler dbHandler = DBHandler.getInstance();
+			DBService dbHandler = DBService.getInstance();
 			
 			Date[] dates = new Date[3];
 			int[] times = new int[2];
@@ -431,7 +435,7 @@ public class KeywordService extends AbstractService{
 			makeKeywordStatistics(dbHandler,currentKeyword,KeywordHit.STATISTICS_YEAR,piyear,ciyear,pyear,cyear,lyear);
 		}
 		
-		public void makeKeywordStatistics(DBHandler dbHandler, MemoryKeyword currentKeyword, int type, int ptime, int ctime, Date pdate, Date cdate, Date limit) {
+		public void makeKeywordStatistics(DBService dbHandler, MemoryKeyword currentKeyword, int type, int ptime, int ctime, Date pdate, Date cdate, Date limit) {
 			//이전데이터를 구함
 			MemoryKeyword prevKeyword = new MemoryKeyword();
 			List<KeywordHit>list = dbHandler.KeywordHit.selectKeywordHit(type,ptime,pdate);
@@ -517,7 +521,7 @@ public class KeywordService extends AbstractService{
 			Calendar scal = Calendar.getInstance();
 			scal.setTimeInMillis(this.scheduledExecutionTime());
 			
-			DBHandler dbHandler = DBHandler.getInstance();
+			DBService dbHandler = DBService.getInstance();
 
 			//remove old data
 			List<KeywordFail> list = null;
@@ -608,7 +612,7 @@ public class KeywordService extends AbstractService{
 		 */
 		public void makeKeywordStatistics() {
 			Calendar todayCalendar = Calendar.getInstance();
-			DBHandler dbHandler = DBHandler.getInstance();
+			DBService dbHandler = DBService.getInstance();
 			
 			Date[] dates = new Date[3];
 			int[] times = new int[2];
@@ -663,7 +667,7 @@ public class KeywordService extends AbstractService{
 			makeKeywordStatistics(dbHandler,currentKeyword,KeywordFail.STATISTICS_YEAR,piyear,ciyear,pyear,cyear,lyear);
 		}
 		
-		public void makeKeywordStatistics(DBHandler dbHandler, MemoryKeyword currentKeyword, int type, int ptime, int ctime, Date pdate, Date cdate, Date limit) {
+		public void makeKeywordStatistics(DBService dbHandler, MemoryKeyword currentKeyword, int type, int ptime, int ctime, Date pdate, Date cdate, Date limit) {
 			//이전데이터를 구함
 			MemoryKeyword prevKeyword = new MemoryKeyword();
 			List<KeywordFail>list = dbHandler.KeywordFail.selectKeywordFail(type,ptime,pdate);
@@ -708,6 +712,12 @@ public class KeywordService extends AbstractService{
 				}
 			}
 		}
+	}
+
+
+	@Override
+	protected boolean doClose() throws ServiceException {
+		return true;
 	}
 
 }

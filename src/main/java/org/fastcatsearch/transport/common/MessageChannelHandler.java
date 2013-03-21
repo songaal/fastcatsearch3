@@ -3,7 +3,8 @@ package org.fastcatsearch.transport.common;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
-import org.fastcatsearch.control.JobController;
+import org.fastcatsearch.control.JobExecutor;
+import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.JobResult;
 import org.fastcatsearch.ir.config.IRClassLoader;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -30,9 +31,11 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
 	
 	private static Logger logger = LoggerFactory.getLogger(MessageChannelHandler.class);
 	private TransportModule transport;
+	private JobExecutor jobExecutor;
 	
-	public MessageChannelHandler(TransportModule transport){
+	public MessageChannelHandler(TransportModule transport, JobExecutor jobExecutor){
 		this.transport = transport;
+		this.jobExecutor = jobExecutor;
 	}
 	
 	@Override
@@ -172,7 +175,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         @Override
         public void run() {
             try {
-            	JobResult jobResult = JobController.getInstance().offer(requestJob);
+            	JobResult jobResult = jobExecutor.offer(requestJob);
             	Object result = jobResult.take();
             	logger.debug("Request Job Result >> {}", result);
             	if(result instanceof Streamable){

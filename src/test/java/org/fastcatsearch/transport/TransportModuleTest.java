@@ -6,10 +6,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.fastcatsearch.cluster.Node;
-import org.fastcatsearch.control.JobController;
+import org.fastcatsearch.control.JobExecutor;
+import org.fastcatsearch.control.JobResult;
+import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
+import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.TestJob;
 import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.settings.Settings;
@@ -22,12 +25,25 @@ import org.slf4j.LoggerFactory;
 public class TransportModuleTest {
 	private static Logger logger = LoggerFactory.getLogger(TransportModuleTest.class);
 	
+	JobExecutor executor = new JobExecutor() {
+		
+		@Override
+		public void result(long jobId, Job job, Object result, boolean isSuccess,
+				long st, long et) {
+			
+		}
+		
+		@Override
+		public JobResult offer(Job job) {
+			job.setJobExecutor(this);
+			job.run();
+			return null;
+		}
+	};
+	
 	public static void main(String[] args) throws ServiceException, TransportException {
 		IRSettings.setHome("testHome/fastcatsearch");
 		Environment environment = new Environment("testHome/fastcatsearch");
-		JobController jobController = JobController.getInstance();
-		jobController.setUseJobScheduler(false);
-		jobController.start();
 //		new TransportServiceTest().testSendMessage(environment);
 		new TransportModuleTest().testSendFile(environment);
 	}
@@ -38,8 +54,8 @@ public class TransportModuleTest {
 		Settings settings2 = new Settings();
 		settings2.put("node_port", 9200);
 		
-		TransportModule transportService1 = new TransportModule(environment, settings);
-		TransportModule transportService2 = new TransportModule(environment, settings2);
+		TransportModule transportService1 = new TransportModule(environment, settings, executor);
+		TransportModule transportService2 = new TransportModule(environment, settings2, executor);
 		transportService1.load();
 		transportService2.load();
 		
@@ -67,8 +83,9 @@ public class TransportModuleTest {
 		Settings settings2 = new Settings();
 		settings2.put("node_port", 9200);
 		
-		TransportModule transportService1 = new TransportModule(environment, settings);
-		TransportModule transportService2 = new TransportModule(environment, settings2);
+		
+		TransportModule transportService1 = new TransportModule(environment, settings, executor);
+		TransportModule transportService2 = new TransportModule(environment, settings2, executor);
 		transportService1.load();
 		transportService2.load();
 		

@@ -13,8 +13,8 @@ package org.fastcatsearch.server;
 
 import java.io.File;
 
-import org.fastcatsearch.control.JobController;
-import org.fastcatsearch.db.DBHandler;
+import org.fastcatsearch.control.JobService;
+import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.log.EventDBLogger;
@@ -22,7 +22,7 @@ import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.KeywordService;
 import org.fastcatsearch.service.QueryCacheService;
 import org.fastcatsearch.service.ServiceException;
-import org.fastcatsearch.service.ServiceHandler;
+import org.fastcatsearch.service.WebService;
 import org.fastcatsearch.statistics.StatisticsInfoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,10 +30,10 @@ import org.slf4j.LoggerFactory;
 
 public class CatServer {
 	
-	private ServiceHandler serviceHandler;
+	private WebService serviceHandler;
 	private IRService irService;
-	private JobController jobController;
-	private DBHandler dbHandler;
+	private JobService jobController;
+	private DBService dbHandler;
 	private KeywordService keywordService;
 	private QueryCacheService cacheService;
 	private StatisticsInfoService statisticsInfoService;
@@ -84,15 +84,15 @@ public class CatServer {
 		}
 
 		IRSettings.setHome(ServerHome);
-		dbHandler = DBHandler.getInstance();
+		dbHandler = DBService.getInstance();
 		keywordService = KeywordService.getInstance();
-		jobController = JobController.getInstance();
+		jobController = JobService.getInstance();
 		irService = IRService.getInstance();
 		cacheService = QueryCacheService.getInstance();
 		statisticsInfoService = StatisticsInfoService.getInstance();
 		
 		try{
-			serviceHandler = ServiceHandler.getInstance();
+			serviceHandler = WebService.getInstance();
 		}catch(Exception e){
 			throw new ServiceException("서비스를 초기화하지 못했습니다.",e);
 		}

@@ -15,7 +15,7 @@ import java.io.File;
 import java.util.List;
 
 import org.fastcatsearch.control.JobException;
-import org.fastcatsearch.db.DBHandler;
+import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.object.BannedDictionary;
 import org.fastcatsearch.db.object.BasicDictionary;
 import org.fastcatsearch.db.object.CustomDictionary;
@@ -73,7 +73,7 @@ public class HashSetDictionaryCompileApplyJob extends Job {
 		
 		HashSetDictionary dic = new HashSetDictionary(BUCKET_SIZE);
 		
-		DBHandler dbHandler = DBHandler.getInstance();
+		DBService dbHandler = DBService.getInstance();
 		int BULK_SIZE = 10000;
 		
 		/*
@@ -104,7 +104,7 @@ public class HashSetDictionaryCompileApplyJob extends Job {
 		
 		HashSetDictionary dic = new HashSetDictionary(BUCKET_SIZE);
 		
-		DBHandler dbHandler = DBHandler.getInstance();
+		DBService dbHandler = DBService.getInstance();
 		int BULK_SIZE = 10000;
 		
 		/*
@@ -135,7 +135,7 @@ public class HashSetDictionaryCompileApplyJob extends Job {
 		
 		HashSetDictionary dic = new HashSetDictionary(BUCKET_SIZE);
 		
-		DBHandler dbHandler = DBHandler.getInstance();
+		DBService dbHandler = DBService.getInstance();
 		int BULK_SIZE = 10000;
 		
 		/*

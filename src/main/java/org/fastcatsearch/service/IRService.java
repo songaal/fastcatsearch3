@@ -24,6 +24,7 @@ import java.util.Map.Entry;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.analysis.TokenizerAttributes;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.IRConfig;
@@ -31,24 +32,29 @@ import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.ir.dic.Dic;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.settings.Settings;
 
 
 public class IRService extends AbstractService{
-	private static IRService instance;
 	
 	private Map<String, CollectionHandler> collectionHandlerMap = new HashMap<String, CollectionHandler>();
 	private String[] collectionNameList;
 	private String[][] tokenizerList;
 	
-	public static IRService getInstance() {
-		if(instance == null)
-			instance = new IRService();
+	private static IRService instance;
+	
+	public static IRService getInstance(){
 		return instance;
 	}
+	public void asSingleton() {
+		instance = this;
+	}
 	
-	private IRService() { }
+	public IRService(Environment environment, Settings settings) {
+		super(environment, settings);
+	}
 	
-	protected boolean start0() throws ServiceException {
+	protected boolean doStart() throws ServiceException {
 		IRConfig irconfig = IRSettings.getConfig(true);
 		
 		//load dictionary
@@ -100,7 +106,7 @@ public class IRService extends AbstractService{
 		return collectionHandlerMap.put(collection, collectionHandler);
 	}
 
-	protected boolean shutdown0() throws ServiceException {
+	protected boolean doStop() throws ServiceException {
 		Iterator<Entry<String, CollectionHandler>> iter = collectionHandlerMap.entrySet().iterator();
 		while(iter.hasNext()){
 			Entry<String, CollectionHandler> entry = iter.next();
@@ -222,5 +228,10 @@ public class IRService extends AbstractService{
 			}
 		}
 		return null;
+	}
+
+	@Override
+	protected boolean doClose() throws ServiceException {
+		return true;
 	}
 }

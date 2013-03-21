@@ -15,7 +15,8 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
 
-import org.fastcatsearch.control.JobController;
+import org.fastcatsearch.control.JobExecutor;
+import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.ServiceException;
@@ -28,11 +29,20 @@ public abstract class Job implements Runnable, Serializable{
 	private static final long serialVersionUID = 6296052043270199612L;
 
 	protected static Logger logger = LoggerFactory.getLogger(Job.class);
+	private JobExecutor jobExecutor;
 	
 	protected long jobId = -1;
 	protected Object args;
 	protected boolean isScheduled;
 	protected boolean noResult; //결과가 필요없는 단순 호출 작업
+	
+	
+	public void setJobExecutor(JobExecutor jobExecutor) {
+		this.jobExecutor = jobExecutor;
+	}
+	public JobExecutor getJobExecutor() {
+		return jobExecutor;
+	}
 	
 	public String toString(){
 		return "[Job] jobId = "+jobId+", args = "+args+", isScheduled="+isScheduled+", noResult="+noResult;
@@ -87,28 +97,32 @@ public abstract class Job implements Runnable, Serializable{
 //			if(jobId != -1 && !noResult){
 			if(jobId != -1){
 				logger.debug("Job_{} result = {}", jobId, result);
-				JobController.getInstance().result(jobId, this, result, true, st, System.currentTimeMillis());
+				if(jobExecutor != null){
+					jobExecutor.result(jobId, this, result, true, st, System.currentTimeMillis());
+				}else{
+					throw new JobException("결과를 반환할 jobExecutor가 없습니다.");
+				}
 			}
 			
 		} catch (JobException e){
-			JobController.getInstance().result(jobId, this, e.getMessage(), false, st, System.currentTimeMillis());
+			jobExecutor.result(jobId, this, e.getMessage(), false, st, System.currentTimeMillis());
 			StringWriter w = new StringWriter();
 			e.printStackTrace(new PrintWriter(w));
 			logger.error("#############################################\n"+w.toString()+"\\n#############################################");
 		} catch (OutOfMemoryError e){
-			JobController.getInstance().result(jobId, this, e.getMessage(), false, st, System.currentTimeMillis());
+			jobExecutor.result(jobId, this, e.getMessage(), false, st, System.currentTimeMillis());
 			EventDBLogger.error(EventDBLogger.CATE_MANAGEMENT, "메모리부족 에러가 발생했습니다.", EventDBLogger.getStackTrace(e));
 			StringWriter w = new StringWriter();
 			e.printStackTrace();
 			e.printStackTrace(new PrintWriter(w));
 			logger.error("#############################################\n"+w.toString()+"\n#############################################");
 		} catch (Exception e){
-			JobController.getInstance().result(jobId, this, e.getMessage(), false, st, System.currentTimeMillis());
+			jobExecutor.result(jobId, this, e.getMessage(), false, st, System.currentTimeMillis());
 			StringWriter w = new StringWriter();
 			e.printStackTrace(new PrintWriter(w));
 			logger.error("#############################################\n"+w.toString()+"\n#############################################");
 		} catch(Error err){
-			JobController.getInstance().result(jobId, this, err.getMessage(), false, st, System.currentTimeMillis());
+			jobExecutor.result(jobId, this, err.getMessage(), false, st, System.currentTimeMillis());
 			StringWriter w = new StringWriter();
 			err.printStackTrace(new PrintWriter(w));
 			logger.error("#############################################\n"+w.toString()+"\n#############################################");

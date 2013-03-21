@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ThreadPoolFactory {
-	public static ExecutorService newCachedThreadPool(String poolName, int max){
+	public static ThreadPoolExecutor newCachedThreadPool(String poolName, int max){
 		return new ThreadPoolExecutor(0, max,
                 60L, TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>(), new DefaultThreadFactory(poolName, false), new ThreadPoolExecutor.AbortPolicy());
@@ -30,7 +30,7 @@ public class ThreadPoolFactory {
                 60L, TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>(), new DefaultThreadFactory(poolName, true));
 	}
-	public static ScheduledExecutorService newScheduledThreadPool(String poolName){
+	public static ScheduledThreadPoolExecutor newScheduledThreadPool(String poolName){
 		return new ScheduledThreadPoolExecutor(0, new DefaultThreadFactory(poolName, false));
 	}
 	public static ScheduledExecutorService newScheduledDaemonThreadPool(String poolName){

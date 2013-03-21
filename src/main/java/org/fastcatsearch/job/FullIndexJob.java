@@ -18,7 +18,7 @@ import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.collector.SourceReaderFactory;
-import org.fastcatsearch.control.JobController;
+import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.DataSourceSetting;
@@ -181,7 +181,7 @@ public class FullIndexJob extends Job {
 			IRSettings.storeIndextime(collection, "FULL", startDt, endDt, durationStr, count);
 			
 			//5초후에 캐시 클리어.
-			JobController.getInstance().offer(new CacheServiceRestartJob(5000));
+			getJobExecutor().offer(new CacheServiceRestartJob(5000));
 			
 			indexingLogger.info("["+collection+"] Full Indexing Finished! docs = "+count+", update = "+updateAndDeleteSize[0]+", delete = "+updateAndDeleteSize[1]+", time = "+durationStr);
 			

@@ -14,38 +14,48 @@ package org.fastcatsearch.service;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.query.Result;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.fastcatsearch.settings.Settings;
 
 
 public class QueryCacheService extends AbstractService{
-	private static QueryCacheService instance = new QueryCacheService();
 	
 	private LinkedHashMap<String, Result> LRUCache;
 	private static final int MAX_CACHE_SIZE = 1024;
 	private float loadFactor = 1f;
 
-	private QueryCacheService(){
+	private static QueryCacheService instance;
+	
+	public static QueryCacheService getInstance(){
+		return instance;
+	}
+	public void asSingleton() {
+		instance = this;
+	}
+	
+	public QueryCacheService(Environment environment, Settings settings) {
+		super(environment, settings);
+	}
+	
+	protected boolean doStop() throws ServiceException {
+		LRUCache.clear();
+		return true;
+	}
+	
+	protected boolean doStart() throws ServiceException {
 		LRUCache = new LinkedHashMap<String, Result>(MAX_CACHE_SIZE, loadFactor, true) {
 			private static final long serialVersionUID = 4515949078102499045L;
 			@Override protected boolean removeEldestEntry (Map.Entry<String, Result> eldest) {
 		         return size() > MAX_CACHE_SIZE; 
 			}
 		}; 
-	}
-
-	protected boolean shutdown0() throws ServiceException {
-		LRUCache.clear();
+		
 		return true;
 	}
 	
-	protected boolean start0() throws ServiceException {
+	protected boolean doClose() throws ServiceException {
 		return true;
-	}
-	
-	public static QueryCacheService getInstance() {
-		return instance;
 	}
 	
 	public void put(String queryString, Result result) {

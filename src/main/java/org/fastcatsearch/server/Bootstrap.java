@@ -2,9 +2,9 @@ package org.fastcatsearch.server;
 
 import java.util.concurrent.CountDownLatch;
 
-import org.fastcatsearch.control.JobController;
+import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.Environment;
-import org.fastcatsearch.service.ServiceFactory;
+import org.fastcatsearch.service.ServiceManager;
 
 public class Bootstrap {
 	
@@ -27,10 +27,10 @@ public class Bootstrap {
 	public void start(){
 		String homeDirPath = "";
 		Environment environment = new Environment(homeDirPath);
-		ServiceFactory serviceFactory = new ServiceFactory(environment);
+		ServiceManager serviceFactory = new ServiceManager(environment);
 		serviceFactory.asSingleton();
 		
-		JobController jobController = serviceFactory.createService("service", JobController.class);
+		JobService jobController = serviceFactory.createService("service", JobService.class);
 		jobController.asSingleton();
 		
 		keepAliveLatch = new CountDownLatch(1);

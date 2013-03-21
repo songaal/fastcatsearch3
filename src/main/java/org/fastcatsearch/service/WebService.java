@@ -11,30 +11,26 @@
 
 package org.fastcatsearch.service;
 
-import java.io.File;
-import java.io.IOException;
-
-import org.apache.commons.io.FileUtils;
-import org.fastcatsearch.FastcatSearchEnv;
+import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.servlet.DocumentListServlet;
 import org.fastcatsearch.servlet.DocumentSearchServlet;
 import org.fastcatsearch.servlet.PopularKeywordServlet;
 import org.fastcatsearch.servlet.SearchServlet;
+import org.fastcatsearch.settings.Settings;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.handler.HandlerList;
 import org.mortbay.jetty.servlet.Context;
 import org.mortbay.jetty.servlet.ServletHolder;
-import org.mortbay.jetty.webapp.WebAppContext;
 import org.mortbay.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
 
-public class ServiceHandler extends AbstractService{
-	private static Logger logger = LoggerFactory.getLogger(ServiceHandler.class);
+public class WebService extends AbstractService{
+	private static Logger logger = LoggerFactory.getLogger(WebService.class);
 	
 	//always use Root context
 	private String SERVICE_CONTEXT = "/search";
@@ -44,27 +40,22 @@ public class ServiceHandler extends AbstractService{
 	
 	private Server server;
 	private int SERVER_PORT;
-	private static ServiceHandler instance;
 	
-	public static ServiceHandler getInstance(){
-		
-		if(instance == null) {
-			instance = new ServiceHandler();
-		}
+	private static WebService instance;
+	
+	public static WebService getInstance(){
 		return instance;
 	}
+	public void asSingleton() {
+		instance = this;
+	}
+	
 	//WAS내장시에는 서블릿을 web.xml에 설정하지 않고 코드내에 설정한다.  
-	private ServiceHandler() {
-		
+	public WebService(Environment environment, Settings settings) {
+		super(environment, settings);
 	}
 	
-	public static void main(String[] args) throws Exception {
-		ServiceHandler s = new ServiceHandler();
-		s.start();
-		logger.info("ServiceHandler started!");
-	}
-	
-	protected boolean start0() throws ServiceException{
+	protected boolean doStart() throws ServiceException{
 		IRConfig config = IRSettings.getConfig();
 		if(System.getProperty("server.port")!=null) {
 			SERVER_PORT = Integer.parseInt(System.getProperty("server.port"));
@@ -108,8 +99,6 @@ public class ServiceHandler extends AbstractService{
         server.setHandler(handlerList);
         
 		try {
-			//서버는 예외가 발생해도 시작처리되므로 미리 running 표시필요.
-			isRunning = true;
 			//stop을 명령하면 즉시 중지되도록.
 			server.setStopAtShutdown(true);
 			server.start();
@@ -125,7 +114,7 @@ public class ServiceHandler extends AbstractService{
 		return true;
 	}
 	
-	protected boolean shutdown0() throws ServiceException{
+	protected boolean doStop() throws ServiceException{
 		try {
 			logger.info("ServiceHandler stop requested...");
 			server.stop();
@@ -138,5 +127,10 @@ public class ServiceHandler extends AbstractService{
 
 	public int getClientCount() {
 		return server.getConnectors().length;
+	}
+
+	@Override
+	protected boolean doClose() throws ServiceException {
+		return false;
 	}
 }

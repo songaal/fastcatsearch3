@@ -16,18 +16,13 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.fastcatsearch.common.ThreadPoolFactory;
-import org.fastcatsearch.db.DBHandler;
+import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.object.IndexingResult;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.config.IRConfig;
@@ -52,8 +47,8 @@ import org.slf4j.LoggerFactory;
  *
  */
 
-public class JobController extends AbstractService {
-	private static Logger logger = LoggerFactory.getLogger(JobController.class);
+public class JobService extends AbstractService implements JobExecutor {
+	private static Logger logger = LoggerFactory.getLogger(JobService.class);
 	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 	
 	private BlockingQueue<Job> jobQueue; 
@@ -61,20 +56,26 @@ public class JobController extends AbstractService {
 	private Map<Long, Job> runningJobList;
 	private AtomicLong jobId;
 	
-	private static JobController instance;
-	private ExecutorService jobExecutor;
-	private ExecutorService searchJobExecutor;
-	private ExecutorService otherJobExecutor;
-	private ScheduledExecutorService scheduledJobExecutor;
-	private ScheduledExecutorService otherScheduledJobExecutor;
+	private ThreadPoolExecutor jobExecutor;
+	private ThreadPoolExecutor searchJobExecutor;
+	private ThreadPoolExecutor otherJobExecutor;
+	private ScheduledThreadPoolExecutor scheduledJobExecutor;
+	private ScheduledThreadPoolExecutor otherScheduledJobExecutor;
 	
 	private JobControllerWorker worker;
 	private JobScheduler jobScheduler;
 	private IndexingMutex indexingMutex;
 	private boolean useJobScheduler;
 	
+	private static JobService instance;
 	
-	public JobController(Environment environment, Settings settings){
+	public static JobService getInstance(){
+		return instance;
+	}
+	public void asSingleton() {
+		instance = this;
+	}
+	public JobService(Environment environment, Settings settings){
 		super(environment, settings);
 	}
 	
@@ -111,11 +112,13 @@ public class JobController extends AbstractService {
 		
 		return jobScheduler.reloadIndexingSchedule(collection, type, isActive);
 	}
-	public ExecutorService getJobExecutor(){
+	public ThreadPoolExecutor getJobExecutor(){
 		return jobExecutor;
 	}
 	
 	public JobResult offer(Job job) {
+		job.setJobExecutor(this);
+		
 		if(job instanceof FullIndexJob || job instanceof IncIndexJob){
 			if(indexingMutex.isLocked(job)){
 				indexingLogger.info("The collection ["+job.getStringArgs(0)+"] has already started an indexing job.");
@@ -128,7 +131,7 @@ public class JobController extends AbstractService {
 		
 		if(job instanceof FullIndexJob || job instanceof IncIndexJob){
 			indexingMutex.access(myJobId, job);
-			DBHandler dbHandler = DBHandler.getInstance();
+			DBService dbHandler = DBService.getInstance();
 			String collection = job.getStringArgs(0);
 			logger.debug("job="+job+", "+collection);
 			
@@ -169,7 +172,7 @@ public class JobController extends AbstractService {
 		logger.debug("### JobResult = {} / map={} / result={} / success= {}", new Object[]{jobResult, resultMap.size(), result, isSuccess});
 //		if(isManager){
 			if(!(job instanceof SearchJob) || !isSuccess){
-				DBHandler dbHandler = DBHandler.getInstance();
+				DBService dbHandler = DBService.getInstance();
 				String jobArgs = "";
 				if(job.getArgs() != null){
 					String[] args = job.getStringArrayArgs();
@@ -192,7 +195,7 @@ public class JobController extends AbstractService {
 		
 			if(job instanceof FullIndexJob || job instanceof IncIndexJob){
 				indexingMutex.release(jobId);
-				DBHandler dbHandler = DBHandler.getInstance();
+				DBService dbHandler = DBService.getInstance();
 				String collection = job.getStringArgs(0);
 				logger.debug("job="+job+", "+collection);
 				
@@ -262,13 +265,12 @@ public class JobController extends AbstractService {
 		int indexJobMaxSize = 100;
 		int searchJobMaxSize = 100;
 		int otherJobMaxSize = 100;
-		int indexScheduledJobMaxSize = 100;
 		
-		jobExecutor = ThreadPoolFactory.newUnlimitedCachedThreadPool("IndexJobExecutor");
-		searchJobExecutor = ThreadPoolFactory.newUnlimitedCachedDaemonThreadPool("SearchJobExecutor");
-		otherJobExecutor = ThreadPoolFactory.newUnlimitedCachedDaemonThreadPool("OtherJobExecutor");
-		scheduledJobExecutor = ThreadPoolFactory.newScheduledThreadPool("IndexScheduledJobExecutor");
-		otherScheduledJobExecutor = ThreadPoolFactory.newScheduledThreadPool("OtherScheduledJobExecutor");
+		jobExecutor = ThreadPoolFactory.newCachedThreadPool("IndexJobExecutor", executorMaxPoolSize);
+//		searchJobExecutor = ThreadPoolFactory.newUnlimitedCachedDaemonThreadPool("SearchJobExecutor");
+//		otherJobExecutor = ThreadPoolFactory.newUnlimitedCachedDaemonThreadPool("OtherJobExecutor");
+		scheduledJobExecutor = ThreadPoolFactory.newScheduledThreadPool("ScheduledIndexJobExecutor");
+//		otherScheduledJobExecutor = ThreadPoolFactory.newScheduledThreadPool("OtherScheduledJobExecutor");
 		
 //		try{
 		worker = new JobControllerWorker();

@@ -21,9 +21,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.common.BytesReference;
+import org.fastcatsearch.common.ThreadPoolFactory;
 import org.fastcatsearch.common.io.BytesStreamOutput;
 import org.fastcatsearch.common.io.CachedStreamOutput;
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.control.JobExecutor;
+import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.module.AbstractModule;
@@ -86,12 +89,14 @@ public class TransportModule extends AbstractModule {
     final int tcpReceiveBufferSize;
     
     final int sendFileChunkSize;
+    JobExecutor jobExecutor;
     
     private final ReadWriteLock globalLock = new ReentrantReadWriteLock();
     private FileTransportHandler fileTransportHandler;
    
-	public TransportModule(Environment environment, Settings settings){
+	public TransportModule(Environment environment, Settings settings, JobExecutor jobExecutor){
 		super(environment, settings);
+		this.jobExecutor = jobExecutor;
 		logger.debug("settings>>{}", settings);
 		this.connectMutex = new Object[500];
         for (int i = 0; i < connectMutex.length; i++) {
@@ -114,7 +119,7 @@ public class TransportModule extends AbstractModule {
 	
 	public boolean load(){
 		
-		this.executorService = Executors.newCachedThreadPool();
+		this.executorService = ThreadPoolFactory.newUnlimitedCachedDaemonThreadPool("transport-pool");
 		/*
 		 * Client
 		 * */
@@ -133,7 +138,7 @@ public class TransportModule extends AbstractModule {
 				return Channels.pipeline(byteCounter, 
 						readableDecoder,
 						messageCounter, 
-						new MessageChannelHandler(TransportModule.this));
+						new MessageChannelHandler(TransportModule.this, jobExecutor));
 			}
 		});
 		clientBootstrap.setOption("connectTimeoutMillis", connectTimeout);
@@ -165,7 +170,7 @@ public class TransportModule extends AbstractModule {
 				return Channels.pipeline(byteCounter, 
 						readableDecoder,
 						messageCounter,
-						new MessageChannelHandler(TransportModule.this),
+						new MessageChannelHandler(TransportModule.this, jobExecutor),
 						new FileChannelHandler(TransportModule.this, fileTransportHandler)
 						);
 			}

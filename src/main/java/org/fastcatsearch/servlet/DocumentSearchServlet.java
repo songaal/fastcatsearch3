@@ -23,7 +23,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.fastcatsearch.control.JobController;
+import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.JobResult;
 import org.fastcatsearch.ir.config.FieldSetting;
 import org.fastcatsearch.ir.config.IRSettings;
@@ -139,7 +139,7 @@ public class DocumentSearchServlet extends HttpServlet {
     	
     	Result result = null;
     	
-		JobResult jobResult = JobController.getInstance().offer(job);
+		JobResult jobResult = JobService.getInstance().offer(job);
 		Object obj = jobResult.poll(timeout);
 		searchTime = (System.currentTimeMillis() - st);
 		if(jobResult.isSuccess()){

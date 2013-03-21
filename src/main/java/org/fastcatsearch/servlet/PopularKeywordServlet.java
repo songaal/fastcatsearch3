@@ -23,7 +23,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.fastcatsearch.db.DBHandler;
+import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.field.DateTimeField;
 import org.fastcatsearch.keyword.KeywordHit;
@@ -74,7 +74,7 @@ public class PopularKeywordServlet extends HttpServlet {
     
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     	
-    	DBHandler dbHandler = DBHandler.getInstance();
+    	DBService dbHandler = DBService.getInstance();
     	
     	String keyword = request.getParameter("keyword");
     	if(keyword!=null) { keyword = keyword.trim(); }

@@ -10,14 +10,14 @@ import org.fastcatsearch.settings.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ServiceFactory {
-	private final Logger logger = LoggerFactory.getLogger(ServiceFactory.class);
+public class ServiceManager {
+	private final Logger logger = LoggerFactory.getLogger(ServiceManager.class);
 	
-	private static ServiceFactory instance;
+	private static ServiceManager instance;
 	private Environment environment;
 	private Map<Class<?>, AbstractService> serviceMap;
 	
-	public static ServiceFactory getInstance(){
+	public static ServiceManager getInstance(){
 		return instance;
 	}
 	
@@ -25,7 +25,7 @@ public class ServiceFactory {
 		instance = this;
 	}
 	
-	public ServiceFactory(Environment environment){
+	public ServiceManager(Environment environment){
 		this.environment = environment;
 		serviceMap = new ConcurrentHashMap<Class<?>, AbstractService>();
 	}
