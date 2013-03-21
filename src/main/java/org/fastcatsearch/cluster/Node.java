@@ -1,48 +1,50 @@
 package org.fastcatsearch.cluster;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.Map;
 
 import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.common.io.Streamable;
 
 public class Node implements Streamable{
-	private String nodeName;
 	private String nodeId;
-	private InetSocketAddress address;
+	private InetSocketAddress socketAddress;
 	
 	public Node(){
 	}
 	
-	public Node(String nodeName, String nodeId, InetSocketAddress address) {
+	public Node(String nodeName, InetSocketAddress socketAddress) {
         if (nodeName == null) {
-            this.nodeName = "".intern();
+            this.nodeId = "".intern();
         } else {
-            this.nodeName = nodeName.intern();
+            this.nodeId = nodeName.intern();
         }
 
-        this.nodeId = nodeId.intern();
-        this.address = address;
+        this.socketAddress = socketAddress;
     }
 	
-	public String toString(){
-		return nodeName+"/"+nodeId+"/"+address;
+	public Node(String nodeId, String address, int port) {
+		this.nodeId = nodeId;
+		socketAddress = new InetSocketAddress(address, port);
 	}
+	
+	public String toString(){
+		return nodeId+"/"+socketAddress.getHostName()+"/"+socketAddress.getPort();
+	}
+	
 	public String id() {
 		return nodeId;
 	}
 	
-	public String name() {
-		return nodeName;
-	}
-	
 	public InetSocketAddress address() {
-		return address;
+		return socketAddress;
 	}
 	
 	public int port(){
-		return address.getPort();
+		return socketAddress.getPort();
 	}
 	
 	public static Node readNode(StreamInput in) throws IOException {
@@ -53,19 +55,17 @@ public class Node implements Streamable{
 
     @Override
     public void readFrom(StreamInput in) throws IOException {
-        nodeName = in.readString().intern();
         nodeId = in.readString().intern();
         String hostName = in.readString().intern();
         int port = in.readInt();
-        address = new InetSocketAddress(hostName, port);
+        socketAddress = new InetSocketAddress(hostName, port);
     }
 
     @Override
     public void writeTo(StreamOutput out) throws IOException {
-        out.writeString(nodeName);
         out.writeString(nodeId);
-        out.writeString(address.getHostName());
-        out.writeInt(address.getPort());
+        out.writeString(socketAddress.getHostName());
+        out.writeInt(socketAddress.getPort());
     }
 
     @Override

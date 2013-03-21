@@ -15,4 +15,7 @@ public abstract class AbstractModule {
 	public abstract boolean load();
 	public abstract boolean unload();
 	
+	public Settings settings(){
+		return settings;
+	}
 }

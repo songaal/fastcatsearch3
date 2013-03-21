@@ -115,7 +115,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
     
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
-    	logger.error("에러발생. 커넥션을 끊을까?", e.getCause());
+    	logger.error("에러발생 >> {}", e.getCause().getMessage());
     }
     private void handleRequest(Channel channel, StreamInput input, long requestId) throws IOException {
     	logger.debug("handleRequest ");

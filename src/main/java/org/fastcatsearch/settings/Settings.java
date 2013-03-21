@@ -1,5 +1,6 @@
 package org.fastcatsearch.settings;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -152,6 +153,44 @@ public class Settings {
 		}
 	}
 	
+	public <T> List<T> getList(String key, Class<T> t){
+		Object value =  getValue(key);
+		if(value instanceof List){
+			
+			List<Object> list = (List<Object>) value;
+			
+			List<T> result = new ArrayList<T>();
+			for (int i = 0; i < list.size(); i++) {
+				result.add((T) list.get(i));
+			}
+			return result;
+		}else{
+			return null;
+		}
+	}
+	
+	public List<Settings> getSettingList(String key){
+		Object value =  getValue(key);
+		if(value instanceof List){
+			
+			List<Object> list = (List<Object>) value;
+			
+			List<Settings> result = new ArrayList<Settings>();
+			for (int i = 0; i < list.size(); i++) {
+				Object maybeMap = list.get(i);
+				if(maybeMap instanceof Map){
+					result.add(new Settings((Map<String, Object>) maybeMap));
+				}else{
+					return null;
+				}
+			}
+			return result;
+		}else{
+			return null;
+		}
+	}
+	
+	
 	
 	public synchronized Object getValue(String key){
 		String[] keys = key.split("\\.");
@@ -178,6 +217,11 @@ public class Settings {
 		options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
 		Yaml yaml = new Yaml(options);
 		
+        return yaml.dump(map);
+	}
+	
+	public synchronized String getString(){
+		Yaml yaml = new Yaml();
         return yaml.dump(map);
 	}
 	

@@ -18,7 +18,6 @@ package org.fastcatsearch.common;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -32,18 +31,18 @@ import org.fastcatsearch.settings.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NodeClassLoader extends AbstractModule {
-	private static Logger logger = LoggerFactory.getLogger(NodeClassLoader.class);
+public class DynamicClassLoader extends AbstractModule {
+	private static Logger logger = LoggerFactory.getLogger(DynamicClassLoader.class);
 	private Map<String, URLClassLoader> classLoaderList = new HashMap<String, URLClassLoader>();
 	private Map<String, Class<?>> classCache = new HashMap<String, Class<?>>();
-	protected boolean isRunning;
+	protected boolean isLoad;
 	
-	public NodeClassLoader(Environment environment, Settings settings){
+	public DynamicClassLoader(Environment environment, Settings settings){
 		super(environment, settings);
 	}
 	
 	public boolean load() {
-		String jarPath = settings.getString("dynamic.classpath");
+		String jarPath = settings.getString("classpath");
 		
 		//초기화
 		classLoaderList.clear();
@@ -66,14 +65,14 @@ public class NodeClassLoader extends AbstractModule {
 			}
 			
 		}
-		isRunning = true;
+		isLoad = true;
 		return true;
 	}
 	
 	public boolean unload() {
 		classLoaderList.clear();
 		classCache.clear();
-		isRunning = false;
+		isLoad = false;
 		return true;
 	}
 	
@@ -96,160 +95,31 @@ public class NodeClassLoader extends AbstractModule {
 	}
 	
 	public Object loadObject(String className){
-		//1. cache?
-		Class<?> clazz = classCache.get(className);
+		Class<?> clazz = loadClass(className);
 		if(clazz != null){
 			try {
 				return clazz.newInstance();
-			} catch (InstantiationException e) {
-				logger.warn("",e);
-			} catch (IllegalAccessException e) {
-				logger.warn("",e);
 			} catch (Exception e){
 				logger.error("",e);
 			}
 			return null;
 		}
-		//2. default CL?
-		try{
-			clazz = Class.forName(className);
-			if(clazz != null){
-				try {
-					return clazz.newInstance();
-				} catch (InstantiationException e) {
-					logger.warn("",e);
-				} catch (IllegalAccessException e) {
-					logger.warn("",e);
-				} catch (Exception e){
-					logger.error("",e);
-				}
-				return null;
-			}
-		}catch(ClassNotFoundException e){
-			logger.debug("Not found default class {}", className);
-		}
 		
-		//3. custom CL?
-		Iterator<URLClassLoader> iter = classLoaderList.values().iterator();
-		while(iter.hasNext()){
-			URLClassLoader l = (URLClassLoader)iter.next();
-			try {
-				clazz = Class.forName(className, true, l);
-			} catch (ClassNotFoundException e) {
-				
-				continue;
-			}
-			
-			if(clazz != null){
-				try {
-					logger.info("Found dynamic class {}", className);
-					return clazz.newInstance();
-				} catch (InstantiationException e) {
-					logger.warn("",e);
-				} catch (IllegalAccessException e) {
-					logger.warn("",e);
-				} catch (Exception e){
-					logger.error("",e);
-				}
-				return null;
-			}else{
-				logger.error("Not found dynamic class {}", className);
-			}
-		}
 		return null;
 	}
 	
 	public Object loadObject(String className, Class<?>[] paramTypes ,Object[] initargs){
-		//1. cache?
-		Class<?> clazz = classCache.get(className);
+		Class<?> clazz = loadClass(className);
 		if(clazz != null){
 			try {
 				Constructor<?> constructor = clazz.getConstructor(paramTypes);
 				return constructor.newInstance(initargs);
-			} catch (InstantiationException e) {
-				logger.warn("",e);
-			} catch (IllegalAccessException e) {
-				logger.warn("",e);
-			} catch (SecurityException e) {
-				logger.warn("",e);
-			} catch (NoSuchMethodException e) {
-				logger.warn("",e);
-			} catch (IllegalArgumentException e) {
-				logger.warn("",e);
-			} catch (InvocationTargetException e) {
-				logger.warn("",e);
 			} catch (Exception e){
 				logger.error("",e);
 			}
 			return null;
 		}
 		
-		//2. default CL?
-		try{
-			clazz = Class.forName(className);
-			if(clazz != null){
-				try {
-					Constructor<?> constructor = clazz.getConstructor(paramTypes);
-					return constructor.newInstance(initargs);
-				} catch (InstantiationException e) {
-					logger.warn("",e);
-				} catch (IllegalAccessException e) {
-					logger.warn("",e);
-				} catch (SecurityException e) {
-					logger.warn("",e);
-				} catch (NoSuchMethodException e) {
-					logger.warn("",e);
-				} catch (IllegalArgumentException e) {
-					logger.warn("",e);
-				} catch (InvocationTargetException e) {
-					logger.warn("",e);
-				} catch (Exception e){
-					logger.error("",e);
-				}
-				return null;
-			}
-		}catch(ClassNotFoundException e){
-			logger.debug("Not found default class {}", className);
-		}
-		
-		//3. custom CL?
-		Iterator<URLClassLoader> iter = classLoaderList.values().iterator();
-		while(iter.hasNext()){
-			URLClassLoader l = (URLClassLoader)iter.next();
-			try {
-				
-				clazz = Class.forName(className, true, l);
-				logger.info("classname = {}", clazz);
-			} catch (ClassNotFoundException e) {
-				
-				continue;
-			}
-			
-			if(clazz != null){
-				try {
-					Constructor<?> constructor = clazz.getConstructor(paramTypes);
-					logger.info("Found dynamic class {}", className);
-					return constructor.newInstance(initargs);
-				} catch (InstantiationException e) {
-					logger.error("",e);
-				} catch (IllegalAccessException e) {
-					logger.error("",e);
-				} catch (SecurityException e) {
-					logger.error("",e);
-				} catch (NoSuchMethodException e) {
-					logger.error("",e);
-				} catch (IllegalArgumentException e) {
-					logger.error("",e);
-				} catch (InvocationTargetException e) {
-					logger.error("",e);
-				} catch (Exception e){
-					logger.error("",e);
-				}
-				return null;
-			}else{
-				logger.error("Not found dynamic class "+className);
-			}
-		}
 		return null;
 	}
 	
@@ -270,6 +140,7 @@ public class NodeClassLoader extends AbstractModule {
 			clazz = Class.forName(className);
 			if(clazz != null){
 				try {
+					classCache.put(className, clazz);
 					return clazz;
 				} catch (Exception e){
 					logger.error("",e);
@@ -294,6 +165,7 @@ public class NodeClassLoader extends AbstractModule {
 			if(clazz != null){
 				try {
 					logger.info("Found dynamic class {}", className);
+					classCache.put(className, clazz);
 					return clazz;
 				} catch (Exception e){
 					logger.error("",e);

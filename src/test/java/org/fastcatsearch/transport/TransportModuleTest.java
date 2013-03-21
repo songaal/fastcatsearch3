@@ -59,8 +59,8 @@ public class TransportModuleTest {
 		transportService1.load();
 		transportService2.load();
 		
-		Node node1 = new Node("node-1", "node-1", new InetSocketAddress("localhost", 9100));
-		Node node2 = new Node("node-2", "node-2", new InetSocketAddress("localhost", 9200));
+		Node node1 = new Node("node-1", new InetSocketAddress("localhost", 9100));
+		Node node2 = new Node("node-2", new InetSocketAddress("localhost", 9200));
 		//미리 접속이 안되었을 경우를 가정.
 //		transportService1.connectToNode(node2);
 //		transportService2.connectToNode(node1);
@@ -89,8 +89,8 @@ public class TransportModuleTest {
 		transportService1.load();
 		transportService2.load();
 		
-		Node node1 = new Node("node-1", "node-1", new InetSocketAddress("localhost", 9100));
-		Node node2 = new Node("node-2", "node-2", new InetSocketAddress("localhost", 9200));
+		Node node1 = new Node("node-1", "localhost", 9100);
+		Node node2 = new Node("node-2", "localhost", 9200);
 		//미리 접속이 안되었을 경우를 가정.
 //		transportService1.connectToNode(node2);
 //		transportService2.connectToNode(node1);

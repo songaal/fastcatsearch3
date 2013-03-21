@@ -73,22 +73,22 @@ public class TransportModule extends AbstractModule {
 	
 	private final Object[] connectMutex;
 	private ExecutorService executorService;
-	final int workerCount;
-    final int bossCount;
+	private int workerCount;
+	private int bossCount;
 
-    final int port;
+	private int port;
 
-    final boolean tcpNoDelay;
+	private boolean tcpNoDelay;
 
-    final boolean tcpKeepAlive;
+	private boolean tcpKeepAlive;
 
-    final boolean reuseAddress;
-    final int connectTimeout;
+	private boolean reuseAddress;
+	private int connectTimeout;
 
-    final int tcpSendBufferSize;
-    final int tcpReceiveBufferSize;
+	private int tcpSendBufferSize;
+	private int tcpReceiveBufferSize;
     
-    final int sendFileChunkSize;
+	private int sendFileChunkSize;
     private JobExecutor jobExecutor;
     
     private final ReadWriteLock globalLock = new ReentrantReadWriteLock();
@@ -97,12 +97,16 @@ public class TransportModule extends AbstractModule {
 	public TransportModule(Environment environment, Settings settings, JobExecutor jobExecutor){
 		super(environment, settings);
 		this.jobExecutor = jobExecutor;
-		logger.debug("settings>>{}", settings);
 		this.connectMutex = new Object[500];
         for (int i = 0; i < connectMutex.length; i++) {
             connectMutex[i] = new Object();
         }
-        this.workerCount = settings.getInt("worker_count", Runtime.getRuntime().availableProcessors() * 2);
+       
+	}
+	
+	public boolean load(){
+		
+		this.workerCount = settings.getInt("worker_count", Runtime.getRuntime().availableProcessors() * 2);
         this.port = settings.getInt("node_port");
         this.connectTimeout = settings.getInt("connect_timeout", 1000);
         this.bossCount = settings.getInt("boss_count", 1);
@@ -115,10 +119,7 @@ public class TransportModule extends AbstractModule {
         
         logger.debug("Transport setting worker_count[{}], port[{}], connect_timeout[{}]",
                 new Object[]{workerCount, port, connectTimeout});
-	}
-	
-	public boolean load(){
-		
+        
 		this.executorService = ThreadPoolFactory.newUnlimitedCachedDaemonThreadPool("transport-pool");
 		/*
 		 * Client
@@ -188,7 +189,7 @@ public class TransportModule extends AbstractModule {
         
         
         serverChannel = serverBootstrap.bind(new InetSocketAddress(port));
-        logger.debug("Bound to address [{}]", serverChannel.getLocalAddress());
+        logger.debug("Bound to port [{}]", port);
         
         connectedNodes = new ConcurrentHashMap<Node, NodeChannels>();
         resultFutureMap = new ConcurrentHashMap<Long, ResultFuture>();
@@ -253,6 +254,9 @@ public class TransportModule extends AbstractModule {
     }
 	
 	public void connectToNode(Node node) throws TransportException{
+		
+		logger.info("Connect to Node [{}]", node);
+		
 		globalLock.readLock().lock();
 		
 		try{

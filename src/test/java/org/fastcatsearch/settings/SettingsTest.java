@@ -9,11 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.json.JSONStringer;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
-
-import com.google.gson.Gson;
 
 public class SettingsTest {
 
@@ -70,6 +67,10 @@ public class SettingsTest {
         System.out.println("sub=>\n"+transportSettings);
         
         List<Object> nodeList = transportSettings.getList("node_list");
+        for (int i = 0; i < nodeList.size(); i++) {
+        	Map map = (Map) nodeList.get(i);
+        	System.out.println(map);
+		}
         System.out.println(nodeList);
 	}
 	
@@ -107,23 +108,29 @@ public class SettingsTest {
 		list.add(el1);
 		Map<String, Object> el2 = new HashMap<String, Object>();
 		el2.put("name", "id2");
-		el1.put("size", 10);
+		el2.put("size", 10);
 		list.add(el2);
 		Map<String, Object> el3 = new HashMap<String, Object>();
-		el2.put("name", "id3");
-		el1.put("size", new int[]{1,2,3,4,5});
-		el1.put("list", new String[]{"a","b","c"});
+		el3.put("name", "id3");
+		el3.put("size", new Integer[]{1,2,3,4,5});
+		el3.put("list", new String[]{"a","b","c"});
 		list.add(el3);
 		
-//		serviceSettings.put("field_list", list);
-//		
-//		Settings settings = new Settings(serviceSettings);
-//		System.out.println(settings.toString());
+		serviceSettings.put("field_list", list);
 		
-		JSONStringer s = new JSONStringer();
-//		s.object().key("aa").array().
-		Gson gson = new Gson();
-		System.out.println(gson.toJson(list));
+		Settings settings = new Settings(serviceSettings);
+		System.out.println(settings.toString());
+		
+		System.out.println("---");
+		List<Settings> list2 = settings.getSettingList("field_list");
+		for (int i = 0; i < list2.size(); i++) {
+			Settings s = list2.get(i);
+			System.out.println("setting-"+i+" >> "+ list2.get(i));
+			System.out.println("#names:"+s.getString("name"));
+			System.out.println("#size:"+s.getInt("size", 10000));
+			
+		}
+		
 		
 	}
 
