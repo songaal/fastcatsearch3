@@ -20,4 +20,10 @@ public class IndexCollectionCommand extends Command {
 		return new CommandResult("결과 정보입니다.", Status.SUCCESS);
 		
 	}
+
+	@Override
+	public boolean isCommand() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

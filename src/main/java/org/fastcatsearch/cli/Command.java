@@ -12,5 +12,6 @@
 package org.fastcatsearch.cli;
 
 public abstract class Command {
+	abstract public boolean isCommand();
 	abstract public CommandResult doCommand();
 }

@@ -31,6 +31,7 @@ import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.ir.dic.Dic;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.util.ClassDetector;
 
 
 public class IRService extends CatServiceComponent{
@@ -116,111 +117,59 @@ public class IRService extends CatServiceComponent{
 	}	
 	
 	public void detectTokenizers() {
-		String pkg = "org.fastcatsearch.ir.analysis.";
-		ClassLoader clsldr = getClass().getClassLoader();
-		String path = pkg.replace(".", "/");
-		try {
-			Enumeration<URL> em = clsldr.getResources(path);
-			List<String[]> tokenizers = new ArrayList<String[]>();
-			while(em.hasMoreElements()) {
-				String urlstr = em.nextElement().toString();
-				if(urlstr.startsWith("jar:file:")) {
-					String jpath = urlstr.substring(9);
-					int st = jpath.indexOf("!/");
-					jpath = jpath.substring(0,st);
-					JarFile jf = new JarFile(jpath);
-					Enumeration<JarEntry>jee = jf.entries();
-					while(jee.hasMoreElements()) {
-						JarEntry je = jee.nextElement();
-						String ename = je.getName();
-						String[] ar = classifyTokenizers(ename,pkg);
-						if(ar!=null) { tokenizers.add(ar); }
-						
-					}
-				} else  if(urlstr.startsWith("file:")) {
-					File file = new File(urlstr.substring(5));
-					File[] dir = file.listFiles();
-					for(int i=0;i<dir.length;i++) {
-						String[] ar = classifyTokenizers(pkg+dir[i].getName(),pkg);
-						if(ar!=null) { tokenizers.add(ar); }
+		ClassDetector<String[]> detector = new ClassDetector<String[]>() {
+			@Override
+			public String[] classify(String ename, String pkg) {
+				if(ename.endsWith(".class")) {
+					ename = ename.substring(0,ename.length()-6);
+					ename = ename.replaceAll("/", ".");
+					if(ename.startsWith(pkg)) {
+						try {
+							Class<?> cls = Class.forName(ename);
+							TokenizerAttributes tokenizerAttributes = cls.getAnnotation(TokenizerAttributes.class);
+							if(tokenizerAttributes!=null) {
+								return new String[] { tokenizerAttributes.name(), cls.getName() };
+							}
+						} catch (ClassNotFoundException e) { }
 					}
 				}
+				return null;
 			}
-			if(tokenizers!=null && tokenizers.size() > 0) {
-				tokenizerList = new String[tokenizers.size()][];
-				tokenizerList = tokenizers.toArray(tokenizerList);
-			}
-		} catch (IOException e) { }
+		};
+		
+		List<String[]>tokenizers = detector.detectClass("org.fastcatsearch.ir.analysis.");
+		if(tokenizers!=null && tokenizers.size() > 0) {
+			tokenizerList = new String[tokenizers.size()][];
+			tokenizerList = tokenizers.toArray(tokenizerList);
+		}
 	}
 
-	public String[] classifyTokenizers(String ename, String pkg) {
-		if(ename.endsWith(".class")) {
-			ename = ename.substring(0,ename.length()-6);
-			ename = ename.replaceAll("/", ".");
-			if(ename.startsWith(pkg)) {
-				try {
-					Class<?> cls = Class.forName(ename);
-					TokenizerAttributes tokenizerAttributes = cls.getAnnotation(TokenizerAttributes.class);
-					if(tokenizerAttributes!=null) {
-						return new String[] { tokenizerAttributes.name(), cls.getName() };
-					}
-				} catch (ClassNotFoundException e) { }
-			}
-		}
-		return null;
-	}
-	
 	public void detectFieldTypes() {
-		String pkg = "org.fastcatsearch.ir.config.";
-		ClassLoader clsldr = getClass().getClassLoader();
-		String path = pkg.replace(".", "/");
-		try {
-			Enumeration<URL> em = clsldr.getResources(path);
-			while(em.hasMoreElements()) {
-				String urlstr = em.nextElement().toString();
-				if(urlstr.startsWith("jar:file:")) {
-					String jpath = urlstr.substring(9);
-					int st = jpath.indexOf("!/");
-					jpath = jpath.substring(0,st);
-					JarFile jf = new JarFile(jpath);
-					Enumeration<JarEntry>jee = jf.entries();
-					while(jee.hasMoreElements()) {
-						JarEntry je = jee.nextElement();
-						String ename = je.getName();
-						classifyFieldTypes(ename,pkg);
-					}
-				} else  if(urlstr.startsWith("file:")) {
-					File file = new File(urlstr.substring(5));
-					File[] dir = file.listFiles();
-					for(int i=0;i<dir.length;i++) {
-						classifyFieldTypes(pkg+dir[i].getName(),pkg);
+		ClassDetector<String[]> detector = new ClassDetector<String[]>() {
+			@Override
+			public String[] classify(String ename, String pkg) {
+				if(ename.endsWith(".class")) {
+					ename = ename.substring(0,ename.length()-6);
+					ename = ename.replaceAll("/", ".");
+					if(ename.startsWith(pkg)) {
+						try {
+							Class<?> cls = Class.forName(ename);
+							if(org.fastcatsearch.ir.config.Field.class.equals(cls)) {
+							} else if(org.fastcatsearch.ir.field.SingleValueField.class.equals(cls)) {
+							} else if(org.fastcatsearch.ir.field.MultiValueField.class.equals(cls)) {
+							} else if(org.fastcatsearch.ir.field.MultiValueField.class.isAssignableFrom(cls)) {
+							} else if(org.fastcatsearch.ir.config.Field.class.isAssignableFrom(cls)) {
+								String fieldType = ename.substring(pkg.length());
+								if(fieldType.endsWith("Field")) { fieldType = fieldType.substring(0,fieldType.length()-5); }
+								fieldType = fieldType.toLowerCase();
+								return new String[] { fieldType, cls.getName() };
+							}
+						} catch (ClassNotFoundException e) { }
 					}
 				}
+				return null;
 			}
-		} catch (IOException e) { }
-	}
-	
-	public String[] classifyFieldTypes(String ename, String pkg) {
-		if(ename.endsWith(".class")) {
-			ename = ename.substring(0,ename.length()-6);
-			ename = ename.replaceAll("/", ".");
-			if(ename.startsWith(pkg)) {
-				try {
-					Class<?> cls = Class.forName(ename);
-					if(org.fastcatsearch.ir.config.Field.class.equals(cls)) {
-					} else if(org.fastcatsearch.ir.field.SingleValueField.class.equals(cls)) {
-					} else if(org.fastcatsearch.ir.field.MultiValueField.class.equals(cls)) {
-					} else if(org.fastcatsearch.ir.field.MultiValueField.class.isAssignableFrom(cls)) {
-					} else if(org.fastcatsearch.ir.config.Field.class.isAssignableFrom(cls)) {
-						String fieldType = ename.substring(pkg.length());
-						if(fieldType.endsWith("Field")) { fieldType = fieldType.substring(0,fieldType.length()-5); }
-						fieldType = fieldType.toLowerCase();
-//						System.out.println("1: "+fieldType+":"+cls.getName());
-						return new String[] { fieldType, cls.getName() };
-					}
-				} catch (ClassNotFoundException e) { }
-			}
-		}
-		return null;
+		};
+		detector.detectClass("org.fastcatsearch.ir.config.");
 	}
 }

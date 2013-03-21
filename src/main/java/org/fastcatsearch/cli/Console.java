@@ -115,16 +115,18 @@ public class Console {
 				completed = false;
 			}
 			cmdBuf.append(cmd);
+			
+			cmd = cmdBuf.toString().trim();
 
 			//
 			// System Command ( help, exit ... )
 			//
-			if(cmdBuf.toString().equals("help")) {
+			if(cmd.equals("help")) {
 				printHelp();
 				cmdBuf.setLength(0);
 				completed = true;
 				continue;
-			} else if(cmdBuf.toString().equals("exit")) {
+			} else if(cmd.equals("exit")) {
 				System.exit(1);
 			}
 			
@@ -134,7 +136,6 @@ public class Console {
 			if(!completed) {
 				cmdBuf.append(" ");
 			} else {
-				cmd = cmdBuf.toString();
 				cmdBuf.setLength(0);
 			}
 
@@ -142,9 +143,11 @@ public class Console {
 			// Execute Command (Completed Command Phrase)
 			//
 			if(completed) {
-				String result = communicate(cmd);
-				//우선 임시로 json string 을 그대로 출력하도록 한다.
-				printf("command : %s \nresult : \n%s\n", cmd, result);
+				if(!"".equals(cmd)) {
+					String result = communicate(cmd);
+					//우선 임시로 json string 을 그대로 출력하도록 한다.
+					printf("command : %s \nresult : \n%s\n", cmd, result);
+				}
 			}
 		}
 	}
@@ -181,7 +184,7 @@ public class Console {
 							result = rline;
 						} else {
 							sb.append(rline).append("\n");
-						}	
+						}
 					}
 					
 					if("ERROR".equals(result)) {
@@ -199,6 +202,8 @@ public class Console {
 		} catch (ClientProtocolException e) {
 			e.printStackTrace(err);
 		} catch (IOException e) {
+			e.printStackTrace(err);
+		} catch (NullPointerException e) {
 			e.printStackTrace(err);
 		} finally {
 			if(br!=null) {

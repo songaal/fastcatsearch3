@@ -7,6 +7,12 @@ import org.fastcatsearch.service.IRService;
 public class ListCollectionCommand extends Command {
 
 	@Override
+	public boolean isCommand() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
 	public CommandResult doCommand() {
 		
 		try {

@@ -11,11 +11,16 @@
 
 package org.fastcatsearch.cli;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -24,8 +29,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.cli.CommandResult.Status;
 import org.fastcatsearch.cli.command.ListCollectionCommand;
+import org.fastcatsearch.util.ClassDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.Gson;
 
 
 public class ConsoleActionServlet extends HttpServlet {
@@ -56,6 +64,16 @@ public class ConsoleActionServlet extends HttpServlet {
 	}
 	
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
+		List<Class> clsList = this.detectCommands();
+		
+		for(Class cls : clsList) {
+			
+			logger.debug("class : {} ",cls.getName());
+			
+		}
+		
+		
 		String command = request.getParameter("command");
 		String[] commandList = command.split(" ");
 		
@@ -104,6 +122,7 @@ public class ConsoleActionServlet extends HttpServlet {
 	
 	private void responseError(HttpServletResponse response, String errorMessage) throws IOException {
 		//http.write
+		Gson gson = new Gson();
 		response.getWriter().write("ERROR\n"+errorMessage);
 	}
 	
@@ -111,6 +130,26 @@ public class ConsoleActionServlet extends HttpServlet {
 		//첫줄에 Fail, warning, success를 구분하여 표시한다.
 		response.getWriter().write(message.status.name()+"\n"+message.result);	
 	}
-    
 	
+	@SuppressWarnings("rawtypes")
+	public List<Class> detectCommands() {
+		ClassDetector<Class> detector = new ClassDetector<Class>() {
+			@Override
+			public Class classify(String ename, String pkg) {
+				if(ename.endsWith(".class")) {
+					ename = ename.substring(0,ename.length()-6);
+					ename = ename.replaceAll("/", ".");
+					if(ename.startsWith(pkg)) {
+						try {
+							Class<?> cls = Class.forName(ename);
+							cls.asSubclass(Command.class);
+							return cls;
+						} catch (ClassNotFoundException e) { }
+					}
+				}
+				return null;
+			}
+		};
+		return detector.detectClass("org.fastcatsearch.cli.command.");
+	}
 }
