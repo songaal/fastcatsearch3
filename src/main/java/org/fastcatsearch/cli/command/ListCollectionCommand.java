@@ -1,21 +1,24 @@
 package org.fastcatsearch.cli.command;
 
+import java.util.Arrays;
+
 import org.fastcatsearch.cli.Command;
 import org.fastcatsearch.cli.CommandResult;
+import org.fastcatsearch.cli.ListTableDecorator;
 import org.fastcatsearch.service.IRService;
 
 public class ListCollectionCommand extends Command {
 
 	@Override
-	public boolean isCommand() {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean isCommand(String[] cmd) {
+		return isCommand(cmd, CMD_LIST_COLLECTION);
 	}
 
 	@Override
 	public CommandResult doCommand() {
 		
 		try {
+			
 			String[] collectionNames = IRService.getInstance().getCollectionNames();
 			
 			int maxColumnLength = 0;
@@ -25,28 +28,18 @@ public class ListCollectionCommand extends Command {
 				}
 			}
 			
-			StringBuilder sb = new StringBuilder();
 			
-			sb.append("+-");
-			for(int i=0;i<maxColumnLength;i++) {
-				sb.append("-");
-			}
-			sb.append("-+");
-			sb.append("\n");
+			StringBuilder sb = new StringBuilder();
+			ListTableDecorator ltd = new ListTableDecorator(sb,
+					Arrays.asList(new Integer[] { maxColumnLength }));
+			
+			ltd.printbar();
 			
 			for(int i=0;i<collectionNames.length;i++) {
-				sb.append("|");
-				sb.append(String.format(" %"+maxColumnLength+"s ", collectionNames[i]));
-				sb.append("|");
+				ltd.printData(0, collectionNames[i]);
 			}
-			sb.append("\n");
 			
-			sb.append("+-");
-			for(int i=0;i<maxColumnLength;i++) {
-				sb.append("-");
-			}
-			sb.append("-+");
-			sb.append("\n");
+			ltd.printbar();
 			
 			return new CommandResult(sb.toString(), CommandResult.Status.SUCCESS);
 		} catch (Exception e) {

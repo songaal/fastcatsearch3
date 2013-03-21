@@ -40,42 +40,24 @@ public class ConsoleActionServlet extends HttpServlet {
 	
 	private static final long serialVersionUID = 4849511865192716149L;
 	private static final Logger logger = LoggerFactory.getLogger(ConsoleActionServlet.class);
+	
+	private static final List<Command> commandActionList = new ArrayList<Command>();
 
-	String[] CMD_INFO_SYSTEM = new String[]{"sysinfo"}; //시스템 정보.
-	String[] CMD_SHOW_DICTIONARY = new String[]{"show", "dictionary"};
-	String[] CMD_SHOW_SETTING = new String[]{"show", "setting"}; //fastcat.conf 셋팅.
-	
-	String[] CMD_LIST_COLLECTION = new String[]{"list", "collection"};
-	String[] CMD_INFO_COLLECTION = new String[]{"info"}; //컬렉션정보-색인크기, 위치등..
-	
-	String[] CMD_SHOW_SCHEMA = new String[]{"show", "schema"};
-	String[] CMD_SHOW_DATASOURCE = new String[]{"show", "datasource"};
-	
-	String[] CMD_START_FULLINDEX = new String[]{"start", "index", "full"};
-	String[] CMD_START_INCINDEX = new String[]{"start", "index", "inc"};
-	String[] CMD_STATUS_FULLINDEX = new String[]{"status", "index", "full"};
-	String[] CMD_STATUS_INCINDEX = new String[]{"status", "index", "inc"};
-	
-	String[] CMD_SET_SCHEDULE_FULLINDEX = new String[]{"set", "schedule", "full"};
-	String[] CMD_SET_SCHEDULE_INCINDEX = new String[]{"set", "schedule", "inc"};
-	
+	@Override
+	public void init() throws ServletException {
+		super.init();
+		commandActionList.clear();
+		commandActionList.addAll(detectCommands());
+	}
+
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doPost(request,response);
 	}
 	
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
-		List<Class> clsList = this.detectCommands();
-		
-		for(Class cls : clsList) {
-			
-			logger.debug("class : {} ",cls.getName());
-			
-		}
-		
-		
 		String command = request.getParameter("command");
-		String[] commandList = command.split(" ");
+		String[] commandArrray = command.split(" ");
 		
 		if(command == null || command.length() == 0){
 			responseError(response, "Command is empty!");
@@ -84,42 +66,24 @@ public class ConsoleActionServlet extends HttpServlet {
 		
 		CommandResult result = null;
 		
-		if(isCommand(CMD_INFO_SYSTEM, commandList)){
-			
-			
-		}else if(isCommand(CMD_SHOW_DICTIONARY, commandList)){
-			result = new IndexCollectionCommand().doCommand();
-			
-		}else if(isCommand(CMD_LIST_COLLECTION , commandList)){
-			result = new ListCollectionCommand().doCommand();
-		}else{
-			responseError(response, "Unknown Command : "+command);
-			return;
-		}
-		/*
-		 * TODO
-		 * 
-		 * 각 COMMAND들을 구현한다.
-		 * */
-		
-		
-		if(result == null){
-			responseError(response, "No result!");
-		}else{
-			reponseResult(response, result);
-		}
-		
-    }
-
-	private boolean isCommand(String[] expected, String[] actual){
-		for (int i = 0; i < expected.length; i++) {
-			if(!expected[i].equalsIgnoreCase(actual[i])){
-				return false;
+		for(Command commandAction : commandActionList) {
+			if(commandAction.isCommand(commandArrray)) {
+				try {
+					result = commandAction.getClass().newInstance().doCommand();
+				} catch (InstantiationException e) {
+				} catch (IllegalAccessException e) {
+				}
+				break;
 			}
 		}
-		return true;
-	}
-	
+		
+		if(result == null) {
+			responseError(response, "No result!");
+		} else {
+			reponseResult(response, result);
+		}
+    }
+
 	private void responseError(HttpServletResponse response, String errorMessage) throws IOException {
 		//http.write
 		Gson gson = new Gson();
@@ -131,20 +95,23 @@ public class ConsoleActionServlet extends HttpServlet {
 		response.getWriter().write(message.status.name()+"\n"+message.result);	
 	}
 	
-	@SuppressWarnings("rawtypes")
-	public List<Class> detectCommands() {
-		ClassDetector<Class> detector = new ClassDetector<Class>() {
+	public List<Command> detectCommands() {
+		ClassDetector<Command> detector = new ClassDetector<Command>() {
 			@Override
-			public Class classify(String ename, String pkg) {
+			public Command classify(String ename, String pkg) {
 				if(ename.endsWith(".class")) {
 					ename = ename.substring(0,ename.length()-6);
 					ename = ename.replaceAll("/", ".");
 					if(ename.startsWith(pkg)) {
 						try {
-							Class<?> cls = Class.forName(ename);
-							cls.asSubclass(Command.class);
-							return cls;
-						} catch (ClassNotFoundException e) { }
+							Object inst = Class.forName(ename).newInstance();
+							if(inst instanceof Command) {
+								return (Command)inst;
+							}
+						} catch (ClassNotFoundException e) { 
+						} catch (InstantiationException e) {
+						} catch (IllegalAccessException e) {
+						}
 					}
 				}
 				return null;

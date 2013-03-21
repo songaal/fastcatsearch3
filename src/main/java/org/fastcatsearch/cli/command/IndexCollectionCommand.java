@@ -9,21 +9,20 @@
  *     swsong - initial API and implementation
  */
 
-package org.fastcatsearch.cli;
+package org.fastcatsearch.cli.command;
 
+import org.fastcatsearch.cli.Command;
+import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.CommandResult.Status;
 
 public class IndexCollectionCommand extends Command {
-	public CommandResult doCommand(){
-		
-		
-		return new CommandResult("결과 정보입니다.", Status.SUCCESS);
-		
-	}
-
+	
 	@Override
-	public boolean isCommand() {
-		// TODO Auto-generated method stub
+	public boolean isCommand(String[] cmd) {
 		return false;
+	}
+	
+	public CommandResult doCommand(){
+		return new CommandResult("결과 정보입니다.", Status.SUCCESS);
 	}
 }
