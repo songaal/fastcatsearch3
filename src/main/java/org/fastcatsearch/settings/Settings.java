@@ -37,7 +37,8 @@ public class Settings {
 		for (int i = 0; i < keys.length; i++) {
 			Object value = workMap.get(keys[i]);
 			if(value == null){
-				return null;
+				//하위 요소가 없으면 빈 객체를 넘겨준다. 
+				return new Settings();
 			}
 			if(value instanceof Map){
 				workMap = (Map<String, Object>) value; 

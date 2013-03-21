@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.fastcatsearch.control.JobExecutor;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.JobResult;
 import org.fastcatsearch.ir.config.FieldSetting;
@@ -42,38 +43,15 @@ import org.fastcatsearch.job.SearchJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SearchServlet extends HttpServlet {
+public class SearchServlet extends JobHttpServlet {
 	
-	private static final long serialVersionUID = 963640595944747847L;
-	private static Logger logger = LoggerFactory.getLogger(SearchServlet.class);
 	private static Logger searchLogger = LoggerFactory.getLogger("SEARCH_LOG");
 	private static AtomicLong taskSeq = new AtomicLong();
-	public static final int JSON_TYPE = 0;
-	public static final int XML_TYPE = 1;
-	public static final int JSONP_TYPE = 2;
+	
 	public static final int IS_ALIVE = 3;
 	
-	private int RESULT_TYPE = JSON_TYPE;
-	
-	public void init(){
-		String type = getServletConfig().getInitParameter("result_format");
-		if(type != null){
-			if(type.equalsIgnoreCase("json")){
-				RESULT_TYPE = JSON_TYPE;
-			}else if(type.equalsIgnoreCase("xml")){
-				RESULT_TYPE = XML_TYPE;
-			}else if(type.equalsIgnoreCase("jsonp")){
-				RESULT_TYPE = JSONP_TYPE;
-			}
-		}
-	}
-	
-	public SearchServlet() {
-		this(JSON_TYPE);
-	}
-	
-    public SearchServlet(int resultType){
-    	RESULT_TYPE = resultType;
+    public SearchServlet(int resultType, JobExecutor jobExecutor){
+    	super(resultType, jobExecutor);
     }
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     	@SuppressWarnings("rawtypes")
@@ -141,13 +119,13 @@ public class SearchServlet extends HttpServlet {
     	PrintWriter w = response.getWriter();
     	BufferedWriter writer = new BufferedWriter(w);
     	
-    	if(RESULT_TYPE == JSON_TYPE){
+    	if(resultType == JSON_TYPE){
     		response.setContentType("application/json; charset="+responseCharset);
-    	}else if(RESULT_TYPE == XML_TYPE){
+    	}else if(resultType == XML_TYPE){
     		response.setContentType("text/xml; charset="+responseCharset);
-    	}else if(RESULT_TYPE == JSONP_TYPE){
+    	}else if(resultType == JSONP_TYPE){
     		response.setContentType("application/json; charset="+responseCharset);
-    	}else if(RESULT_TYPE == IS_ALIVE){
+    	}else if(resultType == IS_ALIVE){
     		response.setContentType("text/html; charset="+responseCharset);
     		writer.write("FastCat/OK\n<br/>" + new Date());
     		writer.close();
@@ -155,7 +133,7 @@ public class SearchServlet extends HttpServlet {
     	}
     	
     	
-    	if(RESULT_TYPE == JSONP_TYPE) {
+    	if(resultType == JSONP_TYPE) {
     		String callback = request.getParameter("jsoncallback");
     		writer.write(callback+"(");
     	}
@@ -177,7 +155,7 @@ public class SearchServlet extends HttpServlet {
 			String errorMsg = (String)obj;
 			searchLogger.info(seq+", -1, "+errorMsg);
 			
-			if(RESULT_TYPE == JSON_TYPE){
+			if(resultType == JSON_TYPE){
 				if(errorMsg != null){
 					errorMsg = Formatter.escapeJSon(errorMsg);
 				}
@@ -192,7 +170,7 @@ public class SearchServlet extends HttpServlet {
 	    		writer.write("\t\"error_msg\": \""+errorMsg+"\"");
 	    		writer.newLine();
 	    		writer.write("}");
-			}else if(RESULT_TYPE == XML_TYPE){
+			}else if(resultType == XML_TYPE){
 				if(errorMsg != null){
 					errorMsg = Formatter.escapeXml(errorMsg);
 				}
@@ -228,7 +206,7 @@ public class SearchServlet extends HttpServlet {
 		}
 		searchLogger.info(seq+", "+logStr);
 		
-		if(RESULT_TYPE == JSON_TYPE || RESULT_TYPE == JSONP_TYPE){
+		if(resultType == JSON_TYPE || resultType == JSONP_TYPE){
 			//JSON
 			int fieldCount = result.getFieldCount();
 			writer.write("{");
@@ -432,7 +410,7 @@ public class SearchServlet extends HttpServlet {
 	    		}//for
 			}//if else
 			writer.write("}");
-		}else if(RESULT_TYPE == XML_TYPE){
+		}else if(resultType == XML_TYPE){
 			//XML
 			//this does not support admin test, have no column meta data
 			
@@ -583,7 +561,7 @@ public class SearchServlet extends HttpServlet {
 			writer.write("</fastcat>");
 		}
 		
-    	if(RESULT_TYPE == JSONP_TYPE) {
+    	if(resultType == JSONP_TYPE) {
     		writer.write(");");
     	}
 

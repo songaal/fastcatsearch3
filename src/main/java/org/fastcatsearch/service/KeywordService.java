@@ -70,8 +70,8 @@ public class KeywordService extends AbstractService{
 		instance = this;
 	}
 	
-	public KeywordService(Environment environment, Settings settings) {
-		super(environment, settings);
+	public KeywordService(Environment environment, Settings settings, ServiceManager serviceManager) {
+		super(environment, settings, serviceManager);
 	}
 	public void addKeyword(String keyword){
 		//1hour 파일에 기록

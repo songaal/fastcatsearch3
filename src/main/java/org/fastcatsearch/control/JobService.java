@@ -36,6 +36,7 @@ import org.fastcatsearch.job.result.JobResultIndex;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,8 +76,8 @@ public class JobService extends AbstractService implements JobExecutor {
 	public void asSingleton() {
 		instance = this;
 	}
-	public JobService(Environment environment, Settings settings){
-		super(environment, settings);
+	public JobService(Environment environment, Settings settings, ServiceManager serviceManager){
+		super(environment, settings, serviceManager);
 	}
 	
 	public void setUseJobScheduler(boolean useJobScheduler){
@@ -259,8 +260,8 @@ public class JobService extends AbstractService implements JobExecutor {
 			jobScheduler = new JobScheduler();
 //		}
 		
-		IRConfig irconfig = IRSettings.getConfig();
-		int executorMaxPoolSize = irconfig.getInt("jobExecutor.max.poolsize");
+//		IRConfig irconfig = IRSettings.getConfig();
+		int executorMaxPoolSize = settings.getInt("pool.max");
 		
 		int indexJobMaxSize = 100;
 		int searchJobMaxSize = 100;
@@ -282,13 +283,12 @@ public class JobService extends AbstractService implements JobExecutor {
 		if(useJobScheduler){
 			jobScheduler.start();
 		}
-		logger.debug("JobController started!");
 		
 		return true;
 	}
 	
 	protected boolean doStop() {
-		logger.debug("JobController shutdown requested.");
+		logger.debug(getClass().getName()+" stop requested.");
 		worker.interrupt();
 		resultMap.clear();
 		jobQueue.clear();
@@ -297,7 +297,6 @@ public class JobService extends AbstractService implements JobExecutor {
 		if(useJobScheduler){
 			jobScheduler.stop();
 		}
-		logger.debug("JobController shutdown OK!");
 		return true;
 	}
 	protected boolean doClose() {

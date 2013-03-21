@@ -25,10 +25,12 @@ public abstract class AbstractService {
 	protected Lifecycle lifecycle;
 	protected Environment environment;
 	protected Settings settings;
+	protected ServiceManager serviceManager;
 	
-	public AbstractService(Environment environment, Settings settings){
+	public AbstractService(Environment environment, Settings settings, ServiceManager serviceManager){
 		this.environment = environment;
 		this.settings = settings;
+		this.serviceManager = serviceManager;
 		lifecycle = new Lifecycle();
 	}
 	
@@ -39,11 +41,29 @@ public abstract class AbstractService {
 		return lifecycle.started();
 	}
 	
+	public Settings settings(){
+		return settings;
+	}
+	
 	public boolean start() throws ServiceException{
+
+		//엔진구동시 시작되는 서비스가 아니라면, 현 상태가 구동시점인지 stop상태인지 확인해봐야한다.
+		if(!settings.getBoolean("start_on_load", true)){
+			if(lifecycle.initialized()){
+				logger.info(getClass().getSimpleName()+"는 구동시 시작하지 않습니다.");
+				//STOP 상태로 변경한다.
+				lifecycle.moveToStarted();
+				lifecycle.moveToStopped();
+				//구동시점에 stop으로 변경하므로 차후 start가 가능하다.
+				return false;
+			}
+		}
+		
 		if(lifecycle.canMoveToStarted()){
 			if(doStart()){
 				logger.info(getClass().getSimpleName()+" 시작!");
 				EventDBLogger.info(EventDBLogger.CATE_MANAGEMENT, getClass().getSimpleName()+"가 시작했습니다.", "");
+				lifecycle.moveToStarted();
 				return true;
 			}else{
 				return false;
@@ -55,10 +75,12 @@ public abstract class AbstractService {
 	protected abstract boolean doStart() throws ServiceException;
 		
 	public boolean stop() throws ServiceException{
+		
 		if(lifecycle.canMoveToStopped()){
 			if(doStop()){
 				logger.info(getClass().getSimpleName()+" 정지!");
 				EventDBLogger.info(EventDBLogger.CATE_MANAGEMENT, getClass().getSimpleName()+"가 정지했습니다.", "");
+				lifecycle.moveToStopped();
 				return true;
 			}else{
 				return false;
@@ -83,6 +105,7 @@ public abstract class AbstractService {
 			if(doClose()){
 				logger.info(getClass().getSimpleName()+" 정지!");
 				EventDBLogger.info(EventDBLogger.CATE_MANAGEMENT, getClass().getSimpleName()+"가 정지했습니다.", "");
+				lifecycle.moveToClosed();
 				return true;
 			}else{
 				return false;

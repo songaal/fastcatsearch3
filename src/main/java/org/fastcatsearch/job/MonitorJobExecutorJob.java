@@ -27,7 +27,7 @@ public class MonitorJobExecutorJob extends Job{
 	@Override
 	public Map<String, String> run0() throws JobException {
 		
-		ThreadPoolExecutor executor = JobService.getInstance().getJobExecutor();
+		ThreadPoolExecutor executor = ((JobService)getJobExecutor()).getJobExecutor();
 		Map<String, String> result = new HashMap<String, String>();
 		
 		int d = executor.getActiveCount();

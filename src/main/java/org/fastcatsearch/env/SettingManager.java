@@ -42,13 +42,13 @@ import org.yaml.snakeyaml.Yaml;
 
 import static org.fastcatsearch.env.FileNames.*;
 
-public class SettingHandler {
-	private final Logger logger = LoggerFactory.getLogger(SettingHandler.class);
+public class SettingManager {
+	private final Logger logger = LoggerFactory.getLogger(SettingManager.class);
 	private Environment environment;
 	private static Map<String, Object> settingCache = new HashMap<String, Object>();
 	
 	
-	public SettingHandler(Environment environment) {
+	public SettingManager(Environment environment) {
 		this.environment = environment;
 	}
 

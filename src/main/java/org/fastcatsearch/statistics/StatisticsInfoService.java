@@ -26,6 +26,7 @@ import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
 
 
@@ -78,8 +79,8 @@ public class StatisticsInfoService extends AbstractService {
 		instance = this;
 	}
 	
-	public StatisticsInfoService(Environment environment, Settings settings) {
-		super(environment, settings);
+	public StatisticsInfoService(Environment environment, Settings settings, ServiceManager serviceManager){
+		super(environment, settings, serviceManager);
 	}
 	
 	@Override

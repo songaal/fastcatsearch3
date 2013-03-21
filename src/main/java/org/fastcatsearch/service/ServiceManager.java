@@ -1,7 +1,6 @@
 package org.fastcatsearch.service;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -32,12 +31,12 @@ public class ServiceManager {
 	
 	public <T extends AbstractService> T createService(String serviceName, Class<T> serviceClass){
 		try {
-			Constructor<T> construct = serviceClass.getConstructor(Environment.class, Settings.class);
-			T t = construct.newInstance(environment, environment.settingHandler().getSettings());
+			Constructor<T> construct = serviceClass.getConstructor(Environment.class, Settings.class, ServiceManager.class);
+			T t = construct.newInstance(environment, environment.settingManager().getSettings().getSubSettings("service").getSubSettings(serviceName), this);
 			serviceMap.put(serviceClass, t);
 			return t;
 		} catch (Exception e) {
-			logger.error("can not make instance of class <{}>", serviceClass.getName());
+			logger.error("can not make instance of class <{}>, {}", serviceClass.getName(), e);
 		}
 		return null;
 	}

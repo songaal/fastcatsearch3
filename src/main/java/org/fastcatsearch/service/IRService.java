@@ -50,8 +50,8 @@ public class IRService extends AbstractService{
 		instance = this;
 	}
 	
-	public IRService(Environment environment, Settings settings) {
-		super(environment, settings);
+	public IRService(Environment environment, Settings settings, ServiceManager serviceManager) {
+		super(environment, settings, serviceManager);
 	}
 	
 	protected boolean doStart() throws ServiceException {

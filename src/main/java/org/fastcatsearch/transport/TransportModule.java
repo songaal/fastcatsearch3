@@ -89,7 +89,7 @@ public class TransportModule extends AbstractModule {
     final int tcpReceiveBufferSize;
     
     final int sendFileChunkSize;
-    JobExecutor jobExecutor;
+    private JobExecutor jobExecutor;
     
     private final ReadWriteLock globalLock = new ReentrantReadWriteLock();
     private FileTransportHandler fileTransportHandler;

@@ -34,8 +34,8 @@ public class QueryCacheService extends AbstractService{
 		instance = this;
 	}
 	
-	public QueryCacheService(Environment environment, Settings settings) {
-		super(environment, settings);
+	public QueryCacheService(Environment environment, Settings settings, ServiceManager serviceManager) {
+		super(environment, settings, serviceManager);
 	}
 	
 	protected boolean doStop() throws ServiceException {

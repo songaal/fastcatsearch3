@@ -11,6 +11,8 @@
 
 package org.fastcatsearch.service;
 
+import org.fastcatsearch.control.JobExecutor;
+import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
@@ -40,6 +42,7 @@ public class WebService extends AbstractService{
 	
 	private Server server;
 	private int SERVER_PORT;
+	private JobExecutor jobExecutor;
 	
 	private static WebService instance;
 	
@@ -50,17 +53,19 @@ public class WebService extends AbstractService{
 		instance = this;
 	}
 	
-	//WAS내장시에는 서블릿을 web.xml에 설정하지 않고 코드내에 설정한다.  
-	public WebService(Environment environment, Settings settings) {
-		super(environment, settings);
+	public WebService(Environment environment, Settings settings, ServiceManager serviceManager) {
+		super(environment, settings, serviceManager);
+		
 	}
 	
 	protected boolean doStart() throws ServiceException{
-		IRConfig config = IRSettings.getConfig();
+		this.jobExecutor = serviceManager.getService(JobService.class);
+		
+//		IRConfig config = IRSettings.getConfig();
 		if(System.getProperty("server.port")!=null) {
-			SERVER_PORT = Integer.parseInt(System.getProperty("server.port"));
+			SERVER_PORT = Integer.parseInt(System.getProperty("admin.port"));
 		} else {
-			SERVER_PORT = config.getInt("server.port");
+			SERVER_PORT = settings.getInt("admin.port");
 		}
 		
 		server = new Server(SERVER_PORT);
@@ -69,30 +74,30 @@ public class WebService extends AbstractService{
 		// Search ServletContextHandler
 		final Context context = new Context(server, SERVICE_CONTEXT, Context.SESSIONS);
 		context.setMaxFormContentSize(10 * 1024 * 1024); //파라미터전송 10MB까지 가능.
-		context.addServlet(new ServletHolder(new SearchServlet(SearchServlet.JSON_TYPE)),"/json");
-		context.addServlet(new ServletHolder(new SearchServlet(SearchServlet.JSONP_TYPE)),"/jsonp");
-		context.addServlet(new ServletHolder(new SearchServlet(SearchServlet.XML_TYPE)),"/xml");
-		context.addServlet(new ServletHolder(new SearchServlet(SearchServlet.IS_ALIVE)),"/isAlive");
+		context.addServlet(new ServletHolder(new SearchServlet(SearchServlet.JSON_TYPE, jobExecutor)),"/json");
+		context.addServlet(new ServletHolder(new SearchServlet(SearchServlet.JSONP_TYPE, jobExecutor)),"/jsonp");
+		context.addServlet(new ServletHolder(new SearchServlet(SearchServlet.XML_TYPE, jobExecutor)),"/xml");
+		context.addServlet(new ServletHolder(new SearchServlet(SearchServlet.IS_ALIVE, jobExecutor)),"/isAlive");
 		handlerList.addHandler(context);
 		
         // ServletContextHandler
 		final Context context3 = new Context(server, KEYWORD_CONTEXT, Context.SESSIONS);
-		context3.addServlet(new ServletHolder(new PopularKeywordServlet()),"/popular");
-		context3.addServlet(new ServletHolder(new PopularKeywordServlet(PopularKeywordServlet.JSON_TYPE)),"/popular/json");
-		context3.addServlet(new ServletHolder(new PopularKeywordServlet(PopularKeywordServlet.JSONP_TYPE)),"/popular/jsonp");
-		context3.addServlet(new ServletHolder(new PopularKeywordServlet(PopularKeywordServlet.XML_TYPE)),"/popular/xml");
+		context3.addServlet(new ServletHolder(new PopularKeywordServlet(PopularKeywordServlet.JSON_TYPE, jobExecutor)),"/popular");
+		context3.addServlet(new ServletHolder(new PopularKeywordServlet(PopularKeywordServlet.JSON_TYPE, jobExecutor)),"/popular/json");
+		context3.addServlet(new ServletHolder(new PopularKeywordServlet(PopularKeywordServlet.JSONP_TYPE, jobExecutor)),"/popular/jsonp");
+		context3.addServlet(new ServletHolder(new PopularKeywordServlet(PopularKeywordServlet.XML_TYPE, jobExecutor)),"/popular/xml");
 		handlerList.addHandler(context3);
 		
         // DOCUMENT_LIST_CONTEXT
 		final Context context4 = new Context(server, DOCUMENT_LIST_CONTEXT, Context.SESSIONS);
-		context4.addServlet(new ServletHolder(new DocumentListServlet(DocumentListServlet.JSON_TYPE)),"/json");
-		context4.addServlet(new ServletHolder(new DocumentListServlet(DocumentListServlet.XML_TYPE)),"/xml");
+		context4.addServlet(new ServletHolder(new DocumentListServlet(DocumentListServlet.JSON_TYPE, jobExecutor)),"/json");
+		context4.addServlet(new ServletHolder(new DocumentListServlet(DocumentListServlet.XML_TYPE, jobExecutor)),"/xml");
 		handlerList.addHandler(context4);
 		
 		// DOCUMENT_SEARCH_CONTEXT
 		final Context context5 = new Context(server, DOCUMENT_SEARCH_CONTEXT, Context.SESSIONS);
-		context5.addServlet(new ServletHolder(new DocumentSearchServlet(DocumentSearchServlet.JSON_TYPE)),"/json");
-		context5.addServlet(new ServletHolder(new DocumentSearchServlet(DocumentSearchServlet.XML_TYPE)),"/xml");
+		context5.addServlet(new ServletHolder(new DocumentSearchServlet(DocumentSearchServlet.JSON_TYPE, jobExecutor)),"/json");
+		context5.addServlet(new ServletHolder(new DocumentSearchServlet(DocumentSearchServlet.XML_TYPE, jobExecutor)),"/xml");
 		handlerList.addHandler(context5);
 		
 		

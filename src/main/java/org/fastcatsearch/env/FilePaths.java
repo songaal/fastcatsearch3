@@ -38,10 +38,16 @@ public class FilePaths {
 	}
 	
 	public String getPath(String path) {
+		if(path == null){
+			path = home();
+		}
 		return getFile(path).getPath();
 	}
 	
 	public File getFile(String path) {
+		if(path == null){
+			path = home();
+		}
 		
 		if(Environment.OS_NAME.startsWith("Windows")){
 			if(path.matches("^[a-zA-Z]:\\\\.*")){ // 윈도우즈는 c:\\와 같이 시작하지 않으면 상대경로이다.
@@ -63,10 +69,16 @@ public class FilePaths {
 	}
 	
 	public Path makePath(String path){
+		if(path == null){
+			return new Path(homeFile());
+		}
 		return new Path(getFile(path));
 	}
 	
 	public Path makeRelativePath(String path){
+		if(path == null){
+			return new Path();
+		}
 		return new Path(null, path);
 	}
 	

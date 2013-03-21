@@ -35,6 +35,7 @@ import org.fastcatsearch.keyword.KeywordFail;
 import org.fastcatsearch.keyword.KeywordHit;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
 
 
@@ -68,8 +69,8 @@ public class DBService extends AbstractService {
 		instance = this;
 	}
 	
-	protected DBService(Environment environment, Settings settings){
-		super(environment, settings);
+	protected DBService(Environment environment, Settings settings, ServiceManager serviceManager){
+		super(environment, settings, serviceManager);
 	}
 	
 	protected boolean doStart() throws ServiceException {

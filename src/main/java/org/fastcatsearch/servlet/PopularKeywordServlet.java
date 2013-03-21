@@ -19,10 +19,10 @@ import java.util.Date;
 import java.util.List;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.fastcatsearch.control.JobExecutor;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.field.DateTimeField;
@@ -31,41 +31,12 @@ import org.fastcatsearch.service.KeywordService;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
-public class PopularKeywordServlet extends HttpServlet {
+public class PopularKeywordServlet extends JobHttpServlet {
 	
-	private static final long serialVersionUID = -5391911035578891946L;
-	
-	private static Logger logger = LoggerFactory.getLogger(PopularKeywordServlet.class);
-	
-	public static final int JSON_TYPE = 0;
-	public static final int XML_TYPE = 1;
-	public static final int JSONP_TYPE = 2;
-	
-	private int RESULT_TYPE = JSON_TYPE;
-	
-	public void init(){
-		String type = getServletConfig().getInitParameter("result_format");
-		if(type != null){
-			if(type.equalsIgnoreCase("json")){
-				RESULT_TYPE = JSON_TYPE;
-			}else if(type.equalsIgnoreCase("xml")){
-				RESULT_TYPE = XML_TYPE;
-			}else if(type.equalsIgnoreCase("jsonp")){
-				RESULT_TYPE = JSONP_TYPE;
-			}
-		}
-	}
-	
-	public PopularKeywordServlet() {
-		this(JSON_TYPE);
-	}
-	
-	public PopularKeywordServlet(int resultType) {
-		RESULT_TYPE = resultType;
+	public PopularKeywordServlet(int resultType, JobExecutor jobExecutor){
+    	super(resultType, jobExecutor);
 	}
 	
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -161,11 +132,11 @@ public class PopularKeywordServlet extends HttpServlet {
     	
     	response.setCharacterEncoding("utf-8");
     	
-    	if(RESULT_TYPE == XML_TYPE) {
+    	if(resultType == XML_TYPE) {
     		response.setContentType("text/html");
     		writer = response.getWriter();
     		responseAsXml(writer, termList);
-    	} else if(RESULT_TYPE == JSONP_TYPE) {
+    	} else if(resultType == JSONP_TYPE) {
     		response.setContentType("application/json");
     		writer = response.getWriter();
     		String callback = request.getParameter("jsoncallback");

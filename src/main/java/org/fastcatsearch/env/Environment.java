@@ -17,7 +17,7 @@ public class Environment {
 	private String home = "";
 	private File homeFile;
 	
-	private SettingHandler settingHandler;
+	private SettingManager settingManager;
 	private FilePaths filePaths;
 	
 	public Environment(String homeDirPath){
@@ -31,7 +31,7 @@ public class Environment {
 	}
 	
 	public Environment init(){
-		settingHandler = new SettingHandler(this);
+		settingManager = new SettingManager(this);
 		filePaths = new FilePaths(this);
 		return this;
 	}
@@ -43,8 +43,8 @@ public class Environment {
 		return homeFile;
 	}
 	
-	public SettingHandler settingHandler(){
-		return settingHandler;
+	public SettingManager settingManager(){
+		return settingManager;
 	}
 	
 	public FilePaths filePaths(){
