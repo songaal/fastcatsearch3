@@ -31,12 +31,14 @@ public class ListCollectionCommand extends Command {
 			
 			StringBuilder sb = new StringBuilder();
 			ListTableDecorator ltd = new ListTableDecorator(sb,
-					Arrays.asList(new Integer[] { maxColumnLength }));
+					Arrays.asList(new Integer[] { (""+collectionNames.length).length(), 
+					maxColumnLength }));
 			
 			ltd.printbar();
 			
 			for(int i=0;i<collectionNames.length;i++) {
-				ltd.printData(0, collectionNames[i]);
+				ltd.printData(0, i+1);
+				ltd.printData(1, collectionNames[i]);
 			}
 			
 			ltd.printbar();

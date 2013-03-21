@@ -317,7 +317,14 @@ public class DBReader extends SourceReader{
 			
 			Map<String,Object> keyValueMap = new HashMap<String,Object>();
 			
-			ResultSetMetaData rsMeta = r.getMetaData();
+			ResultSetMetaData rsMeta = null;
+		
+			try {
+				rsMeta = r.getMetaData();
+			} catch (SQLException e) {
+				return;
+			}
+			
 			while (r.next()){
 				boolean hasLob = false;
 				for (int i = 0; i < columnCount; i++) {

@@ -115,6 +115,9 @@ public class Console {
 				completed = false;
 			}
 			cmdBuf.append(cmd);
+			if(cmdBuf.length()==0) {
+				completed = true;
+			}
 			
 			cmd = cmdBuf.toString().trim();
 

@@ -26,12 +26,12 @@ public class ListTableDecorator {
 		writer.append("\n");
 	}
 	
-	public void printData(int columnInx, String data) throws IOException {
+	public void printData(int columnInx, Object data) throws IOException {
 		if(columnInx == 0) {
 			writer.append("|");
 		}
 		
-		writer.append(String.format(" %"+columnSize.get(columnInx)+"s ", data));
+		writer.append(String.format(" %"+columnSize.get(columnInx)+"s ", data.toString()));
 		writer.append("|");
 		
 		if(columnInx==columnSize.size() -1) {
