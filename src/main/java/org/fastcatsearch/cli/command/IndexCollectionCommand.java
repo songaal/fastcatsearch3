@@ -22,7 +22,7 @@ public class IndexCollectionCommand extends Command {
 		return false;
 	}
 	
-	public CommandResult doCommand(){
+	public CommandResult doCommand(String[] cmd){
 		return new CommandResult("결과 정보입니다.", Status.SUCCESS);
 	}
 }

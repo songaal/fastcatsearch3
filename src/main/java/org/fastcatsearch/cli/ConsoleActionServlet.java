@@ -11,24 +11,16 @@
 
 package org.fastcatsearch.cli;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Iterator;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.fastcatsearch.cli.CommandResult.Status;
-import org.fastcatsearch.cli.command.ListCollectionCommand;
 import org.fastcatsearch.util.ClassDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +40,7 @@ public class ConsoleActionServlet extends HttpServlet {
 		super.init();
 		commandActionList.clear();
 		commandActionList.addAll(detectCommands());
+		logger.trace("detected command list : {}", commandActionList);
 	}
 
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -67,11 +60,14 @@ public class ConsoleActionServlet extends HttpServlet {
 		CommandResult result = null;
 		
 		for(Command commandAction : commandActionList) {
+			logger.debug("command : {}", Arrays.asList(commandAction).toString());
 			if(commandAction.isCommand(commandArrray)) {
 				try {
-					result = commandAction.getClass().newInstance().doCommand();
+					result = commandAction.getClass().newInstance().doCommand(commandArrray);
 				} catch (InstantiationException e) {
+					logger.error("",e);
 				} catch (IllegalAccessException e) {
+					logger.error("",e);
 				}
 				break;
 			}
@@ -106,6 +102,7 @@ public class ConsoleActionServlet extends HttpServlet {
 						try {
 							Object inst = Class.forName(ename).newInstance();
 							if(inst instanceof Command) {
+								logger.trace("instance {} detected", inst);								
 								return (Command)inst;
 							}
 						} catch (ClassNotFoundException e) { 

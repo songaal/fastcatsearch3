@@ -11,7 +11,14 @@
 
 package org.fastcatsearch.cli;
 
+import java.util.Arrays;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public abstract class Command {
+	
+	private static final Logger logger = LoggerFactory.getLogger(Command.class);
 	
 	protected static final String[] CMD_INFO_SYSTEM = new String[]{"sysinfo"}; //시스템 정보.
 	protected static final String[] CMD_SHOW_DICTIONARY = new String[]{"show", "dictionary"};
@@ -32,14 +39,17 @@ public abstract class Command {
 	protected static final String[] CMD_SET_SCHEDULE_INCINDEX = new String[]{"set", "schedule", "inc"};
 	
 	abstract public boolean isCommand(String[] cmd);
-	abstract public CommandResult doCommand();
+	abstract public CommandResult doCommand(String[] cmd);
 	
 	protected boolean isCommand(String[] expected, String[] actual){
+		logger.debug("compare {} : {}", new Object[] { Arrays.asList(expected).toString(), 
+				Arrays.asList(actual).toString() });
 		for (int i = 0; i < expected.length; i++) {
 			if(!expected[i].equalsIgnoreCase(actual[i])){
 				return false;
 			}
 		}
+		
 		return true;
 	}
 }

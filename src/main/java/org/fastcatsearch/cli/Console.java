@@ -13,7 +13,6 @@ package org.fastcatsearch.cli;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
@@ -44,9 +43,12 @@ public class Console {
 	
 	String[] CMD_USE_COLLECTION = new String[]{"use"};
 	
+	List<String> history;
+	
 	String currentCollection;
 	
 	public Console(String host, int port) {
+		history = new ArrayList<String>();
 		this.host = host;
 		this.port = port;
 	}

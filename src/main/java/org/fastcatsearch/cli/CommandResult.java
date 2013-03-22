@@ -12,7 +12,7 @@
 package org.fastcatsearch.cli;
 
 public class CommandResult {
-	public enum Status { SUCCESS, FAIL, WARNING };
+	public enum Status { SUCCESS, FAIL, WARNING, ERROR };
 	
 	String result;
 	Status status;
