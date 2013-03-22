@@ -25,9 +25,6 @@ import org.fastcatsearch.util.ClassDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-
-
 public class ConsoleActionServlet extends HttpServlet {
 	
 	private static final long serialVersionUID = 4849511865192716149L;
@@ -82,11 +79,10 @@ public class ConsoleActionServlet extends HttpServlet {
 
 	private void responseError(HttpServletResponse response, String errorMessage) throws IOException {
 		//http.write
-		Gson gson = new Gson();
 		response.getWriter().write("ERROR\n"+errorMessage);
 	}
 	
-	private void reponseResult(HttpServletResponse response, CommandResult message) throws IOException{
+	private void reponseResult(HttpServletResponse response, CommandResult message) throws IOException {
 		//첫줄에 Fail, warning, success를 구분하여 표시한다.
 		response.getWriter().write(message.status.name()+"\n"+message.result);	
 	}

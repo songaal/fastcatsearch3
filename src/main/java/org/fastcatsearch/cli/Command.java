@@ -30,19 +30,16 @@ public abstract class Command {
 	protected static final String[] CMD_SHOW_SCHEMA = new String[]{"show", "schema"};
 	protected static final String[] CMD_SHOW_DATASOURCE = new String[]{"show", "datasource"};
 	
-	protected static final String[] CMD_START_FULLINDEX = new String[]{"start", "index", "full"};
-	protected static final String[] CMD_START_INCINDEX = new String[]{"start", "index", "inc"};
-	protected static final String[] CMD_STATUS_FULLINDEX = new String[]{"status", "index", "full"};
-	protected static final String[] CMD_STATUS_INCINDEX = new String[]{"status", "index", "inc"};
+	protected static final String[] CMD_START_INDEX = new String[]{"start", "index" };
+	protected static final String[] CMD_STATUS_INDEX = new String[]{"status", "index" };
 	
-	protected static final String[] CMD_SET_SCHEDULE_FULLINDEX = new String[]{"set", "schedule", "full"};
-	protected static final String[] CMD_SET_SCHEDULE_INCINDEX = new String[]{"set", "schedule", "inc"};
+	protected static final String[] CMD_SET_SCHEDULE_INDEX = new String[]{"set", "schedule"};
 	
 	abstract public boolean isCommand(String[] cmd);
 	abstract public CommandResult doCommand(String[] cmd);
 	
 	protected boolean isCommand(String[] expected, String[] actual){
-		logger.debug("compare {} : {}", new Object[] { Arrays.asList(expected).toString(), 
+		logger.trace("compare {} : {}", new Object[] { Arrays.asList(expected).toString(), 
 				Arrays.asList(actual).toString() });
 		for (int i = 0; i < expected.length; i++) {
 			if(!expected[i].equalsIgnoreCase(actual[i])){

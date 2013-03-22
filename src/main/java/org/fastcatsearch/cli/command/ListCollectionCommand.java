@@ -11,7 +11,7 @@ public class ListCollectionCommand extends Command {
 
 	@Override
 	public boolean isCommand(String[] cmd) {
-		return isCommand(cmd, CMD_LIST_COLLECTION);
+		return isCommand(CMD_LIST_COLLECTION, cmd);
 	}
 
 	@Override
