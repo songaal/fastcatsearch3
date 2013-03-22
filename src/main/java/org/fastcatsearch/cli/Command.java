@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class Command {
 	
-	public static final String SESSION_KEY = "org.fastcatsearch.cli.Command@session";
+	public static final String SESSION_KEY_USING_COLLECTION = "org.fastcatsearch.cli.Command@session";
 	
 	private static final Logger logger = LoggerFactory.getLogger(Command.class);
 	
@@ -54,6 +54,9 @@ public abstract class Command {
 		logger.trace("compare {} : {}", new Object[] { Arrays.asList(expected).toString(), 
 				Arrays.asList(actual).toString() });
 		for (int i = 0; i < expected.length; i++) {
+			if(!(i < actual.length)) {
+				return false;
+			}
 			if(!expected[i].equalsIgnoreCase(actual[i])){
 				return false;
 			}

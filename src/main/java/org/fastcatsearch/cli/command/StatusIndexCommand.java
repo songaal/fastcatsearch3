@@ -65,7 +65,7 @@ public class StatusIndexCommand extends Command {
 		
 		if(cmd.length == 2) {
 			//status index
-			collection = (String)context.getAttribute(SESSION_KEY);
+			collection = (String)context.getAttribute(SESSION_KEY_USING_COLLECTION);
 			if(collection == null) {
 				listAll = true;
 			}

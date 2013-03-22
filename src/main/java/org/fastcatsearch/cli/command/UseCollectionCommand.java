@@ -43,10 +43,15 @@ public class UseCollectionCommand extends Command {
 	public CommandResult doCommand(String[] cmd, ConsoleSessionContext context)
 			throws CommandException, IOException {
 		String msg = null;
-		if(cmd.length >= 3) {
+		if(cmd.length == 2) {
+			//
+			// Remove Using Collection Name From Session
+			//
+			context.setAttribute(SESSION_KEY_USING_COLLECTION, null);
+		} else if(cmd.length >= 3) {
 			String collection = cmd[2];
-			logger.debug("using collection : {} -> {}", new Object[] { context.getAttribute(SESSION_KEY), collection });
-			context.setAttribute(SESSION_KEY, collection);
+			logger.debug("using collection : {} -> {}", new Object[] { context.getAttribute(SESSION_KEY_USING_COLLECTION), collection });
+			context.setAttribute(SESSION_KEY_USING_COLLECTION, collection);
 			
 			String collectinListStr = IRSettings.getConfig().getString("collection.list");
 			
@@ -59,10 +64,7 @@ public class UseCollectionCommand extends Command {
 			
 			msg = printData(new Object[] { "'"+collection+"' Not Found" });
 			return new CommandResult(msg, CommandResult.Status.FAIL);
-			
-			
-		} else {
-			throw new CommandException ("Syntax Error : Collection Not Select");
 		}
+		return new CommandResult("No result", CommandResult.Status.FAIL);
 	}
 }

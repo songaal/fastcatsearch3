@@ -42,12 +42,12 @@ public class StartIndexCommandIndex extends Command {
 		String msg = null;
 		
 		if(cmd.length == 2) {
-			collection = (String)context.getAttribute(SESSION_KEY);
+			collection = (String)context.getAttribute(SESSION_KEY_USING_COLLECTION);
 			isIncremental = false;
 			
 		} else if(cmd.length == 3 ) {
 			
-			collection = (String)context.getAttribute(SESSION_KEY);
+			collection = (String)context.getAttribute(SESSION_KEY_USING_COLLECTION);
 			isIncremental = "inc".equalsIgnoreCase(cmd[2]);
 			
 		} else if(cmd.length == 4) {
@@ -58,10 +58,10 @@ public class StartIndexCommandIndex extends Command {
 		
 		if(isIncremental) {
 			job = new IncIndexJob();
-			msg = "Increametal Indexing Job Executed..";
+			msg = "Increametal Indexing Job ["+collection+"] Executed..";
 		} else {
 			job = new FullIndexJob();
-			msg = "Full Indexing Job Executed..";
+			msg = "Full Indexing Job ["+collection+"] Executed..";
 		}
 		
 		if(collection == null) {
