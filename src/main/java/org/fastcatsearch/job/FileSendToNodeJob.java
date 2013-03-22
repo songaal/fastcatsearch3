@@ -12,10 +12,10 @@ public class FileSendToNodeJob extends Job {
 	private static final long serialVersionUID = 2700311768581340839L;
 
 	@Override
-	public Object run0() throws JobException, ServiceException {
+	public JobResult run0() throws JobException, ServiceException {
 		String[] args = getStringArrayArgs();
 		if(args.length < 2){
-			return false;
+			new JobException("파라미터가 모자랍니다.");
 		}
 		
 		String filepath = args[0];
@@ -25,12 +25,12 @@ public class FileSendToNodeJob extends Job {
 		File sourceFile = environment.filePaths().getFile(filepath);
 		SendFileResultFuture resultFuture = nodeService.sendFile(node, sourceFile, new File(filepath));
 		if(resultFuture == null){
-			return false;
+			new JobException("전송하지 못했습니다.");
 		}
 		
 		Object result = resultFuture.take();
 		logger.debug("파일전송 결과받음 >> {}", result);
-		return new JobResult(resultFuture);
+		return new JobResult(resultFuture.get());
 	}
 
 }

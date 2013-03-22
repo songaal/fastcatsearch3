@@ -12,6 +12,7 @@
 package org.fastcatsearch.service;
 
 import org.fastcatsearch.common.Lifecycle;
+import org.fastcatsearch.common.Singletonable;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.settings.Settings;
@@ -19,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public abstract class AbstractService {
+public abstract class AbstractService implements Singletonable {
 	protected static Logger logger = LoggerFactory.getLogger(AbstractService.class);
 	
 	protected Lifecycle lifecycle;
@@ -34,9 +35,6 @@ public abstract class AbstractService {
 		this.serviceManager = serviceManager;
 		lifecycle = new Lifecycle();
 	}
-	
-	
-	public abstract void asSingleton();
 	
 	public boolean isRunning() {
 		return lifecycle.started();

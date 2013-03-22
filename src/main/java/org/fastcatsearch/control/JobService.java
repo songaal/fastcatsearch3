@@ -51,7 +51,7 @@ public class JobService extends AbstractService implements JobExecutor {
 	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 	
 	private BlockingQueue<Job> jobQueue; 
-	private Map<Long, ResultFuture> resultMap;
+	private Map<Long, ResultFuture> resultFutureMap;
 	private Map<Long, Job> runningJobList;
 	private AtomicLong jobId;
 	
@@ -76,6 +76,51 @@ public class JobService extends AbstractService implements JobExecutor {
 	}
 	public JobService(Environment environment, Settings settings, ServiceManager serviceManager){
 		super(environment, settings, serviceManager);
+	}
+	
+	protected boolean doStart() throws ServiceException {
+		jobId = new AtomicLong();
+		resultFutureMap = new ConcurrentHashMap<Long, ResultFuture>();
+		runningJobList = new ConcurrentHashMap<Long, Job>();
+		jobQueue = new LinkedBlockingQueue<Job>();
+		indexingMutex = new IndexingMutex();
+		jobScheduler = new JobScheduler();
+		
+		int executorMaxPoolSize = settings.getInt("pool.max");
+		
+		int indexJobMaxSize = 100;
+		int searchJobMaxSize = 100;
+		int otherJobMaxSize = 100;
+		
+		jobExecutor = ThreadPoolFactory.newCachedThreadPool("IndexJobExecutor", executorMaxPoolSize);
+//		searchJobExecutor = ThreadPoolFactory.newUnlimitedCachedDaemonThreadPool("SearchJobExecutor");
+//		otherJobExecutor = ThreadPoolFactory.newUnlimitedCachedDaemonThreadPool("OtherJobExecutor");
+		scheduledJobExecutor = ThreadPoolFactory.newScheduledThreadPool("ScheduledIndexJobExecutor");
+//		otherScheduledJobExecutor = ThreadPoolFactory.newScheduledThreadPool("OtherScheduledJobExecutor");
+		
+		worker = new JobControllerWorker();
+		worker.start();
+		if(useJobScheduler){
+			jobScheduler.start();
+		}
+		
+		return true;
+	}
+	
+	protected boolean doStop() {
+		logger.debug(getClass().getName()+" stop requested.");
+		worker.interrupt();
+		resultFutureMap.clear();
+		jobQueue.clear();
+		runningJobList.clear();
+		jobExecutor.shutdownNow();
+		if(useJobScheduler){
+			jobScheduler.stop();
+		}
+		return true;
+	}
+	protected boolean doClose() {
+		return true;
 	}
 	
 	public void setUseJobScheduler(boolean useJobScheduler){
@@ -154,22 +199,19 @@ public class JobService extends AbstractService implements JobExecutor {
 			jobQueue.offer(job);
 			return null;
 		}else{
-			ResultFuture jobResult = new ResultFuture(myJobId, resultMap);
-			resultMap.put(myJobId, jobResult);
+			ResultFuture resultFuture = new ResultFuture(myJobId, resultFutureMap);
+			resultFutureMap.put(myJobId, resultFuture);
 			job.setId(myJobId);
 			jobQueue.offer(job);
-			return jobResult;
+			return resultFuture;
 		}
 	}
 	
 	public void result(long jobId, Job job, Object result, boolean isSuccess, long st, long et) {
-//		if(job.isNoResult()) 
-//			return;
 		
-//		indexingMutex.release(jobId);
-		ResultFuture jobResult = resultMap.remove(jobId);
+		ResultFuture jobResult = resultFutureMap.remove(jobId);
 		runningJobList.remove(jobId);
-		logger.debug("### JobResult = {} / map={} / result={} / success= {}", new Object[]{jobResult, resultMap.size(), result, isSuccess});
+		logger.debug("### JobResult = {} / map={} / result={} / success= {}", new Object[]{jobResult, resultFutureMap.size(), result, isSuccess});
 //		if(isManager){
 			if(!(job instanceof SearchJob) || !isSuccess){
 				DBService dbHandler = DBService.getInstance();
@@ -245,58 +287,7 @@ public class JobService extends AbstractService implements JobExecutor {
 		
 	}
 	
-	protected boolean doStart() throws ServiceException {
-		jobId = new AtomicLong();
-		resultMap = new ConcurrentHashMap<Long, ResultFuture>();
-		runningJobList = new ConcurrentHashMap<Long, Job>();
-		jobQueue = new LinkedBlockingQueue<Job>();
-		indexingMutex = new IndexingMutex();
-//		if(isManager){
-			jobScheduler = new JobScheduler();
-//		}
-		
-//		IRConfig irconfig = IRSettings.getConfig();
-		int executorMaxPoolSize = settings.getInt("pool.max");
-		
-		int indexJobMaxSize = 100;
-		int searchJobMaxSize = 100;
-		int otherJobMaxSize = 100;
-		
-		jobExecutor = ThreadPoolFactory.newCachedThreadPool("IndexJobExecutor", executorMaxPoolSize);
-//		searchJobExecutor = ThreadPoolFactory.newUnlimitedCachedDaemonThreadPool("SearchJobExecutor");
-//		otherJobExecutor = ThreadPoolFactory.newUnlimitedCachedDaemonThreadPool("OtherJobExecutor");
-		scheduledJobExecutor = ThreadPoolFactory.newScheduledThreadPool("ScheduledIndexJobExecutor");
-//		otherScheduledJobExecutor = ThreadPoolFactory.newScheduledThreadPool("OtherScheduledJobExecutor");
-		
-//		try{
-		worker = new JobControllerWorker();
-		worker.start();
-//		}catch(IllegalThreadStateException e){
-//			worker = new JobControllerWorker();
-//			worker.start();
-//		}
-		if(useJobScheduler){
-			jobScheduler.start();
-		}
-		
-		return true;
-	}
 	
-	protected boolean doStop() {
-		logger.debug(getClass().getName()+" stop requested.");
-		worker.interrupt();
-		resultMap.clear();
-		jobQueue.clear();
-		runningJobList.clear();
-		jobExecutor.shutdownNow();
-		if(useJobScheduler){
-			jobScheduler.stop();
-		}
-		return true;
-	}
-	protected boolean doClose() {
-		return true;
-	}
 	class JobControllerWorker extends Thread{
 		
 		public void run(){

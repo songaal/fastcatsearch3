@@ -55,7 +55,7 @@ public class IncIndexJob extends Job {
 	}
 	
 	@Override
-	public JobResultIndex run0() throws JobException, ServiceException {
+	public JobResult run0() throws JobException, ServiceException {
 		String[] args = getStringArrayArgs();
 		String collection = args[0];
 		boolean forceAppend = false;
@@ -241,7 +241,7 @@ public class IncIndexJob extends Job {
 			
 			indexingLogger.info("["+collection+"] Incremental Indexing Finished! docs = "+count+", update = "+updateAndDeleteSize[0]+", delete = "+updateAndDeleteSize[1]+", time = "+durationStr);
 			
-			return new JobResultIndex(collection, count, updateAndDeleteSize[0], updateAndDeleteSize[1], duration);
+			return new JobResult(new JobResultIndex(collection, count, updateAndDeleteSize[0], updateAndDeleteSize[1], duration));
 			
 		} catch (IOException e) {
 			EventDBLogger.error(EventDBLogger.CATE_INDEX, "증분색인에러", EventDBLogger.getStackTrace(e));

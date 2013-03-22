@@ -7,7 +7,7 @@ import java.util.List;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.env.Environment;
-import org.fastcatsearch.job.StreamableJob;
+import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.service.ServiceManager;
@@ -145,9 +145,9 @@ public class NodeService extends AbstractService {
 		return false;
 	}
 	
-	public ResultFuture sendRequest(final Node node, final StreamableJob streamableJob) {
+	public ResultFuture sendRequest(final Node node, final Job job) {
 		try{
-			return transportModule.sendRequest(node, streamableJob);
+			return transportModule.sendRequest(node, job);
 		}catch(TransportException e){
 			logger.error("sendRequest 에러", e);
 		}

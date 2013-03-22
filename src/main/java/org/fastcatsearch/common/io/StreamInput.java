@@ -166,7 +166,7 @@ public abstract class StreamInput extends InputStream {
 
     public String readString() throws IOException {
         int charCount = readVInt();
-        logger.debug("readString size >> {}", charCount);
+//        logger.debug("readString size >> {}", charCount);
         char[] chars = CachedStreamInput.getCharArray(charCount);
         int c, charIndex = 0;
         while (charIndex < charCount) {

@@ -25,15 +25,15 @@ public class CacheServiceRestartJob extends Job{
 	}
 	
 	@Override
-	public Object run0() {
+	public JobResult run0() {
 		try {
 			try {
 				Thread.sleep(delay);
 			} catch (InterruptedException e) { }
 			
-			return QueryCacheService.getInstance().restart();
+			return new JobResult(QueryCacheService.getInstance().restart());
 		} catch (ServiceException e) {
-			return false;
+			return new JobResult(false);
 		}
 	}
 

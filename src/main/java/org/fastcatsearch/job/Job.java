@@ -15,10 +15,9 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
 
+import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.control.JobExecutor;
 import org.fastcatsearch.control.ResultFuture;
-import org.fastcatsearch.control.JobService;
-import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.ServiceException;
@@ -93,42 +92,36 @@ public abstract class Job implements Runnable, Serializable{
 		return noResult;
 	}
 	
-	public abstract Object run0() throws JobException, ServiceException;
+	public abstract JobResult run0() throws JobException, ServiceException;
 
 	public final void run(){
 		long st = System.currentTimeMillis();
 		try {
-			Object result = run0();
+			JobResult jobResult = run0();
 			
 			if(jobExecutor == null){
 				throw new JobException("결과를 반환할 jobExecutor가 없습니다.");
 			}
 			
 			if(jobId != -1){
-				logger.debug("Job#{} result = {}", jobId, result);
-				if(result instanceof JobResult){
-					JobResult r = (JobResult) result;
-					Object ro = r.result;
-					if(ro instanceof Throwable){
-						Throwable e = (Throwable) ro;
-						ro = e.getMessage();
-						logError(e);
-					}
-					jobExecutor.result(jobId, this, ro, r.isSuccess, st, System.currentTimeMillis());
-					
-				}else{
-					jobExecutor.result(jobId, this, result, true, st, System.currentTimeMillis());
+				logger.debug("Job#{} result = {}", jobId, jobResult);
+				jobExecutor.result(jobId, this, jobResult.result, jobResult.isSuccess, st, System.currentTimeMillis());
+				
+				Object result = jobResult.result;
+				if(result != null && result instanceof Throwable){
+					Throwable e = (Throwable) result;
+					logError(e);
 				}
 			}else{
-				logger.error("## 결과에 jobId가 없습니다. job="+this+", result="+result);
+				logger.error("## 결과에 jobId가 없습니다. job={}, result=", this, jobResult);
 			}
 			
 		} catch (OutOfMemoryError e){
-			jobExecutor.result(jobId, this, e.getMessage(), false, st, System.currentTimeMillis());
+			jobExecutor.result(jobId, this, e, false, st, System.currentTimeMillis());
 			EventDBLogger.error(EventDBLogger.CATE_MANAGEMENT, "메모리부족 에러가 발생했습니다.", EventDBLogger.getStackTrace(e));
 			logError(e);
 		} catch (Throwable e){
-			jobExecutor.result(jobId, this, e.getMessage(), false, st, System.currentTimeMillis());
+			jobExecutor.result(jobId, this, e, false, st, System.currentTimeMillis());
 			logError(e);
 		}
 	}
@@ -143,16 +136,26 @@ public abstract class Job implements Runnable, Serializable{
 		logger.error(sw.toString());
 	}
 	
-	class JobResult{
-		Object result;
-		boolean isSuccess;
-		public JobResult(Object result, boolean isSuccess){
+	public static class JobResult{
+		protected Object result;
+		protected boolean isSuccess;
+		
+		public JobResult(Object result){
+			this.isSuccess = !(result instanceof Throwable);
 			this.result = result;
-			this.isSuccess = isSuccess;
 		}
-		public JobResult(ResultFuture resultFuture){
-			result = resultFuture.get();
-			isSuccess = resultFuture.isSuccess();
+		
+		public Object result(){
+			return result;
+		}
+		
+		public boolean isSuccess(){
+			return isSuccess;
+		}
+		
+		@Override
+		public String toString(){
+			return "[JobResult]success="+isSuccess+", result="+result;
 		}
 		
 	}

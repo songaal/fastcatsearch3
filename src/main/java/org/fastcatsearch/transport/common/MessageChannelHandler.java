@@ -1,12 +1,20 @@
 package org.fastcatsearch.transport.common;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 
+import org.fastcatsearch.common.DynamicClassLoader;
+import org.fastcatsearch.common.io.StreamInput;
+import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.control.JobExecutor;
-import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
-import org.fastcatsearch.ir.config.IRClassLoader;
+import org.fastcatsearch.job.Job;
+import org.fastcatsearch.job.StreamableJob;
+import org.fastcatsearch.transport.ChannelBufferStreamInput;
+import org.fastcatsearch.transport.TransportChannel;
+import org.fastcatsearch.transport.TransportException;
+import org.fastcatsearch.transport.TransportModule;
+import org.fastcatsearch.transport.TransportOption;
+import org.fastcatsearch.transport.vo.StreamableThrowable;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -16,15 +24,6 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.Streamable;
-import org.fastcatsearch.job.StreamableJob;
-import org.fastcatsearch.transport.ChannelBufferStreamInput;
-import org.fastcatsearch.transport.TransportModule;
-import org.fastcatsearch.transport.TransportChannel;
-import org.fastcatsearch.transport.TransportException;
-import org.fastcatsearch.transport.TransportOption;
 
 
 public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
@@ -87,11 +86,16 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
                 buffer.readerIndex(expectedIndexReader);
             }
         } else {
-        	
+        	logger.debug("# status = {}", status);
             if (TransportOption.isError(status)) {
+            	logger.debug("# status isError");
                 handlerResponseError(wrappedStream, requestId);
+            }else if (TransportOption.isResponseObject(status)) {
+            	logger.debug("# status isResponseObject");
+            	handleObjectResponse(wrappedStream, requestId);
             } else {
-                handleResponse(wrappedStream, requestId);
+            	logger.debug("# status isResponse streamable");
+                handleStreamableResponse(wrappedStream, requestId);
             }
             
             if (buffer.readerIndex() != expectedIndexReader) {
@@ -123,8 +127,11 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         try {
         	String jobName = input.readString();
         	logger.debug("#### READ job = {}", jobName);
-        	StreamableJob requestJob = (StreamableJob)IRClassLoader.getInstance().loadObject(jobName);
-        	requestJob.readFrom(input);
+        	Job requestJob = (Job) DynamicClassLoader.getInstance().loadObject(jobName);
+        	if(requestJob instanceof StreamableJob){
+        		StreamableJob streamableJob = (StreamableJob) requestJob;
+        		streamableJob.readFrom(input);
+        	}
         	
         	transport.execute(new RequestHandler(requestJob, transportChannel));
         } catch (Exception e) {
@@ -138,57 +145,70 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         }
     }
     
-    private void handleResponse(StreamInput input, long requestId) {
+    private void handleStreamableResponse(StreamInput input, long requestId) {
         try {
         	String className = input.readString();
-        	Streamable streamableResult = (Streamable) IRClassLoader.getInstance().loadObject(className);
+        	Streamable streamableResult = (Streamable) DynamicClassLoader.getInstance().loadObject(className);
         	streamableResult.readFrom(input);
         	logger.debug("## Response-{} >> {}", requestId, streamableResult.toString());
         	
         	transport.resultReceived(requestId, streamableResult);
         } catch (Exception e) {
-        	transport.exceptionReceived(requestId, e);
+        	StreamableThrowable streamableThrowable = new StreamableThrowable(e);
+        	transport.exceptionReceived(requestId, streamableThrowable);
+        }
+    }
+    
+    private void handleObjectResponse(StreamInput input, long requestId) {
+        try {
+        	Object response = input.readGenericValue();
+        	logger.debug("## Response-{} >> {}", requestId, response);
+        	
+        	transport.resultReceived(requestId, response);
+        } catch (Exception e) {
+        	StreamableThrowable streamableThrowable = new StreamableThrowable(e);
+        	transport.exceptionReceived(requestId, streamableThrowable);
         }
     }
 
     private void handlerResponseError(StreamInput buffer, long requestId) {
-        Throwable error;
+    	StreamableThrowable streamableThrowable = null;
         try {
-        	ObjectInputStream ois = new ObjectInputStream(buffer);
-            error = (Throwable) ois.readObject();
-            logger.debug("에러도착 Response-{} >> {}", requestId, error.getMessage());
+        	
+        	streamableThrowable = new StreamableThrowable();
+        	streamableThrowable.readFrom(buffer);
+            logger.debug("에러도착 Response-{} >> {}", requestId, streamableThrowable.getThrowable());
         } catch (Exception e) {
-            error = new TransportException("Failed to deserialize exception response from stream", e);
+        	streamableThrowable = new StreamableThrowable(new TransportException("Failed to deserialize exception response from stream", e));
         }
-        transport.exceptionReceived(requestId, error);
+        transport.exceptionReceived(requestId, streamableThrowable);
     }
     
     class RequestHandler implements Runnable {
-        private final StreamableJob requestJob;
+        private final Job job;
         private final TransportChannel transportChannel;
 
-        public RequestHandler(StreamableJob requestJob, TransportChannel transportChannel) {
-        	logger.debug("Request Job >> {}", requestJob.getClass().getName());
-            this.requestJob = requestJob;
+        public RequestHandler(Job job, TransportChannel transportChannel) {
+        	logger.debug("Request Job >> {}", job.getClass().getName());
+            this.job = job;
             this.transportChannel = transportChannel;
         }
 
         @Override
         public void run() {
             try {
-            	ResultFuture jobResult = jobExecutor.offer(requestJob);
-            	Object result = jobResult.take();
-            	logger.debug("Request Job Result >> {}", result);
-            	if(result instanceof Streamable){
-            		Streamable streamableResult = (Streamable) result;
-            		transportChannel.sendResponse(streamableResult);
+            	ResultFuture resultFuture = jobExecutor.offer(job);
+            	Object obj = resultFuture.take();
+            	if(obj instanceof Streamable){
+            		Streamable result = (Streamable) obj;
+            		transportChannel.sendResponse(result);
+            	}else if(obj instanceof Throwable){
+            		throw (Throwable) obj;
             	}else{
-            		logger.error("###########################################");
-            		logger.error("# JobResult가 Streamable 타입이 아니어서 전송불가! result >> {}", result);
-            		logger.error("###########################################");
+            		//전송된 job의 결과가 streamable이 아니라면 어떻게 할까?
+            		transportChannel.sendResponse(obj);
             	}
-            		
-            	
+            	logger.debug("Request Job Result >> {}", obj);
             } catch (Throwable e) {
                 // we can only send a response transport is started....
                 try {

@@ -29,6 +29,7 @@ import org.jboss.netty.channel.ChannelFuture;
 import org.fastcatsearch.common.io.BytesStreamOutput;
 import org.fastcatsearch.common.io.CachedStreamOutput;
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.transport.vo.StreamableThrowable;
 
 /**
  *
@@ -44,7 +45,25 @@ public class TransportChannel {
         this.requestId = requestId;
     }
 
-
+    public void sendResponse(Object obj) throws IOException {
+    	byte type = 0;
+    	type = TransportOption.setTypeMessage(type);
+    	byte status = 0;
+    	status = TransportOption.setResponse(status);
+    	status = TransportOption.setResponseObject(status);
+    	byte resType = 0;
+    	resType = TransportOption.setResponseObject(resType);
+        CachedStreamOutput.Entry cachedEntry = CachedStreamOutput.popEntry();
+        BytesStreamOutput stream = cachedEntry.bytes();
+        stream.skip(MessageProtocol.HEADER_SIZE);
+        stream.writeGenericValue(obj);
+        stream.close();
+        
+        ChannelBuffer buffer = stream.bytes().toChannelBuffer();
+        MessageProtocol.writeHeader(buffer, type, requestId, status);
+        ChannelFuture future = channel.write(buffer);
+        future.addListener(new TransportModule.CacheFutureListener(cachedEntry));
+    }
     public void sendResponse(Streamable response) throws IOException {
     	byte type = 0;
     	type = TransportOption.setTypeMessage(type);
@@ -72,9 +91,8 @@ public class TransportChannel {
         CachedStreamOutput.Entry cachedEntry = CachedStreamOutput.popEntry();
         BytesStreamOutput stream = cachedEntry.bytes();
         stream.skip(MessageProtocol.HEADER_SIZE);
-        ObjectOutputStream oos = new ObjectOutputStream(stream);
-        oos.writeObject(error);
-        oos.close();
+        StreamableThrowable streamableThrowable = new StreamableThrowable(error);
+        streamableThrowable.writeTo(stream);
         stream.close();
         
         ChannelBuffer buffer = stream.bytes().toChannelBuffer();

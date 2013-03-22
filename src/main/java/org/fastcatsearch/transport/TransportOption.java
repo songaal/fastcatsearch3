@@ -28,6 +28,7 @@ public class TransportOption {
     private static final byte STATUS_REQRES = 1 << 0;
     private static final byte STATUS_ERROR = 1 << 1; 
     private static final byte STATUS_COMPRESS = 1 << 2;
+    private static final byte STATUS_OBJECT = 1 << 3; //결과객체가 streamable이 아닌 Object인지 여부.
 
     public static boolean isRequest(byte value) {
         return (value & STATUS_REQRES) == 0;
@@ -71,6 +72,15 @@ public class TransportOption {
         return value;
     }
     
+    public static boolean isResponseObject(byte value) {
+        return (value & STATUS_OBJECT) != 0;
+    }
+
+    public static byte setResponseObject(byte value) {
+        value |= STATUS_OBJECT;
+        return value;
+    }
+    
     
     public static boolean isTypeMessage(byte value) {
         return (value & TYPE_MESSAGE_FILE) == 0;
@@ -89,4 +99,5 @@ public class TransportOption {
         value |= TYPE_MESSAGE_FILE;
         return value;
     }
+    
 }

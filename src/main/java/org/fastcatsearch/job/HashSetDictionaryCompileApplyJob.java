@@ -34,12 +34,12 @@ public class HashSetDictionaryCompileApplyJob extends Job {
 	private static int BUCKET_SIZE = 16 * 1024;
 	
 	@Override
-	public Object run0() throws JobException, ServiceException {
+	public JobResult run0() throws JobException, ServiceException {
 		String[] args = getStringArrayArgs();
 		if("stopDic".equals(args[0])){
 			try {
 				compileStopDic();
-				return Dic.reload("stopword");
+				return new JobResult(Dic.reload("stopword"));
 			} catch (IRException e) {
 				throw new JobException(e.getMessage(), e);
 			}
@@ -47,7 +47,7 @@ public class HashSetDictionaryCompileApplyJob extends Job {
 		}else if("koreanDic".equals(args[0])){
 			try {
 				compileKoreanDic();
-				return Dic.reload("korean");
+				return new JobResult(Dic.reload("korean"));
 			} catch (IRException e) {
 				throw new JobException(e.getMessage(), e);
 			}
@@ -55,7 +55,7 @@ public class HashSetDictionaryCompileApplyJob extends Job {
 		}else if("userDic".equals(args[0])){
 			try {
 				compileUserDic();
-				return Dic.reload("userword");
+				return new JobResult(Dic.reload("userword"));
 			} catch (IRException e) {
 				throw new JobException(e.getMessage(), e);
 			}
@@ -64,7 +64,7 @@ public class HashSetDictionaryCompileApplyJob extends Job {
 			logger.error("Unknown dictionary = "+args[0]);
 		}
 		
-		return -1;
+		return new JobResult(-1);
 	}
 	
 	public int compileStopDic() throws IRException{

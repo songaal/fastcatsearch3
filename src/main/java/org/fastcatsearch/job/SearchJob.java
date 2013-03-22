@@ -36,7 +36,7 @@ import org.fastcatsearch.statistics.StatisticsInfoService;
 public class SearchJob extends Job {
 	
 	@Override
-	public Result run0() throws JobException, ServiceException {
+	public JobResult run0() throws JobException, ServiceException {
 		long st = System.currentTimeMillis();
 		String[] args = getStringArrayArgs();
 		String queryString = args[0];
@@ -111,7 +111,7 @@ public class SearchJob extends Job {
 				statisticsInfoService.addSearchTime(searchTime);
 				statisticsInfoService.addSearchTime(collection, searchTime);
 			}
-			return result;
+			return new JobResult(result);
 			
 		} catch(Exception e){
 			if(statisticsInfoService.isEnabled()){
@@ -143,10 +143,10 @@ public class SearchJob extends Job {
 		
 		SearchJob job = new SearchJob();
 		job.setArgs(new String[]{queryString});
-		Result obj = job.run0();
+		JobResult obj = job.run0();
 		Result result = null;
 		if(obj != null)
-			result = (Result)obj;
+			result = (Result)obj.result();
 		
 		logger.info("search time = "+(System.currentTimeMillis() - st)+" ms");
 		logger.info("TotalCount = " + result.getTotalCount());

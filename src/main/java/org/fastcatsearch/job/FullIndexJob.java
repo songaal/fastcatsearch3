@@ -18,6 +18,7 @@ import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.collector.SourceReaderFactory;
+import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.ir.common.IRException;
@@ -55,7 +56,7 @@ public class FullIndexJob extends Job {
 	
 	
 	@Override
-	public JobResultIndex run0() throws JobException, ServiceException {
+	public JobResult run0() throws JobException, ServiceException {
 		String[] args = getStringArrayArgs();
 		String collection = (String)args[0];
 		indexingLogger.info("["+collection+"] Full Indexing Start!");
@@ -71,8 +72,8 @@ public class FullIndexJob extends Job {
 				workSchema = IRSettings.getSchema(collection, false);
 			
 			if(workSchema.getFieldSize() == 0){
-				indexingLogger.error("["+collection+"] Full Indexing Canceled. Schema field is empty. time = "+Formatter.getFormatTime(System.currentTimeMillis() - st));
-				return null;
+				indexingLogger.error("["+collection+"] Full Indexing Canceled. Schema field is empty. time = "+Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
+				throw new JobException("["+collection+"] Full Indexing Canceled. Schema field is empty. time = "+Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
 			}
 			
 			//주키가 없으면 색인실패
@@ -147,8 +148,8 @@ public class FullIndexJob extends Job {
 			}
 			
 			if(count == 0){
-				indexingLogger.info("["+collection+"] Full Indexing Canceled due to no documents. time = "+Formatter.getFormatTime(System.currentTimeMillis() - st));
-				return null;
+				indexingLogger.info("["+collection+"] Full Indexing Canceled due to no documents. time = "+Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
+				throw new JobException("["+collection+"] Full Indexing Canceled due to no documents. time = "+Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
 			}
 			
 			//apply schema setting
@@ -185,7 +186,7 @@ public class FullIndexJob extends Job {
 			
 			indexingLogger.info("["+collection+"] Full Indexing Finished! docs = "+count+", update = "+updateAndDeleteSize[0]+", delete = "+updateAndDeleteSize[1]+", time = "+durationStr);
 			
-			return new JobResultIndex(collection, count, updateAndDeleteSize[0], updateAndDeleteSize[1], duration);
+			return new JobResult(new JobResultIndex(collection, count, updateAndDeleteSize[0], updateAndDeleteSize[1], duration));
 			
 		} catch (IOException e) {
 			EventDBLogger.error(EventDBLogger.CATE_INDEX, "전체색인에러", EventDBLogger.getStackTrace(e));

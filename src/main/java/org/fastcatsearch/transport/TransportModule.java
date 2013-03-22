@@ -25,10 +25,10 @@ import org.fastcatsearch.common.ThreadPoolFactory;
 import org.fastcatsearch.common.io.BlockingCachedStreamOutput;
 import org.fastcatsearch.common.io.BytesStreamOutput;
 import org.fastcatsearch.common.io.CachedStreamOutput;
-import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.control.JobExecutor;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.module.AbstractModule;
 import org.fastcatsearch.settings.Settings;
@@ -39,6 +39,7 @@ import org.fastcatsearch.transport.common.MessageChannelHandler;
 import org.fastcatsearch.transport.common.MessageCounter;
 import org.fastcatsearch.transport.common.ReadableFrameDecoder;
 import org.fastcatsearch.transport.common.SendFileResultFuture;
+import org.fastcatsearch.transport.vo.StreamableThrowable;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -105,7 +106,8 @@ public class TransportModule extends AbstractModule {
         
 	}
 	
-	public boolean load(){
+	@Override
+	public boolean doLoad(){
 		
 		this.workerCount = settings.getInt("worker_count", Runtime.getRuntime().availableProcessors() * 2);
         this.port = settings.getInt("node_port");
@@ -198,8 +200,9 @@ public class TransportModule extends AbstractModule {
         fileStreamOutputCache = new BlockingCachedStreamOutput(10, sendFileChunkSize + 3 * 1024);
         return true;
 	}
+	
 	@Override
-	public boolean unload() {
+	public boolean doUnload() {
         final CountDownLatch latch = new CountDownLatch(1);
         // make sure we run it on another thread than a possible IO handler thread
         execute(new Runnable() {
@@ -359,7 +362,7 @@ public class TransportModule extends AbstractModule {
 		return channels;
 	}
 
-    public ResultFuture sendRequest(final Node node, final StreamableJob streamableJob) throws TransportException {
+    public ResultFuture sendRequest(final Node node, final Job job) throws TransportException {
     	if(node == null){
     		throw new TransportException("node is null");
     	}
@@ -367,7 +370,7 @@ public class TransportModule extends AbstractModule {
         try {
         	ResultFuture resultFuture = new ResultFuture(requestId, resultFutureMap);
             resultFutureMap.put(requestId, resultFuture);
-            sendMessageRequest(node, requestId, streamableJob);
+            sendMessageRequest(node, requestId, job);
             
             return resultFuture;
         } catch (final Exception e) {
@@ -395,23 +398,23 @@ public class TransportModule extends AbstractModule {
         }
     }
     
-    public void resultReceived(long requestId, Streamable streamableResult) {
+    public void resultReceived(long requestId, Object result) {
     	ResultFuture resultFuture = resultFutureMap.remove(requestId);
     	if(resultFuture == null){
     		//입력할 결과객체가 없음.
-    		logger.warn("입력할 결과객체가 없음. timeout으로 제거되었을수있습니다. requestId={}, streamableResult={}", requestId, streamableResult);
+    		logger.warn("입력할 결과객체가 없음. timeout으로 제거되었을수있습니다. requestId={}, result={}", requestId, result);
     	}else{
-    		resultFuture.put(streamableResult, true);
+    		resultFuture.put(result, true);
     	}
 	}
 
-	public void exceptionReceived(long requestId, Throwable e) {
+	public void exceptionReceived(long requestId, StreamableThrowable e) {
 		ResultFuture resultFuture = resultFutureMap.remove(requestId);
     	if(resultFuture == null){
     		//입력할 결과객체가 없음.
-    		logger.warn("입력할 결과객체가 없음. timeout으로 제거되었을수있습니다. requestId={}, Throwable={}", requestId, e);
+    		logger.warn("입력할 결과객체가 없음. timeout으로 제거되었을수있습니다. requestId={}, Throwable={}", requestId, e.getThrowable());
     	}else{
-    		resultFuture.put(e, false);
+    		resultFuture.put(e.getThrowable(), false);
     	}
 		
 	}
@@ -421,7 +424,7 @@ public class TransportModule extends AbstractModule {
         return requestIds.getAndIncrement();
     }
     
-    private void sendMessageRequest(final Node node, long requestId, StreamableJob request) throws IOException, TransportException {
+    private void sendMessageRequest(final Node node, long requestId, Job request) throws IOException, TransportException {
 		NodeChannels channels = getNodeChannels(node);
 		Channel targetChannel = channels.getHighChannel();
 		byte type = 0;
@@ -433,7 +436,10 @@ public class TransportModule extends AbstractModule {
         stream.skip(MessageProtocol.HEADER_SIZE);
         stream.writeString(request.getClass().getName());
         logger.debug("write class {}", request.getClass().getName());
-        request.writeTo(stream);
+        if(request instanceof StreamableJob){
+        	StreamableJob streamableJob = (StreamableJob) request;
+        	streamableJob.writeTo(stream);
+        }
         stream.close();
         
         
@@ -506,7 +512,9 @@ public class TransportModule extends AbstractModule {
 	            
 	            //write file data
 	            stream.writeVInt(bytesRef.length());
-	            stream.write(bytesRef.array(), bytesRef.arrayOffset(), bytesRef.length());
+	            if(bytesRef.length() > 0){
+	            	stream.write(bytesRef.array(), bytesRef.arrayOffset(), bytesRef.length());
+	            }
 	            
 	            stream.close();
 	            //TODO 만약 이 라인 이전에 에러발생시 cache가 리턴되지 않고 누락되는 잠재버그가 발생할수있다.

@@ -45,6 +45,13 @@ public class FileChunkEnumeration implements Enumeration<BytesReference>{
 		isRead = true;
 		try {
 			int n = fis.read(buffer);
+			if(n == -1){ 
+				if(fileSize == 0){
+					n = 0;
+				}else{
+					throw new IOException("end of file while reading. nRead="+nRead+", fileSize="+fileSize);
+				}
+			}
 			nRead += n;
 //			logger.debug("read = {}, total = {} < {}", new Object[]{n, nRead, fileSize});
 			return new BytesArray(buffer, 0, n);

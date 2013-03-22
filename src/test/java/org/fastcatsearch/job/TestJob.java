@@ -28,13 +28,13 @@ public class TestJob extends StreamableJob{
 	}
 	
 	@Override
-	public Streamable run0() {
+	public JobResult run0() {
 		String[] args = getStringArrayArgs();
 		StreamableString str = new StreamableString(args[0]);
 
 		logger.debug("This is Test Job!! args="+str.value());
 		
-		return str;
+		return new JobResult(str);
 	}
 
 	@Override

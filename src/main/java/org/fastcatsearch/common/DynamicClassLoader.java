@@ -27,21 +27,31 @@ import java.util.Map;
 
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.module.AbstractModule;
+import org.fastcatsearch.module.AbstractSingletoneModule;
 import org.fastcatsearch.settings.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DynamicClassLoader extends AbstractModule {
+public class DynamicClassLoader extends AbstractSingletoneModule {
 	private static Logger logger = LoggerFactory.getLogger(DynamicClassLoader.class);
 	private Map<String, URLClassLoader> classLoaderList = new HashMap<String, URLClassLoader>();
 	private Map<String, Class<?>> classCache = new HashMap<String, Class<?>>();
 	protected boolean isLoad;
+	private static DynamicClassLoader instance;
 	
 	public DynamicClassLoader(Environment environment, Settings settings){
 		super(environment, settings);
 	}
 	
-	public boolean load() {
+	public static DynamicClassLoader getInstance(){
+		return instance;
+	}
+	@Override
+	public void asSingleton() {
+		instance = this;
+	}
+	@Override
+	public boolean doLoad() {
 		String jarPath = settings.getString("classpath");
 		
 		//초기화
@@ -68,8 +78,8 @@ public class DynamicClassLoader extends AbstractModule {
 		isLoad = true;
 		return true;
 	}
-	
-	public boolean unload() {
+	@Override
+	public boolean doUnload() {
 		classLoaderList.clear();
 		classCache.clear();
 		isLoad = false;
@@ -177,5 +187,7 @@ public class DynamicClassLoader extends AbstractModule {
 		}
 		return null;
 	}
+
+	
 	
 }

@@ -25,7 +25,7 @@ public class MonitorJobExecutorJob extends Job{
 	public MonitorJobExecutorJob(){ }
 	
 	@Override
-	public Map<String, String> run0() throws JobException {
+	public JobResult run0() throws JobException {
 		
 		ThreadPoolExecutor executor = ((JobService)getJobExecutor()).getJobExecutor();
 		Map<String, String> result = new HashMap<String, String>();
@@ -42,7 +42,7 @@ public class MonitorJobExecutorJob extends Job{
 		long l = executor.getCompletedTaskCount();
 		result.put("CompletedTaskCount", Long.toString(l));
 		
-		return result;
+		return new JobResult(result);
 	}
 	
 }

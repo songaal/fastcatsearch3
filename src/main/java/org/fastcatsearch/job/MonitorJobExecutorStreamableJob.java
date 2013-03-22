@@ -11,18 +11,23 @@
 
 package org.fastcatsearch.job;
 
-import org.fastcatsearch.control.JobException;
-import org.fastcatsearch.service.ServiceException;
+import java.util.Map;
 
-public class ResultJob extends Job {
+import org.fastcatsearch.control.JobException;
+
+
+public class MonitorJobExecutorStreamableJob extends MonitorJobExecutorJob {
+
+	public MonitorJobExecutorStreamableJob(){ }
 	
-	private static final long serialVersionUID = -2003755021642747642L;
-	
-	public Object getResult(){
-		return args;
-	}
-	public Object run0() throws JobException, ServiceException {
+	@Override
+	public JobResult run0() throws JobException {
+		JobResult jobResult = super.run0();
+		if(jobResult.isSuccess()){
+			Map<String, String> map = (Map<String, String>) jobResult.result();
+			return new JobResult(map);
+		}
 		return null;
 	}
-
+	
 }

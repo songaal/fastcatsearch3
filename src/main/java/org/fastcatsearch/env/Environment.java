@@ -2,6 +2,7 @@ package org.fastcatsearch.env;
 
 import java.io.File;
 
+import org.fastcatsearch.common.DynamicClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +18,7 @@ public class Environment {
 	private String home = "";
 	private File homeFile;
 	
+	private DynamicClassLoader classLoader;
 	private SettingManager settingManager;
 	private FilePaths filePaths;
 	
@@ -33,6 +35,11 @@ public class Environment {
 	public Environment init(){
 		settingManager = new SettingManager(this);
 		filePaths = new FilePaths(this);
+		
+		classLoader = new DynamicClassLoader(this, settingManager.getSettings());
+		classLoader.load();
+		classLoader.asSingleton();
+		
 		return this;
 	}
 	
@@ -49,6 +56,10 @@ public class Environment {
 	
 	public FilePaths filePaths(){
 		return filePaths;
+	}
+	
+	public DynamicClassLoader classLoader(){
+		return classLoader;
 	}
 	
 }

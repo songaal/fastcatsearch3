@@ -17,14 +17,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 public class ResultFuture {
-	private BlockingQueue<Object> queue = new LinkedBlockingQueue<Object>();
-	private boolean isSuccess;
-	private long requestId;
-	private Map<Long, ResultFuture> resultFutureMap;
-	private long startTime;
-	private Object result;
+	protected BlockingQueue<Object> queue = new LinkedBlockingQueue<Object>();
+	protected boolean isSuccess;
+	protected long requestId;
+	protected Map<Long, ? extends ResultFuture> resultFutureMap;
+	protected long startTime;
+	protected Object result;
 	
-	public ResultFuture(long requestId, Map<Long, ResultFuture> resultFutureMap) {
+	public ResultFuture(long requestId, Map<Long, ? extends ResultFuture> resultFutureMap) {
 		this.requestId = requestId;
 		this.resultFutureMap = resultFutureMap;
 		this.startTime = System.currentTimeMillis();
