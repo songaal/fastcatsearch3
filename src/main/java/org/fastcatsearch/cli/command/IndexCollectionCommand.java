@@ -14,6 +14,7 @@ package org.fastcatsearch.cli.command;
 import org.fastcatsearch.cli.Command;
 import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.CommandResult.Status;
+import org.fastcatsearch.cli.ConsoleSessionContext;
 
 public class IndexCollectionCommand extends Command {
 	
@@ -22,7 +23,7 @@ public class IndexCollectionCommand extends Command {
 		return false;
 	}
 	
-	public CommandResult doCommand(String[] cmd){
+	public CommandResult doCommand(String[] cmd, ConsoleSessionContext context){
 		return new CommandResult("결과 정보입니다.", Status.SUCCESS);
 	}
 }

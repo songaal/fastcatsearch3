@@ -1,10 +1,8 @@
 package org.fastcatsearch.cli.command;
 
-import java.util.Arrays;
-
 import org.fastcatsearch.cli.Command;
 import org.fastcatsearch.cli.CommandResult;
-import org.fastcatsearch.cli.ListTableDecorator;
+import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.ir.config.IRSettings;
 
 public class ListCollectionCommand extends Command {
@@ -15,7 +13,7 @@ public class ListCollectionCommand extends Command {
 	}
 
 	@Override
-	public CommandResult doCommand(String[] cmd) {
+	public CommandResult doCommand(String[] cmd, ConsoleSessionContext context) {
 		
 		try {
 			String collectinListStr = IRSettings.getConfig().getString("collection.list");
@@ -28,21 +26,9 @@ public class ListCollectionCommand extends Command {
 				}
 			}
 			
-			StringBuilder sb = new StringBuilder();
-			ListTableDecorator ltd = new ListTableDecorator(sb,
-					Arrays.asList(new Integer[] { (""+collectionNames.length).length(), 
-					maxColumnLength }));
+			String ret = printData(collectionNames);
 			
-			ltd.printbar();
-			
-			for(int i=0;i<collectionNames.length;i++) {
-				ltd.printData(0, i+1);
-				ltd.printData(1, collectionNames[i]);
-			}
-			
-			ltd.printbar();
-			
-			return new CommandResult(sb.toString(), CommandResult.Status.SUCCESS);
+			return new CommandResult(ret, CommandResult.Status.SUCCESS);
 		} catch (Exception e) {
 			return new CommandResult(e.getMessage(),CommandResult.Status.FAIL);
 		}

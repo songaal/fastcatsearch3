@@ -20,6 +20,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.fastcatsearch.util.ClassDetector;
 import org.slf4j.Logger;
@@ -31,6 +32,8 @@ public class ConsoleActionServlet extends HttpServlet {
 	private static final Logger logger = LoggerFactory.getLogger(ConsoleActionServlet.class);
 	
 	private static final List<Command> commandActionList = new ArrayList<Command>();
+	
+	private ConsoleActionContext context;
 
 	@Override
 	public void init() throws ServletException {
@@ -46,43 +49,44 @@ public class ConsoleActionServlet extends HttpServlet {
 	
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
+		if(context == null || !request.getSession().equals(context.session)) {
+			context = new ConsoleActionContext(request.getSession());
+		}
+		
 		String command = request.getParameter("command");
 		String[] commandArrray = command.split(" ");
+		CommandResult result = null;
 		
-		if(command == null || command.length() == 0){
-			responseError(response, "Command is empty!");
+		if(command == null || command.length() == 0) {
+			this.responseResult(response,new CommandResult("Command is empty!", CommandResult.Status.ERROR));
 			return;
 		}
 		
-		CommandResult result = null;
+		try {
 		
-		for(Command commandAction : commandActionList) {
-			logger.debug("command : {}", Arrays.asList(commandAction).toString());
-			if(commandAction.isCommand(commandArrray)) {
-				try {
-					result = commandAction.getClass().newInstance().doCommand(commandArrray);
-				} catch (InstantiationException e) {
-					logger.error("",e);
-				} catch (IllegalAccessException e) {
-					logger.error("",e);
+			for(Command commandAction : commandActionList) {
+				if(commandAction.isCommand(commandArrray)) {
+					try {
+						result = commandAction.getClass().newInstance().doCommand(commandArrray, context);
+					} catch (InstantiationException e) {
+						logger.error("",e);
+					} catch (IllegalAccessException e) {
+						logger.error("",e);
+					}
+					break;
 				}
-				break;
 			}
+		} catch (CommandException e) {
+			result = e.getCommandResult();
 		}
 		
 		if(result == null) {
-			responseError(response, "No result!");
-		} else {
-			reponseResult(response, result);
+			result = new CommandResult("No result!", CommandResult.Status.ERROR);
 		}
+		responseResult(response, result);
     }
-
-	private void responseError(HttpServletResponse response, String errorMessage) throws IOException {
-		//http.write
-		response.getWriter().write("ERROR\n"+errorMessage);
-	}
 	
-	private void reponseResult(HttpServletResponse response, CommandResult message) throws IOException {
+	private void responseResult(HttpServletResponse response, CommandResult message) throws IOException {
 		//첫줄에 Fail, warning, success를 구분하여 표시한다.
 		response.getWriter().write(message.status.name()+"\n"+message.result);	
 	}
@@ -111,5 +115,24 @@ public class ConsoleActionServlet extends HttpServlet {
 			}
 		};
 		return detector.detectClass("org.fastcatsearch.cli.command.");
+	}
+}
+
+class ConsoleActionContext implements ConsoleSessionContext {
+	
+	HttpSession session;
+	
+	public ConsoleActionContext(HttpSession session) {
+		this.session = session;
+	}
+	
+	@Override
+	public void setAttribute(String key, Object value) {
+		session.setAttribute(key, value);
+	}
+
+	@Override
+	public Object getAttribute(String key) {
+		return session.getAttribute(key);
 	}
 }

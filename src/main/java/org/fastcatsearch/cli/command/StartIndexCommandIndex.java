@@ -1,11 +1,11 @@
 package org.fastcatsearch.cli.command;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import org.fastcatsearch.cli.Command;
+import org.fastcatsearch.cli.CommandException;
 import org.fastcatsearch.cli.CommandResult;
-import org.fastcatsearch.cli.ListTableDecorator;
+import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.control.JobController;
 import org.fastcatsearch.job.FullIndexJob;
 import org.fastcatsearch.job.IncIndexJob;
@@ -19,50 +19,50 @@ public class StartIndexCommandIndex extends Command {
 	}
 
 	@Override
-	public CommandResult doCommand(String[] cmd) {
-		
+	public CommandResult doCommand(String[] cmd, ConsoleSessionContext context) throws CommandException {
 		
 		String collection = null;
-		boolean isFull = false;
+		boolean isIncremental = false;
 		
 		String msg = null;
 		
-		if(cmd.length == 3 ) {
-			//
-			isFull = "full".equalsIgnoreCase(cmd[2]);
+		if(cmd.length == 2) {
+			collection = (String)context.getAttribute(SESSION_KEY);
+			isIncremental = false;
+			
+		} else if(cmd.length == 3 ) {
+			
+			collection = (String)context.getAttribute(SESSION_KEY);
+			isIncremental = "inc".equalsIgnoreCase(cmd[2]);
 			
 		} else if(cmd.length == 4) {
 			collection = cmd[2];
-			isFull = "full".equalsIgnoreCase(cmd[3]);
+			isIncremental = "inc".equalsIgnoreCase(cmd[3]);
 		}
 		Job job = null; 
 		
-		if(isFull) {
-			job = new FullIndexJob();
-			msg = "Full Indexing Job Executed..";
-		} else {
+		if(isIncremental) {
 			job = new IncIndexJob();
 			msg = "Increametal Indexing Job Executed..";
+		} else {
+			job = new FullIndexJob();
+			msg = "Full Indexing Job Executed..";
+		}
+		
+		if(collection == null) {
+			throw new CommandException("Error : Collection Not Selected");
 		}
 		
 		try {
 			if(collection != null) {
 
-
 				job.setArgs(new String[] { collection });
 
 				JobController.getInstance().offer(job);
-
-
-				StringBuilder sb = new StringBuilder();
-				ListTableDecorator ltd = new ListTableDecorator(sb, Arrays.asList(new Integer[] {
-						msg.length()
-				}));
 				
-				ltd.printbar();
-				ltd.printData(0, msg);
-				ltd.printbar();
-				return new CommandResult(sb.toString(), CommandResult.Status.SUCCESS);
+				String ret = printData(new Object[] { msg });
+
+				return new CommandResult(ret, CommandResult.Status.SUCCESS);
 			}
 		} catch (IOException e) { 
 		}

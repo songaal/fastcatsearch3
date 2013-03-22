@@ -87,8 +87,7 @@ public class Console {
 	public void interpret() {
 		
 		//
-		// Return Type Will JSON String
-		// Real Command Logic Described To ConsoleActionServlet.java (?)
+		// Real Command Logic Described To ConsoleActionServlet.java
 		// It Uses Simple Interpret Logic Without Call-Wait Thread 
 		// 
 		
@@ -96,12 +95,13 @@ public class Console {
 		// Show One Of Two Prompt When Command Phrase Complete Or Not
 		// (Like Mysql Prompt)
 		//
-		boolean completed = true;
 		String[] prompt = new String[] {
 			"fastcatsearch> ", 
 			"            -> "
 		};
+		boolean completed = true;
 		StringBuilder cmdBuf = new StringBuilder();
+		err = System.err;
 		
 		while(true) {
 			String cmd = readLine(
