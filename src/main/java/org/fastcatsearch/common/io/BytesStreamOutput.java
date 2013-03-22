@@ -25,12 +25,15 @@ import java.util.Arrays;
 import org.fastcatsearch.common.Bytes;
 import org.fastcatsearch.common.BytesArray;
 import org.fastcatsearch.common.BytesReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  */
 public class BytesStreamOutput extends StreamOutput implements BytesStream {
-
+	protected static Logger logger = LoggerFactory.getLogger(BytesStreamOutput.class);
+	
     /**
      * The buffer where data is stored.
      */
@@ -92,6 +95,7 @@ public class BytesStreamOutput extends StreamOutput implements BytesStream {
         }
         int newcount = count + length;
         if (newcount > buf.length) {
+        	logger.debug("Oversize {} > {}", newcount, buf.length);
             buf = Arrays.copyOf(buf, Bytes.oversize(newcount, 1));
         }
         System.arraycopy(b, offset, buf, count, length);

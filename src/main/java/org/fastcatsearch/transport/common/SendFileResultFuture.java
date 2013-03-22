@@ -2,13 +2,14 @@ package org.fastcatsearch.transport.common;
 
 import java.util.Map;
 
+import org.fastcatsearch.control.ResultFuture;
+
 public class SendFileResultFuture extends ResultFuture {
 
 	private boolean cancel;
 	
-	public SendFileResultFuture(long requestId,
-			Map<Long, ResultFuture> resultFutureMap, long sentTime) {
-		super(requestId, resultFutureMap, sentTime);
+	public SendFileResultFuture(long requestId, Map<Long, ResultFuture> resultFutureMap) {
+		super(requestId, resultFutureMap);
 	}
 	
 	public void cancel(){

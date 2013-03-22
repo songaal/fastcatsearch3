@@ -2,21 +2,16 @@ package org.fastcatsearch.transport;
 
 import java.io.File;
 import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.control.JobExecutor;
-import org.fastcatsearch.control.JobResult;
-import org.fastcatsearch.control.JobService;
+import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.env.Environment;
-import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.TestJob;
 import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.settings.Settings;
-import org.fastcatsearch.transport.common.ResultFuture;
 import org.fastcatsearch.transport.common.SendFileResultFuture;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -34,7 +29,7 @@ public class TransportModuleTest {
 		}
 		
 		@Override
-		public JobResult offer(Job job) {
+		public ResultFuture offer(Job job) {
 			job.setJobExecutor(this);
 			job.run();
 			return null;

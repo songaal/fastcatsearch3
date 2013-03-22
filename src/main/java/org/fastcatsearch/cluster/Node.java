@@ -13,16 +13,14 @@ public class Node implements Streamable{
 	private String nodeId;
 	private InetSocketAddress socketAddress;
 	
+	public enum NodeStatus { ENABLED, DISABLED, ACTIVE, INACTIVE };
+	private transient NodeStatus nodeStatus;
+	
 	public Node(){
 	}
 	
-	public Node(String nodeName, InetSocketAddress socketAddress) {
-        if (nodeName == null) {
-            this.nodeId = "".intern();
-        } else {
-            this.nodeId = nodeName.intern();
-        }
-
+	public Node(String nodeId, InetSocketAddress socketAddress) {
+        this.nodeId = nodeId.intern();
         this.socketAddress = socketAddress;
     }
 	
@@ -33,6 +31,26 @@ public class Node implements Streamable{
 	
 	public String toString(){
 		return nodeId+"/"+socketAddress.getHostName()+"/"+socketAddress.getPort();
+	}
+	
+	public String status(){
+		return nodeStatus.name();
+	}
+	
+	public void setDisabled(){
+		nodeStatus = NodeStatus.DISABLED;
+	}
+	public void setEnabled(){
+		nodeStatus = NodeStatus.ENABLED;
+	}
+	public void setActive(){
+		nodeStatus = NodeStatus.ACTIVE;
+	}
+	public void setInactive(){
+		nodeStatus = NodeStatus.INACTIVE;
+	}
+	public boolean isEnabled(){
+		return nodeStatus == NodeStatus.ENABLED;
 	}
 	
 	public String id() {

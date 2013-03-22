@@ -4,17 +4,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.io.FileUtils;
+import org.fastcatsearch.common.Strings;
+import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.fastcatsearch.common.Strings;
-import org.fastcatsearch.common.io.StreamInput;
 
 public class FileTransportHandler {
 	private static Logger logger = LoggerFactory.getLogger(FileTransportHandler.class);
@@ -25,7 +23,9 @@ public class FileTransportHandler {
 		fileMap = new ConcurrentHashMap<String, FileStreamHandle>();
 	}
 	
-	public void handleFile(int seq, String filePath, long fileSize, long checksumCRC32, String fileKey, StreamInput input) throws IOException {
+	//마지막 청크기록으로 모두 끝났다면 true 전송.
+	//IO에러 또는 체크섬 불일치 에러는 IOException를 던진다.
+	public boolean handleFile(int seq, String filePath, long fileSize, long checksumCRC32, String fileKey, StreamInput input) throws IOException {
 		FileStreamHandle fileHandle = fileMap.get(fileKey);
 		if(seq == 0){
 			//새로 생성.
@@ -61,7 +61,7 @@ public class FileTransportHandler {
 		try{
 			fileHandle.write(input);
 		}catch(IOException e){
-			fileMap.remove(fileHandle);
+			fileMap.remove(fileKey);
 			throw e;
 		}
 		
@@ -69,12 +69,15 @@ public class FileTransportHandler {
 			try{
 				fileHandle.close();
 			} finally {
-				fileMap.remove(fileHandle);
+				fileMap.remove(fileKey);
 			}
 			fileHandle.doChecksumValidation();
+			
+			//모두 기록했다면 true
+			return true;
 		}
 		
-		
+		return false;
 	}
 	
 	class FileStreamHandle {

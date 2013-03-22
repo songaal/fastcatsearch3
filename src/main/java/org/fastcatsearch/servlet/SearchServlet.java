@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.control.JobExecutor;
 import org.fastcatsearch.control.JobService;
-import org.fastcatsearch.control.JobResult;
+import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.ir.config.FieldSetting;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
@@ -146,7 +146,7 @@ public class SearchServlet extends JobHttpServlet {
     	
     	Result result = null;
     	
-		JobResult jobResult = JobService.getInstance().offer(job);
+		ResultFuture jobResult = JobService.getInstance().offer(job);
 		Object obj = jobResult.poll(timeout);
 		searchTime = (System.currentTimeMillis() - st);
 		if(jobResult.isSuccess()){

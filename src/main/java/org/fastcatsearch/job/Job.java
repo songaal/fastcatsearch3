@@ -16,8 +16,10 @@ import java.io.Serializable;
 import java.io.StringWriter;
 
 import org.fastcatsearch.control.JobExecutor;
+import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.JobException;
+import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.ServiceException;
 import org.slf4j.Logger;
@@ -29,14 +31,17 @@ public abstract class Job implements Runnable, Serializable{
 	private static final long serialVersionUID = 6296052043270199612L;
 
 	protected static Logger logger = LoggerFactory.getLogger(Job.class);
-	private JobExecutor jobExecutor;
+	protected Environment environment;
+	protected JobExecutor jobExecutor;
 	
 	protected long jobId = -1;
 	protected Object args;
 	protected boolean isScheduled;
 	protected boolean noResult; //결과가 필요없는 단순 호출 작업
 	
-	
+	public void setEnvironment(Environment environment) {
+		this.environment = environment;
+	}
 	public void setJobExecutor(JobExecutor jobExecutor) {
 		this.jobExecutor = jobExecutor;
 	}
@@ -94,38 +99,37 @@ public abstract class Job implements Runnable, Serializable{
 		long st = System.currentTimeMillis();
 		try {
 			Object result = run0();
-//			if(jobId != -1 && !noResult){
-			if(jobId != -1){
-				logger.debug("Job_{} result = {}", jobId, result);
-				if(jobExecutor != null){
-					jobExecutor.result(jobId, this, result, true, st, System.currentTimeMillis());
-				}else{
-					throw new JobException("결과를 반환할 jobExecutor가 없습니다.");
-				}
+			
+			if(jobExecutor == null){
+				throw new JobException("결과를 반환할 jobExecutor가 없습니다.");
 			}
 			
-		} catch (JobException e){
-			jobExecutor.result(jobId, this, e.getMessage(), false, st, System.currentTimeMillis());
-			StringWriter w = new StringWriter();
-			e.printStackTrace(new PrintWriter(w));
-			logger.error("#############################################\n"+w.toString()+"\\n#############################################");
+			if(jobId != -1){
+				logger.debug("Job#{} result = {}", jobId, result);
+				if(result instanceof JobResult){
+					JobResult r = (JobResult) result;
+					Object ro = r.result;
+					if(ro instanceof Throwable){
+						Throwable e = (Throwable) ro;
+						ro = e.getMessage();
+						logError(e);
+					}
+					jobExecutor.result(jobId, this, ro, r.isSuccess, st, System.currentTimeMillis());
+					
+				}else{
+					jobExecutor.result(jobId, this, result, true, st, System.currentTimeMillis());
+				}
+			}else{
+				logger.error("## 결과에 jobId가 없습니다. job="+this+", result="+result);
+			}
+			
 		} catch (OutOfMemoryError e){
 			jobExecutor.result(jobId, this, e.getMessage(), false, st, System.currentTimeMillis());
 			EventDBLogger.error(EventDBLogger.CATE_MANAGEMENT, "메모리부족 에러가 발생했습니다.", EventDBLogger.getStackTrace(e));
-			StringWriter w = new StringWriter();
-			e.printStackTrace();
-			e.printStackTrace(new PrintWriter(w));
-			logger.error("#############################################\n"+w.toString()+"\n#############################################");
-		} catch (Exception e){
+			logError(e);
+		} catch (Throwable e){
 			jobExecutor.result(jobId, this, e.getMessage(), false, st, System.currentTimeMillis());
-			StringWriter w = new StringWriter();
-			e.printStackTrace(new PrintWriter(w));
-			logger.error("#############################################\n"+w.toString()+"\n#############################################");
-		} catch(Error err){
-			jobExecutor.result(jobId, this, err.getMessage(), false, st, System.currentTimeMillis());
-			StringWriter w = new StringWriter();
-			err.printStackTrace(new PrintWriter(w));
-			logger.error("#############################################\n"+w.toString()+"\n#############################################");
+			logError(e);
 		}
 	}
 	
@@ -137,6 +141,20 @@ public abstract class Job implements Runnable, Serializable{
 		writer.println("#############################################");
 		writer.close();
 		logger.error(sw.toString());
+	}
+	
+	class JobResult{
+		Object result;
+		boolean isSuccess;
+		public JobResult(Object result, boolean isSuccess){
+			this.result = result;
+			this.isSuccess = isSuccess;
+		}
+		public JobResult(ResultFuture resultFuture){
+			result = resultFuture.get();
+			isSuccess = resultFuture.isSuccess();
+		}
+		
 	}
 	
 }

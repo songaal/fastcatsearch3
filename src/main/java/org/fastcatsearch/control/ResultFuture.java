@@ -1,4 +1,15 @@
-package org.fastcatsearch.transport.common;
+/*
+ * Copyright (c) 2013 Websquared, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v2.0
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     swsong - initial API and implementation
+ */
+
+package org.fastcatsearch.control;
 
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -10,12 +21,13 @@ public class ResultFuture {
 	private boolean isSuccess;
 	private long requestId;
 	private Map<Long, ResultFuture> resultFutureMap;
-	private long sentTime;
+	private long startTime;
+	private Object result;
 	
-	public ResultFuture(long requestId, Map<Long, ResultFuture> resultFutureMap, long sentTime) {
+	public ResultFuture(long requestId, Map<Long, ResultFuture> resultFutureMap) {
 		this.requestId = requestId;
 		this.resultFutureMap = resultFutureMap;
-		this.sentTime = sentTime;
+		this.startTime = System.currentTimeMillis();
 	}
 
 	public void put(Object result, boolean isSuccess) {
@@ -31,9 +43,18 @@ public class ResultFuture {
 		return isSuccess;
 	}
 	
+	public Object get(){
+		return result;
+	}
+	
 	public Object take() {
+		if(result != null){
+			return result;
+		}
+		
 		try {
-			return queue.take();
+			result = queue.take();
+			return result;
 		} catch (InterruptedException e) {
 			//결과를 받지 못할경우, map에서 제거해준다.
 			resultFutureMap.remove(requestId);
@@ -42,7 +63,11 @@ public class ResultFuture {
 	}
 	
 	public Object poll(int timeInSecond) {
-		long remainTime = timeInSecond * 1000 - (System.currentTimeMillis() - sentTime);
+		if(result != null){
+			return result;
+		}
+		
+		long remainTime = timeInSecond * 1000 - (System.currentTimeMillis() - startTime);
 		try {
 			if(remainTime > 0){
 				Object result = queue.poll(remainTime, TimeUnit.SECONDS);

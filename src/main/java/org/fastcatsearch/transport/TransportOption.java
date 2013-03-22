@@ -23,11 +23,10 @@ package org.fastcatsearch.transport;
  */
 public class TransportOption {
 
-	private static final byte TYPE_MESSAGE = 1 << 0;
-	private static final byte TYPE_FILE = 1 << 1;
+	private static final byte TYPE_MESSAGE_FILE = 1 << 0;
 	
     private static final byte STATUS_REQRES = 1 << 0;
-    private static final byte STATUS_ERROR = 1 << 1;
+    private static final byte STATUS_ERROR = 1 << 1; 
     private static final byte STATUS_COMPRESS = 1 << 2;
 
     public static boolean isRequest(byte value) {
@@ -39,6 +38,10 @@ public class TransportOption {
         return value;
     }
 
+    public static boolean isResponse(byte value) {
+        return (value & STATUS_REQRES) != 0;
+    }
+    
     public static byte setResponse(byte value) {
         value |= STATUS_REQRES;
         return value;
@@ -48,6 +51,12 @@ public class TransportOption {
         return (value & STATUS_ERROR) != 0;
     }
 
+    public static byte setErrorResponse(byte value) {
+    	value = setResponse(value);
+        value = setError(value);
+        return value;
+    }
+    
     public static byte setError(byte value) {
         value |= STATUS_ERROR;
         return value;
@@ -64,20 +73,20 @@ public class TransportOption {
     
     
     public static boolean isTypeMessage(byte value) {
-        return (value & TYPE_MESSAGE) != 0;
+        return (value & TYPE_MESSAGE_FILE) == 0;
     }
     
     public static byte setTypeMessage(byte value) {
-        value |= TYPE_MESSAGE;
+        value &= ~TYPE_MESSAGE_FILE;
         return value;
     }
     
     public static boolean isTypeFile(byte value) {
-        return (value & TYPE_FILE) != 0;
+        return (value & TYPE_MESSAGE_FILE) != 0;
     }
     
     public static byte setTypeFile(byte value) {
-        value |= TYPE_FILE;
+        value |= TYPE_MESSAGE_FILE;
         return value;
     }
 }

@@ -22,11 +22,12 @@ import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.common.BytesReference;
 import org.fastcatsearch.common.ThreadPoolFactory;
+import org.fastcatsearch.common.io.BlockingCachedStreamOutput;
 import org.fastcatsearch.common.io.BytesStreamOutput;
 import org.fastcatsearch.common.io.CachedStreamOutput;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.control.JobExecutor;
-import org.fastcatsearch.control.JobService;
+import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.module.AbstractModule;
@@ -37,7 +38,6 @@ import org.fastcatsearch.transport.common.FileTransportHandler;
 import org.fastcatsearch.transport.common.MessageChannelHandler;
 import org.fastcatsearch.transport.common.MessageCounter;
 import org.fastcatsearch.transport.common.ReadableFrameDecoder;
-import org.fastcatsearch.transport.common.ResultFuture;
 import org.fastcatsearch.transport.common.SendFileResultFuture;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.bootstrap.ServerBootstrap;
@@ -93,7 +93,8 @@ public class TransportModule extends AbstractModule {
     
     private final ReadWriteLock globalLock = new ReentrantReadWriteLock();
     private FileTransportHandler fileTransportHandler;
-   
+    private BlockingCachedStreamOutput fileStreamOutputCache;
+    
 	public TransportModule(Environment environment, Settings settings, JobExecutor jobExecutor){
 		super(environment, settings);
 		this.jobExecutor = jobExecutor;
@@ -101,7 +102,7 @@ public class TransportModule extends AbstractModule {
         for (int i = 0; i < connectMutex.length; i++) {
             connectMutex[i] = new Object();
         }
-       
+        
 	}
 	
 	public boolean load(){
@@ -194,6 +195,7 @@ public class TransportModule extends AbstractModule {
         connectedNodes = new ConcurrentHashMap<Node, NodeChannels>();
         resultFutureMap = new ConcurrentHashMap<Long, ResultFuture>();
         
+        fileStreamOutputCache = new BlockingCachedStreamOutput(10, sendFileChunkSize + 3 * 1024);
         return true;
 	}
 	@Override
@@ -228,6 +230,8 @@ public class TransportModule extends AbstractModule {
                         clientBootstrap.releaseExternalResources();
                         clientBootstrap = null;
                     }
+                    
+                    fileStreamOutputCache.clear();
                 } finally {
                     globalLock.writeLock().unlock();
                     latch.countDown();
@@ -356,9 +360,12 @@ public class TransportModule extends AbstractModule {
 	}
 
     public ResultFuture sendRequest(final Node node, final StreamableJob streamableJob) throws TransportException {
+    	if(node == null){
+    		throw new TransportException("node is null");
+    	}
         final long requestId = newRequestId();
         try {
-        	ResultFuture resultFuture = new ResultFuture(requestId, resultFutureMap, System.currentTimeMillis());
+        	ResultFuture resultFuture = new ResultFuture(requestId, resultFutureMap);
             resultFutureMap.put(requestId, resultFuture);
             sendMessageRequest(node, requestId, streamableJob);
             
@@ -371,9 +378,12 @@ public class TransportModule extends AbstractModule {
     }
     
     public SendFileResultFuture sendFile(final Node node, File sourcefile, File targetFile) throws TransportException {
+    	if(node == null){
+    		throw new TransportException("node is null");
+    	}
     	final long requestId = newRequestId();
     	try {
-    		SendFileResultFuture resultFuture = new SendFileResultFuture(requestId, resultFutureMap, System.currentTimeMillis());
+    		SendFileResultFuture resultFuture = new SendFileResultFuture(requestId, resultFutureMap);
             resultFutureMap.put(requestId, resultFuture);
             sendFileRequest(node, requestId, sourcefile, targetFile, resultFuture);
             
@@ -435,7 +445,7 @@ public class TransportModule extends AbstractModule {
     }
 	
     private String getHashedFilePath(String filePath){
-        UUID uuid =  UUID.nameUUIDFromBytes(filePath.getBytes());
+        UUID uuid = UUID.nameUUIDFromBytes(filePath.getBytes());
         return Long.toHexString(uuid.getMostSignificantBits()) + Long.toHexString(uuid.getLeastSignificantBits());
     }
     
@@ -455,7 +465,7 @@ public class TransportModule extends AbstractModule {
         		throw new IOException("파일을 찾을수 없습니다.file = " + sourcefile.getAbsolutePath());
         	}
         	enumeration = new FileChunkEnumeration(sourcefile, sendFileChunkSize);
-	    	long checksumCRC32 = FileUtils.checksumCRC32(sourcefile);
+	    	long checksumCRC32 = FileUtils.checksumCRC32(sourcefile);//checksum 생성은 시간이 조금 소요되는 작업. 3G => 10초.
 	        long fileSize = sourcefile.length();
 	        long writeSize = 0;
 	        String sourceFilePath = sourcefile.getAbsolutePath();
@@ -474,7 +484,8 @@ public class TransportModule extends AbstractModule {
 	    		
 	    		writeSize += bytesRef.length();
 	    		
-	    		CachedStreamOutput.Entry cachedEntry = CachedStreamOutput.popEntry();
+//	    		CachedStreamOutput.Entry cachedEntry = CachedStreamOutput.popEntry();
+	    		BlockingCachedStreamOutput.Entry cachedEntry = fileStreamOutputCache.popEntry();
 	            BytesStreamOutput stream = cachedEntry.bytes();
 	            stream.skip(MessageProtocol.HEADER_SIZE);
 	    		
@@ -518,11 +529,8 @@ public class TransportModule extends AbstractModule {
 	            assert seq == buffer.getInt(readerIndex);
 	            readerIndex += 4;
 	            
-	            
-	            
-	            
 	            ChannelFuture future = targetChannel.write(buffer);
-	            future.addListener(new CacheFutureListener(cachedEntry));
+	            future.addListener(new BlockingCacheFutureListener(fileStreamOutputCache, cachedEntry));
 	    	}
         
 	    	assert fileSize == writeSize: "파일사이즈가 다릅니다.";
@@ -530,7 +538,7 @@ public class TransportModule extends AbstractModule {
 	    	if(fileSize != writeSize){
 	    		logger.error("파일사이즈가 다릅니다. expected={}, actual={}, file={}", new Object[]{fileSize, writeSize, sourceFilePath});
 	    	}else{
-	    		logger.error("File Write Success filesize={}, file={}", writeSize, sourceFilePath);
+	    		logger.error("File Write Done filesize={}, file={}", writeSize, sourceFilePath);
 	    	}
         }finally{
         	if(enumeration != null){
@@ -578,6 +586,22 @@ public class TransportModule extends AbstractModule {
         @Override
         public void operationComplete(ChannelFuture channelFuture) throws Exception {
             CachedStreamOutput.pushEntry(cachedEntry);
+        }
+    }
+	
+	public static class BlockingCacheFutureListener implements ChannelFutureListener {
+
+        private final BlockingCachedStreamOutput.Entry cachedEntry;
+        private final BlockingCachedStreamOutput cache;
+
+        public BlockingCacheFutureListener(BlockingCachedStreamOutput cache, BlockingCachedStreamOutput.Entry cachedEntry) {
+        	this.cache = cache;
+            this.cachedEntry = cachedEntry;
+        }
+
+        @Override
+        public void operationComplete(ChannelFuture channelFuture) throws Exception {
+        	cache.pushEntry(cachedEntry);
         }
     }
 

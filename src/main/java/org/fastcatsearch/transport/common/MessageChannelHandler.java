@@ -5,7 +5,7 @@ import java.io.ObjectInputStream;
 
 import org.fastcatsearch.control.JobExecutor;
 import org.fastcatsearch.control.JobService;
-import org.fastcatsearch.control.JobResult;
+import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.ir.config.IRClassLoader;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
@@ -68,7 +68,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         
         long requestId = wrappedStream.readLong();
 		byte status = wrappedStream.readByte();
-		
+		logger.debug("message status[{}]", status);
 		logger.debug("## readIndex={}, writerIndex={}", buffer.readerIndex(), buffer.writerIndex());
 		//logger.debug("## readString={}", wrappedStream.readString());
         if (TransportOption.isRequest(status)) {
@@ -156,6 +156,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         try {
         	ObjectInputStream ois = new ObjectInputStream(buffer);
             error = (Throwable) ois.readObject();
+            logger.debug("에러도착 Response-{} >> {}", requestId, error.getMessage());
         } catch (Exception e) {
             error = new TransportException("Failed to deserialize exception response from stream", e);
         }
@@ -175,7 +176,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         @Override
         public void run() {
             try {
-            	JobResult jobResult = jobExecutor.offer(requestJob);
+            	ResultFuture jobResult = jobExecutor.offer(requestJob);
             	Object result = jobResult.take();
             	logger.debug("Request Job Result >> {}", result);
             	if(result instanceof Streamable){

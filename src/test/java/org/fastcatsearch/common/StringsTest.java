@@ -13,5 +13,12 @@ public class StringsTest {
 			System.out.println(i +"s : " + Strings.getHumanReadableTimeInterval(time));
 		}
 	}
+	
+	@Test
+	public void testHumanReadableByteSize() {
+		for (int i = 0; i < Integer.MAX_VALUE; i+=128) {
+			System.out.println(i +" : " + Strings.getHumanReadableByteSize(i));
+		}
+	}
 
 }

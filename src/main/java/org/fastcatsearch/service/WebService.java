@@ -14,12 +14,12 @@ package org.fastcatsearch.service;
 import org.fastcatsearch.control.JobExecutor;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.Environment;
-import org.fastcatsearch.ir.config.IRConfig;
-import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.servlet.DocumentListServlet;
 import org.fastcatsearch.servlet.DocumentSearchServlet;
 import org.fastcatsearch.servlet.PopularKeywordServlet;
+import org.fastcatsearch.servlet.RegisterJobServlet;
 import org.fastcatsearch.servlet.SearchServlet;
+import org.fastcatsearch.servlet.WebServiceHttpServlet;
 import org.fastcatsearch.settings.Settings;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.handler.HandlerList;
@@ -37,6 +37,7 @@ public class WebService extends AbstractService{
 	//always use Root context
 	private String SERVICE_CONTEXT = "/search";
 	private String KEYWORD_CONTEXT = "/keyword";
+	private String EXECUTE_CONTEXT = "/execute";
 	private String DOCUMENT_LIST_CONTEXT = "/doclist";
 	private String DOCUMENT_SEARCH_CONTEXT = "/docsearch";
 	
@@ -79,6 +80,10 @@ public class WebService extends AbstractService{
 		context.addServlet(new ServletHolder(new SearchServlet(SearchServlet.XML_TYPE, jobExecutor)),"/xml");
 		context.addServlet(new ServletHolder(new SearchServlet(SearchServlet.IS_ALIVE, jobExecutor)),"/isAlive");
 		handlerList.addHandler(context);
+		
+		final Context context2 = new Context(server, EXECUTE_CONTEXT, Context.SESSIONS);
+		context2.addServlet(new ServletHolder(new RegisterJobServlet(WebServiceHttpServlet.JSON_TYPE, jobExecutor)),"/");
+		handlerList.addHandler(context2);
 		
         // ServletContextHandler
 		final Context context3 = new Context(server, KEYWORD_CONTEXT, Context.SESSIONS);

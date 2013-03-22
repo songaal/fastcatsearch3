@@ -27,4 +27,25 @@ public class Strings {
 		}
 		
 	}
+	
+	public static String getHumanReadableByteSize(double byteSize){
+		double unit = 1024;
+		if(byteSize < unit){
+			return String.format("%.0fb", byteSize);
+		}else if(byteSize < unit * unit){
+			return String.format("%.2fkb",(byteSize / unit));
+		}else if(byteSize < unit * unit * unit){
+			return String.format("%.2fmb",(byteSize / (unit * unit)));
+		}else if(byteSize < unit * unit * unit * unit){
+			return String.format("%.2fgb",(byteSize / (unit * unit * unit))); //기가
+		}else if(byteSize < unit * unit * unit * unit * unit){
+			return String.format("%.2ftb",(byteSize / (unit * unit * unit * unit))); //테라
+		}else if(byteSize < unit * unit * unit * unit * unit * unit){
+			return String.format("%.2fpb",(byteSize / (unit * unit * unit * unit * unit))); //페타
+		}
+			
+		return byteSize+"b";
+		
+		
+	}
 }

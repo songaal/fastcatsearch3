@@ -25,11 +25,15 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  *
  */
 public class CachedStreamOutput {
-
+	protected static Logger logger = LoggerFactory.getLogger(CachedStreamOutput.class);
+	
     private static Entry newEntry() {
         BytesStreamOutput bytes = new BytesStreamOutput();
         return new Entry(bytes);
@@ -78,7 +82,7 @@ public class CachedStreamOutput {
     public static void clear() {
         cache.clear();
     }
-
+static AtomicInteger c = new AtomicInteger();
     public static Entry popEntry() {
         Queue<Entry> ref = cache.get();
         if (ref == null) {
@@ -92,7 +96,7 @@ public class CachedStreamOutput {
         entry.reset();
         return entry;
     }
-
+    static AtomicInteger r = new AtomicInteger();
     public static void pushEntry(Entry entry) {
         entry.reset();
         if (entry.bytes().length() > BYTES_LIMIT) {

@@ -1,6 +1,9 @@
 package org.fastcatsearch.transport.common;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
@@ -13,10 +16,12 @@ import org.slf4j.LoggerFactory;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.common.io.StreamInput;
+import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.transport.ChannelBufferStreamInput;
 import org.fastcatsearch.transport.TransportChannel;
 import org.fastcatsearch.transport.TransportModule;
 import org.fastcatsearch.transport.TransportOption;
+import org.fastcatsearch.transport.vo.StreamableBoolean;
 
 public class FileChannelHandler extends SimpleChannelUpstreamHandler {
 
@@ -24,10 +29,14 @@ public class FileChannelHandler extends SimpleChannelUpstreamHandler {
 	private TransportModule transport;
 	private FileTransportHandler fileHandler;
 
+	private final Streamable FILE_RECEIVE_DONE = new StreamableBoolean(true);
+	private Map<String, TransportChannel> fileResponseChannelMap;
+	
 	public FileChannelHandler(TransportModule transport,
 			FileTransportHandler fileHandler) {
 		this.transport = transport;
 		this.fileHandler = fileHandler;
+		fileResponseChannelMap = new ConcurrentHashMap<String, TransportChannel>();
 	}
 
 	@Override
@@ -95,9 +104,8 @@ public class FileChannelHandler extends SimpleChannelUpstreamHandler {
 		super.channelClosed(ctx, e);
 	}
 
-	private void handleFileTransportRequest(Channel channel, StreamInput input,
-			long requestId) throws IOException {
-
+	private void handleFileTransportRequest(Channel channel, StreamInput input, long requestId) throws IOException {
+logger.debug("File Handler >> {}, mapsize={}", this, fileResponseChannelMap.size());
 		// seq(4) + [filepath(string) + filesize(long) + checksumCRC32(long)]+hashfilepath(string) + datalength(vint) + data
 		int seq = input.readInt();
 		String filePath = null;
@@ -111,8 +119,18 @@ public class FileChannelHandler extends SimpleChannelUpstreamHandler {
 		}
 		String fileKey = input.readString();
 
-		fileHandler.handleFile(seq, filePath, fileSize, checksumCRC32, fileKey, input);
-		// 파일에 쓰는것은 비동기적으로 수행하도록 놓아둔다.
+		TransportChannel transportChannel = fileResponseChannelMap.get(fileKey);
+		if(transportChannel == null) {
+			transportChannel = new TransportChannel(channel, requestId);
+			fileResponseChannelMap.put(fileKey, transportChannel);
+		}
+		boolean isDone = fileHandler.handleFile(seq, filePath, fileSize, checksumCRC32, fileKey, input);
+		
+		if(isDone){
+			fileResponseChannelMap.remove(fileKey);
+			transportChannel.sendResponse(FILE_RECEIVE_DONE);
+			logger.debug("파일전송 성공결과보냄.>>{}", fileKey);
+		}
 	}
 
 }

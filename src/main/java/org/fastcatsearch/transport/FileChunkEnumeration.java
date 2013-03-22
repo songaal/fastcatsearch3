@@ -17,7 +17,7 @@ public class FileChunkEnumeration implements Enumeration<BytesReference>{
 	
 	private byte[] buffer;
 	private FileInputStream fis;
-	private int nRead;
+	private long nRead;
 	private long fileSize;
 	
 	private boolean isRead;
@@ -37,8 +37,7 @@ public class FileChunkEnumeration implements Enumeration<BytesReference>{
 	@Override
 	public boolean hasMoreElements() {
 		//파일크기가 0일때에는 아직읽지않은 상태이면 true. 읽었으면 false
-		return (fileSize == 0 && !isRead)
-				|| nRead < fileSize;
+		return (fileSize == 0 && !isRead) || nRead < fileSize;
 	}
 
 	@Override
@@ -47,7 +46,7 @@ public class FileChunkEnumeration implements Enumeration<BytesReference>{
 		try {
 			int n = fis.read(buffer);
 			nRead += n;
-//			logger.debug("totalread = {}", nRead);
+//			logger.debug("read = {}, total = {} < {}", new Object[]{n, nRead, fileSize});
 			return new BytesArray(buffer, 0, n);
 		} catch (IOException e) {
 			logger.error("", e);

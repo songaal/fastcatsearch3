@@ -67,7 +67,7 @@ public class TransportChannel {
     	byte type = 0;
     	type = TransportOption.setTypeMessage(type);
     	byte status = 0;
-        status = TransportOption.setError(status);
+        status = TransportOption.setErrorResponse(status);
         
         CachedStreamOutput.Entry cachedEntry = CachedStreamOutput.popEntry();
         BytesStreamOutput stream = cachedEntry.bytes();

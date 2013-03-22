@@ -46,12 +46,12 @@ public class ByteCounter extends SimpleChannelUpstreamHandler {
     public void channelConnected(
             ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
         ctx.sendUpstream(e);
-        logger.debug("Connected! {} {}", id, ctx.getChannel());
+//        logger.debug("Connected! {} {}", id, ctx.getChannel());
     }
     public void channelOpen(
             ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
         ctx.sendUpstream(e);
-        logger.debug("Opened! {} {}", id, ctx.getChannel());
+//        logger.debug("Opened! {} {}", id, ctx.getChannel());
     }
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
@@ -62,7 +62,7 @@ public class ByteCounter extends SimpleChannelUpstreamHandler {
     public void channelDisconnected(
             ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
         ctx.sendUpstream(e);
-        logger.debug("Disconnected! {} {}", id, ctx.getChannel());
+//        logger.debug("Disconnected! {} {}", id, ctx.getChannel());
     }
 
     public long getWrittenBytes() {

@@ -150,7 +150,7 @@ public class JobScheduler {
 		
 		@SuppressWarnings("unused")
 		public void run(){
-			JobResult jobResult = null;
+			ResultFuture jobResult = null;
 			
 			try {
 				jobResult = ServiceManager.getInstance().getService(JobService.class).offer(job);

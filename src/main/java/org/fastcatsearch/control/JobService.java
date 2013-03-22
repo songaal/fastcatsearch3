@@ -25,8 +25,6 @@ import org.fastcatsearch.common.ThreadPoolFactory;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.object.IndexingResult;
 import org.fastcatsearch.env.Environment;
-import org.fastcatsearch.ir.config.IRConfig;
-import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.job.FullIndexJob;
 import org.fastcatsearch.job.IncIndexJob;
@@ -53,7 +51,7 @@ public class JobService extends AbstractService implements JobExecutor {
 	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 	
 	private BlockingQueue<Job> jobQueue; 
-	private Map<Long, JobResult> resultMap;
+	private Map<Long, ResultFuture> resultMap;
 	private Map<Long, Job> runningJobList;
 	private AtomicLong jobId;
 	
@@ -117,7 +115,8 @@ public class JobService extends AbstractService implements JobExecutor {
 		return jobExecutor;
 	}
 	
-	public JobResult offer(Job job) {
+	public ResultFuture offer(Job job) {
+		job.setEnvironment(environment);
 		job.setJobExecutor(this);
 		
 		if(job instanceof FullIndexJob || job instanceof IncIndexJob){
@@ -155,7 +154,7 @@ public class JobService extends AbstractService implements JobExecutor {
 			jobQueue.offer(job);
 			return null;
 		}else{
-			JobResult jobResult = new JobResult();
+			ResultFuture jobResult = new ResultFuture(myJobId, resultMap);
 			resultMap.put(myJobId, jobResult);
 			job.setId(myJobId);
 			jobQueue.offer(job);
@@ -168,7 +167,7 @@ public class JobService extends AbstractService implements JobExecutor {
 //			return;
 		
 //		indexingMutex.release(jobId);
-		JobResult jobResult = resultMap.remove(jobId);
+		ResultFuture jobResult = resultMap.remove(jobId);
 		runningJobList.remove(jobId);
 		logger.debug("### JobResult = {} / map={} / result={} / success= {}", new Object[]{jobResult, resultMap.size(), result, isSuccess});
 //		if(isManager){
@@ -231,10 +230,8 @@ public class JobService extends AbstractService implements JobExecutor {
 		
 		if(result != null){
 			if(jobResult != null){
-				try {
-					logger.debug("jobResult.put("+result+")");
-					jobResult.put(result, isSuccess);
-				} catch (InterruptedException e) { }
+				logger.debug("jobResult.put("+result+")");
+				jobResult.put(result, isSuccess);
 			}else{
 				logger.info("cannot find where to send a result.");
 			}
@@ -242,9 +239,7 @@ public class JobService extends AbstractService implements JobExecutor {
 		}else{
 			logger.warn("Job-"+jobId+" has no return value.");
 			if(jobResult != null){
-				try {
-					jobResult.put(new Object(), isSuccess);
-				} catch (InterruptedException e) { }
+				jobResult.put(new Object(), isSuccess);
 			}
 		}
 		
@@ -252,7 +247,7 @@ public class JobService extends AbstractService implements JobExecutor {
 	
 	protected boolean doStart() throws ServiceException {
 		jobId = new AtomicLong();
-		resultMap = new ConcurrentHashMap<Long, JobResult>();
+		resultMap = new ConcurrentHashMap<Long, ResultFuture>();
 		runningJobList = new ConcurrentHashMap<Long, Job>();
 		jobQueue = new LinkedBlockingQueue<Job>();
 		indexingMutex = new IndexingMutex();

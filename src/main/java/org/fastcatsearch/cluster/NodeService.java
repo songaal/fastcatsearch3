@@ -1,19 +1,20 @@
 package org.fastcatsearch.cluster;
 
-import java.util.HashMap;
-import java.util.Iterator;
+import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.fastcatsearch.control.JobService;
+import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.transport.TransportException;
 import org.fastcatsearch.transport.TransportModule;
+import org.fastcatsearch.transport.common.SendFileResultFuture;
 
 public class NodeService extends AbstractService {
 
@@ -21,7 +22,11 @@ public class NodeService extends AbstractService {
 	private TransportModule transportModule;
 	private Node myNode;
 	private Node masterNode;
-	private Map<String, Node> nodeMap;
+	private List<Node> nodeList;
+	
+	public static NodeService getInstance(){
+		return instance;
+	}
 	
 	public NodeService(Environment environment, Settings settings,
 			ServiceManager serviceManager) {
@@ -40,21 +45,24 @@ public class NodeService extends AbstractService {
 		String myNodeName = settings.getString("me");
 		String masterNodeName = settings.getString("master");
 		
-		nodeMap = new HashMap<String, Node>();
+		nodeList = new ArrayList<Node>();
 		List<Settings> nodeSettingList = settings.getSettingList("node_list");
 		for (int i = 0; i < nodeSettingList.size(); i++) {
 			Settings nodeSetting = nodeSettingList.get(i);
 			String id = nodeSetting.getString("id");
 			String address = nodeSetting.getString("address");
 			int port = nodeSetting.getInt("port");
-			boolean isActive = nodeSetting.getBoolean("active");
+			boolean isEnabled = !nodeSetting.getBoolean("disabled");
 			boolean isMe = myNodeName.equals(id);
 			boolean isMaster = masterNodeName.equals(id);
 			
 			Node node = new Node(id, address, port);
+			nodeList.add(node);
 			
-			if(isActive){
-				nodeMap.put(id, node);
+			if(isEnabled){
+				node.setEnabled();
+			}else{
+				node.setDisabled();
 			}
 			
 			if(isMe){
@@ -84,14 +92,13 @@ public class NodeService extends AbstractService {
 			throw new ServiceException("can not load transport module!");
 		}
 		
-		Iterator<Entry<String, Node>> nodeIterator = nodeMap.entrySet().iterator();
-		while(nodeIterator.hasNext()){
-			Entry<String, Node> entry = nodeIterator.next();
-			Node node = entry.getValue();
-			if(!node.equals(myNode)){
+		for(Node node : nodeList){
+			if(node.isEnabled() && !node.equals(myNode)){
 				try {
 					transportModule.connectToNode(node);
+					node.setActive();
 				} catch (TransportException e) {
+					node.setInactive();
 				}
 			}
 		}
@@ -109,9 +116,18 @@ public class NodeService extends AbstractService {
 	protected boolean doClose() throws ServiceException {
 		return false;
 	}
+	public List<Node> getNodeList(){
+		return null;
+	}
 	
-	public Node getNode(String id){
-		return nodeMap.get(id);
+	public Node getNodeById(String id){
+		for(Node node : nodeList){
+//			logger.debug("find node >> {}:{}", node.id(), id);
+			if(node.id().equals(id)){
+				return node;
+			}
+		}
+		return null;
 	}
 	
 	public Node getMyNode(){
@@ -127,6 +143,25 @@ public class NodeService extends AbstractService {
 			return myNode.equals(masterNode);
 		}
 		return false;
+	}
+	
+	public ResultFuture sendRequest(final Node node, final StreamableJob streamableJob) {
+		try{
+			return transportModule.sendRequest(node, streamableJob);
+		}catch(TransportException e){
+			logger.error("sendRequest 에러", e);
+		}
+		return null;
+	}
+	
+	public SendFileResultFuture sendFile(final Node node, File sourcefile, File targetFile) {
+		try{
+			return transportModule.sendFile(node, sourcefile, targetFile);
+		}catch(TransportException e){
+			logger.error("sendFile 에러", e);
+		}
+		return null;
+		
 	}
 
 }

@@ -31,12 +31,14 @@ import java.util.Map;
 import org.fastcatsearch.common.BytesArray;
 import org.fastcatsearch.common.BytesReference;
 import org.fastcatsearch.common.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  */
 public abstract class StreamInput extends InputStream {
-
+	protected static Logger logger = LoggerFactory.getLogger(StreamInput.class);
     /**
      * Reads and returns a single byte.
      */
@@ -164,6 +166,7 @@ public abstract class StreamInput extends InputStream {
 
     public String readString() throws IOException {
         int charCount = readVInt();
+        logger.debug("readString size >> {}", charCount);
         char[] chars = CachedStreamInput.getCharArray(charCount);
         int c, charIndex = 0;
         while (charIndex < charCount) {
