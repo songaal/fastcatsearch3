@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 2013 Websquared, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v2.0
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     swsong - initial API and implementation
+ */
 package org.fastcatsearch.cli.command;
 
 import java.io.IOException;
@@ -11,6 +21,11 @@ import org.fastcatsearch.job.FullIndexJob;
 import org.fastcatsearch.job.IncIndexJob;
 import org.fastcatsearch.job.Job;
 
+/**
+ * 
+ * @author lupfeliz
+ *
+ */
 public class StartIndexCommandIndex extends Command {
 	
 	@Override
@@ -60,7 +75,7 @@ public class StartIndexCommandIndex extends Command {
 
 				JobController.getInstance().offer(job);
 				
-				String ret = printData(new Object[] { msg });
+				String ret = printData(msg);
 
 				return new CommandResult(ret, CommandResult.Status.SUCCESS);
 			}

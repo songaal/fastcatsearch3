@@ -26,16 +26,25 @@ public class ListTableDecorator {
 		writer.append("\n");
 	}
 	
+	public void printData(int columnInx, Object data) throws IOException {
+		printData(columnInx, data,1);
+	}
+	
 	public void printData(int columnInx, Object data, int maxLine) throws IOException {
 		if(columnInx == 0) {
 			writer.append("|");
 		}
 		
-		String[] lines = data.toString().split("\n");
+		String str = "";
+		if(data!=null) { 
+			str = data.toString();
+		}
+		
+		String[] lines = str.toString().split("\n");
 		
 		for(int inx=0;inx < maxLine || inx < lines.length; inx++ ) {
 			
-			String str = "";
+			str = "";
 			if(lines.length > inx) {
 				str = lines[inx];
 			}

@@ -12,11 +12,18 @@
 package org.fastcatsearch.cli;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 
+ * @author lupfeliz
+ *
+ */
 public abstract class Command {
 	
 	public static final String SESSION_KEY = "org.fastcatsearch.cli.Command@session";
@@ -73,7 +80,7 @@ public abstract class Command {
 		ListTableDecorator ltd = new ListTableDecorator(writer, Arrays.asList(new Integer[] { maxColSize }) );
 		ltd.printbar();
 		for(Object value : data) {
-			ltd.printData(0, value, 0);
+			ltd.printData(0, value, 1);
 		}
 		ltd.printbar();
 	}
@@ -81,6 +88,99 @@ public abstract class Command {
 	protected String printData(Object[] data) throws IOException {
 		StringBuilder sb = new StringBuilder();
 		printData(sb, data);
+		return sb.toString();
+	}
+	
+	protected String printData(String msg) throws IOException {
+		StringBuilder sb = new StringBuilder();
+		printData(sb, new Object[] { msg });
+		return sb.toString();
+	}
+	
+	/**
+	 * printout complex table data
+	 * @param writer
+	 * @param data
+	 * @param header
+	 * @throws IOException
+	 */
+	protected void printData(Appendable writer, List<Object[]> data, String[] header) throws IOException {
+		List<Integer> maxColSizes = null;
+		for(Object[] cols : data) {
+			//
+			// Measure header's column sizes
+			//
+			if(maxColSizes==null && header!=null) {
+				maxColSizes = new ArrayList<Integer>();
+				for(String value : header) {
+					maxColSizes.add(value.length());
+				}
+			}
+			//
+			// Measure data's column size 
+			//
+			// First row's column size
+			if(maxColSizes==null) {
+				maxColSizes = new ArrayList<Integer>();
+				for(Object value : cols) {
+					maxColSizes.add(value.toString().length());
+				}
+				continue;
+			}
+			for(int inx=0;inx<cols.length;inx++) {
+				Object value  = cols[inx];
+				String str = "";
+				if(value!=null) {
+					str = value.toString();
+				}
+				if(str.length() > maxColSizes.get(inx)) {
+					maxColSizes.set(inx, str.length());
+				}
+			}
+		}
+		
+		ListTableDecorator ltd = new ListTableDecorator(writer,maxColSizes);
+		ltd.printbar();
+		int maxLines = 1;
+		if(header!=null) {
+			for(Object value : header) {
+				int lines = ((String)value).split("\n").length;
+				if(maxLines < lines) {
+					maxLines = lines;
+				}
+			}
+	
+			for(int colInx=0;colInx<header.length; colInx++) {
+				ltd.printData(colInx, header[colInx], maxLines);
+			}
+		}
+		ltd.printbar();
+		for(Object[] cols : data) {
+			for(Object value : cols) {
+				String str = "";
+				if(value!=null) { 
+					str = value.toString();
+				}
+				int lines = str.split("\n").length;
+				if(maxLines < lines) {
+					maxLines = lines;
+				}
+			}
+			
+			for(int colInx=0;colInx<cols.length; colInx++) {
+				ltd.printData(colInx, cols[colInx], maxLines);
+			}
+			ltd.printbar();
+		}
+	}
+	
+	protected void printData(Appendable writer, List<Object[]> data) throws IOException {
+		printData(writer, data);
+	}
+	
+	protected String printData(List<Object[]> data, String[] header) throws IOException {
+		StringBuilder sb = new StringBuilder();
+		printData(sb, data, header);
 		return sb.toString();
 	}
 }

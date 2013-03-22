@@ -1,3 +1,14 @@
+/*
+ * Copyright (c) 2013 Websquared, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v2.0
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     swsong - initial API and implementation
+ */
+
 package org.fastcatsearch.cli.command;
 
 import java.io.IOException;
@@ -12,6 +23,13 @@ import org.fastcatsearch.ir.config.IRSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 
+ * @author lupfeliz
+ * 
+ * store current using collection name
+ *
+ */
 public class UseCollectionCommand extends Command {
 	
 	private static final Logger logger = LoggerFactory.getLogger(UseCollectionCommand.class);
@@ -35,7 +53,7 @@ public class UseCollectionCommand extends Command {
 			List<String>collectionNames  = Arrays.asList(collectinListStr.split(","));
 			
 			if(collectionNames.contains(collection)) {
-				msg = printData(new Object[] { "Using collection "+collection });
+				msg = printData("Using collection "+collection);
 				return new CommandResult(msg, CommandResult.Status.SUCCESS);
 			}
 			
