@@ -11,8 +11,7 @@ public class SearchActionCommand extends Command {
 
 	@Override
 	public boolean isCommand(String[] cmd) {
-		// TODO Auto-generated method stub
-		return false;
+		return isCommand(CMD_SEARCH, cmd);
 	}
 
 	@Override
