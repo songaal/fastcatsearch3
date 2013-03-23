@@ -14,14 +14,14 @@ package org.fastcatsearch.job;
 import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.dic.Dic;
-import org.fastcatsearch.job.result.JobResultIndex;
+import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceException;
 
 
 public class DictionaryReloadJob extends Job {
 
 	@Override
-	public JobResult run0() throws JobException, ServiceException {
+	public JobResult doRun() throws JobException, ServiceException {
 		String[] args = getStringArrayArgs();
 		if("synonymDic".equals(args[0])){
 			try {

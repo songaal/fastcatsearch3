@@ -47,7 +47,7 @@ public class RebuildIndexJob extends Job {
 	
 	
 	@Override
-	public JobResult run0() throws JobException, ServiceException {
+	public JobResult doRun() throws JobException, ServiceException {
 		String[] args = getStringArrayArgs();
 		String collection = args[0];
 		indexingLogger.info("["+collection+"] Rebuild Indexing Start!");

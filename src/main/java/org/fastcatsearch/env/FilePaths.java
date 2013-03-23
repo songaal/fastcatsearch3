@@ -68,6 +68,13 @@ public class FilePaths {
 		return new File(environment.homeFile(), path);
 	}
 	
+	public File getRelativePathFile(File sourceFile) {
+		String base = environment.home();
+		String path = sourceFile.getPath();
+		String relativePath = new File(base).toURI().relativize(new File(path).toURI()).getPath();
+		return new File(relativePath);
+	}
+	
 	public Path makePath(String path){
 		if(path == null){
 			return new Path(homeFile());
@@ -103,4 +110,5 @@ public class FilePaths {
 			return root.getPath();
 		}
 	}
+
 }

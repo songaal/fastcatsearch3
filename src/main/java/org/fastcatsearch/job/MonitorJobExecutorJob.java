@@ -25,7 +25,7 @@ public class MonitorJobExecutorJob extends Job{
 	public MonitorJobExecutorJob(){ }
 	
 	@Override
-	public JobResult run0() throws JobException {
+	public JobResult doRun() throws JobException {
 		
 		ThreadPoolExecutor executor = ((JobService)getJobExecutor()).getJobExecutor();
 		Map<String, String> result = new HashMap<String, String>();

@@ -33,7 +33,7 @@ public class HashMapDictionaryCompileApplyJob extends Job {
 	private static int BUCKET_SIZE = 16 * 1024;
 	
 	@Override
-	public JobResult run0() throws JobException, ServiceException {
+	public JobResult doRun() throws JobException, ServiceException {
 		String[] args = getStringArrayArgs();
 		if("synonymDic".equals(args[0])){
 			try {

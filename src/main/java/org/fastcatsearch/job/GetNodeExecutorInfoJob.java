@@ -9,7 +9,7 @@ import org.fastcatsearch.service.ServiceException;
 public class GetNodeExecutorInfoJob extends Job {
 
 	@Override
-	public JobResult run0() throws JobException, ServiceException {
+	public JobResult doRun() throws JobException, ServiceException {
 		NodeService nodeService = NodeService.getInstance();
 		Node node = nodeService.getNodeById("chaos");
 		ResultFuture resultFuture = nodeService.sendRequest(node, new MonitorJobExecutorStreamableJob());

@@ -21,8 +21,8 @@ public class MonitorJobExecutorStreamableJob extends MonitorJobExecutorJob {
 	public MonitorJobExecutorStreamableJob(){ }
 	
 	@Override
-	public JobResult run0() throws JobException {
-		JobResult jobResult = super.run0();
+	public JobResult doRun() throws JobException {
+		JobResult jobResult = super.doRun();
 		if(jobResult.isSuccess()){
 			Map<String, String> map = (Map<String, String>) jobResult.result();
 			return new JobResult(map);

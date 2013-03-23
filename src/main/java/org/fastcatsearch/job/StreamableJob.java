@@ -9,6 +9,6 @@ public abstract class StreamableJob extends Job implements Streamable{
 	private static final long serialVersionUID = -799321199758563930L;
 
 	@Override
-	public abstract JobResult run0() throws JobException, ServiceException;
+	public abstract JobResult doRun() throws JobException, ServiceException;
 	
 }

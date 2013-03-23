@@ -28,7 +28,7 @@ public class TestJob extends StreamableJob{
 	}
 	
 	@Override
-	public JobResult run0() {
+	public JobResult doRun() {
 		String[] args = getStringArrayArgs();
 		StreamableString str = new StreamableString(args[0]);
 

@@ -44,14 +44,10 @@ public class Settings implements Cloneable {
 			}else{
 				entry.setValue(value);
 			}
-			map.getv
 		}
 		return this;
 	}
 	
-	public Settings clone(){
-		Collections.
-	}
 	public Settings getSubSettings(String key) {
 		return getSubSettings(key, false);
 	}

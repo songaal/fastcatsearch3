@@ -26,7 +26,7 @@ import org.fastcatsearch.ir.query.QueryParser;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.job.result.JobResultIndex;
+import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.QueryCacheService;
 import org.fastcatsearch.service.ServiceException;
@@ -38,7 +38,7 @@ public class DocumentSearchJob extends Job {
 	private String VALUE_SEPARATOR = "(?<!\\\\)=";
 	
 	@Override
-	public JobResult run0() throws JobException, ServiceException {
+	public JobResult doRun() throws JobException, ServiceException {
 		String[] args = getStringArrayArgs();
 		String queryString = args[0];
 		String idStr = null;
@@ -124,7 +124,7 @@ public class DocumentSearchJob extends Job {
 		
 		DocumentSearchJob job = new DocumentSearchJob();
 		job.setArgs(new String[]{queryString});
-		JobResult obj = job.run0();
+		JobResult obj = job.doRun();
 		Result result = null;
 		if(obj != null)
 			result = (Result) obj.result();

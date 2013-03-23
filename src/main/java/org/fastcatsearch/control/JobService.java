@@ -30,7 +30,7 @@ import org.fastcatsearch.job.FullIndexJob;
 import org.fastcatsearch.job.IncIndexJob;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.SearchJob;
-import org.fastcatsearch.job.result.JobResultIndex;
+import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceException;
@@ -214,30 +214,31 @@ public class JobService extends AbstractService implements JobExecutor {
 		logger.debug("### JobResult = {} / map={} / result={} / success= {}", new Object[]{jobResult, resultFutureMap.size(), result, isSuccess});
 //		if(isManager){
 			if(!(job instanceof SearchJob) || !isSuccess){
-				DBService dbHandler = DBService.getInstance();
-				String jobArgs = "";
-				if(job.getArgs() != null){
-					String[] args = job.getStringArrayArgs();
-					for (int i = 0; i < args.length; i++) {
-						jobArgs += (args[i] + " ");
-					}
-				}
-				
-				String resultStr = "";
-				if(result != null){
-					resultStr = result.toString();
-				}
-				if(dbHandler.JobHistory != null){
-					dbHandler.JobHistory.insert(jobId, job.getClass().getName(), jobArgs, isSuccess, resultStr, job.isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
-				}
+//				DBService dbHandler = DBService.getInstance();
+//				String jobArgs = "";
+//				if(job.getArgs() != null){
+//					String[] args = job.getStringArrayArgs();
+//					for (int i = 0; i < args.length; i++) {
+//						jobArgs += (args[i] + " ");
+//					}
+//				}
+//				
+//				String resultStr = "";
+//				if(result != null){
+//					resultStr = result.toString();
+//				}
+//				if(dbHandler.JobHistory != null){
+//					dbHandler.JobHistory.insert(jobId, job.getClass().getName(), jobArgs, isSuccess, resultStr, job.isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
+//				}
 //				dbHandler.commit();
 			}
 			
-		
-		
+			//
+			// FIXME 색인서버와 DB정보 입력서버(마스터)는 다를수 있으므로, JobService에서 DB에 직접입력하지 않는다. 호출한 Job에서 수행.
+			//
 			if(job instanceof FullIndexJob || job instanceof IncIndexJob){
 				indexingMutex.release(jobId);
-				DBService dbHandler = DBService.getInstance();
+//				DBService dbHandler = DBService.getInstance();
 				String collection = job.getStringArgs(0);
 				logger.debug("job="+job+", "+collection);
 				
@@ -245,19 +246,19 @@ public class JobService extends AbstractService implements JobExecutor {
 				if(job instanceof FullIndexJob){
 					indexingType = "F";
 					//전체색인시는 증분색인 정보를 클리어해준다.
-					dbHandler.IndexingResult.delete(collection, "I");
+//					dbHandler.IndexingResult.delete(collection, "I");
 				}else if(job instanceof IncIndexJob){
 					indexingType = "I";
 				}
-				int status = isSuccess ? IndexingResult.STATUS_SUCCESS : IndexingResult.STATUS_FAIL;
-				if(result instanceof JobResultIndex){
-					JobResultIndex jobResultIndex = (JobResultIndex)result; 
-					dbHandler.IndexingResult.updateOrInsert(collection, indexingType, status, jobResultIndex.docSize, jobResultIndex.updateSize, jobResultIndex.deleteSize, job.isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
-					dbHandler.IndexingHistory.insert(collection, indexingType, isSuccess, jobResultIndex.docSize, jobResultIndex.updateSize, jobResultIndex.deleteSize, job.isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
-				}else{
-					dbHandler.IndexingResult.updateOrInsert(collection, indexingType, status, 0, 0, 0, job.isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
-					dbHandler.IndexingHistory.insert(collection, indexingType, isSuccess, 0, 0, 0, job.isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
-				}
+//				int status = isSuccess ? IndexingResult.STATUS_SUCCESS : IndexingResult.STATUS_FAIL;
+//				if(result instanceof IndexingResult){
+//					IndexingResult jobResultIndex = (IndexingResult)result; 
+//					dbHandler.IndexingResult.updateOrInsert(collection, indexingType, status, jobResultIndex.docSize, jobResultIndex.updateSize, jobResultIndex.deleteSize, job.isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
+//					dbHandler.IndexingHistory.insert(collection, indexingType, isSuccess, jobResultIndex.docSize, jobResultIndex.updateSize, jobResultIndex.deleteSize, job.isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
+//				}else{
+//					dbHandler.IndexingResult.updateOrInsert(collection, indexingType, status, 0, 0, 0, job.isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
+//					dbHandler.IndexingHistory.insert(collection, indexingType, isSuccess, 0, 0, 0, job.isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
+//				}
 //				dbHandler.commit();
 			}else if(job instanceof SearchJob){
 				//검색소요시간이 길경우 이벤트내역에 warning을 해준다.

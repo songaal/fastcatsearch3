@@ -25,7 +25,7 @@ public class CacheServiceRestartJob extends Job{
 	}
 	
 	@Override
-	public JobResult run0() {
+	public JobResult doRun() {
 		try {
 			try {
 				Thread.sleep(delay);

@@ -64,9 +64,9 @@ public class WebService extends AbstractService{
 		
 //		IRConfig config = IRSettings.getConfig();
 		if(System.getProperty("server.port")!=null) {
-			SERVER_PORT = Integer.parseInt(System.getProperty("port"));
+			SERVER_PORT = Integer.parseInt(System.getProperty("server.port"));
 		} else {
-			SERVER_PORT = settings.getInt("admin.port");
+			SERVER_PORT = settings.getInt("port");
 		}
 		
 		server = new Server(SERVER_PORT);

@@ -33,7 +33,7 @@ import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.source.SourceReader;
 import org.fastcatsearch.ir.util.Formatter;
-import org.fastcatsearch.job.result.JobResultIndex;
+import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.ServiceException;
@@ -55,7 +55,7 @@ public class IncIndexJob extends Job {
 	}
 	
 	@Override
-	public JobResult run0() throws JobException, ServiceException {
+	public JobResult doRun() throws JobException, ServiceException {
 		String[] args = getStringArrayArgs();
 		String collection = args[0];
 		boolean forceAppend = false;
@@ -127,6 +127,7 @@ public class IncIndexJob extends Job {
 			int count = 0;
 			int[] updateAndDeleteSize = {0, 0};
 			logger.debug("currentSegmentInfo = {}, isAppend={}",currentSegmentInfo, isAppend);
+			File segmentDir = null;
 			if(forceAppend || (isAppend && !forceSeparate)){
 				int segmentNumber = currentSegmentInfo.getSegmentNumber();
 				int revision = workingHandler.getLastSegmentInfo().getLastRevision();
@@ -134,7 +135,7 @@ public class IncIndexJob extends Job {
 				//새로운 리비전으로 증가한다.
 				//
 				revision++;
-				File segmentDir = new File(IRSettings.getSegmentPath(collection, dataSequence, segmentNumber));
+				segmentDir = new File(IRSettings.getSegmentPath(collection, dataSequence, segmentNumber));
 				indexingLogger.info("Revision Dir = {}", new File(segmentDir,revision+"").getAbsolutePath());
 				logger.info("Revision Dir = "+new File(segmentDir,revision+"").getAbsolutePath());
 				SegmentAppender appender = null;
@@ -187,7 +188,7 @@ public class IncIndexJob extends Job {
 			}else{
 				int nextSegmentBaseNumber = currentSegmentInfo.getBaseDocNo() + currentSegmentInfo.getDocCount();
 				int newSegmentNumber = workingHandler.getNextSegmentNumber();
-				File segmentDir = new File(IRSettings.getSegmentPath(collection, dataSequence, newSegmentNumber));
+				segmentDir = new File(IRSettings.getSegmentPath(collection, dataSequence, newSegmentNumber));
 				indexingLogger.info("Segment Dir = "+segmentDir.getAbsolutePath()+", baseNo = "+nextSegmentBaseNumber);
 				FileUtils.deleteDirectory(segmentDir);
 				
@@ -241,7 +242,7 @@ public class IncIndexJob extends Job {
 			
 			indexingLogger.info("["+collection+"] Incremental Indexing Finished! docs = "+count+", update = "+updateAndDeleteSize[0]+", delete = "+updateAndDeleteSize[1]+", time = "+durationStr);
 			
-			return new JobResult(new JobResultIndex(collection, count, updateAndDeleteSize[0], updateAndDeleteSize[1], duration));
+			return new JobResult(new IndexingJobResult(collection, segmentDir, count, updateAndDeleteSize[0], updateAndDeleteSize[1], duration));
 			
 		} catch (IOException e) {
 			EventDBLogger.error(EventDBLogger.CATE_INDEX, "증분색인에러", EventDBLogger.getStackTrace(e));

@@ -12,7 +12,7 @@ public class FileSendToNodeJob extends Job {
 	private static final long serialVersionUID = 2700311768581340839L;
 
 	@Override
-	public JobResult run0() throws JobException, ServiceException {
+	public JobResult doRun() throws JobException, ServiceException {
 		String[] args = getStringArrayArgs();
 		if(args.length < 2){
 			new JobException("파라미터가 모자랍니다.");

@@ -154,7 +154,14 @@ public class NodeService extends AbstractService {
 		return null;
 	}
 	
+	/*
+	 * 파일만 전송가능.
+	 * 디렉토리는 전송불가.
+	 */
 	public SendFileResultFuture sendFile(final Node node, File sourcefile, File targetFile) {
+		if(sourcefile.isDirectory()){
+			return null;
+		}
 		try{
 			return transportModule.sendFile(node, sourcefile, targetFile);
 		}catch(TransportException e){

@@ -92,12 +92,12 @@ public abstract class Job implements Runnable, Serializable{
 		return noResult;
 	}
 	
-	public abstract JobResult run0() throws JobException, ServiceException;
+	public abstract JobResult doRun() throws JobException, ServiceException;
 
 	public final void run(){
 		long st = System.currentTimeMillis();
 		try {
-			JobResult jobResult = run0();
+			JobResult jobResult = doRun();
 			
 			if(jobExecutor == null){
 				throw new JobException("결과를 반환할 jobExecutor가 없습니다.");

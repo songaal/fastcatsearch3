@@ -34,7 +34,7 @@ import org.fastcatsearch.ir.search.DataSequenceFile;
 import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.source.SourceReader;
 import org.fastcatsearch.ir.util.Formatter;
-import org.fastcatsearch.job.result.JobResultIndex;
+import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.ServiceException;
@@ -56,7 +56,7 @@ public class FullIndexJob extends Job {
 	
 	
 	@Override
-	public JobResult run0() throws JobException, ServiceException {
+	public JobResult doRun() throws JobException, ServiceException {
 		String[] args = getStringArrayArgs();
 		String collection = (String)args[0];
 		indexingLogger.info("["+collection+"] Full Indexing Start!");
@@ -186,17 +186,9 @@ public class FullIndexJob extends Job {
 			
 			indexingLogger.info("["+collection+"] Full Indexing Finished! docs = "+count+", update = "+updateAndDeleteSize[0]+", delete = "+updateAndDeleteSize[1]+", time = "+durationStr);
 			
-			return new JobResult(new JobResultIndex(collection, count, updateAndDeleteSize[0], updateAndDeleteSize[1], duration));
+			return new JobResult(new IndexingJobResult(collection, segmentDir, count, updateAndDeleteSize[0], updateAndDeleteSize[1], duration));
 			
-		} catch (IOException e) {
-			EventDBLogger.error(EventDBLogger.CATE_INDEX, "전체색인에러", EventDBLogger.getStackTrace(e));
-			indexingLogger.error("["+collection+"] Indexing error = "+e.getMessage(),e);
-			throw new JobException(e);
-		} catch (SettingException e) {
-			EventDBLogger.error(EventDBLogger.CATE_INDEX, "전체색인에러", EventDBLogger.getStackTrace(e));
-			indexingLogger.error("["+collection+"] Indexing error = "+e.getMessage(),e);
-			throw new JobException(e);
-		} catch (IRException e) {
+		} catch (Exception e) {
 			EventDBLogger.error(EventDBLogger.CATE_INDEX, "전체색인에러", EventDBLogger.getStackTrace(e));
 			indexingLogger.error("["+collection+"] Indexing error = "+e.getMessage(),e);
 			throw new JobException(e);

@@ -15,6 +15,7 @@ import java.io.File;
 
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.JobService;
+import org.fastcatsearch.data.DataService;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.config.IRSettings;
@@ -99,6 +100,8 @@ private ServiceManager serviceManager;
 		statisticsInfoService.asSingleton();
 		NodeService nodeService = serviceManager.createService("node", NodeService.class);
 		nodeService.asSingleton();
+		DataService dataService = serviceManager.createService("data", DataService.class);
+		dataService.asSingleton();
 		
 		WebService webService = serviceManager.createService("web", WebService.class);
 		if(webService == null){
@@ -120,7 +123,7 @@ private ServiceManager serviceManager;
 			statisticsInfoService.start();
 			keywordService.start();
 			queryCacheService.start();
-
+			dataService.start();
 		}catch(ServiceException e){
 			logger.error("CatServer 시작에 실패했습니다.", e);
 			stop();
@@ -157,6 +160,7 @@ private ServiceManager serviceManager;
 		serviceManager.getService(JobService.class).stop();
 		serviceManager.getService(DBService.class).stop();
 		serviceManager.getService(QueryCacheService.class).stop();
+		serviceManager.getService(DataService.class).stop();
 		
 		logger.info("CatServer shutdown!");
 		EventDBLogger.info(EventDBLogger.CATE_MANAGEMENT, "검색엔진이 정지했습니다.", "");
@@ -173,6 +177,7 @@ private ServiceManager serviceManager;
 		serviceManager.getService(JobService.class).close();
 		serviceManager.getService(DBService.class).close();
 		serviceManager.getService(QueryCacheService.class).close();
+		serviceManager.getService(DataService.class).close();
 	}
 	
 }
