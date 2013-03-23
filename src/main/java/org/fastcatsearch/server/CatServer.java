@@ -13,8 +13,10 @@ package org.fastcatsearch.server;
 
 import java.io.File;
 
+import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.db.DBService;
+import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.log.EventDBLogger;
@@ -22,6 +24,7 @@ import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.KeywordService;
 import org.fastcatsearch.service.QueryCacheService;
 import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.service.WebService;
 import org.fastcatsearch.statistics.StatisticsInfoService;
 import org.slf4j.Logger;
@@ -30,13 +33,7 @@ import org.slf4j.LoggerFactory;
 
 public class CatServer {
 	
-	private WebService serviceHandler;
-	private IRService irService;
-	private JobService jobController;
-	private DBService dbHandler;
-	private KeywordService keywordService;
-	private QueryCacheService cacheService;
-	private StatisticsInfoService statisticsInfoService;
+private ServiceManager serviceManager;
 	
 	public static long startTime;
 	public static CatServer instance;
@@ -72,54 +69,78 @@ public class CatServer {
 		String ServerHome = System.getProperty("server.home");
 		if(ServerHome == null){
 			System.err.println("Warning! Please set env variable \"server.home\".");
-			System.out.println("Usage : java org.fastcatsearch.server.CatServer -Dserver.home=[home path]");
+			System.out.println("Usage : java com.fastcatsearch.server.CatServer -Dserver.home=[home path]");
 			System.exit(1);
 		}		
 		
 		File f = new File(ServerHome);
 		if(!f.exists()){
 			System.err.println("Warning! Path \""+ServerHome+"\" is not exist!");
-			System.out.println("Usage : java org.fastcatsearch.server.CatServer -Dserver.home=[home path]");
+			System.out.println("Usage : java com.fastcatsearch.server.CatServer -Dserver.home=[home path]");
 			System.exit(1);
 		}
-
-		IRSettings.setHome(ServerHome);
-		dbHandler = DBService.getInstance();
-		keywordService = KeywordService.getInstance();
-		jobController = JobService.getInstance();
-		irService = IRService.getInstance();
-		cacheService = QueryCacheService.getInstance();
-		statisticsInfoService = StatisticsInfoService.getInstance();
 		
-		try{
-			serviceHandler = WebService.getInstance();
-		}catch(Exception e){
-			throw new ServiceException("서비스를 초기화하지 못했습니다.",e);
+		IRSettings.setHome(ServerHome);
+		Environment environment = new Environment(ServerHome).init();
+//		Settings settings = environment.settingManager().getSettings();
+		this.serviceManager = new ServiceManager(environment);
+		serviceManager.asSingleton();
+		
+		DBService dbService = serviceManager.createService("db", DBService.class);
+		dbService.asSingleton();
+		KeywordService keywordService = serviceManager.createService("keyword", KeywordService.class);
+		keywordService.asSingleton();
+		JobService jobService = serviceManager.createService("job", JobService.class);
+		jobService.asSingleton();
+		IRService irService = serviceManager.createService("ir", IRService.class);
+		irService.asSingleton();
+		QueryCacheService queryCacheService = serviceManager.createService("query_cache", QueryCacheService.class);
+		queryCacheService.asSingleton();
+		StatisticsInfoService statisticsInfoService = serviceManager.createService("statistics_info", StatisticsInfoService.class);
+		statisticsInfoService.asSingleton();
+		NodeService nodeService = serviceManager.createService("node", NodeService.class);
+		nodeService.asSingleton();
+		
+		WebService webService = serviceManager.createService("web", WebService.class);
+		if(webService == null){
+			throw new ServiceException("웹서비스를 초기화하지 못했습니다.");
 		}
+		webService.asSingleton();
 		
 		logger = LoggerFactory.getLogger(CatServer.class);
 		
-		IRConfig irConfig = IRSettings.getConfig(true);
-		boolean statisticsServiceStart = irConfig.getBoolean("statistics.service.start");
 		try{
-			dbHandler.start();
-			jobController.start();
+			dbService.start();
+			jobService.start();
+			nodeService.start();
 			
-			if(serviceHandler != null)
-				serviceHandler.start();
+			if(webService != null)
+				webService.start();
 			
 			irService.start();
-			if(statisticsServiceStart){
-				statisticsInfoService.start();
-			}
+			statisticsInfoService.start();
 			keywordService.start();
-			cacheService.start();
+			queryCacheService.start();
+
 		}catch(ServiceException e){
 			logger.error("CatServer 시작에 실패했습니다.", e);
 			stop();
 			return false;
 		}
 		startTime = System.currentTimeMillis();
+		
+//		try {
+//			boolean isValidLicense = LicenseSettings.getInstance().load();
+//			if(isValidLicense){
+//				logger.info("유효한 라이선스입니다. 기한 = {}", LicenseSettings.getInstance().getLicenseInfo().getDisplayExpiredDate());
+//			}else{
+//				logger.warn("라이선스가 유효하지 않습니다.");
+//			}
+//		} catch (LicenseException e1) {
+//			logger.error("라이선스 에러.", e1);
+//		}
+		
+		
 		logger.info("CatServer started!");
 		EventDBLogger.info(EventDBLogger.CATE_MANAGEMENT, "검색엔진이 시작했습니다.", "");
 		isRunning = true;
@@ -127,35 +148,32 @@ public class CatServer {
 	}
 	
 	public boolean stop() throws ServiceException{
-		statisticsInfoService.stop();
-		keywordService.stop();
-		irService.stop();
-		if(serviceHandler != null)
-			serviceHandler.stop();
-		jobController.stop();
-		dbHandler.stop();
-		cacheService.stop();
-		logger.info("CatServer stop!");
+		
+		//FIXME 뜨는 도중 에러 발생시 NullPointerException 발생가능성.
+		serviceManager.getService(NodeService.class).stop();
+		serviceManager.getService(StatisticsInfoService.class).stop();
+		serviceManager.getService(KeywordService.class).stop();
+		serviceManager.getService(IRService.class).stop();
+		serviceManager.getService(WebService.class).stop();
+		serviceManager.getService(JobService.class).stop();
+		serviceManager.getService(DBService.class).stop();
+		serviceManager.getService(QueryCacheService.class).stop();
+		
+		logger.info("CatServer shutdown!");
 		EventDBLogger.info(EventDBLogger.CATE_MANAGEMENT, "검색엔진이 정지했습니다.", "");
 		isRunning = false;
 		return true;
 	}
 	
-	public void destroy() throws ServiceException{
-		dbHandler.close();
-		irService.close();
-		serviceHandler.close();
-		jobController.close();
-		keywordService.close();
-		cacheService.close();
-		statisticsInfoService.close();
-		dbHandler = null;
-		irService = null;
-		serviceHandler = null;
-		jobController = null;
-		keywordService = null;
-		cacheService = null;
-		statisticsInfoService = null;
+	public void close() throws ServiceException{
+		serviceManager.getService(NodeService.class).close();
+		serviceManager.getService(StatisticsInfoService.class).close();
+		serviceManager.getService(KeywordService.class).close();
+		serviceManager.getService(IRService.class).close();
+		serviceManager.getService(WebService.class).close();
+		serviceManager.getService(JobService.class).close();
+		serviceManager.getService(DBService.class).close();
+		serviceManager.getService(QueryCacheService.class).close();
 	}
 	
 }
