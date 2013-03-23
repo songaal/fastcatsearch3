@@ -1579,6 +1579,7 @@ public class SettingManager {
 
 	public Settings getSettings() {
 		//load config file
+		Settings serverSettings = null;
 		synchronized(FileNames.serverConfig){
 			Object obj = getFromCache(FileNames.serverConfig);
 			if(obj != null){
@@ -1590,9 +1591,8 @@ public class SettingManager {
 	        	Yaml yaml = new Yaml();
 	        	input = new FileInputStream(configFile);
 	        	Map<String, Object> data = (Map<String, Object>) yaml.load(input);
-	        	Settings settings = new Settings(data);
-	        	putToCache(settings, FileNames.serverConfig);
-	        	return settings;
+	        	serverSettings = new Settings(data);
+	        	putToCache(serverSettings, FileNames.serverConfig);
 	        } catch (FileNotFoundException e) {
 	        	logger.error("설정파일을 찾을수 없습니다. file = {}", configFile.getAbsolutePath());
 			} finally {
@@ -1604,6 +1604,34 @@ public class SettingManager {
 	        	}
 	        }
 		}
-		return null;
+		
+		Settings localSettings = null;
+		synchronized(FileNames.localConfig){
+			Object obj = getFromCache(FileNames.localConfig);
+			if(obj != null){
+				return (Settings) obj;
+			}
+			File configFile = environment.filePaths().makePath("conf").append(FileNames.localConfig).file();
+	        InputStream input = null;
+	        try{
+	        	Yaml yaml = new Yaml();
+	        	input = new FileInputStream(configFile);
+	        	Map<String, Object> data = (Map<String, Object>) yaml.load(input);
+	        	localSettings = new Settings(data);
+	        	putToCache(localSettings, FileNames.localConfig);
+	        } catch (FileNotFoundException e) {
+	        	logger.error("설정파일을 찾을수 없습니다. file = {}", configFile.getAbsolutePath());
+			} finally {
+	        	if(input != null){
+	        		try {
+						input.close();
+					} catch (IOException ignore) {
+					}
+	        	}
+	        }
+		}
+		
+		Settings settings = new Settings();
+		return settings.overrideSettings(serverSettings).overrideSettings(localSettings);
 	}
 }

@@ -2,8 +2,10 @@ package org.fastcatsearch.settings;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +13,7 @@ import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 
-public class Settings {
+public class Settings implements Cloneable {
 	private static Logger logger = LoggerFactory.getLogger(Settings.class);
 	
 	private static final int K = 1024;
@@ -25,6 +27,30 @@ public class Settings {
 	}
 	public Settings(Map<String, Object> map) {
 		this.map = map;
+	}
+	
+	public Settings overrideSettings(Settings settings){
+		return overrideMap(settings.map);
+	}
+	private Settings overrideMap(Map<String, Object> map){
+		Iterator<Entry<String, Object>> keyIterator = map.entrySet().iterator();
+		
+		while(keyIterator.hasNext()){
+			Entry<String, Object> entry = keyIterator.next();
+			Object value = entry.getValue();
+			if(value instanceof Map){
+				Map workMap = (Map<String, Object>) value;
+				overrideMap(workMap);
+			}else{
+				entry.setValue(value);
+			}
+			map.getv
+		}
+		return this;
+	}
+	
+	public Settings clone(){
+		Collections.
 	}
 	public Settings getSubSettings(String key) {
 		return getSubSettings(key, false);

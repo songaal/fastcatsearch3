@@ -2,6 +2,7 @@ package org.fastcatsearch.env;
 
 public class FileNames {
 	public static final String serverConfig = "server.conf";
+	public static final String localConfig = "local.conf";
 	public static final String schemaWorkFilename = "schema.work.xml";
 	public static final String schemaObject = "_schemaObject_";
 	public static final String schemaFilename = "schema.xml";
