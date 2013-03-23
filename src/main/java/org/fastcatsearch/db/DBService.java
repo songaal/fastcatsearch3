@@ -69,7 +69,7 @@ public class DBService extends AbstractService {
 		instance = this;
 	}
 	
-	protected DBService(Environment environment, Settings settings, ServiceManager serviceManager){
+	public DBService(Environment environment, Settings settings, ServiceManager serviceManager){
 		super(environment, settings, serviceManager);
 	}
 	

@@ -17,7 +17,6 @@ import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.env.Environment;
-import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.IRService;
