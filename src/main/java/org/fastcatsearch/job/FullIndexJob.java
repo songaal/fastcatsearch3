@@ -102,6 +102,9 @@ public class FullIndexJob extends Job {
 				throw new JobException("데이터 수집기 생성중 에러발생. sourceType = "+dsSetting.sourceType);
 			}
 			
+			/*
+			 * 색인파일 생성.
+			 */
 			File segmentDir = new File(IRSettings.getSegmentPath(collection, newDataSequence, segmentNumber));
 			indexingLogger.info("Segment Dir = "+segmentDir.getAbsolutePath());
 			SegmentWriter writer = null;
@@ -155,6 +158,10 @@ public class FullIndexJob extends Job {
 			//apply schema setting
 			IRSettings.applyWorkSchemaFile(collection);
 			
+			
+			/*
+			 * 컬렉션 리로드
+			 */
 			CollectionHandler newHandler = new CollectionHandler(collection, newDataSequence);
 			updateAndDeleteSize = newHandler.addSegment(segmentNumber, null);
 			updateAndDeleteSize[1] += writer.getDuplicateDocCount();//중복문서 삭제카운트
@@ -172,8 +179,11 @@ public class FullIndexJob extends Job {
 			
 			SegmentInfo si = newHandler.getLastSegmentInfo();
 			indexingLogger.info(si.toString());
-			int docSize = si.getDocCount();
+//			int docSize = si.getDocCount();
 			
+			/*
+			 * indextime 파일 업데이트.
+			 */
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			String startDt = sdf.format(st);
 			String endDt = sdf.format(new Date());
@@ -181,7 +191,9 @@ public class FullIndexJob extends Job {
 			String durationStr = Formatter.getFormatTime(duration);
 			IRSettings.storeIndextime(collection, "FULL", startDt, endDt, durationStr, count);
 			
-			//5초후에 캐시 클리어.
+			/*
+			 * 5초후에 캐시 클리어.
+			 */
 			getJobExecutor().offer(new CacheServiceRestartJob(5000));
 			
 			indexingLogger.info("["+collection+"] Full Indexing Finished! docs = "+count+", update = "+updateAndDeleteSize[0]+", delete = "+updateAndDeleteSize[1]+", time = "+durationStr);

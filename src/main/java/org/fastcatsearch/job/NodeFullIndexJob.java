@@ -20,16 +20,25 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
+import org.fastcatsearch.collector.SourceReaderFactory;
+import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.control.JobException;
+import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.data.DataService;
 import org.fastcatsearch.data.DataStrategy;
+import org.fastcatsearch.ir.config.DataSourceSetting;
+import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
+import org.fastcatsearch.ir.config.Schema;
+import org.fastcatsearch.ir.search.DataSequenceFile;
+import org.fastcatsearch.ir.source.SourceReader;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.task.MakeIndexFileTask;
 import org.fastcatsearch.transport.common.SendFileResultFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,88 +50,161 @@ import org.slf4j.LoggerFactory;
  * */
 public class NodeFullIndexJob extends StreamableJob {
 	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
-	
+
 	String collectionId;
-	
-	public NodeFullIndexJob() { }
-	
+
+	public NodeFullIndexJob() {
+	}
+
 	public NodeFullIndexJob(String collectionId) {
 		this.collectionId = collectionId;
 	}
 
-
 	@Override
 	public JobResult doRun() throws JobException, ServiceException {
-		
+
 		IndexingJobResult indexingJobResult = null;
 		try {
-			FullIndexJob fullIndexJob = new FullIndexJob();
-			fullIndexJob.setArgs(new String[]{collectionId});
-			ResultFuture resultFuture = getJobExecutor().offer(fullIndexJob);
-			indexingJobResult = (IndexingJobResult) resultFuture.take();
-			if(!resultFuture.isSuccess()){
-				throw new JobException("색인파일 생성에 실패하여 작업을 중단합니다.");
+			// FullIndexJob fullIndexJob = new FullIndexJob();
+			// fullIndexJob.setArgs(new String[]{collectionId});
+			// ResultFuture resultFuture = getJobExecutor().offer(fullIndexJob);
+			// indexingJobResult = (IndexingJobResult) resultFuture.take();
+			// if(!resultFuture.isSuccess()){
+			// throw new JobException("색인파일 생성에 실패하여 작업을 중단합니다.");
+			// }
+			long st = System.currentTimeMillis();
+			IRConfig irconfig = IRSettings.getConfig(true);
+			int DATA_SEQUENCE_CYCLE = irconfig.getInt("data.sequence.cycle");
+
+			String collectionHomeDir = IRSettings.getCollectionHome(collectionId);
+			Schema workSchema = IRSettings.getWorkSchema(collectionId, true, false);
+			if (workSchema == null)
+				workSchema = IRSettings.getSchema(collectionId, false);
+
+			if (workSchema.getFieldSize() == 0) {
+				indexingLogger.error("[" + collectionId + "] Full Indexing Canceled. Schema field is empty. time = "
+						+ Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
+				throw new JobException("[" + collectionId + "] Full Indexing Canceled. Schema field is empty. time = "
+						+ Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
+			}
+
+			// 주키가 없으면 색인실패
+			if (workSchema.getIndexID() == -1) {
+				EventDBLogger.error(EventDBLogger.CATE_INDEX, "컬렉션 스키마에 주키가 없음.");
+				throw new JobException("컬렉션 스키마에 주키(Primary Key)를 설정해야합니다.");
+			}
+			DataSequenceFile dataSequenceFile = new DataSequenceFile(collectionHomeDir, -1); // read
+																								// sequence
+			int newDataSequence = (dataSequenceFile.getSequence() + 1) % DATA_SEQUENCE_CYCLE;
+
+			logger.debug("dataSequence=" + newDataSequence + ", DATA_SEQUENCE_CYCLE=" + DATA_SEQUENCE_CYCLE);
+
+			File collectionDataDir = new File(IRSettings.getCollectionDataPath(collectionId, newDataSequence));
+			FileUtils.deleteDirectory(collectionDataDir);
+
+			// Make new CollectionHandler
+			// this handler's schema or other setting can be different from
+			// working segment handler's one.
+
+			int segmentNumber = 0;
+
+			DataSourceSetting dsSetting = IRSettings.getDatasource(collectionId, true);
+			SourceReader sourceReader = SourceReaderFactory.createSourceReader(collectionId, workSchema, dsSetting, true);
+
+			if (sourceReader == null) {
+				EventDBLogger.error(EventDBLogger.CATE_INDEX, "데이터수집기를 생성할 수 없습니다.");
+				throw new JobException("데이터 수집기 생성중 에러발생. sourceType = " + dsSetting.sourceType);
+			}
+
+			File segmentDir = new File(IRSettings.getSegmentPath(collectionId, newDataSequence, segmentNumber));
+			indexingLogger.info("Segment Dir = " + segmentDir.getAbsolutePath());
+
+			/*
+			 * 색인파일 생성.
+			 */
+			MakeIndexFileTask makeIndexFileTask = new MakeIndexFileTask();
+			int dupCount = 0;
+			try{
+				dupCount = makeIndexFileTask.makeIndex(collectionId, collectionHomeDir, workSchema, collectionDataDir, dsSetting, sourceReader, segmentDir);
+			}finally{
+				try{
+					sourceReader.close();
+				}catch(Exception e){
+					logger.error("Error while close source reader! "+e.getMessage(),e);
+				}
 			}
 			
 			/*
 			 * 색인파일 원격복사.
-			 * */
+			 */
 			DataStrategy dataStrategy = DataService.getInstance().getCollectionDataStrategy(collectionId);
 			List<Node> nodeList = dataStrategy.dataNodes();
-			if(nodeList == null || nodeList.size() == 0){
+			if (nodeList == null || nodeList.size() == 0) {
 				throw new JobException("색인파일을 복사할 노드가 정의되어있지 않습니다.");
 			}
-			
-			File segmentDir = indexingJobResult.segmentDir;
-			
+
 			Collection<File> files = FileUtils.listFiles(segmentDir, null, true);
-			int fileCount = files.size();
-			
-			
+			int totalFileCount = files.size();
+
+			//TODO 순차적전송이라서 여러노드전송시 속도가 느림.해결요망.  
 			for (int i = 0; i < nodeList.size(); i++) {
 				Node node = nodeList.get(i);
 				Iterator<File> fileIterator = files.iterator();
-				int count = 1;
-				while(fileIterator.hasNext()){
+				int fileCount = 1;
+				while (fileIterator.hasNext()) {
 					File sourceFile = fileIterator.next();
 					File targetFile = environment.filePaths().getRelativePathFile(sourceFile);
 					logger.debug("sourceFile >> {}", sourceFile.getPath());
 					logger.debug("targetFile >> {}", targetFile.getPath());
-					logger.info("[{} / {}]파일 {} 전송시작! ", new Object[]{count, fileCount, sourceFile.getPath()});
+					logger.info("[{} / {}]파일 {} 전송시작! ", new Object[] { fileCount, totalFileCount, sourceFile.getPath() });
 					SendFileResultFuture sendFileResultFuture = NodeService.getInstance().sendFile(node, sourceFile, targetFile);
 					Object result = sendFileResultFuture.take();
-					if(sendFileResultFuture.isSuccess()){
-						logger.info("[{} / {}]파일 {} 전송완료!", new Object[]{count, fileCount, sourceFile.getPath()});
-					}else{
+					if (sendFileResultFuture.isSuccess()) {
+						logger.info("[{} / {}]파일 {} 전송완료!", new Object[] { fileCount, totalFileCount, sourceFile.getPath() });
+					} else {
 						throw new JobException("파일전송에 실패했습니다.");
 					}
-					count++;
+					fileCount++;
 				}
-				
+
+			}
+
+			/*
+			 * 데이터노드에 컬렉션 리로드 요청.
+			 */
+			NodeCollectionReloadJob reloadJob = new NodeCollectionReloadJob(st, collectionId, newDataSequence, segmentNumber);
+			for (int i = 0; i < nodeList.size(); i++) {
+				Node node = nodeList.get(i);
+				ResultFuture resultFuture = NodeService.getInstance().sendRequest(node, reloadJob);
+				Object obj = resultFuture.take();
+				if(!resultFuture.isSuccess()){
+					throw new JobException("컬렉션 리로드 실패. collection="+collectionId+", "+node);
+				}
 			}
 			
+			ResultFuture resultFuture = JobService.getInstance().offer(reloadJob);
+			resultFuture.take();
+			if(!resultFuture.isSuccess()){
+				throw new JobException("색인노드 컬렉션 리로드 실패. collection="+collectionId);
+			}
 			
 		} catch (Exception e) {
 			EventDBLogger.error(EventDBLogger.CATE_INDEX, "전체색인에러", EventDBLogger.getStackTrace(e));
-			indexingLogger.error("["+collectionId+"] Indexing error = "+e.getMessage(),e);
+			indexingLogger.error("[" + collectionId + "] Indexing error = " + e.getMessage(), e);
 			throw new JobException(e);
 		}
-		
+
 		return new JobResult(indexingJobResult);
 	}
-
 
 	@Override
 	public void readFrom(StreamInput input) throws IOException {
 		collectionId = input.readString();
 	}
 
-
 	@Override
 	public void writeTo(StreamOutput output) throws IOException {
 		output.writeString(collectionId);
 	}
-	
-
 
 }

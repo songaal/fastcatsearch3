@@ -70,23 +70,20 @@ public class MakeIndexFileTask extends Task {
 			throw e;
 		}finally{
 			try{
-				writer.close();
+				if(writer != null){
+					writer.close();
+				}
 			}catch(Exception e){
 				logger.error("Error while close segment writer! "+e.getMessage(),e);
 				e.printStackTrace();
 			}
-			try{
-				sourceReader.close();
-			}catch(Exception e){
-				logger.error("Error while close source reader! "+e.getMessage(),e);
-			}
 		}
-		
+		int dupCount =  writer.getDuplicateDocCount();//중복문서 삭제카운트
 		if(count == 0){
 			throw new TaskException("["+collection+"] Full Indexing Canceled due to no documents.");
 		}
 		
-		return count;
+		return dupCount;
 		
 	}
 

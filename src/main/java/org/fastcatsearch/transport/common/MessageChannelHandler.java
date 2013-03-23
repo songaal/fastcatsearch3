@@ -89,7 +89,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         	logger.debug("# status = {}", status);
             if (TransportOption.isError(status)) {
             	logger.debug("# status isError");
-                handlerResponseError(wrappedStream, requestId);
+                handlerErrorResponse(wrappedStream, requestId);
             }else if (TransportOption.isResponseObject(status)) {
             	logger.debug("# status isResponseObject");
             	handleObjectResponse(wrappedStream, requestId);
@@ -171,10 +171,9 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         }
     }
 
-    private void handlerResponseError(StreamInput buffer, long requestId) {
+    private void handlerErrorResponse(StreamInput buffer, long requestId) {
     	StreamableThrowable streamableThrowable = null;
         try {
-        	
         	streamableThrowable = new StreamableThrowable();
         	streamableThrowable.readFrom(buffer);
             logger.debug("에러도착 Response-{} >> {}", requestId, streamableThrowable.getThrowable());
@@ -199,6 +198,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
             try {
             	ResultFuture resultFuture = jobExecutor.offer(job);
             	Object obj = resultFuture.take();
+            	logger.debug("## RequestHandler {} result >> {}", job.getClass().getSimpleName(), obj);
             	if(obj instanceof Streamable){
             		Streamable result = (Streamable) obj;
             		transportChannel.sendResponse(result);
