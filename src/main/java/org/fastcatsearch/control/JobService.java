@@ -271,21 +271,13 @@ public class JobService extends AbstractService implements JobExecutor {
 			}
 //		}
 		
-		if(result != null){
-			if(resultFuture != null){
-				logger.debug("jobResult.put("+result+")");
-				resultFuture.put(result, isSuccess);
-			}else{
-				logger.info("cannot find where to send a result.");
-			}
-			
+		if(resultFuture != null){
+			resultFuture.put(result, isSuccess);
 		}else{
-			logger.warn("Job-"+jobId+" has no return value.");
-			if(resultFuture != null){
-				resultFuture.put(new Object(), isSuccess);
-			}
+			//시간초과로 ResultFutuer.poll에서 미리제거된 경우. 
+			logger.debug("result arrived but future object is already removed due to timeout. result={}", result);
 		}
-		
+			
 	}
 	
 	

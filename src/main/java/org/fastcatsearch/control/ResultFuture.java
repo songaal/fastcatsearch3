@@ -23,6 +23,9 @@ public class ResultFuture {
 	protected Map<Long, ? extends ResultFuture> resultFutureMap;
 	protected long startTime;
 	protected Object result;
+	private static NullResult NULL_RESULT = new NullResult();
+	
+	private static class NullResult { }
 	
 	public ResultFuture(long requestId, Map<Long, ? extends ResultFuture> resultFutureMap) {
 		this.requestId = requestId;
@@ -33,7 +36,11 @@ public class ResultFuture {
 	public void put(Object result, boolean isSuccess) {
 		this.isSuccess = isSuccess;
 		try {
-			queue.put(result);
+			if(result == null){
+				queue.put(NULL_RESULT);
+			}else{
+				queue.put(result);
+			}
 		} catch (InterruptedException e) {
 			//ignore
 		}
@@ -49,11 +56,18 @@ public class ResultFuture {
 	
 	public Object take() {
 		if(result != null){
-			return result;
+			if(result == NULL_RESULT){
+				return null;
+			}else{
+				return result;
+			}
 		}
 		
 		try {
 			result = queue.take();
+			if(result == NULL_RESULT){
+				result = null;
+			}
 			return result;
 		} catch (InterruptedException e) {
 			//결과를 받지 못할경우, map에서 제거해준다.
@@ -64,7 +78,11 @@ public class ResultFuture {
 	
 	public Object poll(int timeInSecond) {
 		if(result != null){
-			return result;
+			if(result == NULL_RESULT){
+				return null;
+			}else{
+				return result;
+			}
 		}
 		
 		long remainTime = timeInSecond * 1000 - (System.currentTimeMillis() - startTime);
@@ -74,12 +92,17 @@ public class ResultFuture {
 				if(result == null){
 					//결과가 아직도착하지 않아서 받지못하거나, 네트워크 문제로 인해 전달이 안될수도 있으므로 불필요한 객체를 map에서 제거한다.
 					resultFutureMap.remove(requestId);
+				}else if(result == NULL_RESULT){
+					result = null;
 				}
 				return result;
 			}else{
 				Object result = queue.poll();
 				if(result == null){
+					//시간초과에 따른 제거일수도 있으므로, 
 					resultFutureMap.remove(requestId);
+				}else if(result == NULL_RESULT){
+					result = null;
 				}
 				return result;
 			}
@@ -88,4 +111,6 @@ public class ResultFuture {
 			return null;
 		}
 	}
+	
+	
 }

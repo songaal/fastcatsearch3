@@ -146,6 +146,9 @@ public class NodeService extends AbstractService {
 	}
 	
 	public ResultFuture sendRequest(final Node node, final Job job) {
+		if(node.equals(myNode)){
+			return JobService.getInstance().offer(job);
+		}
 		try{
 			return transportModule.sendRequest(node, job);
 		}catch(TransportException e){
@@ -157,8 +160,12 @@ public class NodeService extends AbstractService {
 	/*
 	 * 파일만 전송가능.
 	 * 디렉토리는 전송불가.
+	 * 동일노드로는 전송불가.
 	 */
 	public SendFileResultFuture sendFile(final Node node, File sourcefile, File targetFile) {
+		if(node.equals(myNode)){
+			return null;
+		}
 		if(sourcefile.isDirectory()){
 			return null;
 		}

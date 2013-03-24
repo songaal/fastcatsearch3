@@ -481,7 +481,6 @@ public class TransportModule extends AbstractModule {
 	        
 	    	for(int seq = 0; enumeration.hasMoreElements(); seq++){
 	    		if(resultFuture.isCanceled()){
-	    			logger.info("파일전송이 중단되었습니다. file={}", sourceFilePath);
 	    			break;
 	    		}
 	    		
@@ -541,13 +540,17 @@ public class TransportModule extends AbstractModule {
 	            future.addListener(new BlockingCacheFutureListener(fileStreamOutputCache, cachedEntry));
 	    	}
         
-	    	assert fileSize == writeSize: "파일사이즈가 다릅니다.";
 	    	
-	    	if(fileSize != writeSize){
-	    		logger.error("파일사이즈가 다릅니다. expected={}, actual={}, file={}", new Object[]{fileSize, writeSize, sourceFilePath});
-	    	}else{
-	    		logger.error("File Write Done filesize={}, file={}", writeSize, sourceFilePath);
-	    	}
+	    	if(resultFuture.isCanceled()){
+    			logger.info("파일전송이 중단되었습니다. file={}", sourceFilePath);
+    		}else{
+		    	assert fileSize == writeSize: "파일사이즈가 다릅니다.";
+		    	if(fileSize != writeSize){
+		    		logger.error("파일사이즈가 다릅니다. expected={}, actual={}, file={}", new Object[]{fileSize, writeSize, sourceFilePath});
+		    	}else{
+		    		logger.error("File Write Done filesize={}, file={}", writeSize, sourceFilePath);
+		    	}
+    		}
         }finally{
         	if(enumeration != null){
         		enumeration.close();
