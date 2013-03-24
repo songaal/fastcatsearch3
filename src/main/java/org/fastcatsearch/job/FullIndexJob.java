@@ -158,10 +158,6 @@ public class FullIndexJob extends Job {
 			//apply schema setting
 			IRSettings.applyWorkSchemaFile(collection);
 			
-			
-			/*
-			 * 컬렉션 리로드
-			 */
 			CollectionHandler newHandler = new CollectionHandler(collection, newDataSequence);
 			updateAndDeleteSize = newHandler.addSegment(segmentNumber, null);
 			updateAndDeleteSize[1] += writer.getDuplicateDocCount();//중복문서 삭제카운트
@@ -170,6 +166,9 @@ public class FullIndexJob extends Job {
 			
 			newHandler.saveDataSequenceFile();
 			
+			/*
+			 * 컬렉션 리로드
+			 */
 			IRService irService = IRService.getInstance();
 			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collection, newHandler);
 			if(oldCollectionHandler != null){

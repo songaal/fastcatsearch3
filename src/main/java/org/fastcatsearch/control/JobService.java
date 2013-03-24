@@ -209,9 +209,9 @@ public class JobService extends AbstractService implements JobExecutor {
 	
 	public void result(long jobId, Job job, Object result, boolean isSuccess, long st, long et) {
 		
-		ResultFuture jobResult = resultFutureMap.remove(jobId);
+		ResultFuture resultFuture = resultFutureMap.remove(jobId);
 		runningJobList.remove(jobId);
-		logger.debug("### JobResult = {} / map={} / result={} / success= {}", new Object[]{jobResult, resultFutureMap.size(), result, isSuccess});
+		logger.debug("### ResultFuture = {} / map={} / job={} / result={} / success= {}", new Object[]{resultFuture, resultFutureMap.size(), job.getClass().getSimpleName(), result, isSuccess});
 //		if(isManager){
 			if(!(job instanceof SearchJob) || !isSuccess){
 //				DBService dbHandler = DBService.getInstance();
@@ -272,17 +272,17 @@ public class JobService extends AbstractService implements JobExecutor {
 //		}
 		
 		if(result != null){
-			if(jobResult != null){
+			if(resultFuture != null){
 				logger.debug("jobResult.put("+result+")");
-				jobResult.put(result, isSuccess);
+				resultFuture.put(result, isSuccess);
 			}else{
 				logger.info("cannot find where to send a result.");
 			}
 			
 		}else{
 			logger.warn("Job-"+jobId+" has no return value.");
-			if(jobResult != null){
-				jobResult.put(new Object(), isSuccess);
+			if(resultFuture != null){
+				resultFuture.put(new Object(), isSuccess);
 			}
 		}
 		

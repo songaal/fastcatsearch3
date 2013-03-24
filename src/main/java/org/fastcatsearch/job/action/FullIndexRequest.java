@@ -64,7 +64,7 @@ public class FullIndexRequest extends Job {
 		DBService.getInstance().IndexingHistory.insert(collectionId, indexingType, true, indexingJobResult.docSize, indexingJobResult.updateSize, indexingJobResult.deleteSize, isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
 		
 		
-		return new JobResult(true);
+		return new JobResult(indexingJobResult.toString());
 	}
 
 }

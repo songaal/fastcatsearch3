@@ -99,7 +99,7 @@ public class KeywordService extends AbstractService{
 		int old = sequence;
 		hourOfDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
 		sequence = (sequence + 1) % 2;
-		logger.debug("Switch keyword file "+old +" -> "+sequence+", hourOfDay="+hourOfDay);
+//		logger.debug("Switch keyword file "+old +" -> "+sequence+", hourOfDay="+hourOfDay);
 		
 		try {
 			File file = new File(logPath + sequence);
@@ -119,7 +119,7 @@ public class KeywordService extends AbstractService{
 		int old = sequence;
 		hourOfDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
 		sequence = (sequence + 1) % 2;
-		logger.debug("Switch fail keyword file "+old +" -> "+sequence+", hourOfDay="+hourOfDay);
+//		logger.debug("Switch fail keyword file "+old +" -> "+sequence+", hourOfDay="+hourOfDay);
 		
 		try {
 			File file = new File(logPathFail + sequence);
@@ -237,14 +237,14 @@ public class KeywordService extends AbstractService{
 		public void run() {
 			//Log logger = LoggerFactory.getLogger(KeywordRankingTask.class);
 			//switch file 0 <-> 1
-			logger.debug("Run KeywordRankingTask");
+//			logger.debug("Run KeywordRankingTask");
 			int old = switchFile();
 			//start make ranking
 			
 			MemoryKeyword memoryKeyword = new MemoryKeyword();
 			
 			File file = new File(logPath + old);
-			logger.debug("Log file path = "+file.getAbsolutePath()+" , "+file.length());
+//			logger.debug("Log file path = "+file.getAbsolutePath()+" , "+file.length());
 			BufferedReader br = null;
 			try {
 				br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
@@ -288,7 +288,7 @@ public class KeywordService extends AbstractService{
 		public void makePopularKeyword(MemoryKeyword memoryKeyword, int totHit) {
 			Calendar scal = Calendar.getInstance();
 			scal.setTimeInMillis(this.scheduledExecutionTime());
-			logger.debug("this.scheduledExecutionTime()= {}",scal);
+//			logger.debug("this.scheduledExecutionTime()= {}",scal);
 			DBService dbHandler = DBService.getInstance();
 
 			//remove old data
@@ -335,7 +335,7 @@ public class KeywordService extends AbstractService{
 			list = dbHandler.KeywordHit.selectKeywordHit(KeywordHit.POPULAR_ACCUM, 0);
 			//logger.debug("calculate keyword "+list.size()+" at hour "+hourOfDay);
 			if(logger.isDebugEnabled()) {
-				logger.debug("calculate keyword "+list.size()+" at "+scal.get(Calendar.HOUR_OF_DAY)+":"+scal.get(Calendar.MINUTE)+":"+scal.get(Calendar.SECOND));
+//				logger.debug("calculate keyword "+list.size()+" at "+scal.get(Calendar.HOUR_OF_DAY)+":"+scal.get(Calendar.MINUTE)+":"+scal.get(Calendar.SECOND));
 				iter = memoryKeyword.getIterator(MAX_KEYWORD_COUNT);
 				while(iter.hasNext()) {
 					logger.debug("memory keyword has ["+iter.next()+"]");
@@ -469,14 +469,14 @@ public class KeywordService extends AbstractService{
 		
 		public void run() {
 			//switch file 0 <-> 1
-			logger.debug("Run KeywordFailRankingTask");
+//			logger.debug("Run KeywordFailRankingTask");
 			int old = switchFileFail();
 			//start make ranking
 			
 			MemoryKeyword memoryKeyword = new MemoryKeyword();
 			
 			File file = new File(logPathFail + old);
-			logger.debug("Log fail file path = "+file.getAbsolutePath()+" , "+file.length());
+//			logger.debug("Log fail file path = "+file.getAbsolutePath()+" , "+file.length());
 			BufferedReader br = null;
 			try {
 				br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
@@ -567,7 +567,7 @@ public class KeywordService extends AbstractService{
 			list = dbHandler.KeywordFail.selectKeywordFail(KeywordFail.POPULAR_ACCUM, 0);
 			//logger.debug("calculate keyword "+list.size()+" at hour "+hourOfDay);
 			if(logger.isDebugEnabled()) {
-				logger.debug("calculate keyword "+list.size()+" at "+scal.get(Calendar.HOUR_OF_DAY)+":"+scal.get(Calendar.MINUTE)+":"+scal.get(Calendar.SECOND));
+//				logger.debug("calculate keyword "+list.size()+" at "+scal.get(Calendar.HOUR_OF_DAY)+":"+scal.get(Calendar.MINUTE)+":"+scal.get(Calendar.SECOND));
 				iter = memoryKeyword.getIteratorFail(MAX_KEYWORD_COUNT);
 				while(iter.hasNext()) {
 					logger.debug("memory keyword has ["+iter.next()+"]");

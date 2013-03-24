@@ -33,10 +33,12 @@ public class NodeCollectionReloadJob extends StreamableJob {
 	public JobResult doRun() throws JobException, ServiceException {
 		try{
 			CollectionHandler newHandler = new CollectionHandler(collectionId, dataSequence);
-			int[] updateAndDeleteSize = newHandler.addSegment(segmentNumber, null);
+			//이미 수정된 모든 파일이 복사되었기 때문에 collection.info, delete.set을 수정하는 addSegment를 수행핦 필요없음.
+			//수행하면 세그먼트가 더 늘어나서, 오히려 에러발생.
+//			int[] updateAndDeleteSize = newHandler.addSegment(segmentNumber, null);
 	//		updateAndDeleteSize[1] += writer.getDuplicateDocCount();//중복문서 삭제카운트
 	//		logger.info("== SegmentStatus ==");
-	//		newHandler.printSegmentStatus();
+//			newHandler.printSegmentStatus();
 			
 			newHandler.saveDataSequenceFile();
 			
@@ -68,6 +70,7 @@ public class NodeCollectionReloadJob extends StreamableJob {
 			return new JobResult(true);
 			
 		}catch(Exception e){
+			logger.error("", e);
 			throw new JobException(e);
 		}
 		
@@ -79,10 +82,12 @@ public class NodeCollectionReloadJob extends StreamableJob {
 		collectionId = input.readString();
 		dataSequence = input.readInt();
 		segmentNumber = input.readInt();
+		logger.debug("## readFrom {}, {}, {}, {}", new Object[]{startTime, collectionId, dataSequence, segmentNumber});
 	}
 
 	@Override
 	public void writeTo(StreamOutput output) throws IOException {
+		logger.debug("## writeTo {}, {}, {}, {}", new Object[]{startTime, collectionId, dataSequence, segmentNumber});
 		output.writeLong(startTime);
 		output.writeString(collectionId);
 		output.writeInt(dataSequence);

@@ -92,7 +92,7 @@ public class MemoryKeyword {
 			logger.debug("Sort Done. time = "+(System.currentTimeMillis() - st)+"ms");
 		}
 		
-		logger.debug("count = "+count);
+//		logger.debug("count = "+count);
 		
 		
 		return new Iterator<KeywordHit>(){
@@ -143,7 +143,7 @@ public class MemoryKeyword {
 			logger.debug("Sort Done. time = "+(System.currentTimeMillis() - st)+"ms");
 		}
 		
-		logger.debug("count = "+count);
+//		logger.debug("count = "+count);
 		
 		
 		return new Iterator<KeywordFail>(){

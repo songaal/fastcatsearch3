@@ -210,6 +210,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
             	}
             	logger.debug("Request Job Result >> {}", obj);
             } catch (Throwable e) {
+            	logger.error("Fail to write response message", e);
                 // we can only send a response transport is started....
                 try {
                     transportChannel.sendResponse(e);
