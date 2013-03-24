@@ -3,6 +3,7 @@ package org.fastcatsearch.env;
 import java.io.File;
 
 import org.fastcatsearch.common.DynamicClassLoader;
+import org.fastcatsearch.module.ModuleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

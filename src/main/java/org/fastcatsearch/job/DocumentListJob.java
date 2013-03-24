@@ -26,9 +26,7 @@ import org.fastcatsearch.ir.query.QueryParser;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.IRService;
-import org.fastcatsearch.service.QueryCacheService;
 import org.fastcatsearch.service.ServiceException;
 
 
@@ -82,9 +80,10 @@ public class DocumentListJob extends Job {
 //			if((q.getMeta().option() & Query.SEARCH_OPT_NOCACHE) > 0)
 //				noCache = true;
 //			logger.debug("NoCache => "+noCache+" ,option = "+q.getMeta().option()+", "+(q.getMeta().option() & Query.SEARCH_OPT_NOCACHE));
-			
-			if(!noCache)
-				result = QueryCacheService.getInstance().get(queryString);
+			String cacheKey = collection+":"+start+":"+rows;
+			if(!noCache){
+				result = IRService.getInstance().documentCache().get(cacheKey);
+			}
 			
 			//Not Exist in Cache
 			if(result == null){
@@ -96,8 +95,9 @@ public class DocumentListJob extends Job {
 				
 				result = collectionHandler.listDocument(collection, start, rows);
 				
-				if(!noCache)
-					QueryCacheService.getInstance().put(queryString, result);
+				if(!noCache){
+					IRService.getInstance().documentCache().put(cacheKey, result);
+				}
 			}
 //			long st = System.currentTimeMillis();
 			
@@ -117,46 +117,5 @@ public class DocumentListJob extends Job {
 		
 	}
 
-	public static void main(String[] args) throws JobException, ServiceException {
-		String homePath = "D:/fastcat_basic_server";
-		String queryString = "cn=mail&fl=id,subject&sn=1&ln=10";
-		IRSettings.setHome(homePath);
-		
-		
-		long st = System.currentTimeMillis();
-		
-		DocumentListJob job = new DocumentListJob();
-		job.setArgs(new String[]{queryString});
-		JobResult obj = job.doRun();
-		Result result = null;
-		if(obj != null)
-			result = (Result) obj.result();
-		
-		logger.info("search time = "+(System.currentTimeMillis() - st)+" ms");
-		logger.info("TotalCount = " + result.getTotalCount());
-		int resultCount = result.getCount();
-		logger.info("Count = " + resultCount);
-		int fieldCount = result.getFieldCount();
-		logger.info("FieldCount = {}", fieldCount);
-		
-		Row[] data = result.getData();
-		for (int i = 0; i < resultCount; i++) {
-			Row row = data[i];
-			logger.info(i+"] "+row.toString());
-		}
-		
-		GroupResult[] groupResultList = result.getGroupResult();
-		for (int i = 0; i < groupResultList.length; i++) {
-			GroupResult groupResult = groupResultList[i];
-			logger.info("== Group Result - {}, count = {} ==", i+1, groupResult.size());
-			int size = groupResult.size();
-			for (int j = 0; j < size; j++) {
-				GroupEntry entry = groupResult.getEntry(j);
-				logger.info("{} : {}", entry.key.getKeyString(), entry.count());
-				
-			}
-		}
-		
-	}
 }
 

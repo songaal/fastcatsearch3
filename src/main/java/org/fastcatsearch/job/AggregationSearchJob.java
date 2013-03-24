@@ -15,6 +15,7 @@ import java.util.Map;
 
 import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.ir.config.IRSettings;
+import org.fastcatsearch.ir.group.AggregationResult;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.query.Metadata;
@@ -31,7 +32,7 @@ import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.statistics.StatisticsInfoService;
 
 
-public class SearchJob extends Job {
+public class AggregationSearchJob extends Job {
 	
 	@Override
 	public JobResult doRun() throws JobException, ServiceException {
@@ -67,17 +68,15 @@ public class SearchJob extends Job {
 		}
 //		logger.debug("collection = "+collection);
 		try {
-			Result result = null;
+			AggregationResult result = null;
 			boolean noCache = false;
 			//no cache 옵션이 없으면 캐시를 확인한다.
 			if((q.getMeta().option() & Query.SEARCH_OPT_NOCACHE) > 0)
 				noCache = true;
 //			logger.debug("NoCache => "+noCache+" ,option = "+q.getMeta().option()+", "+(q.getMeta().option() & Query.SEARCH_OPT_NOCACHE));
 			
-			if(!noCache){
-				IRService.getInstance().searchCache().get(queryString);
-				result = IRService.getInstance().searchCache().get(queryString);
-			}
+			if(!noCache)
+				result = IRService.getInstance().aggregationCache().get(queryString);
 			
 			//Not Exist in Cache
 			if(result == null){
@@ -87,16 +86,16 @@ public class SearchJob extends Job {
 					throw new JobException("## collection ["+collection+"] is not exist!");
 				}
 				
-				result = collectionHandler.search(q);
+				result = collectionHandler.doAggregation(q);
 				
 				if(!noCache){
-					IRService.getInstance().searchCache().put(queryString, result);
+					IRService.getInstance().aggregationCache().put(queryString, result);
 				}
 			}
 //			long st = System.currentTimeMillis();
 			
 			if(keyword != null){
-				if(result.getCount() > 0){
+				if(result.totalCount() > 0){
 					KeywordService.getInstance().addKeyword(keyword);
 				}else{
 					KeywordService.getInstance().addFailKeyword(keyword);

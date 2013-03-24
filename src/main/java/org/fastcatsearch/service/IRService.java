@@ -24,6 +24,7 @@ import java.util.Map.Entry;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.fastcatsearch.common.QueryCacheModule;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.analysis.TokenizerAttributes;
 import org.fastcatsearch.ir.common.IRException;
@@ -31,7 +32,10 @@ import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.ir.dic.Dic;
+import org.fastcatsearch.ir.group.AggregationResult;
+import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.module.ModuleException;
 import org.fastcatsearch.settings.Settings;
 
 
@@ -40,6 +44,10 @@ public class IRService extends AbstractService{
 	private Map<String, CollectionHandler> collectionHandlerMap = new HashMap<String, CollectionHandler>();
 	private String[] collectionNameList;
 	private String[][] tokenizerList;
+	
+	private QueryCacheModule<Result> searchCache;
+	private QueryCacheModule<AggregationResult> aggregationCache;
+	private QueryCacheModule<Result> documentCache;
 	
 	private static IRService instance;
 	
@@ -83,6 +91,16 @@ public class IRService extends AbstractService{
 		
 		detectTokenizers();
 		
+		searchCache = new QueryCacheModule<Result>(environment, settings);
+		aggregationCache = new QueryCacheModule<AggregationResult>(environment, settings);
+		documentCache = new QueryCacheModule<Result>(environment, settings);
+		try {
+			searchCache.load();
+			aggregationCache.load();
+			documentCache.load();
+		} catch (ModuleException e) {
+			throw new ServiceException(e);
+		}
 		return true;
 	}
 	
@@ -118,6 +136,9 @@ public class IRService extends AbstractService{
 				throw new ServiceException("IRService 종료중 에러발생.", e);
 			}
 		}
+		searchCache.unload();
+		aggregationCache.unload();
+		documentCache.unload();
 		return true;
 	}	
 	
@@ -233,5 +254,17 @@ public class IRService extends AbstractService{
 	@Override
 	protected boolean doClose() throws ServiceException {
 		return true;
+	}
+	
+	public QueryCacheModule<Result> searchCache(){
+		return searchCache;
+	}
+	
+	public QueryCacheModule<AggregationResult> aggregationCache(){
+		return aggregationCache;
+	}
+	
+	public QueryCacheModule<Result> documentCache(){
+		return documentCache;
 	}
 }

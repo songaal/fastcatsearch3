@@ -31,6 +31,7 @@ import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.ir.field.ScoreField;
+import org.fastcatsearch.ir.group.AggregationResult;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
@@ -166,7 +167,8 @@ public class DocumentSearchServlet extends JobHttpServlet {
 		String logStr = searchTime+", "+result.getCount()+", "+result.getTotalCount()+", "+result.getFieldCount();
 		if(result.getGroupResult() != null){
 			String grStr = ", [";
-			GroupResult[] gr = result.getGroupResult();
+			AggregationResult aggregationResult = result.getGroupResult();//GroupResult[]
+			GroupResult[] gr = aggregationResult.groupResultList();
 			for (int i = 0; i < gr.length; i++) {
 				if(i > 0)
 					grStr += ", ";
@@ -347,7 +349,8 @@ public class DocumentSearchServlet extends JobHttpServlet {
 	    		
 	    		//group
 	    		writer.write("\t\"group_result\":");
-	    		GroupResult[] groupResultList = result.getGroupResult();
+	    		AggregationResult aggregationResult = result.getGroupResult();//GroupResult[]
+				GroupResult[] groupResultList = aggregationResult.groupResultList();
 	    		if(groupResultList == null){
 	    			writer.write(" \"null\"");
 	    		}else{
@@ -484,7 +487,8 @@ public class DocumentSearchServlet extends JobHttpServlet {
 	    		}
 	    		
 	    		//group
-	    		GroupResult[] groupResultList = result.getGroupResult();
+	    		AggregationResult aggregationResult = result.getGroupResult();
+				GroupResult[] groupResultList = aggregationResult.groupResultList();
 	    		if(groupResultList == null){
 	    			writer.write("\t<group_result />");
 	    			writer.newLine();

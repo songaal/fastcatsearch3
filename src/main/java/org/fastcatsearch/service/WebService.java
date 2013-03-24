@@ -14,6 +14,7 @@ package org.fastcatsearch.service;
 import org.fastcatsearch.control.JobExecutor;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.servlet.AggregationSearchServlet;
 import org.fastcatsearch.servlet.DocumentListServlet;
 import org.fastcatsearch.servlet.DocumentSearchServlet;
 import org.fastcatsearch.servlet.PopularKeywordServlet;
@@ -35,7 +36,8 @@ public class WebService extends AbstractService{
 	private static Logger logger = LoggerFactory.getLogger(WebService.class);
 	
 	//always use Root context
-	private String SERVICE_CONTEXT = "/search";
+	private String SEARCH_CONTEXT = "/search";
+	private String GROUP_CONTEXT = "/group";
 	private String KEYWORD_CONTEXT = "/keyword";
 	private String EXECUTE_CONTEXT = "/execute";
 	private String DOCUMENT_LIST_CONTEXT = "/doclist";
@@ -73,13 +75,24 @@ public class WebService extends AbstractService{
 		HandlerList handlerList = new HandlerList();
 		
 		// Search ServletContextHandler
-		final Context context = new Context(server, SERVICE_CONTEXT, Context.SESSIONS);
+		final Context context = new Context(server, SEARCH_CONTEXT, Context.SESSIONS);
 		context.setMaxFormContentSize(10 * 1024 * 1024); //파라미터전송 10MB까지 가능.
 		context.addServlet(new ServletHolder(new SearchServlet(SearchServlet.JSON_TYPE, jobExecutor)),"/json");
 		context.addServlet(new ServletHolder(new SearchServlet(SearchServlet.JSONP_TYPE, jobExecutor)),"/jsonp");
 		context.addServlet(new ServletHolder(new SearchServlet(SearchServlet.XML_TYPE, jobExecutor)),"/xml");
 		context.addServlet(new ServletHolder(new SearchServlet(SearchServlet.IS_ALIVE, jobExecutor)),"/isAlive");
 		handlerList.addHandler(context);
+		
+		/*
+		 * 그룹핑 전용검색.
+		 * */
+		final Context context1 = new Context(server, GROUP_CONTEXT, Context.SESSIONS);
+		context1.setMaxFormContentSize(10 * 1024 * 1024); //파라미터전송 10MB까지 가능.
+		context1.addServlet(new ServletHolder(new AggregationSearchServlet(SearchServlet.JSON_TYPE, jobExecutor)),"/json");
+		context1.addServlet(new ServletHolder(new AggregationSearchServlet(SearchServlet.JSONP_TYPE, jobExecutor)),"/jsonp");
+		context1.addServlet(new ServletHolder(new AggregationSearchServlet(SearchServlet.XML_TYPE, jobExecutor)),"/xml");
+		handlerList.addHandler(context1);
+		
 		
 		final Context context2 = new Context(server, EXECUTE_CONTEXT, Context.SESSIONS);
 		context2.addServlet(new ServletHolder(new RegisterJobServlet(WebServiceHttpServlet.JSON_TYPE, jobExecutor)),"/");

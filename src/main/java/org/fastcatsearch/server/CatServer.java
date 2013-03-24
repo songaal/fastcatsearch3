@@ -22,7 +22,6 @@ import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.KeywordService;
-import org.fastcatsearch.service.QueryCacheService;
 import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.service.WebService;
@@ -94,8 +93,6 @@ private ServiceManager serviceManager;
 		jobService.asSingleton();
 		IRService irService = serviceManager.createService("ir", IRService.class);
 		irService.asSingleton();
-		QueryCacheService queryCacheService = serviceManager.createService("query_cache", QueryCacheService.class);
-		queryCacheService.asSingleton();
 		StatisticsInfoService statisticsInfoService = serviceManager.createService("statistics_info", StatisticsInfoService.class);
 		statisticsInfoService.asSingleton();
 		NodeService nodeService = serviceManager.createService("node", NodeService.class);
@@ -122,7 +119,6 @@ private ServiceManager serviceManager;
 			irService.start();
 			statisticsInfoService.start();
 			keywordService.start();
-			queryCacheService.start();
 			dataService.start();
 		}catch(ServiceException e){
 			logger.error("CatServer 시작에 실패했습니다.", e);
@@ -159,7 +155,6 @@ private ServiceManager serviceManager;
 		serviceManager.getService(WebService.class).stop();
 		serviceManager.getService(JobService.class).stop();
 		serviceManager.getService(DBService.class).stop();
-		serviceManager.getService(QueryCacheService.class).stop();
 		serviceManager.getService(DataService.class).stop();
 		
 		logger.info("CatServer shutdown!");
@@ -176,7 +171,6 @@ private ServiceManager serviceManager;
 		serviceManager.getService(WebService.class).close();
 		serviceManager.getService(JobService.class).close();
 		serviceManager.getService(DBService.class).close();
-		serviceManager.getService(QueryCacheService.class).close();
 		serviceManager.getService(DataService.class).close();
 	}
 	
