@@ -33,7 +33,7 @@ import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.ir.field.ScoreField;
-import org.fastcatsearch.ir.group.AggregationResult;
+import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
@@ -196,7 +196,7 @@ public class SearchServlet extends JobHttpServlet {
 		String logStr = searchTime+", "+result.getCount()+", "+result.getTotalCount()+", "+result.getFieldCount();
 		if(result.getGroupResult() != null){
 			String grStr = ", [";
-			AggregationResult aggregationResult = result.getGroupResult();
+			GroupResults aggregationResult = result.getGroupResult();
 			GroupResult[] gr = aggregationResult.groupResultList();
 			for (int i = 0; i < gr.length; i++) {
 				if(i > 0)
@@ -363,7 +363,7 @@ public class SearchServlet extends JobHttpServlet {
 	    		
 	    		//group
 	    		writer.write("\t\"group_result\":");
-	    		AggregationResult aggregationResult = result.getGroupResult();
+	    		GroupResults aggregationResult = result.getGroupResult();
 	    		if(aggregationResult == null){
 	    			writer.write(" \"null\"");
 	    		}else{
@@ -387,7 +387,7 @@ public class SearchServlet extends JobHttpServlet {
 							writer.write("\", \"freq\": \"");
 							writer.write(e.count()+"");
 							if(groupResult.hasAggregationData()){
-								String r = e.getAggregationResultString();
+								String r = e.getGroupingObjectResultString();
 								if(r == null){
 									r = "";
 								}
@@ -507,7 +507,7 @@ public class SearchServlet extends JobHttpServlet {
 	    		}
 	    		
 	    		//group
-	    		AggregationResult aggregationResult = result.getGroupResult();
+	    		GroupResults aggregationResult = result.getGroupResult();
 	    		if(aggregationResult == null){
 	    			writer.write("\t<group_result />");
 	    			writer.newLine();
@@ -541,7 +541,7 @@ public class SearchServlet extends JobHttpServlet {
 							writer.write("</freq>");
 							writer.newLine();
 							if(groupResult.hasAggregationData()){
-								String r = e.getAggregationResultString();
+								String r = e.getGroupingObjectResultString();
 								if(r == null){
 									r = "";
 								}

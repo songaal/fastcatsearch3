@@ -29,7 +29,7 @@ import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.ir.field.ScoreField;
-import org.fastcatsearch.ir.group.AggregationResult;
+import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.query.Result;
@@ -157,7 +157,7 @@ public class DocumentListServlet extends JobHttpServlet {
 		String logStr = searchTime+", "+result.getCount()+", "+result.getTotalCount()+", "+result.getFieldCount();
 		if(result.getGroupResult() != null){
 			String grStr = ", [";
-			AggregationResult aggregationResult = result.getGroupResult();//GroupResult[]
+			GroupResults aggregationResult = result.getGroupResult();//GroupResult[]
 			GroupResult[] gr = aggregationResult.groupResultList();
 			for (int i = 0; i < gr.length; i++) {
 				if(i > 0)

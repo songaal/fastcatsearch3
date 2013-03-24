@@ -32,7 +32,8 @@ import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.ir.dic.Dic;
-import org.fastcatsearch.ir.group.AggregationResult;
+import org.fastcatsearch.ir.group.GroupData;
+import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.module.ModuleException;
@@ -46,7 +47,8 @@ public class IRService extends AbstractService{
 	private String[][] tokenizerList;
 	
 	private QueryCacheModule<Result> searchCache;
-	private QueryCacheModule<AggregationResult> aggregationCache;
+	private QueryCacheModule<GroupResults> groupingCache;
+	private QueryCacheModule<GroupData> groupingDataCache;
 	private QueryCacheModule<Result> documentCache;
 	
 	private static IRService instance;
@@ -92,11 +94,13 @@ public class IRService extends AbstractService{
 		detectTokenizers();
 		
 		searchCache = new QueryCacheModule<Result>(environment, settings);
-		aggregationCache = new QueryCacheModule<AggregationResult>(environment, settings);
+		groupingCache = new QueryCacheModule<GroupResults>(environment, settings);
+		groupingDataCache = new QueryCacheModule<GroupData>(environment, settings);
 		documentCache = new QueryCacheModule<Result>(environment, settings);
 		try {
 			searchCache.load();
-			aggregationCache.load();
+			groupingCache.load();
+			groupingDataCache.load();
 			documentCache.load();
 		} catch (ModuleException e) {
 			throw new ServiceException(e);
@@ -137,7 +141,8 @@ public class IRService extends AbstractService{
 			}
 		}
 		searchCache.unload();
-		aggregationCache.unload();
+		groupingCache.unload();
+		groupingDataCache.unload();
 		documentCache.unload();
 		return true;
 	}	
@@ -260,8 +265,12 @@ public class IRService extends AbstractService{
 		return searchCache;
 	}
 	
-	public QueryCacheModule<AggregationResult> aggregationCache(){
-		return aggregationCache;
+	public QueryCacheModule<GroupResults> groupingCache(){
+		return groupingCache;
+	}
+	
+	public QueryCacheModule<GroupData> groupingDataCache(){
+		return groupingDataCache;
 	}
 	
 	public QueryCacheModule<Result> documentCache(){

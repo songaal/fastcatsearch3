@@ -14,7 +14,7 @@ package org.fastcatsearch.service;
 import org.fastcatsearch.control.JobExecutor;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.Environment;
-import org.fastcatsearch.servlet.AggregationSearchServlet;
+import org.fastcatsearch.servlet.GroupSearchServlet;
 import org.fastcatsearch.servlet.DocumentListServlet;
 import org.fastcatsearch.servlet.DocumentSearchServlet;
 import org.fastcatsearch.servlet.PopularKeywordServlet;
@@ -88,9 +88,9 @@ public class WebService extends AbstractService{
 		 * */
 		final Context context1 = new Context(server, GROUP_CONTEXT, Context.SESSIONS);
 		context1.setMaxFormContentSize(10 * 1024 * 1024); //파라미터전송 10MB까지 가능.
-		context1.addServlet(new ServletHolder(new AggregationSearchServlet(SearchServlet.JSON_TYPE, jobExecutor)),"/json");
-		context1.addServlet(new ServletHolder(new AggregationSearchServlet(SearchServlet.JSONP_TYPE, jobExecutor)),"/jsonp");
-		context1.addServlet(new ServletHolder(new AggregationSearchServlet(SearchServlet.XML_TYPE, jobExecutor)),"/xml");
+		context1.addServlet(new ServletHolder(new GroupSearchServlet(SearchServlet.JSON_TYPE, jobExecutor)),"/json");
+		context1.addServlet(new ServletHolder(new GroupSearchServlet(SearchServlet.JSONP_TYPE, jobExecutor)),"/jsonp");
+		context1.addServlet(new ServletHolder(new GroupSearchServlet(SearchServlet.XML_TYPE, jobExecutor)),"/xml");
 		handlerList.addHandler(context1);
 		
 		

@@ -34,24 +34,24 @@ import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.ir.field.ScoreField;
-import org.fastcatsearch.ir.group.AggregationResult;
+import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.util.Formatter;
-import org.fastcatsearch.job.AggregationSearchJob;
+import org.fastcatsearch.job.GroupSearchJob;
 import org.fastcatsearch.job.SearchJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AggregationSearchServlet extends JobHttpServlet {
+public class GroupSearchServlet extends JobHttpServlet {
 	
 	private static Logger searchLogger = LoggerFactory.getLogger("SEARCH_LOG");
 	private static AtomicLong taskSeq = new AtomicLong();
 	
-    public AggregationSearchServlet(int resultType, JobExecutor jobExecutor){
+    public GroupSearchServlet(int resultType, JobExecutor jobExecutor){
     	super(resultType, jobExecutor);
     }
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -137,16 +137,16 @@ public class AggregationSearchServlet extends JobHttpServlet {
     	long searchTime = 0;
     	long st = System.currentTimeMillis();
     	
-    	AggregationSearchJob job = new AggregationSearchJob();
+    	GroupSearchJob job = new GroupSearchJob();
     	job.setArgs(new String[]{queryString});
     	
-    	AggregationResult result = null;
+    	GroupResults result = null;
     	
 		ResultFuture jobResult = JobService.getInstance().offer(job);
 		Object obj = jobResult.poll(timeout);
 		searchTime = (System.currentTimeMillis() - st);
 		if(jobResult.isSuccess()){
-			result = (AggregationResult)obj;
+			result = (GroupResults)obj;
 		}else{
 			String errorMsg = (String)obj;
 			searchLogger.info(seq+", -1, "+errorMsg);
@@ -238,7 +238,7 @@ public class AggregationSearchServlet extends JobHttpServlet {
 						writer.write("\", \"freq\": \"");
 						writer.write(e.count()+"");
 						if(groupResult.hasAggregationData()){
-							String r = e.getAggregationResultString();
+							String r = e.getGroupingObjectResultString();
 							if(r == null){
 								r = "";
 							}
@@ -314,7 +314,7 @@ public class AggregationSearchServlet extends JobHttpServlet {
 						writer.write("</freq>");
 						writer.newLine();
 						if(groupResult.hasAggregationData()){
-							String r = e.getAggregationResultString();
+							String r = e.getGroupingObjectResultString();
 							if(r == null){
 								r = "";
 							}

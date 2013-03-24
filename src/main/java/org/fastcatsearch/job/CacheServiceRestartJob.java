@@ -31,10 +31,10 @@ public class CacheServiceRestartJob extends Job{
 		} catch (InterruptedException e) { }
 		
 		boolean result = IRService.getInstance().searchCache().unload()
-		&& IRService.getInstance().aggregationCache().unload()
+		&& IRService.getInstance().groupingCache().unload()
 		&& IRService.getInstance().documentCache().unload()
 		&& IRService.getInstance().searchCache().load()
-		&& IRService.getInstance().aggregationCache().load()
+		&& IRService.getInstance().groupingCache().load()
 		&& IRService.getInstance().documentCache().load();
 		
 		return new JobResult(result);

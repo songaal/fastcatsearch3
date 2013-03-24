@@ -15,9 +15,11 @@ import java.util.Map;
 
 import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.ir.config.IRSettings;
-import org.fastcatsearch.ir.group.AggregationResult;
+import org.fastcatsearch.ir.group.GroupData;
+import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
+import org.fastcatsearch.ir.query.Groups;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.QueryParseException;
@@ -32,7 +34,7 @@ import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.statistics.StatisticsInfoService;
 
 
-public class AggregationSearchJob extends Job {
+public class GroupSearchJob extends Job {
 	
 	@Override
 	public JobResult doRun() throws JobException, ServiceException {
@@ -68,7 +70,7 @@ public class AggregationSearchJob extends Job {
 		}
 //		logger.debug("collection = "+collection);
 		try {
-			AggregationResult result = null;
+			GroupResults result = null;
 			boolean noCache = false;
 			//no cache 옵션이 없으면 캐시를 확인한다.
 			if((q.getMeta().option() & Query.SEARCH_OPT_NOCACHE) > 0)
@@ -76,7 +78,7 @@ public class AggregationSearchJob extends Job {
 //			logger.debug("NoCache => "+noCache+" ,option = "+q.getMeta().option()+", "+(q.getMeta().option() & Query.SEARCH_OPT_NOCACHE));
 			
 			if(!noCache)
-				result = IRService.getInstance().aggregationCache().get(queryString);
+				result = IRService.getInstance().groupingCache().get(queryString);
 			
 			//Not Exist in Cache
 			if(result == null){
@@ -86,10 +88,11 @@ public class AggregationSearchJob extends Job {
 					throw new JobException("## collection ["+collection+"] is not exist!");
 				}
 				
-				result = collectionHandler.doAggregation(q);
-				
+				GroupData groupData = collectionHandler.doGrouping(q);
+				Groups groups =q.getGroups();
+				result = groups.getGroupResultsGenerator().generate(groupData);
 				if(!noCache){
-					IRService.getInstance().aggregationCache().put(queryString, result);
+					IRService.getInstance().groupingCache().put(queryString, result);
 				}
 			}
 //			long st = System.currentTimeMillis();
