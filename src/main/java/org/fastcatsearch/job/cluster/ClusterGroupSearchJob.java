@@ -22,7 +22,7 @@ import org.fastcatsearch.job.internal.InternalGroupSearchJob;
 import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.transport.vo.StreamableGroupData;
 
-public class GroupSearchJob extends Job {
+public class ClusterGroupSearchJob extends Job {
 
 	@Override
 	public JobResult doRun() throws JobException, ServiceException {
@@ -46,12 +46,13 @@ public class GroupSearchJob extends Job {
 		
 		for (int i = 0; i < collectionIdList.length; i++) {
 			String cId = collectionIdList[i];
-			DataStrategy dataStrategy = DataService.getInstance().getCollectionDataStrategy(collectionId);
+			DataStrategy dataStrategy = DataService.getInstance().getCollectionDataStrategy(cId);
 			List<Node> nodeList = dataStrategy.dataNodes();
 			//TODO shard 갯수를 확인하고 각 shard에 해당하는 노드들을 가져온다.
 			//TODO 여러개의 replaica로 분산되어있을 경우, 적합한 노드를 찾아서 리턴한다.
 			
 			Node dataNode = nodeList.get(0);
+			logger.debug("collection [{}] search at {}", cId, dataNode);
 			String queryStr = queryString.replace("cn="+collectionId, "cn="+cId);
 			logger.debug("query-{} >> {}", i, queryStr);
 			InternalGroupSearchJob job = new InternalGroupSearchJob(queryStr);

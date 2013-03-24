@@ -19,7 +19,7 @@ import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.util.Formatter;
-import org.fastcatsearch.job.cluster.GroupSearchJob;
+import org.fastcatsearch.job.cluster.ClusterGroupSearchJob;
 import org.fastcatsearch.servlet.JobHttpServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,7 +103,7 @@ public class ClusterGroupSearchServlet extends JobHttpServlet {
     	long searchTime = 0;
     	long st = System.currentTimeMillis();
     	
-    	GroupSearchJob job = new GroupSearchJob();
+    	ClusterGroupSearchJob job = new ClusterGroupSearchJob();
     	job.setArgs(new String[]{queryString});
     	
     	GroupResults result = null;

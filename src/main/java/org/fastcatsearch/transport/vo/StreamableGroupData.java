@@ -70,7 +70,7 @@ public class StreamableGroupData implements Streamable {
 					obj.set(input.readGenericValue());
 				}
 				entryList[j] = new GroupEntry(key, freq, obj);
-				logger.debug("groupEntry >> {}", entryList[j]);
+//				logger.debug("groupEntry >> {}", entryList[j]);
 			}
 			
 			groupEntryListArray[groupNum] = new GroupEntryList(entryList, entryList.length, totalcount);

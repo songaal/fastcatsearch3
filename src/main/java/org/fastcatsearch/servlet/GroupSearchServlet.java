@@ -148,7 +148,10 @@ public class GroupSearchServlet extends JobHttpServlet {
 		if(jobResult.isSuccess()){
 			result = (GroupResults)obj;
 		}else{
-			String errorMsg = (String)obj;
+			String errorMsg = "";
+			if(obj instanceof Throwable){
+				errorMsg = ((Throwable)obj).getMessage();
+			}
 			searchLogger.info(seq+", -1, "+errorMsg);
 			
 			if(resultType == JSON_TYPE){
