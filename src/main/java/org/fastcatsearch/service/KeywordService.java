@@ -166,7 +166,7 @@ public class KeywordService extends AbstractService{
 			timer.scheduleAtFixedRate(new KeywordFailRankingTask(), baseCalendar.getTime(), FIVE_MINUTE_PERIOD);
 		}
 		timer.schedule(new StreamFlushTask(), new Date(), ONE_SECOND_PERIOD); //flush from now
-		
+		logger.debug("Keyword schedule done!");
 		return true;
 	}
 	

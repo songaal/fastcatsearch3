@@ -163,6 +163,7 @@ public class NodeFullIndexJob extends StreamableJob {
 			//TODO 순차적전송이라서 여러노드전송시 속도가 느림.해결요망.  
 			for (int i = 0; i < nodeList.size(); i++) {
 				Node node = nodeList.get(i);
+				logger.debug("Send File Nodes [{} / {}] {}", new Object[]{i+1, nodeList.size(), node});
 				Iterator<File> fileIterator = files.iterator();
 				int fileCount = 1;
 				while (fileIterator.hasNext()) {
@@ -185,6 +186,9 @@ public class NodeFullIndexJob extends StreamableJob {
 
 			/*
 			 * 데이터노드에 컬렉션 리로드 요청.
+			 * 
+			 * TODO 일반 노드에도 리로드필요. search노드일수가 있다.
+			 * 
 			 */
 			NodeCollectionReloadJob reloadJob = new NodeCollectionReloadJob(startTime, collectionId, newDataSequence, segmentNumber);
 			List<ResultFuture> resultFutureList = new ArrayList<ResultFuture>(nodeList.size());

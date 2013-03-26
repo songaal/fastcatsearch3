@@ -54,12 +54,12 @@ public class DataService extends AbstractService {
 			List<Node> collectionDataNodes = null;
 			List<Node> collectionIndexNodes = null;
 			if(collectionDataNodeList != null){
-				collectionDataNodes = getNodeList(dataNodeList);
+				collectionDataNodes = getNodeList(collectionDataNodeList);
 			}else{
 				collectionDataNodes = dataNodes;
 			}
 			if(collectionIndexNodeList != null){
-				collectionIndexNodes = getNodeList(indexNodeList);
+				collectionIndexNodes = getNodeList(collectionIndexNodeList);
 			}else{
 				collectionIndexNodes = indexNodes;
 			}

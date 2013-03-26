@@ -29,6 +29,7 @@
 	
 	<property name="deploy.dir" location="target/${project.name}" />
 	<property name="bin.dir" location="${deploy.dir}/bin/" />
+	<property name="tmp.dir" location="${deploy.dir}/tmp/" />
 	<property name="conf.dir" location="${deploy.dir}/conf/" />
 	<property name="collection.dir" location="${deploy.dir}/collection/" />
 	<property name="log.dir" location="${deploy.dir}/logs/" />
@@ -39,7 +40,7 @@
 	<property name="license.dir" location="${deploy.dir}/license/" />
 	<property name="dev.license.dir" location="LICENSE" />	
 
-	<property name="dev.sample.dir" location="sample/" />
+	<property name="production.dir" location="production" />
 	<property name="dev.bin.dir" location="bin/" />
 	<property name="dev.lib.dir" location="lib/" />
 	<property name="dev.conf.dir" location="conf/" />
@@ -57,39 +58,19 @@
 		<fileset dir="../${ir.project.name}/lib">
 			<include name="**/*.jar" />
 		</fileset>
+		<fileset dir="../${project.name}/target/${project.name}/lib/">
+			<include name="**/*.jar" />
+		</fileset>
 	</path>
 
 	<target name="clean">
 		<delete dir="${deploy.dir}" defaultexcludes="false" includeemptydirs="true" />
 		<mkdir dir="${deploy.dir}" />
+		<mkdir dir="${log.dir}" />
+		<mkdir dir="${lib.dir}" />
 	</target>
 
-	<target name="dist" depends="clean">
-		<mkdir dir="${deploy.dir}" />
-		<mkdir dir="${conf.dir}" />
-		<mkdir dir="${collection.dir}" />
-		<mkdir dir="${collection.dir}/${collectionName}" />
-		<mkdir dir="${lib.dir}" />
-		<mkdir dir="${collection.dir}/${collectionName}/testData" />
-		<mkdir dir="${collection.dir}/${collectionName}/testData/full" />
-		<mkdir dir="${collection.dir}/${collectionName}/testData/inc" />
-		<mkdir dir="${bin.dir}" />
-		<mkdir dir="${log.dir}" />
-		<mkdir dir="${service.dir}" />		
-
-		<javac debug="${isDebug}" debuglevel="${debuglevel}" destdir="${bin.dir}" source="${source}" target="${target}" encoding="utf-8">
-			<src path="../${ir.project.name}/src/main/java" />
-			<src path="../${ir.project.name}/lib/" />
-			<src path="src/main/java" />
-			<classpath refid="fastcat.classpath" />
-		</javac>
-
-		<jar destfile="${service.dir}/yajsw_conf.jar" basedir="${bin.dir}" includes="org/fastcatsearch/yajsw/**" />
-
-		<jar destfile="${lib.dir}/${project.name}-${version}.jar" basedir="${bin.dir}" excludes="" />
-
-		<delete dir="${bin.dir}" />
-
+	<target name="build-ir" depends="">
 		<subant failonerror="false">
 			<propertyset>
 				<propertyref prefix="toplevel" />
@@ -98,21 +79,32 @@
 		</subant>
 
 		<copy includeemptydirs="false" todir="${lib.dir}">
+			<fileset dir="../${ir.project.name}/target/${ir.project.name}/lib" includes="**/*.jar" excludes="" />
+		</copy>
+	</target>
+	
+	<target name="dist" depends="clean, build-ir">
+		<mkdir dir="${tmp.dir}" />
+		<javac debug="${isDebug}" debuglevel="${debuglevel}" destdir="${tmp.dir}" source="${source}" target="${target}" encoding="utf-8">
+			<src path="src/main/java" />
+			<classpath refid="fastcat.classpath" />
+		</javac>
+		<jar destfile="${service.dir}/yajsw_conf.jar" basedir="${tmp.dir}" includes="org/fastcatsearch/yajsw/**" />
+		<jar destfile="${lib.dir}/${project.name}-${version}.jar" basedir="${tmp.dir}" excludes="" />
+
+		<delete dir="${tmp.dir}" />
+
+		<copy includeemptydirs="false" todir="${lib.dir}">
 			<fileset dir="${dev.lib.dir}" excludes="" />
 			<fileset dir="../${ir.project.name}/lib/" excludes="" />
 		</copy>
 
-		<copy file="${dev.sample.dir}/fastcatsearch.conf" todir="${conf.dir}" />
-		<copy file="${dev.sample.dir}/logback.xml" todir="${conf.dir}" />
-		<copy file="${dev.sample.dir}/auth" todir="${conf.dir}" />
-
-		<copy file="${dev.sample.dir}/schema.xml" todir="${collection.dir}/${collectionName}" />
-		<copy file="${dev.sample.dir}/datasource.conf" todir="${collection.dir}/${collectionName}" />
-
-		<copy file="${dev.sample.dir}/sample-f.txt" todir="${collection.dir}/${collectionName}/testData/full" />
-		<copy file="${dev.sample.dir}/sample-a.txt" todir="${collection.dir}/${collectionName}/testData/inc" />
-
-		<touch file="${collection.dir}/${collectionName}/indextime" />
+		<copy includeemptydirs="false" todir="${deploy.dir}">
+			<fileset dir="${production.dir}">
+				<include name="collection/"/>
+				<include name="conf/"/>
+			</fileset>
+		</copy>
 
 		<copy includeemptydirs="false" todir="${service.dir}">
 			<fileset dir="${dev.service.dir}" excludes="" />
@@ -121,14 +113,6 @@
 			<fileset dir="${dev.bin.dir}" excludes="" />
 		</copy>
 
-		<copy todir="${license.dir}" overwrite="true">
-			<fileset dir="${dev.license.dir}" />			
-		</copy>
-
-	</target>
-
-	<target name="makeZip" depends="dist">
-		<zip destfile="${project.name}.zip" basedir="./release" update="true" />
 	</target>
 
 </project>
