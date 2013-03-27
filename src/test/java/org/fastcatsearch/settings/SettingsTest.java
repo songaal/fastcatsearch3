@@ -1,5 +1,7 @@
 package org.fastcatsearch.settings;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -130,6 +132,65 @@ public class SettingsTest {
 			System.out.println("#size:"+s.getInt("size", 10000));
 			
 		}
+		
+		
+	}
+	
+	@Test
+	public void testOverrideMap() throws IOException {
+		
+		Map<String, Object> serviceSettings = new HashMap<String, Object>();
+		serviceSettings.put("node", 123);
+		Map<String, Object> el1 = new HashMap<String, Object>();
+		el1.put("name", "ids");
+		el1.put("size", 5);
+		Map<String, Object> el2 = new HashMap<String, Object>();
+		el2.put("name", "id3");
+		el2.put("size", 5);
+		Map<String, Object> childMap = new HashMap<String, Object>();
+		childMap.put("childName", "hahaha");
+		childMap.put("shard", "8");
+		el2.put("data", childMap);
+		
+		serviceSettings.put("el1", el1);
+		serviceSettings.put("el2", el2);
+		Settings s1 = new Settings(serviceSettings);
+		
+		Map<String, Object> serviceSettings2 = new HashMap<String, Object>();
+		serviceSettings2.put("node", 123);
+		Map<String, Object> el12 = new HashMap<String, Object>();
+		el12.put("name", "id");
+		el12.put("size", 25);
+		el12.put("byout", "ttl");
+		Map<String, Object> el22 = new HashMap<String, Object>();
+		el22.put("name", "id4-mod");
+		el22.put("size", 55);
+		el22.put("additionKey", "-abc");
+		Map<String, Object> childMap2 = new HashMap<String, Object>();
+		childMap2.put("childName", "hahaha-mod");
+		childMap2.put("shard", "8");
+		childMap2.put("replica", "0");
+		el22.put("data", childMap2);
+
+		
+		Map<String, Object> el23 = new HashMap<String, Object>();
+		el23.put("name", "id43");
+		
+		serviceSettings2.put("el1", el12);
+		serviceSettings2.put("el2", el22);
+		serviceSettings2.put("el3", el23);
+		Settings s2 = new Settings(serviceSettings2);
+		System.out.println("원본 : " + s1.map);
+		
+		Settings s1_ = s1.overrideSettings(s2);
+		System.out.println("수정 : " + s2.map);
+		System.out.println("결과 : " + s1_.map);
+		
+		System.out.println(s1_.getValue("el2"));
+
+		System.out.println("===============");
+		System.out.println(s1_);
+		assertEquals(s1_.getString("el2.name"), "id4-mod");
 		
 		
 	}
