@@ -19,6 +19,7 @@ import org.fastcatsearch.ir.query.QueryParser;
 import org.fastcatsearch.ir.search.GroupResultAggregator;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.internal.InternalGroupSearchJob;
+import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.transport.vo.StreamableGroupData;
 
@@ -30,6 +31,9 @@ public class ClusterGroupSearchJob extends Job {
 		long st = System.currentTimeMillis();
 		String[] args = getStringArrayArgs();
 		String queryString = args[0];
+		GroupResults groupResults = null;
+		boolean noCache = false;
+		
 		
 		Query q = null;
 		try {
@@ -38,6 +42,20 @@ public class ClusterGroupSearchJob extends Job {
 			throw new JobException("[Query Parsing Error] "+e.getMessage());
 		}
 		
+		//no cache 옵션이 없으면 캐시를 확인한다.
+		if((q.getMeta().option() & Query.SEARCH_OPT_NOCACHE) > 0)
+			noCache = true;
+		
+		if(!noCache){
+			groupResults = IRService.getInstance().groupingCache().get(queryString);
+		}
+		
+		//Not Exist in Cache
+		if(groupResults != null){
+			logger.debug("Cached Result!");
+			return new JobResult(groupResults);
+		}
+				
 		String collectionId = q.getMeta().collectionName();
 		Groups groups = q.getGroups();
 		
@@ -82,8 +100,13 @@ public class ClusterGroupSearchJob extends Job {
 		
 		
 		GroupResultAggregator aggregator = new GroupResultAggregator(groups);
-		GroupResults groupResults = aggregator.aggregate(resultList);
-		logger.debug("GroupSearchJob 수행시간 : {}", Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
+		groupResults = aggregator.aggregate(resultList);
+		
+		if(!noCache && groupResults != null){
+			IRService.getInstance().groupingCache().put(queryString, groupResults);
+		}
+		
+		logger.debug("ClusterGroupSearchJob 수행시간 : {}", Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
 		return new JobResult(groupResults);
 	}
 

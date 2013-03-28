@@ -33,6 +33,7 @@ public class StreamableGroupData implements Streamable {
 	}
 	@Override
 	public void readFrom(StreamInput input) throws IOException {
+		int totalSearchCount = input.readVInt();
 		int groupSize = input.readVInt();
 		GroupEntryList[] groupEntryListArray = new GroupEntryList[groupSize];
 		
@@ -76,12 +77,13 @@ public class StreamableGroupData implements Streamable {
 			groupEntryListArray[groupNum] = new GroupEntryList(entryList, entryList.length, totalcount);
 		}
 		
-		groupData = new GroupData(groupEntryListArray);
+		groupData = new GroupData(groupEntryListArray, totalSearchCount);
 		
 	}
 
 	@Override
 	public void writeTo(StreamOutput output) throws IOException {
+		output.writeVInt(groupData.totalSearchCount());
 		 GroupEntryList[] list = groupData.list();
 		 
 		output.writeVInt(list.length);

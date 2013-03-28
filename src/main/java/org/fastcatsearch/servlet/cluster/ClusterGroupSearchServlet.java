@@ -87,6 +87,16 @@ public class ClusterGroupSearchServlet extends JobHttpServlet {
     	
     	long seq = taskSeq.incrementAndGet();
 		searchLogger.info(seq+", "+queryString);
+		final String keywordKey = "&ud=keyword:";
+		int posUd = queryString.indexOf(keywordKey);
+		String keyword = "".intern();
+		if(posUd > 0){
+			int beginIndex = posUd + keywordKey.length();
+			int endIndex = queryString.indexOf("&", beginIndex);
+			if(endIndex > beginIndex){
+				keyword = queryString.substring(beginIndex, endIndex);
+			}
+		}
 		
 		response.setCharacterEncoding(responseCharset);
     	response.setStatus(HttpServletResponse.SC_OK);
@@ -158,7 +168,7 @@ public class ClusterGroupSearchServlet extends JobHttpServlet {
 		}
 		
     	//SUCCESS
-		String logStr = searchTime+", "+result.totalCount();
+		String logStr = keyword+","+searchTime+"ms, "+result.totalSearchCount();
 		if(result != null){
 			String grStr = ", [";
 			GroupResult[] gr = result.groupResultList();
@@ -180,7 +190,7 @@ public class ClusterGroupSearchServlet extends JobHttpServlet {
 			writer.newLine();
 			writer.write("\t\"time\": \""+Strings.getHumanReadableTimeInterval(searchTime)+"\",");
 			writer.newLine();
-			writer.write("\t\"total_count\": \""+result.totalCount()+"\",");
+			writer.write("\t\"total_count\": \""+result.totalSearchCount()+"\",");
 			writer.newLine();
 			
     		//group
@@ -246,7 +256,7 @@ public class ClusterGroupSearchServlet extends JobHttpServlet {
 			writer.write("</time>");
 			writer.newLine();
 			writer.write("\t<total_count>");
-			writer.write(result.totalCount()+"");
+			writer.write(result.totalSearchCount()+"");
 			writer.write("</total_count>");
 			writer.newLine();
 			

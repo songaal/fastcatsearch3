@@ -191,7 +191,7 @@ public class GroupSearchServlet extends JobHttpServlet {
 		}
 		
     	//SUCCESS
-		String logStr = searchTime+", "+result.totalCount();
+		String logStr = searchTime+", "+result.totalSearchCount();
 		if(result != null){
 			String grStr = ", [";
 			GroupResult[] gr = result.groupResultList();
@@ -213,7 +213,7 @@ public class GroupSearchServlet extends JobHttpServlet {
 			writer.newLine();
 			writer.write("\t\"time\": \""+Strings.getHumanReadableTimeInterval(searchTime)+"\",");
 			writer.newLine();
-			writer.write("\t\"total_count\": \""+result.totalCount()+"\",");
+			writer.write("\t\"total_count\": \""+result.totalSearchCount()+"\",");
 			writer.newLine();
 			
     		//group
@@ -279,7 +279,7 @@ public class GroupSearchServlet extends JobHttpServlet {
 			writer.write("</time>");
 			writer.newLine();
 			writer.write("\t<total_count>");
-			writer.write(result.totalCount()+"");
+			writer.write(result.totalSearchCount()+"");
 			writer.write("</total_count>");
 			writer.newLine();
 			

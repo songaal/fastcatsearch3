@@ -42,18 +42,18 @@ public class GroupSearchJob extends Job {
 		String[] args = getStringArrayArgs();
 		String queryString = args[0];
 		
-		StatisticsInfoService statisticsInfoService = StatisticsInfoService.getInstance();
+//		StatisticsInfoService statisticsInfoService = StatisticsInfoService.getInstance();
 		Query q = null;
 		try {
 			q = QueryParser.getInstance().parseQuery(queryString);
 		} catch (QueryParseException e) {
-			if(statisticsInfoService.isEnabled()){
-				statisticsInfoService.addSearchHit();
-				long searchTime = System.currentTimeMillis() - st;
-				logger.debug("fail searchTime ={}",searchTime);
-				statisticsInfoService.addFailHit();
-				statisticsInfoService.addSearchTime(searchTime);
-			}
+//			if(statisticsInfoService.isEnabled()){
+//				statisticsInfoService.addSearchHit();
+//				long searchTime = System.currentTimeMillis() - st;
+//				logger.debug("fail searchTime ={}",searchTime);
+//				statisticsInfoService.addFailHit();
+//				statisticsInfoService.addSearchTime(searchTime);
+//			}
 			throw new JobException("[Query Parsing Error] "+e.getMessage());
 		}
 		
@@ -64,10 +64,10 @@ public class GroupSearchJob extends Job {
 			keyword = userData.get("keyword");
 		
 		String collection = meta.collectionName();
-		if(statisticsInfoService.isEnabled()){
-			statisticsInfoService.addSearchHit();
-			statisticsInfoService.addSearchHit(collection);
-		}
+//		if(statisticsInfoService.isEnabled()){
+//			statisticsInfoService.addSearchHit();
+//			statisticsInfoService.addSearchHit(collection);
+//		}
 //		logger.debug("collection = "+collection);
 		try {
 			GroupResults result = null;
@@ -98,38 +98,38 @@ public class GroupSearchJob extends Job {
 //			long st = System.currentTimeMillis();
 			
 			if(keyword != null){
-				if(result.totalCount() > 0){
+				if(result.totalSearchCount() > 0){
 					KeywordService.getInstance().addKeyword(keyword);
 				}else{
 					KeywordService.getInstance().addFailKeyword(keyword);
 				}
-				statisticsInfoService.addSearchKeyword(keyword);
+//				statisticsInfoService.addSearchKeyword(keyword);
 			}
 //			if(result.getCount() > 0 && keyword != null){
 //				KeywordService.getInstance().addKeyword(keyword);
 //			}
 
 			long searchTime = System.currentTimeMillis() - st;
-			if(statisticsInfoService.isEnabled()){
-				statisticsInfoService.addSearchTime(searchTime);
-				statisticsInfoService.addSearchTime(collection, searchTime);
-			}
+//			if(statisticsInfoService.isEnabled()){
+//				statisticsInfoService.addSearchTime(searchTime);
+//				statisticsInfoService.addSearchTime(collection, searchTime);
+//			}
 			return new JobResult(result);
 			
 		} catch(Exception e){
-			if(statisticsInfoService.isEnabled()){
-				long searchTime = System.currentTimeMillis() - st;
-				//통합 통계
-				statisticsInfoService.addFailHit();
-				statisticsInfoService.addSearchTime(searchTime);
-				if(keyword != null){
-					statisticsInfoService.addSearchKeyword(keyword);
-				}
-				
-				//컬렉션별 통계
-				statisticsInfoService.addFailHit(collection);
-				statisticsInfoService.addSearchTime(collection, searchTime);
-			}
+//			if(statisticsInfoService.isEnabled()){
+//				long searchTime = System.currentTimeMillis() - st;
+//				//통합 통계
+//				statisticsInfoService.addFailHit();
+//				statisticsInfoService.addSearchTime(searchTime);
+//				if(keyword != null){
+//					statisticsInfoService.addSearchKeyword(keyword);
+//				}
+//				
+//				//컬렉션별 통계
+//				statisticsInfoService.addFailHit(collection);
+//				statisticsInfoService.addSearchTime(collection, searchTime);
+//			}
 			EventDBLogger.error(EventDBLogger.CATE_SEARCH, "검색에러..", EventDBLogger.getStackTrace(e));
 			throw new JobException(e);
 		}

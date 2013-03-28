@@ -25,6 +25,7 @@ public class StreamableGroupDataTest {
 		
 		GroupEntryList[] groupEntryListArray = new GroupEntryList[TEST_GROUP_COUNT];
 				
+		int totalSearchCount = 0;
 		for (int i = 0; i < groupEntryListArray.length; i++) {
 			
 			GroupEntry[] entryList = new GroupEntry[TEST_ENTRY_COUNT];
@@ -40,9 +41,10 @@ public class StreamableGroupDataTest {
 				entryList[j] = new GroupEntry(key, c, obj);
 			}
 			groupEntryListArray[i] = new GroupEntryList(entryList, entryList.length, totalcount);
+			totalSearchCount += totalcount;
 			
 		}
-		GroupData groupData = new GroupData(groupEntryListArray);
+		GroupData groupData = new GroupData(groupEntryListArray, totalSearchCount);
 		
 		
 		StreamableGroupData data = new StreamableGroupData(groupData);
