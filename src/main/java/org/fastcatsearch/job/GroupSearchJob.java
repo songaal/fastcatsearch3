@@ -14,24 +14,18 @@ package org.fastcatsearch.job;
 import java.util.Map;
 
 import org.fastcatsearch.control.JobException;
-import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.group.GroupData;
 import org.fastcatsearch.ir.group.GroupResults;
-import org.fastcatsearch.ir.group.GroupEntry;
-import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.query.Groups;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.QueryParseException;
 import org.fastcatsearch.ir.query.QueryParser;
-import org.fastcatsearch.ir.query.Result;
-import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.KeywordService;
 import org.fastcatsearch.service.ServiceException;
-import org.fastcatsearch.statistics.StatisticsInfoService;
 
 
 public class GroupSearchJob extends Job {
@@ -70,7 +64,7 @@ public class GroupSearchJob extends Job {
 //		}
 //		logger.debug("collection = "+collection);
 		try {
-			GroupResults result = null;
+			GroupResults groupResults = null;
 			boolean noCache = false;
 			//no cache 옵션이 없으면 캐시를 확인한다.
 			if((q.getMeta().option() & Query.SEARCH_OPT_NOCACHE) > 0)
@@ -78,10 +72,10 @@ public class GroupSearchJob extends Job {
 //			logger.debug("NoCache => "+noCache+" ,option = "+q.getMeta().option()+", "+(q.getMeta().option() & Query.SEARCH_OPT_NOCACHE));
 			
 			if(!noCache)
-				result = IRService.getInstance().groupingCache().get(queryString);
+				groupResults = IRService.getInstance().groupingCache().get(queryString);
 			
 			//Not Exist in Cache
-			if(result == null){
+			if(groupResults == null){
 				CollectionHandler collectionHandler = IRService.getInstance().getCollectionHandler(collection);
 				
 				if(collectionHandler == null){
@@ -90,22 +84,22 @@ public class GroupSearchJob extends Job {
 				
 				GroupData groupData = collectionHandler.doGrouping(q);
 				Groups groups =q.getGroups();
-				result = groups.getGroupResultsGenerator().generate(groupData);
+				groupResults = groups.getGroupResultsGenerator().generate(groupData);
 				if(!noCache){
-					IRService.getInstance().groupingCache().put(queryString, result);
+					IRService.getInstance().groupingCache().put(queryString, groupResults);
 				}
 			}
 //			long st = System.currentTimeMillis();
 			
 			if(keyword != null){
-				if(result.totalSearchCount() > 0){
+				if(groupResults.totalSearchCount() > 0){
 					KeywordService.getInstance().addKeyword(keyword);
 				}else{
 					KeywordService.getInstance().addFailKeyword(keyword);
 				}
 //				statisticsInfoService.addSearchKeyword(keyword);
 			}
-//			if(result.getCount() > 0 && keyword != null){
+//			if(groupResults.getCount() > 0 && keyword != null){
 //				KeywordService.getInstance().addKeyword(keyword);
 //			}
 
@@ -114,7 +108,13 @@ public class GroupSearchJob extends Job {
 //				statisticsInfoService.addSearchTime(searchTime);
 //				statisticsInfoService.addSearchTime(collection, searchTime);
 //			}
-			return new JobResult(result);
+			
+			if(groupResults != null){
+				IRService.getInstance().groupingCache().put(queryString, groupResults);
+				logger.debug("CACHE_PUT result>>{}, qr >>{}", groupResults, queryString);
+			}
+			
+			return new JobResult(groupResults);
 			
 		} catch(Exception e){
 //			if(statisticsInfoService.isEnabled()){

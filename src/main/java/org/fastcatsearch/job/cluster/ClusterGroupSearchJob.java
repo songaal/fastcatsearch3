@@ -43,18 +43,19 @@ public class ClusterGroupSearchJob extends Job {
 		}
 		
 		//no cache 옵션이 없으면 캐시를 확인한다.
-		if((q.getMeta().option() & Query.SEARCH_OPT_NOCACHE) > 0)
+		if((q.getMeta().option() & Query.SEARCH_OPT_NOCACHE) > 0){
 			noCache = true;
+		}
 		
 		if(!noCache){
 			groupResults = IRService.getInstance().groupingCache().get(queryString);
+			logger.debug("CACHE_GET result>>{}, qr >>{}", groupResults, queryString);
+			if(groupResults != null){
+				logger.debug("Cached Result!");
+				return new JobResult(groupResults);
+			}
 		}
 		
-		//Not Exist in Cache
-		if(groupResults != null){
-			logger.debug("Cached Result!");
-			return new JobResult(groupResults);
-		}
 				
 		String collectionId = q.getMeta().collectionName();
 		Groups groups = q.getGroups();
@@ -102,8 +103,9 @@ public class ClusterGroupSearchJob extends Job {
 		GroupResultAggregator aggregator = new GroupResultAggregator(groups);
 		groupResults = aggregator.aggregate(resultList);
 		
-		if(!noCache && groupResults != null){
+		if(groupResults != null){
 			IRService.getInstance().groupingCache().put(queryString, groupResults);
+			logger.debug("CACHE_PUT result>>{}, qr >>{}", groupResults, queryString);
 		}
 		
 		logger.debug("ClusterGroupSearchJob 수행시간 : {}", Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
