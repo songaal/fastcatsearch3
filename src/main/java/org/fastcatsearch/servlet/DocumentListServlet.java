@@ -32,6 +32,7 @@ import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.group.GroupResult;
+import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
@@ -182,11 +183,11 @@ public class DocumentListServlet extends HttpServlet {
 		String logStr = searchTime+", "+result.getCount()+", "+result.getTotalCount()+", "+result.getFieldCount();
 		if(result.getGroupResult() != null){
 			String grStr = ", [";
-			GroupResult[] gr = result.getGroupResult();
-			for (int i = 0; i < gr.length; i++) {
+			GroupResults gr = result.getGroupResult();
+			for (int i = 0; i < gr.groupSize(); i++) {
 				if(i > 0)
 					grStr += ", ";
-				grStr += gr[i].size();
+				grStr += gr.getGroupResult(i).size();
 			}
 			grStr += "]";
 			logStr += grStr;

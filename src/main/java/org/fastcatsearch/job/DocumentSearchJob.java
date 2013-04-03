@@ -19,6 +19,7 @@ import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
+import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.QueryParseException;
@@ -141,9 +142,9 @@ public class DocumentSearchJob extends Job {
 			logger.info(i+"] "+row.toString());
 		}
 		
-		GroupResult[] groupResultList = result.getGroupResult();
-		for (int i = 0; i < groupResultList.length; i++) {
-			GroupResult groupResult = groupResultList[i];
+		GroupResults groupResults = result.getGroupResult();
+		for (int i = 0; i < groupResults.groupSize(); i++) {
+			GroupResult groupResult = groupResults.getGroupResult(i);
 			logger.info("== Group Result - " + (i+1)+ ", count = "+groupResult.size()+" ==");
 			int size = groupResult.size();
 			for (int j = 0; j < size; j++) {

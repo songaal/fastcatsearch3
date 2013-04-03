@@ -34,6 +34,7 @@ import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
+import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
@@ -217,11 +218,11 @@ public class SearchServlet extends HttpServlet {
 		String logStr = searchTime+", "+result.getCount()+", "+result.getTotalCount()+", "+result.getFieldCount();
 		if(result.getGroupResult() != null){
 			String grStr = ", [";
-			GroupResult[] gr = result.getGroupResult();
-			for (int i = 0; i < gr.length; i++) {
+			GroupResults gr = result.getGroupResult();
+			for (int i = 0; i < gr.groupSize(); i++) {
 				if(i > 0)
 					grStr += ", ";
-				grStr += gr[i].size();
+				grStr += gr.getGroupResult(i).size();
 			}
 			grStr += "]";
 			logStr += grStr;
@@ -383,15 +384,15 @@ public class SearchServlet extends HttpServlet {
 	    		
 	    		//group
 	    		writer.write("\t\"group_result\":");
-	    		GroupResult[] groupResultList = result.getGroupResult();
-	    		if(groupResultList == null){
+	    		GroupResults groupResults = result.getGroupResult();
+	    		if(groupResults == null){
 	    			writer.write(" \"null\"");
 	    		}else{
 	    			writer.write("");
 	        		writer.write("\t[");
-	        		for (int i = 0; i < groupResultList.length; i++) {
+	        		for (int i = 0; i < groupResults.groupSize(); i++) {
 	        			writer.write("\t\t[");
-						GroupResult groupResult = groupResultList[i];
+						GroupResult groupResult = groupResults.getGroupResult(i);
 						int size = groupResult.size();
 						for (int k = 0; k < size; k++) {
 							GroupEntry e = groupResult.getEntry(k);
@@ -406,7 +407,7 @@ public class SearchServlet extends HttpServlet {
 							writer.write("\", \"freq\": \"");
 							writer.write(e.count()+"");
 							if(groupResult.hasAggregationData()){
-								String r = e.getAggregationResultString();
+								String r = e.getGroupingObjectResultString();
 								if(r == null){
 									r = "";
 								}
@@ -421,7 +422,7 @@ public class SearchServlet extends HttpServlet {
 							
 						}
 						writer.write("\t\t]");
-						if(i < groupResultList.length - 1)
+						if(i < groupResults.groupSize() - 1)
 							writer.write(",");
 						else
 							writer.write("");
@@ -526,17 +527,17 @@ public class SearchServlet extends HttpServlet {
 	    		}
 	    		
 	    		//group
-	    		GroupResult[] groupResultList = result.getGroupResult();
+	    		GroupResults groupResultList = result.getGroupResult();
 	    		if(groupResultList == null){
 	    			writer.write("\t<group_result />");
 	    			writer.newLine();
 	    		}else{
 	    			writer.write("\t<group_result>");
 	    			writer.newLine();
-	        		for (int i = 0; i < groupResultList.length; i++) {
+	        		for (int i = 0; i < groupResultList.groupSize(); i++) {
 	        			writer.write("\t\t<group_list>");
 	        			writer.newLine();
-						GroupResult groupResult = groupResultList[i];
+						GroupResult groupResult = groupResultList.getGroupResult(i);
 						int size = groupResult.size();
 						for (int k = 0; k < size; k++) {
 							writer.write("\t\t\t<group_item>");
@@ -559,7 +560,7 @@ public class SearchServlet extends HttpServlet {
 							writer.write("</freq>");
 							writer.newLine();
 							if(groupResult.hasAggregationData()){
-								String r = e.getAggregationResultString();
+								String r = e.getGroupingObjectResultString();
 								if(r == null){
 									r = "";
 								}
