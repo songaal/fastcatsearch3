@@ -98,8 +98,14 @@ public class SearchEvent extends DAOBase {
 			rs.close();
 			stmt.close();
 		
-			String selectSQL = "SELECT id, when, type, category, summary, stacktrace, status" +
-					" FROM SearchEvent WHERE id > ? and id <= ? order by id desc";
+			//
+			// it occurs id offset bug when record erased, so use rownum insted of id
+			//
+			//String selectSQL = "SELECT id, when, type, category, summary, stacktrace, status" +
+			//		" FROM SearchEvent WHERE id > ? and id <= ? order by id desc";
+			String selectSQL = "select * from (select id, when, type, category, summary, "+
+					"stacktrace, status, row_number() over () as rownum from SearchEvent) "+
+					"SearchEvent where rownum > ? and rownum <= ? order by id desc";
 			PreparedStatement pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, totalCount - startRow - length);
