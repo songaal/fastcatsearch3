@@ -1,32 +1,21 @@
-<!--
-  Copyright (c) 2013 Websquared, Inc.
-  All rights reserved. This program and the accompanying materials
-  are made available under the terms of the GNU Public License v2.0
-  which accompanies this distribution, and is available at
-  http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-  
-  Contributors:
-      swsong - initial API and implementation
--->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-<!--
-	<localRepositories>
-		<localRepository>
-			<key>private-internal-repository</key>
-			<description>Private internal repository</description>
-			<handleReleases>true</handleReleases>
-			<handleSnapshots>true</handleSnapshots>
-		</localRepository>
-	</localRepositories>
--->
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>org.fastcatsearch</groupId>
-  <artifactId>fastcatsearch.org</artifactId>
-  <version>2.0.0</version>
-  <name>fastcatsearch.org</name>
-  <description>fastcatsearch.org</description>
-  <url>fastcatsearch.org</url>
-  <packaging>jar</packaging>
+<!-- Copyright (c) 2013 Websquared, Inc. All rights reserved. This program 
+	and the accompanying materials are made available under the terms of the 
+	GNU Public License v2.0 which accompanies this distribution, and is available 
+	at http://www.gnu.org/licenses/old-licenses/gpl-2.0.html Contributors: swsong 
+	- initial API and implementation -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<!-- <localRepositories> <localRepository> <key>private-internal-repository</key> 
+		<description>Private internal repository</description> <handleReleases>true</handleReleases> 
+		<handleSnapshots>true</handleSnapshots> </localRepository> </localRepositories> -->
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.fastcatsearch</groupId>
+	<artifactId>fastcatsearch.org</artifactId>
+	<version>2.0.0</version>
+	<name>fastcatsearch.org</name>
+	<description>fastcatsearch.org</description>
+	<url>fastcatsearch.org</url>
+	<packaging>jar</packaging>
 	<dependencies>
 		<dependency>
 			<groupId>org.fastcatsearch</groupId>
@@ -71,7 +60,7 @@
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-core</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.mortbay.jetty</groupId>
@@ -91,24 +80,17 @@
 		</dependency>
 	</dependencies>
 	<build>
-		<sourceDirectory>src</sourceDirectory>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.3.2</version>
-					<configuration>
-						<compilerVersion>1.6</compilerVersion>
-						<source>1.6</source>
-						<target>1.6</target>
-						<encoding>UTF-8</encoding>
-						<configuration>
-							<includes>
-								<include>src/main/java/**/*.java</include>
-								<exclude>src/test/java/**/*.java</exclude>
-							</includes>
-						</configuration>
-					</configuration>
+				<configuration>
+					<compilerVersion>1.6</compilerVersion>
+					<source>1.6</source>
+					<target>1.6</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
