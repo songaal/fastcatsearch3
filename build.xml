@@ -52,7 +52,7 @@
 		<fileset dir="${dev.lib.dir}">
 			<include name="**/*.jar" />
 		</fileset>
-		<fileset dir="../${ir.project.name}/lib">
+		<fileset dir="../${ir.project.name}/target/${ir.project.name}/lib">
 			<include name="**/*.jar" />
 		</fileset>
 	</path>
@@ -62,7 +62,16 @@
 		<mkdir dir="${deploy.dir}" />
 	</target>
 
-	<target name="dist" depends="clean">
+	<target name="build-ir" depends ="">
+		<subant failonerror="false">
+			<propertyset>
+				<propertyref prefix="toplevel" />
+			</propertyset>
+			<fileset dir="../${ir.project.name}/" includes="build.xml" />
+		</subant>
+	</target>
+
+	<target name="dist" depends="clean,build-ir">
 		<mkdir dir="${deploy.dir}" />
 		<mkdir dir="${conf.dir}" />
 		<mkdir dir="${collection.dir}" />
@@ -76,8 +85,6 @@
 		<mkdir dir="${service.dir}" />		
 
 		<javac debug="${isDebug}" debuglevel="${debuglevel}" destdir="${bin.dir}" source="${source}" target="${target}" encoding="utf-8">
-			<src path="../${ir.project.name}/src/main/java" />
-			<src path="../${ir.project.name}/lib/" />
 			<src path="src/main/java" />
 			<classpath refid="fastcat.classpath" />
 		</javac>
@@ -87,13 +94,6 @@
 		<jar destfile="${lib.dir}/${project.name}-${version}.jar" basedir="${bin.dir}" excludes="" />
 
 		<delete dir="${bin.dir}" />
-
-		<subant failonerror="false">
-			<propertyset>
-				<propertyref prefix="toplevel" />
-			</propertyset>
-			<fileset dir="../${ir.project.name}/" includes="build.xml" />
-		</subant>
 
 		<copy includeemptydirs="false" todir="${lib.dir}">
 			<fileset dir="${dev.lib.dir}" excludes="" />
