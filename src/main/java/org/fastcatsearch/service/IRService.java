@@ -51,13 +51,14 @@ public class IRService extends CatServiceComponent{
 	
 	protected boolean start0() throws ServiceException {
 		IRConfig irconfig = IRSettings.getConfig(true);
-		
+logger.debug("--------------------------------------------------------------------------------");
 		//load dictionary
 		try {
 			Dic.init();
 		} catch (IRException e1) {
 			throw new ServiceException(e1);
 		}
+logger.debug("--------------------------------------------------------------------------------");
 		
 		
 		String collectionList = irconfig.getString("collection.list");
@@ -75,6 +76,7 @@ public class IRService extends CatServiceComponent{
 				logger.error("[ERROR] "+e.getMessage(),e);
 			}
 		}
+logger.debug("--------------------------------------------------------------------------------");
 		
 		detectTokenizers();
 		

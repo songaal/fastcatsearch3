@@ -79,6 +79,7 @@ public class ServiceHandler extends CatServiceComponent{
 		
 		// Search ServletContextHandler
 		final Context context = new Context(server, SERVICE_CONTEXT, Context.SESSIONS);
+		context.setClassLoader(this.getClass().getClassLoader());
 		context.setMaxFormContentSize(10 * 1024 * 1024); //파라미터전송 10MB까지 가능.
 		context.addServlet(new ServletHolder(new SearchServlet(SearchServlet.JSON_TYPE)),"/json");
 		context.addServlet(new ServletHolder(new SearchServlet(SearchServlet.JSONP_TYPE)),"/jsonp");
@@ -88,6 +89,7 @@ public class ServiceHandler extends CatServiceComponent{
 		
         // ServletContextHandler
 		final Context context3 = new Context(server, KEYWORD_CONTEXT, Context.SESSIONS);
+		context3.setClassLoader(this.getClass().getClassLoader());
 		context3.addServlet(new ServletHolder(new PopularKeywordServlet()),"/popular");
 		context3.addServlet(new ServletHolder(new PopularKeywordServlet(PopularKeywordServlet.JSON_TYPE)),"/popular/json");
 		context3.addServlet(new ServletHolder(new PopularKeywordServlet(PopularKeywordServlet.JSONP_TYPE)),"/popular/jsonp");
@@ -96,17 +98,20 @@ public class ServiceHandler extends CatServiceComponent{
 		
         // DOCUMENT_LIST_CONTEXT
 		final Context context4 = new Context(server, DOCUMENT_LIST_CONTEXT, Context.SESSIONS);
+		context4.setClassLoader(this.getClass().getClassLoader());
 		context4.addServlet(new ServletHolder(new DocumentListServlet(DocumentListServlet.JSON_TYPE)),"/json");
 		context4.addServlet(new ServletHolder(new DocumentListServlet(DocumentListServlet.XML_TYPE)),"/xml");
 		handlerList.addHandler(context4);
 		
 		// DOCUMENT_SEARCH_CONTEXT
 		final Context context5 = new Context(server, DOCUMENT_SEARCH_CONTEXT, Context.SESSIONS);
+		context5.setClassLoader(this.getClass().getClassLoader());
 		context5.addServlet(new ServletHolder(new DocumentSearchServlet(DocumentSearchServlet.JSON_TYPE)),"/json");
 		context5.addServlet(new ServletHolder(new DocumentSearchServlet(DocumentSearchServlet.XML_TYPE)),"/xml");
 		handlerList.addHandler(context5);
 		
 		final Context context6 = new Context(server, CONSOLE_CONTEXT, Context.SESSIONS);
+		context6.setClassLoader(this.getClass().getClassLoader());
 		context6.addServlet(new ServletHolder(new ConsoleActionServlet()), "/command");
 		handlerList.addHandler(context6);
 		
