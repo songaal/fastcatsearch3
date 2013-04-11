@@ -13,6 +13,7 @@ package org.fastcatsearch.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -51,7 +52,6 @@ public class IRService extends CatServiceComponent{
 	
 	protected boolean start0() throws ServiceException {
 		IRConfig irconfig = IRSettings.getConfig(true);
-		
 		//load dictionary
 		try {
 			Dic.init();
@@ -128,7 +128,16 @@ public class IRService extends CatServiceComponent{
 							Class<?> cls = Class.forName(ename);
 							TokenizerAttributes tokenizerAttributes = cls.getAnnotation(TokenizerAttributes.class);
 							if(tokenizerAttributes!=null) {
-								return new String[] { tokenizerAttributes.name(), cls.getName() };
+								try {
+									logger.debug("{} [{}] tokenizer detected..", new Object[] { cls.getName(), tokenizerAttributes.name() } );
+									cls.getMethod("register", null).invoke(null, null);
+									return new String[] { tokenizerAttributes.name(), cls.getName() };
+								} catch (IllegalAccessException e) {
+								} catch (IllegalArgumentException e) {
+								} catch (InvocationTargetException e) {
+								} catch (NoSuchMethodException e) {
+								} catch (SecurityException e) {
+								}
 							}
 						} catch (ClassNotFoundException e) { }
 					}
