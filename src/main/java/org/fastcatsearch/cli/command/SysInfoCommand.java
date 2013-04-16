@@ -9,8 +9,6 @@ import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.ir.config.IRSettings;
 
-import com.sun.tools.javac.util.List;
-
 public class SysInfoCommand extends Command {
 
 	@Override
@@ -18,7 +16,7 @@ public class SysInfoCommand extends Command {
 		return isCommand(CMD_INFO_SYSTEM, cmd);		
 	}
 
-	String[] header = new String[] {"property", "value"};
+	private String[] header = new String[] {"property name", "property value"};
 	@Override
 	public CommandResult doCommand(String[] cmd, ConsoleSessionContext context)
 			throws IOException, CommandException {

@@ -37,13 +37,6 @@ public class ListCollectionCommand extends Command {
 			String collectinListStr = IRSettings.getConfig().getString("collection.list");
 			String[] collectionNames = collectinListStr.split(",");
 			
-			int maxColumnLength = 0;
-			for(int i=0;i<collectionNames.length;i++) {
-				if(maxColumnLength < collectionNames[i].length()) {
-					maxColumnLength = collectionNames[i].length();
-				}
-			}
-			
 			String ret = printData(collectionNames);
 			
 			return new CommandResult(ret, CommandResult.Status.SUCCESS);
