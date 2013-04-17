@@ -16,7 +16,7 @@ import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.service.IRService;
 
-public class InfoCollectionCommand extends Command {
+public class InfoCollectionCommand extends CollectionExtractCommand {
 
 	private String[] header = new String[] { "collection name", "total field count", "indexing field count",
 			"fileter field count", "group field count", "sort field count", "data source Type", "status", "start date",
@@ -31,47 +31,47 @@ public class InfoCollectionCommand extends Command {
 
 	@Override
 	public CommandResult doCommand(String[] cmd, ConsoleSessionContext context) throws IOException, CommandException {
-		if ((cmd.length == 0) || (cmd.length > 2) ) {
+		if ((cmd.length == 0) || (cmd.length > 2)) {
 			return new CommandResult("invalid Command", CommandResult.Status.SUCCESS);
 		} else {
 			String inputCollection = "";
-			
-			if ( cmd.length == 2 )
-				inputCollection = cmd[1];
 
-			String collectionListStr = IRSettings.getConfig(true).getString("collection.list");
-			String[] collectionList = collectionListStr.split(",");
+			if (cmd.length == 2)
+				inputCollection = cmd[1].trim();
+			else if (cmd.length == 1)
+				inputCollection = ((String) context.getAttribute(SESSION_KEY_USING_COLLECTION)).trim();
 
-			if (collectionList.length == 0) {
+			TreeSet ts = getCollectionList();
+
+			if (ts.size() == 0) {
 				return new CommandResult("there is no Collection", CommandResult.Status.SUCCESS);
 			}
 
-			TreeSet ts = new TreeSet();
-			for (String collection : collectionList) {
-				ts.add(collection);
-			}
-
-			if (inputCollection.trim().length() == 0)
-			{// 전체 조회
-				for (String collection : collectionList) {
-					if (getCollectionData(collection) == false) {
-						return new CommandResult("error happen while loading collection[" + collection + "]",
-								CommandResult.Status.SUCCESS);
-					}
-				}
-				return new CommandResult(printData(data, header), CommandResult.Status.SUCCESS);
-
-			} else if ((inputCollection.trim().length() > 0) && (ts.contains(inputCollection) == false)) {
-				//컬렉션은 입력 됐는데 현재 컬렉션 리스트에 없을 때. 
+			// 전체 조회가 없다.
+			// if (inputCollection.trim().equalsIgnoreCase("_ALL_")) {// 전체 조회
+			// for (String collection : ts) {
+			// if (getCollectionData(collection) == false) {
+			// return new CommandResult("error happen while loading collection["
+			// + collection + "]",
+			// CommandResult.Status.SUCCESS);
+			// }
+			// }
+			// return new CommandResult(printData(data, header),
+			// CommandResult.Status.SUCCESS);
+			//
+			// } else
+			boolean bExists = isCollectionExists(inputCollection);
+			if (bExists == false) {
+				// 컬렉션은 입력 됐는데 현재 컬렉션 리스트에 없을 때.
 				return new CommandResult("collection " + inputCollection + " is not exists",
 						CommandResult.Status.SUCCESS);
-			} else if ((inputCollection.trim().length() > 0) && (ts.contains(inputCollection) == true)) {
-				//입력된 컬렉션이 현재 컬렉션 리스트에 있을 때 
-				getCollectionData(inputCollection);
-				return new CommandResult(printData(data, header), CommandResult.Status.SUCCESS);
-			}else
-				//그외의 경우 
-				return new CommandResult("invalid Command", CommandResult.Status.SUCCESS);
+			} else {
+				// 입력된 컬렉션이 현재 컬렉션 리스트에 있을 때
+				if (getCollectionData(inputCollection))
+					return new CommandResult(printData(data, header), CommandResult.Status.SUCCESS);
+				else
+					return new CommandResult("invalid Command", CommandResult.Status.SUCCESS);
+			}
 		}
 	}
 
@@ -82,9 +82,6 @@ public class InfoCollectionCommand extends Command {
 			schema = IRSettings.getSchema(collection, true);
 		} catch (Exception e) {
 			return false;
-			// return new CommandResult("error happen while loading collection["
-			// + collection + "]",
-			// CommandResult.Status.SUCCESS);
 		}
 		String dataSourceType = IRSettings.getDatasource(collection, true).sourceType;
 
@@ -107,9 +104,12 @@ public class InfoCollectionCommand extends Command {
 		return true;
 	}
 
-	private void addRecord(List<Object[]> data, String cn, String ftc, String ifc, String ffc, String gfc, String sfc, String dst, String status, String sdate, String runtime) {
-		data.add(new Object[] { cn,ftc, ifc, ffc, gfc, sfc, dst, status, sdate, runtime });
+	private void addRecord(List<Object[]> data, String cn, String ftc, String ifc, String ffc, String gfc, String sfc,
+			String dst, String status, String sdate, String runtime) {
+		data.add(new Object[] { cn, ftc, ifc, ffc, gfc, sfc, dst, status, sdate, runtime });
 	}
-	
-	//collection name", "total field count", "indexing field count",	"fileter field count", "group field count", "sort field count", "data source Type", "status", "start date",	"run time"
+
+	// collection name", "total field count", "indexing field count",	"fileter
+	// field count", "group field count", "sort field count", "data source
+	// Type", "status", "start date",	"run time"
 }
