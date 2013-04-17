@@ -101,7 +101,7 @@ public class SearchActionCommand extends Command {
 						record[2] = entry.count();//entry.getGroupingObjectResultString();
 						gdata.add(record);
 					}
-					msg.append(":group result [").append(rowInx).append("]\n");
+					msg.append(":group result [").append(rowInx+1).append("]\n");
 					msg.append(super.printData(gdata,gheader));
 				}
 			}
