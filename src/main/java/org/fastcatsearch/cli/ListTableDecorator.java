@@ -19,7 +19,7 @@ public class ListTableDecorator {
 		if(cs!=null) {
 			for(int i=0;i<cs.length();i++) {
 				char c = cs.charAt(i);
-				if(c < 255) {
+				if(c < 128) {
 					len++;
 				} else {
 					len+=2;
