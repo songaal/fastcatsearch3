@@ -11,10 +11,10 @@ public class ScheduleIndexCommand extends Command {
 
 	@Override
 	public boolean isCommand(String[] cmd) {
-		// TODO Auto-generated method stub
-		return false;
+		return isCommand(cmd, CMD_SET_SCHEDULE_INDEX);
 	}
 
+	//스켸쥴 설정 
 	@Override
 	public CommandResult doCommand(String[] cmd, ConsoleSessionContext context)
 			throws IOException, CommandException {
