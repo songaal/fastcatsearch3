@@ -177,11 +177,12 @@ public class Console {
 			if(httpPost!=null) {
 				List<NameValuePair>npList = new ArrayList<NameValuePair>();
 				npList.add(new BasicNameValuePair("command", command));
-				httpPost.setEntity(new UrlEncodedFormEntity(npList));
+				httpPost.setHeader("Content-type","application/x-www-form-urlencoded");
+				httpPost.setEntity(new UrlEncodedFormEntity(npList, "UTF-8"));
 				httpResponse = httpClient.execute(httpPost);
 				StringBuffer sb = new StringBuffer();
 				if(httpResponse != null){
-					ir = new InputStreamReader(httpResponse.getEntity().getContent());
+					ir = new InputStreamReader(httpResponse.getEntity().getContent(),"UTF-8");
 					br = new BufferedReader(ir);
 					int inx=0;
 					for(String rline; (rline = br.readLine()) !=null; inx++) {

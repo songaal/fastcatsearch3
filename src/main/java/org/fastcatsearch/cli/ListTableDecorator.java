@@ -14,6 +14,21 @@ public class ListTableDecorator {
 		this.columnSize = columnSize;
 	}
 	
+	public static int length(CharSequence cs) {
+		int len = 0;
+		if(cs!=null) {
+			for(int i=0;i<cs.length();i++) {
+				char c = cs.charAt(i);
+				if(c < 255) {
+					len++;
+				} else {
+					len+=2;
+				}
+			}
+		}
+		return len;
+	}
+	
 	public void printbar() throws IOException {
 		writer.append("+");
 		for(int cinx=0;cinx<columnSize.size();cinx++) {
@@ -49,8 +64,13 @@ public class ListTableDecorator {
 				str = lines[inx];
 			}
 			
-			writer.append(String.format(" %"+columnSize.get(columnInx)+"s ", str));
-			writer.append("|");
+			int len = ListTableDecorator.length(str);
+			for(int cinx=0;cinx<(columnSize.get(columnInx)-len);cinx++) {
+				writer.append(" ");
+			}
+			writer.append(" ");
+			writer.append(str);
+			writer.append(" |");
 		}
 		
 		if(columnInx==columnSize.size() -1) {

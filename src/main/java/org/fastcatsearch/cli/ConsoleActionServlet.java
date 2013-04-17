@@ -52,11 +52,10 @@ public class ConsoleActionServlet extends HttpServlet {
 		if(context == null || !request.getSession().equals(context.session)) {
 			context = new ConsoleActionContext(request.getSession());
 		}
-		
+		request.setCharacterEncoding("UTF-8");
 		String command = request.getParameter("command");
 		String[] commandArrray = command.split(" ");
 		CommandResult result = null;
-		
 		if(command == null || command.length() == 0) {
 			this.responseResult(response,new CommandResult("Command is empty!", CommandResult.Status.ERROR));
 			return;
@@ -88,6 +87,7 @@ public class ConsoleActionServlet extends HttpServlet {
 	
 	private void responseResult(HttpServletResponse response, CommandResult message) throws IOException {
 		//첫줄에 Fail, warning, success를 구분하여 표시한다.
+		response.setContentType("text/html; charset=utf-8");
 		response.getWriter().write(message.status.name()+"\n"+message.result);	
 	}
 	

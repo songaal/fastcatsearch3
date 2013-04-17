@@ -77,8 +77,9 @@ public abstract class Command {
 		int maxColSize = 1;
 		for(Object value : data) {
 			String str = value.toString();
-			if(str.length() > maxColSize) {
-				maxColSize = str.length();
+			int len = ListTableDecorator.length(str);
+			if( len > maxColSize) {
+				maxColSize = len;
 			}
 		}
 		
@@ -118,7 +119,7 @@ public abstract class Command {
 			if(maxColSizes==null && header!=null) {
 				maxColSizes = new ArrayList<Integer>();
 				for(String value : header) {
-					maxColSizes.add(value.length());
+					maxColSizes.add(ListTableDecorator.length(value));
 				}
 			}
 			//
@@ -128,18 +129,20 @@ public abstract class Command {
 			if(maxColSizes==null) {
 				maxColSizes = new ArrayList<Integer>();
 				for(Object value : cols) {
-					maxColSizes.add(value.toString().length());
+					maxColSizes.add(ListTableDecorator.length(value.toString()));
 				}
 				continue;
 			}
 			for(int inx=0;inx<cols.length;inx++) {
 				Object value  = cols[inx];
 				String str = "";
+				int len = 0;
 				if(value!=null) {
 					str = value.toString();
 				}
-				if(str.length() > maxColSizes.get(inx)) {
-					maxColSizes.set(inx, str.length());
+				len = ListTableDecorator.length(str);
+				if(len > maxColSizes.get(inx)) {
+					maxColSizes.set(inx, len);
 				}
 			}
 		}
