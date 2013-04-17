@@ -51,7 +51,6 @@ public class UseCollectionCommand extends Command {
 		} else if(cmd.length >= 3) {
 			String collection = cmd[2];
 			logger.debug("using collection : {} -> {}", new Object[] { context.getAttribute(SESSION_KEY_USING_COLLECTION), collection });
-			context.setAttribute(SESSION_KEY_USING_COLLECTION, collection);
 			
 			String collectinListStr = IRSettings.getConfig().getString("collection.list");
 			
@@ -59,6 +58,7 @@ public class UseCollectionCommand extends Command {
 			
 			if(collectionNames.contains(collection)) {
 				msg = printData("Using collection "+collection);
+				context.setAttribute(SESSION_KEY_USING_COLLECTION, collection);
 				return new CommandResult(msg, CommandResult.Status.SUCCESS);
 			}
 			
