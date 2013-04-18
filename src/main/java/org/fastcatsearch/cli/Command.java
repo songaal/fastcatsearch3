@@ -86,8 +86,11 @@ public abstract class Command {
 		
 		ListTableDecorator ltd = new ListTableDecorator(writer, Arrays.asList(new Integer[] { maxColSize }) );
 		ltd.printbar();
-		for(Object value : data) {
-			ltd.printData(0, value, 1);
+		for(int inx=0;inx<data.length;inx++) {
+			if(inx>0) {
+				ltd.printbar();
+			}
+			ltd.printData(0, data[inx], 1);
 		}
 		ltd.printbar();
 	}

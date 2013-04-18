@@ -384,6 +384,7 @@ public class DBReader extends SourceReader{
 								IOException ex = null;
 								if(os!=null) try { os.close(); } catch (IOException e) { ex = e; }
 								if(is!=null) try { is.close(); } catch (IOException e) { ex = e; }
+								if(f!=null && f.exists()) { f.delete(); }
 								if(ex!=null) { logger.error("Error while close clob field and output file stream.",ex); }
 							}
 						} else {
@@ -414,6 +415,7 @@ public class DBReader extends SourceReader{
 										IOException ex = null;
 										if(os!=null) try { os.close(); } catch (IOException e) { ex = e; }
 										if(is!=null) try { is.close(); } catch (IOException e) { ex = e; }
+										if(f!=null && f.exists()) { f.delete(); }
 										if(ex!=null) { logger.error("Error while close clob field and output file stream.",ex); }
 									}
 								}
