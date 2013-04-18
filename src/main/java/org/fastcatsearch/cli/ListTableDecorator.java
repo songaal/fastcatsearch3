@@ -31,12 +31,16 @@ public class ListTableDecorator {
 	
 	public void printbar() throws IOException {
 		writer.append("+");
-		for(int cinx=0;cinx<columnSize.size();cinx++) {
-			writer.append("-");
-			for(int inx=0;inx<columnSize.get(cinx);inx++) {
+		if(columnSize!=null) {
+			for(int cinx=0;cinx<columnSize.size();cinx++) {
 				writer.append("-");
+				for(int inx=0;inx<columnSize.get(cinx);inx++) {
+					writer.append("-");
+				}
+				writer.append("-+");
 			}
-			writer.append("-+");
+		} else {
+			writer.append("--+");
 		}
 		writer.append("\n");
 	}
@@ -65,15 +69,17 @@ public class ListTableDecorator {
 			}
 			
 			int len = ListTableDecorator.length(str);
-			for(int cinx=0;cinx<(columnSize.get(columnInx)-len);cinx++) {
-				writer.append(" ");
+			if(columnSize!=null) {
+				for(int cinx=0;cinx<(columnSize.get(columnInx)-len);cinx++) {
+					writer.append(" ");
+				}
 			}
 			writer.append(" ");
 			writer.append(str);
 			writer.append(" |");
 		}
 		
-		if(columnInx==columnSize.size() -1) {
+		if(columnSize==null || columnInx==columnSize.size() -1) {
 			writer.append("\n");
 		}
 	}
