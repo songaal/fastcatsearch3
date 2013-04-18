@@ -28,9 +28,4 @@ public class HelpCommand extends Command {
 	public CommandResult doCommand(String[] cmd, ConsoleSessionContext context) throws IOException, CommandException {
 		return new CommandResult("now contructing ^^ may be tomorrow~ ", CommandResult.Status.SUCCESS);
 	}
-
-	private void addRecord(List<Object[]> data, String key, String value) {
-		data.add(new Object[] { key, value });
-	}
-
 }
