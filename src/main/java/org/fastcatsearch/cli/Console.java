@@ -60,11 +60,12 @@ public class Console {
 	 * */
 	public static void main(String[] args) {
 		
-		printLicenseHeader();
 		
 		if(args.length < 2){
 			printUsage();
 			System.exit(0);
+		} else {
+			printLicenseHeader();
 		}
 		
 		String host = args[0];
@@ -254,10 +255,10 @@ public class Console {
 	 */
 	private static String readLine(String prompt) {
 		String line = null;
-		java.io.Console c = System.console();
-		if (c != null) {
-			line = c.readLine(prompt);
-		} else {
+//		java.io.Console c = System.console();
+//		if (c != null) {
+//			line = c.readLine(prompt);
+//		} else {
 			// For Eclipse User
 			System.out.print(prompt);
 			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
@@ -265,7 +266,7 @@ public class Console {
 				line = bufferedReader.readLine();
 			} catch (IOException ignore) { 
 			}
-		}
+//		}
 		return line;
 	}
 	
@@ -275,12 +276,12 @@ public class Console {
 	 * @param args
 	 */
 	private static void printf(String format, Object... args) {
-		java.io.Console c = System.console();
-		if (c != null) {
-			c.printf(format, args);
-		} else {
+//		java.io.Console c = System.console();
+//		if (c != null) {
+//			c.printf(format, args);
+//		} else {
 			// For Eclipse User
 			System.out.print(String.format(format, args));
-		}
+//		}
 	}
 }
