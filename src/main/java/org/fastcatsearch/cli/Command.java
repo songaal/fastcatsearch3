@@ -41,6 +41,7 @@ public abstract class Command {
 	
 	protected static final String[] CMD_SHOW_SCHEMA = new String[]{"show", "schema"};
 	protected static final String[] CMD_SHOW_DATASOURCE = new String[]{"show", "datasource"};
+	protected static final String[] CMD_SHOW_SCHEDULE = new String[]{"show", "schedule"};
 	
 	protected static final String[] CMD_START_INDEX = new String[]{"start", "index" };
 	protected static final String[] CMD_STATUS_INDEX = new String[]{"status", "index" };
