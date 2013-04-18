@@ -11,6 +11,8 @@ import org.fastcatsearch.cli.Command;
 import org.fastcatsearch.cli.CommandException;
 import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
+import org.fastcatsearch.cli.command.exception.CollectionNotDefinedException;
+import org.fastcatsearch.cli.command.exception.CollectionNotFoundException;
 import org.fastcatsearch.db.DBHandler;
 import org.fastcatsearch.ir.config.DataSourceSetting;
 import org.fastcatsearch.ir.config.IRSettings;
@@ -33,24 +35,21 @@ public class ShowDatasourceCommand extends CollectionExtractCommand {
 
 	@Override
 	public CommandResult doCommand(String[] cmd, ConsoleSessionContext context) throws IOException, CommandException {
-		String collection;
+		String collection="";
 
 		try {
 			collection = extractCollection(context);
+			checkCollectionExists(collection);
 		} catch (CollectionNotDefinedException e) {
 			return new CommandResult(
 					"collection is not define\r\nuse like this\r\nuse collection collectionName;\r\nshow schema;",
 					CommandResult.Status.SUCCESS);
+		} catch (CollectionNotFoundException e) {
+			return new CommandResult("collection " + collection + " is not exists", CommandResult.Status.SUCCESS);
 		}
 
 		if (cmd.length != 2)
 			return new CommandResult("invalid command", CommandResult.Status.SUCCESS);
-
-		try {
-			checkCollectionExists(collection);
-		} catch (CollectionNotFoundException e) {
-			return new CommandResult("collection " + collection + " is not exists", CommandResult.Status.SUCCESS);
-		}
 
 		DataSourceSetting ds = IRSettings.getDatasource(collection, true);
 

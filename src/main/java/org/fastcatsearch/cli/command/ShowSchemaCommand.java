@@ -12,6 +12,8 @@ import org.fastcatsearch.cli.Command;
 import org.fastcatsearch.cli.CommandException;
 import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
+import org.fastcatsearch.cli.command.exception.CollectionNotDefinedException;
+import org.fastcatsearch.cli.command.exception.CollectionNotFoundException;
 import org.fastcatsearch.ir.config.FieldSetting;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
@@ -45,21 +47,18 @@ public class ShowSchemaCommand extends CollectionExtractCommand {
 
 		try {
 			collection = extractCollection(context);
+			checkCollectionExists(collection);
 		} catch (CollectionNotDefinedException e) {
 			return new CommandResult(
 					"collection is not define\r\nuse like this\r\nuse collection collectionName;\r\nshow schema;",
 					CommandResult.Status.SUCCESS);
+		} catch (CollectionNotFoundException e) {
+			return new CommandResult("collection " + collection + " is not exists", CommandResult.Status.SUCCESS);
 		}
 
 		if (cmd.length != CMD_SHOW_SCHEMA.length)
 			return new CommandResult("invalid command", CommandResult.Status.SUCCESS);
 
-		try {
-			checkCollectionExists(collection);
-		} catch (CollectionNotFoundException e) {
-			return new CommandResult("collection " + collection + " is not exists", CommandResult.Status.SUCCESS);
-		}
-		
 		if (getSchema(collection))
 			return new CommandResult(printData(data, header), CommandResult.Status.SUCCESS);
 		else

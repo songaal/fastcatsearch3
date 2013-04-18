@@ -52,7 +52,8 @@ public abstract class Command {
 	protected static final String[] CMD_DELETE_SCHEDULE_INDEX = new String[]{"schedule", "delete"};
 		
 	protected static final String[] CMD_SEARCH = new String[] { "search" };
-	
+	protected static final String[] CMD_HELP = new String[] { "help" };
+		
 	abstract public boolean isCommand(String[] cmd);
 	abstract public CommandResult doCommand(String[] cmd, ConsoleSessionContext context) throws IOException, CommandException;
 	

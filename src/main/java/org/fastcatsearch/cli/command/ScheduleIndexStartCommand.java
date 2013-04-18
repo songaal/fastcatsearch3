@@ -6,6 +6,8 @@ import org.fastcatsearch.cli.Command;
 import org.fastcatsearch.cli.CommandException;
 import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
+import org.fastcatsearch.cli.command.exception.CollectionNotDefinedException;
+import org.fastcatsearch.cli.command.exception.CollectionNotFoundException;
 import org.fastcatsearch.db.DBHandler;
 import org.fastcatsearch.db.object.IndexingSchedule;
 import org.slf4j.Logger;
@@ -22,11 +24,9 @@ public class ScheduleIndexStartCommand extends CollectionExtractCommand {
 	@Override
 	public boolean isCommand(String[] cmd) {
 		logger.debug("input Command : {}", new Object[] { cmd });
-		if ( cmd.length == 3 )
-		{
-			if ( cmd[0].equals("schedule") && cmd[1].equals("start") )
-			{
-				if ( cmd[2].equals("F") || cmd[2].equals("I") ) 
+		if (cmd.length == 3) {
+			if (cmd[0].equals("schedule") && cmd[1].equals("start")) {
+				if (cmd[2].equals("F") || cmd[2].equals("I"))
 					return true;
 			}
 		}
@@ -43,13 +43,10 @@ public class ScheduleIndexStartCommand extends CollectionExtractCommand {
 
 		try {
 			collection = extractCollection(context);
+			checkCollectionExists(collection);
 		} catch (CollectionNotDefinedException e) {
 			return new CommandResult("collection is not define\r\nuse like this\r\nuse collection collectionName;",
 					CommandResult.Status.SUCCESS);
-		}
-
-		try {
-			checkCollectionExists(collection);
 		} catch (CollectionNotFoundException e) {
 			return new CommandResult("collection " + collection + " is not exists", CommandResult.Status.SUCCESS);
 		}

@@ -4,6 +4,8 @@ import java.util.TreeSet;
 
 import org.fastcatsearch.cli.Command;
 import org.fastcatsearch.cli.ConsoleSessionContext;
+import org.fastcatsearch.cli.command.exception.CollectionNotDefinedException;
+import org.fastcatsearch.cli.command.exception.CollectionNotFoundException;
 import org.fastcatsearch.ir.config.IRSettings;
 
 public abstract class CollectionExtractCommand extends Command {

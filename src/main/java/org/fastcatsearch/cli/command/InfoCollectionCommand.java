@@ -10,6 +10,8 @@ import org.fastcatsearch.cli.Command;
 import org.fastcatsearch.cli.CommandException;
 import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
+import org.fastcatsearch.cli.command.exception.CollectionNotDefinedException;
+import org.fastcatsearch.cli.command.exception.CollectionNotFoundException;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.search.CollectionHandler;
@@ -41,8 +43,12 @@ public class InfoCollectionCommand extends CollectionExtractCommand {
 			else if (cmd.length == 1) {
 				try {
 					inputCollection = extractCollection(context);
+					checkCollectionExists(inputCollection);
 				} catch (CollectionNotDefinedException e) {
 					return new CommandResult("Collection Not defined", CommandResult.Status.SUCCESS);
+				} catch (CollectionNotFoundException e) {
+					return new CommandResult("collection " + inputCollection + " is not exists",
+							CommandResult.Status.SUCCESS);
 				}
 			}
 
@@ -50,12 +56,6 @@ public class InfoCollectionCommand extends CollectionExtractCommand {
 
 			if (ts.size() == 0) {
 				return new CommandResult("there is no Collection", CommandResult.Status.SUCCESS);
-			}
-
-			try {
-				checkCollectionExists(inputCollection);
-			} catch (CollectionNotFoundException e) {
-				return new CommandResult("collection " + inputCollection + " is not exists", CommandResult.Status.SUCCESS);
 			}
 
 			// 입력된 컬렉션이 현재 컬렉션 리스트에 있을 때
