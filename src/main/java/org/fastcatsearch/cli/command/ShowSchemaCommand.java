@@ -40,28 +40,31 @@ public class ShowSchemaCommand extends CollectionExtractCommand {
 	@Override
 	public CommandResult doCommand(String[] cmd, ConsoleSessionContext context) throws IOException, CommandException {
 
-		String collection = extractCollection(context);
+		// collection이 정의되지 않았다면 넘긴다 바로.
+		String collection = "";
 
-		if (cmd.length == 2) {
-			if (collection == null || collection.trim().length() == 0)
-				return new CommandResult(
-						"collection is not defines\r\nuse like this\r\nuse collection collectionName;\r\nshow schema;",
-						CommandResult.Status.SUCCESS);
-		} else
+		try {
+			collection = extractCollection(context);
+		} catch (CollectionNotDefinedException e) {
+			return new CommandResult(
+					"collection is not define\r\nuse like this\r\nuse collection collectionName;\r\nshow schema;",
+					CommandResult.Status.SUCCESS);
+		}
+
+		if (cmd.length != CMD_SHOW_SCHEMA.length)
 			return new CommandResult("invalid command", CommandResult.Status.SUCCESS);
 
-		boolean isExists = isCollectionExists(collection);
-
-		if (isExists) {// 컬렉션이 리스트에 있을 경우.
-			if (getSchema(collection))
-				return new CommandResult(printData(data, header), CommandResult.Status.SUCCESS);
-			else
-				// 컬렉션 정보를 가져올때 실패 했을 경우
-				return new CommandResult("error loading collection [" + collection + "] schema data",
-						CommandResult.Status.SUCCESS);
-		} else
-			// 컬렉션이 리스트에 없을 경우.
-			return new CommandResult("there is no collection [" + collection + "] in collectionList",
+		try {
+			checkCollectionExists(collection);
+		} catch (CollectionNotFoundException e) {
+			return new CommandResult("collection " + collection + " is not exists", CommandResult.Status.SUCCESS);
+		}
+		
+		if (getSchema(collection))
+			return new CommandResult(printData(data, header), CommandResult.Status.SUCCESS);
+		else
+			// 컬렉션 정보를 가져올때 실패 했을 경우
+			return new CommandResult("error loading collection [" + collection + "] schema data",
 					CommandResult.Status.SUCCESS);
 
 	}

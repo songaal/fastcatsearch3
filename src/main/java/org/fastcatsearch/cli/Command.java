@@ -46,8 +46,11 @@ public abstract class Command {
 	protected static final String[] CMD_START_INDEX = new String[]{"start", "index" };
 	protected static final String[] CMD_STATUS_INDEX = new String[]{"status", "index" };
 	
-	protected static final String[] CMD_SET_SCHEDULE_INDEX = new String[]{"set", "schedule"};
-	
+	protected static final String[] CMD_SET_SCHEDULE_INDEX = new String[]{"schedule", "set"};
+	protected static final String[] CMD_START_SCHEDULE_INDEX = new String[]{"schedule", "start"};
+	protected static final String[] CMD_STOP_SCHEDULE_INDEX = new String[]{"schedule", "stop"};
+	protected static final String[] CMD_DELETE_SCHEDULE_INDEX = new String[]{"schedule", "delete"};
+		
 	protected static final String[] CMD_SEARCH = new String[] { "search" };
 	
 	abstract public boolean isCommand(String[] cmd);

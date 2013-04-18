@@ -38,8 +38,13 @@ public class InfoCollectionCommand extends CollectionExtractCommand {
 
 			if (cmd.length == 2)
 				inputCollection = cmd[1].trim();
-			else if (cmd.length == 1)
-				inputCollection = ((String) context.getAttribute(SESSION_KEY_USING_COLLECTION)).trim();
+			else if (cmd.length == 1) {
+				try {
+					inputCollection = extractCollection(context);
+				} catch (CollectionNotDefinedException e) {
+					return new CommandResult("Collection Not defined", CommandResult.Status.SUCCESS);
+				}
+			}
 
 			TreeSet ts = getCollectionList();
 
@@ -47,31 +52,18 @@ public class InfoCollectionCommand extends CollectionExtractCommand {
 				return new CommandResult("there is no Collection", CommandResult.Status.SUCCESS);
 			}
 
-			// 전체 조회가 없다.
-			// if (inputCollection.trim().equalsIgnoreCase("_ALL_")) {// 전체 조회
-			// for (String collection : ts) {
-			// if (getCollectionData(collection) == false) {
-			// return new CommandResult("error happen while loading collection["
-			// + collection + "]",
-			// CommandResult.Status.SUCCESS);
-			// }
-			// }
-			// return new CommandResult(printData(data, header),
-			// CommandResult.Status.SUCCESS);
-			//
-			// } else
-			boolean bExists = isCollectionExists(inputCollection);
-			if (bExists == false) {
-				// 컬렉션은 입력 됐는데 현재 컬렉션 리스트에 없을 때.
-				return new CommandResult("collection " + inputCollection + " is not exists",
-						CommandResult.Status.SUCCESS);
-			} else {
-				// 입력된 컬렉션이 현재 컬렉션 리스트에 있을 때
-				if (getCollectionData(inputCollection))
-					return new CommandResult(printData(data, header), CommandResult.Status.SUCCESS);
-				else
-					return new CommandResult("invalid Command", CommandResult.Status.SUCCESS);
+			try {
+				checkCollectionExists(inputCollection);
+			} catch (CollectionNotFoundException e) {
+				return new CommandResult("collection " + inputCollection + " is not exists", CommandResult.Status.SUCCESS);
 			}
+
+			// 입력된 컬렉션이 현재 컬렉션 리스트에 있을 때
+			if (getCollectionData(inputCollection))
+				return new CommandResult(printData(data, header), CommandResult.Status.SUCCESS);
+			else
+				return new CommandResult("invalid Command", CommandResult.Status.SUCCESS);
+
 		}
 	}
 

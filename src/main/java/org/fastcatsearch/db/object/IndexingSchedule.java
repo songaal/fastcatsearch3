@@ -45,8 +45,38 @@ public class IndexingSchedule extends DAOBase {
 		pstmt = conn.prepareStatement(deleteSQL);
 		int parameterIndex = 1;
 		pstmt.setString(parameterIndex++, collection);
-		result = 1;
-		pstmt.executeUpdate();
+		result = pstmt.executeUpdate();
+		}
+		catch ( Exception e)
+		{
+			e.printStackTrace();
+		}
+		finally
+		{
+			try
+			{
+			pstmt.close();
+			}
+			catch ( Exception e)
+			{
+				logger.error(e.getMessage(), e);
+			}			
+		}
+		return result;
+	}
+	
+	public int deleteByType(String collection, String type)
+	{
+		int result = 0;
+		PreparedStatement pstmt = null;
+		try
+		{
+		String deleteSQL = "delete from "  + tableName + " where collection = ? and type = ? ";
+		pstmt = conn.prepareStatement(deleteSQL);
+		int parameterIndex = 1;
+		pstmt.setString(parameterIndex++, collection);
+		pstmt.setString(parameterIndex++, type);
+		result = pstmt.executeUpdate();
 		}
 		catch ( Exception e)
 		{

@@ -1,11 +1,8 @@
 package org.fastcatsearch.cli.command;
 
-import java.io.IOException;
 import java.util.TreeSet;
 
 import org.fastcatsearch.cli.Command;
-import org.fastcatsearch.cli.CommandException;
-import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.ir.config.IRSettings;
 
@@ -41,16 +38,21 @@ public abstract class CollectionExtractCommand extends Command {
 		}
 	}
 
-	protected boolean isCollectionExists(String collection) {
+	protected void checkCollectionExists(String collection) throws CollectionNotFoundException {
 		//그때 그때 컬렉션 정보를 가져온다. 
 		extractCollectionList();
 		//가져온 컬렉션 리스트에서 있는지 확인한다.
-		return collectionSet.contains(collection.toLowerCase());
+		if ( collectionSet.contains(collection.toLowerCase()) == false )
+				throw new CollectionNotFoundException();
 	}
 	
-	protected String extractCollection (ConsoleSessionContext context)
+	protected String extractCollection (ConsoleSessionContext context) throws CollectionNotDefinedException
 	{
-		return ((String) context.getAttribute(SESSION_KEY_USING_COLLECTION));
+		String collection = (String)context.getAttribute(SESSION_KEY_USING_COLLECTION);
+		if ( collection == null || collection.trim().length() == 0 )
+			throw new CollectionNotDefinedException();
+		return collection;
 	}
+
 }
 

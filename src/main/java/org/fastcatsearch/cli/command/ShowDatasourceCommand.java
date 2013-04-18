@@ -18,8 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ShowDatasourceCommand extends CollectionExtractCommand {
-	
-	private static Logger logger = LoggerFactory.getLogger(CollectionExtractCommand.class);
+
+	private static Logger logger = LoggerFactory.getLogger(ShowDatasourceCommand.class);
 
 	private String header[] = new String[] { "property name", "property value" };
 	private String webHeader[] = new String[] { "row", "link", "title", "cate", "encoding" };
@@ -33,16 +33,24 @@ public class ShowDatasourceCommand extends CollectionExtractCommand {
 
 	@Override
 	public CommandResult doCommand(String[] cmd, ConsoleSessionContext context) throws IOException, CommandException {
-		String collection = extractCollection(context);
-		if (cmd.length == 2) {
-			if (collection == null || collection.trim().length() == 0)
-				return new CommandResult(
-						"collection is not defines\r\nuse like this\r\nuse collection collectionName;\r\nshow schema;",
-						CommandResult.Status.SUCCESS);
-		} else
+		String collection;
+
+		try {
+			collection = extractCollection(context);
+		} catch (CollectionNotDefinedException e) {
+			return new CommandResult(
+					"collection is not define\r\nuse like this\r\nuse collection collectionName;\r\nshow schema;",
+					CommandResult.Status.SUCCESS);
+		}
+
+		if (cmd.length != 2)
 			return new CommandResult("invalid command", CommandResult.Status.SUCCESS);
 
-		boolean isExists = isCollectionExists(collection);
+		try {
+			checkCollectionExists(collection);
+		} catch (CollectionNotFoundException e) {
+			return new CommandResult("collection " + collection + " is not exists", CommandResult.Status.SUCCESS);
+		}
 
 		DataSourceSetting ds = IRSettings.getDatasource(collection, true);
 
@@ -50,22 +58,16 @@ public class ShowDatasourceCommand extends CollectionExtractCommand {
 			return new CommandResult("error invalid DataSource [" + collection + "] schema data",
 					CommandResult.Status.SUCCESS);
 
-		if (isExists) {// 컬렉션이 리스트에 있을 경우.
-			
-			logger.debug("Source Type {}", ds.sourceType);
-			
-			if (getDatasource(ds, collection)) {
-				if (ds.sourceType.equals("WEB") == false)
-					return new CommandResult(printData(data, header), CommandResult.Status.SUCCESS);
-				else
-					return new CommandResult(printData(data, webHeader), CommandResult.Status.SUCCESS);
-			} else
-				// 컬렉션 정보를 가져올때 실패 했을 경우
-				return new CommandResult("error loading collection [" + collection + "] schema data",
-						CommandResult.Status.SUCCESS);
+		logger.debug("Source Type {}", ds.sourceType);
+
+		if (getDatasource(ds, collection)) {
+			if (ds.sourceType.equals("WEB") == false)
+				return new CommandResult(printData(data, header), CommandResult.Status.SUCCESS);
+			else
+				return new CommandResult(printData(data, webHeader), CommandResult.Status.SUCCESS);
 		} else
-			// 컬렉션이 리스트에 없을 경우.
-			return new CommandResult("there is no collection [" + collection + "] in collectionList",
+			// 컬렉션 정보를 가져올때 실패 했을 경우
+			return new CommandResult("error loading collection [" + collection + "] schema data",
 					CommandResult.Status.SUCCESS);
 
 	}
