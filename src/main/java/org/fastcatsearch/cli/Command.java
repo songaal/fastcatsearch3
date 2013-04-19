@@ -33,7 +33,7 @@ public abstract class Command {
 	protected static final String[] CMD_USE_COLLECTION = new String[]{"use", "collection" };//세션에 컬렉션 사용을 명령함.
 	
 	protected static final String[] CMD_INFO_SYSTEM = new String[]{"sysinfo"}; //시스템 정보.
-	protected static final String[] CMD_SHOW_DICTIONARY = new String[]{"show", "dictionary"};
+//	protected static final String[] CMD_SHOW_DICTIONARY = new String[]{"show", "dictionary"};
 	protected static final String[] CMD_SHOW_SETTING = new String[]{"show", "setting"}; //fastcat.conf 셋팅.
 	
 	protected static final String[] CMD_LIST_COLLECTION = new String[]{"list", "collection"};
