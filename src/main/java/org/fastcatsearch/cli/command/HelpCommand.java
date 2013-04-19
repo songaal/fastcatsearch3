@@ -21,6 +21,7 @@ public class HelpCommand extends Command {
 	
 	@Override
 	public boolean isCommand(String[] cmd) {
+		logger.debug("cmd : {}", new Object[]{cmd});
 		return isCommand(CMD_HELP, cmd);
 	}
 
