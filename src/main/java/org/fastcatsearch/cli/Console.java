@@ -146,7 +146,6 @@ public class Console {
 			} else {
 				cmdBuf.setLength(0);
 			}
-			System.out.println(cmd + "|" + completed);
 			//
 			// Execute Command (Completed Command Phrase)
 			//
