@@ -27,6 +27,6 @@ set FASTCAT_CLASSPATH=.
 
 for /f "tokens=*" %%x in ('dir /s /b %LIB%\*.jar') do (set FASTCAT_CLASSPATH=!FASTCAT_CLASSPATH!;%%x)
 
-java -Xmx512m -classpath %FASTCAT_CLASSPATH% org.fastcatsearch.cli.Console
+java -Xmx512m -classpath %FASTCAT_CLASSPATH% org.fastcatsearch.cli.Console %1 %2
 
 endlocal
