@@ -461,37 +461,31 @@ public class SearchServlet extends HttpServlet {
 			
 			String[] fieldNames = result.getFieldNameList();
 			
+			writer.write("\t<fieldname_list>");
+			writer.newLine();
 			if(result.getCount() == 0){
-				writer.write("\t<fieldname_list>");
-				writer.newLine();
 				writer.write("\t\t<name>_no_</name>");
 				writer.newLine();
-				writer.write("\t</fieldname_list>");
-				writer.newLine();
 			}else{
-				writer.write("\t<fieldname_list>");
-				writer.newLine();
 	    		writer.write("\t\t<name>_no_</name>");
 	    		writer.newLine();
-				writer.write("\t</fieldname_list>");
-				writer.newLine();
 	    		for (int i = 0; i < fieldNames.length; i++) {
-	    			writer.write("\t<fieldname_list>");
-					writer.newLine();
 	    			writer.write("\t\t<name>");
 	    			writer.write(fieldNames[i]);
 	    			writer.write("</name>");
-	    			writer.newLine();
-	    			writer.write("\t</fieldname_list>");
 					writer.newLine();
 				}
 			}
+			writer.write("\t</fieldname_list>");
+			writer.newLine();
 	    	
 			
 			//data
 			Row[] rows = result.getData();
 			int start = result.getMetadata().start();
 			
+			writer.write("\t<results>");
+			writer.newLine();
 			if(rows.length == 0){
 				writer.write("\t<result>");
 				writer.newLine();
@@ -581,6 +575,8 @@ public class SearchServlet extends HttpServlet {
 	    			
 	    		}//for
 			}//if else
+			writer.write("\t</result>");
+			writer.newLine();
 			writer.write("</fastcat>");
 		}
 		
