@@ -51,8 +51,8 @@ public class SearchServlet extends JobHttpServlet {
 	
 	public static final int IS_ALIVE = 3;
 	
-    public SearchServlet(int resultType, JobExecutor jobExecutor){
-    	super(resultType, jobExecutor);
+    public SearchServlet(int resultType){
+    	super(resultType);
     }
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     	@SuppressWarnings("rawtypes")

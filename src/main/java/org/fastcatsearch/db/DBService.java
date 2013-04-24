@@ -24,10 +24,13 @@ import org.fastcatsearch.db.object.IndexingHistory;
 import org.fastcatsearch.db.object.IndexingResult;
 import org.fastcatsearch.db.object.IndexingSchedule;
 import org.fastcatsearch.db.object.JobHistory;
+import org.fastcatsearch.db.object.RecommendKeyword;
 import org.fastcatsearch.db.object.SearchEvent;
 import org.fastcatsearch.db.object.SearchMonInfoHDWMY;
 import org.fastcatsearch.db.object.SearchMonInfoMinute;
 import org.fastcatsearch.db.object.SynonymDictionary;
+import org.fastcatsearch.db.object.SystemMonInfoHDWMY;
+import org.fastcatsearch.db.object.SystemMonInfoMinute;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
@@ -56,7 +59,11 @@ public class DBService extends AbstractService {
 	public BasicDictionary BasicDictionary;
 	public KeywordHit KeywordHit;
 	public KeywordFail KeywordFail;
+	public RecommendKeyword RecommendKeyword;
 	
+	//모니터링.
+	public SystemMonInfoMinute SystemMonInfoMinute;
+	public SystemMonInfoHDWMY SystemMonInfoHDWMY;
 	public SearchMonInfoMinute SearchMonInfoMinute;
 	public SearchMonInfoHDWMY SearchMonInfoHDWMY;
 	
@@ -136,6 +143,18 @@ public class DBService extends AbstractService {
 				throw new ServiceException(e);
 			}
 			
+			try {
+				initMONDB(conn);
+			} catch (SQLException e1) {
+				throw new ServiceException(e1);
+			}
+			
+			try {
+				testAndInitMONDB();
+			} catch (SQLException e) {
+				throw new ServiceException(e);
+			}
+			
 			logger.info("DBHandler started! " + conn);
 			return true;
 			
@@ -207,6 +226,26 @@ public class DBService extends AbstractService {
 		IndexingResult.repairStatus();
 	}
 	
+	private void initMONDB(Connection conn) throws SQLException {
+		RecommendKeyword = new RecommendKeyword();
+		SystemMonInfoMinute = new SystemMonInfoMinute();
+		SystemMonInfoHDWMY = new SystemMonInfoHDWMY();
+		
+		RecommendKeyword.setConnection(conn);
+		SystemMonInfoMinute.setConnection(conn);
+		SystemMonInfoHDWMY.setConnection(conn);
+		
+	}
+	
+	private void testAndInitMONDB() throws SQLException {
+		RecommendKeyword.testAndCreate();
+		SystemMonInfoMinute.testAndCreate();
+		SystemMonInfoHDWMY.testAndCreate();
+		
+		SystemMonInfoMinute.prepareID();
+		SystemMonInfoHDWMY.prepareID();
+		
+	}
 	
 	private Connection createDB(String jdbcurl, String jdbcuser, String jdbcpass) {
 		try {
@@ -246,6 +285,20 @@ public class DBService extends AbstractService {
 		return rs;
 	}
 	
+	//mon db
+	public int updateOrInsertSQLMONDB(String sql) throws SQLException{
+		Statement stmt = conn.createStatement();
+		int n = stmt.executeUpdate(sql);
+		stmt.close();
+		return n;
+	}
+	
+	public ResultSet selectSQLMONDB(String sql) throws SQLException{
+		Statement stmt = conn.createStatement();
+		ResultSet rs = stmt.executeQuery(sql);
+		stmt.close();
+		return rs;
+	}
 	//for batch insert
 	public Connection getConn() {
 		return conn;

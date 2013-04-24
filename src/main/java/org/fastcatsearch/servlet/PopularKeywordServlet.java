@@ -35,8 +35,8 @@ import org.json.JSONStringer;
 
 public class PopularKeywordServlet extends JobHttpServlet {
 	
-	public PopularKeywordServlet(int resultType, JobExecutor jobExecutor){
-    	super(resultType, jobExecutor);
+	public PopularKeywordServlet(int resultType){
+    	super(resultType);
 	}
 	
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

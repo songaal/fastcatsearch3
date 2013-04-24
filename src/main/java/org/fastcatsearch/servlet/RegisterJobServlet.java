@@ -32,8 +32,8 @@ import org.slf4j.LoggerFactory;
 public class RegisterJobServlet extends JobHttpServlet {
 	private static Logger logger = LoggerFactory.getLogger(RegisterJobServlet.class);
 	
-    public RegisterJobServlet(int resultType, JobExecutor jobExecutor){
-    	super(resultType, jobExecutor);
+    public RegisterJobServlet(int resultType){
+    	super(resultType);
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -79,7 +79,7 @@ public class RegisterJobServlet extends JobHttpServlet {
     	
     	
     	long st = System.currentTimeMillis();
-		jobResult = getJobExecutor().offer(job);
+		jobResult = JobService.getInstance().offer(job);
 		
 		
 		writer.println("{");

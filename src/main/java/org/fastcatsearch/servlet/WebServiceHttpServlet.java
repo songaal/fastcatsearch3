@@ -12,7 +12,7 @@ public class WebServiceHttpServlet extends HttpServlet {
 	public static final int XML_TYPE = 1;
 	public static final int JSONP_TYPE = 2;
 	
-	protected static Logger logger = LoggerFactory.getLogger(DocumentListServlet.class);
+	protected static Logger logger = LoggerFactory.getLogger(WebServiceHttpServlet.class);
 	
 	protected int resultType = JSON_TYPE;
 	
@@ -22,6 +22,7 @@ public class WebServiceHttpServlet extends HttpServlet {
     	this.resultType = resultType;
     }
 	
+	@Override
 	public void init(){
 		String type = getServletConfig().getInitParameter("result_format");
 		if(type != null){

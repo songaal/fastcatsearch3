@@ -51,8 +51,8 @@ public class GroupSearchServlet extends JobHttpServlet {
 	private static Logger searchLogger = LoggerFactory.getLogger("SEARCH_LOG");
 	private static AtomicLong taskSeq = new AtomicLong();
 	
-    public GroupSearchServlet(int resultType, JobExecutor jobExecutor){
-    	super(resultType, jobExecutor);
+    public GroupSearchServlet(int resultType){
+    	super(resultType);
     }
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     	@SuppressWarnings("rawtypes")

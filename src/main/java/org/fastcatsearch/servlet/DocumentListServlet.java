@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.control.JobExecutor;
+import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.ir.config.FieldSetting;
 import org.fastcatsearch.ir.config.IRSettings;
@@ -40,8 +41,8 @@ import org.fastcatsearch.servlet.JobHttpServlet;
 
 public class DocumentListServlet extends JobHttpServlet {
 	
-    public DocumentListServlet(int resultType, JobExecutor jobExecutor){
-    	super(resultType, jobExecutor);
+    public DocumentListServlet(int resultType){
+    	super(resultType);
     }
     
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -114,7 +115,7 @@ public class DocumentListServlet extends JobHttpServlet {
     	
     	Result result = null;
     	
-		ResultFuture jobResult = getJobExecutor().offer(job);
+		ResultFuture jobResult = JobService.getInstance().offer(job);
 		Object obj = jobResult.poll(timeout);
 		searchTime = (System.currentTimeMillis() - st);
 		if(jobResult.isSuccess()){

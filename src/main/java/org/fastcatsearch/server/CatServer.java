@@ -12,6 +12,7 @@
 package org.fastcatsearch.server;
 
 import java.io.File;
+import java.util.concurrent.CountDownLatch;
 
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.JobService;
@@ -20,6 +21,7 @@ import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.log.EventDBLogger;
+import org.fastcatsearch.management.ManagementInfoService;
 import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.KeywordService;
 import org.fastcatsearch.service.ServiceException;
@@ -31,60 +33,111 @@ import org.slf4j.LoggerFactory;
 
 
 public class CatServer {
-	
-private ServiceManager serviceManager;
-	
+
+	private ServiceManager serviceManager;
+
 	public static long startTime;
 	public static CatServer instance;
 	private static Logger logger;
 	private boolean isRunning;
-	
-	public static void main(String... args) throws ServiceException{
-		CatServer server = new CatServer();
-		server.init(args);
-		server.start();
+
+	private Thread shutdownHook;
+	protected boolean keepAlive;
+
+	private String serverHome;
+	private static volatile Thread keepAliveThread;
+	private static volatile CountDownLatch keepAliveLatch;
+
+	public static void main(String... args) throws ServiceException {
+		CatServer server = new CatServer(args[0]);
+		if (server.load(args)) {
+			server.start();
+		}
 	}
-	
-	public boolean isRunning(){
+
+	public void setKeepAlive(boolean b) {
+		keepAlive = b;
+	}
+
+	public boolean isKeepAlive() {
+		return keepAlive;
+	}
+
+	public boolean isRunning() {
 		return isRunning;
 	}
-	
-	public static CatServer getInstance(){
+
+	public static CatServer getInstance() {
 		return instance;
 	}
-	
-	public CatServer(){ }
-		
-	public void init(String[] args) throws ServiceException{
-		//검색엔진으로 전달되는 args를 받아서 셋팅해준다.
-		//대부분 -D옵션을 통해 전달받으므로 아직까지는 셋팅할 내용은 없다.
+
+	public CatServer() {
 	}
-	
-	public boolean start() throws ServiceException{
-		//초기화 및 서비스시작을 start로 옮김.
-		//초기화로직이 init에 존재할 경우, 관리도구에서 검색엔진을 재시작할때, init을 호출하지 않으므로, 초기화를 건너뛰게 됨.
-		
+
+	public CatServer(String serverHome) {
+		this.serverHome = serverHome;
+	}
+
+	public boolean load(String[] args) {
+
+		boolean isConfig = false;
+
+		if (args.length < 1) {
+			usage();
+			return false;
+		}
+
+		for (int i = 0; i < args.length; i++) {
+			if (isConfig) {
+				isConfig = false;
+			} else if (args[i].equals("-config")) {
+				isConfig = true;
+			} else if (args[i].equals("-help")) {
+				usage();
+				return false;
+			}
+		}
+
+		setKeepAlive(true);
+		return true;
+
+	}
+
+	protected void usage() {
+
+        System.out.println
+            ("usage: java "+ getClass().getName()
+             + " [ -help ]"
+             + " {HomePath}");
+
+    }
+
+	public void start() throws ServiceException {
+		// 초기화 및 서비스시작을 start로 옮김.
+		// 초기화로직이 init에 존재할 경우, 관리도구에서 검색엔진을 재시작할때, init을 호출하지 않으므로, 초기화를 건너뛰게
+		// 됨.
+
 		instance = this;
-		String ServerHome = System.getProperty("server.home");
-		if(ServerHome == null){
-			System.err.println("Warning! Please set env variable \"server.home\".");
-			System.out.println("Usage : java com.fastcatsearch.server.CatServer -Dserver.home=[home path]");
-			System.exit(1);
-		}		
-		
-		File f = new File(ServerHome);
-		if(!f.exists()){
-			System.err.println("Warning! Path \""+ServerHome+"\" is not exist!");
-			System.out.println("Usage : java com.fastcatsearch.server.CatServer -Dserver.home=[home path]");
+
+		if (serverHome == null) {
+			System.err.println("Warning! No argument for \"server.home\".");
+			usage();
 			System.exit(1);
 		}
-		
-		IRSettings.setHome(ServerHome);
-		Environment environment = new Environment(ServerHome).init();
-//		Settings settings = environment.settingManager().getSettings();
+
+		File f = new File(serverHome);
+		if (!f.exists()) {
+			System.err.println("Warning! Path \"" + serverHome + "\" is not exist!");
+			usage();
+			System.exit(1);
+		}
+
+		IRSettings.setHome(serverHome);
+		Environment environment = new Environment(serverHome).init();
+		// Settings settings = environment.settingManager().getSettings();
 		this.serviceManager = new ServiceManager(environment);
 		serviceManager.asSingleton();
-		
+
 		DBService dbService = serviceManager.createService("db", DBService.class);
 		dbService.asSingleton();
 		KeywordService keywordService = serviceManager.createService("keyword", KeywordService.class);
@@ -95,77 +148,116 @@ private ServiceManager serviceManager;
 		irService.asSingleton();
 		StatisticsInfoService statisticsInfoService = serviceManager.createService("statistics_info", StatisticsInfoService.class);
 		statisticsInfoService.asSingleton();
+		ManagementInfoService managementInfoService = serviceManager.createService("management_info", ManagementInfoService.class);
+		managementInfoService.asSingleton();
 		NodeService nodeService = serviceManager.createService("node", NodeService.class);
 		nodeService.asSingleton();
 		DataService dataService = serviceManager.createService("data", DataService.class);
 		dataService.asSingleton();
-		
+
 		WebService webService = serviceManager.createService("web", WebService.class);
-		if(webService == null){
+		if (webService == null) {
 			throw new ServiceException("웹서비스를 초기화하지 못했습니다.");
 		}
 		webService.asSingleton();
-		
+
 		logger = LoggerFactory.getLogger(CatServer.class);
-		
-		try{
+		logger.info("ServerHome = {}", serverHome);
+		try {
 			dbService.start();
 			jobService.start();
 			nodeService.start();
-			
-			if(webService != null)
+
+			if (webService != null)
 				webService.start();
-			
+
 			irService.start();
 			statisticsInfoService.start();
 			keywordService.start();
 			dataService.start();
-		}catch(ServiceException e){
+		} catch (ServiceException e) {
 			logger.error("CatServer 시작에 실패했습니다.", e);
 			stop();
-			return false;
 		}
+
+		if (shutdownHook == null) {
+			shutdownHook = new ServerShutdownHook();
+		}
+		Runtime.getRuntime().addShutdownHook(shutdownHook);
+
 		startTime = System.currentTimeMillis();
-		
-//		try {
-//			boolean isValidLicense = LicenseSettings.getInstance().load();
-//			if(isValidLicense){
-//				logger.info("유효한 라이선스입니다. 기한 = {}", LicenseSettings.getInstance().getLicenseInfo().getDisplayExpiredDate());
-//			}else{
-//				logger.warn("라이선스가 유효하지 않습니다.");
-//			}
-//		} catch (LicenseException e1) {
-//			logger.error("라이선스 에러.", e1);
-//		}
-		
-		
+
+		// try {
+		// boolean isValidLicense = LicenseSettings.getInstance().load();
+		// if(isValidLicense){
+		// logger.info("유효한 라이선스입니다. 기한 = {}",
+		// LicenseSettings.getInstance().getLicenseInfo().getDisplayExpiredDate());
+		// }else{
+		// logger.warn("라이선스가 유효하지 않습니다.");
+		// }
+		// } catch (LicenseException e1) {
+		// logger.error("라이선스 에러.", e1);
+		// }
+
 		logger.info("CatServer started!");
 		EventDBLogger.info(EventDBLogger.CATE_MANAGEMENT, "검색엔진이 시작했습니다.", "");
 		isRunning = true;
-		return true;
+
+		if (keepAlive) {
+			setKeepAlive();
+		}
 	}
-	
-	public boolean stop() throws ServiceException{
-		
-		//FIXME 뜨는 도중 에러 발생시 NullPointerException 발생가능성.
+
+	private void setKeepAlive() {
+		keepAliveLatch = new CountDownLatch(1);
+
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				keepAliveLatch.countDown();
+			}
+		});
+
+		keepAliveThread = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					keepAliveLatch.await();
+				} catch (InterruptedException e) {
+					// bail out
+				}
+			}
+		}, "CatServer[keepAlive]");
+		keepAliveThread.setDaemon(false);
+		keepAliveThread.start();
+
+	}
+
+	public void stop() throws ServiceException {
+
+		// FIXME 뜨는 도중 에러 발생시 NullPointerException 발생가능성.
 		serviceManager.getService(NodeService.class).stop();
 		serviceManager.getService(StatisticsInfoService.class).stop();
+		serviceManager.getService(ManagementInfoService.class).stop();
 		serviceManager.getService(KeywordService.class).stop();
 		serviceManager.getService(IRService.class).stop();
 		serviceManager.getService(WebService.class).stop();
 		serviceManager.getService(JobService.class).stop();
-		serviceManager.getService(DBService.class).stop();
 		serviceManager.getService(DataService.class).stop();
-		
+		serviceManager.getService(DBService.class).stop();
+
 		logger.info("CatServer shutdown!");
-		EventDBLogger.info(EventDBLogger.CATE_MANAGEMENT, "검색엔진이 정지했습니다.", "");
+		// EventDBLogger.info(EventDBLogger.CATE_MANAGEMENT, "검색엔진이 정지했습니다.",
+		// "");
 		isRunning = false;
-		return true;
+
+		// Runtime.getRuntime().removeShutdownHook(shutdownHook);
 	}
-	
-	public void close() throws ServiceException{
+
+	public void close() throws ServiceException {
 		serviceManager.getService(NodeService.class).close();
 		serviceManager.getService(StatisticsInfoService.class).close();
+		serviceManager.getService(ManagementInfoService.class).close();
 		serviceManager.getService(KeywordService.class).close();
 		serviceManager.getService(IRService.class).close();
 		serviceManager.getService(WebService.class).close();
@@ -173,5 +265,21 @@ private ServiceManager serviceManager;
 		serviceManager.getService(DBService.class).close();
 		serviceManager.getService(DataService.class).close();
 	}
-	
+
+	protected class ServerShutdownHook extends Thread {
+
+		@Override
+		public void run() {
+			try {
+				logger.info("Server Shutdown Requested!");
+				CatServer.this.stop();
+				// TODO shutdown 시 할일들을 적는다.
+			} catch (Throwable ex) {
+				logger.error("CatServer.shutdownHookFail", ex);
+			} finally {
+				logger.info("Server Shutdown Complete!");
+			}
+		}
+	}
+
 }

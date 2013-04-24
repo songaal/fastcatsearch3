@@ -29,8 +29,8 @@ public class ClusterGroupSearchServlet extends JobHttpServlet {
 	private static Logger searchLogger = LoggerFactory.getLogger("SEARCH_LOG");
 	private static AtomicLong taskSeq = new AtomicLong();
 	
-	public ClusterGroupSearchServlet(int resultType, JobExecutor jobExecutor) {
-		super(resultType, jobExecutor);
+	public ClusterGroupSearchServlet(int resultType) {
+		super(resultType);
 	}
 	
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

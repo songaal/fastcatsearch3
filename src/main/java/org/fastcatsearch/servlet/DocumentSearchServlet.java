@@ -52,8 +52,8 @@ public class DocumentSearchServlet extends JobHttpServlet {
 	
 	private int resultType = JSON_TYPE;
 	
-	public DocumentSearchServlet(int resultType, JobExecutor jobExecutor){
-    	super(resultType, jobExecutor);
+	public DocumentSearchServlet(int resultType){
+    	super(resultType);
 	}
 	
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

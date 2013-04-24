@@ -1,0 +1,17 @@
+<?xml version="1.0"  encoding="ISO-8859-1"?>
+<!DOCTYPE Configure PUBLIC "-//Mort Bay Consulting//DTD Configure//EN" "http://jetty.mortbay.org/configure.dtd">
+
+<Configure class="org.mortbay.jetty.webapp.WebAppContext">
+	<!-- Required -->
+	<Set name="contextPath">/admin</Set>
+	<Set name="war">/Users/swsong/git-stable/fastcatsearch-com/web/src/main/webapp</Set>
+
+	<!-- <Set name="defaultsDescriptor">
+		<SystemProperty name="jetty.home" default="." />
+		conf/web.xml
+	</Set> -->
+
+	<!-- <Set name="overrideDescriptor"> <SystemProperty name="jetty.home" default="." 
+		/> /contexts/override.d/override-people.xml </Set> -->
+
+</Configure>
