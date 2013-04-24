@@ -66,8 +66,9 @@
 	<logger name="EVENT_LOG" level="INFO" additivity="false">
 		<appender-ref ref="eventdblog" />
 	</logger>
-	<root level="INFO">
+	<root level="DEBUG">
 		<appender-ref ref="systemlog" />
+		<appender-ref ref="STDOUT" />
 	</root>
 
 </configuration>

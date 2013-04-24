@@ -13,7 +13,7 @@ import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.cli.command.exception.CollectionNotDefinedException;
 import org.fastcatsearch.cli.command.exception.CollectionNotFoundException;
-import org.fastcatsearch.db.DBHandler;
+import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.ir.config.DataSourceSetting;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.slf4j.Logger;
@@ -97,7 +97,7 @@ public class ShowDatasourceCommand extends CollectionExtractCommand {
 				addRecord(data, "backupFileEncoding", ds.backupFileEncoding);
 
 			} else if (ds.sourceType.equals("WEB")) {
-				Connection conn = DBHandler.getInstance().getConn();
+				Connection conn = DBService.getInstance().getConn();
 				String selectSQL = "select * from from (select ROW_NUMBER() as rownum , " + collection
 						+ "WEbPageSource) ";
 				Statement stmt = null;

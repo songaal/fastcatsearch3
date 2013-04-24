@@ -8,7 +8,7 @@ import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.cli.command.exception.CollectionNotDefinedException;
 import org.fastcatsearch.cli.command.exception.CollectionNotFoundException;
-import org.fastcatsearch.db.DBHandler;
+import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.object.IndexingSchedule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +57,7 @@ public class ScheduleIndexStartCommand extends CollectionExtractCommand {
 			return new CommandResult("invalid Command\r\nschedule set [F|I] d:h:m\n\rd:day, h:hour, m:minute",
 					CommandResult.Status.SUCCESS);
 
-		DBHandler dbHandler = DBHandler.getInstance();
+		DBService dbHandler = DBService.getInstance();
 		IndexingSchedule indexSchedule = dbHandler.IndexingSchedule;
 		int affectCount = indexSchedule.updateStatus(collection, indexType, true);
 		if (affectCount == 0)

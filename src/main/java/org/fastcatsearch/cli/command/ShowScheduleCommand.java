@@ -10,7 +10,7 @@ import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.cli.command.exception.CollectionNotDefinedException;
 import org.fastcatsearch.cli.command.exception.CollectionNotFoundException;
-import org.fastcatsearch.db.DBHandler;
+import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.object.IndexingSchedule;
 
 public class ShowScheduleCommand extends CollectionExtractCommand {
@@ -41,7 +41,7 @@ public class ShowScheduleCommand extends CollectionExtractCommand {
 		if (cmd.length != 2)
 			return new CommandResult("invald command", CommandResult.Status.SUCCESS);
 
-		DBHandler dbHandler = DBHandler.getInstance();
+		DBService dbHandler = DBService.getInstance();
 		IndexingSchedule fullIndexSchedule = dbHandler.IndexingSchedule.select(collection, "F");
 		IndexingSchedule incIndexSchedule = dbHandler.IndexingSchedule.select(collection, "I");
 

@@ -23,7 +23,7 @@ import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.fastcatsearch.db.DBHandler;
+import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.DataSourceSetting;
 import org.fastcatsearch.ir.config.IRSettings;
@@ -75,7 +75,7 @@ public class WebPageSourceReader extends SourceReader{
 		id = 0;
 		webPageGather = new WebPageGather();
 		
-		DBHandler dbHandler = DBHandler.getInstance();
+		DBService dbHandler = DBService.getInstance();
 		Connection conn = dbHandler.getConn();
 		String countSQL = "SELECT * FROM "+schema.collection+"WebPageSource";
 		try {

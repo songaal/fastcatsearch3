@@ -15,7 +15,7 @@ import java.io.File;
 import java.util.List;
 
 import org.fastcatsearch.control.JobException;
-import org.fastcatsearch.db.DBHandler;
+import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.object.MAPDictionaryDAO;
 import org.fastcatsearch.db.object.SynonymDictionary;
 import org.fastcatsearch.ir.common.IRException;
@@ -24,6 +24,7 @@ import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.dic.Dic;
 import org.fastcatsearch.ir.dic.HashMapDictionary;
 import org.fastcatsearch.ir.io.CharVector;
+import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.service.ServiceException;
 
 
@@ -32,18 +33,18 @@ public class HashMapDictionaryCompileApplyJob extends Job {
 	private static int BUCKET_SIZE = 16 * 1024;
 	
 	@Override
-	public Object run0() throws JobException, ServiceException {
+	public JobResult doRun() throws JobException, ServiceException {
 		String[] args = getStringArrayArgs();
 		if("synonymDic".equals(args[0])){
 			try {
 				compileSynonymDic();
-				return Dic.reload("synonym");
+				return new JobResult(Dic.reload("synonym"));
 			} catch (IRException e) {
 				throw new JobException(e.getMessage(), e);
 			}
 		}
 		
-		return -1;
+		return new JobResult(-1);
 	}
 	
 	
@@ -59,7 +60,7 @@ public class HashMapDictionaryCompileApplyJob extends Job {
 		
 		HashMapDictionary dic = new HashMapDictionary(BUCKET_SIZE);
 		
-		DBHandler dbHandler = DBHandler.getInstance();
+		DBService dbHandler = DBService.getInstance();
 		
 		int count = dbHandler.SynonymDictionary.selectCount();
 		

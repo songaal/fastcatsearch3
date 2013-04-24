@@ -19,11 +19,12 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.fastcatsearch.db.DBHandler;
+import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.object.IndexingSchedule;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.job.Job;
+import org.fastcatsearch.service.ServiceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +50,7 @@ public class JobScheduler {
 	private void load() throws SettingException{
 		timer = new Timer(true);
 		//Indexing Schedule
-		List<IndexingSchedule> schedules = DBHandler.getInstance().IndexingSchedule.selectAll();
+		List<IndexingSchedule> schedules = DBService.getInstance().IndexingSchedule.selectAll();
 		int schedulesSize = schedules.size(); 
 		for (int i = 0; i < schedulesSize; i++) {
 			IndexingSchedule schedule = schedules.get(i);
@@ -114,7 +115,7 @@ public class JobScheduler {
 	
 	public boolean reloadIndexingSchedule(String collection, String type, boolean isActive){
 		if(isActive){
-			IndexingSchedule schedules = DBHandler.getInstance().IndexingSchedule.select(collection, type);
+			IndexingSchedule schedules = DBService.getInstance().IndexingSchedule.select(collection, type);
 			setIndexSchedule(schedules.collection, schedules.type, schedules.startTime, schedules.period, schedules.isActive);
 		}else{
 			String key = getKey(collection, type);
@@ -149,10 +150,11 @@ public class JobScheduler {
 		
 		@SuppressWarnings("unused")
 		public void run(){
-			JobResult jobResult = null;
+			ResultFuture jobResult = null;
 			
 			try {
-				jobResult = JobController.getInstance().offer(job);
+				jobResult = ServiceManager.getInstance().getService(JobService.class).offer(job);
+//				jobResult = JobController.getInstance().offer(job);
 			} catch (NullPointerException e) {
 				logger.error(e.getMessage(),e);
 			}

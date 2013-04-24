@@ -47,7 +47,7 @@ public class RebuildIndexJob extends Job {
 	
 	
 	@Override
-	public Boolean run0() throws JobException, ServiceException {
+	public JobResult doRun() throws JobException, ServiceException {
 		String[] args = getStringArrayArgs();
 		String collection = args[0];
 		indexingLogger.info("["+collection+"] Rebuild Indexing Start!");
@@ -120,7 +120,7 @@ public class RebuildIndexJob extends Job {
 		
 		indexingLogger.info("["+collection+"] Rebuild Indexing Finished! time = "+Formatter.getFormatTime(System.currentTimeMillis() - st));
 		
-		return new Boolean(true);
+		return new JobResult(true);
 	}
 
 

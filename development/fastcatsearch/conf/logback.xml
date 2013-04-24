@@ -1,0 +1,73 @@
+<configuration scan="true" scanPeriod="10 seconds">
+
+	<property file="conf/fastcatsearch.conf" />
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>[%date %level] \(%file:%line\) %msg%n</pattern>
+		</encoder>
+	</appender>
+	
+	<appender name="eventdblog" class="org.fastcatsearch.log.EventDBAppender" />
+
+	<appender name="systemlog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${server.logs.dir}/system.log</file>
+
+		<encoder>
+			<pattern>[%date %level] \(%file:%line\) %msg%n</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>${server.logs.dir}/system.%d{yyyy-MM-dd}.log</FileNamePattern>
+			<MaxHistory>7</MaxHistory>
+		</rollingPolicy>
+	</appender>
+
+	<appender name="searchlog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${server.logs.dir}/search.log</file>
+
+		<encoder>
+			<pattern>[%date] %m%n</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>${server.logs.dir}/search.%d{yyyy-MM-dd}.log</FileNamePattern>
+			<MaxHistory>7</MaxHistory>
+		</rollingPolicy>
+	</appender>
+
+	<appender name="indexinglog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${server.logs.dir}/indexing.log</file>
+
+		<encoder>
+			<pattern>[%date] %m%n</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>${server.logs.dir}/indexing.%d{yyyy-MM-dd}.log</FileNamePattern>
+			<MaxHistory>7</MaxHistory>
+		</rollingPolicy>
+	</appender>
+	
+	<logger name="SEARCH_LOG" level="INFO" additivity="false">
+		<appender-ref ref="searchlog" />
+	</logger>
+
+	<logger name="INDEXING_LOG" level="INFO" additivity="false">
+		<appender-ref ref="systemlog" />
+		<appender-ref ref="indexinglog" />
+	</logger>
+
+	<logger name="org.mortbay" level="INFO" additivity="false">
+		<appender-ref ref="systemlog" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="org.apache.jasper" level="INFO" additivity="false">
+		<appender-ref ref="systemlog" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="EVENT_LOG" level="INFO" additivity="false">
+		<appender-ref ref="eventdblog" />
+	</logger>
+	<root level="INFO">
+		<appender-ref ref="systemlog" />
+	</root>
+
+</configuration>

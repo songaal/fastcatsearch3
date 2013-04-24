@@ -13,7 +13,7 @@ package org.fastcatsearch.log;
 
 import java.sql.Timestamp;
 
-import org.fastcatsearch.db.DBHandler;
+import org.fastcatsearch.db.DBService;
 
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.AppenderBase;
@@ -63,7 +63,7 @@ public class EventDBAppender extends AppenderBase<LoggingEvent> {
 			if (args[1] != null) {
 				message = (String)args[1];
 			}
-			DBHandler.getInstance().SearchEvent.insert(when, type, cateType, message, stacktrace, status);
+			DBService.getInstance().SearchEvent.insert(when, type, cateType, message, stacktrace, status);
 //			DBHandler.getInstance().commit();
 		}
 	}

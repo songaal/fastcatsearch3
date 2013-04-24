@@ -532,7 +532,7 @@ public class KeywordHit extends DAOBase{
 		List<KeywordHit> result = new ArrayList<KeywordHit>();
 		try{
 			String[] bstr = getBoundaryOfCharacter(keyword);
-logger.debug("bstr : {} {} {}",new String[] { bstr[0], bstr[1], bstr[2] } );
+//logger.debug("bstr : {} {} {}",new String[] { bstr[0], bstr[1], bstr[2] } );
 			String selectSQL = null;
 			PreparedStatement pstmt = null;
 			int parameterIndex = 1;

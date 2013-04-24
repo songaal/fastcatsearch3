@@ -23,55 +23,39 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.fastcatsearch.control.JobController;
-import org.fastcatsearch.control.JobResult;
-import org.fastcatsearch.ir.common.SettingException;
+import org.fastcatsearch.control.JobExecutor;
+import org.fastcatsearch.control.JobService;
+import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.ir.config.FieldSetting;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
+import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.field.ScoreField;
+import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
-import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.DocumentSearchJob;
+import org.fastcatsearch.servlet.JobHttpServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-public class DocumentSearchServlet extends HttpServlet {
+public class DocumentSearchServlet extends JobHttpServlet {
 	
-	private static final long serialVersionUID = 963640595944747847L;
-	private static Logger logger = LoggerFactory.getLogger(DocumentSearchServlet.class);
 	//tab(9), cr(10), LF(13) 제외
 	private static String CONTROL_CHAR_REGEXP = "["+(char)0+" "+(char)1+" "+(char)2+" "+(char)3+" "+(char)4+" "+(char)5+" "
 		+(char)6+" "+(char)7+" "+(char)8+" "+(char)11+" "+(char)12+" "+(char)14+" "+(char)15+" "+(char)16+" "+(char)17+" "
 		+(char)18+" "+(char)19+" "+(char)20+" "+(char)21+" "+(char)22+" "+(char)23+" "+(char)24+" "+(char)25+" "+(char)26+" "
 		+(char)27+" "+(char)28+" "+(char)29+" "+(char)30+" "+(char)31+"]";
-	public static final int JSON_TYPE = 0;
-	public static final int XML_TYPE = 1;
 	
-	private int RESULT_TYPE = JSON_TYPE;
+	private int resultType = JSON_TYPE;
 	
-	public void init(){
-		String type = getServletConfig().getInitParameter("result_format");
-		if(type != null){
-			if(type.equalsIgnoreCase("json")){
-				RESULT_TYPE = JSON_TYPE;
-			}else if(type.equalsIgnoreCase("xml")){
-				RESULT_TYPE = XML_TYPE;
-			}
-		}
+	public DocumentSearchServlet(int resultType, JobExecutor jobExecutor){
+    	super(resultType, jobExecutor);
 	}
 	
-	public DocumentSearchServlet() {
-		this(JSON_TYPE);
-	}
-	
-    public DocumentSearchServlet(int resultType){
-    	RESULT_TYPE = resultType;
-    }
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     	Enumeration enumeration = request.getParameterNames();
     	String timeoutStr = request.getParameter("timeout");
@@ -123,9 +107,9 @@ public class DocumentSearchServlet extends HttpServlet {
 		response.setCharacterEncoding(responseCharset);
     	response.setStatus(HttpServletResponse.SC_OK);
     	
-    	if(RESULT_TYPE == JSON_TYPE){
+    	if(resultType == JSON_TYPE){
     		response.setContentType("application/json; charset="+responseCharset);
-    	}else if(RESULT_TYPE == XML_TYPE){
+    	}else if(resultType == XML_TYPE){
     		response.setContentType("text/xml; charset="+responseCharset);
     	}
     	
@@ -140,7 +124,7 @@ public class DocumentSearchServlet extends HttpServlet {
     	
     	Result result = null;
     	
-		JobResult jobResult = JobController.getInstance().offer(job);
+		ResultFuture jobResult = JobService.getInstance().offer(job);
 		Object obj = jobResult.poll(timeout);
 		searchTime = (System.currentTimeMillis() - st);
 		if(jobResult.isSuccess()){
@@ -148,7 +132,7 @@ public class DocumentSearchServlet extends HttpServlet {
 		}else{
 			String errorMsg = (String)obj;
 			
-			if(RESULT_TYPE == JSON_TYPE){
+			if(resultType == JSON_TYPE){
 				if(errorMsg != null){
 					errorMsg = errorMsg.replaceAll(CONTROL_CHAR_REGEXP, " ").replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\\\"").replaceAll("\t", "\\\\t").replaceAll("\r\n", "\\\\n").replaceAll("\n", "\\\\n").replaceAll("\r", "\\\\n");
 				}
@@ -161,7 +145,7 @@ public class DocumentSearchServlet extends HttpServlet {
 	    		writer.write("\t\"error_msg\": \""+errorMsg+"\"");
 	    		writer.newLine();
 	    		writer.write("}");
-			}else if(RESULT_TYPE == XML_TYPE){
+			}else if(resultType == XML_TYPE){
 				if(errorMsg != null){
 					errorMsg = errorMsg.replaceAll(CONTROL_CHAR_REGEXP, " ").replaceAll("&", "&amp;").replaceAll("\'", "&apos;").replaceAll("\"", "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 				}
@@ -184,17 +168,18 @@ public class DocumentSearchServlet extends HttpServlet {
 		String logStr = searchTime+", "+result.getCount()+", "+result.getTotalCount()+", "+result.getFieldCount();
 		if(result.getGroupResult() != null){
 			String grStr = ", [";
-			GroupResults gr = result.getGroupResult();
-			for (int i = 0; i < gr.groupSize(); i++) {
+			GroupResults aggregationResult = result.getGroupResult();//GroupResult[]
+			GroupResult[] gr = aggregationResult.groupResultList();
+			for (int i = 0; i < gr.length; i++) {
 				if(i > 0)
 					grStr += ", ";
-				grStr += gr.getGroupResult(i).size();
+				grStr += gr[i].size();
 			}
 			grStr += "]";
 			logStr += grStr;
 		}
 		
-		if(RESULT_TYPE == JSON_TYPE){
+		if(resultType == JSON_TYPE){
 			//JSON
 			int fieldCount = result.getFieldCount();
 			writer.write("{");
@@ -365,15 +350,16 @@ public class DocumentSearchServlet extends HttpServlet {
 	    		
 	    		//group
 	    		writer.write("\t\"group_result\":");
-	    		GroupResults groupResults = result.getGroupResult();
-	    		if(groupResults == null){
+	    		GroupResults aggregationResult = result.getGroupResult();//GroupResult[]
+				GroupResult[] groupResultList = aggregationResult.groupResultList();
+	    		if(groupResultList == null){
 	    			writer.write(" \"null\"");
 	    		}else{
 	    			writer.write("");
 	        		writer.write("\t[");
-	        		for (int i = 0; i < groupResults.groupSize(); i++) {
+	        		for (int i = 0; i < groupResultList.length; i++) {
 	        			writer.write("\t\t[");
-						GroupResult groupResult = groupResults.getGroupResult(i);
+						GroupResult groupResult = groupResultList[i];
 						int size = groupResult.size();
 						for (int k = 0; k < size; k++) {
 							GroupEntry e = groupResult.getEntry(k);
@@ -394,7 +380,7 @@ public class DocumentSearchServlet extends HttpServlet {
 							
 						}
 						writer.write("\t\t]");
-						if(i < groupResults.groupSize() - 1)
+						if(i < groupResultList.length - 1)
 							writer.write(",");
 						else
 							writer.write("");
@@ -405,7 +391,7 @@ public class DocumentSearchServlet extends HttpServlet {
 	    		}//for
 			}//if else
 			writer.write("}");
-		}else if(RESULT_TYPE == XML_TYPE){
+		}else if(resultType == XML_TYPE){
 			//XML
 			//this does not support admin test, have no column meta data
 			
@@ -502,17 +488,18 @@ public class DocumentSearchServlet extends HttpServlet {
 	    		}
 	    		
 	    		//group
-	    		GroupResults groupResults = result.getGroupResult();
-	    		if(groupResults == null){
+	    		GroupResults aggregationResult = result.getGroupResult();
+				GroupResult[] groupResultList = aggregationResult.groupResultList();
+	    		if(groupResultList == null){
 	    			writer.write("\t<group_result />");
 	    			writer.newLine();
 	    		}else{
 	    			writer.write("\t<group_result>");
 	    			writer.newLine();
-	        		for (int i = 0; i < groupResults.groupSize(); i++) {
+	        		for (int i = 0; i < groupResultList.length; i++) {
 	        			writer.write("\t\t<group_list>");
 	        			writer.newLine();
-						GroupResult groupResult = groupResults.getGroupResult(i);
+						GroupResult groupResult = groupResultList[i];
 						int size = groupResult.size();
 						for (int k = 0; k < size; k++) {
 							writer.write("\t\t\t<group_item>");

@@ -27,20 +27,20 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.fastcatsearch.db.DBHandler;
-import org.fastcatsearch.ir.config.IRSettings;
+import org.fastcatsearch.db.DBService;
+import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.keyword.KeywordFail;
 import org.fastcatsearch.keyword.KeywordHit;
 import org.fastcatsearch.keyword.MemoryKeyword;
+import org.fastcatsearch.settings.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class KeywordService extends CatServiceComponent{
+public class KeywordService extends AbstractService{
 
 	private static final Logger logger = LoggerFactory.getLogger(KeywordService.class);
 	
-	private static KeywordService instance = new KeywordService();
 	public static final long FIVE_MINUTE_PERIOD = 5 * 60 * 1000;
 	public static final long ONE_SECOND_PERIOD = 1000;
 	public static final int MAX_KEYWORD_COUNT = 100;
@@ -56,19 +56,23 @@ public class KeywordService extends CatServiceComponent{
 	private Timer timer;
 	private int hourOfDay;
 	private int sequence;
-	private String logPath = IRSettings.path("logs/.keyword.");
-	private String logPathFail = IRSettings.path("logs/.keyword.fail.");
+	private String logPath = environment.filePaths().makePath("logs").append(".keyword.").toString();
+	private String logPathFail = environment.filePaths().makePath("logs").append(".keyword.fail.").toString();
 	private PrintWriter keywordWriter;
 	private PrintWriter keywordWriterFail;
 	
-	public static KeywordService getInstance() {
+	private static KeywordService instance;
+	
+	public static KeywordService getInstance(){
 		return instance;
 	}
-	
-	private KeywordService(){
-		
+	public void asSingleton() {
+		instance = this;
 	}
 	
+	public KeywordService(Environment environment, Settings settings, ServiceManager serviceManager) {
+		super(environment, settings, serviceManager);
+	}
 	public void addKeyword(String keyword){
 		//1hour 파일에 기록
 		if(keywordWriter != null){
@@ -95,7 +99,7 @@ public class KeywordService extends CatServiceComponent{
 		int old = sequence;
 		hourOfDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
 		sequence = (sequence + 1) % 2;
-		logger.debug("Switch keyword file "+old +" -> "+sequence+", hourOfDay="+hourOfDay);
+//		logger.debug("Switch keyword file "+old +" -> "+sequence+", hourOfDay="+hourOfDay);
 		
 		try {
 			File file = new File(logPath + sequence);
@@ -115,7 +119,7 @@ public class KeywordService extends CatServiceComponent{
 		int old = sequence;
 		hourOfDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
 		sequence = (sequence + 1) % 2;
-		logger.debug("Switch fail keyword file "+old +" -> "+sequence+", hourOfDay="+hourOfDay);
+//		logger.debug("Switch fail keyword file "+old +" -> "+sequence+", hourOfDay="+hourOfDay);
 		
 		try {
 			File file = new File(logPathFail + sequence);
@@ -127,7 +131,7 @@ public class KeywordService extends CatServiceComponent{
 		return old;
 	}
 	
-	protected boolean start0() throws ServiceException {
+	protected boolean doStart() throws ServiceException {
 		//현재 시각에서 가장 가까운 5로 나누어 떨어지는 이전 시각의 분 숫자를 구함. nowMin
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(new Date());
@@ -162,11 +166,11 @@ public class KeywordService extends CatServiceComponent{
 			timer.scheduleAtFixedRate(new KeywordFailRankingTask(), baseCalendar.getTime(), FIVE_MINUTE_PERIOD);
 		}
 		timer.schedule(new StreamFlushTask(), new Date(), ONE_SECOND_PERIOD); //flush from now
-		
+		logger.debug("Keyword schedule done!");
 		return true;
 	}
 	
-	protected boolean shutdown0() throws ServiceException {
+	protected boolean doStop() throws ServiceException {
 		timer.cancel();
 		return true;
 	}
@@ -233,14 +237,14 @@ public class KeywordService extends CatServiceComponent{
 		public void run() {
 			//Log logger = LoggerFactory.getLogger(KeywordRankingTask.class);
 			//switch file 0 <-> 1
-			logger.debug("Run KeywordRankingTask");
+//			logger.debug("Run KeywordRankingTask");
 			int old = switchFile();
 			//start make ranking
 			
 			MemoryKeyword memoryKeyword = new MemoryKeyword();
 			
 			File file = new File(logPath + old);
-			logger.debug("Log file path = "+file.getAbsolutePath()+" , "+file.length());
+//			logger.debug("Log file path = "+file.getAbsolutePath()+" , "+file.length());
 			BufferedReader br = null;
 			try {
 				br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
@@ -284,8 +288,8 @@ public class KeywordService extends CatServiceComponent{
 		public void makePopularKeyword(MemoryKeyword memoryKeyword, int totHit) {
 			Calendar scal = Calendar.getInstance();
 			scal.setTimeInMillis(this.scheduledExecutionTime());
-			logger.debug("this.scheduledExecutionTime()= {}",scal);
-			DBHandler dbHandler = DBHandler.getInstance();
+//			logger.debug("this.scheduledExecutionTime()= {}",scal);
+			DBService dbHandler = DBService.getInstance();
 
 			//remove old data
 			List<KeywordHit> list = null;
@@ -331,7 +335,7 @@ public class KeywordService extends CatServiceComponent{
 			list = dbHandler.KeywordHit.selectKeywordHit(KeywordHit.POPULAR_ACCUM, 0);
 			//logger.debug("calculate keyword "+list.size()+" at hour "+hourOfDay);
 			if(logger.isDebugEnabled()) {
-				logger.debug("calculate keyword "+list.size()+" at "+scal.get(Calendar.HOUR_OF_DAY)+":"+scal.get(Calendar.MINUTE)+":"+scal.get(Calendar.SECOND));
+//				logger.debug("calculate keyword "+list.size()+" at "+scal.get(Calendar.HOUR_OF_DAY)+":"+scal.get(Calendar.MINUTE)+":"+scal.get(Calendar.SECOND));
 				iter = memoryKeyword.getIterator(MAX_KEYWORD_COUNT);
 				while(iter.hasNext()) {
 					logger.debug("memory keyword has ["+iter.next()+"]");
@@ -376,7 +380,7 @@ public class KeywordService extends CatServiceComponent{
 		 */
 		public void makeKeywordStatistics() {
 			Calendar todayCalendar = Calendar.getInstance();
-			DBHandler dbHandler = DBHandler.getInstance();
+			DBService dbHandler = DBService.getInstance();
 			
 			Date[] dates = new Date[3];
 			int[] times = new int[2];
@@ -431,7 +435,7 @@ public class KeywordService extends CatServiceComponent{
 			makeKeywordStatistics(dbHandler,currentKeyword,KeywordHit.STATISTICS_YEAR,piyear,ciyear,pyear,cyear,lyear);
 		}
 		
-		public void makeKeywordStatistics(DBHandler dbHandler, MemoryKeyword currentKeyword, int type, int ptime, int ctime, Date pdate, Date cdate, Date limit) {
+		public void makeKeywordStatistics(DBService dbHandler, MemoryKeyword currentKeyword, int type, int ptime, int ctime, Date pdate, Date cdate, Date limit) {
 			//이전데이터를 구함
 			MemoryKeyword prevKeyword = new MemoryKeyword();
 			List<KeywordHit>list = dbHandler.KeywordHit.selectKeywordHit(type,ptime,pdate);
@@ -465,14 +469,14 @@ public class KeywordService extends CatServiceComponent{
 		
 		public void run() {
 			//switch file 0 <-> 1
-			logger.debug("Run KeywordFailRankingTask");
+//			logger.debug("Run KeywordFailRankingTask");
 			int old = switchFileFail();
 			//start make ranking
 			
 			MemoryKeyword memoryKeyword = new MemoryKeyword();
 			
 			File file = new File(logPathFail + old);
-			logger.debug("Log fail file path = "+file.getAbsolutePath()+" , "+file.length());
+//			logger.debug("Log fail file path = "+file.getAbsolutePath()+" , "+file.length());
 			BufferedReader br = null;
 			try {
 				br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
@@ -517,7 +521,7 @@ public class KeywordService extends CatServiceComponent{
 			Calendar scal = Calendar.getInstance();
 			scal.setTimeInMillis(this.scheduledExecutionTime());
 			
-			DBHandler dbHandler = DBHandler.getInstance();
+			DBService dbHandler = DBService.getInstance();
 
 			//remove old data
 			List<KeywordFail> list = null;
@@ -563,7 +567,7 @@ public class KeywordService extends CatServiceComponent{
 			list = dbHandler.KeywordFail.selectKeywordFail(KeywordFail.POPULAR_ACCUM, 0);
 			//logger.debug("calculate keyword "+list.size()+" at hour "+hourOfDay);
 			if(logger.isDebugEnabled()) {
-				logger.debug("calculate keyword "+list.size()+" at "+scal.get(Calendar.HOUR_OF_DAY)+":"+scal.get(Calendar.MINUTE)+":"+scal.get(Calendar.SECOND));
+//				logger.debug("calculate keyword "+list.size()+" at "+scal.get(Calendar.HOUR_OF_DAY)+":"+scal.get(Calendar.MINUTE)+":"+scal.get(Calendar.SECOND));
 				iter = memoryKeyword.getIteratorFail(MAX_KEYWORD_COUNT);
 				while(iter.hasNext()) {
 					logger.debug("memory keyword has ["+iter.next()+"]");
@@ -608,7 +612,7 @@ public class KeywordService extends CatServiceComponent{
 		 */
 		public void makeKeywordStatistics() {
 			Calendar todayCalendar = Calendar.getInstance();
-			DBHandler dbHandler = DBHandler.getInstance();
+			DBService dbHandler = DBService.getInstance();
 			
 			Date[] dates = new Date[3];
 			int[] times = new int[2];
@@ -663,7 +667,7 @@ public class KeywordService extends CatServiceComponent{
 			makeKeywordStatistics(dbHandler,currentKeyword,KeywordFail.STATISTICS_YEAR,piyear,ciyear,pyear,cyear,lyear);
 		}
 		
-		public void makeKeywordStatistics(DBHandler dbHandler, MemoryKeyword currentKeyword, int type, int ptime, int ctime, Date pdate, Date cdate, Date limit) {
+		public void makeKeywordStatistics(DBService dbHandler, MemoryKeyword currentKeyword, int type, int ptime, int ctime, Date pdate, Date cdate, Date limit) {
 			//이전데이터를 구함
 			MemoryKeyword prevKeyword = new MemoryKeyword();
 			List<KeywordFail>list = dbHandler.KeywordFail.selectKeywordFail(type,ptime,pdate);
@@ -708,6 +712,12 @@ public class KeywordService extends CatServiceComponent{
 				}
 			}
 		}
+	}
+
+
+	@Override
+	protected boolean doClose() throws ServiceException {
+		return true;
 	}
 
 }

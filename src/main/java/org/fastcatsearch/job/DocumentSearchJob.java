@@ -16,19 +16,15 @@ import java.io.IOException;
 import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
-import org.fastcatsearch.ir.config.IRSettings;
-import org.fastcatsearch.ir.group.GroupEntry;
-import org.fastcatsearch.ir.group.GroupResult;
-import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.QueryParseException;
 import org.fastcatsearch.ir.query.QueryParser;
 import org.fastcatsearch.ir.query.Result;
-import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.job.Job;
+import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.service.IRService;
-import org.fastcatsearch.service.QueryCacheService;
 import org.fastcatsearch.service.ServiceException;
 
 
@@ -38,7 +34,7 @@ public class DocumentSearchJob extends Job {
 	private String VALUE_SEPARATOR = "(?<!\\\\)=";
 	
 	@Override
-	public Result run0() throws JobException, ServiceException {
+	public JobResult doRun() throws JobException, ServiceException {
 		String[] args = getStringArrayArgs();
 		String queryString = args[0];
 		String idStr = null;
@@ -80,8 +76,10 @@ public class DocumentSearchJob extends Job {
 				noCache = true;
 //			logger.debug("NoCache => "+noCache+" ,option = "+q.getMeta().option()+", "+(q.getMeta().option() & Query.SEARCH_OPT_NOCACHE));
 			
-			if(!noCache)
-				result = QueryCacheService.getInstance().get(queryString);
+			String cacheKey = collection+":"+idStr;
+			if(!noCache){
+				result = IRService.getInstance().documentCache().get(cacheKey);
+			}
 			
 			//Not Exist in Cache
 			if(result == null){
@@ -93,14 +91,15 @@ public class DocumentSearchJob extends Job {
 				
 				result = collectionHandler.searchDocument(collectionName, idStr);
 				
-				if(!noCache)
-					QueryCacheService.getInstance().put(queryString, result);
+				if(!noCache){
+					IRService.getInstance().documentCache().put(cacheKey, result);
+				}
 			}
 //			long st = System.currentTimeMillis();
 			
 
 			
-			return result;
+			return new JobResult(result);
 			
 		} catch (IRException e) {
 			throw new JobException(e);
@@ -114,46 +113,5 @@ public class DocumentSearchJob extends Job {
 		
 	}
 
-	public static void main(String[] args) throws JobException, ServiceException {
-		String homePath = "D:/fastcat_basic_server";
-		String queryString = "cn=mail&fl=id,subject&sn=1&ln=10";
-		IRSettings.setHome(homePath);
-		
-		
-		long st = System.currentTimeMillis();
-		
-		DocumentSearchJob job = new DocumentSearchJob();
-		job.setArgs(new String[]{queryString});
-		Result obj = job.run0();
-		Result result = null;
-		if(obj != null)
-			result = (Result)obj;
-		
-		logger.info("search time = "+(System.currentTimeMillis() - st)+" ms");
-		logger.info("TotalCount = " + result.getTotalCount());
-		int resultCount = result.getCount();
-		logger.info("Count = " + resultCount);
-		int fieldCount = result.getFieldCount();
-		logger.info("FieldCount = " + fieldCount);
-		
-		Row[] data = result.getData();
-		for (int i = 0; i < resultCount; i++) {
-			Row row = data[i];
-			logger.info(i+"] "+row.toString());
-		}
-		
-		GroupResults groupResults = result.getGroupResult();
-		for (int i = 0; i < groupResults.groupSize(); i++) {
-			GroupResult groupResult = groupResults.getGroupResult(i);
-			logger.info("== Group Result - " + (i+1)+ ", count = "+groupResult.size()+" ==");
-			int size = groupResult.size();
-			for (int j = 0; j < size; j++) {
-				GroupEntry entry = groupResult.getEntry(j);
-				logger.info("{} : {}", entry.key.getKeyString(), entry.count());
-				
-			}
-		}
-		
-	}
 }
 

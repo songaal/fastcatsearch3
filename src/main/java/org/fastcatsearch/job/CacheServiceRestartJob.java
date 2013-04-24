@@ -12,7 +12,7 @@
 package org.fastcatsearch.job;
 
 
-import org.fastcatsearch.service.QueryCacheService;
+import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.ServiceException;
 
 public class CacheServiceRestartJob extends Job{
@@ -25,16 +25,19 @@ public class CacheServiceRestartJob extends Job{
 	}
 	
 	@Override
-	public Object run0() {
+	public JobResult doRun() {
 		try {
-			try {
-				Thread.sleep(delay);
-			} catch (InterruptedException e) { }
-			
-			return QueryCacheService.getInstance().restart();
-		} catch (ServiceException e) {
-			return false;
-		}
+			Thread.sleep(delay);
+		} catch (InterruptedException e) { }
+		
+		boolean result = IRService.getInstance().searchCache().unload()
+		&& IRService.getInstance().groupingCache().unload()
+		&& IRService.getInstance().documentCache().unload()
+		&& IRService.getInstance().searchCache().load()
+		&& IRService.getInstance().groupingCache().load()
+		&& IRService.getInstance().documentCache().load();
+		
+		return new JobResult(result);
 	}
 
 }

@@ -20,7 +20,7 @@ import org.fastcatsearch.cli.Command;
 import org.fastcatsearch.cli.CommandException;
 import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
-import org.fastcatsearch.db.DBHandler;
+import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.object.IndexingResult;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.util.Formatter;
@@ -43,7 +43,7 @@ public class StatusIndexCommand extends Command {
 	@Override
 	public CommandResult doCommand(String[] cmd, ConsoleSessionContext context)
 			throws IOException, CommandException {
-		DBHandler dbHandler = DBHandler.getInstance();
+		DBService dbHandler = DBService.getInstance();
 		String collectinListStr = IRSettings.getConfig().getString("collection.list");
 		List<String>collectionNames  = Arrays.asList(collectinListStr.split(","));
 		

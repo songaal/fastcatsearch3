@@ -16,7 +16,7 @@ import org.fastcatsearch.cli.Command;
 import org.fastcatsearch.cli.CommandException;
 import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
-import org.fastcatsearch.control.JobController;
+import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.job.FullIndexJob;
 import org.fastcatsearch.job.IncIndexJob;
 import org.fastcatsearch.job.Job;
@@ -73,7 +73,7 @@ public class StartIndexCommandIndex extends Command {
 
 				job.setArgs(new String[] { collection });
 
-				JobController.getInstance().offer(job);
+				JobService.getInstance().offer(job);
 				
 				String ret = printData(msg);
 

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Fastcat datasource setting</comment>
+<entry key="source.type">FILE</entry>
+<entry key="source.from">SINGLE</entry>
+<entry key="source.modifier"></entry>
+<entry key="full.source.path">collection/sample/testData/full</entry>
+<entry key="inc.source.path">collection/sample/testData/inc</entry>
+<entry key="file.document.parser">org.fastcatsearch.parser.CollectFileParser</entry>
+<entry key="file.encoding">utf-8</entry>
+
+<entry key="driver">org.gjt.mm.mysql.Driver</entry>
+<entry key="url">jdbc:mysql://127.0.0.1:3306/test</entry>
+<entry key="user">root</entry>
+<entry key="password"></entry>
+<entry key="fetchsize">1000</entry>
+<entry key="bulksize">100</entry>
+
+<entry key="before.inc.query"></entry>
+<entry key="after.inc.query"></entry>
+<entry key="before.full.query"></entry>
+<entry key="after.full.query"></entry>
+<entry key="full.query"></entry>
+<entry key="inc.query"></entry>
+<entry key="update.id.query"></entry>
+<entry key="full.backup.path"></entry>
+<entry key="inc.backup.path"></entry>
+<entry key="backup.file.encoding"></entry>
+
+<entry key="crawl.full.conf.list"></entry>
+<entry key="crawl.inc.conf.list"></entry>
+</properties>

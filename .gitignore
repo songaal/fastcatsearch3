@@ -1,2 +1,6 @@
 /target
 /derby.log
+<<<<<<< HEAD
+=======
+/testHome
+>>>>>>> dist

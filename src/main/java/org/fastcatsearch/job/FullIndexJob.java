@@ -18,7 +18,8 @@ import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.collector.SourceReaderFactory;
-import org.fastcatsearch.control.JobController;
+import org.fastcatsearch.common.Strings;
+import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
@@ -33,7 +34,7 @@ import org.fastcatsearch.ir.search.DataSequenceFile;
 import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.source.SourceReader;
 import org.fastcatsearch.ir.util.Formatter;
-import org.fastcatsearch.job.result.JobResultIndex;
+import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.ServiceException;
@@ -55,7 +56,7 @@ public class FullIndexJob extends Job {
 	
 	
 	@Override
-	public JobResultIndex run0() throws JobException, ServiceException {
+	public JobResult doRun() throws JobException, ServiceException {
 		String[] args = getStringArrayArgs();
 		String collection = (String)args[0];
 		indexingLogger.info("["+collection+"] Full Indexing Start!");
@@ -71,8 +72,8 @@ public class FullIndexJob extends Job {
 				workSchema = IRSettings.getSchema(collection, false);
 			
 			if(workSchema.getFieldSize() == 0){
-				indexingLogger.error("["+collection+"] Full Indexing Canceled. Schema field is empty. time = "+Formatter.getFormatTime(System.currentTimeMillis() - st));
-				return null;
+				indexingLogger.error("["+collection+"] Full Indexing Canceled. Schema field is empty. time = "+Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
+				throw new JobException("["+collection+"] Full Indexing Canceled. Schema field is empty. time = "+Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
 			}
 			
 			//주키가 없으면 색인실패
@@ -101,6 +102,9 @@ public class FullIndexJob extends Job {
 				throw new JobException("데이터 수집기 생성중 에러발생. sourceType = "+dsSetting.sourceType);
 			}
 			
+			/*
+			 * 색인파일 생성.
+			 */
 			File segmentDir = new File(IRSettings.getSegmentPath(collection, newDataSequence, segmentNumber));
 			indexingLogger.info("Segment Dir = "+segmentDir.getAbsolutePath());
 			SegmentWriter writer = null;
@@ -147,8 +151,8 @@ public class FullIndexJob extends Job {
 			}
 			
 			if(count == 0){
-				indexingLogger.info("["+collection+"] Full Indexing Canceled due to no documents. time = "+Formatter.getFormatTime(System.currentTimeMillis() - st));
-				return null;
+				indexingLogger.info("["+collection+"] Full Indexing Canceled due to no documents. time = "+Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
+				throw new JobException("["+collection+"] Full Indexing Canceled due to no documents. time = "+Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
 			}
 			
 			//apply schema setting
@@ -162,6 +166,9 @@ public class FullIndexJob extends Job {
 			
 			newHandler.saveDataSequenceFile();
 			
+			/*
+			 * 컬렉션 리로드
+			 */
 			IRService irService = IRService.getInstance();
 			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collection, newHandler);
 			if(oldCollectionHandler != null){
@@ -171,8 +178,11 @@ public class FullIndexJob extends Job {
 			
 			SegmentInfo si = newHandler.getLastSegmentInfo();
 			indexingLogger.info(si.toString());
-			int docSize = si.getDocCount();
+//			int docSize = si.getDocCount();
 			
+			/*
+			 * indextime 파일 업데이트.
+			 */
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			String startDt = sdf.format(st);
 			String endDt = sdf.format(new Date());
@@ -180,22 +190,16 @@ public class FullIndexJob extends Job {
 			String durationStr = Formatter.getFormatTime(duration);
 			IRSettings.storeIndextime(collection, "FULL", startDt, endDt, durationStr, count);
 			
-			//5초후에 캐시 클리어.
-			JobController.getInstance().offer(new CacheServiceRestartJob(5000));
+			/*
+			 * 5초후에 캐시 클리어.
+			 */
+			getJobExecutor().offer(new CacheServiceRestartJob(5000));
 			
 			indexingLogger.info("["+collection+"] Full Indexing Finished! docs = "+count+", update = "+updateAndDeleteSize[0]+", delete = "+updateAndDeleteSize[1]+", time = "+durationStr);
 			
-			return new JobResultIndex(collection, count, updateAndDeleteSize[0], updateAndDeleteSize[1], duration);
+			return new JobResult(new IndexingJobResult(collection, segmentDir, count, updateAndDeleteSize[0], updateAndDeleteSize[1], duration));
 			
-		} catch (IOException e) {
-			EventDBLogger.error(EventDBLogger.CATE_INDEX, "전체색인에러", EventDBLogger.getStackTrace(e));
-			indexingLogger.error("["+collection+"] Indexing error = "+e.getMessage(),e);
-			throw new JobException(e);
-		} catch (SettingException e) {
-			EventDBLogger.error(EventDBLogger.CATE_INDEX, "전체색인에러", EventDBLogger.getStackTrace(e));
-			indexingLogger.error("["+collection+"] Indexing error = "+e.getMessage(),e);
-			throw new JobException(e);
-		} catch (IRException e) {
+		} catch (Exception e) {
 			EventDBLogger.error(EventDBLogger.CATE_INDEX, "전체색인에러", EventDBLogger.getStackTrace(e));
 			indexingLogger.error("["+collection+"] Indexing error = "+e.getMessage(),e);
 			throw new JobException(e);

@@ -17,58 +17,33 @@ import java.io.PrintWriter;
 import java.net.URLDecoder;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.fastcatsearch.control.JobController;
-import org.fastcatsearch.control.JobResult;
-import org.fastcatsearch.ir.common.SettingException;
+import org.fastcatsearch.control.JobExecutor;
+import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.ir.config.FieldSetting;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
+import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.field.ScoreField;
-import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;
+import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.DocumentListJob;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.fastcatsearch.servlet.JobHttpServlet;
 
-public class DocumentListServlet extends HttpServlet {
+public class DocumentListServlet extends JobHttpServlet {
 	
-	private static final long serialVersionUID = 963640595944747847L;
-	private static Logger logger = LoggerFactory.getLogger(DocumentListServlet.class);
-	private static AtomicLong taskSeq = new AtomicLong();
-	public static final int JSON_TYPE = 0;
-	public static final int XML_TYPE = 1;
-	
-	private int RESULT_TYPE = JSON_TYPE;
-	
-	public void init(){
-		String type = getServletConfig().getInitParameter("result_format");
-		if(type != null){
-			if(type.equalsIgnoreCase("json")){
-				RESULT_TYPE = JSON_TYPE;
-			}else if(type.equalsIgnoreCase("xml")){
-				RESULT_TYPE = XML_TYPE;
-			}
-		}
-	}
-	
-	public DocumentListServlet() {
-		this(JSON_TYPE);
-	}
-	
-    public DocumentListServlet(int resultType){
-    	RESULT_TYPE = resultType;
+    public DocumentListServlet(int resultType, JobExecutor jobExecutor){
+    	super(resultType, jobExecutor);
     }
+    
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     	Enumeration enumeration = request.getParameterNames();
     	String timeoutStr = request.getParameter("timeout");
@@ -120,9 +95,9 @@ public class DocumentListServlet extends HttpServlet {
 		response.setCharacterEncoding(responseCharset);
     	response.setStatus(HttpServletResponse.SC_OK);
     	
-    	if(RESULT_TYPE == JSON_TYPE){
+    	if(resultType == JSON_TYPE){
     		response.setContentType("application/json; charset="+responseCharset);
-    	}else if(RESULT_TYPE == XML_TYPE){
+    	}else if(resultType == XML_TYPE){
     		response.setContentType("text/xml; charset="+responseCharset);
     	}
     	
@@ -139,7 +114,7 @@ public class DocumentListServlet extends HttpServlet {
     	
     	Result result = null;
     	
-		JobResult jobResult = JobController.getInstance().offer(job);
+		ResultFuture jobResult = getJobExecutor().offer(job);
 		Object obj = jobResult.poll(timeout);
 		searchTime = (System.currentTimeMillis() - st);
 		if(jobResult.isSuccess()){
@@ -147,7 +122,7 @@ public class DocumentListServlet extends HttpServlet {
 		}else{
 			String errorMsg = (String)obj;
 			
-			if(RESULT_TYPE == JSON_TYPE){
+			if(resultType == JSON_TYPE){
 				if(errorMsg != null){
 					errorMsg = Formatter.escapeJSon(errorMsg);
 				}
@@ -160,7 +135,7 @@ public class DocumentListServlet extends HttpServlet {
 	    		writer.write("\t\"error_msg\": \""+errorMsg+"\"");
 	    		writer.newLine();
 	    		writer.write("}");
-			}else if(RESULT_TYPE == XML_TYPE){
+			}else if(resultType == XML_TYPE){
 				if(errorMsg != null){
 					errorMsg = Formatter.escapeXml(errorMsg);
 				}
@@ -183,17 +158,18 @@ public class DocumentListServlet extends HttpServlet {
 		String logStr = searchTime+", "+result.getCount()+", "+result.getTotalCount()+", "+result.getFieldCount();
 		if(result.getGroupResult() != null){
 			String grStr = ", [";
-			GroupResults gr = result.getGroupResult();
-			for (int i = 0; i < gr.groupSize(); i++) {
+			GroupResults aggregationResult = result.getGroupResult();//GroupResult[]
+			GroupResult[] gr = aggregationResult.groupResultList();
+			for (int i = 0; i < gr.length; i++) {
 				if(i > 0)
 					grStr += ", ";
-				grStr += gr.getGroupResult(i).size();
+				grStr += gr[i].size();
 			}
 			grStr += "]";
 			logStr += grStr;
 		}
 		
-		if(RESULT_TYPE == JSON_TYPE){
+		if(resultType == JSON_TYPE){
 			//JSON
 			int fieldCount = result.getFieldCount();
 			writer.write("{");
@@ -358,7 +334,7 @@ public class DocumentListServlet extends HttpServlet {
 	    		writer.write("\t]");
 			}//if else
 			writer.write("}");
-		}else if(RESULT_TYPE == XML_TYPE){
+		}else if(resultType == XML_TYPE){
 			//XML
 			//this does not support admin test, have no column meta data
 			
@@ -456,4 +432,5 @@ public class DocumentListServlet extends HttpServlet {
 
     	writer.close();
     }
+	
 }

@@ -25,16 +25,17 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.fastcatsearch.control.JobController;
-import org.fastcatsearch.control.JobResult;
+import org.fastcatsearch.control.JobExecutor;
+import org.fastcatsearch.control.JobService;
+import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.ir.config.FieldSetting;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.field.ScoreField;
+import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
-import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
@@ -43,38 +44,15 @@ import org.fastcatsearch.job.SearchJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SearchServlet extends HttpServlet {
+public class SearchServlet extends JobHttpServlet {
 	
-	private static final long serialVersionUID = 963640595944747847L;
-	private static Logger logger = LoggerFactory.getLogger(SearchServlet.class);
 	private static Logger searchLogger = LoggerFactory.getLogger("SEARCH_LOG");
 	private static AtomicLong taskSeq = new AtomicLong();
-	public static final int JSON_TYPE = 0;
-	public static final int XML_TYPE = 1;
-	public static final int JSONP_TYPE = 2;
+	
 	public static final int IS_ALIVE = 3;
 	
-	private int RESULT_TYPE = JSON_TYPE;
-	
-	public void init(){
-		String type = getServletConfig().getInitParameter("result_format");
-		if(type != null){
-			if(type.equalsIgnoreCase("json")){
-				RESULT_TYPE = JSON_TYPE;
-			}else if(type.equalsIgnoreCase("xml")){
-				RESULT_TYPE = XML_TYPE;
-			}else if(type.equalsIgnoreCase("jsonp")){
-				RESULT_TYPE = JSONP_TYPE;
-			}
-		}
-	}
-	
-	public SearchServlet() {
-		this(JSON_TYPE);
-	}
-	
-    public SearchServlet(int resultType){
-    	RESULT_TYPE = resultType;
+    public SearchServlet(int resultType, JobExecutor jobExecutor){
+    	super(resultType, jobExecutor);
     }
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     	@SuppressWarnings("rawtypes")
@@ -142,13 +120,13 @@ public class SearchServlet extends HttpServlet {
     	PrintWriter w = response.getWriter();
     	BufferedWriter writer = new BufferedWriter(w);
     	
-    	if(RESULT_TYPE == JSON_TYPE){
+    	if(resultType == JSON_TYPE){
     		response.setContentType("application/json; charset="+responseCharset);
-    	}else if(RESULT_TYPE == XML_TYPE){
+    	}else if(resultType == XML_TYPE){
     		response.setContentType("text/xml; charset="+responseCharset);
-    	}else if(RESULT_TYPE == JSONP_TYPE){
+    	}else if(resultType == JSONP_TYPE){
     		response.setContentType("application/json; charset="+responseCharset);
-    	}else if(RESULT_TYPE == IS_ALIVE){
+    	}else if(resultType == IS_ALIVE){
     		response.setContentType("text/html; charset="+responseCharset);
     		writer.write("FastCat/OK\n<br/>" + new Date());
     		writer.close();
@@ -156,7 +134,7 @@ public class SearchServlet extends HttpServlet {
     	}
     	
     	
-    	if(RESULT_TYPE == JSONP_TYPE) {
+    	if(resultType == JSONP_TYPE) {
     		String callback = request.getParameter("jsoncallback");
     		writer.write(callback+"(");
     	}
@@ -169,16 +147,16 @@ public class SearchServlet extends HttpServlet {
     	
     	Result result = null;
     	
-		JobResult jobResult = JobController.getInstance().offer(job);
+		ResultFuture jobResult = JobService.getInstance().offer(job);
 		Object obj = jobResult.poll(timeout);
 		searchTime = (System.currentTimeMillis() - st);
 		if(jobResult.isSuccess()){
 			result = (Result)obj;
 		}else{
-			String errorMsg = (String)obj;
+			String errorMsg = obj.toString();
 			searchLogger.info(seq+", -1, "+errorMsg);
 			
-			if(RESULT_TYPE == JSON_TYPE){
+			if(resultType == JSON_TYPE){
 				if(errorMsg != null){
 					errorMsg = Formatter.escapeJSon(errorMsg);
 				}
@@ -193,7 +171,7 @@ public class SearchServlet extends HttpServlet {
 	    		writer.write("\t\"error_msg\": \""+errorMsg+"\"");
 	    		writer.newLine();
 	    		writer.write("}");
-			}else if(RESULT_TYPE == XML_TYPE){
+			}else if(resultType == XML_TYPE){
 				if(errorMsg != null){
 					errorMsg = Formatter.escapeXml(errorMsg);
 				}
@@ -218,18 +196,19 @@ public class SearchServlet extends HttpServlet {
 		String logStr = searchTime+", "+result.getCount()+", "+result.getTotalCount()+", "+result.getFieldCount();
 		if(result.getGroupResult() != null){
 			String grStr = ", [";
-			GroupResults gr = result.getGroupResult();
-			for (int i = 0; i < gr.groupSize(); i++) {
+			GroupResults aggregationResult = result.getGroupResult();
+			GroupResult[] gr = aggregationResult.groupResultList();
+			for (int i = 0; i < gr.length; i++) {
 				if(i > 0)
 					grStr += ", ";
-				grStr += gr.getGroupResult(i).size();
+				grStr += gr[i].size();
 			}
 			grStr += "]";
 			logStr += grStr;
 		}
 		searchLogger.info(seq+", "+logStr);
 		
-		if(RESULT_TYPE == JSON_TYPE || RESULT_TYPE == JSONP_TYPE){
+		if(resultType == JSON_TYPE || resultType == JSONP_TYPE){
 			//JSON
 			int fieldCount = result.getFieldCount();
 			writer.write("{");
@@ -384,15 +363,16 @@ public class SearchServlet extends HttpServlet {
 	    		
 	    		//group
 	    		writer.write("\t\"group_result\":");
-	    		GroupResults groupResults = result.getGroupResult();
-	    		if(groupResults == null){
+	    		GroupResults aggregationResult = result.getGroupResult();
+	    		if(aggregationResult == null){
 	    			writer.write(" \"null\"");
 	    		}else{
+	    			GroupResult[] groupResultList = aggregationResult.groupResultList();
 	    			writer.write("");
 	        		writer.write("\t[");
-	        		for (int i = 0; i < groupResults.groupSize(); i++) {
+	        		for (int i = 0; i < groupResultList.length; i++) {
 	        			writer.write("\t\t[");
-						GroupResult groupResult = groupResults.getGroupResult(i);
+						GroupResult groupResult = groupResultList[i];
 						int size = groupResult.size();
 						for (int k = 0; k < size; k++) {
 							GroupEntry e = groupResult.getEntry(k);
@@ -422,7 +402,7 @@ public class SearchServlet extends HttpServlet {
 							
 						}
 						writer.write("\t\t]");
-						if(i < groupResults.groupSize() - 1)
+						if(i < groupResultList.length - 1)
 							writer.write(",");
 						else
 							writer.write("");
@@ -433,7 +413,7 @@ public class SearchServlet extends HttpServlet {
 	    		}//for
 			}//if else
 			writer.write("}");
-		}else if(RESULT_TYPE == XML_TYPE){
+		}else if(resultType == XML_TYPE){
 			//XML
 			//this does not support admin test, have no column meta data
 			
@@ -461,23 +441,31 @@ public class SearchServlet extends HttpServlet {
 			
 			String[] fieldNames = result.getFieldNameList();
 			
-			writer.write("\t<fieldname_list>");
-			writer.newLine();
 			if(result.getCount() == 0){
+				writer.write("\t<fieldname_list>");
+				writer.newLine();
 				writer.write("\t\t<name>_no_</name>");
 				writer.newLine();
+				writer.write("\t</fieldname_list>");
+				writer.newLine();
 			}else{
+				writer.write("\t<fieldname_list>");
+				writer.newLine();
 	    		writer.write("\t\t<name>_no_</name>");
 	    		writer.newLine();
+				writer.write("\t</fieldname_list>");
+				writer.newLine();
 	    		for (int i = 0; i < fieldNames.length; i++) {
+	    			writer.write("\t<fieldname_list>");
+					writer.newLine();
 	    			writer.write("\t\t<name>");
 	    			writer.write(fieldNames[i]);
 	    			writer.write("</name>");
+	    			writer.newLine();
+	    			writer.write("\t</fieldname_list>");
 					writer.newLine();
 				}
 			}
-			writer.write("\t</fieldname_list>");
-			writer.newLine();
 	    	
 			
 			//data
@@ -485,19 +473,13 @@ public class SearchServlet extends HttpServlet {
 			int start = result.getMetadata().start();
 			
 			if(rows.length == 0){
-				writer.write("\t<results>");
-				writer.newLine();
 				writer.write("\t<result>");
 				writer.newLine();
 				writer.write("\t\t<_no_>No result found!</_no_>");
 				writer.newLine();
 				writer.write("\t</result>");
 				writer.newLine();
-				writer.write("\t</results>");
-				writer.newLine();
 			}else{
-				writer.write("\t<results>");
-				writer.newLine();
 	    		for (int i = 0; i < rows.length; i++) {
 					Row row = rows[i];
 					writer.write("\t<result>");
@@ -523,21 +505,20 @@ public class SearchServlet extends HttpServlet {
 					writer.write("\t</result>");
 					writer.newLine();
 	    		}
-	    		writer.write("\t</results>");
-				writer.newLine();
-				
+	    		
 	    		//group
-	    		GroupResults groupResultList = result.getGroupResult();
-	    		if(groupResultList == null){
+	    		GroupResults aggregationResult = result.getGroupResult();
+	    		if(aggregationResult == null){
 	    			writer.write("\t<group_result />");
 	    			writer.newLine();
 	    		}else{
+	    			GroupResult[] groupResultList = aggregationResult.groupResultList();
 	    			writer.write("\t<group_result>");
 	    			writer.newLine();
-	        		for (int i = 0; i < groupResultList.groupSize(); i++) {
+	        		for (int i = 0; i < groupResultList.length; i++) {
 	        			writer.write("\t\t<group_list>");
 	        			writer.newLine();
-						GroupResult groupResult = groupResultList.getGroupResult(i);
+						GroupResult groupResult = groupResultList[i];
 						int size = groupResult.size();
 						for (int k = 0; k < size; k++) {
 							writer.write("\t\t\t<group_item>");
@@ -584,7 +565,7 @@ public class SearchServlet extends HttpServlet {
 			writer.write("</fastcat>");
 		}
 		
-    	if(RESULT_TYPE == JSONP_TYPE) {
+    	if(resultType == JSONP_TYPE) {
     		writer.write(");");
     	}
 

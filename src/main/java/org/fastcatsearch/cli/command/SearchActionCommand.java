@@ -8,8 +8,8 @@ import org.fastcatsearch.cli.Command;
 import org.fastcatsearch.cli.CommandException;
 import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
-import org.fastcatsearch.control.JobController;
-import org.fastcatsearch.control.JobResult;
+import org.fastcatsearch.control.JobService;
+import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;
@@ -67,7 +67,7 @@ public class SearchActionCommand extends Command {
 		SearchJob job = new SearchJob();
 		job.setArgs(new String[] { queryBuffer.toString() });
 		Result result = null;
-		JobResult jobResult = JobController.getInstance().offer(job);
+		ResultFuture jobResult = JobService.getInstance().offer(job);
 		Object obj = jobResult.poll(100);
 		
 		if(jobResult.isSuccess()) {

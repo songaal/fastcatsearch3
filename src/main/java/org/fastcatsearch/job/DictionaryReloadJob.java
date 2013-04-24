@@ -14,38 +14,39 @@ package org.fastcatsearch.job;
 import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.dic.Dic;
+import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceException;
 
 
 public class DictionaryReloadJob extends Job {
 
 	@Override
-	public Object run0() throws JobException, ServiceException {
+	public JobResult doRun() throws JobException, ServiceException {
 		String[] args = getStringArrayArgs();
 		if("synonymDic".equals(args[0])){
 			try {
 				Dic.reload("synonym");
-				return true;
+				return new JobResult(true);
 			} catch (IRException e) {
 				throw new JobException(e.getMessage(), e);
 			}
 		}else if("stopDic".equals(args[0])){
 			try {
 				Dic.reload("stopword");
-				return true;
+				return new JobResult(true);
 			} catch (IRException e) {
 				throw new JobException(e.getMessage(), e);
 			}
 		}else if("koreanDic".equals(args[0])){
 			try {
 				Dic.reload("korean");
-				return true;
+				return new JobResult(true);
 			} catch (IRException e) {
 				throw new JobException(e.getMessage(), e);
 			}
 		}
 		
-		return -1;
+		return new JobResult(-1);
 	}
 
 }

@@ -15,13 +15,11 @@ import java.io.File;
 
 import javax.servlet.http.HttpServlet;
 
-import org.fastcatsearch.control.JobController;
-import org.fastcatsearch.db.DBHandler;
+import org.fastcatsearch.control.JobService;
+import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.ir.config.IRSettings;
-import org.fastcatsearch.server.PreparedLoader;
 import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.KeywordService;
-import org.fastcatsearch.service.QueryCacheService;
 import org.fastcatsearch.service.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,11 +29,9 @@ public class CatServerServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	
 	private IRService irService;
-	private JobController jobController;
-	private DBHandler dbHandler;
+	private JobService jobController;
+	private DBService dbHandler;
 	private KeywordService keywordService;
-	private PreparedLoader preparedLoader;
-	private QueryCacheService cacheService;
 	public static long startTime;
 	private static Logger logger;
 	
@@ -64,12 +60,10 @@ public class CatServerServlet extends HttpServlet {
 		logger = LoggerFactory.getLogger(CatServerServlet.class);
 		
 		IRSettings.setHome(ServerHome);
-		dbHandler = DBHandler.getInstance();
+		dbHandler = DBService.getInstance();
 		keywordService = KeywordService.getInstance();
-		jobController = JobController.getInstance();
+		jobController = JobService.getInstance();
 		irService = IRService.getInstance();
-		cacheService = QueryCacheService.getInstance();
-		preparedLoader = new PreparedLoader();
 		
 		try {
 			start();
@@ -83,23 +77,18 @@ public class CatServerServlet extends HttpServlet {
 		dbHandler.start();
 		jobController.start();
 		
-		preparedLoader.load();
-		
 		irService.start();
 		keywordService.start();
-		cacheService.start();
 		
 		startTime = System.currentTimeMillis();
 		logger.info("CatServer started!");
 	}
 	
 	public void stop() throws ServiceException{
-		preparedLoader.unload();
-		keywordService.shutdown();
-		irService.shutdown();
-		jobController.shutdown();
-		dbHandler.shutdown();
-		cacheService.shutdown();
+		keywordService.stop();
+		irService.stop();
+		jobController.stop();
+		dbHandler.stop();
 		
 		logger.info("CatServer shutdown!");
 	}
@@ -109,8 +98,6 @@ public class CatServerServlet extends HttpServlet {
 		irService = null;
 		jobController = null;
 		keywordService = null;
-		preparedLoader = null;
-		cacheService = null;
 		logger.info("CatServer destroy!");
 	}
 }

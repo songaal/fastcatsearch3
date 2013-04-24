@@ -14,9 +14,12 @@ package org.fastcatsearch.job;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import org.fastcatsearch.control.JobController;
 import org.fastcatsearch.control.JobException;
+import org.fastcatsearch.control.JobExecutor;
+import org.fastcatsearch.control.ResultFuture;
+import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.ServiceException;
 import org.slf4j.Logger;
@@ -28,14 +31,26 @@ public abstract class Job implements Runnable, Serializable{
 	private static final long serialVersionUID = 6296052043270199612L;
 
 	protected static Logger logger = LoggerFactory.getLogger(Job.class);
+	protected Environment environment;
+	protected JobExecutor jobExecutor;
 	
 	protected long jobId = -1;
 	protected Object args;
 	protected boolean isScheduled;
 	protected boolean noResult; //결과가 필요없는 단순 호출 작업
 	
+	public void setEnvironment(Environment environment) {
+		this.environment = environment;
+	}
+	public void setJobExecutor(JobExecutor jobExecutor) {
+		this.jobExecutor = jobExecutor;
+	}
+	public JobExecutor getJobExecutor() {
+		return jobExecutor;
+	}
+	
 	public String toString(){
-		return "[Job] jobId = "+jobId+", args = "+args+", isScheduled="+isScheduled+", noResult="+noResult;
+		return "[Job] jobId = "+jobId+", "+getClass().getSimpleName()+", args = "+args+", isScheduled="+isScheduled+", noResult="+noResult;
 //		return "[Job] jobId = "+jobId+", args = "+args+", isScheduled="+isScheduled;
 	}
 	public void setId(long jobId) {
@@ -78,41 +93,47 @@ public abstract class Job implements Runnable, Serializable{
 		return noResult;
 	}
 	
-	public abstract Object run0() throws JobException, ServiceException;
+	public abstract JobResult doRun() throws JobException, ServiceException;
 
+	static AtomicInteger count = new AtomicInteger();
 	public final void run(){
 		long st = System.currentTimeMillis();
 		try {
-			Object result = run0();
-//			if(jobId != -1 && !noResult){
-			if(jobId != -1){
-				logger.debug("Job_{} result = {}", jobId, result);
-				JobController.getInstance().result(jobId, this, result, true, st, System.currentTimeMillis());
+			JobResult jobResult = doRun();
+			
+			if(jobExecutor == null){
+				throw new JobException("결과를 반환할 jobExecutor가 없습니다.");
 			}
 			
-		} catch (JobException e){
-			JobController.getInstance().result(jobId, this, e.getMessage(), false, st, System.currentTimeMillis());
-			StringWriter w = new StringWriter();
-			e.printStackTrace(new PrintWriter(w));
-			logger.error("#############################################\n"+w.toString()+"\\n#############################################");
+			if(jobId != -1){
+				if(System.currentTimeMillis() - st > 2000){
+					
+					logger.info("job-{} / {} time={}", new Object[]{jobId, count.incrementAndGet(), System.currentTimeMillis() - st});
+				}
+				logger.debug("Job#{} result = {}", jobId, jobResult);
+				jobExecutor.result(this, jobResult.result, jobResult.isSuccess);
+				
+				Object result = jobResult.result;
+				if(result != null && result instanceof Throwable){
+					Throwable e = (Throwable) result;
+					logError(e);
+				}
+			}else{
+				logger.error("## 결과에 jobId가 없습니다. job={}, result=", this, jobResult);
+			}
+//			logger.info("Done job-{} / {}", jobId, jobExecutor.runningJobSize());
 		} catch (OutOfMemoryError e){
-			JobController.getInstance().result(jobId, this, e.getMessage(), false, st, System.currentTimeMillis());
+			jobExecutor.result(this, e, false);
 			EventDBLogger.error(EventDBLogger.CATE_MANAGEMENT, "메모리부족 에러가 발생했습니다.", EventDBLogger.getStackTrace(e));
-			StringWriter w = new StringWriter();
-			e.printStackTrace();
-			e.printStackTrace(new PrintWriter(w));
-			logger.error("#############################################\n"+w.toString()+"\n#############################################");
-		} catch (Exception e){
-			JobController.getInstance().result(jobId, this, e.getMessage(), false, st, System.currentTimeMillis());
-			StringWriter w = new StringWriter();
-			e.printStackTrace(new PrintWriter(w));
-			logger.error("#############################################\n"+w.toString()+"\n#############################################");
-		} catch(Error err){
-			JobController.getInstance().result(jobId, this, err.getMessage(), false, st, System.currentTimeMillis());
-			StringWriter w = new StringWriter();
-			err.printStackTrace(new PrintWriter(w));
-			logger.error("#############################################\n"+w.toString()+"\n#############################################");
+			logError(e);
+		} catch (Throwable e){
+			jobExecutor.result(this, e, false);
+			logError(e);
 		}
+//		if(jobExecutor.runningJobSize() == 0){
+//			//마지막 작업은 로그찍어준다.
+//			logger.info("Result runningJobSize[{}], inQueueJobSize[{}]", jobExecutor.runningJobSize(), jobExecutor.inQueueJobSize());
+//		}
 	}
 	
 	protected void logError(Throwable e){
@@ -123,6 +144,30 @@ public abstract class Job implements Runnable, Serializable{
 		writer.println("#############################################");
 		writer.close();
 		logger.error(sw.toString());
+	}
+	
+	public static class JobResult{
+		protected Object result;
+		protected boolean isSuccess;
+		
+		public JobResult(Object result){
+			this.isSuccess = !(result instanceof Throwable);
+			this.result = result;
+		}
+		
+		public Object result(){
+			return result;
+		}
+		
+		public boolean isSuccess(){
+			return isSuccess;
+		}
+		
+		@Override
+		public String toString(){
+			return "[JobResult]success="+isSuccess+", result="+result;
+		}
+		
 	}
 	
 }
