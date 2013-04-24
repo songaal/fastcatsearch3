@@ -484,7 +484,6 @@ public class SearchServlet extends HttpServlet {
 			Row[] rows = result.getData();
 			int start = result.getMetadata().start();
 			
-			
 			if(rows.length == 0){
 				writer.write("\t<results>");
 				writer.newLine();

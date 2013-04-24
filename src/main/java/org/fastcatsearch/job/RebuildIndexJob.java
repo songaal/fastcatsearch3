@@ -18,10 +18,10 @@ import java.util.Date;
 
 import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
-import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.ir.index.SegmentRebuilder;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.DataSequenceFile;

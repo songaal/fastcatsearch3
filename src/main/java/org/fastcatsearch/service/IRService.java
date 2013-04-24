@@ -27,9 +27,9 @@ import java.util.jar.JarFile;
 
 import org.fastcatsearch.ir.analysis.TokenizerAttributes;
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
-import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.ir.dic.Dic;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.util.ClassDetector;

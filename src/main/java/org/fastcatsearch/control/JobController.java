@@ -26,9 +26,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.fastcatsearch.db.DBHandler;
 import org.fastcatsearch.db.object.IndexingResult;
+import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IRSettings;
-import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.job.FullIndexJob;
 import org.fastcatsearch.job.IncIndexJob;

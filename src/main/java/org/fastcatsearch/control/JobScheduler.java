@@ -21,8 +21,8 @@ import java.util.TimerTask;
 
 import org.fastcatsearch.db.DBHandler;
 import org.fastcatsearch.db.object.IndexingSchedule;
+import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.IRSettings;
-import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.job.Job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

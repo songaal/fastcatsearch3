@@ -14,10 +14,10 @@ package org.fastcatsearch.collector;
 import junit.framework.TestCase;
 
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.DataSourceSetting;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
-import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.ir.document.Document;
 
 

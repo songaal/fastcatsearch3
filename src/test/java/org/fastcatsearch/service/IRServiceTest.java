@@ -12,8 +12,8 @@
 package org.fastcatsearch.service;
 
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.IRSettings;
-import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.service.IRService;
 

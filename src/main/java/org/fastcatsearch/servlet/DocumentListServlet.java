@@ -26,10 +26,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.control.JobController;
 import org.fastcatsearch.control.JobResult;
+import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.FieldSetting;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
-import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;

@@ -15,8 +15,8 @@ import java.io.IOException;
 
 import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.IRSettings;
-import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;

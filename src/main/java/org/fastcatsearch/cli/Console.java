@@ -28,6 +28,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
+import ch.qos.logback.classic.Logger;
+
 /**
  * CLI환경에서 명령을 내리는 프로그램.
  * 
@@ -128,10 +130,10 @@ public class Console {
 			// System Command ( help, exit ... )
 			//
 			if(cmd.equals("help")) {
-				printHelp();
-				cmdBuf.setLength(0);
+				//printHelp();
+				//cmdBuf.setLength(0);
 				completed = true;
-				continue;
+				//continue;
 			} else if(cmd.equals("exit")) {
 				System.exit(1);
 			}
@@ -144,7 +146,6 @@ public class Console {
 			} else {
 				cmdBuf.setLength(0);
 			}
-
 			//
 			// Execute Command (Completed Command Phrase)
 			//

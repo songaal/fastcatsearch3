@@ -14,8 +14,8 @@ package org.fastcatsearch.control;
 import java.sql.Timestamp;
 
 import org.fastcatsearch.control.JobController;
+import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.IRSettings;
-import org.fastcatsearch.ir.config.SettingException;
 import org.fastcatsearch.service.ServiceException;
 
 import junit.framework.TestCase;
