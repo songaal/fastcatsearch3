@@ -30,7 +30,7 @@ import org.fastcatsearch.control.JobResult;
 import org.fastcatsearch.ir.config.FieldSetting;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
-import org.fastcatsearch.ir.config.SettingException;
+import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
@@ -461,45 +461,44 @@ public class SearchServlet extends HttpServlet {
 			
 			String[] fieldNames = result.getFieldNameList();
 			
+			writer.write("\t<fieldname_list>");
+			writer.newLine();
 			if(result.getCount() == 0){
-				writer.write("\t<fieldname_list>");
-				writer.newLine();
 				writer.write("\t\t<name>_no_</name>");
 				writer.newLine();
-				writer.write("\t</fieldname_list>");
-				writer.newLine();
 			}else{
-				writer.write("\t<fieldname_list>");
-				writer.newLine();
 	    		writer.write("\t\t<name>_no_</name>");
 	    		writer.newLine();
-				writer.write("\t</fieldname_list>");
-				writer.newLine();
 	    		for (int i = 0; i < fieldNames.length; i++) {
-	    			writer.write("\t<fieldname_list>");
-					writer.newLine();
 	    			writer.write("\t\t<name>");
 	    			writer.write(fieldNames[i]);
 	    			writer.write("</name>");
-	    			writer.newLine();
-	    			writer.write("\t</fieldname_list>");
 					writer.newLine();
 				}
 			}
+			writer.write("\t</fieldname_list>");
+			writer.newLine();
 	    	
 			
 			//data
 			Row[] rows = result.getData();
 			int start = result.getMetadata().start();
 			
+			
 			if(rows.length == 0){
+				writer.write("\t<results>");
+				writer.newLine();
 				writer.write("\t<result>");
 				writer.newLine();
 				writer.write("\t\t<_no_>No result found!</_no_>");
 				writer.newLine();
 				writer.write("\t</result>");
 				writer.newLine();
+				writer.write("\t</results>");
+				writer.newLine();
 			}else{
+				writer.write("\t<results>");
+				writer.newLine();
 	    		for (int i = 0; i < rows.length; i++) {
 					Row row = rows[i];
 					writer.write("\t<result>");
@@ -525,7 +524,9 @@ public class SearchServlet extends HttpServlet {
 					writer.write("\t</result>");
 					writer.newLine();
 	    		}
-	    		
+	    		writer.write("\t</results>");
+				writer.newLine();
+				
 	    		//group
 	    		GroupResults groupResultList = result.getGroupResult();
 	    		if(groupResultList == null){
