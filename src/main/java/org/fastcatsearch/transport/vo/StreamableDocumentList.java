@@ -26,4 +26,9 @@ public class StreamableDocumentList implements Streamable {
 
 	}
 
+	public List<Document> documentList() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
