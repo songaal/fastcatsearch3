@@ -24,12 +24,16 @@ public class StreamableHitElement implements Streamable {
 		for(int hitElementInx=0;hitElementInx<hitElements.length;hitElementInx++) {
 			int docNo = input.readInt();
 			int score = input.readInt();
+			String collection = input.readString();
+			int shardId = input.readInt();
 			HitElement hitElement = new HitElement(docNo,score);
 			int rankDataSize = input.readInt();
 			byte[] rankData = new byte[rankDataSize];
 			for(int rankDataInx=0;rankDataInx<rankData.length;rankDataInx++) {
 				rankData[rankDataInx] = input.readByte();
 			}
+			hitElement.collection(collection);
+			hitElement.shardId(shardId);
 			hitElement.dataOffset(input.readInt());
 			hitElement.dataLen(input.readInt());
 		}
@@ -42,6 +46,8 @@ public class StreamableHitElement implements Streamable {
 		for(int hitElementInx=0;hitElementInx<hitElements.length;hitElementInx++) {
 			HitElement hitElement =  hitElements[hitElementInx];
 			byte[] rankData = hitElement.rankdata();
+			output.writeString(hitElement.collection());
+			output.writeInt(hitElement.shardid());
 			output.writeInt(hitElement.docNo());
 			output.writeInt(hitElement.score());
 			output.writeInt(rankData.length);
