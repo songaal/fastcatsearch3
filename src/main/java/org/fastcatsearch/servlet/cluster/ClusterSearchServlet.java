@@ -70,9 +70,10 @@ public class ClusterSearchServlet extends AbstractSearchServlet {
 		
 		ResultStringer rStringer = getResultStringer();
 		
+		writeHeader(response, rStringer);
+		
 		SearchResultWriter searchResultWriter = new SearchResultWriter(response.getWriter(), isAdmin);
 		
-		writeHeader(response, rStringer);
 		try {
 			searchResultWriter.writeResult(obj, rStringer, searchTime, jobResult.isSuccess());
 		} catch (StringifyException e) {
