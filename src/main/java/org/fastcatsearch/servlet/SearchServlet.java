@@ -12,8 +12,7 @@
 package org.fastcatsearch.servlet;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.URLDecoder;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -36,15 +35,12 @@ import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.SearchJob;
-import org.fastcatsearch.util.JSONPResultStringer;
-import org.fastcatsearch.util.JSONResultStringer;
 import org.fastcatsearch.util.ResultStringer;
 import org.fastcatsearch.util.StringifyException;
-import org.fastcatsearch.util.XMLResultStringer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SearchServlet extends JobHttpServlet {
+public class SearchServlet extends AbstractSearchServlet {
 	
 	private static final long serialVersionUID = -7933742691498873774L;
 	private static Logger searchLogger = LoggerFactory.getLogger("SEARCH_LOG");
@@ -61,54 +57,16 @@ public class SearchServlet extends JobHttpServlet {
     }
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     	
-    	String timeoutStr = request.getParameter("timeout");
-    	String isAdmin = request.getParameter("admin");
+    	prepare(request);
     	
-    	String requestCharset = request.getParameter("requestCharset");
-    	String responseCharset = request.getParameter("responseCharset");
-    	String collectionName = request.getParameter("cn");
-    	String fields = request.getParameter("fl");
-    	String searchCondition = request.getParameter("se");
-    	String groupFields = request.getParameter("gr");
-    	String groupCondition = request.getParameter("gc");
-    	String groupFilter = request.getParameter("gf");
-    	String sortFields = request.getParameter("ra");
-    	String filterFields = request.getParameter("ft");
-    	String startNumber = request.getParameter("sn");
-    	String resultLength = request.getParameter("ln");
-    	String highlightTags = request.getParameter("ht");
-    	String searchOption = request.getParameter("so");
-    	String userData = request.getParameter("ud");
-    	
-    	if(requestCharset == null) {
-    		requestCharset = "UTF-8";
+    	if(resultType == IS_ALIVE){
+    		response.setContentType("text/html; charset="+responseCharset);
+    		response.getWriter().write("FastCat/OK\n<br/>" + new Date());
     	}
     	
-    	if(responseCharset == null) {
-    		responseCharset = "UTF-8";
-    	}
-    	
-    	String queryString = "cn="+collectionName+
-			"&fl="+URLDecoder.decode(fields,requestCharset)+
-			"&se="+URLDecoder.decode(searchCondition,requestCharset)+
-			"&gr="+URLDecoder.decode(groupFields,requestCharset)+
-			"&gc="+URLDecoder.decode(groupCondition,requestCharset)+
-			"&gf="+URLDecoder.decode(groupFilter,requestCharset)+
-			"&ra="+URLDecoder.decode(sortFields,requestCharset)+
-			"&ft="+URLDecoder.decode(filterFields,requestCharset)+
-			"&sn="+URLDecoder.decode(startNumber,requestCharset)+
-			"&ln="+URLDecoder.decode(resultLength,requestCharset)+
-			"&ht="+URLDecoder.decode(highlightTags,requestCharset)+
-			"&so="+URLDecoder.decode(searchOption,requestCharset)+
-			"&ud="+URLDecoder.decode(userData,requestCharset);
+    	String queryString = queryString();
     	
     	logger.debug("queryString = "+queryString);
-    	
-    	//TODO 디폴트 시간을 셋팅으로 빼자.
-    	int timeout = 5;
-    	if(timeoutStr != null) {
-    		timeout = Integer.parseInt(timeoutStr);
-    	}
     	logger.debug("timeout = "+timeout+" s");
     	
     	long seq = taskSeq.incrementAndGet();
@@ -125,14 +83,7 @@ public class SearchServlet extends JobHttpServlet {
 		ResultFuture jobResult = JobService.getInstance().offer(job);
 		Object obj = jobResult.poll(timeout);
 		
-		ResultStringer rStringer = null;
-		if(resultType == JSON_TYPE) {
-			rStringer = new JSONResultStringer();
-		} else if(resultType == JSONP_TYPE) {
-			rStringer = new JSONPResultStringer(request.getParameter("jsoncallback"));
-		} else if(resultType == XML_TYPE) {
-			rStringer = new XMLResultStringer("fastcat",true);
-		}
+		ResultStringer rStringer = getResultStringer();
 		
 		try {
 		
@@ -339,29 +290,10 @@ public class SearchServlet extends JobHttpServlet {
 				}
 				rStringer.endObject();
 			}
-			write(response, responseCharset, rStringer);
+			writeResult(response, responseCharset, rStringer);
 		} catch (StringifyException e) {
 			logger.error("",e);
 		} finally {
 		}
     }
-    
-	public void write(HttpServletResponse response, String charset, ResultStringer stringer) {
-		try {
-			if(stringer instanceof JSONResultStringer) {
-	    		response.setContentType("application/json; charset="+charset);
-			} else if(stringer instanceof JSONPResultStringer) {
-	    		response.setContentType("application/json; charset="+charset);
-			} else if(stringer instanceof XMLResultStringer) {
-	    		response.setContentType("text/xml; charset="+charset);
-	//    	}else if(resultType == IS_ALIVE){
-	//    		response.setContentType("text/html; charset="+responseCharset);
-	//    		writer.write("FastCat/OK\n<br/>" + new Date());
-			}
-			PrintWriter writer = response.getWriter();
-			writer.write(stringer.toString());
-		} catch (IOException e) {
-		} finally {
-		}
-	}
 }
