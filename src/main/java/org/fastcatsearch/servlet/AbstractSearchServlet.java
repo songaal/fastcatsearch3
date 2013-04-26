@@ -18,7 +18,7 @@ public class AbstractSearchServlet extends JobHttpServlet {
 	
 	String requestCharset;
 	String responseCharset;
-	String isAdmin;
+	boolean isAdmin;
 	int timeout;
 	
 	String collectionName;
@@ -40,14 +40,15 @@ public class AbstractSearchServlet extends JobHttpServlet {
 		super(resultType);
 	}
 
-	public void writeResult(HttpServletResponse response, String charset, ResultStringer stringer) {
+	public void writeResult(HttpServletResponse response, ResultStringer stringer) {
 		try {
+			response.reset();
 			if(stringer instanceof JSONResultStringer) {
-	    		response.setContentType("application/json; charset="+charset);
+	    		response.setContentType("application/json; charset="+responseCharset);
 			} else if(stringer instanceof JSONPResultStringer) {
-	    		response.setContentType("application/json; charset="+charset);
+	    		response.setContentType("application/json; charset="+responseCharset);
 			} else if(stringer instanceof XMLResultStringer) {
-	    		response.setContentType("text/xml; charset="+charset);
+	    		response.setContentType("text/xml; charset="+responseCharset);
 			}
 			response.getWriter().write(stringer.toString());
 		} catch (IOException e) {
@@ -73,7 +74,7 @@ public class AbstractSearchServlet extends JobHttpServlet {
     		timeout = Integer.parseInt(timeoutStr);
     	}
     	
-    	isAdmin = request.getParameter("admin");
+    	isAdmin = "true".equals(request.getParameter("admin"));
     	
     	collectionName = request.getParameter("cn");
     	fields = request.getParameter("fl");

@@ -12,9 +12,7 @@
 package org.fastcatsearch.servlet;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.servlet.ServletException;
@@ -23,18 +21,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
-import org.fastcatsearch.ir.common.SettingException;
-import org.fastcatsearch.ir.config.FieldSetting;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
-import org.fastcatsearch.ir.field.ScoreField;
-import org.fastcatsearch.ir.group.GroupEntry;
-import org.fastcatsearch.ir.group.GroupResult;
-import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.query.Result;
-import org.fastcatsearch.ir.query.Row;
-import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.SearchJob;
 import org.fastcatsearch.util.ResultStringer;
 import org.fastcatsearch.util.StringifyException;
@@ -80,21 +70,42 @@ public class SearchServlet extends AbstractSearchServlet {
     	SearchJob job = new SearchJob();
     	job.setArgs(new String[]{queryString});
     	
-    	Result result = null;
-    	
 		ResultFuture jobResult = JobService.getInstance().offer(job);
 		Object obj = jobResult.poll(timeout);
 		
+		searchTime = (System.currentTimeMillis() - st);
+		
 		ResultStringer rStringer = getResultStringer();
 		
-		SearchResultWriter searchResultWriter = new SearchResultWriter(response.getWriter(), responseCharset, isAdmin);
+		SearchResultWriter searchResultWriter = new SearchResultWriter(response.getWriter(), 
+				responseCharset, isAdmin);
 		
-		searchResultWriter.writeResult(result, rStringer, searchTime, jobResult.isSuccess());
+		try {
+			searchResultWriter.writeResult(obj, rStringer, searchTime, jobResult.isSuccess());
+		} catch (StringifyException e) {
+			logger.error("",e);
+		}
 		
+		writeResult(response, rStringer);
 		response.getWriter().close();
-		
-		//끝.
-		
     }
-
 }
+
+//searchlogger
+//{
+//			String logStr = searchTime+", "+result.getCount()+", "+result.getTotalCount()+", "+result.getFieldCount();
+//			if(result.getGroupResult() != null){
+//				String grStr = ", [";
+//				GroupResults aggregationResult = result.getGroupResult();
+//				GroupResult[] gr = aggregationResult.groupResultList();
+//				for (int i = 0; i < gr.length; i++) {
+//					if(i > 0)
+//						grStr += ", ";
+//					grStr += gr[i].size();
+//				}
+//				grStr += "]";
+//				logStr += grStr;
+//			}
+//			//searchLogger.info(seq+", "+logStr);
+//			
+//}
