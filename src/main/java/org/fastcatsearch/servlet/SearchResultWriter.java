@@ -1,7 +1,6 @@
 package org.fastcatsearch.servlet;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.Writer;
 
 import org.fastcatsearch.ir.group.GroupResults;
@@ -11,17 +10,17 @@ import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.util.ResultStringer;
 import org.fastcatsearch.util.StringifyException;
 
-public class SearchResultWriter {
+public class SearchResultWriter extends AbstractSearchResultWriter {
 	
-	Writer writer;
-	boolean isAdmin;
-	String[] fieldNames = null;
+	private boolean isAdmin;
+	private String[] fieldNames = null;
 	
 	public SearchResultWriter(Writer writer, boolean isAdmin) {
-		this.writer = writer;
+		super(writer);
 		this.isAdmin = isAdmin;
 	}
 
+	@Override
 	public void writeResult(Object obj, ResultStringer rStringer, long searchTime, boolean isSuccess) throws StringifyException, IOException {
 		if(!isSuccess){
 			String errorMsg = null;
@@ -126,7 +125,7 @@ public class SearchResultWriter {
 			
 			GroupResults groupResult = result.getGroupResult();
 			
-			new GroupResultWriter(writer).writeBody(groupResult, rStringer);
+			new GroupResultWriter(null).writeBody(groupResult, rStringer);
 		}
 	}
 }

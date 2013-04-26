@@ -9,19 +9,15 @@ import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.util.ResultStringer;
 import org.fastcatsearch.util.StringifyException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class GroupResultWriter {
-	private static Logger logger = LoggerFactory.getLogger(GroupResultWriter.class);
-	
-	private Writer writer;
+public class GroupResultWriter extends AbstractSearchResultWriter {
 	
 	public GroupResultWriter(Writer writer) {
-		this.writer = writer;
+		super(writer);
 	}
 	
-	public void writeResult(Object result, ResultStringer stringer, long searchTime, boolean isSuccess) throws StringifyException{
+	@Override
+	public void writeResult(Object result, ResultStringer stringer, long searchTime, boolean isSuccess) throws StringifyException, IOException{
 		
 		stringer.object();
 		
@@ -51,11 +47,7 @@ public class GroupResultWriter {
 		
 		stringer.endObject();
 			
-		try {
-			writer.write(stringer.toString());
-		} catch (IOException e) {
-			logger.error("error while writing group result", e);
-		}
+		writer.write(stringer.toString());
 	}
 	
 	public void writeBody(GroupResults groupResults, ResultStringer stringer) throws StringifyException {
