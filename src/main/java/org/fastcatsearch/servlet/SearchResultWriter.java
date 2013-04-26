@@ -3,6 +3,7 @@ package org.fastcatsearch.servlet;
 import java.io.PrintWriter;
 import java.io.Writer;
 
+import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.util.Formatter;
@@ -123,7 +124,10 @@ public class SearchResultWriter {
 				rStringer.endObject();
 			}
 			rStringer.endArray();
-					new GroupResultWriter().writeFormat(rStringer);
+			
+			GroupResults groupResult = result.getGroupResult();
+			
+			new GroupResultWriter(writer).writeBody(groupResult, rStringer);
 		}
 	}
 }

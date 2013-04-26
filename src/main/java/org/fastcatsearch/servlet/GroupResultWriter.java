@@ -1,29 +1,79 @@
 package org.fastcatsearch.servlet;
 
+import java.io.IOException;
+import java.io.Writer;
+
+import org.fastcatsearch.common.Strings;
+import org.fastcatsearch.ir.group.GroupEntry;
+import org.fastcatsearch.ir.group.GroupResult;
+import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.util.ResultStringer;
+import org.fastcatsearch.util.StringifyException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GroupResultWriter {
-
+	private static Logger logger = LoggerFactory.getLogger(GroupResultWriter.class);
 	
-	private void writeFooter() {
-		
-	}
-
-	public boolean writeHeader(ResultStringer rStringer) {
-		
-		return false;
+	private Writer writer;
+	
+	public GroupResultWriter(Writer writer) {
+		this.writer = writer;
 	}
 	
-	public void writeBody(ResultStringer rStringer) {
-		group
-		GroupResults aggregationResult = result.getGroupResult();
-		if(aggregationResult == null){
-    		rStringer.key("group_result").value("null");
+	public void writeResult(Object result, ResultStringer stringer, long searchTime, boolean isSuccess){
+		
+		try {
+			
+			stringer.object();
+			
+			if(!isSuccess){
+				String errorMsg = null;
+				if(result == null){
+					errorMsg = "null";
+				}else{
+					errorMsg = result.toString();
+				}
+				stringer.key("status").value(1)
+				.key("time").value(Strings.getHumanReadableTimeInterval(searchTime))
+				.key("total_count").value(0)
+				.key("count").value(0)
+				.key("error_msg").value(errorMsg);
+				
+			}else{
+				
+				GroupResults groupResults = (GroupResults) result;
+				stringer.key("status").value(0)
+				.key("time").value(Strings.getHumanReadableTimeInterval(searchTime))
+				.key("total_count").value(groupResults.totalSearchCount())
+				.key("count").value(groupResults.totalSearchCount());
+				
+				writeBody(groupResults, stringer);
+			}
+			
+			stringer.endObject();
+			
+			
+			
+		} catch (StringifyException e) {
+			logger.error("error while writing group result", e);
+		}
+		try {
+			writer.write(stringer.toString());
+		} catch (IOException e) {
+			logger.error("error while writing group result", e);
+		}
+	}
+	
+	public void writeBody(GroupResults groupResults, ResultStringer stringer) throws StringifyException {
+		
+		if(groupResults == null){
+    		stringer.key("group_result").value("null");
 		} else {
-			GroupResult[] groupResultList = aggregationResult.groupResultList();
-    		rStringer.key("group_result").array("group_list");
+			GroupResult[] groupResultList = groupResults.groupResultList();
+    		stringer.key("group_result").array("group_list");
     		for (int i = 0; i < groupResultList.length; i++) {
-    			rStringer.array("group_list");
+    			stringer.array("group_list");
 				GroupResult groupResult = groupResultList[i];
 				int size = groupResult.size();
 				for (int k = 0; k < size; k++) {
@@ -31,7 +81,7 @@ public class GroupResultWriter {
 					String keyData = e.key.getKeyString();
 					String functionName = groupResult.functionName();
 					
-					rStringer.object()
+					stringer.object()
 						.key("_no_").value(k+1)
 						.key("key").value(keyData)
 						.key("freq").value(e.count());
@@ -41,13 +91,13 @@ public class GroupResultWriter {
 						if(r == null){
 							r = "";
 						}
-						rStringer.key(functionName).value(r);
+						stringer.key(functionName).value(r);
 					}
-					rStringer.endObject();
+					stringer.endObject();
 				}//for
-				rStringer.endArray();
+				stringer.endArray();
     		}//for
-    		rStringer.endArray();
+    		stringer.endArray();
 		}//if else
 	}
 }
