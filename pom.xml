@@ -122,64 +122,6 @@
 					<skipTests>true</skipTests>
 				</configuration>
 			</plugin>
-			<!--
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.7</version>
-				<executions>
-					<execution>
-						<id>${project.artifactId}</id>
-						<phase>process-resources</phase>
-						<configuration>
-							<target>
-								<property name="package.name" value="${project.artifactId}-${currentVersion}" />
-								<property name="base.dir" location="${project.basedir}" />
-								<property name="build.dir" location="${project.build.directory}" />
-								<property name="target.dir"
-									location="${build.dir}/${package.name}" />
-								<property name="production.dir" location="${base.dir}/production/" />
-								<property name="collectionName" value="sample" />
-								<property name="collection.dir" location="${target.dir}/collection/" />
-
-								<delete dir="${target.dir}" />
-								<mkdir dir="${target.dir}" />
-								<mkdir dir="${target.dir}/conf" />
-								<mkdir dir="${target.dir}/lib" />
-								<mkdir dir="${target.dir}/bin" />
-								<mkdir dir="${target.dir}/logs" />
-
-								<copy includeemptydirs="false" todir="${target.dir}">
-									<fileset dir="${production.dir}" />
-								</copy>
-
-								<copy includeemptydirs="false" todir="${target.dir}/bin">
-									<fileset dir="${base.dir}/bin" excludes="" />
-								</copy>
-								
-								<copy file="${base.dir}/target/${package.name}.jar" todir="${target.dir}/lib" />
-
-								<mkdir dir="${collection.dir}" />
-								<mkdir dir="${collection.dir}/${collectionName}" />
-								<mkdir dir="${collection.dir}/${collectionName}/testData" />
-								<mkdir dir="${collection.dir}/${collectionName}/testData/full" />
-								<mkdir dir="${collection.dir}/${collectionName}/testData/inc" />
-								<touch file="${collection.dir}/${collectionName}/indextime" />
-
-								<path id="fastcat.classpath">
-									<fileset dir="${target.dir}">
-										<include name="**/*.jar" />
-									</fileset>
-								</path>
-							</target>
-						</configuration>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>

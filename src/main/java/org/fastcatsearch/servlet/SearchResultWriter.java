@@ -13,13 +13,11 @@ import org.fastcatsearch.util.StringifyException;
 public class SearchResultWriter {
 	
 	Writer writer;
-	String charset;
 	boolean isAdmin;
 	String[] fieldNames = null;
 	
-	public SearchResultWriter(PrintWriter writer, String charset, boolean isAdmin) {
+	public SearchResultWriter(PrintWriter writer, boolean isAdmin) {
 		this.writer = writer;
-		this.charset = charset;
 		this.isAdmin = isAdmin;
 	}
 
@@ -62,8 +60,6 @@ public class SearchResultWriter {
 			writeBody(result,rStringer, searchTime);
 			rStringer.endObject();
 		}
-		
-		//writeResult(writer, charset, rStringer);
 	}
 	
 	public void writeBody(Result result, ResultStringer rStringer, long searchTime) throws StringifyException {

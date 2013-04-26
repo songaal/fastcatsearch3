@@ -16,25 +16,25 @@ public class AbstractSearchServlet extends JobHttpServlet {
 
 	private static final long serialVersionUID = 4165287616751500253L;
 	
-	String requestCharset;
-	String responseCharset;
-	boolean isAdmin;
-	int timeout;
+	protected String requestCharset;
+	protected String responseCharset;
+	protected boolean isAdmin;
+	protected int timeout;
 	
-	String collectionName;
-	String fields;
-	String searchCondition;
-	String groupFields;
-	String groupCondition;
-	String groupFilter;
-	String sortFields;
-	String filterFields;
-	String startNumber;
-	String resultLength;
-	String highlightTags;
-	String searchOption;
-	String userData;
-	String jsonCallback;
+	protected String collectionName;
+	protected String fields;
+	protected String searchCondition;
+	protected String groupFields;
+	protected String groupCondition;
+	protected String groupFilter;
+	protected String sortFields;
+	protected String filterFields;
+	protected String startNumber;
+	protected String resultLength;
+	protected String highlightTags;
+	protected String searchOption;
+	protected String userData;
+	protected String jsonCallback;
 	
 	public AbstractSearchServlet(int resultType) {
 		super(resultType);

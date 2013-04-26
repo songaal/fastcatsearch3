@@ -21,10 +21,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
-import org.fastcatsearch.ir.config.IRSettings;
-import org.fastcatsearch.ir.config.Schema;
-import org.fastcatsearch.ir.io.AsciiCharTrie;
-import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.job.SearchJob;
 import org.fastcatsearch.util.ResultStringer;
 import org.fastcatsearch.util.StringifyException;
@@ -77,8 +73,7 @@ public class SearchServlet extends AbstractSearchServlet {
 		
 		ResultStringer rStringer = getResultStringer();
 		
-		SearchResultWriter searchResultWriter = new SearchResultWriter(response.getWriter(), 
-				responseCharset, isAdmin);
+		SearchResultWriter searchResultWriter = new SearchResultWriter(response.getWriter(), isAdmin);
 		
 		try {
 			searchResultWriter.writeResult(obj, rStringer, searchTime, jobResult.isSuccess());
