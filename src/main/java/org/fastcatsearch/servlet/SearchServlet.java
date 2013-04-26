@@ -12,6 +12,7 @@
 package org.fastcatsearch.servlet;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URLDecoder;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -38,7 +39,6 @@ import org.fastcatsearch.job.SearchJob;
 import org.fastcatsearch.util.JSONPResultStringer;
 import org.fastcatsearch.util.JSONResultStringer;
 import org.fastcatsearch.util.ResultStringer;
-import org.fastcatsearch.util.ResultWriter;
 import org.fastcatsearch.util.StringifyException;
 import org.fastcatsearch.util.XMLResultStringer;
 import org.slf4j.Logger;
@@ -126,7 +126,6 @@ public class SearchServlet extends JobHttpServlet {
 		Object obj = jobResult.poll(timeout);
 		
 		ResultStringer rStringer = null;
-		ResultWriter rWriter = null;
 		if(resultType == JSON_TYPE) {
 			rStringer = new JSONResultStringer();
 		} else if(resultType == JSONP_TYPE) {
@@ -134,8 +133,6 @@ public class SearchServlet extends JobHttpServlet {
 		} else if(resultType == XML_TYPE) {
 			rStringer = new XMLResultStringer("fastcat",true);
 		}
-		rWriter = new ResultWriter(response, responseCharset, rStringer);
-		
 		
 		try {
 		
@@ -148,7 +145,7 @@ public class SearchServlet extends JobHttpServlet {
 					errorMsg = obj.toString();
 				}
 				searchLogger.info(seq+", -1, "+errorMsg);
-					rWriter.object()
+					rStringer.object()
 					.key("status").value(1)
 					.key("time").value(Formatter.getFormatTime(searchTime))
 					.key("total_count").value(0)
@@ -174,7 +171,7 @@ public class SearchServlet extends JobHttpServlet {
 				
 				int fieldCount = result.getFieldCount();
 				String[] fieldNames = null;
-				rWriter.object()
+				rStringer.object()
 				.key("status").value(0)
 				.key("time").value(Formatter.getFormatTime(searchTime))
 				.key("total_count").value(result.getTotalCount())
@@ -183,19 +180,19 @@ public class SearchServlet extends JobHttpServlet {
 				.key("fieldname_list").array("name");
 				
 				if(result.getCount() == 0){
-					rWriter.value("_no_");
+					rStringer.value("_no_");
 				}else{
-					rWriter.value("_no_");
+					rStringer.value("_no_");
 					fieldNames = result.getFieldNameList();
 		    		for (int i = 0; i < fieldNames.length; i++) {
-						rWriter.value(fieldNames[i]);
+						rStringer.value(fieldNames[i]);
 					}
 				}
-				rWriter.endArray();
+				rStringer.endArray();
 		    	
 				if(isAdmin != null && isAdmin.equalsIgnoreCase("true")){
 					if(result.getCount() == 0){
-						rWriter.key("colmodel_list").array("colmodel")
+						rStringer.key("colmodel_list").array("colmodel")
 							.object()
 							.key("name").value("_no_")
 							.key("index").value("_no_")
@@ -205,7 +202,7 @@ public class SearchServlet extends JobHttpServlet {
 							.endObject()
 						.endArray();
 					}else{
-						rWriter.key("colmodel_list").array("colmodel");
+						rStringer.key("colmodel_list").array("colmodel");
 						
 		        		AsciiCharTrie fieldNamesTrie = null;
 		        		List<FieldSetting> fieldSettingList = null;
@@ -217,7 +214,7 @@ public class SearchServlet extends JobHttpServlet {
 						
 						//write _no_
 						if(fieldNames.length > 0){
-							rWriter.object()
+							rStringer.object()
 							.key("name").value("_no_")
 							.key("index").value("_no_")
 							.key("width").value("20")
@@ -229,7 +226,7 @@ public class SearchServlet extends JobHttpServlet {
 		        			int idx = fieldNamesTrie.get(fieldNames[i]);
 		        			if(idx < 0){
 		        				if(fieldNames[i].equalsIgnoreCase(ScoreField.fieldName)){
-		        					rWriter.object()
+		        					rStringer.object()
 		        					.key("name").value(fieldNames[i])
 		        					.key("index").value(fieldNames[i])
 		        					.key("width").value("20")
@@ -237,7 +234,7 @@ public class SearchServlet extends JobHttpServlet {
 		        					.key("align").value("right")
 		        					.endObject();
 		        				}else{
-		        					rWriter.object()
+		        					rStringer.object()
 		        					.key("name").value(fieldNames[i])
 		        					.key("index").value(fieldNames[i])
 		        					.key("width").value("20")
@@ -262,7 +259,7 @@ public class SearchServlet extends JobHttpServlet {
 		            				align="";
 		            			}
 		        				
-		        				rWriter.object()
+		        				rStringer.object()
 		        				.key("name").value(fieldNames[i])
 		        				.key("index").value(fieldNames[i])
 		        				.key("width").value(colWidth)
@@ -271,25 +268,25 @@ public class SearchServlet extends JobHttpServlet {
 		            			.endObject();
 		        			}
 						}
-		        		rWriter.endArray();
+		        		rStringer.endArray();
 					}
 				}
 				
-				rWriter.key("result");
+				rStringer.key("result");
 				//data
 				Row[] rows = result.getData();
 				int start = result.getMetadata().start();
 				
 				if(rows.length == 0){
-					rWriter.array("row").object()
+					rStringer.array("row").object()
 						.key("_no_").value("No result found!")
 						.endObject().endArray();
 				}else{
-					rWriter.array("row");
+					rStringer.array("row");
 		    		for (int i = 0; i < rows.length; i++) {
 						Row row = rows[i];
 						
-		    			rWriter.object()
+		    			rStringer.object()
 		    				.key("_no_").value(start+i);
 		    			
 						for(int k = 0; k < fieldCount; k++) {
@@ -299,21 +296,21 @@ public class SearchServlet extends JobHttpServlet {
 							//1. replace single back-slash quote with double back-slash
 							//2. replace double quote with character '\"' 
 							//4. replace linefeed with character '\n' 
-							rWriter.key(fieldNames[k]).value(fdata);
+							rStringer.key(fieldNames[k]).value(fdata);
 						}
-						rWriter.endObject();
+						rStringer.endObject();
 		    		}
-		    		rWriter.endArray();
+		    		rStringer.endArray();
 		    		
 		    		//group
 		    		GroupResults aggregationResult = result.getGroupResult();
 		    		if(aggregationResult == null){
-			    		rWriter.key("group_result").value("null");
+			    		rStringer.key("group_result").value("null");
 		    		} else {
 		    			GroupResult[] groupResultList = aggregationResult.groupResultList();
-			    		rWriter.key("group_result").array("group_list");
+			    		rStringer.key("group_result").array("group_list");
 		        		for (int i = 0; i < groupResultList.length; i++) {
-		        			rWriter.array("group_list");
+		        			rStringer.array("group_list");
 							GroupResult groupResult = groupResultList[i];
 							int size = groupResult.size();
 							for (int k = 0; k < size; k++) {
@@ -321,7 +318,7 @@ public class SearchServlet extends JobHttpServlet {
 								String keyData = e.key.getKeyString();
 								String functionName = groupResult.functionName();
 								
-								rWriter.object()
+								rStringer.object()
 									.key("_no_").value(k+1)
 									.key("key").value(keyData)
 									.key("freq").value(e.count());
@@ -331,21 +328,40 @@ public class SearchServlet extends JobHttpServlet {
 									if(r == null){
 										r = "";
 									}
-									rWriter.key(functionName).value(r);
+									rStringer.key(functionName).value(r);
 								}
-								rWriter.endObject();
+								rStringer.endObject();
 							}//for
-							rWriter.endArray();
+							rStringer.endArray();
 		        		}//for
-		        		rWriter.endArray();
+		        		rStringer.endArray();
 		    		}//if else
 				}
-				rWriter.endObject();
+				rStringer.endObject();
 			}
-			rWriter.write();
+			write(response, responseCharset, rStringer);
 		} catch (StringifyException e) {
 			logger.error("",e);
 		} finally {
 		}
     }
+    
+	public void write(HttpServletResponse response, String charset, ResultStringer stringer) {
+		try {
+			if(stringer instanceof JSONResultStringer) {
+	    		response.setContentType("application/json; charset="+charset);
+			} else if(stringer instanceof JSONPResultStringer) {
+	    		response.setContentType("application/json; charset="+charset);
+			} else if(stringer instanceof XMLResultStringer) {
+	    		response.setContentType("text/xml; charset="+charset);
+	//    	}else if(resultType == IS_ALIVE){
+	//    		response.setContentType("text/html; charset="+responseCharset);
+	//    		writer.write("FastCat/OK\n<br/>" + new Date());
+			}
+			PrintWriter writer = response.getWriter();
+			writer.write(stringer.toString());
+		} catch (IOException e) {
+		} finally {
+		}
+	}
 }

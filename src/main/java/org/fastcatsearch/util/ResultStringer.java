@@ -7,4 +7,5 @@ public interface ResultStringer {
 	public ResultStringer endArray() throws StringifyException;
 	public ResultStringer key (String key) throws StringifyException;
 	public ResultStringer value (Object obj) throws StringifyException;
+	public String toString();
 }
