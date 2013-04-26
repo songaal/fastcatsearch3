@@ -21,43 +21,36 @@ public class GroupResultWriter {
 		this.writer = writer;
 	}
 	
-	public void writeResult(Object result, ResultStringer stringer, long searchTime, boolean isSuccess){
+	public void writeResult(Object result, ResultStringer stringer, long searchTime, boolean isSuccess) throws StringifyException{
 		
-		try {
-			
-			stringer.object();
-			
-			if(!isSuccess){
-				String errorMsg = null;
-				if(result == null){
-					errorMsg = "null";
-				}else{
-					errorMsg = result.toString();
-				}
-				stringer.key("status").value(1)
-				.key("time").value(Strings.getHumanReadableTimeInterval(searchTime))
-				.key("total_count").value(0)
-				.key("count").value(0)
-				.key("error_msg").value(errorMsg);
-				
+		stringer.object();
+		
+		if(!isSuccess){
+			String errorMsg = null;
+			if(result == null){
+				errorMsg = "null";
 			}else{
-				
-				GroupResults groupResults = (GroupResults) result;
-				stringer.key("status").value(0)
-				.key("time").value(Strings.getHumanReadableTimeInterval(searchTime))
-				.key("total_count").value(groupResults.totalSearchCount())
-				.key("count").value(groupResults.totalSearchCount());
-				
-				writeBody(groupResults, stringer);
+				errorMsg = result.toString();
 			}
+			stringer.key("status").value(1)
+			.key("time").value(Strings.getHumanReadableTimeInterval(searchTime))
+			.key("total_count").value(0)
+			.key("count").value(0)
+			.key("error_msg").value(errorMsg);
 			
-			stringer.endObject();
+		}else{
 			
+			GroupResults groupResults = (GroupResults) result;
+			stringer.key("status").value(0)
+			.key("time").value(Strings.getHumanReadableTimeInterval(searchTime))
+			.key("total_count").value(groupResults.totalSearchCount())
+			.key("count").value(groupResults.totalSearchCount());
 			
-			
-		} catch (StringifyException e) {
-			logger.error("error while writing group result", e);
+			writeBody(groupResults, stringer);
 		}
+		
+		stringer.endObject();
+			
 		try {
 			writer.write(stringer.toString());
 		} catch (IOException e) {

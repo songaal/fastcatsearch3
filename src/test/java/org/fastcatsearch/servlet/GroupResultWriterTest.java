@@ -11,6 +11,7 @@ import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Group;
 import org.fastcatsearch.util.JSONResultStringer;
 import org.fastcatsearch.util.ResultStringer;
+import org.fastcatsearch.util.StringifyException;
 import org.fastcatsearch.util.XMLResultStringer;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,7 +43,7 @@ public class GroupResultWriterTest {
 	}
 	
 	@Test
-	public void testJson() {
+	public void testJson() throws StringifyException {
 		StringWriter writer = new StringWriter();
 		GroupResultWriter groupResultWriter = new GroupResultWriter(writer);
 		ResultStringer stringer = new JSONResultStringer();
@@ -55,7 +56,7 @@ public class GroupResultWriterTest {
 	}
 	
 	@Test
-	public void testXML() {
+	public void testXML() throws StringifyException {
 		StringWriter writer = new StringWriter();
 		GroupResultWriter groupResultWriter = new GroupResultWriter(writer);
 		XMLResultStringer stringer = new XMLResultStringer("fastcatsearch", true);
