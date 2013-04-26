@@ -132,8 +132,8 @@ public class ClusterSearchJob extends Job {
 			logger.error("", e);
 		}
 		SearchResultAggregator aggregator = new SearchResultAggregator(q, schema);
-		ShardSearchResult internalSearchResult = aggregator.aggregate(resultList);
-		int totalSize = internalSearchResult.getTotalCount();
+		ShardSearchResult aggregatedSearchResult = aggregator.aggregate(resultList);
+		int totalSize = aggregatedSearchResult.getTotalCount();
 		
 		
 		///
@@ -141,25 +141,27 @@ public class ClusterSearchJob extends Job {
 		//
 		
 		//internalSearchResult의 결과를 보면서 컬렉션 별로 분류한다.
-		int realSize = internalSearchResult.getCount();
+		int realSize = aggregatedSearchResult.getCount();
 		int[][] docIdList = new int[collectionIdList.length][];
 		int[] length = new int[collectionIdList.length];
 		int[] collectionTags = new int[realSize]; //해당 문서가 어느컬렉션에 속하는지 알려주는 항목.
 		int[] eachDocIds = new int[realSize];
+		int[] eachScores = new int[realSize];
 		
 		
-		for (int i = 0; i < realSize; i++) {
+		for (int i = 0; i < collectionIdList.length; i++) {
 			docIdList[i] = new int[realSize];
 		}
 		
 		int idx = 0;
-		FixedHitReader hitReader = internalSearchResult.getFixedHitReader();
+		FixedHitReader hitReader = aggregatedSearchResult.getFixedHitReader();
 		while(hitReader.next()){
 			HitElement el = hitReader.read();
 			int collectionNo = collectionNumberMap.get(el.collection());
 			docIdList[collectionNo][ length[collectionNo]++ ] = el.docNo();
 			collectionTags[idx] = collectionNo;
 			eachDocIds[idx] = el.docNo();
+			eachScores[idx] = el.score();
 			idx++;
 		}
 		
@@ -185,6 +187,7 @@ public class ClusterSearchJob extends Job {
 		Iterator<Document>[] docResultList = new Iterator[collectionIdList.length];
 		
 		for (int i = 0; i < collectionIdList.length; i++) {
+			String cId = collectionIdList[i];
 			//TODO 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
 			if(resultFutureList[i] == null){
 				throw new JobException("요청메시지 전송불가에러.");
@@ -202,6 +205,8 @@ public class ClusterSearchJob extends Job {
 			List<Document> documentList = obj2.documentList();
 			if(documentList != null){
 				docResultList[i] = documentList.iterator();
+			}else{
+				logger.warn("{}의 documentList가 null입니다.", cId);
 			}
 		}
 		
@@ -258,12 +263,13 @@ public class ClusterSearchJob extends Job {
 		//TODO 일단 highlight는 없다. 구현필요.
 		//
 		for (int i = 0; i < realSize; i++) {
-			int collectionNumber = collectionTags[0];
+			int collectionNumber = collectionTags[i];
 			Iterator<Document> docIterator = docResultList[collectionNumber];
 //			int segmentNumber = tags[i];
 //			int p = pos[segmentNumber]++;
 //			Document document = eachDocList[segmentNumber][p];
 			Document document = docIterator.next();//eachDocList[i];
+			document.setScore(eachScores[i]);
 			row[i] = new Row(fieldSize);
 			for (int j = 0; j < fieldSize; j++) {
 				int fieldNum = fieldNumList[j];

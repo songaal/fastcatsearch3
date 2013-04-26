@@ -9,11 +9,14 @@ import org.fastcatsearch.common.io.Streamable;
 public class StreamableBoolean implements Streamable {
 
 	private boolean bool;
-	public StreamableBoolean(){ }
-	
-	public StreamableBoolean(boolean bool){
+
+	public StreamableBoolean() {
+	}
+
+	public StreamableBoolean(boolean bool) {
 		this.bool = bool;
 	}
+
 	@Override
 	public void readFrom(StreamInput input) throws IOException {
 		bool = input.readBoolean();
@@ -25,7 +28,7 @@ public class StreamableBoolean implements Streamable {
 	}
 
 	@Override
-	public String toString(){
-		return bool+"";
+	public String toString() {
+		return bool + "";
 	}
 }
