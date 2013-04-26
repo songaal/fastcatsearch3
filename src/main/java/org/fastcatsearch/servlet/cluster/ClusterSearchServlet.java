@@ -260,11 +260,15 @@ public class ClusterSearchServlet extends JobHttpServlet {
 	        		AsciiCharTrie fieldnames = null;
 	        		List<FieldSetting> fieldSettingList = null;
 	        		try {
-	        			Schema schema = IRSettings.getSchema(collectionName, false);
+	        			String cid = collectionName;
+	        			if(collectionName.indexOf(",") > 0){
+	        				cid = collectionName.split(",")[0];
+	        			}
+	        			Schema schema = IRSettings.getSchema(cid, false);
 	        			fieldnames = schema.fieldnames;
 	        			fieldSettingList = schema.getFieldSettingList();
 					} catch (SettingException e) {
-						
+						logger.error("", e);
 					}
 					
 					
