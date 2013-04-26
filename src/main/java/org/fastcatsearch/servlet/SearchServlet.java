@@ -180,15 +180,15 @@ public class SearchServlet extends JobHttpServlet {
 				.key("total_count").value(result.getTotalCount())
 				.key("count").value(result.getCount())
 				.key("field_count").value(fieldCount)
-				.key("fieldname_list").array("fieldname");
+				.key("fieldname_list").array("name");
 				
 				if(result.getCount() == 0){
-					rWriter.object().key("name").value("_no_").endObject();
+					rWriter.value("_no_");
 				}else{
-					rWriter.object().key("name").value("_no_").endObject();
+					rWriter.value("_no_");
 					fieldNames = result.getFieldNameList();
 		    		for (int i = 0; i < fieldNames.length; i++) {
-						rWriter.object().key("name").value(fieldNames[i]).endObject();
+						rWriter.value(fieldNames[i]);
 					}
 				}
 				rWriter.endArray();

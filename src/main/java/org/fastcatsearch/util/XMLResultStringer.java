@@ -2,6 +2,8 @@ package org.fastcatsearch.util;
 
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -25,8 +27,8 @@ public class XMLResultStringer implements ResultStringer {
 	Document document;
 	Element root;
 	Element currentElement;
-	String arrayName;
-	NODE_TYPE cType;
+	List<String> arrayName;
+	List<NODE_TYPE> types;
 	boolean beautify;
 	
 	public XMLResultStringer(String rootName, boolean beautify) {
@@ -34,29 +36,44 @@ public class XMLResultStringer implements ResultStringer {
 		root = document.addElement(rootName);
 		currentElement = root;
 		this.beautify = beautify;
+		types = new ArrayList<NODE_TYPE>();
+		arrayName = new ArrayList<String>();
 	}
 	
 	@Override
 	public ResultStringer object() throws StringifyException {
-		cType = NODE_TYPE.OBJECT;
+		if(types.size()>0 && types.get(types.size()-1)==NODE_TYPE.ARRAY) {
+			types.add(NODE_TYPE.OBJECT);
+			currentElement = currentElement.addElement(arrayName.get(arrayName.size()-1));
+		}
 		return this;
 	}
 
 	@Override
 	public ResultStringer endObject() throws StringifyException {
+		if(types.size()>1 && types.get(types.size()-2)==NODE_TYPE.ARRAY) {
+			types.remove(types.size()-1);
+			currentElement = currentElement.getParent();
+		}
 		return this;
 	}
 
 	@Override
 	public ResultStringer array(String arrayName) throws StringifyException {
-		cType = NODE_TYPE.ARRAY;
-		this.arrayName = arrayName;
+		if(types.size()>0 && types.get(types.size()-1)==NODE_TYPE.ARRAY) {
+			currentElement = currentElement.addElement(this.arrayName.get(
+					this.arrayName.size()-1));
+		}
+		types.add(NODE_TYPE.ARRAY);
+		this.arrayName.add(arrayName);
 		return this;
 	}
 
 	@Override
 	public ResultStringer endArray() throws StringifyException {
-		cType = NODE_TYPE.OBJECT;
+		currentElement = currentElement.getParent();
+		types.remove(types.size()-1);
+		this.arrayName.remove(arrayName.size()-1);
 		return this;
 	}
 
@@ -68,8 +85,11 @@ public class XMLResultStringer implements ResultStringer {
 
 	@Override
 	public ResultStringer value(Object obj) throws StringifyException {
-		if(cType==NODE_TYPE.ARRAY) {
-			currentElement = currentElement.addElement(arrayName);
+		
+		if(types.size()!=0 && types.get(types.size()-1)==NODE_TYPE.ARRAY) {
+			currentElement = currentElement.addElement(arrayName.get(arrayName.size()-1));
+		} else {
+			
 		}
 		currentElement = currentElement.addText(obj.toString());
 		currentElement = currentElement.getParent();
