@@ -106,6 +106,8 @@ public class InternalSearchJob extends StreamableJob {
 //				statisticsInfoService.addSearchTime(searchTime);
 //				statisticsInfoService.addSearchTime(collection, searchTime);
 //			}
+			
+			logger.debug(">>result : {}", result);
 			return new JobResult(new StreamableShardSearchResult(result));
 			
 		} catch(Exception e){

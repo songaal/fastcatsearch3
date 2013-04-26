@@ -11,22 +11,23 @@ import org.fastcatsearch.common.io.Streamable;
 public class StreamableThrowable implements Streamable {
 	private Throwable e;
 
-	public StreamableThrowable(){ }
-	
-	public StreamableThrowable(Throwable e){
+	public StreamableThrowable() {
+	}
+
+	public StreamableThrowable(Throwable e) {
 		this.e = e;
 	}
-	
+
 	public Throwable getThrowable() {
 		return e;
 	}
-	
+
 	@Override
 	public void readFrom(StreamInput input) throws IOException {
 		try {
 			e = (Throwable) new ObjectInputStream(input).readObject();
 		} catch (ClassNotFoundException ignore) {
-			
+
 		}
 	}
 
@@ -34,6 +35,5 @@ public class StreamableThrowable implements Streamable {
 	public void writeTo(StreamOutput output) throws IOException {
 		new ObjectOutputStream(output).writeObject(e);
 	}
-
 
 }

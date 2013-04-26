@@ -21,26 +21,24 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.fastcatsearch.control.JobExecutor;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
+import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.FieldSetting;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
-import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.field.ScoreField;
-import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
+import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.util.Formatter;
-import org.fastcatsearch.job.SearchJob;
+import org.fastcatsearch.job.cluster.ClusterSearchJob;
 import org.fastcatsearch.servlet.JobHttpServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -143,7 +141,7 @@ public class ClusterSearchServlet extends JobHttpServlet {
     	long searchTime = 0;
     	long st = System.currentTimeMillis();
     	
-    	SearchJob job = new SearchJob();
+    	ClusterSearchJob job = new ClusterSearchJob();
     	job.setArgs(new String[]{queryString});
     	
     	Result result = null;
@@ -441,33 +439,35 @@ public class ClusterSearchServlet extends JobHttpServlet {
 			writer.newLine();
 			
 			String[] fieldNames = result.getFieldNameList();
-			
+			writer.write("\t<fieldname_list>");
+			writer.newLine();
 			if(result.getCount() == 0){
-				writer.write("\t<fieldname_list>");
+				writer.write("\t<row>");
 				writer.newLine();
 				writer.write("\t\t<name>_no_</name>");
 				writer.newLine();
-				writer.write("\t</fieldname_list>");
+				writer.write("\t</row>");
 				writer.newLine();
 			}else{
-				writer.write("\t<fieldname_list>");
+				writer.write("\t<row>");
 				writer.newLine();
 	    		writer.write("\t\t<name>_no_</name>");
 	    		writer.newLine();
-				writer.write("\t</fieldname_list>");
+				writer.write("\t</row>");
 				writer.newLine();
 	    		for (int i = 0; i < fieldNames.length; i++) {
-	    			writer.write("\t<fieldname_list>");
+	    			writer.write("\t<row>");
 					writer.newLine();
 	    			writer.write("\t\t<name>");
 	    			writer.write(fieldNames[i]);
 	    			writer.write("</name>");
 	    			writer.newLine();
-	    			writer.write("\t</fieldname_list>");
+	    			writer.write("\t</row>");
 					writer.newLine();
 				}
 			}
-	    	
+			writer.write("\t</fieldname_list>");
+			writer.newLine();
 			
 			//data
 			Row[] rows = result.getData();
@@ -476,14 +476,20 @@ public class ClusterSearchServlet extends JobHttpServlet {
 			if(rows.length == 0){
 				writer.write("\t<result>");
 				writer.newLine();
+				writer.write("\t<row>");
+				writer.newLine();
 				writer.write("\t\t<_no_>No result found!</_no_>");
+				writer.newLine();
+				writer.write("\t</row>");
 				writer.newLine();
 				writer.write("\t</result>");
 				writer.newLine();
 			}else{
+				writer.write("\t<result>");
+				writer.newLine();
 	    		for (int i = 0; i < rows.length; i++) {
 					Row row = rows[i];
-					writer.write("\t<result>");
+					writer.write("\t<row>");
 					writer.newLine();
 					writer.write("\t\t<_no_>");
 					writer.write((start + i)+"");
@@ -503,10 +509,11 @@ public class ClusterSearchServlet extends JobHttpServlet {
 						writer.write(">");
 						writer.newLine();
 					}
-					writer.write("\t</result>");
+					writer.write("\t</row>");
 					writer.newLine();
 	    		}
-	    		
+	    		writer.write("\t</result>");
+				writer.newLine();
 	    		//group
 	    		GroupResults aggregationResult = result.getGroupResult();
 	    		if(aggregationResult == null){

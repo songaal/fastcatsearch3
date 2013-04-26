@@ -119,7 +119,7 @@ public abstract class Job implements Runnable, Serializable{
 					logError(e);
 				}
 			}else{
-				logger.error("## 결과에 jobId가 없습니다. job={}, result=", this, jobResult);
+				logger.error("## 결과에 jobId가 없습니다. job={}, result={}", this, jobResult);
 			}
 //			logger.info("Done job-{} / {}", jobId, jobExecutor.runningJobSize());
 		} catch (OutOfMemoryError e){

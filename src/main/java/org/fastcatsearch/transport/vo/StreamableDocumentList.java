@@ -2,7 +2,6 @@ package org.fastcatsearch.transport.vo;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,25 +67,6 @@ public class StreamableDocumentList implements Streamable {
 					}
 					document.set(fieldInx, field);
 
-					// for (Constructor<?> constructor : clazz.getConstructors()) {
-					// Class<?>[] parameters = constructor.getParameterTypes();
-					//
-					// if (parameters.length > 1 && parameters[0].equals(byte[].class) && parameters[1].equals(int.class)) {
-					// if (MultiValueField.class.isAssignableFrom(clazz) && parameters.length > 3
-					// && parameters[2].equals(int.class) && parameters[3].equals(int.class)) {
-					// document.set(fieldInx, (Field) constructor.newInstance(buffer, fieldByteSize, fieldByteSize,
-					// multiValueCount));
-					//
-					// } else {
-					// if (parameters.length > 2 && parameters[2].equals(int.class)) {
-					// document.set(fieldInx, (Field) constructor.newInstance(buffer, fieldByteSize, fieldByteSize));
-					//
-					// } else if (parameters.length == 2) {
-					// document.set(fieldInx, (Field) constructor.newInstance(buffer, fieldByteSize));
-					// }
-					// }
-					// }
-					// }
 				} catch (Exception e) {
 					throw new IOException(e);
 				}

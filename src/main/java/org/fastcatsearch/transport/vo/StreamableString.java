@@ -8,11 +8,14 @@ import org.fastcatsearch.common.io.Streamable;
 
 public class StreamableString implements Streamable {
 	private String str;
-	public StreamableString(){}
-	
-	public StreamableString(String str){
+
+	public StreamableString() {
+	}
+
+	public StreamableString(String str) {
 		this.str = str;
 	}
+
 	@Override
 	public void readFrom(StreamInput input) throws IOException {
 		str = input.readString();
@@ -23,12 +26,12 @@ public class StreamableString implements Streamable {
 		output.writeString(str);
 	}
 
-	public String value(){
+	public String value() {
 		return str;
 	}
-	
+
 	@Override
-	public String toString(){
+	public String toString() {
 		return str;
 	}
 }

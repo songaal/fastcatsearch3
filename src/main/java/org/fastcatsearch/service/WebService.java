@@ -36,6 +36,7 @@ import org.fastcatsearch.servlet.StatisticsInfoServlet;
 import org.fastcatsearch.servlet.SystemMonServlet;
 import org.fastcatsearch.servlet.WebServiceHttpServlet;
 import org.fastcatsearch.servlet.cluster.ClusterGroupSearchServlet;
+import org.fastcatsearch.servlet.cluster.ClusterSearchServlet;
 import org.fastcatsearch.settings.Settings;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
@@ -127,6 +128,8 @@ public class WebService extends AbstractService{
 		context0.setMaxFormContentSize(10 * 1024 * 1024); //파라미터전송 10MB까지 가능.
 		context0.addServlet(new ServletHolder(new ClusterGroupSearchServlet(WebServiceHttpServlet.JSON_TYPE)),"/group/json");
 		context0.addServlet(new ServletHolder(new ClusterGroupSearchServlet(WebServiceHttpServlet.XML_TYPE)),"/group/xml");
+		context0.addServlet(new ServletHolder(new ClusterSearchServlet(WebServiceHttpServlet.JSON_TYPE)),"/search/json");
+		context0.addServlet(new ServletHolder(new ClusterSearchServlet(WebServiceHttpServlet.XML_TYPE)),"/search/xml");
 		handlerList.addHandler(context0);
 				
 		// Search ServletContextHandler
