@@ -5,13 +5,4 @@
 	<!-- Required -->
 	<Set name="contextPath">/admin</Set>
 	<Set name="war">/Users/swsong/git-stable/fastcatsearch-com/web/src/main/webapp</Set>
-
-	<!-- <Set name="defaultsDescriptor">
-		<SystemProperty name="jetty.home" default="." />
-		conf/web.xml
-	</Set> -->
-
-	<!-- <Set name="overrideDescriptor"> <SystemProperty name="jetty.home" default="." 
-		/> /contexts/override.d/override-people.xml </Set> -->
-
 </Configure>

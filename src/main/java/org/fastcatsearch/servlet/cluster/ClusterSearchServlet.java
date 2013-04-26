@@ -152,7 +152,13 @@ public class ClusterSearchServlet extends JobHttpServlet {
 		if(jobResult.isSuccess()){
 			result = (Result)obj;
 		}else{
-			String errorMsg = obj.toString();
+			String errorMsg = null;
+			if(obj == null){
+				errorMsg = "결과없음. 타임아웃확인필요.";
+			}else{
+				errorMsg = obj.toString();
+			}
+			
 			searchLogger.info(seq+", -1, "+errorMsg);
 			
 			if(resultType == JSON_TYPE){
