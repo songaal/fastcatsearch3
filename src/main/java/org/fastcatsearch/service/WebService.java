@@ -99,8 +99,9 @@ public class WebService extends AbstractService{
 		
 		try {
 			
-			Resource configXml = Resource.newResource(environment.filePaths().getPath("conf/webAdmin.xml"));
-			if(configXml != null){
+			Resource configXml = Resource.newResource(environment.filePaths().getPath("conf/webapp.xml"));
+			if(configXml != null && configXml.exists()){
+				logger.info("Load webapp >> {}", configXml.getFile().getAbsolutePath());
 		        XmlConfiguration configuration = new XmlConfiguration(configXml.getInputStream());
 		        if(configuration != null){
 			        WebAppContext webapp = (WebAppContext)configuration.configure();

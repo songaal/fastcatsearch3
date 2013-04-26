@@ -49,11 +49,6 @@
 			<version>4.2.1</version>
 		</dependency>
 		<dependency>
-			<groupId>org.json</groupId>
-			<artifactId>json</artifactId>
-			<version>20090211</version>
-		</dependency>
-		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<version>1.0.1</version>
@@ -93,6 +88,11 @@
 			<groupId>io.netty</groupId>
 			<artifactId>netty</artifactId>
 			<version>3.6.5.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.codeartisans</groupId>
+			<artifactId>org.json</artifactId>
+			<version>20130213</version>
 		</dependency>
 	</dependencies>
 	<build>

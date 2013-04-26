@@ -140,7 +140,12 @@ public class SearchServlet extends JobHttpServlet {
 		
 			searchTime = (System.currentTimeMillis() - st);
 			if(!jobResult.isSuccess()){
-				String errorMsg = obj.toString();
+				String errorMsg = null;
+				if(obj == null){
+					errorMsg = "null";
+				}else{
+					errorMsg = obj.toString();
+				}
 				searchLogger.info(seq+", -1, "+errorMsg);
 					rStringer.object()
 					.key("status").value(1)
