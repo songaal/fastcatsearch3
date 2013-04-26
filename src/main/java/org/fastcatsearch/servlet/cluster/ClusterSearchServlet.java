@@ -44,6 +44,9 @@ public class ClusterSearchServlet extends AbstractSearchServlet {
     }
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     	
+    }
+    protected void doSearch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    	
     	prepare(request);
     	
     	String queryString = queryString();

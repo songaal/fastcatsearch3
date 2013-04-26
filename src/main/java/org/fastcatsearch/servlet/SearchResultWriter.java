@@ -16,7 +16,7 @@ public class SearchResultWriter {
 	boolean isAdmin;
 	String[] fieldNames = null;
 	
-	public SearchResultWriter(PrintWriter writer, boolean isAdmin) {
+	public SearchResultWriter(Writer writer, boolean isAdmin) {
 		this.writer = writer;
 		this.isAdmin = isAdmin;
 	}
@@ -101,11 +101,11 @@ public class SearchResultWriter {
 		int start = result.getMetadata().start();
 
 		if(rows.length == 0){
-			rStringer.array("row").object()
+			rStringer.array("item").object()
 			.key("_no_").value("No result found!")
 			.endObject().endArray();
 		}else{
-			rStringer.array("row");
+			rStringer.array("item");
 			for (int i = 0; i < rows.length; i++) {
 				Row row = rows[i];
 

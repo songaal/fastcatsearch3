@@ -73,7 +73,7 @@ public class GroupResultWriter {
 			GroupResult[] groupResultList = groupResults.groupResultList();
     		stringer.key("group_result").array("group_list");
     		for (int i = 0; i < groupResultList.length; i++) {
-    			stringer.array("group_list");
+    			stringer.array("group_item");
 				GroupResult groupResult = groupResultList[i];
 				int size = groupResult.size();
 				for (int k = 0; k < size; k++) {
