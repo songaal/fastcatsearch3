@@ -6,43 +6,51 @@ import java.io.PrintWriter;
 import javax.servlet.http.HttpServletResponse;
 
 public class ResultWriter implements ResultStringer {
+
 	ResultStringer stringer;
 	HttpServletResponse response;
 	String charset;
 	
 	public ResultWriter(HttpServletResponse response, String charset, ResultStringer stringer) {
 		this.response = response;
+		this.charset = charset;
 		this.stringer = stringer;
 	}
 
 	@Override
 	public ResultStringer object() throws StringifyException {
-		return stringer.object();
+		stringer.object();
+		return this;
 	}
 
 	@Override
 	public ResultStringer endObject() throws StringifyException {
-		return stringer.endObject();
+		stringer.endObject();
+		return this;
 	}
 
 	@Override
 	public ResultStringer array(String arrayName) throws StringifyException {
-		return stringer.array(arrayName);
+		stringer.array(arrayName);
+		return this;
 	}
 
 	@Override
 	public ResultStringer endArray() throws StringifyException {
-		return stringer.endArray();
+		stringer.endArray();
+		return this;
 	}
 
 	@Override
 	public ResultStringer key(String key) throws StringifyException {
-		return stringer.key(key);
+		stringer.key(key);
+		return this;
 	}
 
 	@Override
 	public ResultStringer value(Object obj) throws StringifyException {
-		return stringer.value(obj);
+		stringer.value(obj);
+		return this;
 	}
 	
 	public void write() {

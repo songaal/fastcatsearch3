@@ -125,16 +125,17 @@ public class SearchServlet extends JobHttpServlet {
 		ResultFuture jobResult = JobService.getInstance().offer(job);
 		Object obj = jobResult.poll(timeout);
 		
-		ResultStringer rs = null;
-		ResultWriter rStringer = null;
+		ResultStringer rStringer = null;
+		ResultWriter rWriter = null;
 		if(resultType == JSON_TYPE) {
-			rs = new JSONResultStringer();
+			rStringer = new JSONResultStringer();
 		} else if(resultType == JSONP_TYPE) {
-			rs = new JSONPResultStringer(request.getParameter("jsoncallback"));
+			rStringer = new JSONPResultStringer(request.getParameter("jsoncallback"));
 		} else if(resultType == XML_TYPE) {
-			rs = new XMLResultStringer("fastcat",true);
+			rStringer = new XMLResultStringer("fastcat",true);
 		}
-		rStringer = new ResultWriter(response, responseCharset, rs);
+		rWriter = new ResultWriter(response, responseCharset, rStringer);
+		
 		
 		try {
 		
@@ -142,7 +143,7 @@ public class SearchServlet extends JobHttpServlet {
 			if(!jobResult.isSuccess()){
 				String errorMsg = obj.toString();
 				searchLogger.info(seq+", -1, "+errorMsg);
-					rStringer.object()
+					rWriter.object()
 					.key("status").value(1)
 					.key("time").value(Formatter.getFormatTime(searchTime))
 					.key("total_count").value(0)
@@ -168,7 +169,7 @@ public class SearchServlet extends JobHttpServlet {
 				
 				int fieldCount = result.getFieldCount();
 				String[] fieldNames = null;
-				rStringer.object()
+				rWriter.object()
 				.key("status").value(0)
 				.key("time").value(Formatter.getFormatTime(searchTime))
 				.key("total_count").value(result.getTotalCount())
@@ -177,19 +178,19 @@ public class SearchServlet extends JobHttpServlet {
 				.key("fieldname_list").array("fieldname");
 				
 				if(result.getCount() == 0){
-					rStringer.object().key("name").value("_no").endObject();
+					rWriter.object().key("name").value("_no_").endObject();
 				}else{
-					rStringer.object().key("name").value("_no").endObject();
+					rWriter.object().key("name").value("_no_").endObject();
 					fieldNames = result.getFieldNameList();
 		    		for (int i = 0; i < fieldNames.length; i++) {
-						rStringer.object().key("name").value(fieldNames[i]).endObject();
+						rWriter.object().key("name").value(fieldNames[i]).endObject();
 					}
 				}
-				rStringer.endArray();
+				rWriter.endArray();
 		    	
 				if(isAdmin != null && isAdmin.equalsIgnoreCase("true")){
 					if(result.getCount() == 0){
-						rStringer.key("colmodel_list").array("colmodel")
+						rWriter.key("colmodel_list").array("colmodel")
 							.object()
 							.key("name").value("_no_")
 							.key("index").value("_no_")
@@ -199,7 +200,7 @@ public class SearchServlet extends JobHttpServlet {
 							.endObject()
 						.endArray();
 					}else{
-						rStringer.key("colmodel_list").array("colmodel");
+						rWriter.key("colmodel_list").array("colmodel");
 						
 		        		AsciiCharTrie fieldNamesTrie = null;
 		        		List<FieldSetting> fieldSettingList = null;
@@ -211,7 +212,7 @@ public class SearchServlet extends JobHttpServlet {
 						
 						//write _no_
 						if(fieldNames.length > 0){
-							rStringer.object()
+							rWriter.object()
 							.key("name").value("_no_")
 							.key("index").value("_no_")
 							.key("width").value("20")
@@ -223,7 +224,7 @@ public class SearchServlet extends JobHttpServlet {
 		        			int idx = fieldNamesTrie.get(fieldNames[i]);
 		        			if(idx < 0){
 		        				if(fieldNames[i].equalsIgnoreCase(ScoreField.fieldName)){
-		        					rStringer.object()
+		        					rWriter.object()
 		        					.key("name").value(fieldNames[i])
 		        					.key("index").value(fieldNames[i])
 		        					.key("width").value("20")
@@ -231,7 +232,7 @@ public class SearchServlet extends JobHttpServlet {
 		        					.key("align").value("right")
 		        					.endObject();
 		        				}else{
-		        					rStringer.object()
+		        					rWriter.object()
 		        					.key("name").value(fieldNames[i])
 		        					.key("index").value(fieldNames[i])
 		        					.key("width").value("20")
@@ -256,7 +257,7 @@ public class SearchServlet extends JobHttpServlet {
 		            				align="";
 		            			}
 		        				
-		        				rStringer.object()
+		        				rWriter.object()
 		        				.key("name").value(fieldNames[i])
 		        				.key("index").value(fieldNames[i])
 		        				.key("width").value(colWidth)
@@ -265,25 +266,26 @@ public class SearchServlet extends JobHttpServlet {
 		            			.endObject();
 		        			}
 						}
-		        		rStringer.endArray();
+		        		rWriter.endArray();
 					}
 				}
 				
-				rStringer.key("result").array("row");
+				rWriter.key("result");
 				//data
 				Row[] rows = result.getData();
 				int start = result.getMetadata().start();
 				
 				if(rows.length == 0){
-					rStringer.object()
+					rWriter.array("row").object()
 						.key("_no_").value("No result found!")
-						.endObject();
+						.endObject().endArray();
 				}else{
+					rWriter.array("row");
 		    		for (int i = 0; i < rows.length; i++) {
 						Row row = rows[i];
 						
-		    			rStringer.object()
-		    				.key("_no").value(start+i);
+		    			rWriter.object()
+		    				.key("_no_").value(start+i);
 		    			
 						for(int k = 0; k < fieldCount; k++) {
 							char[] f = row.get(k);
@@ -292,21 +294,21 @@ public class SearchServlet extends JobHttpServlet {
 							//1. replace single back-slash quote with double back-slash
 							//2. replace double quote with character '\"' 
 							//4. replace linefeed with character '\n' 
-							rStringer.key(fieldNames[k]).value(fdata);
+							rWriter.key(fieldNames[k]).value(fdata);
 						}
-						rStringer.endObject();
+						rWriter.endObject();
 		    		}
-		    		rStringer.endArray();
+		    		rWriter.endArray();
 		    		
 		    		//group
 		    		GroupResults aggregationResult = result.getGroupResult();
 		    		if(aggregationResult == null){
-			    		rStringer.key("group_result").value("null");
+			    		rWriter.key("group_result").value("null");
 		    		} else {
 		    			GroupResult[] groupResultList = aggregationResult.groupResultList();
-			    		rStringer.key("group_result").array("group_list");
+			    		rWriter.key("group_result").array("group_list");
 		        		for (int i = 0; i < groupResultList.length; i++) {
-		        			rStringer.array("group_list");
+		        			rWriter.array("group_list");
 							GroupResult groupResult = groupResultList[i];
 							int size = groupResult.size();
 							for (int k = 0; k < size; k++) {
@@ -314,7 +316,7 @@ public class SearchServlet extends JobHttpServlet {
 								String keyData = e.key.getKeyString();
 								String functionName = groupResult.functionName();
 								
-								rStringer.object()
+								rWriter.object()
 									.key("_no_").value(k+1)
 									.key("key").value(keyData)
 									.key("freq").value(e.count());
@@ -324,19 +326,20 @@ public class SearchServlet extends JobHttpServlet {
 									if(r == null){
 										r = "";
 									}
-									rStringer.key(functionName).value(r);
+									rWriter.key(functionName).value(r);
 								}
-								rStringer.endObject();
+								rWriter.endObject();
 							}//for
-							rStringer.endArray();
+							rWriter.endArray();
 		        		}//for
-		        		rStringer.endArray();
+		        		rWriter.endArray();
 		    		}//if else
-					rStringer.endObject();
 				}
+				rWriter.endObject();
 			}
-			rStringer.write();
+			rWriter.write();
 		} catch (StringifyException e) {
+			logger.error("",e);
 		} finally {
 		}
     }
