@@ -1,5 +1,6 @@
 package org.fastcatsearch.servlet;
 
+import java.io.IOException;
 import java.io.StringWriter;
 
 import org.fastcatsearch.ir.group.GroupEntry;
@@ -65,7 +66,7 @@ public class SearchResultWriterTest {
 	}
 	
 	@Test
-	public void testJson() throws StringifyException {
+	public void testJson() throws StringifyException, IOException {
 		StringWriter writer = new StringWriter();
 		SearchResultWriter resultWriter = new SearchResultWriter(writer, true);
 		ResultStringer stringer = new JSONResultStringer();
@@ -77,7 +78,7 @@ public class SearchResultWriterTest {
 	}
 	
 	@Test
-	public void testXML() throws StringifyException {
+	public void testXML() throws StringifyException, IOException {
 		StringWriter writer = new StringWriter();
 		SearchResultWriter resultWriter = new SearchResultWriter(writer, true);
 		XMLResultStringer stringer = new XMLResultStringer("fastcatsearch", true);

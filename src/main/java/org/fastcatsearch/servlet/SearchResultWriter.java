@@ -1,5 +1,6 @@
 package org.fastcatsearch.servlet;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 
@@ -21,7 +22,7 @@ public class SearchResultWriter {
 		this.isAdmin = isAdmin;
 	}
 
-	public void writeResult(Object obj, ResultStringer rStringer, long searchTime, boolean isSuccess) throws StringifyException {
+	public void writeResult(Object obj, ResultStringer rStringer, long searchTime, boolean isSuccess) throws StringifyException, IOException {
 		if(!isSuccess){
 			String errorMsg = null;
 			if(obj == null){
@@ -60,6 +61,8 @@ public class SearchResultWriter {
 			writeBody(result,rStringer, searchTime);
 			rStringer.endObject();
 		}
+		
+		writer.write(rStringer.toString());
 	}
 	
 	public void writeBody(Result result, ResultStringer rStringer, long searchTime) throws StringifyException {

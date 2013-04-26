@@ -40,19 +40,14 @@ public class AbstractSearchServlet extends JobHttpServlet {
 		super(resultType);
 	}
 
-	public void writeResult(HttpServletResponse response, ResultStringer stringer) {
-		try {
-			response.reset();
-			if(stringer instanceof JSONResultStringer) {
-	    		response.setContentType("application/json; charset="+responseCharset);
-			} else if(stringer instanceof JSONPResultStringer) {
-	    		response.setContentType("application/json; charset="+responseCharset);
-			} else if(stringer instanceof XMLResultStringer) {
-	    		response.setContentType("text/xml; charset="+responseCharset);
-			}
-			response.getWriter().write(stringer.toString());
-		} catch (IOException e) {
-		} finally {
+	public void writeHeader(HttpServletResponse response, ResultStringer stringer) {
+		response.reset();
+		if(stringer instanceof JSONResultStringer) {
+    		response.setContentType("application/json; charset="+responseCharset);
+		} else if(stringer instanceof JSONPResultStringer) {
+    		response.setContentType("application/json; charset="+responseCharset);
+		} else if(stringer instanceof XMLResultStringer) {
+    		response.setContentType("text/xml; charset="+responseCharset);
 		}
 	}
 	
