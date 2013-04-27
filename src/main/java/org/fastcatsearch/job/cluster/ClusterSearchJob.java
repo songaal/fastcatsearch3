@@ -331,7 +331,7 @@ public class ClusterSearchJob extends Job {
 			logger.debug("CACHE_PUT result>>{}, qr >>{}", searchResult, queryString);
 		}
 		
-		logger.debug("ClusterGroupSearchJob 수행시간 : {}", Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
+		logger.debug("ClusterSearchJob 수행시간 : {}", Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
 		return new JobResult(searchResult);
 	}
 

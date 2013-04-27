@@ -22,8 +22,9 @@ if [ -n "$FASTCAT_HOME" ]; then IR_HOME=$FASTCAT_HOME; else IR_HOME=`pwd`; fi
 
 CONF=$IR_HOME/conf
 LIB=$IR_HOME/lib
+JSP_LIB=$LIB/jsp/commons-el.jar:$LIB/jsp/jasper-compiler-5.5.15.jar:$LIB/jsp/jasper-compiler-jdt-5.5.15.jar:$LIB/jsp/jasper-runtime-5.5.15.jar:$LIB/jsp/jsp-api-2.0.jar
 
 #for background service
 FASTCAT_CLASSPATH=".:bin"
 for jarfile in `find $LIB | grep [.]jar$`; do FASTCAT_CLASSPATH="$FASTCAT_CLASSPATH:$jarfile"; done
-nohup java -Dserver.home=$IR_HOME -Xmx512m -server -Dfile.encoding=UTF-8 -Dlogback.configurationFile=$CONF/logback.xml -Dderby.stream.error.file=logs/db.log -classpath $FASTCAT_CLASSPATH org.fastcatsearch.server.CatServer 2>&1 &
+nohup java -Dserver.home=$IR_HOME -Xmx512m -server -Dfile.encoding=UTF-8 -Dlogback.configurationFile=$CONF/logback.xml -Dderby.stream.error.file=logs/db.log -classpath $FASTCAT_CLASSPATH org.fastcatsearch.server.CatServer $IR_HOME 2>&1 &

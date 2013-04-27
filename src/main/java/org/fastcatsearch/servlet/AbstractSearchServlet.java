@@ -25,6 +25,7 @@ public abstract class AbstractSearchServlet extends JobHttpServlet {
 	protected static AtomicLong taskSeq = new AtomicLong();
 	protected static Logger searchLogger = LoggerFactory.getLogger("SEARCH_LOG");
 
+	public static final int DEFAULT_TIMEOUT = 5; //5초.
 	public static final int IS_ALIVE = 3;
 
 	protected String requestCharset;
@@ -100,40 +101,38 @@ public abstract class AbstractSearchServlet extends JobHttpServlet {
 	}
 
 	public void prepare(HttpServletRequest request) {
-		requestCharset = request.getParameter("requestCharset");
-		responseCharset = request.getParameter("responseCharset");
-
-		if (requestCharset == null) {
-			requestCharset = "UTF-8";
-		}
-
-		if (responseCharset == null) {
-			responseCharset = "UTF-8";
-		}
-
-		String timeoutStr = request.getParameter("timeout");
-		timeout = 5;
-		if (timeoutStr != null) {
+		requestCharset = getParameter(request, "requestCharset", "UTF-8");
+		responseCharset = getParameter(request, "responseCharset", "UTF-8");
+		String timeoutStr = getParameter(request, "timeout", Integer.toString(DEFAULT_TIMEOUT));
+		try {
 			timeout = Integer.parseInt(timeoutStr);
+		} catch (NumberFormatException e) {
+			timeout = DEFAULT_TIMEOUT;
 		}
-
 		isAdmin = "true".equals(request.getParameter("admin"));
 
-		collectionName = request.getParameter("cn");
-		fields = request.getParameter("fl");
-		searchCondition = request.getParameter("se");
-		groupFields = request.getParameter("gr");
-		groupCondition = request.getParameter("gc");
-		groupFilter = request.getParameter("gf");
-		sortFields = request.getParameter("ra");
-		filterFields = request.getParameter("ft");
-		startNumber = request.getParameter("sn");
-		resultLength = request.getParameter("ln");
-		highlightTags = request.getParameter("ht");
-		searchOption = request.getParameter("so");
-		userData = request.getParameter("ud");
+		collectionName = getParameter(request, "cn", "");
+		fields = getParameter(request, "fl", "");
+		searchCondition = getParameter(request, "se", "");
+		groupFields = getParameter(request, "gr", "");
+		groupCondition = getParameter(request, "gc", "");
+		groupFilter = getParameter(request, "gf", "");
+		sortFields = getParameter(request, "ra", "");
+		filterFields = getParameter(request, "ft", "");
+		startNumber = getParameter(request, "sn", "");
+		resultLength = getParameter(request, "ln", "");
+		highlightTags = getParameter(request, "ht", "");
+		searchOption = getParameter(request, "so", "");
+		userData = getParameter(request, "ud", "");
+		jsonCallback = getParameter(request, "jsoncallback", "");
+	}
 
-		jsonCallback = request.getParameter("jsoncallback");
+	protected String getParameter(HttpServletRequest request, String key, String defaultValue) {
+		String value = request.getParameter(key);
+		if (value == null) {
+			return defaultValue;
+		}
+		return value;
 	}
 
 	public String queryString() {

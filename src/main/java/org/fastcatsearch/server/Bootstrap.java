@@ -9,16 +9,13 @@ import java.net.URLClassLoader;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class Bootstrap {
 
 	private static Bootstrap daemon;
 	private Object serverDaemon = null;
 
 	protected ClassLoader serverLoader = null;
-	private final String serverClass = "com.fastcatsearch.server.CatServer";
+	private final String serverClass = "org.fastcatsearch.server.CatServer";
 
 	private String serverHome;
 	private final String LIB_PATH = "/lib/"; 

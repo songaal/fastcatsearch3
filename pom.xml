@@ -177,6 +177,14 @@
 					<outputDirectory>${project.build.directory}/${project.artifactId}-${currentVersion}/lib</outputDirectory>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.3.1</version>
+				<configuration>
+					<outputDirectory>${project.build.directory}/${project.artifactId}-${currentVersion}/lib</outputDirectory>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 </project>
