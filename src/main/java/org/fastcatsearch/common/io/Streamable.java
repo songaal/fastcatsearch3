@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 
 public interface Streamable {
+	
     void readFrom(StreamInput input) throws IOException;
 
     void writeTo(StreamOutput output) throws IOException;

@@ -11,6 +11,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.fastcatsearch.ir.group.GroupResult;
+import org.fastcatsearch.ir.group.GroupResults;
+import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.util.JSONPResultStringer;
 import org.fastcatsearch.util.JSONResultStringer;
@@ -76,14 +79,14 @@ public abstract class AbstractSearchServlet extends JobHttpServlet {
 		logger.debug("queryString = " + queryString);
 		logger.debug("timeout = " + timeout + " s");
 
-		long seq = taskSeq.incrementAndGet();
-		searchLogger.info("{},{}", seq, queryString);
+		long requestId = taskSeq.incrementAndGet();
+		searchLogger.info("{},{}", requestId, queryString);
 
-		doSearch(queryString, response);
+		doSearch(requestId, queryString, response);
 
 	}
 
-	protected abstract void doSearch(String queryString, HttpServletResponse response) throws ServletException, IOException;
+	protected abstract void doSearch(long requestId, String queryString, HttpServletResponse response) throws ServletException, IOException;
 
 	protected abstract Job createSearchJob(String queryString);
 
@@ -163,4 +166,34 @@ public abstract class AbstractSearchServlet extends JobHttpServlet {
 		}
 		return rStringer;
 	}
+	
+	protected void writeSearchLog(long requestId, Object obj, long searchTime){
+    	if(obj instanceof Result){
+			Result result = (Result) obj;
+			String logStr = requestId+","+searchTime+","+result.getCount()+","+result.getTotalCount();
+			if(result.getGroupResult() != null){
+				String grStr = ",";
+				GroupResults groupResults = result.getGroupResult();
+				GroupResult[] gr = groupResults.groupResultList();
+				for (int i = 0; i < gr.length; i++) {
+					if(i > 0)
+						grStr += ",";
+					grStr += gr[i].size();
+				}
+				logStr += grStr;
+			}
+			searchLogger.info(logStr);
+			
+		}else if(obj instanceof GroupResults){
+			GroupResults groupResults = (GroupResults) obj;
+			GroupResult[] gr = groupResults.groupResultList();
+			String grStr = requestId+",0,0,0";
+			for (int i = 0; i < gr.length; i++) {
+				if(i > 0)
+					grStr += ",";
+				grStr += gr[i].size();
+			}
+			searchLogger.info(grStr);
+		}
+    }
 }

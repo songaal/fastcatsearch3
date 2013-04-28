@@ -25,7 +25,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DynamicClassLoader {
+	private static Logger logger = LoggerFactory.getLogger(DynamicClassLoader.class);
 	
 	private static Map<String, URLClassLoader> classLoaderList = new HashMap<String, URLClassLoader>();
 	
@@ -58,20 +62,31 @@ public class DynamicClassLoader {
 		}
 		return true;
 	}
-	
-	public static <T>T loadObject(String className){
+//	public static Object loadObject(String className){
+//		try {
+//			Class<?> clazz = loadClass(className);
+//			if(clazz != null){
+//				return clazz.newInstance();
+//			}
+//		} catch (Exception ignore){
+//		}
+//		
+//		return null;
+//	}
+	public static <T> T loadObject(String className, Class<T> type){
 		try {
 			Class<?> clazz = loadClass(className);
 			if(clazz != null){
 				return (T) clazz.newInstance();
 			}
 		} catch (Exception ignore){
+			ignore.printStackTrace();
 		}
 		
 		return null;
 	}
 	
-	public static <T>T loadObject(String className, Class<?>[] paramTypes ,Object[] initargs) {
+	public static <T> T loadObject(String className, Class<T> type, Class<?>[] paramTypes ,Object[] initargs) {
 		try {
 			Class<?> clazz = loadClass(className);
 			if(clazz != null){
@@ -79,19 +94,21 @@ public class DynamicClassLoader {
 				return (T) constructor.newInstance(initargs);
 			}
 		} catch (Exception ignore){
+			ignore.printStackTrace();
 		}
 		return null;
 	}
 	
 	public static Class<?> loadClass(String className) {
 		
-		Class<?> clazz;
+		Class<?> clazz = null;
 		try {
 			clazz = Class.forName(className);
 			if(clazz != null){
 				return clazz;
 			}
 		}catch(ClassNotFoundException ignore){
+			logger.warn("Default classloader cannot find {}", className);
 		}
 		
 		synchronized(classLoaderList){

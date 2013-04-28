@@ -10,14 +10,16 @@ import org.fastcatsearch.ir.query.ShardSearchResult;
 public class StreamableShardSearchResult implements Streamable {
 	private ShardSearchResult shardSearchResult;
 
-	public ShardSearchResult shardSearchResult() {
-		return shardSearchResult;
-	}
+	public StreamableShardSearchResult(){ } 
 
 	public StreamableShardSearchResult(ShardSearchResult shardSearchResult) {
 		this.shardSearchResult = shardSearchResult;
 	}
 
+	public ShardSearchResult shardSearchResult() {
+		return shardSearchResult;
+	}
+	
 	@Override
 	public void readFrom(StreamInput input) throws IOException {
 		String collectionId = null;
@@ -25,12 +27,11 @@ public class StreamableShardSearchResult implements Streamable {
 			collectionId = input.readString().intern();
 		}
 		int shardId = input.readInt();
-		int count = input.readInt();
 		int totalCount = input.readInt();
-
 		StreamableHitElement sHitElement = new StreamableHitElement();
 		sHitElement.readFrom(input);
-
+		int count = sHitElement.count();
+		
 		StreamableGroupData sGroupData = new StreamableGroupData();
 		sGroupData.readFrom(input);
 
@@ -48,10 +49,9 @@ public class StreamableShardSearchResult implements Streamable {
 			output.writeBoolean(true);
 			output.writeString(collectionId);
 		}
-		output.write(shardSearchResult.shardId());
-		output.writeInt(shardSearchResult.getCount());
+		output.writeInt(shardSearchResult.shardId());
 		output.writeInt(shardSearchResult.getTotalCount());
-		new StreamableHitElement(shardSearchResult.getHitElementList()).writeTo(output);
+		new StreamableHitElement(shardSearchResult.getHitElementList(), shardSearchResult.getCount()).writeTo(output);
 		new StreamableGroupData(shardSearchResult.getGroupData()).writeTo(output);
 	}
 

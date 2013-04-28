@@ -43,7 +43,9 @@ public class SearchServlet extends AbstractSearchServlet {
     protected AbstractSearchResultWriter createSearchResultWriter(Writer writer){
     	return new SearchResultWriter(writer, isAdmin);
     }
-    protected void doSearch(String queryString, HttpServletResponse response) throws ServletException, IOException {
+    
+    @Override
+    protected void doSearch(long requestId, String queryString, HttpServletResponse response) throws ServletException, IOException {
     	
     	long searchTime = 0;
     	long st = System.currentTimeMillis();
@@ -52,6 +54,7 @@ public class SearchServlet extends AbstractSearchServlet {
 		ResultFuture jobResult = JobService.getInstance().offer(searchJob);
 		Object obj = jobResult.poll(timeout);
 		searchTime = (System.currentTimeMillis() - st);
+		writeSearchLog(requestId, obj, searchTime);
 		
 		ResultStringer rStringer = getResultStringer();
 		
@@ -67,40 +70,9 @@ public class SearchServlet extends AbstractSearchServlet {
 		
 		response.getWriter().close();
 		
-		writeSearchLog(obj, searchTime);
+		
 		
 		
     }
     
-    protected void writeSearchLog(Object obj, long searchTime){
-    	if(obj instanceof Result){
-			Result result = (Result) obj;
-			String logStr = searchTime+", "+result.getCount()+", "+result.getTotalCount()+", "+result.getFieldCount();
-			if(result.getGroupResult() != null){
-				String grStr = ", [";
-				GroupResults groupResults = result.getGroupResult();
-				GroupResult[] gr = groupResults.groupResultList();
-				for (int i = 0; i < gr.length; i++) {
-					if(i > 0)
-						grStr += ", ";
-					grStr += gr[i].size();
-				}
-				grStr += "]";
-				logStr += grStr;
-			}
-			
-			searchLogger.info(logStr);
-		}else if(obj instanceof GroupResults){
-			GroupResults groupResults = (GroupResults) obj;
-			GroupResult[] gr = groupResults.groupResultList();
-			String grStr = ", [";
-			for (int i = 0; i < gr.length; i++) {
-				if(i > 0)
-					grStr += ", ";
-				grStr += gr[i].size();
-			}
-			grStr += "]";
-			searchLogger.info(grStr);
-		}
-    }
 }

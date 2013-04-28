@@ -34,7 +34,7 @@ public class SourceReaderFactory {
 			return new MultiSourceReader(schema, dsSettingList, isFull);
 		}else{
 			if(dsSetting.sourceType.equalsIgnoreCase("FILE")){
-				SourceReader sourceReader = (SourceReader) DynamicClassLoader.loadObject(dsSetting.fileDocParser, new Class[]{Schema.class, DataSourceSetting.class, Boolean.class}, new Object[]{schema, dsSetting, isFull});
+				SourceReader sourceReader = DynamicClassLoader.loadObject(dsSetting.fileDocParser, SourceReader.class, new Class[]{Schema.class, DataSourceSetting.class, Boolean.class}, new Object[]{schema, dsSetting, isFull});
 				logger.debug("Loading sourceReader : {}, {}", dsSetting.fileDocParser, sourceReader);
 				if(sourceReader == null){
 					logger.error("소스리더를 로드하지 못했습니다. 해당 클래스가 클래스패스에 없거나 생성자 시그너처가 일치하는지 확인이 필요합니다. sourceType={}", dsSetting.sourceType);
@@ -46,7 +46,7 @@ public class SourceReaderFactory {
 			}else if(dsSetting.sourceType.equalsIgnoreCase("WEB")){
 				return new WebPageSourceReader(schema, dsSetting, isFull);
 			}else if(dsSetting.sourceType.equalsIgnoreCase("CUSTOM")){
-				SourceReader sourceReader = (SourceReader) DynamicClassLoader.loadObject(dsSetting.customReaderClass, new Class[]{Schema.class, DataSourceSetting.class, Boolean.class, Properties.class}, new Object[]{schema, dsSetting, isFull});
+				SourceReader sourceReader = DynamicClassLoader.loadObject(dsSetting.customReaderClass, SourceReader.class, new Class[]{Schema.class, DataSourceSetting.class, Boolean.class, Properties.class}, new Object[]{schema, dsSetting, isFull});
 				logger.debug("Loading sourceReader : {}, {}", dsSetting.fileDocParser, sourceReader);
 				if(sourceReader == null){
 					logger.error("소스리더를 로드하지 못했습니다. 해당 클래스가 클래스패스에 없거나 생성자 시그너처가 일치하는지 확인이 필요합니다. dsSetting.sourceType={}", dsSetting.sourceType);

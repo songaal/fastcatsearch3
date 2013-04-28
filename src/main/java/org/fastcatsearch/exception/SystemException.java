@@ -10,6 +10,8 @@ public class SystemException extends Exception implements Streamable {
 	
 	private SystemExceptionCode exceptionCode;
 	
+	public SystemException(){ }
+	
 	public SystemException(SystemExceptionCode exceptionCode, String message, Throwable cause){
 		super(message, cause);
 		this.exceptionCode = exceptionCode;
