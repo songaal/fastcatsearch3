@@ -32,22 +32,13 @@ public class GroupSearchJob extends Job {
 	
 	@Override
 	public JobResult doRun() throws JobException, ServiceException {
-		long st = System.currentTimeMillis();
 		String[] args = getStringArrayArgs();
 		String queryString = args[0];
 		
-//		StatisticsInfoService statisticsInfoService = StatisticsInfoService.getInstance();
 		Query q = null;
 		try {
 			q = QueryParser.getInstance().parseQuery(queryString);
 		} catch (QueryParseException e) {
-//			if(statisticsInfoService.isEnabled()){
-//				statisticsInfoService.addSearchHit();
-//				long searchTime = System.currentTimeMillis() - st;
-//				logger.debug("fail searchTime ={}",searchTime);
-//				statisticsInfoService.addFailHit();
-//				statisticsInfoService.addSearchTime(searchTime);
-//			}
 			throw new JobException("[Query Parsing Error] "+e.getMessage());
 		}
 		
@@ -58,18 +49,12 @@ public class GroupSearchJob extends Job {
 			keyword = userData.get("keyword");
 		
 		String collection = meta.collectionName();
-//		if(statisticsInfoService.isEnabled()){
-//			statisticsInfoService.addSearchHit();
-//			statisticsInfoService.addSearchHit(collection);
-//		}
-//		logger.debug("collection = "+collection);
 		try {
 			GroupResults groupResults = null;
 			boolean noCache = false;
 			//no cache 옵션이 없으면 캐시를 확인한다.
 			if((q.getMeta().option() & Query.SEARCH_OPT_NOCACHE) > 0)
 				noCache = true;
-//			logger.debug("NoCache => "+noCache+" ,option = "+q.getMeta().option()+", "+(q.getMeta().option() & Query.SEARCH_OPT_NOCACHE));
 			
 			if(!noCache)
 				groupResults = IRService.getInstance().groupingCache().get(queryString);
@@ -85,11 +70,11 @@ public class GroupSearchJob extends Job {
 				GroupData groupData = collectionHandler.doGrouping(q);
 				Groups groups =q.getGroups();
 				groupResults = groups.getGroupResultsGenerator().generate(groupData);
-				if(!noCache){
+				if(groupResults != null){
 					IRService.getInstance().groupingCache().put(queryString, groupResults);
+					logger.debug("CACHE_PUT result>>{}, qr >>{}", groupResults, queryString);
 				}
 			}
-//			long st = System.currentTimeMillis();
 			
 			if(keyword != null){
 				if(groupResults.totalSearchCount() > 0){
@@ -97,39 +82,11 @@ public class GroupSearchJob extends Job {
 				}else{
 					KeywordService.getInstance().addFailKeyword(keyword);
 				}
-//				statisticsInfoService.addSearchKeyword(keyword);
-			}
-//			if(groupResults.getCount() > 0 && keyword != null){
-//				KeywordService.getInstance().addKeyword(keyword);
-//			}
-
-			long searchTime = System.currentTimeMillis() - st;
-//			if(statisticsInfoService.isEnabled()){
-//				statisticsInfoService.addSearchTime(searchTime);
-//				statisticsInfoService.addSearchTime(collection, searchTime);
-//			}
-			
-			if(groupResults != null){
-				IRService.getInstance().groupingCache().put(queryString, groupResults);
-				logger.debug("CACHE_PUT result>>{}, qr >>{}", groupResults, queryString);
 			}
 			
 			return new JobResult(groupResults);
 			
 		} catch(Exception e){
-//			if(statisticsInfoService.isEnabled()){
-//				long searchTime = System.currentTimeMillis() - st;
-//				//통합 통계
-//				statisticsInfoService.addFailHit();
-//				statisticsInfoService.addSearchTime(searchTime);
-//				if(keyword != null){
-//					statisticsInfoService.addSearchKeyword(keyword);
-//				}
-//				
-//				//컬렉션별 통계
-//				statisticsInfoService.addFailHit(collection);
-//				statisticsInfoService.addSearchTime(collection, searchTime);
-//			}
 			EventDBLogger.error(EventDBLogger.CATE_SEARCH, "검색에러..", EventDBLogger.getStackTrace(e));
 			throw new JobException(e);
 		}

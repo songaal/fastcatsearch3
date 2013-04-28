@@ -19,7 +19,7 @@ public class Environment {
 	private String home = "";
 	private File homeFile;
 	
-	private DynamicClassLoader classLoader;
+//	private DynamicClassLoader classLoader;
 	private SettingManager settingManager;
 	private FilePaths filePaths;
 	
@@ -37,9 +37,9 @@ public class Environment {
 		settingManager = new SettingManager(this);
 		filePaths = new FilePaths(this);
 		
-		classLoader = new DynamicClassLoader(this, settingManager.getSettings());
-		classLoader.load();
-		classLoader.asSingleton();
+//		classLoader = new DynamicClassLoader(this, settingManager.getSettings().getSubSettings("module").getSubSettings("dynamic_classloader"));
+//		classLoader.load();
+//		classLoader.asSingleton();
 		
 		return this;
 	}
@@ -59,8 +59,8 @@ public class Environment {
 		return filePaths;
 	}
 	
-	public DynamicClassLoader classLoader(){
-		return classLoader;
-	}
+//	public DynamicClassLoader classLoader(){
+//		return classLoader;
+//	}
 	
 }

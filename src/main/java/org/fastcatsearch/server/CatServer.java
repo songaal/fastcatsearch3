@@ -49,6 +49,11 @@ public class CatServer {
 	private static volatile CountDownLatch keepAliveLatch;
 
 	public static void main(String... args) throws ServiceException {
+		if (args.length < 1) {
+			usage();
+			return;
+		}
+		
 		CatServer server = new CatServer(args[0]);
 		if (server.load(args)) {
 			server.start();
@@ -78,36 +83,37 @@ public class CatServer {
 		this.serverHome = serverHome;
 	}
 
+	public boolean load(){
+		return load(null);
+	}
 	public boolean load(String[] args) {
 
 		boolean isConfig = false;
 
-		if (args.length < 1) {
-			usage();
-			return false;
-		}
-
-		for (int i = 0; i < args.length; i++) {
-			if (isConfig) {
-				isConfig = false;
-			} else if (args[i].equals("-config")) {
-				isConfig = true;
-			} else if (args[i].equals("-help")) {
-				usage();
-				return false;
+		//load 파라미터는 없을수도 있다.
+		if(args != null){
+			for (int i = 0; i < args.length; i++) {
+				if (isConfig) {
+					isConfig = false;
+				} else if (args[i].equals("-config")) {
+					isConfig = true;
+				} else if (args[i].equals("-help")) {
+					usage();
+					return false;
+				}
 			}
 		}
-
+		
 		setKeepAlive(true);
 		return true;
 
 	}
 
-	protected void usage() {
+	protected static void usage() {
 
         System.out.println
-            ("usage: java "+ getClass().getName()
-             + " [ -help ]"
+            ("usage: java "+ CatServer.class.getName()
+             + " [ -help -config ]"
              + " {HomePath}");
 
     }
@@ -116,7 +122,6 @@ public class CatServer {
 		// 초기화 및 서비스시작을 start로 옮김.
 		// 초기화로직이 init에 존재할 경우, 관리도구에서 검색엔진을 재시작할때, init을 호출하지 않으므로, 초기화를 건너뛰게
 		// 됨.
-
 		instance = this;
 
 		if (serverHome == null) {

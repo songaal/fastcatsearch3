@@ -94,7 +94,7 @@ public class WebService extends AbstractService{
 			SERVER_PORT = settings.getInt("port");
 		}
 		
-		Server server = new Server(SERVER_PORT);
+		server = new Server(SERVER_PORT);
 		handlerList = new HandlerList();
 		
 		try {

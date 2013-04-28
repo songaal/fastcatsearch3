@@ -25,169 +25,91 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.fastcatsearch.env.Environment;
-import org.fastcatsearch.module.AbstractModule;
-import org.fastcatsearch.module.AbstractSingletoneModule;
-import org.fastcatsearch.settings.Settings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public class DynamicClassLoader extends AbstractSingletoneModule {
-	private static Logger logger = LoggerFactory.getLogger(DynamicClassLoader.class);
-	private Map<String, URLClassLoader> classLoaderList = new HashMap<String, URLClassLoader>();
-	private Map<String, Class<?>> classCache = new HashMap<String, Class<?>>();
-	protected boolean isLoad;
-	private static DynamicClassLoader instance;
+public class DynamicClassLoader {
 	
-	public DynamicClassLoader(Environment environment, Settings settings){
-		super(environment, settings);
-	}
+	private static Map<String, URLClassLoader> classLoaderList = new HashMap<String, URLClassLoader>();
 	
-	public static DynamicClassLoader getInstance(){
-		return instance;
-	}
-	@Override
-	public void asSingleton() {
-		instance = this;
-	}
-	@Override
-	public boolean doLoad() {
-		String jarPath = settings.getString("classpath");
-		
-		//초기화
-		classLoaderList.clear();
-		classCache.clear();
-		
-		if(jarPath != null && jarPath.length() > 0){
-			// ',' makes different classloader
-			String[] pathList = jarPath.split(",");
-			for (int i = 0; i < pathList.length; i++) {
-				String tmp = pathList[i];
-				String[] tl = tmp.split("[:;]");
-				for (int k = 0; k < tl.length; k++) {
-					tl[k] = tl[k].trim();
-					if(tl[k].length() == 0)
-						continue;
-					
-					tl[k] = environment.filePaths().getPath(tl[k]);
-				}
-				addClassLoader(tmp, tl);
-			}
-			
+	public static boolean remove(String tag) {
+		synchronized(classLoaderList){
+			classLoaderList.remove(tag);
 		}
-		isLoad = true;
 		return true;
 	}
-	@Override
-	public boolean doUnload() {
-		classLoaderList.clear();
-		classCache.clear();
-		isLoad = false;
+	public static boolean removeAll() {
+		synchronized(classLoaderList){
+			classLoaderList.clear();
+		}
 		return true;
 	}
 	
-	public boolean addClassLoader(String tag, String[] jarFilePath) {
+	public static boolean add(String tag, String[] jarFilePath) {
 		URL[] jarUrls = new URL[jarFilePath.length];
 		for (int i = 0; i < jarFilePath.length; i++) {
 			File f = new File(jarFilePath[i]);
 			try {
 				jarUrls[i] = f.toURI().toURL();
-				logger.debug("Add jar = {}", jarUrls[i]);
 			} catch (MalformedURLException e) {
-				logger.error("Dynamic jar filepath is strange. path="+jarFilePath[i]+"("+f.getAbsolutePath()+")",e);
 			}
 		}
 		
 		URLClassLoader l = new URLClassLoader(jarUrls);
-		classLoaderList.put(tag, l);
-		logger.info("Class Loader {} = {}", tag, l);
+		synchronized(classLoaderList){
+			classLoaderList.put(tag, l);
+		}
 		return true;
 	}
 	
-	public Object loadObject(String className){
-		Class<?> clazz = loadClass(className);
-		if(clazz != null){
-			try {
-				return clazz.newInstance();
-			} catch (Exception e){
-				logger.error("",e);
+	public static <T>T loadObject(String className){
+		try {
+			Class<?> clazz = loadClass(className);
+			if(clazz != null){
+				return (T) clazz.newInstance();
 			}
-			return null;
+		} catch (Exception ignore){
 		}
 		
 		return null;
 	}
 	
-	public Object loadObject(String className, Class<?>[] paramTypes ,Object[] initargs){
-		Class<?> clazz = loadClass(className);
-		if(clazz != null){
-			try {
+	public static <T>T loadObject(String className, Class<?>[] paramTypes ,Object[] initargs) {
+		try {
+			Class<?> clazz = loadClass(className);
+			if(clazz != null){
 				Constructor<?> constructor = clazz.getConstructor(paramTypes);
-				return constructor.newInstance(initargs);
-			} catch (Exception e){
-				logger.error("",e);
+				return (T) constructor.newInstance(initargs);
 			}
-			return null;
+		} catch (Exception ignore){
 		}
-		
 		return null;
 	}
 	
-	
-	public Class<?> loadClass(String className){
-		//1. cache?
-		Class<?> clazz = classCache.get(className);
-		if(clazz != null){
-			try {
-				return clazz;
-			} catch (Exception e){
-				logger.error("",e);
-			}
-			return null;
-		}
-		//2. default CL?
-		try{
+	public static Class<?> loadClass(String className) {
+		
+		Class<?> clazz;
+		try {
 			clazz = Class.forName(className);
 			if(clazz != null){
-				try {
-					classCache.put(className, clazz);
-					return clazz;
-				} catch (Exception e){
-					logger.error("",e);
-				}
-				return null;
+				return clazz;
 			}
-		}catch(ClassNotFoundException e){
-			logger.debug("Not found default class {}", className);
+		}catch(ClassNotFoundException ignore){
 		}
 		
-		//3. custom CL?
-		Iterator<URLClassLoader> iter = classLoaderList.values().iterator();
-		while(iter.hasNext()){
-			URLClassLoader l = (URLClassLoader)iter.next();
-			try {
-				clazz = Class.forName(className, true, l);
-			} catch (ClassNotFoundException e) {
-				
-				continue;
-			}
-			
-			if(clazz != null){
+		synchronized(classLoaderList){
+			Iterator<URLClassLoader> iter = classLoaderList.values().iterator();
+			while(iter.hasNext()){
+				URLClassLoader l = (URLClassLoader)iter.next();
 				try {
-					logger.info("Found dynamic class {}", className);
-					classCache.put(className, clazz);
-					return clazz;
-				} catch (Exception e){
-					logger.error("",e);
+					clazz = Class.forName(className, true, l);
+				} catch (ClassNotFoundException e) {
+					continue;
 				}
-				return null;
-			}else{
-				logger.error("Not found dynamic class {}", className);
+				
+				if(clazz != null){
+					return clazz;
+				}
 			}
 		}
 		return null;
 	}
-
-	
 	
 }

@@ -127,7 +127,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         try {
         	String jobName = input.readString();
         	logger.debug("#### READ job = {}", jobName);
-        	Job requestJob = (Job) DynamicClassLoader.getInstance().loadObject(jobName);
+        	Job requestJob = (Job) DynamicClassLoader.loadObject(jobName);
         	if(requestJob instanceof StreamableJob){
         		StreamableJob streamableJob = (StreamableJob) requestJob;
         		streamableJob.readFrom(input);
@@ -148,7 +148,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
     private void handleStreamableResponse(StreamInput input, long requestId) {
         try {
         	String className = input.readString();
-        	Streamable streamableResult = (Streamable) DynamicClassLoader.getInstance().loadObject(className);
+        	Streamable streamableResult = (Streamable) DynamicClassLoader.loadObject(className);
         	streamableResult.readFrom(input);
         	logger.debug("## Response-{} >> {}", requestId, streamableResult.toString());
         	

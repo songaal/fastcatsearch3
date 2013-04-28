@@ -30,10 +30,8 @@ public class InternalDocumentRequestJob extends StreamableJob {
 	
 	@Override
 	public JobResult doRun() throws JobException, ServiceException {
-//		long st = System.currentTimeMillis();
 		
 		try {
-			
 			CollectionHandler collectionHandler = IRService.getInstance().getCollectionHandler(collectionId);
 			
 			if(collectionHandler == null){

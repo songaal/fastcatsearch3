@@ -23,6 +23,8 @@ import org.fastcatsearch.ir.field.MultiValueField;
 import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.field.SingleValueField;
 import org.fastcatsearch.ir.field.UnknownField;
+import org.fastcatsearch.ir.group.GroupData;
+import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.io.FixedHitReader;
 import org.fastcatsearch.ir.query.Groups;
@@ -78,7 +80,7 @@ public class ClusterSearchJob extends Job {
 		
 		Metadata meta = q.getMeta();
 		String collectionId = q.getMeta().collectionName();
-//		Groups groups = q.getGroups();
+		Groups groups = q.getGroups();
 		
 		String[] collectionIdList = collectionId.split(",");
 		ResultFuture[] resultFutureList = new ResultFuture[collectionIdList.length];
@@ -232,13 +234,11 @@ public class ClusterSearchJob extends Job {
 		//search 조건에 입력한 요약옵션(8)과 별도로 view에 셋팅한 요약길이를 확인하여 검색필드가 아니더라도 요약해주도록함.
 		int[] extraSnipetSize = new int[fieldSize];
 		
-//		logger.debug("fieldSize = "+fieldSize);
 		int jj = 0;
 		while(iter.hasNext()){
 			View v = iter.next();
 			String fn = v.fieldname();
 			int i = -1;
-//			logger.debug("fn = "+fn);
 			
 			if(fn.equalsIgnoreCase(ScoreField.fieldName)){
 				i = ScoreField.fieldNumber;
@@ -324,12 +324,19 @@ public class ClusterSearchJob extends Job {
 			}
 		}
 		
-		Result searchResult = new Result(row, fieldSize, fieldNameList, realSize, totalSize, meta);
-		
-		if(searchResult != null){
-			IRService.getInstance().searchCache().put(queryString, searchResult);
-			logger.debug("CACHE_PUT result>>{}, qr >>{}", searchResult, queryString);
+		/*
+		 * Group Result
+		 * */
+		GroupData groupData = aggregatedSearchResult.getGroupData();
+		GroupResults groupResults = null;
+		if(aggregatedSearchResult.getGroupData() != null){
+			groupResults = groups.getGroupResultsGenerator().generate(groupData);
 		}
+		
+		Result searchResult = new Result(row, groupResults, fieldSize, fieldNameList, realSize, totalSize, meta);
+		
+		IRService.getInstance().searchCache().put(queryString, searchResult);
+		logger.debug("CACHE_PUT result>>{}, qr >>{}", searchResult, queryString);
 		
 		logger.debug("ClusterSearchJob 수행시간 : {}", Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
 		return new JobResult(searchResult);

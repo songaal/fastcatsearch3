@@ -75,7 +75,6 @@ public class SearchJob extends Job {
 //			logger.debug("NoCache => "+noCache+" ,option = "+q.getMeta().option()+", "+(q.getMeta().option() & Query.SEARCH_OPT_NOCACHE));
 			
 			if(!noCache){
-				IRService.getInstance().searchCache().get(queryString);
 				result = IRService.getInstance().searchCache().get(queryString);
 			}
 			
@@ -89,9 +88,7 @@ public class SearchJob extends Job {
 				
 				result = collectionHandler.search(q);
 				
-				if(!noCache){
-					IRService.getInstance().searchCache().put(queryString, result);
-				}
+				IRService.getInstance().searchCache().put(queryString, result);
 			}
 //			long st = System.currentTimeMillis();
 			

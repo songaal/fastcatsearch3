@@ -40,7 +40,7 @@ public class Bootstrap {
 		}
 
 		try {
-			String command = "start";
+			String command = "";
 			if (args.length > 0) {
 				command = args[args.length - 1];
 			}
@@ -54,6 +54,11 @@ public class Bootstrap {
 				daemon.start();
 			} else if (command.equals("stop")) {
 				daemon.stop();
+			} else if (args.length > 0) {
+				//TODO -help등을 sh스크립트에서 처리할지, bootstrap에서 처리할지 결정해야한다.
+				//		catserver에 넘겨주면 Catserver의 help가 출력되어 혼동예상.
+				daemon.load(args);
+				System.exit(0);
 			} else if (command.equals("configtest")) {
 				daemon.load(args);
 				System.exit(0);
@@ -89,11 +94,8 @@ public class Bootstrap {
 		}
 
 		serverLoader = initClassLoader();
-
 		Thread.currentThread().setContextClassLoader(serverLoader);
-
 		// Load our startup class and call its process() method
-		System.out.println("Loading startup class");
 		Class<?> startupClass = serverLoader.loadClass(serverClass);
 		Constructor<?> constructor = startupClass.getConstructor(new Class[] { String.class });
 		serverDaemon = constructor.newInstance(new Object[] { serverHome });
@@ -104,12 +106,9 @@ public class Bootstrap {
 		// 대부분 -D옵션을 통해 전달받으므로 아직까지는 셋팅할 내용은 없다.
 		// Call the load() method
 		String methodName = "load";
-		Object param[];
+		Object[] param = null;
 		Class<?>[] paramTypes = null;
-		if (arguments == null || arguments.length == 0) {
-			paramTypes = null;
-			param = null;
-		} else {
+		if (arguments != null && arguments.length > 0) {
 			paramTypes = new Class[1];
 			paramTypes[0] = arguments.getClass();
 			param = new Object[1];
@@ -145,6 +144,7 @@ public class Bootstrap {
 		}
 		
 		final URL[] urls = set.toArray(new URL[set.size()]);
+		
 		return new URLClassLoader(urls);
 	}
 
