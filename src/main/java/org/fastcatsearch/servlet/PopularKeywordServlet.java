@@ -52,7 +52,7 @@ public class PopularKeywordServlet extends WebServiceHttpServlet {
 		String responseCharset = getParameter(request, "responseCharset", "UTF-8");
     	String jsonCallback = request.getParameter("jsoncallback");
 		
-    	ResultStringer rStringer = super.getResultStringer("popularKeywords", true, jsonCallback);
+    	ResultStringer rStringer = super.getResultStringer("popular-keywords", true, jsonCallback);
     	
     	PrintWriter writer = null;
     	
@@ -135,7 +135,8 @@ public class PopularKeywordServlet extends WebServiceHttpServlet {
     					.key("hit").value(kh.hit)
     					.key("popular").value(kh.popular)
     					.key("prevRank").value(kh.prevRank)
-    					.key("isUsed").value(kh.isUsed);
+    					.key("isUsed").value(kh.isUsed)
+					.endObject();
     			}
 	    	}
 	    	

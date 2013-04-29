@@ -55,7 +55,7 @@ public class RecommendKeywordServlet extends WebServiceHttpServlet {
 		String responseCharset = getParameter(request, "responseCharset", "UTF-8");
     	String jsonCallback = request.getParameter("jsoncallback");
 		
-    	ResultStringer rStringer = super.getResultStringer("recommendKeyword", true, jsonCallback);
+    	ResultStringer rStringer = super.getResultStringer("recommend-keyword", true, jsonCallback);
     	
     	try {
 			rStringer.object()

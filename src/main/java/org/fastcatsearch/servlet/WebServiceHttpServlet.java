@@ -1,5 +1,7 @@
 package org.fastcatsearch.servlet;
 
+import java.util.Arrays;
+
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -30,16 +32,21 @@ public class WebServiceHttpServlet extends HttpServlet {
 	
 	@Override
 	public void init(){
-		String type = getServletConfig().getInitParameter("result_format");
-		if(type != null){
-			if(type.equalsIgnoreCase("json")){
-				resultType = JSON_TYPE;
-			}else if(type.equalsIgnoreCase("xml")){
-				resultType = XML_TYPE;
-			}else if(type.equalsIgnoreCase("jsonp")){
-				resultType = JSONP_TYPE;
+		String typeStr = getServletConfig().getInitParameter("result_format");
+		resultType = detectType(typeStr);
+	}
+	
+	protected int detectType(String typeStr) {
+		if(typeStr != null){
+			if(typeStr.equalsIgnoreCase("json")){
+				return JSON_TYPE;
+			}else if(typeStr.equalsIgnoreCase("xml")){
+				return XML_TYPE;
+			}else if(typeStr.equalsIgnoreCase("jsonp")){
+				return JSONP_TYPE;
 			}
 		}
+		return -1;
 	}
 	
 	protected String getParameter(HttpServletRequest request, String key, String defaultValue) {
@@ -73,5 +80,8 @@ public class WebServiceHttpServlet extends HttpServlet {
 			response.setContentType("text/xml; charset=" + responseCharset);
 		}
 	}
-
+	
+	protected String[] getURIArray(HttpServletRequest req) {
+		return req.getRequestURI().split("/");
+	}
 }

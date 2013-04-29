@@ -15,10 +15,7 @@ import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.util.JSONPResultStringer;
-import org.fastcatsearch.util.JSONResultStringer;
 import org.fastcatsearch.util.ResultStringer;
-import org.fastcatsearch.util.XMLResultStringer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
