@@ -37,9 +37,8 @@ import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.DocumentListJob;
-import org.fastcatsearch.servlet.JobHttpServlet;
 
-public class DocumentListServlet extends JobHttpServlet {
+public class DocumentListServlet extends WebServiceHttpServlet {
 	
     public DocumentListServlet(int resultType){
     	super(resultType);

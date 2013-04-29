@@ -21,14 +21,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.object.RecommendKeyword;
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import org.fastcatsearch.util.ResultStringer;
+import org.fastcatsearch.util.StringifyException;
 
 public class RecommendKeywordServlet extends WebServiceHttpServlet {
 	
-	public RecommendKeywordServlet() { }
-	
+	private static final long serialVersionUID = 5662252132538716560L;
+
 	public RecommendKeywordServlet(int resultType){
     	super(resultType);
 	}
@@ -53,63 +52,33 @@ public class RecommendKeywordServlet extends WebServiceHttpServlet {
     			termList = listStr.split(",");
     		}
     	}
+		String responseCharset = getParameter(request, "responseCharset", "UTF-8");
+    	String jsonCallback = request.getParameter("jsoncallback");
+		
+    	ResultStringer rStringer = super.getResultStringer("recommend-keyword", true, jsonCallback);
     	
-    	PrintWriter writer = null;
+    	try {
+			rStringer.object()
+				.key("keyword").value(keyword);
+	    	if(termList != null && termList.length > 0){
+	    		rStringer.key("list").array("item");
+		    	for (int inx = 0; inx < termList.length; inx++) {
+		    		rStringer.value(termList[inx]);
+				}
+		    	rStringer.endArray();
+	    	}
+	    	rStringer.endObject();
+		} catch (StringifyException e) {
+    		logger.error("exception",e);
+    		throw new IOException(e.toString());
+		}
     	
-    	response.setCharacterEncoding("utf-8");
+		writeHeader(response, rStringer, responseCharset);
+		
+    	PrintWriter writer = response.getWriter();
     	
-    	if(resultType == XML_TYPE) {
-	    	response.setContentType("text/html");
-    		writer = response.getWriter();
-    		responseAsXml(writer, keyword, termList);
-    	} else if(resultType == JSONP_TYPE) {
-	    	response.setContentType("application/json");
-    		writer = response.getWriter();
-    		String callback = request.getParameter("jsoncallback");
-    		writer.write(callback+"(");
-    		responseAsJson(writer, keyword, termList);
-    		writer.write(");");
-    	} else {
-	    	response.setContentType("application/json");
-    		writer = response.getWriter();
-    		responseAsJson(writer, keyword, termList);
-    	}
+    	writer.write(rStringer.toString());
     	
     	if( writer !=null ) { writer.close(); }
-    }
-    
-    public void responseAsJson(PrintWriter writer, String keyword, String[] termList) throws IOException {
-    	try{
-    		JSONObject jobj = new JSONObject();
-    		jobj.put("keyword", keyword);
-			
-	    	if(termList != null && termList.length > 0){
-		    	for (int j = 0; j < termList.length; j++) {
-		    		jobj.append("list", termList[j]);
-				}
-	    	}
-	    	
-	    	logger.debug("JSON = "+jobj.toString());
-	    	writer.write(jobj.toString());
-	    	
-    	}catch(JSONException e){
-    		logger.error("json exception",e);
-    		throw new IOException(e.toString());
-    	}
-    }
-    
-    public void responseAsXml(PrintWriter writer, String keyword, String[] termList) throws IOException {
-    	writer.append("<recommendedKeyword>");
-    	writer.append("<keyword>").append(keyword).append("</keyword>");
-    	writer.append("<termList>");
-    	if(termList != null && termList.length > 0){
-    		for (int j = 0; j < termList.length; j++) {
-    			String term = termList[j];
-    			term = term.replaceAll("&", "&amp;");
-    			writer.append("<term>").append(termList[j]).append("</term>");
-    		}
-    	}
-    	writer.append("</termList>");
-    	writer.append("</recommendedKeyword>");
     }
 }

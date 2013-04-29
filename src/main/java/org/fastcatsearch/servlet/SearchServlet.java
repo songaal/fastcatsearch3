@@ -19,9 +19,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
-import org.fastcatsearch.ir.group.GroupResult;
-import org.fastcatsearch.ir.group.GroupResults;
-import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.SearchJob;
 import org.fastcatsearch.util.ResultStringer;
@@ -57,7 +54,6 @@ public class SearchServlet extends AbstractSearchServlet {
 		writeSearchLog(requestId, obj, searchTime);
 		
 		ResultStringer rStringer = getResultStringer();
-		
 		writeHeader(response, rStringer);
 		
 		AbstractSearchResultWriter resultWriter = createSearchResultWriter(response.getWriter());
@@ -70,9 +66,5 @@ public class SearchServlet extends AbstractSearchServlet {
 		
 		response.getWriter().close();
 		
-		
-		
-		
     }
-    
 }
