@@ -1,7 +1,5 @@
 package org.fastcatsearch.servlet;
 
-import java.util.Arrays;
-
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,7 +31,10 @@ public class WebServiceHttpServlet extends HttpServlet {
 	@Override
 	public void init(){
 		String typeStr = getServletConfig().getInitParameter("result_format");
-		resultType = detectType(typeStr);
+		int resultType = detectType(typeStr);
+		if(resultType!=-1) {
+			this.resultType = resultType;
+		}
 	}
 	
 	protected int detectType(String typeStr) {

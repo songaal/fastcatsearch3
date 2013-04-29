@@ -54,7 +54,6 @@ public class SearchServlet extends AbstractSearchServlet {
 		writeSearchLog(requestId, obj, searchTime);
 		
 		ResultStringer rStringer = getResultStringer();
-		
 		writeHeader(response, rStringer);
 		
 		AbstractSearchResultWriter resultWriter = createSearchResultWriter(response.getWriter());
