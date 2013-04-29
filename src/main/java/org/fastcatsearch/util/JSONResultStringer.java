@@ -1,14 +1,25 @@
 package org.fastcatsearch.util;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.json.JSONStringer;
 
 public class JSONResultStringer implements ResultStringer {
 	
 	JSONStringer stringer;
+	boolean beautify;
 	
 	public JSONResultStringer() {
+		this(false);
+	}
+	
+	public JSONResultStringer(boolean beautify) {
 		stringer = new JSONStringer();
+		this.beautify = beautify;
+	}
+	
+	public boolean isBeautify() {
+		return beautify;
 	}
 
 	@Override
@@ -73,6 +84,15 @@ public class JSONResultStringer implements ResultStringer {
 	
 	@Override
 	public String toString() {
-		return stringer.toString();
+		if(beautify) {
+			try {
+				JSONObject obj = new JSONObject(stringer.toString());
+				return obj.toString(2);
+			} catch (JSONException e) {
+			}
+		} else {
+			return stringer.toString();
+		}
+		return null;
 	}
 }

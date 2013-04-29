@@ -31,6 +31,10 @@ public class XMLResultStringer implements ResultStringer {
 	List<NODE_TYPE> types;
 	boolean beautify;
 	
+	public XMLResultStringer(String rootName) {
+		this(rootName, false);
+	}
+	
 	public XMLResultStringer(String rootName, boolean beautify) {
 		document = DocumentHelper.createDocument();
 		root = document.addElement(rootName);

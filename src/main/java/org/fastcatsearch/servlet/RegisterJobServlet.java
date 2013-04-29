@@ -15,21 +15,20 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.fastcatsearch.control.JobExecutor;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.servlet.JobHttpServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RegisterJobServlet extends JobHttpServlet {
+public class RegisterJobServlet extends WebServiceHttpServlet {
+	
+	private static final long serialVersionUID = -6765756082395762010L;
 	private static Logger logger = LoggerFactory.getLogger(RegisterJobServlet.class);
 	
     public RegisterJobServlet(int resultType){

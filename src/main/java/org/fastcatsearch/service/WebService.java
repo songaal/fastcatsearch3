@@ -160,7 +160,7 @@ public class WebService extends AbstractService{
         // ServletContextHandler
 		final Context context3 = new Context(server, KEYWORD_CONTEXT, Context.SESSIONS);
 		context3.setClassLoader(this.getClass().getClassLoader());
-		context3.addServlet(new ServletHolder(new RecommendKeywordServlet()),"/recommend");
+		context3.addServlet(new ServletHolder(new RecommendKeywordServlet(WebServiceHttpServlet.JSON_TYPE)),"/recommend");
 		context3.addServlet(new ServletHolder(new RecommendKeywordServlet(WebServiceHttpServlet.JSON_TYPE)),"/recommend/json");
 		context3.addServlet(new ServletHolder(new RecommendKeywordServlet(WebServiceHttpServlet.JSONP_TYPE)),"/recommend/jsonp");
 		context3.addServlet(new ServletHolder(new RecommendKeywordServlet(WebServiceHttpServlet.XML_TYPE)),"/recommend/xml");

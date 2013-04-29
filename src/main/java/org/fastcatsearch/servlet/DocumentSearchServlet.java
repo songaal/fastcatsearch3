@@ -19,11 +19,9 @@ import java.util.Enumeration;
 import java.util.List;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.fastcatsearch.control.JobExecutor;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.ir.config.FieldSetting;
@@ -39,11 +37,11 @@ import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.DocumentSearchJob;
-import org.fastcatsearch.servlet.JobHttpServlet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-public class DocumentSearchServlet extends JobHttpServlet {
+
+public class DocumentSearchServlet extends WebServiceHttpServlet {
 	
+	private static final long serialVersionUID = -7439538349103899697L;
+
 	//tab(9), cr(10), LF(13) 제외
 	private static String CONTROL_CHAR_REGEXP = "["+(char)0+" "+(char)1+" "+(char)2+" "+(char)3+" "+(char)4+" "+(char)5+" "
 		+(char)6+" "+(char)7+" "+(char)8+" "+(char)11+" "+(char)12+" "+(char)14+" "+(char)15+" "+(char)16+" "+(char)17+" "
@@ -57,7 +55,7 @@ public class DocumentSearchServlet extends JobHttpServlet {
 	}
 	
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    	Enumeration enumeration = request.getParameterNames();
+    	Enumeration<?> enumeration = request.getParameterNames();
     	String timeoutStr = request.getParameter("timeout");
     	String isAdmin = request.getParameter("admin");
     	String collectionName = request.getParameter("cn");

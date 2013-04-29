@@ -22,7 +22,7 @@ import org.fastcatsearch.util.XMLResultStringer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractSearchServlet extends JobHttpServlet {
+public abstract class AbstractSearchServlet extends WebServiceHttpServlet {
 
 	private static final long serialVersionUID = 4165287616751500253L;
 	protected static AtomicLong taskSeq = new AtomicLong();
@@ -92,17 +92,6 @@ public abstract class AbstractSearchServlet extends JobHttpServlet {
 
 	protected abstract AbstractSearchResultWriter createSearchResultWriter(Writer writer);
 
-	public void writeHeader(HttpServletResponse response, ResultStringer stringer) {
-		response.reset();
-		if (stringer instanceof JSONResultStringer) {
-			response.setContentType("application/json; charset=" + responseCharset);
-		} else if (stringer instanceof JSONPResultStringer) {
-			response.setContentType("application/json; charset=" + responseCharset);
-		} else if (stringer instanceof XMLResultStringer) {
-			response.setContentType("text/xml; charset=" + responseCharset);
-		}
-	}
-
 	public void prepare(HttpServletRequest request) {
 		requestCharset = getParameter(request, "requestCharset", "UTF-8");
 		responseCharset = getParameter(request, "responseCharset", "UTF-8");
@@ -130,14 +119,6 @@ public abstract class AbstractSearchServlet extends JobHttpServlet {
 		jsonCallback = getParameter(request, "jsoncallback", "");
 	}
 
-	protected String getParameter(HttpServletRequest request, String key, String defaultValue) {
-		String value = request.getParameter(key);
-		if (value == null) {
-			return defaultValue;
-		}
-		return value;
-	}
-
 	public String queryString() {
 		try {
 			return "cn=" + collectionName + "&fl=" + URLDecoder.decode(fields, requestCharset) + "&se="
@@ -154,19 +135,15 @@ public abstract class AbstractSearchServlet extends JobHttpServlet {
 		}
 		return "";
 	}
-
-	public ResultStringer getResultStringer() {
-		ResultStringer rStringer = null;
-		if (resultType == JSON_TYPE) {
-			rStringer = new JSONResultStringer();
-		} else if (resultType == JSONP_TYPE) {
-			rStringer = new JSONPResultStringer(jsonCallback);
-		} else if (resultType == XML_TYPE) {
-			rStringer = new XMLResultStringer("fastcat", true);
-		}
-		return rStringer;
+	
+	public void writeHeader(HttpServletResponse response, ResultStringer stringer) {
+		writeHeader(response, stringer, responseCharset);
 	}
 	
+	public ResultStringer getResultStringer() {
+		return getResultStringer("fastcat",isAdmin, jsonCallback);
+	}
+
 	protected void writeSearchLog(long requestId, Object obj, long searchTime){
     	if(obj instanceof Result){
 			Result result = (Result) obj;
