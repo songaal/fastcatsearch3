@@ -33,12 +33,12 @@ public class QueryCacheModule<T> extends AbstractModule {
 	}
 
 	@Override
-	protected boolean doUnload() {
+	protected synchronized boolean doUnload() {
 		LRUCache.clear();
 		return true;
 	}
 	@Override
-	protected boolean doLoad() {
+	protected synchronized boolean doLoad() {
 		LRUCache = new LinkedHashMap<String, T>(MAX_CACHE_SIZE, loadFactor, true) {
 			private static final long serialVersionUID = 4515949078102499045L;
 
@@ -52,15 +52,15 @@ public class QueryCacheModule<T> extends AbstractModule {
 	}
 
 
-	public void put(String queryString, T result) {
+	public synchronized void put(String queryString, T result) {
 		LRUCache.put(queryString, result);
 	}
 
-	public T get(String queryString) {
+	public synchronized  T get(String queryString) {
 		return LRUCache.get(queryString);
 	}
 
-	public int size() {
+	public synchronized int size() {
 		return LRUCache.size();
 	}
 }
