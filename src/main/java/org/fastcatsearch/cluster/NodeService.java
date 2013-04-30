@@ -145,6 +145,10 @@ public class NodeService extends AbstractService {
 		return false;
 	}
 	
+	public boolean isMyNode(Node node){
+		return myNode.equals(node);
+	}
+	
 	public ResultFuture sendRequest(final Node node, final Job job) {
 		if(node.equals(myNode)){
 			return JobService.getInstance().offer(job);

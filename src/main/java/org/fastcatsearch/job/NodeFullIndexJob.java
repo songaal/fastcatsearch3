@@ -163,6 +163,10 @@ public class NodeFullIndexJob extends StreamableJob {
 			//TODO 순차적전송이라서 여러노드전송시 속도가 느림.해결요망.  
 			for (int i = 0; i < nodeList.size(); i++) {
 				Node node = nodeList.get(i);
+				if(NodeService.getInstance().isMyNode(node)){
+					//자신에게는 전송하지 않는다.
+					continue;
+				}
 				logger.debug("Send File Nodes [{} / {}] {}", new Object[]{i+1, nodeList.size(), node});
 				Iterator<File> fileIterator = files.iterator();
 				int fileCount = 1;
@@ -172,13 +176,21 @@ public class NodeFullIndexJob extends StreamableJob {
 					logger.debug("sourceFile >> {}", sourceFile.getPath());
 					logger.debug("targetFile >> {}", targetFile.getPath());
 					logger.info("[{} / {}]파일 {} 전송시작! ", new Object[] { fileCount, totalFileCount, sourceFile.getPath() });
+					
 					SendFileResultFuture sendFileResultFuture = NodeService.getInstance().sendFile(node, sourceFile, targetFile);
-					Object result = sendFileResultFuture.take();
-					if (sendFileResultFuture.isSuccess()) {
-						logger.info("[{} / {}]파일 {} 전송완료!", new Object[] { fileCount, totalFileCount, sourceFile.getPath() });
-					} else {
-						throw new JobException("파일전송에 실패했습니다.");
+					if(sendFileResultFuture != null){
+						Object result = sendFileResultFuture.take();
+						if (sendFileResultFuture.isSuccess()) {
+							logger.info("[{} / {}]파일 {} 전송완료!", new Object[] { fileCount, totalFileCount, sourceFile.getPath() });
+						} else {
+							throw new JobException("파일전송에 실패했습니다.");
+						}
+					}else{
+						//null이라면 전송에러.
+						logger.warn("디렉토리는 전송할수 없습니다.");
+						break;
 					}
+					
 					fileCount++;
 				}
 
