@@ -54,11 +54,8 @@ import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioWorkerPool;
 import org.jboss.netty.util.HashedWheelTimer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TransportModule extends AbstractModule {
-	private static Logger logger = LoggerFactory.getLogger(TransportModule.class);
 	
 	private Map<Long, ResultFuture> resultFutureMap;
 

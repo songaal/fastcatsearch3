@@ -11,7 +11,7 @@ public abstract class AbstractModule {
 
 	protected Environment environment;
 	protected Settings settings;
-	private boolean isLoaded;
+	protected boolean isLoaded;
 
 	public AbstractModule(Environment environment, Settings settings) {
 		this.environment = environment;

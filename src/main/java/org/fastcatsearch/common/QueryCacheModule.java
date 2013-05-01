@@ -20,7 +20,6 @@ import org.fastcatsearch.module.AbstractModule;
 import org.fastcatsearch.settings.Settings;
 
 //
-//TODO 동기화처리필요!!
 //
 public class QueryCacheModule<T> extends AbstractModule {
 
