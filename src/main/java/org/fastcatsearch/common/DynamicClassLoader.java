@@ -62,17 +62,18 @@ public class DynamicClassLoader {
 		}
 		return true;
 	}
-//	public static Object loadObject(String className){
-//		try {
-//			Class<?> clazz = loadClass(className);
-//			if(clazz != null){
-//				return clazz.newInstance();
-//			}
-//		} catch (Exception ignore){
-//		}
-//		
-//		return null;
-//	}
+	public static Object loadObject(String className){
+		try {
+			Class<?> clazz = loadClass(className);
+			if(clazz != null){
+				return clazz.newInstance();
+			}
+		} catch (Exception ignore){
+			ignore.printStackTrace();
+		}
+		
+		return null;
+	}
 	public static <T> T loadObject(String className, Class<T> type){
 		try {
 			Class<?> clazz = loadClass(className);

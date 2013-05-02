@@ -33,6 +33,7 @@ import org.fastcatsearch.servlet.SearchMonServlet;
 import org.fastcatsearch.servlet.SearchServlet;
 import org.fastcatsearch.servlet.StatisticsInfoServlet;
 import org.fastcatsearch.servlet.SystemMonServlet;
+import org.fastcatsearch.servlet.TokenizerServlet;
 import org.fastcatsearch.servlet.WebServiceHttpServlet;
 import org.fastcatsearch.servlet.cluster.ClusterGroupSearchServlet;
 import org.fastcatsearch.servlet.cluster.ClusterSearchServlet;
@@ -64,6 +65,7 @@ public class WebService extends AbstractService{
 	private static final String DOCUMENT_SEARCH_CONTEXT = "/docsearch";
 	private static final String MONITORING_CONTEXT = "/monitoring";
 	private static final String CONSOLE_CONTEXT = "/console";
+	private static final String TOKENIZER_CONTEXT = "/tokenizer";
 	private static final String ANALYZER_CONTEXT = "/analyzer";
 	
 	private Server server;
@@ -169,6 +171,11 @@ public class WebService extends AbstractService{
 		final Context contextAnalyzer = new Context(server, ANALYZER_CONTEXT, Context.SESSIONS);
 		contextAnalyzer.addServlet(new ServletHolder(new AnalyzerServlet(WebServiceHttpServlet.JSON_TYPE)),"/");
 		handlerList.addHandler(contextAnalyzer);
+		
+		// 구버전 TOKENIZER_TESTING_CONTEXT
+		final Context contextTokenizer = new Context(server, TOKENIZER_CONTEXT, Context.SESSIONS);
+		contextTokenizer.addServlet(new ServletHolder(new TokenizerServlet(WebServiceHttpServlet.JSON_TYPE)),"/");
+		handlerList.addHandler(contextTokenizer);
 		
         // DOCUMENT_LIST_CONTEXT
 		final Context contextDocumentList = new Context(server, DOCUMENT_LIST_CONTEXT, Context.SESSIONS);

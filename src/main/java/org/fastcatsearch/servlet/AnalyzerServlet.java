@@ -2,11 +2,20 @@ package org.fastcatsearch.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringReader;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
+import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
+import org.apache.lucene.util.CharsRef;
+import org.fastcatsearch.common.DynamicClassLoader;
+import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.analysis.Tokenizer;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.service.IRService;
@@ -18,7 +27,6 @@ import org.slf4j.LoggerFactory;
 public class AnalyzerServlet extends WebServiceHttpServlet {
 	
 	private static final long serialVersionUID = -1112551982298988153L;
-	private static final Logger logger = LoggerFactory.getLogger(AnalyzerServlet.class);
 
 	public AnalyzerServlet(int resultType) {
 		super(resultType);
@@ -37,10 +45,6 @@ public class AnalyzerServlet extends WebServiceHttpServlet {
 		
 		String[] uriArray = getURIArray(request);
 		
-		IRService irService = IRService.getInstance();
-		
-		String[][] analyzerArray = irService.getTokenizers();
-		
 		String resultTypeStr = null;
 		String analyzerName =  null;
 		
@@ -56,65 +60,76 @@ public class AnalyzerServlet extends WebServiceHttpServlet {
 		
 		if(resultTypeStr!=null && analyzerName!=null) {
 		
-			for(String[] analyzer : analyzerArray) {
+			String factoryName = analyzerName+"Factory";
+			Class<?> factoryClass = DynamicClassLoader.loadClass(factoryName);
+			
+			AnalyzerPool pool = null;
+			//factory존재여부확인.
+			if(factoryClass == null){
+				//analyzer를 그대로 이용.
+				pool = AnalyzerPool.getPool(analyzerName);
+			}else{
+				pool = AnalyzerPool.getPool(factoryName);
+			}
+			
+			Analyzer analyzer = pool.getFromPool();
+			
+			
+			
+			String responseCharset = getParameter(request, "responseCharset", "UTF-8");
+			
+			String jsonCallback = request.getParameter("jsoncallback");
+			
+			String keyword = request.getParameter("keyword");
+			
+			ResultStringer rStringer = super.getResultStringer("analyze-result", true, jsonCallback);
+			
+			try {
+				rStringer.object()
+					.key("keyword").value(keyword)
+					.key("analyzer").value(analyzerName)
+					.key("token")
+					.array("item");
 				
-				if(analyzerName.equalsIgnoreCase(analyzer[0])) {
-					
-					Exception ex = null;
-					
-					try {
-						
-						super.resultType = detectType(resultTypeStr);
-						
-						String responseCharset = getParameter(request, "responseCharset", "UTF-8");
-						
-						String jsonCallback = request.getParameter("jsoncallback");
-						
-						String keyword = request.getParameter("keyword");
-						
-						Tokenizer tokenizer = (Tokenizer) Class.forName(analyzer[1]).newInstance();
-						
-						ResultStringer rStringer = super.getResultStringer("analyze-result", true, jsonCallback);
-						
-						rStringer.object()
-							.key("keyword").value(keyword)
-							.key("analyzer").value(analyzerName)
-							.key("token")
-							.array("item");
-						
-						tokenizer.setInput(keyword.toCharArray());
-						
-						CharVector token = new CharVector();
-						
-						for(;tokenizer.nextToken(token);) {
-							
-							rStringer.value(token);
-						}
-						
-						rStringer.endArray()
-						.endObject();
-						
-						super.writeHeader(response, rStringer, responseCharset);
-						
-						PrintWriter writer = response.getWriter();
-						
-						writer.write(rStringer.toString());
-						
-						writer.close();
-						
-					} catch (InstantiationException e) { ex = e;
-					} catch (IllegalAccessException e) { ex = e;
-					} catch (ClassNotFoundException e) { ex = e;
-					} catch (StringifyException e) { ex = e;
-					} finally {
-						if(ex != null) {
-							logger.error("",ex);
-							throw new ServletException(ex);
-						}
-					}
-					
-					return;
+				TokenStream tokenStream = analyzer.tokenStream("", new StringReader(keyword));
+				tokenStream.reset();
+				CharsRefTermAttribute termAttribute = null;
+				PositionIncrementAttribute positionAttribute = null;
+				if(tokenStream.hasAttribute(CharsRefTermAttribute.class)){
+					termAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
 				}
+				if(tokenStream.hasAttribute(PositionIncrementAttribute.class)){
+					positionAttribute = tokenStream.getAttribute(PositionIncrementAttribute.class);
+				}
+				CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
+				
+				while(tokenStream.incrementToken()){
+					CharVector key = null;
+					if(termAttribute != null){
+						CharsRef charRef = termAttribute.charsRef();
+						char[] buffer = new char[charRef.length()];
+						System.arraycopy(charRef.chars, charRef.offset, buffer, 0, charRef.length);
+						key = new CharVector(buffer, 0, buffer.length);
+					}else{
+						key = new CharVector(charTermAttribute.buffer(), 0, charTermAttribute.length());
+					}
+					key.toUpperCase();
+					rStringer.value(key);
+				}
+				
+				rStringer.endArray()
+				.endObject();
+				
+				super.writeHeader(response, rStringer, responseCharset);
+				
+				PrintWriter writer = response.getWriter();
+				
+				writer.write(rStringer.toString());
+				
+				writer.close();
+				
+			}catch(Exception e){
+				throw new ServletException(e);
 			}
 		}
 	}
