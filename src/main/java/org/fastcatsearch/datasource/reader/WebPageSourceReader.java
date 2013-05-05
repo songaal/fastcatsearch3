@@ -9,7 +9,7 @@
  *     swsong - initial API and implementation
  */
 
-package org.fastcatsearch.collector;
+package org.fastcatsearch.datasource.reader;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,14 +23,14 @@ import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.config.DataSourceSetting;
-import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.io.DirBufferedReader;
-import org.fastcatsearch.ir.source.SourceReader;
+import org.fastcatsearch.settings.IRSettings;
 import org.fastcatsearch.util.ReadabilityExtractor;
 import org.fastcatsearch.util.WebPageGather;
 
@@ -47,15 +47,15 @@ public class WebPageSourceReader extends SourceReader{
 	private ResultSet rs;
 	private static ReadabilityExtractor extractor = new ReadabilityExtractor();
 
-	public WebPageSourceReader(Schema schema, DataSourceSetting setting, Boolean isFull) throws IRException {
-		super(schema, setting);
+	public WebPageSourceReader(Schema schema, WebPageSourceReaderConfig config, Boolean isFull) throws IRException {
+		super(schema);
 		try {
 			if(isFull){
 				//br = new DirBufferedReader(new File(IRSettings.path(setting.fullFilePath)), setting.fileEncoding);
-				br = new DirBufferedReader(new File(IRSettings.getCollectionHome(schema.collection) + "url.ful"), setting.fileEncoding);
+				br = new DirBufferedReader(new File(IRSettings.getCollectionHome(schema.collection) + "url.ful"), config.fileEncoding());
 			}else{
 				//br = new DirBufferedReader(new File(IRSettings.path(setting.incFilePath)), setting.fileEncoding);
-				br = new DirBufferedReader(new File(IRSettings.getCollectionHome(schema.collection) + "url.inc"), setting.fileEncoding);
+				br = new DirBufferedReader(new File(IRSettings.getCollectionHome(schema.collection) + "url.inc"), config.fileEncoding());
 			}
 		} catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage(),e);
@@ -209,4 +209,13 @@ public class WebPageSourceReader extends SourceReader{
 		}
 	}
 	
+	@XmlRootElement(name = "source")
+	public static class WebPageSourceReaderConfig extends SourceConfig {
+
+		public String fileEncoding() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+		
+	}
 }

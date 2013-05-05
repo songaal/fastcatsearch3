@@ -35,6 +35,7 @@ import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.job.FullIndexJob;
 import org.fastcatsearch.job.IncIndexJob;
 import org.fastcatsearch.job.Job;
+import org.fastcatsearch.job.action.FullIndexRequest;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.service.ServiceManager;
@@ -184,7 +185,8 @@ public class JobService extends AbstractService implements JobExecutor {
 		job.setEnvironment(environment);
 		job.setJobExecutor(this);
 
-		if (job instanceof FullIndexJob || job instanceof IncIndexJob) {
+		if (job instanceof FullIndexJob || job instanceof IncIndexJob
+				|| job instanceof FullIndexRequest) {
 			if (indexingMutex.isLocked(job)) {
 				indexingLogger.info("The collection [" + job.getStringArgs(0) + "] has already started an indexing job.");
 				return null;

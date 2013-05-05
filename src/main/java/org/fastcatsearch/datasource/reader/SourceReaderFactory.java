@@ -9,18 +9,20 @@
  *     swsong - initial API and implementation
  */
 
-package org.fastcatsearch.collector;
+package org.fastcatsearch.datasource.reader;
 
 import java.util.List;
 import java.util.Properties;
 
 import org.fastcatsearch.common.DynamicClassLoader;
+import org.fastcatsearch.datasource.DataSourceSetting;
+import org.fastcatsearch.datasource.reader.CollectFileParser.FileParserConfig;
+import org.fastcatsearch.datasource.reader.DBReader.DBReaderConfig;
+import org.fastcatsearch.datasource.reader.WebPageSourceReader.WebPageSourceReaderConfig;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.config.DataSourceSetting;
-import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
-import org.fastcatsearch.ir.source.SourceReader;
 import org.fastcatsearch.log.EventDBLogger;
+import org.fastcatsearch.settings.IRSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,10 +33,16 @@ public class SourceReaderFactory {
 	public static SourceReader createSourceReader(String collection, Schema schema, DataSourceSetting dsSetting, boolean isFull) throws IRException{
 		if(dsSetting.isMultiSource()){
 			List<DataSourceSetting> dsSettingList = IRSettings.getMultiDatasource(collection, true);
-			return new MultiSourceReader(schema, dsSettingList, isFull);
+			return null;//new MultiSourceReader(schema, dsSettingList, isFull);
 		}else{
 			if(dsSetting.sourceType.equalsIgnoreCase("FILE")){
-				SourceReader sourceReader = DynamicClassLoader.loadObject(dsSetting.fileDocParser, SourceReader.class, new Class[]{Schema.class, DataSourceSetting.class, Boolean.class}, new Object[]{schema, dsSetting, isFull});
+				FileParserConfig config = new FileParserConfig();
+				config.setFullFilePath(dsSetting.fullFilePath);
+				config.setIncFilePath(dsSetting.incFilePath);
+				config.setFileEncoding(dsSetting.fileEncoding);
+				config.setFileDocParser(dsSetting.fileDocParser);
+				
+				SourceReader sourceReader = DynamicClassLoader.loadObject(dsSetting.fileDocParser, SourceReader.class, new Class[]{Schema.class, FileParserConfig.class, Boolean.class}, new Object[]{schema, config, isFull});
 				logger.debug("Loading sourceReader : {}, {}", dsSetting.fileDocParser, sourceReader);
 				if(sourceReader == null){
 					logger.error("소스리더를 로드하지 못했습니다. 해당 클래스가 클래스패스에 없거나 생성자 시그너처가 일치하는지 확인이 필요합니다. sourceType={}", dsSetting.sourceType);
@@ -42,9 +50,27 @@ public class SourceReaderFactory {
 					return sourceReader;
 				}
 			}else if(dsSetting.sourceType.equalsIgnoreCase("DB")){
-				return new DBReader(schema, dsSetting, isFull);
+				DBReaderConfig config = new DBReaderConfig();
+				config.setJdbcDriver(dsSetting.driver);
+				config.setJdbcUrl(dsSetting.url);
+				config.setJdbcUser(dsSetting.user);
+				config.setJdbcPassword(dsSetting.password);
+				config.setFetchSize(dsSetting.fetchSize);
+				config.setBulkSize(dsSetting.bulkSize);
+				config.setBeforeIncQuery(dsSetting.beforeIncQuery);
+				config.setAfterIncQuery(dsSetting.afterIncQuery);
+				config.setBeforeFullQuery(dsSetting.beforeFullQuery);
+				config.setAfterFullQuery(dsSetting.afterFullQuery);
+				config.setFullQuery(dsSetting.fullQuery);
+				config.setIncQuery(dsSetting.incQuery);
+				config.setDeleteIdQuery(dsSetting.deleteIdQuery);
+				config.setFullBackupPath(dsSetting.fullBackupPath);
+				config.setIncBackupPath(dsSetting.incBackupPath);
+				config.setBackupFileEncoding(dsSetting.backupFileEncoding);
+				return new DBReader(schema, config, isFull);
 			}else if(dsSetting.sourceType.equalsIgnoreCase("WEB")){
-				return new WebPageSourceReader(schema, dsSetting, isFull);
+				WebPageSourceReaderConfig config = null;
+				return new WebPageSourceReader(schema, config, isFull);
 			}else if(dsSetting.sourceType.equalsIgnoreCase("CUSTOM")){
 				SourceReader sourceReader = DynamicClassLoader.loadObject(dsSetting.customReaderClass, SourceReader.class, new Class[]{Schema.class, DataSourceSetting.class, Boolean.class, Properties.class}, new Object[]{schema, dsSetting, isFull});
 				logger.debug("Loading sourceReader : {}, {}", dsSetting.fileDocParser, sourceReader);

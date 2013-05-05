@@ -1,25 +1,20 @@
 package org.fastcatsearch.job.internal;
 
 import java.io.IOException;
-import java.util.Map;
 
 import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.control.JobException;
-import org.fastcatsearch.ir.group.GroupData;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
-import org.fastcatsearch.ir.query.QueryParseException;
-import org.fastcatsearch.ir.query.QueryParser;
 import org.fastcatsearch.ir.query.ShardSearchResult;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.log.EventDBLogger;
+import org.fastcatsearch.query.QueryParseException;
+import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.IRService;
-import org.fastcatsearch.service.KeywordService;
 import org.fastcatsearch.service.ServiceException;
-import org.fastcatsearch.statistics.StatisticsInfoService;
-import org.fastcatsearch.transport.vo.StreamableGroupData;
 import org.fastcatsearch.transport.vo.StreamableShardSearchResult;
 
 public class InternalSearchJob extends StreamableJob {

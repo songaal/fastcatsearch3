@@ -18,12 +18,10 @@ import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
-import org.fastcatsearch.ir.query.QueryParseException;
-import org.fastcatsearch.ir.query.QueryParser;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.Job.JobResult;
+import org.fastcatsearch.query.QueryParseException;
+import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.ServiceException;
 

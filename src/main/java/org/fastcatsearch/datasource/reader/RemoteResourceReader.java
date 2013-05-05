@@ -1,10 +1,9 @@
-package org.fastcatsearch.collector;
+package org.fastcatsearch.datasource.reader;
 
 import java.io.File;
 
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.document.Document;
-import org.fastcatsearch.ir.source.SourceReader;
 
 /**
  * nsf 와 ftp등을 이용할수 없는 원격파일등에 대해서 

@@ -12,7 +12,6 @@
 package org.fastcatsearch.util;
 
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.parser.util.HTMLTagRemover;
 
 import junit.framework.TestCase;
 

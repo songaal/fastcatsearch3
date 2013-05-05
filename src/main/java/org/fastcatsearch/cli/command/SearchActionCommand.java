@@ -90,6 +90,13 @@ public class SearchActionCommand extends Command {
 					GroupResult gresult = gresults.getGroupResult(rowInx);
 					List<Object[]> gdata = new ArrayList<Object[]>();
 					String[] gheader = new String[] {
+							//
+							//
+							// TODO function을 여러개받을 수 있어야한다. function에는 count, sum, max등이 복합적으로 들어올수 있다.
+							// 	현재는 freq가 무조건 생성되고, 추가적으로 sum,max등이 생성되나, 여기서는 아직 구현이 안되어 있다.
+							// function이 default인지 확인하여 결과를 다르게 넘겨주어야한다.
+							//
+							//
 							"no","key", gresult.functionName()
 					};
 					

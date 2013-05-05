@@ -16,17 +16,13 @@ import java.util.List;
 
 import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.object.BannedDictionary;
-import org.fastcatsearch.db.object.BasicDictionary;
-import org.fastcatsearch.db.object.CustomDictionary;
 import org.fastcatsearch.db.object.SetDictionaryDAO;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.IRConfig;
-import org.fastcatsearch.ir.config.IRSettings;
-import org.fastcatsearch.ir.dic.Dic;
 import org.fastcatsearch.ir.dic.HashSetDictionary;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.settings.IRSettings;
 
 
 public class HashSetDictionaryCompileApplyJob extends Job {
@@ -39,7 +35,7 @@ public class HashSetDictionaryCompileApplyJob extends Job {
 		if("stopDic".equals(args[0])){
 			try {
 				compileStopDic();
-				return new JobResult(Dic.reload("stopword"));
+//				return new JobResult(Dic.reload("stopword"));
 			} catch (IRException e) {
 				throw new JobException(e.getMessage(), e);
 			}
@@ -47,7 +43,7 @@ public class HashSetDictionaryCompileApplyJob extends Job {
 		}else if("koreanDic".equals(args[0])){
 			try {
 				compileKoreanDic();
-				return new JobResult(Dic.reload("korean"));
+//				return new JobResult(Dic.reload("korean"));
 			} catch (IRException e) {
 				throw new JobException(e.getMessage(), e);
 			}
@@ -55,7 +51,7 @@ public class HashSetDictionaryCompileApplyJob extends Job {
 		}else if("userDic".equals(args[0])){
 			try {
 				compileUserDic();
-				return new JobResult(Dic.reload("userword"));
+//				return new JobResult(Dic.reload("userword"));
 			} catch (IRException e) {
 				throw new JobException(e.getMessage(), e);
 			}

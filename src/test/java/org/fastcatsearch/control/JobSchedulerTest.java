@@ -13,12 +13,11 @@ package org.fastcatsearch.control;
 
 import java.sql.Timestamp;
 
-import org.fastcatsearch.control.JobService;
-import org.fastcatsearch.ir.common.SettingException;
-import org.fastcatsearch.ir.config.IRSettings;
-import org.fastcatsearch.service.ServiceException;
-
 import junit.framework.TestCase;
+
+import org.fastcatsearch.ir.common.SettingException;
+import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.settings.IRSettings;
 
 
 public class JobSchedulerTest extends TestCase{

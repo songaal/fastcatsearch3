@@ -33,12 +33,12 @@ import org.fastcatsearch.db.object.SystemMonInfoHDWMY;
 import org.fastcatsearch.db.object.SystemMonInfoMinute;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.config.IRConfig;
-import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.keyword.KeywordFail;
 import org.fastcatsearch.keyword.KeywordHit;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.settings.IRSettings;
 import org.fastcatsearch.settings.Settings;
 
 

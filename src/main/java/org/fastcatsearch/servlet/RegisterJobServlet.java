@@ -18,9 +18,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.fastcatsearch.common.DynamicClassLoader;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
-import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.Job;
 import org.slf4j.Logger;
@@ -66,7 +66,7 @@ public class RegisterJobServlet extends WebServiceHttpServlet {
     		
     		return;
     	}
-    	Job job = (Job)IRSettings.classLoader.loadObject(className);
+    	Job job = DynamicClassLoader.loadObject(className, Job.class);
     	
     	if(args != null){
     		String[] argList = args.split("[\\s]+");

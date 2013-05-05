@@ -6,17 +6,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
 
-import org.fastcatsearch.cli.Command;
 import org.fastcatsearch.cli.CommandException;
 import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.cli.command.exception.CollectionNotDefinedException;
 import org.fastcatsearch.cli.command.exception.CollectionNotFoundException;
-import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.service.IRService;
+import org.fastcatsearch.settings.IRSettings;
 
 public class InfoCollectionCommand extends CollectionExtractCommand {
 

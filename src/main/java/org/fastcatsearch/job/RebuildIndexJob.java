@@ -20,15 +20,14 @@ import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.IRConfig;
-import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
-import org.fastcatsearch.ir.index.SegmentRebuilder;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.DataSequenceFile;
 import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.settings.IRSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +61,7 @@ public class RebuildIndexJob extends Job {
 			if(workSchema == null)
 				workSchema = IRSettings.getSchema(collection, false);
 			
-			DataSequenceFile dataSequenceFile = new DataSequenceFile(collectionHomeDir, -1); //read sequence
+			DataSequenceFile dataSequenceFile = new DataSequenceFile(new File(collectionHomeDir), -1); //read sequence
 			int	newDataSequence = (dataSequenceFile.getSequence() + 1) % DATA_SEQUENCE_CYCLE;
 			
 			logger.debug("dataSequence="+newDataSequence+", DATA_SEQUENCE_CYCLE="+DATA_SEQUENCE_CYCLE);
@@ -78,15 +77,16 @@ public class RebuildIndexJob extends Job {
 			
 			File segmentDir = new File(IRSettings.getSegmentPath(collection, newDataSequence, segmentNumber));
 			indexingLogger.info("Segment Dir = "+segmentDir.getAbsolutePath());
-			SegmentRebuilder writer = new SegmentRebuilder(workSchema, segmentDir);
-			writer.indexDocument();
-			writer.close();
+//			SegmentRebuilder writer = new SegmentRebuilder(workSchema, segmentDir);
+//			writer.indexDocument();
+//			writer.close();
 			
 			//apply schema setting
 			IRSettings.applyWorkSchemaFile(collection);
 			
-			CollectionHandler newHandler = new CollectionHandler(collection, newDataSequence);
-			newHandler.addSegment(segmentNumber, null);
+			Schema newSchema = IRSettings.getSchema(collectionHomeDir, false);
+			CollectionHandler newHandler = new CollectionHandler(collection, new File(collectionHomeDir), newSchema, IRSettings.getIndexConfig());
+//			newHandler.addSegment(segmentNumber, null);
 			
 			newHandler.saveDataSequenceFile();
 			

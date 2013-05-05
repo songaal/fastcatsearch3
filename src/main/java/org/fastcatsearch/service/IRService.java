@@ -30,17 +30,14 @@ import org.fastcatsearch.ir.analysis.TokenizerAttributes;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.IRConfig;
-import org.fastcatsearch.ir.config.IRSettings;
-import org.fastcatsearch.ir.dic.Dic;
+import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.group.GroupData;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.ShardSearchResult;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.module.ModuleException;
-import org.fastcatsearch.service.AbstractService;
-import org.fastcatsearch.service.ServiceException;
-import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.settings.IRSettings;
 import org.fastcatsearch.settings.Settings;
 
 
@@ -73,11 +70,11 @@ public class IRService extends AbstractService{
 		IRConfig irconfig = IRSettings.getConfig(true);
 		
 		//load dictionary
-		try {
-			Dic.init();
-		} catch (IRException e1) {
-			throw new ServiceException(e1);
-		}
+//		try {
+//			Dic.init();
+//		} catch (IRException e1) {
+//			throw new ServiceException(e1);
+//		}
 		
 		
 		String collectionList = irconfig.getString("collection.list");
@@ -86,7 +83,9 @@ public class IRService extends AbstractService{
 		for (int i = 0; i < collectionNameList.length; i++) {
 			String collection = collectionNameList[i];
 			try {
-				collectionHandlerMap.put(collection, new CollectionHandler(collection));
+				File collectionDir = new File(new IRSettings().getCollectionHome(collection));
+				Schema schema = IRSettings.getSchema(collection, true);
+				collectionHandlerMap.put(collection, new CollectionHandler(collection, collectionDir, schema, IRSettings.getIndexConfig()));
 			} catch (IRException e) {
 				logger.error("[ERROR] "+e.getMessage(),e);
 			} catch (SettingException e) {

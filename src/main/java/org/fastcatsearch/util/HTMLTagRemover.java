@@ -9,7 +9,7 @@
  *     swsong - initial API and implementation
  */
 
-package org.fastcatsearch.parser.util;
+package org.fastcatsearch.util;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

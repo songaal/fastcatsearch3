@@ -14,7 +14,7 @@ package org.fastcatsearch.cli.command;
 import org.fastcatsearch.cli.Command;
 import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
-import org.fastcatsearch.ir.config.IRSettings;
+import org.fastcatsearch.settings.IRSettings;
 
 /**
  * 

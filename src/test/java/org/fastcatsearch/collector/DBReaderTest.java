@@ -13,12 +13,14 @@ package org.fastcatsearch.collector;
 
 import junit.framework.TestCase;
 
+import org.fastcatsearch.datasource.DataSourceSetting;
+import org.fastcatsearch.datasource.reader.DBReader;
+import org.fastcatsearch.datasource.reader.DBReader.DBReaderConfig;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
-import org.fastcatsearch.ir.config.DataSourceSetting;
-import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.document.Document;
+import org.fastcatsearch.settings.IRSettings;
 
 
 public class DBReaderTest extends TestCase{
@@ -28,7 +30,7 @@ public class DBReaderTest extends TestCase{
 		String collection = "blog_db";
 		Schema schema = IRSettings.getSchema(collection, true);
 		DataSourceSetting dsSetting = IRSettings.getDatasource(collection, true);
-		DBReader dbReader = new DBReader(schema, dsSetting, true);
+		DBReader dbReader = new DBReader(schema, new DBReaderConfig(), true);
 		
 		while(dbReader.hasNext()){
 			Document document = dbReader.next();
@@ -41,7 +43,7 @@ public class DBReaderTest extends TestCase{
 		String collection = "blog_db";
 		Schema schema = IRSettings.getSchema(collection, true);
 		DataSourceSetting dsSetting = IRSettings.getDatasource(collection, true);
-		DBReader dbReader = new DBReader(schema, dsSetting, false);
+		DBReader dbReader = new DBReader(schema, new DBReaderConfig(), false);
 		
 		while(dbReader.hasNext()){
 			Document document = dbReader.next();

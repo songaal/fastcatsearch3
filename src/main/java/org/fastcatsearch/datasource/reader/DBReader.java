@@ -9,7 +9,7 @@
  *     swsong - initial API and implementation
  */
 
-package org.fastcatsearch.collector;
+package org.fastcatsearch.datasource.reader;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -33,16 +33,17 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.fastcatsearch.common.DynamicClassLoader;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.config.DataSourceSetting;
 import org.fastcatsearch.ir.config.Field;
 import org.fastcatsearch.ir.config.FieldSetting;
-import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
-import org.fastcatsearch.ir.dic.SpecialCharacterMap;
 import org.fastcatsearch.ir.document.Document;
-import org.fastcatsearch.ir.source.SourceReader;
-import org.fastcatsearch.parser.util.HTMLTagRemover;
+import org.fastcatsearch.settings.IRSettings;
+import org.fastcatsearch.util.HTMLTagRemover;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,8 +52,6 @@ public class DBReader extends SourceReader{
 	
 	private static Logger logger = LoggerFactory.getLogger(DBReader.class);
 	private int BULK_SIZE;
-	
-	private DataSourceSetting setting;
 	
 	private Connection con;
 	private PreparedStatement pstmt;
@@ -69,35 +68,35 @@ public class DBReader extends SourceReader{
 	
 	boolean useBackup;
 	private BufferedWriter backupWriter;
-	private SpecialCharacterMap scMap;
+//	private SpecialCharacterMap scMap;
 	private String startTime;
 	private String deleteFileName;
+	private DBReaderConfig config;
 	
-	public DBReader(Schema schema, DataSourceSetting setting, boolean isFull) throws IRException {
-		super(schema, setting);
-		
-		this.setting = setting;
+	public DBReader(Schema schema, DBReaderConfig config, boolean isFull) throws IRException {
+		super(schema);
+		this.config = config;
 		this.isFull = isFull;
-		this.BULK_SIZE = setting.bulkSize;
+		this.BULK_SIZE = config.getBulkSize();
 		this.startTime = IRSettings.getSimpleDatetime();
 		
 		fieldSet = new Object[BULK_SIZE][fieldSettingList.size()];
 		deleteIdList = new HashSet<String>();
 		
 		indextime = IRSettings.getIndextime(schema.collection, true);
-		scMap = SpecialCharacterMap.getMap();
+//		scMap = SpecialCharacterMap.getMap();
 		try{
-			if(setting.driver != null && setting.driver.length() > 0){
-				Object object = IRSettings.classLoader.loadObject(setting.driver);
+			if(config.getJdbcDriver() != null && config.getJdbcDriver().length() > 0){
+				Object object = DynamicClassLoader.loadObject(config.getJdbcDriver());
 				if(object == null){
-					throw new IRException("Cannot find sql driver = "+setting.driver);
+					throw new IRException("Cannot find sql driver = "+config.getJdbcDriver());
 				}else{
 					Driver driver = (Driver)object;
 					DriverManager.registerDriver(driver);
 					Properties info = new Properties();
-					info.put("user", setting.user);
-					info.put("password", setting.password);
-					con = driver.connect(setting.url, info);
+					info.put("user", config.getJdbcUser());
+					info.put("password", config.getJdbcPassword());
+					con = driver.connect(config.getJdbcUrl(), info);
 					con.setAutoCommit(true);
 				}
 			}else{
@@ -109,24 +108,24 @@ public class DBReader extends SourceReader{
 			doBeforeQuery();
 			
 			if(isFull){
-				logger.debug("Full query = "+q(setting.fullQuery));
-				if(setting.fullQuery == null || setting.fullQuery.length() == 0){
+				logger.debug("Full query = "+q(config.getFullQuery()));
+				if(config.getFullQuery() == null || config.getFullQuery().length() == 0){
 					throw new IRException("Full query sql is empty!");
 				}
 				
-				if ( setting.fetchSize <= 0 )	
-					pstmt = con.prepareStatement(q(setting.fullQuery), ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				if ( config.getFetchSize() <= 0 )	
+					pstmt = con.prepareStatement(q(config.getFullQuery()), ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				else
-					pstmt = con.prepareStatement(q(setting.fullQuery));
+					pstmt = con.prepareStatement(q(config.getFullQuery()));
 				
-				useBackup = (setting.fullBackupPath != null && setting.fullBackupPath.length() > 0);
+				useBackup = (config.getFullBackupPath() != null && config.getFullBackupPath().length() > 0);
 				if(useBackup){
-					backupWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(IRSettings.path(setting.fullBackupPath)), setting.backupFileEncoding));
-					deleteFileName = setting.fullBackupPath+".delete";
+					backupWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(IRSettings.path(config.getFullBackupPath())), config.getBackupFileEncoding()));
+					deleteFileName = config.getFullBackupPath()+".delete";
 				}
 			}else{
-				if(setting.deleteIdQuery != null && setting.deleteIdQuery.length() > 0){
-					PreparedStatement idPstmt = con.prepareStatement(q(setting.deleteIdQuery));
+				if(config.getDeleteIdQuery() != null && config.getDeleteIdQuery().length() > 0){
+					PreparedStatement idPstmt = con.prepareStatement(q(config.getDeleteIdQuery()));
 					ResultSet rs = idPstmt.executeQuery();
 					while(rs.next()){
 						String ID = rs.getString(1);
@@ -134,21 +133,21 @@ public class DBReader extends SourceReader{
 					}
 					idPstmt.close();
 				}
-				logger.debug("Add query = "+q(setting.incQuery));
-				if(setting.incQuery == null || setting.incQuery.length() == 0){
+				logger.debug("Add query = "+q(config.getIncQuery()));
+				if(config.getIncQuery() == null || config.getIncQuery().length() == 0){
 					throw new IRException("Incremental query sql is empty!");
 				}
-				pstmt = con.prepareStatement(q(setting.incQuery));
-				useBackup = (setting.incBackupPath != null && setting.incBackupPath.length() > 0);
+				pstmt = con.prepareStatement(q(config.getIncQuery()));
+				useBackup = (config.getIncBackupPath() != null && config.getIncBackupPath().length() > 0);
 				if(useBackup){
-					backupWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(IRSettings.path(setting.incBackupPath)), setting.backupFileEncoding));
-					deleteFileName = setting.incBackupPath+".delete";
+					backupWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(IRSettings.path(config.getIncBackupPath())), config.getBackupFileEncoding()));
+					deleteFileName = config.getIncBackupPath()+".delete";
 				}
 			}
 			
-			if(setting.fetchSize > 0){
-				pstmt.setFetchSize(setting.fetchSize);
-			}else if(setting.fetchSize <= 0){
+			if(config.getFetchSize() > 0){
+				pstmt.setFetchSize(config.getFetchSize());
+			}else if(config.getFetchSize() <= 0){
 				pstmt.setFetchSize(Integer.MIN_VALUE);
 			}
 			r = pstmt.executeQuery();
@@ -232,7 +231,7 @@ public class DBReader extends SourceReader{
 		//write delete doc list
 		if(useBackup){
 			try{
-				BufferedWriter deleteBackupWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(IRSettings.path(deleteFileName)), setting.backupFileEncoding));
+				BufferedWriter deleteBackupWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(IRSettings.path(deleteFileName)), config.getBackupFileEncoding()));
 				Iterator<String> iter = deleteIdList.iterator();
 				
 				while(iter.hasNext()){
@@ -257,9 +256,9 @@ public class DBReader extends SourceReader{
 	private void doBeforeQuery() throws SQLException{
 		int count = -1;
 		if(isFull)
-			count = executeUpdateQuery(q(setting.beforeFullQuery));
+			count = executeUpdateQuery(q(config.getBeforeFullQuery()));
 		else 
-			count = executeUpdateQuery(q(setting.beforeIncQuery));
+			count = executeUpdateQuery(q(config.getBeforeIncQuery()));
 		
 		if(count != -1)
 			logger.info("Before query updated "+count+" rows.");
@@ -267,9 +266,9 @@ public class DBReader extends SourceReader{
 	private void doAfterQuery() throws SQLException{
 		int count = -1;
 		if(isFull)
-			count = executeUpdateQuery(q(setting.afterFullQuery));
+			count = executeUpdateQuery(q(config.getAfterFullQuery()));
 		else
-			count = executeUpdateQuery(q(setting.afterIncQuery));
+			count = executeUpdateQuery(q(config.getAfterIncQuery()));
 		
 		if(count != -1)
 			logger.info("After query updated "+count+" rows.");
@@ -484,9 +483,9 @@ public class DBReader extends SourceReader{
 						if(value != null)
 							str = (String) value;
 						
-						if(fs.normalize && str != null){
-							str = new String(scMap.getNormarlizedString(str));
-						}
+//						if(fs.normalize && str != null){
+//							str = new String(scMap.getNormarlizedString(str));
+//						}
 						
 						if(str == null) str = "";
 						
@@ -580,4 +579,173 @@ public class DBReader extends SourceReader{
 			}
 	}
 
+	@XmlRootElement(name = "source")
+	public static class DBReaderConfig extends SourceConfig {
+
+		private String driver;
+		private String url;
+		private String user;
+		private String password;
+		private int fetchSize;
+		private int bulkSize;
+		private String beforeIncQuery;
+		private String afterIncQuery;
+		private String beforeFullQuery;
+		private String afterFullQuery;
+		private String fullQuery;
+		private String incQuery;
+		private String deleteIdQuery;
+		private String fullBackupPath;
+		private String incBackupPath;
+		private String backupFileEncoding;
+		
+		@XmlElement
+		public int getBulkSize() {
+			return bulkSize;
+		}
+
+		@XmlElement
+		public String getAfterIncQuery() {
+			return afterIncQuery;
+		}
+
+		@XmlElement
+		public String getBeforeIncQuery() {
+			return beforeIncQuery;
+		}
+
+		@XmlElement
+		public String getAfterFullQuery() {
+			return afterFullQuery;
+		}
+
+		@XmlElement
+		public String getBeforeFullQuery() {
+			return beforeFullQuery;
+		}
+
+		@XmlElement
+		public String getIncBackupPath() {
+			return incBackupPath;
+		}
+
+		@XmlElement
+		public String getIncQuery() {
+			return incQuery;
+		}
+
+		@XmlElement
+		public String getDeleteIdQuery() {
+			return deleteIdQuery;
+		}
+
+		@XmlElement
+		public String getBackupFileEncoding() {
+			return backupFileEncoding;
+		}
+
+		@XmlElement
+		public String getFullBackupPath() {
+			return fullBackupPath;
+		}
+
+		@XmlElement
+		public int getFetchSize() {
+			return fetchSize;
+		}
+
+		@XmlElement
+		public String getFullQuery() {
+			return fullQuery;
+		}
+
+		@XmlElement
+		public String getJdbcUrl() {
+			return url;
+		}
+
+		@XmlElement
+		public String getJdbcPassword() {
+			return password;
+		}
+
+		@XmlElement
+		public String getJdbcUser() {
+			return user;
+		}
+
+		@XmlElement
+		public String getJdbcDriver() {
+			return driver;
+		}
+		
+		public void setBulkSize(int bulkSize) {
+			this.bulkSize = bulkSize;
+		}
+
+		public void setAfterIncQuery(String afterIncQuery) {
+			this.afterIncQuery = afterIncQuery;
+		}
+
+		public void setBeforeIncQuery(String beforeIncQuery) {
+			this.beforeIncQuery = beforeIncQuery;
+		}
+
+		public void setAfterFullQuery(String afterFullQuery) {
+			this.afterFullQuery = afterFullQuery;
+		}
+
+		public void setBeforeFullQuery(String beforeFullQuery) {
+			this.beforeFullQuery = beforeFullQuery;
+		}
+
+		public void setIncBackupPath(String incBackupPath) {
+			this.incBackupPath = incBackupPath;
+		}
+
+		public void setIncQuery(String incQuery) {
+			this.incQuery = incQuery;
+		}
+
+		public void setDeleteIdQuery(String deleteIdQuery) {
+			this.deleteIdQuery = deleteIdQuery;
+		}
+
+		public void setBackupFileEncoding(String backupFileEncoding) {
+			this.backupFileEncoding = backupFileEncoding;
+		}
+
+		public void setFullBackupPath(String fullBackupPath) {
+			this.fullBackupPath = fullBackupPath;
+		}
+
+		public void setFetchSize(int fetchSize) {
+			this.fetchSize = fetchSize;
+		}
+
+		public void setFullQuery(String fullQuery) {
+			this.fullQuery = fullQuery;
+		}
+
+		public void setJdbcUrl(String url) {
+			this.url = url;
+		}
+
+		public void setJdbcPassword(String password) {
+			this.password = password;
+		}
+
+		public void setJdbcUser(String user) {
+			this.user = user;
+		}
+
+		public void setJdbcDriver(String driver) {
+			this.driver = driver;
+		}
+		
+		
+		
+		
+		
+	}
 }

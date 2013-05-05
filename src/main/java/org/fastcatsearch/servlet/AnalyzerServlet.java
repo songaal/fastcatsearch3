@@ -65,11 +65,12 @@ public class AnalyzerServlet extends WebServiceHttpServlet {
 			
 			AnalyzerPool pool = null;
 			//factory존재여부확인.
-			if(factoryClass == null){
-				//analyzer를 그대로 이용.
-				pool = AnalyzerPool.getPool(analyzerName);
+			if(factoryClass != null){
+				pool = AnalyzerPool.getPool(factoryClass);
 			}else{
-				pool = AnalyzerPool.getPool(factoryName);
+				Class<?> analyzerClass = DynamicClassLoader.loadClass(analyzerName);
+				//analyzer를 그대로 이용.
+				pool = AnalyzerPool.getPool(analyzerClass);
 			}
 			
 			Analyzer analyzer = pool.getFromPool();

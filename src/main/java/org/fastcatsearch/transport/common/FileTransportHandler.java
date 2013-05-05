@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.ir.config.IRSettings;
+import org.fastcatsearch.settings.IRSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

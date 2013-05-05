@@ -1,5 +1,6 @@
 package org.fastcatsearch.job;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -7,12 +8,13 @@ import java.util.Date;
 import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.control.JobException;
-import org.fastcatsearch.ir.config.IRSettings;
+import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.settings.IRSettings;
 
 public class NodeCollectionReloadJob extends StreamableJob {
 	long startTime;
@@ -31,8 +33,11 @@ public class NodeCollectionReloadJob extends StreamableJob {
 	
 	@Override
 	public JobResult doRun() throws JobException, ServiceException {
+		
+		File collectionHome = new File(IRSettings.getCollectionHome(collectionId));
 		try{
-			CollectionHandler newHandler = new CollectionHandler(collectionId, dataSequence);
+			Schema schema = IRSettings.getSchema(collectionId, true);
+			CollectionHandler newHandler = new CollectionHandler(collectionId, collectionHome, schema, IRSettings.getIndexConfig());
 			//이미 수정된 모든 파일이 복사되었기 때문에 collection.info, delete.set을 수정하는 addSegment를 수행핦 필요없음.
 			//수행하면 세그먼트가 더 늘어나서, 오히려 에러발생.
 //			int[] updateAndDeleteSize = newHandler.addSegment(segmentNumber, null);

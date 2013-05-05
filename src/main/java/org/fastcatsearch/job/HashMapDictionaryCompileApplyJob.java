@@ -17,15 +17,12 @@ import java.util.List;
 import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.object.MAPDictionaryDAO;
-import org.fastcatsearch.db.object.SynonymDictionary;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.IRConfig;
-import org.fastcatsearch.ir.config.IRSettings;
-import org.fastcatsearch.ir.dic.Dic;
 import org.fastcatsearch.ir.dic.HashMapDictionary;
 import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.settings.IRSettings;
 
 
 public class HashMapDictionaryCompileApplyJob extends Job {
@@ -38,7 +35,7 @@ public class HashMapDictionaryCompileApplyJob extends Job {
 		if("synonymDic".equals(args[0])){
 			try {
 				compileSynonymDic();
-				return new JobResult(Dic.reload("synonym"));
+//				return new JobResult(Dic.reload("synonym"));
 			} catch (IRException e) {
 				throw new JobException(e.getMessage(), e);
 			}

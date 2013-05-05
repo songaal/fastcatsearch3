@@ -17,26 +17,26 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
-import org.fastcatsearch.collector.SourceReaderFactory;
-import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.JobException;
+import org.fastcatsearch.datasource.DataSourceSetting;
+import org.fastcatsearch.datasource.reader.SourceReader;
+import org.fastcatsearch.datasource.reader.SourceReaderFactory;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
-import org.fastcatsearch.ir.config.DataSourceSetting;
 import org.fastcatsearch.ir.config.IRConfig;
-import org.fastcatsearch.ir.config.IRSettings;
+import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.SegmentAppender;
 import org.fastcatsearch.ir.index.SegmentWriter;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentInfo;
-import org.fastcatsearch.ir.source.SourceReader;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.settings.IRSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,6 +124,7 @@ public class IncIndexJob extends Job {
 			//case.2 : isAppend and not forceSeparate
 			//otherwise : separate
 			
+			IndexConfig indexConfig = IRSettings.getIndexConfig();
 			int count = 0;
 			int[] updateAndDeleteSize = {0, 0};
 			logger.debug("currentSegmentInfo = {}, isAppend={}",currentSegmentInfo, isAppend);
@@ -140,7 +141,7 @@ public class IncIndexJob extends Job {
 				logger.info("Revision Dir = "+new File(segmentDir,revision+"").getAbsolutePath());
 				SegmentAppender appender = null;
 				try{
-					appender = new SegmentAppender(schema, sourceReader, segmentDir, revision);
+					appender = new SegmentAppender(schema, segmentDir, revision, indexConfig);
 					long startTime = System.currentTimeMillis();
 					long lapTime = startTime;
 					while(sourceReader.hasNext()){
@@ -175,11 +176,11 @@ public class IncIndexJob extends Job {
 						return null;
 					}else{
 						//count가 0이고 삭제문서만 존재할 경우 리비전은 증가하지 않은 상태.
-						updateAndDeleteSize = workingHandler.appendSegment(segmentNumber, sourceReader.getDeleteList(), false);
+						updateAndDeleteSize = workingHandler.appendSegment(segmentNumber, segmentDir, sourceReader.getDeleteList(), false);
 					}
 				}else{
 					//그외의 경우는 새로운 리비전 디렉토리 생성됨.
-					updateAndDeleteSize = workingHandler.appendSegment(segmentNumber, sourceReader.getDeleteList(), true);
+					updateAndDeleteSize = workingHandler.appendSegment(segmentNumber, segmentDir , sourceReader.getDeleteList(), true);
 				}
 				updateAndDeleteSize[1] += appender.getDuplicateDocCount();//중복문서 삭제카운트
 				logger.info("== SegmentStatus ==");
@@ -194,8 +195,22 @@ public class IncIndexJob extends Job {
 				
 				SegmentWriter writer = null;
 				try{
-					writer = new SegmentWriter(schema, sourceReader, segmentDir, nextSegmentBaseNumber);
-					count = writer.indexDocument();
+					writer = new SegmentWriter(schema, segmentDir, nextSegmentBaseNumber, indexConfig);
+//					count = writer.indexDocument();
+					long startTime = System.currentTimeMillis();
+					long lapTime = startTime;
+					while(sourceReader.hasNext()){
+						
+//						t = System.currentTimeMillis();
+						Document doc = sourceReader.next();
+						writer.addDocument(doc);
+						count++;
+						if(count % 10000 == 0){
+							logger.info("{} documents indexed, lap = {} ms, elapsed = {}, mem = {}",
+									new Object[]{count, System.currentTimeMillis() - lapTime, Formatter.getFormatTime(System.currentTimeMillis() - startTime), Formatter.getFormatSize(Runtime.getRuntime().totalMemory())});
+							lapTime = System.currentTimeMillis();
+						}
+					}
 				}catch(IRException e){
 					EventDBLogger.error(EventDBLogger.CATE_INDEX, "세그먼트생성에러발생.", EventDBLogger.getStackTrace(e));
 					logger.error("SegmentWriter indexDocument Exception! "+e.getMessage(),e);
@@ -215,10 +230,10 @@ public class IncIndexJob extends Job {
 					}else{
 						//추가문서는 없고, 삭제문서만 있을때는 append로 처리한다.
 						int segmentNumber = currentSegmentInfo.getSegmentNumber();
-						updateAndDeleteSize = workingHandler.appendSegment(segmentNumber, sourceReader.getDeleteList(), false);
+						updateAndDeleteSize = workingHandler.appendSegment(segmentNumber, segmentDir, sourceReader.getDeleteList(), false);
 					}
 				}else{
-					updateAndDeleteSize = workingHandler.addSegment(newSegmentNumber, sourceReader.getDeleteList());
+					updateAndDeleteSize = workingHandler.addSegment(newSegmentNumber, segmentDir, sourceReader.getDeleteList());
 				}
 				updateAndDeleteSize[1] += writer.getDuplicateDocCount();//중복문서 삭제카운트
 				logger.info("== SegmentStatus ==");

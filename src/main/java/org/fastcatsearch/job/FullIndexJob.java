@@ -12,32 +12,30 @@
 package org.fastcatsearch.job;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
-import org.fastcatsearch.collector.SourceReaderFactory;
 import org.fastcatsearch.common.Strings;
-import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.JobException;
+import org.fastcatsearch.datasource.DataSourceSetting;
+import org.fastcatsearch.datasource.reader.SourceReader;
+import org.fastcatsearch.datasource.reader.SourceReaderFactory;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.common.SettingException;
-import org.fastcatsearch.ir.config.DataSourceSetting;
 import org.fastcatsearch.ir.config.IRConfig;
-import org.fastcatsearch.ir.config.IRSettings;
+import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.SegmentWriter;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.DataSequenceFile;
 import org.fastcatsearch.ir.search.SegmentInfo;
-import org.fastcatsearch.ir.source.SourceReader;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.settings.IRSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +64,7 @@ public class FullIndexJob extends Job {
 			IRConfig irconfig = IRSettings.getConfig(true);
 			int DATA_SEQUENCE_CYCLE = irconfig.getInt("data.sequence.cycle");
 			
-			String collectionHomeDir = IRSettings.getCollectionHome(collection);
+			File collectionHomeDir = new File(IRSettings.getCollectionHome(collection));
 			Schema workSchema = IRSettings.getWorkSchema(collection, true, false);
 			if(workSchema == null)
 				workSchema = IRSettings.getSchema(collection, false);
@@ -93,7 +91,8 @@ public class FullIndexJob extends Job {
 			//this handler's schema or other setting can be different from working segment handler's one.
 			
 			int segmentNumber = 0;
-			
+			//1.xml을 unmarshar해서 sourceconfig객체로 가지고 있는다.
+			//2. 
 			DataSourceSetting dsSetting = IRSettings.getDatasource(collection, true);
 			SourceReader sourceReader = SourceReaderFactory.createSourceReader(collection, workSchema, dsSetting, true);
 			
@@ -105,6 +104,7 @@ public class FullIndexJob extends Job {
 			/*
 			 * 색인파일 생성.
 			 */
+			IndexConfig indexConfig = IRSettings.getIndexConfig();
 			File segmentDir = new File(IRSettings.getSegmentPath(collection, newDataSequence, segmentNumber));
 			indexingLogger.info("Segment Dir = "+segmentDir.getAbsolutePath());
 			SegmentWriter writer = null;
@@ -113,7 +113,7 @@ public class FullIndexJob extends Job {
 			
 			try{
 //				writer = new SegmentWriter(workSchema, sourceReader, segmentDir);
-				writer = new SegmentWriter(workSchema, segmentDir);
+				writer = new SegmentWriter(workSchema, segmentDir, indexConfig);
 				
 				
 				long startTime = System.currentTimeMillis();
@@ -158,8 +158,10 @@ public class FullIndexJob extends Job {
 			//apply schema setting
 			IRSettings.applyWorkSchemaFile(collection);
 			
-			CollectionHandler newHandler = new CollectionHandler(collection, newDataSequence);
-			updateAndDeleteSize = newHandler.addSegment(segmentNumber, null);
+			File collectionDir = new File(IRSettings.getCollectionHome(collection));
+			Schema newSchema = IRSettings.getSchema(collection, false);
+			CollectionHandler newHandler = new CollectionHandler(collection, collectionDir, newSchema, indexConfig);
+			updateAndDeleteSize = newHandler.addSegment(segmentNumber, segmentDir, null);
 			updateAndDeleteSize[1] += writer.getDuplicateDocCount();//중복문서 삭제카운트
 //			logger.info("== SegmentStatus ==");
 //			newHandler.printSegmentStatus();

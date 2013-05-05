@@ -9,7 +9,7 @@
  *     swsong - initial API and implementation
  */
 
-package org.fastcatsearch.parser;
+package org.fastcatsearch.datasource.reader;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,15 +21,14 @@ import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.fastcatsearch.datasource.reader.CollectFileParser.FileParserConfig;
+import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.config.DataSourceSetting;
 import org.fastcatsearch.ir.config.FieldSetting;
-import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.io.DirBufferedReader;
-import org.fastcatsearch.ir.source.SourceReader;
-import org.fastcatsearch.parser.util.HTMLTagRemover;
+import org.fastcatsearch.util.HTMLTagRemover;
 
 
 public class FastcatSearchCollectFileParser extends SourceReader{
@@ -48,13 +47,13 @@ public class FastcatSearchCollectFileParser extends SourceReader{
 	private Pattern CPAT;
 	private int count; // how many fields are set
 
-	public FastcatSearchCollectFileParser(Schema schema, DataSourceSetting setting, Boolean isFull) throws IRException {
-		super(schema, setting);
+	public FastcatSearchCollectFileParser(Schema schema, FileParserConfig config, Boolean isFull) throws IRException {
+		super(schema);
 		try {
 			if(isFull){
-				br = new DirBufferedReader(new File(IRSettings.path(setting.fullFilePath)), setting.fileEncoding);
+				br = new DirBufferedReader(new File(config.getFullFilePath()), config.getFileEncoding());
 			}else{
-				br = new DirBufferedReader(new File(IRSettings.path(setting.incFilePath)), setting.fileEncoding);
+				br = new DirBufferedReader(new File(config.getIncFilePath()), config.getFileEncoding());
 			}
 		} catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage(),e);
@@ -156,7 +155,7 @@ public class FastcatSearchCollectFileParser extends SourceReader{
 				
 				
 				if(sb.length() > 0)
-					sb.append(IRSettings.LINE_SEPARATOR);
+					sb.append(Environment.LINE_SEPARATOR);
 				
 				sb.append(line);
 			
@@ -200,7 +199,7 @@ public class FastcatSearchCollectFileParser extends SourceReader{
 			while(!line.equals(DOC_END)){
 				//doc ended
 				if(lineNumber >= 1){
-					sb.append(IRSettings.LINE_SEPARATOR);
+					sb.append(Environment.LINE_SEPARATOR);
 				}
 				sb.append(line);
 				line = br.readLine();

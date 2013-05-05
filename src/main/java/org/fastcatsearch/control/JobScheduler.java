@@ -19,10 +19,10 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.fastcatsearch.common.DynamicClassLoader;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.object.IndexingSchedule;
 import org.fastcatsearch.ir.common.SettingException;
-import org.fastcatsearch.ir.config.IRSettings;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
 import org.slf4j.Logger;
@@ -142,7 +142,7 @@ public class JobScheduler {
 		private Job job;
 		
 		public JobTask(String jobClassName, String args){
-			job = (Job) IRSettings.classLoader.loadObject(jobClassName);
+			job = DynamicClassLoader.loadObject(jobClassName, Job.class);
 			String[] arglist = args.split(" ");
 			job.setArgs(arglist);
 			job.setScheduled(true); //scheduled job.

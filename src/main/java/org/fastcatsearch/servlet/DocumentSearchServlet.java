@@ -24,19 +24,19 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
-import org.fastcatsearch.ir.config.FieldSetting;
-import org.fastcatsearch.ir.config.IRSettings;
-import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.common.SettingException;
+import org.fastcatsearch.ir.config.FieldSetting;
+import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.field.ScoreField;
-import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
+import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.DocumentSearchJob;
+import org.fastcatsearch.settings.IRSettings;
 
 public class DocumentSearchServlet extends WebServiceHttpServlet {
 	
