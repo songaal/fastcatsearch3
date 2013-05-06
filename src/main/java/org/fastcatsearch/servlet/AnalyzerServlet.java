@@ -16,13 +16,8 @@ import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.util.CharsRef;
 import org.fastcatsearch.common.DynamicClassLoader;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
-import org.fastcatsearch.ir.analysis.Tokenizer;
 import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.util.ResultStringer;
-import org.fastcatsearch.util.StringifyException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AnalyzerServlet extends WebServiceHttpServlet {
 	

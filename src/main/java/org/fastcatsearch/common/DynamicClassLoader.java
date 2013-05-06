@@ -46,6 +46,22 @@ public class DynamicClassLoader {
 		return true;
 	}
 	
+	public static boolean add(String tag, File[] jarFiles) {
+		URL[] jarUrls = new URL[jarFiles.length];
+		for (int i = 0; i < jarFiles.length; i++) {
+			try {
+				jarUrls[i] = jarFiles[i].toURI().toURL();
+			} catch (MalformedURLException e) {
+			}
+		}
+		
+		URLClassLoader l = new URLClassLoader(jarUrls);
+		synchronized(classLoaderList){
+			classLoaderList.put(tag, l);
+		}
+		return true;
+	}
+	
 	public static boolean add(String tag, String[] jarFilePath) {
 		URL[] jarUrls = new URL[jarFilePath.length];
 		for (int i = 0; i < jarFilePath.length; i++) {

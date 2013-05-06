@@ -13,10 +13,16 @@ package org.fastcatsearch.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.cli.ConsoleActionServlet;
+import org.fastcatsearch.common.DynamicClassLoader;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.plugin.Plugin;
+import org.fastcatsearch.plugin.PluginService;
+import org.fastcatsearch.plugin.PluginSetting;
+import org.fastcatsearch.plugin.PluginSetting.Servlet;
 import org.fastcatsearch.servlet.AnalyzerServlet;
 import org.fastcatsearch.servlet.CSVMakeServlet;
 import org.fastcatsearch.servlet.DocumentListServlet;
@@ -67,6 +73,7 @@ public class WebService extends AbstractService{
 	private static final String CONSOLE_CONTEXT = "/console";
 	private static final String TOKENIZER_CONTEXT = "/tokenizer";
 	private static final String ANALYZER_CONTEXT = "/analyzer";
+	private static final String PLUGIN_CONTEXT = "/_plugin";
 	
 	private Server server;
 	private int SERVER_PORT;
@@ -123,6 +130,28 @@ public class WebService extends AbstractService{
 			logger.error("", e);
 		}
 		
+		
+		final Context contextPlugin = new Context(server, PLUGIN_CONTEXT, Context.SESSIONS);
+		contextPlugin.setMaxFormContentSize(10 * 1024 * 1024); //파라미터전송 10MB까지 가능.
+		
+		PluginService pluginService = serviceManager.getService(PluginService.class);
+		List<Plugin> plugins = pluginService.getPlugins();
+		for (Plugin plugin : plugins) {
+			PluginSetting pluginSetting = plugin.getPluginSetting();
+			Servlet servletType = pluginSetting.getWeb().getUser().getServlet();
+			String path = servletType.getPath();
+			String servletClass = servletType.getValue();
+			logger.debug("servlet path={}, class={}", path, servletClass);
+			if(servletClass != null && path != null){
+				WebServiceHttpServlet servlet = DynamicClassLoader.loadObject(servletClass, WebServiceHttpServlet.class, new Class<?>[]{int.class}, new Object[]{WebServiceHttpServlet.JSON_TYPE});
+				contextPlugin.addServlet(new ServletHolder(servlet), path+"/json");
+				logger.debug("register plugin servlet >> {} : {}", PLUGIN_CONTEXT+path+"/json", servlet.getClass().getName());
+				servlet = DynamicClassLoader.loadObject(servletClass, WebServiceHttpServlet.class, new Class<?>[]{int.class}, new Object[]{WebServiceHttpServlet.XML_TYPE});
+				contextPlugin.addServlet(new ServletHolder(servlet), path+"/xml");
+				logger.debug("register plugin servlet >> {} : {}", PLUGIN_CONTEXT+path+"/xml", servlet.getClass().getName());
+			}
+		}
+		handlerList.addHandler(contextPlugin);
 		
 		// Cluster search ServletContextHandler
 		final Context contextCluster = new Context(server, CLUSTER_CONTEXT, Context.SESSIONS);

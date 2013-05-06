@@ -21,6 +21,7 @@ import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.management.ManagementInfoService;
+import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.KeywordService;
 import org.fastcatsearch.service.ServiceException;
@@ -160,6 +161,10 @@ public class CatServer {
 		DataService dataService = serviceManager.createService("data", DataService.class);
 		dataService.asSingleton();
 
+		PluginService pluginService = serviceManager.createService("plugin", PluginService.class);
+		pluginService.asSingleton();
+		
+		
 		WebService webService = serviceManager.createService("web", WebService.class);
 		if (webService == null) {
 			throw new ServiceException("웹서비스를 초기화하지 못했습니다.");
@@ -173,13 +178,18 @@ public class CatServer {
 			jobService.start();
 			nodeService.start();
 
-			if (webService != null)
-				webService.start();
-
 			irService.start();
 			statisticsInfoService.start();
 			keywordService.start();
 			dataService.start();
+			
+			//plugin은 webservice보다 먼저 시작되어야한다.
+			pluginService.start();
+			
+			if (webService != null)
+				webService.start();
+			
+			
 		} catch (ServiceException e) {
 			logger.error("CatServer 시작에 실패했습니다.", e);
 			stop();
@@ -241,6 +251,7 @@ public class CatServer {
 	public void stop() throws ServiceException {
 
 		// FIXME 뜨는 도중 에러 발생시 NullPointerException 발생가능성.
+		serviceManager.getService(PluginService.class).stop();
 		serviceManager.getService(NodeService.class).stop();
 		serviceManager.getService(StatisticsInfoService.class).stop();
 		serviceManager.getService(ManagementInfoService.class).stop();
@@ -260,6 +271,7 @@ public class CatServer {
 	}
 
 	public void close() throws ServiceException {
+		serviceManager.getService(PluginService.class).close();
 		serviceManager.getService(NodeService.class).close();
 		serviceManager.getService(StatisticsInfoService.class).close();
 		serviceManager.getService(ManagementInfoService.class).close();
