@@ -170,7 +170,8 @@ public class IncIndexJob extends Job {
 				
 				//count가 0일 경우, revision디렉토리는 삭제되었고 segmentInfo파일도 업데이트 되지 않은 상태이다.
 				int deleteCount = sourceReader.getDeleteList().size();
-				if(count == 0){
+				int indexedCount = appender.getDocumentCount();
+				if(indexedCount == 0){
 					if(deleteCount == 0){
 						indexingLogger.info("["+collection+"] Incremental Indexing Canceled due to no documents. time = "+Formatter.getFormatTime(System.currentTimeMillis() - st));
 						return null;
@@ -180,7 +181,7 @@ public class IncIndexJob extends Job {
 					}
 				}else{
 					//그외의 경우는 새로운 리비전 디렉토리 생성됨.
-					updateAndDeleteSize = workingHandler.appendSegment(segmentNumber, segmentDir , sourceReader.getDeleteList(), true);
+					updateAndDeleteSize = workingHandler.appendSegment(segmentNumber, segmentDir, sourceReader.getDeleteList(), true);
 				}
 				updateAndDeleteSize[1] += appender.getDuplicateDocCount();//중복문서 삭제카운트
 				logger.info("== SegmentStatus ==");
@@ -190,12 +191,13 @@ public class IncIndexJob extends Job {
 				int nextSegmentBaseNumber = currentSegmentInfo.getBaseDocNo() + currentSegmentInfo.getDocCount();
 				int newSegmentNumber = workingHandler.getNextSegmentNumber();
 				segmentDir = new File(IRSettings.getSegmentPath(collection, dataSequence, newSegmentNumber));
+				int revision = workingHandler.getLastSegmentInfo().getLastRevision();
 				indexingLogger.info("Segment Dir = "+segmentDir.getAbsolutePath()+", baseNo = "+nextSegmentBaseNumber);
 				FileUtils.deleteDirectory(segmentDir);
 				
 				SegmentWriter writer = null;
 				try{
-					writer = new SegmentWriter(schema, segmentDir, nextSegmentBaseNumber, indexConfig);
+					writer = new SegmentWriter(schema, segmentDir, nextSegmentBaseNumber, revision, indexConfig);
 //					count = writer.indexDocument();
 					long startTime = System.currentTimeMillis();
 					long lapTime = startTime;
@@ -223,7 +225,8 @@ public class IncIndexJob extends Job {
 				}
 				
 				int deleteCount = sourceReader.getDeleteList().size();
-				if(count == 0){
+				int indexedCount = writer.getDocumentCount();
+				if(indexedCount == 0){
 					if(deleteCount == 0){
 						indexingLogger.info("["+collection+"] Incremental Indexing Canceled due to no documents. time = "+Formatter.getFormatTime(System.currentTimeMillis() - st));
 						return null;

@@ -16,6 +16,7 @@ import java.util.Properties;
 
 import org.fastcatsearch.common.DynamicClassLoader;
 import org.fastcatsearch.datasource.DataSourceSetting;
+import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.datasource.reader.CollectFileParser.FileParserConfig;
 import org.fastcatsearch.datasource.reader.DBReader.DBReaderConfig;
 import org.fastcatsearch.datasource.reader.WebPageSourceReader.WebPageSourceReaderConfig;
@@ -31,18 +32,27 @@ public class SourceReaderFactory {
 	private static Logger logger = LoggerFactory.getLogger(SourceReaderFactory.class);
 	
 	public static SourceReader createSourceReader(String collection, Schema schema, DataSourceSetting dsSetting, boolean isFull) throws IRException{
+	
+		SourceModifier sourceModifier = null;
+		if(dsSetting.sourceModifier != null && dsSetting.sourceModifier.length() > 0){
+			sourceModifier = DynamicClassLoader.loadObject(dsSetting.sourceModifier, SourceModifier.class);
+			if(sourceModifier == null){
+				throw new IRException ("unable to find source modifier class "+dsSetting.sourceModifier);
+			}
+		}
+		
 		if(dsSetting.isMultiSource()){
 			List<DataSourceSetting> dsSettingList = IRSettings.getMultiDatasource(collection, true);
 			return null;//new MultiSourceReader(schema, dsSettingList, isFull);
 		}else{
 			if(dsSetting.sourceType.equalsIgnoreCase("FILE")){
 				FileParserConfig config = new FileParserConfig();
-				config.setFullFilePath(dsSetting.fullFilePath);
-				config.setIncFilePath(dsSetting.incFilePath);
+				config.setFullFilePath(IRSettings.path(dsSetting.fullFilePath));
+				config.setIncFilePath(IRSettings.path(dsSetting.incFilePath));
 				config.setFileEncoding(dsSetting.fileEncoding);
 				config.setFileDocParser(dsSetting.fileDocParser);
 				
-				SourceReader sourceReader = DynamicClassLoader.loadObject(dsSetting.fileDocParser, SourceReader.class, new Class[]{Schema.class, FileParserConfig.class, Boolean.class}, new Object[]{schema, config, isFull});
+				SourceReader sourceReader = DynamicClassLoader.loadObject(dsSetting.fileDocParser, SourceReader.class, new Class[]{Schema.class, FileParserConfig.class, SourceModifier.class, Boolean.class}, new Object[]{schema, config, sourceModifier, isFull});
 				logger.debug("Loading sourceReader : {}, {}", dsSetting.fileDocParser, sourceReader);
 				if(sourceReader == null){
 					logger.error("소스리더를 로드하지 못했습니다. 해당 클래스가 클래스패스에 없거나 생성자 시그너처가 일치하는지 확인이 필요합니다. sourceType={}", dsSetting.sourceType);
@@ -64,15 +74,15 @@ public class SourceReaderFactory {
 				config.setFullQuery(dsSetting.fullQuery);
 				config.setIncQuery(dsSetting.incQuery);
 				config.setDeleteIdQuery(dsSetting.deleteIdQuery);
-				config.setFullBackupPath(dsSetting.fullBackupPath);
-				config.setIncBackupPath(dsSetting.incBackupPath);
+				config.setFullBackupPath(IRSettings.path(dsSetting.fullBackupPath));
+				config.setIncBackupPath(IRSettings.path(dsSetting.incBackupPath));
 				config.setBackupFileEncoding(dsSetting.backupFileEncoding);
-				return new DBReader(schema, config, isFull);
+				return new DBReader(schema, config, sourceModifier, isFull);
 			}else if(dsSetting.sourceType.equalsIgnoreCase("WEB")){
 				WebPageSourceReaderConfig config = null;
-				return new WebPageSourceReader(schema, config, isFull);
+				return new WebPageSourceReader(schema, config, sourceModifier, isFull);
 			}else if(dsSetting.sourceType.equalsIgnoreCase("CUSTOM")){
-				SourceReader sourceReader = DynamicClassLoader.loadObject(dsSetting.customReaderClass, SourceReader.class, new Class[]{Schema.class, DataSourceSetting.class, Boolean.class, Properties.class}, new Object[]{schema, dsSetting, isFull});
+				SourceReader sourceReader = DynamicClassLoader.loadObject(dsSetting.customReaderClass, SourceReader.class, new Class[]{Schema.class, DataSourceSetting.class, SourceModifier.class, Boolean.class, Properties.class}, new Object[]{schema, dsSetting, sourceModifier, isFull});
 				logger.debug("Loading sourceReader : {}, {}", dsSetting.fileDocParser, sourceReader);
 				if(sourceReader == null){
 					logger.error("소스리더를 로드하지 못했습니다. 해당 클래스가 클래스패스에 없거나 생성자 시그너처가 일치하는지 확인이 필요합니다. dsSetting.sourceType={}", dsSetting.sourceType);

@@ -21,6 +21,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.FieldSetting;
 import org.fastcatsearch.ir.config.Schema;
@@ -37,8 +38,8 @@ public class CollectFileParser extends SourceReader{
 	private static String DELETE ="﻿<<DELETE>>";
 	private int count; // how many fields are set
 
-	public CollectFileParser(Schema schema, FileParserConfig config, Boolean isFull) throws IRException {
-		super(schema);
+	public CollectFileParser(Schema schema, FileParserConfig config, SourceModifier sourceModifier, Boolean isFull) throws IRException {
+		super(schema, sourceModifier);
 		try {
 			if(isFull){
 				br = new DirBufferedReader(new File(config.getFullFilePath()), config.getFileEncoding());

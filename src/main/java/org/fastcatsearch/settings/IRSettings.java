@@ -1627,6 +1627,10 @@ public class IRSettings {
 	public static String getCollectionHome(String collection) {
 		return HOME + "collection" + FILE_SEPARATOR + collection + FILE_SEPARATOR;
 	}
+	
+	public static File getCollectionHomeFile(String collection) {
+		return new File(HOME + "collection" + FILE_SEPARATOR + collection + FILE_SEPARATOR);
+	}
 
 	public static String getCollectionDataPath(String collection) {
 		return getCollectionDataPath(collection, 0);

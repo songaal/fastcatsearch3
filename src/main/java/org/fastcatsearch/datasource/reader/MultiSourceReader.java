@@ -13,6 +13,7 @@ package org.fastcatsearch.datasource.reader;
 
 import java.util.List;
 
+import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.document.Document;
@@ -24,12 +25,11 @@ public class MultiSourceReader extends SourceReader{
 	private int pos;
 	private SourceReader sourceReader;
 	
-	private Schema schema;
 	private List<SourceReader> sourceReaderList;
 	private boolean isFull;
 	
-	public MultiSourceReader(Schema schema, List<SourceReader> sourceReaderList, boolean isFull) throws IRException {
-		this.schema = schema;
+	public MultiSourceReader(Schema schema, List<SourceReader> sourceReaderList, SourceModifier sourceModifier, boolean isFull) throws IRException {
+		super(schema, sourceModifier);
 		this.sourceReaderList = sourceReaderList;
 		this.isFull = isFull;
 		//제일 첫 소스리더를 로딩한다.

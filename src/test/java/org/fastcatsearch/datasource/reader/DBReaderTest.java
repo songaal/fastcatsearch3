@@ -9,7 +9,7 @@
  *     swsong - initial API and implementation
  */
 
-package org.fastcatsearch.collector;
+package org.fastcatsearch.datasource.reader;
 
 import junit.framework.TestCase;
 
@@ -30,7 +30,7 @@ public class DBReaderTest extends TestCase{
 		String collection = "blog_db";
 		Schema schema = IRSettings.getSchema(collection, true);
 		DataSourceSetting dsSetting = IRSettings.getDatasource(collection, true);
-		DBReader dbReader = new DBReader(schema, new DBReaderConfig(), true);
+		DBReader dbReader = new DBReader(schema, new DBReaderConfig(), null, true);
 		
 		while(dbReader.hasNext()){
 			Document document = dbReader.next();
@@ -43,7 +43,7 @@ public class DBReaderTest extends TestCase{
 		String collection = "blog_db";
 		Schema schema = IRSettings.getSchema(collection, true);
 		DataSourceSetting dsSetting = IRSettings.getDatasource(collection, true);
-		DBReader dbReader = new DBReader(schema, new DBReaderConfig(), false);
+		DBReader dbReader = new DBReader(schema, new DBReaderConfig(), null, false);
 		
 		while(dbReader.hasNext()){
 			Document document = dbReader.next();

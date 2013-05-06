@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.Schema;
@@ -47,8 +48,8 @@ public class WebPageSourceReader extends SourceReader{
 	private ResultSet rs;
 	private static ReadabilityExtractor extractor = new ReadabilityExtractor();
 
-	public WebPageSourceReader(Schema schema, WebPageSourceReaderConfig config, Boolean isFull) throws IRException {
-		super(schema);
+	public WebPageSourceReader(Schema schema, WebPageSourceReaderConfig config, SourceModifier sourceModifier, Boolean isFull) throws IRException {
+		super(schema, sourceModifier);
 		try {
 			if(isFull){
 				//br = new DirBufferedReader(new File(IRSettings.path(setting.fullFilePath)), setting.fileEncoding);

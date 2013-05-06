@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.datasource.reader.CollectFileParser.FileParserConfig;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.common.IRException;
@@ -47,8 +48,8 @@ public class FastcatSearchCollectFileParser extends SourceReader{
 	private Pattern CPAT;
 	private int count; // how many fields are set
 
-	public FastcatSearchCollectFileParser(Schema schema, FileParserConfig config, Boolean isFull) throws IRException {
-		super(schema);
+	public FastcatSearchCollectFileParser(Schema schema, FileParserConfig config, SourceModifier sourceModifier, Boolean isFull) throws IRException {
+		super(schema, sourceModifier);
 		try {
 			if(isFull){
 				br = new DirBufferedReader(new File(config.getFullFilePath()), config.getFileEncoding());

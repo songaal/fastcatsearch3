@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.fastcatsearch.datasource.SourceModifier;
@@ -49,22 +50,15 @@ public abstract class SourceReader {
 	
 	public SourceReader(){}
 	
-	public SourceReader(Schema schema) throws IRException{
+	public SourceReader(Schema schema, SourceModifier sourceModifier) throws IRException{
 		fieldSettingList = schema.getFieldSettingList();
 		fieldIndex = schema.fieldnames;
 		idFieldIndex = schema.getIndexID();
 		if(idFieldIndex == -1){
 			throw new IRException("Schema has no primary key!");
 		}
-//		if(setting!= null && setting.sourceModifier != null && setting.sourceModifier.length() > 0){
-//			Object object = IRSettings.classLoader.loadObject(setting.sourceModifier);
-//			if(object != null){
-//				logger.debug("Using SourceModifier = "+setting.sourceModifier);
-//				sourceModifier = (SourceModifier)object;
-//			} else {
-//				throw new IRException ("unable to find source modifier class "+setting.sourceModifier);
-//			}
-//		}
+		
+		this.sourceModifier = sourceModifier;
 	}
 	
 	public final Set<String> getDeleteList(){
@@ -75,6 +69,7 @@ public abstract class SourceReader {
 	public static class SourceConfig {
 		private String readerType;
 		private String configType;
+		private String sourceModifier;
 		
 		@XmlAttribute(required=true)
 		public String getReaderType(){
@@ -86,12 +81,21 @@ public abstract class SourceReader {
 			return configType;
 		}
 		
+		@XmlElement
+		public String getSourceModifier(){
+			return sourceModifier;
+		}
+		
 		public void setReaderType(String readerType){
 			this.readerType = readerType;
 		}
 		
 		public void setConfigType(String configType){
 			this.configType = configType;
+		}
+		
+		public void setSourceModifier(String sourceModifier){
+			this.sourceModifier = sourceModifier;
 		}
 	}
 	

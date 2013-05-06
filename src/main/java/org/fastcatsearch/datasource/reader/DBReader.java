@@ -37,6 +37,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.fastcatsearch.common.DynamicClassLoader;
+import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.Field;
 import org.fastcatsearch.ir.config.FieldSetting;
@@ -73,8 +74,8 @@ public class DBReader extends SourceReader{
 	private String deleteFileName;
 	private DBReaderConfig config;
 	
-	public DBReader(Schema schema, DBReaderConfig config, boolean isFull) throws IRException {
-		super(schema);
+	public DBReader(Schema schema, DBReaderConfig config, SourceModifier sourceModifier, boolean isFull) throws IRException {
+		super(schema, sourceModifier);
 		this.config = config;
 		this.isFull = isFull;
 		this.BULK_SIZE = config.getBulkSize();

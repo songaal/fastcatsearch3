@@ -83,7 +83,7 @@ public class IRService extends AbstractService{
 		for (int i = 0; i < collectionNameList.length; i++) {
 			String collection = collectionNameList[i];
 			try {
-				File collectionDir = new File(new IRSettings().getCollectionHome(collection));
+				File collectionDir = IRSettings.getCollectionHomeFile(collection);
 				Schema schema = IRSettings.getSchema(collection, true);
 				collectionHandlerMap.put(collection, new CollectionHandler(collection, collectionDir, schema, IRSettings.getIndexConfig()));
 			} catch (IRException e) {

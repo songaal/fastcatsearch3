@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
 
+import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.datasource.reader.CollectFileParser.FileParserConfig;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.FieldSetting;
@@ -32,8 +33,8 @@ public class SingleLineCollectFileParser extends SourceReader{
 	
 	private int count; // how many fields are set
 
-	public SingleLineCollectFileParser(Schema schema, FileParserConfig config, Boolean isFull) throws IRException {
-		super(schema);
+	public SingleLineCollectFileParser(Schema schema, FileParserConfig config, SourceModifier sourceModifier, Boolean isFull) throws IRException {
+		super(schema, sourceModifier);
 		try {
 			if(isFull){
 				br = new DirBufferedReader(new File(config.getFullFilePath()), config.getFileEncoding());
