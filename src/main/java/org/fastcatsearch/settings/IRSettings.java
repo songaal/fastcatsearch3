@@ -1685,6 +1685,6 @@ public class IRSettings {
 		config.setPkBucketSize(irConfig.getByteSize("pk.bucket.size"));
 		config.setPkTermInterval(irConfig.getInt("pk.term.interval"));
 		
-		return null;
+		return config;
 	}
 }
