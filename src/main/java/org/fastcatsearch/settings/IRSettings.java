@@ -32,7 +32,13 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.lucene.analysis.Analyzer;
+import org.fastcatsearch.common.DynamicClassLoader;
 import org.fastcatsearch.datasource.DataSourceSetting;
+import org.fastcatsearch.ir.analysis.AnalyzerFactory;
+import org.fastcatsearch.ir.analysis.AnalyzerPool;
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
+import org.fastcatsearch.ir.analysis.DefaultAnalyzerFactory;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.ColumnSetting;
 import org.fastcatsearch.ir.config.FieldSetting;
@@ -75,6 +81,8 @@ public class IRSettings {
 	static final String bakupSuffix = ".bak";
 	
 	private static Map<String, Object> settingCache = new HashMap<String, Object>();
+	
+	private static AnalyzerPoolManager analyzerPoolManager = new AnalyzerPoolManager();
 	
 	public static void setHome(String homePath) {
 		// 검색엔진을 재시작의 경우 캐시가 남아있을 수 있다.
@@ -383,7 +391,48 @@ public class IRSettings {
 
 	}
 
+	private static void loadAnalyzer(String collection, Element root){
+		List fields = root.getChildren();
+		for (int i = 0; i < fields.size(); i++) {
+
+			Element el = (Element) fields.get(i);
+			if (el.getName().equals("analyzer")) {
+				String analyzerId = el.getAttributeValue("id");
+				if(analyzerPoolManager.contains(collection, analyzerId)){
+					continue;
+				}
+				int corePoolSize = Integer.parseInt(el.getAttributeValue("core_pool_size"));
+				int maximumPoolSize = Integer.parseInt(el.getAttributeValue("maximum_pool_size"));
+				String analyzerClassName = el.getValue();
+				
+				String factoryClassName = analyzerClassName+"Factory";
+				Class<?> analyzerFactoryClass = DynamicClassLoader.loadClass(factoryClassName);
+				AnalyzerFactory factory = null;
+				if(analyzerFactoryClass == null){
+					Class<Analyzer> analyzerClass = (Class<Analyzer>) DynamicClassLoader.loadClass(analyzerClassName);
+					if(analyzerClass == null){
+						logger.error("Analyzer {}를 생성할수 없습니다.", analyzerClassName);
+					}
+					factory = new DefaultAnalyzerFactory(analyzerClass);
+				}else{
+					try {
+						factory = (AnalyzerFactory) analyzerFactoryClass.newInstance();
+					} catch (Exception e) {
+						logger.error("AnalyzerFactory {}를 생성할수 없습니다.", factoryClassName);
+					}
+				}
+				
+				if(corePoolSize == -1 || maximumPoolSize == -1){
+					analyzerPoolManager.registerAnalyzer(collection, analyzerId, factory);
+				}else{
+					analyzerPoolManager.registerAnalyzer(collection, analyzerId, factory, corePoolSize, maximumPoolSize);
+				}
+			
+			}
+		}
+	}
 	private static Schema getSchema0(String collection, Element root) throws SettingException {
+		loadAnalyzer(collection, root);
 		Schema schema = new Schema();
 		schema.collection = collection;
 		List fields = root.getChildren();
@@ -398,7 +447,6 @@ public class IRSettings {
 		for (int i = 0; i < fields.size(); i++) {
 
 			Element el = (Element) fields.get(i);
-
 			if (el.getName().equals("field")) {
 				/*
 				 * 1. field setting
@@ -513,12 +561,28 @@ public class IRSettings {
 				/*
 				 * 2. index
 				 */
-				String indexTokenizer = el.getAttributeValue("index");
-				if (indexTokenizer != null && indexTokenizer.trim().length() > 0) {
+				String indexAnalyzerName = el.getAttributeValue("index");
+				if (indexAnalyzerName != null && indexAnalyzerName.trim().length() > 0) {
 					// Do not make primary key search index.
 					if (!f.primary) {
-						String queryTokenizer = el.getAttributeValue("query");
-						IndexSetting is = new IndexSetting(name, f, indexTokenizer, queryTokenizer);
+						String queryAnalyzerName = el.getAttributeValue("query");
+						if(queryAnalyzerName == null){
+							queryAnalyzerName = indexAnalyzerName;
+						}
+						//0. 이미 만들어진 pool있는지 확인.
+						//
+						AnalyzerPool indexAnalyzerPool = analyzerPoolManager.getPool(collection, indexAnalyzerName);
+						if(indexAnalyzerPool == null){
+							//없으면 에러.
+							logger.error("색인용 분석기못찾음. {}", indexAnalyzerName);
+						}
+						AnalyzerPool queryAnalyzerPool = analyzerPoolManager.getPool(collection, queryAnalyzerName);
+						if(queryAnalyzerPool == null){
+							//없으면 에러.
+							logger.error("쿼리용 분석기못찾음. {}", queryAnalyzerName);
+						}
+						
+						IndexSetting is = new IndexSetting(name, f, indexAnalyzerName, indexAnalyzerPool, queryAnalyzerName, queryAnalyzerPool);
 						schema.addIndexSetting(is);
 						f.indexSetting = is;
 						schema.indexnames.put(name, indexSequence++);
@@ -1690,5 +1754,9 @@ public class IRSettings {
 		config.setPkTermInterval(irConfig.getInt("pk.term.interval"));
 		
 		return config;
+	}
+
+	public static AnalyzerPoolManager getAnalyzerPoolManager() {
+		return analyzerPoolManager;
 	}
 }

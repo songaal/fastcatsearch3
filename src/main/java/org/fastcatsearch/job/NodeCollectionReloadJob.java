@@ -37,7 +37,8 @@ public class NodeCollectionReloadJob extends StreamableJob {
 		File collectionHome = new File(IRSettings.getCollectionHome(collectionId));
 		try{
 			Schema schema = IRSettings.getSchema(collectionId, true);
-			CollectionHandler newHandler = new CollectionHandler(collectionId, collectionHome, schema, IRSettings.getIndexConfig());
+//			CollectionHandler newHandler = new CollectionHandler(collectionId, collectionHome, schema, IRSettings.getIndexConfig());
+			CollectionHandler newHandler = IRService.getInstance().newCollectionHandler(collectionId, -1);
 			//이미 수정된 모든 파일이 복사되었기 때문에 collection.info, delete.set을 수정하는 addSegment를 수행핦 필요없음.
 			//수행하면 세그먼트가 더 늘어나서, 오히려 에러발생.
 //			int[] updateAndDeleteSize = newHandler.addSegment(segmentNumber, null);

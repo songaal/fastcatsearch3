@@ -85,8 +85,9 @@ public class RebuildIndexJob extends Job {
 			IRSettings.applyWorkSchemaFile(collection);
 			
 			Schema newSchema = IRSettings.getSchema(collectionHomeDir, false);
-			CollectionHandler newHandler = new CollectionHandler(collection, new File(collectionHomeDir), newSchema, IRSettings.getIndexConfig());
-//			newHandler.addSegment(segmentNumber, null);
+//			CollectionHandler newHandler = new CollectionHandler(collection, new File(collectionHomeDir), newSchema, IRSettings.getIndexConfig());
+			CollectionHandler newHandler = IRService.getInstance().newCollectionHandler(collection, -1);
+			newHandler.addSegment(segmentNumber, segmentDir, null);
 			
 			newHandler.saveDataSequenceFile();
 			

@@ -144,6 +144,9 @@ public class CatServer {
 		this.serviceManager = new ServiceManager(environment);
 		serviceManager.asSingleton();
 
+		PluginService pluginService = serviceManager.createService("plugin", PluginService.class);
+		pluginService.asSingleton();
+		
 		DBService dbService = serviceManager.createService("db", DBService.class);
 		dbService.asSingleton();
 		KeywordService keywordService = serviceManager.createService("keyword", KeywordService.class);
@@ -161,10 +164,6 @@ public class CatServer {
 		DataService dataService = serviceManager.createService("data", DataService.class);
 		dataService.asSingleton();
 
-		PluginService pluginService = serviceManager.createService("plugin", PluginService.class);
-		pluginService.asSingleton();
-		
-		
 		WebService webService = serviceManager.createService("web", WebService.class);
 		if (webService == null) {
 			throw new ServiceException("웹서비스를 초기화하지 못했습니다.");
@@ -177,14 +176,15 @@ public class CatServer {
 			dbService.start();
 			jobService.start();
 			nodeService.start();
-
+			//plugin은 webservice보다 먼저 시작되어야한다.
+			pluginService.start();
+			
 			irService.start();
 			statisticsInfoService.start();
 			keywordService.start();
 			dataService.start();
 			
-			//plugin은 webservice보다 먼저 시작되어야한다.
-			pluginService.start();
+			
 			
 			if (webService != null)
 				webService.start();

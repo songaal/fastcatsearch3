@@ -24,12 +24,19 @@ import java.util.Map.Entry;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.fastcatsearch.common.DynamicClassLoader;
 import org.fastcatsearch.common.QueryCacheModule;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.ir.analysis.AnalyzerFactory;
+import org.fastcatsearch.ir.analysis.AnalyzerPool;
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
+import org.fastcatsearch.ir.analysis.DefaultAnalyzerFactory;
 import org.fastcatsearch.ir.analysis.TokenizerAttributes;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.IRConfig;
+import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.group.GroupData;
 import org.fastcatsearch.ir.group.GroupResults;
@@ -52,6 +59,8 @@ public class IRService extends AbstractService{
 	private QueryCacheModule<GroupResults> groupingCache;
 	private QueryCacheModule<GroupData> groupingDataCache;
 	private QueryCacheModule<Result> documentCache;
+	
+//	private AnalyzerPoolManager poolManager;
 	
 	private static IRService instance;
 	
@@ -80,12 +89,46 @@ public class IRService extends AbstractService{
 		String collectionList = irconfig.getString("collection.list");
 		collectionNameList = collectionList.split(",");
 		
+//		detectTokenizers();
+		//분석기 로딩.
+//		poolManager = new AnalyzerPoolManager();
+//		List<Settings> analyzerList = settings.getSettingList("analyzer");
+//		for (Settings setting : analyzerList) {
+//			String analyzerClassName = setting.getString("className");
+//			int corePoolSize = setting.getInt("core_pool_size");
+//			int maximumPoolSize = setting.getInt("maximum_pool_size");
+//			
+//			String factoryClassName = analyzerClassName+"Factory";
+//			Class<?> analyzerFactoryClass = DynamicClassLoader.loadClass(factoryClassName);
+//			AnalyzerFactory factory = null;
+//			if(analyzerFactoryClass == null){
+//				Class<Analyzer> analyzerClass = (Class<Analyzer>) DynamicClassLoader.loadClass(analyzerClassName);
+//				if(analyzerClass == null){
+//					logger.error("Analyzer {}를 생성할수 없습니다.", analyzerClassName);
+//				}
+//				factory = new DefaultAnalyzerFactory(analyzerClass);
+//			}else{
+//				try {
+//					factory = (AnalyzerFactory) analyzerFactoryClass.newInstance();
+//				} catch (Exception e) {
+//					logger.error("AnalyzerFactory {}를 생성할수 없습니다.", factoryClassName);
+//				}
+//			}
+//			
+//			if(corePoolSize == -1 || maximumPoolSize == -1){
+//				poolManager.registerAnalyzer(analyzerClassName, factory);
+//			}else{
+//				poolManager.registerAnalyzer(analyzerClassName, factory, corePoolSize, maximumPoolSize);
+//			}
+//		}
+		
 		for (int i = 0; i < collectionNameList.length; i++) {
 			String collection = collectionNameList[i];
 			try {
 				File collectionDir = IRSettings.getCollectionHomeFile(collection);
 				Schema schema = IRSettings.getSchema(collection, true);
-				collectionHandlerMap.put(collection, new CollectionHandler(collection, collectionDir, schema, IRSettings.getIndexConfig()));
+				IndexConfig indexConfig = IRSettings.getIndexConfig();
+				collectionHandlerMap.put(collection, new CollectionHandler(collection, collectionDir, schema, indexConfig));
 			} catch (IRException e) {
 				logger.error("[ERROR] "+e.getMessage(),e);
 			} catch (SettingException e) {
@@ -94,8 +137,6 @@ public class IRService extends AbstractService{
 				logger.error("[ERROR] "+e.getMessage(),e);
 			}
 		}
-		
-		detectTokenizers();
 		
 		searchCache = new QueryCacheModule<Result>(environment, settings);
 		shardSearchCache = new QueryCacheModule<ShardSearchResult>(environment, settings);
@@ -134,6 +175,12 @@ public class IRService extends AbstractService{
 		return collectionHandlerMap.put(collection, collectionHandler);
 	}
 
+	public CollectionHandler newCollectionHandler(String collection, int newDataSequence) throws IRException, SettingException{
+		File collectionDir = new File(IRSettings.getCollectionHome(collection));
+		Schema schema = IRSettings.getSchema(collection, false);
+		IndexConfig indexConfig = IRSettings.getIndexConfig();
+		return new CollectionHandler(collection, collectionDir, schema, indexConfig, newDataSequence);
+	}
 	protected boolean doStop() throws ServiceException {
 		Iterator<Entry<String, CollectionHandler>> iter = collectionHandlerMap.entrySet().iterator();
 		while(iter.hasNext()){

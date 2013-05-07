@@ -95,7 +95,7 @@ public class ShowSchemaCommand extends CollectionExtractCommand {
 		if (fs.indexSetting == null)
 			return "";
 		else
-			return fs.indexSetting.handler;
+			return fs.indexSetting.indexAnalyzerPool.getClass().getSimpleName();
 	}
 
 	private void addRecord(List<Object[]> data, String cn, String fName, String key, String fType, String fSize,

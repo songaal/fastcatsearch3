@@ -17,6 +17,8 @@ import org.apache.lucene.util.CharsRef;
 import org.fastcatsearch.common.DynamicClassLoader;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.io.CharVector;
+import org.fastcatsearch.service.IRService;
+import org.fastcatsearch.settings.IRSettings;
 import org.fastcatsearch.util.ResultStringer;
 
 public class AnalyzerServlet extends WebServiceHttpServlet {
@@ -54,23 +56,10 @@ public class AnalyzerServlet extends WebServiceHttpServlet {
 		}
 		
 		if(resultTypeStr!=null && analyzerName!=null) {
-		
-			String factoryName = analyzerName+"Factory";
-			Class<?> factoryClass = DynamicClassLoader.loadClass(factoryName);
+			String collectionId = request.getParameter("collection");
+			AnalyzerPool analyzerPool = IRSettings.getAnalyzerPoolManager().getPool(collectionId, analyzerName);
 			
-			AnalyzerPool pool = null;
-			//factory존재여부확인.
-			if(factoryClass != null){
-				pool = AnalyzerPool.getPool(factoryClass);
-			}else{
-				Class<?> analyzerClass = DynamicClassLoader.loadClass(analyzerName);
-				//analyzer를 그대로 이용.
-				pool = AnalyzerPool.getPool(analyzerClass);
-			}
-			
-			Analyzer analyzer = pool.getFromPool();
-			
-			
+			Analyzer analyzer = analyzerPool.getFromPool();
 			
 			String responseCharset = getParameter(request, "responseCharset", "UTF-8");
 			
@@ -126,6 +115,8 @@ public class AnalyzerServlet extends WebServiceHttpServlet {
 				
 			}catch(Exception e){
 				throw new ServletException(e);
+			} finally {
+				analyzerPool.releaseToPool(analyzer);
 			}
 		}
 	}

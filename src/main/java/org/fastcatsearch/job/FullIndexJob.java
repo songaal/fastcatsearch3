@@ -158,9 +158,11 @@ public class FullIndexJob extends Job {
 			//apply schema setting
 			IRSettings.applyWorkSchemaFile(collection);
 			
-			File collectionDir = new File(IRSettings.getCollectionHome(collection));
-			Schema newSchema = IRSettings.getSchema(collection, false);
-			CollectionHandler newHandler = new CollectionHandler(collection, collectionDir, newSchema, indexConfig, newDataSequence);
+//			File collectionDir = new File(IRSettings.getCollectionHome(collection));
+//			Schema newSchema = IRSettings.getSchema(collection, false);
+//			CollectionHandler newHandler = new CollectionHandler(collection, collectionDir, newSchema, indexConfig, newDataSequence);
+
+			CollectionHandler newHandler = IRService.getInstance().newCollectionHandler(collection, newDataSequence);
 			updateAndDeleteSize = newHandler.addSegment(segmentNumber, segmentDir, null);
 			updateAndDeleteSize[1] += writer.getDuplicateDocCount();//중복문서 삭제카운트
 //			logger.info("== SegmentStatus ==");

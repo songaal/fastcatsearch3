@@ -134,7 +134,8 @@ public class NodeFullIndexJob extends StreamableJob {
 					logger.error("Error while close source reader! "+e.getMessage(),e);
 				}
 			}
-			CollectionHandler newHandler = new CollectionHandler(collectionId, collectionHomeDir, workSchema, IRSettings.getIndexConfig());
+//			CollectionHandler newHandler = new CollectionHandler(collectionId, collectionHomeDir, workSchema, IRSettings.getIndexConfig());
+			CollectionHandler newHandler = IRService.getInstance().newCollectionHandler(collectionId, -1);
 			int[] updateAndDeleteSize = newHandler.addSegment(segmentNumber, segmentDir, null); //collection.info 파일저장.
 			newHandler.saveDataSequenceFile(); //data.sequence 파일저장.
 			

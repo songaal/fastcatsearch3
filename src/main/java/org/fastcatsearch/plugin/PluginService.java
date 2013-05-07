@@ -68,7 +68,7 @@ public class PluginService extends AbstractService {
 					}else{
 						plugin = new Plugin(dir, setting);
 					}
-					plugin.init();
+					plugin.load();
 					logger.debug("PLUGIN >> {}", plugin.getClass().getName());
 					pluginList.add(plugin);
 				} catch (FileNotFoundException e) {

@@ -4,16 +4,18 @@ import java.io.File;
 
 public class Plugin {
 	
-	private File pluginDir;
+	protected File pluginDir;
 	
-	private PluginSetting pluginSetting;
+	protected PluginSetting pluginSetting;
 	
 	public Plugin(File pluginDir, PluginSetting pluginSetting){
 		this.pluginDir = pluginDir;
 		this.pluginSetting = pluginSetting;
 	}
 	
-	public void init(){ }
+	public void load(){ }
+	
+	public void unLoad(){ }
 	
 	public File getPluginDir(){
 		return pluginDir;
