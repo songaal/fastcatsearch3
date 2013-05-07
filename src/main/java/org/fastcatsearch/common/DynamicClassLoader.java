@@ -48,15 +48,18 @@ public class DynamicClassLoader {
 	
 	public static boolean add(String tag, File[] jarFiles) {
 		URL[] jarUrls = new URL[jarFiles.length];
+		StringBuilder sb = new StringBuilder(); 
 		for (int i = 0; i < jarFiles.length; i++) {
 			try {
 				jarUrls[i] = jarFiles[i].toURI().toURL();
+				sb.append(jarUrls[i]).append(", ");
 			} catch (MalformedURLException e) {
 			}
 		}
 		
-		URLClassLoader l = new URLClassLoader(jarUrls);
+		URLClassLoader l = new URLClassLoader(jarUrls, Thread.currentThread().getContextClassLoader());
 		synchronized(classLoaderList){
+			logger.debug("Add Classpath {}:{}", tag, sb.toString());
 			classLoaderList.put(tag, l);
 		}
 		return true;

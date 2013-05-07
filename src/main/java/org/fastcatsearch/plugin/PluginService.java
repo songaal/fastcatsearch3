@@ -51,8 +51,10 @@ public class PluginService extends AbstractService {
 			int i = 0;
 			for (File dir : pluginDirList) {
 				File[] jarFiles = findFiles(dir, "jar");
+				logger.debug("FOUND plugin {}, jar={}", dir.getAbsolutePath(), jarFiles);
 				File[] warFiles = findFiles(dir, "war");
-				DynamicClassLoader.add("plugin_" + i++, jarFiles);
+				DynamicClassLoader.add("plugin_" + i +"_"+ dir.getName(), jarFiles);
+				i++;
 				
 				//
 				//TODO war를 압축을 풀어서 webapp 디렉토리에 복사해준다.
