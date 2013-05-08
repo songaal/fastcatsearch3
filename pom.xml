@@ -7,6 +7,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<properties>
 		<currentVersion>2.0.0</currentVersion>
+		<fastcatsearchRepository>http://websqrd.iptime.org:8080/nexus/content/repositories/fastcatsearch/</fastcatsearchRepository>
 	</properties>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.fastcatsearch</groupId>
@@ -96,6 +97,19 @@
 			<version>1.0.11</version>
 		</dependency>
 	</dependencies>
+	<repositories>
+		<repository>
+		<id>websqrd</id>
+		<url>${fastcatsearchRepository}</url>
+		</repository>
+	</repositories>
+	<distributionManagement>
+		<repository>
+			<id>websqrd</id>
+			<name>websqrd local</name>
+			<url>${fastcatsearchRepository}</url>
+		</repository>
+	</distributionManagement> 
 	<build>
 		<plugins>
 			<plugin>
