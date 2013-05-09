@@ -11,6 +11,7 @@
 
 package org.fastcatsearch.db.object;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -34,15 +35,27 @@ public class SystemMonInfoMinute extends DAOBase {
 	
 	public int create() throws SQLException{
 		String createSQL = "create table "+tableName+"(id int primary key, cpu int, mem int, load double, when timestamp)";
-		Statement stmt = conn.createStatement();
-		return stmt.executeUpdate(createSQL);
+		Connection conn = null;
+		Statement stmt = null;
+		
+		try {
+			conn = conn();
+			stmt = conn.createStatement();
+			return stmt.executeUpdate(createSQL);
+		} finally {
+			releaseResource(stmt);
+			releaseConnection(conn);
+		}
 	}
 	
 	public int insert(int cpu, int mem, double load, Timestamp when) {
-		
+		String insertSQL = "insert into "+tableName+"(id, cpu, mem, load, when) values (?,?,?,?,?)";
+
+		Connection conn = null;
 		PreparedStatement pstmt = null;
-		try{
-			String insertSQL = "insert into "+tableName+"(id, cpu, mem, load, when) values (?,?,?,?,?)";
+		
+		try {
+			conn = conn();
 			pstmt = conn.prepareStatement(insertSQL);
 			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, ID);
@@ -59,15 +72,22 @@ public class SystemMonInfoMinute extends DAOBase {
 			logger.error(e.getMessage(),e);
 			return -1;
 		}finally{
-			if(pstmt!=null) try { pstmt.close(); } catch (SQLException e) { }
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 	}
 
 	public int count() {
+		String countSQL = "SELECT count(id) FROM "+tableName;
+		
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		
 		try{
-			String countSQL = "SELECT count(id) FROM "+tableName;
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(countSQL);
+			conn = conn();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(countSQL);
 			int totalCount = 0;
 			if(rs.next()){
 				totalCount = rs.getInt(1);
@@ -77,19 +97,31 @@ public class SystemMonInfoMinute extends DAOBase {
 		
 			return totalCount;
 			
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
 			return 0;
+		} finally {
+			releaseResource(stmt, rs);
+			releaseConnection(conn);
 		}
 	}
 	
 	public List<SystemMonInfoMinute> select(int startRow, int length) {
+		String countSQL = "SELECT max(id) FROM "+tableName;
+		String selectSQL = "SELECT id, cpu, mem, load, when" +
+				" FROM "+tableName+" WHERE id > ? and id <= ? order by id desc";
+		
+		Connection conn = null;
+		ResultSet rs = null;	
+		Statement stmt = null;
+		PreparedStatement pstmt = null;
+		
 		List<SystemMonInfoMinute> result = new ArrayList<SystemMonInfoMinute>();
+		
 		try{
-			
-			String countSQL = "SELECT max(id) FROM "+tableName;
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(countSQL);
+			conn = conn();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(countSQL);
 			int totalCount = 0;
 			if(rs.next()){
 				totalCount = rs.getInt(1);
@@ -97,10 +129,7 @@ public class SystemMonInfoMinute extends DAOBase {
 			rs.close();
 			stmt.close();
 		
-			String selectSQL = null;
-			selectSQL = "SELECT id, cpu, mem, load, when" +
-					" FROM "+tableName+" WHERE id > ? and id <= ? order by id desc";
-			PreparedStatement pstmt = conn.prepareStatement(selectSQL);
+			pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, totalCount - startRow - length);
 			pstmt.setInt(parameterIndex++, totalCount - startRow);
@@ -121,8 +150,11 @@ public class SystemMonInfoMinute extends DAOBase {
 			pstmt.close();
 			rs.close();
 			
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
+		} finally {
+			releaseResource(stmt, pstmt, rs);
+			releaseConnection(conn);
 		}
 		
 		return result;
@@ -130,14 +162,20 @@ public class SystemMonInfoMinute extends DAOBase {
 	
 	public List<SystemMonInfoMinute> select(Timestamp start, Timestamp end) {
 		List<SystemMonInfoMinute> result = new ArrayList<SystemMonInfoMinute>();
+		String selectSQL = "SELECT id, cpu, mem, load, when" +
+				" FROM "+tableName+" WHERE when >= ? and when <= ? order by id desc";
+		
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		
 		try{
-			String selectSQL = "SELECT id, cpu, mem, load, when" +
-					" FROM "+tableName+" WHERE when >= ? and when <= ? order by id desc";
-			PreparedStatement pstmt = conn.prepareStatement(selectSQL);
+			conn = conn();
+			pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
 			pstmt.setTimestamp(parameterIndex++, start);
 			pstmt.setTimestamp(parameterIndex++, end);
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 			logger.debug("Start = "+start+ "~"+end);
 			while(rs.next()){
 				SystemMonInfoMinute r = new SystemMonInfoMinute();
@@ -156,26 +194,43 @@ public class SystemMonInfoMinute extends DAOBase {
 			
 		}catch(SQLException e){
 			logger.error(e.getMessage(),e);
+		} finally {
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 		
 		return result;
 	}
 	
 	public int testAndCreate() throws SQLException {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		
 		try {
-			conn.prepareStatement("select count(*) from "+tableName).executeQuery().next();
+			conn = conn();
+			pstmt = conn.prepareStatement("select count(*) from "+tableName);
+			rs = pstmt.executeQuery();
+			rs.next();
 			return 0;
 		} catch (SQLException e) {
 			create();
 			return 1;
+		} finally {
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 	}
 
 
 	public int deleteOld(int month) {
+		String deleteSQL = "Delete From "+tableName+" Where when < ?";
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		
 		try{
-			String deleteSQL = "Delete From "+tableName+" Where when < ?";
-			PreparedStatement pstmt = conn.prepareStatement(deleteSQL);
+			conn = conn();
+			pstmt = conn.prepareStatement(deleteSQL);
 			Calendar oldDatetime = Calendar.getInstance();
 			oldDatetime.set(Calendar.SECOND, 0);
 			oldDatetime.set(Calendar.MINUTE, 0);
@@ -183,8 +238,11 @@ public class SystemMonInfoMinute extends DAOBase {
 			oldDatetime.add(Calendar.MONTH, -month);
 			pstmt.setTimestamp(1, new Timestamp(oldDatetime.getTimeInMillis()));
 			return pstmt.executeUpdate();
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
+		} finally {
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 		return -1;
 	}

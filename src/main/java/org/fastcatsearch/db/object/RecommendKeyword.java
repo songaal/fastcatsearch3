@@ -11,6 +11,7 @@
 
 package org.fastcatsearch.db.object;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -28,12 +29,15 @@ public class RecommendKeyword extends MapDictionaryDAO {
 	}
 
 	public RecommendKeyword exactSearch(String keyword) {
+		String selectSQL = "SELECT * FROM " + tableName + " where dickey=?";
+		
 		RecommendKeyword r = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
+		Connection conn = null;
+		
 		try {
-
-			String selectSQL = "SELECT * FROM " + tableName + " where dickey=?";
+			conn = conn();
 			pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
 			pstmt.setString(parameterIndex++, keyword);
@@ -51,17 +55,9 @@ public class RecommendKeyword extends MapDictionaryDAO {
 		} catch (SQLException e) {
 			logger.error(e.getMessage(), e);
 		} finally {
-			try {
-				if (rs != null)
-					rs.close();
-				if (pstmt != null)
-					pstmt.close();
-			} catch (SQLException e) {
-				logger.error(e.getMessage(), e);
-			}
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
-
 		return r;
 	}
-
 }

@@ -11,6 +11,7 @@
 
 package org.fastcatsearch.db.object;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -29,84 +30,89 @@ public class IndexingSchedule extends DAOBase {
 	
 	public IndexingSchedule(){ }
 	
-	public int create() throws SQLException{
-		String createSQL = "create table " + tableName + "(collection varchar(20), type char(1), period int, startTime timestamp, isActive smallint)";
-		Statement stmt = conn.createStatement();
-		return stmt.executeUpdate(createSQL);
+//	public int createBody(Statement stmt) throws SQLException
+//	{
+//		String createSQL = "create table " + tableName + "(collection varchar(20), type char(1), period int, startTime timestamp, isActive smallint)";
+//		return stmt.executeUpdate(createSQL);
+//	}
+	
+	public int create() throws SQLException {
+		Connection conn = null;
+		Statement stmt = null;
+		String createSQL = "";
+		try
+		{
+			conn = conn();
+			createSQL = "create table " + tableName + "(collection varchar(20), type char(1), period int, startTime timestamp, isActive smallint)";
+			stmt = conn.createStatement();
+			return stmt.executeUpdate(createSQL); 
+		} finally {
+			releaseResource(stmt);
+			releaseConnection(conn);			
+		}
 	}
 	
 	public int delete(String collection)
 	{
+		Connection conn = null;
 		int result = 0;
 		PreparedStatement pstmt = null;
 		try
 		{
-		String deleteSQL = "delete from "  + tableName + " where collection = ?";
-		pstmt = conn.prepareStatement(deleteSQL);
-		int parameterIndex = 1;
-		pstmt.setString(parameterIndex++, collection);
-		result = pstmt.executeUpdate();
-		}
-		catch ( Exception e)
-		{
+			conn = conn();
+			String deleteSQL = "delete from "  + tableName + " where collection = ?";
+			pstmt = conn.prepareStatement(deleteSQL);
+			int parameterIndex = 1;
+			pstmt.setString(parameterIndex++, collection);
+			result = pstmt.executeUpdate();	}
+		catch ( Exception e) {
 			e.printStackTrace();
-		}
-		finally
-		{
-			try
-			{
-			pstmt.close();
-			}
-			catch ( Exception e)
-			{
-				logger.error(e.getMessage(), e);
-			}			
+		} finally {
+			releaseResource(pstmt);
+			releaseConnection(conn);						
 		}
 		return result;
 	}
 	
 	public int deleteByType(String collection, String type)
 	{
-		int result = 0;
-		PreparedStatement pstmt = null;
-		try
-		{
 		String deleteSQL = "delete from "  + tableName + " where collection = ? and type = ? ";
-		pstmt = conn.prepareStatement(deleteSQL);
-		int parameterIndex = 1;
-		pstmt.setString(parameterIndex++, collection);
-		pstmt.setString(parameterIndex++, type);
-		result = pstmt.executeUpdate();
-		}
-		catch ( Exception e)
-		{
+		
+		int result = 0;
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		try {
+			conn = conn();
+			pstmt = conn.prepareStatement(deleteSQL);
+			int parameterIndex = 1;
+			pstmt.setString(parameterIndex++, collection);
+			pstmt.setString(parameterIndex++, type);
+			result = pstmt.executeUpdate(); }
+		catch ( Exception e) {
 			e.printStackTrace();
-		}
-		finally
-		{
-			try
-			{
-			pstmt.close();
-			}
-			catch ( Exception e)
-			{
-				logger.error(e.getMessage(), e);
-			}			
+		} finally {
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 		return result;
 	}
 	
 	public int updateOrInsert(String collection, String type, int period, Timestamp startTime, boolean isActive) {
+		String checkSQL = "select count(collection) from " + tableName + " " +
+				"where collection=? and type=?";
+		
+		Connection conn = null;
 		PreparedStatement pstmt = null;
-		int result = 0;
+		ResultSet rs = null;
+		int result = 0;		
+		
 		try{
-			String checkSQL = "select count(collection) from " + tableName + " " +
-					"where collection=? and type=?";
+			conn = conn();
 			pstmt = conn.prepareStatement(checkSQL);
 			int parameterIndex = 1;
 			pstmt.setString(parameterIndex++, collection);
 			pstmt.setString(parameterIndex++, type);
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 			int count = 0;
 			if(rs.next()){
 				count = rs.getInt(1);
@@ -116,59 +122,52 @@ public class IndexingSchedule extends DAOBase {
 				result =  update(collection, type, period, startTime, isActive);
 			}else{
 				result =  insert(collection, type, period, startTime, isActive);
-			}
-			
-		}catch(SQLException e){
+			}			
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
 			result =  -1;
-		}finally
-		{
-			try
-			{
-			pstmt.close();
-			}
-			catch ( Exception e)
-			{
-				logger.error(e.getMessage(), e);
-			}			
+		} finally {
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 		return result;
 	}
 	
 	public int updateStatus(String collection, String type, boolean isActive) {
-		PreparedStatement pstmt = null;
 		int result = -1;
+		String updateSQL = "update " + tableName + " set isActive=? " +
+				"where collection=? and type=?";
+		
+		PreparedStatement pstmt = null;
+		Connection conn = null;
+		
 		try{
-			String updateSQL = "update " + tableName + " set isActive=? " +
-			"where collection=? and type=?";
+			conn = conn();
 			pstmt = conn.prepareStatement(updateSQL);
 			int parameterIndex = 1;
 			pstmt.setBoolean(parameterIndex++, isActive);
 			pstmt.setString(parameterIndex++, collection);
 			pstmt.setString(parameterIndex++, type);
 			result =  pstmt.executeUpdate();
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
 			result =  -1;
-		}finally
-		{
-			try
-			{
-			pstmt.close();
-			}
-			catch ( Exception e)
-			{
-				logger.error(e.getMessage(), e);
-			}			
+		} finally {
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 		return result;
 	}
 
 	public int insert(String collection, String type, int period, Timestamp startTime, boolean isActive) {
-		PreparedStatement pstmt = null;
 		int result = -1;
+		String insertSQL = "insert into " + tableName + "(collection, type, period, startTime, isActive) values (?,?,?,?,?)";
+		
+		PreparedStatement pstmt = null;
+		Connection conn = null;
+		
 		try{
-			String insertSQL = "insert into " + tableName + "(collection, type, period, startTime, isActive) values (?,?,?,?,?)";
+			conn = conn();
 			pstmt = conn.prepareStatement(insertSQL);
 			int parameterIndex = 1;
 			pstmt.setString(parameterIndex++, collection);
@@ -177,29 +176,24 @@ public class IndexingSchedule extends DAOBase {
 			pstmt.setTimestamp(parameterIndex++, startTime);
 			pstmt.setBoolean(parameterIndex++, isActive);
 			result =  pstmt.executeUpdate();
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
 			result = -1;
-		}finally
-		{
-			try
-			{
-			pstmt.close();
-			}
-			catch ( Exception e)
-			{
-				logger.error(e.getMessage(), e);
-			}
+		} finally {
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 		return result;
 	}
 	
 	public int update(String collection, String type, int period, Timestamp startTime, boolean isActive) {
-		PreparedStatement pstmt = null;
 		int result = -1;
+		String updateSQL = "update " + tableName + " set period=?, startTime=?, isActive=? " +
+				"where collection=? and type=?";
+		PreparedStatement pstmt = null;
+		Connection conn = null;
 		try{
-			String updateSQL = "update " + tableName + " set period=?, startTime=?, isActive=? " +
-					"where collection=? and type=?";
+			conn = conn();
 			pstmt = conn.prepareStatement(updateSQL);
 			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, period);
@@ -208,35 +202,33 @@ public class IndexingSchedule extends DAOBase {
 			pstmt.setString(parameterIndex++, collection);
 			pstmt.setString(parameterIndex++, type);
 			result =  pstmt.executeUpdate();
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
 			result = -1;
-		}finally
-		{
-			try
-			{
-			pstmt.close();
-			}
-			catch ( Exception e)
-			{
-				logger.error(e.getMessage(), e);
-			}
+		} finally {
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 		return result;
 	}
 	
 	public IndexingSchedule select(String collection, String type) {
+		String selectSQL = "select collection, type, period, startTime, isActive from " + tableName + " " +
+				"where collection=? and type=?";
+		
 		IndexingSchedule r = null;
 		PreparedStatement pstmt = null;
-		try{
-			String selectSQL = "select collection, type, period, startTime, isActive from " + tableName + " " +
-					"where collection=? and type=?";
+		Connection conn = null;
+		ResultSet rs = null;
+
+		try {
+			conn = conn();
 			pstmt = conn.prepareStatement(selectSQL);
 			
 			int parameterIndex = 1;
 			pstmt.setString(parameterIndex++, collection);
 			pstmt.setString(parameterIndex++, type);
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 			
 			while(rs.next()){
 				r = new IndexingSchedule();
@@ -249,29 +241,27 @@ public class IndexingSchedule extends DAOBase {
 				r.isActive = rs.getBoolean(parameterIndex++);
 			}
 		
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
-		}finally
-		{
-			try
-			{
-			pstmt.close();
-			}
-			catch ( Exception e)
-			{
-				logger.error(e.getMessage(),e);
-			}
+		} finally {
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 		return r;
 	}
 	
 	public List<IndexingSchedule> selectAll() {
+		String selectSQL = "select collection, type, period, startTime, isActive from " + tableName + " where isActive = 1";
+		
 		List<IndexingSchedule> result = new ArrayList<IndexingSchedule>();
 		PreparedStatement pstmt = null;
+		Connection conn = null;
+		ResultSet rs = null;
+		
 		try{
-			String selectSQL = "select collection, type, period, startTime, isActive from " + tableName + " where isActive = 1";
+			conn = conn();
 			pstmt = conn.prepareStatement(selectSQL);
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 			
 			while(rs.next()){
 				IndexingSchedule r = new IndexingSchedule();
@@ -285,32 +275,36 @@ public class IndexingSchedule extends DAOBase {
 				
 				result.add(r);
 			}
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
-		}finally
-		{
-			try
-			{
-			pstmt.close();
-			}
-			catch ( Exception e)
-			{
-				logger.error(e.getMessage(),e);
-			}	
+		} finally {
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 		return result;
 	}
 	
 	public int testAndCreate() throws SQLException {
+		
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		
 		if ( isExists() == false )
 			create();
 		
 		try {
-			conn.prepareStatement("select count(*) from " + tableName).executeQuery().next();
+			conn = conn();
+			pstmt = conn.prepareStatement("select count(*) from " + tableName);
+			rs = pstmt.executeQuery();
+			rs.next();
 			return 0;
 		} catch (SQLException e) {
 			create();
 			return 1;
+		} finally {
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 	}
 }
