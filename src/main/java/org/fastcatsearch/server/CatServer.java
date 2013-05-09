@@ -184,7 +184,7 @@ public class CatServer {
 			
 			irService.start();
 			statisticsInfoService.start();
-			keywordService.start();
+//			keywordService.start();
 			dataService.start();
 			
 			

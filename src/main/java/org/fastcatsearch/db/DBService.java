@@ -52,32 +52,31 @@ public class DBService extends AbstractService {
 	public final static String DB_NAME = "db";
 	private String JDBC_URL;
 
-//	public IndexingResult IndexingResult;
-//	public SynonymDictionary SynonymDictionary;
-//	public IndexingSchedule IndexingSchedule;
-//	public IndexingHistory IndexingHistory;
-//	public JobHistory JobHistory;
-//	public SearchEvent SearchEvent;
-//	public UserDictionary CustomDictionary;
-//	public BannedDictionary BannedDictionary;
-//	public BasicDictionary BasicDictionary;
-//	public KeywordHit KeywordHit;
-//	public KeywordFail KeywordFail;
-//	public RecommendKeyword RecommendKeyword;
-//
-//	// 모니터링.
-//	public SystemMonInfoMinute SystemMonInfoMinute;
-//	public SystemMonitoringInfo SystemMonInfoHDWMY;
-//	public SearchMonInfoMinute SearchMonInfoMinute;
-//	public SearchMonitoringInfo SearchMonInfoHDWMY;
+	// public IndexingResult IndexingResult;
+	// public SynonymDictionary SynonymDictionary;
+	// public IndexingSchedule IndexingSchedule;
+	// public IndexingHistory IndexingHistory;
+	// public JobHistory JobHistory;
+	// public SearchEvent SearchEvent;
+	// public UserDictionary CustomDictionary;
+	// public BannedDictionary BannedDictionary;
+	// public BasicDictionary BasicDictionary;
+	// public KeywordHit KeywordHit;
+	// public KeywordFail KeywordFail;
+	// public RecommendKeyword RecommendKeyword;
+	//
+	// // 모니터링.
+	// public SystemMonInfoMinute SystemMonInfoMinute;
+	// public SystemMonitoringInfo SystemMonInfoHDWMY;
+	// public SearchMonInfoMinute SearchMonInfoMinute;
+	// public SearchMonitoringInfo SearchMonInfoHDWMY;
 
 	protected static DBService instance;
 
 	private Map<String, DAOBase> daoMap;
 
 	private ConnectionManager connectionManager;
-	
-	
+
 	public static DBService getInstance() {
 		return instance;
 	}
@@ -110,7 +109,7 @@ public class DBService extends AbstractService {
 
 			try {
 				connectionManager = new ConnectionManager(url, user, pass);
-//				conn = DriverManager.getConnection(url, user, pass);
+				// conn = DriverManager.getConnection(url, user, pass);
 				// 2012-10-16
 				// 오토커밋으로 변경.
 				// conn.setAutoCommit(false);
@@ -123,23 +122,23 @@ public class DBService extends AbstractService {
 			}
 		} else {
 			try {
-//				Class.forName("org.apache.derby.jdbc.EmbeddedDriver").newInstance();
+				// Class.forName("org.apache.derby.jdbc.EmbeddedDriver").newInstance();
 				DynamicClassLoader.loadClass("org.apache.derby.jdbc.EmbeddedDriver");
 			} catch (Exception e) {
 				throw new ServiceException("Cannot load driver class!", e);
 			}
 
-//			try {
-				connectionManager = new ConnectionManager(JDBC_URL, null, null);
-//				conn = DriverManager.getConnection(JDBC_URL);
-//			} catch (SQLException e) {
-//				logger.info("DBHandler create and init DB!");
-//				// if DB is not created.
-//				conn = createDB(JDBC_URL, null, null);
-//				if (conn == null) {
-//					throw new ServiceException("내부 DB로의 연결을 생성할수 없습니다. DB를 이미 사용중인 프로세스가 있는지 확인필요.", e);
-//				}
-//			}
+			// try {
+			connectionManager = new ConnectionManager(JDBC_URL, null, null);
+			// conn = DriverManager.getConnection(JDBC_URL);
+			// } catch (SQLException e) {
+			// logger.info("DBHandler create and init DB!");
+			// // if DB is not created.
+			// conn = createDB(JDBC_URL, null, null);
+			// if (conn == null) {
+			// throw new ServiceException("내부 DB로의 연결을 생성할수 없습니다. DB를 이미 사용중인 프로세스가 있는지 확인필요.", e);
+			// }
+			// }
 
 			try {
 				// 오토커밋으로 변경.
@@ -166,7 +165,7 @@ public class DBService extends AbstractService {
 				throw new ServiceException(e);
 			}
 		}
-		
+
 		logger.info("DBHandler started!");
 		return true;
 	}
@@ -174,8 +173,8 @@ public class DBService extends AbstractService {
 	private void initDB() throws SQLException {
 
 		daoMap = new HashMap<String, DAOBase>();
-		
-		//기본DAO
+
+		// 기본DAO
 		daoMap.put("IndexingResult", new IndexingResult(connectionManager));
 		daoMap.put("IndexingSchedule", new IndexingSchedule(connectionManager));
 		daoMap.put("IndexingHistory", new IndexingHistory(connectionManager));
@@ -185,21 +184,20 @@ public class DBService extends AbstractService {
 		daoMap.put("SearchMonitoringInfo", new SearchMonitoringInfo(connectionManager));
 		daoMap.put("SystemMonitoringInfoMinute", new SystemMonitoringInfoMinute(connectionManager));
 		daoMap.put("SystemMonitoringInfo", new SystemMonitoringInfo(connectionManager));
-		
-		//사전추가. xml설정에서 읽어온다.
+
+		// 사전추가. xml설정에서 읽어온다.
 		daoMap.put("RecommendKeyword", new MapDictionary("RecommendKeyword", connectionManager));
 		daoMap.put("SynonymDictionary", new SetDictionary("SynonymDictionary", connectionManager));
 		daoMap.put("UserDictionary", new SetDictionary("UserDictionary", connectionManager));
 		daoMap.put("BannedDictionary", new SetDictionary("BannedDictionary", connectionManager));
-		
-		
-//		pluginDaoMap.put("KeywordHit", new KeywordHit(connectionManager));
-//		pluginDaoMap.put("KeywordFail", new KeywordFail(connectionManager));
-		
-		//플러그인 DAO
+
+		// pluginDaoMap.put("KeywordHit", new KeywordHit(connectionManager));
+		// pluginDaoMap.put("KeywordFail", new KeywordFail(connectionManager));
+
+		// 플러그인 DAO
 		PluginService pluginService = serviceManager.getService(PluginService.class);
 		List<Plugin> plugins = pluginService.getPlugins();
-		logger.debug("plugin db 로딩. size={}", plugins.size());
+		logger.debug("plugin 로딩. plugins size={}", plugins.size());
 		for (Plugin plugin : plugins) {
 			PluginSetting pluginSetting = plugin.getPluginSetting();
 			String pluginId = pluginSetting.getName();
@@ -208,79 +206,90 @@ public class DBService extends AbstractService {
 				logger.debug("plugin db daoList 로딩. daoList.size={}", daoList.size());
 				for (int i = 0; i < daoList.size(); i++) {
 					DAO dao = daoList.get(i);
-					logger.debug(">> {}", dao);
-					String pluginDaoId = dao.getId();
+					String daoId = dao.getId();
 					//
-					//TODO dao id가 기존것과 서로 중복될수 있다.
-					//plugin은 plugin을 붙인다.
+					// TODO dao id가 기존것과 서로 중복될수 있다.
+					// plugin은 plugin을 붙인다.
 					//
-					pluginDaoId += "@" + pluginId;
+					String daoKey = getPluginDaoKey(pluginId, daoId);
 					String className = dao.getClassName();
-					DAOBase daoBase = DynamicClassLoader.loadObject(className, DAOBase.class);
+					DAOBase daoBase = DynamicClassLoader.loadObject(className, DAOBase.class,
+							new Class<?>[] { ConnectionManager.class }, new Object[] { connectionManager });
+					if (daoBase == null) {
+						// daoId 를 tableName 으로 전달한다.
+						daoBase = DynamicClassLoader.loadObject(className, DAOBase.class, new Class<?>[] { String.class,
+								ConnectionManager.class }, new Object[] { daoId, connectionManager });
+					}
+
 					if (daoBase != null) {
-						daoMap.put(pluginDaoId, daoBase);
-						logger.debug("register plugin dao {} >> {}", daoBase.getClass(), className);
+						daoMap.put(daoKey, daoBase);
+						logger.debug("register plugin dao {} >> {} : {}", daoKey, daoId, className);
 					}
 				}
 			}
 		}
 
-		
+	}
 
+	private String getPluginDaoKey(String pluginId, String daoId) {
+		return pluginId + "@" + daoId;
 	}
-	public <T> T getDAO(String daoId){
+
+	public <T> T getDAO(String daoId) {
 		return (T) daoMap.get(daoId);
 	}
-	public <T> T getDAO(String daoId, Class<T> clazz){
+
+	public <T> T getDAO(String daoId, Class<T> clazz) {
 		return (T) daoMap.get(daoId);
 	}
-	public <T>T getPluginDAO(String daoId, String pluginId, Class<T> clazz){
-		return (T) daoMap.get(daoId + "@" + pluginId);
+
+	public <T> T getPluginDAO(String pluginId, String daoId, Class<T> clazz) {
+		return (T) daoMap.get(getPluginDaoKey(pluginId, daoId));
 	}
 
 	private void testAndInitDB() throws SQLException {
 		Iterator<DAOBase> iterator = daoMap.values().iterator();
-		while(iterator.hasNext()){
-			((DAOBase)iterator.next()).testAndCreate();
+		while (iterator.hasNext()) {
+			((DAOBase) iterator.next()).testAndCreate();
 		}
-		
-		((IndexingResult)getDAO("IndexingResult")).repairStatus();
+
+		((IndexingResult) getDAO("IndexingResult")).repairStatus();
 	}
 
 	private void initMONDB() throws SQLException {
-//		RecommendKeyword = new RecommendKeyword();
-//		SystemMonitoringInfoMinute = new SystemMonitoringInfoMinute();
-//		SystemMonInfoHDWMY = new SystemMonitoringInfo();
-//
-//		RecommendKeyword.setConnectionManager(connectionManager);
-//		SystemMonitoringInfoMinute.setConnectionManager(connectionManager);
-//		SystemMonInfoHDWMY.setConnectionManager(connectionManager);
+		// RecommendKeyword = new RecommendKeyword();
+		// SystemMonitoringInfoMinute = new SystemMonitoringInfoMinute();
+		// SystemMonInfoHDWMY = new SystemMonitoringInfo();
+		//
+		// RecommendKeyword.setConnectionManager(connectionManager);
+		// SystemMonitoringInfoMinute.setConnectionManager(connectionManager);
+		// SystemMonInfoHDWMY.setConnectionManager(connectionManager);
 
 	}
 
 	private void testAndInitMONDB() throws SQLException {
-//		RecommendKeyword.testAndCreate();
-//		SystemMonitoringInfoMinute.testAndCreate();
-//		SystemMonInfoHDWMY.testAndCreate();
-//
-//		SystemMonitoringInfoMinute.prepareID();
-//		SystemMonInfoHDWMY.prepareID();
+		// RecommendKeyword.testAndCreate();
+		// SystemMonitoringInfoMinute.testAndCreate();
+		// SystemMonInfoHDWMY.testAndCreate();
+		//
+		// SystemMonitoringInfoMinute.prepareID();
+		// SystemMonInfoHDWMY.prepareID();
 
 	}
 
-//	private Connection createDB(String jdbcurl, String jdbcuser, String jdbcpass) {
-//		try {
-//			logger.info("Creating Fastcat DB = " + jdbcurl);
-//			if (jdbcuser != null && jdbcpass != null) {
-//				return DriverManager.getConnection(jdbcurl + ";create=true", jdbcuser, jdbcpass);
-//			} else {
-//				return DriverManager.getConnection(jdbcurl + ";create=true");
-//			}
-//		} catch (SQLException e) {
-//
-//		}
-//		return null;
-//	}
+	// private Connection createDB(String jdbcurl, String jdbcuser, String jdbcpass) {
+	// try {
+	// logger.info("Creating Fastcat DB = " + jdbcurl);
+	// if (jdbcuser != null && jdbcpass != null) {
+	// return DriverManager.getConnection(jdbcurl + ";create=true", jdbcuser, jdbcpass);
+	// } else {
+	// return DriverManager.getConnection(jdbcurl + ";create=true");
+	// }
+	// } catch (SQLException e) {
+	//
+	// }
+	// return null;
+	// }
 
 	protected boolean doStop() throws ServiceException {
 		try {
@@ -296,12 +305,12 @@ public class DBService extends AbstractService {
 	// db
 	public int updateOrInsertSQL(String sql) throws SQLException {
 		Connection conn = getConn();
-		try{
+		try {
 			Statement stmt = conn.createStatement();
 			int n = stmt.executeUpdate(sql);
 			return n;
-		}finally{
-			if(conn != null){
+		} finally {
+			if (conn != null) {
 				conn.close();
 			}
 		}
@@ -309,12 +318,12 @@ public class DBService extends AbstractService {
 
 	public ResultSet selectSQL(String sql) throws SQLException {
 		Connection conn = getConn();
-		try{
+		try {
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(sql);
 			return rs;
-		}finally{
-			if(conn != null){
+		} finally {
+			if (conn != null) {
 				conn.close();
 			}
 		}
@@ -323,13 +332,13 @@ public class DBService extends AbstractService {
 	// mon db
 	public int updateOrInsertSQLMONDB(String sql) throws SQLException {
 		Connection conn = getConn();
-		try{
+		try {
 			Statement stmt = conn.createStatement();
 			int n = stmt.executeUpdate(sql);
 			stmt.close();
 			return n;
-		}finally{
-			if(conn != null){
+		} finally {
+			if (conn != null) {
 				conn.close();
 			}
 		}
@@ -337,13 +346,13 @@ public class DBService extends AbstractService {
 
 	public ResultSet selectSQLMONDB(String sql) throws SQLException {
 		Connection conn = getConn();
-		try{
+		try {
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(sql);
 			stmt.close();
 			return rs;
-		}finally{
-			if(conn != null){
+		} finally {
+			if (conn != null) {
 				conn.close();
 			}
 		}

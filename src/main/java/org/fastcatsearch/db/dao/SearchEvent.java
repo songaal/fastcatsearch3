@@ -37,7 +37,7 @@ public class SearchEvent extends DAOBase {
 	public boolean createTable() throws SQLException {
 		String createSQL = "create table "
 				+ tableName
-				+ "(id int GENERATED ALWAYS AS IDENTITY primary key, when timestamp, type char(5), category int, summary varchar(200), stacktrace varchar(3000), status char(1))";
+				+ "(id int GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) primary key, when timestamp, type char(5), category int, summary varchar(200), stacktrace varchar(3000), status char(1))";
 		executeUpdate(createSQL);
 		return true;
 	}

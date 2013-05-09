@@ -110,8 +110,12 @@ public class DynamicClassLoader {
 		try {
 			Class<?> clazz = loadClass(className);
 			if(clazz != null){
+				try{
 				Constructor<?> constructor = clazz.getConstructor(paramTypes);
-				return (T) constructor.newInstance(initargs);
+					return (T) constructor.newInstance(initargs);
+				}catch(NoSuchMethodException e){
+					logger.trace("해당 생성자가 없습니다. {} >> {} {} {} {} {} {} {}", className, paramTypes);
+				}
 			}
 		} catch (Exception ignore){
 			ignore.printStackTrace();

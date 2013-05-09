@@ -43,7 +43,7 @@ public class IndexingHistory extends DAOBase {
 			conn = conn();
 			String createSQL = "create table "
 					+ tableName
-					+ "(id int primary key, collection varchar(20), type char(1), isSuccess smallint, docSize int, updateSize int, deleteSize int, isScheduled smallint, startTime timestamp, endTime timestamp, duration int)";
+					+ "(id int GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) primary key, collection varchar(20), type char(1), isSuccess smallint, docSize int, updateSize int, deleteSize int, isScheduled smallint, startTime timestamp, endTime timestamp, duration int)";
 			stmt = conn.createStatement();
 			stmt.executeUpdate(createSQL);
 			return true;

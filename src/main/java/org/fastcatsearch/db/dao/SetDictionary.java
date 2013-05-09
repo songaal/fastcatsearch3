@@ -23,10 +23,6 @@ import org.fastcatsearch.db.vo.SetDictionaryVO;
 
 public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictionaryVO> {
 
-	public SetDictionary(ConnectionManager connectionManager) {
-		super(connectionManager);
-	}
-
 	public SetDictionary(String tableName, ConnectionManager connectionManager) {
 		super(connectionManager);
 		this.tableName = tableName;
@@ -34,13 +30,13 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 
 	@Override
 	public boolean testTable() {
-		return testQuery("select id, key from " + tableName);
+		return testQuery("select id, keyword from " + tableName);
 	}
 
 	@Override
 	public boolean createTable() throws SQLException {
 		String createSQL = "create table " + tableName
-				+ " (id int GENERATED ALWAYS AS IDENTITY primary key , key varchar(50) not null unique)";
+				+ " (id int GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, keyword varchar(50) not null )";
 		executeUpdate(createSQL);
 		return true;
 	}
@@ -50,7 +46,7 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 		Connection conn = null;
 
 		try {
-			String insertSQL = "insert into " + tableName + "(key) values (?)";
+			String insertSQL = "insert into " + tableName + "(keyword) values (?)";
 			conn = conn();
 			pstmt = conn.prepareStatement(insertSQL);
 			int parameterIndex = 1;
@@ -71,7 +67,7 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 		PreparedStatement pstmt = null;
 		Connection conn = null;
 		try {
-			String insertSQL = "insert into " + tableName + "(key) values (?)";
+			String insertSQL = "insert into " + tableName + "(keyword) values (?)";
 			conn = conn();
 			pstmt = conn.prepareStatement(insertSQL);
 			return pstmt;
@@ -129,7 +125,7 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 		Connection conn = null;
 		try {
 			conn = conn();
-			String countSQL = "SELECT count(*) FROM " + tableName + " where key = ? or key like ?";
+			String countSQL = "SELECT count(*) FROM " + tableName + " where keyword = ? or keyword like ?";
 			pstmt = conn.prepareStatement(countSQL);
 			int parameterIndex = 1;
 			pstmt.setString(parameterIndex++, keyword);
@@ -180,9 +176,9 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 				selectSQL = "SELECT * FROM " + tableName;
 				if (keyword != null) {
 					if (isExactMatch) {
-						selectSQL += " where key = ?";
+						selectSQL += " where keyword = ?";
 					} else {
-						selectSQL += " where key = ? or key like ?";
+						selectSQL += " where keyword = ? or keyword like ?";
 					}
 				}
 			} else {
@@ -196,7 +192,7 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 				selectSQL = "SELECT * FROM ( SELECT ROW_NUMBER() OVER() AS rownum, " + tableName + ".* FROM " + tableName;
 
 				if (keyword != null) {
-					selectSQL += (" where key = ? or key like ?");
+					selectSQL += (" where keyword = ? or keyword like ?");
 				}
 
 				selectSQL += ") AS tmp WHERE rownum > ? and rownum <= ? order by id desc";
@@ -231,7 +227,7 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 		Connection conn = null;
 		try {
 			conn = conn();
-			String deleteSQL = "delete from " + tableName + " where key = ?";
+			String deleteSQL = "delete from " + tableName + " where keyword = ?";
 			pstmt = conn.prepareStatement(deleteSQL);
 			int parameterIndex = 1;
 			pstmt.setString(parameterIndex++, customword);
@@ -255,7 +251,7 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 	public SetDictionaryVO map(ResultSet resultSet, int index) throws SQLException {
 		SetDictionaryVO vo = new SetDictionaryVO();
 		vo.id = resultSet.getInt(index++);
-		vo.key = resultSet.getString(index++);
+		vo.keyword = resultSet.getString(index++);
 		return vo;
 	}
 }

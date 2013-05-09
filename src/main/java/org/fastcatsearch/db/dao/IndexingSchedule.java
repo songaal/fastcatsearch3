@@ -42,7 +42,7 @@ public class IndexingSchedule extends DAOBase {
 			conn = conn();
 			createSQL = "create table " + tableName
 					+ "(collection varchar(20), type char(1), period int, startTime timestamp, isActive smallint"
-					+ ",CONSTRAINT primary_key PRIMARY KEY (collection, type))";
+					+ ",PRIMARY KEY (collection, type))";
 			stmt = conn.createStatement();
 			stmt.executeUpdate(createSQL);
 			return true;

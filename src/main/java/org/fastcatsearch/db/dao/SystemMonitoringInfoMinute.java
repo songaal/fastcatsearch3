@@ -36,7 +36,7 @@ public class SystemMonitoringInfoMinute extends DAOBase {
 	
 	@Override
 	public boolean createTable() throws SQLException {
-		String createSQL = "create table "+tableName+"(id int GENERATED ALWAYS AS IDENTITY primary key, cpu int, mem int, load double, when timestamp)";
+		String createSQL = "create table "+tableName+"(id int GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) primary key, cpu int, mem int, load double, when timestamp)";
 		executeUpdate(createSQL);
 		return true;
 	}

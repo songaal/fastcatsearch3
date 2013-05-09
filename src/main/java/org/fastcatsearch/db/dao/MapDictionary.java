@@ -24,10 +24,6 @@ import org.fastcatsearch.db.vo.MapDictionaryVO;
 
 public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictionaryVO> {
 
-	public MapDictionary(ConnectionManager connectionManager) {
-		super(connectionManager);
-	}
-
 	public MapDictionary(String tableName, ConnectionManager connectionManager) {
 		super(connectionManager);
 		this.tableName = tableName;
@@ -41,7 +37,7 @@ public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictiona
 			conn = conn();
 			String createSQL = "create table "
 					+ tableName
-					+ " (id int GENERATED ALWAYS AS IDENTITY primary key, key varchar(30) not null unique,count int not null default 0,value varchar(255))";
+					+ " (id int GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) primary key, keyword varchar(30) not null unique,count int not null default 0,value varchar(255))";
 			stmt = conn.createStatement();
 			stmt.executeUpdate(createSQL);
 			return true;
@@ -55,18 +51,18 @@ public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictiona
 
 	@Override
 	public boolean testTable() {
-		return testQuery("select id, key, value from " + tableName);
+		return testQuery("select id, keyword, value from " + tableName);
 	}
 
-	public int insert(String key, String value) {
+	public int insert(String keyword, String value) {
 		PreparedStatement pstmt = null;
 		Connection conn = null;
 		try {
 			conn = conn();
-			String insertSQL = "insert into " + tableName + "(key, value) values (?,?)";
+			String insertSQL = "insert into " + tableName + "(keyword, value) values (?,?)";
 			pstmt = conn.prepareStatement(insertSQL);
 			int parameterIndex = 1;
-			pstmt.setString(parameterIndex++, key);
+			pstmt.setString(parameterIndex++, keyword);
 			pstmt.setString(parameterIndex++, value);
 			int c = pstmt.executeUpdate();
 			return c;
@@ -79,16 +75,16 @@ public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictiona
 		}
 	}
 
-	public int update(String key, String value) {
+	public int update(String keyword, String value) {
 		PreparedStatement pstmt = null;
 		Connection conn = null;
 		try {
 			conn = conn();
-			String updateSQL = "UPDATE " + tableName + " SET value = ? WHERE key = ?";
+			String updateSQL = "UPDATE " + tableName + " SET value = ? WHERE keyword = ?";
 			pstmt = conn.prepareStatement(updateSQL);
 			int parameterIndex = 1;
 			pstmt.setString(parameterIndex++, value);
-			pstmt.setString(parameterIndex++, key);
+			pstmt.setString(parameterIndex++, keyword);
 			return pstmt.executeUpdate();
 		} catch (SQLException e) {
 			logger.error(e.getMessage(), e);
@@ -99,15 +95,15 @@ public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictiona
 		}
 	}
 
-	public int delete(String key) {
+	public int delete(String keyword) {
 		PreparedStatement pstmt = null;
 		Connection conn = null;
 		try {
 			conn = conn();
-			String deleteSQL = "delete from " + tableName + " where key = ?";
+			String deleteSQL = "delete from " + tableName + " where keyword = ?";
 			pstmt = conn.prepareStatement(deleteSQL);
 			int parameterIndex = 1;
-			pstmt.setString(parameterIndex++, key);
+			pstmt.setString(parameterIndex++, keyword);
 			return pstmt.executeUpdate();
 		} catch (SQLException e) {
 			logger.error(e.getMessage(), e);
@@ -125,7 +121,7 @@ public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictiona
 		Connection conn = null;
 		try {
 			conn = conn();
-			String countSQL = "SELECT count(*) FROM " + tableName + " where key=? or value like ?";
+			String countSQL = "SELECT count(*) FROM " + tableName + " where keyword=? or value like ?";
 			pstmt = conn.prepareStatement(countSQL);
 			int parameterIndex = 1;
 			pstmt.setString(parameterIndex++, keyword);
@@ -177,9 +173,9 @@ public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictiona
 				selectSQL = "SELECT * FROM " + tableName;
 				if (keyword != null) {
 					if (isExactMatch) {
-						selectSQL += " where key = ?";
+						selectSQL += " where keyword = ?";
 					} else {
-						selectSQL += " where key = ? or key like ?";
+						selectSQL += " where keyword = ? or value like ?";
 					}
 				}
 			} else {
@@ -193,7 +189,7 @@ public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictiona
 				selectSQL = "SELECT * FROM ( SELECT ROW_NUMBER() OVER() AS rownum, " + tableName + ".* FROM " + tableName;
 
 				if (keyword != null) {
-					selectSQL += (" where key = ? or key like ?");
+					selectSQL += (" where keyword = ? or keyword like ?");
 				}
 
 				selectSQL += ") AS tmp WHERE rownum > ? and rownum <= ? order by id desc";
@@ -228,7 +224,7 @@ public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictiona
 		Connection conn = null;
 
 		try {
-			String insertSQL = "insert into " + tableName + "(key, value) values (?,?)";
+			String insertSQL = "insert into " + tableName + "(keyword, value) values (?,?)";
 			conn = conn();
 			pstmt = conn.prepareStatement(insertSQL);
 			return new BatchContext(conn, pstmt);
@@ -289,7 +285,7 @@ public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictiona
 	public MapDictionaryVO map(ResultSet resultSet, int index) throws SQLException {
 		MapDictionaryVO vo = new MapDictionaryVO();
 		vo.id = resultSet.getInt(index++);
-		vo.key = resultSet.getString(index++);
+		vo.keyword = resultSet.getString(index++);
 		vo.value = resultSet.getString(index++);
 		return vo;
 	}

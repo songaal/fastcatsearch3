@@ -41,7 +41,7 @@ public class IndexingResult extends DAOBase {
 		String createSQL = "create table "
 				+ tableName
 				+ "(collection varchar(20), type char(1), status smallint, docSize int, updateSize int, deleteSize int, isScheduled smallint, startTime timestamp, endTime timestamp, duration int" +
-				",CONSTRAINT primary_key PRIMARY KEY (collection, type))";
+				",PRIMARY KEY (collection, type))";
 
 		Statement stmt = null;
 		Connection conn = null;

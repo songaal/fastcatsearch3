@@ -32,19 +32,12 @@ public abstract class DAOBase {
 	protected String tableName;
 	protected ConnectionManager connectionManager;
 
-	public DAOBase(String tableName) {
-		this.tableName = tableName;
-	}
 	public DAOBase(ConnectionManager connectionManager) {
-		tableName = this.getClass().getSimpleName();
+		tableName = getClass().getSimpleName();
 		this.connectionManager = connectionManager;
 	}
 	public DAOBase(String tableName, ConnectionManager connectionManager) {
 		this.tableName = tableName;
-		this.connectionManager = connectionManager;
-	}
-
-	public void setConnectionManager(ConnectionManager connectionManager) {
 		this.connectionManager = connectionManager;
 	}
 
@@ -91,8 +84,13 @@ public abstract class DAOBase {
 		if (testTable()) {
 			return true;
 		}
-		dropTable();
-		createTable();
+		
+		if(dropTable() != -1){
+			logger.info("{} table을 DROP했습니다.", tableName);	
+		}
+		if(createTable()){
+			logger.info("{} table을 생성했습니다.", tableName);
+		}
 		return true;
 	}
 
@@ -133,7 +131,6 @@ public abstract class DAOBase {
 			int count = pstmt.executeUpdate();
 			return count;
 		} catch (SQLException e) {
-			logger.error(e.getMessage(), e);
 			return -1;
 		} finally {
 			releaseResource(pstmt);

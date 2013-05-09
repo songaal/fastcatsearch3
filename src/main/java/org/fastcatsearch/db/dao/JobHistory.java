@@ -30,14 +30,14 @@ public class JobHistory extends DAOBase {
 
 	@Override
 	public boolean testTable() {
-		return testQuery("select id, key from " + tableName);
+		return testQuery("select id, jobId, jobClassName, args, isSuccess, resultStr, isScheduled, startTime, endTime, duration from " + tableName);
 	}
 	
 	@Override
 	public boolean createTable() throws SQLException {
 		String createSQL = "create table "
 				+ tableName
-				+ "(id int GENERATED ALWAYS AS IDENTITY primary key, jobId bigint, jobClassName varchar(200), args varchar(3000), isSuccess smallint, resultStr varchar(3000), isScheduled smallint, startTime timestamp, endTime timestamp, duration int)";
+				+ "(id int GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) primary key, jobId bigint, jobClassName varchar(200), args varchar(3000), isSuccess smallint, resultStr varchar(3000), isScheduled smallint, startTime timestamp, endTime timestamp, duration int)";
 		executeUpdate(createSQL);
 		return true;
 	}

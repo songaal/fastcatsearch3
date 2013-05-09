@@ -35,7 +35,7 @@ public class SearchMonitoringInfoMinute extends DAOBase {
 	
 	@Override
 	public boolean createTable() throws SQLException {
-		String createSQL = "create table "+tableName+"(id int GENERATED ALWAYS AS IDENTITY primary key, collection varchar(20), hit int, fail int, achit int, acfail int, ave_time int, max_time int, when timestamp)";
+		String createSQL = "create table "+tableName+"(id int GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) primary key, collection varchar(20), hit int, fail int, achit int, acfail int, ave_time int, max_time int, when timestamp)";
 		executeUpdate(createSQL);
 		return true;
 	}

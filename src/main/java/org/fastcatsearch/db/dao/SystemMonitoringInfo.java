@@ -33,12 +33,12 @@ public class SystemMonitoringInfo extends DAOBase {
 	
 	@Override
 	public boolean testTable() {
-		return testQuery("select id, collection, hit, fail, achit, acfail, ave_time, max_time, when, type from " + tableName);
+		return testQuery("select id, cpu, mem, load, when, type from " + tableName);
 	}
 	
 	@Override
 	public boolean createTable() throws SQLException {
-		String createSQL = "create table "+tableName+"(id int GENERATED ALWAYS AS IDENTITY primary key, cpu int, mem int, load double, when timestamp, type varchar(1))";
+		String createSQL = "create table "+tableName+"(id int GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) primary key, cpu int, mem int, load double, when timestamp, type varchar(1))";
 		executeUpdate(createSQL);
 		return true;
 	}
