@@ -107,6 +107,23 @@ public abstract class DAOBase {
 		}
 		
 		public abstract int testAndCreate() throws SQLException;
+//		public abstract int createBody(Statement stmt) throws SQLException;
+//		
+//		public int create() throws SQLException {
+//			Connection conn = null;
+//			Statement stmt = null;
+//			
+//			try
+//			{
+//				conn = conn();
+//				stmt = conn.createStatement();
+//				return createBody(stmt);				
+//			} finally {
+//				releaseConnection(conn);
+//				releaseResource(stmt);
+//			}
+//			
+//		}
 			
 		public void prepareID(){
 			if(ID != -1) return;

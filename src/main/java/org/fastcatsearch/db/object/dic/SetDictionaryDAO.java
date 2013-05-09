@@ -9,7 +9,7 @@
  *     swsong - initial API and implementation
  */
 
-package org.fastcatsearch.db.object;
+package org.fastcatsearch.db.object.dic;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -19,16 +19,17 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SetDictionaryDAO extends DAOBase {
-	public int id;
-	public String term;
+import org.fastcatsearch.db.object.DAOBase;
+import org.fastcatsearch.db.object.ResultVOMapper;
+import org.fastcatsearch.db.vo.dic.SetDictionaryVO;
+
+public class SetDictionaryDAO extends DAOBase implements ResultVOMapper<SetDictionaryVO> {
 	public String tableName;
-	public String fieldName;
+	public String fieldName = "key";
 	private int batchCount = 0;
 
-	public SetDictionaryDAO() {
-		tableName = getClass().getSimpleName();
-		fieldName = "word";
+	public SetDictionaryDAO(String tableName) {
+		this.tableName = tableName;
 	}
 
 	public int create() throws SQLException {
@@ -208,8 +209,8 @@ public class SetDictionaryDAO extends DAOBase {
 		return totalCount;
 	}
 
-	public List<SetDictionaryDAO> select(int startRow, int pageSize) {
-		List<SetDictionaryDAO> result = new ArrayList<SetDictionaryDAO>();
+	public List<SetDictionaryVO> select(int startRow, int pageSize) {
+		List<SetDictionaryVO> result = new ArrayList<SetDictionaryVO>();
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		Connection conn = null;
@@ -236,11 +237,7 @@ public class SetDictionaryDAO extends DAOBase {
 			logger.debug("Start = " + (totalCount - startRow - pageSize) + "~" + (totalCount - startRow));
 
 			while (rs.next()) {
-				UserDictionary r = new UserDictionary();
-				parameterIndex = 2;
-				r.id = rs.getInt(parameterIndex++);
-				r.term = rs.getString(parameterIndex++);
-				result.add(r);
+				result.add(map(rs ,2));
 			}
 		} catch (SQLException e) {
 			logger.error(e.getMessage(), e);
@@ -252,56 +249,65 @@ public class SetDictionaryDAO extends DAOBase {
 		return result;
 	}
 
-	public List<SetDictionaryDAO> selectWithKeyword(String keyword, int startRow, int pageSize) {
-		List<SetDictionaryDAO> result = new ArrayList<SetDictionaryDAO>();
+	public List<SetDictionaryVO> selectWithKeyword(String keyword, int startRow, int pageSize) {
+		List<SetDictionaryVO> result = new ArrayList<SetDictionaryVO>();
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		Connection conn = null;
-		try {
+		try{
 			conn = conn();
-			String countSQL = "SELECT count(*) FROM " + tableName + " where " + fieldName + "=? or " + fieldName + " like ?";
-			pstmt = conn.prepareStatement(countSQL);
-			int parameterIndex = 1;
-			pstmt.setString(parameterIndex++, keyword);
-			pstmt.setString(parameterIndex++, "%" + keyword + "%");
-			rs = pstmt.executeQuery();
 			int totalCount = 0;
-			if (rs.next()) {
-				totalCount = rs.getInt(1);
+			try {
+				String countSQL = "SELECT count(*) FROM " + tableName + " where " + fieldName + "=? or " + fieldName + " like ?";
+				pstmt = conn.prepareStatement(countSQL);
+				int parameterIndex = 1;
+				pstmt.setString(parameterIndex++, keyword);
+				pstmt.setString(parameterIndex++, "%" + keyword + "%");
+				rs = pstmt.executeQuery();
+				
+				if (rs.next()) {
+					totalCount = rs.getInt(1);
+				}
+				rs.close();
+				pstmt.close();
+	
+			} catch (SQLException e) {
+				logger.error(e.getMessage(), e);
+			} finally {
+				releaseResource(pstmt, rs);
 			}
-			rs.close();
-			pstmt.close();
-
-			String selectSQL = "SELECT * FROM ( SELECT ROW_NUMBER() OVER() AS rownum, " + tableName + ".* FROM " + tableName
-					+ " where " + fieldName + "=? or " + fieldName
-					+ " like ?) AS tmp WHERE rownum > ? and rownum <= ? order by id desc";
-			pstmt = conn.prepareStatement(selectSQL);
-			parameterIndex = 1;
-			pstmt.setString(parameterIndex++, keyword);
-			pstmt.setString(parameterIndex++, "%" + keyword + "%");
-			pstmt.setInt(parameterIndex++, totalCount - startRow - pageSize);
-			pstmt.setInt(parameterIndex++, totalCount - startRow);
-			rs = pstmt.executeQuery();
-
-			while (rs.next()) {
-				UserDictionary r = new UserDictionary();
-				parameterIndex = 2;
-				r.id = rs.getInt(parameterIndex++);
-				r.term = rs.getString(parameterIndex++);
-				result.add(r);
+			
+			try{
+				String selectSQL = "SELECT * FROM ( SELECT ROW_NUMBER() OVER() AS rownum, " + tableName + ".* FROM " + tableName
+						+ " where " + fieldName + "=? or " + fieldName
+						+ " like ?) AS tmp WHERE rownum > ? and rownum <= ? order by id desc";
+				pstmt = conn.prepareStatement(selectSQL);
+				int parameterIndex = 1;
+				pstmt.setString(parameterIndex++, keyword);
+				pstmt.setString(parameterIndex++, "%" + keyword + "%");
+				pstmt.setInt(parameterIndex++, totalCount - startRow - pageSize);
+				pstmt.setInt(parameterIndex++, totalCount - startRow);
+				rs = pstmt.executeQuery();
+	
+				while (rs.next()) {
+					result.add(map(rs));
+				}
+			} catch (SQLException e) {
+				logger.error(e.getMessage(), e);
+			} finally {
+				releaseResource(pstmt, rs);
 			}
 		} catch (SQLException e) {
 			logger.error(e.getMessage(), e);
 		} finally {
-			releaseResource(pstmt, rs);
 			releaseConnection(conn);
 		}
 
 		return result;
 	}
 
-	public List<SetDictionaryDAO> selectWithKeywordOnly(String keyword) {
-		List<SetDictionaryDAO> result = new ArrayList<SetDictionaryDAO>();
+	public List<SetDictionaryVO> selectWithKeywordOnly(String keyword) {
+		List<SetDictionaryVO> result = new ArrayList<SetDictionaryVO>();
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		Connection conn = null;
@@ -314,11 +320,7 @@ public class SetDictionaryDAO extends DAOBase {
 			rs = pstmt.executeQuery();
 
 			if (rs.next()) {
-				UserDictionary r = new UserDictionary();
-				result.add(r);
-				parameterIndex = 1;
-				r.id = rs.getInt(parameterIndex++);
-				r.term = rs.getString(parameterIndex++);
+				result.add(map(rs));
 			}
 		} catch (SQLException e) {
 			logger.error(e.getMessage(), e);
@@ -383,5 +385,18 @@ public class SetDictionaryDAO extends DAOBase {
 			releaseResource(pstmt);
 			releaseConnection(conn);
 		}
+	}
+
+	@Override
+	public SetDictionaryVO map(ResultSet resultSet) throws SQLException {
+		return map(resultSet, 1);
+	}
+
+	@Override
+	public SetDictionaryVO map(ResultSet resultSet, int index) throws SQLException {
+		SetDictionaryVO vo = new SetDictionaryVO();
+		vo.id = resultSet.getInt(index++);
+		vo.key = resultSet.getString(index++);
+		return vo;
 	}
 }

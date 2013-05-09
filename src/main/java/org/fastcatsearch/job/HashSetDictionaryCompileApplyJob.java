@@ -16,7 +16,7 @@ import java.util.List;
 
 import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.object.SetDictionaryDAO;
+import org.fastcatsearch.db.object.dic.SetDictionaryDAO;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.dic.HashSetDictionary;
