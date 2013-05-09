@@ -480,7 +480,7 @@ public class SettingManager {
 					// Do not make primary key search index.
 					if (!f.primary) {
 						String queryTokenizer = el.getAttributeValue("query");
-						IndexSetting is = new IndexSetting(name, f, "", "");
+						IndexSetting is = new IndexSetting(name, f, "", null, "", null);
 						schema.addIndexSetting(is);
 						f.indexSetting = is;
 						schema.indexnames.put(name, indexSequence++);

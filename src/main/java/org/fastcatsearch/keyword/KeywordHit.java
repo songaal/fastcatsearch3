@@ -11,6 +11,7 @@
 
 package org.fastcatsearch.keyword;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -80,16 +81,26 @@ public class KeywordHit extends DAOBase{
 		 * 5분마다 부하량 = 100 회
 		 **/
 		String createSQL = null;
-		String prodName = conn.getMetaData().getDatabaseProductName();
-		createSQL = "create table " + tableName + "(id int primary key,type int,num int, keyword varchar(50),hit int, popular int, prevRank int, isUsed smallint, dateRegister timestamp, dateUpdate timestamp)";
-		if("Apache Derby".equals(prodName)) {
-		} else if("MySQL".equals(prodName)) { //MYSQL
-			createSQL+=" character set = utf8";
-		} else if("".equals(prodName)) { //ORACLE
-		} else if("".equals(prodName)) { //MSSQL
+		Connection conn = null;
+		Statement stmt = null;
+		try
+		{
+			conn = conn();
+			String prodName = conn.getMetaData().getDatabaseProductName();
+			createSQL = "create table " + tableName + "(id int primary key,type int,num int, keyword varchar(50),hit int, popular int, prevRank int, isUsed smallint, dateRegister timestamp, dateUpdate timestamp)";
+			if("Apache Derby".equals(prodName)) {
+			} else if("MySQL".equals(prodName)) { //MYSQL
+				createSQL+=" character set = utf8";
+			} else if("".equals(prodName)) { //ORACLE
+			} else if("".equals(prodName)) { //MSSQL
+			}
+			stmt = conn.createStatement();
+			return stmt.executeUpdate(createSQL);	
+		} finally {
+			releaseResource(stmt);
+			releaseConnection(conn);
 		}
-		Statement stmt = conn.createStatement();
-		return stmt.executeUpdate(createSQL);
+		
 	}
 	
 	public int clearHourOfDay(int hourOfDay) {
@@ -97,9 +108,12 @@ public class KeywordHit extends DAOBase{
 	}
 	
 	public int clearHit(int type, int num) {
+		String deleteSQL = "delete from " + tableName + " where type=? and num = ?";
+		
+		Connection conn = null;
 		PreparedStatement pstmt = null;
 		try {
-			String deleteSQL = "delete from " + tableName + " where type=? and num = ?";
+			conn = conn();
 			pstmt = conn.prepareStatement(deleteSQL);
 			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, type);
@@ -109,14 +123,18 @@ public class KeywordHit extends DAOBase{
 			logger.error(e.getMessage(),e);
 			return -1;
 		}finally{
-			if(pstmt!=null) try { pstmt.close(); } catch (SQLException e) { }
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 	}
 	
 	public int clearHit(int type, int num, Date date) {
+		String deleteSQL = "delete from " + tableName + " where type=? and num = ? and dateRegister = ?";
+		
 		PreparedStatement pstmt = null;
+		Connection conn = null;
 		try {
-			String deleteSQL = "delete from " + tableName + " where type=? and num = ? and dateRegister = ?";
+			conn = conn();
 			pstmt = conn.prepareStatement(deleteSQL);
 			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, type);
@@ -127,14 +145,18 @@ public class KeywordHit extends DAOBase{
 			logger.error(e.getMessage(),e);
 			return -1;
 		}finally{
-			if(pstmt!=null) try { pstmt.close(); } catch (SQLException e) { }
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 	}
 	
 	public int clearHitBefore(int type, int num, Date date) {
+		String deleteSQL = "delete from " + tableName + " where type=? and num = ? and dateRegister < ?";
+		
 		PreparedStatement pstmt = null;
+		Connection conn = null;
 		try {
-			String deleteSQL = "delete from " + tableName + " where type=? and num = ? and dateRegister < ?";
+			conn = conn();
 			pstmt = conn.prepareStatement(deleteSQL);
 			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, type);
@@ -145,16 +167,20 @@ public class KeywordHit extends DAOBase{
 			logger.error(e.getMessage(),e);
 			return -1;
 		}finally{
-			if(pstmt!=null) try { pstmt.close(); } catch (SQLException e) { }
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 	}
 	
 	public int insert(int type, int num, String keyword, int hit, int popular, int prevRank, boolean isUsed, Date dateRegister, Date dateUpdate) {
+		String insertSQL = "insert into " + tableName + "(id, type, num, keyword, hit, popular, prevRank, isUsed, dateRegister, dateUpdate) values (?,?,?,?,?,?,?,?,?,?)";
+		
 		PreparedStatement pstmt = null;
+		Connection conn = null;
 		try{
+			conn = conn();
 			int c=-1;
 			if(keyword!=null && !"".equals(keyword)) {
-				String insertSQL = "insert into " + tableName + "(id, type, num, keyword, hit, popular, prevRank, isUsed, dateRegister, dateUpdate) values (?,?,?,?,?,?,?,?,?,?)";
 				pstmt = conn.prepareStatement(insertSQL);
 				int parameterIndex = 1;
 				pstmt.setInt(parameterIndex++, ID);
@@ -175,18 +201,21 @@ public class KeywordHit extends DAOBase{
 			logger.error(e.getMessage(),e);
 			return -1;
 		}finally{
-			try {
-				pstmt.close();
-			} catch (SQLException e) { }
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 	}
 	
 	public List<KeywordHit> selectKeywordHit(int type, int num) {
+		String selectSQL = "SELECT id, keyword, hit, popular, prevRank, isUsed, dateRegister, dateUpdate from " + tableName + " where type =? and num = ? order by hit desc";
 		List<KeywordHit> result = new ArrayList<KeywordHit>();
+
+		Connection conn = null;
+		PreparedStatement pstmt = null;
 		
 		try{
-			String selectSQL = "SELECT id, keyword, hit, popular, prevRank, isUsed, dateRegister, dateUpdate from " + tableName + " where type =? and num = ? order by hit desc";
-			PreparedStatement pstmt = conn.prepareStatement(selectSQL);
+			conn = conn();
+			pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, type);
 			pstmt.setInt(parameterIndex++, num);
@@ -208,8 +237,11 @@ public class KeywordHit extends DAOBase{
 			
 			pstmt.close();
 			rs.close();
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
+		} finally {
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 		
 		return result;
@@ -217,10 +249,14 @@ public class KeywordHit extends DAOBase{
 	
 	public List<KeywordHit> selectKeywordHit(int type, int num, Date date) {
 		List<KeywordHit> result = new ArrayList<KeywordHit>();
+		String selectSQL = "SELECT id, keyword, hit, popular, prevRank, isUsed, dateRegister,dateUpdate from " + tableName + " where type =? and num = ? and dateRegister = ? order by hit desc";
+		
+		Connection conn = null;
+		PreparedStatement pstmt = null;
 		
 		try{
-			String selectSQL = "SELECT id, keyword, hit, popular, prevRank, isUsed, dateRegister,dateUpdate from " + tableName + " where type =? and num = ? and dateRegister = ? order by hit desc";
-			PreparedStatement pstmt = conn.prepareStatement(selectSQL);
+			conn = conn();
+			pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, type);
 			pstmt.setInt(parameterIndex++, num);
@@ -244,8 +280,11 @@ public class KeywordHit extends DAOBase{
 			
 			pstmt.close();
 			rs.close();
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
+		} finally {
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 		
 		return result;
@@ -253,8 +292,12 @@ public class KeywordHit extends DAOBase{
 	
 	public List<KeywordHit> selectKeywordHitLimit(int type, int num, int limitCount) {
 		List<KeywordHit> result = new ArrayList<KeywordHit>();
+		String selectSQL = null;
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		
 		try{
-			String selectSQL = null;
+			conn = conn();
 			String prodName = conn.getMetaData().getDatabaseProductName();
 			if("Apache Derby".equals(prodName)) {
 				selectSQL = "SELECT * from (SELECT " + tableName + ".id, " + tableName + ".keyword, " + tableName + ".hit, " + tableName + ".popular, " + tableName + ".prevRank, " + tableName + ".isUsed, dateRegister, dateUpdate, ROW_NUMBER() OVER() AS rownum from " + tableName + " where type=? and num = ? order by popular desc, hit desc) AS tmp WHERE rownum <= ?";
@@ -263,7 +306,7 @@ public class KeywordHit extends DAOBase{
 			} else if("".equals(prodName)) { //ORACLE
 			} else if("".equals(prodName)) { //MSSQL
 			}
-			PreparedStatement pstmt = conn.prepareStatement(selectSQL);
+			pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, type);
 			pstmt.setInt(parameterIndex++, num);
@@ -289,6 +332,9 @@ public class KeywordHit extends DAOBase{
 			rs.close();
 		}catch(SQLException e){
 			logger.error(e.getMessage(),e);
+		}finally {
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 		
 		return result;
@@ -296,8 +342,14 @@ public class KeywordHit extends DAOBase{
 	
 	public List<KeywordHit> selectKeywordHitLimit( int num, int limitCount) {
 		List<KeywordHit> result = new ArrayList<KeywordHit>();
+		String selectSQL = null;
+		
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		
 		try{
-			String selectSQL = null;
+			conn = conn();
 			String prodName = conn.getMetaData().getDatabaseProductName();
 			if("Apache Derby".equals(prodName)) {
 				selectSQL = "SELECT * from (SELECT " + tableName + ".id, " + tableName + ".keyword, " + tableName + ".hit, " + tableName + ".popular, " + tableName + ".prevRank, " + tableName + ".isUsed, dateRegister, dateUpdate, ROW_NUMBER() OVER() AS rownum from " + tableName + " where type=? and num = ? order by popular desc, hit desc) AS tmp WHERE rownum <= ?";
@@ -306,12 +358,12 @@ public class KeywordHit extends DAOBase{
 			} else if("".equals(prodName)) { //ORACLE
 			} else if("".equals(prodName)) { //MSSQL
 			}
-			PreparedStatement pstmt = conn.prepareStatement(selectSQL);
+			pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, KeywordHit.STATISTICS_DATE);
 			pstmt.setInt(parameterIndex++, num);
 			pstmt.setInt(parameterIndex++, limitCount);
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 			
 			while(rs.next()){
 				KeywordHit h = new KeywordHit();
@@ -330,8 +382,11 @@ public class KeywordHit extends DAOBase{
 			
 			pstmt.close();
 			rs.close();
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
+		} finally {
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 		
 		return result;
@@ -344,16 +399,21 @@ public class KeywordHit extends DAOBase{
 	
 	//인기검색어 검색
 	public List<KeywordHit> prefixSearchPopular(String keyword) {
+		String selectSQL = "SELECT id, keyword, hit, popular, prevRank, isUsed, dateRegister, dateUpdate from KeywordHit where type = ? and num = ? and keyword like ? order by popular desc, hit desc";
+		
 		List<KeywordHit> result = new ArrayList<KeywordHit>();
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
 		
 		try{
-			String selectSQL = "SELECT id, keyword, hit, popular, prevRank, isUsed, dateRegister, dateUpdate from KeywordHit where type = ? and num = ? and keyword like ? order by popular desc, hit desc";
-			PreparedStatement pstmt = conn.prepareStatement(selectSQL);
+			conn = conn();
+			pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, KeywordHit.POPULAR_ACCUM);
 			pstmt.setInt(parameterIndex++, 0);
 			pstmt.setString(parameterIndex++, keyword + "%");
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 			
 			while(rs.next()){
 				KeywordHit h = new KeywordHit();
@@ -374,6 +434,9 @@ public class KeywordHit extends DAOBase{
 			rs.close();
 		}catch(SQLException e){
 			logger.error(e.getMessage(),e);
+		} finally {
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 		
 		return result;
@@ -381,9 +444,13 @@ public class KeywordHit extends DAOBase{
 
 	//사용하지 않는 인기검색어를 마킹한다.
 	public int setNotUsing(String[] keywords) {
+		String insertSQL = "update KeywordHit set isUsed = 0 where keyword = ?";
+		
+		Connection conn = null;
 		PreparedStatement pstmt = null;
+		
 		try{
-			String insertSQL = "update KeywordHit set isUsed = 0 where keyword = ?";
+			conn = conn();
 			pstmt = conn.prepareStatement(insertSQL);
 			for (int i = 0; i < keywords.length; i++) {
 				if(keywords[i]!=null && !"".equals(keywords[i])) {
@@ -398,16 +465,17 @@ public class KeywordHit extends DAOBase{
 			logger.error(e.getMessage(),e);
 			return -1;
 		}finally{
-			try {
-				pstmt.close();
-			} catch (SQLException e) { }
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 	}
 
 	//사용하지 않는 인기검색어 를 마킹.
 	public int setNotUsing (String keyword, int using) {
+		Connection conn = null;
 		PreparedStatement pstmt = null;
 		try {
+			conn = conn();
 			int ret = -1;
 			if(keyword!=null && !"".equals(keyword)) {
 				int parameterIndex = 1;
@@ -422,28 +490,30 @@ public class KeywordHit extends DAOBase{
 			logger.error(e.getMessage(),e);
 			return -1;
 		} finally {
-			try { 
-				pstmt.close();
-			} catch (SQLException e) { }
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 	}
 	
 	public int countKeywordItem(String keyword) {
-		PreparedStatement pst = null;
-		ResultSet res = null;
+		String sql = "select count(*) from KeywordHit where type=? and num=0 and keyword=?";
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		
 		try {
-			String sql = "select count(*) from KeywordHit where type=? and num=0 and keyword=?";
-			pst = conn.prepareStatement(sql);
-			pst.setObject(1, POPULAR_ACCUM );
-			pst.setObject(2, keyword);
-			res = pst.executeQuery();
-			if(res.next()) { return res.getInt(1); }
+			conn = conn();
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setObject(1, POPULAR_ACCUM );
+			pstmt.setObject(2, keyword);
+			rs = pstmt.executeQuery();
+			if(rs.next()) { return rs.getInt(1); }
 		} catch (SQLException e) {
 			logger.error(e.getMessage(),e);
 			return -1;
 		} finally {
-			if(res!=null) try { res.close(); } catch (SQLException e) { }
-			if(pst!=null) try { pst.close(); } catch (SQLException e) { }
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 		return 0;
 	}
@@ -530,11 +600,16 @@ public class KeywordHit extends DAOBase{
 	
 	public List<KeywordHit> selectUsingPopular(String keyword, int type, int time, Date date) {
 		List<KeywordHit> result = new ArrayList<KeywordHit>();
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
 		try{
+			conn = conn();
+			
 			String[] bstr = getBoundaryOfCharacter(keyword);
 //logger.debug("bstr : {} {} {}",new String[] { bstr[0], bstr[1], bstr[2] } );
 			String selectSQL = null;
-			PreparedStatement pstmt = null;
+			
 			int parameterIndex = 1;
 			if(keyword==null || "".equals(keyword)) {
 				if(date != null) {
@@ -559,7 +634,7 @@ public class KeywordHit extends DAOBase{
 				pstmt.setString(parameterIndex++,bstr[2]);
 			}
 			
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 			while(rs.next()){
 				KeywordHit h = new KeywordHit();
 				parameterIndex = 1;
@@ -573,37 +648,55 @@ public class KeywordHit extends DAOBase{
 			}
 			pstmt.close();
 			rs.close();
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
+		} finally {
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 		
 		return result;
 	}
 	
 	public Timestamp isPoluarKeywordUpdated(Timestamp lastTime){
+		String selectSQL = "SELECT dateUpdate from KeywordHit where type=1 and num = 0 and isUsed = 1 and  dateUpdate > ? order by dateUpdate desc";
+		
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		
 		try{
-			String selectSQL = "SELECT dateUpdate from KeywordHit where type=1 and num = 0 and isUsed = 1 and  dateUpdate > ? order by dateUpdate desc";
-			PreparedStatement pstmt = conn.prepareStatement(selectSQL);
+			conn = conn();
+			pstmt = conn.prepareStatement(selectSQL);
 			pstmt.setTimestamp(1, lastTime);
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 			if(rs.next()){
 				return rs.getTimestamp(1);
 			}
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
+		} finally {
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 		return null;
 	}
+	
 	public List<KeywordHit> selectPopular() {
 		List<KeywordHit> result = new ArrayList<KeywordHit>();
+		String selectSQL = "SELECT id, keyword, hit, popular, prevRank, isUsed, dateRegister from KeywordHit where type = ? and num = ? order by popular desc, hit desc";
+		
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
 		
 		try{
-			String selectSQL = "SELECT id, keyword, hit, popular, prevRank, isUsed, dateRegister from KeywordHit where type = ? and num = ? order by popular desc, hit desc";
-			PreparedStatement pstmt = conn.prepareStatement(selectSQL);
+			conn = conn();
+			pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, KeywordHit.POPULAR_ACCUM);
 			pstmt.setInt(parameterIndex++, 0);
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 			
 			while(rs.next()){
 				KeywordHit h = new KeywordHit();
@@ -619,37 +712,54 @@ public class KeywordHit extends DAOBase{
 			}
 			pstmt.close();
 			rs.close();
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
+		} finally {
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 		
 		return result;
 	}
 	
 	public int testAndCreate() throws SQLException {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		
 		try {
-			conn.prepareStatement("select count(*) from KeywordHit").executeQuery().next();
+			conn = conn;
+			pstmt = conn.prepareStatement("select count(*) from KeywordHit");
+			rs = pstmt.executeQuery();
+			rs.next();
 			return 0;
 		} catch (SQLException e) {
 			create();
 			return 1;
+		} finally {
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 	}
 
 	public int deleteKeyword(String keyword) {
+		String selectSQL = "DELETE from KeywordHit where keyword=? ";
 		int ret = -1;
-		PreparedStatement pst = null;
+		PreparedStatement pstmt = null;
+		Connection conn = null;
+		
 		try{
+			conn = conn();
 			if(keyword!=null && !"".equals(keyword)) {
-				String selectSQL = "DELETE from KeywordHit where keyword=? ";
-				pst = conn.prepareStatement(selectSQL);
-				pst.setString(1, keyword.toUpperCase());
-				ret = pst.executeUpdate();
+				pstmt = conn.prepareStatement(selectSQL);
+				pstmt.setString(1, keyword.toUpperCase());
+				ret = pstmt.executeUpdate();
 			}
 		}catch(SQLException e){
 			logger.error(e.getMessage(),e);
 		} finally {
-			if(pst!=null) try { pst.close(); } catch (SQLException e) { }
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 		
 		return ret;
@@ -657,30 +767,32 @@ public class KeywordHit extends DAOBase{
 	
 	public int modifyKeyword(String keyword1, String keyword2) {
 		int ret = 0;
+		String selectSQL = "SELECT COUNT(*) FROM KeywordHit WHERE type=1 AND keyword=?";
+		String updateSQL = "UPDATE KeywordHit SET keyword=? WHERE keyword=?";
 		
-		PreparedStatement pst = null;
-		ResultSet res = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		Connection conn = null;
+		
 		try {
-			
+			conn = conn();
 			if((keyword1!=null && !"".equals(keyword1)) &&
 				(keyword2!=null && !"".equals(keyword2))) {
 				keyword1 = keyword1.toUpperCase();
 				keyword2 = keyword2.toUpperCase();
-				String selectSQL = "SELECT COUNT(*) FROM KeywordHit WHERE type=1 AND keyword=?";
-				String updateSQL = "UPDATE KeywordHit SET keyword=? WHERE keyword=?";
-				pst = conn.prepareStatement(selectSQL);
-				pst.setObject(1, keyword2);
-				res = pst.executeQuery();
+				pstmt = conn.prepareStatement(selectSQL);
+				pstmt.setObject(1, keyword2);
+				rs = pstmt.executeQuery();
 				int keywordCnt = 0;
-				if(res.next()) { keywordCnt = res.getInt(1); }
+				if(rs.next()) { keywordCnt = rs.getInt(1); }
 			
 				if(keywordCnt == 0) {
-					res.close();
-					pst.close();
-					pst = conn.prepareStatement(updateSQL);
-					pst.setObject(1, keyword2);
-					pst.setObject(2, keyword1);
-					ret = pst.executeUpdate();
+					rs.close();
+					pstmt.close();
+					pstmt = conn.prepareStatement(updateSQL);
+					pstmt.setObject(1, keyword2);
+					pstmt.setObject(2, keyword1);
+					ret = pstmt.executeUpdate();
 				} else {
 					return -1;
 				}
@@ -689,26 +801,30 @@ public class KeywordHit extends DAOBase{
 		} catch (SQLException e) {
 			logger.error(e.getMessage(),e);
 		} finally {
-			if(res!=null) try { res.close(); } catch (SQLException e) { }
-			if(pst!=null) try { pst.close(); } catch (SQLException e) { }
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 		
 		return ret;
 	}
 	
 	public int updateKeywordPopular(String keyword, int type, int popular) {
+		String updateSQL = "UPDATE KeywordHit SET popular=?, dateUpdate=? WHERE type=1 and keyword=?";
+		
 		int ret = 0;
-		PreparedStatement pst = null;
-		ResultSet res = null;
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		
 		try {
+			conn = conn();
 			if(type==1 || type==2) {
 				if(keyword!=null && !"".equals(keyword)) {
-	    			String updateSQL = "UPDATE KeywordHit SET popular=?, dateUpdate=? WHERE type=1 and keyword=?";
-	    			pst = conn.prepareStatement(updateSQL);
-	    			pst.setObject(1, popular);
-	    			pst.setObject(2, new Timestamp(System.currentTimeMillis()));
-	    			pst.setObject(3, keyword.toUpperCase());
-	    			ret = pst.executeUpdate();
+	    			pstmt = conn.prepareStatement(updateSQL);
+	    			pstmt.setObject(1, popular);
+	    			pstmt.setObject(2, new Timestamp(System.currentTimeMillis()));
+	    			pstmt.setObject(3, keyword.toUpperCase());
+	    			ret = pstmt.executeUpdate();
 				}
 			} else if(type==3) {
 				//FIXME:순위고정에 대한 코드를 기술한다.
@@ -716,8 +832,8 @@ public class KeywordHit extends DAOBase{
 		} catch (SQLException e) {
 			logger.error(e.getMessage(),e);
 		} finally {
-			if(res!=null) try { res.close(); } catch (SQLException e) { }
-			if(pst!=null) try { pst.close(); } catch (SQLException e) { }
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 		return ret;
 	}
