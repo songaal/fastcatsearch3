@@ -11,6 +11,7 @@
 
 package org.fastcatsearch.db.object;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,36 +19,39 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MAPDictionaryDAO extends DAOBase {
+public class MapDictionaryDAO extends DAOBase {
 	public int id;
 	public String dickey;
 	public int count;
 	public String value;
-	private int batchCount=0;
+	private int batchCount = 0;
 
-	public MAPDictionaryDAO() { }
+	public MapDictionaryDAO() {
+	}
 
 	public int create() throws SQLException {
-			Statement stmt = null;
+		Statement stmt = null;
+		Connection conn = null;
 		try {
-			String createSQL = "create table " + tableName + " (id int primary key,dickey varchar(30) not null unique,count int not null default 0,value varchar(255))";
+			conn = conn();
+			String createSQL = "create table " + tableName
+					+ " (id int primary key,dickey varchar(30) not null unique,count int not null default 0,value varchar(255))";
 			stmt = conn.createStatement();
 			return stmt.executeUpdate(createSQL);
 		} catch (SQLException e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 			return -1;
 		} finally {
-			try {
-				if(stmt != null)
-					stmt.close();
-			} catch (SQLException e) {
-			}
+			releaseResource(stmt);
+			releaseConnection(conn);
 		}
 	}
 
 	public int insert(String dickey, int count, String value) {
-			PreparedStatement pstmt = null;
+		PreparedStatement pstmt = null;
+		Connection conn = null;
 		try {
+			conn = conn();
 			String insertSQL = "insert into " + tableName + "(id, dickey, count, value) values (?,?,?,?)";
 			pstmt = conn.prepareStatement(insertSQL);
 			int parameterIndex = 1;
@@ -55,26 +59,25 @@ public class MAPDictionaryDAO extends DAOBase {
 			pstmt.setString(parameterIndex++, dickey);
 			pstmt.setInt(parameterIndex++, count);
 			pstmt.setString(parameterIndex++, value);
-			int c =  pstmt.executeUpdate();
-			if(c > 0){
+			int c = pstmt.executeUpdate();
+			if (c > 0) {
 				ID++;
 			}
 			return c;
 		} catch (SQLException e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 			return -1;
 		} finally {
-			try {
-				if(pstmt != null)
-					pstmt.close();
-			} catch (SQLException e) {
-			}
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 	}
 
 	public int update(String dickey, int count, String value) {
-			PreparedStatement pstmt = null;
+		PreparedStatement pstmt = null;
+		Connection conn = null;
 		try {
+			conn = conn();
 			String updateSQL = "UPDATE " + tableName + " SET count = ?,value = ? WHERE dickey = ?";
 			pstmt = conn.prepareStatement(updateSQL);
 			int parameterIndex = 1;
@@ -83,57 +86,58 @@ public class MAPDictionaryDAO extends DAOBase {
 			pstmt.setString(parameterIndex++, dickey);
 			return pstmt.executeUpdate();
 		} catch (SQLException e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 			return -1;
 		} finally {
-			try {
-				if(pstmt != null)
-					pstmt.close();
-			} catch (SQLException e) {
-			}
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 	}
 
 	public int delete(String word) {
-			PreparedStatement pstmt = null;
+		PreparedStatement pstmt = null;
+		Connection conn = null;
 		try {
+			conn = conn();
 			String deleteSQL = "delete from " + tableName + " where dickey = ?";
 			pstmt = conn.prepareStatement(deleteSQL);
 			int parameterIndex = 1;
 			pstmt.setString(parameterIndex++, word);
 			return pstmt.executeUpdate();
 		} catch (SQLException e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 			return -1;
 		} finally {
-			try {
-				if(pstmt != null)
-					pstmt.close();
-			} catch (SQLException e) {
-			}
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 	}
-	
+
 	public int deleteAll() {
 		PreparedStatement pstmt = null;
+		Connection conn = null;
 		try {
+			conn = conn();
 			String deleteSQL = "truncate table " + tableName;
 			pstmt = conn.prepareStatement(deleteSQL);
 			int count = pstmt.executeUpdate();
 			return count;
 		} catch (SQLException e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 			return -1;
 		} finally {
-			if(pstmt != null) try { pstmt.close(); } catch (SQLException e) { }
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 	}
-	
+
 	public int selectCount() {
-			int totalCount = 0;
-			Statement stmt = null;
-			ResultSet rs = null;
+		int totalCount = 0;
+		Statement stmt = null;
+		ResultSet rs = null;
+		Connection conn = null;
 		try {
+			conn = conn();
 			String countSQL = "SELECT count(*) FROM " + tableName;
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(countSQL);
@@ -144,25 +148,22 @@ public class MAPDictionaryDAO extends DAOBase {
 			rs.close();
 			stmt.close();
 		} catch (SQLException e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 		} finally {
-			try {
-				if(rs != null)
-					rs.close();
-				if(stmt != null)
-					stmt.close();
-			} catch (SQLException e) {
-			}
+			releaseResource(stmt, rs);
+			releaseConnection(conn);
 		}
 
 		return totalCount;
 	}
 
 	public int selectWithKeywordCount(String keyword) {
-			int totalCount = 0;
-			PreparedStatement pstmt = null;
-			ResultSet rs = null;
+		int totalCount = 0;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		Connection conn = null;
 		try {
+			conn = conn();
 			String countSQL = "SELECT count(*) FROM " + tableName + " where dickey=? or value like ?";
 			pstmt = conn.prepareStatement(countSQL);
 			int parameterIndex = 1;
@@ -176,25 +177,22 @@ public class MAPDictionaryDAO extends DAOBase {
 			rs.close();
 			pstmt.close();
 		} catch (SQLException e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 		} finally {
-			try {
-				if(rs != null)
-					rs.close();
-				if(pstmt != null)
-					pstmt.close();
-			} catch (SQLException e) {
-			}
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 
 		return totalCount;
 	}
 
-	public List<MAPDictionaryDAO> select(int startRow,int pageSize) {
-			List<MAPDictionaryDAO> result = new ArrayList<MAPDictionaryDAO>();
-			PreparedStatement pstmt = null;
-			ResultSet rs = null;
+	public List<MapDictionaryDAO> select(int startRow, int pageSize) {
+		List<MapDictionaryDAO> result = new ArrayList<MapDictionaryDAO>();
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		Connection conn = null;
 		try {
+			conn = conn();
 			String countSQL = "SELECT count(*) FROM " + tableName;
 			Statement stmt = conn.createStatement();
 			rs = stmt.executeQuery(countSQL);
@@ -205,7 +203,8 @@ public class MAPDictionaryDAO extends DAOBase {
 			rs.close();
 			stmt.close();
 
-			String selectSQL = "SELECT * FROM ( SELECT ROW_NUMBER() OVER() AS rownum, " + tableName + ".* FROM " + tableName + ") AS tmp WHERE rownum > ? and rownum <= ? order by id desc";
+			String selectSQL = "SELECT * FROM ( SELECT ROW_NUMBER() OVER() AS rownum, " + tableName + ".* FROM " + tableName
+					+ ") AS tmp WHERE rownum > ? and rownum <= ? order by id desc";
 
 			pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
@@ -215,7 +214,7 @@ public class MAPDictionaryDAO extends DAOBase {
 			logger.debug("Start = " + (totalCount - startRow - pageSize) + "~" + (totalCount - startRow));
 
 			while (rs.next()) {
-				MAPDictionaryDAO r = new MAPDictionaryDAO();
+				MapDictionaryDAO r = new MapDictionaryDAO();
 				parameterIndex = 2;
 				r.id = rs.getInt(parameterIndex++);
 				r.dickey = rs.getString(parameterIndex++);
@@ -224,25 +223,22 @@ public class MAPDictionaryDAO extends DAOBase {
 				result.add(r);
 			}
 		} catch (SQLException e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 		} finally {
-			try {
-				if(rs != null)
-					rs.close();
-				if(pstmt != null)
-					pstmt.close();
-			} catch (SQLException e) {
-			}
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 
 		return result;
 	}
 
-	public List<MAPDictionaryDAO> selectWithKeyword(String keyword, int startRow, int pageSize) {
-			List<MAPDictionaryDAO> result = new ArrayList<MAPDictionaryDAO>();
-			PreparedStatement pstmt = null;
-			ResultSet rs = null;
+	public List<MapDictionaryDAO> selectWithKeyword(String keyword, int startRow, int pageSize) {
+		List<MapDictionaryDAO> result = new ArrayList<MapDictionaryDAO>();
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		Connection conn = null;
 		try {
+			conn = conn();
 			String countSQL = "SELECT count(*) FROM " + tableName + " where dickey=? or value like ?";
 			pstmt = conn.prepareStatement(countSQL);
 			int parameterIndex = 1;
@@ -255,7 +251,8 @@ public class MAPDictionaryDAO extends DAOBase {
 			}
 			rs.close();
 			pstmt.close();
-			String selectSQL = "SELECT * FROM ( SELECT ROW_NUMBER() OVER() AS rownum, " + tableName + ".* FROM " + tableName + " where dickey=? or value like ?) AS tmp WHERE rownum > ? and rownum <= ? order by id desc";
+			String selectSQL = "SELECT * FROM ( SELECT ROW_NUMBER() OVER() AS rownum, " + tableName + ".* FROM " + tableName
+					+ " where dickey=? or value like ?) AS tmp WHERE rownum > ? and rownum <= ? order by id desc";
 			pstmt = conn.prepareStatement(selectSQL);
 			parameterIndex = 1;
 			pstmt.setString(parameterIndex++, keyword);
@@ -265,7 +262,7 @@ public class MAPDictionaryDAO extends DAOBase {
 			rs = pstmt.executeQuery();
 
 			while (rs.next()) {
-				MAPDictionaryDAO r = new MAPDictionaryDAO();
+				MapDictionaryDAO r = new MapDictionaryDAO();
 				result.add(r);
 				parameterIndex = 2;
 				r.id = rs.getInt(parameterIndex++);
@@ -274,25 +271,22 @@ public class MAPDictionaryDAO extends DAOBase {
 				r.value = rs.getString(parameterIndex++);
 			}
 		} catch (SQLException e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 		} finally {
-			try {
-				if(rs != null)
-					rs.close();
-				if(pstmt != null)
-					pstmt.close();
-			} catch (SQLException e) {
-			}
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 
 		return result;
 	}
 
-	public List<MAPDictionaryDAO> selectWithKeywordOnly(String keyword) {
-			List<MAPDictionaryDAO> result = new ArrayList<MAPDictionaryDAO>();
-			PreparedStatement pstmt = null;
-			ResultSet rs = null;
+	public List<MapDictionaryDAO> selectWithKeywordOnly(String keyword) {
+		List<MapDictionaryDAO> result = new ArrayList<MapDictionaryDAO>();
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		Connection conn = null;
 		try {
+			conn = conn();
 			String selectSQL = "SELECT * FROM " + tableName + " where dickey=?";
 			pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
@@ -300,7 +294,7 @@ public class MAPDictionaryDAO extends DAOBase {
 			rs = pstmt.executeQuery();
 
 			if (rs.next()) {
-				MAPDictionaryDAO r = new MAPDictionaryDAO();
+				MapDictionaryDAO r = new MapDictionaryDAO();
 				result.add(r);
 				parameterIndex = 1;
 				r.id = rs.getInt(parameterIndex++);
@@ -309,36 +303,45 @@ public class MAPDictionaryDAO extends DAOBase {
 				r.value = rs.getString(parameterIndex++);
 			}
 		} catch (SQLException e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 		} finally {
-			try {
-				if(rs != null)
-					rs.close();
-				if(pstmt != null)
-					pstmt.close();
-			} catch (SQLException e) {
-			}
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 
 		return result;
 	}
+
 	public int testAndCreate() throws SQLException {
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		Connection conn = null;
 		try {
-			conn.prepareStatement("select count(*) from " + tableName).executeQuery().next();
+			conn = conn();
+			pstmt = conn.prepareStatement("select count(*) from " + tableName);
+			rs = pstmt.executeQuery();
+			rs.next();
 			return 0;
 		} catch (SQLException e) {
 			create();
 			return 1;
+		} finally {
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 	}
-	
+
 	public PreparedStatement startInsertBatch() {
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		Connection conn = null;
 		try {
+			conn = conn();
 			batchCount = 0;
 			int inx = 0;
 			conn.setAutoCommit(false);
-			PreparedStatement pstmt = conn.prepareStatement("select max(id) from "+tableName);
-			ResultSet rs = pstmt.executeQuery();
+			pstmt = conn.prepareStatement("select max(id) from " + tableName);
+			rs = pstmt.executeQuery();
 
 			if (rs.next()) {
 				inx = rs.getInt(1);
@@ -346,18 +349,22 @@ public class MAPDictionaryDAO extends DAOBase {
 			}
 			ID = inx;
 
-			String insertSQL = "insert into "+tableName+"(id, dickey, count, value) values (?,?,?,?)";
+			String insertSQL = "insert into " + tableName + "(id, dickey, count, value) values (?,?,?,?)";
 			pstmt = conn.prepareStatement(insertSQL);
 			return pstmt;
 		} catch (SQLException e) {
 			return null;
+		} finally {
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 	}
 
 	public boolean endInsertBatch(PreparedStatement pstmt) {
-		int[] update_Count = { 0, };
+		Connection conn = null;
 		try {
-			update_Count = pstmt.executeBatch();
+			conn = conn();
+			int[] update_Count = pstmt.executeBatch();
 			conn.commit();
 			pstmt.close();
 			return true;
@@ -368,25 +375,30 @@ public class MAPDictionaryDAO extends DAOBase {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
+		} finally {
+			releaseConnection(conn);
 		}
 		return false;
 	}
 
 	public int insertBatch(String line, PreparedStatement pstmt) {
-		if ( line.trim().length() == 0 )
+		if (line.trim().length() == 0)
 			return 0;
 
+		Connection conn = null;
 		try {
+			conn = conn();
 			batchCount = batchCount + 1;
 			String[] kv = line.split(":");
 			String[] s = kv[1].split(",");
-			
-			int parameterIndex = 1;			
+
+			pstmt.clearParameters();
+			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, ID);
 			pstmt.setString(parameterIndex++, kv[0]);
 			pstmt.setInt(parameterIndex++, s.length);
 			pstmt.setString(parameterIndex++, kv[1]);
-			
+
 			pstmt.addBatch();
 			ID = ID + 1;
 
@@ -398,6 +410,8 @@ public class MAPDictionaryDAO extends DAOBase {
 		} catch (SQLException e) {
 			logger.error(e.getMessage(), e);
 			return -1;
+		} finally {
+			releaseConnection(conn);
 		}
 	}
 }

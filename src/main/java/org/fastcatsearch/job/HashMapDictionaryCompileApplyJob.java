@@ -16,7 +16,7 @@ import java.util.List;
 
 import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.object.MAPDictionaryDAO;
+import org.fastcatsearch.db.object.MapDictionaryDAO;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.dic.HashMapDictionary;
@@ -64,11 +64,11 @@ public class HashMapDictionaryCompileApplyJob extends Job {
 		int BULK_SIZE = 100;
 		
 		for(int startRow = 0; startRow < count; startRow += BULK_SIZE){
-			List<MAPDictionaryDAO> list = dbHandler.SynonymDictionary.select(startRow, BULK_SIZE);
+			List<MapDictionaryDAO> list = dbHandler.SynonymDictionary.select(startRow, BULK_SIZE);
 			
 			//bulk insert
 			for (int i = 0; i < list.size(); i++) {
-				MAPDictionaryDAO  synonym = list.get(i);
+				MapDictionaryDAO  synonym = list.get(i);
 				char[] charArr = synonym.value.toCharArray();
 				int size = 1;
 				for (int j = 0; j < charArr.length; j++) {

@@ -11,17 +11,8 @@
 
 package org.fastcatsearch.db.object;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
+public class UserDictionary extends SetDictionaryDAO {
 
-public class CustomDictionary extends SetDictionaryDAO {
-
-	public CustomDictionary() {
-	this.tableName = "CustomDictionary";
-	this.fieldName = "customword";
-	}	
+	public UserDictionary() {
+	}
 }

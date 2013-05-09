@@ -685,7 +685,7 @@ public class IRSettings {
 					logger.debug("컬럼필드 확인 >> {}", cs);
 				}
 			} else {
-				logger.warn("Unknown schema element name = " + el.getName() + " at " + (i + 1) + "-th element");
+//				logger.debug("Unknown schema element name = " + el.getName() + " at " + (i + 1) + "-th element");
 			}
 
 		}

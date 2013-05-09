@@ -11,6 +11,7 @@
 
 package org.fastcatsearch.db.object;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -32,19 +33,35 @@ public class IndexingHistory extends DAOBase {
 	public Timestamp startTime;
 	public Timestamp endTime;
 	public int duration;
-	
-	public IndexingHistory(){ }
-	
-	public int create() throws SQLException{
-		String createSQL = "create table " + tableName + "(id int primary key, collection varchar(20), type char(1), isSuccess smallint, docSize int, updateSize int, deleteSize int, isScheduled smallint, startTime timestamp, endTime timestamp, duration int)";
-		Statement stmt = conn.createStatement();
-		return stmt.executeUpdate(createSQL);
+
+	public IndexingHistory() {
 	}
-	
-	public int insert(String collection, String type, boolean isSuccess, int docSize, int updateSize, int deleteSize, boolean isScheduled, Timestamp startTime, Timestamp endTime, int duration) {
+
+	public int create() throws SQLException {
+		Statement stmt = null;
+		Connection conn = null;
+		try {
+			conn = conn();
+			String createSQL = "create table "
+					+ tableName
+					+ "(id int primary key, collection varchar(20), type char(1), isSuccess smallint, docSize int, updateSize int, deleteSize int, isScheduled smallint, startTime timestamp, endTime timestamp, duration int)";
+			stmt = conn.createStatement();
+			return stmt.executeUpdate(createSQL);
+		} finally {
+			releaseResource(stmt);
+			releaseConnection(conn);
+		}
+	}
+
+	public int insert(String collection, String type, boolean isSuccess, int docSize, int updateSize, int deleteSize,
+			boolean isScheduled, Timestamp startTime, Timestamp endTime, int duration) {
 		PreparedStatement pstmt = null;
-		try{
-			String insertSQL = "insert into " + tableName + "(id, collection, type, isSuccess, docSize, updateSize, deleteSize, isScheduled, startTime, endTime, duration) values (?,?,?,?,?,?,?,?,?,?,?)";
+		Connection conn = null;
+		try {
+			conn = conn();
+			String insertSQL = "insert into "
+					+ tableName
+					+ "(id, collection, type, isSuccess, docSize, updateSize, deleteSize, isScheduled, startTime, endTime, duration) values (?,?,?,?,?,?,?,?,?,?,?)";
 			pstmt = conn.prepareStatement(insertSQL);
 			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, ID);
@@ -58,67 +75,91 @@ public class IndexingHistory extends DAOBase {
 			pstmt.setTimestamp(parameterIndex++, startTime);
 			pstmt.setTimestamp(parameterIndex++, endTime);
 			pstmt.setInt(parameterIndex++, duration);
-			int c =  pstmt.executeUpdate();
-			if(c > 0){
+			int c = pstmt.executeUpdate();
+			if (c > 0) {
 				ID++;
 			}
 			return c;
-		}catch(SQLException e){
-			logger.error(e.getMessage(),e);
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
 			return -1;
-		}finally{
-			if(pstmt!=null) try { pstmt.close(); } catch (SQLException e) { } 
+		} finally {
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 	}
-	
+
 	public int count() {
-		try{
+		Statement stmt = null;
+		ResultSet rs = null;
+		Connection conn = null;
+		try {
+			conn = conn();
 			String countSQL = "SELECT count(id) FROM " + tableName;
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(countSQL);
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(countSQL);
 			int totalCount = 0;
-			if(rs.next()){
+			if (rs.next()) {
 				totalCount = rs.getInt(1);
 			}
 			rs.close();
 			stmt.close();
-			
+
 			return totalCount;
-		}catch(SQLException e){
-			logger.error(e.getMessage(),e);
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
 			return 0;
+		} finally {
+			releaseResource(stmt, rs);
+			releaseConnection(conn);
 		}
-		
+
 	}
-	
+
 	public List<IndexingHistory> select(int startRow, int length) {
 		List<IndexingHistory> result = new ArrayList<IndexingHistory>();
-		
-		try{
+		ResultSet rs = null;
+		Statement stmt = null;
+		PreparedStatement pstmt = null;
+		Connection conn = null;
+		int totalCount = 0;
+		try {
+			conn = conn();
 			String countSQL = "SELECT count(id) FROM " + tableName;
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(countSQL);
-			int totalCount = 0;
-			if(rs.next()){
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(countSQL);
+			if (rs.next()) {
 				totalCount = rs.getInt(1);
 			}
-			rs.close();
-			stmt.close();
-			
-			if(totalCount - startRow <= 0)
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
+			return result;
+		}finally{
+			releaseResource(stmt, rs);
+			releaseConnection(conn);
+		}
+		
+		try{
+			conn = conn();
+			if (totalCount - startRow <= 0)
 				return result;
-			
-			String selectSQL = "SELECT id, collection, type, isSuccess, docSize, updateSize, deleteSize, isScheduled, startTime, endTime, duration" +
-					" FROM ( SELECT ROW_NUMBER() OVER() AS rownum, " + tableName + ".* FROM " + tableName + " ) AS tmp WHERE rownum > ? and rownum <= ? order by id desc";
-			PreparedStatement pstmt = conn.prepareStatement(selectSQL);
+
+			String selectSQL = "SELECT id, collection, type, isSuccess, docSize, updateSize, deleteSize, isScheduled, startTime, endTime, duration"
+					+ " FROM ( SELECT ROW_NUMBER() OVER() AS rownum, "
+					+ tableName
+					+ ".* FROM "
+					+ tableName
+					+ " ) AS tmp WHERE rownum > ? and rownum <= ? order by id desc";
+			pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, totalCount - startRow - length);
 			pstmt.setInt(parameterIndex++, totalCount - startRow);
 			rs = pstmt.executeQuery();
-//			logger.debug("totalCount = "+totalCount+", startRow="+startRow+", Start = "+(totalCount - startRow - length)+ "~"+(totalCount - startRow));
-			while(rs.next()){
+			// logger.debug("totalCount = "+totalCount+", startRow="+startRow+", Start = "+(totalCount - startRow - length)+
+			// "~"+(totalCount - startRow));
+			while (rs.next()) {
 				IndexingHistory r = new IndexingHistory();
-				
+
 				parameterIndex = 1;
 				r.id = rs.getInt(parameterIndex++);
 				r.collection = rs.getString(parameterIndex++);
@@ -131,46 +172,61 @@ public class IndexingHistory extends DAOBase {
 				r.startTime = rs.getTimestamp(parameterIndex++);
 				r.endTime = rs.getTimestamp(parameterIndex++);
 				r.duration = rs.getInt(parameterIndex++);
-				
+
 				result.add(r);
 			}
-			
-			pstmt.close();
-			rs.close();
-		}catch(SQLException e){
-			logger.error(e.getMessage(),e);
+
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
+		} finally {
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
-		
+
 		return result;
 	}
-	
+
 	public int testAndCreate() throws SQLException {
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		Connection conn = null;
 		try {
-			if ( isExists() == false )
+			conn = conn();
+			if (isExists() == false)
 				create();
-			//의미없는 조건을 주어 실제결과를 가져오지 않도록 함.
-			conn.prepareStatement("select id, collection, type, isSuccess, docSize, updateSize, deleteSize, isScheduled, startTime, endTime, duration from " + tableName + " where id = 0").executeQuery().next();
+			// 의미없는 조건을 주어 실제결과를 가져오지 않도록 함.
+			pstmt = conn.prepareStatement(
+					"select id, collection, type, isSuccess, docSize, updateSize, deleteSize, isScheduled, startTime, endTime, duration from "
+							+ tableName + " where id = 0");
+			rs = pstmt.executeQuery();
+			rs.next();
 			return 0;
 		} catch (SQLException e) {
-			//table에 컬럼이 없을 경우에 exception이 발행하므로, table을 drop하고 재생성한다. 
+			// table에 컬럼이 없을 경우에 exception이 발행하므로, table을 drop하고 재생성한다.
 			drop();
 			create();
 			return 1;
+		} finally {
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 	}
 
 	private void drop() {
 		PreparedStatement pstmt = null;
-		try{
+		Connection conn = null;
+		try {
+			conn = conn();
 			String insertSQL = "drop table " + tableName;
 			pstmt = conn.prepareStatement(insertSQL);
 			pstmt.executeUpdate();
 			logger.info(insertSQL);
-		}catch(SQLException e){
-			logger.error(e.getMessage(),e);
-		}finally{
-			if(pstmt!=null) try { pstmt.close(); } catch (SQLException e) { } 
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
+		} finally {
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
-		
+
 	}
 }

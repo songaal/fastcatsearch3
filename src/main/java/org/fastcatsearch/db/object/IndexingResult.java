@@ -37,7 +37,7 @@ public class IndexingResult extends DAOBase {
 	public Timestamp endTime;
 	public int duration;	
 	
-	public IndexingResult(){}	
+	public IndexingResult(){}
 	
 	public int create() throws SQLException{
 		String createSQL = "create table " + tableName + "(collection varchar(20), type char(1), status smallint, docSize int, updateSize int, deleteSize int, isScheduled smallint, startTime timestamp, endTime timestamp, duration int)";

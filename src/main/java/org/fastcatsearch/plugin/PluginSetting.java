@@ -25,7 +25,10 @@ public class PluginSetting {
 	
 	@XmlElement
 	Web web;
-
+	
+	@XmlElement
+	DB db;
+	
 	public String getName() {
 		return name;
 	}
@@ -58,6 +61,13 @@ public class PluginSetting {
 		this.params = params;
 	}
 	
+	public DB getDB() {
+		return db;
+	}
+
+	public void seDB(DB db) {
+		this.db = db;
+	}
 	
 	@XmlRootElement
 	@XmlAccessorType(XmlAccessType.FIELD)
@@ -83,15 +93,15 @@ public class PluginSetting {
 	
 	
 	@XmlRootElement
-	@XmlAccessorType(XmlAccessType.FIELD)
 	public static class Web {
-		@XmlElement
 		User user;
-		@XmlElement
 		Admin admin;
+		
+		@XmlElement
 		public User getUser() {
 			return user;
 		}
+		@XmlElement
 		public Admin getAdmin() {
 			return admin;
 		}
@@ -101,9 +111,36 @@ public class PluginSetting {
 		public void setAdmin(Admin admin) {
 			this.admin = admin;
 		}
-		
 	}
 
+	@XmlRootElement(name="db")
+	public static class DB {
+		List<DAO> daoList;
+		
+		@XmlElementWrapper(name="dao-list")
+		@XmlElement(name="dao")
+		public List<DAO> getDAOList() {
+			return daoList;
+		}
+		public void setDAOList(List<DAO> daoList) {
+			this.daoList = daoList;
+		}
+	}
+	
+	@XmlRootElement(name="dao")
+	public static class DAO {
+		String className;
+		
+		@XmlValue
+		public String getClassName() {
+			return className;
+		}
+		public void setClassName(String className) {
+			this.className = className;
+		}
+	}
+	
+	
 	@XmlRootElement
 	@XmlAccessorType(XmlAccessType.FIELD)
 	public static class User {
@@ -186,15 +223,15 @@ public class PluginSetting {
 		@XmlAttribute
 		String label;
 		@XmlElement
-		Leaf leaf;
+		List<Leaf> leafList;
 		public String getId() {
 			return id;
 		}
 		public String getLabel() {
 			return label;
 		}
-		public Leaf getLeaf() {
-			return leaf;
+		public List<Leaf> getLeaf() {
+			return leafList;
 		}
 		public void setId(String id) {
 			this.id = id;
@@ -202,8 +239,8 @@ public class PluginSetting {
 		public void setLabel(String label) {
 			this.label = label;
 		}
-		public void setLeaf(Leaf leaf) {
-			this.leaf = leaf;
+		public void setLeaf(List<Leaf> leafList) {
+			this.leafList = leafList;
 		}
 		
 	}

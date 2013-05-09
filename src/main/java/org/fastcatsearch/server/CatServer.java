@@ -173,11 +173,14 @@ public class CatServer {
 		logger = LoggerFactory.getLogger(CatServer.class);
 		logger.info("ServerHome = {}", serverHome);
 		try {
+			//plugin은 여타service보다 먼저 시작되어야한다.
+			pluginService.start();
+			
+			
 			dbService.start();
 			jobService.start();
 			nodeService.start();
-			//plugin은 webservice보다 먼저 시작되어야한다.
-			pluginService.start();
+			
 			
 			irService.start();
 			statisticsInfoService.start();

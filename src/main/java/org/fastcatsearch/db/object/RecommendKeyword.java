@@ -15,18 +15,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.fastcatsearch.db.object.MAPDictionaryDAO;
+import org.fastcatsearch.db.object.MapDictionaryDAO;
 
-public class RecommendKeyword extends MAPDictionaryDAO {
+public class RecommendKeyword extends MapDictionaryDAO {
 
 	public int id;
 	public String dickey;
 	public int count;
 	public String value;
 
-	public RecommendKeyword() 
-	{
-	this.tableName = "RecommendKeyword"; 	
+	public RecommendKeyword() {
 	}
 
 	public RecommendKeyword exactSearch(String keyword) {
@@ -51,12 +49,12 @@ public class RecommendKeyword extends MAPDictionaryDAO {
 				r.value = rs.getString(parameterIndex++);
 			}
 		} catch (SQLException e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 		} finally {
 			try {
-				if(rs != null)
+				if (rs != null)
 					rs.close();
-				if(pstmt != null)
+				if (pstmt != null)
 					pstmt.close();
 			} catch (SQLException e) {
 				logger.error(e.getMessage(), e);
@@ -64,6 +62,6 @@ public class RecommendKeyword extends MAPDictionaryDAO {
 		}
 
 		return r;
-	}	
+	}
 
 }

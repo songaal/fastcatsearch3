@@ -30,14 +30,21 @@ public class PluginSettingTest {
 				"					<leaf id=\"system\" label=\"1\"/>\n" + 
 				"				</submenu>\n" + 
 				"			</menu>\n" + 
-				"			<servlet path=\"/analyzer/dic/product\">com.fastcatsearch.ir.analyzer.product.servlet.ProductDictionaryServlet</servlet>\n" + 
+				"			<servlet path=\"/analyzer/dic/product\">com.fastcatsearch.ir.analysis.product.servlet.SynonymDictionaryServlet</servlet>\n" + 
 				"		</user>\n" + 
 				"		<admin>\n" + 
 				"			<menu></menu>\n" + 
 				"			<servlet></servlet>\n" + 
 				"		</admin>\n" + 
 				"	</web>\n" + 
-				"</plugin>";
+				"	\n" + 
+				"	<db>\n" + 
+				"		<dao-list>\n" + 
+				"			<dao>com.fastcatsearch.db.ProductSynonymDic</dao>\n" + 
+				"			<dao>com.fastcatsearch.db.ProductSynonymDic2</dao>\n" + 
+				"		</dao-list>	\n" + 
+				"	</db>\n" + 
+				"</plugin>"; 
 		JAXBContext jc = JAXBContext.newInstance(PluginSetting.class);
 
         Unmarshaller unmarshaller = jc.createUnmarshaller();
@@ -45,6 +52,7 @@ public class PluginSettingTest {
         PluginSetting setting = (PluginSetting) unmarshaller.unmarshal(new StringReader(xml));
         
         System.out.println(setting.getWeb().getUser().getServlet().getPath());
+        System.out.println(setting.getDB().getDAOList().size());
         
         StringWriter writer = new StringWriter();
         Marshaller marshaller = jc.createMarshaller();

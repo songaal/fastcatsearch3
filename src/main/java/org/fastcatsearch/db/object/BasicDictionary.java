@@ -27,78 +27,76 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BasicDictionary extends SetDictionaryDAO  {
+public class BasicDictionary extends SetDictionaryDAO {
 
-	public BasicDictionary() 
-	{ 
-		this.tableName = "basicdictionary";
-		this.fieldName = "basicword";		
-	}	
-	
-	public boolean bulkInsert(File file){
-		
+	public BasicDictionary() {
+
+	}
+
+	public boolean bulkInsert(File file) {
+
 		PreparedStatement pstmt = null;
+		Connection conn = null;
+		Statement stmt = null;
 		try {
+			conn = conn();
+
 			String cleanSQL = "truncate table " + tableName;
 			logger.debug(cleanSQL);
-			Statement stmt = conn.createStatement();
+			stmt = conn.createStatement();
 			stmt.executeUpdate(cleanSQL);
-			stmt.close();
+
 			try {
 				Thread.sleep(1000);
-			} catch (InterruptedException e1) { }
-				
+			} catch (InterruptedException e1) {
+			}
+
 			String insertSQL = "insert into " + tableName + "(id, basicword) values (?,?)";
 			logger.debug(insertSQL);
 			pstmt = conn.prepareStatement(insertSQL);
 			conn.setAutoCommit(false);
-			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file),"utf-8"));
+			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
 			String basicword = null;
 			int i = 1;
-			while((basicword = br.readLine()) != null){
-				if(basicword.startsWith("//") || basicword.length() == 0)
+			while ((basicword = br.readLine()) != null) {
+				if (basicword.startsWith("//") || basicword.length() == 0)
 					continue;
-				
+
 				int p = basicword.indexOf("/");
-				if(p > 0){
+				if (p > 0) {
 					basicword = basicword.substring(0, p);
 				}
 				pstmt.setInt(1, i);
 				pstmt.setString(2, basicword);
 				i++;
-				try{
+				try {
 					pstmt.executeUpdate();
 				} catch (SQLException e) {
-					logger.debug("b = "+basicword);
-					logger.error(e.getMessage(),e);
+					logger.debug("b = " + basicword);
+					logger.error(e.getMessage(), e);
 				}
-				//중복단어가 존재함..
-//				pstmt.addBatch();
-//				if(i % 10 == 0){
-//					pstmt.executeBatch();
-//					conn.commit();
-//				}
+				// 중복단어가 존재함..
+				// pstmt.addBatch();
+				// if(i % 10 == 0){
+				// pstmt.executeBatch();
+				// conn.commit();
+				// }
 			}
-			//여기서 에러가 발생하여 commit이 안되는 버그수정.
-			//2012-01-12 swsong
-//			pstmt.executeUpdate();
+			// 여기서 에러가 발생하여 commit이 안되는 버그수정.
+			// 2012-01-12 swsong
+			// pstmt.executeUpdate();
 			br.close();
-			conn.commit();
 			return true;
 		} catch (SQLException e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 			return false;
 		} catch (IOException e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 			return false;
 		} finally {
-			try {
-				if(pstmt != null)
-					pstmt.close();
-			} catch (SQLException e) {
-			}
+			releaseResource(stmt, pstmt);
+			releaseConnection(conn);
 		}
-		
-		
-	}	
+
+	}
 }

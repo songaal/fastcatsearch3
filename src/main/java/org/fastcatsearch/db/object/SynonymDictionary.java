@@ -11,23 +11,9 @@
 
 package org.fastcatsearch.db.object;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
+public class SynonymDictionary extends MapDictionaryDAO {
 
-public class SynonymDictionary extends MAPDictionaryDAO {
-
-	public int id;
-	public String dickey;
-	public int count;
-	public String value;
-
-	public SynonymDictionary() 
-	{
-		this.tableName = "SynonymDictionary";
+	public SynonymDictionary() {
 	}
 
-	}
+}
