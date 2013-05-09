@@ -11,6 +11,7 @@
 
 package org.fastcatsearch.db.object;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -36,16 +37,28 @@ public class SystemMonInfoHDWMY extends DAOBase {
 	//type:h 시간, d 일, w 주, m 월, y 년
 	
 	public int create() throws SQLException{
+		Connection conn = null;
+		Statement stmt = null;
 		String createSQL = "create table "+tableName+"(id int primary key, cpu int, mem int, load double, when timestamp, type varchar(1))";
-		Statement stmt = conn.createStatement();
-		return stmt.executeUpdate(createSQL);
+		
+		try {
+			conn = conn();
+			stmt = conn.createStatement();
+			return stmt.executeUpdate(createSQL);
+		} finally {
+			releaseResource(stmt);
+			releaseConnection(conn);
+		}
 	}
 	
 	public int insert(int cpu, int mem, double load, Timestamp when, String type) {
-		
+		String insertSQL = "insert into "+tableName+"(id, cpu, mem, load, when, type) values (?,?,?,?,?,?)";
+				
+		Connection conn = null;
 		PreparedStatement pstmt = null;
-		try{
-			String insertSQL = "insert into "+tableName+"(id, cpu, mem, load, when, type) values (?,?,?,?,?,?)";
+		
+		try {
+			conn = conn();
 			pstmt = conn.prepareStatement(insertSQL);
 			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, ID);
@@ -63,37 +76,53 @@ public class SystemMonInfoHDWMY extends DAOBase {
 			logger.error(e.getMessage(),e);
 			return -1;
 		}finally{
-			if(pstmt!=null) try { pstmt.close(); } catch (SQLException e) { }
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 	}
 
 	public int count() {
-		try{
-			String countSQL = "SELECT count(id) FROM "+tableName;
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(countSQL);
-			int totalCount = 0;
+		String countSQL = "SELECT count(id) FROM "+tableName;
+		int totalCount = 0;
+		
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		
+		try {
+			conn = conn();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(countSQL);
 			if(rs.next()){
 				totalCount = rs.getInt(1);
 			}
 			rs.close();
 			stmt.close();
-		
-			return totalCount;
-			
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
 			return 0;
+		} finally {
+			releaseResource(stmt, rs);
+			releaseConnection(conn);
 		}
+		return totalCount;
 	}
 	
 	public List<SystemMonInfoHDWMY> select(int startRow, int length) {
 		List<SystemMonInfoHDWMY> result = new ArrayList<SystemMonInfoHDWMY>();
-		try{
-			
-			String countSQL = "SELECT max(id) FROM "+tableName;
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(countSQL);
+		String countSQL = "SELECT max(id) FROM "+tableName;
+		String selectSQL = "SELECT id, cpu, mem, load, when, type" +
+				" FROM "+tableName+" WHERE id > ? and id <= ? order by id desc";
+		
+		Connection conn = null;
+		Statement stmt = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		
+		try {
+			conn = conn();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(countSQL);
 			int totalCount = 0;
 			if(rs.next()){
 				totalCount = rs.getInt(1);
@@ -101,10 +130,7 @@ public class SystemMonInfoHDWMY extends DAOBase {
 			rs.close();
 			stmt.close();
 		
-			String selectSQL = null;
-			selectSQL = "SELECT id, cpu, mem, load, when, type" +
-					" FROM "+tableName+" WHERE id > ? and id <= ? order by id desc";
-			PreparedStatement pstmt = conn.prepareStatement(selectSQL);
+			pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, totalCount - startRow - length);
 			pstmt.setInt(parameterIndex++, totalCount - startRow);
@@ -125,25 +151,33 @@ public class SystemMonInfoHDWMY extends DAOBase {
 			pstmt.close();
 			rs.close();
 			
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
+		} finally {
+			releaseResource(stmt, pstmt, rs);
+			releaseConnection(conn);
 		}
 		
 		return result;
 	}
 	
 	public List<SystemMonInfoHDWMY> select(Timestamp start, Timestamp end, String type) {
+		String selectSQL = "SELECT id, cpu, mem, load, when, type" +
+				" FROM "+tableName+" WHERE when >= ? and when <= ? and type = ? order by id desc";
 		List<SystemMonInfoHDWMY> result = new ArrayList<SystemMonInfoHDWMY>();
+		
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		
 		try{
-			String selectSQL = null;
-			selectSQL = "SELECT id, cpu, mem, load, when, type" +
-					" FROM "+tableName+" WHERE when >= ? and when <= ? and type = ? order by id desc";
-			PreparedStatement pstmt = conn.prepareStatement(selectSQL);
+			conn = conn();
+			pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
 			pstmt.setTimestamp(parameterIndex++, start);
 			pstmt.setTimestamp(parameterIndex++, end);
 			pstmt.setString(parameterIndex++, type);
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 			logger.debug("Start = "+start+ "~"+end);
 			while(rs.next()){
 				SystemMonInfoHDWMY r = new SystemMonInfoHDWMY();
@@ -160,28 +194,45 @@ public class SystemMonInfoHDWMY extends DAOBase {
 			pstmt.close();
 			rs.close();
 			
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
+		} finally {
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
-		
 		return result;
 	}
 	
 	public int testAndCreate() throws SQLException {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		
 		try {
-			conn.prepareStatement("select count(*) from "+tableName).executeQuery().next();
+			conn = conn();
+			pstmt = conn.prepareStatement("select count(*) from "+tableName);
+			rs = pstmt.executeQuery();
+			rs.next();
 			return 0;
 		} catch (SQLException e) {
 			create();
 			return 1;
+		}  finally {
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 	}
 
 
 	public int deleteOld(int month) {
+		String deleteSQL = "Delete From "+tableName+" Where when < ?";
+				
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		
 		try{
-			String deleteSQL = "Delete From "+tableName+" Where when < ?";
-			PreparedStatement pstmt = conn.prepareStatement(deleteSQL);
+			conn = conn();
+			pstmt = conn.prepareStatement(deleteSQL);
 			Calendar oldDatetime = Calendar.getInstance();
 			oldDatetime.set(Calendar.SECOND, 0);
 			oldDatetime.set(Calendar.MINUTE, 0);
@@ -189,10 +240,13 @@ public class SystemMonInfoHDWMY extends DAOBase {
 			oldDatetime.add(Calendar.MONTH, -month);
 			pstmt.setTimestamp(1, new Timestamp(oldDatetime.getTimeInMillis()));
 			return pstmt.executeUpdate();
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
+		} finally {
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 		return -1;
 	}
-	
 }
+

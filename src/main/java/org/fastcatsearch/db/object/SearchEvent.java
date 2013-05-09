@@ -11,6 +11,7 @@
 
 package org.fastcatsearch.db.object;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -32,15 +33,29 @@ public class SearchEvent extends DAOBase {
 	public SearchEvent(){ }
 	
 	public int create() throws SQLException{
+		RecommendKeyword r = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		Connection conn = null;
+				
 		String createSQL = "create table " + tableName + "(id int primary key, when timestamp, type char(5), category int, summary varchar(200), stacktrace varchar(3000), status char(1))";
-		Statement stmt = conn.createStatement();
-		return stmt.executeUpdate(createSQL);
+		
+		try {
+			conn = conn();
+			stmt = conn.createStatement();
+			return stmt.executeUpdate(createSQL);
+		} finally {
+			releaseResource(stmt);
+			releaseConnection(conn);
+		}
 	}
 	
 	public int insert(Timestamp when, String type, int category, String summary, String stacktrace, String status) {
-		
+		Connection conn = null;
 		PreparedStatement pstmt = null;
+		
 		try{
+			conn = conn();
 			String insertSQL = "insert into " + tableName + "(id, when, type, category, summary, stacktrace, status) values (?,?,?,?,?,?,?)";
 			pstmt = conn.prepareStatement(insertSQL);
 			int parameterIndex = 1;
@@ -60,15 +75,21 @@ public class SearchEvent extends DAOBase {
 			logger.error(e.getMessage(),e);
 			return -1;
 		}finally{
-			if(pstmt!=null) try { pstmt.close(); } catch (SQLException e) { }
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 	}
 
 	public int count() {
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		String countSQL = "SELECT count(id) FROM " + tableName;
+		
 		try{
-			String countSQL = "SELECT count(id) FROM " + tableName;
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(countSQL);
+			conn = conn();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(countSQL);
 			int totalCount = 0;
 			if(rs.next()){
 				totalCount = rs.getInt(1);
@@ -78,19 +99,28 @@ public class SearchEvent extends DAOBase {
 		
 			return totalCount;
 			
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
 			return 0;
+		} finally {
+			releaseResource(stmt, rs);
+			releaseConnection(conn);
 		}
 	}
 	
 	public List<SearchEvent> select(int startRow, int length) {
+		Connection conn = null;
+		ResultSet rs = null;
+		Statement stmt = null;
+		PreparedStatement pstmt = null;
+		String countSQL = "SELECT count(id) FROM " + tableName;
+		
 		List<SearchEvent> result = new ArrayList<SearchEvent>();
 		try{
+			conn = conn();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(countSQL);
 			
-			String countSQL = "SELECT count(id) FROM " + tableName;
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(countSQL);
 			int totalCount = 0;
 			if(rs.next()){
 				totalCount = rs.getInt(1);
@@ -106,7 +136,7 @@ public class SearchEvent extends DAOBase {
 			String selectSQL = "select * from (select id, when, type, category, summary, "+
 					"stacktrace, status, row_number() over () as rownum from SearchEvent) "+
 					"SearchEvent where rownum > ? and rownum <= ? order by id desc";
-			PreparedStatement pstmt = conn.prepareStatement(selectSQL);
+			pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, totalCount - startRow - length);
 			pstmt.setInt(parameterIndex++, totalCount - startRow);
@@ -130,56 +160,85 @@ public class SearchEvent extends DAOBase {
 			pstmt.close();
 			rs.close();
 			
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
+		} finally {
+			releaseResource(stmt, pstmt, rs);
+			releaseConnection(conn);
 		}
-		
 		return result;
 	}
 	
 	//최근업데이트건의 최근 시간만 가져온다.
 	public Timestamp isUpdated(Timestamp lastTime) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		
+		String checkSQL = "select when from SearchEvent " +
+				"where when > ? " +
+				"order by when desc";
+		
 		try{
-			String checkSQL = "select when from SearchEvent " +
-					"where when > ? " +
-					"order by when desc";
-			PreparedStatement pstmt = conn.prepareStatement(checkSQL);
+			conn = conn();
+			
+			pstmt = conn.prepareStatement(checkSQL);
 			pstmt.setTimestamp(1, lastTime);
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 			if(rs.next()){
 				return rs.getTimestamp(1);
 			}
 			
 			return null;
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
 			return null;
+		} finally {
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 	}
 	
 	public int testAndCreate() throws SQLException {
+		Connection conn= null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		
 		try {
-			conn.prepareStatement("select count(*) from SearchEvent").executeQuery().next();
+			conn = conn();
+			pstmt = conn.prepareStatement("select count(*) from SearchEvent");
+			rs = pstmt.executeQuery();
+			rs.next();
 			return 0;
 		} catch (SQLException e) {
 			create();
 			return 1;
+		} finally {
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 	}
 	
 	public int update(int id, String status) {
 		logger.debug("id={}, status={}", id, status);
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		String updateSQL = "update SearchEvent set status=?" +
+				"where id=?";
+		
 		try{
-			String updateSQL = "update SearchEvent set status=?" +
-					"where id=?";
-			PreparedStatement pstmt = conn.prepareStatement(updateSQL);
+			conn = conn();
+			pstmt = conn.prepareStatement(updateSQL);
 			int parameterIndex = 1;
 			pstmt.setString(parameterIndex++, status.toUpperCase());
 			pstmt.setInt(parameterIndex++, id);
 			return pstmt.executeUpdate();
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
 			return -1;
+		} finally {
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 	}
 }

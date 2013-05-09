@@ -11,6 +11,7 @@
 
 package org.fastcatsearch.db.object;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -35,9 +36,21 @@ public class JobHistory extends DAOBase{
 	public JobHistory(){ }
 	
 	public int create() throws SQLException{
+		
+		Connection conn = null;
+		Statement stmt = null;
 		String createSQL = "create table " + tableName + "(id int primary key, jobId bigint, jobClassName varchar(200), args varchar(3000), isSuccess smallint, resultStr varchar(3000), isScheduled smallint, startTime timestamp, endTime timestamp, duration int)";
-		Statement stmt = conn.createStatement();
-		return stmt.executeUpdate(createSQL);
+				
+		try
+		{
+			conn = conn();
+			stmt = conn.createStatement();
+			return stmt.executeUpdate(createSQL);
+		} finally {
+			releaseResource(stmt);
+			releaseConnection(conn);
+		}
+		
 	}
 	
 	public int insert(long jobId,
@@ -45,7 +58,11 @@ public class JobHistory extends DAOBase{
 			Timestamp startTime, Timestamp endTime, int duration) {
 		
 		PreparedStatement pstmt = null;
+		Connection conn = null;
+		
 		try{
+			conn = conn();
+			
 			String insertSQL = "insert into " + tableName + "(id, jobId, jobClassName, args, isSuccess, resultStr, isScheduled, startTime, endTime, duration) values (?,?,?,?,?,?,?,?,?,?)";
 			pstmt = conn.prepareStatement(insertSQL);
 			int parameterIndex = 1;
@@ -68,15 +85,21 @@ public class JobHistory extends DAOBase{
 			logger.error(e.getMessage(),e);
 			return -1;
 		}finally{
-			if(pstmt!=null) try { pstmt.close(); } catch (SQLException e) { }
+			releaseResource(pstmt);
+			releaseConnection(conn);
 		}
 	}
 
 	public int count() {
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		
 		try{
+			conn = conn();
 			String countSQL = "SELECT count(id) FROM " + tableName;
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(countSQL);
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(countSQL);
 			int totalCount = 0;
 			if(rs.next()){
 				totalCount = rs.getInt(1);
@@ -86,19 +109,30 @@ public class JobHistory extends DAOBase{
 		
 			return totalCount;
 			
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
 			return 0;
+		} finally {
+			releaseResource(stmt, rs);
+			releaseConnection(conn);
 		}
 	}
 	
 	public List<JobHistory> select(int startRow, int length) {
+		String countSQL = "SELECT count(id) FROM " + tableName;
+		String selectSQL = "SELECT id, jobId, jobClassName, args, isSuccess, resultStr, isScheduled, startTime, endTime, duration" +
+				" FROM ( SELECT ROW_NUMBER() OVER() AS rownum, " + tableName + ".* FROM " + tableName + " ) AS tmp WHERE rownum > ? and rownum <= ? order by id desc";
+				
+		Connection conn = null;
+		Statement stmt = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
 		List<JobHistory> result = new ArrayList<JobHistory>();
-		try{
-			
-			String countSQL = "SELECT count(id) FROM " + tableName;
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(countSQL);
+		
+		try {
+			conn = conn();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(countSQL);
 			int totalCount = 0;
 			if(rs.next()){
 				totalCount = rs.getInt(1);
@@ -106,9 +140,7 @@ public class JobHistory extends DAOBase{
 			rs.close();
 			stmt.close();
 		
-			String selectSQL = "SELECT id, jobId, jobClassName, args, isSuccess, resultStr, isScheduled, startTime, endTime, duration" +
-					" FROM ( SELECT ROW_NUMBER() OVER() AS rownum, " + tableName + ".* FROM " + tableName + " ) AS tmp WHERE rownum > ? and rownum <= ? order by id desc";
-			PreparedStatement pstmt = conn.prepareStatement(selectSQL);
+			pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, totalCount - startRow - length);
 			pstmt.setInt(parameterIndex++, totalCount - startRow);
@@ -135,20 +167,33 @@ public class JobHistory extends DAOBase{
 			pstmt.close();
 			rs.close();
 			
-		}catch(SQLException e){
+		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
+		} finally {
+			releaseResource(stmt, pstmt, rs);
+			releaseConnection(conn);
 		}
 		
 		return result;
 	}
 	
 	public int testAndCreate() throws SQLException {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		
 		try {
-			conn.prepareStatement("select count(*) from " + tableName).executeQuery().next();
+			conn = conn();
+			pstmt = conn.prepareStatement("select count(*) from " + tableName);
+			rs = pstmt.executeQuery();
+			rs.next();
 			return 0;
 		} catch (SQLException e) {
 			create();
 			return 1;
+		} finally {
+			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 	}
 }
