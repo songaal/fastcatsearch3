@@ -801,7 +801,8 @@ public class KeywordHit extends DAOBase{
 		} catch (SQLException e) {
 			logger.error(e.getMessage(),e);
 		} finally {
-			releaseResource(pstmt, rs);
+			if ( pstmt != null ) releaseResource(pstmt);
+			if ( rs != null ) releaseResource(rs);
 			releaseConnection(conn);
 		}
 		
@@ -832,7 +833,8 @@ public class KeywordHit extends DAOBase{
 		} catch (SQLException e) {
 			logger.error(e.getMessage(),e);
 		} finally {
-			releaseResource(pstmt, rs);
+			if (pstmt != null) releaseResource(pstmt);
+			if (rs != null )   releaseResource(rs);
 			releaseConnection(conn);
 		}
 		return ret;
