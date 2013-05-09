@@ -24,8 +24,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.object.SystemMonInfoHDWMY;
-import org.fastcatsearch.db.object.SystemMonInfoMinute;
+import org.fastcatsearch.db.dao.SystemMonInfoMinute;
+import org.fastcatsearch.db.dao.SystemMonitoringInfo;
 import org.json.JSONException;
 import org.json.JSONStringer;
 
@@ -291,7 +291,7 @@ public class SystemMonServlet extends WebServiceHttpServlet {
 		
 		Timestamp start = Timestamp.valueOf(startStr);
 		Timestamp end = Timestamp.valueOf(endStr);
-		List<SystemMonInfoHDWMY> list =  handler.SystemMonInfoHDWMY.select(start, end, "h");
+		List<SystemMonitoringInfo> list =  handler.SystemMonInfoHDWMY.select(start, end, "h");
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(start);
 		int year = calendar.get(Calendar.YEAR);
@@ -320,7 +320,7 @@ public class SystemMonServlet extends WebServiceHttpServlet {
 				.key("time").value(sdf.format(calStart.getTime()))
 				.endObject();
 			}else{
-				SystemMonInfoHDWMY sys = list.get(index);
+				SystemMonitoringInfo sys = list.get(index);
 				time = sys.when;
 				
 				calendar.setTime(time);
@@ -371,7 +371,7 @@ public class SystemMonServlet extends WebServiceHttpServlet {
 		
 		Timestamp start = Timestamp.valueOf(startStr);
 		Timestamp end = Timestamp.valueOf(endStr);
-		List<SystemMonInfoHDWMY> list =  handler.SystemMonInfoHDWMY.select(start, end, "d");
+		List<SystemMonitoringInfo> list =  handler.SystemMonInfoHDWMY.select(start, end, "d");
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(start);
 		int year = calendar.get(Calendar.YEAR);
@@ -404,7 +404,7 @@ public class SystemMonServlet extends WebServiceHttpServlet {
 				.key("time").value(sdf.format(calStart.getTime()))
 				.endObject();
 			}else{
-				SystemMonInfoHDWMY sys = list.get(index);
+				SystemMonitoringInfo sys = list.get(index);
 				time = sys.when;
 				
 				calendar.setTime(time);
@@ -453,7 +453,7 @@ public class SystemMonServlet extends WebServiceHttpServlet {
 		
 		Timestamp start = Timestamp.valueOf(startStr);
 		Timestamp end = Timestamp.valueOf(endStr);
-		List<SystemMonInfoHDWMY> list =  handler.SystemMonInfoHDWMY.select(start, end, "d");
+		List<SystemMonitoringInfo> list =  handler.SystemMonInfoHDWMY.select(start, end, "d");
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(start);
 		int year = calendar.get(Calendar.YEAR);
@@ -486,7 +486,7 @@ public class SystemMonServlet extends WebServiceHttpServlet {
 				.key("time").value(sdf.format(calStart.getTime()))
 				.endObject();
 			}else{
-				SystemMonInfoHDWMY sys = list.get(index);
+				SystemMonitoringInfo sys = list.get(index);
 				time = sys.when;
 				
 				calendar.setTime(time);
@@ -535,7 +535,7 @@ public class SystemMonServlet extends WebServiceHttpServlet {
 		
 		Timestamp start = Timestamp.valueOf(startStr);
 		Timestamp end = Timestamp.valueOf(endStr);
-		List<SystemMonInfoHDWMY> list =  handler.SystemMonInfoHDWMY.select(start, end, "m");
+		List<SystemMonitoringInfo> list =  handler.SystemMonInfoHDWMY.select(start, end, "m");
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(start);
 		int year = calendar.get(Calendar.YEAR);
@@ -568,7 +568,7 @@ public class SystemMonServlet extends WebServiceHttpServlet {
 				.key("time").value(sdf.format(calStart.getTime()))
 				.endObject();
 			}else{
-				SystemMonInfoHDWMY sys = list.get(index);
+				SystemMonitoringInfo sys = list.get(index);
 				time = sys.when;
 				
 				calendar.setTime(time);

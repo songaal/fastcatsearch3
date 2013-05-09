@@ -9,7 +9,7 @@
  *     swsong - initial API and implementation
  */
 
-package org.fastcatsearch.db.object;
+package org.fastcatsearch.db.dao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -37,7 +37,14 @@ public class IndexingHistory extends DAOBase {
 	public IndexingHistory() {
 	}
 
-	public int create() throws SQLException {
+	@Override
+	public boolean testTable() {
+		return testQuery("select id, collection, type, isSuccess, docSize, updateSize, deleteSize, isScheduled, startTime, endTime, duration from "
+				+ tableName);
+	}
+	
+	@Override
+	public boolean createTable() throws SQLException {
 		Statement stmt = null;
 		Connection conn = null;
 		try {
@@ -46,7 +53,8 @@ public class IndexingHistory extends DAOBase {
 					+ tableName
 					+ "(id int primary key, collection varchar(20), type char(1), isSuccess smallint, docSize int, updateSize int, deleteSize int, isScheduled smallint, startTime timestamp, endTime timestamp, duration int)";
 			stmt = conn.createStatement();
-			return stmt.executeUpdate(createSQL);
+			stmt.executeUpdate(createSQL);
+			return true;
 		} finally {
 			releaseResource(stmt);
 			releaseConnection(conn);
@@ -61,10 +69,9 @@ public class IndexingHistory extends DAOBase {
 			conn = conn();
 			String insertSQL = "insert into "
 					+ tableName
-					+ "(id, collection, type, isSuccess, docSize, updateSize, deleteSize, isScheduled, startTime, endTime, duration) values (?,?,?,?,?,?,?,?,?,?,?)";
+					+ "(collection, type, isSuccess, docSize, updateSize, deleteSize, isScheduled, startTime, endTime, duration) values (?,?,?,?,?,?,?,?,?,?,?)";
 			pstmt = conn.prepareStatement(insertSQL);
 			int parameterIndex = 1;
-			pstmt.setInt(parameterIndex++, ID);
 			pstmt.setString(parameterIndex++, collection);
 			pstmt.setString(parameterIndex++, type);
 			pstmt.setBoolean(parameterIndex++, isSuccess);
@@ -76,9 +83,6 @@ public class IndexingHistory extends DAOBase {
 			pstmt.setTimestamp(parameterIndex++, endTime);
 			pstmt.setInt(parameterIndex++, duration);
 			int c = pstmt.executeUpdate();
-			if (c > 0) {
-				ID++;
-			}
 			return c;
 		} catch (SQLException e) {
 			logger.error(e.getMessage(), e);
@@ -186,31 +190,6 @@ public class IndexingHistory extends DAOBase {
 		return result;
 	}
 
-	public int testAndCreate() throws SQLException {
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		Connection conn = null;
-		try {
-			conn = conn();
-			if (isExists() == false)
-				create();
-			// 의미없는 조건을 주어 실제결과를 가져오지 않도록 함.
-			pstmt = conn.prepareStatement(
-					"select id, collection, type, isSuccess, docSize, updateSize, deleteSize, isScheduled, startTime, endTime, duration from "
-							+ tableName + " where id = 0");
-			rs = pstmt.executeQuery();
-			rs.next();
-			return 0;
-		} catch (SQLException e) {
-			// table에 컬럼이 없을 경우에 exception이 발행하므로, table을 drop하고 재생성한다.
-			drop();
-			create();
-			return 1;
-		} finally {
-			releaseResource(pstmt, rs);
-			releaseConnection(conn);
-		}
-	}
 
 	private void drop() {
 		PreparedStatement pstmt = null;

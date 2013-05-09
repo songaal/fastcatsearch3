@@ -21,7 +21,7 @@ import java.util.TimerTask;
 
 import org.fastcatsearch.common.DynamicClassLoader;
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.object.IndexingSchedule;
+import org.fastcatsearch.db.dao.IndexingSchedule;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;

@@ -24,8 +24,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.object.SearchMonInfoHDWMY;
-import org.fastcatsearch.db.object.SearchMonInfoMinute;
+import org.fastcatsearch.db.dao.SearchMonInfoMinute;
+import org.fastcatsearch.db.dao.SearchMonitoringInfo;
 import org.json.JSONException;
 import org.json.JSONStringer;
 
@@ -310,7 +310,7 @@ public class SearchMonServlet extends WebServiceHttpServlet {
 		
 		Timestamp start = Timestamp.valueOf(startStr);
 		Timestamp end = Timestamp.valueOf(endStr);
-		List<SearchMonInfoHDWMY> list =  handler.SearchMonInfoHDWMY.select(start, end, collection, "h");
+		List<SearchMonitoringInfo> list =  handler.SearchMonInfoHDWMY.select(start, end, collection, "h");
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(start);
 		int year = calendar.get(Calendar.YEAR);
@@ -338,7 +338,7 @@ public class SearchMonServlet extends WebServiceHttpServlet {
 				.key("time").value(sdf.format(calStart.getTime()))
 				.endObject();
 			}else{
-				SearchMonInfoHDWMY search = list.get(index);
+				SearchMonitoringInfo search = list.get(index);
 				time = search.when;
 				
 				calendar.setTime(time);
@@ -392,7 +392,7 @@ public class SearchMonServlet extends WebServiceHttpServlet {
 		
 		Timestamp start = Timestamp.valueOf(startStr);
 		Timestamp end = Timestamp.valueOf(endStr);
-		List<SearchMonInfoHDWMY> list =  handler.SearchMonInfoHDWMY.select(start, end, collection, "d");
+		List<SearchMonitoringInfo> list =  handler.SearchMonInfoHDWMY.select(start, end, collection, "d");
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(start);
 		int year = calendar.get(Calendar.YEAR);
@@ -431,7 +431,7 @@ public class SearchMonServlet extends WebServiceHttpServlet {
 				.key("time").value(sdf.format(calStart.getTime()))
 				.endObject();
 			}else{
-				SearchMonInfoHDWMY search = list.get(index);
+				SearchMonitoringInfo search = list.get(index);
 				time = search.when;
 				
 				calendar.setTime(time);
@@ -489,7 +489,7 @@ public class SearchMonServlet extends WebServiceHttpServlet {
 		
 		Timestamp start = Timestamp.valueOf(startStr);
 		Timestamp end = Timestamp.valueOf(endStr);
-		List<SearchMonInfoHDWMY> list =  handler.SearchMonInfoHDWMY.select(start, end, collection, "d");
+		List<SearchMonitoringInfo> list =  handler.SearchMonInfoHDWMY.select(start, end, collection, "d");
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(start);
 		int year = calendar.get(Calendar.YEAR);
@@ -528,7 +528,7 @@ public class SearchMonServlet extends WebServiceHttpServlet {
 				.key("time").value(sdf.format(calStart.getTime()))
 				.endObject();
 			}else{
-				SearchMonInfoHDWMY search = list.get(index);
+				SearchMonitoringInfo search = list.get(index);
 				time = search.when;
 				
 				calendar.setTime(time);
@@ -586,7 +586,7 @@ public class SearchMonServlet extends WebServiceHttpServlet {
 		
 		Timestamp start = Timestamp.valueOf(startStr);
 		Timestamp end = Timestamp.valueOf(endStr);
-		List<SearchMonInfoHDWMY> list =  handler.SearchMonInfoHDWMY.select(start, end, collection, "m");
+		List<SearchMonitoringInfo> list =  handler.SearchMonInfoHDWMY.select(start, end, collection, "m");
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(start);
 		int year = calendar.get(Calendar.YEAR);
@@ -625,7 +625,7 @@ public class SearchMonServlet extends WebServiceHttpServlet {
 				.key("time").value(sdf.format(calStart.getTime()))
 				.endObject();
 			}else{
-				SearchMonInfoHDWMY search = list.get(index);
+				SearchMonitoringInfo search = list.get(index);
 				time = search.when;
 				
 				calendar.setTime(time);

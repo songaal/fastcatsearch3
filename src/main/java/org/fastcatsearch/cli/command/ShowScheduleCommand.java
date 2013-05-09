@@ -11,7 +11,7 @@ import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.cli.command.exception.CollectionNotDefinedException;
 import org.fastcatsearch.cli.command.exception.CollectionNotFoundException;
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.object.IndexingSchedule;
+import org.fastcatsearch.db.dao.IndexingSchedule;
 
 public class ShowScheduleCommand extends CollectionExtractCommand {
 

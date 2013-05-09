@@ -21,17 +21,17 @@ import java.util.List;
 import java.util.Map;
 
 import org.fastcatsearch.common.DynamicClassLoader;
-import org.fastcatsearch.db.object.DAOBase;
-import org.fastcatsearch.db.object.IndexingHistory;
-import org.fastcatsearch.db.object.IndexingResult;
-import org.fastcatsearch.db.object.IndexingSchedule;
-import org.fastcatsearch.db.object.JobHistory;
-import org.fastcatsearch.db.object.RecommendKeyword;
-import org.fastcatsearch.db.object.SearchEvent;
-import org.fastcatsearch.db.object.SearchMonInfoHDWMY;
-import org.fastcatsearch.db.object.SearchMonInfoMinute;
-import org.fastcatsearch.db.object.SystemMonInfoHDWMY;
-import org.fastcatsearch.db.object.SystemMonInfoMinute;
+import org.fastcatsearch.db.dao.DAOBase;
+import org.fastcatsearch.db.dao.IndexingHistory;
+import org.fastcatsearch.db.dao.IndexingResult;
+import org.fastcatsearch.db.dao.IndexingSchedule;
+import org.fastcatsearch.db.dao.JobHistory;
+import org.fastcatsearch.db.dao.RecommendKeyword;
+import org.fastcatsearch.db.dao.SearchEvent;
+import org.fastcatsearch.db.dao.SearchMonInfoMinute;
+import org.fastcatsearch.db.dao.SearchMonitoringInfo;
+import org.fastcatsearch.db.dao.SystemMonInfoMinute;
+import org.fastcatsearch.db.dao.SystemMonitoringInfo;
 import org.fastcatsearch.db.object.dic.BannedDictionary;
 import org.fastcatsearch.db.object.dic.BasicDictionary;
 import org.fastcatsearch.db.object.dic.SynonymDictionary;
@@ -74,9 +74,9 @@ public class DBService extends AbstractService {
 
 	// 모니터링.
 	public SystemMonInfoMinute SystemMonInfoMinute;
-	public SystemMonInfoHDWMY SystemMonInfoHDWMY;
+	public SystemMonitoringInfo SystemMonInfoHDWMY;
 	public SearchMonInfoMinute SearchMonInfoMinute;
-	public SearchMonInfoHDWMY SearchMonInfoHDWMY;
+	public SearchMonitoringInfo SearchMonInfoHDWMY;
 
 	protected static DBService instance;
 
@@ -191,7 +191,7 @@ public class DBService extends AbstractService {
 		KeywordHit = new KeywordHit();
 		KeywordFail = new KeywordFail();
 		SearchMonInfoMinute = new SearchMonInfoMinute();
-		SearchMonInfoHDWMY = new SearchMonInfoHDWMY();
+		SearchMonInfoHDWMY = new SearchMonitoringInfo();
 
 		pluginDaoMap = new HashMap<Class<? extends DAOBase>, DAOBase>();
 		PluginService pluginService = serviceManager.getService(PluginService.class);
@@ -269,7 +269,7 @@ public class DBService extends AbstractService {
 	private void initMONDB() throws SQLException {
 		RecommendKeyword = new RecommendKeyword();
 		SystemMonInfoMinute = new SystemMonInfoMinute();
-		SystemMonInfoHDWMY = new SystemMonInfoHDWMY();
+		SystemMonInfoHDWMY = new SystemMonitoringInfo();
 
 		RecommendKeyword.setConnectionManager(connectionManager);
 		SystemMonInfoMinute.setConnectionManager(connectionManager);

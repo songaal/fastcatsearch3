@@ -9,16 +9,14 @@
  *     swsong - initial API and implementation
  */
 
-package org.fastcatsearch.db.object;
+package org.fastcatsearch.db.dao;
 
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.TreeSet;
 
 public class IndexingResult extends DAOBase {
 
@@ -40,17 +38,25 @@ public class IndexingResult extends DAOBase {
 	public IndexingResult() {
 	}
 
-	public int create() throws SQLException {
+	@Override
+	public boolean testTable() {
+		return testQuery("select collection, type, status, docSize, updateSize, deleteSize, isScheduled, startTime, endTime, duration from "
+				+ tableName + " where collection = '0'");
+	}
+
+	public boolean createTable() throws SQLException {
 		String createSQL = "create table "
 				+ tableName
-				+ "(collection varchar(20), type char(1), status smallint, docSize int, updateSize int, deleteSize int, isScheduled smallint, startTime timestamp, endTime timestamp, duration int)";
-		
+				+ "(collection varchar(20), type char(1), status smallint, docSize int, updateSize int, deleteSize int, isScheduled smallint, startTime timestamp, endTime timestamp, duration int" +
+				",CONSTRAINT primary_key PRIMARY KEY (collection, type))";
+
 		Statement stmt = null;
 		Connection conn = null;
 		try {
 			conn = conn();
 			stmt = conn.createStatement();
-			return stmt.executeUpdate(createSQL);
+			stmt.executeUpdate(createSQL);
+			return true;
 		} finally {
 			releaseResource(stmt);
 			releaseConnection(conn);
@@ -60,13 +66,13 @@ public class IndexingResult extends DAOBase {
 	public int repairStatus() throws SQLException {
 		String repairSQL = "update " + tableName + " set status = " + IndexingResult.STATUS_FAIL + "  where status = "
 				+ IndexingResult.STATUS_RUNNING;
-		
+
 		Statement stmt = null;
 		Connection conn = null;
 		try {
 			conn = conn();
 			if (isExists() == true) {
-				
+
 				stmt = conn.createStatement();
 				return stmt.executeUpdate(repairSQL);
 			} else {
@@ -80,13 +86,13 @@ public class IndexingResult extends DAOBase {
 
 	public int updateOrInsert(String collection, String type, int status, int docSize, int updateSize, int deleteSize,
 			boolean isScheduled, Timestamp startTime, Timestamp endTime, int duration) {
-		
-		String checkSQL = "select count(collection) from " + tableName + " " + "where collection=? and type=?";
-		
+
+		String checkSQL = "select count(collection) from " + tableName + " where collection=? and type=?";
+
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
-		
+
 		try {
 			conn = conn();
 			pstmt = conn.prepareStatement(checkSQL);
@@ -121,10 +127,10 @@ public class IndexingResult extends DAOBase {
 		String insertSQL = "insert into "
 				+ tableName
 				+ "(collection, type, status, docSize, updateSize, deleteSize, isScheduled, startTime, endTime, duration) values (?,?,?,?,?,?,?,?,?,?)";
-		
+
 		Connection conn = null;
 		PreparedStatement pstmt = null;
-		
+
 		try {
 			conn = conn();
 			pstmt = conn.prepareStatement(insertSQL);
@@ -154,10 +160,10 @@ public class IndexingResult extends DAOBase {
 		String updateSQL = "update " + tableName
 				+ " set status=?, docSize=?, updateSize=?, deleteSize=?, isScheduled=?, startTime=?, endTime=?, duration=? "
 				+ "where collection=? and type=?";
-		
+
 		Connection conn = null;
 		PreparedStatement pstmt = null;
-		
+
 		try {
 			conn = conn();
 			pstmt = conn.prepareStatement(updateSQL);
@@ -185,12 +191,12 @@ public class IndexingResult extends DAOBase {
 	public IndexingResult select(String collection, String type) {
 		String selectSQL = "select collection, type, status, docSize, updateSize, deleteSize, isScheduled, startTime, endTime, duration from "
 				+ tableName + " " + "where collection=? and type=?";
-		
+
 		IndexingResult r = null;
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
-		
+
 		try {
 			conn = conn();
 			pstmt = conn.prepareStatement(selectSQL);
@@ -227,10 +233,10 @@ public class IndexingResult extends DAOBase {
 
 	public int delete(String collection, String type) {
 		String deleteSQL = "delete from " + tableName + " where collection=? and type=?";
-		
+
 		Connection conn = null;
 		PreparedStatement pstmt = null;
-		
+
 		try {
 			conn = conn();
 			pstmt = conn.prepareStatement(deleteSQL);
@@ -252,11 +258,11 @@ public class IndexingResult extends DAOBase {
 	// 최근업데이트건의 최근 시간만 가져온다.
 	public Timestamp isUpdated(Timestamp lastTime) {
 		String checkSQL = "select endTime from " + tableName + " " + "where endTime > ? " + "order by endTime desc";
-		
+
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
-		
+
 		try {
 			conn = conn();
 			pstmt = conn.prepareStatement(checkSQL);
@@ -276,49 +282,4 @@ public class IndexingResult extends DAOBase {
 		}
 	}
 
-	public int testAndCreate() throws SQLException {
-		if (isExists() == false)
-			create();
-		
-		Connection conn = null;
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		
-		try {
-			conn = conn();
-			pstmt = conn.prepareStatement("select collection, type, status, docSize, updateSize, deleteSize, isScheduled, startTime, endTime, duration from "
-					+ tableName + " where collection = '0'");
-			rs = pstmt.executeQuery();
-			rs.next();
-			return 0;
-		} catch (SQLException e) {
-			if (isExists()) {
-				drop();
-				create();
-			}
-			return 1;
-		}  finally {
-			releaseResource(pstmt, rs);
-			releaseConnection(conn);
-		}
-	}
-
-	private void drop() {
-		PreparedStatement pstmt = null;
-		Connection conn = null;
-		
-		try {
-			conn = conn();
-			String insertSQL = "drop table " + tableName;
-			pstmt = conn.prepareStatement(insertSQL);
-			pstmt.executeUpdate();
-			logger.info(insertSQL);
-		} catch (SQLException e) {
-			logger.error(e.getMessage(), e);
-		} finally {
-			releaseResource(pstmt);
-			releaseConnection(conn);
-		}
-	}
 }
-

@@ -21,7 +21,7 @@ import org.fastcatsearch.cli.CommandException;
 import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.object.IndexingResult;
+import org.fastcatsearch.db.dao.IndexingResult;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.settings.IRSettings;
 

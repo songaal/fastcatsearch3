@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.object.SearchEvent;
+import org.fastcatsearch.db.dao.SearchEvent;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.servlet.WebServiceHttpServlet;
 import org.fastcatsearch.statistics.StatisticsInfoService;

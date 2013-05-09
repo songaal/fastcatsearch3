@@ -16,7 +16,7 @@ import java.util.List;
 
 import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.object.dic.SetDictionaryDAO;
+import org.fastcatsearch.db.dao.SetDictionaryDAO;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.dic.HashSetDictionary;
@@ -78,7 +78,7 @@ public class HashSetDictionaryCompileApplyJob extends Job {
 		int count = dbHandler.BannedDictionary.selectCount();
 		
 		for(int startRow = 0; startRow < count; startRow += BULK_SIZE){
-			List<SetDictionaryDAO> list = dbHandler.BannedDictionary.select(startRow, BULK_SIZE);
+			List<SetDictionaryDAO> list = dbHandler.BannedDictionary.selectPage(startRow, BULK_SIZE);
 			
 			//bulk insert
 			for (int i = 0; i < list.size(); i++) {
@@ -109,7 +109,7 @@ public class HashSetDictionaryCompileApplyJob extends Job {
 		int count = dbHandler.BasicDictionary.selectCount();
 		
 		for(int startRow = 0; startRow < count; startRow += BULK_SIZE){
-			List<SetDictionaryDAO> list = dbHandler.BasicDictionary.select(startRow, BULK_SIZE);
+			List<SetDictionaryDAO> list = dbHandler.BasicDictionary.selectPage(startRow, BULK_SIZE);
 			
 			//bulk insert
 			for (int i = 0; i < list.size(); i++) {
@@ -140,7 +140,7 @@ public class HashSetDictionaryCompileApplyJob extends Job {
 		int count = dbHandler.CustomDictionary.selectCount();
 		
 		for(int startRow = 0; startRow < count; startRow += BULK_SIZE){
-			List<SetDictionaryDAO> list = dbHandler.CustomDictionary.select(startRow, BULK_SIZE);
+			List<SetDictionaryDAO> list = dbHandler.CustomDictionary.selectPage(startRow, BULK_SIZE);
 			
 			//bulk insert
 			for (int i = 0; i < list.size(); i++) {

@@ -10,7 +10,7 @@ import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.data.DataService;
 import org.fastcatsearch.data.DataStrategy;
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.object.IndexingResult;
+import org.fastcatsearch.db.dao.IndexingResult;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.NodeFullIndexJob;
 import org.fastcatsearch.job.result.IndexingJobResult;

@@ -18,7 +18,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.object.IndexingResult;
+import org.fastcatsearch.db.dao.IndexingResult;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.search.CollectionHandler;

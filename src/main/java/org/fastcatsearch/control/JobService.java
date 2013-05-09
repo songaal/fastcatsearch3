@@ -29,7 +29,7 @@ import org.fastcatsearch.control.JobExecutor;
 import org.fastcatsearch.control.JobScheduler;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.object.IndexingResult;
+import org.fastcatsearch.db.dao.IndexingResult;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.job.FullIndexJob;

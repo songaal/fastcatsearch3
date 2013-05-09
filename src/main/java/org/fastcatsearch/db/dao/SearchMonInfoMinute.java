@@ -9,7 +9,7 @@
  *     swsong - initial API and implementation
  */
 
-package org.fastcatsearch.db.object;
+package org.fastcatsearch.db.dao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import org.fastcatsearch.db.object.DAOBase;
+import org.fastcatsearch.db.dao.DAOBase;
 
 public class SearchMonInfoMinute extends DAOBase {
 	
@@ -37,48 +37,27 @@ public class SearchMonInfoMinute extends DAOBase {
 	
 	public SearchMonInfoMinute(){}
 	
-	public int create() throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
-		String createSQL = "create table "+tableName+"(id int primary key, collection varchar(20), hit int, fail int, achit int, acfail int, ave_time int, max_time int, when timestamp)";
-		
-		try {
-			conn = conn();
-			stmt = conn.createStatement();
-			return stmt.executeUpdate(createSQL);
-		} finally {
-			releaseResource(stmt);
-			releaseConnection(conn);
-		}
+	@Override
+	public boolean testTable() {
+		return testQuery("select id, collection, hit, fail, achit, acfail, ave_time, max_time, when from " + tableName);
 	}
 	
-	public int drop() throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;		
-		String dropSQL = "drop table SearchMonInfoMinute";
-		
-		try{
-			conn = conn();
-			stmt = conn.createStatement();
-			stmt.executeUpdate(dropSQL);
-		} catch(SQLException e){ }
-		finally {
-			releaseResource(stmt);
-			releaseConnection(conn);
-		}
-		return 0;
+	@Override
+	public boolean createTable() throws SQLException {
+		String createSQL = "create table "+tableName+"(id int GENERATED ALWAYS AS IDENTITY primary key, collection varchar(20), hit int, fail int, achit int, acfail int, ave_time int, max_time int, when timestamp)";
+		executeUpdate(createSQL);
+		return true;
 	}
 	
 	public int insert(String collection, int hit, int fail, int achit, int acfail, int ave_time, int max_time, Timestamp when) {
 		Connection conn = null;
 		PreparedStatement pstmt = null;
-		String insertSQL = "insert into "+tableName+"(id, collection, hit, fail, achit, acfail, ave_time, max_time, when) values (?,?,?,?,?,?,?,?,?)";
+		String insertSQL = "insert into "+tableName+"(collection, hit, fail, achit, acfail, ave_time, max_time, when) values (?,?,?,?,?,?,?,?)";
 		
 		try{
 			conn = conn();
 			pstmt = conn.prepareStatement(insertSQL);
 			int parameterIndex = 1;
-			pstmt.setInt(parameterIndex++, ID);
 			pstmt.setString(parameterIndex++, collection);
 			pstmt.setInt(parameterIndex++, hit);
 			pstmt.setInt(parameterIndex++, fail);
@@ -88,9 +67,6 @@ public class SearchMonInfoMinute extends DAOBase {
 			pstmt.setInt(parameterIndex++, max_time);
 			pstmt.setTimestamp(parameterIndex++, when);
 			int c =  pstmt.executeUpdate();
-			if(c > 0){
-				ID++;
-			}
 			return c;
 		}catch(SQLException e){
 			logger.error(e.getMessage(),e);
@@ -100,64 +76,27 @@ public class SearchMonInfoMinute extends DAOBase {
 			releaseConnection(conn);
 		}
 	}
-
-	public int count() {
-		String countSQL = "SELECT count(id) FROM "+tableName;
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
-		
-		try{
-			conn = conn();
-			stmt = conn.createStatement();
-			rs = stmt.executeQuery(countSQL);
-			int totalCount = 0;
-			if(rs.next()){
-				totalCount = rs.getInt(1);
-			}
-			rs.close();
-			stmt.close();
-		
-			return totalCount;
-			
-		} catch(SQLException e){
-			logger.error(e.getMessage(),e);
-			return 0;
-		} finally {
-			releaseResource(stmt, rs);
-			releaseConnection(conn);
-		}
-	}
 	
 	public List<SearchMonInfoMinute> select(int startRow, int length) {
 		List<SearchMonInfoMinute> result = new ArrayList<SearchMonInfoMinute>();
-		String countSQL = "SELECT max(id) FROM "+tableName;
 		String selectSQL = "SELECT id, collection, hit, fail, achit, acfail, ave_time, max_time, when" +
 				" FROM "+tableName+" WHERE id > ? and id <= ? order by id desc";
 				
 		Connection conn = null;
-		Statement stmt = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		
 		try{
-			conn = conn();
-			stmt = conn.createStatement();
-			rs = stmt.executeQuery(countSQL);
+			int totalCount = selectCount();
 			
-			int totalCount = 0;
-			if(rs.next()){
-				totalCount = rs.getInt(1);
-			}
-			rs.close();
-			stmt.close();
+			conn = conn();
 		
 			pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
 			pstmt.setInt(parameterIndex++, totalCount - startRow - length);
 			pstmt.setInt(parameterIndex++, totalCount - startRow);
 			rs = pstmt.executeQuery();
-			logger.debug("Start = "+(totalCount - length)+ "~"+(totalCount - startRow));
+//			logger.debug("Start = "+(totalCount - length)+ "~"+(totalCount - startRow));
 			while(rs.next()){
 				SearchMonInfoMinute r = new SearchMonInfoMinute();
 				parameterIndex = 1;
@@ -172,14 +111,10 @@ public class SearchMonInfoMinute extends DAOBase {
 				r.when = rs.getTimestamp(parameterIndex++);
 				result.add(r);
 			}
-			
-			pstmt.close();
-			rs.close();
-			
 		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
 		} finally {
-			releaseResource(stmt, pstmt, rs);
+			releaseResource(pstmt, rs);
 			releaseConnection(conn);
 		}
 		
@@ -232,28 +167,6 @@ public class SearchMonInfoMinute extends DAOBase {
 		return result;
 	}
 	
-	public int testAndCreate() throws SQLException {
-		Connection conn = null;
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		
-		try {
-			conn = conn();
-			pstmt = conn.prepareStatement("select ACHIT from "+tableName);
-			rs = pstmt.executeQuery();
-			rs.next();
-			return 0;
-		} catch (SQLException e) {
-			drop();
-			create();
-			return 1;
-		} finally {
-			releaseResource(pstmt, rs);
-			releaseConnection(conn);
-		}
-	}
-
-
 	public int deleteOld(int month) {
 		String deleteSQL = "Delete From "+tableName+" Where when < ?";
 		

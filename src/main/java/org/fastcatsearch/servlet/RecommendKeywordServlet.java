@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.object.RecommendKeyword;
+import org.fastcatsearch.db.dao.RecommendKeyword;
 import org.fastcatsearch.util.ResultStringer;
 import org.fastcatsearch.util.StringifyException;
 
