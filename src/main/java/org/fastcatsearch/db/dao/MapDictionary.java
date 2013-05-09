@@ -19,11 +19,17 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fastcatsearch.db.ConnectionManager;
+import org.fastcatsearch.db.vo.MapDictionaryVO;
 
-public class MapDictionaryDAO extends DAOBase implements ResultVOMapper<MapDictionaryVO> {
-	private int batchCount = 0;
+public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictionaryVO> {
 
-	public MapDictionaryDAO(String tableName) {
+	public MapDictionary(ConnectionManager connectionManager) {
+		super(connectionManager);
+	}
+
+	public MapDictionary(String tableName, ConnectionManager connectionManager) {
+		super(connectionManager);
 		this.tableName = tableName;
 	}
 
@@ -33,7 +39,8 @@ public class MapDictionaryDAO extends DAOBase implements ResultVOMapper<MapDicti
 		Connection conn = null;
 		try {
 			conn = conn();
-			String createSQL = "create table " + tableName
+			String createSQL = "create table "
+					+ tableName
 					+ " (id int GENERATED ALWAYS AS IDENTITY primary key, key varchar(30) not null unique,count int not null default 0,value varchar(255))";
 			stmt = conn.createStatement();
 			stmt.executeUpdate(createSQL);
@@ -143,12 +150,15 @@ public class MapDictionaryDAO extends DAOBase implements ResultVOMapper<MapDicti
 	public List<MapDictionaryVO> selectPage(int startRow, int pageSize) {
 		return selectPageWithKeyword(null, startRow, pageSize);
 	}
+
 	public List<MapDictionaryVO> selectPageWithKeyword(String keyword, int startRow, int pageSize) {
 		return selectPageWithKeyword(keyword, false, startRow, pageSize);
 	}
+
 	public List<MapDictionaryVO> selectWithExactKeyword(String keyword) {
 		return selectPageWithKeyword(keyword, true, -1, -1);
 	}
+
 	public List<MapDictionaryVO> selectPageWithKeyword(String keyword, boolean isExactMatch, int startRow, int pageSize) {
 		List<MapDictionaryVO> result = new ArrayList<MapDictionaryVO>();
 		PreparedStatement pstmt = null;
@@ -157,45 +167,45 @@ public class MapDictionaryDAO extends DAOBase implements ResultVOMapper<MapDicti
 
 		try {
 			int totalCount = 0;
-			
+
 			conn = conn();
 			String selectSQL = null;
 			boolean noPaging = (startRow == -1 && pageSize == -1);
-			
-			if(noPaging){
-				//페이징없음.
+
+			if (noPaging) {
+				// 페이징없음.
 				selectSQL = "SELECT * FROM " + tableName;
-				if(keyword != null){
-					if(isExactMatch){
+				if (keyword != null) {
+					if (isExactMatch) {
 						selectSQL += " where key = ?";
-					}else{
+					} else {
 						selectSQL += " where key = ? or key like ?";
 					}
 				}
-			}else{
-				//페이징시만 총 갯수가져옴.
-				if(keyword != null){
+			} else {
+				// 페이징시만 총 갯수가져옴.
+				if (keyword != null) {
 					totalCount = selectCountWithKeyword(keyword);
-				}else{
+				} else {
 					totalCount = selectCount();
 				}
-				
+
 				selectSQL = "SELECT * FROM ( SELECT ROW_NUMBER() OVER() AS rownum, " + tableName + ".* FROM " + tableName;
-				
-				if(keyword != null){
+
+				if (keyword != null) {
 					selectSQL += (" where key = ? or key like ?");
 				}
-				
+
 				selectSQL += ") AS tmp WHERE rownum > ? and rownum <= ? order by id desc";
 			}
-			
+
 			pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
-			if(keyword != null){
+			if (keyword != null) {
 				pstmt.setString(parameterIndex++, keyword);
 				pstmt.setString(parameterIndex++, "%" + keyword + "%");
 			}
-			if(!noPaging){
+			if (!noPaging) {
 				pstmt.setInt(parameterIndex++, totalCount - startRow - pageSize);
 				pstmt.setInt(parameterIndex++, totalCount - startRow);
 			}
@@ -212,13 +222,12 @@ public class MapDictionaryDAO extends DAOBase implements ResultVOMapper<MapDicti
 
 		return result;
 	}
-	
+
 	public BatchContext startInsertBatch() {
 		PreparedStatement pstmt = null;
 		Connection conn = null;
 
 		try {
-			batchCount = 0;
 			String insertSQL = "insert into " + tableName + "(key, value) values (?,?)";
 			conn = conn();
 			pstmt = conn.prepareStatement(insertSQL);
@@ -250,7 +259,6 @@ public class MapDictionaryDAO extends DAOBase implements ResultVOMapper<MapDicti
 
 		PreparedStatement pstmt = batchContext.getPreparedStatement();
 		try {
-			batchCount++;
 			String[] kv = line.split(":");
 
 			pstmt.clearParameters();
@@ -260,6 +268,7 @@ public class MapDictionaryDAO extends DAOBase implements ResultVOMapper<MapDicti
 
 			pstmt.addBatch();
 
+			int batchCount = batchContext.incrementBatchCountAndGet();
 			if ((batchCount % 1000) == 0)
 				pstmt.executeBatch();
 
@@ -270,7 +279,7 @@ public class MapDictionaryDAO extends DAOBase implements ResultVOMapper<MapDicti
 			return -1;
 		}
 	}
-	
+
 	@Override
 	public MapDictionaryVO map(ResultSet resultSet) throws SQLException {
 		return map(resultSet, 1);

@@ -18,24 +18,17 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 
+import org.fastcatsearch.db.ConnectionManager;
+import org.fastcatsearch.db.vo.IndexingResultVO;
+
 public class IndexingResult extends DAOBase {
 
 	public static int STATUS_FAIL = -1;
 	public static int STATUS_SUCCESS = 0;
 	public static int STATUS_RUNNING = 1;
 
-	public String collection;
-	public String type;
-	public int status;
-	public int docSize;
-	public int updateSize;
-	public int deleteSize;
-	public boolean isScheduled;
-	public Timestamp startTime;
-	public Timestamp endTime;
-	public int duration;
-
-	public IndexingResult() {
+	public IndexingResult(ConnectionManager connectionManager) {
+		super(connectionManager);
 	}
 
 	@Override
@@ -188,11 +181,11 @@ public class IndexingResult extends DAOBase {
 		}
 	}
 
-	public IndexingResult select(String collection, String type) {
+	public IndexingResultVO select(String collection, String type) {
 		String selectSQL = "select collection, type, status, docSize, updateSize, deleteSize, isScheduled, startTime, endTime, duration from "
 				+ tableName + " " + "where collection=? and type=?";
 
-		IndexingResult r = null;
+		IndexingResultVO r = null;
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -206,7 +199,7 @@ public class IndexingResult extends DAOBase {
 			rs = pstmt.executeQuery();
 
 			while (rs.next()) {
-				r = new IndexingResult();
+				r = new IndexingResultVO();
 
 				parameterIndex = 1;
 				r.collection = rs.getString(parameterIndex++);

@@ -28,6 +28,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.fastcatsearch.db.DBService;
+import org.fastcatsearch.db.dao.SetDictionary;
+import org.fastcatsearch.db.vo.KeywordHitVO;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.keyword.KeywordFail;
 import org.fastcatsearch.keyword.KeywordHit;
@@ -290,14 +292,17 @@ public class KeywordService extends AbstractService{
 			scal.setTimeInMillis(this.scheduledExecutionTime());
 //			logger.debug("this.scheduledExecutionTime()= {}",scal);
 			DBService dbHandler = DBService.getInstance();
-
+			SetDictionary keywordHit = dbHandler.getDAO("KeywordHit");
+			int count = keywordHit.selectCount();
+			
+			
 			//remove old data
-			List<KeywordHit> list = null;
-			Iterator<KeywordHit> iter = null;
+			List<KeywordHitVO> list = null;
+			Iterator<KeywordHitVO> iter = null;
 			
 			if(scal.get(Calendar.MINUTE)==0 && scal.get(Calendar.SECOND)==0) {
 				//.clearHourOfDay(hourOfDay);
-				dbHandler.KeywordHit.clearHit(KeywordHit.POPULAR_HOUR, hourOfDay);
+				keywordHit.clearHit(KeywordHit.POPULAR_HOUR, hourOfDay);
 			}
 			
 			if(totHit > 0) {
@@ -305,14 +310,14 @@ public class KeywordService extends AbstractService{
 				MemoryKeyword cKeyword = new MemoryKeyword();
 				iter = memoryKeyword.getIterator(MAX_KEYWORD_COUNT);
 				while(iter.hasNext()) {
-					KeywordHit kh = iter.next();
+					KeywordHitVO kh = iter.next();
 					if(kh.dateRegister == null) { kh.dateRegister = new Date(); }
 					if(kh.dateUpdate == null) { kh.dateUpdate = kh.dateRegister; }
 					cKeyword.add(kh.keyword, kh.hit, kh.popular, kh.prevRank, kh.dateRegister.getTime(), kh.dateUpdate.getTime());
 				}
-				list = dbHandler.KeywordHit.selectKeywordHit(KeywordHit.POPULAR_HOUR, hourOfDay);
-				dbHandler.KeywordHit.clearHit(KeywordHit.POPULAR_HOUR, hourOfDay);
-				for(KeywordHit kh : list) {
+				list = keywordHit.selectKeywordHit(KeywordHit.POPULAR_HOUR, hourOfDay);
+				keywordHit.clearHit(KeywordHit.POPULAR_HOUR, hourOfDay);
+				for(KeywordHitVO kh : list) {
 					if(kh.dateRegister == null) { kh.dateRegister = new Date(); }
 					if(kh.dateUpdate == null) { kh.dateUpdate = kh.dateRegister; }
 					cKeyword.add(kh.keyword, kh.hit, kh.popular, kh.prevRank, kh.dateRegister.getTime(), kh.dateUpdate.getTime());
@@ -322,8 +327,8 @@ public class KeywordService extends AbstractService{
 				cKeyword.calcPopular(totHit);
 				iter = cKeyword.getIterator(MAX_KEYWORD_COUNT);
 				for(int keywordInx=0;iter.hasNext();) {
-					KeywordHit kh = iter.next();
-					dbHandler.KeywordHit.insert(KeywordHit.POPULAR_HOUR, hourOfDay, kh.keyword, kh.hit, kh.popular, kh.prevRank, kh.isUsed, kh.dateRegister, kh.dateUpdate);
+					KeywordHitVO kh = iter.next();
+					keywordHit.insert(KeywordHit.POPULAR_HOUR, hourOfDay, kh.keyword, kh.hit, kh.popular, kh.prevRank, kh.isUsed, kh.dateRegister, kh.dateUpdate);
 					int tid = memoryKeyword.getId(kh.keyword);
 					if(tid>=0) { memoryKeyword.setValues(tid, kh.hit, kh.popular, kh.prevRank, kh.dateRegister.getTime(), kh.dateUpdate.getTime()); }
 				}
@@ -332,7 +337,7 @@ public class KeywordService extends AbstractService{
 				}
 			}
 			
-			list = dbHandler.KeywordHit.selectKeywordHit(KeywordHit.POPULAR_ACCUM, 0);
+			list = keywordHit.selectKeywordHit(KeywordHit.POPULAR_ACCUM, 0);
 			//logger.debug("calculate keyword "+list.size()+" at hour "+hourOfDay);
 			if(logger.isDebugEnabled()) {
 //				logger.debug("calculate keyword "+list.size()+" at "+scal.get(Calendar.HOUR_OF_DAY)+":"+scal.get(Calendar.MINUTE)+":"+scal.get(Calendar.SECOND));
@@ -343,7 +348,7 @@ public class KeywordService extends AbstractService{
 			}
 	
 			for(int keywordInx=0; keywordInx < list.size(); keywordInx++) {
-				KeywordHit kh = list.get(keywordInx);
+				KeywordHitVO kh = list.get(keywordInx);
 				int keywordId = memoryKeyword.getId(kh.keyword);
 				//신규키워드에 대해 0.1 정도의 가중치를 준다.
 				int cpop = memoryKeyword.getPopular(keywordId);
@@ -360,13 +365,13 @@ public class KeywordService extends AbstractService{
 			
 			iter = memoryKeyword.getIterator(MAX_KEYWORD_COUNT);
 			
-			dbHandler.KeywordHit.clearHit(KeywordHit.POPULAR_ACCUM, 0);
+			keywordHit.clearHit(KeywordHit.POPULAR_ACCUM, 0);
 
 			//memoryKeyword 는 이미 정렬된 상태 이므로 상위부터 100개까지만 잘라 데이터베이스에 입력
 			for(int inx = 0; inx < MAX_KEYWORD_COUNT && iter.hasNext(); inx++ ) {
-				KeywordHit kh = iter.next();
+				KeywordHitVO kh = iter.next();
 //				logger.debug("Popular = "+kh.keyword+" = "+kh.hit+"/"+kh.popular);
-				dbHandler.KeywordHit.insert(KeywordHit.POPULAR_ACCUM, 0, kh.keyword, kh.hit, kh.popular, kh.prevRank, kh.isUsed, kh.dateRegister, kh.dateUpdate);
+				keywordHit.insert(KeywordHit.POPULAR_ACCUM, 0, kh.keyword, kh.hit, kh.popular, kh.prevRank, kh.isUsed, kh.dateRegister, kh.dateUpdate);
 			}
 			
 			//하루한번 통계를 계산하도록 한다.
@@ -418,9 +423,9 @@ public class KeywordService extends AbstractService{
 			
 			MemoryKeyword currentKeyword = new MemoryKeyword();
 			//현재데이터를 구함
-			List<KeywordHit>clist = dbHandler.KeywordHit.selectKeywordHit(KeywordHit.POPULAR_ACCUM, 0);
+			List<KeywordHit>clist = keywordHit.selectKeywordHit(KeywordHit.POPULAR_ACCUM, 0);
 			for(int keywordInx=0; keywordInx < clist.size(); keywordInx++) {
-				KeywordHit kh = clist.get(keywordInx);
+				KeywordHitVO kh = clist.get(keywordInx);
 				if(kh.dateRegister == null) { kh.dateRegister = new Date(); }
 				currentKeyword.add(kh.keyword, kh.hit, kh.popular,keywordInx+1, kh.dateRegister.getTime(), kh.dateUpdate.getTime());
 			}
@@ -438,21 +443,21 @@ public class KeywordService extends AbstractService{
 		public void makeKeywordStatistics(DBService dbHandler, MemoryKeyword currentKeyword, int type, int ptime, int ctime, Date pdate, Date cdate, Date limit) {
 			//이전데이터를 구함
 			MemoryKeyword prevKeyword = new MemoryKeyword();
-			List<KeywordHit>list = dbHandler.KeywordHit.selectKeywordHit(type,ptime,pdate);
+			List<KeywordHit>list = keywordHit.selectKeywordHit(type,ptime,pdate);
 			for(int keywordInx=0; keywordInx < list.size(); keywordInx++) {
-				KeywordHit kh = list.get(keywordInx);
+				KeywordHitVO kh = list.get(keywordInx);
 				if(kh.dateRegister == null) { kh.dateRegister = new Date(); }
 				prevKeyword.put(kh.keyword, kh.hit, kh.popular,keywordInx+1, kh.dateRegister.getTime(), kh.dateUpdate.getTime());//이전랭크정보를 저장
 			}
-			Iterator<KeywordHit> iter = currentKeyword.getIterator(MAX_KEYWORD_COUNT);
-			dbHandler.KeywordHit.clearHit(type, ctime, cdate);
+			Iterator<KeywordHitVO> iter = currentKeyword.getIterator(MAX_KEYWORD_COUNT);
+			keywordHit.clearHit(type, ctime, cdate);
 			for(int inx = 0; inx < MAX_KEYWORD_COUNT && iter.hasNext(); inx++ ) {
-				KeywordHit kh = iter.next();
+				KeywordHitVO kh = iter.next();
 				//예전랭크정보와의 비교정보만 구하여 저장하도록 한다.
 				int prevRank = prevKeyword.getRank(kh.keyword);
 				if(prevRank == 0) { prevRank = 999; } //999는 신규키워드, 그렇지 않은 경우에는 예전 랭크를 그대로 가져다 쓴다.
-				dbHandler.KeywordHit.insert(type, ctime, kh.keyword, kh.hit, kh.popular, prevRank, kh.isUsed, cdate, kh.dateUpdate);
-				dbHandler.KeywordHit.clearHitBefore(type, ctime, limit);
+				keywordHit.insert(type, ctime, kh.keyword, kh.hit, kh.popular, prevRank, kh.isUsed, cdate, kh.dateUpdate);
+				keywordHit.clearHitBefore(type, ctime, limit);
 				if(logger.isDebugEnabled()) {
 					logger.debug("updating keyword ["+kh.keyword+"] rank = "+inx+" prevrank = "+prevRank + " type = "+type+" / "+ptime+" date = "+cdate);
 					logger.debug("deleting keyword type = "+type+"/"+ptime+" date before "+limit);
@@ -525,7 +530,7 @@ public class KeywordService extends AbstractService{
 
 			//remove old data
 			List<KeywordFail> list = null;
-			Iterator<KeywordFail> iter = null;
+			Iterator<KeywordHitVO> iter = null;
 			
 			if(scal.get(Calendar.MINUTE)==0 && scal.get(Calendar.SECOND)==0) {
 				//.clearHourOfDay(hourOfDay);
@@ -537,14 +542,14 @@ public class KeywordService extends AbstractService{
 				MemoryKeyword cKeyword = new MemoryKeyword();
 				iter = memoryKeyword.getIteratorFail(MAX_KEYWORD_COUNT);
 				while(iter.hasNext()) {
-					KeywordFail kh = iter.next();
+					KeywordHitVO kh = iter.next();
 					if(kh.dateRegister == null) { kh.dateRegister = new Date(); }
 					if(kh.dateUpdate == null) { kh.dateUpdate = kh.dateRegister; }
 					cKeyword.add(kh.keyword, kh.hit, kh.popular, kh.prevRank, kh.dateRegister.getTime(), kh.dateUpdate.getTime());
 				}
 				list = dbHandler.KeywordFail.selectKeywordFail(KeywordFail.POPULAR_HOUR, hourOfDay);
 				dbHandler.KeywordFail.clearFail(KeywordFail.POPULAR_HOUR, hourOfDay);
-				for(KeywordFail kh : list) {
+				for(KeywordHitVO kh : list) {
 					if(kh.dateRegister == null) { kh.dateRegister = new Date(); }
 					if(kh.dateUpdate == null) { kh.dateUpdate = kh.dateRegister; }
 					cKeyword.add(kh.keyword, kh.hit, kh.popular, kh.prevRank, kh.dateRegister.getTime(), kh.dateUpdate.getTime());
@@ -554,7 +559,7 @@ public class KeywordService extends AbstractService{
 				cKeyword.calcPopular(totHit);
 				iter = cKeyword.getIteratorFail(MAX_KEYWORD_COUNT);
 				for(int keywordInx=0;iter.hasNext();) {
-					KeywordFail kh = iter.next();
+					KeywordHitVO kh = iter.next();
 					dbHandler.KeywordFail.insert(KeywordFail.POPULAR_HOUR, hourOfDay, kh.keyword, kh.hit, kh.popular, kh.prevRank, kh.isUsed, kh.dateRegister, kh.dateUpdate);
 					int tid = memoryKeyword.getId(kh.keyword);
 					if(tid>=0) { memoryKeyword.setValues(tid, kh.hit, kh.popular, kh.prevRank, kh.dateRegister.getTime(), kh.dateUpdate.getTime()); }
@@ -575,7 +580,7 @@ public class KeywordService extends AbstractService{
 			}
 	
 			for(int keywordInx=0; keywordInx < list.size(); keywordInx++) {
-				KeywordFail kh = list.get(keywordInx);
+				KeywordHitVO kh = list.get(keywordInx);
 				int keywordId = memoryKeyword.getId(kh.keyword);
 				//신규키워드에 대해 0.1 정도의 가중치를 준다.
 				int cpop = memoryKeyword.getPopular(keywordId);
@@ -596,7 +601,7 @@ public class KeywordService extends AbstractService{
 
 			//memoryKeyword 는 이미 정렬된 상태 이므로 상위부터 100개까지만 잘라 데이터베이스에 입력
 			for(int inx = 0; inx < MAX_KEYWORD_COUNT && iter.hasNext(); inx++ ) {
-				KeywordFail kh = iter.next();
+				KeywordHitVO kh = iter.next();
 //				logger.debug("Popular = "+kh.keyword+" = "+kh.hit+"/"+kh.popular);
 				dbHandler.KeywordFail.insert(KeywordFail.POPULAR_ACCUM, 0, kh.keyword, kh.hit, kh.popular, kh.prevRank, kh.isUsed, kh.dateRegister, kh.dateUpdate);
 			}
@@ -652,7 +657,7 @@ public class KeywordService extends AbstractService{
 			//현재데이터를 구함
 			List<KeywordFail>clist = dbHandler.KeywordFail.selectKeywordFail(KeywordFail.POPULAR_ACCUM, 0);
 			for(int keywordInx=0; keywordInx < clist.size(); keywordInx++) {
-				KeywordFail kh = clist.get(keywordInx);
+				KeywordHitVO kh = clist.get(keywordInx);
 				if(kh.dateRegister == null) { kh.dateRegister = new Date(); }
 				currentKeyword.add(kh.keyword, kh.hit, kh.popular,keywordInx+1, kh.dateRegister.getTime(), kh.dateUpdate.getTime());
 			}
@@ -672,14 +677,14 @@ public class KeywordService extends AbstractService{
 			MemoryKeyword prevKeyword = new MemoryKeyword();
 			List<KeywordFail>list = dbHandler.KeywordFail.selectKeywordFail(type,ptime,pdate);
 			for(int keywordInx=0; keywordInx < list.size(); keywordInx++) {
-				KeywordFail kh = list.get(keywordInx);
+				KeywordHitVO kh = list.get(keywordInx);
 				if(kh.dateRegister == null) { kh.dateRegister = new Date(); }
 				prevKeyword.put(kh.keyword, kh.hit, kh.popular,keywordInx+1, kh.dateRegister.getTime(), kh.dateUpdate.getTime());//이전랭크정보를 저장
 			}
-			Iterator<KeywordFail> iter = currentKeyword.getIteratorFail(MAX_KEYWORD_COUNT);
+			Iterator<KeywordHitVO> iter = currentKeyword.getIteratorFail(MAX_KEYWORD_COUNT);
 			dbHandler.KeywordFail.clearFail(type, ctime, cdate);
 			for(int inx = 0; inx < MAX_KEYWORD_COUNT && iter.hasNext(); inx++ ) {
-				KeywordFail kh = iter.next();
+				KeywordHitVO kh = iter.next();
 				//예전랭크정보와의 비교정보만 구하여 저장하도록 한다.
 				int prevRank = prevKeyword.getRank(kh.keyword);
 				if(prevRank == 0) { prevRank = 999; } //999는 신규키워드, 그렇지 않은 경우에는 예전 랭크를 그대로 가져다 쓴다.

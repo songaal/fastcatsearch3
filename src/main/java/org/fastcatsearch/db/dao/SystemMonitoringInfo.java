@@ -15,22 +15,19 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import org.fastcatsearch.db.ConnectionManager;
+import org.fastcatsearch.db.vo.SystemMonitoringInfoVO;
+
 public class SystemMonitoringInfo extends DAOBase {
 	
-	public int id;
-	public int cpu;
-	public int mem;
-	public double load;
-	public Timestamp when;
-	public String type;
-	
-	public SystemMonitoringInfo(){ }
+	public SystemMonitoringInfo(ConnectionManager connectionManager) {
+		super(connectionManager);
+	}
 	
 	//type:h 시간, d 일, w 주, m 월, y 년
 	
@@ -73,8 +70,8 @@ public class SystemMonitoringInfo extends DAOBase {
 	}
 
 	
-	public List<SystemMonitoringInfo> select(int startRow, int length) {
-		List<SystemMonitoringInfo> result = new ArrayList<SystemMonitoringInfo>();
+	public List<SystemMonitoringInfoVO> select(int startRow, int length) {
+		List<SystemMonitoringInfoVO> result = new ArrayList<SystemMonitoringInfoVO>();
 		String selectSQL = "SELECT id, cpu, mem, load, when, type" +
 				" FROM "+tableName+" WHERE id > ? and id <= ? order by id desc";
 		
@@ -94,7 +91,7 @@ public class SystemMonitoringInfo extends DAOBase {
 			rs = pstmt.executeQuery();
 //			logger.debug("Start = "+(totalCount - length)+ "~"+(totalCount - startRow));
 			while(rs.next()){
-				SystemMonitoringInfo r = new SystemMonitoringInfo();
+				SystemMonitoringInfoVO r = new SystemMonitoringInfoVO();
 				parameterIndex = 1;
 				r.id = rs.getInt(parameterIndex++);
 				r.cpu = rs.getInt(parameterIndex++);
@@ -114,15 +111,15 @@ public class SystemMonitoringInfo extends DAOBase {
 		return result;
 	}
 	
-	public List<SystemMonitoringInfo> select(Timestamp start, Timestamp end, String type) {
+	public List<SystemMonitoringInfoVO> select(Timestamp start, Timestamp end, String type) {
 		String selectSQL = "SELECT id, cpu, mem, load, when, type" +
 				" FROM "+tableName+" WHERE when >= ? and when <= ? and type = ? order by id desc";
-		List<SystemMonitoringInfo> result = new ArrayList<SystemMonitoringInfo>();
+		List<SystemMonitoringInfoVO> result = new ArrayList<SystemMonitoringInfoVO>();
 		
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
-		
+
 		try{
 			conn = conn();
 			pstmt = conn.prepareStatement(selectSQL);
@@ -133,7 +130,7 @@ public class SystemMonitoringInfo extends DAOBase {
 			rs = pstmt.executeQuery();
 			logger.debug("Start = "+start+ "~"+end);
 			while(rs.next()){
-				SystemMonitoringInfo r = new SystemMonitoringInfo();
+				SystemMonitoringInfoVO r = new SystemMonitoringInfoVO();
 				parameterIndex = 1;
 				r.id = rs.getInt(parameterIndex++);
 				r.cpu = rs.getInt(parameterIndex++);
@@ -143,9 +140,6 @@ public class SystemMonitoringInfo extends DAOBase {
 				r.type = rs.getString(parameterIndex++);
 				result.add(r);
 			}
-			
-			pstmt.close();
-			rs.close();
 			
 		} catch(SQLException e){
 			logger.error(e.getMessage(),e);
@@ -158,27 +152,17 @@ public class SystemMonitoringInfo extends DAOBase {
 
 	public int deleteOld(int month) {
 		String deleteSQL = "Delete From "+tableName+" Where when < ?";
-				
-		Connection conn = null;
-		PreparedStatement pstmt = null;
-		
-		try{
-			conn = conn();
-			pstmt = conn.prepareStatement(deleteSQL);
-			Calendar oldDatetime = Calendar.getInstance();
-			oldDatetime.set(Calendar.SECOND, 0);
-			oldDatetime.set(Calendar.MINUTE, 0);
-			oldDatetime.set(Calendar.HOUR, 0);
-			oldDatetime.add(Calendar.MONTH, -month);
-			pstmt.setTimestamp(1, new Timestamp(oldDatetime.getTimeInMillis()));
-			return pstmt.executeUpdate();
-		} catch(SQLException e){
+		Calendar oldDatetime = Calendar.getInstance();
+		oldDatetime.set(Calendar.SECOND, 0);
+		oldDatetime.set(Calendar.MINUTE, 0);
+		oldDatetime.set(Calendar.HOUR, 0);
+		oldDatetime.add(Calendar.MONTH, -month);
+		try {
+			return executeUpdate(deleteSQL, new Timestamp(oldDatetime.getTimeInMillis()));
+		} catch (SQLException e) {
 			logger.error(e.getMessage(),e);
-		} finally {
-			releaseResource(pstmt);
-			releaseConnection(conn);
+			return -1;
 		}
-		return -1;
 	}
 }
 

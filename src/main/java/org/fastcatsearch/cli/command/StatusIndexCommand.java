@@ -22,6 +22,7 @@ import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.dao.IndexingResult;
+import org.fastcatsearch.db.vo.IndexingResultVO;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.settings.IRSettings;
 
@@ -79,16 +80,17 @@ public class StatusIndexCommand extends Command {
 			collection = cmd[2];
 			type = cmd[3];
 		}
+		IndexingResult indexingResult = dbHandler.getDAO("IndexingResult");
 		
 		if(listAll) {
 			for(String collectionName : collectionNames) {
-				IndexingResult indexResult = null;
+				IndexingResultVO indexResult = null;
 				
-				indexResult = dbHandler.IndexingResult.select(collectionName, "F");
+				indexResult = indexingResult.select(collectionName, "F");
 				if(indexResult != null) {
 					addRecord(data, collectionName, FULL_INDEXING, indexResult);
 				}
-				indexResult = dbHandler.IndexingResult.select(collectionName, "I");
+				indexResult = indexingResult.select(collectionName, "I");
 				if(indexResult != null) {
 					addRecord(data, collectionName, INC_INDEXING, indexResult);
 				}
@@ -100,26 +102,26 @@ public class StatusIndexCommand extends Command {
 				throw new CommandException("Error : Collection Not Selected");
 			}
 			
-			IndexingResult indexResult = null;
+			IndexingResultVO indexResult = null;
 			
 			if(type==null) {
 	
-				indexResult = dbHandler.IndexingResult.select(collection, "F");
+				indexResult = indexingResult.select(collection, "F");
 				if(indexResult != null) {
 					addRecord(data, collection, FULL_INDEXING, indexResult);
 				}
-				indexResult = dbHandler.IndexingResult.select(collection, "I");
+				indexResult = indexingResult.select(collection, "I");
 				if(indexResult != null) {
 					addRecord(data, collection, INC_INDEXING, indexResult);
 				}
 			} else if("full".equalsIgnoreCase(type)) {
-				indexResult = dbHandler.IndexingResult.select(collection, "F");
+				indexResult = indexingResult.select(collection, "F");
 				if(indexResult != null) {
 					addRecord(data, collection, FULL_INDEXING, indexResult);
 				}
 				
 			} else if("inc".equalsIgnoreCase(type)) {
-				indexResult = dbHandler.IndexingResult.select(collection, "I");
+				indexResult = indexingResult.select(collection, "I");
 				if(indexResult != null) {
 					addRecord(data, collection, INC_INDEXING, indexResult);
 				}
@@ -133,7 +135,7 @@ public class StatusIndexCommand extends Command {
 		}
 	}
 	
-	private void addRecord(List<Object[]> data,String collectionName, String type, IndexingResult result ) {
+	private void addRecord(List<Object[]> data,String collectionName, String type, IndexingResultVO result ) {
 		if(result != null) {
 			data.add(new Object[] {
 					collectionName,

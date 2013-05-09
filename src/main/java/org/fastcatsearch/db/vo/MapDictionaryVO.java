@@ -1,4 +1,4 @@
-package org.fastcatsearch.db.dao;
+package org.fastcatsearch.db.vo;
 
 public class MapDictionaryVO {
 	public int id;

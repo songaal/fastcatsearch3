@@ -16,7 +16,8 @@ import java.util.List;
 
 import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.dao.SetDictionaryDAO;
+import org.fastcatsearch.db.dao.SetDictionary;
+import org.fastcatsearch.db.vo.SetDictionaryVO;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.dic.HashSetDictionary;
@@ -75,16 +76,17 @@ public class HashSetDictionaryCompileApplyJob extends Job {
 		/*
 		 * bulk basic dic
 		 * */
-		int count = dbHandler.BannedDictionary.selectCount();
+		SetDictionary bannedDictionary = dbHandler.getDAO("BannedDictionary");
+		int count = bannedDictionary.selectCount();
 		
 		for(int startRow = 0; startRow < count; startRow += BULK_SIZE){
-			List<SetDictionaryDAO> list = dbHandler.BannedDictionary.selectPage(startRow, BULK_SIZE);
+			List<SetDictionaryVO> list = bannedDictionary.selectPage(startRow, BULK_SIZE);
 			
 			//bulk insert
 			for (int i = 0; i < list.size(); i++) {
-				SetDictionaryDAO banned =(SetDictionaryDAO) list.get(i);
+				SetDictionaryVO banned = list.get(i);
 				
-				dic.put(new CharVector(banned.term).toUpperCase());
+				dic.put(new CharVector(banned.key).toUpperCase());
 			}
 		}
 		
@@ -106,15 +108,16 @@ public class HashSetDictionaryCompileApplyJob extends Job {
 		/*
 		 * bulk basic dic
 		 * */
-		int count = dbHandler.BasicDictionary.selectCount();
+		SetDictionary basicDictionary = dbHandler.getDAO("BasicDictionary");
+		int count = basicDictionary.selectCount();
 		
 		for(int startRow = 0; startRow < count; startRow += BULK_SIZE){
-			List<SetDictionaryDAO> list = dbHandler.BasicDictionary.selectPage(startRow, BULK_SIZE);
+			List<SetDictionaryVO> list = basicDictionary.selectPage(startRow, BULK_SIZE);
 			
 			//bulk insert
 			for (int i = 0; i < list.size(); i++) {
-				SetDictionaryDAO basic = list.get(i);				
-				dic.put(new CharVector(basic.term));
+				SetDictionaryVO basic = list.get(i);				
+				dic.put(new CharVector(basic.key));
 			}
 		}
 		
@@ -137,16 +140,17 @@ public class HashSetDictionaryCompileApplyJob extends Job {
 		/*
 		 * bulk custom dic
 		 * */
-		int count = dbHandler.CustomDictionary.selectCount();
+		SetDictionary userDictionary = dbHandler.getDAO("UserDictionary");
+		int count = userDictionary.selectCount();
 		
 		for(int startRow = 0; startRow < count; startRow += BULK_SIZE){
-			List<SetDictionaryDAO> list = dbHandler.CustomDictionary.selectPage(startRow, BULK_SIZE);
+			List<SetDictionaryVO> list = userDictionary.selectPage(startRow, BULK_SIZE);
 			
 			//bulk insert
 			for (int i = 0; i < list.size(); i++) {
-				SetDictionaryDAO basic = (SetDictionaryDAO)list.get(i);
+				SetDictionaryVO basic = list.get(i);
 				
-				dic.put(new CharVector(basic.term));
+				dic.put(new CharVector(basic.key));
 			}
 		}
 		

@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 public class BatchContext {
 	private Connection conn;
 	private PreparedStatement pstmt;
+	private int batchCount;
 
 	public BatchContext(Connection conn, PreparedStatement pstmt) {
 		this.conn = conn;
@@ -18,6 +19,14 @@ public class BatchContext {
 
 	public PreparedStatement getPreparedStatement() {
 		return pstmt;
+	}
+	
+	public int getBatchCount(){
+		return batchCount;
+	}
+	
+	public int incrementBatchCountAndGet(){
+		return ++batchCount;
 	}
 
 	

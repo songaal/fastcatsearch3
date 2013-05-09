@@ -15,28 +15,19 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import org.fastcatsearch.db.dao.DAOBase;
+import org.fastcatsearch.db.ConnectionManager;
+import org.fastcatsearch.db.vo.SearchMonitoringInfoMinuteVO;
 
-public class SearchMonInfoMinute extends DAOBase {
+public class SearchMonitoringInfoMinute extends DAOBase {
 	
-	public int id;
-	public String collection;
-	public int hit;
-	public int fail;
-	public int achit;
-	public int acfail;
-	public int ave_time;
-	public int max_time;
-	public Timestamp when;
-	
-	public SearchMonInfoMinute(){}
-	
+	public SearchMonitoringInfoMinute(ConnectionManager connectionManager) {
+		super(connectionManager);
+	}
 	@Override
 	public boolean testTable() {
 		return testQuery("select id, collection, hit, fail, achit, acfail, ave_time, max_time, when from " + tableName);
@@ -77,8 +68,8 @@ public class SearchMonInfoMinute extends DAOBase {
 		}
 	}
 	
-	public List<SearchMonInfoMinute> select(int startRow, int length) {
-		List<SearchMonInfoMinute> result = new ArrayList<SearchMonInfoMinute>();
+	public List<SearchMonitoringInfoMinuteVO> select(int startRow, int length) {
+		List<SearchMonitoringInfoMinuteVO> result = new ArrayList<SearchMonitoringInfoMinuteVO>();
 		String selectSQL = "SELECT id, collection, hit, fail, achit, acfail, ave_time, max_time, when" +
 				" FROM "+tableName+" WHERE id > ? and id <= ? order by id desc";
 				
@@ -98,7 +89,7 @@ public class SearchMonInfoMinute extends DAOBase {
 			rs = pstmt.executeQuery();
 //			logger.debug("Start = "+(totalCount - length)+ "~"+(totalCount - startRow));
 			while(rs.next()){
-				SearchMonInfoMinute r = new SearchMonInfoMinute();
+				SearchMonitoringInfoMinuteVO r = new SearchMonitoringInfoMinuteVO();
 				parameterIndex = 1;
 				r.id = rs.getInt(parameterIndex++);
 				r.collection = rs.getString(parameterIndex++);
@@ -121,8 +112,8 @@ public class SearchMonInfoMinute extends DAOBase {
 		return result;
 	}
 	
-	public List<SearchMonInfoMinute> select(Timestamp start, Timestamp end, String collection) {
-		List<SearchMonInfoMinute> result = new ArrayList<SearchMonInfoMinute>();
+	public List<SearchMonitoringInfoMinuteVO> select(Timestamp start, Timestamp end, String collection) {
+		List<SearchMonitoringInfoMinuteVO> result = new ArrayList<SearchMonitoringInfoMinuteVO>();
 		String selectSQL = "SELECT id, collection, hit, fail, achit, acfail, ave_time, max_time, when" +
 				" FROM "+tableName+" WHERE when >= ? and when <= ? and collection = ? order by id desc";
 		
@@ -140,7 +131,7 @@ public class SearchMonInfoMinute extends DAOBase {
 			rs = pstmt.executeQuery();
 			logger.debug(collection+" = "+start+ "~"+end);
 			while(rs.next()){
-				SearchMonInfoMinute r = new SearchMonInfoMinute();
+				SearchMonitoringInfoMinuteVO r = new SearchMonitoringInfoMinuteVO();
 				parameterIndex = 1;
 				r.id = rs.getInt(parameterIndex++);
 				r.collection = rs.getString(parameterIndex++);
@@ -169,27 +160,17 @@ public class SearchMonInfoMinute extends DAOBase {
 	
 	public int deleteOld(int month) {
 		String deleteSQL = "Delete From "+tableName+" Where when < ?";
-		
-		Connection conn = null;
-		PreparedStatement pstmt = null;
-		
-		try{
-			conn = conn();
-			pstmt = conn.prepareStatement(deleteSQL);
-			Calendar oldDatetime = Calendar.getInstance();
-			oldDatetime.set(Calendar.SECOND, 0);
-			oldDatetime.set(Calendar.MINUTE, 0);
-			oldDatetime.set(Calendar.HOUR, 0);
-			oldDatetime.add(Calendar.MONTH, -month);
-			pstmt.setTimestamp(1, new Timestamp(oldDatetime.getTimeInMillis()));
-			return pstmt.executeUpdate();
-		} catch(SQLException e){
+		Calendar oldDatetime = Calendar.getInstance();
+		oldDatetime.set(Calendar.SECOND, 0);
+		oldDatetime.set(Calendar.MINUTE, 0);
+		oldDatetime.set(Calendar.HOUR, 0);
+		oldDatetime.add(Calendar.MONTH, -month);
+		try {
+			return executeUpdate(deleteSQL, new Timestamp(oldDatetime.getTimeInMillis()));
+		} catch (SQLException e) {
 			logger.error(e.getMessage(),e);
-		} finally {
-			releaseResource(pstmt);
-			releaseConnection(conn);
+			return -1;
 		}
-		return -1;
 	}
 	
 }

@@ -17,6 +17,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.TreeSet;
 
 import org.fastcatsearch.db.ConnectionManager;
@@ -27,10 +29,19 @@ public abstract class DAOBase {
 
 	protected static final Logger logger = LoggerFactory.getLogger(DAOBase.class);
 
-	protected String tableName = this.getClass().getSimpleName();
+	protected String tableName;
 	protected ConnectionManager connectionManager;
 
-	public DAOBase() {
+	public DAOBase(String tableName) {
+		this.tableName = tableName;
+	}
+	public DAOBase(ConnectionManager connectionManager) {
+		tableName = this.getClass().getSimpleName();
+		this.connectionManager = connectionManager;
+	}
+	public DAOBase(String tableName, ConnectionManager connectionManager) {
+		this.tableName = tableName;
+		this.connectionManager = connectionManager;
 	}
 
 	public void setConnectionManager(ConnectionManager connectionManager) {
@@ -76,9 +87,8 @@ public abstract class DAOBase {
 		connectionManager.releaseConnection(conn);
 	}
 
-	
 	public boolean testAndCreate() throws SQLException {
-		if(testTable()){
+		if (testTable()) {
 			return true;
 		}
 		dropTable();
@@ -87,9 +97,9 @@ public abstract class DAOBase {
 	}
 
 	public abstract boolean testTable();
-	
+
 	public abstract boolean createTable() throws SQLException;
-	
+
 	public boolean isExists() {
 		if (connectionManager == null)
 			return false;
@@ -112,7 +122,7 @@ public abstract class DAOBase {
 		}
 		return false;
 	}
-	
+
 	public int dropTable() {
 		PreparedStatement pstmt = null;
 		Connection conn = null;
@@ -130,7 +140,7 @@ public abstract class DAOBase {
 			releaseConnection(conn);
 		}
 	}
-	
+
 	public int truncate() {
 		PreparedStatement pstmt = null;
 		Connection conn = null;
@@ -149,10 +159,15 @@ public abstract class DAOBase {
 		}
 	}
 
-	public int selectCount() throws SQLException {
-		return selectInteger("SELECT count(*) FROM " + tableName);
+	public int selectCount() {
+		try {
+			return selectInteger("SELECT count(*) FROM " + tableName);
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
+		}
+		return -1;
 	}
-	
+
 	public int selectInteger(String selectQuery) throws SQLException {
 		int value = -1;
 		Statement stmt = null;
@@ -174,10 +189,41 @@ public abstract class DAOBase {
 
 		return value;
 	}
+
+	public int executeUpdate(String updateQuery, Object... params) throws SQLException {
+		PreparedStatement pstmt = null;
+		Connection conn = null;
+		try {
+			conn = conn();
+			pstmt = conn.prepareStatement(updateQuery);
+			int parameterIndex = 1;
+			for (int i = 0; i < params.length; i++) {
+				Object param = params[i];
+				if (param instanceof Integer) {
+					pstmt.setInt(parameterIndex++, (Integer) param);
+				} else if (param instanceof Float) {
+					pstmt.setFloat(parameterIndex++, (Float) param);
+				} else if (param instanceof Double) {
+					pstmt.setDouble(parameterIndex++, (Double) param);
+				} else if (param instanceof Long) {
+					pstmt.setLong(parameterIndex++, (Long) param);
+				} else if (param instanceof Timestamp) {
+					pstmt.setTimestamp(parameterIndex++, (Timestamp) param);
+				} else {
+					pstmt.setString(parameterIndex++, (String) param);
+				}
+			}
+			return pstmt.executeUpdate(updateQuery);
+		} finally {
+			releaseResource(pstmt);
+			releaseConnection(conn);
+		}
+	}
+
 	public int executeUpdate(String updateQuery) throws SQLException {
 		Connection conn = null;
 		Statement stmt = null;
-		
+
 		try {
 			conn = conn();
 			stmt = conn.createStatement();
@@ -187,15 +233,15 @@ public abstract class DAOBase {
 			releaseConnection(conn);
 		}
 	}
-	
+
 	public boolean testQuery(String testQuery) {
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		Connection conn = null;
 		try {
 			conn = conn();
-			pstmt = conn.prepareStatement(testQuery+" FETCH FIRST 10 ROWS ONLY");
-			//OR where id = 0;
+			pstmt = conn.prepareStatement(testQuery + " FETCH FIRST 10 ROWS ONLY");
+			// OR where id = 0;
 			rs = pstmt.executeQuery();
 			return true;
 		} catch (SQLException e) {
@@ -205,4 +251,5 @@ public abstract class DAOBase {
 			releaseConnection(conn);
 		}
 	}
+
 }

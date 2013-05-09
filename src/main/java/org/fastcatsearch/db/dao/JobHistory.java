@@ -15,25 +15,17 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fastcatsearch.db.ConnectionManager;
+import org.fastcatsearch.db.vo.JobHistoryVO;
+
 public class JobHistory extends DAOBase {
 
-	public long id;
-	public long jobId;
-	public String jobClassName;
-	public String args;
-	public boolean isSuccess;
-	public String resultStr;
-	public boolean isScheduled;
-	public Timestamp startTime;
-	public Timestamp endTime;
-	public int duration;
-
-	public JobHistory() {
+	public JobHistory(ConnectionManager connectionManager) {
+		super(connectionManager);
 	}
 
 	@Override
@@ -84,7 +76,7 @@ public class JobHistory extends DAOBase {
 		}
 	}
 
-	public List<JobHistory> select(int startRow, int length) {
+	public List<JobHistoryVO> select(int startRow, int length) {
 		String selectSQL = "SELECT id, jobId, jobClassName, args, isSuccess, resultStr, isScheduled, startTime, endTime, duration"
 				+ " FROM ( SELECT ROW_NUMBER() OVER() AS rownum, "
 				+ tableName
@@ -95,7 +87,7 @@ public class JobHistory extends DAOBase {
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
-		List<JobHistory> result = new ArrayList<JobHistory>();
+		List<JobHistoryVO> result = new ArrayList<JobHistoryVO>();
 
 		try {
 			int totalCount = selectCount();
@@ -109,7 +101,7 @@ public class JobHistory extends DAOBase {
 			rs = pstmt.executeQuery();
 //			logger.debug("Start = " + (totalCount - length) + "~" + (totalCount - startRow));
 			while (rs.next()) {
-				JobHistory r = new JobHistory();
+				JobHistoryVO r = new JobHistoryVO();
 
 				parameterIndex = 1;
 				r.id = rs.getInt(parameterIndex++);

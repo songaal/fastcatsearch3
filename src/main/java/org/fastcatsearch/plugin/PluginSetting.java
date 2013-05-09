@@ -129,8 +129,15 @@ public class PluginSetting {
 	
 	@XmlRootElement(name="dao")
 	public static class DAO {
+		String id;
 		String className;
-		
+		@XmlAttribute
+		public String getId() {
+			return id;
+		}
+		public void setId(String id) {
+			this.id = id;
+		}
 		@XmlValue
 		public String getClassName() {
 			return className;

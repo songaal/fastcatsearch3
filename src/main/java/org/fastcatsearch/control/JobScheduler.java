@@ -22,6 +22,7 @@ import java.util.TimerTask;
 import org.fastcatsearch.common.DynamicClassLoader;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.dao.IndexingSchedule;
+import org.fastcatsearch.db.vo.IndexingScheduleVO;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
@@ -50,10 +51,10 @@ public class JobScheduler {
 	private void load() throws SettingException{
 		timer = new Timer(true);
 		//Indexing Schedule
-		List<IndexingSchedule> schedules = DBService.getInstance().IndexingSchedule.selectAll();
+		List<IndexingScheduleVO> schedules = DBService.getInstance().getDAO("IndexingSchedule", IndexingSchedule.class).selectAll();
 		int schedulesSize = schedules.size(); 
 		for (int i = 0; i < schedulesSize; i++) {
-			IndexingSchedule schedule = schedules.get(i);
+			IndexingScheduleVO schedule = schedules.get(i);
 			setIndexSchedule(schedule.collection, schedule.type, schedule.startTime, schedule.period, schedule.isActive);
 			logger.debug("[Job Load]" + schedule.collection + "/" + schedule.type);
 		}		
@@ -115,7 +116,7 @@ public class JobScheduler {
 	
 	public boolean reloadIndexingSchedule(String collection, String type, boolean isActive){
 		if(isActive){
-			IndexingSchedule schedules = DBService.getInstance().IndexingSchedule.select(collection, type);
+			IndexingScheduleVO schedules = DBService.getInstance().getDAO("IndexingSchedule", IndexingSchedule.class).select(collection, type);
 			setIndexSchedule(schedules.collection, schedules.type, schedules.startTime, schedules.period, schedules.isActive);
 		}else{
 			String key = getKey(collection, type);

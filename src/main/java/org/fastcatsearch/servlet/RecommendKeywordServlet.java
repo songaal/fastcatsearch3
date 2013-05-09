@@ -14,13 +14,16 @@ package org.fastcatsearch.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLDecoder;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.dao.RecommendKeyword;
+import org.fastcatsearch.db.dao.MapDictionary;
+import org.fastcatsearch.db.vo.MapDictionaryVO;
+import org.fastcatsearch.db.vo.SetDictionaryVO;
 import org.fastcatsearch.util.ResultStringer;
 import org.fastcatsearch.util.StringifyException;
 
@@ -43,7 +46,8 @@ public class RecommendKeywordServlet extends WebServiceHttpServlet {
     	}
     	keyword = URLDecoder.decode(keyword, "utf-8");
     	DBService dbHandler = DBService.getInstance();
-    	RecommendKeyword recommendKeyword = dbHandler.RecommendKeyword.exactSearch(keyword.trim());
+    	List<MapDictionaryVO> list = dbHandler.getDAO("RecommendKeyword", MapDictionary.class).selectWithExactKeyword(keyword.trim());
+    	MapDictionaryVO recommendKeyword = list.get(0);
     	String[] termList = null;
     	
     	if(recommendKeyword != null){

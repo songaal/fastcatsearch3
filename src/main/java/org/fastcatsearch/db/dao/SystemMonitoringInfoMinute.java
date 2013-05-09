@@ -15,23 +15,19 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import org.fastcatsearch.db.dao.DAOBase;
+import org.fastcatsearch.db.ConnectionManager;
+import org.fastcatsearch.db.vo.SystemMonitoringInfoMinuteVO;
 
-public class SystemMonInfoMinute extends DAOBase {
+public class SystemMonitoringInfoMinute extends DAOBase {
 	
-	public int id;
-	public int cpu;
-	public int mem;
-	public double load;
-	public Timestamp when;
-	
-	public SystemMonInfoMinute(){ }
+	public SystemMonitoringInfoMinute(ConnectionManager connectionManager) {
+		super(connectionManager);
+	}
 	
 	@Override
 	public boolean testTable() {
@@ -71,7 +67,7 @@ public class SystemMonInfoMinute extends DAOBase {
 	}
 
 	
-	public List<SystemMonInfoMinute> select(int startRow, int length) {
+	public List<SystemMonitoringInfoMinuteVO> select(int startRow, int length) {
 		String selectSQL = "SELECT id, cpu, mem, load, when" +
 				" FROM "+tableName+" WHERE id > ? and id <= ? order by id desc";
 		
@@ -79,7 +75,7 @@ public class SystemMonInfoMinute extends DAOBase {
 		ResultSet rs = null;	
 		PreparedStatement pstmt = null;
 		
-		List<SystemMonInfoMinute> result = new ArrayList<SystemMonInfoMinute>();
+		List<SystemMonitoringInfoMinuteVO> result = new ArrayList<SystemMonitoringInfoMinuteVO>();
 		
 		try{
 			int totalCount = selectCount();
@@ -92,7 +88,7 @@ public class SystemMonInfoMinute extends DAOBase {
 			rs = pstmt.executeQuery();
 			logger.debug("Start = "+(totalCount - length)+ "~"+(totalCount - startRow));
 			while(rs.next()){
-				SystemMonInfoMinute r = new SystemMonInfoMinute();
+				SystemMonitoringInfoMinuteVO r = new SystemMonitoringInfoMinuteVO();
 				parameterIndex = 1;
 				r.id = rs.getInt(parameterIndex++);
 				r.cpu = rs.getInt(parameterIndex++);
@@ -112,8 +108,8 @@ public class SystemMonInfoMinute extends DAOBase {
 		return result;
 	}
 	
-	public List<SystemMonInfoMinute> select(Timestamp start, Timestamp end) {
-		List<SystemMonInfoMinute> result = new ArrayList<SystemMonInfoMinute>();
+	public List<SystemMonitoringInfoMinuteVO> select(Timestamp start, Timestamp end) {
+		List<SystemMonitoringInfoMinuteVO> result = new ArrayList<SystemMonitoringInfoMinuteVO>();
 		String selectSQL = "SELECT id, cpu, mem, load, when" +
 				" FROM "+tableName+" WHERE when >= ? and when <= ? order by id desc";
 		
@@ -130,7 +126,7 @@ public class SystemMonInfoMinute extends DAOBase {
 			rs = pstmt.executeQuery();
 			logger.debug("Start = "+start+ "~"+end);
 			while(rs.next()){
-				SystemMonInfoMinute r = new SystemMonInfoMinute();
+				SystemMonitoringInfoMinuteVO r = new SystemMonitoringInfoMinuteVO();
 				parameterIndex = 1;
 				r.id = rs.getInt(parameterIndex++);
 				r.cpu = rs.getInt(parameterIndex++);
@@ -153,26 +149,17 @@ public class SystemMonInfoMinute extends DAOBase {
 	
 	public int deleteOld(int month) {
 		String deleteSQL = "Delete From "+tableName+" Where when < ?";
-		Connection conn = null;
-		PreparedStatement pstmt = null;
-		
-		try{
-			conn = conn();
-			pstmt = conn.prepareStatement(deleteSQL);
-			Calendar oldDatetime = Calendar.getInstance();
-			oldDatetime.set(Calendar.SECOND, 0);
-			oldDatetime.set(Calendar.MINUTE, 0);
-			oldDatetime.set(Calendar.HOUR, 0);
-			oldDatetime.add(Calendar.MONTH, -month);
-			pstmt.setTimestamp(1, new Timestamp(oldDatetime.getTimeInMillis()));
-			return pstmt.executeUpdate();
-		} catch(SQLException e){
+		Calendar oldDatetime = Calendar.getInstance();
+		oldDatetime.set(Calendar.SECOND, 0);
+		oldDatetime.set(Calendar.MINUTE, 0);
+		oldDatetime.set(Calendar.HOUR, 0);
+		oldDatetime.add(Calendar.MONTH, -month);
+		try {
+			return executeUpdate(deleteSQL, new Timestamp(oldDatetime.getTimeInMillis()));
+		} catch (SQLException e) {
 			logger.error(e.getMessage(),e);
-		} finally {
-			releaseResource(pstmt);
-			releaseConnection(conn);
+			return -1;
 		}
-		return -1;
 	}
 	
 }

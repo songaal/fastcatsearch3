@@ -17,6 +17,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.fastcatsearch.db.DBService;
+import org.fastcatsearch.db.dao.SystemMonitoringInfo;
+import org.fastcatsearch.db.dao.SystemMonitoringInfoMinute;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceException;
@@ -123,7 +125,7 @@ public class ManagementInfoService extends AbstractService{
 			
 			//DB에 저장하기.
 			Timestamp when = new Timestamp(System.currentTimeMillis());
-			DBService.getInstance().SystemMonInfoMinute.insert(cpuInfo.jvmCpuUse, memoryInfo.usedHeapMemory + memoryInfo.usedNonHeapMemory, cpuInfo.systemLoadAverage, when);
+			DBService.getInstance().getDAO("SystemMonitoringInfoMinute", SystemMonitoringInfoMinute.class).insert(cpuInfo.jvmCpuUse, memoryInfo.usedHeapMemory + memoryInfo.usedNonHeapMemory, cpuInfo.systemLoadAverage, when);
 //			DBHandler.getInstance().commitMon();
 			
 			jvmCpuInfoPerHour.add(cpuInfo);
@@ -151,7 +153,7 @@ public class ManagementInfoService extends AbstractService{
 			
 			//DB에 저장하기.
 			Timestamp when = new Timestamp(System.currentTimeMillis());
-			DBService.getInstance().SystemMonInfoHDWMY.insert(cpuInfo.jvmCpuUse, memoryInfo.usedHeapMemory + memoryInfo.usedNonHeapMemory, cpuInfo.systemLoadAverage, when, "h");
+			DBService.getInstance().getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).insert(cpuInfo.jvmCpuUse, memoryInfo.usedHeapMemory + memoryInfo.usedNonHeapMemory, cpuInfo.systemLoadAverage, when, "h");
 //			DBHandler.getInstance().commitMon();
 			
 			jvmCpuInfoPerDay.add(cpuInfo);
@@ -180,7 +182,7 @@ public class ManagementInfoService extends AbstractService{
 			
 			//DB에 저장하기.
 			Timestamp when = new Timestamp(System.currentTimeMillis());
-			DBService.getInstance().SystemMonInfoHDWMY.insert(cpuInfo.jvmCpuUse, memoryInfo.usedHeapMemory + memoryInfo.usedNonHeapMemory, cpuInfo.systemLoadAverage, when, "d");
+			DBService.getInstance().getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).insert(cpuInfo.jvmCpuUse, memoryInfo.usedHeapMemory + memoryInfo.usedNonHeapMemory, cpuInfo.systemLoadAverage, when, "d");
 			
 			// 매월 1일 전달 통계저장하기.
 			Calendar calendar = Calendar.getInstance();
@@ -195,7 +197,7 @@ public class ManagementInfoService extends AbstractService{
 				
 				//DB에 저장하기.
 				Timestamp when_m = new Timestamp(System.currentTimeMillis());
-				DBService.getInstance().SystemMonInfoHDWMY.insert(cpuInfo_m.jvmCpuUse, memoryInfo_m.usedHeapMemory + memoryInfo_m.usedNonHeapMemory, cpuInfo_m.systemLoadAverage, when_m, "m");
+				DBService.getInstance().getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).insert(cpuInfo_m.jvmCpuUse, memoryInfo_m.usedHeapMemory + memoryInfo_m.usedNonHeapMemory, cpuInfo_m.systemLoadAverage, when_m, "m");
 				
 			} 
 			
@@ -206,7 +208,7 @@ public class ManagementInfoService extends AbstractService{
 			/*
 			 * 2. 이전 데이터 지워주기.
 			 * */
-			DBService.getInstance().SystemMonInfoHDWMY.deleteOld(1);//1달 이전은 삭제 
+			DBService.getInstance().getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).deleteOld(1);//1달 이전은 삭제 
 			
 //			DBHandler.getInstance().commitMon();
 		}

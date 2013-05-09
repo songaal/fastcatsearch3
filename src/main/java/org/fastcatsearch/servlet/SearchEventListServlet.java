@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.dao.SearchEvent;
+import org.fastcatsearch.db.vo.SearchEventVO;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.servlet.WebServiceHttpServlet;
 import org.fastcatsearch.statistics.StatisticsInfoService;
@@ -81,13 +82,13 @@ public class SearchEventListServlet extends WebServiceHttpServlet {
 	    	
 			String lenStr = request.getParameter("length") == null ? "5" : request.getParameter("length");
 			int len = Integer.parseInt(lenStr);
-			List<SearchEvent> searchEventList = DBService.getInstance().SearchEvent.select(1, len);
+			List<SearchEventVO> searchEventList = DBService.getInstance().getDAO("SearchEvent", SearchEvent.class).select(1, len);
 			
 			try {
 				stringer.array();
 				for(int i=0;i<searchEventList.size();i++){
 					stringer.object();
-					SearchEvent searchEvent = searchEventList.get(i);	
+					SearchEventVO searchEvent = searchEventList.get(i);	
 					stringer.key("id").value(searchEvent.id);
 					stringer.key("when").value(searchEvent.when.toString().substring(0, 19));
 					stringer.key("type").value(searchEvent.type);

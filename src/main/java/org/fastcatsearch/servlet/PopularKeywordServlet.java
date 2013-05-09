@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.db.DBService;
+import org.fastcatsearch.db.vo.KeywordHitVO;
 import org.fastcatsearch.ir.field.DateTimeField;
 import org.fastcatsearch.keyword.KeywordHit;
 import org.fastcatsearch.service.KeywordService;
@@ -121,14 +122,14 @@ public class PopularKeywordServlet extends WebServiceHttpServlet {
     		}
     	}
 
-    	List<KeywordHit> termList = dbHandler.KeywordHit.selectUsingPopular(keyword, type, time, date);
+    	List<KeywordHitVO> termList = dbHandler.getDAO("KeywordHit", KeywordHit.class).selectUsingPopular(keyword, type, time, date);
     	
     	try {
     		rStringer.object()
     			.key("list").array("item");
 	    	if(termList != null && termList.size() > 0){
     			for (int j = 0; j < termList.size(); j++) {
-    				KeywordHit kh = termList.get(j);
+    				KeywordHitVO kh = termList.get(j);
     				rStringer.object()
     					.key("id").value(kh.id)
     					.key("term").value(kh.keyword)

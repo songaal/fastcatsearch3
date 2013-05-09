@@ -10,6 +10,7 @@ import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.data.DataService;
 import org.fastcatsearch.data.DataStrategy;
 import org.fastcatsearch.db.DBService;
+import org.fastcatsearch.db.dao.IndexingHistory;
 import org.fastcatsearch.db.dao.IndexingResult;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.NodeFullIndexJob;
@@ -31,8 +32,11 @@ public class FullIndexRequest extends Job {
 		
 		String indexingType = "F";
 		//전체색인시는 증분색인 정보를 클리어해준다.
-		DBService.getInstance().IndexingResult.delete(collectionId, "I");
-		DBService.getInstance().IndexingResult.update(collectionId, indexingType, IndexingResult.STATUS_RUNNING, -1, -1, -1, isScheduled(), new Timestamp(System.currentTimeMillis()), null, 0);
+		IndexingResult indexingResult = DBService.getInstance().getDAO("IndexingResult");
+		indexingResult.delete(collectionId, "I");
+		indexingResult.update(collectionId, indexingType, IndexingResult.STATUS_RUNNING, -1, -1, -1, isScheduled(), new Timestamp(System.currentTimeMillis()), null, 0);
+		
+		IndexingHistory indexingHistory = DBService.getInstance().getDAO("IndexingHistory");
 		
 		//
 		//TODO 어느 노드로 색인할지 고른다.
@@ -47,8 +51,8 @@ public class FullIndexRequest extends Job {
 		Object result = resultFuture.take();
 		if(!resultFuture.isSuccess()){
 			
-			DBService.getInstance().IndexingResult.updateOrInsert(collectionId, indexingType, IndexingResult.STATUS_FAIL, 0, 0, 0, isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
-			DBService.getInstance().IndexingHistory.insert(collectionId, indexingType, false, 0, 0, 0, isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
+			indexingResult.updateOrInsert(collectionId, indexingType, IndexingResult.STATUS_FAIL, 0, 0, 0, isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
+			indexingHistory.insert(collectionId, indexingType, false, 0, 0, 0, isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
 			
 			if(result instanceof Throwable){
 				throw new JobException("색인노드에서 전체색인중 에러발생.", (Throwable) result);
@@ -60,8 +64,8 @@ public class FullIndexRequest extends Job {
 		//DBService를 통해 색인결과를 입력한다.
 		//FIXME 차후 결과입력 로직은 해당 DAO가 가지고 있도록 한다.
 		IndexingJobResult indexingJobResult = (IndexingJobResult) result;
-		DBService.getInstance().IndexingResult.updateOrInsert(collectionId, indexingType, IndexingResult.STATUS_SUCCESS, indexingJobResult.docSize, indexingJobResult.updateSize, indexingJobResult.deleteSize, isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
-		DBService.getInstance().IndexingHistory.insert(collectionId, indexingType, true, indexingJobResult.docSize, indexingJobResult.updateSize, indexingJobResult.deleteSize, isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
+		indexingResult.updateOrInsert(collectionId, indexingType, IndexingResult.STATUS_SUCCESS, indexingJobResult.docSize, indexingJobResult.updateSize, indexingJobResult.deleteSize, isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
+		indexingHistory.insert(collectionId, indexingType, true, indexingJobResult.docSize, indexingJobResult.updateSize, indexingJobResult.deleteSize, isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
 		
 		
 		return new JobResult(indexingJobResult.toString());

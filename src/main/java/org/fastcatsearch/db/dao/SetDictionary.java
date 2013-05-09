@@ -15,16 +15,20 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fastcatsearch.db.ConnectionManager;
+import org.fastcatsearch.db.vo.SetDictionaryVO;
 
-public class SetDictionaryDAO extends DAOBase implements ResultVOMapper<SetDictionaryVO> {
-	public String tableName;
-	private int batchCount = 0;
+public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictionaryVO> {
 
-	public SetDictionaryDAO(String tableName) {
+	public SetDictionary(ConnectionManager connectionManager) {
+		super(connectionManager);
+	}
+
+	public SetDictionary(String tableName, ConnectionManager connectionManager) {
+		super(connectionManager);
 		this.tableName = tableName;
 	}
 
@@ -32,10 +36,11 @@ public class SetDictionaryDAO extends DAOBase implements ResultVOMapper<SetDicti
 	public boolean testTable() {
 		return testQuery("select id, key from " + tableName);
 	}
-	
+
 	@Override
 	public boolean createTable() throws SQLException {
-		String createSQL = "create table " + tableName + " (id int GENERATED ALWAYS AS IDENTITY primary key , key varchar(50) not null unique)";
+		String createSQL = "create table " + tableName
+				+ " (id int GENERATED ALWAYS AS IDENTITY primary key , key varchar(50) not null unique)";
 		executeUpdate(createSQL);
 		return true;
 	}
@@ -43,7 +48,7 @@ public class SetDictionaryDAO extends DAOBase implements ResultVOMapper<SetDicti
 	public int insert(String customword) {
 		PreparedStatement pstmt = null;
 		Connection conn = null;
-		
+
 		try {
 			String insertSQL = "insert into " + tableName + "(key) values (?)";
 			conn = conn();
@@ -66,7 +71,6 @@ public class SetDictionaryDAO extends DAOBase implements ResultVOMapper<SetDicti
 		PreparedStatement pstmt = null;
 		Connection conn = null;
 		try {
-			batchCount = 0;
 			String insertSQL = "insert into " + tableName + "(key) values (?)";
 			conn = conn();
 			pstmt = conn.prepareStatement(insertSQL);
@@ -95,16 +99,18 @@ public class SetDictionaryDAO extends DAOBase implements ResultVOMapper<SetDicti
 		return false;
 	}
 
-	public int insertBatch(String customword, PreparedStatement pstmt) {
+	public int insertBatch(String keyword, BatchContext batchContext) {
+		if (keyword.trim().length() == 0)
+			return 0;
 
+		PreparedStatement pstmt = batchContext.getPreparedStatement();
 		try {
-			batchCount++;
-			
 			pstmt.clearParameters();
 			int parameterIndex = 1;
-			pstmt.setString(parameterIndex++, customword);
+			pstmt.setString(parameterIndex++, keyword);
 			pstmt.addBatch();
 
+			int batchCount = batchContext.incrementBatchCountAndGet();
 			if ((batchCount % 1000) == 0)
 				pstmt.executeBatch();
 
@@ -147,12 +153,15 @@ public class SetDictionaryDAO extends DAOBase implements ResultVOMapper<SetDicti
 	public List<SetDictionaryVO> selectPage(int startRow, int pageSize) {
 		return selectPageWithKeyword(null, startRow, pageSize);
 	}
+
 	public List<SetDictionaryVO> selectPageWithKeyword(String keyword, int startRow, int pageSize) {
 		return selectPageWithKeyword(keyword, false, startRow, pageSize);
 	}
+
 	public List<SetDictionaryVO> selectWithExactKeyword(String keyword) {
 		return selectPageWithKeyword(keyword, true, -1, -1);
 	}
+
 	public List<SetDictionaryVO> selectPageWithKeyword(String keyword, boolean isExactMatch, int startRow, int pageSize) {
 		List<SetDictionaryVO> result = new ArrayList<SetDictionaryVO>();
 		PreparedStatement pstmt = null;
@@ -161,45 +170,45 @@ public class SetDictionaryDAO extends DAOBase implements ResultVOMapper<SetDicti
 
 		try {
 			int totalCount = 0;
-			
+
 			conn = conn();
 			String selectSQL = null;
 			boolean noPaging = (startRow == -1 && pageSize == -1);
-			
-			if(noPaging){
-				//페이징없음.
+
+			if (noPaging) {
+				// 페이징없음.
 				selectSQL = "SELECT * FROM " + tableName;
-				if(keyword != null){
-					if(isExactMatch){
+				if (keyword != null) {
+					if (isExactMatch) {
 						selectSQL += " where key = ?";
-					}else{
+					} else {
 						selectSQL += " where key = ? or key like ?";
 					}
 				}
-			}else{
-				//페이징시만 총 갯수가져옴.
-				if(keyword != null){
+			} else {
+				// 페이징시만 총 갯수가져옴.
+				if (keyword != null) {
 					totalCount = selectCountWithKeyword(keyword);
-				}else{
+				} else {
 					totalCount = selectCount();
 				}
-				
+
 				selectSQL = "SELECT * FROM ( SELECT ROW_NUMBER() OVER() AS rownum, " + tableName + ".* FROM " + tableName;
-				
-				if(keyword != null){
+
+				if (keyword != null) {
 					selectSQL += (" where key = ? or key like ?");
 				}
-				
+
 				selectSQL += ") AS tmp WHERE rownum > ? and rownum <= ? order by id desc";
 			}
-			
+
 			pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
-			if(keyword != null){
+			if (keyword != null) {
 				pstmt.setString(parameterIndex++, keyword);
 				pstmt.setString(parameterIndex++, "%" + keyword + "%");
 			}
-			if(!noPaging){
+			if (!noPaging) {
 				pstmt.setInt(parameterIndex++, totalCount - startRow - pageSize);
 				pstmt.setInt(parameterIndex++, totalCount - startRow);
 			}
@@ -216,7 +225,6 @@ public class SetDictionaryDAO extends DAOBase implements ResultVOMapper<SetDicti
 
 		return result;
 	}
-
 
 	public int delete(String customword) {
 		PreparedStatement pstmt = null;

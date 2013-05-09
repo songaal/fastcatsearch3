@@ -20,15 +20,13 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fastcatsearch.db.ConnectionManager;
+import org.fastcatsearch.db.vo.IndexingScheduleVO;
+
 public class IndexingSchedule extends DAOBase {
 
-	public String collection;
-	public String type;
-	public int period;
-	public Timestamp startTime;
-	public boolean isActive;
-
-	public IndexingSchedule() {
+	public IndexingSchedule(ConnectionManager connectionManager) {
+		super(connectionManager);
 	}
 
 	@Override
@@ -208,11 +206,11 @@ public class IndexingSchedule extends DAOBase {
 		return result;
 	}
 
-	public IndexingSchedule select(String collection, String type) {
+	public IndexingScheduleVO select(String collection, String type) {
 		String selectSQL = "select collection, type, period, startTime, isActive from " + tableName + " "
 				+ "where collection=? and type=?";
 
-		IndexingSchedule r = null;
+		IndexingScheduleVO r = null;
 		PreparedStatement pstmt = null;
 		Connection conn = null;
 		ResultSet rs = null;
@@ -227,7 +225,7 @@ public class IndexingSchedule extends DAOBase {
 			rs = pstmt.executeQuery();
 
 			while (rs.next()) {
-				r = new IndexingSchedule();
+				r = new IndexingScheduleVO();
 
 				parameterIndex = 1;
 				r.collection = rs.getString(parameterIndex++);
@@ -246,10 +244,10 @@ public class IndexingSchedule extends DAOBase {
 		return r;
 	}
 
-	public List<IndexingSchedule> selectAll() {
+	public List<IndexingScheduleVO> selectAll() {
 		String selectSQL = "select collection, type, period, startTime, isActive from " + tableName + " where isActive = 1";
 
-		List<IndexingSchedule> result = new ArrayList<IndexingSchedule>();
+		List<IndexingScheduleVO> result = new ArrayList<IndexingScheduleVO>();
 		PreparedStatement pstmt = null;
 		Connection conn = null;
 		ResultSet rs = null;
@@ -260,7 +258,7 @@ public class IndexingSchedule extends DAOBase {
 			rs = pstmt.executeQuery();
 
 			while (rs.next()) {
-				IndexingSchedule r = new IndexingSchedule();
+				IndexingScheduleVO r = new IndexingScheduleVO();
 
 				int parameterIndex = 1;
 				r.collection = rs.getString(parameterIndex++);

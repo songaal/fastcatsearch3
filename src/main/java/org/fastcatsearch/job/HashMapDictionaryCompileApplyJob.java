@@ -16,10 +16,13 @@ import java.util.List;
 
 import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.dao.MapDictionaryDAO;
+import org.fastcatsearch.db.dao.MapDictionary;
+import org.fastcatsearch.db.dao.SetDictionary;
+import org.fastcatsearch.db.vo.SetDictionaryVO;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.dic.HashMapDictionary;
+import org.fastcatsearch.ir.dic.HashSetDictionary;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.settings.IRSettings;
@@ -57,19 +60,19 @@ public class HashMapDictionaryCompileApplyJob extends Job {
 		
 		HashMapDictionary dic = new HashMapDictionary(BUCKET_SIZE);
 		
-		DBService dbHandler = DBService.getInstance();
-		
-		int count = dbHandler.SynonymDictionary.selectCount();
+		DBService dbService = DBService.getInstance();
+		SetDictionary synonymDictionary = dbService.getDAO("SynonymDictionary");
+		int count = synonymDictionary.selectCount();
 		
 		int BULK_SIZE = 100;
 		
 		for(int startRow = 0; startRow < count; startRow += BULK_SIZE){
-			List<MapDictionaryDAO> list = dbHandler.SynonymDictionary.selectPage(startRow, BULK_SIZE);
+			List<SetDictionaryVO> list = synonymDictionary.selectPage(startRow, BULK_SIZE);
 			
 			//bulk insert
 			for (int i = 0; i < list.size(); i++) {
-				MapDictionaryDAO  synonym = list.get(i);
-				char[] charArr = synonym.value.toCharArray();
+				SetDictionaryVO  synonym = list.get(i);
+				char[] charArr = synonym.key.toCharArray();
 				int size = 1;
 				for (int j = 0; j < charArr.length; j++) {
 					if (charArr[j] == ',') {
@@ -77,9 +80,25 @@ public class HashMapDictionaryCompileApplyJob extends Job {
 					}
 				}
 				
+				
+				//
+				//
+				//
+				//
+				//
+				//
+				// TODO @단어, 단어2, 단어3 에서 대표단어 및 유사어를 뽑아내어 컴파일한다.
+				//
+				//
+				//
+				//
+				//
+				//
+				//
+				//
 				CharVector[] values = new CharVector[size + 1];
 				int p = 0;
-				values[p++] = new CharVector(synonym.dickey).toUpperCase();
+				values[p++] = new CharVector(synonym.key).toUpperCase();
 				
 				int prev = 0;
 				for (int j = 0; j < charArr.length; j++) {

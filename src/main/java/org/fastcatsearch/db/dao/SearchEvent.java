@@ -19,17 +19,13 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fastcatsearch.db.ConnectionManager;
+import org.fastcatsearch.db.vo.SearchEventVO;
+
 public class SearchEvent extends DAOBase {
 
-	public int id;
-	public Timestamp when;
-	public String type;
-	public int category;
-	public String summary;
-	public String stacktrace;
-	public String status;
-
-	public SearchEvent() {
+	public SearchEvent(ConnectionManager connectionManager) {
+		super(connectionManager);
 	}
 
 	@Override
@@ -73,12 +69,12 @@ public class SearchEvent extends DAOBase {
 		}
 	}
 
-	public List<SearchEvent> select(int startRow, int length) {
+	public List<SearchEventVO> select(int startRow, int length) {
 		Connection conn = null;
 		ResultSet rs = null;
 		PreparedStatement pstmt = null;
 
-		List<SearchEvent> result = new ArrayList<SearchEvent>();
+		List<SearchEventVO> result = new ArrayList<SearchEventVO>();
 		try {
 
 			int totalCount = selectCount();
@@ -99,7 +95,7 @@ public class SearchEvent extends DAOBase {
 			rs = pstmt.executeQuery();
 			// logger.debug("Start = {} ~ {}", (totalCount - length), (totalCount - startRow));
 			while (rs.next()) {
-				SearchEvent r = new SearchEvent();
+				SearchEventVO r = new SearchEventVO();
 
 				parameterIndex = 1;
 				r.id = rs.getInt(parameterIndex++);

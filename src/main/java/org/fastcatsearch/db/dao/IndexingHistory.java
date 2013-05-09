@@ -20,21 +20,13 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fastcatsearch.db.ConnectionManager;
+import org.fastcatsearch.db.vo.IndexingHistoryVO;
+
 public class IndexingHistory extends DAOBase {
 
-	public int id;
-	public String collection;
-	public String type;
-	public boolean isSuccess;
-	public int docSize;
-	public int updateSize;
-	public int deleteSize;
-	public boolean isScheduled;
-	public Timestamp startTime;
-	public Timestamp endTime;
-	public int duration;
-
-	public IndexingHistory() {
+	public IndexingHistory(ConnectionManager connectionManager) {
+		super(connectionManager);
 	}
 
 	@Override
@@ -120,8 +112,8 @@ public class IndexingHistory extends DAOBase {
 
 	}
 
-	public List<IndexingHistory> select(int startRow, int length) {
-		List<IndexingHistory> result = new ArrayList<IndexingHistory>();
+	public List<IndexingHistoryVO> select(int startRow, int length) {
+		List<IndexingHistoryVO> result = new ArrayList<IndexingHistoryVO>();
 		ResultSet rs = null;
 		Statement stmt = null;
 		PreparedStatement pstmt = null;
@@ -162,7 +154,7 @@ public class IndexingHistory extends DAOBase {
 			// logger.debug("totalCount = "+totalCount+", startRow="+startRow+", Start = "+(totalCount - startRow - length)+
 			// "~"+(totalCount - startRow));
 			while (rs.next()) {
-				IndexingHistory r = new IndexingHistory();
+				IndexingHistoryVO r = new IndexingHistoryVO();
 
 				parameterIndex = 1;
 				r.id = rs.getInt(parameterIndex++);

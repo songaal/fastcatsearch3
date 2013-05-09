@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.fastcatsearch.db.object.DAOBase;
+import org.fastcatsearch.db.dao.DAOBase;
 
 
 /**
@@ -40,14 +40,6 @@ public class KeywordHit extends DAOBase{
 	public static final int STATISTICS_WEEK = 3;
 	public static final int STATISTICS_MONTH = 4;
 	public static final int STATISTICS_YEAR = 10;
-	public int id;
-	public String keyword;
-	public int hit;
-	public int popular;
-	public int prevRank;
-	public boolean isUsed;
-	public Date dateRegister;
-	public Date dateUpdate;
 	
 	public KeywordHit(){}
 	

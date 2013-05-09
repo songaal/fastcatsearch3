@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.fastcatsearch.cli.Command;
 import org.fastcatsearch.cli.CommandException;
 import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
@@ -12,6 +11,7 @@ import org.fastcatsearch.cli.command.exception.CollectionNotDefinedException;
 import org.fastcatsearch.cli.command.exception.CollectionNotFoundException;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.dao.IndexingSchedule;
+import org.fastcatsearch.db.vo.IndexingScheduleVO;
 
 public class ShowScheduleCommand extends CollectionExtractCommand {
 
@@ -42,8 +42,9 @@ public class ShowScheduleCommand extends CollectionExtractCommand {
 			return new CommandResult("invald command", CommandResult.Status.SUCCESS);
 
 		DBService dbHandler = DBService.getInstance();
-		IndexingSchedule fullIndexSchedule = dbHandler.IndexingSchedule.select(collection, "F");
-		IndexingSchedule incIndexSchedule = dbHandler.IndexingSchedule.select(collection, "I");
+		IndexingSchedule indexingSchedule = dbHandler.getDAO("IndexingSchedule");
+		IndexingScheduleVO fullIndexSchedule = indexingSchedule.select(collection, "F");
+		IndexingScheduleVO incIndexSchedule = indexingSchedule.select(collection, "I");
 
 		if (fullIndexSchedule == null && incIndexSchedule == null)
 			return new CommandResult("thes is no Schedule set in collection [" + collection + "]",
@@ -59,7 +60,7 @@ public class ShowScheduleCommand extends CollectionExtractCommand {
 
 	}
 
-	private void addRecord(List<Object[]> data, IndexingSchedule schedule) {
+	private void addRecord(List<Object[]> data, IndexingScheduleVO schedule) {
 		data.add(new Object[] { schedule.collection, schedule.type, schedule.period + "",
 				schedule.startTime.toString(), (schedule.isActive ? "Active" : "DeActive") });
 	}

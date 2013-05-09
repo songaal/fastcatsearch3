@@ -153,7 +153,8 @@ public class JobService extends AbstractService implements JobExecutor {
 		return indexingMutex.getIndexingList();
 	}
 
-	public void setSchedule(String key, String jobClassName, String args, Timestamp startTime, int period, boolean isYN) throws SettingException {
+	public void setSchedule(String key, String jobClassName, String args, Timestamp startTime, int period, boolean isYN)
+			throws SettingException {
 		if (!useJobScheduler) {
 			return;
 		}
@@ -185,8 +186,7 @@ public class JobService extends AbstractService implements JobExecutor {
 		job.setEnvironment(environment);
 		job.setJobExecutor(this);
 
-		if (job instanceof FullIndexJob || job instanceof IncIndexJob
-				|| job instanceof FullIndexRequest) {
+		if (job instanceof FullIndexJob || job instanceof IncIndexJob || job instanceof FullIndexRequest) {
 			if (indexingMutex.isLocked(job)) {
 				indexingLogger.info("The collection [" + job.getStringArgs(0) + "] has already started an indexing job.");
 				return null;
@@ -208,8 +208,9 @@ public class JobService extends AbstractService implements JobExecutor {
 			else if (job instanceof IncIndexJob)
 				indexingType = "I";
 
-			dbHandler.IndexingResult.update(collection, indexingType, IndexingResult.STATUS_RUNNING, -1, -1, -1, job.isScheduled(),
-					new Timestamp(System.currentTimeMillis()), null, 0);
+			dbHandler.getDAO("IndexingResult", IndexingResult.class).update(collection, indexingType,
+					IndexingResult.STATUS_RUNNING, -1, -1, -1, job.isScheduled(), new Timestamp(System.currentTimeMillis()),
+					null, 0);
 			// dbHandler.commit();
 		}
 		// job.setId(myJobId);
@@ -235,8 +236,8 @@ public class JobService extends AbstractService implements JobExecutor {
 		ResultFuture resultFuture = resultFutureMap.remove(jobId);
 		runningJobList.remove(jobId);
 		if (logger.isDebugEnabled()) {
-			logger.debug("### ResultFuture = {} / map={} / job={} / result={} / success= {}", new Object[] { resultFuture, resultFutureMap.size(),
-					job.getClass().getSimpleName(), result, isSuccess });
+			logger.debug("### ResultFuture = {} / map={} / job={} / result={} / success= {}", new Object[] { resultFuture,
+					resultFutureMap.size(), job.getClass().getSimpleName(), result, isSuccess });
 		}
 
 		//
@@ -292,7 +293,7 @@ public class JobService extends AbstractService implements JobExecutor {
 
 	/*
 	 * 이 쓰레드는 절대로 죽어서는 아니되오.
-	 * */
+	 */
 	class JobConsumer extends Thread {
 		// 2013-4-5 exception발생시 worker가 죽어서 더이상 작업할당을 못하는 상황발생.
 		// throw를 catch하도록 수정.
@@ -320,7 +321,8 @@ public class JobService extends AbstractService implements JobExecutor {
 						// jobExecutor rejecthandler가 abortpolicy의 경우
 						// RejectedExecutionException을 던지게 되어있다.
 						logger.error("처리허용량을 초과하여 작업이 거부되었습니다. max.pool = {}, job={}", executorMaxPoolSize, job);
-						result(job, new ExecutorMaxCapacityExceedException("처리허용량을 초과하여 작업이 거부되었습니다. max.pool =" + executorMaxPoolSize), false);
+						result(job, new ExecutorMaxCapacityExceedException("처리허용량을 초과하여 작업이 거부되었습니다. max.pool ="
+								+ executorMaxPoolSize), false);
 
 					} catch (Throwable e) {
 						// 나머지 jobExecutor 의 에러를 처리한다.
