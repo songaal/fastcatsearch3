@@ -6,11 +6,11 @@ import java.util.List;
 import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.control.JobException;
+import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.log.EventDBLogger;
-import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.transport.vo.StreamableDocumentList;
 

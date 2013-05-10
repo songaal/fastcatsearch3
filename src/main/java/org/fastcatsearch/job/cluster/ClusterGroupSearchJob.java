@@ -10,6 +10,7 @@ import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.data.DataService;
 import org.fastcatsearch.data.DataStrategy;
+import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.group.GroupData;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Groups;
@@ -19,7 +20,6 @@ import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.internal.InternalGroupSearchJob;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
-import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.transport.vo.StreamableGroupData;
 

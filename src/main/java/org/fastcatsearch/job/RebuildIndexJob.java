@@ -17,6 +17,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.fastcatsearch.control.JobException;
+import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.IRConfig;
@@ -25,7 +26,6 @@ import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.DataSequenceFile;
 import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.util.Formatter;
-import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.settings.IRSettings;
 import org.slf4j.Logger;

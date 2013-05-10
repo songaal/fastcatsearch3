@@ -77,7 +77,7 @@ public class WebPageSourceReader extends SourceReader{
 		webPageGather = new WebPageGather();
 		
 		DBService dbHandler = DBService.getInstance();
-		Connection conn = dbHandler.getConn();
+		Connection conn = null;//dbHandler.getConn();
 		String countSQL = "SELECT * FROM "+schema.collection+"WebPageSource";
 		try {
 			stmt = conn.createStatement();

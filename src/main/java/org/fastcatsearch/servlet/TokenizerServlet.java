@@ -7,9 +7,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.analysis.Tokenizer;
 import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.util.ResultStringer;
 import org.fastcatsearch.util.StringifyException;
 import org.slf4j.Logger;

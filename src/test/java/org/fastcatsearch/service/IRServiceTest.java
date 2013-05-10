@@ -13,6 +13,7 @@ package org.fastcatsearch.service;
 
 import junit.framework.TestCase;
 
+import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.search.CollectionHandler;

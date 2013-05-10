@@ -11,10 +11,10 @@ import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.cli.command.exception.CollectionNotDefinedException;
 import org.fastcatsearch.cli.command.exception.CollectionNotFoundException;
+import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.util.Formatter;
-import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.settings.IRSettings;
 
 public class InfoCollectionCommand extends CollectionExtractCommand {

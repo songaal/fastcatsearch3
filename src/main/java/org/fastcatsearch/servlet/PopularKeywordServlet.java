@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.vo.KeywordHitVO;
 import org.fastcatsearch.ir.field.DateTimeField;
-import org.fastcatsearch.keyword.KeywordHit;
+//import org.fastcatsearch.keyword.KeywordHit;
 import org.fastcatsearch.service.KeywordService;
 import org.fastcatsearch.util.ResultStringer;
 import org.fastcatsearch.util.StringifyException;
@@ -79,73 +79,73 @@ public class PopularKeywordServlet extends WebServiceHttpServlet {
     	String timeStr = request.getParameter("time");
     	String dateStr = request.getParameter("date");
     	
-    	int type = KeywordHit.POPULAR_ACCUM;
-    	int time = 0;
-    	
-    	if("time".equals(typeStr)) {
-    		type = KeywordHit.POPULAR_HOUR;
-    	} else if ("date".equals(typeStr)) {
-    		type = KeywordHit.STATISTICS_DATE;
-    	} else if ("week".equals(typeStr)) {
-    		type = KeywordHit.STATISTICS_WEEK;
-    	} else if ("month".equals(typeStr)) {
-    		type = KeywordHit.STATISTICS_MONTH;
-    	} else if ("year".equals(typeStr)) {
-    		type = KeywordHit.STATISTICS_YEAR;
-    	}
-    	
-    	if(typeStr!=null) try { type = Integer.parseInt(typeStr); } catch (NumberFormatException e) { }
-    	if(dateStr!=null && type!=KeywordHit.POPULAR_ACCUM && type!=KeywordHit.POPULAR_HOUR) {
-    		try { date = DateTimeField.parseDate(dateStr); } catch (ParseException e) { }
-    		Calendar c = Calendar.getInstance();
-    		if(date!=null) { c.setTime(date); }
-    		Date[] dates = new Date[3];
-    		int[] times = new int[2];
-    		KeywordService.calculateDate(type,c,dates,times);
-    		date = dates[0];
-    		logger.info("date info ["+date+"]");
-    	}
-    	if(timeStr!=null) { 
-    		try { time = Integer.parseInt(timeStr); } catch (NumberFormatException e) { }
-    		if(type == KeywordHit.STATISTICS_MONTH && time > 0) { time = time - 1; }
-    	} else if(date!=null) {
-    		Calendar c = Calendar.getInstance();
-    		c.setTime(date);
-    		if (type == KeywordHit.STATISTICS_DATE) {
-    			time = c.get(Calendar.DATE);
-    		} else if (type == KeywordHit.STATISTICS_WEEK) {
-				time = c.get(Calendar.DAY_OF_WEEK)-2;
-    		} else if (type == KeywordHit.STATISTICS_MONTH) {
-    			time = c.get(Calendar.MONTH) + 1;
-    		} else if (type == KeywordHit.STATISTICS_YEAR) {
-    			time = c.get(Calendar.YEAR);
-    		}
-    	}
-
-    	List<KeywordHitVO> termList = dbHandler.getDAO("KeywordHit", KeywordHit.class).selectUsingPopular(keyword, type, time, date);
-    	
-    	try {
-    		rStringer.object()
-    			.key("list").array("item");
-	    	if(termList != null && termList.size() > 0){
-    			for (int j = 0; j < termList.size(); j++) {
-    				KeywordHitVO kh = termList.get(j);
-    				rStringer.object()
-    					.key("id").value(kh.id)
-    					.key("term").value(kh.keyword)
-    					.key("hit").value(kh.hit)
-    					.key("popular").value(kh.popular)
-    					.key("prevRank").value(kh.prevRank)
-    					.key("isUsed").value(kh.isUsed)
-					.endObject();
-    			}
-	    	}
-	    	
-	    	rStringer.endArray().endObject();
-    	} catch (StringifyException e) {
-    		logger.error("exception",e);
-    		throw new IOException(e.toString());
-    	}
+//    	int type = KeywordHit.POPULAR_ACCUM;
+//    	int time = 0;
+//    	
+//    	if("time".equals(typeStr)) {
+//    		type = KeywordHit.POPULAR_HOUR;
+//    	} else if ("date".equals(typeStr)) {
+//    		type = KeywordHit.STATISTICS_DATE;
+//    	} else if ("week".equals(typeStr)) {
+//    		type = KeywordHit.STATISTICS_WEEK;
+//    	} else if ("month".equals(typeStr)) {
+//    		type = KeywordHit.STATISTICS_MONTH;
+//    	} else if ("year".equals(typeStr)) {
+//    		type = KeywordHit.STATISTICS_YEAR;
+//    	}
+//    	
+//    	if(typeStr!=null) try { type = Integer.parseInt(typeStr); } catch (NumberFormatException e) { }
+//    	if(dateStr!=null && type!=KeywordHit.POPULAR_ACCUM && type!=KeywordHit.POPULAR_HOUR) {
+//    		try { date = DateTimeField.parseDate(dateStr); } catch (ParseException e) { }
+//    		Calendar c = Calendar.getInstance();
+//    		if(date!=null) { c.setTime(date); }
+//    		Date[] dates = new Date[3];
+//    		int[] times = new int[2];
+//    		KeywordService.calculateDate(type,c,dates,times);
+//    		date = dates[0];
+//    		logger.info("date info ["+date+"]");
+//    	}
+//    	if(timeStr!=null) { 
+//    		try { time = Integer.parseInt(timeStr); } catch (NumberFormatException e) { }
+//    		if(type == KeywordHit.STATISTICS_MONTH && time > 0) { time = time - 1; }
+//    	} else if(date!=null) {
+//    		Calendar c = Calendar.getInstance();
+//    		c.setTime(date);
+//    		if (type == KeywordHit.STATISTICS_DATE) {
+//    			time = c.get(Calendar.DATE);
+//    		} else if (type == KeywordHit.STATISTICS_WEEK) {
+//				time = c.get(Calendar.DAY_OF_WEEK)-2;
+//    		} else if (type == KeywordHit.STATISTICS_MONTH) {
+//    			time = c.get(Calendar.MONTH) + 1;
+//    		} else if (type == KeywordHit.STATISTICS_YEAR) {
+//    			time = c.get(Calendar.YEAR);
+//    		}
+//    	}
+//
+//    	List<KeywordHitVO> termList = dbHandler.getDAO("KeywordHit", KeywordHit.class).selectUsingPopular(keyword, type, time, date);
+//    	
+//    	try {
+//    		rStringer.object()
+//    			.key("list").array("item");
+//	    	if(termList != null && termList.size() > 0){
+//    			for (int j = 0; j < termList.size(); j++) {
+//    				KeywordHitVO kh = termList.get(j);
+//    				rStringer.object()
+//    					.key("id").value(kh.id)
+//    					.key("term").value(kh.keyword)
+//    					.key("hit").value(kh.hit)
+//    					.key("popular").value(kh.popular)
+//    					.key("prevRank").value(kh.prevRank)
+//    					.key("isUsed").value(kh.isUsed)
+//					.endObject();
+//    			}
+//	    	}
+//	    	
+//	    	rStringer.endArray().endObject();
+//    	} catch (StringifyException e) {
+//    		logger.error("exception",e);
+//    		throw new IOException(e.toString());
+//    	}
     	
     	writeHeader(response, rStringer, responseCharset);
     	

@@ -72,7 +72,7 @@ public class HashMapDictionaryCompileApplyJob extends Job {
 			//bulk insert
 			for (int i = 0; i < list.size(); i++) {
 				SetDictionaryVO  synonym = list.get(i);
-				char[] charArr = synonym.key.toCharArray();
+				char[] charArr = synonym.keyword.toCharArray();
 				int size = 1;
 				for (int j = 0; j < charArr.length; j++) {
 					if (charArr[j] == ',') {
@@ -98,7 +98,7 @@ public class HashMapDictionaryCompileApplyJob extends Job {
 				//
 				CharVector[] values = new CharVector[size + 1];
 				int p = 0;
-				values[p++] = new CharVector(synonym.key).toUpperCase();
+				values[p++] = new CharVector(synonym.keyword).toUpperCase();
 				
 				int prev = 0;
 				for (int j = 0; j < charArr.length; j++) {

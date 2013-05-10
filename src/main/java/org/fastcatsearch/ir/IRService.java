@@ -9,7 +9,7 @@
  *     swsong - initial API and implementation
  */
 
-package org.fastcatsearch.service;
+package org.fastcatsearch.ir;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,6 +44,9 @@ import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.ShardSearchResult;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.module.ModuleException;
+import org.fastcatsearch.service.AbstractService;
+import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.IRSettings;
 import org.fastcatsearch.settings.Settings;
 

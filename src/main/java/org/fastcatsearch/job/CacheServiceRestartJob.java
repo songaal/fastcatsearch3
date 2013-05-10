@@ -12,7 +12,7 @@
 package org.fastcatsearch.job;
 
 
-import org.fastcatsearch.service.IRService;
+import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.service.ServiceException;
 
 public class CacheServiceRestartJob extends Job{

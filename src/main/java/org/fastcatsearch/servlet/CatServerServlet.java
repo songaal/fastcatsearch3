@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServlet;
 
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.service.IRService;
+import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.service.KeywordService;
 import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.settings.IRSettings;

@@ -86,7 +86,7 @@ public class HashSetDictionaryCompileApplyJob extends Job {
 			for (int i = 0; i < list.size(); i++) {
 				SetDictionaryVO banned = list.get(i);
 				
-				dic.put(new CharVector(banned.key).toUpperCase());
+				dic.put(new CharVector(banned.keyword).toUpperCase());
 			}
 		}
 		
@@ -117,7 +117,7 @@ public class HashSetDictionaryCompileApplyJob extends Job {
 			//bulk insert
 			for (int i = 0; i < list.size(); i++) {
 				SetDictionaryVO basic = list.get(i);				
-				dic.put(new CharVector(basic.key));
+				dic.put(new CharVector(basic.keyword));
 			}
 		}
 		
@@ -150,7 +150,7 @@ public class HashSetDictionaryCompileApplyJob extends Job {
 			for (int i = 0; i < list.size(); i++) {
 				SetDictionaryVO basic = list.get(i);
 				
-				dic.put(new CharVector(basic.key));
+				dic.put(new CharVector(basic.keyword));
 			}
 		}
 		

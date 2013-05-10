@@ -14,6 +14,7 @@ package org.fastcatsearch.job;
 import java.util.Map;
 
 import org.fastcatsearch.control.JobException;
+import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.group.GroupData;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Groups;
@@ -23,7 +24,6 @@ import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
-import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.KeywordService;
 import org.fastcatsearch.service.ServiceException;
 

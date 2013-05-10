@@ -8,11 +8,11 @@ import java.util.Date;
 import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.control.JobException;
+import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.util.Formatter;
-import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.settings.IRSettings;
 

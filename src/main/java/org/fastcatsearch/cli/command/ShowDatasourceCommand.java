@@ -13,6 +13,7 @@ import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.cli.command.exception.CollectionNotDefinedException;
 import org.fastcatsearch.cli.command.exception.CollectionNotFoundException;
 import org.fastcatsearch.datasource.DataSourceSetting;
+import org.fastcatsearch.db.DBContext;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.settings.IRSettings;
 import org.slf4j.Logger;
@@ -96,23 +97,19 @@ public class ShowDatasourceCommand extends CollectionExtractCommand {
 				addRecord(data, "backupFileEncoding", ds.backupFileEncoding);
 
 			} else if (ds.sourceType.equals("WEB")) {
-				Connection conn = DBService.getInstance().getConn();
+				DBContext dbContext = DBService.getInstance().getDBContext();
 				String selectSQL = "select * from from (select ROW_NUMBER() as rownum , " + collection
-						+ "WEbPageSource) ";
-				Statement stmt = null;
-				ResultSet rs = null;
+						+ "WebPageSource) ";
 				try {
-					stmt = conn.createStatement();
-					rs = stmt.executeQuery(selectSQL);
+					ResultSet rs = dbContext.selectSQL(selectSQL);
 					while (rs.next()) {
 						addRecord(data, rs.getString("rownum"), rs.getString("link"), rs.getString("title"),
 								rs.getString("cate"), rs.getString("encoding"));
 					}
-					rs.close();
-					stmt.close();
-					conn.close();
 				} catch (Exception e) {
 					return false;
+				} finally {
+					dbContext.close();
 				}
 
 			} else if (ds.sourceType.equals("CUSTOM")) {

@@ -24,12 +24,12 @@ import org.fastcatsearch.db.dao.SearchMonitoringInfo;
 import org.fastcatsearch.db.dao.SearchMonitoringInfoMinute;
 import org.fastcatsearch.db.vo.IndexingResultVO;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentInfo;
-import org.fastcatsearch.keyword.KeywordHit;
+//import org.fastcatsearch.keyword.KeywordHit;
 import org.fastcatsearch.service.AbstractService;
-import org.fastcatsearch.service.IRService;
 import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
@@ -503,17 +503,17 @@ public class StatisticsInfoService extends AbstractService {
 
 		@Override
 		public void run() {
-			DBService dbHandler = DBService.getInstance();
-			//업데이트 되었는가?
-	    	Timestamp updateTime = dbHandler.getDAO("KeywordHit", KeywordHit.class).isPoluarKeywordUpdated(lastUpdatedPopularKeywordTime);
-
-			//만약 업데이트 되었다면 시간을 갱신한다.
-			if(updateTime != null){
-				logger.debug("인기검색어 리스트가 업데이트됨..UPDATE_TIME={}",updateTime);
-				lastUpdatedPopularKeywordTime = updateTime;
-			}else{
-//				logger.debug("인기검색어 업데이트X..LAST_TIME={}",lastUpdatedPopularKeywordTime);
-			}
+//			DBService dbHandler = DBService.getInstance();
+//			//업데이트 되었는가?
+//	    	Timestamp updateTime = dbHandler.getDAO("KeywordHit", KeywordHit.class).isPoluarKeywordUpdated(lastUpdatedPopularKeywordTime);
+//
+//			//만약 업데이트 되었다면 시간을 갱신한다.
+//			if(updateTime != null){
+//				logger.debug("인기검색어 리스트가 업데이트됨..UPDATE_TIME={}",updateTime);
+//				lastUpdatedPopularKeywordTime = updateTime;
+//			}else{
+////				logger.debug("인기검색어 업데이트X..LAST_TIME={}",lastUpdatedPopularKeywordTime);
+//			}
 		}
 		
 	}

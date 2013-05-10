@@ -35,8 +35,8 @@ import org.fastcatsearch.db.dao.SystemMonitoringInfo;
 import org.fastcatsearch.db.dao.SystemMonitoringInfoMinute;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.config.IRConfig;
-import org.fastcatsearch.keyword.KeywordFail;
-import org.fastcatsearch.keyword.KeywordHit;
+//import org.fastcatsearch.keyword.KeywordFail;
+//import org.fastcatsearch.keyword.KeywordHit;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.plugin.PluginSetting;
@@ -302,71 +302,46 @@ public class DBService extends AbstractService {
 		return true;
 	}
 
-	// db
-	public int updateOrInsertSQL(String sql) throws SQLException {
-		Connection conn = getConn();
+	/**
+	 * DAO를 통하지 않고 임시 SQL문등을 실행(jsp페이지등)할때 db커넥션등의 리소스를 관리해주는 객체. 
+	 * */
+	public DBContext getDBContext(){
 		try {
-			Statement stmt = conn.createStatement();
-			int n = stmt.executeUpdate(sql);
-			return n;
-		} finally {
-			if (conn != null) {
-				conn.close();
-			}
-		}
-	}
-
-	public ResultSet selectSQL(String sql) throws SQLException {
-		Connection conn = getConn();
-		try {
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
-			return rs;
-		} finally {
-			if (conn != null) {
-				conn.close();
-			}
-		}
-	}
-
-	// mon db
-	public int updateOrInsertSQLMONDB(String sql) throws SQLException {
-		Connection conn = getConn();
-		try {
-			Statement stmt = conn.createStatement();
-			int n = stmt.executeUpdate(sql);
-			stmt.close();
-			return n;
-		} finally {
-			if (conn != null) {
-				conn.close();
-			}
-		}
-	}
-
-	public ResultSet selectSQLMONDB(String sql) throws SQLException {
-		Connection conn = getConn();
-		try {
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
-			stmt.close();
-			return rs;
-		} finally {
-			if (conn != null) {
-				conn.close();
-			}
-		}
-	}
-
-	// for batch insert
-	public Connection getConn() {
-		try {
-			return connectionManager.getConnection();
+			return new DBContext(connectionManager);
 		} catch (SQLException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
+			return null;
 		}
-		return null;
 	}
+//
+//	// mon db
+//	public int updateOrInsertSQLMONDB(String sql) throws SQLException {
+//		Connection conn = getConn();
+//		try {
+//			Statement stmt = conn.createStatement();
+//			int n = stmt.executeUpdate(sql);
+//			stmt.close();
+//			return n;
+//		} finally {
+//			if (conn != null) {
+//				conn.close();
+//			}
+//		}
+//	}
+//
+//	public ResultSet selectSQLMONDB(String sql) throws SQLException {
+//		Connection conn = getConn();
+//		try {
+//			Statement stmt = conn.createStatement();
+//			ResultSet rs = stmt.executeQuery(sql);
+//			stmt.close();
+//			return rs;
+//		} finally {
+//			if (conn != null) {
+//				conn.close();
+//			}
+//		}
+//	}
 
 	@Override
 	protected boolean doClose() throws ServiceException {
