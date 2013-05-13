@@ -4,14 +4,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
+import org.apache.lucene.store.DataInput;
+import org.apache.lucene.store.DataOutput;
+import org.apache.lucene.store.InputStreamDataInput;
+import org.apache.lucene.store.OutputStreamDataOutput;
 import org.fastcatsearch.ir.io.CharVector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,18 +70,30 @@ public class HashSetDictionary extends SourceDictionary implements ReadableDicti
 	
 	@Override
 	public void writeTo(OutputStream out) throws IOException {
-		ObjectOutputStream oos = new ObjectOutputStream(out);
-		oos.writeObject(set);
+		
+		@SuppressWarnings("resource")
+		DataOutput output = new OutputStreamDataOutput(out);
+		Iterator<CharVector> valueIter = set.iterator();
+		//write size of set
+		
+		output.writeInt(set.size());
+		//write values
+		for(;valueIter.hasNext();) {
+			CharVector value = valueIter.next();
+			output.writeString(value.toString());
+		}
 	}
 
 	@Override
 	public void readFrom(InputStream in) throws IOException {
-		ObjectInputStream ois = new ObjectInputStream(in);
-		try {
-			set = (Set<CharVector>) ois.readObject();
-		} catch (ClassNotFoundException e) {
-			throw new IOException(e);
-		}	
+		
+		@SuppressWarnings("resource")
+		DataInput input = new InputStreamDataInput(in);
+		set = new HashSet<CharVector>();
+		int size = input.readInt();
+		
+		for(int entryInx=0;entryInx < size; entryInx++) {
+			set.add(new CharVector(input.readString()));
+		}
 	}
-
 }

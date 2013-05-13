@@ -4,16 +4,19 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.lucene.store.DataInput;
+import org.apache.lucene.store.DataOutput;
+import org.apache.lucene.store.InputStreamDataInput;
+import org.apache.lucene.store.OutputStreamDataOutput;
 import org.fastcatsearch.ir.io.CharVector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,20 +119,62 @@ public class ListMapDictionary extends SourceDictionary implements ReadableDicti
 
 	@Override
 	public void writeTo(OutputStream out) throws IOException {
-		ObjectOutputStream oos = new ObjectOutputStream(out);
-		oos.writeObject(map);
-		oos.writeObject(synonymSet);
+		
+		@SuppressWarnings("resource")
+		DataOutput output = new OutputStreamDataOutput(out);
+		Iterator<CharVector> keySet = map.keySet().iterator();
+		//write size of map
+		output.writeInt(map.size());
+		//write key and value map
+		for(;keySet.hasNext();) {
+			//write key
+			CharVector key = keySet.next();
+			output.writeString(key.toString());
+			//write values
+			CharVector[] values = map.get(key);
+			output.writeInt(values.length);
+			for(CharVector value : values) {
+				output.writeString(value.toString());
+			}
+		}
+		
+		//write size of synonyms 
+		output.writeInt(synonymSet.size());
+		
+		//write synonyms
+		Iterator<CharVector> synonymIter = synonymSet.iterator();
+		for(;synonymIter.hasNext();) {
+			CharVector value = synonymIter.next();
+			output.writeString(value.toString());
+		}
 	}
 
 	@Override
 	public void readFrom(InputStream in) throws IOException {
-		ObjectInputStream ois = new ObjectInputStream(in);
-		try {
-			map = (Map<CharVector, CharVector[]>) ois.readObject();
-			synonymSet = (Set<CharVector>) ois.readObject();
-		} catch (ClassNotFoundException e) {
-			throw new IOException(e);
+		
+		@SuppressWarnings("resource")
+		DataInput input = new InputStreamDataInput(in);
+		
+		map = new HashMap<CharVector, CharVector[]>();
+		synonymSet = new HashSet<CharVector>();
+		int size = input.readInt();
+
+		for(int entryInx=0;entryInx < size; entryInx++) {
+			CharVector key = new CharVector(input.readString());
+			
+			int valueLength = input.readInt();
+			
+			CharVector[] values = new CharVector[valueLength];
+			
+			for(int valueInx=0; valueInx < valueLength; valueInx++) {
+				values[valueInx] = new CharVector(input.readString());
+			}
+			map.put(key, values);
+		}
+		
+		size = input.readInt();
+		for(int entryInx=0;entryInx < size; entryInx++) {
+			synonymSet.add(new CharVector(input.readString()));
 		}
 	}
-
 }
