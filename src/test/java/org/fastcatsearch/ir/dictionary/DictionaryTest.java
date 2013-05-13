@@ -57,4 +57,123 @@ public class DictionaryTest {
 //		Assert.assertArrayEquals(buffer, buffer2);
 	}
 
+	@Test
+	public void testHashSet() throws IOException {
+		
+		HashSetDictionary dictionary = new HashSetDictionary();
+		
+		String[] terms = new String[] { "삼성", "LG", "애플" };
+		
+		for(String term : terms) {
+			dictionary.addEntry(term);
+		}
+		
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		dictionary.writeTo(out);
+		out.close();
+		
+		for(String term : terms) {
+			boolean contains = dictionary.getSet().contains(new CharVector(term));
+			System.out.println("is set has term "+term+" ? "+contains);
+		}
+		
+		byte[] buffer = out.toByteArray();
+		
+		//다시 읽고.
+		ByteArrayInputStream bais = new ByteArrayInputStream(buffer);
+		HashSetDictionary dictionary2 = new HashSetDictionary(bais);
+		bais.close();
+		
+		for(String term : terms) {
+			boolean contains = dictionary2.getSet().contains(new CharVector(term));
+			System.out.println("is set2 has term "+term+" ? "+contains);
+		}
+		
+		//다시 쓰고.
+		ByteArrayOutputStream out2 = new ByteArrayOutputStream();
+		dictionary2.writeTo(out2);
+		out2.close();
+		
+		//다시 읽고.
+		ByteArrayInputStream bais2 = new ByteArrayInputStream(buffer);
+		HashSetDictionary dictionary3 = new HashSetDictionary(bais2);
+		bais2.close();
+		
+		for(String term : terms) {
+			boolean contains = dictionary3.getSet().contains(new CharVector(term));
+			System.out.println("is set3 has term "+term+" ? "+contains);
+		}
+		
+		
+		byte[] buffer2 = out2.toByteArray();
+		
+		Assert.assertEquals(buffer.length, buffer2.length);
+		for (int i = 0; i < buffer2.length; i++) {
+			System.out.println(buffer[i]+":"+buffer2[i]);
+			if(buffer[i] != buffer2[i]){
+				System.out.println(">>>>>>>>>>>>>>>>");
+			}
+		}
+//		Assert.assertArrayEquals(buffer, buffer2);
+	}
+
+	@Test
+	public void testTagProbDictionary() throws IOException {
+		
+		HashSetDictionary dictionary = new HashSetDictionary();
+		
+		String[] terms = new String[] { "삼성", "LG", "애플" };
+		
+		for(String term : terms) {
+			dictionary.addEntry(term);
+		}
+		
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		dictionary.writeTo(out);
+		out.close();
+		
+		for(String term : terms) {
+			boolean contains = dictionary.getSet().contains(new CharVector(term));
+			System.out.println("is set has term "+term+" ? "+contains);
+		}
+		
+		byte[] buffer = out.toByteArray();
+		
+		//다시 읽고.
+		ByteArrayInputStream bais = new ByteArrayInputStream(buffer);
+		HashSetDictionary dictionary2 = new HashSetDictionary(bais);
+		bais.close();
+		
+		for(String term : terms) {
+			boolean contains = dictionary2.getSet().contains(new CharVector(term));
+			System.out.println("is set2 has term "+term+" ? "+contains);
+		}
+		
+		//다시 쓰고.
+		ByteArrayOutputStream out2 = new ByteArrayOutputStream();
+		dictionary2.writeTo(out2);
+		out2.close();
+		
+		//다시 읽고.
+		ByteArrayInputStream bais2 = new ByteArrayInputStream(buffer);
+		HashSetDictionary dictionary3 = new HashSetDictionary(bais2);
+		bais2.close();
+		
+		for(String term : terms) {
+			boolean contains = dictionary3.getSet().contains(new CharVector(term));
+			System.out.println("is set3 has term "+term+" ? "+contains);
+		}
+		
+		
+		byte[] buffer2 = out2.toByteArray();
+		
+		Assert.assertEquals(buffer.length, buffer2.length);
+		for (int i = 0; i < buffer2.length; i++) {
+			System.out.println(buffer[i]+":"+buffer2[i]);
+			if(buffer[i] != buffer2[i]){
+				System.out.println(">>>>>>>>>>>>>>>>");
+			}
+		}
+//		Assert.assertArrayEquals(buffer, buffer2);
+	}
 }
