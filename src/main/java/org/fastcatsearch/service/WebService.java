@@ -135,8 +135,7 @@ public class WebService extends AbstractService{
 		contextPlugin.setMaxFormContentSize(10 * 1024 * 1024); //파라미터전송 10MB까지 가능.
 		
 		PluginService pluginService = serviceManager.getService(PluginService.class);
-		List<Plugin> plugins = pluginService.getPlugins();
-		for (Plugin plugin : plugins) {
+		for (Plugin plugin : pluginService.getPlugins()) {
 			PluginSetting pluginSetting = plugin.getPluginSetting();
 			Servlet servletType = pluginSetting.getWeb().getUser().getServlet();
 			String path = servletType.getPath();

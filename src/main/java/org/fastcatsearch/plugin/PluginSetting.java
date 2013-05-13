@@ -1,6 +1,9 @@
 package org.fastcatsearch.plugin;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -9,34 +12,48 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlValue;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-@XmlRootElement(name="plugin")
+@XmlRootElement(name = "plugin")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class PluginSetting {
-	
+
 	@XmlAttribute
-	String name;
-	
-	@XmlAttribute(name="class")
+	String id;
+
+	@XmlAttribute
+	String namespace;
+
+	@XmlAttribute(name = "class")
 	String className;
-	
-	@XmlElementWrapper(name="params")
-	List<Param> params;
-	
+
+	@XmlJavaTypeAdapter(MapAdapter.class)
+	@XmlElement
+	Map<String, String> properties = new HashMap<String, String>();
+
 	@XmlElement
 	Web web;
-	
+
 	@XmlElement
 	DB db;
-	
-	public String getName() {
-		return name;
+
+	public String getId() {
+		return id;
 	}
-	
-	public void setName(String name) {
-		this.name = name;
+
+	public void setId(String id) {
+		this.id = id;
 	}
-	
+
+	public String getNamespace() {
+		return namespace;
+	}
+
+	public void setNamespace(String namespace) {
+		this.namespace = namespace;
+	}
+
 	public String getClassName() {
 		return className;
 	}
@@ -44,7 +61,7 @@ public class PluginSetting {
 	public void setClassName(String className) {
 		this.className = className;
 	}
-	
+
 	public Web getWeb() {
 		return web;
 	}
@@ -52,15 +69,15 @@ public class PluginSetting {
 	public void setWeb(Web web) {
 		this.web = web;
 	}
-	
-	public List<Param> getParams() {
-		return params;
+
+	public Map<String, String> getProperties() {
+		return properties;
 	}
 
-	public void setParams(List<Param> params) {
-		this.params = params;
+	public void setProperties(Map<String, String> properties) {
+		this.properties = properties;
 	}
-	
+
 	public DB getDB() {
 		return db;
 	}
@@ -68,86 +85,70 @@ public class PluginSetting {
 	public void seDB(DB db) {
 		this.db = db;
 	}
-	
-	@XmlRootElement
-	@XmlAccessorType(XmlAccessType.FIELD)
-	public static class Param {
-		@XmlAttribute
-		String key;
-		@XmlValue
-		String value;
-		
-		public String getKey() {
-			return key;
-		}
-		public String getValue() {
-			return value;
-		}
-		public void setKey(String key) {
-			this.key = key;
-		}
-		public void setValue(String value) {
-			this.value = value;
-		}
-	}
-	
-	
+
 	@XmlRootElement
 	public static class Web {
 		User user;
 		Admin admin;
-		
+
 		@XmlElement
 		public User getUser() {
 			return user;
 		}
+
 		@XmlElement
 		public Admin getAdmin() {
 			return admin;
 		}
+
 		public void setUser(User user) {
 			this.user = user;
 		}
+
 		public void setAdmin(Admin admin) {
 			this.admin = admin;
 		}
 	}
 
-	@XmlRootElement(name="db")
+	@XmlRootElement(name = "db")
 	public static class DB {
 		List<DAO> daoList;
-		
-		@XmlElementWrapper(name="dao-list")
-		@XmlElement(name="dao")
+
+		@XmlElementWrapper(name = "dao-list")
+		@XmlElement(name = "dao")
 		public List<DAO> getDAOList() {
 			return daoList;
 		}
+
 		public void setDAOList(List<DAO> daoList) {
 			this.daoList = daoList;
 		}
 	}
-	
-	@XmlRootElement(name="dao")
+
+	@XmlRootElement(name = "dao")
 	public static class DAO {
-		String id;
+		String name;
 		String className;
+
 		@XmlAttribute
-		public String getId() {
-			return id;
+		public String getName() {
+			return name;
 		}
-		public void setId(String id) {
-			this.id = id;
+
+		public void setName(String name) {
+			this.name = name;
 		}
+
 		@XmlValue
 		public String getClassName() {
 			return className;
 		}
+
 		public void setClassName(String className) {
 			this.className = className;
 		}
 	}
-	
-	
+
 	@XmlRootElement
 	@XmlAccessorType(XmlAccessType.FIELD)
 	public static class User {
@@ -155,19 +156,23 @@ public class PluginSetting {
 		Menu menu;
 		@XmlElement
 		Servlet servlet;
+
 		public Menu getMenu() {
 			return menu;
 		}
+
 		public Servlet getServlet() {
 			return servlet;
 		}
+
 		public void setMenu(Menu menu) {
 			this.menu = menu;
 		}
+
 		public void setServlet(Servlet servlet) {
 			this.servlet = servlet;
 		}
-		
+
 	}
 
 	@XmlRootElement
@@ -177,101 +182,48 @@ public class PluginSetting {
 		Menu menu;
 		@XmlElement
 		Servlet servlet;
+
 		public Menu getMenu() {
 			return menu;
 		}
+
 		public Servlet getServlet() {
 			return servlet;
 		}
+
 		public void setMenu(Menu menu) {
 			this.menu = menu;
 		}
+
 		public void setServlet(Servlet servlet) {
 			this.servlet = servlet;
 		}
-		
+
 	}
-	
+
 	@XmlRootElement
 	@XmlAccessorType(XmlAccessType.FIELD)
 	public static class Menu {
 		@XmlAttribute
-		String id;
+		String ref;
 		@XmlAttribute
-		String label;
-		@XmlElement
-		Submenu submenu;
-		public String getId() {
-			return id;
-		}
-		public String getLabel() {
-			return label;
-		}
-		public Submenu getSubmenu() {
-			return submenu;
-		}
-		public void setId(String id) {
-			this.id = id;
-		}
-		public void setLabel(String label) {
-			this.label = label;
-		}
-		public void setSubmenu(Submenu submenu) {
-			this.submenu = submenu;
-		}
-		
-	}
+		String categoryLabel;
 
-	@XmlRootElement
-	@XmlAccessorType(XmlAccessType.FIELD)
-	public static class Submenu {
-		@XmlAttribute
-		String id;
-		@XmlAttribute
-		String label;
-		@XmlElement
-		List<Leaf> leafList;
-		public String getId() {
-			return id;
+		public String getRef() {
+			return ref;
 		}
-		public String getLabel() {
-			return label;
-		}
-		public List<Leaf> getLeaf() {
-			return leafList;
-		}
-		public void setId(String id) {
-			this.id = id;
-		}
-		public void setLabel(String label) {
-			this.label = label;
-		}
-		public void setLeaf(List<Leaf> leafList) {
-			this.leafList = leafList;
-		}
-		
-	}
 
-	@XmlRootElement
-	@XmlAccessorType(XmlAccessType.FIELD)
-	public static class Leaf {
-		@XmlAttribute
-		String id;
-		@XmlAttribute
-		String label;
-		public String getId() {
-			return id;
+		public void setRef(String ref) {
+			this.ref = ref;
 		}
-		public String getLabel() {
-			return label;
+
+		public String getCategoryLabel() {
+			return categoryLabel;
 		}
-		public void setId(String id) {
-			this.id = id;
+
+		public void setCategoryLabel(String categoryLabel) {
+			this.categoryLabel = categoryLabel;
 		}
-		public void setLabel(String label) {
-			this.label = label;
-		}
-		
 	}
 
 	@XmlRootElement
@@ -281,26 +233,57 @@ public class PluginSetting {
 		String path;
 		@XmlValue
 		String value;
+
 		public String getPath() {
 			return path;
 		}
+
 		public String getValue() {
 			return value;
 		}
+
 		public void setPath(String path) {
 			this.path = path;
 		}
+
 		public void setValue(String value) {
 			this.value = value;
 		}
-		
+
+	}
+
+	static class AdaptedMap {
+		@XmlElement(name="property")
+		public List<Property> properties = new ArrayList<Property>();
+	}
+	
+	static class Property {
+		@XmlAttribute
+        public String key;
+		@XmlValue
+        public String value;
+    }
+	
+	static class MapAdapter extends XmlAdapter<AdaptedMap, Map<String, String>> {
+		@Override
+		public Map<String, String> unmarshal(AdaptedMap adaptedMap) throws Exception {
+			Map<String, String> map = new HashMap<String, String>();
+			for (Property property : adaptedMap.properties) {
+				map.put(property.key, property.value);
+			}
+			return map;
+		}
+
+		@Override
+		public AdaptedMap marshal(Map<String, String> map) throws Exception {
+			AdaptedMap adaptedMap = new AdaptedMap();
+			for (Map.Entry<String, String> mapEntry : map.entrySet()) {
+				Property property = new Property();
+				property.key = mapEntry.getKey();
+				property.value = mapEntry.getValue();
+				adaptedMap.properties.add(property);
+			}
+			return adaptedMap;
+		}
 	}
 }
-
-
-
-
-
-
-
-

@@ -5,7 +5,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -22,7 +25,7 @@ public class PluginService extends AbstractService {
 
 	private static PluginService instance;
 	
-	private List<Plugin> pluginList;
+	private Map<String, Plugin> pluginMap;
 	
 	public static PluginService getInstance(){
 		return instance;
@@ -39,28 +42,29 @@ public class PluginService extends AbstractService {
 
 	@Override
 	protected boolean doStart() throws ServiceException {
-		pluginList = new ArrayList<Plugin>();
+		pluginMap = new HashMap<String, Plugin>();
 		//플러그인을 검색하여 
 		//무작위로 시작한다.
 		File pluginRootDir = environment.filePaths().getFile("plugin");
 		
 		List<File> pluginDirList = new ArrayList<File>(); 
 		findPluginDirectory(pluginRootDir, pluginDirList);
+		
+		//모든 plugin의 jar파일을 로딩.
+		int i = 0;
+		for (File dir : pluginDirList) {
+			File[] jarFiles = findFiles(dir, "jar");
+			logger.debug("FOUND plugin {}, jar={}", dir.getAbsolutePath(), jarFiles);
+//			File[] warFiles = findFiles(dir, "war");
+			DynamicClassLoader.add("plugin_" + i +"_"+ dir.getName(), jarFiles);
+		}
+		
 		try {
 			JAXBContext jc = JAXBContext.newInstance(PluginSetting.class);
-			int i = 0;
+			Unmarshaller unmarshaller = jc.createUnmarshaller();
 			for (File dir : pluginDirList) {
-				File[] jarFiles = findFiles(dir, "jar");
-				logger.debug("FOUND plugin {}, jar={}", dir.getAbsolutePath(), jarFiles);
-				File[] warFiles = findFiles(dir, "war");
-				DynamicClassLoader.add("plugin_" + i +"_"+ dir.getName(), jarFiles);
-				i++;
 				
-				//
-				//TODO war를 압축을 풀어서 webapp 디렉토리에 복사해준다.
-				//
 				File pluginConfigFile = new File(dir, "plugin.xml");
-		        Unmarshaller unmarshaller = jc.createUnmarshaller();
 		        try {
 					PluginSetting setting = (PluginSetting) unmarshaller.unmarshal(new FileInputStream(pluginConfigFile));
 					String className = setting.getClassName();
@@ -71,12 +75,14 @@ public class PluginService extends AbstractService {
 						plugin = new Plugin(dir, setting);
 					}
 					plugin.load();
-					logger.debug("PLUGIN >> {}", plugin.getClass().getName());
-					pluginList.add(plugin);
+					logger.debug("PLUGIN {} >> {}", setting.getId(), plugin.getClass().getName());
+					pluginMap.put(setting.getId(), plugin);
+					
+					
 				} catch (FileNotFoundException e) {
-					throw new ServiceException("plugin 설정파일을 읽을수 없음."); 
+					logger.error("{} plugin 설정파일을 읽을수 없음.", dir.getName()); 
 				} catch (JAXBException e) {
-					throw new ServiceException("plugin 설정파일을 읽는중 에러.", e);
+					logger.error("plugin 설정파일을 읽는중 에러. {}", e);
 				}
 			}
 		} catch (JAXBException e) {
@@ -115,8 +121,8 @@ public class PluginService extends AbstractService {
 	
 	@Override
 	protected boolean doStop() throws ServiceException {
-		pluginList.clear();
-		pluginList = null;
+		pluginMap.clear();
+		pluginMap = null;
 		return false;
 	}
 
@@ -126,8 +132,12 @@ public class PluginService extends AbstractService {
 		return false;
 	}
 
-	public List<Plugin> getPlugins() {
-		return pluginList;
+	public Collection<Plugin> getPlugins() {
+		return pluginMap.values();
+	}
+	
+	public Plugin getPlugin(String pluginId) {
+		return pluginMap.get(pluginId);
 	}
 
 }

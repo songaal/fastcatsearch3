@@ -15,6 +15,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -187,31 +188,33 @@ public class DBService extends AbstractService {
 
 		// 사전추가. xml설정에서 읽어온다.
 		daoMap.put("RecommendKeyword", new MapDictionary("RecommendKeyword", connectionManager));
+		// 사전.
 		daoMap.put("SynonymDictionary", new SetDictionary("SynonymDictionary", connectionManager));
 		daoMap.put("UserDictionary", new SetDictionary("UserDictionary", connectionManager));
-		daoMap.put("BannedDictionary", new SetDictionary("BannedDictionary", connectionManager));
+		daoMap.put("StopDictionary", new SetDictionary("StopDictionary", connectionManager));
 
 		// pluginDaoMap.put("KeywordHit", new KeywordHit(connectionManager));
 		// pluginDaoMap.put("KeywordFail", new KeywordFail(connectionManager));
 
 		// 플러그인 DAO
 		PluginService pluginService = serviceManager.getService(PluginService.class);
-		List<Plugin> plugins = pluginService.getPlugins();
+		Collection<Plugin> plugins = pluginService.getPlugins();
 		logger.debug("plugin 로딩. plugins size={}", plugins.size());
 		for (Plugin plugin : plugins) {
 			PluginSetting pluginSetting = plugin.getPluginSetting();
-			String pluginId = pluginSetting.getName();
+			String pluginId = pluginSetting.getId();
 			if (pluginSetting.getDB() != null) {
 				List<DAO> daoList = pluginSetting.getDB().getDAOList();
 				logger.debug("plugin db daoList 로딩. daoList.size={}", daoList.size());
 				for (int i = 0; i < daoList.size(); i++) {
 					DAO dao = daoList.get(i);
-					String daoId = dao.getId();
+					String daoName = dao.getName();
+					String daoId = pluginId + daoName;
 					//
 					// TODO dao id가 기존것과 서로 중복될수 있다.
 					// plugin은 plugin을 붙인다.
 					//
-					String daoKey = getPluginDaoKey(pluginId, daoId);
+//					String daoKey = getPluginDaoKey(pluginId, daoId);
 					String className = dao.getClassName();
 					DAOBase daoBase = DynamicClassLoader.loadObject(className, DAOBase.class,
 							new Class<?>[] { ConnectionManager.class }, new Object[] { connectionManager });
@@ -222,8 +225,8 @@ public class DBService extends AbstractService {
 					}
 
 					if (daoBase != null) {
-						daoMap.put(daoKey, daoBase);
-						logger.debug("register plugin dao {} >> {} : {}", daoKey, daoId, className);
+						daoMap.put(daoId, daoBase);
+						logger.debug("register plugin dao {} >> {}", daoId, className);
 					}
 				}
 			}

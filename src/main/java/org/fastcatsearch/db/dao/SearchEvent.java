@@ -147,10 +147,9 @@ public class SearchEvent extends DAOBase {
 	}
 
 	public int update(int id, String status) {
-		logger.debug("id={}, status={}", id, status);
 		Connection conn = null;
 		PreparedStatement pstmt = null;
-		String updateSQL = "update SearchEvent set status=?" + "where id=?";
+		String updateSQL = "update "+tableName+" set status=? where id=?";
 
 		try {
 			conn = conn();

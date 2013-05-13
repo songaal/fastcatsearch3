@@ -224,6 +224,7 @@ public abstract class DAOBase {
 		try {
 			conn = conn();
 			stmt = conn.createStatement();
+			logger.debug(">>{}", updateQuery);
 			return stmt.executeUpdate(updateQuery);
 		} finally {
 			releaseResource(stmt);

@@ -14,6 +14,7 @@ package org.fastcatsearch.db.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,6 +64,16 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 		}
 	}
 
+	public int update(int id, String keyword){
+		String updateSQL = "update into " + tableName + " set keyword = ? where id = ?";
+		try {
+			return executeUpdate(updateSQL, keyword, id);
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
+			return -1;
+		}
+	}
+	
 	public PreparedStatement startInsertBatch() {
 		PreparedStatement pstmt = null;
 		Connection conn = null;
@@ -119,6 +130,9 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 	}
 
 	public int selectCountWithKeyword(String keyword) {
+		if(keyword == null || keyword.length() == 0){
+			return selectCount();
+		}
 		int totalCount = 0;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -173,7 +187,7 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 
 			if (noPaging) {
 				// 페이징없음.
-				selectSQL = "SELECT * FROM " + tableName;
+				selectSQL = "SELECT id, keyword FROM " + tableName;
 				if (keyword != null) {
 					if (isExactMatch) {
 						selectSQL += " where keyword = ?";
@@ -189,7 +203,7 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 					totalCount = selectCount();
 				}
 
-				selectSQL = "SELECT * FROM ( SELECT ROW_NUMBER() OVER() AS rownum, " + tableName + ".* FROM " + tableName;
+				selectSQL = "SELECT id, keyword FROM ( SELECT ROW_NUMBER() OVER() AS rownum, " + tableName + ".* FROM " + tableName;
 
 				if (keyword != null) {
 					selectSQL += (" where keyword = ? or keyword like ?");
@@ -217,6 +231,7 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 			logger.error(e.getMessage(), e);
 		} finally {
 			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 
 		return result;
@@ -244,12 +259,8 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 
 	@Override
 	public SetDictionaryVO map(ResultSet resultSet) throws SQLException {
-		return map(resultSet, 1);
-	}
-
-	@Override
-	public SetDictionaryVO map(ResultSet resultSet, int index) throws SQLException {
 		SetDictionaryVO vo = new SetDictionaryVO();
+		int index = 1;
 		vo.id = resultSet.getInt(index++);
 		vo.keyword = resultSet.getString(index++);
 		return vo;

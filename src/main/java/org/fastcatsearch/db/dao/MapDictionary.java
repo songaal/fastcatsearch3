@@ -115,6 +115,9 @@ public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictiona
 	}
 
 	public int selectCountWithKeyword(String keyword) {
+		if(keyword == null || keyword.length() == 0){
+			return selectCount();
+		}
 		int totalCount = 0;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -170,7 +173,7 @@ public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictiona
 
 			if (noPaging) {
 				// 페이징없음.
-				selectSQL = "SELECT * FROM " + tableName;
+				selectSQL = "SELECT id, keyword, value FROM " + tableName;
 				if (keyword != null) {
 					if (isExactMatch) {
 						selectSQL += " where keyword = ?";
@@ -186,7 +189,7 @@ public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictiona
 					totalCount = selectCount();
 				}
 
-				selectSQL = "SELECT * FROM ( SELECT ROW_NUMBER() OVER() AS rownum, " + tableName + ".* FROM " + tableName;
+				selectSQL = "SELECT id, keyword, value FROM ( SELECT ROW_NUMBER() OVER() AS rownum, " + tableName + ".* FROM " + tableName;
 
 				if (keyword != null) {
 					selectSQL += (" where keyword = ? or keyword like ?");
@@ -214,6 +217,7 @@ public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictiona
 			logger.error(e.getMessage(), e);
 		} finally {
 			releaseResource(pstmt, rs);
+			releaseConnection(conn);
 		}
 
 		return result;
@@ -278,15 +282,12 @@ public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictiona
 
 	@Override
 	public MapDictionaryVO map(ResultSet resultSet) throws SQLException {
-		return map(resultSet, 1);
-	}
-
-	@Override
-	public MapDictionaryVO map(ResultSet resultSet, int index) throws SQLException {
 		MapDictionaryVO vo = new MapDictionaryVO();
+		int index = 1;
 		vo.id = resultSet.getInt(index++);
 		vo.keyword = resultSet.getString(index++);
 		vo.value = resultSet.getString(index++);
 		return vo;
 	}
+
 }

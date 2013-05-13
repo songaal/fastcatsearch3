@@ -6,6 +6,5 @@ import java.sql.SQLException;
  * DB select 결과 ResultSet을 객체 결과로 변환시킨다.
  * */
 public interface ResultVOMapper<T> {
-	public T map(ResultSet resultSet, int index) throws SQLException;
 	public T map(ResultSet resultSet) throws SQLException;
 }
