@@ -138,16 +138,19 @@ public class WebService extends AbstractService{
 		for (Plugin plugin : pluginService.getPlugins()) {
 			PluginSetting pluginSetting = plugin.getPluginSetting();
 			Servlet servletType = pluginSetting.getWeb().getUser().getServlet();
-			String path = servletType.getPath();
-			String servletClass = servletType.getValue();
-			logger.debug("servlet path={}, class={}", path, servletClass);
-			if(servletClass != null && path != null){
-				WebServiceHttpServlet servlet = DynamicClassLoader.loadObject(servletClass, WebServiceHttpServlet.class, new Class<?>[]{int.class}, new Object[]{WebServiceHttpServlet.JSON_TYPE});
-				contextPlugin.addServlet(new ServletHolder(servlet), path+"/json");
-				logger.debug("register plugin servlet >> {} : {}", PLUGIN_CONTEXT+path+"/json", servlet.getClass().getName());
-				servlet = DynamicClassLoader.loadObject(servletClass, WebServiceHttpServlet.class, new Class<?>[]{int.class}, new Object[]{WebServiceHttpServlet.XML_TYPE});
-				contextPlugin.addServlet(new ServletHolder(servlet), path+"/xml");
-				logger.debug("register plugin servlet >> {} : {}", PLUGIN_CONTEXT+path+"/xml", servlet.getClass().getName());
+			//플러그인 서블릿이 있다면 추가.
+			if(servletType != null){
+				String path = servletType.getPath();
+				String servletClass = servletType.getValue();
+				logger.debug("servlet path={}, class={}", path, servletClass);
+				if(servletClass != null && path != null){
+					WebServiceHttpServlet servlet = DynamicClassLoader.loadObject(servletClass, WebServiceHttpServlet.class, new Class<?>[]{int.class}, new Object[]{WebServiceHttpServlet.JSON_TYPE});
+					contextPlugin.addServlet(new ServletHolder(servlet), path+"/json");
+					logger.debug("register plugin servlet >> {} : {}", PLUGIN_CONTEXT+path+"/json", servlet.getClass().getName());
+					servlet = DynamicClassLoader.loadObject(servletClass, WebServiceHttpServlet.class, new Class<?>[]{int.class}, new Object[]{WebServiceHttpServlet.XML_TYPE});
+					contextPlugin.addServlet(new ServletHolder(servlet), path+"/xml");
+					logger.debug("register plugin servlet >> {} : {}", PLUGIN_CONTEXT+path+"/xml", servlet.getClass().getName());
+				}
 			}
 		}
 		handlerList.addHandler(contextPlugin);

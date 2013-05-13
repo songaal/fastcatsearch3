@@ -34,6 +34,12 @@ public class ListMapDictionary extends SourceDictionary implements ReadableDicti
 	}
 
 	public ListMapDictionary(File file) {
+		if(!file.exists()){
+			map = new HashMap<CharVector, CharVector[]>();
+			synonymSet = new HashSet<CharVector>();
+			logger.error("사전파일이 존재하지 않습니다. file={}", file.getAbsolutePath());
+			return;
+		}
 		InputStream is = null;
 		try {
 			is = new FileInputStream(file);

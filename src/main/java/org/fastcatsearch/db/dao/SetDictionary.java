@@ -256,6 +256,26 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 			releaseConnection(conn);
 		}
 	}
+	
+	public int deleteById(int id) {
+		PreparedStatement pstmt = null;
+		Connection conn = null;
+		try {
+			conn = conn();
+			String deleteSQL = "delete from " + tableName + " where id = ?";
+			pstmt = conn.prepareStatement(deleteSQL);
+			int parameterIndex = 1;
+			pstmt.setInt(parameterIndex++, id);
+
+			return pstmt.executeUpdate();
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
+			return -1;
+		} finally {
+			releaseResource(pstmt);
+			releaseConnection(conn);
+		}
+	}
 
 	@Override
 	public SetDictionaryVO map(ResultSet resultSet) throws SQLException {

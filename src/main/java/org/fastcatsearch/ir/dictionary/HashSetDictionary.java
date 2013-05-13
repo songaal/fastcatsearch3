@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,6 +30,11 @@ public class HashSetDictionary extends SourceDictionary implements ReadableDicti
 	}
 
 	public HashSetDictionary(File file) {
+		if(!file.exists()){
+			set = new HashSet<CharVector>();
+			logger.error("사전파일이 존재하지 않습니다. file={}", file.getAbsolutePath());
+			return;
+		}
 		InputStream is;
 		try {
 			is = new FileInputStream(file);

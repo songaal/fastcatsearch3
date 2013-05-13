@@ -49,13 +49,13 @@ public class DictionaryCompileApplyJob extends Job {
 		Map<String, String> properties= plugin.getPluginSetting().getProperties();
 		String synonymDictPath = new File(pluginDir, properties.get("synonym.dict.path")).getAbsolutePath();
 		String userDictPath = new File(pluginDir, properties.get("user.dict.path")).getAbsolutePath();
-		String stopDictPath = new File(pluginDir, properties.get("stopword.dict.path")).getAbsolutePath();
+		String stopDictPath = new File(pluginDir, properties.get("stop.dict.path")).getAbsolutePath();
 
 		logger.debug("compile dict {}, {}, {}", synonymDictPath, userDictPath, stopDictPath);
 		//
 		// 1. synonymDictionary
 		//
-		if (dicType == null || dicType.equals("synonymDic")) {
+		if (dicType == null || dicType.equals("synonymDict")) {
 			List<SetDictionaryVO> result = synonymDictionary.selectPage(-1, -1);
 			ListMapDictionary dictionary = new ListMapDictionary();
 			for (int i = 0; i < result.size(); i++) {
@@ -81,7 +81,7 @@ public class DictionaryCompileApplyJob extends Job {
 		//
 		// 2. userDictionary
 		//
-		if (dicType == null || dicType.equals("userDic")) {
+		if (dicType == null || dicType.equals("userDict")) {
 			List<SetDictionaryVO> result = userDictionary.selectPage(-1, -1);
 			try {
 				compileSetDictionary(result, userDictPath);
@@ -94,7 +94,7 @@ public class DictionaryCompileApplyJob extends Job {
 		//
 		// 3. stopDictionary
 		//
-		if (dicType == null || dicType.equals("stopDic")) {
+		if (dicType == null || dicType.equals("stopDict")) {
 			List<SetDictionaryVO> result = stopDictionary.selectPage(-1, -1);
 			try {
 				compileSetDictionary(result, stopDictPath);
