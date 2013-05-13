@@ -34,7 +34,9 @@ public class DictionaryCompileApplyJob extends Job {
 		String[] args = getStringArrayArgs();
 		String category = args[0];
 		String dicType = args[1];
-
+		if(dicType.length() == 0){
+			dicType = "";
+		}
 		String synonymDictionaryId = category + "SynonymDictionary";
 		String userDictionaryId = category + "UserDictionary";
 		String stopDictionaryId = category + "StopDictionary";
@@ -51,11 +53,11 @@ public class DictionaryCompileApplyJob extends Job {
 		String userDictPath = new File(pluginDir, properties.get("user.dict.path")).getAbsolutePath();
 		String stopDictPath = new File(pluginDir, properties.get("stop.dict.path")).getAbsolutePath();
 
-		logger.debug("compile dict {}, {}, {}", synonymDictPath, userDictPath, stopDictPath);
+		logger.debug("compile dictType={} /  {}, {}, {}", dicType, synonymDictPath, userDictPath, stopDictPath);
 		//
 		// 1. synonymDictionary
 		//
-		if (dicType == null || dicType.equals("synonymDict")) {
+		if (dicType.length() == 0 || dicType.equals("synonymDict")) {
 			List<SetDictionaryVO> result = synonymDictionary.selectPage(-1, -1);
 			ListMapDictionary dictionary = new ListMapDictionary();
 			for (int i = 0; i < result.size(); i++) {
@@ -81,7 +83,7 @@ public class DictionaryCompileApplyJob extends Job {
 		//
 		// 2. userDictionary
 		//
-		if (dicType == null || dicType.equals("userDict")) {
+		if (dicType.length() == 0 || dicType.equals("userDict")) {
 			List<SetDictionaryVO> result = userDictionary.selectPage(-1, -1);
 			try {
 				compileSetDictionary(result, userDictPath);
@@ -94,7 +96,7 @@ public class DictionaryCompileApplyJob extends Job {
 		//
 		// 3. stopDictionary
 		//
-		if (dicType == null || dicType.equals("stopDict")) {
+		if (dicType.length() == 0 || dicType.equals("stopDict")) {
 			List<SetDictionaryVO> result = stopDictionary.selectPage(-1, -1);
 			try {
 				compileSetDictionary(result, stopDictPath);
@@ -104,6 +106,10 @@ public class DictionaryCompileApplyJob extends Job {
 			logger.debug("Dictionary write to {}", stopDictPath);
 		}
 
+		logger.debug("사전컴파일후 플러그인 {}를 재로딩합니다.",category);
+		plugin.reload();
+		
+		
 		return new JobResult(0);
 	}
 

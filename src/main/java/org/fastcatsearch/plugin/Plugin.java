@@ -15,7 +15,9 @@ public class Plugin {
 	
 	public void load(){ }
 	
-	public void unLoad(){ }
+	public void reload(){ }
+	
+	public void unload(){ }
 	
 	public File getPluginDir(){
 		return pluginDir;

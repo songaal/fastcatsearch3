@@ -93,7 +93,7 @@ public class ListMapDictionary extends SourceDictionary implements ReadableDicti
 						}
 					}
 					map.put(key, value);
-					logger.debug("유사어 양방향 {} >> {} {}", key, value[0], value[1]);
+//					logger.debug("유사어 양방향 {} >> {} {}", key, value[0], value[1]);
 				}
 			} else {
 				// 단방향.
