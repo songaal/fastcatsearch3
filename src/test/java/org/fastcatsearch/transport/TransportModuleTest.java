@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.control.JobExecutor;
+import org.fastcatsearch.control.JobHandler;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.job.Job;
@@ -43,6 +44,11 @@ public class TransportModuleTest {
 		@Override
 		public void result(Job job, Object result, boolean isSuccess) {
 			
+		}
+
+		@Override
+		public JobHandler jobHandler() {
+			return null;
 		}
 	};
 	

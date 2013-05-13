@@ -39,7 +39,7 @@ import org.fastcatsearch.settings.IRSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FullIndexJob extends Job {
+public class FullIndexJob extends IndexingJob {
 	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 			
 	public static void main(String[] args) throws JobException, ServiceException {

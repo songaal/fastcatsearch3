@@ -22,20 +22,14 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.ThreadPoolFactory;
-import org.fastcatsearch.control.ExecutorMaxCapacityExceedException;
-import org.fastcatsearch.control.IndexingMutex;
-import org.fastcatsearch.control.JobExecutor;
-import org.fastcatsearch.control.JobScheduler;
-import org.fastcatsearch.control.ResultFuture;
-import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.dao.IndexingResult;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.job.FullIndexJob;
 import org.fastcatsearch.job.IncIndexJob;
+import org.fastcatsearch.job.IndexingJob;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.action.FullIndexRequest;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.service.ServiceManager;
@@ -72,6 +66,8 @@ public class JobService extends AbstractService implements JobExecutor {
 
 	private static JobService instance;
 
+	private JobHandler jobHandler;
+	
 	public static JobService getInstance() {
 		return instance;
 	}
@@ -84,6 +80,9 @@ public class JobService extends AbstractService implements JobExecutor {
 		super(environment, settings, serviceManager);
 	}
 
+	public JobHandler jobHandler(){
+		return jobHandler;
+	}
 	protected boolean doStart() throws ServiceException {
 		jobIdIncrement = new AtomicLong();
 		resultFutureMap = new ConcurrentHashMap<Long, ResultFuture>();
@@ -113,6 +112,8 @@ public class JobService extends AbstractService implements JobExecutor {
 			jobScheduler.start();
 		}
 
+		jobHandler = new JobHandler(serviceManager.getService(NodeService.class));
+		
 		return true;
 	}
 
@@ -186,7 +187,7 @@ public class JobService extends AbstractService implements JobExecutor {
 		job.setEnvironment(environment);
 		job.setJobExecutor(this);
 
-		if (job instanceof FullIndexJob || job instanceof IncIndexJob || job instanceof FullIndexRequest) {
+		if (job instanceof IndexingJob) {
 			if (indexingMutex.isLocked(job)) {
 				indexingLogger.info("The collection [" + job.getStringArgs(0) + "] has already started an indexing job.");
 				return null;
@@ -196,28 +197,10 @@ public class JobService extends AbstractService implements JobExecutor {
 		long myJobId = jobIdIncrement.getAndIncrement();
 		logger.debug("### OFFER Job-{}", myJobId);
 
-		if (job instanceof FullIndexJob || job instanceof IncIndexJob) {
+		if (job instanceof IndexingJob) {
 			indexingMutex.access(myJobId, job);
-			DBService dbHandler = DBService.getInstance();
-			String collection = job.getStringArgs(0);
-			logger.debug("job={}, collection={}", job, collection);
-
-			String indexingType = "-";
-			if (job instanceof FullIndexJob)
-				indexingType = "F";
-			else if (job instanceof IncIndexJob)
-				indexingType = "I";
-
-			dbHandler.getDAO("IndexingResult", IndexingResult.class).update(collection, indexingType,
-					IndexingResult.STATUS_RUNNING, -1, -1, -1, job.isScheduled(), new Timestamp(System.currentTimeMillis()),
-					null, 0);
-			// dbHandler.commit();
 		}
-		// job.setId(myJobId);
-		// jobQueue.offer(job);
-		//
-		// return jobResult;
-
+		
 		if (job.isNoResult()) {
 			job.setId(myJobId);
 			jobQueue.offer(job);
@@ -244,7 +227,7 @@ public class JobService extends AbstractService implements JobExecutor {
 		// FIXME 색인서버와 DB정보 입력서버(마스터)는 다를수 있으므로, JobService에서 DB에 직접입력하지 않는다.
 		// 호출한 Job에서 수행.
 		//
-		if (job instanceof FullIndexJob || job instanceof IncIndexJob) {
+		if (job instanceof IndexingJob) {
 			indexingMutex.release(jobId);
 			// DBService dbHandler = DBService.getInstance();
 			String collection = job.getStringArgs(0);

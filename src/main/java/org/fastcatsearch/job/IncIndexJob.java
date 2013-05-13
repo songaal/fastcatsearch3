@@ -40,7 +40,7 @@ import org.fastcatsearch.settings.IRSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class IncIndexJob extends Job {
+public class IncIndexJob extends IndexingJob {
 
 	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 	

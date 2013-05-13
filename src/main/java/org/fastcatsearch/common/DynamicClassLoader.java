@@ -132,7 +132,7 @@ public class DynamicClassLoader {
 				return clazz;
 			}
 		}catch(ClassNotFoundException ignore){
-			logger.warn("Default classloader cannot find {}", className);
+			
 		}
 		
 		synchronized(classLoaderList){
@@ -150,6 +150,8 @@ public class DynamicClassLoader {
 				}
 			}
 		}
+		
+		logger.warn("Classloader cannot find {}", className);
 		return null;
 	}
 	

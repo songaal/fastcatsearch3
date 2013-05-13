@@ -39,6 +39,10 @@ public abstract class Job implements Runnable, Serializable{
 	protected boolean isScheduled;
 	protected boolean noResult; //결과가 필요없는 단순 호출 작업
 	
+	protected long startTime;
+	protected long endTime;
+	
+	
 	public void setEnvironment(Environment environment) {
 		this.environment = environment;
 	}
@@ -93,23 +97,39 @@ public abstract class Job implements Runnable, Serializable{
 		return noResult;
 	}
 	
+	public long startTime(){
+		return startTime;
+	}
+	
+	public long endTime(){
+		return endTime;
+	}
+	
+	public long duration(){
+		return endTime - startTime;
+	}
 	public abstract JobResult doRun() throws JobException, ServiceException;
 
 	static AtomicInteger count = new AtomicInteger();
 	public final void run(){
-		long st = System.currentTimeMillis();
+		startTime = System.currentTimeMillis();
+		endTime = 0;
 		try {
+			jobExecutor.jobHandler().handleStart(this);
+			
 			JobResult jobResult = doRun();
+			endTime = System.currentTimeMillis();
+			jobExecutor.jobHandler().handleFinish(this, jobResult);
 			
 			if(jobExecutor == null){
 				throw new JobException("결과를 반환할 jobExecutor가 없습니다.");
 			}
 			
 			if(jobId != -1){
-				if(System.currentTimeMillis() - st > 2000){
-					
-					logger.info("job-{} / {} time={}", new Object[]{jobId, count.incrementAndGet(), System.currentTimeMillis() - st});
-				}
+//				if(System.currentTimeMillis() - endTime > 2000){
+//					logger.info("job-{} / {} time={}", new Object[]{jobId, count.incrementAndGet(), System.currentTimeMillis() - st});
+//				}
+				
 				logger.debug("Job#{} result = {}", jobId, jobResult);
 				jobExecutor.result(this, jobResult.result, jobResult.isSuccess);
 				
@@ -124,10 +144,12 @@ public abstract class Job implements Runnable, Serializable{
 //			logger.info("Done job-{} / {}", jobId, jobExecutor.runningJobSize());
 		} catch (OutOfMemoryError e){
 			jobExecutor.result(this, e, false);
-			EventDBLogger.error(EventDBLogger.CATE_MANAGEMENT, "메모리부족 에러가 발생했습니다.", EventDBLogger.getStackTrace(e));
+			jobExecutor.jobHandler().handleError(this, e);
+			//EventDBLogger.error(EventDBLogger.CATE_MANAGEMENT, "메모리부족 에러가 발생했습니다.", EventDBLogger.getStackTrace(e));
 			logError(e);
 		} catch (Throwable e){
 			jobExecutor.result(this, e, false);
+			jobExecutor.jobHandler().handleError(this, e);
 			logError(e);
 		}
 //		if(jobExecutor.runningJobSize() == 0){

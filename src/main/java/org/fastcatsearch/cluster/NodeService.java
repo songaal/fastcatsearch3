@@ -149,6 +149,18 @@ public class NodeService extends AbstractService {
 		return myNode.equals(node);
 	}
 	
+	public ResultFuture sendRequestToMaster(final Job job) {
+		if(masterNode.equals(myNode)){
+			return JobService.getInstance().offer(job);
+		}
+		try{
+			return transportModule.sendRequest(masterNode, job);
+		}catch(TransportException e){
+			logger.error("sendRequest 에러", e);
+		}
+		return null;
+	}
+	
 	public ResultFuture sendRequest(final Node node, final Job job) {
 		if(node.equals(myNode)){
 			return JobService.getInstance().offer(job);

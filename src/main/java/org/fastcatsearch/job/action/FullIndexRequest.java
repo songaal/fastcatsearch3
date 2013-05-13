@@ -12,12 +12,13 @@ import org.fastcatsearch.data.DataStrategy;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.dao.IndexingHistory;
 import org.fastcatsearch.db.dao.IndexingResult;
-import org.fastcatsearch.job.Job;
+import org.fastcatsearch.job.IndexingJob;
+import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.job.NodeFullIndexJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceException;
 
-public class FullIndexRequest extends Job {
+public class FullIndexRequest extends IndexingJob {
 
 	@Override
 	public JobResult doRun() throws JobException, ServiceException {
