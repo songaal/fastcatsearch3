@@ -53,25 +53,6 @@ public class DBService extends AbstractService {
 	public final static String DB_NAME = "db";
 	private String JDBC_URL;
 
-	// public IndexingResult IndexingResult;
-	// public SynonymDictionary SynonymDictionary;
-	// public IndexingSchedule IndexingSchedule;
-	// public IndexingHistory IndexingHistory;
-	// public JobHistory JobHistory;
-	// public SearchEvent SearchEvent;
-	// public UserDictionary CustomDictionary;
-	// public BannedDictionary BannedDictionary;
-	// public BasicDictionary BasicDictionary;
-	// public KeywordHit KeywordHit;
-	// public KeywordFail KeywordFail;
-	// public RecommendKeyword RecommendKeyword;
-	//
-	// // 모니터링.
-	// public SystemMonInfoMinute SystemMonInfoMinute;
-	// public SystemMonitoringInfo SystemMonInfoHDWMY;
-	// public SearchMonInfoMinute SearchMonInfoMinute;
-	// public SearchMonitoringInfo SearchMonInfoHDWMY;
-
 	protected static DBService instance;
 
 	private Map<String, DAOBase> daoMap;
