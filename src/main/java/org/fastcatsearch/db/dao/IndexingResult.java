@@ -23,9 +23,12 @@ import org.fastcatsearch.db.vo.IndexingResultVO;
 
 public class IndexingResult extends DAOBase {
 
-	public static int STATUS_FAIL = -1;
-	public static int STATUS_SUCCESS = 0;
-	public static int STATUS_RUNNING = 1;
+	public final static String TYPE_FULL_INDEXING = "F";
+	public final static String TYPE_INC_INDEXING = "I";
+	
+	public final static int STATUS_FAIL = -1;
+	public final static int STATUS_SUCCESS = 0;
+	public final static int STATUS_RUNNING = 1;
 
 	public IndexingResult(ConnectionManager connectionManager) {
 		super(connectionManager);
@@ -82,22 +85,9 @@ public class IndexingResult extends DAOBase {
 
 		String checkSQL = "select count(collection) from " + tableName + " where collection=? and type=?";
 
-		Connection conn = null;
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-
 		try {
-			conn = conn();
-			pstmt = conn.prepareStatement(checkSQL);
-			int parameterIndex = 1;
-			pstmt.setString(parameterIndex++, collection);
-			pstmt.setString(parameterIndex++, type);
-			rs = pstmt.executeQuery();
-			int count = 0;
-			if (rs.next()) {
-				count = rs.getInt(1);
-			}
-
+			int count = selectInteger(checkSQL, collection, type);
+			
 			if (count > 0) {
 				return update(collection, type, status, docSize, updateSize, deleteSize, isScheduled, startTime, endTime,
 						duration);
@@ -109,9 +99,6 @@ public class IndexingResult extends DAOBase {
 		} catch (SQLException e) {
 			logger.error(e.getMessage(), e);
 			return -1;
-		} finally {
-			releaseResource(pstmt, rs);
-			releaseConnection(conn);
 		}
 	}
 
@@ -181,6 +168,37 @@ public class IndexingResult extends DAOBase {
 		}
 	}
 
+	public int updateResult(String collection, String type, int status, int docSize, int updateSize, int deleteSize,
+			Timestamp endTime, int duration) {
+		String updateSQL = "update " + tableName
+				+ " set status=?, docSize=?, updateSize=?, deleteSize=?, endTime=?, duration=? "
+				+ "where collection=? and type=?";
+
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+
+		try {
+			conn = conn();
+			pstmt = conn.prepareStatement(updateSQL);
+			int parameterIndex = 1;
+			pstmt.setShort(parameterIndex++, (short) status);
+			pstmt.setInt(parameterIndex++, docSize);
+			pstmt.setInt(parameterIndex++, updateSize);
+			pstmt.setInt(parameterIndex++, deleteSize);
+			pstmt.setTimestamp(parameterIndex++, endTime);
+			pstmt.setInt(parameterIndex++, duration);
+			pstmt.setString(parameterIndex++, collection);
+			pstmt.setString(parameterIndex++, type);
+			return pstmt.executeUpdate();
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
+			return -1;
+		} finally {
+			releaseResource(pstmt);
+			releaseConnection(conn);
+		}
+	}
+	
 	public IndexingResultVO select(String collection, String type) {
 		String selectSQL = "select collection, type, status, docSize, updateSize, deleteSize, isScheduled, startTime, endTime, duration from "
 				+ tableName + " " + "where collection=? and type=?";

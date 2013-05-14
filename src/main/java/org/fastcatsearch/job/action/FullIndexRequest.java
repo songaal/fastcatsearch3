@@ -1,6 +1,5 @@
 package org.fastcatsearch.job.action;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 import org.fastcatsearch.cluster.Node;
@@ -9,11 +8,7 @@ import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.data.DataService;
 import org.fastcatsearch.data.DataStrategy;
-import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.dao.IndexingHistory;
-import org.fastcatsearch.db.dao.IndexingResult;
 import org.fastcatsearch.job.IndexingJob;
-import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.job.NodeFullIndexJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceException;
@@ -31,14 +26,6 @@ public class FullIndexRequest extends IndexingJob {
 			throw new JobException("색인할 노드가 정의되어있지 않습니다.");
 		}
 		
-		String indexingType = "F";
-		//전체색인시는 증분색인 정보를 클리어해준다.
-		IndexingResult indexingResult = DBService.getInstance().getDAO("IndexingResult");
-		indexingResult.delete(collectionId, "I");
-		indexingResult.update(collectionId, indexingType, IndexingResult.STATUS_RUNNING, -1, -1, -1, isScheduled(), new Timestamp(System.currentTimeMillis()), null, 0);
-		
-		IndexingHistory indexingHistory = DBService.getInstance().getDAO("IndexingHistory");
-		
 		//
 		//TODO 어느 노드로 색인할지 고른다.
 		//현 버전에서는 일단 첫번째 노드로 색인.
@@ -51,25 +38,16 @@ public class FullIndexRequest extends IndexingJob {
 		long et = System.currentTimeMillis();
 		Object result = resultFuture.take();
 		if(!resultFuture.isSuccess()){
-			
-			indexingResult.updateOrInsert(collectionId, indexingType, IndexingResult.STATUS_FAIL, 0, 0, 0, isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
-			indexingHistory.insert(collectionId, indexingType, false, 0, 0, 0, isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
-			
 			if(result instanceof Throwable){
 				throw new JobException("색인노드에서 전체색인중 에러발생.", (Throwable) result);
 			}else{
 				throw new JobException("색인노드에서 전체색인중 에러발생.");
 			}
 		}
-		
-		//DBService를 통해 색인결과를 입력한다.
-		//FIXME 차후 결과입력 로직은 해당 DAO가 가지고 있도록 한다.
+
 		IndexingJobResult indexingJobResult = (IndexingJobResult) result;
-		indexingResult.updateOrInsert(collectionId, indexingType, IndexingResult.STATUS_SUCCESS, indexingJobResult.docSize, indexingJobResult.updateSize, indexingJobResult.deleteSize, isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
-		indexingHistory.insert(collectionId, indexingType, true, indexingJobResult.docSize, indexingJobResult.updateSize, indexingJobResult.deleteSize, isScheduled(), new Timestamp(st), new Timestamp(et), (int)(et-st));
 		
-		
-		return new JobResult(indexingJobResult.toString());
+		return new JobResult(indexingJobResult);
 	}
 
 }

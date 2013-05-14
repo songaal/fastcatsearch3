@@ -2,6 +2,7 @@ package org.fastcatsearch.control;
 
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.db.dao.IndexingResult;
 import org.fastcatsearch.job.FullIndexJob;
 import org.fastcatsearch.job.IncIndexJob;
 import org.fastcatsearch.job.IndexingJob;
@@ -10,6 +11,7 @@ import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.job.action.FullIndexRequest;
 import org.fastcatsearch.job.notification.IndexingFinishNotification;
 import org.fastcatsearch.job.notification.IndexingStartNotification;
+import org.fastcatsearch.transport.vo.StreamableThrowable;
 
 public class JobHandler {
 
@@ -22,6 +24,16 @@ public class JobHandler {
 	
 	public void handleError(Job job, Throwable e) {
 		
+		if(job instanceof IndexingJob){
+			String collection = job.getStringArgs(0);
+			String indexingType = "-";
+			if (job instanceof FullIndexJob || job instanceof FullIndexRequest){
+				indexingType = IndexingResult.TYPE_FULL_INDEXING;
+			}else if (job instanceof IncIndexJob){
+				indexingType = IndexingResult.TYPE_INC_INDEXING;
+			}
+			nodeService.sendRequestToMaster(new IndexingFinishNotification(collection, indexingType, false, job.startTime(), job.endTime(), new StreamableThrowable(e)));
+		}
 	}
 
 	public void handleStart(Job job) {
@@ -30,13 +42,13 @@ public class JobHandler {
 			String collection = job.getStringArgs(0);
 			String indexingType = "-";
 			if (job instanceof FullIndexJob || job instanceof FullIndexRequest){
-				indexingType = "F";
+				indexingType = IndexingResult.TYPE_FULL_INDEXING;
 			}else if (job instanceof IncIndexJob){
-				indexingType = "I";
+				indexingType = IndexingResult.TYPE_INC_INDEXING;
 			}
 	
 			//결과는 무시한다.
-			nodeService.sendRequestToMaster(new IndexingStartNotification(collection, indexingType, job.startTime()));
+			nodeService.sendRequestToMaster(new IndexingStartNotification(collection, indexingType, job.startTime(), job.isScheduled()));
 		}
 	}
 
@@ -45,9 +57,9 @@ public class JobHandler {
 			String collection = job.getStringArgs(0);
 			String indexingType = "-";
 			if (job instanceof FullIndexJob || job instanceof FullIndexRequest){
-				indexingType = "F";
+				indexingType = IndexingResult.TYPE_FULL_INDEXING;
 			}else if (job instanceof IncIndexJob){
-				indexingType = "I";
+				indexingType = IndexingResult.TYPE_INC_INDEXING;
 			}
 			boolean isSuccess = jobResult.isSuccess();
 			Streamable result = (Streamable) jobResult.result();

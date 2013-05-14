@@ -165,26 +165,28 @@ public abstract class DAOBase {
 		return -1;
 	}
 
-	public int selectInteger(String selectQuery) throws SQLException {
-		int value = -1;
-		Statement stmt = null;
+	public int selectInteger(String selectQuery, Object... params) throws SQLException {
 		ResultSet rs = null;
+		PreparedStatement pstmt = null;
 		Connection conn = null;
 		try {
 			conn = conn();
-			stmt = conn.createStatement();
-			rs = stmt.executeQuery(selectQuery);
+			pstmt = conn.prepareStatement(selectQuery);
+			if(params != null){
+				setParameters(pstmt, params);
+			}
+			rs = pstmt.executeQuery();
 
 			if (rs.next()) {
-				value = rs.getInt(1);
+				return rs.getInt(1);
 			}
 
 		} finally {
-			releaseResource(stmt, rs);
+			releaseResource(rs, pstmt);
 			releaseConnection(conn);
 		}
 
-		return value;
+		return -1;
 	}
 
 	public int executeUpdate(String updateQuery, Object... params) throws SQLException {
@@ -193,23 +195,7 @@ public abstract class DAOBase {
 		try {
 			conn = conn();
 			pstmt = conn.prepareStatement(updateQuery);
-			int parameterIndex = 1;
-			for (int i = 0; i < params.length; i++) {
-				Object param = params[i];
-				if (param instanceof Integer) {
-					pstmt.setInt(parameterIndex++, (Integer) param);
-				} else if (param instanceof Float) {
-					pstmt.setFloat(parameterIndex++, (Float) param);
-				} else if (param instanceof Double) {
-					pstmt.setDouble(parameterIndex++, (Double) param);
-				} else if (param instanceof Long) {
-					pstmt.setLong(parameterIndex++, (Long) param);
-				} else if (param instanceof Timestamp) {
-					pstmt.setTimestamp(parameterIndex++, (Timestamp) param);
-				} else {
-					pstmt.setString(parameterIndex++, (String) param);
-				}
-			}
+			setParameters(pstmt, params);
 			return pstmt.executeUpdate(updateQuery);
 		} finally {
 			releaseResource(pstmt);
@@ -217,6 +203,27 @@ public abstract class DAOBase {
 		}
 	}
 
+	//PreparedStatement 에 파라미터 셋팅.
+	private void setParameters(PreparedStatement pstmt, Object... params) throws SQLException{
+		int parameterIndex = 1;
+		for (int i = 0; i < params.length; i++) {
+			Object param = params[i];
+			if (param instanceof Integer) {
+				pstmt.setInt(parameterIndex, (Integer) param);
+			} else if (param instanceof Float) {
+				pstmt.setFloat(parameterIndex, (Float) param);
+			} else if (param instanceof Double) {
+				pstmt.setDouble(parameterIndex, (Double) param);
+			} else if (param instanceof Long) {
+				pstmt.setLong(parameterIndex, (Long) param);
+			} else if (param instanceof Timestamp) {
+				pstmt.setTimestamp(parameterIndex, (Timestamp) param);
+			} else {
+				pstmt.setString(parameterIndex, (String) param);
+			}
+		}
+	}
+	
 	public int executeUpdate(String updateQuery) throws SQLException {
 		Connection conn = null;
 		Statement stmt = null;

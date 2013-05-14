@@ -122,7 +122,7 @@ public abstract class Job implements Runnable, Serializable{
 			jobExecutor.jobHandler().handleFinish(this, jobResult);
 			
 			if(jobExecutor == null){
-				throw new JobException("결과를 반환할 jobExecutor가 없습니다.");
+				logger.error("결과를 반환할 jobExecutor가 없습니다. job={}", this);
 			}
 			
 			if(jobId != -1){
