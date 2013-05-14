@@ -6,9 +6,9 @@ import java.sql.SQLException;
 
 public class ConnectionManager {
 	
-	String jdbcUrl;
-	String user;
-	String password;
+	private String jdbcUrl;
+	private String user;
+	private String password;
 	
 	public ConnectionManager(String jdbcUrl){
 		this(jdbcUrl, null, null);

@@ -40,6 +40,13 @@ public class IndexingFinishNotification extends StreamableJob {
 	@Override
 	public JobResult doRun() throws JobException, ServiceException {
 
+		//색인 결과를 기록할때 에러발생하여 너무 빨리 작업이 끝난경우 finish가 start보다 먼저 기록되어 상태가 "색인중"으로 남을 수 있기 때문에 잠시쉬어준다.
+		//색인알림은 리턴을 기다리지 않기때문에 조금 지연되어도 문제없다. @swsong
+		try {
+			Thread.sleep(300);
+		} catch (InterruptedException ignore) {
+		}
+		
 		DBService dbService = ServiceManager.getInstance().getService(DBService.class);
 		if (dbService != null) {
 			IndexingResult indexingResult = dbService.getDAO("IndexingResult", IndexingResult.class);
@@ -54,10 +61,10 @@ public class IndexingFinishNotification extends StreamableJob {
 						(int) (endTime - startTime));
 			} else {
 				
-				indexingResult.updateResult(collection, indexingType, IndexingResult.STATUS_FAIL, -1, -1, -1, new Timestamp(endTime),
+				indexingResult.updateResult(collection, indexingType, IndexingResult.STATUS_FAIL, 0, 0, 0, new Timestamp(endTime),
 						(int) (endTime - startTime));
 				
-				indexingHistory.insert(collection, indexingType, false, -1, -1, -1, isScheduled(), new Timestamp(startTime),
+				indexingHistory.insert(collection, indexingType, false, 0, 0, 0, isScheduled(), new Timestamp(startTime),
 						new Timestamp(endTime), (int) (endTime - startTime));
 			}
 

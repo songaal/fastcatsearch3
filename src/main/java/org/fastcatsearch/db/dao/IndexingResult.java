@@ -59,7 +59,7 @@ public class IndexingResult extends DAOBase {
 		}
 	}
 
-	public int repairStatus() throws SQLException {
+	public synchronized int repairStatus() throws SQLException {
 		String repairSQL = "update " + tableName + " set status = " + IndexingResult.STATUS_FAIL + "  where status = "
 				+ IndexingResult.STATUS_RUNNING;
 
@@ -102,7 +102,7 @@ public class IndexingResult extends DAOBase {
 		}
 	}
 
-	public int insert(String collection, String type, int status, int docSize, int updateSize, int deleteSize,
+	public synchronized int insert(String collection, String type, int status, int docSize, int updateSize, int deleteSize,
 			boolean isScheduled, Timestamp startTime, Timestamp endTime, int duration) {
 		String insertSQL = "insert into "
 				+ tableName
@@ -135,12 +135,11 @@ public class IndexingResult extends DAOBase {
 		}
 	}
 
-	public int update(String collection, String type, int status, int docSize, int updateSize, int deleteSize,
+	public synchronized int update(String collection, String type, int status, int docSize, int updateSize, int deleteSize,
 			boolean isScheduled, Timestamp startTime, Timestamp endTime, int duration) {
 		String updateSQL = "update " + tableName
 				+ " set status=?, docSize=?, updateSize=?, deleteSize=?, isScheduled=?, startTime=?, endTime=?, duration=? "
 				+ "where collection=? and type=?";
-
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 
@@ -168,7 +167,7 @@ public class IndexingResult extends DAOBase {
 		}
 	}
 
-	public int updateResult(String collection, String type, int status, int docSize, int updateSize, int deleteSize,
+	public synchronized int updateResult(String collection, String type, int status, int docSize, int updateSize, int deleteSize,
 			Timestamp endTime, int duration) {
 		String updateSQL = "update " + tableName
 				+ " set status=?, docSize=?, updateSize=?, deleteSize=?, endTime=?, duration=? "
@@ -242,7 +241,7 @@ public class IndexingResult extends DAOBase {
 		return r;
 	}
 
-	public int delete(String collection, String type) {
+	public synchronized int delete(String collection, String type) {
 		String deleteSQL = "delete from " + tableName + " where collection=? and type=?";
 
 		Connection conn = null;
