@@ -52,7 +52,7 @@ public class IndexingSchedule extends DAOBase {
 		}
 	}
 
-	public int delete(String collection) {
+	public synchronized int delete(String collection) {
 		Connection conn = null;
 		int result = 0;
 		PreparedStatement pstmt = null;
@@ -72,7 +72,7 @@ public class IndexingSchedule extends DAOBase {
 		return result;
 	}
 
-	public int deleteByType(String collection, String type) {
+	public synchronized int deleteByType(String collection, String type) {
 		String deleteSQL = "delete from " + tableName + " where collection = ? and type = ? ";
 
 		int result = 0;
@@ -94,7 +94,7 @@ public class IndexingSchedule extends DAOBase {
 		return result;
 	}
 
-	public int updateOrInsert(String collection, String type, int period, Timestamp startTime, boolean isActive) {
+	public synchronized int updateOrInsert(String collection, String type, int period, Timestamp startTime, boolean isActive) {
 		String checkSQL = "select count(collection) from " + tableName + " " + "where collection=? and type=?";
 
 		Connection conn = null;
@@ -129,7 +129,7 @@ public class IndexingSchedule extends DAOBase {
 		return result;
 	}
 
-	public int updateStatus(String collection, String type, boolean isActive) {
+	public synchronized int updateStatus(String collection, String type, boolean isActive) {
 		int result = -1;
 		String updateSQL = "update " + tableName + " set isActive=? " + "where collection=? and type=?";
 
@@ -154,7 +154,7 @@ public class IndexingSchedule extends DAOBase {
 		return result;
 	}
 
-	public int insert(String collection, String type, int period, Timestamp startTime, boolean isActive) {
+	public synchronized int insert(String collection, String type, int period, Timestamp startTime, boolean isActive) {
 		int result = -1;
 		String insertSQL = "insert into " + tableName + "(collection, type, period, startTime, isActive) values (?,?,?,?,?)";
 
@@ -181,7 +181,7 @@ public class IndexingSchedule extends DAOBase {
 		return result;
 	}
 
-	public int update(String collection, String type, int period, Timestamp startTime, boolean isActive) {
+	public synchronized int update(String collection, String type, int period, Timestamp startTime, boolean isActive) {
 		int result = -1;
 		String updateSQL = "update " + tableName + " set period=?, startTime=?, isActive=? " + "where collection=? and type=?";
 		PreparedStatement pstmt = null;

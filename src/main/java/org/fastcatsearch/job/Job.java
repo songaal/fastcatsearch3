@@ -111,51 +111,50 @@ public abstract class Job implements Runnable, Serializable{
 	public abstract JobResult doRun() throws JobException, ServiceException;
 
 	static AtomicInteger count = new AtomicInteger();
+	
 	public final void run(){
 		startTime = System.currentTimeMillis();
-		endTime = 0;
+		JobResult jobResult = null;
+		Throwable throwable = null;
 		try {
 			jobExecutor.jobHandler().handleStart(this);
 			
-			JobResult jobResult = doRun();
-			endTime = System.currentTimeMillis();
-			jobExecutor.jobHandler().handleFinish(this, jobResult);
+			jobResult = doRun();
 			
 			if(jobExecutor == null){
 				logger.error("결과를 반환할 jobExecutor가 없습니다. job={}", this);
 			}
 			
 			if(jobId != -1){
-//				if(System.currentTimeMillis() - endTime > 2000){
-//					logger.info("job-{} / {} time={}", new Object[]{jobId, count.incrementAndGet(), System.currentTimeMillis() - st});
-//				}
 				
 				logger.debug("Job#{} result = {}", jobId, jobResult);
 				jobExecutor.result(this, jobResult.result, jobResult.isSuccess);
 				
 				Object result = jobResult.result;
 				if(result != null && result instanceof Throwable){
-					Throwable e = (Throwable) result;
-					logError(e);
+					throwable = (Throwable) result;
 				}
 			}else{
 				logger.error("## 결과에 jobId가 없습니다. job={}, result={}", this, jobResult);
 			}
 //			logger.info("Done job-{} / {}", jobId, jobExecutor.runningJobSize());
 		} catch (OutOfMemoryError e){
+			throwable = e;
 			jobExecutor.result(this, e, false);
-			jobExecutor.jobHandler().handleError(this, e);
 			//EventDBLogger.error(EventDBLogger.CATE_MANAGEMENT, "메모리부족 에러가 발생했습니다.", EventDBLogger.getStackTrace(e));
-			logError(e);
 		} catch (Throwable e){
+			throwable = e;
 			jobExecutor.result(this, e, false);
-			jobExecutor.jobHandler().handleError(this, e);
-			logError(e);
+		} finally {
+			endTime = System.currentTimeMillis();
+			if(throwable != null){
+				logError(throwable);
+				jobExecutor.jobHandler().handleError(this, throwable);
+			}else{
+				jobExecutor.jobHandler().handleFinish(this, jobResult);
+			}
 		}
-//		if(jobExecutor.runningJobSize() == 0){
-//			//마지막 작업은 로그찍어준다.
-//			logger.info("Result runningJobSize[{}], inQueueJobSize[{}]", jobExecutor.runningJobSize(), jobExecutor.inQueueJobSize());
-//		}
+
 	}
 	
 	protected void logError(Throwable e){

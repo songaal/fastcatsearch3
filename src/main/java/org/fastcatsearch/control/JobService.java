@@ -222,48 +222,10 @@ public class JobService extends AbstractService implements JobExecutor {
 			logger.debug("### ResultFuture = {} / map={} / job={} / result={} / success= {}", new Object[] { resultFuture,
 					resultFutureMap.size(), job.getClass().getSimpleName(), result, isSuccess });
 		}
-
-		//
-		// FIXME 색인서버와 DB정보 입력서버(마스터)는 다를수 있으므로, JobService에서 DB에 직접입력하지 않는다.
-		// 호출한 Job에서 수행.
-		//
+		
 		if (job instanceof IndexingJob) {
 			indexingMutex.release(jobId);
-			// DBService dbHandler = DBService.getInstance();
-			String collection = job.getStringArgs(0);
-			logger.debug("job={}, colletion={}", job, collection);
-
-			String indexingType = "-";
-			if (job instanceof FullIndexJob) {
-				indexingType = "F";
-				// 전체색인시는 증분색인 정보를 클리어해준다.
-				// dbHandler.IndexingResult.delete(collection, "I");
-			} else if (job instanceof IncIndexJob) {
-				indexingType = "I";
-			}
-			// int status = isSuccess ? IndexingResult.STATUS_SUCCESS :
-			// IndexingResult.STATUS_FAIL;
-			// if(result instanceof IndexingResult){
-			// IndexingResult jobResultIndex = (IndexingResult)result;
-			// dbHandler.IndexingResult.updateOrInsert(collection, indexingType,
-			// status, jobResultIndex.docSize, jobResultIndex.updateSize,
-			// jobResultIndex.deleteSize, job.isScheduled(), new Timestamp(st),
-			// new Timestamp(et), (int)(et-st));
-			// dbHandler.IndexingHistory.insert(collection, indexingType,
-			// isSuccess, jobResultIndex.docSize, jobResultIndex.updateSize,
-			// jobResultIndex.deleteSize, job.isScheduled(), new Timestamp(st),
-			// new Timestamp(et), (int)(et-st));
-			// }else{
-			// dbHandler.IndexingResult.updateOrInsert(collection, indexingType,
-			// status, 0, 0, 0, job.isScheduled(), new Timestamp(st), new
-			// Timestamp(et), (int)(et-st));
-			// dbHandler.IndexingHistory.insert(collection, indexingType,
-			// isSuccess, 0, 0, 0, job.isScheduled(), new Timestamp(st), new
-			// Timestamp(et), (int)(et-st));
-			// }
-			// dbHandler.commit();
 		}
-		// }
 
 		if (resultFuture != null) {
 			resultFuture.put(result, isSuccess);
