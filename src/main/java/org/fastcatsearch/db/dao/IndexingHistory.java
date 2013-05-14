@@ -61,7 +61,7 @@ public class IndexingHistory extends DAOBase {
 			conn = conn();
 			String insertSQL = "insert into "
 					+ tableName
-					+ "(collection, type, isSuccess, docSize, updateSize, deleteSize, isScheduled, startTime, endTime, duration) values (?,?,?,?,?,?,?,?,?,?,?)";
+					+ "(collection, type, isSuccess, docSize, updateSize, deleteSize, isScheduled, startTime, endTime, duration) values (?,?,?,?,?,?,?,?,?,?)";
 			pstmt = conn.prepareStatement(insertSQL);
 			int parameterIndex = 1;
 			pstmt.setString(parameterIndex++, collection);

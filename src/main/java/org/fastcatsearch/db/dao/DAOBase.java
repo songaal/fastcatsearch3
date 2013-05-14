@@ -209,17 +209,17 @@ public abstract class DAOBase {
 		for (int i = 0; i < params.length; i++) {
 			Object param = params[i];
 			if (param instanceof Integer) {
-				pstmt.setInt(parameterIndex, (Integer) param);
+				pstmt.setInt(parameterIndex++, (Integer) param);
 			} else if (param instanceof Float) {
-				pstmt.setFloat(parameterIndex, (Float) param);
+				pstmt.setFloat(parameterIndex++, (Float) param);
 			} else if (param instanceof Double) {
-				pstmt.setDouble(parameterIndex, (Double) param);
+				pstmt.setDouble(parameterIndex++, (Double) param);
 			} else if (param instanceof Long) {
-				pstmt.setLong(parameterIndex, (Long) param);
+				pstmt.setLong(parameterIndex++, (Long) param);
 			} else if (param instanceof Timestamp) {
-				pstmt.setTimestamp(parameterIndex, (Timestamp) param);
+				pstmt.setTimestamp(parameterIndex++, (Timestamp) param);
 			} else {
-				pstmt.setString(parameterIndex, (String) param);
+				pstmt.setString(parameterIndex++, (String) param);
 			}
 		}
 	}
