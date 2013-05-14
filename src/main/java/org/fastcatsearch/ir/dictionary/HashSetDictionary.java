@@ -5,9 +5,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.lucene.store.DataInput;
@@ -95,5 +97,18 @@ public class HashSetDictionary extends SourceDictionary implements ReadableDicti
 		for(int entryInx=0;entryInx < size; entryInx++) {
 			set.add(new CharVector(input.readString()));
 		}
+	}
+
+	@Override
+	public List<CharVector> find(CharVector token) {
+		if(set.contains(token)) {
+			Arrays.asList(new CharVector[] { token });
+		}
+		return null;
+	}
+
+	@Override
+	public int size() {
+		return set.size();
 	}
 }

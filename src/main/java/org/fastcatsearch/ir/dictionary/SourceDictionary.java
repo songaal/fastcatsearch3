@@ -8,10 +8,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import org.fastcatsearch.ir.dic.Dictionary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class SourceDictionary implements WritableDictionary {
+public abstract class SourceDictionary extends Dictionary implements WritableDictionary {
 	protected static Logger logger = LoggerFactory.getLogger(SourceDictionary.class);
 
 	public void loadSource(File file) {

@@ -6,10 +6,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -176,5 +178,18 @@ public class ListMapDictionary extends SourceDictionary implements ReadableDicti
 		for(int entryInx=0;entryInx < size; entryInx++) {
 			synonymSet.add(new CharVector(input.readString()));
 		}
+	}
+
+	@Override
+	public List<CharVector> find(CharVector token) {
+		if(map.containsKey(token)) {
+			return Arrays.asList(map.get(token));
+		}
+		return null;
+	}
+
+	@Override
+	public int size() {
+		return map.size();
 	}
 }
