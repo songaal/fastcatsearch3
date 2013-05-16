@@ -2,6 +2,7 @@ package org.fastcatsearch.db.dao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 public class BatchContext {
 	private Connection conn;
@@ -29,5 +30,19 @@ public class BatchContext {
 		return ++batchCount;
 	}
 
+	public void close(){
+		if(pstmt != null){
+			try {
+				pstmt.close();
+			} catch (SQLException ignore) {
+			}
+		}
+		if(conn != null){
+			try {
+				conn.close();
+			} catch (SQLException ignore) {
+			}
+		}
+	}
 	
 }

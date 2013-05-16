@@ -276,6 +276,7 @@ public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictiona
 
 		} catch (SQLException e) {
 			logger.error(e.getMessage(), e);
+			batchContext.close();
 			return -1;
 		}
 	}

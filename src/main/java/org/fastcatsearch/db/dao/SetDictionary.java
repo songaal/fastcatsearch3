@@ -74,33 +74,31 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 		}
 	}
 	
-	public PreparedStatement startInsertBatch() {
+	public BatchContext startInsertBatch() {
 		PreparedStatement pstmt = null;
 		Connection conn = null;
+
 		try {
 			String insertSQL = "insert into " + tableName + "(keyword) values (?)";
 			conn = conn();
 			pstmt = conn.prepareStatement(insertSQL);
-			return pstmt;
+			return new BatchContext(conn, pstmt);
 		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
 			return null;
-		} finally {
-			releaseResource(pstmt);
-			releaseConnection(conn);
 		}
 	}
-
-	public boolean endInsertBatch(PreparedStatement pstmt) {
-		Connection conn = null;
+	
+	public boolean endInsertBatch(BatchContext batchContext) {
+		Connection conn = batchContext.getConnection();
+		PreparedStatement pstmt = batchContext.getPreparedStatement();
 		try {
-			conn = conn();
 			int[] update_Count = pstmt.executeBatch();
-			conn.commit();
-			pstmt.close();
 			return true;
 		} catch (SQLException e) {
 			logger.error(e.getMessage(), e);
 		} finally {
+			releaseResource(pstmt);
 			releaseConnection(conn);
 		}
 		return false;
@@ -125,6 +123,7 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 
 		} catch (SQLException e) {
 			logger.error(e.getMessage(), e);
+			batchContext.close();
 			return -1;
 		}
 	}

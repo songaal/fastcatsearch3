@@ -35,6 +35,10 @@ public class PluginSetting {
 	@XmlElement
 	Web web;
 
+	@XmlElementWrapper(name = "analyzer-list")
+	@XmlElement
+	List<Analyzer> analyzerList;
+	
 	@XmlElement
 	DB db;
 
@@ -110,6 +114,34 @@ public class PluginSetting {
 		}
 	}
 
+	@XmlRootElement
+	public static class Analyzer {
+		String id;
+		String name;
+		String value;
+		
+		@XmlAttribute
+		public String getId() {
+			return id;
+		}
+		@XmlAttribute
+		public String getName() {
+			return name;
+		}
+		@XmlValue
+		public String getValue() {
+			return value;
+		}
+		public void setId(String id) {
+			this.id = id;
+		}
+		public void setName(String name) {
+			this.name = name;
+		}
+		public void setValue(String value) {
+			this.value = value;
+		}
+	}
 	@XmlRootElement(name = "db")
 	public static class DB {
 		List<DAO> daoList;

@@ -123,6 +123,7 @@ public class WebService extends AbstractService{
 					webapp.setTempDirectory(workDir);
 					webapp.getServletContext().setAttribute("FASTCAT_MANAGE_ROOT", webapp.getContextPath());
 					webapp.getServletContext().setAttribute("FASTCAT_SEARCH_ROOT", "");
+					webapp.setClassLoader(getClass().getClassLoader());
 			        handlerList.addHandler(webapp);
 		        }
 			}

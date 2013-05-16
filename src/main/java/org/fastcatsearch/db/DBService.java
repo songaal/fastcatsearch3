@@ -112,15 +112,6 @@ public class DBService extends AbstractService {
 
 			// try {
 			connectionManager = new ConnectionManager(JDBC_URL, null, null);
-			// conn = DriverManager.getConnection(JDBC_URL);
-			// } catch (SQLException e) {
-			// logger.info("DBHandler create and init DB!");
-			// // if DB is not created.
-			// conn = createDB(JDBC_URL, null, null);
-			// if (conn == null) {
-			// throw new ServiceException("내부 DB로의 연결을 생성할수 없습니다. DB를 이미 사용중인 프로세스가 있는지 확인필요.", e);
-			// }
-			// }
 
 			try {
 				// 오토커밋으로 변경.
@@ -167,8 +158,7 @@ public class DBService extends AbstractService {
 		daoMap.put("SystemMonitoringInfoMinute", new SystemMonitoringInfoMinute(connectionManager));
 		daoMap.put("SystemMonitoringInfo", new SystemMonitoringInfo(connectionManager));
 
-		// 사전추가. xml설정에서 읽어온다.
-		daoMap.put("RecommendKeyword", new MapDictionary("RecommendKeyword", connectionManager));
+		daoMap.put("RecommendKeyword", new SetDictionary("RecommendKeyword", connectionManager));
 		// 사전.
 		daoMap.put("SynonymDictionary", new SetDictionary("SynonymDictionary", connectionManager));
 		daoMap.put("UserDictionary", new SetDictionary("UserDictionary", connectionManager));
