@@ -27,7 +27,15 @@ public class PluginSetting {
 
 	@XmlAttribute(name = "class")
 	String className;
-
+	
+	@XmlElement
+	String name;
+	@XmlElement
+	String version;
+	@XmlElement
+	String description;
+	
+	
 	@XmlJavaTypeAdapter(MapAdapter.class)
 	@XmlElement
 	Map<String, String> properties = new HashMap<String, String>();
@@ -66,6 +74,30 @@ public class PluginSetting {
 		this.className = className;
 	}
 
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	public String getVersion() {
+		return version;
+	}
+
+	public void setVersion(String version) {
+		this.version = version;
+	}
+	
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+	
 	public Web getWeb() {
 		return web;
 	}

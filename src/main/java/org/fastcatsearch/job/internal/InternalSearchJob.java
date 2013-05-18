@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.common.io.StreamOutput;
-import org.fastcatsearch.control.JobException;
+
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
@@ -14,7 +14,8 @@ import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
-import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableShardSearchResult;
 
 public class InternalSearchJob extends StreamableJob {
@@ -26,14 +27,14 @@ public class InternalSearchJob extends StreamableJob {
 	}
 	
 	@Override
-	public JobResult doRun() throws JobException, ServiceException {
+	public JobResult doRun() throws FastcatSearchException {
 		String queryString = query;
 		
 		Query q = null;
 		try {
 			q = QueryParser.getInstance().parseQuery(queryString);
 		} catch (QueryParseException e) {
-			throw new JobException("[Query Parsing Error] "+e.getMessage());
+			throw new FastcatSearchException("ERR-01000", e.getMessage());
 		}
 		
 		Metadata meta = q.getMeta();
@@ -47,29 +48,33 @@ public class InternalSearchJob extends StreamableJob {
 				noCache = true;
 			}
 			
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+			
 			if(!noCache){
-				result = IRService.getInstance().shardSearchCache().get(queryString);
+				result = irService.shardSearchCache().get(queryString);
 			}
 			//Not Exist in Cache
 			if(result == null){
-				CollectionHandler collectionHandler = IRService.getInstance().getCollectionHandler(collection);
+				CollectionHandler collectionHandler = irService.getCollectionHandler(collection);
 				
 				if(collectionHandler == null){
-					throw new JobException("## collection ["+collection+"] is not exist!");
+					throw new FastcatSearchException("ERR-00520", collection);
 				}
 				
 				result = collectionHandler.searchShard(q);
-				IRService.getInstance().shardSearchCache().put(queryString, result);
+				irService.shardSearchCache().put(queryString, result);
 			}
 
 			//shard에서는 keyword 통계를 내지않는다.
 			logger.debug(">>result : {}", result);
 			return new JobResult(new StreamableShardSearchResult(result));
 			
+		} catch (FastcatSearchException e){
+			throw e;
 		} catch(Exception e){
 			logger.error("", e);
 			EventDBLogger.error(EventDBLogger.CATE_SEARCH, "검색에러..", EventDBLogger.getStackTrace(e));
-			throw new JobException(e);
+			throw new FastcatSearchException("ERR-00552", e, collection);
 		}
 		
 	}

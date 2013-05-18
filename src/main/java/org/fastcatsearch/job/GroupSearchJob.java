@@ -13,7 +13,7 @@ package org.fastcatsearch.job;
 
 import java.util.Map;
 
-import org.fastcatsearch.control.JobException;
+
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.group.GroupData;
 import org.fastcatsearch.ir.group.GroupResults;
@@ -25,13 +25,14 @@ import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.KeywordService;
-import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.exception.FastcatSearchException;
 
 
 public class GroupSearchJob extends Job {
 	
 	@Override
-	public JobResult doRun() throws JobException, ServiceException {
+	public JobResult doRun() throws FastcatSearchException {
 		String[] args = getStringArrayArgs();
 		String queryString = args[0];
 		
@@ -39,7 +40,7 @@ public class GroupSearchJob extends Job {
 		try {
 			q = QueryParser.getInstance().parseQuery(queryString);
 		} catch (QueryParseException e) {
-			throw new JobException("[Query Parsing Error] "+e.getMessage());
+			throw new FastcatSearchException("[Query Parsing Error] "+e.getMessage());
 		}
 		
 		Metadata meta = q.getMeta();
@@ -55,23 +56,23 @@ public class GroupSearchJob extends Job {
 			//no cache 옵션이 없으면 캐시를 확인한다.
 			if((q.getMeta().option() & Query.SEARCH_OPT_NOCACHE) > 0)
 				noCache = true;
-			
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			if(!noCache)
-				groupResults = IRService.getInstance().groupingCache().get(queryString);
+				groupResults = irService.groupingCache().get(queryString);
 			
 			//Not Exist in Cache
 			if(groupResults == null){
-				CollectionHandler collectionHandler = IRService.getInstance().getCollectionHandler(collection);
+				CollectionHandler collectionHandler = irService.getCollectionHandler(collection);
 				
 				if(collectionHandler == null){
-					throw new JobException("## collection ["+collection+"] is not exist!");
+					throw new FastcatSearchException("## collection ["+collection+"] is not exist!");
 				}
 				
 				GroupData groupData = collectionHandler.doGrouping(q);
 				Groups groups =q.getGroups();
 				groupResults = groups.getGroupResultsGenerator().generate(groupData);
 				if(groupResults != null){
-					IRService.getInstance().groupingCache().put(queryString, groupResults);
+					irService.groupingCache().put(queryString, groupResults);
 					logger.debug("CACHE_PUT result>>{}, qr >>{}", groupResults, queryString);
 				}
 			}
@@ -87,8 +88,8 @@ public class GroupSearchJob extends Job {
 			return new JobResult(groupResults);
 			
 		} catch(Exception e){
-			EventDBLogger.error(EventDBLogger.CATE_SEARCH, "검색에러..", EventDBLogger.getStackTrace(e));
-			throw new JobException(e);
+//			EventDBLogger.error(EventDBLogger.CATE_SEARCH, "검색에러..", EventDBLogger.getStackTrace(e));
+			throw new FastcatSearchException("ERR-00555", e);
 		}
 		
 	}

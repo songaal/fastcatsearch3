@@ -8,15 +8,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.service.AbstractService;
-import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
 
 public class DataService extends AbstractService {
 
-	private static DataService instance;
-	
 	private DataStrategy defaultDataStrategy;
 	private Map<String, DataStrategy> collectionDataStrategy;
 	
@@ -25,16 +23,7 @@ public class DataService extends AbstractService {
 	}
 
 	@Override
-	public void asSingleton() {
-		instance = this;
-	}
-
-	public static DataService getInstance(){
-		return instance;
-	}
-	
-	@Override
-	protected boolean doStart() throws ServiceException {
+	protected boolean doStart() throws FastcatSearchException {
 		List<String> dataNodeList = settings().getList("default.data_node", String.class);
 		List<String> indexNodeList = settings().getList("default.index_node", String.class);
 		int shardCount = settings().getInt("default.shard");
@@ -104,14 +93,14 @@ public class DataService extends AbstractService {
 	}
 	
 	@Override
-	protected boolean doStop() throws ServiceException {
+	protected boolean doStop() throws FastcatSearchException {
 		collectionDataStrategy.clear();
 		
 		return true;
 	}
 
 	@Override
-	protected boolean doClose() throws ServiceException {
+	protected boolean doClose() throws FastcatSearchException {
 		return true;
 	}
 

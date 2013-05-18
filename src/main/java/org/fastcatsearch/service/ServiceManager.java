@@ -29,10 +29,10 @@ public class ServiceManager {
 		serviceMap = new ConcurrentHashMap<Class<?>, AbstractService>();
 	}
 	
-	public <T extends AbstractService> T createService(String serviceName, Class<T> serviceClass){
+	public <T extends AbstractService> T createService(String settingName, Class<T> serviceClass){
 		try {
 			Constructor<T> construct = serviceClass.getConstructor(Environment.class, Settings.class, ServiceManager.class);
-			T t = construct.newInstance(environment, environment.settingManager().getSettings().getSubSettings("service").getSubSettings(serviceName), this);
+			T t = construct.newInstance(environment, environment.settingManager().getSettings().getSubSettings("service").getSubSettings(settingName), this);
 			serviceMap.put(serviceClass, t);
 			return t;
 		} catch (Exception e) {

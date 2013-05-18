@@ -1,4 +1,4 @@
-package org.fastcatsearch.job.notification;
+package org.fastcatsearch.notification;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -6,18 +6,18 @@ import java.sql.Timestamp;
 import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.common.io.Streamable;
-import org.fastcatsearch.control.JobException;
+
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.dao.IndexingHistory;
 import org.fastcatsearch.db.dao.IndexingResult;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.job.result.IndexingJobResult;
-import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
 
-public class IndexingFinishNotification extends StreamableJob {
+public class IndexingFinishNotificationbak extends StreamableJob {
 
 	private static final long serialVersionUID = 3802606441623422765L;
 	private String collection;
@@ -27,7 +27,7 @@ public class IndexingFinishNotification extends StreamableJob {
 	private long endTime;
 	private Streamable result;
 
-	public IndexingFinishNotification(String collection, String indexingType, boolean isSuccess, long startTime, long endTime,
+	public IndexingFinishNotificationbak(String collection, String indexingType, boolean isSuccess, long startTime, long endTime,
 			Streamable result) {
 		this.collection = collection;
 		this.indexingType = indexingType;
@@ -38,7 +38,7 @@ public class IndexingFinishNotification extends StreamableJob {
 	}
 
 	@Override
-	public JobResult doRun() throws JobException, ServiceException {
+	public JobResult doRun() throws FastcatSearchException {
 
 		//색인 결과를 기록할때 에러발생하여 너무 빨리 작업이 끝난경우 finish가 start보다 먼저 기록되어 상태가 "색인중"으로 남을 수 있기 때문에 잠시쉬어준다.
 		//색인알림은 리턴을 기다리지 않기때문에 조금 지연되어도 문제없다. @swsong
@@ -69,6 +69,11 @@ public class IndexingFinishNotification extends StreamableJob {
 			}
 
 		}
+		
+		//notification관련 셋팅을 얻어와서 통지를 수행한다.
+		environment.settingManager().getSettings();
+		
+		
 		//무조건 true
 		return new JobResult(true);
 	}

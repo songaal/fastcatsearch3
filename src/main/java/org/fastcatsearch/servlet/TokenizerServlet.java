@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.analysis.Tokenizer;
 import org.fastcatsearch.ir.io.CharVector;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResultStringer;
 import org.fastcatsearch.util.StringifyException;
 import org.slf4j.Logger;
@@ -37,7 +38,7 @@ public class TokenizerServlet extends WebServiceHttpServlet {
 		
 		String[] uriArray = getURIArray(request);
 		
-		IRService irService = IRService.getInstance();
+		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		
 		String[][] analyzerArray = irService.getTokenizers();
 		

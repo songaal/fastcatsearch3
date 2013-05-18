@@ -12,15 +12,15 @@
 package org.fastcatsearch.service;
 
 import org.fastcatsearch.common.Lifecycle;
-import org.fastcatsearch.common.Singletonable;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.settings.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public abstract class AbstractService implements Singletonable {
+public abstract class AbstractService {
 	protected static Logger logger = LoggerFactory.getLogger(AbstractService.class);
 	
 	protected Lifecycle lifecycle;
@@ -44,7 +44,7 @@ public abstract class AbstractService implements Singletonable {
 		return settings;
 	}
 	
-	public boolean start() throws ServiceException{
+	public boolean start() throws FastcatSearchException {
 
 		//엔진구동시 시작되는 서비스가 아니라면, 현 상태가 구동시점인지 stop상태인지 확인해봐야한다.
 		if(!settings.getBoolean("start_on_load", true)){
@@ -71,9 +71,9 @@ public abstract class AbstractService implements Singletonable {
 		return false;
 	}
 	
-	protected abstract boolean doStart() throws ServiceException;
+	protected abstract boolean doStart() throws FastcatSearchException;
 		
-	public boolean stop() throws ServiceException{
+	public boolean stop() throws FastcatSearchException {
 		
 		if(lifecycle.canMoveToStopped()){
 			if(doStop()){
@@ -88,9 +88,9 @@ public abstract class AbstractService implements Singletonable {
 		return false;
 	}
 	
-	protected abstract boolean doStop() throws ServiceException;
+	protected abstract boolean doStop() throws FastcatSearchException;
 	
-	public boolean restart() throws ServiceException{
+	public boolean restart() throws FastcatSearchException {
 		logger.info(this.getClass().getName()+" restart..");
 		if(stop()){
 		//start는 성공해야 하므로 해당값을 리턴해준다.
@@ -99,7 +99,7 @@ public abstract class AbstractService implements Singletonable {
 		return false;
 	}
 	
-	public boolean close() throws ServiceException{
+	public boolean close() throws FastcatSearchException {
 		if(lifecycle.canMoveToClosed()){
 			if(doClose()){
 				logger.info(getClass().getSimpleName()+" 정지!");
@@ -113,6 +113,6 @@ public abstract class AbstractService implements Singletonable {
 		return false;
 	}
 	
-	protected abstract boolean doClose() throws ServiceException;
+	protected abstract boolean doClose() throws FastcatSearchException;
 	
 }

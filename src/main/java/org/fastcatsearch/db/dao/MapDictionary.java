@@ -192,7 +192,11 @@ public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictiona
 				selectSQL = "SELECT id, keyword, value FROM ( SELECT ROW_NUMBER() OVER() AS rownum, " + tableName + ".* FROM " + tableName;
 
 				if (keyword != null) {
-					selectSQL += (" where keyword = ? or keyword like ?");
+					if (isExactMatch) {
+						selectSQL += " where keyword = ?";
+					} else {
+						selectSQL += " where keyword = ? or value like ?";
+					}
 				}
 
 				selectSQL += ") AS tmp WHERE rownum > ? and rownum <= ? order by id desc";
@@ -202,7 +206,9 @@ public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictiona
 			int parameterIndex = 1;
 			if (keyword != null) {
 				pstmt.setString(parameterIndex++, keyword);
-				pstmt.setString(parameterIndex++, "%" + keyword + "%");
+				if (!isExactMatch) {
+					pstmt.setString(parameterIndex++, "%" + keyword + "%");
+				}
 			}
 			if (!noPaging) {
 				pstmt.setInt(parameterIndex++, totalCount - startRow - pageSize);

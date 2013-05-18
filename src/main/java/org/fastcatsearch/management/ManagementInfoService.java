@@ -20,8 +20,8 @@ import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.dao.SystemMonitoringInfo;
 import org.fastcatsearch.db.dao.SystemMonitoringInfoMinute;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.service.AbstractService;
-import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
 
@@ -58,9 +58,6 @@ public class ManagementInfoService extends AbstractService{
 	
 	public static ManagementInfoService getInstance(){
 		return instance;
-	}
-	public void asSingleton() {
-		instance = this;
 	}
 	
 	public ManagementInfoService(Environment environment, Settings settings, ServiceManager serviceManager){
@@ -215,7 +212,7 @@ public class ManagementInfoService extends AbstractService{
 	}
 	
 	@Override
-	protected boolean doStart() throws ServiceException {
+	protected boolean doStart() throws FastcatSearchException {
 		
 		handler = ManagementInfoHandler.getInstance();
 		logger.info("isCpuInfoSupported = {}", isJvmCpuInfoSupported() || isSystemCpuInfoSupported());
@@ -242,14 +239,14 @@ public class ManagementInfoService extends AbstractService{
 	}
 
 	@Override
-	protected boolean doStop() throws ServiceException {
+	protected boolean doStop() throws FastcatSearchException {
 		timer.cancel();
 		timer = null;
 		return true;
 	}
 	
 	@Override
-	protected boolean doClose() throws ServiceException {
+	protected boolean doClose() throws FastcatSearchException {
 		return true;
 	}
 }

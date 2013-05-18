@@ -5,13 +5,14 @@ import java.util.List;
 
 import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.common.io.StreamOutput;
-import org.fastcatsearch.control.JobException;
+
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.log.EventDBLogger;
-import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableDocumentList;
 
 public class InternalDocumentRequestJob extends StreamableJob {
@@ -29,22 +30,24 @@ public class InternalDocumentRequestJob extends StreamableJob {
 	}
 	
 	@Override
-	public JobResult doRun() throws JobException, ServiceException {
+	public JobResult doRun() throws FastcatSearchException {
 		
 		try {
-			CollectionHandler collectionHandler = IRService.getInstance().getCollectionHandler(collectionId);
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+			CollectionHandler collectionHandler = irService.getCollectionHandler(collectionId);
 			
 			if(collectionHandler == null){
-				throw new JobException("## collection ["+collectionId+"] is not exist!");
+				throw new FastcatSearchException("ERR-00520", collectionId);
 			}
 			
 			List<Document> documentList = collectionHandler.requestDocument(docIdList);
 			
 			return new JobResult(new StreamableDocumentList(documentList));
-			
+		} catch (FastcatSearchException e){
+			throw e;
 		} catch(Exception e){
-			EventDBLogger.error(EventDBLogger.CATE_SEARCH, "검색에러..", EventDBLogger.getStackTrace(e));
-			throw new JobException(e);
+//			EventDBLogger.error(EventDBLogger.CATE_SEARCH, "검색에러..", EventDBLogger.getStackTrace(e));
+			throw new FastcatSearchException("ERR-00550", e, collectionId);
 		}
 		
 	}

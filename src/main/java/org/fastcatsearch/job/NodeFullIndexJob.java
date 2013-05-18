@@ -26,7 +26,7 @@ import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.common.io.StreamOutput;
-import org.fastcatsearch.control.JobException;
+
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.data.DataService;
 import org.fastcatsearch.data.DataStrategy;
@@ -43,7 +43,8 @@ import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.log.EventDBLogger;
-import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.IRSettings;
 import org.fastcatsearch.task.MakeIndexFileTask;
 import org.fastcatsearch.transport.common.SendFileResultFuture;
@@ -68,7 +69,7 @@ public class NodeFullIndexJob extends StreamableJob {
 	}
 
 	@Override
-	public JobResult doRun() throws JobException, ServiceException {
+	public JobResult doRun() throws FastcatSearchException {
 
 		IndexingJobResult indexingJobResult = null;
 		try {
@@ -85,14 +86,14 @@ public class NodeFullIndexJob extends StreamableJob {
 			if (workSchema.getFieldSize() == 0) {
 				indexingLogger.error("[" + collectionId + "] Full Indexing Canceled. Schema field is empty. time = "
 						+ Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - startTime));
-				throw new JobException("[" + collectionId + "] Full Indexing Canceled. Schema field is empty. time = "
+				throw new FastcatSearchException("[" + collectionId + "] Full Indexing Canceled. Schema field is empty. time = "
 						+ Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - startTime));
 			}
 
 			// 주키가 없으면 색인실패
 			if (workSchema.getIndexID() == -1) {
 				EventDBLogger.error(EventDBLogger.CATE_INDEX, "컬렉션 스키마에 주키가 없음.");
-				throw new JobException("컬렉션 스키마에 주키(Primary Key)를 설정해야합니다.");
+				throw new FastcatSearchException("컬렉션 스키마에 주키(Primary Key)를 설정해야합니다.");
 			}
 			DataSequenceFile dataSequenceFile = new DataSequenceFile(collectionHomeDir, -1); // read
 																								// sequence
@@ -114,7 +115,7 @@ public class NodeFullIndexJob extends StreamableJob {
 
 			if (sourceReader == null) {
 				EventDBLogger.error(EventDBLogger.CATE_INDEX, "데이터수집기를 생성할 수 없습니다.");
-				throw new JobException("데이터 수집기 생성중 에러발생. sourceType = " + dsSetting.sourceType);
+				throw new FastcatSearchException("데이터 수집기 생성중 에러발생. sourceType = " + dsSetting.sourceType);
 			}
 
 			File segmentDir = new File(IRSettings.getSegmentPath(collectionId, newDataSequence, segmentNumber));
@@ -134,8 +135,9 @@ public class NodeFullIndexJob extends StreamableJob {
 					logger.error("Error while close source reader! "+e.getMessage(),e);
 				}
 			}
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 //			CollectionHandler newHandler = new CollectionHandler(collectionId, collectionHomeDir, workSchema, IRSettings.getIndexConfig());
-			CollectionHandler newHandler = IRService.getInstance().newCollectionHandler(collectionId, newDataSequence);
+			CollectionHandler newHandler = irService.newCollectionHandler(collectionId, newDataSequence);
 			int[] updateAndDeleteSize = newHandler.addSegment(segmentNumber, segmentDir, null); //collection.info 파일저장.
 			newHandler.saveDataSequenceFile(); //data.sequence 파일저장.
 			
@@ -143,13 +145,15 @@ public class NodeFullIndexJob extends StreamableJob {
 			/*
 			 * 색인파일 원격복사.
 			 */
-			DataStrategy dataStrategy = DataService.getInstance().getCollectionDataStrategy(collectionId);
+			DataService dataService = ServiceManager.getInstance().getService(DataService.class);
+			DataStrategy dataStrategy = dataService.getCollectionDataStrategy(collectionId);
 			List<Node> nodeList = dataStrategy.dataNodes();
 			if (nodeList == null || nodeList.size() == 0) {
-				throw new JobException("색인파일을 복사할 노드가 정의되어있지 않습니다.");
+				throw new FastcatSearchException("색인파일을 복사할 노드가 정의되어있지 않습니다.");
 			}
 
 
+			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 			//
 			//TODO 색인전송할디렉토리를 먼저 비우도록 요청.segmentDir
 			//
@@ -162,7 +166,7 @@ public class NodeFullIndexJob extends StreamableJob {
 			//TODO 순차적전송이라서 여러노드전송시 속도가 느림.해결요망.  
 			for (int i = 0; i < nodeList.size(); i++) {
 				Node node = nodeList.get(i);
-				if(NodeService.getInstance().isMyNode(node)){
+				if(nodeService.isMyNode(node)){
 					//자신에게는 전송하지 않는다.
 					continue;
 				}
@@ -176,13 +180,13 @@ public class NodeFullIndexJob extends StreamableJob {
 					logger.debug("targetFile >> {}", targetFile.getPath());
 					logger.info("[{} / {}]파일 {} 전송시작! ", new Object[] { fileCount, totalFileCount, sourceFile.getPath() });
 					
-					SendFileResultFuture sendFileResultFuture = NodeService.getInstance().sendFile(node, sourceFile, targetFile);
+					SendFileResultFuture sendFileResultFuture = nodeService.sendFile(node, sourceFile, targetFile);
 					if(sendFileResultFuture != null){
 						Object result = sendFileResultFuture.take();
 						if (sendFileResultFuture.isSuccess()) {
 							logger.info("[{} / {}]파일 {} 전송완료!", new Object[] { fileCount, totalFileCount, sourceFile.getPath() });
 						} else {
-							throw new JobException("파일전송에 실패했습니다.");
+							throw new FastcatSearchException("파일전송에 실패했습니다.");
 						}
 					}else{
 						//null이라면 전송에러.
@@ -205,7 +209,7 @@ public class NodeFullIndexJob extends StreamableJob {
 			List<ResultFuture> resultFutureList = new ArrayList<ResultFuture>(nodeList.size());
 			for (int i = 0; i < nodeList.size(); i++) {
 				Node node = nodeList.get(i);
-				ResultFuture resultFuture = NodeService.getInstance().sendRequest(node, reloadJob);
+				ResultFuture resultFuture = nodeService.sendRequest(node, reloadJob);
 				resultFutureList.add(resultFuture);
 			}
 			for (int i = 0; i < resultFutureList.size(); i++) {
@@ -214,14 +218,13 @@ public class NodeFullIndexJob extends StreamableJob {
 				Object obj = resultFuture.take();
 				if(!resultFuture.isSuccess()){
 					logger.debug("리로드 결과 : {}", obj);
-					throw new JobException("컬렉션 리로드 실패. collection="+collectionId+", "+node);
+					throw new FastcatSearchException("컬렉션 리로드 실패. collection="+collectionId+", "+node);
 				}
 			}
 			
 			/*
 			 * 데이터노드가 리로드 완료되었으면 인덱스노드도 리로드 시작.
 			 * */
-			IRService irService = IRService.getInstance();
 			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, newHandler);
 			if(oldCollectionHandler != null){
 				logger.info("## Close Previous Collection Handler");
@@ -252,9 +255,9 @@ public class NodeFullIndexJob extends StreamableJob {
 			return new JobResult(new IndexingJobResult(collectionId, segmentDir, docSize, updateSize, deleteSize, duration));
 			
 		} catch (Exception e) {
-			EventDBLogger.error(EventDBLogger.CATE_INDEX, "전체색인에러", EventDBLogger.getStackTrace(e));
+//			EventDBLogger.error(EventDBLogger.CATE_INDEX, "전체색인에러", EventDBLogger.getStackTrace(e));
 			indexingLogger.error("[" + collectionId + "] Indexing error = " + e.getMessage(), e);
-			throw new JobException(e);
+			throw new FastcatSearchException("ERR-00500", e, collectionId);
 		}
 
 //		return new JobResult(indexingJobResult);

@@ -138,10 +138,9 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 		Connection conn = null;
 		try {
 			conn = conn();
-			String countSQL = "SELECT count(*) FROM " + tableName + " where keyword = ? or keyword like ?";
+			String countSQL = "SELECT count(*) FROM " + tableName + " where keyword like ?";
 			pstmt = conn.prepareStatement(countSQL);
 			int parameterIndex = 1;
-			pstmt.setString(parameterIndex++, keyword);
 			pstmt.setString(parameterIndex++, "%" + keyword + "%");
 			rs = pstmt.executeQuery();
 			if (rs.next()) {
@@ -191,7 +190,7 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 					if (isExactMatch) {
 						selectSQL += " where keyword = ?";
 					} else {
-						selectSQL += " where keyword = ? or keyword like ?";
+						selectSQL += " where keyword like ?";
 					}
 				}
 			} else {
@@ -205,7 +204,11 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 				selectSQL = "SELECT id, keyword FROM ( SELECT ROW_NUMBER() OVER() AS rownum, " + tableName + ".* FROM " + tableName;
 
 				if (keyword != null) {
-					selectSQL += (" where keyword = ? or keyword like ?");
+					if (isExactMatch) {
+						selectSQL += " where keyword = ?";
+					} else {
+						selectSQL += " where keyword like ?";
+					}
 				}
 
 				selectSQL += ") AS tmp WHERE rownum > ? and rownum <= ? order by id desc";
@@ -214,8 +217,11 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 			pstmt = conn.prepareStatement(selectSQL);
 			int parameterIndex = 1;
 			if (keyword != null) {
-				pstmt.setString(parameterIndex++, keyword);
-				pstmt.setString(parameterIndex++, "%" + keyword + "%");
+				if (isExactMatch) {
+					pstmt.setString(parameterIndex++, keyword);
+				}else{
+					pstmt.setString(parameterIndex++, "%" + keyword + "%");
+				}
 			}
 			if (!noPaging) {
 				pstmt.setInt(parameterIndex++, totalCount - startRow - pageSize);

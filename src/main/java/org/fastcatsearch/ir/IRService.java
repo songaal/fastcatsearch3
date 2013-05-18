@@ -24,14 +24,9 @@ import java.util.Map.Entry;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import org.apache.lucene.analysis.Analyzer;
-import org.fastcatsearch.common.DynamicClassLoader;
 import org.fastcatsearch.common.QueryCacheModule;
 import org.fastcatsearch.env.Environment;
-import org.fastcatsearch.ir.analysis.AnalyzerFactory;
-import org.fastcatsearch.ir.analysis.AnalyzerPool;
-import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
-import org.fastcatsearch.ir.analysis.DefaultAnalyzerFactory;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.analysis.TokenizerAttributes;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
@@ -45,7 +40,6 @@ import org.fastcatsearch.ir.query.ShardSearchResult;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.module.ModuleException;
 import org.fastcatsearch.service.AbstractService;
-import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.IRSettings;
 import org.fastcatsearch.settings.Settings;
@@ -63,67 +57,16 @@ public class IRService extends AbstractService{
 	private QueryCacheModule<GroupData> groupingDataCache;
 	private QueryCacheModule<Result> documentCache;
 	
-//	private AnalyzerPoolManager poolManager;
-	
-	private static IRService instance;
-	
-	public static IRService getInstance(){
-		return instance;
-	}
-	public void asSingleton() {
-		instance = this;
-	}
-	
 	public IRService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
 	}
 	
-	protected boolean doStart() throws ServiceException {
+	protected boolean doStart() throws FastcatSearchException {
 		IRConfig irconfig = IRSettings.getConfig(true);
-		
-		//load dictionary
-//		try {
-//			Dic.init();
-//		} catch (IRException e1) {
-//			throw new ServiceException(e1);
-//		}
 		
 		
 		String collectionList = irconfig.getString("collection.list");
 		collectionNameList = collectionList.split(",");
-		
-//		detectTokenizers();
-		//분석기 로딩.
-//		poolManager = new AnalyzerPoolManager();
-//		List<Settings> analyzerList = settings.getSettingList("analyzer");
-//		for (Settings setting : analyzerList) {
-//			String analyzerClassName = setting.getString("className");
-//			int corePoolSize = setting.getInt("core_pool_size");
-//			int maximumPoolSize = setting.getInt("maximum_pool_size");
-//			
-//			String factoryClassName = analyzerClassName+"Factory";
-//			Class<?> analyzerFactoryClass = DynamicClassLoader.loadClass(factoryClassName);
-//			AnalyzerFactory factory = null;
-//			if(analyzerFactoryClass == null){
-//				Class<Analyzer> analyzerClass = (Class<Analyzer>) DynamicClassLoader.loadClass(analyzerClassName);
-//				if(analyzerClass == null){
-//					logger.error("Analyzer {}를 생성할수 없습니다.", analyzerClassName);
-//				}
-//				factory = new DefaultAnalyzerFactory(analyzerClass);
-//			}else{
-//				try {
-//					factory = (AnalyzerFactory) analyzerFactoryClass.newInstance();
-//				} catch (Exception e) {
-//					logger.error("AnalyzerFactory {}를 생성할수 없습니다.", factoryClassName);
-//				}
-//			}
-//			
-//			if(corePoolSize == -1 || maximumPoolSize == -1){
-//				poolManager.registerAnalyzer(analyzerClassName, factory);
-//			}else{
-//				poolManager.registerAnalyzer(analyzerClassName, factory, corePoolSize, maximumPoolSize);
-//			}
-//		}
 		
 		for (int i = 0; i < collectionNameList.length; i++) {
 			String collection = collectionNameList[i];
@@ -153,7 +96,7 @@ public class IRService extends AbstractService{
 			groupingDataCache.load();
 			documentCache.load();
 		} catch (ModuleException e) {
-			throw new ServiceException(e);
+			throw new FastcatSearchException("ERR-00320");
 		}
 		return true;
 	}
@@ -184,7 +127,7 @@ public class IRService extends AbstractService{
 		IndexConfig indexConfig = IRSettings.getIndexConfig();
 		return new CollectionHandler(collection, collectionDir, schema, indexConfig, newDataSequence);
 	}
-	protected boolean doStop() throws ServiceException {
+	protected boolean doStop() throws FastcatSearchException {
 		Iterator<Entry<String, CollectionHandler>> iter = collectionHandlerMap.entrySet().iterator();
 		while(iter.hasNext()){
 			Entry<String, CollectionHandler> entry = iter.next();
@@ -193,7 +136,7 @@ public class IRService extends AbstractService{
 				logger.info("Collection " + entry.getKey()+ " Shutdown!");
 			} catch (IOException e) {
 				logger.error("[ERROR] "+e.getMessage(),e);
-				throw new ServiceException("IRService 종료중 에러발생.", e);
+				throw new FastcatSearchException("IRService 종료중 에러발생.", e);
 			}
 		}
 		searchCache.unload();
@@ -314,7 +257,7 @@ public class IRService extends AbstractService{
 	}
 
 	@Override
-	protected boolean doClose() throws ServiceException {
+	protected boolean doClose() throws FastcatSearchException {
 		return true;
 	}
 	

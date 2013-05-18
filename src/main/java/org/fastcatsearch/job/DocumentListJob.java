@@ -13,7 +13,7 @@ package org.fastcatsearch.job;
 
 import java.io.IOException;
 
-import org.fastcatsearch.control.JobException;
+
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
@@ -23,7 +23,8 @@ import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
-import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.exception.FastcatSearchException;
 
 
 public class DocumentListJob extends Job {
@@ -32,7 +33,7 @@ public class DocumentListJob extends Job {
 	private String VALUE_SEPARATOR = "(?<!\\\\)=";
 	
 	@Override
-	public JobResult doRun() throws JobException, ServiceException {
+	public JobResult doRun() throws FastcatSearchException {
 		String[] args = getStringArrayArgs();
 		String queryString = args[0];
 		
@@ -63,7 +64,7 @@ public class DocumentListJob extends Job {
 		try {
 			q = QueryParser.getInstance().parseQuery(queryString);
 		} catch (QueryParseException e) {
-			throw new JobException("[Query Parsing Error] "+e.getMessage());
+			throw new FastcatSearchException("[Query Parsing Error] "+e.getMessage());
 		} 
 		
 		Metadata meta = q.getMeta();
@@ -75,24 +76,25 @@ public class DocumentListJob extends Job {
 			//no cache 옵션이 없으면 캐시를 확인한다.
 //			if((q.getMeta().option() & Query.SEARCH_OPT_NOCACHE) > 0)
 //				noCache = true;
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 //			logger.debug("NoCache => "+noCache+" ,option = "+q.getMeta().option()+", "+(q.getMeta().option() & Query.SEARCH_OPT_NOCACHE));
 			String cacheKey = collection+":"+start+":"+rows;
 			if(!noCache){
-				result = IRService.getInstance().documentCache().get(cacheKey);
+				result = irService.documentCache().get(cacheKey);
 			}
 			
 			//Not Exist in Cache
 			if(result == null){
-				CollectionHandler collectionHandler = IRService.getInstance().getCollectionHandler(collection);
+				CollectionHandler collectionHandler = irService.getCollectionHandler(collection);
 				
 				if(collectionHandler == null){
-					throw new JobException("## collection ["+collection+"] is not exist!");
+					throw new FastcatSearchException("ERR-00520", collection);
 				}
 				
 				result = collectionHandler.listDocument(collection, start, rows);
 				
 				if(!noCache){
-					IRService.getInstance().documentCache().put(cacheKey, result);
+					irService.documentCache().put(cacheKey, result);
 				}
 			}
 //			long st = System.currentTimeMillis();
@@ -101,14 +103,8 @@ public class DocumentListJob extends Job {
 			
 			return new JobResult(result);
 			
-		} catch (IRException e) {
-			throw new JobException(e);
-		} catch (SettingException e) {
-			throw new JobException(e);
-		} catch (IOException e) {
-			throw new JobException(e);
 		} catch(Exception e){
-			throw new JobException(e);
+			throw new FastcatSearchException("ERR-00553", e, collection);
 		}
 		
 	}

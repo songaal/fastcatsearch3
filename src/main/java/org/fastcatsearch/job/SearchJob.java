@@ -13,24 +13,23 @@ package org.fastcatsearch.job;
 
 import java.util.Map;
 
-import org.fastcatsearch.control.JobException;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.KeywordService;
-import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.statistics.StatisticsInfoService;
 
 
 public class SearchJob extends Job {
 	
 	@Override
-	public JobResult doRun() throws JobException, ServiceException {
+	public JobResult doRun() throws FastcatSearchException {
 		long st = System.currentTimeMillis();
 		String[] args = getStringArrayArgs();
 		String queryString = args[0];
@@ -47,7 +46,7 @@ public class SearchJob extends Job {
 				statisticsInfoService.addFailHit();
 				statisticsInfoService.addSearchTime(searchTime);
 			}
-			throw new JobException("[Query Parsing Error] "+e.getMessage());
+			throw new FastcatSearchException("[Query Parsing Error] "+e.getMessage());
 		}
 		
 		Metadata meta = q.getMeta();
@@ -70,21 +69,22 @@ public class SearchJob extends Job {
 				noCache = true;
 //			logger.debug("NoCache => "+noCache+" ,option = "+q.getMeta().option()+", "+(q.getMeta().option() & Query.SEARCH_OPT_NOCACHE));
 			
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			if(!noCache){
-				result = IRService.getInstance().searchCache().get(queryString);
+				result = irService.searchCache().get(queryString);
 			}
 			
 			//Not Exist in Cache
 			if(result == null){
-				CollectionHandler collectionHandler = IRService.getInstance().getCollectionHandler(collection);
+				CollectionHandler collectionHandler = irService.getCollectionHandler(collection);
 				
 				if(collectionHandler == null){
-					throw new JobException("## collection ["+collection+"] is not exist!");
+					throw new FastcatSearchException("## collection ["+collection+"] is not exist!");
 				}
 				
 				result = collectionHandler.search(q);
 				
-				IRService.getInstance().searchCache().put(queryString, result);
+				irService.searchCache().put(queryString, result);
 			}
 //			long st = System.currentTimeMillis();
 			
@@ -121,8 +121,8 @@ public class SearchJob extends Job {
 				statisticsInfoService.addFailHit(collection);
 				statisticsInfoService.addSearchTime(collection, searchTime);
 			}
-			EventDBLogger.error(EventDBLogger.CATE_SEARCH, "검색에러..", EventDBLogger.getStackTrace(e));
-			throw new JobException(e);
+//			EventDBLogger.error(EventDBLogger.CATE_SEARCH, "검색에러..", EventDBLogger.getStackTrace(e));
+			throw new FastcatSearchException("ERR-00556", e, collection);
 		}
 		
 	}

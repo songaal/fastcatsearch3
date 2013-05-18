@@ -14,6 +14,7 @@ package org.fastcatsearch.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -21,8 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.dao.MapDictionary;
-import org.fastcatsearch.db.vo.MapDictionaryVO;
+import org.fastcatsearch.db.dao.SetDictionary;
 import org.fastcatsearch.db.vo.SetDictionaryVO;
 import org.fastcatsearch.util.ResultStringer;
 import org.fastcatsearch.util.StringifyException;
@@ -46,14 +46,25 @@ public class RecommendKeywordServlet extends WebServiceHttpServlet {
     	}
     	keyword = URLDecoder.decode(keyword, "utf-8");
     	DBService dbHandler = DBService.getInstance();
-    	List<MapDictionaryVO> list = dbHandler.getDAO("RecommendKeyword", MapDictionary.class).selectWithExactKeyword(keyword.trim());
-    	MapDictionaryVO recommendKeyword = list.get(0);
-    	String[] termList = null;
-    	
-    	if(recommendKeyword != null){
-    		String listStr = recommendKeyword.value;
+    	List<SetDictionaryVO> recommendList = dbHandler.getDAO("RecommendKeyword", SetDictionary.class).selectWithExactKeyword(keyword.trim());
+    	List<String> termList = null;
+    	String mainWord = "";
+    	if(recommendList != null && recommendList.size() > 0){
+    		SetDictionaryVO recommendKeyword = recommendList.get(0);
+    		String listStr = recommendKeyword.keyword;
     		if(listStr != null){
-    			termList = listStr.split(",");
+    			termList = new ArrayList<String>();
+    			String[] list = listStr.split(",");
+    			if(list != null){
+    		    	for (String word : list) {
+    		    		word = word.trim();
+    		    		if(word.startsWith("@")){
+    		    			mainWord = word;
+    		    		}else{
+    		    			termList.add(word);
+    		    		}
+    				}
+    			}
     		}
     	}
 		String responseCharset = getParameter(request, "responseCharset", "UTF-8");
@@ -63,11 +74,12 @@ public class RecommendKeywordServlet extends WebServiceHttpServlet {
     	
     	try {
 			rStringer.object()
-				.key("keyword").value(keyword);
-	    	if(termList != null && termList.length > 0){
+				.key("keyword").value(mainWord);
+			
+	    	if(termList != null){
 	    		rStringer.key("list").array("item");
-		    	for (int inx = 0; inx < termList.length; inx++) {
-		    		rStringer.value(termList[inx]);
+		    	for (String word : termList) {
+		    		rStringer.value(word);
 				}
 		    	rStringer.endArray();
 	    	}

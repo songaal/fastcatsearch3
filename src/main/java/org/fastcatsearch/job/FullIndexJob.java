@@ -17,7 +17,7 @@ import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.common.Strings;
-import org.fastcatsearch.control.JobException;
+
 import org.fastcatsearch.datasource.DataSourceSetting;
 import org.fastcatsearch.datasource.reader.SourceReader;
 import org.fastcatsearch.datasource.reader.SourceReaderFactory;
@@ -34,7 +34,8 @@ import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.log.EventDBLogger;
-import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.IRSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +43,7 @@ import org.slf4j.LoggerFactory;
 public class FullIndexJob extends IndexingJob {
 	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 			
-	public static void main(String[] args) throws JobException, ServiceException {
+	public static void main(String[] args) throws FastcatSearchException {
 		String homePath = args[0];
 		String collection = args[1];
 		IRSettings.setHome(homePath);
@@ -54,7 +55,7 @@ public class FullIndexJob extends IndexingJob {
 	
 	
 	@Override
-	public JobResult doRun() throws JobException, ServiceException {
+	public JobResult doRun() throws FastcatSearchException {
 		String[] args = getStringArrayArgs();
 		String collection = (String)args[0];
 		indexingLogger.info("["+collection+"] Full Indexing Start!");
@@ -71,13 +72,13 @@ public class FullIndexJob extends IndexingJob {
 			
 			if(workSchema.getFieldSize() == 0){
 				indexingLogger.error("["+collection+"] Full Indexing Canceled. Schema field is empty. time = "+Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
-				throw new JobException("["+collection+"] Full Indexing Canceled. Schema field is empty. time = "+Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
+				throw new FastcatSearchException("["+collection+"] Full Indexing Canceled. Schema field is empty. time = "+Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
 			}
 			
 			//주키가 없으면 색인실패
 			if(workSchema.getIndexID() == -1){
-				EventDBLogger.error(EventDBLogger.CATE_INDEX, "컬렉션 스키마에 주키가 없음.");
-				throw new JobException("컬렉션 스키마에 주키(Primary Key)를 설정해야합니다.");
+//				EventDBLogger.error(EventDBLogger.CATE_INDEX, "컬렉션 스키마에 주키가 없음.");
+				throw new FastcatSearchException("컬렉션 스키마에 주키(Primary Key)를 설정해야합니다.");
 			}
 			DataSequenceFile dataSequenceFile = new DataSequenceFile(collectionHomeDir, -1); //read sequence
 			int	newDataSequence = (dataSequenceFile.getSequence() + 1) % DATA_SEQUENCE_CYCLE;
@@ -97,8 +98,8 @@ public class FullIndexJob extends IndexingJob {
 			SourceReader sourceReader = SourceReaderFactory.createSourceReader(collection, workSchema, dsSetting, true);
 			
 			if(sourceReader == null){
-				EventDBLogger.error(EventDBLogger.CATE_INDEX, "데이터수집기를 생성할 수 없습니다.");
-				throw new JobException("데이터 수집기 생성중 에러발생. sourceType = "+dsSetting.sourceType);
+//				EventDBLogger.error(EventDBLogger.CATE_INDEX, "데이터수집기를 생성할 수 없습니다.");
+				throw new FastcatSearchException("데이터 수집기 생성중 에러발생. sourceType = "+dsSetting.sourceType);
 			}
 			
 			/*
@@ -133,7 +134,7 @@ public class FullIndexJob extends IndexingJob {
 //				count = writer.indexDocument(); //index at here
 				count = writer.getDocumentCount();
 			}catch(IRException e){
-				EventDBLogger.error(EventDBLogger.CATE_INDEX, "세그먼트생성에러발생.", EventDBLogger.getStackTrace(e));
+//				EventDBLogger.error(EventDBLogger.CATE_INDEX, "세그먼트생성에러발생.", EventDBLogger.getStackTrace(e));
 				logger.error("SegmentWriter indexDocument Exception! "+e.getMessage(),e);
 				throw e;
 			}finally{
@@ -152,7 +153,7 @@ public class FullIndexJob extends IndexingJob {
 			
 			if(count == 0){
 				indexingLogger.info("["+collection+"] Full Indexing Canceled due to no documents. time = "+Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
-				throw new JobException("["+collection+"] Full Indexing Canceled due to no documents. time = "+Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
+				throw new FastcatSearchException("["+collection+"] Full Indexing Canceled due to no documents. time = "+Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
 			}
 			
 			//apply schema setting
@@ -162,7 +163,8 @@ public class FullIndexJob extends IndexingJob {
 //			Schema newSchema = IRSettings.getSchema(collection, false);
 //			CollectionHandler newHandler = new CollectionHandler(collection, collectionDir, newSchema, indexConfig, newDataSequence);
 
-			CollectionHandler newHandler = IRService.getInstance().newCollectionHandler(collection, newDataSequence);
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+			CollectionHandler newHandler = irService.newCollectionHandler(collection, newDataSequence);
 			updateAndDeleteSize = newHandler.addSegment(segmentNumber, segmentDir, null);
 			updateAndDeleteSize[1] += writer.getDuplicateDocCount();//중복문서 삭제카운트
 //			logger.info("== SegmentStatus ==");
@@ -173,7 +175,6 @@ public class FullIndexJob extends IndexingJob {
 			/*
 			 * 컬렉션 리로드
 			 */
-			IRService irService = IRService.getInstance();
 			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collection, newHandler);
 			if(oldCollectionHandler != null){
 				logger.info("## Close Previous Collection Handler");
@@ -204,9 +205,9 @@ public class FullIndexJob extends IndexingJob {
 			return new JobResult(new IndexingJobResult(collection, segmentDir, count, updateAndDeleteSize[0], updateAndDeleteSize[1], duration));
 			
 		} catch (Exception e) {
-			EventDBLogger.error(EventDBLogger.CATE_INDEX, "전체색인에러", EventDBLogger.getStackTrace(e));
+//			EventDBLogger.error(EventDBLogger.CATE_INDEX, "전체색인에러", EventDBLogger.getStackTrace(e));
 			indexingLogger.error("["+collection+"] Indexing error = "+e.getMessage(),e);
-			throw new JobException(e);
+			throw new FastcatSearchException("ERR-00500", collection);
 		}
 		
 		

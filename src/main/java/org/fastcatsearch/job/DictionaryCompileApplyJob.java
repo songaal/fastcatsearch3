@@ -18,19 +18,22 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
-import org.fastcatsearch.control.JobException;
+
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.dao.SetDictionary;
 import org.fastcatsearch.db.vo.SetDictionaryVO;
 import org.fastcatsearch.ir.dictionary.ListMapDictionary;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
-import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.service.ServiceManager;
 
 public class DictionaryCompileApplyJob extends Job {
 
+	private static final long serialVersionUID = 8615645248824825498L;
+
 	@Override
-	public JobResult doRun() throws JobException, ServiceException {
+	public JobResult doRun() throws FastcatSearchException {
 		String[] args = getStringArrayArgs();
 		String category = args[0];
 		String dicType = args[1];
@@ -45,8 +48,9 @@ public class DictionaryCompileApplyJob extends Job {
 		SetDictionary synonymDictionary = dbService.getDAO(synonymDictionaryId);
 		SetDictionary userDictionary = dbService.getDAO(userDictionaryId);
 		SetDictionary stopDictionary = dbService.getDAO(stopDictionaryId);
-
-		Plugin plugin = PluginService.getInstance().getPlugin(category);
+		
+		PluginService pluginService = ServiceManager.getInstance().getService(PluginService.class);
+		Plugin plugin = pluginService.getPlugin(category);
 		File pluginDir = plugin.getPluginDir();
 		Map<String, String> properties= plugin.getPluginSetting().getProperties();
 		String synonymDictPath = new File(pluginDir, properties.get("synonym.dict.path")).getAbsolutePath();

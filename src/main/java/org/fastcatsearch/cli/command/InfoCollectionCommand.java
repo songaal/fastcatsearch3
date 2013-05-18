@@ -15,6 +15,7 @@ import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.util.Formatter;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.IRSettings;
 
 public class InfoCollectionCommand extends CollectionExtractCommand {
@@ -75,8 +76,8 @@ public class InfoCollectionCommand extends CollectionExtractCommand {
 			return false;
 		}
 		String dataSourceType = IRSettings.getDatasource(collection, true).sourceType;
-
-		CollectionHandler ch = IRService.getInstance().getCollectionHandler(collection);
+		IRService irService = ServiceManager.getInstance().getService(IRService.class);
+		CollectionHandler ch = irService.getCollectionHandler(collection);
 		boolean isRunning = (ch == null ? false : true);
 		String durationStr = "";
 		String strStartTime = "";

@@ -9,7 +9,7 @@ import java.util.Map;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.Strings;
-import org.fastcatsearch.control.JobException;
+
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.data.DataService;
 import org.fastcatsearch.data.DataStrategy;
@@ -41,7 +41,8 @@ import org.fastcatsearch.job.internal.InternalDocumentRequestJob;
 import org.fastcatsearch.job.internal.InternalSearchJob;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
-import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.IRSettings;
 import org.fastcatsearch.transport.vo.StreamableDocumentList;
 import org.fastcatsearch.transport.vo.StreamableShardSearchResult;
@@ -49,7 +50,7 @@ import org.fastcatsearch.transport.vo.StreamableShardSearchResult;
 public class ClusterSearchJob extends Job {
 
 	@Override
-	public JobResult doRun() throws JobException, ServiceException {
+	public JobResult doRun() throws FastcatSearchException {
 		
 		long st = System.currentTimeMillis();
 		String[] args = getStringArrayArgs();
@@ -61,7 +62,7 @@ public class ClusterSearchJob extends Job {
 		try {
 			q = QueryParser.getInstance().parseQuery(queryString);
 		} catch (QueryParseException e) {
-			throw new JobException("[Query Parsing Error] "+e.getMessage());
+			throw new FastcatSearchException("[Query Parsing Error] "+e.getMessage());
 		}
 		
 		//no cache 옵션이 없으면 캐시를 확인한다.
@@ -69,14 +70,18 @@ public class ClusterSearchJob extends Job {
 			noCache = true;
 		}
 		
+		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		if(!noCache){
-			Result result = IRService.getInstance().searchCache().get(queryString);
+			Result result = irService.searchCache().get(queryString);
 			logger.debug("CACHE_GET result>>{}, qr >>{}", result, queryString);
 			if(result != null){
 				logger.debug("Cached Result!");
 				return new JobResult(result);
 			}
 		}
+		
+		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
+		DataService dataService = ServiceManager.getInstance().getService(DataService.class);
 		
 		Metadata meta = q.getMeta();
 		String collectionId = q.getMeta().collectionName();
@@ -89,7 +94,8 @@ public class ClusterSearchJob extends Job {
 		for (int i = 0; i < collectionIdList.length; i++) {
 			String cId = collectionIdList[i];
 			collectionNumberMap.put(cId, i);
-			DataStrategy dataStrategy = DataService.getInstance().getCollectionDataStrategy(cId);
+			
+			DataStrategy dataStrategy = dataService.getCollectionDataStrategy(cId);
 			List<Node> nodeList = dataStrategy.dataNodes();
 			//TODO shard 갯수를 확인하고 각 shard에 해당하는 노드들을 가져온다.
 			//TODO 여러개의 replaica로 분산되어있을 경우, 적합한 노드를 찾아서 리턴한다.
@@ -99,7 +105,7 @@ public class ClusterSearchJob extends Job {
 			String queryStr = queryString.replace("cn="+collectionId, "cn="+cId);
 			logger.debug("query-{} >> {}", i, queryStr);
 			InternalSearchJob job = new InternalSearchJob(queryStr);
-			resultFutureList[i] = NodeService.getInstance().sendRequest(dataNode, job);
+			resultFutureList[i] = nodeService.sendRequest(dataNode, job);
 		}
 		
 		List<ShardSearchResult> resultList = new ArrayList<ShardSearchResult>(collectionIdList.length);
@@ -107,14 +113,14 @@ public class ClusterSearchJob extends Job {
 		for (int i = 0; i < collectionIdList.length; i++) {
 			//TODO 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
 			if(resultFutureList[i] == null){
-				throw new JobException("요청메시지 전송불가에러.");
+				throw new FastcatSearchException("요청메시지 전송불가에러.");
 			}
 			Object obj = resultFutureList[i].take();
 			if(!resultFutureList[i].isSuccess()){
 				if(obj instanceof Throwable){
-					throw new JobException("검색수행중 에러발생.", (Throwable) obj);
+					throw new FastcatSearchException("검색수행중 에러발생.", (Throwable) obj);
 				}else{
-					throw new JobException("검색수행중 에러발생.");
+					throw new FastcatSearchException("검색수행중 에러발생.");
 				}
 			}
 			
@@ -172,7 +178,7 @@ public class ClusterSearchJob extends Job {
 		
 		for (int i = 0; i < collectionIdList.length; i++) {
 			String cId = collectionIdList[i];
-			DataStrategy dataStrategy = DataService.getInstance().getCollectionDataStrategy(cId);
+			DataStrategy dataStrategy = dataService.getCollectionDataStrategy(cId);
 			List<Node> nodeList = dataStrategy.dataNodes();
 			//TODO shard 갯수를 확인하고 각 shard에 해당하는 노드들을 가져온다.
 			//TODO 여러개의 replaica로 분산되어있을 경우, 적합한 노드를 찾아서 리턴한다.
@@ -182,7 +188,7 @@ public class ClusterSearchJob extends Job {
 			String queryStr = queryString.replace("cn="+collectionId, "cn="+cId);
 			logger.debug("query-{} >> {}", i, queryStr);
 			InternalDocumentRequestJob job = new InternalDocumentRequestJob(cId, docIdList[i], length[i]);
-			resultFutureList[i] = NodeService.getInstance().sendRequest(dataNode, job);
+			resultFutureList[i] = nodeService.sendRequest(dataNode, job);
 		}
 		
 		//document 결과를 받는다.
@@ -192,14 +198,14 @@ public class ClusterSearchJob extends Job {
 			String cId = collectionIdList[i];
 			//TODO 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
 			if(resultFutureList[i] == null){
-				throw new JobException("요청메시지 전송불가에러.");
+				throw new FastcatSearchException("요청메시지 전송불가에러.");
 			}
 			Object obj = resultFutureList[i].take();
 			if(!resultFutureList[i].isSuccess()){
 				if(obj instanceof Throwable){
-					throw new JobException("검색수행중 에러발생.", (Throwable) obj);
+					throw new FastcatSearchException("검색수행중 에러발생.", (Throwable) obj);
 				}else{
-					throw new JobException("검색수행중 에러발생.");
+					throw new FastcatSearchException("검색수행중 에러발생.");
 				}
 			}
 			
@@ -335,7 +341,7 @@ public class ClusterSearchJob extends Job {
 		
 		Result searchResult = new Result(row, groupResults, fieldSize, fieldNameList, realSize, totalSize, meta);
 		
-		IRService.getInstance().searchCache().put(queryString, searchResult);
+		irService.searchCache().put(queryString, searchResult);
 		logger.debug("CACHE_PUT result>>{}, qr >>{}", searchResult, queryString);
 		
 		logger.debug("ClusterSearchJob 수행시간 : {}", Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));

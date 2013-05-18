@@ -14,34 +14,24 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import org.fastcatsearch.alert.ClusterAlertService;
 import org.fastcatsearch.common.DynamicClassLoader;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.service.AbstractService;
-import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
 
 public class PluginService extends AbstractService {
 
-	private static PluginService instance;
-	
 	private Map<String, Plugin> pluginMap;
-	
-	public static PluginService getInstance(){
-		return instance;
-	}
 	
 	public PluginService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
 	} 
 
 	@Override
-	public void asSingleton() {
-		instance = this;
-	}
-
-	@Override
-	protected boolean doStart() throws ServiceException {
+	protected boolean doStart() throws FastcatSearchException {
 		pluginMap = new HashMap<String, Plugin>();
 		//플러그인을 검색하여 
 		//무작위로 시작한다.
@@ -80,13 +70,14 @@ public class PluginService extends AbstractService {
 					
 					
 				} catch (FileNotFoundException e) {
-					logger.error("{} plugin 설정파일을 읽을수 없음.", dir.getName()); 
+					logger.error("{} plugin 설정파일을 읽을수 없음.", dir.getName());
+					ClusterAlertService.getInstance().alert(new FastcatSearchException());
 				} catch (JAXBException e) {
 					logger.error("plugin 설정파일을 읽는중 에러. {}", e);
 				}
 			}
 		} catch (JAXBException e) {
-			throw new ServiceException("plugin설정파일 unmarshall 에러.", e);
+			throw new FastcatSearchException("ERR-00200", e);
 		}
 		
 		return false;
@@ -120,14 +111,14 @@ public class PluginService extends AbstractService {
 	}
 	
 	@Override
-	protected boolean doStop() throws ServiceException {
+	protected boolean doStop() throws FastcatSearchException {
 		pluginMap.clear();
 		pluginMap = null;
 		return false;
 	}
 
 	@Override
-	protected boolean doClose() throws ServiceException {
+	protected boolean doClose() throws FastcatSearchException {
 		// TODO Auto-generated method stub
 		return false;
 	}

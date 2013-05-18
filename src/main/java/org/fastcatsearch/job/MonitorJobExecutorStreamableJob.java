@@ -13,7 +13,9 @@ package org.fastcatsearch.job;
 
 import java.util.Map;
 
-import org.fastcatsearch.control.JobException;
+import org.fastcatsearch.exception.FastcatSearchException;
+
+
 
 
 public class MonitorJobExecutorStreamableJob extends MonitorJobExecutorJob {
@@ -21,7 +23,7 @@ public class MonitorJobExecutorStreamableJob extends MonitorJobExecutorJob {
 	public MonitorJobExecutorStreamableJob(){ }
 	
 	@Override
-	public JobResult doRun() throws JobException {
+	public JobResult doRun() throws FastcatSearchException {
 		JobResult jobResult = super.doRun();
 		if(jobResult.isSuccess()){
 			Map<String, String> map = (Map<String, String>) jobResult.result();

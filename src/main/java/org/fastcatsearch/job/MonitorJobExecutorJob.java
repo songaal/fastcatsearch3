@@ -13,11 +13,11 @@ package org.fastcatsearch.job;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.fastcatsearch.control.JobService;
-import org.fastcatsearch.control.JobException;
+import org.fastcatsearch.exception.FastcatSearchException;
+
 
 
 public class MonitorJobExecutorJob extends Job{
@@ -25,7 +25,7 @@ public class MonitorJobExecutorJob extends Job{
 	public MonitorJobExecutorJob(){ }
 	
 	@Override
-	public JobResult doRun() throws JobException {
+	public JobResult doRun() throws FastcatSearchException {
 		
 		ThreadPoolExecutor executor = ((JobService)getJobExecutor()).getJobExecutor();
 		Map<String, String> result = new HashMap<String, String>();

@@ -5,12 +5,11 @@ import java.net.InetSocketAddress;
 
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.control.JobExecutor;
-import org.fastcatsearch.control.JobHandler;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.TestJob;
-import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.settings.IRSettings;
 import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.transport.common.SendFileResultFuture;
@@ -46,20 +45,16 @@ public class TransportModuleTest {
 			
 		}
 
-		@Override
-		public JobHandler jobHandler() {
-			return null;
-		}
 	};
 	
-	public static void main(String[] args) throws ServiceException, TransportException {
+	public static void main(String[] args) throws FastcatSearchException, TransportException {
 		IRSettings.setHome("testHome/fastcatsearch");
 		Environment environment = new Environment("testHome/fastcatsearch");
 //		new TransportServiceTest().testSendMessage(environment);
 		new TransportModuleTest().testSendFile(environment);
 	}
 	
-	public void testSendMessage(Environment environment) throws ServiceException, TransportException {
+	public void testSendMessage(Environment environment) throws FastcatSearchException, TransportException {
 		Settings settings = new Settings();
 		settings.put("node_port", 9100);
 		Settings settings2 = new Settings();
@@ -88,7 +83,7 @@ public class TransportModuleTest {
 	}
 
 	
-	public void testSendFile(Environment environment) throws ServiceException, TransportException {
+	public void testSendFile(Environment environment) throws FastcatSearchException, TransportException {
 		Settings settings = new Settings();
 		settings.put("node_port", 9100);
 		Settings settings2 = new Settings();

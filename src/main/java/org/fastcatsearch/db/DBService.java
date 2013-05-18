@@ -11,10 +11,7 @@
 
 package org.fastcatsearch.db;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -27,7 +24,6 @@ import org.fastcatsearch.db.dao.IndexingHistory;
 import org.fastcatsearch.db.dao.IndexingResult;
 import org.fastcatsearch.db.dao.IndexingSchedule;
 import org.fastcatsearch.db.dao.JobHistory;
-import org.fastcatsearch.db.dao.MapDictionary;
 import org.fastcatsearch.db.dao.SearchEvent;
 import org.fastcatsearch.db.dao.SearchMonitoringInfo;
 import org.fastcatsearch.db.dao.SearchMonitoringInfoMinute;
@@ -35,15 +31,13 @@ import org.fastcatsearch.db.dao.SetDictionary;
 import org.fastcatsearch.db.dao.SystemMonitoringInfo;
 import org.fastcatsearch.db.dao.SystemMonitoringInfoMinute;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.config.IRConfig;
-//import org.fastcatsearch.keyword.KeywordFail;
-//import org.fastcatsearch.keyword.KeywordHit;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.plugin.PluginSetting;
 import org.fastcatsearch.plugin.PluginSetting.DAO;
 import org.fastcatsearch.service.AbstractService;
-import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.IRSettings;
 import org.fastcatsearch.settings.Settings;
@@ -63,15 +57,11 @@ public class DBService extends AbstractService {
 		return instance;
 	}
 
-	public void asSingleton() {
-		instance = this;
-	}
-
 	public DBService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
 	}
 
-	protected boolean doStart() throws ServiceException {
+	protected boolean doStart() throws FastcatSearchException {
 		JDBC_URL = "jdbc:derby:" + IRSettings.path(DB_NAME);
 
 		IRConfig config = IRSettings.getConfig();
@@ -86,7 +76,7 @@ public class DBService extends AbstractService {
 			try {
 				Class.forName(cls).newInstance();
 			} catch (Exception e) {
-				throw new ServiceException("Cannot load driver class!", e);
+				throw new FastcatSearchException("Cannot load driver class!", e);
 			}
 
 			try {
@@ -100,14 +90,14 @@ public class DBService extends AbstractService {
 				// conn.commit();
 			} catch (SQLException e) {
 				// conn = createDB(url,user,pass);
-				throw new ServiceException("관리DB로의 연결을 생성할수 없습니다.", e);
+				throw new FastcatSearchException("관리DB로의 연결을 생성할수 없습니다.", e);
 			}
 		} else {
 			try {
 				// Class.forName("org.apache.derby.jdbc.EmbeddedDriver").newInstance();
 				DynamicClassLoader.loadClass("org.apache.derby.jdbc.EmbeddedDriver");
 			} catch (Exception e) {
-				throw new ServiceException("Cannot load driver class!", e);
+				throw new FastcatSearchException("Cannot load driver class!", e);
 			}
 
 			// try {
@@ -117,25 +107,25 @@ public class DBService extends AbstractService {
 				// 오토커밋으로 변경.
 				initDB();
 			} catch (SQLException e1) {
-				throw new ServiceException(e1);
+				throw new FastcatSearchException("ERR-00310");
 			}
 
 			try {
 				testAndInitDB();
 			} catch (SQLException e) {
-				throw new ServiceException(e);
+				throw new FastcatSearchException("ERR-00311");
 			}
 
 			try {
 				initMONDB();
 			} catch (SQLException e1) {
-				throw new ServiceException(e1);
+				throw new FastcatSearchException("ERR-00312");
 			}
 
 			try {
 				testAndInitMONDB();
 			} catch (SQLException e) {
-				throw new ServiceException(e);
+				throw new FastcatSearchException("ERR-00313");
 			}
 		}
 
@@ -231,41 +221,12 @@ public class DBService extends AbstractService {
 	}
 
 	private void initMONDB() throws SQLException {
-		// RecommendKeyword = new RecommendKeyword();
-		// SystemMonitoringInfoMinute = new SystemMonitoringInfoMinute();
-		// SystemMonInfoHDWMY = new SystemMonitoringInfo();
-		//
-		// RecommendKeyword.setConnectionManager(connectionManager);
-		// SystemMonitoringInfoMinute.setConnectionManager(connectionManager);
-		// SystemMonInfoHDWMY.setConnectionManager(connectionManager);
-
 	}
 
 	private void testAndInitMONDB() throws SQLException {
-		// RecommendKeyword.testAndCreate();
-		// SystemMonitoringInfoMinute.testAndCreate();
-		// SystemMonInfoHDWMY.testAndCreate();
-		//
-		// SystemMonitoringInfoMinute.prepareID();
-		// SystemMonInfoHDWMY.prepareID();
-
 	}
 
-	// private Connection createDB(String jdbcurl, String jdbcuser, String jdbcpass) {
-	// try {
-	// logger.info("Creating Fastcat DB = " + jdbcurl);
-	// if (jdbcuser != null && jdbcpass != null) {
-	// return DriverManager.getConnection(jdbcurl + ";create=true", jdbcuser, jdbcpass);
-	// } else {
-	// return DriverManager.getConnection(jdbcurl + ";create=true");
-	// }
-	// } catch (SQLException e) {
-	//
-	// }
-	// return null;
-	// }
-
-	protected boolean doStop() throws ServiceException {
+	protected boolean doStop() throws FastcatSearchException {
 		try {
 			logger.info("DBHandler shutdown! " + connectionManager);
 			connectionManager.close();
@@ -287,38 +248,9 @@ public class DBService extends AbstractService {
 			return null;
 		}
 	}
-//
-//	// mon db
-//	public int updateOrInsertSQLMONDB(String sql) throws SQLException {
-//		Connection conn = getConn();
-//		try {
-//			Statement stmt = conn.createStatement();
-//			int n = stmt.executeUpdate(sql);
-//			stmt.close();
-//			return n;
-//		} finally {
-//			if (conn != null) {
-//				conn.close();
-//			}
-//		}
-//	}
-//
-//	public ResultSet selectSQLMONDB(String sql) throws SQLException {
-//		Connection conn = getConn();
-//		try {
-//			Statement stmt = conn.createStatement();
-//			ResultSet rs = stmt.executeQuery(sql);
-//			stmt.close();
-//			return rs;
-//		} finally {
-//			if (conn != null) {
-//				conn.close();
-//			}
-//		}
-//	}
 
 	@Override
-	protected boolean doClose() throws ServiceException {
+	protected boolean doClose() throws FastcatSearchException {
 		return true;
 	}
 

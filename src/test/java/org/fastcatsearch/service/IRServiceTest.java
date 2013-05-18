@@ -24,14 +24,14 @@ public class IRServiceTest extends TestCase{
 	public void testConstructor() throws IRException, SettingException{
 		String irHome = "testHome/";
 		IRSettings.setHome(irHome);
-		IRService service = IRService.getInstance();
+//		IRService service = IRService.getInstance();
 	}
 	
 	public void testGetCollectionHandler() throws IRException, SettingException{
 		String irHome = "testHome/";
 		String collection = "test3";
 		IRSettings.setHome(irHome);
-		IRService service = IRService.getInstance();
+		IRService service = null;//IRService.getInstance();
 		CollectionHandler h = service.getCollectionHandler(collection);
 		h.printSegmentStatus();
 	}

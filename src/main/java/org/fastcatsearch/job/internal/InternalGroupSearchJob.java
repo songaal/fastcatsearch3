@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.common.io.StreamOutput;
-import org.fastcatsearch.control.JobException;
+
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.group.GroupData;
 import org.fastcatsearch.ir.query.Metadata;
@@ -14,7 +14,8 @@ import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
-import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableGroupData;
 
 public class InternalGroupSearchJob extends StreamableJob {
@@ -26,19 +27,20 @@ public class InternalGroupSearchJob extends StreamableJob {
 	}
 	
 	@Override
-	public JobResult doRun() throws JobException, ServiceException {
+	public JobResult doRun() throws FastcatSearchException {
 		String queryString = query;
 		
 		Query q = null;
+		String collection = null;
 		try {
 			q = QueryParser.getInstance().parseQuery(queryString);
 		} catch (QueryParseException e) {
-			throw new JobException("[Query Parsing Error] "+e.getMessage());
+			throw new FastcatSearchException("[Query Parsing Error] "+e.getMessage());
 		}
 		
 		Metadata meta = q.getMeta();
 		
-		String collection = meta.collectionName();
+		collection = meta.collectionName();
 		
 		try {
 			GroupData result = null;
@@ -47,29 +49,33 @@ public class InternalGroupSearchJob extends StreamableJob {
 			if((q.getMeta().option() & Query.SEARCH_OPT_NOCACHE) > 0)
 				noCache = true;
 			
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+			
 			if(!noCache)
-				result = IRService.getInstance().groupingDataCache().get(queryString);
+				result = irService.groupingDataCache().get(queryString);
 			
 			//Not Exist in Cache
 			if(result == null){
-				CollectionHandler collectionHandler = IRService.getInstance().getCollectionHandler(collection);
+				CollectionHandler collectionHandler = irService.getCollectionHandler(collection);
 				
 				if(collectionHandler == null){
-					throw new JobException("## collection ["+collection+"] is not exist!");
+					throw new FastcatSearchException("ERR-00520", collection);
 				}
 				
 				result = collectionHandler.doGrouping(q);
 				if(!noCache){
-					IRService.getInstance().groupingDataCache().put(queryString, result);
+					irService.groupingDataCache().put(queryString, result);
 				}
 			}
 			
 			return new JobResult(new StreamableGroupData(result));
 			
+		} catch (FastcatSearchException e){
+			throw e;
 		} catch(Exception e){
 			logger.error("", e);
-			EventDBLogger.error(EventDBLogger.CATE_SEARCH, "검색에러..", EventDBLogger.getStackTrace(e));
-			throw new JobException(e);
+//			EventDBLogger.error(EventDBLogger.CATE_SEARCH, "검색에러..", EventDBLogger.getStackTrace(e));
+			throw new FastcatSearchException("ERR-00551", e, collection);
 		}
 		
 	}

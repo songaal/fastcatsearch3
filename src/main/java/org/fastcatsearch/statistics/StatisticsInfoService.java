@@ -24,13 +24,12 @@ import org.fastcatsearch.db.dao.SearchMonitoringInfo;
 import org.fastcatsearch.db.dao.SearchMonitoringInfoMinute;
 import org.fastcatsearch.db.vo.IndexingResultVO;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentInfo;
-//import org.fastcatsearch.keyword.KeywordHit;
 import org.fastcatsearch.service.AbstractService;
-import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
 
@@ -76,27 +75,24 @@ public class StatisticsInfoService extends AbstractService {
 	private int countPerMonth; //1시간에 몇번의 초별 계산이 수행되었는가? 60이 정상.
 	
 	private static StatisticsInfoService instance;
+	private	IRService irService;
 	
 	public static StatisticsInfoService getInstance(){
 		return instance;
 	}
-	public void asSingleton() {
-		instance = this;
-	}
-	
 	public StatisticsInfoService(Environment environment, Settings settings, ServiceManager serviceManager){
 		super(environment, settings, serviceManager);
 	}
 	
 	@Override
-	protected boolean doStart() throws ServiceException {
+	protected boolean doStart() throws FastcatSearchException {
 		
 		lastUpdatedIndexingTime = new Timestamp(0);
 		lastUpdatedPopularKeywordTime = new Timestamp(0);
 		lastUpdatedEventTime = new Timestamp(0);
 		keywordCache = new SearchKeywordCache();
-		
-		collectionNameList = IRService.getInstance().getCollectionNames();
+		irService = ServiceManager.getInstance().getService(IRService.class);
+		collectionNameList = irService.getCollectionNames();
 		collectionSeq = new AsciiCharTrie();
 		collectionStatisticsList = new RealTimeCollectionStatistics[collectionNameList.length];
 		collectionStatisticsListPerMinute = new RealTimeCollectionStatistics[collectionNameList.length];
@@ -153,14 +149,14 @@ public class StatisticsInfoService extends AbstractService {
 	}
 
 	@Override
-	protected boolean doStop() throws ServiceException {
+	protected boolean doStop() throws FastcatSearchException {
 		timer.cancel();
 		timer = null;
 		isEnabled = false;
 		return true;
 	}
 	@Override
-	protected boolean doClose() throws ServiceException {
+	protected boolean doClose() throws FastcatSearchException {
 		return true;
 	}
 	
@@ -218,7 +214,7 @@ public class StatisticsInfoService extends AbstractService {
 		boolean[] result = new boolean[collectionNameList.length];
 		for(int i = 0; i < collectionNameList.length; i++){
 			String collectionName = collectionNameList[i];
-			result[i] = (IRService.getInstance().getCollectionHandler(collectionName) != null);
+			result[i] = (irService.getCollectionHandler(collectionName) != null);
 		}
 		//update isCollectionLive
 		isCollectionLive = result;
@@ -451,7 +447,7 @@ public class StatisticsInfoService extends AbstractService {
 						if(isCollectionLive[i]){
 			    			IndexingResultVO fullResult = indexingResult.select(collectionNameList[i], "F");
 			    			IndexingResultVO incResult = indexingResult.select(collectionNameList[i], "I");
-			    			CollectionHandler collectionHandler = ((IRService)IRService.getInstance()).getCollectionHandler(collectionNameList[i]);
+			    			CollectionHandler collectionHandler = irService.getCollectionHandler(collectionNameList[i]);
 			    			int docCount = 0;
 			    			if(collectionHandler != null){
 			    				docCount = 0;

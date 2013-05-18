@@ -14,7 +14,7 @@ package org.fastcatsearch.job;
 import java.io.File;
 import java.util.List;
 
-import org.fastcatsearch.control.JobException;
+
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.dao.MapDictionary;
 import org.fastcatsearch.db.dao.SetDictionary;
@@ -24,7 +24,7 @@ import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.dic.HashMapDictionary;
 import org.fastcatsearch.ir.dic.HashSetDictionary;
 import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.settings.IRSettings;
 
 
@@ -33,14 +33,14 @@ public class HashMapDictionaryCompileApplyJob extends Job {
 	private static int BUCKET_SIZE = 16 * 1024;
 	
 	@Override
-	public JobResult doRun() throws JobException, ServiceException {
+	public JobResult doRun() throws FastcatSearchException {
 		String[] args = getStringArrayArgs();
 		if("synonymDic".equals(args[0])){
 			try {
 				compileSynonymDic();
 //				return new JobResult(Dic.reload("synonym"));
 			} catch (IRException e) {
-				throw new JobException(e.getMessage(), e);
+				throw new FastcatSearchException(e.getMessage(), e);
 			}
 		}
 		

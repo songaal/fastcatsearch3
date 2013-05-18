@@ -12,21 +12,18 @@
 package org.fastcatsearch.job;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.fastcatsearch.control.JobException;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.DataSequenceFile;
 import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.util.Formatter;
-import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.IRSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +31,7 @@ import org.slf4j.LoggerFactory;
 public class RebuildIndexJob extends Job {
 	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 
-	public static void main(String[] args) throws JobException, ServiceException {
+	public static void main(String[] args) throws FastcatSearchException {
 		String homePath = args[0];
 		String collection = args[1];
 		IRSettings.setHome(homePath);
@@ -46,7 +43,7 @@ public class RebuildIndexJob extends Job {
 	
 	
 	@Override
-	public JobResult doRun() throws JobException, ServiceException {
+	public JobResult doRun() throws FastcatSearchException {
 		String[] args = getStringArrayArgs();
 		String collection = args[0];
 		indexingLogger.info("["+collection+"] Rebuild Indexing Start!");
@@ -84,14 +81,14 @@ public class RebuildIndexJob extends Job {
 			//apply schema setting
 			IRSettings.applyWorkSchemaFile(collection);
 			
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			Schema newSchema = IRSettings.getSchema(collectionHomeDir, false);
 //			CollectionHandler newHandler = new CollectionHandler(collection, new File(collectionHomeDir), newSchema, IRSettings.getIndexConfig());
-			CollectionHandler newHandler = IRService.getInstance().newCollectionHandler(collection, -1);
+			CollectionHandler newHandler = irService.newCollectionHandler(collection, -1);
 			newHandler.addSegment(segmentNumber, segmentDir, null);
 			
 			newHandler.saveDataSequenceFile();
 			
-			IRService irService = IRService.getInstance();
 			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collection, newHandler);
 			if(oldCollectionHandler != null){
 				logger.info("## Close Previous Collection Handler");
@@ -108,15 +105,9 @@ public class RebuildIndexJob extends Job {
 			String durationStr = Formatter.getFormatTime(System.currentTimeMillis() - st);
 			IRSettings.storeIndextime(collection, "REBUILD", startDt, endDt, durationStr, docSize);
 			
-		} catch (IOException e) {
+		} catch (Exception e) {
 			indexingLogger.error("["+collection+"] Rebuilding error = "+e.getMessage(),e);
-			throw new JobException(e);
-		} catch (SettingException e) {
-			indexingLogger.error("["+collection+"] Rebuilding error = "+e.getMessage(),e);
-			throw new JobException(e);
-		} catch (IRException e) {
-			indexingLogger.error("["+collection+"] Rebuilding error = "+e.getMessage(),e);
-			throw new JobException(e);
+			throw new FastcatSearchException("ERR-00502", e, collection);
 		}
 		
 		indexingLogger.info("["+collection+"] Rebuild Indexing Finished! time = "+Formatter.getFormatTime(System.currentTimeMillis() - st));

@@ -11,29 +11,17 @@
 
 package org.fastcatsearch.service;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Timer;
-import java.util.TimerTask;
 
-import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.dao.SetDictionary;
-import org.fastcatsearch.db.vo.KeywordHitVO;
 import org.fastcatsearch.env.Environment;
-//import org.fastcatsearch.keyword.KeywordFail;
-//import org.fastcatsearch.keyword.KeywordHit;
-//import org.fastcatsearch.keyword.MemoryKeyword;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.settings.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,9 +55,6 @@ public class KeywordService extends AbstractService{
 	
 	public static KeywordService getInstance(){
 		return instance;
-	}
-	public void asSingleton() {
-		instance = this;
 	}
 	
 	public KeywordService(Environment environment, Settings settings, ServiceManager serviceManager) {
@@ -133,7 +118,7 @@ public class KeywordService extends AbstractService{
 		return old;
 	}
 	
-	protected boolean doStart() throws ServiceException {
+	protected boolean doStart() throws FastcatSearchException {
 		//현재 시각에서 가장 가까운 5로 나누어 떨어지는 이전 시각의 분 숫자를 구함. nowMin
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(new Date());
@@ -172,7 +157,7 @@ public class KeywordService extends AbstractService{
 		return true;
 	}
 	
-	protected boolean doStop() throws ServiceException {
+	protected boolean doStop() throws FastcatSearchException {
 		timer.cancel();
 		return true;
 	}
@@ -721,7 +706,7 @@ public class KeywordService extends AbstractService{
 
 
 	@Override
-	protected boolean doClose() throws ServiceException {
+	protected boolean doClose() throws FastcatSearchException {
 		return true;
 	}
 

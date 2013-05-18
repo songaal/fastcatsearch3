@@ -23,6 +23,7 @@ import org.fastcatsearch.db.vo.IndexingResultVO;
 
 public class IndexingResult extends DAOBase {
 
+	public final static String TYPE_NONE_INDEXING = "-";
 	public final static String TYPE_FULL_INDEXING = "F";
 	public final static String TYPE_INC_INDEXING = "I";
 	

@@ -16,18 +16,17 @@ import java.io.Serializable;
 import java.io.StringWriter;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.fastcatsearch.control.JobException;
+import org.fastcatsearch.alert.ClusterAlertService;
 import org.fastcatsearch.control.JobExecutor;
-import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.env.Environment;
-import org.fastcatsearch.log.EventDBLogger;
-import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.service.ServiceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
 
-public abstract class Job implements Runnable, Serializable{
+public abstract class Job implements Runnable, Serializable {
 	private static final long serialVersionUID = 6296052043270199612L;
 
 	protected static Logger logger = LoggerFactory.getLogger(Job.class);
@@ -108,51 +107,37 @@ public abstract class Job implements Runnable, Serializable{
 	public long duration(){
 		return endTime - startTime;
 	}
-	public abstract JobResult doRun() throws JobException, ServiceException;
+	public abstract JobResult doRun() throws FastcatSearchException;
 
 	static AtomicInteger count = new AtomicInteger();
 	
-	public final void run(){
+	public final void run() {
 		startTime = System.currentTimeMillis();
 		JobResult jobResult = null;
-		Throwable throwable = null;
 		try {
-			jobExecutor.jobHandler().handleStart(this);
 			
 			jobResult = doRun();
 			
-			if(jobExecutor == null){
-				logger.error("결과를 반환할 jobExecutor가 없습니다. job={}", this);
-			}
-			
 			if(jobId != -1){
 				
-				logger.debug("Job#{} result = {}", jobId, jobResult);
+//				logger.debug("Job#{} result = {}", jobId, jobResult);
 				jobExecutor.result(this, jobResult.result, jobResult.isSuccess);
 				
 				Object result = jobResult.result;
 				if(result != null && result instanceof Throwable){
-					throwable = (Throwable) result;
+					//다른 서버에서 발생한 에러의 경우는 예외가 result에 담겨있다.
+					throw (Throwable) result;
 				}
 			}else{
 				logger.error("## 결과에 jobId가 없습니다. job={}, result={}", this, jobResult);
+				throw new FastcatSearchException("ERR-00110");
 			}
-//			logger.info("Done job-{} / {}", jobId, jobExecutor.runningJobSize());
-		} catch (OutOfMemoryError e){
-			throwable = e;
-			jobExecutor.result(this, e, false);
-			//EventDBLogger.error(EventDBLogger.CATE_MANAGEMENT, "메모리부족 에러가 발생했습니다.", EventDBLogger.getStackTrace(e));
 		} catch (Throwable e){
-			throwable = e;
+			ClusterAlertService clusterAlertService = ServiceManager.getInstance().getService(ClusterAlertService.class);
+			clusterAlertService.alert(e);
 			jobExecutor.result(this, e, false);
 		} finally {
 			endTime = System.currentTimeMillis();
-			if(throwable != null){
-				logError(throwable);
-				jobExecutor.jobHandler().handleError(this, throwable);
-			}else{
-				jobExecutor.jobHandler().handleFinish(this, jobResult);
-			}
 		}
 
 	}
@@ -170,6 +155,10 @@ public abstract class Job implements Runnable, Serializable{
 	public static class JobResult{
 		protected Object result;
 		protected boolean isSuccess;
+		
+		public JobResult(){
+			//result를 넣지않으면 resultFuture.take()시 null객체가 리턴된다.
+		}
 		
 		public JobResult(Object result){
 			this.isSuccess = !(result instanceof Throwable);

@@ -12,18 +12,16 @@
 package org.fastcatsearch.job;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
-import org.fastcatsearch.control.JobException;
 import org.fastcatsearch.datasource.DataSourceSetting;
 import org.fastcatsearch.datasource.reader.SourceReader;
 import org.fastcatsearch.datasource.reader.SourceReaderFactory;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.config.Schema;
@@ -35,7 +33,7 @@ import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.log.EventDBLogger;
-import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.IRSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +42,7 @@ public class IncIndexJob extends IndexingJob {
 
 	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 	
-	public static void main(String[] args) throws JobException, ServiceException {
+	public static void main(String[] args) throws FastcatSearchException {
 		String homePath = args[0];
 		String collection = args[1];
 		IRSettings.setHome(homePath);
@@ -55,7 +53,7 @@ public class IncIndexJob extends IndexingJob {
 	}
 	
 	@Override
-	public JobResult doRun() throws JobException, ServiceException {
+	public JobResult doRun() throws FastcatSearchException {
 		String[] args = getStringArrayArgs();
 		String collection = args[0];
 		boolean forceAppend = false;
@@ -75,12 +73,12 @@ public class IncIndexJob extends IndexingJob {
 		long st = System.currentTimeMillis(); 
 		try {
 			Schema schema = IRSettings.getSchema(collection, true);
-			IRService irService = IRService.getInstance();
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			CollectionHandler workingHandler = irService.getCollectionHandler(collection);
 			if(workingHandler == null){
 				indexingLogger.error("["+collection+"] CollectionHandler is not running!");
 				EventDBLogger.error(EventDBLogger.CATE_INDEX, "컬렉션 "+collection+"가 서비스중이 아님.");
-				throw new JobException("## ["+collection+"] CollectionHandler is not running...");
+				throw new FastcatSearchException("## ["+collection+"] CollectionHandler is not running...");
 			}
 			
 			IRConfig irconfig = IRSettings.getConfig(true);
@@ -117,7 +115,7 @@ public class IncIndexJob extends IndexingJob {
 			
 			if(sourceReader == null){
 				EventDBLogger.error(EventDBLogger.CATE_INDEX, "데이터수집기를 생성할 수 없습니다.");
-				throw new JobException("데이터 수집기 생성중 에러발생. sourceType = "+dsSetting.sourceType);
+				throw new FastcatSearchException("데이터 수집기 생성중 에러발생. sourceType = "+dsSetting.sourceType);
 			}
 			//Check prev doc No.
 			//case.1 : forceAppend
@@ -262,15 +260,9 @@ public class IncIndexJob extends IndexingJob {
 			
 			return new JobResult(new IndexingJobResult(collection, segmentDir, count, updateAndDeleteSize[0], updateAndDeleteSize[1], duration));
 			
-		} catch (IOException e) {
-			EventDBLogger.error(EventDBLogger.CATE_INDEX, "증분색인에러", EventDBLogger.getStackTrace(e));
-			throw new JobException(e);
-		} catch (SettingException e) {
-			EventDBLogger.error(EventDBLogger.CATE_INDEX, "증분색인에러", EventDBLogger.getStackTrace(e));
-			throw new JobException(e);
-		} catch (IRException e) {
-			EventDBLogger.error(EventDBLogger.CATE_INDEX, "증분색인에러", EventDBLogger.getStackTrace(e));
-			throw new JobException(e);
+		} catch (Exception e) {
+//			EventDBLogger.error(EventDBLogger.CATE_INDEX, "증분색인에러", EventDBLogger.getStackTrace(e));
+			throw new FastcatSearchException("ERR-00501", e);
 		}
 		
 		

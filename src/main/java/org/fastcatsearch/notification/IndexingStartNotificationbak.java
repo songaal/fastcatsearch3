@@ -1,25 +1,25 @@
-package org.fastcatsearch.job.notification;
+package org.fastcatsearch.notification;
 
 import java.io.IOException;
 import java.sql.Timestamp;
 
 import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.common.io.StreamOutput;
-import org.fastcatsearch.control.JobException;
+
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.dao.IndexingResult;
 import org.fastcatsearch.job.StreamableJob;
-import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.service.ServiceManager;
 
-public class IndexingStartNotification extends StreamableJob {
+public class IndexingStartNotificationbak extends StreamableJob {
 	private static final long serialVersionUID = 1084526563289625615L;
 	private String collection;
 	private String indexingType;
 	private long startTime;
 	private boolean isScheduled;
 
-	public IndexingStartNotification(String collection, String indexingType, long startTime, boolean isScheduled) {
+	public IndexingStartNotificationbak(String collection, String indexingType, long startTime, boolean isScheduled) {
 		this.collection = collection;
 		this.indexingType = indexingType;
 		this.startTime = startTime;
@@ -27,7 +27,7 @@ public class IndexingStartNotification extends StreamableJob {
 	}
 
 	@Override
-	public JobResult doRun() throws JobException, ServiceException {
+	public JobResult doRun() throws FastcatSearchException {
 
 		DBService dbService = ServiceManager.getInstance().getService(DBService.class);
 		if (dbService != null) {

@@ -2,13 +2,11 @@ package org.fastcatsearch.http;
 
 import java.util.concurrent.ExecutorService;
 
-import org.fastcatsearch.control.JobExecutor;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.service.AbstractService;
-import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
-import org.fastcatsearch.transport.TransportModule;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 
 public class HttpServiceServer extends AbstractService implements HttpServerAdapter {
@@ -16,38 +14,32 @@ public class HttpServiceServer extends AbstractService implements HttpServerAdap
 	HttpTransportModule transportModule;
 	private final ServiceController serviceController;
 	
-	public HttpServiceServer(Environment environment, Settings settings, ServiceManager serviceManager) throws ServiceException {
+	public HttpServiceServer(Environment environment, Settings settings, ServiceManager serviceManager) throws FastcatSearchException {
 		super(environment, settings, serviceManager);
 		transportModule = new HttpTransportModule(environment, settings);
 		transportModule.httpServerAdapter(this);
 		ExecutorService executorService = null;
 		serviceController = new ServiceController(executorService);
 		if(!transportModule.load()){
-			throw new ServiceException("can not load transport module!");
+			throw new FastcatSearchException("can not load transport module!");
 		}
-	}
-
-	@Override
-	public void asSingleton() {
-		// TODO Auto-generated method stub
-
 	}
 	
 	@Override
-	protected boolean doStart() throws ServiceException {
+	protected boolean doStart() throws FastcatSearchException {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 
 	@Override
-	protected boolean doStop() throws ServiceException {
+	protected boolean doStop() throws FastcatSearchException {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	protected boolean doClose() throws ServiceException {
+	protected boolean doClose() throws FastcatSearchException {
 		// TODO Auto-generated method stub
 		return false;
 	}

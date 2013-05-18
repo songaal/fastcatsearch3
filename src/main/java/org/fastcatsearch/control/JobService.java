@@ -25,13 +25,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.ThreadPoolFactory;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.common.SettingException;
-import org.fastcatsearch.job.FullIndexJob;
-import org.fastcatsearch.job.IncIndexJob;
 import org.fastcatsearch.job.IndexingJob;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.AbstractService;
-import org.fastcatsearch.service.ServiceException;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
 import org.slf4j.Logger;
@@ -49,6 +47,7 @@ public class JobService extends AbstractService implements JobExecutor {
 
 	private BlockingQueue<Job> jobQueue;
 	private Map<Long, ResultFuture> resultFutureMap;
+	private BlockingQueue<Job> sequencialJobQueue;
 	private Map<Long, Job> runningJobList;
 	private AtomicLong jobIdIncrement;
 
@@ -59,6 +58,7 @@ public class JobService extends AbstractService implements JobExecutor {
 	private ScheduledThreadPoolExecutor otherScheduledJobExecutor;
 
 	private JobConsumer worker;
+	private SequencialJobWorker sequencialJobWorker;
 	private JobScheduler jobScheduler;
 	private IndexingMutex indexingMutex;
 	private boolean useJobScheduler;
@@ -66,28 +66,25 @@ public class JobService extends AbstractService implements JobExecutor {
 
 	private static JobService instance;
 
-	private JobHandler jobHandler;
+//	private JobHandler jobHandler;
 	
 	public static JobService getInstance() {
 		return instance;
-	}
-
-	public void asSingleton() {
-		instance = this;
 	}
 
 	public JobService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
 	}
 
-	public JobHandler jobHandler(){
-		return jobHandler;
-	}
-	protected boolean doStart() throws ServiceException {
+//	public JobHandler jobHandler(){
+//		return jobHandler;
+//	}
+	protected boolean doStart() throws FastcatSearchException {
 		jobIdIncrement = new AtomicLong();
 		resultFutureMap = new ConcurrentHashMap<Long, ResultFuture>();
 		runningJobList = new ConcurrentHashMap<Long, Job>();
 		jobQueue = new LinkedBlockingQueue<Job>();
+		sequencialJobQueue = new LinkedBlockingQueue<Job>();
 		indexingMutex = new IndexingMutex();
 		jobScheduler = new JobScheduler();
 
@@ -108,11 +105,13 @@ public class JobService extends AbstractService implements JobExecutor {
 
 		worker = new JobConsumer();
 		worker.start();
+		sequencialJobWorker = new SequencialJobWorker();
+		sequencialJobWorker.start();
 		if (useJobScheduler) {
 			jobScheduler.start();
 		}
 
-		jobHandler = new JobHandler(serviceManager.getService(NodeService.class));
+//		jobHandler = new JobHandler(serviceManager.getService(NodeService.class));
 		
 		return true;
 	}
@@ -120,8 +119,10 @@ public class JobService extends AbstractService implements JobExecutor {
 	protected boolean doStop() {
 		logger.debug(getClass().getName() + " stop requested.");
 		worker.interrupt();
+		sequencialJobWorker.interrupt();
 		resultFutureMap.clear();
 		jobQueue.clear();
+		sequencialJobQueue.clear();
 		runningJobList.clear();
 		jobExecutor.shutdownNow();
 		if (useJobScheduler) {
@@ -182,7 +183,27 @@ public class JobService extends AbstractService implements JobExecutor {
 	public ThreadPoolExecutor getJobExecutor() {
 		return jobExecutor;
 	}
+	
+	/**
+	 * 순차적인 작업을 실행할때 호출한다.
+	 * 도착한 순서대로 앞의 작업이 모두 끝나야 다음작업이 실행된다.
+	 * */
+	public ResultFuture execute(Job job) {
+		job.setEnvironment(environment);
+		job.setJobExecutor(this);
 
+		if (job instanceof IndexingJob) {
+			//색인작업은 execute로 실행할수 없다.
+			return null;
+		}
+		long myJobId = jobIdIncrement.getAndIncrement();
+		ResultFuture resultFuture = new ResultFuture(myJobId, resultFutureMap);
+		resultFutureMap.put(myJobId, resultFuture);
+		job.setId(myJobId);
+		sequencialJobQueue.offer(job);
+		return resultFuture;
+	}
+	
 	public ResultFuture offer(Job job) {
 		job.setEnvironment(environment);
 		job.setJobExecutor(this);
@@ -231,7 +252,8 @@ public class JobService extends AbstractService implements JobExecutor {
 			resultFuture.put(result, isSuccess);
 		} else {
 			// 시간초과로 ResultFutuer.poll에서 미리제거된 경우.
-			logger.debug("result arrived but future object is already removed due to timeout. result={}", result);
+			//혹은 처음부터 결과가 필요없어서 map에 안넣었을 경우.
+			//logger.debug("result arrived but future object is already removed due to timeout. result={}", result);
 		}
 
 	}
@@ -241,42 +263,56 @@ public class JobService extends AbstractService implements JobExecutor {
 	 */
 	class JobConsumer extends Thread {
 		// 2013-4-5 exception발생시 worker가 죽어서 더이상 작업할당을 못하는 상황발생.
-		// throw를 catch하도록 수정.
+		// InterruptedException을 제외한 모든 throwable을 catch하도록 수정.
 
 		public JobConsumer() {
 			super("JobConsumerThread");
 		}
 
 		public void run() {
-			try {
-				while (!Thread.interrupted()) {
-					Job job = null;
-					try {
-						job = jobQueue.take();
-						// logger.info("Execute = " + job);
-						// logger.info("runningJobList[{}], jobQueue[{}] ",
-						// runningJobList.size(), jobQueue.size());
-						runningJobList.put(job.getId(), job);
-						jobExecutor.execute(job);
+			while (!Thread.interrupted()) {
+				Job job = null;
+				try {
+					job = jobQueue.take();
+					runningJobList.put(job.getId(), job);
+					jobExecutor.execute(job);
+				} catch (InterruptedException e) {
+					logger.debug(this.getClass().getName() + " is interrupted.");
+				} catch (RejectedExecutionException e) {
+					// jobExecutor rejecthandler가 abortpolicy의 경우
+					// RejectedExecutionException을 던지게 되어있다.
+					logger.error("처리허용량을 초과하여 작업이 거부되었습니다. max.pool = {}, job={}", executorMaxPoolSize, job);
+					result(job, new ExecutorMaxCapacityExceedException("처리허용량을 초과하여 작업이 거부되었습니다. max.pool ="
+							+ executorMaxPoolSize), false);
 
-					} catch (InterruptedException e) {
-						throw e;
-
-					} catch (RejectedExecutionException e) {
-						// jobExecutor rejecthandler가 abortpolicy의 경우
-						// RejectedExecutionException을 던지게 되어있다.
-						logger.error("처리허용량을 초과하여 작업이 거부되었습니다. max.pool = {}, job={}", executorMaxPoolSize, job);
-						result(job, new ExecutorMaxCapacityExceedException("처리허용량을 초과하여 작업이 거부되었습니다. max.pool ="
-								+ executorMaxPoolSize), false);
-
-					} catch (Throwable e) {
-						// 나머지 jobExecutor 의 에러를 처리한다.
-						logger.error("", e);
-						result(job, null, false);
-					}
+				} catch (Throwable e) {
+					logger.error("", e);
 				}
-			} catch (InterruptedException e) {
-				logger.debug(this.getClass().getName() + " is interrupted.");
+			}
+
+		}
+	}
+	
+	/*
+	 * 이 쓰레드는 절대로 죽어서는 아니되오.
+	 */
+	class SequencialJobWorker extends Thread {
+		public SequencialJobWorker() {
+			super("SequencialJobWorker");
+		}
+
+		public void run() {
+			while (!Thread.interrupted()) {
+				Job job = null;
+				try {
+					job = sequencialJobQueue.take();
+					//이 쓰레드에서 바로 실행해준다. 순서보장됨.
+					job.run();
+				} catch (InterruptedException e) {
+					logger.debug(this.getClass().getName() + " is interrupted.");
+				} catch (Throwable e) {
+					logger.error("", e);
+				}
 			}
 
 		}

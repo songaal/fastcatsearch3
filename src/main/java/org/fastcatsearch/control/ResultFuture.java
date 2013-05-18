@@ -78,7 +78,7 @@ public class ResultFuture {
 		try {
 			result = queue.take();
 			if(result == NULL_RESULT){
-				result = null;
+				return null;
 			}
 			return result;
 		} catch (InterruptedException e) {
@@ -104,7 +104,7 @@ public class ResultFuture {
 					//결과가 아직도착하지 않아서 받지못하거나, 네트워크 문제로 인해 전달이 안될수도 있으므로 불필요한 객체를 map에서 제거한다.
 					resultFutureMap.remove(requestId);
 				}else if(result == NULL_RESULT){
-					result = null;
+					return null;
 				}
 				return result;
 			}else{
@@ -113,7 +113,7 @@ public class ResultFuture {
 					//시간초과에 따른 제거일수도 있으므로, 
 					resultFutureMap.remove(requestId);
 				}else if(result == NULL_RESULT){
-					result = null;
+					return null;
 				}
 				return result;
 			}

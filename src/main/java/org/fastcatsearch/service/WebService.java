@@ -13,12 +13,12 @@ package org.fastcatsearch.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.cli.ConsoleActionServlet;
 import org.fastcatsearch.common.DynamicClassLoader;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.plugin.PluginSetting;
@@ -85,16 +85,13 @@ public class WebService extends AbstractService{
 	public static WebService getInstance(){
 		return instance;
 	}
-	public void asSingleton() {
-		instance = this;
-	}
 	
 	public WebService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
 		
 	}
 	
-	protected boolean doStart() throws ServiceException{
+	protected boolean doStart() throws FastcatSearchException{
 		
 		if(System.getProperty("server.port")!=null) {
 			SERVER_PORT = Integer.parseInt(System.getProperty("server.port"));
@@ -273,7 +270,7 @@ public class WebService extends AbstractService{
 			}
 			logger.info("ServiceHandler Started! port = "+SERVER_PORT);
 		} catch (Exception e) {
-			throw new ServiceException(SERVER_PORT+" PORT로 웹서버 시작중 에러발생. ", e);
+			throw new FastcatSearchException("ERR-00330", e, SERVER_PORT);
 			
 		}
 		return true;
@@ -283,13 +280,13 @@ public class WebService extends AbstractService{
 		handlerList.addHandler(handler);
 	}
 	
-	protected boolean doStop() throws ServiceException{
+	protected boolean doStop() throws FastcatSearchException{
 		try {
 			logger.info("ServiceHandler stop requested...");
 			server.stop();
 			logger.info("Server Stop Ok!");
 		} catch (Exception e) {
-			throw new ServiceException(e);
+			throw new FastcatSearchException("ERR-00331", e);
 		}
 		return true;
 	}
@@ -299,7 +296,7 @@ public class WebService extends AbstractService{
 	}
 
 	@Override
-	protected boolean doClose() throws ServiceException {
+	protected boolean doClose() throws FastcatSearchException {
 		return false;
 	}
 }

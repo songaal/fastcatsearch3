@@ -14,6 +14,7 @@ package org.fastcatsearch.server;
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
 
+import org.fastcatsearch.alert.ClusterAlertService;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.data.DataService;
@@ -22,9 +23,11 @@ import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.management.ManagementInfoService;
+import org.fastcatsearch.notification.NotificationService;
 import org.fastcatsearch.plugin.PluginService;
+import org.fastcatsearch.processlogger.ProcessLoggerService;
 import org.fastcatsearch.service.KeywordService;
-import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.service.WebService;
 import org.fastcatsearch.settings.IRSettings;
@@ -49,7 +52,7 @@ public class CatServer {
 	private static volatile Thread keepAliveThread;
 	private static volatile CountDownLatch keepAliveLatch;
 
-	public static void main(String... args) throws ServiceException {
+	public static void main(String... args) throws FastcatSearchException {
 		if (args.length < 1) {
 			usage();
 			return;
@@ -119,7 +122,7 @@ public class CatServer {
 
     }
 
-	public void start() throws ServiceException {
+	public void start() throws FastcatSearchException {
 		// 초기화 및 서비스시작을 start로 옮김.
 		// 초기화로직이 init에 존재할 경우, 관리도구에서 검색엔진을 재시작할때, init을 호출하지 않으므로, 초기화를 건너뛰게
 		// 됨.
@@ -145,31 +148,25 @@ public class CatServer {
 		serviceManager.asSingleton();
 
 		PluginService pluginService = serviceManager.createService("plugin", PluginService.class);
-		pluginService.asSingleton();
 		
 		DBService dbService = serviceManager.createService("db", DBService.class);
-		dbService.asSingleton();
 		KeywordService keywordService = serviceManager.createService("keyword", KeywordService.class);
-		keywordService.asSingleton();
 		JobService jobService = serviceManager.createService("job", JobService.class);
-		jobService.asSingleton();
 		IRService irService = serviceManager.createService("ir", IRService.class);
-		irService.asSingleton();
 		StatisticsInfoService statisticsInfoService = serviceManager.createService("statistics_info", StatisticsInfoService.class);
-		statisticsInfoService.asSingleton();
 		ManagementInfoService managementInfoService = serviceManager.createService("management_info", ManagementInfoService.class);
-		managementInfoService.asSingleton();
 		NodeService nodeService = serviceManager.createService("node", NodeService.class);
-		nodeService.asSingleton();
 		DataService dataService = serviceManager.createService("data", DataService.class);
-		dataService.asSingleton();
 
 		WebService webService = serviceManager.createService("web", WebService.class);
 		if (webService == null) {
-			throw new ServiceException("웹서비스를 초기화하지 못했습니다.");
+			throw new FastcatSearchException("웹서비스를 초기화하지 못했습니다.");
 		}
-		webService.asSingleton();
-
+		
+		NotificationService notificationService = serviceManager.createService("notification", NotificationService.class);
+		ClusterAlertService clusterAlertService = serviceManager.createService("alert", ClusterAlertService.class);
+		ProcessLoggerService processLoggerService = serviceManager.createService("processlogger", ProcessLoggerService.class);
+		
 		logger = LoggerFactory.getLogger(CatServer.class);
 		logger.info("ServerHome = {}", serverHome);
 		try {
@@ -192,8 +189,11 @@ public class CatServer {
 			if (webService != null)
 				webService.start();
 			
+			notificationService.start();
+			clusterAlertService.start();
+			processLoggerService.start();
 			
-		} catch (ServiceException e) {
+		} catch (FastcatSearchException e) {
 			logger.error("CatServer 시작에 실패했습니다.", e);
 			stop();
 		}
@@ -251,9 +251,13 @@ public class CatServer {
 
 	}
 
-	public void stop() throws ServiceException {
+	public void stop() throws FastcatSearchException {
 
 		// FIXME 뜨는 도중 에러 발생시 NullPointerException 발생가능성.
+		serviceManager.getService(NotificationService.class).stop();
+		serviceManager.getService(ClusterAlertService.class).stop();
+		serviceManager.getService(ProcessLoggerService.class).stop();
+		
 		serviceManager.getService(PluginService.class).stop();
 		serviceManager.getService(NodeService.class).stop();
 		serviceManager.getService(StatisticsInfoService.class).stop();
@@ -273,7 +277,11 @@ public class CatServer {
 		// Runtime.getRuntime().removeShutdownHook(shutdownHook);
 	}
 
-	public void close() throws ServiceException {
+	public void close() throws FastcatSearchException {
+		serviceManager.getService(NotificationService.class).close();
+		serviceManager.getService(ClusterAlertService.class).close();
+		serviceManager.getService(ProcessLoggerService.class).close();
+		
 		serviceManager.getService(PluginService.class).close();
 		serviceManager.getService(NodeService.class).close();
 		serviceManager.getService(StatisticsInfoService.class).close();

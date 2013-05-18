@@ -13,7 +13,8 @@ package org.fastcatsearch.job;
 
 
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.service.ServiceException;
+import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.exception.FastcatSearchException;
 
 public class CacheServiceRestartJob extends Job{
 	private int delay;
@@ -30,12 +31,14 @@ public class CacheServiceRestartJob extends Job{
 			Thread.sleep(delay);
 		} catch (InterruptedException e) { }
 		
-		boolean result = IRService.getInstance().searchCache().unload()
-		&& IRService.getInstance().groupingCache().unload()
-		&& IRService.getInstance().documentCache().unload()
-		&& IRService.getInstance().searchCache().load()
-		&& IRService.getInstance().groupingCache().load()
-		&& IRService.getInstance().documentCache().load();
+		IRService irService = ServiceManager.getInstance().getService(IRService.class);
+		
+		boolean result = irService.searchCache().unload()
+		&& irService.groupingCache().unload()
+		&& irService.documentCache().unload()
+		&& irService.searchCache().load()
+		&& irService.groupingCache().load()
+		&& irService.documentCache().load();
 		
 		return new JobResult(result);
 	}
