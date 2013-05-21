@@ -29,6 +29,9 @@ public class Environment {
 		if (home.length() > 0 && !home.endsWith(FILE_SEPARATOR)) {
 			home = home + FILE_SEPARATOR;
 		}
+		
+		System.setProperty("fastcatsearch.home", homeFile.getAbsolutePath());
+		System.setProperty("logback.configurationFile", new File(new File(homeFile, "conf"), "logback.xml").getAbsolutePath());
 		logger.info("Setting Home = {}", home);
 	}
 	

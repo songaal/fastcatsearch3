@@ -46,6 +46,7 @@ import org.fastcatsearch.servlet.cluster.ClusterSearchServlet;
 import org.fastcatsearch.settings.Settings;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
+import org.mortbay.jetty.handler.DefaultHandler;
 import org.mortbay.jetty.handler.HandlerList;
 import org.mortbay.jetty.servlet.Context;
 import org.mortbay.jetty.servlet.ServletHolder;
@@ -258,6 +259,7 @@ public class WebService extends AbstractService{
 			}
 		}
 		
+		handlerList.addHandler(new DefaultHandler());
         server.setHandler(handlerList);
         
 		try {

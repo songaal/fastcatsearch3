@@ -34,7 +34,6 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 				.key("time").value(Formatter.getFormatTime(searchTime))
 				.key("total_count").value(0)
 				.key("error_msg").value(errorMsg).endObject();
-			return;
 		}else{
 			Result result = (Result)obj;
 			

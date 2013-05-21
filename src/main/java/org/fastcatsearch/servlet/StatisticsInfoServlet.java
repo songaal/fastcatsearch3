@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.servlet.WebServiceHttpServlet;
 import org.fastcatsearch.statistics.RealTimeCollectionStatistics;
 import org.fastcatsearch.statistics.StatisticsInfoService;
@@ -37,7 +38,6 @@ import org.slf4j.LoggerFactory;
 public class StatisticsInfoServlet extends WebServiceHttpServlet {
 	
 	private static final long serialVersionUID = 963640595944747847L;
-	private StatisticsInfoService service = StatisticsInfoService.getInstance();
 	
 	public StatisticsInfoServlet() {
 	}
@@ -52,8 +52,10 @@ public class StatisticsInfoServlet extends WebServiceHttpServlet {
     Random r = new Random(System.currentTimeMillis());
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     	
-    	if(!service.isRunning()){
-    		throw new ServletException(service.getClass().getName()+"이 시작중이 아닙니다.");
+    	StatisticsInfoService statisticsInfoService = ServiceManager.getInstance().getService(StatisticsInfoService.class);
+    	
+    	if(!statisticsInfoService.isRunning()){
+    		throw new ServletException(statisticsInfoService.getClass().getName()+"이 시작중이 아닙니다.");
     	}
     	
     	String q = request.getParameter("q");
@@ -70,8 +72,8 @@ public class StatisticsInfoServlet extends WebServiceHttpServlet {
         	response.setStatus(HttpServletResponse.SC_OK);
         	response.setContentType("application/json;");
         	
-        	String[] collectionNameList = service.getCollectionNameList();
-        	boolean[] status = service.getCollectionStatus();
+        	String[] collectionNameList = statisticsInfoService.getCollectionNameList();
+        	boolean[] status = statisticsInfoService.getCollectionStatus();
         	
         	JSONStringer stringer = new JSONStringer();
         	try {
@@ -105,10 +107,10 @@ public class StatisticsInfoServlet extends WebServiceHttpServlet {
     		}else{
     			response.setContentType("application/json;");
     		}
-    		String[] collectionNameList = service.getCollectionNameList();
-        	boolean[] status = service.getCollectionStatus();
-    		RealTimeCollectionStatistics[] statistics = service.getCollectionStatisticsList();
-    		RealTimeCollectionStatistics globalCollectionStatistics = service.getGlobalCollectionStatistics();
+    		String[] collectionNameList = statisticsInfoService.getCollectionNameList();
+        	boolean[] status = statisticsInfoService.getCollectionStatus();
+    		RealTimeCollectionStatistics[] statistics = statisticsInfoService.getCollectionStatisticsList();
+    		RealTimeCollectionStatistics globalCollectionStatistics = statisticsInfoService.getGlobalCollectionStatistics();
     		//결과생성
     		JSONStringer stringer = new JSONStringer();
     		try {

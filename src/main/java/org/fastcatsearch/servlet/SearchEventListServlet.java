@@ -25,6 +25,7 @@ import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.dao.SearchEvent;
 import org.fastcatsearch.db.vo.SearchEventVO;
 import org.fastcatsearch.log.EventDBLogger;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.servlet.WebServiceHttpServlet;
 import org.fastcatsearch.statistics.StatisticsInfoService;
 import org.json.JSONException;
@@ -41,7 +42,6 @@ import org.slf4j.LoggerFactory;
 public class SearchEventListServlet extends WebServiceHttpServlet {
 	
 	private static final long serialVersionUID = -2389828881575351283L;
-	private StatisticsInfoService service = StatisticsInfoService.getInstance();
 	
 	public SearchEventListServlet() {
 	}
@@ -58,6 +58,8 @@ public class SearchEventListServlet extends WebServiceHttpServlet {
     	response.setStatus(HttpServletResponse.SC_OK);
     	response.setContentType("application/json;");
     	
+    	StatisticsInfoService statisticsInfoService = ServiceManager.getInstance().getService(StatisticsInfoService.class);
+    	
     	JSONStringer stringer = new JSONStringer();
     	PrintWriter w = response.getWriter();
     	
@@ -72,7 +74,7 @@ public class SearchEventListServlet extends WebServiceHttpServlet {
     		response.setContentType("application/json;");
 			try {
     			stringer.object()
-    			.key("update").value(service.isEventUpdated(time))
+    			.key("update").value(statisticsInfoService.isEventUpdated(time))
     			.endObject();
 			} catch (JSONException e) {
 				throw new ServletException("JSONException 발생",e);

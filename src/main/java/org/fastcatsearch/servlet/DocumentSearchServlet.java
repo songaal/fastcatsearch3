@@ -221,82 +221,82 @@ public class DocumentSearchServlet extends WebServiceHttpServlet {
 	    	
 			writer.write("\t],");
 			
-			if(isAdmin != null && isAdmin.equalsIgnoreCase("true")){
-				if(result.getCount() == 0){
-					writer.write("\t\"colmodel_list\": [");
-	        		writer.write("\t\t{\"name\": \"_no_\", \"index\": \"_no_\", \"width\": \"100%\", \"sorttype\": \"int\", \"align\": \"center\"}");
-	        		writer.write("\t],");
-				}else{
-	    			writer.write("\t\"colmodel_list\": [");
-	        		writer.write("\t\t");
-	        		AsciiCharTrie fieldnames = null;
-	        		List<FieldSetting> fieldSettingList = null;
-	        		try {
-	        			Schema schema = IRSettings.getSchema(collectionName, false);
-	        			fieldnames = schema.fieldnames;
-	        			fieldSettingList = schema.getFieldSettingList();
-					} catch (SettingException e) {
-						
-					}
-					
-					
-					//write _no_
-					if(fieldNames.length > 0){
-						writer.write("{\"name\": \"_no_\", \"index\": \"_no_\", \"width\": \"20\", \"sorttype\": \"int\", \"align\": \"center\"}");
-					}
-	        		for (int i = 0; i < fieldNames.length; i++) {
-	        			int idx = fieldnames.get(fieldNames[i]);
-	        			if(idx < 0){
-	        				if(fieldNames[i].equalsIgnoreCase(ScoreField.fieldName)){
-	        					writer.write(",");
-	        					writer.write("\t\t{\"name\": \"");
-	                			writer.write(fieldNames[i]);
-	                			writer.write("\", \"index\": \"");
-	                			writer.write(fieldNames[i]);
-	                			writer.write("\", \"width\": ");
-	        					writer.write("\"20\", \"sorttype\": \"int\", \"align\": \"right\"}");
-	        				}else{
-	        					//Unknown Field
-	        					writer.write(",");
-	        					writer.write("\t\t{\"name\": \"");
-	                			writer.write(fieldNames[i]);
-	                			writer.write("\", \"index\": \"");
-	                			writer.write(fieldNames[i]);
-	                			writer.write("\", \"width\": ");
-	        					writer.write("\"20\"}");
-	        				}
-	        			}else{
-	        				writer.write(",");
-	            			writer.write("\t\t{\"name\": \"");
-	            			writer.write(fieldNames[i]);
-	            			writer.write("\", \"index\": \"");
-	            			writer.write(fieldNames[i]);
-	            			writer.write("\", \"width\": ");
-	        			
-	            			FieldSetting fs = fieldSettingList.get(idx);
-	            			if(fs.type == FieldSetting.Type.Int || fs.type == FieldSetting.Type.Long || fs.type == FieldSetting.Type.Float || fs.type == FieldSetting.Type.Double || fs.type == FieldSetting.Type.DateTime){
-	            				writer.write("\"20\", \"sorttype\": \"int\", \"align\": \"right\"}");
-	            			}else{
-	            				if(fs.size > 0 && fs.size < 50){
-	            					writer.write("\"");
-	            					writer.write((fs.size * 2)+"");
-	            					writer.write("\", ");
-	            				}else{
-	            					writer.write("\"100\", ");
-	            				}
-	            				writer.write("\"sorttype\": \"text\"}");
-	            			}
-	            			
-	        			}
-	        			
-	//            			if(i < fieldNames.length - 1)
-	//            				writer.write(",");
-	        			
-					}
-	        		writer.write("");
-	        		writer.write("\t],");
-				}
-			}
+//			if(isAdmin != null && isAdmin.equalsIgnoreCase("true")){
+//				if(result.getCount() == 0){
+//					writer.write("\t\"colmodel_list\": [");
+//	        		writer.write("\t\t{\"name\": \"_no_\", \"index\": \"_no_\", \"width\": \"100%\", \"sorttype\": \"int\", \"align\": \"center\"}");
+//	        		writer.write("\t],");
+//				}else{
+//	    			writer.write("\t\"colmodel_list\": [");
+//	        		writer.write("\t\t");
+//	        		AsciiCharTrie fieldnames = null;
+//	        		List<FieldSetting> fieldSettingList = null;
+//	        		try {
+//	        			Schema schema = IRSettings.getSchema(collectionName, false);
+//	        			fieldnames = schema.fieldnames;
+//	        			fieldSettingList = schema.getFieldSettingList();
+//					} catch (SettingException e) {
+//						
+//					}
+//					
+//					
+//					//write _no_
+//					if(fieldNames.length > 0){
+//						writer.write("{\"name\": \"_no_\", \"index\": \"_no_\", \"width\": \"20\", \"sorttype\": \"int\", \"align\": \"center\"}");
+//					}
+//	        		for (int i = 0; i < fieldNames.length; i++) {
+//	        			int idx = fieldnames.get(fieldNames[i]);
+//	        			if(idx < 0){
+//	        				if(fieldNames[i].equalsIgnoreCase(ScoreField.fieldName)){
+//	        					writer.write(",");
+//	        					writer.write("\t\t{\"name\": \"");
+//	                			writer.write(fieldNames[i]);
+//	                			writer.write("\", \"index\": \"");
+//	                			writer.write(fieldNames[i]);
+//	                			writer.write("\", \"width\": ");
+//	        					writer.write("\"20\", \"sorttype\": \"int\", \"align\": \"right\"}");
+//	        				}else{
+//	        					//Unknown Field
+//	        					writer.write(",");
+//	        					writer.write("\t\t{\"name\": \"");
+//	                			writer.write(fieldNames[i]);
+//	                			writer.write("\", \"index\": \"");
+//	                			writer.write(fieldNames[i]);
+//	                			writer.write("\", \"width\": ");
+//	        					writer.write("\"20\"}");
+//	        				}
+//	        			}else{
+//	        				writer.write(",");
+//	            			writer.write("\t\t{\"name\": \"");
+//	            			writer.write(fieldNames[i]);
+//	            			writer.write("\", \"index\": \"");
+//	            			writer.write(fieldNames[i]);
+//	            			writer.write("\", \"width\": ");
+//	        			
+//	            			FieldSetting fs = fieldSettingList.get(idx);
+//	            			if(fs.type == FieldSetting.Type.Int || fs.type == FieldSetting.Type.Long || fs.type == FieldSetting.Type.Float || fs.type == FieldSetting.Type.Double || fs.type == FieldSetting.Type.DateTime){
+//	            				writer.write("\"20\", \"sorttype\": \"int\", \"align\": \"right\"}");
+//	            			}else{
+//	            				if(fs.size > 0 && fs.size < 50){
+//	            					writer.write("\"");
+//	            					writer.write((fs.size * 2)+"");
+//	            					writer.write("\", ");
+//	            				}else{
+//	            					writer.write("\"100\", ");
+//	            				}
+//	            				writer.write("\"sorttype\": \"text\"}");
+//	            			}
+//	            			
+//	        			}
+//	        			
+//	//            			if(i < fieldNames.length - 1)
+//	//            				writer.write(",");
+//	        			
+//					}
+//	        		writer.write("");
+//	        		writer.write("\t],");
+//				}
+//			}
 			
 			
 			writer.write("\t\"result\":");
@@ -344,49 +344,49 @@ public class DocumentSearchServlet extends WebServiceHttpServlet {
 						writer.write("");
 	    		}
 	    		
-	    		writer.write("\t],");
+	    		writer.write("\t]");
 	    		
 	    		//group
-	    		writer.write("\t\"group_result\":");
-	    		GroupResults aggregationResult = result.getGroupResult();//GroupResult[]
-				GroupResult[] groupResultList = aggregationResult.groupResultList();
-	    		if(groupResultList == null){
-	    			writer.write(" \"null\"");
-	    		}else{
-	    			writer.write("");
-	        		writer.write("\t[");
-	        		for (int i = 0; i < groupResultList.length; i++) {
-	        			writer.write("\t\t[");
-						GroupResult groupResult = groupResultList[i];
-						int size = groupResult.size();
-						for (int k = 0; k < size; k++) {
-							GroupEntry e = groupResult.getEntry(k);
-							String keyData = e.key.getKeyString();
-							keyData = keyData.replaceAll(CONTROL_CHAR_REGEXP, " ").replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\\\"").replaceAll("\t", "\\\\t").replaceAll("\r\n", "\\\\n").replaceAll("\n", "\\\\n").replaceAll("\r", "\\\\n");
-							
-							writer.write("\t\t{\"_no_\": \"");
-							writer.write((k+1)+"");
-							writer.write("\", \"key\": \"");
-							writer.write(keyData);
-							writer.write("\", \"freq\": \"");
-							writer.write(e.count()+"");
-							writer.write("\"}");
-							if(k < size - 1)
-								writer.write(",");
-							else
-								writer.write("");
-							
-						}
-						writer.write("\t\t]");
-						if(i < groupResultList.length - 1)
-							writer.write(",");
-						else
-							writer.write("");
-						
-					}
-	        		
-	        		writer.write("\t]");
-	    		}//for
+//	    		writer.write("\t\"group_result\":");
+//	    		GroupResults aggregationResult = result.getGroupResult();//GroupResult[]
+//				GroupResult[] groupResultList = aggregationResult.groupResultList();
+//	    		if(groupResultList == null){
+//	    			writer.write(" \"null\"");
+//	    		}else{
+//	    			writer.write("");
+//	        		writer.write("\t[");
+//	        		for (int i = 0; i < groupResultList.length; i++) {
+//	        			writer.write("\t\t[");
+//						GroupResult groupResult = groupResultList[i];
+//						int size = groupResult.size();
+//						for (int k = 0; k < size; k++) {
+//							GroupEntry e = groupResult.getEntry(k);
+//							String keyData = e.key.getKeyString();
+//							keyData = keyData.replaceAll(CONTROL_CHAR_REGEXP, " ").replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\\\"").replaceAll("\t", "\\\\t").replaceAll("\r\n", "\\\\n").replaceAll("\n", "\\\\n").replaceAll("\r", "\\\\n");
+//							
+//							writer.write("\t\t{\"_no_\": \"");
+//							writer.write((k+1)+"");
+//							writer.write("\", \"key\": \"");
+//							writer.write(keyData);
+//							writer.write("\", \"freq\": \"");
+//							writer.write(e.count()+"");
+//							writer.write("\"}");
+//							if(k < size - 1)
+//								writer.write(",");
+//							else
+//								writer.write("");
+//							
+//						}
+//						writer.write("\t\t]");
+//						if(i < groupResultList.length - 1)
+//							writer.write(",");
+//						else
+//							writer.write("");
+//						
+//					}
+//	        		
+//	        		writer.write("\t]");
+//	    		}//for
 			}//if else
 			writer.write("}");
 		}else if(resultType == XML_TYPE){
@@ -485,50 +485,50 @@ public class DocumentSearchServlet extends WebServiceHttpServlet {
 					writer.newLine();
 	    		}
 	    		
-	    		//group
-	    		GroupResults aggregationResult = result.getGroupResult();
-				GroupResult[] groupResultList = aggregationResult.groupResultList();
-	    		if(groupResultList == null){
-	    			writer.write("\t<group_result />");
-	    			writer.newLine();
-	    		}else{
-	    			writer.write("\t<group_result>");
-	    			writer.newLine();
-	        		for (int i = 0; i < groupResultList.length; i++) {
-	        			writer.write("\t\t<group_list>");
-	        			writer.newLine();
-						GroupResult groupResult = groupResultList[i];
-						int size = groupResult.size();
-						for (int k = 0; k < size; k++) {
-							writer.write("\t\t\t<group_item>");
-							writer.newLine();
-							GroupEntry e = groupResult.getEntry(k);
-							String keyData = e.key.getKeyString();
-							keyData = keyData.replaceAll(CONTROL_CHAR_REGEXP, " ").replaceAll("&", "&amp;").replaceAll("\'", "&apos;").replaceAll("\"", "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-							
-							writer.write("\t\t\t\t<_no_>");
-							writer.write((k+1)+"");
-							writer.write("</_no_>");
-							writer.newLine();
-							writer.write("\t\t\t\t<key>");
-							writer.write(keyData);
-							writer.write("</key>");
-							writer.newLine();
-							writer.write("\t\t\t\t<freq>");
-							writer.write(e.count()+"");
-							writer.write("</freq>");
-							writer.newLine();
-							writer.write("\t\t\t</group_item>");
-							writer.newLine();
-							
-						}
-						writer.write("\t\t</group_list>");
-						writer.newLine();
-					}
-	        		writer.write("\t</group_result>");
-	    			writer.newLine();
-	    			
-	    		}//for
+//	    		//group
+//	    		GroupResults aggregationResult = result.getGroupResult();
+//				GroupResult[] groupResultList = aggregationResult.groupResultList();
+//	    		if(groupResultList == null){
+//	    			writer.write("\t<group_result />");
+//	    			writer.newLine();
+//	    		}else{
+//	    			writer.write("\t<group_result>");
+//	    			writer.newLine();
+//	        		for (int i = 0; i < groupResultList.length; i++) {
+//	        			writer.write("\t\t<group_list>");
+//	        			writer.newLine();
+//						GroupResult groupResult = groupResultList[i];
+//						int size = groupResult.size();
+//						for (int k = 0; k < size; k++) {
+//							writer.write("\t\t\t<group_item>");
+//							writer.newLine();
+//							GroupEntry e = groupResult.getEntry(k);
+//							String keyData = e.key.getKeyString();
+//							keyData = keyData.replaceAll(CONTROL_CHAR_REGEXP, " ").replaceAll("&", "&amp;").replaceAll("\'", "&apos;").replaceAll("\"", "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+//							
+//							writer.write("\t\t\t\t<_no_>");
+//							writer.write((k+1)+"");
+//							writer.write("</_no_>");
+//							writer.newLine();
+//							writer.write("\t\t\t\t<key>");
+//							writer.write(keyData);
+//							writer.write("</key>");
+//							writer.newLine();
+//							writer.write("\t\t\t\t<freq>");
+//							writer.write(e.count()+"");
+//							writer.write("</freq>");
+//							writer.newLine();
+//							writer.write("\t\t\t</group_item>");
+//							writer.newLine();
+//							
+//						}
+//						writer.write("\t\t</group_list>");
+//						writer.newLine();
+//					}
+//	        		writer.write("\t</group_result>");
+//	    			writer.newLine();
+//	    			
+//	    		}//for
 			}//if else
 			writer.write("</fastcat>");
 		}

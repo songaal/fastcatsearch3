@@ -67,7 +67,9 @@ public class JobService extends AbstractService implements JobExecutor {
 	private static JobService instance;
 
 //	private JobHandler jobHandler;
-	
+	public void asSingleton() {
+		instance = this;
+	}
 	public static JobService getInstance() {
 		return instance;
 	}
@@ -317,5 +319,7 @@ public class JobService extends AbstractService implements JobExecutor {
 
 		}
 	}
+
+
 
 }

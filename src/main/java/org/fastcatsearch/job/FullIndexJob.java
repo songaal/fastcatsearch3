@@ -17,10 +17,12 @@ import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.common.Strings;
+import org.fastcatsearch.common.io.Streamable;
 
 import org.fastcatsearch.datasource.DataSourceSetting;
 import org.fastcatsearch.datasource.reader.SourceReader;
 import org.fastcatsearch.datasource.reader.SourceReaderFactory;
+import org.fastcatsearch.db.dao.IndexingResult;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.IRConfig;
@@ -34,9 +36,15 @@ import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.log.EventDBLogger;
+import org.fastcatsearch.notification.NotificationService;
+import org.fastcatsearch.notification.message.IndexingFinishNotification;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.processlogger.IndexingProcessLogger;
+import org.fastcatsearch.processlogger.ProcessLoggerService;
+import org.fastcatsearch.processlogger.log.IndexingFinishProcessLog;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.IRSettings;
+import org.fastcatsearch.transport.vo.StreamableThrowable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +69,21 @@ public class FullIndexJob extends IndexingJob {
 		indexingLogger.info("["+collection+"] Full Indexing Start!");
 		
 		long st = System.currentTimeMillis();
+		
+		ProcessLoggerService processLoggerService = null;
+		NotificationService notificationService = null;
+		boolean isSuccess = false;
+		Object result = null;
+		
+		String collectionId = null;
+		Throwable throwable = null;
+		
 		try {
+			
+			ServiceManager serviceManager = ServiceManager.getInstance();
+			processLoggerService = serviceManager.getService(ProcessLoggerService.class);
+			notificationService = serviceManager.getService(NotificationService.class);
+
 			IRConfig irconfig = IRSettings.getConfig(true);
 			int DATA_SEQUENCE_CYCLE = irconfig.getInt("data.sequence.cycle");
 			
@@ -201,13 +223,28 @@ public class FullIndexJob extends IndexingJob {
 			getJobExecutor().offer(new CacheServiceRestartJob(5000));
 			
 			indexingLogger.info("["+collection+"] Full Indexing Finished! docs = "+count+", update = "+updateAndDeleteSize[0]+", delete = "+updateAndDeleteSize[1]+", time = "+durationStr);
+			result = new IndexingJobResult(collection, segmentDir, count, updateAndDeleteSize[0], updateAndDeleteSize[1], duration);
+			isSuccess = true;
+			return new JobResult(result);
 			
-			return new JobResult(new IndexingJobResult(collection, segmentDir, count, updateAndDeleteSize[0], updateAndDeleteSize[1], duration));
-			
-		} catch (Exception e) {
-//			EventDBLogger.error(EventDBLogger.CATE_INDEX, "전체색인에러", EventDBLogger.getStackTrace(e));
+		} catch (Throwable e) {
 			indexingLogger.error("["+collection+"] Indexing error = "+e.getMessage(),e);
-			throw new FastcatSearchException("ERR-00500", collection);
+			throwable = e;
+			throw new FastcatSearchException(throwable); // 전체색인실패.
+		} finally {
+			long endTime = System.currentTimeMillis();
+			Streamable streamableResult = null;
+			if (throwable != null) {
+				streamableResult = new StreamableThrowable(throwable);
+			} else if (result instanceof IndexingJobResult) {
+				streamableResult = (IndexingJobResult) result;
+			}
+
+			processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId,
+					IndexingResult.TYPE_FULL_INDEXING, isSuccess, startTime(), endTime, isScheduled(), streamableResult));
+
+			notificationService.notify(new IndexingFinishNotification(collectionId, IndexingResult.TYPE_FULL_INDEXING, isSuccess,
+					startTime(), endTime, streamableResult));
 		}
 		
 		

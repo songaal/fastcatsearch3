@@ -152,6 +152,7 @@ public class CatServer {
 		DBService dbService = serviceManager.createService("db", DBService.class);
 		KeywordService keywordService = serviceManager.createService("keyword", KeywordService.class);
 		JobService jobService = serviceManager.createService("job", JobService.class);
+		jobService.asSingleton();
 		IRService irService = serviceManager.createService("ir", IRService.class);
 		StatisticsInfoService statisticsInfoService = serviceManager.createService("statistics_info", StatisticsInfoService.class);
 		ManagementInfoService managementInfoService = serviceManager.createService("management_info", ManagementInfoService.class);

@@ -2,7 +2,6 @@ package org.fastcatsearch.notification.message;
 
 import java.io.IOException;
 
-import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
@@ -11,8 +10,10 @@ public class OutOfMemoryNotification extends Notification {
 	
 	private Throwable e;
 	
-	public OutOfMemoryNotification(Node origin, Throwable e) {
-		super("INFO-01000", origin);
+	public OutOfMemoryNotification(){ }
+	
+	public OutOfMemoryNotification(Throwable e) {
+		super("MSG-00100");
 		this.e = e;
 	}
 

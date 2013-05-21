@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.servlet.WebServiceHttpServlet;
 import org.fastcatsearch.statistics.IndexingInfo;
 import org.fastcatsearch.statistics.StatisticsInfoService;
@@ -37,8 +38,6 @@ public class IndexingInfoServlet extends WebServiceHttpServlet {
 	private static final long serialVersionUID = 963640595944747847L;
 	private static Logger logger = LoggerFactory.getLogger(IndexingInfoServlet.class);
 	
-	private StatisticsInfoService service = StatisticsInfoService.getInstance();
-	
     public IndexingInfoServlet(int resultType){
     	super(resultType);
     }
@@ -50,6 +49,8 @@ public class IndexingInfoServlet extends WebServiceHttpServlet {
     	String q = request.getParameter("q");
     	String callback = request.getParameter("jsoncallback");
 	
+    	StatisticsInfoService statisticsInfoService = ServiceManager.getInstance().getService(StatisticsInfoService.class);
+    	
 		response.setCharacterEncoding("utf-8");
     	response.setStatus(HttpServletResponse.SC_OK);
     	JSONStringer stringer = new JSONStringer();
@@ -66,7 +67,7 @@ public class IndexingInfoServlet extends WebServiceHttpServlet {
     		response.setContentType("application/json;");
 			try {
     			stringer.object()
-    			.key("update").value(service.isIndexingInfoUpdated(time))
+    			.key("update").value(statisticsInfoService.isIndexingInfoUpdated(time))
     			.endObject();
 			} catch (JSONException e) {
 				throw new ServletException("JSONException 발생",e);
@@ -79,8 +80,8 @@ public class IndexingInfoServlet extends WebServiceHttpServlet {
 				response.setContentType("application/json;");
 			}
 	    	
-	    	String[] collectionNameList = service.getCollectionNameList();
-	    	IndexingInfo[] indexInfoList = service.getIndexingInfoList();
+	    	String[] collectionNameList = statisticsInfoService.getCollectionNameList();
+	    	IndexingInfo[] indexInfoList = statisticsInfoService.getIndexingInfoList();
 	    	if(indexInfoList == null){
 	    		w.close();
 	    		return;

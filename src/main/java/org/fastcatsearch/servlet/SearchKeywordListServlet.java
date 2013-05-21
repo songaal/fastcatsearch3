@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.service.AbstractService;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.servlet.WebServiceHttpServlet;
 import org.fastcatsearch.statistics.SearchKeywordCache;
 import org.fastcatsearch.statistics.StatisticsInfoService;
@@ -51,9 +52,9 @@ public class SearchKeywordListServlet extends WebServiceHttpServlet {
     }
     Random r = new Random(System.currentTimeMillis());
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    	StatisticsInfoService service = StatisticsInfoService.getInstance();
-    	if(!service.isRunning()){
-    		throw new ServletException(service.getClass().getName()+"이 시작중이 아닙니다.");
+    	StatisticsInfoService statisticsInfoService = ServiceManager.getInstance().getService(StatisticsInfoService.class);
+    	if(!statisticsInfoService.isRunning()){
+    		throw new ServletException(statisticsInfoService.getClass().getName()+"이 시작중이 아닙니다.");
     	}
     	
     	String callback = request.getParameter("jsoncallback");
@@ -69,7 +70,7 @@ public class SearchKeywordListServlet extends WebServiceHttpServlet {
     	response.setContentType("application/json;");
     	
     	PrintWriter w = response.getWriter();
-    	SearchKeywordCache keywordCache = service.getKeywordCache();
+    	SearchKeywordCache keywordCache = statisticsInfoService.getKeywordCache();
     	JSONStringer stringer = new JSONStringer();
     	String[] list = keywordCache.getKeywordList();
     	int count = keywordCache.getCount();

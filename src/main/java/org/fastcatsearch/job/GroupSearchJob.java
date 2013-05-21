@@ -65,7 +65,7 @@ public class GroupSearchJob extends Job {
 				CollectionHandler collectionHandler = irService.getCollectionHandler(collection);
 				
 				if(collectionHandler == null){
-					throw new FastcatSearchException("## collection ["+collection+"] is not exist!");
+					throw new FastcatSearchException("ERR-00520", collection);
 				}
 				
 				GroupData groupData = collectionHandler.doGrouping(q);
@@ -89,7 +89,7 @@ public class GroupSearchJob extends Job {
 			
 		} catch(Exception e){
 //			EventDBLogger.error(EventDBLogger.CATE_SEARCH, "검색에러..", EventDBLogger.getStackTrace(e));
-			throw new FastcatSearchException("ERR-00555", e);
+			throw new FastcatSearchException("ERR-00555", e, collection);
 		}
 		
 	}

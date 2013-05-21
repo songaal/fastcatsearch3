@@ -15,14 +15,12 @@ import org.fastcatsearch.notification.NotificationService;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * master노드에서 실행되는 알러트서비스. cluster노드에서 발생한 예외들이 모두 전달된다.
+ * cluster 종합 alert 서비스. cluster노드에서 발생한 예외들이 모두 master에 전달된다.
+ * 
  * */
 public class ClusterAlertService extends AbstractService {
-	protected static final Logger alertLogger = LoggerFactory.getLogger("ALERT_LOG");
 
 	private NodeService nodeService;
 	private boolean isMasterNode;
@@ -71,7 +69,6 @@ public class ClusterAlertService extends AbstractService {
 	}
 	
 	// 여러번의 동일한 exception이 들어올수도 있으므로 쌓아두면서 일괄 처리한다.
-	// 만약 관리자가 mail-alert, sms-alert등을 원할경우 해당 서비스를 호출해준다.
 	protected void handleException(Node node, Throwable e) {
 		int count = getThrowableCount(node, e);
 
@@ -84,7 +81,7 @@ public class ClusterAlertService extends AbstractService {
 		
 		if(e instanceof OutOfMemoryError){
 			NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
-			notificationService.notify();
+//			notificationService.notify(e);
 		}
 		
 	}

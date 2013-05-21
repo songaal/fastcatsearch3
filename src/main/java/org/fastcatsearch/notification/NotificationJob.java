@@ -21,7 +21,7 @@ public class NotificationJob extends StreamableJob {
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
 		NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
-		notificationService.notify(notification);
+		notificationService.handleNotification(notification);
 		return new JobResult(true);
 	}
 

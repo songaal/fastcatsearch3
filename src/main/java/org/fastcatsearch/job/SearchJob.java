@@ -34,7 +34,8 @@ public class SearchJob extends Job {
 		String[] args = getStringArrayArgs();
 		String queryString = args[0];
 		
-		StatisticsInfoService statisticsInfoService = StatisticsInfoService.getInstance();
+		
+		StatisticsInfoService statisticsInfoService = ServiceManager.getInstance().getService(StatisticsInfoService.class);
 		Query q = null;
 		try {
 			q = QueryParser.getInstance().parseQuery(queryString);
@@ -79,7 +80,7 @@ public class SearchJob extends Job {
 				CollectionHandler collectionHandler = irService.getCollectionHandler(collection);
 				
 				if(collectionHandler == null){
-					throw new FastcatSearchException("## collection ["+collection+"] is not exist!");
+					throw new FastcatSearchException("ERR-00520", collection);
 				}
 				
 				result = collectionHandler.search(q);

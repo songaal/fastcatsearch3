@@ -26,6 +26,14 @@ public class NotificationService extends AbstractService {
 		isMasterNode = nodeService.isMaster();
 		//
 		//TODO 셋팅을 읽어들인후 db, sms, email 등 설정.
+		if(settings.getBoolean("email.use")){
+			
+			
+		}else if(settings.getBoolean("sms.use")){
+			
+			
+		}
+		
 		return true;
 	}
 
@@ -54,42 +62,12 @@ public class NotificationService extends AbstractService {
 			//slave라면 master에게 보낸다.
 			nodeService.sendRequestToMaster(notificationJob);
 		}
-		
-		
-		if(isMasterNode){
-			//master면 바로 사용.
-			//sms, mail alert
-			//db저장.
-			//TODO 
-			
-			
-			handleSystemNotification(notification);
-			handleUserNotification(notification);
-			
-			
-		}else{
-			//slave면 master에 통보.
-			nodeService.sendRequestToMaster(notificationJob);
-		}
 	}
 
-	private void handleSystemNotification(Notification notification){
-		
-//		//엔진 DB에 적어준다.
-//		if(notification instanceof IndexingStartNotification){
-//			//
-//			
-//			
-//		}else if(notification instanceof IndexingFinishNotification){
-//			//
-//			
-//			
-//			
-//		}
-	}
 	
-	private void handleUserNotification(Notification notification){
+	protected void handleNotification(Notification notification){
 		
+		logger.debug("Notification 통지 >> {}", notification.toMessageString());
 //		if(notification instanceof IndexingStartNotification){
 //			//
 //			

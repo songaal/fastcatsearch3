@@ -5,7 +5,6 @@ import java.util.List;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.io.Streamable;
-
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.data.DataService;
 import org.fastcatsearch.data.DataStrategy;
@@ -14,11 +13,13 @@ import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.job.IndexingJob;
 import org.fastcatsearch.job.NodeFullIndexJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
+import org.fastcatsearch.notification.NotificationService;
+import org.fastcatsearch.notification.message.IndexingFinishNotification;
+import org.fastcatsearch.notification.message.IndexingStartNotification;
 import org.fastcatsearch.processlogger.IndexingProcessLogger;
 import org.fastcatsearch.processlogger.ProcessLoggerService;
 import org.fastcatsearch.processlogger.log.IndexingFinishProcessLog;
 import org.fastcatsearch.processlogger.log.IndexingStartProcessLog;
-import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
 
@@ -30,22 +31,26 @@ public class FullIndexRequest extends IndexingJob {
 	public JobResult doRun() throws FastcatSearchException {
 		ServiceManager serviceManager = null;
 		ProcessLoggerService processLoggerService = null;
+		NotificationService notificationService = null;
 		boolean isSuccess = false;
 		Object result = null;
-		
+
 		String collectionId = null;
 		Throwable throwable = null;
-		
+
 		try {
 			String[] args = getStringArrayArgs();
 			collectionId = (String) args[0];
-			
+
 			serviceManager = ServiceManager.getInstance();
 			processLoggerService = serviceManager.getService(ProcessLoggerService.class);
+			notificationService = serviceManager.getService(NotificationService.class);
 
 			processLoggerService.log(IndexingProcessLogger.class, new IndexingStartProcessLog(collectionId,
 					IndexingResult.TYPE_FULL_INDEXING, startTime(), isScheduled()));
-			
+			notificationService.notify(new IndexingStartNotification(collectionId, IndexingResult.TYPE_FULL_INDEXING,
+					startTime(), isScheduled()));
+
 			DataService dataService = serviceManager.getService(DataService.class);
 			DataStrategy dataStrategy = dataService.getCollectionDataStrategy(collectionId);
 			List<Node> nodeList = dataStrategy.indexNodes();
@@ -64,7 +69,7 @@ public class FullIndexRequest extends IndexingJob {
 			ResultFuture resultFuture = nodeService.sendRequest(node, job);
 			result = resultFuture.take();
 			isSuccess = resultFuture.isSuccess();
-			
+
 			if (!isSuccess) {
 				if (result instanceof Throwable) {
 					throw (Throwable) result;
@@ -74,22 +79,25 @@ public class FullIndexRequest extends IndexingJob {
 			IndexingJobResult indexingJobResult = (IndexingJobResult) result;
 
 			return new JobResult(indexingJobResult);
-			
-		} catch (Throwable e){
+
+		} catch (Throwable e) {
 			throwable = e;
-			throw new FastcatSearchException("ERR-00500", (Throwable) result, collectionId); //전체색인실패.
-			
+			throw new FastcatSearchException(throwable); // 전체색인실패.
+
 		} finally {
-			
+			long endTime = System.currentTimeMillis();
 			Streamable streamableResult = null;
-			if(throwable != null){
-				streamableResult = new StreamableThrowable((Throwable) result);
-			}else if(result instanceof IndexingJobResult){
+			if (throwable != null) {
+				streamableResult = new StreamableThrowable(throwable);
+			} else if (result instanceof IndexingJobResult) {
 				streamableResult = (IndexingJobResult) result;
 			}
-			
+
 			processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId,
-							IndexingResult.TYPE_FULL_INDEXING, isSuccess, startTime(), endTime(), isScheduled(), streamableResult));
+					IndexingResult.TYPE_FULL_INDEXING, isSuccess, startTime(), endTime, isScheduled(), streamableResult));
+
+			notificationService.notify(new IndexingFinishNotification(collectionId, IndexingResult.TYPE_FULL_INDEXING, isSuccess,
+					startTime(), endTime, streamableResult));
 		}
 	}
 }
