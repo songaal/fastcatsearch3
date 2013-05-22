@@ -57,6 +57,10 @@ public class DBService extends AbstractService {
 		return instance;
 	}
 
+	public void asSingleton(){
+		instance = this;
+	}
+	
 	public DBService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
 	}

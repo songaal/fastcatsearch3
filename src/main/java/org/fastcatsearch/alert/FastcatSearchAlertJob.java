@@ -23,6 +23,8 @@ public class FastcatSearchAlertJob extends StreamableJob {
 	private Node node;
 	private Throwable e;
 	
+	public FastcatSearchAlertJob(){ }
+	
 	public FastcatSearchAlertJob(Node node, Throwable e) {
 		this.node = node;
 		this.e = e;

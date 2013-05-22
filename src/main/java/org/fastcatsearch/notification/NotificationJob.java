@@ -14,6 +14,8 @@ public class NotificationJob extends StreamableJob {
 	private static final long serialVersionUID = 1084526563289625615L;
 	private Notification notification;
 
+	public NotificationJob(){ }
+	
 	public NotificationJob(Notification notification) {
 		this.notification = notification;
 	}

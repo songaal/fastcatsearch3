@@ -150,6 +150,7 @@ public class CatServer {
 		PluginService pluginService = serviceManager.createService("plugin", PluginService.class);
 		
 		DBService dbService = serviceManager.createService("db", DBService.class);
+		dbService.asSingleton();
 		KeywordService keywordService = serviceManager.createService("keyword", KeywordService.class);
 		JobService jobService = serviceManager.createService("job", JobService.class);
 		jobService.asSingleton();
@@ -166,6 +167,7 @@ public class CatServer {
 		
 		NotificationService notificationService = serviceManager.createService("notification", NotificationService.class);
 		ClusterAlertService clusterAlertService = serviceManager.createService("alert", ClusterAlertService.class);
+		clusterAlertService.asSingleton();
 		ProcessLoggerService processLoggerService = serviceManager.createService("processlogger", ProcessLoggerService.class);
 		
 		logger = LoggerFactory.getLogger(CatServer.class);
