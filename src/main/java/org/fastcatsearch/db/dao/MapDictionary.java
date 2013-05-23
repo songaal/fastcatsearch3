@@ -37,7 +37,7 @@ public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictiona
 			conn = conn();
 			String createSQL = "create table "
 					+ tableName
-					+ " (id int GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) primary key, keyword varchar(30) not null unique,count int not null default 0,value varchar(255))";
+					+ " (id int GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) primary key, keyword varchar(300) not null unique,count int not null default 0,value varchar(255))";
 			stmt = conn.createStatement();
 			stmt.executeUpdate(createSQL);
 			return true;

@@ -37,7 +37,7 @@ public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictiona
 	@Override
 	public boolean createTable() throws SQLException {
 		String createSQL = "create table " + tableName
-				+ " (id int GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, keyword varchar(50) not null )";
+				+ " (id int GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, keyword varchar(300) not null )";
 		executeUpdate(createSQL);
 		return true;
 	}
