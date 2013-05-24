@@ -9,7 +9,6 @@
 		<currentVersion>2.0.0</currentVersion>
 		<fastcatsearchRepository>http://repos.fastcatsearch.org/nexus/content/repositories/fastcatsearch-org/</fastcatsearchRepository>
 	</properties>
-	
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.fastcatsearch</groupId>
 	<artifactId>fastcatsearch</artifactId>
