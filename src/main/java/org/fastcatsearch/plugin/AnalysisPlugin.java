@@ -12,5 +12,5 @@ public abstract class AnalysisPlugin extends Plugin {
 	
 	protected abstract void loadDictionary();
 	
-	public abstract Dictionary getDictionary();
+	public abstract Dictionary<?> getDictionary();
 }

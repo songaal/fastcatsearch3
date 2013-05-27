@@ -5,21 +5,6 @@
 			<pattern>\(%file:%line\) %msg%n</pattern>
 		</encoder>
 	</appender>
-	<appender name="testlog" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${fastcatsearch.home}/logs/test.log</file>
-
-		<encoder>
-			<pattern>\(%file:%line\) %msg%n</pattern>
-		</encoder>
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<FileNamePattern>${fastcatsearch.home}/logs/test.%d{yyyy-MM-dd}.log</FileNamePattern>
-			<MaxHistory>7</MaxHistory>
-		</rollingPolicy>
-	</appender>
-	
-	<logger name="TEST_LOG" level="DEBUG" additivity="false">
-		<appender-ref ref="testlog" />
-	</logger>
 	
 	<root level="DEBUG">
 		<appender-ref ref="STDOUT" />
