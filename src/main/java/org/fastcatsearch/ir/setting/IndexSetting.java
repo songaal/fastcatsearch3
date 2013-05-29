@@ -24,15 +24,17 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "index")
-@XmlType(propOrder = {"field","handler","queryHandler","name"})
+@XmlType(propOrder = {"positionIncrementGap","indexAnalyzer","queryAnalyzer","name"})
 public class IndexSetting {
 
 	private String name;
 	//index필드는 여러개의 필드를 받을 수 있다.
 	
 	private List<RefSetting> field;
-	private String handler;
-	private String queryHandler;
+	private String indexAnalyzer;
+	private String queryAnalyzer;
+	private int positionIncrementGap;
+	private boolean ignoreCase;
 	
 	public IndexSetting() { }
 	
@@ -41,15 +43,15 @@ public class IndexSetting {
 		this.field = field;
 	}
 	
-	public IndexSetting(String name, List<RefSetting> field, String handler, String queryHandler){
+	public IndexSetting(String name, List<RefSetting> field, String indexAnalyzer, String queryAnalyzer){
 		this.name = name;
 		this.field = field;
-		this.handler = handler;
-		this.queryHandler = (queryHandler == null) ? handler : queryHandler;
+		this.indexAnalyzer = indexAnalyzer;
+		this.queryAnalyzer = (queryAnalyzer == null) ? queryAnalyzer : indexAnalyzer;
 	}
 	
 	public String toString(){
-		return "[index="+name+":"+field+":"+handler+":"+queryHandler+"]";
+		return "[index="+name+":"+field+":"+indexAnalyzer+":"+queryAnalyzer+"]";
 	}
 
 	@XmlAttribute(required = true)
@@ -71,20 +73,38 @@ public class IndexSetting {
 	}
 
 	@XmlAttribute
-	public String getHandler() {
-		return handler;
+	public String getIndexAnalyzer() {
+		return indexAnalyzer;
 	}
 
-	public void setHandler(String handler) {
-		this.handler = handler;
+	public void setIndexAnalyzer(String indexAnalyzer) {
+		this.indexAnalyzer = indexAnalyzer;
 	}
 
 	@XmlAttribute
-	public String getQueryHandler() {
-		return queryHandler;
+	public String getQueryAnalyzer() {
+		return queryAnalyzer;
 	}
 
-	public void setQueryHandler(String queryHandler) {
-		this.queryHandler = queryHandler;
+	public void setQueryAnalyzer(String queryAnalyzer) {
+		this.queryAnalyzer = queryAnalyzer;
+	}
+
+	@XmlAttribute
+	public int getPositionIncrementGap() {
+		return positionIncrementGap;
+	}
+
+	public void setPositionIncrementGap(int positionIncrementGap) {
+		this.positionIncrementGap = positionIncrementGap;
+	}
+
+	@XmlAttribute
+	public boolean isIgnoreCase() {
+		return ignoreCase;
+	}
+
+	public void setIgnoreCase(boolean ignoreCase) {
+		this.ignoreCase = ignoreCase;
 	}
 }

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<datasource>
+	<type>file</type>
+	<multiple>false</<multiple>
+	<modify>
+		<type>script</type>
+		<class></class>
+		<script>
+		modifier(){
+			init(){ }
+			modify(String fieldName, Map<String, Object> keyValueMap) throws IRException {
+				if(fieldName.equals("category")){
+					return keyValueMap.get(fieldName)+"...";
+				}
+			}
+		}
+		</script>
+		<fields>
+			<field id="title" />
+			<field id="category" />
+			<field id="virtualField" />
+		</fields>
+	</modify>
+	
+	
+	<file-source>
+		<full-path>collection/sample/testData/full</full-path>
+		<inc-path>collection/sample/testData/inc</inc-path>
+		<parser>org.fastcatsearch.parser.CollectFileParser</parser>
+		<encoding>utf-8</encoding>
+	</file-source>
+	
+	<db-source>
+		<jdbc-driver>org.gjt.mm.mysql.Driver</jdbc-driver>
+		<jdbc-url>jdbc:mysql://127.0.0.1:3306/test</jdbc-url>
+		<user>root</user>
+		<password></password>
+		<fetchsize>1000</fetchsize>
+		<bulksize>100</bulksize>
+		<query>
+			<before-inc></before-inc>
+			<before-full></before-full>
+			<after-inc></after-inc>
+			<after-full></after-full>
+			<full-query></full-query>
+			<inc-query></inc-query>
+			<update-id></update-id>
+			<full-bakcup-file></full-bakcup-file>
+			<inc-bakcup-file></inc-bakcup-file>
+			<bakcup-file-encoding>utf-8</bakcup-file-encoding>
+		</query>
+	</db-source>
+	
+	<web-source></web-source>
+	
+	<custom-source>
+		<reader></reader>
+		<config-file></config-file>
+	</custom-source>
+</datasource>
+

@@ -412,8 +412,9 @@ public class IRSettings {
 					Class<Analyzer> analyzerClass = (Class<Analyzer>) DynamicClassLoader.loadClass(analyzerClassName);
 					if(analyzerClass == null){
 						logger.error("Analyzer {}를 생성할수 없습니다.", analyzerClassName);
+					}else{
+						factory = new DefaultAnalyzerFactory(analyzerClass);
 					}
-					factory = new DefaultAnalyzerFactory(analyzerClass);
 				}else{
 					try {
 						factory = (AnalyzerFactory) analyzerFactoryClass.newInstance();
@@ -422,10 +423,14 @@ public class IRSettings {
 					}
 				}
 				
-				if(corePoolSize == -1 || maximumPoolSize == -1){
-					analyzerPoolManager.registerAnalyzer(collection, analyzerId, factory);
+				if(factory != null){
+					if(corePoolSize == -1 || maximumPoolSize == -1){
+						analyzerPoolManager.registerAnalyzer(collection, analyzerId, factory);
+					}else{
+						analyzerPoolManager.registerAnalyzer(collection, analyzerId, factory, corePoolSize, maximumPoolSize);
+					}
 				}else{
-					analyzerPoolManager.registerAnalyzer(collection, analyzerId, factory, corePoolSize, maximumPoolSize);
+					logger.error("분석기 {}를 로드할수 없습니다.", analyzerClassName);
 				}
 			
 			}

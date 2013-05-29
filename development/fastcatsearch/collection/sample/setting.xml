@@ -1,0 +1,36 @@
+<collection>
+	<name>샘플</name>
+	<active>false</<active>
+	<data-sequence-cycle>2</data-sequence-cycle>
+	<index>
+		<pk-term-interval>64</pk-term-interval>
+		<pk-bucket-size>64K</pk-bucket-size>
+		<term-interval>64</term-interval>
+		<bucket-size>64K</bucket-size>
+		<work-memory-size>128M</work-memory-size>
+		<work-bucket-size>256</work-bucket-size>
+	</<index>
+	<segment>
+		<separate-inc-indexing>true</separate-inc-indexing>
+		<document-limit>2000000</document-limit>
+		<segment-revision-backup-size>2</segment-revision-backup-size>
+	</segment>
+	<document>
+		<read-buffer-size>3M</read-buffer-size>
+		<write-buffer-size>3M</write-buffer-size>
+		<block-size>8</block-size>
+		<compression-type>fast</compression-type>
+	</document>
+	
+	<data-plan>
+		<index-node>
+			<node>node1</node>
+		</index-node>
+		<data-node>
+			<node>node2</node>
+			<node>node3</node>
+		</data-node>
+		<shard-size>1</shard-size>
+		<replica-size>*</replica-size>
+	</data-plan>
+</collection>

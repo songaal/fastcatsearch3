@@ -36,7 +36,10 @@ public class PluginService extends AbstractService {
 		//플러그인을 검색하여 
 		//무작위로 시작한다.
 		File pluginRootDir = environment.filePaths().getFile("plugin");
-		
+		if(!pluginRootDir.exists()){
+			logger.info("플러그인 디렉토리가 없어서 플러그인을 로딩하지 않습니다. {}", pluginRootDir.getAbsolutePath());
+			return true;
+		}
 		List<File> pluginDirList = new ArrayList<File>(); 
 		findPluginDirectory(pluginRootDir, pluginDirList);
 		
@@ -80,12 +83,17 @@ public class PluginService extends AbstractService {
 			throw new FastcatSearchException("ERR-00200", e);
 		}
 		
-		return false;
+		return true;
 	}
 
 	
 	private void findPluginDirectory(File pluginRootDir, List<File> pluginList) {
 		File[] files = pluginRootDir.listFiles();
+		
+		if(files == null){
+			return;
+		}
+		
 		for(File file : files) {
 			if(file.isDirectory()){
 				logger.debug("check dir {}", file.getAbsolutePath());

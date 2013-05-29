@@ -1,0 +1,22 @@
+<collection-status>
+	<data-status>
+		<sequence>2</sequence>
+		<time>Mon May 20 13:03:32 KST 2013</time>
+	</<index-status>
+	
+	<index-status>
+		<full>
+			<documentSize>50</documentSize>
+			<startTime>2013-05-20 13:03:32</startTime>
+			<endTime>2013-05-20 13:03:32</endTime>
+			<duration>365ms</duration>
+		</full>
+		<increment>
+			<documentSize>5</documentSize>
+			<startTime>2013-05-20 13:03:32</startTime>
+			<endTime>2013-05-20 13:03:32</endTime>
+			<duration>365ms</duration>
+		</increment>
+	</<index-status>
+	
+</collection-status>
