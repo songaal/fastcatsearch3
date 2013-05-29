@@ -97,7 +97,10 @@ public class ListMapDictionary extends SourceDictionary implements ReadableDicti
 							value[idx++] = val;
 						}
 					}
-					value = Arrays.copyOf(value, idx);
+					//유사어사전 데이터에 대표단어와 동일한 단어가 여러개 있을경우, 최종리스트는 더 적어지게 되므로 전체 array 길이를 줄여준다. 
+					if(idx < value.length){
+						value = Arrays.copyOf(value, idx);
+					}
 					map.put(key, value);
 //					logger.debug("유사어 양방향 {} >> {} {}", key, value[0], value[1]);
 				}
