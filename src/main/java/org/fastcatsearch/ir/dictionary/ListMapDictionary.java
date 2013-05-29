@@ -97,9 +97,11 @@ public class ListMapDictionary extends SourceDictionary implements ReadableDicti
 							value[idx++] = val;
 						}
 					}
+					value = Arrays.copyOf(value, idx);
 					map.put(key, value);
 //					logger.debug("유사어 양방향 {} >> {} {}", key, value[0], value[1]);
 				}
+				
 			} else {
 				// 단방향.
 				CharVector[] value = new CharVector[list.size()];
