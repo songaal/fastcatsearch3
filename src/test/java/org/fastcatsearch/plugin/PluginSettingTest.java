@@ -52,6 +52,9 @@ public class PluginSettingTest {
 				+ "			<servlet></servlet>\n"
 				+ "		</admin>\n"
 				+ "	</web>\n"
+				+ "	<analyzer-list>\n"
+				+ "		<analyzer id=\"KoreanAnalyzer\" name=\"한국어분석기\">com.fastcatsearch.plugin.analysis.ko.standard.StandardKoreanAnalyzer</analyzer>\n" 
+				+ "	</analyzer-list>"
 				+ "	\n"
 				+ "	<db>\n"
 				+ "		<dao-list>\n"
@@ -60,6 +63,8 @@ public class PluginSettingTest {
 				+ "			<dao name=\"StopDictionary\">org.fastcatsearch.db.dao.SetDictionary</dao>\n"
 				+ "		</dao-list>\n"
 				+ "	</db>\n" + "</plugin>";
+		
+		System.out.println(xml);
 		JAXBContext jc = JAXBContext.newInstance(PluginSetting.class);
 
 		Unmarshaller unmarshaller = jc.createUnmarshaller();
@@ -67,7 +72,8 @@ public class PluginSettingTest {
 		PluginSetting setting = (PluginSetting) unmarshaller.unmarshal(new StringReader(xml));
 
 		System.out.println(setting.getWeb().getUser().getServlet().getPath());
-		System.out.println(setting.getDB().getDAOList().size());
+		System.out.println("getDAOList >> "+setting.getDB().getDAOList().size());
+		System.out.println("getAnalyzerList >> "+setting.getAnalyzerList().size());
 
 		StringWriter writer = new StringWriter();
 		Marshaller marshaller = jc.createMarshaller();
