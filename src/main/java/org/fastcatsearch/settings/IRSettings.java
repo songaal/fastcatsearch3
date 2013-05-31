@@ -100,6 +100,8 @@ public class IRSettings {
 	}
 
 	public static String path(String path) {
+		if ( path.isEmpty() )
+			return "";
 		if (path.startsWith("/")) {
 			return path;
 		}
