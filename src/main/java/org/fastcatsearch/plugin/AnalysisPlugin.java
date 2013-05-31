@@ -1,7 +1,9 @@
 package org.fastcatsearch.plugin;
 
 import java.io.File;
+import java.util.List;
 
+import org.apache.lucene.analysis.Analyzer;
 import org.fastcatsearch.ir.dic.Dictionary;
 
 public abstract class AnalysisPlugin extends Plugin {
@@ -13,4 +15,6 @@ public abstract class AnalysisPlugin extends Plugin {
 	protected abstract void loadDictionary();
 	
 	public abstract Dictionary<?> getDictionary();
+	
+//	public abstract List<Analyzer> getProvidedAnalyzer();
 }

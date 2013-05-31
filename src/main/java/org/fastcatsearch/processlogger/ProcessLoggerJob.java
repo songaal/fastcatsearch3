@@ -31,6 +31,7 @@ public class ProcessLoggerJob extends StreamableJob {
 	}
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
+		logger.debug(">>WRITE ProcessLog >> {}", processLog);
 		ProcessLogger processLogger = ServiceManager.getInstance().getService(ProcessLoggerService.class).getProcessLogger(processLoggerClasss);
 		processLogger.log(processLog);
 		return new JobResult();

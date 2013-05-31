@@ -45,11 +45,27 @@ public class PluginService extends AbstractService {
 		
 		//모든 plugin의 jar파일을 로딩.
 		int i = 0;
+		List<File> analysisFiles = new ArrayList<File>();
 		for (File dir : pluginDirList) {
 			File[] jarFiles = findFiles(dir, "jar");
 			logger.debug("FOUND plugin {}, jar={}", dir.getAbsolutePath(), jarFiles);
-//			File[] warFiles = findFiles(dir, "war");
-			DynamicClassLoader.add("plugin_" + i +"_"+ dir.getName(), jarFiles);
+			if(dir.getAbsolutePath().contains("/plugin/analysis/")){
+				//analysis
+				logger.debug("analysis >> {}", dir.getAbsolutePath());
+				for(File f : jarFiles){
+					analysisFiles.add(f);
+				}
+			}else{
+				String tag = i++ +"_plugin_"+ dir.getName();
+				DynamicClassLoader.add(tag, jarFiles);
+				logger.debug("Add plugin {}, jar={}", tag, jarFiles);
+			}
+		}
+		
+		//analyzer는 class가 서로의존관계가 있을수 있으므로, 한번에 묶어서 클래스패스잡음.
+		if(analysisFiles.size() > 0){
+			DynamicClassLoader.add("plugin_analysis", analysisFiles);
+			logger.debug("Add plugin plugin_analysis, jar={}", analysisFiles);
 		}
 		
 		try {

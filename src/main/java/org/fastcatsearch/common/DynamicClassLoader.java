@@ -23,6 +23,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -46,6 +47,10 @@ public class DynamicClassLoader {
 		return true;
 	}
 	
+	public static boolean add(String tag, List<File> jarFiles) {
+		URL[] jarUrls = new URL[jarFiles.size()];
+		return add(tag, jarFiles.toArray(new File[0]));
+	}
 	public static boolean add(String tag, File[] jarFiles) {
 		URL[] jarUrls = new URL[jarFiles.length];
 		StringBuilder sb = new StringBuilder(); 
