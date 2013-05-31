@@ -16,5 +16,4 @@ public abstract class AnalysisPlugin extends Plugin {
 	
 	public abstract Dictionary<?> getDictionary();
 	
-//	public abstract List<Analyzer> getProvidedAnalyzer();
 }

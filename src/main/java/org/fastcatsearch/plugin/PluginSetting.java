@@ -44,7 +44,7 @@ public class PluginSetting {
 	Web web;
 
 	@XmlElementWrapper(name = "analyzer-list")
-	@XmlElement
+	@XmlElement(name="analyzer")
 	List<Analyzer> analyzerList;
 	
 	@XmlElement
@@ -122,6 +122,14 @@ public class PluginSetting {
 		this.db = db;
 	}
 
+	public List<Analyzer> getAnalyzerList() {
+		return analyzerList;
+	}
+
+	public void setAnalyzerList(List<Analyzer> analyzerList) {
+		this.analyzerList = analyzerList;
+	}
+	
 	@XmlRootElement
 	public static class Web {
 		User user;
