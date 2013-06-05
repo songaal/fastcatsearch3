@@ -70,6 +70,7 @@ public class WebService extends AbstractService{
 	private static final String EXECUTE_CONTEXT = "/execute";
 	private static final String DOCUMENT_LIST_CONTEXT = "/doclist";
 	private static final String DOCUMENT_SEARCH_CONTEXT = "/docsearch";
+//	private static final String DOCUMENT_INDEX_CONTEXT = "/docindex";
 	private static final String MONITORING_CONTEXT = "/monitoring";
 	private static final String CONSOLE_CONTEXT = "/console";
 	private static final String TOKENIZER_CONTEXT = "/tokenizer";
@@ -218,6 +219,11 @@ public class WebService extends AbstractService{
 		contextDocumentSearch.addServlet(new ServletHolder(new DocumentSearchServlet(WebServiceHttpServlet.JSON_TYPE)),"/json");
 		contextDocumentSearch.addServlet(new ServletHolder(new DocumentSearchServlet(WebServiceHttpServlet.XML_TYPE)),"/xml");
 		handlerList.addHandler(contextDocumentSearch);
+		
+//		final Context contextDocumentIndexSearch = new Context(server, DOCUMENT_INDEX_CONTEXT, Context.SESSIONS);
+//		contextDocumentIndexSearch.addServlet(new ServletHolder(new DocumentIndexServlet(WebServiceHttpServlet.JSON_TYPE)),"/json");
+//		contextDocumentIndexSearch.addServlet(new ServletHolder(new DocumentIndexServlet(WebServiceHttpServlet.XML_TYPE)),"/xml");
+//		handlerList.addHandler(contextDocumentIndexSearch);
 		
 		
 		//7. 모니터링 MONITORING_CONTEXT

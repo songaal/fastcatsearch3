@@ -14,7 +14,6 @@ public class FastcatSearchExceptionTest {
 	@Test
 	public void test() {
 		FastcatSearchException e = new FastcatSearchException("ERR-00110");
-		System.out.println(e.errorCode());
 		System.out.println(e);
 		System.out.println(e);
 		System.out.println(e.getStackTrace()[0].toString());	

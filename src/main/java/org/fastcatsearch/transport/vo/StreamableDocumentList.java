@@ -31,7 +31,7 @@ public class StreamableDocumentList implements Streamable {
 
 		for (int documentInx = 0; documentInx < length; documentInx++) {
 			int fieldSize = input.readInt();
-			int score = input.readInt();
+			float score = input.readFloat();
 
 			Document document = new Document(fieldSize);
 			document.setScore(score);
@@ -81,9 +81,9 @@ public class StreamableDocumentList implements Streamable {
 		output.writeInt(length);
 		for (Document document : documentList) {
 			int fieldSize = document.size();
-			int score = document.getScore();
+			float score = document.getScore();
 			output.writeInt(fieldSize);
-			output.writeInt(score);
+			output.writeFloat(score);
 			for (int fieldInx = 0; fieldInx < fieldSize; fieldInx++) {
 				Field field = document.get(fieldInx);
 

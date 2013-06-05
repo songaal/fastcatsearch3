@@ -11,12 +11,8 @@
 
 package org.fastcatsearch.job;
 
-import java.io.IOException;
-
-
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.Result;
@@ -24,7 +20,6 @@ import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.exception.FastcatSearchException;
 
 
 public class DocumentSearchJob extends Job {

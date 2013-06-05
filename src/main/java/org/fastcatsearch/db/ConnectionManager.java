@@ -28,7 +28,7 @@ public class ConnectionManager {
 			// if DB is not created.
 			conn = createDB(jdbcUrl, null, null);
 			if (conn == null) {
-				throw new SQLException("내부 DB로의 연결을 생성할수 없습니다. DB를 이미 사용중인 프로세스가 있는지 확인필요.");
+				throw e;
 			}
 		}
 		

@@ -76,7 +76,7 @@ public class ClusterAlertService extends AbstractService {
 			//두번째부터는 최종스택만 출력한다.
 			logger.error("[{}] [{}] {}", node, count, e.getStackTrace()[0]);
 		} else {
-			logger.error("[{}] exception", e);
+			logger.error("["+node+"] exception", e);
 		}
 		
 		if(e instanceof OutOfMemoryError){

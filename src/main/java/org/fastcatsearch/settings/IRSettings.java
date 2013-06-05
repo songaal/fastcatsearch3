@@ -573,6 +573,8 @@ public class IRSettings {
 					// Do not make primary key search index.
 					if (!f.primary) {
 						String queryAnalyzerName = el.getAttributeValue("query");
+						String storePosition = el.getAttributeValue("storePosition");
+						boolean isStorePosition = "true".equals(storePosition);
 						if(queryAnalyzerName == null){
 							queryAnalyzerName = indexAnalyzerName;
 						}
@@ -589,7 +591,7 @@ public class IRSettings {
 							logger.error("쿼리용 분석기못찾음. {}", queryAnalyzerName);
 						}
 						
-						IndexSetting is = new IndexSetting(name, f, indexAnalyzerName, indexAnalyzerPool, queryAnalyzerName, queryAnalyzerPool);
+						IndexSetting is = new IndexSetting(name, f, isStorePosition, indexAnalyzerName, indexAnalyzerPool, queryAnalyzerName, queryAnalyzerPool);
 						schema.addIndexSetting(is);
 						f.indexSetting = is;
 						schema.indexnames.put(name, indexSequence++);

@@ -154,7 +154,7 @@ public class ClusterSearchJob extends Job {
 		int[] length = new int[collectionIdList.length];
 		int[] collectionTags = new int[realSize]; //해당 문서가 어느컬렉션에 속하는지 알려주는 항목.
 		int[] eachDocIds = new int[realSize];
-		int[] eachScores = new int[realSize];
+		float[] eachScores = new float[realSize];
 		
 		
 		for (int i = 0; i < collectionIdList.length; i++) {
@@ -280,7 +280,7 @@ public class ClusterSearchJob extends Job {
 			for (int j = 0; j < fieldSize; j++) {
 				int fieldNum = fieldNumList[j];
 				if(fieldNum == ScoreField.fieldNumber){
-					int score = document.getScore();
+					float score = document.getScore();
 					row[i].put(j, ScoreField.getChars(score));
 				}else if(fieldNum == DocNoField.fieldNumber){
 //					row[i].put(j, (eachDocIds[segmentNumber][p]+"").toCharArray());

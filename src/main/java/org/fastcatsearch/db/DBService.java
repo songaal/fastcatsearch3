@@ -80,7 +80,7 @@ public class DBService extends AbstractService {
 			try {
 				Class.forName(cls).newInstance();
 			} catch (Exception e) {
-				throw new FastcatSearchException("Cannot load driver class!", e);
+				throw new FastcatSearchException("ERR-00315", e, cls);
 			}
 
 			try {
@@ -94,42 +94,47 @@ public class DBService extends AbstractService {
 				// conn.commit();
 			} catch (SQLException e) {
 				// conn = createDB(url,user,pass);
-				throw new FastcatSearchException("관리DB로의 연결을 생성할수 없습니다.", e);
+				throw new FastcatSearchException("ERR-00314", e);
 			}
 		} else {
+			String derbyDriver = "org.apache.derby.jdbc.EmbeddedDriver";
 			try {
-				// Class.forName("org.apache.derby.jdbc.EmbeddedDriver").newInstance();
-				DynamicClassLoader.loadClass("org.apache.derby.jdbc.EmbeddedDriver");
+				DynamicClassLoader.loadClass(derbyDriver);
 			} catch (Exception e) {
-				throw new FastcatSearchException("Cannot load driver class!", e);
+				throw new FastcatSearchException("ERR-00315", e, derbyDriver);
 			}
 
 			// try {
 			connectionManager = new ConnectionManager(JDBC_URL, null, null);
-
+			try {
+				connectionManager.releaseConnection(connectionManager.getConnection());
+			} catch (SQLException e) {
+				throw new FastcatSearchException("ERR-00314", e);
+			}
+			
 			try {
 				// 오토커밋으로 변경.
 				initDB();
-			} catch (SQLException e1) {
-				throw new FastcatSearchException("ERR-00310");
+			} catch (SQLException e) {
+				throw new FastcatSearchException("ERR-00310", e);
 			}
 
 			try {
 				testAndInitDB();
 			} catch (SQLException e) {
-				throw new FastcatSearchException("ERR-00311");
+				throw new FastcatSearchException("ERR-00311", e);
 			}
 
 			try {
 				initMONDB();
-			} catch (SQLException e1) {
-				throw new FastcatSearchException("ERR-00312");
+			} catch (SQLException e) {
+				throw new FastcatSearchException("ERR-00312", e);
 			}
 
 			try {
 				testAndInitMONDB();
 			} catch (SQLException e) {
-				throw new FastcatSearchException("ERR-00313");
+				throw new FastcatSearchException("ERR-00313", e);
 			}
 		}
 

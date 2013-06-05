@@ -169,13 +169,14 @@ public class FullIndexJob extends IndexingJob {
 				try{
 					writer.close();
 				}catch(Exception e){
-					logger.error("Error while close segment writer! "+e.getMessage(),e);
-					e.printStackTrace();
+					logger.error("Error while close segment writer!", e);
+					throw e;
 				}
 				try{
 					sourceReader.close();
 				}catch(Exception e){
-					logger.error("Error while close source reader! "+e.getMessage(),e);
+					logger.error("Error while close source reader!", e);
+					throw e;
 				}
 			}
 			
@@ -236,7 +237,7 @@ public class FullIndexJob extends IndexingJob {
 		} catch (Throwable e) {
 			indexingLogger.error("["+collectionId+"] Indexing error = "+e.getMessage(),e);
 			throwable = e;
-			throw new FastcatSearchException(throwable); // 전체색인실패.
+			throw new FastcatSearchException("ERR-00500", throwable, collectionId); // 전체색인실패.
 		} finally {
 			long endTime = System.currentTimeMillis();
 			Streamable streamableResult = null;

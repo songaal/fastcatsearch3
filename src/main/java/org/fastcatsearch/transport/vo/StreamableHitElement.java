@@ -30,7 +30,7 @@ public class StreamableHitElement implements Streamable {
 		this.hitElements = new HitElement[count];
 		for (int hitElementInx = 0; hitElementInx < count; hitElementInx++) {
 			int docNo = input.readInt();
-			int score = input.readInt();
+			float score = input.readFloat();
 			int dataOffset = input.readInt();
 			int dataLength = input.readInt();
 //			logger.debug("read dataLength = {},{}", dataOffset, dataLength);
@@ -53,7 +53,7 @@ public class StreamableHitElement implements Streamable {
 			HitElement hitElement = hitElements[hitElementInx];
 			byte[] rankData = hitElement.rankdata();
 			output.writeInt(hitElement.docNo());
-			output.writeInt(hitElement.score());
+			output.writeFloat(hitElement.score());
 			//새로운 배열에는 0부터 기록했기때문에 offset을 0으로 해준다.
 			output.writeInt(0);
 			output.writeInt(hitElement.dataLen());
