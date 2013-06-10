@@ -22,7 +22,6 @@ public class CollectionConfigTest {
 
 	String configXml = "<collection-config>\n" + 
 			"	<name>샘플</name>\n" + 
-			"	<active>false</active>\n" + 
 			"	<index>\n" + 
 			"		<pk-term-interval>64</pk-term-interval>\n" + 
 			"		<pk-bucket-size>65536</pk-bucket-size>\n" + 
@@ -52,13 +51,11 @@ public class CollectionConfigTest {
 			"	</cluster>\n" + 
 			"</collection-config>";
 	@Test
-	public void testRead() {
+	public void testRead() throws IOException {
 		
 		InputStream is = new ByteArrayInputStream(configXml.getBytes());
-		CollectionConfig collectionConfig = getJAXBConfig(is, CollectionConfig.class);
-		System.out.println(collectionConfig);
+		CollectionConfig collectionConfig = JAXBConfigs.readConfig(is, CollectionConfig.class);
 		assertEquals("샘플", collectionConfig.getName());
-		assertEquals(false, collectionConfig.isActive());
 		
 		IndexConfig indexConfig = collectionConfig.getIndexConfig();
 		assertEquals(8, indexConfig.getDocumentBlockSize());
@@ -100,34 +97,10 @@ public class CollectionConfigTest {
 		collectionConfig.setClusterConfig(new ClusterConfig());
 		
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		writeJAXBConfig(os, collectionConfig, CollectionConfig.class);
+		JAXBConfigs.writeConfig(os, collectionConfig, CollectionConfig.class);
 		System.out.println(os.toString());
 		
 		
-	}
-	public <T> T getJAXBConfig(InputStream is, Class<T> jaxbConfig){
-		try{
-			JAXBContext context = JAXBContext.newInstance(jaxbConfig);
-			
-			Unmarshaller unmarshaller = context.createUnmarshaller();
-	
-			T config = (T) unmarshaller.unmarshal(is);
-			return config;
-		}catch(Exception e){
-			e.printStackTrace();
-		}
-		return null;
-	}
-	
-	public <T> void writeJAXBConfig(OutputStream os, Object jaxbConfig, Class<T> jaxbConfigClass){
-		try{
-			JAXBContext context = JAXBContext.newInstance(jaxbConfigClass);
-			Marshaller marshaller = context.createMarshaller();
-			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-			marshaller.marshal(jaxbConfig, os);
-		}catch(Exception e){
-			e.printStackTrace();
-		}
 	}
 
 }

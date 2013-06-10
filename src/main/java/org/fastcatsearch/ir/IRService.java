@@ -24,12 +24,16 @@ import java.util.jar.JarFile;
 
 import org.fastcatsearch.common.QueryCacheModule;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.env.FileNames;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionConfig;
+import org.fastcatsearch.ir.config.CollectionsConfig;
+import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IndexConfig;
+import org.fastcatsearch.ir.config.JAXBConfigs;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.group.GroupData;
 import org.fastcatsearch.ir.group.GroupResults;
@@ -63,25 +67,23 @@ public class IRService extends AbstractService{
 	protected boolean doStart() throws FastcatSearchException {
 		
 		collectionConfigMap = new HashMap<String, CollectionConfig>(); 
+		// collections 셋팅을 읽어온다.
+		File collectionsRoot = environment.filePaths().getCollectionsRootFile();
 		
-		IRConfig irconfig = IRSettings.getConfig(true);
+		CollectionsConfig collectionsConfig = JAXBConfigs.readConfig(new File(collectionsRoot, FileNames.collectionsXml), CollectionsConfig.class);
 		
-		
-		String collectionList = irconfig.getString("collection.list");
-		collectionNameList = collectionList.split(",");
-		
-		for (int i = 0; i < collectionNameList.length; i++) {
-			String collection = collectionNameList[i];
+		for (Collection collection : collectionsConfig.getCollectionList()) {
 			try {
-				File collectionDir = IRSettings.getCollectionHomeFile(collection);
-				Schema schema = IRSettings.getSchema(collection, true);
+				String collectionId = collection.getId();
+				File collectionDir = IRSettings.getCollectionHomeFile(collectionId);
+				Schema schema = IRSettings.getSchema(collectionId, true);
 				
 				CollectionConfig collectionConfig = IRSettings.getJAXBConfig(new File(collectionDir, "config.xml"), CollectionConfig.class);
-				collectionConfigMap.put(collection, collectionConfig);
+				collectionConfigMap.put(collectionId, collectionConfig);
 				
 				IndexConfig indexConfig = collectionConfig.getIndexConfig();
 				
-				collectionHandlerMap.put(collection, new CollectionHandler(collection, collectionDir, schema, indexConfig));
+				collectionHandlerMap.put(collectionId, new CollectionHandler(collectionId, collectionDir, schema, indexConfig));
 			} catch (IRException e) {
 				logger.error("[ERROR] "+e.getMessage(),e);
 			} catch (SettingException e) {

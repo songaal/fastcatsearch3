@@ -18,8 +18,12 @@ public class FilePaths {
 		return environment.homeFile();
 	}
 	
+	public File getCollectionsRootFile() {
+		return makePath("collections").file();
+	}
+	
 	public String getCollectionHome(String collection) {
-		return makePath("collection").append(collection).toString();
+		return makePath("collections").append(collection).toString();
 	}
 
 	public String getCollectionDataPath(String collection) {
@@ -28,9 +32,9 @@ public class FilePaths {
 
 	public String getCollectionDataPath(String collection, int dataSequence) {
 		if (dataSequence == 0)
-			return makePath("collection").append(collection).append("data").toString();
+			return makePath("collections").append(collection).append("data").toString();
 		else
-			return makePath("collection").append(collection).append("data"+dataSequence).toString();
+			return makePath("collections").append(collection).append("data"+dataSequence).toString();
 	}
 
 	public String getSegmentPath(String collection, int dataSequence, int segmentNumber) {

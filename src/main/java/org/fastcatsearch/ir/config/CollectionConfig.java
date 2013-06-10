@@ -10,9 +10,8 @@ import javax.xml.bind.annotation.XmlType;
  * 각 컬렉션별 셋팅을 가지고 있다.
  * collection/컬렉션명/setting.xml
  * 
- <collection>
+ <collection-config>
 	<name>샘플</name>
-	<active>false</<active>
 	<index>
 		<pk-term-interval>64</pk-term-interval>
 		<pk-bucket-size>64K</pk-bucket-size>
@@ -40,14 +39,13 @@ import javax.xml.bind.annotation.XmlType;
 		<shard-size>1</shard-size>
 		<replica-size>*</replica-size>
 	</cluster>
-</collection>
+</collection-config>
  * */
 
 @XmlRootElement(name = "collection-config")
 public class CollectionConfig {
 
 	private String name;
-	private boolean isActive;
 	
 	private IndexConfig indexConfig;
 	private DataPlanConfig dataPlanConfig;
@@ -60,14 +58,6 @@ public class CollectionConfig {
 	}
 	public void setName(String name) {
 		this.name = name;
-	}
-	
-	@XmlElement(name="active")
-	public boolean isActive() {
-		return isActive;
-	}
-	public void setActive(boolean isActive) {
-		this.isActive = isActive;
 	}
 	
 	@XmlElement(name = "index")

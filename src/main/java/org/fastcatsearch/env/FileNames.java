@@ -12,4 +12,9 @@ public class FileNames {
 	public static final String mirrorEnvFilename = "serverEnv.conf";
 	public static final String passwdFilename = "auth";
 	public static final String bakupSuffix = ".bak";
+	
+	public static final String collectionConfigXml = "config.xml";
+	public static final String collectionsXml = "collections.xml";
+	
+	
 }
