@@ -32,7 +32,6 @@ import org.fastcatsearch.db.dao.SystemMonitoringInfo;
 import org.fastcatsearch.db.dao.SystemMonitoringInfoMinute;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.plugin.PluginSetting;

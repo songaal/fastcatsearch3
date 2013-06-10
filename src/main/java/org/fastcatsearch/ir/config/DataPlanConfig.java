@@ -35,10 +35,10 @@ public class DataPlanConfig {
 	}
 	
 	@XmlElement(name="segment-document-limit")
-	public int getDocumentLimit() {
+	public int getSegmentDocumentLimit() {
 		return documentLimit;
 	}
-	public void setDocumentLimit(int documentLimit) {
+	public void setSegmentDocumentLimit(int documentLimit) {
 		this.documentLimit = documentLimit;
 	}
 	@XmlElement(name="segment-revision-backup-size")

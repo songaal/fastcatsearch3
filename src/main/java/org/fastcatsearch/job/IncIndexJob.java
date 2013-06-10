@@ -23,7 +23,7 @@ import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.CollectionConfig;
-import org.fastcatsearch.ir.config.IRConfig;
+import org.fastcatsearch.ir.config.DataPlanConfig;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.document.Document;
@@ -85,7 +85,7 @@ public class IncIndexJob extends IndexingJob {
 				throw new FastcatSearchException("## ["+collection+"] CollectionHandler is not running...");
 			}
 			
-			IRConfig irconfig = IRSettings.getConfig(true);
+//			IRConfig irconfig = IRSettings.getConfig(true);
 			
 			boolean isAppend = false;
 			SegmentInfo currentSegmentInfo = workingHandler.getLastSegmentInfo();
@@ -94,8 +94,11 @@ public class IncIndexJob extends IndexingJob {
 				return null;
 			}
 			int docCount = currentSegmentInfo.getDocCount();
-			boolean useSeparateAddIndexing = irconfig.getBoolean("segment.separate.add.indexing");
-			int SEGMENT_DOC_LIMIT = irconfig.getInt("segment.document.limit");
+			
+			DataPlanConfig dataPlanConfig = irService.getCollectionConfig(collection).getDataPlanConfig();
+//			boolean useSeparateAddIndexing = irconfig.getBoolean("segment.separate.add.indexing");
+			boolean useSeparateAddIndexing = dataPlanConfig.isSeparateIncIndexing();
+			int segmentDocumentLimit = dataPlanConfig.getSegmentDocumentLimit(); //irconfig.getInt("segment.document.limit");
 		
 			if(useSeparateAddIndexing && currentSegmentInfo.getSegmentNumber() == 0){
 				//only has full indexing data
@@ -103,7 +106,7 @@ public class IncIndexJob extends IndexingJob {
 				isAppend = false;
 			}else{
 				//정해진 세그먼트내 문서크기보다 크면, 세그먼트를 분리해서 생성한다. 
-				if(docCount >= SEGMENT_DOC_LIMIT){
+				if(docCount >= segmentDocumentLimit){
 					isAppend = false;
 				}else{
 					isAppend = true;

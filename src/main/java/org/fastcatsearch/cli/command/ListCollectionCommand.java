@@ -11,9 +11,14 @@
 
 package org.fastcatsearch.cli.command;
 
+import java.util.List;
+
 import org.fastcatsearch.cli.Command;
 import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
+import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.IRSettings;
 
 /**
@@ -34,10 +39,13 @@ public class ListCollectionCommand extends Command {
 	public CommandResult doCommand(String[] cmd, ConsoleSessionContext context) {
 		
 		try {
-			String collectinListStr = IRSettings.getConfig().getString("collection.list");
-			String[] collectionNames = collectinListStr.split(",");
+//			String collectinListStr = IRSettings.getConfig().getString("collection.list");
+//			String[] collectionNames = collectinListStr.split(",");
 			
-			String ret = printData(collectionNames);
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+			List<Collection> collectionList = irService.getCollectionList();
+			
+			String ret = printData(collectionList.toArray(new String[0]));
 			
 			return new CommandResult(ret, CommandResult.Status.SUCCESS);
 		} catch (Exception e) {

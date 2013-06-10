@@ -17,7 +17,7 @@ import java.util.Date;
 
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.config.IRConfig;
+import org.fastcatsearch.ir.config.DataPlanConfig;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.DataSequenceFile;
@@ -50,8 +50,11 @@ public class RebuildIndexJob extends Job {
 		
 		long st = System.currentTimeMillis(); 
 		try {
-			IRConfig irconfig = IRSettings.getConfig(true);
-			int DATA_SEQUENCE_CYCLE = irconfig.getInt("data.sequence.cycle");
+//			IRConfig irconfig = IRSettings.getConfig(true);
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+			DataPlanConfig dataPlanConfig = irService.getCollectionConfig(collection).getDataPlanConfig();
+			int DATA_SEQUENCE_CYCLE = dataPlanConfig.getDataSequenceCycle();
+//			int DATA_SEQUENCE_CYCLE = irconfig.getInt("data.sequence.cycle");
 			
 			String collectionHomeDir = IRSettings.getCollectionHome(collection);
 			Schema workSchema = IRSettings.getWorkSchema(collection);
@@ -81,7 +84,6 @@ public class RebuildIndexJob extends Job {
 			//apply schema setting
 			IRSettings.applyWorkSchemaFile(collection);
 			
-			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			Schema newSchema = IRSettings.getSchema(collectionHomeDir, false);
 //			CollectionHandler newHandler = new CollectionHandler(collection, new File(collectionHomeDir), newSchema, IRSettings.getIndexConfig());
 			CollectionHandler newHandler = irService.newCollectionHandler(collection, -1);

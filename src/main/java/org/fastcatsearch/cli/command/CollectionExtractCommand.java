@@ -1,11 +1,15 @@
 package org.fastcatsearch.cli.command;
 
+import java.util.List;
 import java.util.TreeSet;
 
 import org.fastcatsearch.cli.Command;
 import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.cli.command.exception.CollectionNotDefinedException;
 import org.fastcatsearch.cli.command.exception.CollectionNotFoundException;
+import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.IRSettings;
 
 public abstract class CollectionExtractCommand extends Command {
@@ -16,27 +20,31 @@ public abstract class CollectionExtractCommand extends Command {
 	protected String ALLCOLLECTION = "_ALL_";
 
 	protected TreeSet getCollectionList() {
-		String collectionListStr = IRSettings.getConfig(true).getString("collection.list");
-		String[] collectionList = collectionListStr.split(",");
+//		String collectionListStr = IRSettings.getConfig(true).getString("collection.list");
+		IRService irService = ServiceManager.getInstance().getService(IRService.class);
+		List<Collection> collectionList = irService.getCollectionList();//collectionListStr.split(",");
 
 		collectionSet.clear();
 		
-		for (String strCollection : collectionList) {
-			collectionSet.add(strCollection.toLowerCase());
+		for (Collection collection : collectionList) {
+			collectionSet.add(collection.getId().toLowerCase());
 		}
 		
 		return collectionSet;
 	}
 	
 	protected void extractCollectionList() {
-		String collectionListStr = IRSettings.getConfig(true).getString("collection.list");
-		String[] collectionList = collectionListStr.split(",");
+//		String collectionListStr = IRSettings.getConfig(true).getString("collection.list");
+//		String[] collectionList = collectionListStr.split(",");
+		
+		IRService irService = ServiceManager.getInstance().getService(IRService.class);
+		List<Collection> collectionList = irService.getCollectionList();
 
 		collectionSet.clear();
 		
-		for (String strCollection : collectionList) {
-			if ( strCollection.trim().length() != 0 )
-				collectionSet.add(strCollection.trim().toLowerCase());
+		for (Collection collection : collectionList) {
+			if ( collection.getId().trim().length() != 0 )
+				collectionSet.add(collection.getId().trim().toLowerCase());
 		}
 	}
 

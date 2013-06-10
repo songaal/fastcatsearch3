@@ -18,15 +18,15 @@ import java.util.Date;
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.common.io.Streamable;
-
 import org.fastcatsearch.datasource.DataSourceSetting;
 import org.fastcatsearch.datasource.reader.SourceReader;
 import org.fastcatsearch.datasource.reader.SourceReaderFactory;
 import org.fastcatsearch.db.dao.IndexingResult;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.CollectionConfig;
-import org.fastcatsearch.ir.config.IRConfig;
+import org.fastcatsearch.ir.config.DataPlanConfig;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.document.Document;
@@ -36,11 +36,9 @@ import org.fastcatsearch.ir.search.DataSequenceFile;
 import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.result.IndexingJobResult;
-import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.notification.NotificationService;
 import org.fastcatsearch.notification.message.IndexingFinishNotification;
 import org.fastcatsearch.notification.message.IndexingStartNotification;
-import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.processlogger.IndexingProcessLogger;
 import org.fastcatsearch.processlogger.ProcessLoggerService;
 import org.fastcatsearch.processlogger.log.IndexingFinishProcessLog;
@@ -81,7 +79,7 @@ public class FullIndexJob extends IndexingJob {
 		Throwable throwable = null;
 		
 		try {
-			
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			ServiceManager serviceManager = ServiceManager.getInstance();
 			processLoggerService = serviceManager.getService(ProcessLoggerService.class);
 			notificationService = serviceManager.getService(NotificationService.class);
@@ -91,8 +89,9 @@ public class FullIndexJob extends IndexingJob {
 			notificationService.notify(new IndexingStartNotification(collectionId, IndexingResult.TYPE_FULL_INDEXING,
 					startTime(), isScheduled()));
 			
-			IRConfig irconfig = IRSettings.getConfig(true);
-			int DATA_SEQUENCE_CYCLE = irconfig.getInt("data.sequence.cycle");
+//			IRConfig irconfig = IRSettings.getConfig(true);
+			DataPlanConfig dataPlanConfig = irService.getCollectionConfig(collectionId).getDataPlanConfig();
+			int DATA_SEQUENCE_CYCLE = dataPlanConfig.getDataSequenceCycle();
 			
 			File collectionHomeDir = new File(IRSettings.getCollectionHome(collectionId));
 			Schema workSchema = IRSettings.getWorkSchema(collectionId, true, false);
@@ -135,7 +134,7 @@ public class FullIndexJob extends IndexingJob {
 			 * 색인파일 생성.
 			 */
 			
-			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+			
 			CollectionConfig collectionConfig = irService.getCollectionConfig(collectionId);
 			
 			IndexConfig indexConfig = collectionConfig.getIndexConfig();

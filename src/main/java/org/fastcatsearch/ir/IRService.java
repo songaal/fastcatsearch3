@@ -13,14 +13,11 @@ package org.fastcatsearch.ir;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 import org.fastcatsearch.common.QueryCacheModule;
 import org.fastcatsearch.env.Environment;
@@ -31,7 +28,6 @@ import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.CollectionsConfig;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
-import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.config.JAXBConfigs;
 import org.fastcatsearch.ir.config.Schema;
@@ -59,6 +55,7 @@ public class IRService extends AbstractService{
 	private QueryCacheModule<GroupData> groupingDataCache;
 	private QueryCacheModule<Result> documentCache;
 	private Map<String, CollectionConfig> collectionConfigMap;
+	private CollectionsConfig collectionsConfig;
 	
 	public IRService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
@@ -70,7 +67,7 @@ public class IRService extends AbstractService{
 		// collections 셋팅을 읽어온다.
 		File collectionsRoot = environment.filePaths().getCollectionsRoot().file();
 		
-		CollectionsConfig collectionsConfig = JAXBConfigs.readConfig(new File(collectionsRoot, FileNames.collectionsXml), CollectionsConfig.class);
+		collectionsConfig = JAXBConfigs.readConfig(new File(collectionsRoot, FileNames.collectionsXml), CollectionsConfig.class);
 		
 		for (Collection collection : collectionsConfig.getCollectionList()) {
 			try {
@@ -81,6 +78,11 @@ public class IRService extends AbstractService{
 				CollectionConfig collectionConfig = JAXBConfigs.readConfig(new File(collectionDir, "config.xml"), CollectionConfig.class);
 				collectionConfigMap.put(collectionId, collectionConfig);
 				
+				if(!collection.isActive()){
+					//active하지 않은 컬렉션은 map에 설정만 넣어두고 시작하지 않는다.
+					continue;
+				}
+
 				IndexConfig indexConfig = collectionConfig.getIndexConfig();
 				
 				collectionHandlerMap.put(collectionId, new CollectionHandler(collectionId, collectionDir, schema, indexConfig));
@@ -114,6 +116,9 @@ public class IRService extends AbstractService{
 		return collectionConfigMap.keySet().toArray(new String[0]);
 	}
 	
+	public List<Collection> getCollectionList(){
+		return collectionsConfig.getCollectionList();
+	}
 //	public String[][] getTokenizers() {
 //		return tokenizerList;
 //	}

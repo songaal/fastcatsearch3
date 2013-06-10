@@ -19,6 +19,9 @@ import org.fastcatsearch.cli.Command;
 import org.fastcatsearch.cli.CommandException;
 import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
+import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.IRSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,9 +55,11 @@ public class UseCollectionCommand extends Command {
 			String collection = cmd[2];
 			logger.debug("using collection : {} -> {}", new Object[] { context.getAttribute(SESSION_KEY_USING_COLLECTION), collection });
 			
-			String collectinListStr = IRSettings.getConfig().getString("collection.list");
+//			String collectinListStr = IRSettings.getConfig().getString("collection.list");
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+			String[] collectinListStr = irService.getCollectionNames();
 			
-			List<String>collectionNames  = Arrays.asList(collectinListStr.split(","));
+			List<String>collectionNames  = Arrays.asList(collectinListStr);
 			
 			if(collectionNames.contains(collection)) {
 				msg = printData("Using collection "+collection);

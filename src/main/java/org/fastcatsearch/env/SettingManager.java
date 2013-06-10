@@ -34,7 +34,6 @@ import org.fastcatsearch.ir.config.FieldSetting;
 import org.fastcatsearch.ir.config.FieldSetting.Type;
 import org.fastcatsearch.ir.config.FilterSetting;
 import org.fastcatsearch.ir.config.GroupSetting;
-import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IndexSetting;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.config.SortSetting;
@@ -1188,116 +1187,116 @@ public class SettingManager {
 		storeXmlProperties(collection, props, datasourceFilename);
 	}
 
-	public IRConfig getConfig() {
-		return getConfig(false);
-	}
-	
-	public IRConfig getConfig(boolean reload) {
-		IRConfig config = null;
-		if (!reload) {
-			config = (IRConfig) getFromCache(configFilename);
-			if (config != null) {
-				return config;
-			}
-		}
-
-		File configFile = environment.filePaths().makePath("conf").append(configFilename).file();
-		logger.debug("configFile = {}", configFile.getAbsolutePath());
-		Properties props = new Properties();
-		try {
-			FileInputStream fis = new FileInputStream(configFile);
-			props.load(fis);
-			fis.close();
-			
-		} catch (FileNotFoundException e) {
-			logger.error("",e);
-		} catch (IOException e) {
-			logger.error("",e);
-		}
-		
-		config = new IRConfig(props);
-		putToCache(config, configFilename);
-
-		return config;
-	}
-	
-	public IRConfig getConfig(String filepath) {
-		return getConfig(filepath, false);
-	}
-	
-	public IRConfig getConfig(String filepath, boolean reload) {
-		String settingsPath = IRSettings.HOME + filepath;
-		
-		IRConfig config = null;
-		if (!reload) {
-			config = (IRConfig) getFromCache(settingsPath);
-			if (config != null) {
-				return config;
-			}
-		}
-
-		logger.debug("configFile = {}", new File(settingsPath).getAbsolutePath());
-		Properties props = new Properties();
-		try {
-			FileInputStream fis = new FileInputStream(settingsPath);
-			props.load(fis);
-			fis.close();
-			
-		} catch (FileNotFoundException e) {
-			logger.error("",e);
-		} catch (IOException e) {
-			logger.error("",e);
-		}
-		
-		config = new IRConfig(props);
-		putToCache(config, settingsPath);
-
-		return config;
-	}
-
-	public void storeConfig(IRConfig config) {
-		if (config == null) {
-			logger.error("Config file is null.");
-		} else {
-			File configFile = environment.filePaths().makePath("conf").append(configFilename).file();
-			Properties props = config.getProperties();
-			try {
-				FileOutputStream fos = new FileOutputStream(configFile);
-				props.store(fos, "Auto saved config file.");
-				fos.close();
-			} catch (FileNotFoundException e) {
-				logger.error(e.getMessage(), e);
-			} catch (IOException e) {
-				logger.error(e.getMessage(), e);
-			}
-
-			putToCache(config, configFilename);
-		}
-
-	}
-
-	public IRConfig getServerEnvConfig(boolean reload) {
-		IRConfig config = null;
-		if (!reload) {
-			config = (IRConfig) getFromCache(mirrorEnvFilename);
-		} else {
-			File configFile = environment.filePaths().makePath("conf").append(mirrorEnvFilename).file();
-			logger.debug("mirrorEnv configFile = {}", configFile.getAbsolutePath());
-			Properties props = new Properties();
-			try {
-				FileInputStream fis = new FileInputStream(configFile);
-				props.load(fis);
-				fis.close();
-			} catch (FileNotFoundException e) {
-				logger.error(e.getMessage(), e);
-			} catch (IOException e) {
-				logger.error(e.getMessage(), e);
-			}
-			config = new IRConfig(props);
-			putToCache(config, mirrorEnvFilename);
-		}
-		return config;
-	}
+//	public IRConfig getConfig() {
+//		return getConfig(false);
+//	}
+//	
+//	public IRConfig getConfig(boolean reload) {
+//		IRConfig config = null;
+//		if (!reload) {
+//			config = (IRConfig) getFromCache(configFilename);
+//			if (config != null) {
+//				return config;
+//			}
+//		}
+//
+//		File configFile = environment.filePaths().makePath("conf").append(configFilename).file();
+//		logger.debug("configFile = {}", configFile.getAbsolutePath());
+//		Properties props = new Properties();
+//		try {
+//			FileInputStream fis = new FileInputStream(configFile);
+//			props.load(fis);
+//			fis.close();
+//			
+//		} catch (FileNotFoundException e) {
+//			logger.error("",e);
+//		} catch (IOException e) {
+//			logger.error("",e);
+//		}
+//		
+//		config = new IRConfig(props);
+//		putToCache(config, configFilename);
+//
+//		return config;
+//	}
+//	
+//	public IRConfig getConfig(String filepath) {
+//		return getConfig(filepath, false);
+//	}
+//	
+//	public IRConfig getConfig(String filepath, boolean reload) {
+//		String settingsPath = IRSettings.HOME + filepath;
+//		
+//		IRConfig config = null;
+//		if (!reload) {
+//			config = (IRConfig) getFromCache(settingsPath);
+//			if (config != null) {
+//				return config;
+//			}
+//		}
+//
+//		logger.debug("configFile = {}", new File(settingsPath).getAbsolutePath());
+//		Properties props = new Properties();
+//		try {
+//			FileInputStream fis = new FileInputStream(settingsPath);
+//			props.load(fis);
+//			fis.close();
+//			
+//		} catch (FileNotFoundException e) {
+//			logger.error("",e);
+//		} catch (IOException e) {
+//			logger.error("",e);
+//		}
+//		
+//		config = new IRConfig(props);
+//		putToCache(config, settingsPath);
+//
+//		return config;
+//	}
+//
+//	public void storeConfig(IRConfig config) {
+//		if (config == null) {
+//			logger.error("Config file is null.");
+//		} else {
+//			File configFile = environment.filePaths().makePath("conf").append(configFilename).file();
+//			Properties props = config.getProperties();
+//			try {
+//				FileOutputStream fos = new FileOutputStream(configFile);
+//				props.store(fos, "Auto saved config file.");
+//				fos.close();
+//			} catch (FileNotFoundException e) {
+//				logger.error(e.getMessage(), e);
+//			} catch (IOException e) {
+//				logger.error(e.getMessage(), e);
+//			}
+//
+//			putToCache(config, configFilename);
+//		}
+//
+//	}
+//
+//	public IRConfig getServerEnvConfig(boolean reload) {
+//		IRConfig config = null;
+//		if (!reload) {
+//			config = (IRConfig) getFromCache(mirrorEnvFilename);
+//		} else {
+//			File configFile = environment.filePaths().makePath("conf").append(mirrorEnvFilename).file();
+//			logger.debug("mirrorEnv configFile = {}", configFile.getAbsolutePath());
+//			Properties props = new Properties();
+//			try {
+//				FileInputStream fis = new FileInputStream(configFile);
+//				props.load(fis);
+//				fis.close();
+//			} catch (FileNotFoundException e) {
+//				logger.error(e.getMessage(), e);
+//			} catch (IOException e) {
+//				logger.error(e.getMessage(), e);
+//			}
+//			config = new IRConfig(props);
+//			putToCache(config, mirrorEnvFilename);
+//		}
+//		return config;
+//	}
 
 	public Properties getIndextime(String collection, boolean reload) {
 		if (!reload) {

@@ -26,16 +26,16 @@ import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.common.io.StreamOutput;
-
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.data.DataService;
 import org.fastcatsearch.data.DataStrategy;
 import org.fastcatsearch.datasource.DataSourceSetting;
 import org.fastcatsearch.datasource.reader.SourceReader;
 import org.fastcatsearch.datasource.reader.SourceReaderFactory;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRFileName;
-import org.fastcatsearch.ir.config.IRConfig;
+import org.fastcatsearch.ir.config.DataPlanConfig;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.DataSequenceFile;
@@ -43,7 +43,6 @@ import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.log.EventDBLogger;
-import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.IRSettings;
 import org.fastcatsearch.task.MakeIndexFileTask;
@@ -75,8 +74,11 @@ public class NodeFullIndexJob extends StreamableJob {
 		try {
 			
 			long startTime = System.currentTimeMillis();
-			IRConfig irconfig = IRSettings.getConfig(true);
-			int DATA_SEQUENCE_CYCLE = irconfig.getInt("data.sequence.cycle");
+//			IRConfig irconfig = IRSettings.getConfig(true);
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+			DataPlanConfig dataPlanConfig = irService.getCollectionConfig(collectionId).getDataPlanConfig();
+			int DATA_SEQUENCE_CYCLE = dataPlanConfig.getDataSequenceCycle();
+//			int DATA_SEQUENCE_CYCLE = irconfig.getInt("data.sequence.cycle");
 
 			File collectionHomeDir = new File(IRSettings.getCollectionHome(collectionId));
 			Schema workSchema = IRSettings.getWorkSchema(collectionId, true, false);
@@ -135,7 +137,6 @@ public class NodeFullIndexJob extends StreamableJob {
 					logger.error("Error while close source reader! "+e.getMessage(),e);
 				}
 			}
-			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 //			CollectionHandler newHandler = new CollectionHandler(collectionId, collectionHomeDir, workSchema, IRSettings.getIndexConfig());
 			CollectionHandler newHandler = irService.newCollectionHandler(collectionId, newDataSequence);
 			int[] updateAndDeleteSize = newHandler.addSegment(segmentNumber, segmentDir, null); //collection.info 파일저장.

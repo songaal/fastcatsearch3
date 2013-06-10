@@ -25,7 +25,6 @@ import org.fastcatsearch.datasource.DataSourceSetting;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.FieldSetting;
 import org.fastcatsearch.ir.config.GroupSetting;
-import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IndexSetting;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.config.SortSetting;
@@ -80,14 +79,14 @@ public class IRSettingsTest extends TestCase{
 		IRSettings.storeIndextime("test1", "full", "2010-10-10", "2010-10-10", "10 m", 100);
 	}
 	
-	public void testIRConfig(){
-		IRConfig irConfig = IRSettings.getConfig(true);
-		System.out.println("pk.term.interval = "+irConfig.getInt("pk.term.interval"));
-		System.out.println("pk.bucket.size = "+irConfig.getByteSize("pk.bucket.size"));
-		System.out.println("document.read.buffer.size = "+irConfig.getByteSize("document.read.buffer.size"));
-		System.out.println("document.write.buffer.size = "+irConfig.getByteSize("document.write.buffer.size"));
-		System.out.println("document.parser = "+irConfig.getString("document.parser"));
-	}
+//	public void testIRConfig(){
+//		IRConfig irConfig = IRSettings.getConfig(true);
+//		System.out.println("pk.term.interval = "+irConfig.getInt("pk.term.interval"));
+//		System.out.println("pk.bucket.size = "+irConfig.getByteSize("pk.bucket.size"));
+//		System.out.println("document.read.buffer.size = "+irConfig.getByteSize("document.read.buffer.size"));
+//		System.out.println("document.write.buffer.size = "+irConfig.getByteSize("document.write.buffer.size"));
+//		System.out.println("document.parser = "+irConfig.getString("document.parser"));
+//	}
 	
 	public void testPasswd(){
 		IRSettings.setHome("c:/fastcat");

@@ -8,8 +8,6 @@ import org.fastcatsearch.cli.Command;
 import org.fastcatsearch.cli.CommandException;
 import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
-import org.fastcatsearch.ir.config.IRConfig;
-import org.fastcatsearch.settings.IRSettings;
 
 public class ShowSettingCommand extends Command {
 
@@ -48,35 +46,39 @@ public class ShowSettingCommand extends Command {
 		if (cmd.length != 2) {
 			return new CommandResult("invalid Command", CommandResult.Status.SUCCESS);
 		} else {
-			IRConfig irConfig = IRSettings.getConfig(true);
+			
+			//TODO server.conf로 보여줄수 있는 것을 보여주고, 
+			//컬렉션별 config.xml내용은 컬렉션을 선택했을때 보여준다.
+			
+//			IRConfig irConfig = IRSettings.getConfig(true);
 			ArrayList<Object[]> data = new ArrayList<Object[]>();
-			
-			for (String property : basicProperties)
-				addRecord(data, property, irConfig.getString(property));
-			
-			for (String property : collectionProperties)
-				addRecord(data, property, irConfig.getString(property));
-			
-			for (String property : jobExecuteProperties)
-				addRecord(data, property, irConfig.getString(property));
-			
-			for (String property : documentProperties)
-				addRecord(data, property, irConfig.getString(property));
-
-			for (String property : indexingProperties)
-				addRecord(data, property, irConfig.getString(property));
-			
-			for (String property : searchProperties)
-				addRecord(data, property, irConfig.getString(property));
-			
-			for (String property : segmentProperties)
-				addRecord(data, property, irConfig.getString(property));
-			
-			for (String property : serverProperties)
-				addRecord(data, property, irConfig.getString(property));
-			
-			for (String property : dictionaryProperties)
-				addRecord(data, property, irConfig.getString(property));
+//			
+//			for (String property : basicProperties)
+//				addRecord(data, property, irConfig.getString(property));
+//			
+//			for (String property : collectionProperties)
+//				addRecord(data, property, irConfig.getString(property));
+//			
+//			for (String property : jobExecuteProperties)
+//				addRecord(data, property, irConfig.getString(property));
+//			
+//			for (String property : documentProperties)
+//				addRecord(data, property, irConfig.getString(property));
+//
+//			for (String property : indexingProperties)
+//				addRecord(data, property, irConfig.getString(property));
+//			
+//			for (String property : searchProperties)
+//				addRecord(data, property, irConfig.getString(property));
+//			
+//			for (String property : segmentProperties)
+//				addRecord(data, property, irConfig.getString(property));
+//			
+//			for (String property : serverProperties)
+//				addRecord(data, property, irConfig.getString(property));
+//			
+//			for (String property : dictionaryProperties)
+//				addRecord(data, property, irConfig.getString(property));
 			
 			return new CommandResult(printData(data, header), CommandResult.Status.SUCCESS);
 		}

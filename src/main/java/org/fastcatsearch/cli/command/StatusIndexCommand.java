@@ -23,7 +23,10 @@ import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.dao.IndexingResult;
 import org.fastcatsearch.db.vo.IndexingResultVO;
+import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.ir.util.Formatter;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.IRSettings;
 
 /**
@@ -45,11 +48,14 @@ public class StatusIndexCommand extends Command {
 	public CommandResult doCommand(String[] cmd, ConsoleSessionContext context)
 			throws IOException, CommandException {
 		DBService dbHandler = DBService.getInstance();
-		String collectinListStr = IRSettings.getConfig().getString("collection.list");
-		List<String>collectionNames  = Arrays.asList(collectinListStr.split(","));
+//		String collectinListStr = IRSettings.getConfig().getString("collection.list");
+//		List<String>collectionNames  = Arrays.asList(collectinListStr.split(","));
+		
+		IRService irService = ServiceManager.getInstance().getService(IRService.class);
+		List<Collection> collectionList = irService.getCollectionList();
 		
 		String msg = null;
-		String collection = null;
+		String collectionId = null;
 		String type = null;
 		boolean listAll = false;
 		
@@ -66,24 +72,25 @@ public class StatusIndexCommand extends Command {
 		
 		if(cmd.length == 2) {
 			//status index
-			collection = (String)context.getAttribute(SESSION_KEY_USING_COLLECTION);
-			if(collection == null) {
+			collectionId = (String)context.getAttribute(SESSION_KEY_USING_COLLECTION);
+			if(collectionId == null) {
 				listAll = true;
 			}
 			
 		} else if(cmd.length == 3 ) {
 			//status index ${collectionName}
-			collection = cmd[2];
+			collectionId = cmd[2];
 			
 		} else if(cmd.length == 4) {
 			//status index ${collectionName} ${full | inc}
-			collection = cmd[2];
+			collectionId = cmd[2];
 			type = cmd[3];
 		}
 		IndexingResult indexingResult = dbHandler.getDAO("IndexingResult");
 		
 		if(listAll) {
-			for(String collectionName : collectionNames) {
+			for(Collection collection : collectionList) {
+				String collectionName = collection.getId();
 				IndexingResultVO indexResult = null;
 				
 				indexResult = indexingResult.select(collectionName, "F");
@@ -98,7 +105,7 @@ public class StatusIndexCommand extends Command {
 			msg = printData(data, header);
 			return new CommandResult(msg, CommandResult.Status.SUCCESS);
 		} else {
-			if(collection == null) {
+			if(collectionId == null) {
 				throw new CommandException("Error : Collection Not Selected");
 			}
 			
@@ -106,24 +113,24 @@ public class StatusIndexCommand extends Command {
 			
 			if(type==null) {
 	
-				indexResult = indexingResult.select(collection, "F");
+				indexResult = indexingResult.select(collectionId, "F");
 				if(indexResult != null) {
-					addRecord(data, collection, FULL_INDEXING, indexResult);
+					addRecord(data, collectionId, FULL_INDEXING, indexResult);
 				}
-				indexResult = indexingResult.select(collection, "I");
+				indexResult = indexingResult.select(collectionId, "I");
 				if(indexResult != null) {
-					addRecord(data, collection, INC_INDEXING, indexResult);
+					addRecord(data, collectionId, INC_INDEXING, indexResult);
 				}
 			} else if("full".equalsIgnoreCase(type)) {
-				indexResult = indexingResult.select(collection, "F");
+				indexResult = indexingResult.select(collectionId, "F");
 				if(indexResult != null) {
-					addRecord(data, collection, FULL_INDEXING, indexResult);
+					addRecord(data, collectionId, FULL_INDEXING, indexResult);
 				}
 				
 			} else if("inc".equalsIgnoreCase(type)) {
-				indexResult = indexingResult.select(collection, "I");
+				indexResult = indexingResult.select(collectionId, "I");
 				if(indexResult != null) {
-					addRecord(data, collection, INC_INDEXING, indexResult);
+					addRecord(data, collectionId, INC_INDEXING, indexResult);
 				}
 			}
 			if(data.size() > 0) {
