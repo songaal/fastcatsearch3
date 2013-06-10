@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema version="1.0">
+<schema>
 	<field-list>
 		<field id="id" name="" primary="true" type="int" />
 		<field id="title" type="ustring" size="-1" />
@@ -12,44 +12,45 @@
 		<field id="comment" type="ustring" />
 	</field-list>
 	
-	<search>
-		<index-list>
-			<index id="title" indexAnalyzer="korean" queryAnalyzer="korean_query">
-				<field ref="title" />
-			</index>
-			<index id="title_ignore_case" indexAnalyzer="korean" queryAnalyzer="korean_query">
-				<field ref="title" />
-			</index>
-			<index id="body" indexAnalyzer="korean" queryAnalyzer="korean_query">
-				<field ref="body" removeTag="true" />
-			</index>
-			<index id="all" indexAnalyzer="korean" queryAnalyzer="korean_query" positionIncrementGap="100">
-				<field ref="title" />
-				<field ref="body" removeTag="true" />
-			</index>
-			<index id="tags" ignoreCase="true" indexAnalyzer="keyword" queryAnalyzer="keyword" positionIncrementGap="100">
-				<field ref="tags" />
-			</index>
-		</index-list>
-		<analyzer-list>
-			<analyzer id="korean" core_pool_size="10" maximum_pool_size="100">com.fastcatsearch.plugin.analysis.korean.StandardKoreanAnalyzer</analyzer>
-			<analyzer id="korean_query" core_pool_size="10" maximum_pool_size="100">com.fastcatsearch.plugin.analysis.korean.StandardKoreanAnalyzer</analyzer>
-			<analyzer id="product" core_pool_size="10" maximum_pool_size="100">com.fastcatsearch.plugin.analysis.product.StandardProductAnalyzer</analyzer>
-			<analyzer id="keyword" core_pool_size="10" maximum_pool_size="100">org.apache.lucene.analysis.core.KeywordAnalyzer</analyzer>
-		</analyzer-list>
-	</search>
+	<index-list>
+		<index id="title" name="title_index" indexAnalyzer="korean_index" queryAnalyzer="korean_query">
+			<field ref="title" />
+		</index>
+		<index id="title_ignore_case" name="title_ic_index" indexAnalyzer="korean_index" queryAnalyzer="korean_query">
+			<field ref="title" />
+		</index>
+		<index id="body" indexAnalyzer="korean_index" queryAnalyzer="korean_query">
+			<field ref="body" removeTag="true" />
+		</index>
+		<index id="all" indexAnalyzer="korean_index" queryAnalyzer="korean_query" positionIncrementGap="100">
+			<field ref="title" />
+			<field ref="body" removeTag="true" />
+		</index>
+		<index id="tags" ignoreCase="true" indexAnalyzer="keyword" queryAnalyzer="keyword">
+			<field ref="tags" />
+		</index>
+	</index-list>
+	
+	<analyzer-list>
+		<analyzer id="korean_index" core_pool_size="10" maximum_pool_size="100">com.fastcatsearch.plugin.analysis.korean.StandardKoreanAnalyzer</analyzer>
+		<analyzer id="korean_query" core_pool_size="10" maximum_pool_size="100">com.fastcatsearch.plugin.analysis.korean.StandardKoreanAnalyzer</analyzer>
+		<analyzer id="product_index" core_pool_size="10" maximum_pool_size="100">com.fastcatsearch.plugin.analysis.product.StandardProductAnalyzer</analyzer>
+		<analyzer id="product_query" core_pool_size="10" maximum_pool_size="100">com.fastcatsearch.plugin.analysis.product.StandardProductAnalyzer</analyzer>
+		<analyzer id="keyword" core_pool_size="10" maximum_pool_size="100">org.apache.lucene.analysis.core.KeywordAnalyzer</analyzer>
+	</analyzer-list>
 	
 	<!-- sort, filter, group-function-argument -->
 	<field-index-list>
-		<field-index id="title" name="" field="title" />
-		<field-index id="regdate" name="" field="regdate" />
-		<field-index id="category" name="" field="category" />
-		<field-index id="category_ic" name="" field="category" ignoreCase="true" />
+		<field-index id="title" name="title_field_index" field="title" />
+		<field-index id="title_prefix" name="title_prefix_field_index" field="title" size="10" />
+		<field-index id="regdate" name="regdate_field_index" field="regdate" />
+		<field-index id="category" name="category_field_index" field="category" />
+		<field-index id="category_ignore_case" name="category_ic_field_index" field="category" ignoreCase="true" />
 	</field-index-list>
 	
 	<group-index-list>
 		<group id="category" field="category"/>
-		<group id="tags" field="tags" ignoreCase="true" />
+		<group id="tags" field="tags"/>
 	</group-index-list>
 	
 	
