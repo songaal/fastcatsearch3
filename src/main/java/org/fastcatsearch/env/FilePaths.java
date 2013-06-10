@@ -18,12 +18,12 @@ public class FilePaths {
 		return environment.homeFile();
 	}
 	
-	public File getCollectionsRootFile() {
-		return makePath("collections").file();
+	public Path getCollectionsRoot() {
+		return makePath("collections");
 	}
 	
-	public String getCollectionHome(String collection) {
-		return makePath("collections").append(collection).toString();
+	public Path getCollectionHome(String collection) {
+		return makePath("collections").append(collection);
 	}
 
 	public String getCollectionDataPath(String collection) {

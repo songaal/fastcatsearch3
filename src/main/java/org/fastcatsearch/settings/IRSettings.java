@@ -1557,7 +1557,7 @@ public class IRSettings {
 	}
 
 	public static String getKey(String collection, String filename) {
-		return HOME + "collection" + FILE_SEPARATOR + collection + FILE_SEPARATOR + filename;
+		return HOME + "collections" + FILE_SEPARATOR + collection + FILE_SEPARATOR + filename;
 	}
 
 	public static String getKey(String filename) {
@@ -1704,11 +1704,11 @@ public class IRSettings {
 	}
 
 	public static String getCollectionHome(String collection) {
-		return HOME + "collection" + FILE_SEPARATOR + collection + FILE_SEPARATOR;
+		return HOME + "collections" + FILE_SEPARATOR + collection + FILE_SEPARATOR;
 	}
 	
 	public static File getCollectionHomeFile(String collection) {
-		return new File(HOME + "collection" + FILE_SEPARATOR + collection + FILE_SEPARATOR);
+		return new File(HOME + "collections" + FILE_SEPARATOR + collection + FILE_SEPARATOR);
 	}
 
 	public static String getCollectionDataPath(String collection) {
@@ -1717,9 +1717,9 @@ public class IRSettings {
 
 	public static String getCollectionDataPath(String collection, int dataSequence) {
 		if (dataSequence == 0)
-			return HOME + "collection" + FILE_SEPARATOR + collection + FILE_SEPARATOR + "data" + FILE_SEPARATOR;
+			return HOME + "collections" + FILE_SEPARATOR + collection + FILE_SEPARATOR + "data" + FILE_SEPARATOR;
 		else
-			return HOME + "collection" + FILE_SEPARATOR + collection + FILE_SEPARATOR + "data" + dataSequence + FILE_SEPARATOR;
+			return HOME + "collections" + FILE_SEPARATOR + collection + FILE_SEPARATOR + "data" + dataSequence + FILE_SEPARATOR;
 	}
 
 	public static String getSegmentPath(String collection, int dataSequence, int segmentNumber) {

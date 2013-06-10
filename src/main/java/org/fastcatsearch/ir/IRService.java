@@ -50,8 +50,8 @@ import org.fastcatsearch.settings.Settings;
 public class IRService extends AbstractService{
 	
 	private Map<String, CollectionHandler> collectionHandlerMap = new HashMap<String, CollectionHandler>();
-	private String[] collectionNameList;
-	private String[][] tokenizerList;
+//	private String[] collectionNameList;
+//	private String[][] tokenizerList;
 	
 	private QueryCacheModule<Result> searchCache;
 	private QueryCacheModule<ShardSearchResult> shardSearchCache;
@@ -68,17 +68,17 @@ public class IRService extends AbstractService{
 		
 		collectionConfigMap = new HashMap<String, CollectionConfig>(); 
 		// collections 셋팅을 읽어온다.
-		File collectionsRoot = environment.filePaths().getCollectionsRootFile();
+		File collectionsRoot = environment.filePaths().getCollectionsRoot().file();
 		
 		CollectionsConfig collectionsConfig = JAXBConfigs.readConfig(new File(collectionsRoot, FileNames.collectionsXml), CollectionsConfig.class);
 		
 		for (Collection collection : collectionsConfig.getCollectionList()) {
 			try {
 				String collectionId = collection.getId();
-				File collectionDir = IRSettings.getCollectionHomeFile(collectionId);
+//				File collectionDir = IRSettings.getCollectionHomeFile(collectionId);
+				File collectionDir = environment.filePaths().getCollectionHome(collectionId).file();
 				Schema schema = IRSettings.getSchema(collectionId, true);
-				
-				CollectionConfig collectionConfig = IRSettings.getJAXBConfig(new File(collectionDir, "config.xml"), CollectionConfig.class);
+				CollectionConfig collectionConfig = JAXBConfigs.readConfig(new File(collectionDir, "config.xml"), CollectionConfig.class);
 				collectionConfigMap.put(collectionId, collectionConfig);
 				
 				IndexConfig indexConfig = collectionConfig.getIndexConfig();
@@ -111,12 +111,12 @@ public class IRService extends AbstractService{
 	}
 	
 	public String[] getCollectionNames(){
-		return collectionNameList;
+		return collectionConfigMap.keySet().toArray(new String[0]);
 	}
 	
-	public String[][] getTokenizers() {
-		return tokenizerList;
-	}
+//	public String[][] getTokenizers() {
+//		return tokenizerList;
+//	}
 	
 	public CollectionHandler removeCollectionHandler(String collection){
 		return collectionHandlerMap.remove(collection);
