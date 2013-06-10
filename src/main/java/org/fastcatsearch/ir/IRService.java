@@ -74,6 +74,12 @@ public class IRService extends AbstractService{
 				File collectionDir = IRSettings.getCollectionHomeFile(collection);
 				Schema schema = IRSettings.getSchema(collection, true);
 				IndexConfig indexConfig = IRSettings.getIndexConfig();
+				
+				
+				
+				
+				
+				
 				collectionHandlerMap.put(collection, new CollectionHandler(collection, collectionDir, schema, indexConfig));
 			} catch (IRException e) {
 				logger.error("[ERROR] "+e.getMessage(),e);
@@ -147,60 +153,60 @@ public class IRService extends AbstractService{
 		return true;
 	}	
 	
-	public void detectTokenizers() {
-		String pkg = "org.fastcatsearch.ir.analysis.";
-		ClassLoader clsldr = getClass().getClassLoader();
-		String path = pkg.replace(".", "/");
-		try {
-			Enumeration<URL> em = clsldr.getResources(path);
-			List<String[]> tokenizers = new ArrayList<String[]>();
-			while(em.hasMoreElements()) {
-				String urlstr = em.nextElement().toString();
-				if(urlstr.startsWith("jar:file:")) {
-					String jpath = urlstr.substring(9);
-					int st = jpath.indexOf("!/");
-					jpath = jpath.substring(0,st);
-					JarFile jf = new JarFile(jpath);
-					Enumeration<JarEntry>jee = jf.entries();
-					while(jee.hasMoreElements()) {
-						JarEntry je = jee.nextElement();
-						String ename = je.getName();
-						String[] ar = classifyTokenizers(ename,pkg);
-						if(ar!=null) { tokenizers.add(ar); }
-						
-					}
-				} else  if(urlstr.startsWith("file:")) {
-					File file = new File(urlstr.substring(5));
-					File[] dir = file.listFiles();
-					for(int i=0;i<dir.length;i++) {
-						String[] ar = classifyTokenizers(pkg+dir[i].getName(),pkg);
-						if(ar!=null) { tokenizers.add(ar); }
-					}
-				}
-			}
-			if(tokenizers!=null && tokenizers.size() > 0) {
-				tokenizerList = new String[tokenizers.size()][];
-				tokenizerList = tokenizers.toArray(tokenizerList);
-			}
-		} catch (IOException e) { }
-	}
-
-	public String[] classifyTokenizers(String ename, String pkg) {
-		if(ename.endsWith(".class")) {
-			ename = ename.substring(0,ename.length()-6);
-			ename = ename.replaceAll("/", ".");
-			if(ename.startsWith(pkg)) {
-				try {
-					Class<?> cls = Class.forName(ename);
-					TokenizerAttributes tokenizerAttributes = cls.getAnnotation(TokenizerAttributes.class);
-					if(tokenizerAttributes!=null) {
-						return new String[] { tokenizerAttributes.name(), cls.getName() };
-					}
-				} catch (ClassNotFoundException e) { }
-			}
-		}
-		return null;
-	}
+//	public void detectTokenizers() {
+//		String pkg = "org.fastcatsearch.ir.analysis.";
+//		ClassLoader clsldr = getClass().getClassLoader();
+//		String path = pkg.replace(".", "/");
+//		try {
+//			Enumeration<URL> em = clsldr.getResources(path);
+//			List<String[]> tokenizers = new ArrayList<String[]>();
+//			while(em.hasMoreElements()) {
+//				String urlstr = em.nextElement().toString();
+//				if(urlstr.startsWith("jar:file:")) {
+//					String jpath = urlstr.substring(9);
+//					int st = jpath.indexOf("!/");
+//					jpath = jpath.substring(0,st);
+//					JarFile jf = new JarFile(jpath);
+//					Enumeration<JarEntry>jee = jf.entries();
+//					while(jee.hasMoreElements()) {
+//						JarEntry je = jee.nextElement();
+//						String ename = je.getName();
+//						String[] ar = classifyTokenizers(ename,pkg);
+//						if(ar!=null) { tokenizers.add(ar); }
+//						
+//					}
+//				} else  if(urlstr.startsWith("file:")) {
+//					File file = new File(urlstr.substring(5));
+//					File[] dir = file.listFiles();
+//					for(int i=0;i<dir.length;i++) {
+//						String[] ar = classifyTokenizers(pkg+dir[i].getName(),pkg);
+//						if(ar!=null) { tokenizers.add(ar); }
+//					}
+//				}
+//			}
+//			if(tokenizers!=null && tokenizers.size() > 0) {
+//				tokenizerList = new String[tokenizers.size()][];
+//				tokenizerList = tokenizers.toArray(tokenizerList);
+//			}
+//		} catch (IOException e) { }
+//	}
+//
+//	public String[] classifyTokenizers(String ename, String pkg) {
+//		if(ename.endsWith(".class")) {
+//			ename = ename.substring(0,ename.length()-6);
+//			ename = ename.replaceAll("/", ".");
+//			if(ename.startsWith(pkg)) {
+//				try {
+//					Class<?> cls = Class.forName(ename);
+//					TokenizerAttributes tokenizerAttributes = cls.getAnnotation(TokenizerAttributes.class);
+//					if(tokenizerAttributes!=null) {
+//						return new String[] { tokenizerAttributes.name(), cls.getName() };
+//					}
+//				} catch (ClassNotFoundException e) { }
+//			}
+//		}
+//		return null;
+//	}
 	
 	public void detectFieldTypes() {
 		String pkg = "org.fastcatsearch.ir.config.";

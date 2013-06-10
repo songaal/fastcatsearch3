@@ -484,12 +484,12 @@ public class QueryParser {
 	}
 
 	private Term.Type getType(String str, String[] term, Term.BRACE[] brace) throws QueryParseException{
-		if(str.startsWith("AND")){
+		if(str.startsWith("ALL")){
 			term[0] = str.substring(4, str.length() - 1);
-			return Term.Type.AND;
-		}else if(str.startsWith("OR")){
-			term[0] = str.substring(3, str.length() - 1);
-			return Term.Type.OR;
+			return Term.Type.ALL;
+		}else if(str.startsWith("ANY")){
+			term[0] = str.substring(4, str.length() - 1);
+			return Term.Type.ANY;
 		}else if(str.startsWith("EXT")){
 			term[0] = str.substring(4, str.length() - 1);
 			char openBrace = str.charAt(3);
@@ -502,7 +502,7 @@ public class QueryParser {
 		}
 		//통째로 반환. default = AND
 		term[0] = str;
-		return Term.Type.AND;
+		return Term.Type.ALL;
 	}
 	
 	private Term.BRACE getBraceType(char brace) throws QueryParseException{
