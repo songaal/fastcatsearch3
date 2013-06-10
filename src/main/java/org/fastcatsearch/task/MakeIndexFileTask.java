@@ -16,11 +16,15 @@ import java.io.File;
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.datasource.DataSourceSetting;
 import org.fastcatsearch.datasource.reader.SourceReader;
+import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.config.CollectionConfig;
+import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.SegmentWriter;
 import org.fastcatsearch.ir.util.Formatter;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.IRSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +55,10 @@ public class MakeIndexFileTask extends Task {
 		int count = 0;
 		
 		try{
-			writer = new SegmentWriter(workSchema, segmentDir, IRSettings.getIndexConfig());
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+			CollectionConfig collectionConfig = irService.getCollectionConfig(collection);
+			
+			writer = new SegmentWriter(workSchema, segmentDir, collectionConfig.getIndexConfig());
 			
 			long startTime = System.currentTimeMillis();
 			long lapTime = startTime;

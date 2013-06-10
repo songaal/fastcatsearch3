@@ -25,6 +25,7 @@ import org.fastcatsearch.datasource.reader.SourceReaderFactory;
 import org.fastcatsearch.db.dao.IndexingResult;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.config.Schema;
@@ -133,7 +134,11 @@ public class FullIndexJob extends IndexingJob {
 			/*
 			 * 색인파일 생성.
 			 */
-			IndexConfig indexConfig = IRSettings.getIndexConfig();
+			
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+			CollectionConfig collectionConfig = irService.getCollectionConfig(collectionId);
+			
+			IndexConfig indexConfig = collectionConfig.getIndexConfig();
 			File segmentDir = new File(IRSettings.getSegmentPath(collectionId, newDataSequence, segmentNumber));
 			indexingLogger.info("Segment Dir = "+segmentDir.getAbsolutePath());
 			SegmentWriter writer = null;
@@ -192,7 +197,6 @@ public class FullIndexJob extends IndexingJob {
 //			Schema newSchema = IRSettings.getSchema(collectionId, false);
 //			CollectionHandler newHandler = new CollectionHandler(collectionId, collectionDir, newSchema, indexConfig, newDataSequence);
 
-			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			CollectionHandler newHandler = irService.newCollectionHandler(collectionId, newDataSequence);
 			updateAndDeleteSize = newHandler.addSegment(segmentNumber, segmentDir, null);
 			updateAndDeleteSize[1] += writer.getDuplicateDocCount();//중복문서 삭제카운트

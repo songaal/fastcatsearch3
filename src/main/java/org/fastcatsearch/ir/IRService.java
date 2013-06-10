@@ -14,11 +14,9 @@ package org.fastcatsearch.ir;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.jar.JarEntry;
@@ -27,9 +25,9 @@ import java.util.jar.JarFile;
 import org.fastcatsearch.common.QueryCacheModule;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.ir.analysis.TokenizerAttributes;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
+import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.config.Schema;
@@ -56,12 +54,16 @@ public class IRService extends AbstractService{
 	private QueryCacheModule<GroupResults> groupingCache;
 	private QueryCacheModule<GroupData> groupingDataCache;
 	private QueryCacheModule<Result> documentCache;
+	private Map<String, CollectionConfig> collectionConfigMap;
 	
 	public IRService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
 	}
 	
 	protected boolean doStart() throws FastcatSearchException {
+		
+		collectionConfigMap = new HashMap<String, CollectionConfig>(); 
+		
 		IRConfig irconfig = IRSettings.getConfig(true);
 		
 		
@@ -73,12 +75,11 @@ public class IRService extends AbstractService{
 			try {
 				File collectionDir = IRSettings.getCollectionHomeFile(collection);
 				Schema schema = IRSettings.getSchema(collection, true);
-				IndexConfig indexConfig = IRSettings.getIndexConfig();
 				
+				CollectionConfig collectionConfig = IRSettings.getJAXBConfig(new File(collectionDir, "config.xml"), CollectionConfig.class);
+				collectionConfigMap.put(collection, collectionConfig);
 				
-				
-				
-				
+				IndexConfig indexConfig = collectionConfig.getIndexConfig();
 				
 				collectionHandlerMap.put(collection, new CollectionHandler(collection, collectionDir, schema, indexConfig));
 			} catch (IRException e) {
@@ -130,9 +131,14 @@ public class IRService extends AbstractService{
 	public CollectionHandler newCollectionHandler(String collection, int newDataSequence) throws IRException, SettingException{
 		File collectionDir = new File(IRSettings.getCollectionHome(collection));
 		Schema schema = IRSettings.getSchema(collection, false);
-		IndexConfig indexConfig = IRSettings.getIndexConfig();
+		IndexConfig indexConfig = collectionConfigMap.get(collection).getIndexConfig();
 		return new CollectionHandler(collection, collectionDir, schema, indexConfig, newDataSequence);
 	}
+	
+	public CollectionConfig getCollectionConfig(String collectionId){
+		return collectionConfigMap.get(collectionId);
+	}
+	
 	protected boolean doStop() throws FastcatSearchException {
 		Iterator<Entry<String, CollectionHandler>> iter = collectionHandlerMap.entrySet().iterator();
 		while(iter.hasNext()){
@@ -208,59 +214,59 @@ public class IRService extends AbstractService{
 //		return null;
 //	}
 	
-	public void detectFieldTypes() {
-		String pkg = "org.fastcatsearch.ir.config.";
-		ClassLoader clsldr = getClass().getClassLoader();
-		String path = pkg.replace(".", "/");
-		try {
-			Enumeration<URL> em = clsldr.getResources(path);
-			while(em.hasMoreElements()) {
-				String urlstr = em.nextElement().toString();
-				if(urlstr.startsWith("jar:file:")) {
-					String jpath = urlstr.substring(9);
-					int st = jpath.indexOf("!/");
-					jpath = jpath.substring(0,st);
-					JarFile jf = new JarFile(jpath);
-					Enumeration<JarEntry>jee = jf.entries();
-					while(jee.hasMoreElements()) {
-						JarEntry je = jee.nextElement();
-						String ename = je.getName();
-						classifyFieldTypes(ename,pkg);
-					}
-				} else  if(urlstr.startsWith("file:")) {
-					File file = new File(urlstr.substring(5));
-					File[] dir = file.listFiles();
-					for(int i=0;i<dir.length;i++) {
-						classifyFieldTypes(pkg+dir[i].getName(),pkg);
-					}
-				}
-			}
-		} catch (IOException e) { }
-	}
-	
-	public String[] classifyFieldTypes(String ename, String pkg) {
-		if(ename.endsWith(".class")) {
-			ename = ename.substring(0,ename.length()-6);
-			ename = ename.replaceAll("/", ".");
-			if(ename.startsWith(pkg)) {
-				try {
-					Class<?> cls = Class.forName(ename);
-					if(org.fastcatsearch.ir.config.Field.class.equals(cls)) {
-					} else if(org.fastcatsearch.ir.field.SingleValueField.class.equals(cls)) {
-					} else if(org.fastcatsearch.ir.field.MultiValueField.class.equals(cls)) {
-					} else if(org.fastcatsearch.ir.field.MultiValueField.class.isAssignableFrom(cls)) {
-					} else if(org.fastcatsearch.ir.config.Field.class.isAssignableFrom(cls)) {
-						String fieldType = ename.substring(pkg.length());
-						if(fieldType.endsWith("Field")) { fieldType = fieldType.substring(0,fieldType.length()-5); }
-						fieldType = fieldType.toLowerCase();
-//						System.out.println("1: "+fieldType+":"+cls.getName());
-						return new String[] { fieldType, cls.getName() };
-					}
-				} catch (ClassNotFoundException e) { }
-			}
-		}
-		return null;
-	}
+//	public void detectFieldTypes() {
+//		String pkg = "org.fastcatsearch.ir.config.";
+//		ClassLoader clsldr = getClass().getClassLoader();
+//		String path = pkg.replace(".", "/");
+//		try {
+//			Enumeration<URL> em = clsldr.getResources(path);
+//			while(em.hasMoreElements()) {
+//				String urlstr = em.nextElement().toString();
+//				if(urlstr.startsWith("jar:file:")) {
+//					String jpath = urlstr.substring(9);
+//					int st = jpath.indexOf("!/");
+//					jpath = jpath.substring(0,st);
+//					JarFile jf = new JarFile(jpath);
+//					Enumeration<JarEntry>jee = jf.entries();
+//					while(jee.hasMoreElements()) {
+//						JarEntry je = jee.nextElement();
+//						String ename = je.getName();
+//						classifyFieldTypes(ename,pkg);
+//					}
+//				} else  if(urlstr.startsWith("file:")) {
+//					File file = new File(urlstr.substring(5));
+//					File[] dir = file.listFiles();
+//					for(int i=0;i<dir.length;i++) {
+//						classifyFieldTypes(pkg+dir[i].getName(),pkg);
+//					}
+//				}
+//			}
+//		} catch (IOException e) { }
+//	}
+//	
+//	public String[] classifyFieldTypes(String ename, String pkg) {
+//		if(ename.endsWith(".class")) {
+//			ename = ename.substring(0,ename.length()-6);
+//			ename = ename.replaceAll("/", ".");
+//			if(ename.startsWith(pkg)) {
+//				try {
+//					Class<?> cls = Class.forName(ename);
+//					if(org.fastcatsearch.ir.config.Field.class.equals(cls)) {
+//					} else if(org.fastcatsearch.ir.field.SingleValueField.class.equals(cls)) {
+//					} else if(org.fastcatsearch.ir.field.MultiValueField.class.equals(cls)) {
+//					} else if(org.fastcatsearch.ir.field.MultiValueField.class.isAssignableFrom(cls)) {
+//					} else if(org.fastcatsearch.ir.config.Field.class.isAssignableFrom(cls)) {
+//						String fieldType = ename.substring(pkg.length());
+//						if(fieldType.endsWith("Field")) { fieldType = fieldType.substring(0,fieldType.length()-5); }
+//						fieldType = fieldType.toLowerCase();
+////						System.out.println("1: "+fieldType+":"+cls.getName());
+//						return new String[] { fieldType, cls.getName() };
+//					}
+//				} catch (ClassNotFoundException e) { }
+//			}
+//		}
+//		return null;
+//	}
 
 	@Override
 	protected boolean doClose() throws FastcatSearchException {

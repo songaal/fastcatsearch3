@@ -9,18 +9,17 @@
 		<bucket-size>64K</bucket-size>
 		<work-memory-size>128M</work-memory-size>
 		<work-bucket-size>256</work-bucket-size>
+		<read-buffer-size>3M</read-buffer-size>
+		<write-buffer-size>3M</write-buffer-size>
+		<block-size>8</block-size>
+		<compression-type>fast</compression-type>
 	</<index>
+	
 	<segment>
 		<separate-inc-indexing>true</separate-inc-indexing>
 		<document-limit>2000000</document-limit>
 		<segment-revision-backup-size>2</segment-revision-backup-size>
 	</segment>
-	<document>
-		<read-buffer-size>3M</read-buffer-size>
-		<write-buffer-size>3M</write-buffer-size>
-		<block-size>8</block-size>
-		<compression-type>fast</compression-type>
-	</document>
 	
 	<data-plan>
 		<index-node>

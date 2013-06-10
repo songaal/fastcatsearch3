@@ -22,6 +22,7 @@ import org.fastcatsearch.datasource.reader.SourceReaderFactory;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.IRConfig;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.config.Schema;
@@ -74,6 +75,9 @@ public class IncIndexJob extends IndexingJob {
 		try {
 			Schema schema = IRSettings.getSchema(collection, true);
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+			CollectionConfig collectionConfig = irService.getCollectionConfig(collection);
+			
+			
 			CollectionHandler workingHandler = irService.getCollectionHandler(collection);
 			if(workingHandler == null){
 				indexingLogger.error("["+collection+"] CollectionHandler is not running!");
@@ -122,7 +126,7 @@ public class IncIndexJob extends IndexingJob {
 			//case.2 : isAppend and not forceSeparate
 			//otherwise : separate
 			
-			IndexConfig indexConfig = IRSettings.getIndexConfig();
+			IndexConfig indexConfig = collectionConfig.getIndexConfig();
 			int count = 0;
 			int[] updateAndDeleteSize = {0, 0};
 			logger.debug("currentSegmentInfo = {}, isAppend={}",currentSegmentInfo, isAppend);

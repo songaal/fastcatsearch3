@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
@@ -31,6 +32,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.fastcatsearch.common.DynamicClassLoader;
@@ -40,6 +44,7 @@ import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.analysis.DefaultAnalyzerFactory;
 import org.fastcatsearch.ir.common.SettingException;
+import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.ColumnSetting;
 import org.fastcatsearch.ir.config.FieldSetting;
 import org.fastcatsearch.ir.config.FieldSetting.Type;
@@ -50,6 +55,7 @@ import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.config.IndexSetting;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.config.SortSetting;
+import org.fastcatsearch.ir.setting.SchemaSetting;
 import org.jdom.Attribute;
 import org.jdom.Document;
 import org.jdom.Element;
@@ -1749,22 +1755,47 @@ public class IRSettings {
 		return totalSize;
 	}
 
-	public static IndexConfig getIndexConfig() {
-		IRConfig irConfig = getConfig();
-		IndexConfig config = new IndexConfig();
-		config.setDocumentBlockSize(irConfig.getInt("document.block.size"));
-		config.setDocumentCompressionType(irConfig.getString("document.compression.type"));
-		config.setDocumentReadBufferSize(irConfig.getByteSize("document.read.buffer.size"));
-		config.setDocumentWriteBufferSize(irConfig.getByteSize("document.write.buffer.size"));
-		config.setIndexTermInterval(irConfig.getInt("index.term.interval"));
-		config.setIndexWorkBucketSize(irConfig.getByteSize("index.work.bucket.size"));
-		config.setIndexWorkMemory(irConfig.getByteSize("index.work.memory"));
-		config.setPkBucketSize(irConfig.getByteSize("pk.bucket.size"));
-		config.setPkTermInterval(irConfig.getInt("pk.term.interval"));
-		
-		return config;
-	}
+//	public static IndexConfig getIndexConfig() {
+//		IRConfig irConfig = getConfig();
+//		IndexConfig config = new IndexConfig();
+//		config.setDocumentBlockSize(irConfig.getInt("document.block.size"));
+//		config.setDocumentCompressionType(irConfig.getString("document.compression.type"));
+//		config.setDocumentReadBufferSize(irConfig.getByteSize("document.read.buffer.size"));
+//		config.setDocumentWriteBufferSize(irConfig.getByteSize("document.write.buffer.size"));
+//		config.setIndexTermInterval(irConfig.getInt("index.term.interval"));
+//		config.setIndexWorkBucketSize(irConfig.getByteSize("index.work.bucket.size"));
+//		config.setIndexWorkMemory(irConfig.getByteSize("index.work.memory"));
+//		config.setPkBucketSize(irConfig.getByteSize("pk.bucket.size"));
+//		config.setPkTermInterval(irConfig.getInt("pk.term.interval"));
+//		
+//		return config;
+//	}
 
+	
+	public static <T> T getJAXBConfig(File configFile, Class<T> jaxbConfig){
+		InputStream is = null;
+		try{
+			is = new FileInputStream(configFile);
+			JAXBContext context = JAXBContext.newInstance(jaxbConfig);
+			
+			Unmarshaller unmarshaller = context.createUnmarshaller();
+	
+			T config = (T) unmarshaller.unmarshal(is);
+			return config;
+		}catch(Exception e){
+			logger.error("JAXBConfig read error", e);
+		} finally {
+			try {
+				if(is != null){
+					is.close();
+				}
+			} catch (IOException ignore) {
+			}
+		}
+		return null;
+	}
+	
+	
 	public static AnalyzerPoolManager getAnalyzerPoolManager() {
 		return analyzerPoolManager;
 	}

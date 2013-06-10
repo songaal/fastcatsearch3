@@ -68,35 +68,35 @@ public class DBService extends AbstractService {
 	protected boolean doStart() throws FastcatSearchException {
 		JDBC_URL = "jdbc:derby:" + IRSettings.path(DB_NAME);
 
-		IRConfig config = IRSettings.getConfig();
-		String dbhandlerType = config.getString("dbhandler.type");
-
-		if ("external".equals(dbhandlerType)) {
-			String cls = config.getString("dbhandler.external.jdbccls");
-			String url = config.getString("dbhandler.external.jdbcurl");
-			String user = config.getString("dbhandler.external.jdbcuser");
-			String pass = config.getString("dbhandler.external.jdbcpass");
-			logger.info(cls + ":" + url + ":" + user + ":" + pass);
-			try {
-				Class.forName(cls).newInstance();
-			} catch (Exception e) {
-				throw new FastcatSearchException("ERR-00315", e, cls);
-			}
-
-			try {
-				connectionManager = new ConnectionManager(url, user, pass);
-				// conn = DriverManager.getConnection(url, user, pass);
-				// 2012-10-16
-				// 오토커밋으로 변경.
-				// conn.setAutoCommit(false);
-				logger.info("DBHandler create and init DB!");
-				this.testAndInitDB();
-				// conn.commit();
-			} catch (SQLException e) {
-				// conn = createDB(url,user,pass);
-				throw new FastcatSearchException("ERR-00314", e);
-			}
-		} else {
+//		IRConfig config = IRSettings.getConfig();
+//		String dbhandlerType = config.getString("dbhandler.type");
+//
+//		if ("external".equals(dbhandlerType)) {
+//			String cls = config.getString("dbhandler.external.jdbccls");
+//			String url = config.getString("dbhandler.external.jdbcurl");
+//			String user = config.getString("dbhandler.external.jdbcuser");
+//			String pass = config.getString("dbhandler.external.jdbcpass");
+//			logger.info(cls + ":" + url + ":" + user + ":" + pass);
+//			try {
+//				Class.forName(cls).newInstance();
+//			} catch (Exception e) {
+//				throw new FastcatSearchException("ERR-00315", e, cls);
+//			}
+//
+//			try {
+//				connectionManager = new ConnectionManager(url, user, pass);
+//				// conn = DriverManager.getConnection(url, user, pass);
+//				// 2012-10-16
+//				// 오토커밋으로 변경.
+//				// conn.setAutoCommit(false);
+//				logger.info("DBHandler create and init DB!");
+//				this.testAndInitDB();
+//				// conn.commit();
+//			} catch (SQLException e) {
+//				// conn = createDB(url,user,pass);
+//				throw new FastcatSearchException("ERR-00314", e);
+//			}
+//		} else {
 			String derbyDriver = "org.apache.derby.jdbc.EmbeddedDriver";
 			try {
 				DynamicClassLoader.loadClass(derbyDriver);
@@ -136,7 +136,7 @@ public class DBService extends AbstractService {
 			} catch (SQLException e) {
 				throw new FastcatSearchException("ERR-00313", e);
 			}
-		}
+//		}
 
 		logger.info("DBHandler started!");
 		return true;
