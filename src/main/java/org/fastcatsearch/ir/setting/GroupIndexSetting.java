@@ -21,32 +21,34 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
-@XmlRootElement(name = "column")
-@XmlType(propOrder = { "keyByteSize", "name" })
-public class GroupSetting {
+public class GroupIndexSetting {
 	
+	private String id;
 	private String name;
 	private FieldSetting field;
-	private int keyByteSize;
 	
-	public GroupSetting() {}
+	public GroupIndexSetting() {}
 	
-	public GroupSetting(String name, FieldSetting field){
+	public GroupIndexSetting(String id, String name, FieldSetting field){
+		this.id = id;
 		this.name = name;
 		this.field = field;
-	}
-	
-	public GroupSetting(String name, FieldSetting field, int keyByteSize){
-		this.name = name;
-		this.field = field;
-		this.keyByteSize = keyByteSize;
 	}
 	
 	public String toString(){
-		return "[group="+name+":"+field+":"+keyByteSize+"]";
+		return "[group="+id+":"+name+":"+field+"]";
 	}
 
-	@XmlAttribute(required=true)
+	@XmlAttribute(name="id", required=true)
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+	
+	@XmlAttribute
 	public String getName() {
 		return name;
 	}
@@ -62,14 +64,5 @@ public class GroupSetting {
 
 	public void setField(FieldSetting field) {
 		this.field = field;
-	}
-
-	@XmlAttribute(name="key-byte-size")
-	public int getKeyByteSize() {
-		return keyByteSize;
-	}
-
-	public void setKeyByteSize(int keyByteSize) {
-		this.keyByteSize = keyByteSize;
 	}
 }

@@ -1,16 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema>
 	<field-list>
-		<field id="id" name="" primary="true" type="int" />
-		<field id="title" type="ustring" size="-1" />
+		<field id="id" name="" type="int" />
+		<field id="title" type="ustring" />
 		<field id="category" type="int" />
 		<field id="regdate" type="string" size="21" />
 		<field id="tags" type="ustring" multiValue="true" multiValueDelimiter="\t" />
-		<field id="body" type="ustring" removeTag="true" />
+		<field id="body" type="ustring" />
+		<field id="body" type="ustring" removeTag="true" store="false" />
 		<field id="hit" type="int" />
 		<field id="count" type="int" />
 		<field id="comment" type="ustring" />
 	</field-list>
+	
+	<primary>
+		<field ref="id" />
+		<field ref="category" />
+	</primary>		
 	
 	<index-list>
 		<index id="title" name="title_index" indexAnalyzer="korean_index" queryAnalyzer="korean_query">
@@ -49,8 +55,8 @@
 	</field-index-list>
 	
 	<group-index-list>
-		<group id="category" field="category"/>
-		<group id="tags" field="tags"/>
+		<group-index id="category" name="category_group" field="category"/>
+		<group-index id="tags" field="tags"/>
 	</group-index-list>
 	
 	

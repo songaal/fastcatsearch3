@@ -22,7 +22,7 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "field")
 // propOrder는 xml writer의 기록순서인데, attribute의 경우 next attribute를 현재 attribute의 앞에 기록하므로 proporder를 거꾸로 정의해야 올바른 순서로 보여진다.
-@XmlType(propOrder = { "multiValueMaxCount", "multiValueDelimiter", "multiValue", "modify", "virtual", "removeTag", "store",
+@XmlType(propOrder = { "multiValueDelimiter", "multiValue", "modify", "virtual", "removeTag", "store",
 		"primary", "size", "name", "type", "id" })
 public class FieldSetting {
 
@@ -37,7 +37,6 @@ public class FieldSetting {
 	private boolean modify;
 	private boolean multiValue;
 	private char multiValueDelimiter;
-	private int multiValueMaxCount;
 
 	public static enum Type {
 		UNKNOWN, ACHAR, UCHAR, INT, LONG, FLOAT, DOUBLE, DATETIME, BLOB
@@ -46,8 +45,9 @@ public class FieldSetting {
 	//JAXB를 위해서는 default 생성자가 꼭 필요하다.
 	public FieldSetting() {}
 	
-	public FieldSetting(String id, Type type){
+	public FieldSetting(String id, String name, Type type){
 		this.id = id;
+		this.name = name;
 		this.type = type;
 	}
 	
@@ -104,8 +104,7 @@ public class FieldSetting {
 	public void setStore(boolean store) {
 		this.store = store;
 	}
-
-	@XmlAttribute(name = "remove-tag")
+	@XmlAttribute
 	public boolean isRemoveTag() {
 		return removeTag;
 	}
@@ -131,8 +130,7 @@ public class FieldSetting {
 	public void setModify(boolean modify) {
 		this.modify = modify;
 	}
-
-	@XmlAttribute(name = "multi-value")
+	@XmlAttribute
 	public boolean isMultiValue() {
 		return multiValue;
 	}
@@ -140,23 +138,13 @@ public class FieldSetting {
 	public void setMultiValue(boolean multiValue) {
 		this.multiValue = multiValue;
 	}
-
-	@XmlAttribute(name = "multi-value-delimiter")
+	@XmlAttribute
 	public char getMultiValueDelimiter() {
 		return multiValueDelimiter;
 	}
 
 	public void setMultiValueDelimiter(char multiValueDelimiter) {
 		this.multiValueDelimiter = multiValueDelimiter;
-	}
-
-	@XmlAttribute(name = "multi-value-max-count")
-	public int getMultiValueMaxCount() {
-		return multiValueMaxCount;
-	}
-
-	public void setMultiValueMaxCount(int multiValueMaxCount) {
-		this.multiValueMaxCount = multiValueMaxCount;
 	}
 
 }

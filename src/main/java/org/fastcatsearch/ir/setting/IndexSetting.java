@@ -20,17 +20,17 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "index")
-@XmlType(propOrder = {"positionIncrementGap","indexAnalyzer","queryAnalyzer","name"})
 public class IndexSetting {
 
 	private String name;
 	//index필드는 여러개의 필드를 받을 수 있다.
 	
-	private List<RefSetting> field;
+	private List<IndexField> field;
 	private String indexAnalyzer;
 	private String queryAnalyzer;
 	private int positionIncrementGap;
@@ -38,12 +38,12 @@ public class IndexSetting {
 	
 	public IndexSetting() { }
 	
-	public IndexSetting(String name, List<RefSetting> field){
+	public IndexSetting(String name, List<IndexField> field){
 		this.name = name;
 		this.field = field;
 	}
 	
-	public IndexSetting(String name, List<RefSetting> field, String indexAnalyzer, String queryAnalyzer){
+	public IndexSetting(String name, List<IndexField> field, String indexAnalyzer, String queryAnalyzer){
 		this.name = name;
 		this.field = field;
 		this.indexAnalyzer = indexAnalyzer;
@@ -63,12 +63,12 @@ public class IndexSetting {
 		this.name = name;
 	}
 
-	@XmlElement
-	public List<RefSetting> getField() {
+	@XmlElement(name="field")
+	public List<IndexField> getField() {
 		return field;
 	}
 
-	public void setField(List<RefSetting> field) {
+	public void setField(List<IndexField> field) {
 		this.field = field;
 	}
 
@@ -106,5 +106,25 @@ public class IndexSetting {
 
 	public void setIgnoreCase(boolean ignoreCase) {
 		this.ignoreCase = ignoreCase;
+	}
+	
+	public static class IndexField {
+		private String ref;
+
+		public IndexField() { }
+		
+		public IndexField(String ref){
+			this.ref = ref;
+		}
+		
+		@XmlAttribute(required = true)
+		public String getRef() {
+			return ref;
+		}
+
+		public void setRef(String ref) {
+			this.ref = ref;
+		}
+		
 	}
 }

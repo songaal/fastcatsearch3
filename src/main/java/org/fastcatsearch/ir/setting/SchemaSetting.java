@@ -12,18 +12,12 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "schema")
 @XmlSeeAlso({ArrayList.class, FieldSetting.class})
-@XmlType(propOrder = { 
-		"fieldSettingList", "indexSettingList", "sortSettingList", 
-		"columnSettingList", "groupSettingList", "filterSettingList", 
-})
 public class SchemaSetting {
 	
 	private List<FieldSetting> fieldSettingList;
 	private List<IndexSetting> indexSettingList;
-	private List<SortSetting> sortSettingList;
-	private List<ColumnSetting> columnSettingList;
-	private List<GroupSetting> groupSettingList;
-	private List<FilterSetting> filterSettingList;
+	private List<FieldIndexSetting> fieldIndexSettingList;
+	private List<GroupIndexSetting> groupIndexSettingList;
 	
 	//@XmlElement는 FieldSetting에서 @XmlRootElement로 선언한 것과 별개로 다시 선언해주어야 한다. 여기서는 field가 root가 아니므로.
 	@XmlElementWrapper(name="field-list")
@@ -44,40 +38,22 @@ public class SchemaSetting {
 		this.indexSettingList = indexSettingList;
 	}
 	
-	@XmlElementWrapper(name="sort-list")
-	@XmlElement(name="sort")
-	public List<SortSetting> getSortSettingList() {
-		return sortSettingList;
+	@XmlElementWrapper(name="field-index-list")
+	@XmlElement(name="field-index")
+	public List<FieldIndexSetting> getFieldIndexSettingList() {
+		return fieldIndexSettingList;
 	}
-	public void setSortSettingList(List<SortSetting> sortSettingList) {
-		this.sortSettingList = sortSettingList;
-	}
-	
-	@XmlElementWrapper(name="column-list")
-	@XmlElement(name="column")
-	public List<ColumnSetting> getColumnSettingList() {
-		return columnSettingList;
-	}
-	public void setColumnSettingList(List<ColumnSetting> columnSettingList) {
-		this.columnSettingList = columnSettingList;
+	public void setFieldIndexSettingList(List<FieldIndexSetting> fieldIndexSettingList) {
+		this.fieldIndexSettingList = fieldIndexSettingList;
 	}
 	
-	@XmlElementWrapper(name="group-list")
-	@XmlElement(name="group")
-	public List<GroupSetting> getGroupSettingList() {
-		return groupSettingList;
+	@XmlElementWrapper(name="group-index-list")
+	@XmlElement(name="group-index")
+	public List<GroupIndexSetting> getGroupSettingList() {
+		return groupIndexSettingList;
 	}
-	public void setGroupSettingList(List<GroupSetting> groupSettingList) {
-		this.groupSettingList = groupSettingList;
+	public void setGroupSettingList(List<GroupIndexSetting> groupSettingList) {
+		this.groupIndexSettingList = groupSettingList;
 	}
 	
-	@XmlElementWrapper(name="filter-list")
-	@XmlElement(name="filter")
-	public List<FilterSetting> getFilterSettingList() {
-		return filterSettingList;
-	}
-
-	public void setFilterSettingList(List<FilterSetting> filterSettingList) {
-		this.filterSettingList = filterSettingList;
-	}
 }

@@ -10,6 +10,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
+import org.fastcatsearch.ir.setting.IndexSetting.IndexField;
 import org.junit.Test;
 
 public class JAXBSchemaSettingTest {
@@ -25,35 +26,34 @@ public class JAXBSchemaSettingTest {
 		fieldSettingList.add(fieldSetting);
 		setting.setFieldSettingList(fieldSettingList);
 		
-		List<RefSetting> refSettingList = new ArrayList<RefSetting>();
-		RefSetting refSetting = new RefSetting();
-		refSetting.setId("title");
-		refSettingList.add(refSetting);
+		List<IndexField> indexFieldSettingList = new ArrayList<IndexField>();
+		IndexField indexFieldSetting = new IndexField("title");
+		indexFieldSettingList.add(indexFieldSetting);
 		
 		List<IndexSetting> indexSettingList = new ArrayList<IndexSetting>();
-		IndexSetting indexSetting = new IndexSetting("korean", refSettingList, "korean","org.fastcatsearch.ir.analysis.KoreanTokenizer");
+		IndexSetting indexSetting = new IndexSetting("korean", indexFieldSettingList, "korean","org.fastcatsearch.ir.analysis.KoreanTokenizer");
 		indexSettingList.add(indexSetting);
 		setting.setIndexSettingList(indexSettingList);
 		
-		List<SortSetting> sortSettingList = new ArrayList<SortSetting>();
-		SortSetting sortSetting = new SortSetting("title", fieldSetting, 4, 4 );
-		sortSettingList.add(sortSetting);
-		setting.setSortSettingList(sortSettingList);
+//		List<SortSetting> sortSettingList = new ArrayList<SortSetting>();
+//		SortSetting sortSetting = new SortSetting("title", fieldSetting, 4, 4 );
+//		sortSettingList.add(sortSetting);
+//		setting.setSortSettingList(sortSettingList);
+//		
+//		List<ColumnSetting> columnSettingList = new ArrayList<ColumnSetting>();
+//		ColumnSetting columnSetting = new ColumnSetting("title", fieldSetting, false );
+//		columnSettingList.add(columnSetting);
+//		setting.setColumnSettingList(columnSettingList);
 		
-		List<ColumnSetting> columnSettingList = new ArrayList<ColumnSetting>();
-		ColumnSetting columnSetting = new ColumnSetting("title", fieldSetting, false );
-		columnSettingList.add(columnSetting);
-		setting.setColumnSettingList(columnSettingList);
-		
-		List<GroupSetting> groupSettingList = new ArrayList<GroupSetting>();
-		GroupSetting groupSetting = new GroupSetting("title", fieldSetting, 8 );
+		List<GroupIndexSetting> groupSettingList = new ArrayList<GroupIndexSetting>();
+		GroupIndexSetting groupSetting = new GroupIndexSetting("title", "title_group", fieldSetting);
 		groupSettingList.add(groupSetting);
 		setting.setGroupSettingList(groupSettingList);
 		
-		List<FilterSetting> filterSettingList = new ArrayList<FilterSetting>();
-		FilterSetting filterSetting = new FilterSetting("title", fieldSetting);
-		filterSettingList.add(filterSetting);
-		setting.setFilterSettingList(filterSettingList);
+//		List<FilterSetting> filterSettingList = new ArrayList<FilterSetting>();
+//		FilterSetting filterSetting = new FilterSetting("title", fieldSetting);
+//		filterSettingList.add(filterSetting);
+//		setting.setFilterSettingList(filterSettingList);
 		
 		JAXBContext context = JAXBContext.newInstance(setting.getClass());
 		Marshaller marshaller = context.createMarshaller();
