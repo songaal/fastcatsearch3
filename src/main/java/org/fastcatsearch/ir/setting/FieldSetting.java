@@ -34,7 +34,7 @@ public class FieldSetting {
 	private boolean removeTag;
 	private boolean modify;
 	private boolean multiValue;
-	private char multiValueDelimiter = '\n';
+	private String multiValueDelimiter = "\n";
 
 	public static enum Type {
 		UNKNOWN, ACHAR, UCHAR, INT, LONG, FLOAT, DOUBLE, DATETIME, BLOB
@@ -119,11 +119,11 @@ public class FieldSetting {
 		this.multiValue = multiValue;
 	}
 	@XmlAttribute
-	public char getMultiValueDelimiter() {
+	public String getMultiValueDelimiter() {
 		return multiValueDelimiter;
 	}
 
-	public void setMultiValueDelimiter(char multiValueDelimiter) {
+	public void setMultiValueDelimiter(String multiValueDelimiter) {
 		this.multiValueDelimiter = multiValueDelimiter;
 	}
 

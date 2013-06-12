@@ -1,7 +1,10 @@
 package org.fastcatsearch.ir.setting;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +13,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
+import org.jboss.netty.buffer.ByteBufferBackedChannelBuffer;
 import org.junit.Test;
 
 public class JAXBSchemaSettingTest {
@@ -70,7 +74,16 @@ public class JAXBSchemaSettingTest {
 	
 	@Test
 	public void testSettingUnmarshall() throws JAXBException, IOException {
-		InputStream is = getClass().getResourceAsStream("schema.xml");
+		InputStream is = new FileInputStream("src/test/resources/schema.xml");
+		InputStreamReader r = new InputStreamReader(is);
+		CharBuffer buf = CharBuffer.allocate(1024 * 1024);
+		r.read(buf);
+		r.close();
+		buf.flip();
+		System.out.println(new String(buf.array(), 0, buf.limit()));
+		
+		
+		is = new FileInputStream("src/test/resources/schema.xml");
 		
 		JAXBContext context = JAXBContext.newInstance(SchemaSetting.class);
 		
@@ -81,6 +94,8 @@ public class JAXBSchemaSettingTest {
 		is.close();
 		
 		System.out.println(setting);
+		System.out.println(setting.getFieldSettingList().get(0).getId());
+		System.out.println(setting.getAnalyzerSettingList().size());
 	}
 
 }
