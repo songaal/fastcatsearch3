@@ -16,27 +16,28 @@
 
 package org.fastcatsearch.ir.setting;
 
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
+@XmlType(propOrder = { "refList", "name", "id"})
 public class GroupIndexSetting {
 	
 	private String id;
 	private String name;
-	private FieldSetting field;
+	private List<RefSetting> refList;
 	
 	public GroupIndexSetting() {}
 	
-	public GroupIndexSetting(String id, String name, FieldSetting field){
+	public GroupIndexSetting(String id, String name){
 		this.id = id;
 		this.name = name;
-		this.field = field;
 	}
 	
 	public String toString(){
-		return "[group="+id+":"+name+":"+field+"]";
+		return "[group="+id+":"+name+":"+refList+"]";
 	}
 
 	@XmlAttribute(name="id", required=true)
@@ -57,12 +58,12 @@ public class GroupIndexSetting {
 		this.name = name;
 	}
 
-	@XmlTransient
-	public FieldSetting getField() {
-		return field;
+	@XmlElement(name="field", required=true)
+	public List<RefSetting> getRefList() {
+		return refList;
 	}
 
-	public void setField(FieldSetting field) {
-		this.field = field;
+	public void setRefList(List<RefSetting> refList) {
+		this.refList = refList;
 	}
 }

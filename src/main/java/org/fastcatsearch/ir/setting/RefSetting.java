@@ -2,21 +2,46 @@ package org.fastcatsearch.ir.setting;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
 
+@XmlType(propOrder = { "removeTag", "ref" })
 public class RefSetting {
-	private String id;
+	private String ref;
+	private boolean removeTag;
 	
 	private FieldSetting fieldSetting;//xml에 사용되지는 않음.
 	
+	public RefSetting() {}
+	
+	public RefSetting(String ref) {
+		this.ref = ref;
+	}
+	
+	public RefSetting(String ref, boolean removeTag) {
+		this.ref = ref;
+		this.removeTag = removeTag;
+	}
+	
+	
 	@XmlAttribute(required = true)
-	public String getId() {
-		return id;
+	public String getRef() {
+		return ref;
 	}
 
-	public void setId(String id) {
-		this.id = id;
+	public void setRef(String ref) {
+		this.ref = ref;
 	}
 
+	@XmlAttribute
+	public boolean isRemoveTag() {
+		return removeTag;
+	}
+
+	public void setRemoveTag(boolean removeTag) {
+		this.removeTag = removeTag;
+	}
+	
+	
 	@XmlTransient
 	public FieldSetting getFieldSetting() {
 		return fieldSetting;
@@ -25,6 +50,8 @@ public class RefSetting {
 	public void setFieldSetting(FieldSetting fieldSetting) {
 		this.fieldSetting = fieldSetting;
 	}
+
+	
 	
 	
 }

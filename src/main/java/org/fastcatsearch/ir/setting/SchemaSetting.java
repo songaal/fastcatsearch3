@@ -11,11 +11,14 @@ import javax.xml.bind.annotation.XmlType;
 
 
 @XmlRootElement(name = "schema")
+@XmlType(propOrder = { "fieldSettingList", "primaryKeySettingList", "indexSettingList", "analyzerSettingList", "fieldIndexSettingList", "groupIndexSettingList" })
 @XmlSeeAlso({ArrayList.class, FieldSetting.class})
 public class SchemaSetting {
 	
 	private List<FieldSetting> fieldSettingList;
+	private List<PrimaryKeySetting> primaryKeySettingList;
 	private List<IndexSetting> indexSettingList;
+	private List<AnalyzerSetting> analyzerSettingList;
 	private List<FieldIndexSetting> fieldIndexSettingList;
 	private List<GroupIndexSetting> groupIndexSettingList;
 	
@@ -38,6 +41,15 @@ public class SchemaSetting {
 		this.indexSettingList = indexSettingList;
 	}
 	
+	@XmlElementWrapper(name="analyzer-list")
+	@XmlElement(name="analyzer")
+	public List<AnalyzerSetting> getAnalyzerSettingList() {
+		return analyzerSettingList;
+	}
+	public void setAnalyzerSettingList(List<AnalyzerSetting> analyzerSettingList) {
+		this.analyzerSettingList = analyzerSettingList;
+	}
+	
 	@XmlElementWrapper(name="field-index-list")
 	@XmlElement(name="field-index")
 	public List<FieldIndexSetting> getFieldIndexSettingList() {
@@ -49,11 +61,21 @@ public class SchemaSetting {
 	
 	@XmlElementWrapper(name="group-index-list")
 	@XmlElement(name="group-index")
-	public List<GroupIndexSetting> getGroupSettingList() {
+	public List<GroupIndexSetting> getGroupIndexSettingList() {
 		return groupIndexSettingList;
 	}
-	public void setGroupSettingList(List<GroupIndexSetting> groupSettingList) {
+	public void setGroupIndexSettingList(List<GroupIndexSetting> groupSettingList) {
 		this.groupIndexSettingList = groupSettingList;
 	}
+	
+	@XmlElementWrapper(name="primary")
+	@XmlElement(name="field")
+	public List<PrimaryKeySetting> getPrimaryKeySettingList() {
+		return primaryKeySettingList;
+	}
+	public void setPrimaryKeySettingList(List<PrimaryKeySetting> primaryKeySettingList) {
+		this.primaryKeySettingList = primaryKeySettingList;
+	}
+	
 	
 }

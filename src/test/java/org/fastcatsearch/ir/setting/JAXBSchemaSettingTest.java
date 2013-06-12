@@ -10,7 +10,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
-import org.fastcatsearch.ir.setting.IndexSetting.IndexField;
 import org.junit.Test;
 
 public class JAXBSchemaSettingTest {
@@ -21,39 +20,47 @@ public class JAXBSchemaSettingTest {
 		
 		//add fieldsetting
 		List<FieldSetting> fieldSettingList = new ArrayList<FieldSetting>();
-		FieldSetting fieldSetting = new FieldSetting("title", FieldSetting.Type.ACHAR);
+		FieldSetting fieldSetting = new FieldSetting("title", "제목",  FieldSetting.Type.ACHAR);
 		
 		fieldSettingList.add(fieldSetting);
 		setting.setFieldSettingList(fieldSettingList);
 		
-		List<IndexField> indexFieldSettingList = new ArrayList<IndexField>();
-		IndexField indexFieldSetting = new IndexField("title");
+		
+		
+		setting.setPrimaryKeySettingList(new ArrayList<PrimaryKeySetting>());
+		setting.getPrimaryKeySettingList().add(new PrimaryKeySetting("title"));
+		setting.getPrimaryKeySettingList().add(new PrimaryKeySetting("category"));
+		List<RefSetting> indexFieldSettingList = new ArrayList<RefSetting>();
+		RefSetting indexFieldSetting = new RefSetting("title");
 		indexFieldSettingList.add(indexFieldSetting);
 		
 		List<IndexSetting> indexSettingList = new ArrayList<IndexSetting>();
-		IndexSetting indexSetting = new IndexSetting("korean", indexFieldSettingList, "korean","org.fastcatsearch.ir.analysis.KoreanTokenizer");
+		IndexSetting indexSetting = new IndexSetting("title_index", indexFieldSettingList, "korean","org.fastcatsearch.ir.analysis.KoreanTokenizer");
 		indexSettingList.add(indexSetting);
 		setting.setIndexSettingList(indexSettingList);
 		
-//		List<SortSetting> sortSettingList = new ArrayList<SortSetting>();
-//		SortSetting sortSetting = new SortSetting("title", fieldSetting, 4, 4 );
-//		sortSettingList.add(sortSetting);
-//		setting.setSortSettingList(sortSettingList);
-//		
-//		List<ColumnSetting> columnSettingList = new ArrayList<ColumnSetting>();
-//		ColumnSetting columnSetting = new ColumnSetting("title", fieldSetting, false );
-//		columnSettingList.add(columnSetting);
-//		setting.setColumnSettingList(columnSettingList);
+		List<FieldIndexSetting> fieldIndexSettingList = new ArrayList<FieldIndexSetting>();
+		FieldIndexSetting fieldIndexSetting = new FieldIndexSetting("title", "title field index");
+		fieldIndexSetting.setRefList(new ArrayList<RefSetting>());
+		fieldIndexSetting.getRefList().add(new RefSetting("title"));
+		fieldIndexSetting.getRefList().add(new RefSetting("content"));
+		fieldIndexSettingList.add(fieldIndexSetting);
+		setting.setFieldIndexSettingList(fieldIndexSettingList);
+		
 		
 		List<GroupIndexSetting> groupSettingList = new ArrayList<GroupIndexSetting>();
-		GroupIndexSetting groupSetting = new GroupIndexSetting("title", "title_group", fieldSetting);
-		groupSettingList.add(groupSetting);
-		setting.setGroupSettingList(groupSettingList);
+		GroupIndexSetting groupIndexSetting = new GroupIndexSetting("category", "category_group");
+		groupIndexSetting.setRefList(new ArrayList<RefSetting>());
+		groupIndexSetting.getRefList().add(new RefSetting("category"));
+		groupIndexSetting.getRefList().add(new RefSetting("tags"));
+		groupSettingList.add(groupIndexSetting);
+		setting.setGroupIndexSettingList(groupSettingList);
 		
-//		List<FilterSetting> filterSettingList = new ArrayList<FilterSetting>();
-//		FilterSetting filterSetting = new FilterSetting("title", fieldSetting);
-//		filterSettingList.add(filterSetting);
-//		setting.setFilterSettingList(filterSettingList);
+		List<AnalyzerSetting> analyzerSettingList = new ArrayList<AnalyzerSetting>();
+		analyzerSettingList.add(new AnalyzerSetting("korean_index","korean_index", 10, 100, "com.fastcatsearch.plugin.analysis.korean.StandardKoreanAnalyzer"));
+		analyzerSettingList.add(new AnalyzerSetting("korean_query","korean_query", 10, 100, "com.fastcatsearch.plugin.analysis.korean.StandardKoreanAnalyzer"));
+		setting.setAnalyzerSettingList(analyzerSettingList);
+		
 		
 		JAXBContext context = JAXBContext.newInstance(setting.getClass());
 		Marshaller marshaller = context.createMarshaller();

@@ -2,15 +2,15 @@
 <schema>
 	<field-list>
 		<field id="id" name="" type="int" />
-		<field id="title" type="ustring" />
+		<field id="title" type="ustring" store="true"/>
 		<field id="category" type="int" />
 		<field id="regdate" type="string" size="21" />
 		<field id="tags" type="ustring" multiValue="true" multiValueDelimiter="\t" />
 		<field id="body" type="ustring" />
-		<field id="body" type="ustring" removeTag="true" store="false" />
+		<field id="body_rt" name="body removed tags" type="ustring" removeTag="true" store="false" />
 		<field id="hit" type="int" />
 		<field id="count" type="int" />
-		<field id="comment" type="ustring" />
+		<field id="comment" type="ustring" modify="true"/>
 	</field-list>
 	
 	<primary>
@@ -18,6 +18,7 @@
 		<field ref="category" />
 	</primary>		
 	
+	<!-- pk는 스키마에 보이지는 않지만 자동으로 index-list에 추가된다. -->
 	<index-list>
 		<index id="title" name="title_index" indexAnalyzer="korean_index" queryAnalyzer="korean_query">
 			<field ref="title" />
@@ -47,16 +48,35 @@
 	
 	<!-- sort, filter, group-function-argument -->
 	<field-index-list>
-		<field-index id="title" name="title_field_index" field="title" />
-		<field-index id="title_prefix" name="title_prefix_field_index" field="title" size="10" />
-		<field-index id="regdate" name="regdate_field_index" field="regdate" />
-		<field-index id="category" name="category_field_index" field="category" />
-		<field-index id="category_ignore_case" name="category_ic_field_index" field="category" ignoreCase="true" />
+		<field-index id="title" name="title_field_index">
+			<field ref="title" />
+		</field-index>
+		<field-index id="title_prefix" name="title_prefix_field_index">
+			<field ref="title" size="10"/>
+		</field-index>
+		<field-index id="regdate" name="regdate_field_index">
+			<field ref="regdate" />
+		</field-index>
+		<field-index id="regdate_category" name="category_field_index">
+			<field ref="regdate" />
+			<field ref="category" />
+		</field-index>
+		<field-index id="category_ignore_case" name="category_ic_field_index" ignoreCase="true">
+			<field ref="category" />
+		</field-index>
 	</field-index-list>
 	
 	<group-index-list>
-		<group-index id="category" name="category_group" field="category"/>
-		<group-index id="tags" field="tags"/>
+		<group-index id="category" name="category_group" ignoreCase="true">
+			<field ref="category"/>
+		</group-index>
+		<group-index id="tags">
+			<field ref="tags"/>
+		</group-index>
+		<group-index id="category_tags">
+			<field ref="category"/>
+			<field ref="tags"/>
+		</group-index>
 	</group-index-list>
 	
 	

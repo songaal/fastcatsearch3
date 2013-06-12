@@ -24,13 +24,14 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+@XmlType(propOrder = { "ignoreCase", "positionIncrementGap", "queryAnalyzer", "indexAnalyzer", "field", "id"} )
 @XmlRootElement(name = "index")
 public class IndexSetting {
 
-	private String name;
+	private String id;
 	//index필드는 여러개의 필드를 받을 수 있다.
 	
-	private List<IndexField> field;
+	private List<RefSetting> field;
 	private String indexAnalyzer;
 	private String queryAnalyzer;
 	private int positionIncrementGap;
@@ -38,37 +39,37 @@ public class IndexSetting {
 	
 	public IndexSetting() { }
 	
-	public IndexSetting(String name, List<IndexField> field){
-		this.name = name;
+	public IndexSetting(String id, List<RefSetting> field){
+		this.id = id;
 		this.field = field;
 	}
 	
-	public IndexSetting(String name, List<IndexField> field, String indexAnalyzer, String queryAnalyzer){
-		this.name = name;
+	public IndexSetting(String id, List<RefSetting> field, String indexAnalyzer, String queryAnalyzer){
+		this.id = id;
 		this.field = field;
 		this.indexAnalyzer = indexAnalyzer;
 		this.queryAnalyzer = (queryAnalyzer == null) ? queryAnalyzer : indexAnalyzer;
 	}
 	
 	public String toString(){
-		return "[index="+name+":"+field+":"+indexAnalyzer+":"+queryAnalyzer+"]";
+		return "[index="+id+":"+field+":"+indexAnalyzer+":"+queryAnalyzer+"]";
 	}
 
 	@XmlAttribute(required = true)
-	public String getName() {
-		return name;
+	public String getId() {
+		return id;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	@XmlElement(name="field")
-	public List<IndexField> getField() {
+	public List<RefSetting> getField() {
 		return field;
 	}
 
-	public void setField(List<IndexField> field) {
+	public void setField(List<RefSetting> field) {
 		this.field = field;
 	}
 
@@ -108,23 +109,23 @@ public class IndexSetting {
 		this.ignoreCase = ignoreCase;
 	}
 	
-	public static class IndexField {
-		private String ref;
-
-		public IndexField() { }
-		
-		public IndexField(String ref){
-			this.ref = ref;
-		}
-		
-		@XmlAttribute(required = true)
-		public String getRef() {
-			return ref;
-		}
-
-		public void setRef(String ref) {
-			this.ref = ref;
-		}
-		
-	}
+//	public static class IndexField {
+//		private String ref;
+//
+//		public IndexField() { }
+//		
+//		public IndexField(String ref){
+//			this.ref = ref;
+//		}
+//		
+//		@XmlAttribute(required = true)
+//		public String getRef() {
+//			return ref;
+//		}
+//
+//		public void setRef(String ref) {
+//			this.ref = ref;
+//		}
+//		
+//	}
 }

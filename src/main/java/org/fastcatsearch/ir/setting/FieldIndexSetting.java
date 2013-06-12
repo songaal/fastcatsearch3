@@ -16,26 +16,33 @@
 
 package org.fastcatsearch.ir.setting;
 
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "field-index")
-@XmlType(propOrder = { "ignoreCase", "size", "field", "name", "id" })
+@XmlType(propOrder = { "ignoreCase", "size", "refList", "name", "id" })
 public class FieldIndexSetting {
 	
 	private String id;
 	private String name;
-	private FieldSetting field;
+	private List<RefSetting> refList;
 	private int size;
 	private boolean ignoreCase;
 	
 	public FieldIndexSetting() {}
 	
-	public FieldIndexSetting(String id, String name, FieldSetting f, int size, boolean ignoreCase) {
+	public FieldIndexSetting(String id, String name) {
 		this.id = id;
 		this.name = name;
-		this.field = f;
+	}
+	public FieldIndexSetting(String id, String name, List<RefSetting> refList, int size, boolean ignoreCase) {
+		this.id = id;
+		this.name = name;
+		this.refList = refList;
 		this.size = size;
 		this.ignoreCase = ignoreCase;
 	}
@@ -50,9 +57,9 @@ public class FieldIndexSetting {
 		return name;
 	}
 
-	@XmlAttribute(required=true)
-	public FieldSetting getField() {
-		return field;
+	@XmlElement(name="field", required=true)
+	public List<RefSetting> getRefList() {
+		return refList;
 	}
 
 	@XmlAttribute
@@ -73,8 +80,8 @@ public class FieldIndexSetting {
 		this.name = name;
 	}
 
-	public void setField(FieldSetting field) {
-		this.field = field;
+	public void setRefList(List<RefSetting> refList) {
+		this.refList = refList;
 	}
 
 	public void setSize(int size) {
@@ -86,7 +93,7 @@ public class FieldIndexSetting {
 	}
 
 	public String toString(){
-		return "[FieldIndex="+id+":"+name+":"+field+":"+size+":"+ignoreCase+"]";
+		return "[FieldIndex="+id+":"+name+":"+refList+":"+size+":"+ignoreCase+"]";
 	}
 
 	

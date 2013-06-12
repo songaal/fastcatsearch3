@@ -22,21 +22,19 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "field")
 // propOrder는 xml writer의 기록순서인데, attribute의 경우 next attribute를 현재 attribute의 앞에 기록하므로 proporder를 거꾸로 정의해야 올바른 순서로 보여진다.
-@XmlType(propOrder = { "multiValueDelimiter", "multiValue", "modify", "virtual", "removeTag", "store",
-		"primary", "size", "name", "type", "id" })
+@XmlType(propOrder = { "multiValueDelimiter", "multiValue", "modify", "removeTag", "store",
+		"size", "name", "type", "id" })
 public class FieldSetting {
 
 	private String id;
 	private String name;
 	private Type type;
-	private int size;
-	private boolean primary;
-	private boolean store;
+	private int size = -1;
+	private boolean store = true;
 	private boolean removeTag;
-	private boolean virtual;
 	private boolean modify;
 	private boolean multiValue;
-	private char multiValueDelimiter;
+	private char multiValueDelimiter = '\n';
 
 	public static enum Type {
 		UNKNOWN, ACHAR, UCHAR, INT, LONG, FLOAT, DOUBLE, DATETIME, BLOB
@@ -87,15 +85,6 @@ public class FieldSetting {
 		this.size = size;
 	}
 
-	@XmlAttribute
-	public boolean isPrimary() {
-		return primary;
-	}
-
-	public void setPrimary(boolean primary) {
-		this.primary = primary;
-	}
-
 	@XmlAttribute(required = true)
 	public boolean isStore() {
 		return store;
@@ -111,15 +100,6 @@ public class FieldSetting {
 
 	public void setRemoveTag(boolean removeTag) {
 		this.removeTag = removeTag;
-	}
-
-	@XmlAttribute
-	public boolean isVirtual() {
-		return virtual;
-	}
-
-	public void setVirtual(boolean virtual) {
-		this.virtual = virtual;
 	}
 
 	@XmlAttribute
