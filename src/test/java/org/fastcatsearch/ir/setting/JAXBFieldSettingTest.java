@@ -1,6 +1,7 @@
 package org.fastcatsearch.ir.setting;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.StringReader;
 
@@ -9,6 +10,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
+import org.fastcatsearch.ir.settings.FieldSetting;
 import org.junit.Test;
 
 public class JAXBFieldSettingTest {

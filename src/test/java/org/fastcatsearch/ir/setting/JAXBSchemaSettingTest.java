@@ -13,7 +13,14 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
-import org.jboss.netty.buffer.ByteBufferBackedChannelBuffer;
+import org.fastcatsearch.ir.settings.AnalyzerSetting;
+import org.fastcatsearch.ir.settings.FieldIndexSetting;
+import org.fastcatsearch.ir.settings.FieldSetting;
+import org.fastcatsearch.ir.settings.GroupIndexSetting;
+import org.fastcatsearch.ir.settings.IndexSetting;
+import org.fastcatsearch.ir.settings.PrimaryKeySetting;
+import org.fastcatsearch.ir.settings.RefSetting;
+import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.junit.Test;
 
 public class JAXBSchemaSettingTest {
