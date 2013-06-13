@@ -31,7 +31,7 @@ public class JAXBSchemaSettingTest {
 		
 		//add fieldsetting
 		List<FieldSetting> fieldSettingList = new ArrayList<FieldSetting>();
-		FieldSetting fieldSetting = new FieldSetting("title", "제목",  FieldSetting.Type.ACHAR);
+		FieldSetting fieldSetting = new FieldSetting("title", "제목",  FieldSetting.Type.ASTRING);
 		
 		fieldSettingList.add(fieldSetting);
 		setting.setFieldSettingList(fieldSettingList);
