@@ -146,6 +146,10 @@ public class DBReader extends SourceReader{
 				}
 			}
 			
+			if(config.isResultBuffering()) {
+				pstmt = new BufferedStatement(pstmt);
+			}
+			
 			if(config.getFetchSize() > 0){
 				pstmt.setFetchSize(config.getFetchSize());
 			}else if(config.getFetchSize() <= 0){
@@ -599,6 +603,7 @@ public class DBReader extends SourceReader{
 		private String fullBackupPath;
 		private String incBackupPath;
 		private String backupFileEncoding;
+		private boolean resultBuffering;
 		
 		@XmlElement
 		public int getBulkSize() {
@@ -680,6 +685,11 @@ public class DBReader extends SourceReader{
 			return driver;
 		}
 		
+		@XmlElement
+		public boolean isResultBuffering() {
+			return resultBuffering;
+		}
+		
 		public void setBulkSize(int bulkSize) {
 			this.bulkSize = bulkSize;
 		}
@@ -743,10 +753,9 @@ public class DBReader extends SourceReader{
 		public void setJdbcDriver(String driver) {
 			this.driver = driver;
 		}
-		
-		
-		
-		
-		
+
+		public void setResultBuffering(boolean resultBuffering) {
+			this.resultBuffering = resultBuffering;
+		}
 	}
 }
