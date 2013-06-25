@@ -5,7 +5,11 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URLDecoder;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -90,9 +94,46 @@ public abstract class AbstractSearchServlet extends WebServiceHttpServlet {
 	protected abstract AbstractSearchResultWriter createSearchResultWriter(Writer writer);
 
 	public void prepare(HttpServletRequest request) {
+    	if(requestCharset == null) {
+    		requestCharset = "UTF-8";
+    	}
+    	
+    	if(responseCharset == null) {
+    		responseCharset = "UTF-8";
+    	}
+    	
 		requestCharset = getParameter(request, "requestCharset", "UTF-8");
 		responseCharset = getParameter(request, "responseCharset", "UTF-8");
-		String timeoutStr = getParameter(request, "timeout", Integer.toString(DEFAULT_TIMEOUT));
+    	
+    	String queryString = request.getQueryString();
+    	
+    	Map<String,String> kvmap = new HashMap<String,String>();
+    	
+    	try {
+	    	if(queryString != null){
+	    		queryString = URLDecoder.decode(queryString, requestCharset);
+	    		if(queryString.endsWith("&")) { 
+	    			queryString = queryString.substring(0,queryString.length()-1); 
+	    		}
+	    	}
+	    	logger.debug("queryString = "+queryString);
+    	} catch (UnsupportedEncodingException e) {
+    	}
+    	
+		Pattern ptn1 = Pattern.compile("[?&]+([^&]*)");
+		Pattern ptn2 = Pattern.compile("([^=]+)=(.*)");
+    	
+    	Matcher mat1 = ptn1.matcher(queryString);
+    	Matcher mat2 = null;
+    	
+    	while(mat1.find()) {
+    		mat2 = ptn2.matcher(mat1.group(1));
+    		if(mat2.find()) {
+    			kvmap.put(mat2.group(1), mat2.group(2));
+    		}
+    	}
+		
+		String timeoutStr = getParameter(kvmap, "timeout", Integer.toString(DEFAULT_TIMEOUT));
 		try {
 			timeout = Integer.parseInt(timeoutStr);
 		} catch (NumberFormatException e) {
@@ -100,20 +141,20 @@ public abstract class AbstractSearchServlet extends WebServiceHttpServlet {
 		}
 		isAdmin = "true".equals(request.getParameter("admin"));
 
-		collectionName = getParameter(request, "cn", "");
-		fields = getParameter(request, "fl", "");
-		searchCondition = getParameter(request, "se", "");
-		groupFields = getParameter(request, "gr", "");
-		groupCondition = getParameter(request, "gc", "");
-		groupFilter = getParameter(request, "gf", "");
-		sortFields = getParameter(request, "ra", "");
-		filterFields = getParameter(request, "ft", "");
-		startNumber = getParameter(request, "sn", "");
-		resultLength = getParameter(request, "ln", "");
-		highlightTags = getParameter(request, "ht", "");
-		searchOption = getParameter(request, "so", "");
-		userData = getParameter(request, "ud", "");
-		jsonCallback = getParameter(request, "jsoncallback", "");
+		collectionName = getParameter(kvmap, "cn", "");
+		fields = getParameter(kvmap, "fl", "");
+		searchCondition = getParameter(kvmap, "se", "");
+		groupFields = getParameter(kvmap, "gr", "");
+		groupCondition = getParameter(kvmap, "gc", "");
+		groupFilter = getParameter(kvmap, "gf", "");
+		sortFields = getParameter(kvmap, "ra", "");
+		filterFields = getParameter(kvmap, "ft", "");
+		startNumber = getParameter(kvmap, "sn", "");
+		resultLength = getParameter(kvmap, "ln", "");
+		highlightTags = getParameter(kvmap, "ht", "");
+		searchOption = getParameter(kvmap, "so", "");
+		userData = getParameter(kvmap, "ud", "");
+		jsonCallback = getParameter(kvmap, "jsoncallback", "");
 	}
 
 	public String queryString() {

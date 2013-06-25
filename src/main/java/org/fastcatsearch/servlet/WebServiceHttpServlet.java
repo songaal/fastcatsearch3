@@ -1,5 +1,7 @@
 package org.fastcatsearch.servlet;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -52,6 +54,14 @@ public class WebServiceHttpServlet extends HttpServlet {
 	
 	protected String getParameter(HttpServletRequest request, String key, String defaultValue) {
 		String value = request.getParameter(key);
+		if (value == null) {
+			return defaultValue;
+		}
+		return value;
+	}
+	
+	protected String getParameter(Map<String,String> kvmap, String key, String defaultValue) {
+		String value = kvmap.get(key);
 		if (value == null) {
 			return defaultValue;
 		}
