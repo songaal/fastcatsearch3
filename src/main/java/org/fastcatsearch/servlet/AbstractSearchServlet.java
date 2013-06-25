@@ -115,6 +115,18 @@ public abstract class AbstractSearchServlet extends WebServiceHttpServlet {
 	    		if(queryString.endsWith("&")) { 
 	    			queryString = queryString.substring(0,queryString.length()-1); 
 	    		}
+	    	} else {
+	    		queryString = "";
+	    		Map<String,String[]> parameters = request.getParameterMap();
+	    		for(String key : parameters.keySet()) {
+	    			String[] param = parameters.get(key);
+	    			if(param!=null && param.length > 0) {
+		    			queryString = queryString + "&"+ key +"="+param[0];
+	    			}
+	    		}
+	    		if(queryString.length() > 0) {
+	    			queryString = "?"+queryString.substring(1);
+	    		}
 	    	}
 	    	logger.debug("queryString = "+queryString);
     	} catch (UnsupportedEncodingException e) {
