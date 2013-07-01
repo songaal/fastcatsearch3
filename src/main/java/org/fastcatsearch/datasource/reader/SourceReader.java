@@ -29,7 +29,10 @@ import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.FieldSetting;
 import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.document.Document;
+import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
+import org.fastcatsearch.ir.settings.PrimaryKeySetting;
+import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +44,7 @@ public abstract class SourceReader {
 	protected List<FieldSetting> fieldSettingList;
 	protected AsciiCharTrie fieldIndex;
 	protected int idFieldIndex;
-	protected Set<String> deleteIdList = new HashSet<String>();
+	protected DeleteIdSet deleteIdList;
 	protected SourceModifier sourceModifier;
 	
 	public abstract boolean hasNext() throws IRException;
@@ -50,18 +53,21 @@ public abstract class SourceReader {
 	
 	public SourceReader(){}
 	
-	public SourceReader(Schema schema, SourceModifier sourceModifier) throws IRException{
-		fieldSettingList = schema.getFieldSettingList();
-		fieldIndex = schema.fieldnames;
-		idFieldIndex = schema.getIndexID();
+	public SourceReader(SchemaSetting schemaSetting, SourceModifier sourceModifier) throws IRException{
+		fieldSettingList = schemaSetting.getFieldSettingList();
+		fieldIndex = schemaSetting.fieldnames;
+		idFieldIndex = schemaSetting.getIndexID();
 		if(idFieldIndex == -1){
 			throw new IRException("Schema has no primary key!");
 		}
-		
+		List<PrimaryKeySetting> pkSettingList = schemaSetting.getPrimaryKeySettingList();
 		this.sourceModifier = sourceModifier;
+		if(pkSettingList != null){
+			deleteIdList = new DeleteIdSet(pkSettingList.size());
+		}
 	}
 	
-	public final Set<String> getDeleteList(){
+	public final DeleteIdSet getDeleteList(){
 		return deleteIdList;
 	}
 	
