@@ -84,7 +84,7 @@ public class ClusterSearchJob extends Job {
 		DataService dataService = ServiceManager.getInstance().getService(DataService.class);
 		
 		Metadata meta = q.getMeta();
-		String collectionId = q.getMeta().collectionName();
+		String collectionId = q.getMeta().collectionId();
 		Groups groups = q.getGroups();
 		
 		String[] collectionIdList = collectionId.split(",");
@@ -228,7 +228,7 @@ public class ClusterSearchJob extends Job {
 		int[] fieldNumList = new int[fieldSize];
 		for (int i = 0; i < fieldNames.size(); i++) {
 			View view = fieldNames.get(i);
-			fieldNameList[i] = view.fieldname();
+			fieldNameList[i] = view.fieldId();
 			int num = fieldnames.get(fieldNameList[i]);
 //			if(num >= 0){
 //				fieldSummarySize[num] = view.summarySize();
@@ -243,7 +243,7 @@ public class ClusterSearchJob extends Job {
 		int jj = 0;
 		while(iter.hasNext()){
 			View v = iter.next();
-			String fn = v.fieldname();
+			String fn = v.fieldId();
 			int i = -1;
 			
 			if(fn.equalsIgnoreCase(ScoreField.fieldName)){

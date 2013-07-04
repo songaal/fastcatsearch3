@@ -49,7 +49,7 @@ public class GroupSearchJob extends Job {
 		if(userData != null)
 			keyword = userData.get("keyword");
 		
-		String collection = meta.collectionName();
+		String collection = meta.collectionId();
 		try {
 			GroupResults groupResults = null;
 			boolean noCache = false;

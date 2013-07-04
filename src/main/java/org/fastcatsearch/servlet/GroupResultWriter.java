@@ -64,7 +64,7 @@ public class GroupResultWriter extends AbstractSearchResultWriter {
 				for (int k = 0; k < size; k++) {
 					GroupEntry e = groupResult.getEntry(k);
 					String keyData = e.key.getKeyString();
-					String functionName = groupResult.functionName();
+					String functionName = groupResult.headerNameList();
 					
 					stringer.object()
 						.key("_no_").value(k+1)

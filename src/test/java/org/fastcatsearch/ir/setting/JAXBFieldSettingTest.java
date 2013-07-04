@@ -18,7 +18,7 @@ public class JAXBFieldSettingTest {
 	@Test
 	public void testSettingMarshall() throws JAXBException {
 		
-		FieldSetting setting = new FieldSetting("title", "타이틀", FieldSetting.Type.STRING);
+		FieldSetting setting = new FieldSetting("title", "타이틀", FieldSetting.Type.USTRING);
 		JAXBContext context = JAXBContext.newInstance(setting.getClass());
 		
 		Marshaller marshaller = context.createMarshaller();

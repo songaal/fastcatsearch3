@@ -60,7 +60,7 @@ public class DocumentSearchJob extends Job {
 		} 
 		
 		Metadata meta = q.getMeta();
-		String collection = meta.collectionName();
+		String collection = meta.collectionId();
 //		logger.debug("collection = "+collection);
 		try {
 			Result result = null;

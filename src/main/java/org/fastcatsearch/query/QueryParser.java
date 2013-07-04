@@ -23,7 +23,7 @@ import java.util.Map;
 
 import org.fastcatsearch.common.DynamicClassLoader;
 import org.fastcatsearch.ir.group.GroupFunction;
-import org.fastcatsearch.ir.group.plugin.DefaultGroupFunction;
+import org.fastcatsearch.ir.group.function.CountGroupFunction;
 import org.fastcatsearch.ir.query.Clause;
 import org.fastcatsearch.ir.query.Filter;
 import org.fastcatsearch.ir.query.Filters;
@@ -34,6 +34,7 @@ import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.Sort;
 import org.fastcatsearch.ir.query.Sorts;
 import org.fastcatsearch.ir.query.Term;
+import org.fastcatsearch.ir.query.Term.Option;
 import org.fastcatsearch.ir.query.View;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,7 @@ public class QueryParser {
 	
 	private static Logger logger = LoggerFactory.getLogger(QueryParser.class);
 	
-	private static final String PLUGIN_PACKAGE_PATH = "org.fastcatsearch.ir.group.plugin"; 
+	private static final String PLUGIN_PACKAGE_PATH = "org.fastcatsearch.ir.group.function"; 
 	private static final String PLUGIN_CLASSNAME_SUFFIX = "GroupFunction";
 	
 	private static QueryParser instance = new QueryParser();
@@ -233,18 +234,14 @@ public class QueryParser {
 						}
 						
 						String field = items[0];
-						String shortFunctionName = items[1];
+//						String shortFunctionName = items[1];
 						int limit = -1;
 						int sortOrder = 0;
 
 						//function은 ; 구분으로 파라미터 나눈다.
 						// 기능이름;파라미터1;파라미터2 등둥.. 
 						
-						//function name 은 freq 이거나 _freq로 끝나야 한다.
-						
-						String[] functionItems = items[1].split(FIELD_SEPARATOR3);
-						shortFunctionName = functionItems[0].trim();
-						
+						String[] functionList = items[1].split(FIELD_SEPARATOR3);
 						if(items.length > 2){
 							if(items.length > 3){
 								//마지막은 limit이다.
@@ -254,18 +251,36 @@ public class QueryParser {
 							sortOrder = getGroupSortOrder(items[2]);
 						}
 						
-						GroupFunction groupFunction = null;
-						if(shortFunctionName.equals(Group.DEFAULT_AGGREGATION_FUNCTION_NAME)){
-							//기본 클래스.
-							groupFunction = new DefaultGroupFunction(sortOrder, functionItems);
-						}else{
-							//사용자가 만든 XXXX_freq
-							String className = convertToClassName(shortFunctionName);
-							groupFunction = DynamicClassLoader.loadObject(className, GroupFunction.class
-									, new Class<?>[] {int.class, String[].class}, new Object[]{sortOrder, functionItems});
+						GroupFunction[] groupFunctions = new GroupFunction[functionList.length];
+						for (int j = 0; j < functionList.length; j++) {
+							String functionExpr = functionList[j];
+							String functionName = null; 
+							String param = null;
+							if(functionExpr.contains("(")){
+								
+								String[] funcTmp = functionExpr.split("(");
+								functionName = funcTmp[0];
+								param = funcTmp[1].substring(0, funcTmp[1].length() - 1);
+								
+							}else{
+								functionName = functionExpr;
+							}
+							
+							GroupFunction groupFunction = null;
+							if(functionName.equals(Group.DEFAULT_GROUP_FUNCTION_NAME)){
+								//기본 클래스.
+								groupFunction = new CountGroupFunction(sortOrder, param);
+							}else{
+								//사용자가 만든 XXXX_freq
+								String className = convertToClassName(functionName);
+								groupFunction = DynamicClassLoader.loadObject(className, GroupFunction.class
+										, new Class<?>[] {int.class, String.class}, new Object[]{sortOrder, param});
+							}
+							groupFunctions[j] = groupFunction;
 						}
 						
-						g.add(new Group(field, groupFunction, functionItems, sortOrder, limit));
+						g.add(new Group(field, groupFunctions, sortOrder, limit));
+						
 					}
 					query.setGroups(g);
 					break;
@@ -366,13 +381,13 @@ public class QueryParser {
 	
 	private int getGroupSortOrder(String string) {
 		if(string.equalsIgnoreCase("key_asc")){
-			return Group.OPT_UNIT_ASC;
+			return Group.SORT_KEY_ASC;
 		}else if(string.equalsIgnoreCase("key_desc")){
-			return Group.OPT_UNIT_DESC;
+			return Group.SORT_KEY_DESC;
 		}else if(string.equalsIgnoreCase("freq_asc")){
-			return Group.OPT_FREQ_ASC;
+			return Group.SORT_VALUE_ASC;
 		}else if(string.equalsIgnoreCase("freq_desc")){
-			return Group.OPT_FREQ_DESC;
+			return Group.SORT_VALUE_DESC;
 		}
 		return 0;
 	}
@@ -453,27 +468,26 @@ public class QueryParser {
 		try{
 			logger.debug("Term => {}", value);
 			String[] list = value.split(FIELD_SEPARATOR2);
-			Term.BRACE[] brace = new Term.BRACE[2];
 			if(list.length == 1){
 				throw new QueryParseException("Term field syntax error. No Search keyword => "+value);
 			}else if(list.length == 2){
 				//field:term
 				String[] fieldList = list[0].split(FIELD_SEPARATOR1);
 				String[] term = new String[1];
-				Term.Type type = getType(list[1], term, brace);
-				return new Term(fieldList, removeEscape(term[0]), type, brace);
+				Term.Type type = getType(list[1], term);
+				return new Term(fieldList, removeEscape(term[0]), type);
 			}else if(list.length == 3){
 				//field:term:score
 				String[] fieldList = list[0].split(FIELD_SEPARATOR1);
 				String[] term = new String[1];
-				Term.Type type = getType(list[1], term, brace);
-				return new Term(fieldList, removeEscape(term[0]), Integer.parseInt(list[2]), type, brace);
+				Term.Type type = getType(list[1], term);
+				return new Term(fieldList, removeEscape(term[0]), Integer.parseInt(list[2]), type);
 			}else if(list.length == 4){
 				//field:term:score:option
 				String[] fieldList = list[0].split(FIELD_SEPARATOR1);
 				String[] term = new String[1];
-				Term.Type type = getType(list[1], term, brace);
-				return new Term(fieldList, removeEscape(term[0]), Integer.parseInt(list[2]), type, brace, Integer.parseInt(list[3]));
+				Term.Type type = getType(list[1], term);
+				return new Term(fieldList, removeEscape(term[0]), Integer.parseInt(list[2]), type, new Option(Integer.parseInt(list[3])));
 			}else{
 				throw new QueryParseException("Term field syntax error. Too many options => "+value);
 			}
@@ -483,7 +497,7 @@ public class QueryParser {
 		
 	}
 
-	private Term.Type getType(String str, String[] term, Term.BRACE[] brace) throws QueryParseException{
+	private Term.Type getType(String str, String[] term) throws QueryParseException{
 		if(str.startsWith("ALL")){
 			term[0] = str.substring(4, str.length() - 1);
 			return Term.Type.ALL;
@@ -492,12 +506,7 @@ public class QueryParser {
 			return Term.Type.ANY;
 		}else if(str.startsWith("EXT")){
 			term[0] = str.substring(4, str.length() - 1);
-			char openBrace = str.charAt(3);
-			char closeBrace = str.charAt(str.length()- 1);
-			logger.debug("str = "+str+" openBrace="+openBrace+", closeBrace="+closeBrace);
-			brace[0] = getBraceType(openBrace);
-			brace[1] = getBraceType(closeBrace);
-			
+			logger.debug("str = "+str);
 			return Term.Type.EXT;
 		}
 		//통째로 반환. default = AND
@@ -505,14 +514,6 @@ public class QueryParser {
 		return Term.Type.ALL;
 	}
 	
-	private Term.BRACE getBraceType(char brace) throws QueryParseException{
-		if(brace == '[' || brace == ']')
-			return Term.BRACE.INCLUSIVE;
-		else if(brace == '(' || brace == ')')
-			return Term.BRACE.EXCLUSIVE;
-		else
-			throw new QueryParseException("Unknown brace type = "+brace);
-	}
 	private int getSearchOption(String value) {
 		int num = 0;
 		

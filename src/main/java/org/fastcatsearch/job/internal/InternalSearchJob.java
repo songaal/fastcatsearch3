@@ -38,7 +38,7 @@ public class InternalSearchJob extends StreamableJob {
 		}
 		
 		Metadata meta = q.getMeta();
-		String collection = meta.collectionName();
+		String collection = meta.collectionId();
 
 		try {
 			ShardSearchResult result = null;

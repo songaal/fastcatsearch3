@@ -1,6 +1,8 @@
 package org.fastcatsearch.transport.vo;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.common.io.StreamOutput;
@@ -8,12 +10,7 @@ import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.ir.group.GroupData;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupEntryList;
-import org.fastcatsearch.ir.group.GroupKey;
-import org.fastcatsearch.ir.group.GroupingObject;
-import org.fastcatsearch.ir.group.GroupKey.DateTimeKey;
-import org.fastcatsearch.ir.group.GroupKey.IntKey;
-import org.fastcatsearch.ir.group.GroupKey.LongKey;
-import org.fastcatsearch.ir.group.GroupKey.StringKey;
+import org.fastcatsearch.ir.group.GroupingValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,46 +34,23 @@ public class StreamableGroupData implements Streamable {
 	public void readFrom(StreamInput input) throws IOException {
 		int totalSearchCount = input.readVInt();
 		int groupSize = input.readVInt();
-		GroupEntryList[] groupEntryListArray = new GroupEntryList[groupSize];
+		List<GroupEntryList> groupEntryListArray = new ArrayList<GroupEntryList>(groupSize);
 
 		for (int groupNum = 0; groupNum < groupSize; groupNum++) {
 			int totalCount = input.readVInt();
 			int count = input.readVInt();
-			GroupEntry[] entryList = new GroupEntry[count];
-			int totalcount = 0;
-			for (int j = 0; j < entryList.length; j++) {
-				GroupKey key = null;
-				switch (input.readByte()) {
-				case 1:
-					key = new GroupKey.DateTimeKey(input.readLong());
-					break;
-				case 2:
-					key = new GroupKey.IntKey(input.readVInt());
-					break;
-				case 3:
-					key = new GroupKey.LongKey(input.readVLong());
-					break;
-				case 4:
-					int charSize = input.readVInt();
-					char[] chars = new char[charSize];
-					for (int i = 0; i < charSize; i++) {
-						chars[i] = (char) input.readShort();
-					}
-					key = new GroupKey.StringKey(chars);
-					break;
+			List<GroupEntry> entryList = new ArrayList<GroupEntry>(count);
+			for (int j = 0; j < count; j++) {
+				String key = input.readString();
+				int functionSize = input.readVInt();
+				GroupingValue[] valueList = new GroupingValue[functionSize];
+				for (int i = 0; i < functionSize; i++) {
+					valueList[i] = new GroupingValue((Number) input.readGenericValue());
 				}
-
-				int freq = input.readVInt();
-				GroupingObject obj = null;
-				if (input.readBoolean()) {
-					obj = new GroupingObject();
-					obj.set(input.readGenericValue());
-				}
-				entryList[j] = new GroupEntry(key, freq, obj);
-				// logger.debug("groupEntry >> {}", entryList[j]);
+				entryList.add(new GroupEntry(key, valueList));
 			}
 
-			groupEntryListArray[groupNum] = new GroupEntryList(entryList, entryList.length, totalcount);
+			groupEntryListArray.add(new GroupEntryList(entryList, totalCount));
 		}
 
 		groupData = new GroupData(groupEntryListArray, totalSearchCount);
@@ -86,54 +60,27 @@ public class StreamableGroupData implements Streamable {
 	@Override
 	public void writeTo(StreamOutput output) throws IOException {
 		output.writeVInt(groupData.totalSearchCount());
-		GroupEntryList[] list = groupData.list();
+		List<GroupEntryList> list = groupData.list();
 
-		output.writeVInt(list.length);
+		output.writeVInt(list.size());
 
-		for (int groupNum = 0; groupNum < list.length; groupNum++) {
-			GroupEntryList entryList = list[groupNum];
-			output.writeVInt(entryList.totalFreq());
+		for (int groupNum = 0; groupNum < list.size(); groupNum++) {
+			GroupEntryList entryList = list.get(groupNum);
+			output.writeVInt(entryList.totalCount());
 			output.writeVInt(entryList.size());
 			for (int j = 0; j < entryList.size(); j++) {
-
 				// 1. write Key
 				GroupEntry groupEntry = entryList.getEntry(j);
 				// logger.debug("groupEntry >> {}", groupEntry);
-				GroupKey groupKey = groupEntry.key;
-				Class<? extends GroupKey> clazz = groupKey.getClass();
-
-				if (clazz == DateTimeKey.class) {
-					output.writeByte((byte) 1);
-					DateTimeKey key = (DateTimeKey) groupKey;
-					output.writeLong(key.key);
-				} else if (clazz == IntKey.class) {
-					output.writeByte((byte) 2);
-					IntKey key = (IntKey) groupKey;
-					output.writeVInt(key.key);
-				} else if (clazz == LongKey.class) {
-					output.writeByte((byte) 3);
-					LongKey key = (LongKey) groupKey;
-					output.writeVLong(key.key);
-				} else if (clazz == StringKey.class) {
-					output.writeByte((byte) 4);
-					StringKey key = (StringKey) groupKey;
-					output.writeVInt(key.length);
-					for (int i = 0; i < key.length; i++) {
-						output.writeShort((short) key.key[i]);
-					}
-				}
-
+				String groupKey = groupEntry.key;
+				output.writeString(groupKey);
+				
 				// 2. group entry list
-				output.writeVInt(groupEntry.count());
-
-				if (groupEntry.groupingObject() != null && groupEntry.groupingObject().getResult() != null) {
-					Object result = groupEntry.groupingObject().getResult();
-					output.writeBoolean(true);
+				output.writeVInt(groupEntry.functionSize());
+				for (GroupingValue groupingValue : groupEntry.groupingValues()) {
+					Number result = groupingValue.getResult();
 					output.writeGenericValue(result);
-				} else {
-					output.writeBoolean(false);
 				}
-
 			}
 
 		}

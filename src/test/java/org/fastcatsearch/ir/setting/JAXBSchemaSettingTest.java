@@ -18,6 +18,7 @@ import org.fastcatsearch.ir.settings.FieldIndexSetting;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.GroupIndexSetting;
 import org.fastcatsearch.ir.settings.IndexSetting;
+import org.fastcatsearch.ir.settings.PkRefSetting;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
 import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.SchemaSetting;
@@ -37,16 +38,18 @@ public class JAXBSchemaSettingTest {
 		setting.setFieldSettingList(fieldSettingList);
 		
 		
+		PrimaryKeySetting primaryKeySetting = new PrimaryKeySetting("id");
+		primaryKeySetting.setFieldList(new ArrayList<PkRefSetting>());
+		primaryKeySetting.getFieldList().add(new PkRefSetting("id"));
+		primaryKeySetting.getFieldList().add(new PkRefSetting("price"));
+		setting.setPrimaryKeySetting(primaryKeySetting);
 		
-		setting.setPrimaryKeySettingList(new ArrayList<PrimaryKeySetting>());
-		setting.getPrimaryKeySettingList().add(new PrimaryKeySetting("title"));
-		setting.getPrimaryKeySettingList().add(new PrimaryKeySetting("category"));
 		List<RefSetting> indexFieldSettingList = new ArrayList<RefSetting>();
 		RefSetting indexFieldSetting = new RefSetting("title");
 		indexFieldSettingList.add(indexFieldSetting);
 		
 		List<IndexSetting> indexSettingList = new ArrayList<IndexSetting>();
-		IndexSetting indexSetting = new IndexSetting("title_index", indexFieldSettingList, "korean","org.fastcatsearch.ir.analysis.KoreanTokenizer");
+		IndexSetting indexSetting = new IndexSetting("title_index","korean","korean");
 		indexSettingList.add(indexSetting);
 		setting.setIndexSettingList(indexSettingList);
 		

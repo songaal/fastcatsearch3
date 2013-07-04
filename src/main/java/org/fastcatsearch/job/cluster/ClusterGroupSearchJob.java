@@ -60,7 +60,7 @@ public class ClusterGroupSearchJob extends Job {
 		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 		DataService dataService = ServiceManager.getInstance().getService(DataService.class);
 		
-		String collectionId = q.getMeta().collectionName();
+		String collectionId = q.getMeta().collectionId();
 		Groups groups = q.getGroups();
 		
 		String[] collectionIdList = collectionId.split(",");

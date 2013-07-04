@@ -56,7 +56,7 @@ public class SearchJob extends Job {
 		if(userData != null)
 			keyword = userData.get("keyword");
 		
-		String collection = meta.collectionName();
+		String collection = meta.collectionId();
 		if(statisticsInfoService.isEnabled()){
 			statisticsInfoService.addSearchHit();
 			statisticsInfoService.addSearchHit(collection);

@@ -97,7 +97,7 @@ public class SearchActionCommand extends Command {
 							// function이 default인지 확인하여 결과를 다르게 넘겨주어야한다.
 							//
 							//
-							"no","key", gresult.functionName()
+							"no","key", gresult.headerNameList()
 					};
 					
 					for(int recordInx=0;recordInx<gresult.size();recordInx++) {

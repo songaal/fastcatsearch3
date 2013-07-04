@@ -440,7 +440,7 @@ public class IRSettings {
 			}
 		}
 	}
-	private static Schema getSchema0(String collection, Element root) throws SettingException {
+	private static Schema analyzerId(String collection, Element root) throws SettingException {
 		loadAnalyzer(collection, root);
 		Schema schema = new Schema();
 		schema.collection = collection;

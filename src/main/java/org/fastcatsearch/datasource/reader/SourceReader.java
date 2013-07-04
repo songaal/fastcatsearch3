@@ -26,11 +26,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.config.FieldSetting;
-import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
+import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.slf4j.Logger;

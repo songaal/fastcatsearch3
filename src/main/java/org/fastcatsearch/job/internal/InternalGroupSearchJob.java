@@ -40,7 +40,7 @@ public class InternalGroupSearchJob extends StreamableJob {
 		
 		Metadata meta = q.getMeta();
 		
-		collection = meta.collectionName();
+		collection = meta.collectionId();
 		
 		try {
 			GroupData result = null;
