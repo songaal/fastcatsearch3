@@ -1,0 +1,62 @@
+/*
+ * Copyright 2013 Websquared, Inc.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.fastcatsearch.ir.group;
+
+/*
+ * 그룹핑 결과중 한줄 엔트리.
+ * group function이 여러개일수 있으므로 value는 []가 된다.
+ * **/
+public class GroupEntry {
+	
+	public String key;
+	protected GroupingValue[] groupingValue;
+	
+	public String toString(){
+		return "[GroupEntry]"+key + " : " + groupingValue;
+	}
+	public GroupEntry(String key) {
+		this(key, null);
+	}
+	public GroupEntry(String key, GroupingValue[] groupingValue) {
+		this.key = key;
+		this.groupingValue = groupingValue;
+	}
+
+	public GroupingValue[] groupingValues(){
+		return groupingValue;
+	}
+	
+	public GroupingValue groupingValue(int i){
+		return groupingValue[i];
+	}
+	
+	public int functionSize(){
+		return groupingValue.length;
+	}
+	
+	public String getGroupingObjectResultString(int i){
+		return groupingValue[i].toString();
+	}
+	
+	public void merge(GroupEntry entry) {
+		for (int i = 0; i < entry.functionSize(); i++) {
+			groupingValue[i].add(entry.groupingValue(i).get());
+		}
+		
+	}
+	
+}

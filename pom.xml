@@ -13,15 +13,10 @@
   <artifactId>fastcatsearch</artifactId>
   <version>2.13.7</version>
   <name>fastcatsearch.org</name>
-  <description>fastcatsearch.org</description>
+  <description>fastcatsearch.org package</description>
   <url>fastcatsearch.org</url>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
   <dependencies>
-    <!-- <dependency>
-      <groupId>org.fastcatsearch</groupId>
-      <artifactId>fastcatsearch-ir</artifactId>
-      <version>2.13.7</version>
-    </dependency> -->
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
@@ -124,6 +119,12 @@
       <url>${fastcatsearchRepository}</url>
     </repository>
   </distributionManagement> 
+  
+  <modules>
+    <module>core</module>
+    <module>server</module>
+  </modules>
+  
   <build>
     <plugins>
       <plugin>

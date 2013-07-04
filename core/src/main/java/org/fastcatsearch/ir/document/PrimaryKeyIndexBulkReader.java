@@ -1,0 +1,71 @@
+/*
+ * Copyright 2013 Websquared, Inc.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.fastcatsearch.ir.document;
+
+import java.io.File;
+import java.io.IOException;
+
+import org.fastcatsearch.ir.io.BufferedFileInput;
+import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+public class PrimaryKeyIndexBulkReader {
+	private static Logger logger = LoggerFactory.getLogger(PrimaryKeyIndexBulkReader.class);
+	
+	private BufferedFileInput input;
+	private int keyCount;
+	
+	public PrimaryKeyIndexBulkReader(File file) throws IOException{
+		this(file, 0);
+	}
+	public PrimaryKeyIndexBulkReader(File file, long dataBasePosition) throws IOException{
+		input  = new BufferedFileInput(file);
+		input.position(dataBasePosition);
+		keyCount = input.readInt();
+	}
+	
+	public PrimaryKeyIndexBulkReader(File dir, String filename) throws IOException{
+		this(dir, filename, 0);
+	}
+	
+	public PrimaryKeyIndexBulkReader(File dir, String filename, long dataBasePosition) throws IOException{
+		input  = new BufferedFileInput(dir, filename);
+		input.position(dataBasePosition);
+		keyCount = input.readInt();
+	}
+	
+	public int next(FastByteBuffer buf) throws IOException{
+		if(keyCount <= 0){
+			return -1;
+		}else
+			keyCount--;
+			
+		int len = input.readVariableByte();
+		buf.limit(len);
+		input.readBytes(buf);
+		buf.flip();
+		int docNo = input.readInt();
+	
+		return docNo;
+	}
+	
+	public void close() throws IOException{
+		input.close();
+	}
+}

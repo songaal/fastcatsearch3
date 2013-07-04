@@ -1,0 +1,40 @@
+package org.fastcatsearch.ir.search;
+
+import org.fastcatsearch.ir.io.CharVector;
+
+public class CollectedEntry {
+	private CharVector term;
+	private TermDoc termDoc;
+	private int queryPosition;
+	private boolean isSynonym;
+	public void set(CharVector term, TermDoc termDoc, int queryPosition, boolean isSynonym){
+		this.term = term;
+		this.termDoc = termDoc;
+		this.queryPosition = queryPosition;
+		this.isSynonym = isSynonym;
+	}
+	public CharVector term() {
+		return term;
+	}
+	public void setTerm(CharVector term) {
+		this.term = term;
+	}
+	public TermDoc termDoc() {
+		return termDoc;
+	}
+	public void setTermDoc(TermDoc termDoc) {
+		this.termDoc = termDoc;
+	}
+	public int queryPosition() {
+		return queryPosition;
+	}
+	public void setQueryPosition(int queryPosition) {
+		this.queryPosition = queryPosition;
+	}
+	public boolean isSynonym() {
+		return isSynonym;
+	}
+	public void setSynonym(boolean isSynonym) {
+		this.isSynonym = isSynonym;
+	}
+}

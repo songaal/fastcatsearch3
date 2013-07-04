@@ -1,0 +1,29 @@
+module:
+    transport:
+        node_name: ddd
+        node_port: sadfasd
+        node_list:
+        -   name: shothair
+            master: true
+            address: 192.168.49
+            port: 9090
+            active: true
+        -   name: chaos
+            master: false
+            address: 192.168.49
+            port: 9091
+            active: true
+        port:                                
+        - 9090
+
+        - 9091
+    #this is comment
+    
+    
+service:
+    server:
+        host: 192.168.0.1
+        port: 8080
+    web:
+        path: admin/web.war
+        port: 9090
