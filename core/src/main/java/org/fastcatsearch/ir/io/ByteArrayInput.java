@@ -18,7 +18,10 @@ package org.fastcatsearch.ir.io;
 
 import java.io.IOException;
 
-public class ByteArrayInput extends Input {
+import org.apache.lucene.util.BytesRef;
+import org.fastcatsearch.common.io.StreamInput;
+
+public class ByteArrayInput extends StreamInput {
 	public byte[] array;
 	public int start;
 	public int end;
@@ -48,25 +51,30 @@ public class ByteArrayInput extends Input {
 	}
 
 	@Override
-	public void position(long p) throws IOException {
+	public void seek(long p) throws IOException {
 		pos = (int)p;
 	}
 
 	@Override
-	public int readByte() throws IOException {
+	public byte readByte() throws IOException {
 		if(pos > end || pos < start)
 			throw new ArrayIndexOutOfBoundsException("current pos = "+pos+", start="+start+", end="+end);
-		return array[pos++] & 0xFF;
+		return array[pos++];
 	}
 
 	@Override
-	public int readBytes(FastByteBuffer dst) throws IOException {
+	public void readBytes(BytesRef dst) throws IOException {
 		int len = dst.remaining();
 		if((end - pos) < len )
 			throw new IOException("not enough buffer data. data length = "+(end - pos)+", read request = "+len);
-		dst.write(array, pos, len);
+		dst.append(array, pos, len);
 		pos += len;
-		return len;
 	}
+
+	@Override
+	public void readBytes(byte[] b, int offset, int len) throws IOException {
+		System.arraycopy(array, start, b, offset, len);
+	}
+
 
 }

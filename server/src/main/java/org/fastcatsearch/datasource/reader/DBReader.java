@@ -40,6 +40,8 @@ import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.field.Field;
+import org.fastcatsearch.ir.index.DeleteIdSet;
+import org.fastcatsearch.ir.index.MultiKeyEntry;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.settings.IRSettings;
@@ -82,9 +84,9 @@ public class DBReader extends SourceReader{
 		this.startTime = IRSettings.getSimpleDatetime();
 		
 		fieldSet = new Object[BULK_SIZE][fieldSettingList.size()];
-		deleteIdList = new HashSet<String>();
+		deleteIdList = new DeleteIdSet(primaryKeySize);
 		
-		indextime = IRSettings.getIndextime(schema.collection, true);
+		indextime = IRSettings.getIndextime(schema.collectionId(), true);
 //		scMap = SpecialCharacterMap.getMap();
 		try{
 			if(config.getJdbcDriver() != null && config.getJdbcDriver().length() > 0){
@@ -237,10 +239,10 @@ public class DBReader extends SourceReader{
 		if(useBackup){
 			try{
 				BufferedWriter deleteBackupWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(IRSettings.path(deleteFileName)), config.getBackupFileEncoding()));
-				Iterator<String> iter = deleteIdList.iterator();
+				Iterator<MultiKeyEntry> iter = deleteIdList.iterator();
 				
 				while(iter.hasNext()){
-					deleteBackupWriter.write(iter.next());
+					deleteBackupWriter.write(iter.next().toString());
 					deleteBackupWriter.newLine();
 				}
 				
@@ -301,8 +303,9 @@ public class DBReader extends SourceReader{
 		for (int i = 0; i < fieldSettingList.size(); i++) {
 			FieldSetting fs = fieldSettingList.get(i);
 			String data = "";
-			if(!fs.isBlob())
-				data = (String) fieldSet[readCount][i];
+//			if(!fs.isBlob())
+			
+			data = (String) fieldSet[readCount][i];
 			
 //			logger.debug("read data="+data+", readCount="+readCount+", i="+i);
 			Field f = fs.createField(data);
@@ -448,41 +451,41 @@ public class DBReader extends SourceReader{
 				for (int i = 0; i < fieldSettingList.size(); i++) {
 					FieldSetting fs = fieldSettingList.get(i);
 					Object value = null;
-					if(fs.virtual || fs.modify){
+					if(fs.isModify()){
 						if(sourceModifier != null){
 							try{
-								value = sourceModifier.modify(fs.name, keyValueMap);
+								value = sourceModifier.modify(fs.getId(), keyValueMap);
 							}catch(IRException e){
 								logger.error(e.toString(),e);
 							}
 						}
 					}else{
 						//value = r.getString(fs.name);
-						value = keyValueMap.get(fs.name);
+						value = keyValueMap.get(fs.getId());
 						if(value == null){
-							logger.error("DB에 "+fs.name+"필드가 존재하지 않거나 해당 필드를 수집쿼리에서 SELECT하지 않았습니다.");
-							throw new IRException("DB에 "+fs.name+"필드가 존재하지 않거나 해당 필드를 수집쿼리에서 SELECT하지 않았습니다.");
+							logger.error("DB에 {} 필드가 존재하지 않거나 해당 필드를 수집쿼리에서 SELECT하지 않았습니다.", fs.getId());
+							throw new IRException("DB에 "+fs.getId()+"필드가 존재하지 않거나 해당 필드를 수집쿼리에서 SELECT하지 않았습니다.");
 						}
 					}
 					
-					if(fs.isBlob()){
-						//BLOB Field
-						fieldSet[bulkCount][i] = value;
-						if(useBackup){
-							try {
-								backupWriter.write("<");
-								backupWriter.write(fs.name);
-								backupWriter.write(">");
-								backupWriter.newLine();
-								backupWriter.write("(BLOB)");
-								backupWriter.newLine();
-								backupWriter.write("</");
-								backupWriter.write(fs.name);
-								backupWriter.write(">");
-								backupWriter.newLine();
-							} catch (IOException e) { }
-						}
-					}else{
+//					if(fs.isBlob()){
+//						//BLOB Field
+//						fieldSet[bulkCount][i] = value;
+//						if(useBackup){
+//							try {
+//								backupWriter.write("<");
+//								backupWriter.write(fs.name);
+//								backupWriter.write(">");
+//								backupWriter.newLine();
+//								backupWriter.write("(BLOB)");
+//								backupWriter.newLine();
+//								backupWriter.write("</");
+//								backupWriter.write(fs.name);
+//								backupWriter.write(">");
+//								backupWriter.newLine();
+//							} catch (IOException e) { }
+//						}
+//					}else{
 						//문자필드
 						String str = null;
 						if(value != null)
@@ -495,7 +498,7 @@ public class DBReader extends SourceReader{
 						if(str == null) str = "";
 						
 						//html remove
-						if(fs.tagRemove){
+						if(fs.isRemoveTag()){
 							str = HTMLTagRemover.clean(str);
 						}
 						
@@ -503,13 +506,13 @@ public class DBReader extends SourceReader{
 						if(useBackup){
 							try {
 								backupWriter.write("<");
-								backupWriter.write(fs.name);
+								backupWriter.write(fs.getId());
 								backupWriter.write(">");
 								backupWriter.newLine();
 								backupWriter.write(str);
 								backupWriter.newLine();
 								backupWriter.write("</");
-								backupWriter.write(fs.name);
+								backupWriter.write(fs.getId());
 								backupWriter.write(">");
 								backupWriter.newLine();
 							} catch (IOException e) { }
@@ -517,7 +520,7 @@ public class DBReader extends SourceReader{
 						
 					}
 					
-				}
+//				}
 				
 				if(hasLob){
 					for (int i = 0; i < keyValueMap.size(); i++) {

@@ -29,6 +29,7 @@ import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.util.CharsRef;
+import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IRFileName;
@@ -40,7 +41,6 @@ import org.fastcatsearch.ir.index.temp.TempSearchFieldMerger;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.Counter;
-import org.fastcatsearch.ir.io.Output;
 import org.fastcatsearch.ir.settings.IndexSetting;
 import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.Schema;
@@ -70,7 +70,7 @@ public class SearchIndexesWriter {
 	private int workMemoryCheck;
 
 	private File tempFile;
-	private Output tempOutput;
+	private StreamOutput tempOutput;
 	private long[] flushPosition; // each flush file position
 	private int flushCount;
 	private int count;
@@ -246,7 +246,7 @@ public class SearchIndexesWriter {
 		return totalCount;
 	}
 
-	private long writeMemoryPosting(Output output) throws IOException {
+	private long writeMemoryPosting(StreamOutput output) throws IOException {
 		int i = 0;
 		logger.debug("## Save index-{} storepos = {}", i, fieldIndexOptions[i].isStorePosition());
 		long pos = memoryPosting[i].save(output);

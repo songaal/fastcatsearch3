@@ -19,8 +19,9 @@ package org.fastcatsearch.ir.document;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.io.BufferedFileInput;
-import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,7 @@ public class PrimaryKeyIndexBulkReader {
 	}
 	public PrimaryKeyIndexBulkReader(File file, long dataBasePosition) throws IOException{
 		input  = new BufferedFileInput(file);
-		input.position(dataBasePosition);
+		input.seek(dataBasePosition);
 		keyCount = input.readInt();
 	}
 	
@@ -46,17 +47,17 @@ public class PrimaryKeyIndexBulkReader {
 	
 	public PrimaryKeyIndexBulkReader(File dir, String filename, long dataBasePosition) throws IOException{
 		input  = new BufferedFileInput(dir, filename);
-		input.position(dataBasePosition);
+		input.seek(dataBasePosition);
 		keyCount = input.readInt();
 	}
 	
-	public int next(FastByteBuffer buf) throws IOException{
+	public int next(BytesBuffer buf) throws IOException{
 		if(keyCount <= 0){
 			return -1;
 		}else
 			keyCount--;
 			
-		int len = input.readVariableByte();
+		int len = input.readVInt();
 		buf.limit(len);
 		input.readBytes(buf);
 		buf.flip();

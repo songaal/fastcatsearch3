@@ -28,11 +28,11 @@ public class InputForStream extends Input {
 		this.is = new BufferedInputStream(is);
 	}
 	@Override
-	public int readBytes(FastByteBuffer dst) throws IOException {
+	public int readBytes(BytesBuffer dst) throws IOException {
 		int len = 0;
 		while(dst.remaining() > 0){
-			int n = is.read(dst.array, dst.pos, dst.remaining());
-			dst.pos(dst.pos + n);
+			int n = is.read(dst.array, dst.offset, dst.remaining());
+			dst.pos(dst.offset + n);
 			len += n;
 		}
 		return len;

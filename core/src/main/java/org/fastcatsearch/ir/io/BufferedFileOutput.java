@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  * @author sangwook
  *
  */
-public class BufferedFileOutput extends StreamOutput{
+public class BufferedFileOutput extends StreamOutput {
 
 	private static Logger logger = LoggerFactory.getLogger(BufferedFileOutput.class);
 	
@@ -83,7 +83,7 @@ public class BufferedFileOutput extends StreamOutput{
         }
     }
 	
-	
+	@Override
 	public long size() throws IOException{
 		return raf.length() + (long)count;
 	}
@@ -103,17 +103,17 @@ public class BufferedFileOutput extends StreamOutput{
 		return raf.getFilePointer() + count;
 	}
 	
-	public void position(long p) throws IOException {
+	public void seek(long p) throws IOException {
 		flush();
 		raf.seek(p);
 	}
 	
-	public synchronized void writeByte(int b) throws IOException {
-		if (count >= buf.length) {
-		    flush();
-		}
-		buf[count++] = (byte)b;
-	}
+//	public synchronized void writeByte(int b) throws IOException {
+//		if (count >= buf.length) {
+//		    flush();
+//		}
+//		buf[count++] = (byte)b;
+//	}
 	
 	public synchronized void writeBytes(byte b[], int off, int len) throws IOException {
 		if (len >= buf.length) {
@@ -133,18 +133,20 @@ public class BufferedFileOutput extends StreamOutput{
 		count += len;
 	}
 	
-	public void writeBytes(FastByteBuffer dst) throws IOException {
-		writeBytes(dst.array, dst.pos(), dst.remaining());
+	public void writeBytes(BytesBuffer dst) throws IOException {
+		writeBytes(dst.bytes, dst.pos(), dst.remaining());
 	}
-	@Override
+	
 	public void setLength(long newLength) throws IOException {
 		flush();
 		raf.setLength(newLength);
 	}
-	@Override
+	
 	public void writeByte(byte b) throws IOException {
-		// TODO Auto-generated method stub
-		
+		if (count >= buf.length) {
+		    flush();
+		}
+		buf[count++] = (byte)b;
 	}
 	@Override
 	public void reset() throws IOException {

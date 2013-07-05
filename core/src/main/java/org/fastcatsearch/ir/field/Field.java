@@ -4,16 +4,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.StringTokenizer;
 
-import org.fastcatsearch.ir.io.Input;
-import org.fastcatsearch.ir.io.Output;
-import org.fastcatsearch.ir.settings.FieldSetting;
+import org.fastcatsearch.common.io.StreamInput;
+import org.fastcatsearch.common.io.StreamOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class Field {
 	protected static Logger logger = LoggerFactory.getLogger(Field.class);
-			
+	protected final String OutputMultiValueDelimiter = "\n";
+	
 	protected String id;
 	protected int size;
 	protected boolean store;
@@ -48,14 +49,13 @@ public abstract class Field {
 			return null;
 		}
 	}
-	public void addValues(String value, String delimiter){
+	public void addValues(StringTokenizer tokenizer){
 		if(!multiValue){
 			throw new RuntimeException("multivalue가 아닌 필드에는 값을 추가할 수 없습니다.");
 		}
 		
-		String[] datas = value.split(delimiter);
-		for (String data : datas) {
-			addValue(data);
+		while (tokenizer.hasMoreElements()) {
+			addValue(tokenizer.nextToken());
 		}
 	}
 	
@@ -101,16 +101,16 @@ public abstract class Field {
 	
 	protected abstract Object parseData(String data);
 	
-	public abstract void readFrom(Input input) throws IOException;
+	public abstract void readFrom(StreamInput input) throws IOException;
 	
 	//필드데이터를 기록. string형의 경우 size정보가 앞에 붙는다.
-	public abstract void writeTo(Output output) throws IOException;
+	public abstract void writeTo(StreamOutput output) throws IOException;
 
 	//고정길이로 데이터만을 기록. fieldIndex에서 필요. string형의 경우 size정보가 없음.
-	public abstract void writeFixedDataTo(Output output) throws IOException;
+	public abstract void writeFixedDataTo(StreamOutput output) throws IOException;
 	
 	//고정길이필드는 고정으로, 가변은 가변으로 데이터만을 기록. string형의 경우 size정보가 없음.
-	public abstract void writeDataTo(Output output) throws IOException;
+	public abstract void writeDataTo(StreamOutput output) throws IOException;
 	
 	//멀티밸류의 필드데이터를 하나씩 기록할수 있도록 도와주는 writer. group에서 필드값을 읽을 때 사용됨.
 	public abstract FieldDataWriter getDataWriter() throws IOException;
@@ -163,70 +163,70 @@ public abstract class Field {
 		this.fieldsData = fieldsData;
 	}
 	
-	public static Field createField(FieldSetting fieldSetting){
-		String fieldId = fieldSetting.getId();
-		if(fieldSetting.getType() == FieldSetting.Type.INT){
-			if(fieldSetting.isMultiValue()){
-				return new IntMvField(fieldId);
-			}else{
-				return new IntField(fieldId);
-			}
-		}else if(fieldSetting.getType() == FieldSetting.Type.LONG){
-			if(fieldSetting.isMultiValue()){
-				return new LongMvField(fieldId);
-			}else{
-				return new LongField(fieldId);
-			}
-		}else if(fieldSetting.getType() == FieldSetting.Type.FLOAT){
-			if(fieldSetting.isMultiValue()){
-				return new FloatMvField(fieldId);
-			}else{
-				return new FloatField(fieldId);
-			}
-		}else if(fieldSetting.getType() == FieldSetting.Type.DOUBLE){
-			if(fieldSetting.isMultiValue()){
-				return new DoubleMvField(fieldId);
-			}else{
-				return new DoubleField(fieldId);
-			}
-		}else if(fieldSetting.getType() == FieldSetting.Type.DATETIME){
-			return new DatetimeField(fieldId);
-		}else if(fieldSetting.getType() == FieldSetting.Type.ASTRING){
-			if(fieldSetting.isMultiValue()){
-				return new AStringMvField(fieldId, fieldSetting.getSize());
-			}else{
-				return new AStringField(fieldId, fieldSetting.getSize());
-			}
-		}else if(fieldSetting.getType() == FieldSetting.Type.USTRING){
-			if(fieldSetting.isMultiValue()){
-				return new UStringMvField(fieldId, fieldSetting.getSize());
-			}else{
-				return new UStringField(fieldId, fieldSetting.getSize());
-			}
-		}
-		
-		throw new RuntimeException("지원하지 않는 필드타입입니다. Type = "+ fieldSetting.getType());
-	}
+//	public static Field createField(FieldSetting fieldSetting){
+//		String fieldId = fieldSetting.getId();
+//		if(fieldSetting.getType() == FieldSetting.Type.INT){
+//			if(fieldSetting.isMultiValue()){
+//				return new IntMvField(fieldId);
+//			}else{
+//				return new IntField(fieldId);
+//			}
+//		}else if(fieldSetting.getType() == FieldSetting.Type.LONG){
+//			if(fieldSetting.isMultiValue()){
+//				return new LongMvField(fieldId);
+//			}else{
+//				return new LongField(fieldId);
+//			}
+//		}else if(fieldSetting.getType() == FieldSetting.Type.FLOAT){
+//			if(fieldSetting.isMultiValue()){
+//				return new FloatMvField(fieldId);
+//			}else{
+//				return new FloatField(fieldId);
+//			}
+//		}else if(fieldSetting.getType() == FieldSetting.Type.DOUBLE){
+//			if(fieldSetting.isMultiValue()){
+//				return new DoubleMvField(fieldId);
+//			}else{
+//				return new DoubleField(fieldId);
+//			}
+//		}else if(fieldSetting.getType() == FieldSetting.Type.DATETIME){
+//			return new DatetimeField(fieldId);
+//		}else if(fieldSetting.getType() == FieldSetting.Type.ASTRING){
+//			if(fieldSetting.isMultiValue()){
+//				return new AStringMvField(fieldId, fieldSetting.getSize());
+//			}else{
+//				return new AStringField(fieldId, fieldSetting.getSize());
+//			}
+//		}else if(fieldSetting.getType() == FieldSetting.Type.USTRING){
+//			if(fieldSetting.isMultiValue()){
+//				return new UStringMvField(fieldId, fieldSetting.getSize());
+//			}else{
+//				return new UStringField(fieldId, fieldSetting.getSize());
+//			}
+//		}
+//		
+//		throw new RuntimeException("지원하지 않는 필드타입입니다. Type = "+ fieldSetting.getType());
+//	}
 	
-	public static Field createSingleValueField(FieldSetting fieldSetting, String data){
-		String fieldId = fieldSetting.getId();
-		if(fieldSetting.getType() == FieldSetting.Type.INT){
-			return new IntField(fieldId, data);
-		}else if(fieldSetting.getType() == FieldSetting.Type.LONG){
-			return new LongField(fieldId, data);
-		}else if(fieldSetting.getType() == FieldSetting.Type.FLOAT){
-			return new FloatField(fieldId, data);
-		}else if(fieldSetting.getType() == FieldSetting.Type.DOUBLE){
-			return new DoubleField(fieldId, data);
-		}else if(fieldSetting.getType() == FieldSetting.Type.DATETIME){
-			return new DatetimeField(fieldId, data);
-		}else if(fieldSetting.getType() == FieldSetting.Type.ASTRING){
-			return new AStringField(fieldId, data);
-		}else if(fieldSetting.getType() == FieldSetting.Type.USTRING){
-			return new UStringField(fieldId, data);
-		}
-		
-		throw new RuntimeException("지원하지 않는 필드타입입니다. Type = "+ fieldSetting.getType());
-	}
+//	public static Field createSingleValueField(FieldSetting fieldSetting, String data){
+//		String fieldId = fieldSetting.getId();
+//		if(fieldSetting.getType() == FieldSetting.Type.INT){
+//			return new IntField(fieldId, data);
+//		}else if(fieldSetting.getType() == FieldSetting.Type.LONG){
+//			return new LongField(fieldId, data);
+//		}else if(fieldSetting.getType() == FieldSetting.Type.FLOAT){
+//			return new FloatField(fieldId, data);
+//		}else if(fieldSetting.getType() == FieldSetting.Type.DOUBLE){
+//			return new DoubleField(fieldId, data);
+//		}else if(fieldSetting.getType() == FieldSetting.Type.DATETIME){
+//			return new DatetimeField(fieldId, data);
+//		}else if(fieldSetting.getType() == FieldSetting.Type.ASTRING){
+//			return new AStringField(fieldId, data);
+//		}else if(fieldSetting.getType() == FieldSetting.Type.USTRING){
+//			return new UStringField(fieldId, data);
+//		}
+//		
+//		throw new RuntimeException("지원하지 않는 필드타입입니다. Type = "+ fieldSetting.getType());
+//	}
 
 }

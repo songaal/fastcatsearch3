@@ -20,9 +20,11 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.lucene.util.BytesRef;
+import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.Input;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,16 +37,16 @@ public class TempSearchFieldReader {
 	
 	private int id;
 	private CharVector term;
-	private FastByteBuffer buffer;
-	private Input tempInput;
+	private BytesRef buffer;
+	private StreamInput tempInput;
 	private int left;
 	
 	public TempSearchFieldReader(int id, File tempFile, long startPos) throws IOException{
 		this.id = id;
 		this.tempInput = new BufferedFileInput(tempFile);
-		tempInput.position(startPos);
+		tempInput.seek(startPos);
 		logger.debug("{} - reader input position = {}", id, startPos);
-		logger.debug(id + " - filesize = "+tempInput.size());
+		logger.debug("{} - filesize = {}", id, tempFile.length());
 		left = tempInput.readInt();
 		logger.debug("{} - count = {}", id, left);
 	}
@@ -89,10 +91,10 @@ public class TempSearchFieldReader {
 //			logger.debug("####"+left+":"+len+"=("+(int)array[0]+")"+ new String(array,1, len - 1));
 		
 //		logger.debug("len = "+len+","+term);
-		int bufLength = tempInput.readVariableByte();
+		int bufLength = tempInput.readVInt();
 		
-		buffer = new FastByteBuffer(bufLength);
-		buffer.limit(bufLength);
+		buffer = new BytesRef(bufLength);
+//		buffer.limit(bufLength);
 		tempInput.readBytes(buffer);
 		left--;
 		
@@ -105,7 +107,7 @@ public class TempSearchFieldReader {
 	public CharVector term(){
 		return term;
 	}
-	public FastByteBuffer buffer(){
+	public BytesRef buffer(){
 		return buffer;
 	}
 	public int id(){

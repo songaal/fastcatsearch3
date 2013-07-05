@@ -21,8 +21,8 @@ import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.io.BufferedFileInput;
-import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.Input;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,8 +34,8 @@ public class PrimaryKeyIndexReader implements Cloneable {
 	private static Logger logger = LoggerFactory.getLogger(PrimaryKeyIndexReader.class);
 	private static final Lock lock = new ReentrantLock();
 	
-	private Input input;
-	private Input indexInput;
+	private StreamInput input;
+	private StreamInput indexInput;
 	private byte[][] keys;
 	private long[] pos;
 	private int count; //key 갯수 
@@ -44,7 +44,7 @@ public class PrimaryKeyIndexReader implements Cloneable {
 	public PrimaryKeyIndexReader(File dir, String filename) throws IOException{
 		this(dir, filename ,0, -1, 0);
 	}
-	public PrimaryKeyIndexReader(Input input, byte[][] keys, long[] pos, int count, long limit) {
+	public PrimaryKeyIndexReader(StreamInput input, byte[][] keys, long[] pos, int count, long limit) {
 		this.input = input;
 		this.keys = keys;
 		this.pos = pos;
@@ -54,9 +54,9 @@ public class PrimaryKeyIndexReader implements Cloneable {
 	public PrimaryKeyIndexReader(File dir, String filename, long dataBasePosition, long dataEndPosition, long indexBasePosition) throws IOException{
 		input = new BufferedFileInput(dir, filename);
 //		logger.debug("input = "+input+", size="+input.size());
-		input.position(dataBasePosition);
+		input.seek(dataBasePosition);
 		indexInput = new BufferedFileInput(dir, filename+".index");
-		indexInput.position(indexBasePosition);
+		indexInput.seek(indexBasePosition);
 		
 		if(dataEndPosition < 0)
 			limit = input.size();
@@ -71,7 +71,7 @@ public class PrimaryKeyIndexReader implements Cloneable {
 		pos = new long[idxCount];
 		
 		for (int i = 0; i < idxCount; i++) {
-			int len = indexInput.readVariableByte();
+			int len = indexInput.readVInt();
 //			logger.debug("len="+len);
 			keys[i] = new byte[len];
 			indexInput.readBytes(keys[i], 0, len);
@@ -109,10 +109,10 @@ public class PrimaryKeyIndexReader implements Cloneable {
 //		logger.debug("input ="+input.size()+", position="+position+", length="+length + ", "+pos[idx]+", "+dataBasePosition);
 		try{
 			lock.lock();
-			input.position(position);
+			input.seek(position);
 			
 			while(input.position() < limit){
-				int len = input.readVariableByte();
+				int len = input.readVInt();
 	//			if(length == len){
 				if(length < len){
 					test = new byte[len];

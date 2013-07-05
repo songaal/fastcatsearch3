@@ -3,7 +3,7 @@ package org.fastcatsearch.ir.field;
 import java.io.IOException;
 import java.util.List;
 
-import org.fastcatsearch.ir.io.Output;
+import org.fastcatsearch.common.io.StreamOutput;
 
 public abstract class FieldDataWriter {
 	protected int pos;
@@ -17,7 +17,7 @@ public abstract class FieldDataWriter {
 		return list.size();
 	}
 	
-	public boolean write(Output output) throws IOException{
+	public boolean write(StreamOutput output) throws IOException{
 		if(pos++ < list.size()){
 			writeEachData(list.get(pos), output);
 			return true;
@@ -25,6 +25,6 @@ public abstract class FieldDataWriter {
 		return false;
 	}
 	
-	protected abstract void writeEachData(Object object, Output output) throws IOException;
+	protected abstract void writeEachData(Object object, StreamOutput output) throws IOException;
 		
 }

@@ -23,6 +23,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.document.Document;
+import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.io.DirBufferedReader;
 import org.fastcatsearch.ir.settings.FieldSetting;
@@ -58,8 +59,7 @@ public class CollectFileParser extends SourceReader{
 		}
 		document = null;
 		
-		//FIXME 설정값을 제대로 넣어야한다.
-		deleteIdList = new DeleteIdSet(1);
+		deleteIdList = new DeleteIdSet(primaryKeySize);
 		
 	}
 	
@@ -90,7 +90,7 @@ public class CollectFileParser extends SourceReader{
 					key = line.substring(0, p);
 					value = line.substring(p+1);
 				}
-				if(key.equalsIgnoreCase(fs.name)){
+				if(key.equalsIgnoreCase(fs.getId())){
 					if(key.equals("body")){
 						StringBuffer sb = new StringBuffer();
 						sb.append(value);
@@ -104,7 +104,7 @@ public class CollectFileParser extends SourceReader{
 					}
 					count++;
 				}else{
-					logger.warn("skip! :"+key+":, value="+value+", fs.name=:"+fs.name+":");
+					logger.warn("skip! :"+key+":, value="+value+", fs.id=:"+fs.getId()+":");
 //					throw new IRException("collect file format error! field = "+key+", expected = "+fs.name+", value = "+value);
 				}
 				

@@ -19,9 +19,9 @@ package org.fastcatsearch.ir.document;
 import java.io.File;
 import java.io.IOException;
 
+import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
-import org.fastcatsearch.ir.io.FastByteBuffer;
-import org.fastcatsearch.ir.io.Output;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,8 +35,8 @@ public class PrimaryKeyIndexBulkWriter {
 	private static Logger logger = LoggerFactory.getLogger(PrimaryKeyIndexBulkWriter.class);
 	
 	private String filename;
-	private Output output;
-	private Output indexOutput;
+	private StreamOutput output;
+	private StreamOutput indexOutput;
 	private int indexInterval;
 	private int keyCount;
 	private int keyIndexCount;
@@ -55,7 +55,7 @@ public class PrimaryKeyIndexBulkWriter {
 		indexOutput.writeInt(0);
 	}
 
-	public PrimaryKeyIndexBulkWriter(Output output, Output indexOutput, int indexInterval, boolean isAppend) throws IOException{
+	public PrimaryKeyIndexBulkWriter(StreamOutput output, StreamOutput indexOutput, int indexInterval, boolean isAppend) throws IOException{
 		this.output = output;
 		this.indexOutput = indexOutput;
 		this.indexInterval = indexInterval;
@@ -70,36 +70,36 @@ public class PrimaryKeyIndexBulkWriter {
 	public void close() throws IOException{
 //		logger.debug(filename +" filesize=" + output.position()+", count="+keyCount);
 		long t = output.position();
-		output.position(pos1);
+		output.seek(pos1);
 		output.writeInt(keyCount);
 		if(!isAppend)
 			output.close();
 		else
-			output.position(t);
+			output.seek(t);
 		
-//		logger.debug(filename +".index filesize=" + indexOutput.position()+", count="+keyIndexCount);
+//		logger.debug(filename +".index filesize=" + indexOutput.seek()+", count="+keyIndexCount);
 		t = indexOutput.position();
-		indexOutput.position(pos2);
+		indexOutput.seek(pos2);
 		indexOutput.writeInt(keyIndexCount);
 		if(!isAppend)
 			indexOutput.close();
 		else
-			indexOutput.position(t);
+			indexOutput.seek(t);
 		
 	}
-	public void write(FastByteBuffer buf, int value) throws IOException{
+	public void write(BytesBuffer buf, int value) throws IOException{
 		
 		//write pkmap index
-		FastByteBuffer clone = new FastByteBuffer(buf.array(), buf.pos(), buf.limit());
+		BytesBuffer clone = new BytesBuffer(buf.array(), buf.pos(), buf.limit());
 		
 		if(keyCount % indexInterval == 0){
-			indexOutput.writeVariableByte(buf.remaining());
+			indexOutput.writeVInt(buf.remaining());
 			indexOutput.writeBytes(buf);
 			indexOutput.writeLong(output.position());
 			keyIndexCount++;
 		}
 		
-		output.writeVariableByte(clone.remaining());
+		output.writeVInt(clone.remaining());
 		output.writeBytes(clone);
 		output.writeInt(value);
 		keyCount++;

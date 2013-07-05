@@ -20,7 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.fastcatsearch.ir.io.BytesBuffer;
 
 
 
@@ -53,19 +53,19 @@ public class FileInputOutput extends InputOutput{
 		return raf.read();
 	}
 
-	public synchronized int readBytes(FastByteBuffer dst) throws IOException {
-		int len = dst.limit - dst.pos;
-		return raf.read(dst.array, dst.pos, len);
+	public synchronized int readBytes(BytesBuffer dst) throws IOException {
+		int len = dst.length - dst.offset;
+		return raf.read(dst.bytes, dst.offset, len);
 	}
 
 	public synchronized void writeByte(int b) throws IOException {
 		raf.write(b);
 	}
 
-	public synchronized int writeBytes(FastByteBuffer dst) throws IOException {
-		int len = dst.limit - dst.pos;
-		raf.write(dst.array, dst.pos, len);
-		dst.pos(dst.limit);
+	public synchronized int writeBytes(BytesBuffer dst) throws IOException {
+		int len = dst.length - dst.offset;
+		raf.write(dst.bytes, dst.offset, len);
+		dst.pos(dst.length);
 		return len;
 	}
 

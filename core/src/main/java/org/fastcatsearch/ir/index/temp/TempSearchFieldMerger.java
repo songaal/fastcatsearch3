@@ -19,14 +19,15 @@ package org.fastcatsearch.ir.index.temp;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.lucene.util.BytesRef;
+import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.index.IndexFieldOption;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.ByteArrayOutput;
 import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IOUtil;
-import org.fastcatsearch.ir.io.Output;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,9 +70,9 @@ public class TempSearchFieldMerger {
 			return;
 		}
 		
-		Output postingOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, 0), IRFileName.postingFile, false);
-	    Output lexiconOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, 0), IRFileName.lexiconFile, false);
-	    Output indexOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, 0), IRFileName.indexFile, false);
+		StreamOutput postingOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, 0), IRFileName.postingFile, false);
+		StreamOutput lexiconOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, 0), IRFileName.lexiconFile, false);
+		StreamOutput indexOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, 0), IRFileName.indexFile, false);
 	    ByteArrayOutput tempPostingOutput = new ByteArrayOutput(1024 * 1024);
 		CharVector cv = null;
 		CharVector cvOld = null;
@@ -91,7 +92,7 @@ public class TempSearchFieldMerger {
 				makeHeap(flushCount);
 				
 				//동일한 단어는 최대 flush갯수 만큼 buffer 배열에 쌓이게 된다.
-				FastByteBuffer[] buffers = new FastByteBuffer[flushCount] ;
+				BytesRef[] buffers = new BytesRef[flushCount] ;
 				int bufferCount = 0; //posting buffer's count in the same term
 				
 				int termCount = 0;
@@ -116,8 +117,8 @@ public class TempSearchFieldMerger {
 						
 //						logger.debug("MERGE {}, count={}", cvOld, bufferCount);
 						for (int k = 0; k < bufferCount; k++) {
-							FastByteBuffer buf = buffers[k];
-							buf.flip();
+							BytesRef buf = buffers[k];
+							buf.reset();
 							
 							int count = IOUtil.readInt(buf);
 							int lastDocNo = IOUtil.readInt(buf);
@@ -138,7 +139,8 @@ public class TempSearchFieldMerger {
 						
 						long postingPosition = postingOutput.position();
 						//write size
-						postingOutput.writeVariableByte(IOUtil.SIZE_OF_INT * 2 + (int)tempPostingOutput.position());
+						//포스팅 한개는 Int사이즈를 넘을 수 없다.
+						postingOutput.writeVInt(IOUtil.SIZE_OF_INT * 2 + (int)tempPostingOutput.position());
 						//count, lastDocNo are required for later (index compact)
 						postingOutput.writeInt(totalCount);//count
 						postingOutput.writeInt(prevDocNo);//lastDocNo
@@ -184,17 +186,17 @@ public class TempSearchFieldMerger {
 			
 				//Write term count on head position
 				long prevPos = lexiconOutput.position();
-				lexiconOutput.position(lexiconFileHeadPos);
+				lexiconOutput.seek(lexiconFileHeadPos);
 				lexiconOutput.writeInt(termCount);
-				lexiconOutput.position(prevPos);
+				lexiconOutput.seek(prevPos);
 				logger.debug("termCount = {}, indexTermCount = {}, indexInterval={},{}", termCount , indexTermCount, indexInterval, (termCount % indexInterval));
 				if(termCount > 0){
 					indexOutput.flush();
 	//				logger.debug("*** indexOutput.size() = "+indexOutput.size());
 					prevPos = indexOutput.position();
-					indexOutput.position(indexFileHeadPos);
+					indexOutput.seek(indexFileHeadPos);
 					indexOutput.writeInt(indexTermCount);
-					indexOutput.position(prevPos);
+					indexOutput.seek(prevPos);
 					indexOutput.flush();
 	//				logger.debug("*** indexOutput.size() = "+indexOutput.size());
 				}else{

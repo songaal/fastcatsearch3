@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.zip.Deflater;
 
 import org.apache.commons.io.FileUtils;
+import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.config.IndexConfig;
@@ -127,7 +128,7 @@ public class DocumentWriter {
 			FileUtils.copyFileToDirectory(prevDelete, revisionDir);
 			deleteSet = new BitSet(revisionDir, IRFileName.docDeleteSet);
 			
-			Input docInput = new BufferedFileInput(dir, IRFileName.docStored);
+			StreamInput docInput = new BufferedFileInput(dir, IRFileName.docStored);
 			localDocNo = docInput.readInt();
 			docInput.close();
 		} else {
@@ -195,9 +196,9 @@ public class DocumentWriter {
 		
 		long lastPos = docOutput.position();
 		// 길이헤더를 정확한 데이터로 기록한다.
-		docOutput.position(pos);
+		docOutput.seek(pos);
 		docOutput.writeInt(compressedDataLength);
-		docOutput.position(lastPos);
+		docOutput.seek(lastPos);
 		
 		count++;
 		return localDocNo++;
@@ -207,7 +208,7 @@ public class DocumentWriter {
 		logger.debug("DocumentWriter close() count={}, pk={}", count, pkIndexWriter.count());
 
 		// write header
-		docOutput.position(0);
+		docOutput.seek(0);
 		docOutput.writeInt(localDocNo);
 
 		docOutput.close();

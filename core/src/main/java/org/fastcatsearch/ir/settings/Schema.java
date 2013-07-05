@@ -22,7 +22,12 @@ public class Schema {
 	private Map<String, FieldSetting> fieldSettingMap;
 	
 	private AnalyzerPoolManager analyzerPoolManager;
+	private String collectionId;
 	
+	public Schema(String collectionId, SchemaSetting schemaSetting){
+		this(schemaSetting);
+		this.collectionId = collectionId;
+	}
 	public Schema(SchemaSetting schemaSetting){
 		this.schemaSetting = schemaSetting;
 		
@@ -90,6 +95,9 @@ public class Schema {
 		
 	}
 	
+	public String collectionId(){
+		return collectionId;
+	}
 	public AnalyzerPool getAnalyzerPool(String analyzerId){
 		return analyzerPoolManager.getPool(analyzerId);
 	}

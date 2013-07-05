@@ -17,24 +17,24 @@
 package org.fastcatsearch.ir.search;
 
 import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.ir.search.posting.TermDocsReader;
+import org.fastcatsearch.ir.search.posting.PostingDocsReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CompositeTermDoc {
-	private Logger logger = LoggerFactory.getLogger(CompositeTermDoc.class);
+public class CompositePostingDoc {
+	private Logger logger = LoggerFactory.getLogger(CompositePostingDoc.class);
 	private int indexFieldNum;
 	private CharVector term;
-	private TermDoc[] termDocList;
+	private PostingDoc[] postingDocList;
 	private int count;
 
-	public CompositeTermDoc(int indexFieldNum, CharVector term, int size) {
-		this(indexFieldNum, term, new TermDoc[size], 0);
+	public CompositePostingDoc(int indexFieldNum, CharVector term, int size) {
+		this(indexFieldNum, term, new PostingDoc[size], 0);
 	}
 
-	public CompositeTermDoc(int indexFieldNum, CharVector term, TermDoc[] termDocList, int count) {
+	public CompositePostingDoc(int indexFieldNum, CharVector term, PostingDoc[] postingDocList, int count) {
 		this.indexFieldNum = indexFieldNum;
-		this.termDocList = termDocList;
+		this.postingDocList = postingDocList;
 		this.term = term;
 		this.count = count;
 	}
@@ -51,31 +51,31 @@ public class CompositeTermDoc {
 		return count;
 	}
 
-	public TermDoc[] termDocList() {
-		return termDocList;
+	public PostingDoc[] postingDocList() {
+		return postingDocList;
 	}
 
-	public void setTermDocList(TermDoc[] termDocList) {
-		this.termDocList = termDocList;
+	public void setPostingDocList(PostingDoc[] postingDocList) {
+		this.postingDocList = postingDocList;
 	}
 
-	public int addTermDoc(TermDoc termDoc) {
-		if (count == termDocList.length) {
-			int newLength = (int) (termDocList.length * 1.2);
+	public int addPostingDoc(PostingDoc termDoc) {
+		if (count == postingDocList.length) {
+			int newLength = (int) (postingDocList.length * 1.2);
 			try {
-				TermDoc[] newTermDocList = new TermDoc[newLength];
-				System.arraycopy(termDocList, 0, newTermDocList, 0, termDocList.length);
-				termDocList = newTermDocList;
+				PostingDoc[] newPostingDocList = new PostingDoc[newLength];
+				System.arraycopy(postingDocList, 0, newPostingDocList, 0, postingDocList.length);
+				postingDocList = newPostingDocList;
 			} catch (OutOfMemoryError e) {
 				logger.error("OOM! while allocating memory size = " + newLength, e);
 				throw e;
 			}
 		}
-		termDocList[count++] = termDoc;
+		postingDocList[count++] = termDoc;
 		return count;
 	}
 
-	public TermDocsReader getReader(){
-		return new TermDocsReader(this);
+	public PostingDocsReader getReader(){
+		return new PostingDocsReader(this);
 	}
 }

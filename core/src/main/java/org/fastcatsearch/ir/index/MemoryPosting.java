@@ -20,10 +20,10 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import org.fastcatsearch.al.HashFunctions;
+import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.ir.io.FastByteBuffer;
-import org.fastcatsearch.ir.io.Output;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +64,7 @@ public class MemoryPosting {
 	protected PostingBuffer newPostingBuffer(){
 		return new PostingBuffer();
 	}
-	public long save(Output output) throws IOException{
+	public long save(StreamOutput output) throws IOException{
 		//하나의 파일에 블럭단위로 write한다. 맨앞에 데이터 길이필요
 		
 		logger.debug("MemoryPosting term-count = {}", count);
@@ -100,10 +100,10 @@ public class MemoryPosting {
 				logger.error("id={}, len={}, term={}", id, len, new String(keyArray, pos, len));
 			}
 			postingArray[id].finish();
-			FastByteBuffer buf = postingArray[id].buffer();
+			BytesBuffer buf = postingArray[id].buffer();
 //			logger.debug("write memory posting {} >> {} : {}", id, new String(keyArray, pos, len), buf);
 			//데이터길이 
-			output.writeVariableByte(buf.length());
+			output.writeVInt(buf.length());
 			if(buf.length() > 0){
 				output.writeBytes(buf);
 //				logger.debug("write memory posting {} >> {} ,data={}", id, new String(keyArray, pos, len), buf.length());

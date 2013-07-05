@@ -19,8 +19,8 @@ package org.fastcatsearch.ir.query;
 
 import java.io.IOException;
 
-import org.fastcatsearch.ir.search.TermDoc;
-import org.fastcatsearch.ir.search.CompositeTermDoc;
+import org.fastcatsearch.ir.search.PostingDoc;
+import org.fastcatsearch.ir.search.CompositePostingDoc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,23 +31,23 @@ public class TermOperatedClause implements OperatedClause {
 	private static Logger logger = LoggerFactory.getLogger(TermOperatedClause.class);
 	private int pos;
 	
-	private CompositeTermDoc termDocs;
-	private TermDoc[] termDocList;
+	private CompositePostingDoc termDocs;
+	private PostingDoc[] termDocList;
 	
 	private int weight;
 	private boolean ignoreTermFreq;
 	
-	public TermOperatedClause(CompositeTermDoc termDocs, int weight) throws IOException {
+	public TermOperatedClause(CompositePostingDoc termDocs, int weight) throws IOException {
 		this(termDocs, weight, false);
 	}
-	public TermOperatedClause(CompositeTermDoc termDocs, int weight, boolean ignoreTermFreq) throws IOException {
+	public TermOperatedClause(CompositePostingDoc termDocs, int weight, boolean ignoreTermFreq) throws IOException {
 		this.termDocs = termDocs;
 		termDocList = termDocs.termDocList();
 		this.weight = weight;
 		this.ignoreTermFreq = ignoreTermFreq;
 	}
 
-	public CompositeTermDoc termDocs(){
+	public CompositePostingDoc termDocs(){
 		return termDocs;
 	}
 	/* (non-Javadoc)
@@ -60,7 +60,7 @@ public class TermOperatedClause implements OperatedClause {
 		}
 		
 		if(pos < termDocs.count()){
-			TermDoc termDoc = termDocList[pos];
+			PostingDoc termDoc = termDocList[pos];
 			//if tf is greater than 1, score is weight + (tf - 1) * 1
 			docInfo.init(termDoc.docNo(), ignoreTermFreq ? weight : weight + (termDoc.tf() - 1));
 			//docInfo.init(docs[pos], tfs[pos] * weight);

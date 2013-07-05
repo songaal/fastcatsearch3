@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 public abstract class Input implements Cloneable {
 	protected static Logger logger = LoggerFactory.getLogger(Input.class);
 
-	public abstract int readBytes(FastByteBuffer dst) throws IOException;
+	public abstract int readBytes(BytesBuffer dst) throws IOException;
 
 	public abstract int readByte() throws IOException;
 
@@ -55,7 +55,7 @@ public abstract class Input implements Cloneable {
 	}
 
 	public int readBytes(byte[] dst, int offset, int length) throws IOException {
-		return readBytes(new FastByteBuffer(dst, offset, offset + length));
+		return readBytes(new BytesBuffer(dst, offset, offset + length));
 	}
 
 	public int readComplementBytes(byte[] dst, int offset, int length) throws IOException {

@@ -17,7 +17,7 @@
 package org.fastcatsearch.ir.index;
 
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,21 +35,21 @@ public class PostingBufferWithSeq {
 	
 	private int count;
 	private int lastDocNo;
-	private FastByteBuffer buffer;
+	private BytesBuffer buffer;
 	private static final int MAX_FREQ = 0xFF - 1;
 	private int[] seqList = new int[8];
 	private int tf;
 	private int seqPos;
 	private int oldSeq;
 	
-	public PostingBufferWithSeq(FastByteBuffer buf){
+	public PostingBufferWithSeq(BytesBuffer buf){
 		this.buffer = buf;
 		count = IOUtil.readInt(buffer);
 		lastDocNo = IOUtil.readInt(buffer);
-		buffer.pos(buffer.limit); //appendable
+		buffer.pos(buffer.length); //appendable
 	}
 	public PostingBufferWithSeq(){
-		buffer = new FastByteBuffer(32);
+		buffer = new BytesBuffer(32);
 		this.count = 0;
 		this.lastDocNo = -1;
 		IOUtil.writeInt(buffer, count);
@@ -63,9 +63,9 @@ public class PostingBufferWithSeq {
 		
 		if(buffer.remaining() < 10){
 			byte[] newbuffer = new byte[buffer.size() * 2];
-			System.arraycopy(buffer.array, 0, newbuffer, 0, buffer.size());
-			buffer.array = newbuffer;
-			buffer.limit = buffer.array.length;
+			System.arraycopy(buffer.bytes, 0, newbuffer, 0, buffer.size());
+			buffer.bytes = newbuffer;
+			buffer.length = buffer.bytes.length;
 		}
 		
 		if(docNo == lastDocNo){
@@ -101,9 +101,9 @@ public class PostingBufferWithSeq {
 		}
 		if(buffer.remaining() < 10){
 			byte[] newbuffer = new byte[buffer.size() * 2];
-			System.arraycopy(buffer.array, 0, newbuffer, 0, buffer.size());
-			buffer.array = newbuffer;
-			buffer.limit = buffer.array.length;
+			System.arraycopy(buffer.bytes, 0, newbuffer, 0, buffer.size());
+			buffer.bytes = newbuffer;
+			buffer.length = buffer.bytes.length;
 		}
 		if(count == 0){
 			IOUtil.writeVariableByte(buffer, docNo);
@@ -131,7 +131,7 @@ public class PostingBufferWithSeq {
 	}
 	
 	public int size(){
-		return buffer.limit;
+		return buffer.length;
 	}
 	
 	public int count(){
@@ -141,7 +141,7 @@ public class PostingBufferWithSeq {
 		return lastDocNo;
 	}
 	
-	public FastByteBuffer buffer(){
+	public BytesBuffer buffer(){
 		return buffer;
 	}
 	

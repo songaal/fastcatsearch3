@@ -17,7 +17,7 @@
 package org.fastcatsearch.ir.index;
 
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,12 +33,12 @@ public class PostingBuffer {
 	
 	protected int postingSize;
 	protected int lastDocNo;
-	protected FastByteBuffer postingVector;
+	protected BytesBuffer postingVector;
 	protected int lastDocDelta;
 	protected int lastDocFrequency;
 	
 	public PostingBuffer(){
-		postingVector = new FastByteBuffer(32);
+		postingVector = new BytesBuffer(32);
 		this.postingSize = 0;
 		this.lastDocNo = -1;
 		IOUtil.writeInt(postingVector, postingSize);
@@ -56,9 +56,9 @@ public class PostingBuffer {
 			}
 		
 			byte[] newbuffer = new byte[newAdditionalSize];
-			System.arraycopy(postingVector.array, 0, newbuffer, 0, postingVector.pos());
-			postingVector.array = newbuffer;
-			postingVector.limit = newbuffer.length;
+			System.arraycopy(postingVector.bytes, 0, newbuffer, 0, postingVector.pos());
+			postingVector.bytes = newbuffer;
+			postingVector.length = newbuffer.length;
 		}
 	}
 	public void addOne(int docNo, int position) throws IRException{
@@ -116,10 +116,10 @@ public class PostingBuffer {
 		return lastDocNo;
 	}
 	public int firstDocNo(){
-		return IOUtil.readVariableByte(postingVector.array, 8);
+		return IOUtil.readVariableByte(postingVector.bytes, 8);
 	}
 	
-	public FastByteBuffer buffer(){
+	public BytesBuffer buffer(){
 		return postingVector;
 	}
 	

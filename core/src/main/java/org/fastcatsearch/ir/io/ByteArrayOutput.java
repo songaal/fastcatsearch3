@@ -19,8 +19,9 @@ package org.fastcatsearch.ir.io;
 import java.io.IOException;
 
 import org.apache.lucene.util.BytesRef;
+import org.fastcatsearch.common.io.StreamOutput;
 
-public class ByteArrayOutput extends Output{
+public class ByteArrayOutput extends StreamOutput {
 	protected byte[] buf;
 	protected int pos;
 	
@@ -58,7 +59,7 @@ public class ByteArrayOutput extends Output{
 	}
 
 	@Override
-	public void position(long p) throws IOException {
+	public void seek(long p) throws IOException {
 		pos = (int) p;
 	}
 
@@ -74,10 +75,9 @@ public class ByteArrayOutput extends Output{
 		pos = newPos;
 	}
 
-	@Override
-	public void writeBytes(FastByteBuffer dst) throws IOException {
-		writeBytes(dst.array(), dst.pos(), dst.remaining());
-	}
+//	public void writeBytes(BytesRef dst) throws IOException {
+//		writeBytes(dst.array(), dst.pos(), dst.remaining());
+//	}
 
 	@Override
 	public void writeBytes(byte[] dst, int offset, int length)
@@ -112,6 +112,12 @@ public class ByteArrayOutput extends Output{
 	
 	public void reset(){
 		pos = 0;
+	}
+
+	@Override
+	public void writeByte(byte b) throws IOException {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import org.fastcatsearch.al.HashFunctions;
+import org.fastcatsearch.common.io.StreamInput;
+import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
@@ -83,7 +85,7 @@ public class HashSetDictionary {
 		try {
 			long st = System.currentTimeMillis();
 			
-			Input input = new BufferedFileInput(file);
+			StreamInput input = new BufferedFileInput(file);
 			bucketSize = input.readInt();
 			count = input.readInt();
 			keyUseLength = input.readInt();
@@ -117,7 +119,7 @@ public class HashSetDictionary {
 	
 	public void save(File file) throws IRException{
 		try {
-			Output output = new BufferedFileOutput(file);
+			StreamOutput output = new BufferedFileOutput(file);
 			output.writeInt(bucketSize);
 			output.writeInt(count);
 			output.writeInt(keyUseLength);

@@ -89,27 +89,23 @@ public class SearchActionCommand extends Command {
 				for(int rowInx=0;rowInx<gresults.groupSize();rowInx++) {
 					GroupResult gresult = gresults.getGroupResult(rowInx);
 					List<Object[]> gdata = new ArrayList<Object[]>();
-					String[] gheader = new String[] {
-							//
-							//
-							// TODO function을 여러개받을 수 있어야한다. function에는 count, sum, max등이 복합적으로 들어올수 있다.
-							// 	현재는 freq가 무조건 생성되고, 추가적으로 sum,max등이 생성되나, 여기서는 아직 구현이 안되어 있다.
-							// function이 default인지 확인하여 결과를 다르게 넘겨주어야한다.
-							//
-							//
-							"no","key", gresult.headerNameList()
-					};
+					
+					String[] headerNameList = gresult.headerNameList();
 					
 					for(int recordInx=0;recordInx<gresult.size();recordInx++) {
-						Object[] record = new Object[3];
 						GroupEntry entry = gresult.getEntry(recordInx);
+						Object[] record = new Object[2 + entry.functionSize()];
 						record[0] = recordInx;
 						record[1] = entry.key;
-						record[2] = entry.count();//entry.getGroupingObjectResultString();
+						
+						int k = 0;
+						for (int i = 2; i < record.length; i++) {
+							record[i] = entry.groupingValue(k++).toString();
+						}
 						gdata.add(record);
 					}
 					msg.append(":group result [").append(rowInx+1).append("]\n");
-					msg.append(super.printData(gdata,gheader));
+					msg.append(super.printData(gdata, headerNameList));
 				}
 			}
 			

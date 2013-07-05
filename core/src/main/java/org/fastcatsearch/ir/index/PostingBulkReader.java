@@ -53,12 +53,4 @@ public class PostingBulkReader {
 		
 	}
 	
-	public static void main(String[] args) throws IOException {
-		File file = new File(args[0]);
-		Input input = new BufferedFileInput(file);
-		
-		PostingBulkReader reader = new PostingBulkReader(input);
-		reader.read();
-		input.close();
-	}
 }

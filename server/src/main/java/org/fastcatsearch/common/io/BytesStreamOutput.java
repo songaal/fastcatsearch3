@@ -127,7 +127,7 @@ public class BytesStreamOutput extends StreamOutput implements BytesStream {
      *         of valid bytes in this output stream.
      * @see java.io.ByteArrayOutputStream#count
      */
-    public int size() {
+    public long size() {
         return count;
     }
     
@@ -139,5 +139,12 @@ public class BytesStreamOutput extends StreamOutput implements BytesStream {
     public int length(){
     	return buf.length;
     }
+
+	@Override
+	public void setLength(long newLength) throws IOException {
+		if(count > newLength){
+			count = (int) newLength;
+		}
+	}
 
 }

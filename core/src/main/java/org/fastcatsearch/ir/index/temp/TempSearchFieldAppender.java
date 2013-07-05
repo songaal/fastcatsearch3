@@ -19,6 +19,8 @@ package org.fastcatsearch.ir.index.temp;
 import java.io.File;
 import java.io.IOException;
 
+import org.fastcatsearch.common.io.StreamInput;
+import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.index.IndexFieldOption;
@@ -26,17 +28,15 @@ import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.ByteArrayOutput;
 import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IOUtil;
-import org.fastcatsearch.ir.io.Input;
-import org.fastcatsearch.ir.io.Output;
 
 public class TempSearchFieldAppender extends TempSearchFieldMerger {
 
 	private CharVector cv;
 	private CharVector cvOld;
 	private ByteArrayOutput tempPostingOutput;
-	private FastByteBuffer[] buffers;
+	private BytesBuffer[] buffers;
 
 	private int totalCount;
 	private int prevDocNo;
@@ -48,7 +48,7 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 
 		tempPostingOutput = new ByteArrayOutput(1024 * 1024);
 
-		buffers = new FastByteBuffer[flushCount];
+		buffers = new BytesBuffer[flushCount];
 
 		reader = new TempSearchFieldReader[flushCount];
 		for (int m = 0; m < flushCount; m++) {
@@ -60,13 +60,13 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 
 	public boolean mergeAndAppendIndex(File segmentDir1, File targetDir, int indexInterval, IndexFieldOption[] fieldIndexOptions) throws IOException,
 			IRException {
-		Input lexiconInput1 = new BufferedFileInput(segmentDir1, IRFileName.lexiconFile);
-		Output lexiconOutput = new BufferedFileOutput(targetDir, IRFileName.lexiconFile, false);
+		StreamInput lexiconInput1 = new BufferedFileInput(segmentDir1, IRFileName.lexiconFile);
+		StreamOutput lexiconOutput = new BufferedFileOutput(targetDir, IRFileName.lexiconFile, false);
 
-		Output indexOutput = new BufferedFileOutput(targetDir, IRFileName.indexFile, false);
+		StreamOutput indexOutput = new BufferedFileOutput(targetDir, IRFileName.indexFile, false);
 
-		Input postingInput1 = new BufferedFileInput(segmentDir1, IRFileName.postingFile);
-		Output postingOutput = new BufferedFileOutput(targetDir, IRFileName.postingFile, false);
+		StreamInput postingInput1 = new BufferedFileInput(segmentDir1, IRFileName.postingFile);
+		StreamOutput postingOutput = new BufferedFileOutput(targetDir, IRFileName.postingFile, false);
 
 		// 같은 텀이 있을때에 posting 문서번호를 다 읽어서 머징한다.
 		// 같은 텀이 없다면 포스팅데이터를 뚝 떼어서 새로운 포스팅에 붙이면 된다.
@@ -135,13 +135,13 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 					if (cmp == 0) {
 
 						// posting merge.
-						int len1 = postingInput1.readVariableByte();
+						int len1 = postingInput1.readVInt();
 						int len2 = (int) tempPostingOutput.position(); // only data length (exclude header)
 
 						int count1 = postingInput1.readInt();
 						int lastDocNo1 = postingInput1.readInt();
 
-						int data1Length = len1 - IOUtil.SIZE_OF_INT * 2;
+						int data1Length = (int) (len1 - IOUtil.SIZE_OF_INT * 2);
 						if (data1Length > buffer.length) {
 							buffer = new byte[data1Length];
 						}
@@ -154,17 +154,17 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 						int sz2 = IOUtil.lenVariableByte(firstDocNo2);
 						int newFirstDocNo = firstDocNo2 - lastDocNo1 - 1;
 						int delta = IOUtil.lenVariableByte(newFirstDocNo) - sz2;
-						int newLen = len1 + len2 + delta;
+						long newLen = len1 + len2 + delta;
 
 						position = postingOutput.position();
-						postingOutput.writeVariableByte(newLen);
+						postingOutput.writeVLong(newLen);
 						postingOutput.writeInt(count1 + count2);
 						postingOutput.writeInt(lastDocNo2);
 						postingOutput.writeBytes(buffer, 0, data1Length);
 
 						len2 -= sz2;
 
-						postingOutput.writeVariableByte(newFirstDocNo);
+						postingOutput.writeVInt(newFirstDocNo);
 						postingOutput.writeBytes(tempPostingOutput.array(), sz2, len2);
 
 						lexiconOutput.writeUString(term.array, term.start, term.length);
@@ -182,7 +182,7 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 
 					} else if (cmp < 0) {
 
-						int len = postingInput1.readVariableByte();
+						int len = postingInput1.readVInt();
 						if (len > buffer.length)
 							buffer = new byte[len];
 						if (len < 8)
@@ -193,7 +193,7 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 						position = postingOutput.position();
 
 						// write posting
-						postingOutput.writeVariableByte(len);
+						postingOutput.writeVInt(len);
 						postingOutput.writeBytes(buffer, 0, len);
 
 						// write lexicon
@@ -225,10 +225,10 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 						int len2 = IOUtil.SIZE_OF_INT * 2 + sz2 + len;
 						if (len2 < 8)
 							throw new IOException("Terrible Error!! " + len2);
-						postingOutput.writeVariableByte(len2);
+						postingOutput.writeVInt(len2);
 						postingOutput.writeInt(count);
 						postingOutput.writeInt(lastDocNo);
-						postingOutput.writeVariableByte(firstDocNo);
+						postingOutput.writeVInt(firstDocNo);
 						postingOutput.writeBytes(tempPostingOutput.array(), sz, len);
 
 						// write term
@@ -250,16 +250,16 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 
 				logger.debug("## indexTermCount = " + indexTermCount);
 				long prevPos = lexiconOutput.position();
-				lexiconOutput.position(lexiconFileHeadPos);
+				lexiconOutput.seek(lexiconFileHeadPos);
 				lexiconOutput.writeInt(termCount);
 				logger.debug("WRITE LEXICON COUNT = {} at {}", termCount, lexiconFileHeadPos);
-				lexiconOutput.position(prevPos);
+				lexiconOutput.seek(prevPos);
 
 				if (termCount > 0) {
 					prevPos = indexOutput.position();
-					indexOutput.position(indexFileHeadPos);
+					indexOutput.seek(indexFileHeadPos);
 					indexOutput.writeInt(indexTermCount);
-					indexOutput.position(prevPos);
+					indexOutput.seek(prevPos);
 				} else {
 					long pointer = lexiconOutput.position();
 					indexOutput.writeLong(pointer);
@@ -333,7 +333,7 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 				prevDocNo = -1;
 				totalCount = 0;
 				for (int k = 0; k < bufferCount; k++) {
-					FastByteBuffer buf = buffers[k];
+					BytesBuffer buf = buffers[k];
 					buf.flip();
 
 					// count 와 lastNo를 읽어둔다.

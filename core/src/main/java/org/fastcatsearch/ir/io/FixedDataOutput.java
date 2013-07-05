@@ -4,10 +4,11 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.lucene.util.BytesRef;
+import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRFileName;
 
 public class FixedDataOutput implements SequencialDataOutput {
-	private Output dataOutput;
+	private StreamOutput dataOutput;
 	
 	public FixedDataOutput(File dir, String fileName) throws IOException{
 		this(dir, fileName, false);
@@ -19,13 +20,13 @@ public class FixedDataOutput implements SequencialDataOutput {
 	
 	@Override
 	public void write(byte[] buffer, int offset, int length) throws IOException{
-		dataOutput.writeVariableByte(length);
+		dataOutput.writeVInt(length);
 		dataOutput.writeBytes(buffer, offset, length);
 	}
 	
 	@Override
 	public void write(BytesRef bytesRef) throws IOException{
-		dataOutput.writeVariableByte(bytesRef.length);
+		dataOutput.writeVInt(bytesRef.length);
 		dataOutput.writeBytes(bytesRef.bytes, bytesRef.offset, bytesRef.length);
 	}
 	

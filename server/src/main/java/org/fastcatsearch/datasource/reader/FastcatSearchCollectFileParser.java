@@ -21,18 +21,20 @@ import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.fastcatsearch.datasource.DataSourceSetting;
 import org.fastcatsearch.datasource.SourceModifier;
-import org.fastcatsearch.datasource.reader.CollectFileParser.FileParserConfig;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.document.Document;
+import org.fastcatsearch.ir.field.Field;
+import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.io.DirBufferedReader;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.util.HTMLTagRemover;
 
 
-public class FastcatSearchCollectFileParser extends SourceReader{
+public class FastcatSearchCollectFileParser extends SourceReader {
 	
 	private DirBufferedReader br;
 	private Document document;
@@ -48,13 +50,13 @@ public class FastcatSearchCollectFileParser extends SourceReader{
 	private Pattern CPAT;
 	private int count; // how many fields are set
 
-	public FastcatSearchCollectFileParser(Schema schema, FileParserConfig config, SourceModifier sourceModifier, Boolean isFull) throws IRException {
+	public FastcatSearchCollectFileParser(Schema schema, DataSourceSetting config, SourceModifier sourceModifier, Boolean isFull) throws IRException {
 		super(schema, sourceModifier);
 		try {
 			if(isFull){
-				br = new DirBufferedReader(new File(config.getFullFilePath()), config.getFileEncoding());
+				br = new DirBufferedReader(new File(config.fullFilePath), config.fileEncoding);
 			}else{
-				br = new DirBufferedReader(new File(config.getIncFilePath()), config.getFileEncoding());
+				br = new DirBufferedReader(new File(config.incFilePath), config.fileEncoding);
 			}
 		} catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage(),e);
@@ -71,7 +73,7 @@ public class FastcatSearchCollectFileParser extends SourceReader{
 		OPAT = Pattern.compile(OPEN_PATTERN);
 		CPAT = Pattern.compile(CLOSE_PATTERN);
 		
-		deleteIdList = new HashSet<String>();
+		deleteIdList = new DeleteIdSet(primaryKeySize);
 		
 	}
 	
@@ -106,42 +108,32 @@ public class FastcatSearchCollectFileParser extends SourceReader{
 					continue;
 				
 				line = line.trim();
-//				logger.debug("line = "+line+" "+isOpened);
-				
 				
 				
 				if(line.length() > 1 && line.charAt(0) == '<' && line.charAt(1) != '/'){
-//					logger.debug("4");
 					Matcher m = OPAT.matcher(line);
 					if(m.matches()){
-//						logger.debug("5");
 						String tag = m.group(1);
-						int tempTagNum = fieldIndex.get(tag);
+						int tempTagNum = schema.getFieldSequence(tag);
 						if(tempTagNum < 0){
-//							logger.debug("wrong tag = "+tag);
 						}else{
 							tagNum = tempTagNum;
 							openTag = tag;
 							isOpened = true;
 							fs = fieldSettingList.get(tagNum);
-	//						logger.debug("open tag => "+openTag+" ("+tagNum+")");
 							continue;
 						}
 					}
 				}
 				
 				if(isOpened && line.startsWith("</")){
-//					logger.debug("1");
 					Matcher m = CPAT.matcher(line);
 					if(m.matches()){
-//						logger.debug("2");
 						String closeTag = m.group(1);
 						if(openTag.equals(closeTag)){
 							isOpened = false;
-//							logger.debug("close tag => "+closeTag);
-//							logger.debug(tagNum+"/"+closeTag+" => "+sb.toString());
 							String targetStr = sb.toString();
-							if(fs.tagRemove){
+							if(fs.isRemoveTag()){
 								targetStr = HTMLTagRemover.clean(targetStr);
 							}
 							document.set(tagNum, fs.createField(targetStr));

@@ -17,7 +17,7 @@
 package org.fastcatsearch.ir.index;
 
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IOUtil;
 
 
@@ -28,12 +28,12 @@ import org.fastcatsearch.ir.io.IOUtil;
  */
 public class PostingBufferWithPosition extends PostingBuffer {
 	
-	private FastByteBuffer positionBuffer;
+	private BytesBuffer positionBuffer;
 	private int lastDocPosition;
 	
 	public PostingBufferWithPosition(){
 		super();
-		positionBuffer = new FastByteBuffer(32);
+		positionBuffer = new BytesBuffer(32);
 	}
 	
 	@Override
@@ -45,9 +45,9 @@ public class PostingBufferWithPosition extends PostingBuffer {
 		
 		if(positionBuffer.remaining() < 5){ //vb는 최대 5바이트기록가능하다.
 			byte[] newbuffer = new byte[positionBuffer.size() * 2];
-			System.arraycopy(positionBuffer.array, 0, newbuffer, 0, positionBuffer.pos());
-			positionBuffer.array = newbuffer;
-			positionBuffer.limit = newbuffer.length;
+			System.arraycopy(positionBuffer.bytes, 0, newbuffer, 0, positionBuffer.pos());
+			positionBuffer.bytes = newbuffer;
+			positionBuffer.length = newbuffer.length;
 		}
 		
 		//동일한 문서번호면 freq를 올려준다.
@@ -73,7 +73,7 @@ public class PostingBufferWithPosition extends PostingBuffer {
 		//positionVector 초기화.
 		if(positionBuffer.size() >= 128){
 			//너무크면 버리고 새로 만든다.
-			positionBuffer = new FastByteBuffer(32);
+			positionBuffer = new BytesBuffer(32);
 		}else{
 			positionBuffer.clear();
 		}

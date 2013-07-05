@@ -20,9 +20,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 
+import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
-import org.fastcatsearch.ir.io.IOUtil;
-import org.fastcatsearch.ir.io.Output;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,8 +36,8 @@ import org.slf4j.LoggerFactory;
 public class PrimaryKeyIndexWriter {
 	private static Logger logger = LoggerFactory.getLogger(PrimaryKeyIndexWriter.class);
 	
-	private Output output;
-	private Output indexOutput;
+	private StreamOutput output;
+	private StreamOutput indexOutput;
 	private int[] bucket;
 	private byte[] array;
 	private int[] keyPos;
@@ -78,7 +77,7 @@ public class PrimaryKeyIndexWriter {
 		Arrays.fill(intValueArray, -1);
 	}
 	
-	public void setDestination(Output output, Output indexOutput){
+	public void setDestination(StreamOutput output, StreamOutput indexOutput){
 		this.output = output;
 		this.indexOutput = indexOutput;
 	}
@@ -124,13 +123,13 @@ public class PrimaryKeyIndexWriter {
 			
 			//write pkmap index
 			if(i % indexInterval == 0){
-				indexOutput.writeVariableByte(len);
+				indexOutput.writeVInt(len);
 				indexOutput.writeBytes(array, pos, len);
 				indexOutput.writeLong(output.position());
 				idxCount++;
 			}
 			
-			output.writeVariableByte(len);
+			output.writeVInt(len);
 			output.writeBytes(array, pos, len);
 			output.writeInt(intValueArray[id]);
 		}
@@ -140,9 +139,9 @@ public class PrimaryKeyIndexWriter {
 	
 		//write idxCount
 		long p = indexOutput.position();
-		indexOutput.position(indexPos);
+		indexOutput.seek(indexPos);
 		indexOutput.writeInt(idxCount);
-		indexOutput.position(p);
+		indexOutput.seek(p);
 	}
 	
 	public void close() throws IOException{

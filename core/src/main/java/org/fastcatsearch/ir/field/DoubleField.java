@@ -2,8 +2,8 @@ package org.fastcatsearch.ir.field;
 
 import java.io.IOException;
 
-import org.fastcatsearch.ir.io.Input;
-import org.fastcatsearch.ir.io.Output;
+import org.fastcatsearch.common.io.StreamInput;
+import org.fastcatsearch.common.io.StreamOutput;
 
 public class DoubleField extends NumericField {
 	
@@ -21,13 +21,13 @@ public class DoubleField extends NumericField {
 	}
 	
 	@Override
-	public void readFrom(Input input) throws IOException {
+	public void readFrom(StreamInput input) throws IOException {
 		fieldsData = Double.longBitsToDouble(input.readLong());
 	}
 	
 
 	@Override
-	public void writeFixedDataTo(Output output) throws IOException {
+	public void writeFixedDataTo(StreamOutput output) throws IOException {
 		output.writeLong(Double.doubleToLongBits((Double)fieldsData));
 	}
 

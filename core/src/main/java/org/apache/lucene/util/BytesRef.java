@@ -19,6 +19,7 @@ package org.apache.lucene.util;
 
 import java.util.Comparator;
 
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IOUtil;
 
 /**
@@ -31,18 +32,10 @@ import org.fastcatsearch.ir.io.IOUtil;
  * {@code new String(bytes, offset, length)} to do this is <b>wrong</b>, as it does not respect the correct character set and may
  * return wrong results (depending on the platform's defaults)!
  */
-public final class BytesRef implements Comparable<BytesRef>, Cloneable {
+public final class BytesRef extends BytesBuffer implements Comparable<BytesRef>, Cloneable  {
 	/** An empty byte array for convenience */
 	public static final byte[] EMPTY_BYTES = new byte[0];
 
-	/** The contents of the BytesRef. Should never be {@code null}. */
-	public byte[] bytes;
-
-	/** Offset of first valid byte. */
-	public int offset;
-
-	/** Length of used bytes. */
-	public int length;
 
 	/** Create a BytesRef with {@link #EMPTY_BYTES} */
 	public BytesRef() {
@@ -84,7 +77,6 @@ public final class BytesRef implements Comparable<BytesRef>, Cloneable {
 		copyChars(text);
 	}
 
-	
 	public void reset(){
 		offset = 0;
 		length = bytes.length;
@@ -260,6 +252,18 @@ public final class BytesRef implements Comparable<BytesRef>, Cloneable {
 		length = newLen;
 	}
 
+	public void append(byte[] other, int off, int len) {
+		int newLen = this.length + length;
+		if (bytes.length - offset < newLen) {
+			byte[] newBytes = new byte[newLen];
+			System.arraycopy(bytes, offset, newBytes, 0, length);
+			offset = 0;
+			bytes = newBytes;
+		}
+		System.arraycopy(other, off, bytes, length + offset, len);
+		length = newLen;
+	}
+	
 	/**
 	 * Used to grow the reference array.
 	 * 
@@ -356,5 +360,9 @@ public final class BytesRef implements Comparable<BytesRef>, Cloneable {
 		}
 		
 		return length - other.length;
+	}
+
+	public int remaining() {
+		return length - offset;
 	}
 }

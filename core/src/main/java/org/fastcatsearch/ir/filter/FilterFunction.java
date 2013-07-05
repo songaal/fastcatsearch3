@@ -22,7 +22,7 @@ import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.io.ByteArrayOutput;
 import org.fastcatsearch.ir.io.DataRef;
-import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.query.Filter;
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.settings.FieldSetting;
@@ -63,7 +63,7 @@ public abstract class FilterFunction {
 				//패턴의 byte 데이터를 얻기위해 필드객체를 생성한다.
 				//패턴과 필드데이터를 같은 길이의 byte[]로 만들어놓고 비교를 한다.
 				
-				Field f = Field.createSingleValueField(fieldSetting, filter.pattern(j));
+				Field f = fieldSetting.createPatternField(filter.pattern(j));
 				int patternByteSize = fieldSetting.getByteSize();
 				ByteArrayOutput arrayOutput = new ByteArrayOutput(patternByteSize);
 				f.writeFixedDataTo(arrayOutput);
@@ -76,7 +76,7 @@ public abstract class FilterFunction {
 	//			f.getFixedBytes(patternList[j]);
 	//			patternList[j].flip();
 				if(filter.isEndPatternExist()){
-					f = Field.createSingleValueField(fieldSetting, filter.endPattern(j));
+					f = fieldSetting.createPatternField(filter.endPattern(j));
 					patternByteSize = fieldSetting.getByteSize();
 					arrayOutput = new ByteArrayOutput(patternByteSize);
 					f.writeFixedDataTo(arrayOutput);

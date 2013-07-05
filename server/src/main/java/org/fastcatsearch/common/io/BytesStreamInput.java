@@ -82,7 +82,8 @@ public class BytesStreamInput extends StreamInput {
         return n;
     }
 
-    public int position() {
+    @Override
+    public long position() {
         return this.pos;
     }
 
@@ -151,4 +152,9 @@ public class BytesStreamInput extends StreamInput {
     public void close() throws IOException {
         // nothing to do here...
     }
+
+	@Override
+	public void seek(long p) throws IOException {
+		pos = (int) p;
+	}
 }

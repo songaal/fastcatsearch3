@@ -23,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.Output;
@@ -43,7 +44,7 @@ public class SpecialCharacterMapCompiler {
 		try {
 			logger.info("SpecialCharacterMap compile start!");
 			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(input),charset));
-			Output out = new BufferedFileOutput(output);
+			StreamOutput out = new BufferedFileOutput(output);
 			String line = null;
 			int cnt = 0;
 			while((line = br.readLine()) != null){

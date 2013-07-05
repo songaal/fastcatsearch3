@@ -38,7 +38,7 @@ import org.fastcatsearch.ir.index.MultiKeyEntry;
 import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.ByteArrayOutput;
-import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.Output;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.PkRefSetting;
@@ -341,12 +341,12 @@ public class CollectionHandler {
 		
 		pkBulkReader = new PrimaryKeyIndexBulkReader(IRFileName.getRevisionDir(newSegmentDir,revision), IRFileName.primaryKeyMap);
 		
-		FastByteBuffer buf = new FastByteBuffer(1024);
+		BytesBuffer buf = new BytesBuffer(1024);
 		//새로 추가된 pk가 이전 세그먼트에 존재하면 update된 것이다.
 		while(pkBulkReader.next(buf) != -1){
 			//backward matching
 			for (int i = segmentSize - 1; i >= 0; i--) {
-				int localDocNo = pkReaderList[i].get(buf.array, buf.pos, buf.limit);
+				int localDocNo = pkReaderList[i].get(buf.array, buf.offset, buf.length);
 //				logger.debug("check "+new String(buf.array, 0, buf.limit));
 				if(localDocNo != -1){
 					//add delete list
@@ -559,11 +559,11 @@ public class CollectionHandler {
 			PrimaryKeyIndexBulkReader pkBulkReader = new PrimaryKeyIndexBulkReader(tempPkFile);
 			//현재 추가할 세그먼트의  pk들이 이전 세그먼트에 존재하면 delete처리를 한다.
 			//i번째 segment의 삭제리스트는 i번째 deleteSetList에 추가하도록 한다.
-			FastByteBuffer buf = new FastByteBuffer(1024);
+			BytesBuffer buf = new BytesBuffer(1024);
 			while(pkBulkReader.next(buf) != -1){
 				//backward matching
 				for (int i = segmentSize - 2; i >= 0; i--) {
-					int localDocNo = pkList[i].get(buf.array, buf.pos, buf.limit);
+					int localDocNo = pkList[i].get(buf.array, buf.offset, buf.length);
 					if(localDocNo != -1){
 						//add delete doc no
 						if(!deleteSetList[i].isSet(localDocNo)){

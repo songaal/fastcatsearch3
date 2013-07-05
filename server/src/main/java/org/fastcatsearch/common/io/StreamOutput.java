@@ -26,7 +26,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.common.BytesReference;
+import org.fastcatsearch.ir.io.BytesBuffer;
 
 /**
  *
@@ -51,6 +53,9 @@ public abstract class StreamOutput extends OutputStream {
      */
     public abstract void writeByte(byte b) throws IOException;
 
+    public void writeByte(int b) throws IOException{
+    	writeByte((byte) b);
+    }
     /**
      * Writes an array of bytes.
      *
@@ -79,6 +84,12 @@ public abstract class StreamOutput extends OutputStream {
      */
     public abstract void writeBytes(byte[] b, int offset, int length) throws IOException;
 
+    public void writeBytes(BytesBuffer bytesBuffer) throws IOException {
+    	writeBytes(bytesBuffer.bytes, bytesBuffer.offset, bytesBuffer.length);
+    }
+    
+    public abstract long size() throws IOException;
+    
     /**
      * Writes the bytes reference, including a length header.
      */
@@ -149,7 +160,7 @@ public abstract class StreamOutput extends OutputStream {
         }
     }
 
-    public void writeString(String str) throws IOException {
+    public void writeUTF8String(String str) throws IOException {
         int charCount = str.length();
         writeVInt(charCount);
         int c;
@@ -164,6 +175,22 @@ public abstract class StreamOutput extends OutputStream {
             } else {
                 writeByte((byte) (0xC0 | c >> 6 & 0x1F));
                 writeByte((byte) (0x80 | c >> 0 & 0x3F));
+            }
+        }
+    }
+    
+  //ascii는 1byte로 기록하고 나머지는 2byte로 기록한다.
+    public void writeString(String str) throws IOException {
+        int charCount = str.length();
+        writeVInt(charCount);
+        int c;
+        for (int i = 0; i < charCount; i++) {
+            c = str.charAt(i);
+            if (c <= 0x007F) {
+                writeByte((byte) c);
+            } else {
+                writeByte((byte) (c >> 8));
+                writeByte((byte) c);
             }
         }
     }
@@ -199,6 +226,9 @@ public abstract class StreamOutput extends OutputStream {
 
     public abstract void reset() throws IOException;
 
+    public abstract void setLength(long newLength) throws IOException;
+    
+    
     @Override
     public void write(int b) throws IOException {
         writeByte((byte) b);

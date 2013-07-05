@@ -23,7 +23,7 @@ import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexBulkReader;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexBulkWriter;
 import org.fastcatsearch.ir.io.BitSet;
-import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IOUtil;
 import org.fastcatsearch.ir.io.Output;
 import org.slf4j.Logger;
@@ -63,8 +63,8 @@ public class PrimaryKeyIndexMerger {
 		
 		w = new PrimaryKeyIndexBulkWriter(newPkFile, indexInterval);
 		
-		FastByteBuffer buf1 = new FastByteBuffer(1024);
-		FastByteBuffer buf2 = new FastByteBuffer(1024);
+		BytesBuffer buf1 = new BytesBuffer(1024);
+		BytesBuffer buf2 = new BytesBuffer(1024);
 		
 		int docNo1 = r1.next(buf1);
 		int docNo2 = r2.next(buf2);
@@ -72,7 +72,7 @@ public class PrimaryKeyIndexMerger {
 		//merge in ascending order 
 		while(docNo1 >= 0 && docNo2 >= 0){
 			
-			int ret = FastByteBuffer.compareBuffer(buf1, buf2);
+			int ret = BytesBuffer.compareBuffer(buf1, buf2);
 			
 			if(ret == 0){
 				//must write doc2 number because doc1 was replaced with doc2.
@@ -80,7 +80,7 @@ public class PrimaryKeyIndexMerger {
 				
 				//TODO 이 코드는 디버그용임..
 				if(debugLogger.isDebugEnabled()){
-					int id = IOUtil.readInt(buf1.array, 0);
+					int id = IOUtil.readInt(buf1.bytes, 0);
 //					debugLogger.debug("{} / {} -- delete", docNo1, id);
 //					debugLogger.debug("{} / {} -- PK0", docNo2, id);
 				}
@@ -98,7 +98,7 @@ public class PrimaryKeyIndexMerger {
 				docNo2 = r2.next(buf2);
 			}else if(ret < 0){
 				if(debugLogger.isDebugEnabled()){
-					int id = IOUtil.readInt(buf1.array, 0);
+					int id = IOUtil.readInt(buf1.bytes, 0);
 					debugLogger.debug("{} / {} -- PK1", docNo1, id);
 				}
 				w.write(buf1, docNo1);
@@ -106,7 +106,7 @@ public class PrimaryKeyIndexMerger {
 				docNo1 = r1.next(buf1);
 			}else{
 				if(debugLogger.isDebugEnabled()){
-					int id = IOUtil.readInt(buf2.array, 0);
+					int id = IOUtil.readInt(buf2.bytes, 0);
 					debugLogger.debug("{} / {} -- PK2", docNo2, id);
 				}
 				w.write(buf2, docNo2);
@@ -117,7 +117,7 @@ public class PrimaryKeyIndexMerger {
 		
 		while(docNo1 >= 0){
 			if(debugLogger.isDebugEnabled()){
-				int id = IOUtil.readInt(buf1.array, 0);
+				int id = IOUtil.readInt(buf1.bytes, 0);
 				debugLogger.debug("{} / {} -- PK1", docNo1, id);
 			}
 			w.write(buf1, docNo1);
@@ -127,7 +127,7 @@ public class PrimaryKeyIndexMerger {
 		
 		while(docNo2 >= 0){
 			if(debugLogger.isDebugEnabled()){
-				int id = IOUtil.readInt(buf2.array, 0);
+				int id = IOUtil.readInt(buf2.bytes, 0);
 				debugLogger.debug("{} / {} -- PK2", docNo2, id);
 			}
 			w.write(buf2, docNo2);
@@ -161,8 +161,8 @@ public class PrimaryKeyIndexMerger {
 		
 		w = new PrimaryKeyIndexBulkWriter(pkmapOutput, pkmapIndexOutput, indexInterval, true);
 		
-		FastByteBuffer buf1 = new FastByteBuffer(1024);
-		FastByteBuffer buf2 = new FastByteBuffer(1024);
+		BytesBuffer buf1 = new BytesBuffer(1024);
+		BytesBuffer buf2 = new BytesBuffer(1024);
 		
 		int docNo1 = r1.next(buf1);
 		int docNo2 = r2.next(buf2);
@@ -170,7 +170,7 @@ public class PrimaryKeyIndexMerger {
 		//merge in ascending order 
 		while(docNo1 >= 0 && docNo2 >= 0){
 			
-			int ret = FastByteBuffer.compareBuffer(buf1, buf2);
+			int ret = BytesBuffer.compareBuffer(buf1, buf2);
 			
 			if(ret == 0){
 				//must write doc2 number because doc1 was replaced with doc2.

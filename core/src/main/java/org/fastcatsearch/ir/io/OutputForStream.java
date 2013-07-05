@@ -28,10 +28,10 @@ public class OutputForStream extends Output {
 		this.os = new BufferedOutputStream(os);
 	}
 	@Override
-	public void writeBytes(FastByteBuffer dst) throws IOException {
+	public void writeBytes(BytesBuffer dst) throws IOException {
 		int n = dst.remaining();
-		os.write(dst.array, dst.pos, dst.remaining());
-		dst.pos(dst.pos + n);
+		os.write(dst.array, dst.offset, dst.remaining());
+		dst.pos(dst.offset + n);
 	}
 
 	@Override

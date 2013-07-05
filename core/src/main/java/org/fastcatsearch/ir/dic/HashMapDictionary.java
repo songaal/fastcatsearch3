@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import org.fastcatsearch.al.HashFunctions;
+import org.fastcatsearch.common.io.StreamInput;
+import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
@@ -85,7 +87,7 @@ public class HashMapDictionary {
 		this.file = file;
 		try {
 			long st = System.currentTimeMillis();
-			Input input = new BufferedFileInput(file);
+			StreamInput input = new BufferedFileInput(file);
 			bucketSize = input.readInt();
 			count = input.readInt();
 			keyUseLength = input.readInt();
@@ -109,7 +111,7 @@ public class HashMapDictionary {
 				nextIdx[i] = input.readInt();
 			}
 			for (int i = 0; i < count; i++) {
-				int c = input.readVariableByte();
+				int c = input.readVInt();
 				termArray[i] = new CharVector[c];
 //				int totalLength = input.readVariableByte();
 //				char[] v = new char[totalLength];
@@ -138,7 +140,7 @@ public class HashMapDictionary {
 	
 	public void save(File file) throws IRException{
 		try {
-			Output output = new BufferedFileOutput(file);
+			StreamOutput output = new BufferedFileOutput(file);
 			output.writeInt(bucketSize);
 			output.writeInt(count);
 			output.writeInt(keyUseLength);
@@ -161,7 +163,7 @@ public class HashMapDictionary {
 			
 			for (int i = 0; i < count; i++) {
 				//key has N entry
-				output.writeVariableByte(termArray[i].length);
+				output.writeVInt(termArray[i].length);
 				for (int k = 0; k < termArray[i].length; k++) {
 					output.writeUString(termArray[i][k].array, termArray[i][k].start, termArray[i][k].length);
 				}

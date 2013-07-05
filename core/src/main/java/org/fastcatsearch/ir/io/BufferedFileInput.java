@@ -24,7 +24,9 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
-public class BufferedFileInput extends Input implements Cloneable {
+import org.fastcatsearch.common.io.StreamInput;
+
+public class BufferedFileInput extends StreamInput implements Cloneable {
 
 	private static final int chunkSize = 100 * 1024 * 1024;
 	protected boolean isClone;
@@ -106,56 +108,19 @@ public class BufferedFileInput extends Input implements Cloneable {
 	}
 
 	@Override
-	public final int readVariableByte() throws IOException {
-		if (5 <= (bufferLength - bufferPosition)) {
-			int v = 0;
-			int b = 0;
-			int shift = 0;
-			do {
-				b = buffer[bufferPosition++];
-				v |= ((b & 0x7F) << shift);
-				shift += 7;
-			} while ((b & 0x80) > 0);
-
-			return v;
-		} else {
-			return super.readVariableByte();
-		}
-	}
-
-	@Override
-	public final long readVariableByteLong() throws IOException {
-		if (9 <= bufferLength - bufferPosition) {
-			long v = 0;
-			int b = 0;
-			int shift = 0;
-			do {
-				b = buffer[bufferPosition++];
-				v |= ((b & 0x7F) << shift);
-				shift += 7;
-			} while ((b & 0x80) > 0);
-
-			return v;
-		} else {
-			return super.readVariableByteLong();
-		}
-
-	}
-
-	@Override
-	public final int readByte() throws IOException {
+	public final byte readByte() throws IOException {
 		if (bufferPosition >= bufferLength) {
 			refill();
 		}
-		return buffer[bufferPosition++] & 0xFF;
+		return buffer[bufferPosition++];
 	}
 
 	@Override
-	public final int readBytes(byte[] b, int offset, int len) throws IOException {
-		return readBytes(b, offset, len, true);
+	public void readBytes(byte[] b, int offset, int len) throws IOException {
+		readBytes(b, offset, len, true);
 	}
 
-	public final int readBytes(byte[] b, int offset, int len, boolean useBuffer) throws IOException {
+	public final void readBytes(byte[] b, int offset, int len, boolean useBuffer) throws IOException {
 
 		if (len <= (bufferLength - bufferPosition)) {
 			// the buffer contains enough data to satisfy this request
@@ -204,7 +169,6 @@ public class BufferedFileInput extends Input implements Cloneable {
 			}
 		}
 
-		return len;
 	}
 
 	private void refill() throws IOException {
@@ -218,7 +182,7 @@ public class BufferedFileInput extends Input implements Cloneable {
 
 		if (buffer == null) {
 			newBuffer(new byte[bufferSize]); // allocate buffer lazily
-			position(bufferStart);
+			seek(bufferStart);
 		}
 		readInternal(buffer, 0, newLength);
 		bufferLength = newLength;
@@ -298,7 +262,7 @@ public class BufferedFileInput extends Input implements Cloneable {
 	}
 
 	@Override
-	public final void position(long pos) throws IOException {
+	public void seek(long pos) throws IOException {
 		if (pos >= bufferStart && pos < (bufferStart + bufferLength))
 			bufferPosition = (int) (pos - bufferStart); // seek within buffer
 		else {
@@ -313,11 +277,16 @@ public class BufferedFileInput extends Input implements Cloneable {
 		return end - off;
 	}
 
+
 	@Override
-	public int readBytes(FastByteBuffer dst) throws IOException {
-		int n = readBytes(dst.array, dst.pos, dst.limit - dst.pos);
-		dst.pos = dst.limit;
-		return n;
+	public void reset() throws IOException {
+		
 	}
+
+	@Override
+	public int read() throws IOException {
+		return readByte();
+	}
+
 
 }

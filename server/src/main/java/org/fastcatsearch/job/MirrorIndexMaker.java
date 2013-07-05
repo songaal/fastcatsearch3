@@ -15,11 +15,11 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
+import org.fastcatsearch.common.io.StreamInput;
+import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
-import org.fastcatsearch.ir.io.Input;
-import org.fastcatsearch.ir.io.Output;
 import org.fastcatsearch.ir.search.SegmentInfo;
 
 
@@ -45,13 +45,13 @@ public class MirrorIndexMaker {
 		try {
 			//1. doc문서파일.
 			byte[] buf = new byte[8 * 1024];
-			Input fileInput = new BufferedFileInput(newRevDir, IRFileName.docPosition);
-			Output fileOutput = new BufferedFileOutput(mirrorDir, IRFileName.docPosition);
-			fileInput.position(segmentInfo.docPositionFilesSize);
+			StreamInput fileInput = new BufferedFileInput(newRevDir, IRFileName.docPosition);
+			StreamOutput fileOutput = new BufferedFileOutput(mirrorDir, IRFileName.docPosition);
+			fileInput.seek(segmentInfo.docPositionFilesSize);
 			int nread = 0;
-			while((nread = fileInput.readBytes(buf, 0, buf.length)) > 0){
-				fileOutput.writeBytes(buf, 0, nread);
-			}
+//			while((nread = fileInput.readBytes(buf, 0, buf.length)) > 0){
+//				fileOutput.writeBytes(buf, 0, nread);
+//			}
 			fileOutput.close();
 
 			//2. 

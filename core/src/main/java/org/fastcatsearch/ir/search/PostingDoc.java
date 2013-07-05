@@ -1,14 +1,14 @@
 package org.fastcatsearch.ir.search;
 
-public class TermDoc {
+public class PostingDoc {
 	private int docNo;
 	private int tf;
 	private int[] positions;
 	
-	public TermDoc(int docNo, int tf){
+	public PostingDoc(int docNo, int tf){
 		this(docNo, tf, null);
 	}
-	public TermDoc(int docNo, int tf, int[] positions){
+	public PostingDoc(int docNo, int tf, int[] positions){
 		this.docNo = docNo;
 		this.tf = tf;
 		this.positions = positions;

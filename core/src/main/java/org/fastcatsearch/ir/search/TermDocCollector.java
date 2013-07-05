@@ -18,7 +18,7 @@ public class TermDocCollector {
 		size = 0;
 	}
 	
-	public int add(CharVector term, TermDoc termDoc, int queryPosition, boolean isSynonym){
+	public int add(CharVector term, PostingDoc termDoc, int queryPosition, boolean isSynonym){
 		ensureCapasity();
 		list[size++].set(term, termDoc, queryPosition, isSynonym);
 		return size;

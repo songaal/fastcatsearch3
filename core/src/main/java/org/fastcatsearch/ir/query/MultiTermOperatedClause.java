@@ -19,12 +19,12 @@ package org.fastcatsearch.ir.query;
 import java.util.List;
 
 import org.fastcatsearch.ir.search.CollectedEntry;
-import org.fastcatsearch.ir.search.TermDoc;
+import org.fastcatsearch.ir.search.PostingDoc;
 import org.fastcatsearch.ir.search.TermDocCollector;
 import org.fastcatsearch.ir.search.TermDocTreeReader;
-import org.fastcatsearch.ir.search.CompositeTermDoc;
-import org.fastcatsearch.ir.search.posting.TermDocsMerger;
-import org.fastcatsearch.ir.search.posting.TermDocsTreeNode;
+import org.fastcatsearch.ir.search.CompositePostingDoc;
+import org.fastcatsearch.ir.search.posting.PostingDocsMerger;
+import org.fastcatsearch.ir.search.posting.PostingDocsTreeNode;
 
 
 public class MultiTermOperatedClause implements OperatedClause {
@@ -44,25 +44,25 @@ public class MultiTermOperatedClause implements OperatedClause {
 		termDocTreeReader = new TermDocTreeReader();
 	}
 	
-	public void addTerm(CompositeTermDoc termDocs, int queryPosition) {
+	public void addTerm(CompositePostingDoc termDocs, int queryPosition) {
 		addTerm(termDocs, queryPosition);
 	}
 	
-	public void addTerm(CompositeTermDoc termDocs, int queryPosition, List<CompositeTermDoc> synonymList) {
+	public void addTerm(CompositePostingDoc termDocs, int queryPosition, List<CompositePostingDoc> synonymList) {
 		
 		if(termDocs != null){
-			termDocTreeReader.addNode(new TermDocsTreeNode(termDocs, queryPosition));
+			termDocTreeReader.addNode(new PostingDocsTreeNode(termDocs, queryPosition));
 			termCount++;
 		}
 		
-		CompositeTermDoc sysnonymTermDocs = null;
+		CompositePostingDoc sysnonymTermDocs = null;
 		if(synonymList != null){
 			if(synonymList.size() == 1){
 				sysnonymTermDocs = synonymList.get(0);
 			}else{
-				sysnonymTermDocs = new TermDocsMerger(synonymList).merge(termDocs.indexFieldNum(), termDocs.term(), 1024);
+				sysnonymTermDocs = new PostingDocsMerger(synonymList).merge(termDocs.indexFieldNum(), termDocs.term(), 1024);
 			}
-			termDocTreeReader.addNode(new TermDocsTreeNode(sysnonymTermDocs, queryPosition, true));
+			termDocTreeReader.addNode(new PostingDocsTreeNode(sysnonymTermDocs, queryPosition, true));
 			termCount++;
 		}
 		
@@ -93,7 +93,7 @@ public class MultiTermOperatedClause implements OperatedClause {
 				float sumOfTPI = 0f;
 				for (int i = 0; i < termDocCollector.size(); i++) {
 					CollectedEntry entry = termDocCollector.get(i);
-					TermDoc termDoc = entry.termDoc();
+					PostingDoc termDoc = entry.termDoc();
 					//okapi점수에 tf만 사용. 쿼리점수무시. idf무시.
 					documentScore += (2.2f * (float)termDoc.tf() / (2.0f + (float)termDoc.tf()));
 					//score += 1000; //tf 는 무시. 한단어가 여러번 나오는 것은 그다지 중요하지 않음.
@@ -103,7 +103,7 @@ public class MultiTermOperatedClause implements OperatedClause {
 						//TODO 같은 단어를 두번이상 쿼리에 입려했을 경우 무시하는 로직 필요.?
 						
 						CollectedEntry entry2 = termDocCollector.get(j);
-						TermDoc termDoc2 = entry.termDoc();
+						PostingDoc termDoc2 = entry.termDoc();
 
 						int origianlPositionGap = entry2.queryPosition() - entry.queryPosition();
 						
@@ -137,7 +137,7 @@ public class MultiTermOperatedClause implements OperatedClause {
 				//위치정보가 없으면 tf를 점수로 만든다.
 				//Okapi 점수 계산
 				for (int i = 0; i < termDocCollector.size(); i++) {
-					TermDoc termDoc = termDocCollector.get(i).termDoc();
+					PostingDoc termDoc = termDocCollector.get(i).termDoc();
 					score += (2.2f * (float)termDoc.tf() / (2.0f + (float)termDoc.tf()));
 				}
 			}

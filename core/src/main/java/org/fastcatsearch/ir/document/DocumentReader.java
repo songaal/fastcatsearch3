@@ -79,11 +79,11 @@ public class DocumentReader {
 		ByteArrayInput bai = null;
 		
 		if(docNo != lastDocNo){
-			positionInput.position(docNo * IOUtil.SIZE_OF_LONG);
+			positionInput.seek(docNo * IOUtil.SIZE_OF_LONG);
 			
 			long pos = positionInput.readLong();
 			//find a document block
-			docInput.position(pos);
+			docInput.seek(pos);
 			int len = docInput.readInt();
 			
 			if(len > docReadBuffer.length){
@@ -124,7 +124,7 @@ public class DocumentReader {
 			FieldSetting fs = fields.get(i);
 			Field f = null;
 			boolean hasValue = bai.readBoolean();
-			f = Field.createField(fs);
+			f = fs.createField();
 			
 			if(hasValue){
 				f.readFrom(bai);

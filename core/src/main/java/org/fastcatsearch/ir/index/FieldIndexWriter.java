@@ -21,16 +21,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.field.Field;
-import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
-import org.fastcatsearch.ir.io.Output;
 import org.fastcatsearch.ir.settings.FieldIndexSetting;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.RefSetting;
-import org.fastcatsearch.ir.settings.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,8 +41,8 @@ import org.slf4j.LoggerFactory;
  */
 public class FieldIndexWriter {
 	private static Logger logger = LoggerFactory.getLogger(FieldIndexWriter.class);
-	private Output output;
-	private Output multiValueOutput;
+	private StreamOutput output;
+	private StreamOutput multiValueOutput;
 	private List<RefSetting> refSettingList;
 	private int[] fieldSequenceList;
 	private boolean hasMultiValue;

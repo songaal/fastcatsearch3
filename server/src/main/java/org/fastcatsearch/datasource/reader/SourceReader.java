@@ -43,6 +43,8 @@ public abstract class SourceReader {
 	protected int idFieldIndex;
 	protected DeleteIdSet deleteIdList;
 	protected SourceModifier sourceModifier;
+	protected Schema schema;
+	protected int primaryKeySize;
 	
 	public abstract boolean hasNext() throws IRException;
 	public abstract Document next() throws IRException;
@@ -51,7 +53,9 @@ public abstract class SourceReader {
 	public SourceReader(){}
 	
 	public SourceReader(Schema schema, SourceModifier sourceModifier) throws IRException{
+		this.schema = schema;
 		fieldSettingList = schema.schemaSetting().getFieldSettingList();
+		
 //		idFieldIndex = schemaSetting.getIndexID();
 //		if(idFieldIndex == -1){
 //			throw new IRException("Schema has no primary key!");
@@ -63,6 +67,8 @@ public abstract class SourceReader {
 			int pkFieldSize = primaryKeySetting.getFieldList().size();
 			deleteIdList = new DeleteIdSet(pkFieldSize);
 		}
+		
+		primaryKeySize = schema.schemaSetting().getPrimaryKeySetting().getFieldList().size();
 	}
 	
 	public final DeleteIdSet getDeleteList(){

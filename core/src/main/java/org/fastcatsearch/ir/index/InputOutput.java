@@ -18,16 +18,16 @@ package org.fastcatsearch.ir.index;
 
 import java.io.IOException;
 
-import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.fastcatsearch.ir.io.BytesBuffer;
 
 
 
 public abstract class InputOutput {
 	
-	public abstract int readBytes(FastByteBuffer dst) throws IOException;
+	public abstract int readBytes(BytesBuffer dst) throws IOException;
 	public abstract int readByte() throws IOException;
 	
-	public abstract int writeBytes(FastByteBuffer dst) throws IOException;
+	public abstract int writeBytes(BytesBuffer dst) throws IOException;
 	public abstract void writeByte(int b) throws IOException;
 	
 	public abstract long position() throws IOException;
@@ -35,10 +35,10 @@ public abstract class InputOutput {
 	public abstract void close() throws IOException;
 	
 	public int readBytes(byte[] dst,int offset, int length) throws IOException {
-		return readBytes(new FastByteBuffer(dst, offset, length));
+		return readBytes(new BytesBuffer(dst, offset, length));
 	}
 	public int writeBytes(byte[] dst,int offset, int length) throws IOException {
-		return writeBytes(new FastByteBuffer(dst, offset, length));
+		return writeBytes(new BytesBuffer(dst, offset, length));
 	}
 	
 	public long readLong() throws IOException {

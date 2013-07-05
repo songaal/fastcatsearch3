@@ -67,8 +67,9 @@ public class ShowSchemaCommand extends CollectionExtractCommand {
 		Schema schema = null;
 		try {
 			schema = IRSettings.getSchema(collection, true);
-			for (FieldSetting fs : schema.getFieldSettingList())
+			for (FieldSetting fs : schema.schemaSetting().getFieldSettingList()){
 				getFieldData(fs, collection);
+			}
 		} catch (Exception e) {
 			return false;
 		}
@@ -78,7 +79,7 @@ public class ShowSchemaCommand extends CollectionExtractCommand {
 
 	private boolean getFieldData(FieldSetting fs, String collection) {
 		try {
-			addRecord(data, collection, fs.name, (fs.primary ? "O" : ""), fs.type.name(), fs.size + "",
+			addRecord(data, collection, fs.getId(), fs.getType().toString(), fs.getSize() + "",
 					getIndexTokenName(fs), (fs.sortSetting == null ? "" : "O"), (fs.sortSetting == null ? ""
 							: (fs.sortSetting.sortSize > 0 ? fs.sortSetting.sortSize + "" : "0")),
 					(fs.groupSetting == null ? "" : "O"), (fs.filterSetting == null ? "" : "O"),
@@ -98,7 +99,7 @@ public class ShowSchemaCommand extends CollectionExtractCommand {
 			return fs.indexSetting.indexAnalyzerPool.getClass().getSimpleName();
 	}
 
-	private void addRecord(List<Object[]> data, String cn, String fName, String key, String fType, String fSize,
+	private void addRecord(List<Object[]> data, String cn, String fName, String fType, String fSize,
 			String index, String sort, String sortSize, String Group, String filter, String store, String normalize,
 			String column, String virtual, String modify, String tagRemove, String multiValue) {
 		data.add(new Object[] { cn, fName, key, fType, fSize, index, sort, sortSize, Group, filter, store, normalize,

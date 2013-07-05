@@ -16,6 +16,8 @@
 
 package org.fastcatsearch.ir.settings;
 
+import java.util.StringTokenizer;
+
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
@@ -162,49 +164,59 @@ public class FieldSetting {
 		
 		return size;
 	}
-	
 	public Field createField(){
+		return createField(null);
+	}
+	public Field createField(String data){
+		Field field = null;
 		if(type == FieldSetting.Type.INT){
 			if(multiValue){
-				return new IntMvField(id);
+				field = new IntMvField(id);
 			}else{
-				return new IntField(id);
+				field = new IntField(id, data);
 			}
 		}else if(type == FieldSetting.Type.LONG){
 			if(multiValue){
-				return new LongMvField(id);
+				field = new LongMvField(id);
 			}else{
-				return new LongField(id);
+				field = new LongField(id, data);
 			}
 		}else if(type == FieldSetting.Type.FLOAT){
 			if(multiValue){
-				return new FloatMvField(id);
+				field = new FloatMvField(id);
 			}else{
-				return new FloatField(id);
+				field = new FloatField(id, data);
 			}
 		}else if(type == FieldSetting.Type.DOUBLE){
 			if(multiValue){
-				return new DoubleMvField(id);
+				field = new DoubleMvField(id);
 			}else{
-				return new DoubleField(id);
+				field = new DoubleField(id, data);
 			}
 		}else if(type == FieldSetting.Type.DATETIME){
-			return new DatetimeField(id);
+			return new DatetimeField(id, data);
 		}else if(type == FieldSetting.Type.ASTRING){
 			if(multiValue){
-				return new AStringMvField(id, size);
+				field = new AStringMvField(id, size);
 			}else{
-				return new AStringField(id, size);
+				field = new AStringField(id, data, size);
 			}
 		}else if(type == FieldSetting.Type.USTRING){
 			if(multiValue){
-				return new UStringMvField(id, size);
+				field = new UStringMvField(id, size);
 			}else{
-				return new UStringField(id, size);
+				field = new UStringField(id, data, size);
 			}
 		}
 		
-		throw new RuntimeException("지원하지 않는 필드타입입니다. Type = "+ type);
+		if(field == null){
+			throw new RuntimeException("지원하지 않는 필드타입입니다. Type = "+ type);
+		}
+		//다중값은 addValues로 데이터를 넣어준다.
+		if(multiValue && data != null){
+			field.addValues(new StringTokenizer(data, multiValueDelimiter));
+		}
+		return field;
 	}
 	public Field createPatternField(String data){
 		return createSingleValueField(data, data.length());

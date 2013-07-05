@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class Output {
 	private static Logger logger = LoggerFactory.getLogger(Output.class);
-	public abstract void writeBytes(FastByteBuffer dst) throws IOException;
+	public abstract void writeBytes(BytesBuffer dst) throws IOException;
 	public abstract void writeByte(int b) throws IOException;
 	public abstract long position() throws IOException;
 	public abstract void position(long p) throws IOException;

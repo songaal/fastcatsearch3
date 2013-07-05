@@ -35,12 +35,12 @@ public final class IOUtil {
 	public static int BITS_OF_LONG = Long.SIZE;
 	public static int UNSIGNED_SHORT_MAX_VALUE = Short.MAX_VALUE * 2 + 1;
 	
-	public static void write(FastByteBuffer buffer, byte[] array, int offset, int len) {
-		System.arraycopy(array, offset, buffer.array, buffer.pos, len);
-		buffer.pos += len;
+	public static void write(BytesBuffer buffer, byte[] array, int offset, int len) {
+		System.arraycopy(array, offset, buffer.bytes, buffer.offset, len);
+		buffer.offset += len;
 	}
 	
-	public static int writeLong(FastByteBuffer buffer, long v) {
+	public static int writeLong(BytesBuffer buffer, long v) {
 		int i1 = (int)((v >>> 32) & 0xFFFFFFFF);
 		int i2 = (int)(v & 0xFFFFFFFF);
 		writeInt(buffer,i1);
@@ -54,7 +54,7 @@ public final class IOUtil {
 		buffer[offset + 3] = (byte) ((v >>> 0) & 0xFF);
 		return 4;
 	}
-	public static int writeInt(FastByteBuffer buffer, int v) {
+	public static int writeInt(BytesBuffer buffer, int v) {
 		buffer.write((v >>> 24) & 0xFF);
 		buffer.write((v >>> 16) & 0xFF);
 		buffer.write((v >>> 8) & 0xFF);
@@ -75,7 +75,7 @@ public final class IOUtil {
 		output.writeByte((v >>> 0) & 0xFF);
 		return 4;
 	}
-	public static int writeShort(FastByteBuffer buffer, int v) {
+	public static int writeShort(BytesBuffer buffer, int v) {
 		buffer.write((v >>> 8) & 0xFF);
 		buffer.write((v >>> 0) & 0xFF);
 		return 2;
@@ -87,15 +87,15 @@ public final class IOUtil {
 		return 2;
 	}
 	
-	public static void writeUChar(FastByteBuffer buffer, int v) {
+	public static void writeUChar(BytesBuffer buffer, int v) {
 		writeShort(buffer, v);
 	}
 
-	public static void writeAChar(FastByteBuffer buffer, int v) {
+	public static void writeAChar(BytesBuffer buffer, int v) {
 		buffer.write(v & 0xFF);
 	}
 
-	public static int writeVariableByte(FastByteBuffer buffer, int v) {
+	public static int writeVariableByte(BytesBuffer buffer, int v) {
 		int byteCnt=0;
 		do{
 			int b = (byte)(v & 0x7F); //하위 7비트 
@@ -156,7 +156,7 @@ public final class IOUtil {
 		return byteCnt;
 	}
 	
-	public static int writeUChars(FastByteBuffer buffer, char[] v) {
+	public static int writeUChars(BytesBuffer buffer, char[] v) {
 		for (int i = 0; i < v.length; i++) {
 			writeUChar(buffer, v[i]);
 		}
@@ -164,7 +164,7 @@ public final class IOUtil {
 		return v.length * 2;
 	}
 	
-	public static int writeAChars(FastByteBuffer buffer, char[] v) {
+	public static int writeAChars(BytesBuffer buffer, char[] v) {
 		for (int i = 0; i < v.length; i++) {
 			buffer.write(v[i] & 0xFF);
 		}
@@ -172,7 +172,7 @@ public final class IOUtil {
 		return v.length;
 	}
 
-	public static int writeAChars(FastByteBuffer buffer, char[] v, int length) {
+	public static int writeAChars(BytesBuffer buffer, char[] v, int length) {
 		int strLen = (v.length < length) ? v.length : length;
 		
 		for (int i = 0; i < strLen; i++) {
@@ -186,7 +186,7 @@ public final class IOUtil {
 		return length;
 	}
 	
-	public static int writeUChars(FastByteBuffer buffer, char[] v, int length) {
+	public static int writeUChars(BytesBuffer buffer, char[] v, int length) {
 		int strLen = (v.length < length) ? v.length : length;
 		
 		for (int i = 0; i < strLen; i++) {
@@ -201,7 +201,7 @@ public final class IOUtil {
 	}
 	
 
-	public static long readLong(FastByteBuffer buffer) {
+	public static long readLong(BytesBuffer buffer) {
 		return ((long) (readInt(buffer)) << 32) + (readInt(buffer) & 0xFFFFFFFFL);
 	}
 
@@ -210,7 +210,7 @@ public final class IOUtil {
 				+ ((buffer[pos + 4] & 0xff) << 24) + ((buffer[pos + 5] & 0xff) << 16) + ((buffer[pos + 6] & 0xff) << 8) + ((buffer[pos + 7] & 0xff) << 0);
 	}
 	
-	public static int readInt(FastByteBuffer buffer) {
+	public static int readInt(BytesBuffer buffer) {
 		return (buffer.read() << 24) + (buffer.read() << 16) + (buffer.read() << 8) + (buffer.read() << 0);
 	}
 	public static int readInt(ByteBuffer buffer) {
@@ -222,7 +222,7 @@ public final class IOUtil {
 	public static int readInt(byte[] buffer, int pos) {
 		return ((buffer[pos + 0] & 0xff) << 24) + ((buffer[pos + 1] & 0xff) << 16) + ((buffer[pos + 2] & 0xff) << 8) + ((buffer[pos + 3] & 0xff) << 0);
 	}
-	public static short readShort(FastByteBuffer buffer) {
+	public static short readShort(BytesBuffer buffer) {
 		return (short)((buffer.read() << 8) + (buffer.read() << 0));
 	}
 	public static short readShort(byte[] buffer, int pos) {
@@ -230,16 +230,16 @@ public final class IOUtil {
 	}
 
 	
-	public static char readAChar(FastByteBuffer buffer) {
+	public static char readAChar(BytesBuffer buffer) {
 		return (char)buffer.read();
 	}
 
-	public static char readUChar(FastByteBuffer buffer) {
+	public static char readUChar(BytesBuffer buffer) {
 		return (char)readShort(buffer);
 	}
 
 	
-	public static int readVariableByte(FastByteBuffer buffer) {
+	public static int readVariableByte(BytesBuffer buffer) {
 		int v = 0;
 		int b = 0;
 		int shift = 0;
@@ -264,7 +264,7 @@ public final class IOUtil {
 		return v;
 	}
 	
-	public static char[] readAChars(FastByteBuffer buffer) {
+	public static char[] readAChars(BytesBuffer buffer) {
 		int len = buffer.remaining();
 		char[] cs = new char[len];
 		
@@ -273,7 +273,7 @@ public final class IOUtil {
 		return cs;
 	}
 	
-	public static char[] readUChars(FastByteBuffer buffer) {
+	public static char[] readUChars(BytesBuffer buffer) {
 		int len = buffer.remaining() / 2;
 		char[] cs = new char[len];
 		
@@ -300,14 +300,14 @@ public final class IOUtil {
 	}
 	
 	
-	public static int readAChars(FastByteBuffer buffer, char[] data, int offset, int len) {
+	public static int readAChars(BytesBuffer buffer, char[] data, int offset, int len) {
 		for (int i = 0; i < len; i++)
 			data[offset + i] = (char)buffer.read();
 		
 		return len;
 	}
 	
-	public static int readUChars(FastByteBuffer buffer, char[] data, int offset, int len) {
+	public static int readUChars(BytesBuffer buffer, char[] data, int offset, int len) {
 		for (int i = 0; i < len; i++)
 			data[offset + i] = readUChar(buffer);
 		
@@ -320,7 +320,7 @@ public final class IOUtil {
 	 * len 버퍼 데이터길이
 	 * size 고정데이터 길이. len이 길이보다 작으면 0으로 채워넣는다.
 	 * */
-	public static int writebytes(Output output, FastByteBuffer buffer, int pos, int len, int size) throws IOException {
+	public static int writebytes(Output output, BytesBuffer buffer, int pos, int len, int size) throws IOException {
 		if(len >= size){
 			output.writeBytes(buffer.array(), pos, size);
 		}else{

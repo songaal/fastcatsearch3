@@ -66,7 +66,7 @@ public class MemoryMappedFileInput extends Input {
 	}
 
 	@Override
-	public int readBytes(FastByteBuffer dst) throws IOException {
+	public int readBytes(BytesBuffer dst) throws IOException {
 		int len = dst.remaining();
 		if((buf.remaining()) < len )
 			throw new IOException("not enough buffer data. data length = "+(buf.remaining())+", read request = "+len);

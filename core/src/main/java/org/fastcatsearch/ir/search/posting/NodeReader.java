@@ -2,7 +2,7 @@ package org.fastcatsearch.ir.search.posting;
 
 import java.util.List;
 
-import org.fastcatsearch.ir.search.TermDoc;
+import org.fastcatsearch.ir.search.PostingDoc;
 import org.fastcatsearch.ir.search.TermDocCollector;
 
 public abstract class NodeReader {

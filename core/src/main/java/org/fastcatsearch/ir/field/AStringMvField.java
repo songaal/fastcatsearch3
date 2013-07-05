@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fastcatsearch.common.io.StreamInput;
+import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.ir.io.Input;
-import org.fastcatsearch.ir.io.Output;
 
-public class AStringMvField extends AStringField {
+public class AStringMvField extends AStringField implements MultiValueFieldType {
 
 	public AStringMvField(String id) {
 		super(id);
@@ -23,8 +23,8 @@ public class AStringMvField extends AStringField {
 	}
 	
 	@Override
-	public void readFrom(Input input) throws IOException {
-		int multiValueCount = input.readVariableByte();
+	public void readFrom(StreamInput input) throws IOException {
+		int multiValueCount = input.readVInt();
 		fieldsData = new ArrayList<CharVector>(multiValueCount);
 		for (int i = 0; i < multiValueCount; i++) {
 			char[] chars = input.readAString();
@@ -33,16 +33,16 @@ public class AStringMvField extends AStringField {
 	}
 
 	@Override
-	public void writeTo(Output output) throws IOException {
+	public void writeTo(StreamOutput output) throws IOException {
 		List<CharVector> list = (List<CharVector>) fieldsData;
 		int multiValueCount = list.size();
-		output.writeVariableByte(multiValueCount);
+		output.writeVInt(multiValueCount);
 		//고정길이인지 가변길이인지 
 		if(size > 0){
 			//고정길이
 			for (int i = 0; i < list.size(); i++) {
 				CharVector charVector = (CharVector) list.get(i);
-				output.writeVariableByte(size);
+				output.writeVInt(size);
 				output.writeAChars(charVector.array, charVector.start, size);
 				if(charVector.length < size){
 					for (int j = 0; j < size - charVector.length; j++) {
@@ -61,7 +61,7 @@ public class AStringMvField extends AStringField {
 	}
 	
 	@Override
-	public void writeFixedDataTo(Output output) throws IOException {
+	public void writeFixedDataTo(StreamOutput output) throws IOException {
 		//multi value필드는 데이터가 없으면 기록하지 않는다.
 		if(fieldsData == null){
 			return;
@@ -84,7 +84,7 @@ public class AStringMvField extends AStringField {
 	}
 
 	@Override
-	public final void writeDataTo(Output output) throws IOException {
+	public final void writeDataTo(StreamOutput output) throws IOException {
 		if(size > 0){
 			writeFixedDataTo(output);
 		}else{
@@ -102,7 +102,7 @@ public class AStringMvField extends AStringField {
 		final List<CharVector> list = (List<CharVector>) fieldsData;
 		return new FieldDataWriter(list) {
 			@Override
-			protected void writeEachData(Object object, Output output) throws IOException {
+			protected void writeEachData(Object object, StreamOutput output) throws IOException {
 				CharVector charVector = (CharVector) object;
 				if(size > 0){
 					output.writeAChars(charVector.array, charVector.start, size);
@@ -129,7 +129,7 @@ public class AStringMvField extends AStringField {
 			CharVector charVector = (CharVector) list.get(i);
 			sb.append(charVector.toString());
 			if(i < list.size() - 1){
-				sb.append(multiValueDelimiter);
+				sb.append(OutputMultiValueDelimiter);
 			}
 		}
 		

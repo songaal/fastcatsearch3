@@ -3,7 +3,6 @@ package org.fastcatsearch.ir.field;
 import org.fastcatsearch.ir.io.CharVector;
 
 public abstract class StringField extends Field {
-	protected final String multiValueDelimiter = "\n";
 	
 	public StringField(String id) {
 		super(id);

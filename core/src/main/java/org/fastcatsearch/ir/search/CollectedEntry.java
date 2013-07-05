@@ -4,10 +4,10 @@ import org.fastcatsearch.ir.io.CharVector;
 
 public class CollectedEntry {
 	private CharVector term;
-	private TermDoc termDoc;
+	private PostingDoc termDoc;
 	private int queryPosition;
 	private boolean isSynonym;
-	public void set(CharVector term, TermDoc termDoc, int queryPosition, boolean isSynonym){
+	public void set(CharVector term, PostingDoc termDoc, int queryPosition, boolean isSynonym){
 		this.term = term;
 		this.termDoc = termDoc;
 		this.queryPosition = queryPosition;
@@ -19,10 +19,10 @@ public class CollectedEntry {
 	public void setTerm(CharVector term) {
 		this.term = term;
 	}
-	public TermDoc termDoc() {
+	public PostingDoc termDoc() {
 		return termDoc;
 	}
-	public void setTermDoc(TermDoc termDoc) {
+	public void setTermDoc(PostingDoc termDoc) {
 		this.termDoc = termDoc;
 	}
 	public int queryPosition() {

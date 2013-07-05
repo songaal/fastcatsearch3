@@ -16,56 +16,62 @@
 
 package org.fastcatsearch.ir.io;
 
-import java.util.Arrays;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FastByteBuffer implements ElementVector {
-	private static Logger logger = LoggerFactory.getLogger(FastByteBuffer.class);
-	public byte[] array;
-	public int pos;
-	public int limit;
+public class BytesBuffer {
+	protected static Logger logger = LoggerFactory.getLogger(BytesBuffer.class);
+	
+	/** The contents of the BytesRef. Should never be {@code null}. */
+	public byte[] bytes;
 
-	public FastByteBuffer(int size) {
-		this.array = new byte[size];
+	/** Offset of first valid byte. */
+	public int offset;
+
+	/** Length of used bytes. */
+	public int length;
+
+	public BytesBuffer(){ }
+	
+	public BytesBuffer(int size) {
+		this.bytes = new byte[size];
 		clear();
 	}
 
-	public FastByteBuffer(byte[] buffer) {
-		this.array = buffer;
+	public BytesBuffer(byte[] buffer) {
+		this.bytes = buffer;
 		clear();
 	}
 
-	public FastByteBuffer(byte[] buffer, int limit) {
-		this.array = buffer;
-		this.limit = limit;
+	public BytesBuffer(byte[] buffer, int limit) {
+		this.bytes = buffer;
+		this.length = limit;
 	}
 
-	public FastByteBuffer(byte[] buffer, int pos, int limit) {
-		this.array = buffer;
-		this.pos = pos;
-		this.limit = limit;
+	public BytesBuffer(byte[] buffer, int pos, int limit) {
+		this.bytes = buffer;
+		this.offset = pos;
+		this.length = limit;
 	}
 
 	public void init(byte[] buffer, int pos, int limit) {
-		this.array = buffer;
-		this.pos = pos;
-		this.limit = limit;
+		this.bytes = buffer;
+		this.offset = pos;
+		this.length = limit;
 	}
 
 	public void clear() {
-		pos = 0;
-		limit = array.length;
+		offset = 0;
+		length = bytes.length;
 	}
 
 	public int size() {
-		return array.length;
+		return bytes.length;
 	}
 
-	public FastByteBuffer flip() {
-		limit = pos;
-		pos = 0;
+	public BytesBuffer flip() {
+		length = offset;
+		offset = 0;
 		return this;
 	}
 
@@ -74,65 +80,65 @@ public class FastByteBuffer implements ElementVector {
 	// 2012-5-5 array[pos+offset] & 0xFF는 음수 byte를 양의 int로 바꾸어 주므로 올바른 값을 리턴할수 없다.
 	// byte데이터 그대로를 리턴하도록 한다.
 	public byte get(int offset) {
-		return array[pos + offset];
+		return bytes[offset + offset];
 	}
 
 	public byte[] array() {
-		return array;
+		return bytes;
 	}
 
 	public int pos() {
-		return pos;
+		return offset;
 	}
 
 	public int limit() {
-		return limit;
+		return length;
 	}
 
 	public void pos(int pos) {
-		this.pos = pos;
+		this.offset = pos;
 	}
 
 	public void skip(int n) {
-		this.pos += n;
+		this.offset += n;
 	}
 
 	public void limit(int limit) {
-		this.limit = limit;
+		this.length = limit;
 	}
 
 	public int remaining() {
-		return limit - pos;
+		return length - offset;
 	}
 
 	public byte readByte() {
-		return array[pos++];
+		return bytes[offset++];
 	}
 
 	public int read() {
-		return (array[pos++] & 0xFF);
+		return (bytes[offset++] & 0xFF);
 	}
 
-	public int readBack() {
-		pos--;
-		return (array[pos] & 0xFF);
-	}
+//	public int readBack() {
+//		offset--;
+//		return (bytes[offset] & 0xFF);
+//	}
 
 	public void write(int b) {
-		array[pos++] = (byte) b;
+		bytes[offset++] = (byte) b;
 	}
 
 	public void write(byte[] src) {
-		System.arraycopy(src, 0, array, pos, src.length);
-		pos += src.length;
+		System.arraycopy(src, 0, bytes, offset, src.length);
+		offset += src.length;
 	}
 
 	public void write(byte[] src, int srcPos, int srcLen) {
-		System.arraycopy(src, srcPos, array, pos, srcLen);
-		pos += srcLen;
+		System.arraycopy(src, srcPos, bytes, offset, srcLen);
+		offset += srcLen;
 	}
 
-	public static int compareBuffer(FastByteBuffer buf1, FastByteBuffer buf2) {
+	public static int compareBuffer(BytesBuffer buf1, BytesBuffer buf2) {
 		int len1 = buf1.remaining();
 		int len2 = buf2.remaining();
 
@@ -147,8 +153,8 @@ public class FastByteBuffer implements ElementVector {
 
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		for (int i = pos; i < limit; i++) {
-			sb.append(array[i]);
+		for (int i = offset; i < length; i++) {
+			sb.append(bytes[i]);
 			sb.append(" ");
 		}
 
@@ -157,36 +163,35 @@ public class FastByteBuffer implements ElementVector {
 
 	public String toAlphaString() {
 		StringBuilder sb = new StringBuilder();
-		for (int i = pos; i < limit; i++) {
-			sb.append((char) array[i]);
+		for (int i = offset; i < length; i++) {
+			sb.append((char) bytes[i]);
 		}
 
 		return sb.toString();
 	}
 
-	@Override
 	public int length() {
-		return limit - pos;
-	}
-
-	@Override
-	public int elementAt(int inx) {
-		return array[pos + inx];
+		return length - offset;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		FastByteBuffer another = (FastByteBuffer) obj;
+		BytesBuffer another = (BytesBuffer) obj;
 		if (remaining() != another.remaining()) {
 			return false;
 		}
 
-		for (int i = 0; i < limit - pos; i++) {
-			if (array[pos + i] != another.array[another.pos + i]) {
+		for (int i = 0; i < length - offset; i++) {
+			if (bytes[offset + i] != another.bytes[another.offset + i]) {
 				return false;
 			}
 		}
 
 		return true;
+	}
+	
+	@Override
+	public BytesBuffer clone() {
+		return new BytesBuffer(bytes, offset, length);
 	}
 }

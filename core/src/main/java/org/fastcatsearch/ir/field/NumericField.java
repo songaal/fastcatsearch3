@@ -1,10 +1,8 @@
 package org.fastcatsearch.ir.field;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
 
-import org.fastcatsearch.ir.io.Output;
+import org.fastcatsearch.common.io.StreamOutput;
 
 public abstract class NumericField extends Field {
 	public NumericField(String id) {
@@ -24,12 +22,12 @@ public abstract class NumericField extends Field {
 	}
 	
 	@Override
-	public void writeTo(Output output) throws IOException {
+	public void writeTo(StreamOutput output) throws IOException {
 		writeFixedDataTo(output);
 	}
 	
 	@Override
-	public void writeDataTo(Output output) throws IOException {
+	public void writeDataTo(StreamOutput output) throws IOException {
 		writeFixedDataTo(output);
 	}
 

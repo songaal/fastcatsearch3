@@ -26,7 +26,7 @@ import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.DataRef;
-import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.FixedDataInput;
 import org.fastcatsearch.ir.io.IOUtil;
 import org.fastcatsearch.ir.io.Input;
@@ -59,7 +59,7 @@ public class GroupIndexReader extends ReferencableIndexReader {
 	protected int dataSize;//색인된 한 문서의 필드데이터의  길이
 	protected int[] fieldOffset;
 	protected int[] groupKeySize;
-	protected FastByteBuffer[] keyBuf;
+	protected BytesBuffer[] keyBuf;
 	protected boolean[] isMultiValue;
 	protected boolean hasMultiValue;
 	
@@ -70,7 +70,7 @@ public class GroupIndexReader extends ReferencableIndexReader {
 		
     	Input groupInfoInput = new BufferedFileInput(IRFileName.getRevisionDir(dir, revision), IRFileName.groupInfoFile);
     	
-		keyBuf = new FastByteBuffer[fieldSize];
+		keyBuf = new BytesBuffer[fieldSize];
 		fieldOffset = new int[fieldSize];
 		groupKeySize = new int[fieldSize];
 		isMultiValue = new boolean[fieldSize];
@@ -78,7 +78,7 @@ public class GroupIndexReader extends ReferencableIndexReader {
     	int fieldCount = groupInfoInput.readInt();
     	
     	for (int idx = 0; idx < fieldSize; idx++) {
-			keyBuf[idx] = new FastByteBuffer(fieldSize);
+			keyBuf[idx] = new BytesBuffer(fieldSize);
 			groupKeySize[idx] = groupInfoInput.readInt();
     		long dataBasePosition = groupInfoInput.readLong();
     		long indexBasePosition = groupInfoInput.readLong();

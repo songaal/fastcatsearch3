@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
-import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,7 +107,7 @@ public class PagedFile {
 		}
 	}
 
-	public int readBytes(FastByteBuffer dst) throws EOFException, IOException {
+	public int readBytes(BytesBuffer dst) throws EOFException, IOException {
 		
 		int left = dst.remaining();
 		int read = 0;
@@ -119,13 +119,13 @@ public class PagedFile {
 				//set virtual position to channel position
 //				logger.debug("position() = "+position());
 				fc.position(position());
-				ByteBuffer tempBuf = ByteBuffer.wrap(dst.array, dst.pos, left);
+				ByteBuffer tempBuf = ByteBuffer.wrap(dst.array, dst.offset, left);
 				buf.position(buf.limit()); //invalidate buffer data
 				while(left > 0){
 					int n = fc.read(tempBuf);
 					if(n < 0)
 						throw new EOFException("Get to end of file.");
-					dst.pos += n;
+					dst.offset += n;
 					read += n;
 					left -= n;
 				}
@@ -134,13 +134,13 @@ public class PagedFile {
 //				logger.debug("left = "+left+", len="+len);
 				//has enough data 
 				if(len >= left){
-					buf.get(dst.array, dst.pos, left);
-					dst.pos += left;
+					buf.get(dst.array, dst.offset, left);
+					dst.offset += left;
 					read += left;
 					left = 0;
 				}else{
-					buf.get(dst.array, dst.pos, len);
-					dst.pos += len;
+					buf.get(dst.array, dst.offset, len);
+					dst.offset += len;
 					read += len;
 					left -= len;
 					//buf is empty, read data from file channel

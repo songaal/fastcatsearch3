@@ -22,7 +22,7 @@ import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.io.ByteArrayOutput;
 import org.fastcatsearch.ir.io.DataRef;
-import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IOUtil;
 import org.fastcatsearch.ir.query.Filter;
 import org.fastcatsearch.ir.query.RankInfo;
