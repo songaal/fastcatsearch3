@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.fastcatsearch.env.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,9 +55,14 @@ public abstract class Command {
 	protected static final String[] CMD_SEARCH = new String[] { "search" };
 	protected static final String[] CMD_HELP = new String[] { "help" };
 		
+	protected Environment environment;
+	
 	abstract public boolean isCommand(String[] cmd);
 	abstract public CommandResult doCommand(String[] cmd, ConsoleSessionContext context) throws IOException, CommandException;
 	
+	public void setEnvironment(Environment environment) {
+		this.environment = environment;
+	}
 	protected boolean isCommand(String[] expected, String[] actual){
 		logger.trace("compare {} : {}", new Object[] { Arrays.asList(expected).toString(), 
 				Arrays.asList(actual).toString() });

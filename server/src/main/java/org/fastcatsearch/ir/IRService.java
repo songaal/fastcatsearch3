@@ -73,9 +73,21 @@ public class IRService extends AbstractService{
 			try {
 				String collectionId = collection.getId();
 //				File collectionDir = IRSettings.getCollectionHomeFile(collectionId);
+				
+				//
+				//TODO 
+				//
+				
+//				CollectionContext collectionContext = new CollectionContext("sample");
+//				collectionContext.load(collectionRootPath);
+//				collectionContextList[i] = collectionContext;
+				
+				// TODO 스키마는 CollectionContext 내부에서 로딩된다.!!!!
+				//CollectionConfig 도  CollectionContext 내부에..
+				
 				File collectionDir = environment.filePaths().getCollectionHome(collectionId).file();
 				Schema schema = IRSettings.getSchema(collectionId, true);
-				CollectionConfig collectionConfig = JAXBConfigs.readConfig(new File(collectionDir, "config.xml"), CollectionConfig.class);
+				CollectionConfig collectionConfig = JAXBConfigs.readConfig(new File(collectionDir, "collection.xml"), CollectionConfig.class);
 				collectionConfigMap.put(collectionId, collectionConfig);
 				
 				if(!collection.isActive()){
@@ -85,7 +97,7 @@ public class IRService extends AbstractService{
 
 				IndexConfig indexConfig = collectionConfig.getIndexConfig();
 				
-				collectionHandlerMap.put(collectionId, new CollectionHandler(collectionId, collectionDir, schema, indexConfig));
+				collectionHandlerMap.put(collectionId, new CollectionHandler(collectionId, collectionDir, collectionContext[i], indexConfig));
 			} catch (IRException e) {
 				logger.error("[ERROR] "+e.getMessage(),e);
 			} catch (SettingException e) {

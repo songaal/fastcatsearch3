@@ -1,6 +1,7 @@
 package org.fastcatsearch.ir.setting;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -107,5 +108,6 @@ public class JAXBSchemaSettingTest {
 		System.out.println(setting.getFieldSettingList().get(0).getId());
 		System.out.println(setting.getAnalyzerSettingList().size());
 	}
+	
 
 }

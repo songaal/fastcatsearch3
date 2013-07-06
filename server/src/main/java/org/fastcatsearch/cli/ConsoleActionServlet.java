@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.util.ClassDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,12 +36,20 @@ public class ConsoleActionServlet extends HttpServlet {
 	
 	private ConsoleActionContext context;
 
+	protected Environment environment;
+	
+	
 	@Override
 	public void init() throws ServletException {
 		super.init();
 		commandActionList.clear();
 		commandActionList.addAll(detectCommands());
 		logger.trace("detected command list : {}", commandActionList);
+		//environment는 셋팅이 안된다.
+	}
+	
+	public void setEnvironment(Environment environment) {
+		this.environment = environment;
 	}
 
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -66,7 +75,9 @@ public class ConsoleActionServlet extends HttpServlet {
 			for(Command commandAction : commandActionList) {
 				if(commandAction.isCommand(commandArrray)) {
 					try {
-						result = commandAction.getClass().newInstance().doCommand(commandArrray, context);
+						Command newCommand = commandAction.getClass().newInstance();
+						newCommand.setEnvironment(environment);
+						result = newCommand.doCommand(commandArrray, context);
 					} catch (InstantiationException e) {
 						logger.error("",e);
 					} catch (IllegalAccessException e) {

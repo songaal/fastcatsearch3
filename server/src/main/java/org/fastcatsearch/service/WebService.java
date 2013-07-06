@@ -255,7 +255,9 @@ public class WebService extends AbstractService{
 		
 		
 		final Context contextConsole = new Context(server, CONSOLE_CONTEXT, Context.SESSIONS);
-		contextConsole.addServlet(new ServletHolder(new ConsoleActionServlet()), "/command");
+		ConsoleActionServlet consoleActionServlet = new ConsoleActionServlet();
+		consoleActionServlet.setEnvironment(environment);
+		contextConsole.addServlet(new ServletHolder(consoleActionServlet), "/command");
 		handlerList.addHandler(contextConsole);
 		
 		for(Handler handler : handlerList.getHandlers()) {
