@@ -3,9 +3,9 @@ package org.fastcatsearch.transport.vo;
 import java.io.IOException;
 
 import org.apache.lucene.util.BytesRef;
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.HitElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +26,7 @@ public class StreamableHitElement implements Streamable {
 	}
 
 	@Override
-	public void readFrom(StreamInput input) throws IOException {
+	public void readFrom(DataInput input) throws IOException {
 		count = input.readInt();
 		this.hitElements = new HitElement[count];
 		for (int hitElementInx = 0; hitElementInx < count; hitElementInx++) {
@@ -44,7 +44,7 @@ public class StreamableHitElement implements Streamable {
 	}
 
 	@Override
-	public void writeTo(StreamOutput output) throws IOException {
+	public void writeTo(DataOutput output) throws IOException {
 		
 		output.writeInt(count);
 		for (int hitElementInx = 0; hitElementInx < count; hitElementInx++) {

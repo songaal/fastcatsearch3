@@ -3,15 +3,13 @@ package org.fastcatsearch.job.internal;
 import java.io.IOException;
 import java.util.List;
 
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
-
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.document.Document;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.StreamableJob;
-import org.fastcatsearch.log.EventDBLogger;
-import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableDocumentList;
 
@@ -52,7 +50,7 @@ public class InternalDocumentRequestJob extends StreamableJob {
 		
 	}
 	@Override
-	public void readFrom(StreamInput input) throws IOException {
+	public void readFrom(DataInput input) throws IOException {
 		collectionId = input.readString();
 		length = input.readVInt();
 		docIdList = new int[length];
@@ -61,7 +59,7 @@ public class InternalDocumentRequestJob extends StreamableJob {
 		}
 	}
 	@Override
-	public void writeTo(StreamOutput output) throws IOException {
+	public void writeTo(DataOutput output) throws IOException {
 		output.writeString(collectionId);
 		output.writeVInt(length);
 		for (int i = 0; i < length; i++) {

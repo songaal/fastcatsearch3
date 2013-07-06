@@ -9,9 +9,9 @@ import java.util.ResourceBundle;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.ResourceBundleControl;
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.service.ServiceManager;
 
 public abstract class Notification implements Streamable {
@@ -45,14 +45,14 @@ public abstract class Notification implements Streamable {
 	}
 	
 	@Override
-	public void readFrom(StreamInput input) throws IOException {
+	public void readFrom(DataInput input) throws IOException {
 		origin = new Node();
 		origin.readFrom(input);
 		messageCode = input.readString();
 	}
 
 	@Override
-	public void writeTo(StreamOutput output) throws IOException {
+	public void writeTo(DataOutput output) throws IOException {
 		origin.writeTo(output);
 		output.writeString(messageCode);
 	}

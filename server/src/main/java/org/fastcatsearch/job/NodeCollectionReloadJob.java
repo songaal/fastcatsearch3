@@ -5,10 +5,10 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.settings.Schema;
@@ -83,7 +83,7 @@ public class NodeCollectionReloadJob extends StreamableJob {
 	}
 
 	@Override
-	public void readFrom(StreamInput input) throws IOException {
+	public void readFrom(DataInput input) throws IOException {
 		startTime = input.readLong();
 		collectionId = input.readString();
 		dataSequence = input.readInt();
@@ -92,7 +92,7 @@ public class NodeCollectionReloadJob extends StreamableJob {
 	}
 
 	@Override
-	public void writeTo(StreamOutput output) throws IOException {
+	public void writeTo(DataOutput output) throws IOException {
 		logger.debug("## writeTo {}, {}, {}, {}", new Object[]{startTime, collectionId, dataSequence, segmentNumber});
 		output.writeLong(startTime);
 		output.writeString(collectionId);

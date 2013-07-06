@@ -3,12 +3,10 @@ package org.fastcatsearch.alert;
 import java.io.IOException;
 
 import org.fastcatsearch.cluster.Node;
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
-
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.StreamableJob;
-import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
 
@@ -31,7 +29,7 @@ public class FastcatSearchAlertJob extends StreamableJob {
 	}
 
 	@Override
-	public void readFrom(StreamInput input) throws IOException {
+	public void readFrom(DataInput input) throws IOException {
 		node = new Node();
 		node.readFrom(input);
 		StreamableThrowable streamableThrowable = new StreamableThrowable();
@@ -40,7 +38,7 @@ public class FastcatSearchAlertJob extends StreamableJob {
 	}
 
 	@Override
-	public void writeTo(StreamOutput output) throws IOException {
+	public void writeTo(DataOutput output) throws IOException {
 		node.writeTo(output);
 		output.writeBoolean(false);
 		new StreamableThrowable(e).writeTo(output);

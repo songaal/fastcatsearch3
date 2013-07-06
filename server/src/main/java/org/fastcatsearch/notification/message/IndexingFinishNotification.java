@@ -3,10 +3,10 @@ package org.fastcatsearch.notification.message;
 import java.io.IOException;
 import java.sql.Timestamp;
 
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.db.dao.IndexingResult;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
 
@@ -33,7 +33,7 @@ public class IndexingFinishNotification extends Notification {
 	}
 
 	@Override
-	public void readFrom(StreamInput input) throws IOException {
+	public void readFrom(DataInput input) throws IOException {
 		collection = input.readString();
 		indexingType = input.readString();
 		isSuccess = input.readBoolean();
@@ -48,7 +48,7 @@ public class IndexingFinishNotification extends Notification {
 	}
 
 	@Override
-	public void writeTo(StreamOutput output) throws IOException {
+	public void writeTo(DataOutput output) throws IOException {
 		output.writeString(collection);
 		output.writeString(indexingType);
 		output.writeBoolean(isSuccess);

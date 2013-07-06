@@ -14,12 +14,11 @@ package org.fastcatsearch.datasource.reader;
 import junit.framework.TestCase;
 
 import org.fastcatsearch.datasource.DataSourceSetting;
-import org.fastcatsearch.datasource.reader.DBReader;
 import org.fastcatsearch.datasource.reader.DBReader.DBReaderConfig;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
-import org.fastcatsearch.ir.config.Schema;
 import org.fastcatsearch.ir.document.Document;
+import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.settings.IRSettings;
 
 

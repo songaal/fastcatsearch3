@@ -24,6 +24,7 @@ import java.io.IOException;
 
 import org.fastcatsearch.common.BytesArray;
 import org.fastcatsearch.common.BytesReference;
+import org.fastcatsearch.ir.io.DataInput;
 
 /**
  *
@@ -159,7 +160,7 @@ public class BytesStreamInput extends StreamInput {
 	}
 
 	@Override
-	public long size() throws IOException {
+	public long length() throws IOException {
 		return count;
 	}
 }

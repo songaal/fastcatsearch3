@@ -4,12 +4,11 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
-
+import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.processlogger.log.ProcessLog;
-import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.service.ServiceManager;
 
 public class ProcessLoggerJob extends StreamableJob {
@@ -38,7 +37,7 @@ public class ProcessLoggerJob extends StreamableJob {
 	}
 
 	@Override
-	public void readFrom(StreamInput input) throws IOException {
+	public void readFrom(DataInput input) throws IOException {
 		Class<? extends ProcessLog> processLogClass = null;
 		ObjectInputStream ois = new ObjectInputStream(input);
 		try {
@@ -52,7 +51,7 @@ public class ProcessLoggerJob extends StreamableJob {
 	}
 
 	@Override
-	public void writeTo(StreamOutput output) throws IOException {
+	public void writeTo(DataOutput output) throws IOException {
 		ObjectOutputStream oos = new ObjectOutputStream(output);
 		oos.writeObject(processLoggerClasss);
 		oos.writeObject(processLog.getClass());

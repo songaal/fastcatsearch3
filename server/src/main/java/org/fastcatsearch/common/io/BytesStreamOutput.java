@@ -25,13 +25,14 @@ import java.util.Arrays;
 import org.fastcatsearch.common.Bytes;
 import org.fastcatsearch.common.BytesArray;
 import org.fastcatsearch.common.BytesReference;
+import org.fastcatsearch.ir.io.DataOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  *
  */
-public class BytesStreamOutput extends StreamOutput implements BytesStream {
+public class BytesStreamOutput extends DataOutput implements BytesStream {
 	protected static Logger logger = LoggerFactory.getLogger(BytesStreamOutput.class);
 	
     /**
@@ -143,11 +144,11 @@ public class BytesStreamOutput extends StreamOutput implements BytesStream {
     	return buf.length;
     }
 
-	@Override
-	public void setLength(long newLength) throws IOException {
-		if(count > newLength){
-			count = (int) newLength;
-		}
-	}
+//	@Override
+//	public void setLength(long newLength) throws IOException {
+//		if(count > newLength){
+//			count = (int) newLength;
+//		}
+//	}
 
 }

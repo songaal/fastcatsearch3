@@ -58,9 +58,6 @@ public class CollectionConfigTest {
 		assertEquals("샘플", collectionConfig.getName());
 		
 		IndexConfig indexConfig = collectionConfig.getIndexConfig();
-		assertEquals(8, indexConfig.getDocumentBlockSize());
-		assertEquals(3072, indexConfig.getDocumentReadBufferSize());
-		assertEquals(3072, indexConfig.getDocumentWriteBufferSize());
 		assertEquals(64, indexConfig.getIndexTermInterval());
 		assertEquals(256, indexConfig.getIndexWorkBucketSize());
 		assertEquals(134217728, indexConfig.getIndexWorkMemorySize());

@@ -14,9 +14,9 @@ package org.fastcatsearch.job.result;
 import java.io.File;
 import java.io.IOException;
 
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 
 public class IndexingJobResult implements Streamable {
 	public String collection;
@@ -43,7 +43,7 @@ public class IndexingJobResult implements Streamable {
 	}
 
 	@Override
-	public void readFrom(StreamInput input) throws IOException {
+	public void readFrom(DataInput input) throws IOException {
 		collection = input.readString();
 		docSize = input.readInt();
 		updateSize = input.readInt();
@@ -53,7 +53,7 @@ public class IndexingJobResult implements Streamable {
 	}
 
 	@Override
-	public void writeTo(StreamOutput output) throws IOException {
+	public void writeTo(DataOutput output) throws IOException {
 		output.writeString(collection);
 		output.writeInt(docSize);
 		output.writeInt(updateSize);

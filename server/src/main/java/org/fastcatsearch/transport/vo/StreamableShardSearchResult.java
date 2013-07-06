@@ -2,9 +2,9 @@ package org.fastcatsearch.transport.vo;
 
 import java.io.IOException;
 
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.query.ShardSearchResult;
 
 public class StreamableShardSearchResult implements Streamable {
@@ -21,7 +21,7 @@ public class StreamableShardSearchResult implements Streamable {
 	}
 	
 	@Override
-	public void readFrom(StreamInput input) throws IOException {
+	public void readFrom(DataInput input) throws IOException {
 		String collectionId = null;
 		if (input.readBoolean()) {
 			collectionId = input.readString().intern();
@@ -43,7 +43,7 @@ public class StreamableShardSearchResult implements Streamable {
 	}
 
 	@Override
-	public void writeTo(StreamOutput output) throws IOException {
+	public void writeTo(DataOutput output) throws IOException {
 		String collectionId = shardSearchResult.collectionId();
 		if (collectionId == null) {
 			output.writeBoolean(false);

@@ -5,11 +5,11 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.field.Field;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 
 public class StreamableDocumentList implements Streamable {
 
@@ -23,7 +23,7 @@ public class StreamableDocumentList implements Streamable {
 	}
 
 	@Override
-	public void readFrom(StreamInput input) throws IOException {
+	public void readFrom(DataInput input) throws IOException {
 		int length = input.readInt();
 		documentList = new ArrayList<Document>();
 
@@ -59,7 +59,7 @@ public class StreamableDocumentList implements Streamable {
 	}
 
 	@Override
-	public void writeTo(StreamOutput output) throws IOException {
+	public void writeTo(DataOutput output) throws IOException {
 		int length = documentList.size();
 		output.writeInt(length);
 		for (Document document : documentList) {

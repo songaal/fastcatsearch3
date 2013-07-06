@@ -2,9 +2,9 @@ package org.fastcatsearch.notification;
 
 import java.io.IOException;
 
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.notification.message.Notification;
 import org.fastcatsearch.service.ServiceManager;
@@ -28,13 +28,13 @@ public class NotificationJob extends StreamableJob {
 	}
 
 	@Override
-	public void readFrom(StreamInput input) throws IOException {
+	public void readFrom(DataInput input) throws IOException {
 		String className = input.readString();
 		notification = DynamicClassLoader.loadObject(className, Notification.class);
 	}
 
 	@Override
-	public void writeTo(StreamOutput output) throws IOException {
+	public void writeTo(DataOutput output) throws IOException {
 		output.writeString(notification.getClass().getName());
 		notification.writeTo(output);
 	}

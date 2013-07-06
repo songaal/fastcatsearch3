@@ -18,10 +18,13 @@ package org.fastcatsearch.common.io;
 
 import java.io.IOException;
 
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
+
 
 public interface Streamable {
 	
-    void readFrom(StreamInput input) throws IOException;
+    void readFrom(DataInput input) throws IOException;
 
-    void writeTo(StreamOutput output) throws IOException;
+    void writeTo(DataOutput output) throws IOException;
 }

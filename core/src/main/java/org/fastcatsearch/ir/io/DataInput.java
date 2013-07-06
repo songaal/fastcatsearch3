@@ -49,7 +49,9 @@ public abstract class DataInput extends InputStream implements Cloneable {
 	 * @see IndexOutput#writeByte(byte)
 	 */
 	public abstract byte readByte() throws IOException;
-
+	
+	public abstract long length() throws IOException;
+	
 	public long position() throws IOException {
 		throw new UnsupportedOperationException();
 	}

@@ -31,7 +31,7 @@ public class GroupEntry {
 	public GroupEntry(String key) {
 		this(key, null);
 	}
-	public GroupEntry(String key, GroupingValue[] groupingValue) {
+	public GroupEntry(String key, GroupingValue... groupingValue) {
 		this.key = key;
 		this.groupingValue = groupingValue;
 	}

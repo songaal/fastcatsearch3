@@ -65,5 +65,10 @@ public class BytesDataInput extends DataInput {
 		System.arraycopy(array, pos, b, offset, len);
 	}
 
+	@Override
+	public long length() throws IOException {
+		return end - start;
+	}
+
 
 }

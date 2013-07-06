@@ -2,10 +2,10 @@ package org.fastcatsearch.transport.common;
 
 import java.io.IOException;
 
-import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.control.JobExecutor;
 import org.fastcatsearch.control.ResultFuture;
+import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.transport.ChannelBufferStreamInput;
@@ -63,7 +63,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         
         int markedReaderIndex = buffer.readerIndex();
         int expectedIndexReader = markedReaderIndex + dataLength;
-        StreamInput wrappedStream = new ChannelBufferStreamInput(buffer, dataLength);
+        DataInput wrappedStream = new ChannelBufferStreamInput(buffer, dataLength);
         
         long requestId = wrappedStream.readLong();
 		byte status = wrappedStream.readByte();
@@ -121,7 +121,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
     	logger.error("에러발생 >> {}", e.getCause().getMessage());
     }
-    private void handleRequest(Channel channel, StreamInput input, long requestId) throws IOException {
+    private void handleRequest(Channel channel, DataInput input, long requestId) throws IOException {
     	logger.debug("handleRequest ");
         final TransportChannel transportChannel = new TransportChannel(channel, requestId);
         try {
@@ -145,7 +145,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         }
     }
     
-    private void handleStreamableResponse(StreamInput input, long requestId) {
+    private void handleStreamableResponse(DataInput input, long requestId) {
         try {
         	String className = input.readString();
         	Streamable streamableResult = DynamicClassLoader.loadObject(className, Streamable.class);
@@ -159,7 +159,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         }
     }
     
-    private void handleObjectResponse(StreamInput input, long requestId) {
+    private void handleObjectResponse(DataInput input, long requestId) {
         try {
         	Object response = input.readGenericValue();
         	logger.debug("## Response-{} >> {}", requestId, response);
@@ -171,7 +171,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         }
     }
 
-    private void handlerErrorResponse(StreamInput buffer, long requestId) {
+    private void handlerErrorResponse(DataInput buffer, long requestId) {
     	StreamableThrowable streamableThrowable = null;
         try {
         	streamableThrowable = new StreamableThrowable();

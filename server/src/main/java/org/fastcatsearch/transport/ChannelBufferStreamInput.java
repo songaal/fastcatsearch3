@@ -22,11 +22,10 @@ package org.fastcatsearch.transport;
 import java.io.EOFException;
 import java.io.IOException;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-
 import org.fastcatsearch.common.BytesReference;
 import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.transport.common.ChannelBufferBytesReference;
+import org.jboss.netty.buffer.ChannelBuffer;
 
 /**
  * A Netty {@link org.jboss.netty.buffer.ChannelBuffer} based {@link org.elasticsearch.common.io.stream.StreamInput}.
@@ -148,7 +147,7 @@ public class ChannelBufferStreamInput extends StreamInput {
 	}
 
 	@Override
-	public long size() throws IOException {
+	public long length() throws IOException {
 		return endIndex - startIndex;
 	}
 }

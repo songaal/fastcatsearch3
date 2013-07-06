@@ -22,9 +22,8 @@ package org.fastcatsearch.common;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-
 import org.fastcatsearch.common.io.StreamInput;
+import org.jboss.netty.buffer.ChannelBuffer;
 
 /**
  * A reference to bytes.

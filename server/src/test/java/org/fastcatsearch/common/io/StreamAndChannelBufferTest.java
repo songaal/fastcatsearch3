@@ -53,7 +53,7 @@ public class StreamAndChannelBufferTest {
 		stream.writeLong(l);
 		stream.writeVInt(8);
 		stream.close();
-		int dataLength = stream.size();
+		int dataLength = stream.length();
 		ChannelBuffer buffer = stream.bytesReference().toChannelBuffer();
 		//전송후 받아서 다시 읽는다.
 		StreamInput wrappedStream = new ChannelBufferStreamInput(buffer, dataLength);
@@ -72,7 +72,7 @@ public class StreamAndChannelBufferTest {
 			BytesStreamOutput stream = new BytesStreamOutput(8);
 			stream.writeLong(l);
 			stream.close();
-			int dataLength = stream.size();
+			int dataLength = stream.length();
 			ChannelBuffer buffer = stream.bytesReference().toChannelBuffer();
 			//전송후 받아서 다시 읽는다.
 			StreamInput wrappedStream = new ChannelBufferStreamInput(buffer, dataLength);

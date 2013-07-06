@@ -2,8 +2,8 @@ package org.fastcatsearch.notification.message;
 
 import java.io.IOException;
 
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
 
 public class OutOfMemoryNotification extends Notification {
@@ -22,7 +22,7 @@ public class OutOfMemoryNotification extends Notification {
 	}
 	
 	@Override
-	public void readFrom(StreamInput input) throws IOException {
+	public void readFrom(DataInput input) throws IOException {
 		super.readFrom(input);
 		StreamableThrowable streamableThrowable = new StreamableThrowable();
 		streamableThrowable.readFrom(input);
@@ -30,7 +30,7 @@ public class OutOfMemoryNotification extends Notification {
 	}
 
 	@Override
-	public void writeTo(StreamOutput output) throws IOException {
+	public void writeTo(DataOutput output) throws IOException {
 		super.writeTo(output);
 		new StreamableThrowable(e).writeTo(output);
 	}

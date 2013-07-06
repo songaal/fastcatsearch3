@@ -43,6 +43,9 @@ public class BytesDataOutput extends DataOutput {
 		return new BytesRef(buf, 0, pos);
 	}
 
+	public int length(){
+		return buf.length;
+	}
 	@Override
 	public void close() throws IOException {
 

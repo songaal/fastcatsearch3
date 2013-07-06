@@ -10,13 +10,13 @@ import org.fastcatsearch.common.BytesReference;
 import org.fastcatsearch.common.io.BytesStreamInput;
 import org.fastcatsearch.common.io.BytesStreamOutput;
 import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.ir.config.Field;
 import org.fastcatsearch.ir.document.Document;
-import org.fastcatsearch.ir.field.DoubleMVField;
+import org.fastcatsearch.ir.field.DoubleField;
+import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.field.IntField;
-import org.fastcatsearch.ir.field.UCharField;
-import org.fastcatsearch.ir.field.UCharMVField;
-import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.fastcatsearch.ir.field.UStringField;
+import org.fastcatsearch.ir.io.BytesBuffer;
+import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -26,17 +26,17 @@ public class StreamableDocumentListTest {
 	public void testWriteAndRead() throws IOException {
 		List<Document> documentList = new ArrayList<Document>();
 		Document document1 = new Document(4);
-		document1.add(new IntField("1"));
-		document1.add(new DoubleMVField("10\t11\t12\t13", '\t', Short.MAX_VALUE));
-		document1.add(new UCharField("안녕하세요."));
-		document1.add(new UCharMVField("안녕하세요.\t수고하세요\t감사합니다.\t사랑합니다.", -1, '\t', Short.MAX_VALUE));
+		document1.add(new IntField("f0", "1"));
+		document1.add(new DoubleField("f1", "111.0"));
+		document1.add(new UStringField("f2", "안녕하세요."));
+		document1.add(new UStringField("f3", "안녕하세요.\t수고하세요\t감사합니다.\t사랑합니다."));
 		documentList.add(document1);
 		
 		Document document2 = new Document(4);
-		document2.add(new IntField("2"));
-		document2.add(new DoubleMVField("20\t21\t22\t23", '\t', Short.MAX_VALUE));
-		document2.add(new UCharField("패스트캣서치"));
-		document2.add(new UCharMVField("찾아주세요.\t부탁입니다.\t빨리요.\t찾으셨군요.", -1, '\t', Short.MAX_VALUE));
+		document2.add(new IntField("f0", "2"));
+		document2.add(new DoubleField("f1", "111.0"));
+		document2.add(new UStringField("f2", "안녕하세요."));
+		document2.add(new UStringField("f3", "안녕하세요.\t수고하세요\t감사합니다.\t사랑합니다."));
 		documentList.add(document2);
 		
 		
@@ -54,8 +54,8 @@ public class StreamableDocumentListTest {
 		
 		assertTrue(expected.size() == actual.size());
 		
-		FastByteBuffer buffer1 = new FastByteBuffer(128);
-		FastByteBuffer buffer2 = new FastByteBuffer(128);
+		BytesDataOutput buffer1 = new BytesDataOutput(128);
+		BytesDataOutput buffer2 = new BytesDataOutput(128);
 		for (int i = 0; i < expected.size(); i++) {
 			Document expectedDocument = expected.get(i);
 			Document actualDocument = actual.get(i);
@@ -66,17 +66,13 @@ public class StreamableDocumentListTest {
 				Field expectedField = expectedDocument.get(j);
 				Field actualField = actualDocument.get(j);
 				
-				buffer1.clear();
-				buffer2.clear();
+				buffer1.reset();
+				buffer2.reset();
 				
-				expectedField.getFixedBytes(buffer1);
-				actualField.getFixedBytes(buffer2);
+				expectedField.writeTo(buffer1);
+				actualField.writeTo(buffer2);
 				
-				buffer1.flip();
-				buffer2.flip();
-				
-				Assert.assertEquals(buffer1.remaining(), buffer2.remaining());
-				assertTrue(buffer1.equals(buffer2));
+				assertTrue(buffer1.bytesRef().equals(buffer2.bytesRef()));
 				
 			}
 			

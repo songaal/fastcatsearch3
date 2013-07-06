@@ -3,13 +3,12 @@ package org.fastcatsearch.notification;
 import java.io.IOException;
 import java.sql.Timestamp;
 
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
-
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.dao.IndexingResult;
-import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
+import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.service.ServiceManager;
 
 public class IndexingStartNotificationbak extends StreamableJob {
@@ -49,7 +48,7 @@ public class IndexingStartNotificationbak extends StreamableJob {
 	}
 
 	@Override
-	public void readFrom(StreamInput input) throws IOException {
+	public void readFrom(DataInput input) throws IOException {
 		collection = input.readString();
 		indexingType = input.readString();
 		startTime = input.readLong();
@@ -57,7 +56,7 @@ public class IndexingStartNotificationbak extends StreamableJob {
 	}
 
 	@Override
-	public void writeTo(StreamOutput output) throws IOException {
+	public void writeTo(DataOutput output) throws IOException {
 		output.writeString(collection);
 		output.writeString(indexingType);
 		output.writeLong(startTime);

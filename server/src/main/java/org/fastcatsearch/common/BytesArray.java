@@ -23,11 +23,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-
 import org.fastcatsearch.common.io.BytesStreamInput;
 import org.fastcatsearch.common.io.StreamInput;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
 
 public class BytesArray implements BytesReference {
 

@@ -1,8 +1,8 @@
 package org.fastcatsearch.common.io;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-
+import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.transport.ChannelBufferStreamInput;
+import org.jboss.netty.buffer.ChannelBuffer;
 
 /**
  */

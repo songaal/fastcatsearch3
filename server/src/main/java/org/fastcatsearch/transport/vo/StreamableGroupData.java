@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.ir.group.GroupData;
 import org.fastcatsearch.ir.group.GroupEntry;
@@ -15,6 +13,8 @@ import org.fastcatsearch.ir.group.value.DoubleGroupingValue;
 import org.fastcatsearch.ir.group.value.FloatGroupingValue;
 import org.fastcatsearch.ir.group.value.IntGroupingValue;
 import org.fastcatsearch.ir.group.value.LongGroupingValue;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +35,7 @@ public class StreamableGroupData implements Streamable {
 	}
 
 	@Override
-	public void readFrom(StreamInput input) throws IOException {
+	public void readFrom(DataInput input) throws IOException {
 		int totalSearchCount = input.readVInt();
 		int groupSize = input.readVInt();
 		List<GroupEntryList> groupEntryListArray = new ArrayList<GroupEntryList>(groupSize);
@@ -71,7 +71,7 @@ public class StreamableGroupData implements Streamable {
 	}
 
 	@Override
-	public void writeTo(StreamOutput output) throws IOException {
+	public void writeTo(DataOutput output) throws IOException {
 		output.writeVInt(groupData.totalSearchCount());
 		List<GroupEntryList> list = groupData.list();
 

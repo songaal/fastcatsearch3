@@ -22,12 +22,11 @@ package org.fastcatsearch.transport.common;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-
 import org.fastcatsearch.common.BytesArray;
 import org.fastcatsearch.common.BytesReference;
 import org.fastcatsearch.common.io.ChannelBufferStreamInputFactory;
 import org.fastcatsearch.common.io.StreamInput;
+import org.jboss.netty.buffer.ChannelBuffer;
 
 /**
  */

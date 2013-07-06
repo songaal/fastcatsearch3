@@ -1,13 +1,11 @@
 package org.fastcatsearch.cluster;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.Map;
 
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 
 public class Node implements Streamable{
 	private String nodeId;
@@ -65,14 +63,14 @@ public class Node implements Streamable{
 		return socketAddress.getPort();
 	}
 	
-	public static Node readNode(StreamInput in) throws IOException {
+	public static Node readNode(DataInput in) throws IOException {
         Node node = new Node();
         node.readFrom(in);
         return node;
     }
 
     @Override
-    public void readFrom(StreamInput in) throws IOException {
+    public void readFrom(DataInput in) throws IOException {
         nodeId = in.readString().intern();
         String hostName = in.readString().intern();
         int port = in.readInt();
@@ -80,7 +78,7 @@ public class Node implements Streamable{
     }
 
     @Override
-    public void writeTo(StreamOutput out) throws IOException {
+    public void writeTo(DataOutput out) throws IOException {
         out.writeString(nodeId);
         out.writeString(socketAddress.getHostName());
         out.writeInt(socketAddress.getPort());

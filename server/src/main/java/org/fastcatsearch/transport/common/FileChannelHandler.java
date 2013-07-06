@@ -1,10 +1,16 @@
 package org.fastcatsearch.transport.common;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.transport.ChannelBufferStreamInput;
+import org.fastcatsearch.transport.TransportChannel;
+import org.fastcatsearch.transport.TransportModule;
+import org.fastcatsearch.transport.TransportOption;
+import org.fastcatsearch.transport.vo.StreamableBoolean;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -13,15 +19,6 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.apache.commons.io.FileUtils;
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.Streamable;
-import org.fastcatsearch.transport.ChannelBufferStreamInput;
-import org.fastcatsearch.transport.TransportChannel;
-import org.fastcatsearch.transport.TransportModule;
-import org.fastcatsearch.transport.TransportOption;
-import org.fastcatsearch.transport.vo.StreamableBoolean;
 
 public class FileChannelHandler extends SimpleChannelUpstreamHandler {
 
@@ -64,7 +61,7 @@ public class FileChannelHandler extends SimpleChannelUpstreamHandler {
 
 		int markedReaderIndex = buffer.readerIndex();
 		int expectedIndexReader = markedReaderIndex + dataLength;
-		StreamInput wrappedStream = new ChannelBufferStreamInput(buffer,dataLength);
+		DataInput wrappedStream = new ChannelBufferStreamInput(buffer,dataLength);
 
 		long requestId = wrappedStream.readLong();
 		byte status = wrappedStream.readByte();
@@ -104,7 +101,7 @@ public class FileChannelHandler extends SimpleChannelUpstreamHandler {
 		super.channelClosed(ctx, e);
 	}
 
-	private void handleFileTransportRequest(Channel channel, StreamInput input, long requestId) throws IOException {
+	private void handleFileTransportRequest(Channel channel, DataInput input, long requestId) throws IOException {
 logger.debug("File Handler >> {}, mapsize={}", this, fileResponseChannelMap.size());
 		// seq(4) + [filepath(string) + filesize(long) + checksumCRC32(long)]+hashfilepath(string) + datalength(vint) + data
 		int seq = input.readInt();

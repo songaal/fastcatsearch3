@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import org.fastcatsearch.ir.io.ByteArrayInput;
 import org.junit.Test;
 
 public class FastcatSearchExceptionTest {

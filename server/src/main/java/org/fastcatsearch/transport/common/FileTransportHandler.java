@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.common.Strings;
-import org.fastcatsearch.common.io.StreamInput;
+import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.settings.IRSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +25,7 @@ public class FileTransportHandler {
 	
 	//마지막 청크기록으로 모두 끝났다면 true 전송.
 	//IO에러 또는 체크섬 불일치 에러는 IOException를 던진다.
-	public boolean handleFile(int seq, String filePath, long fileSize, long checksumCRC32, String fileKey, StreamInput input) throws IOException {
+	public boolean handleFile(int seq, String filePath, long fileSize, long checksumCRC32, String fileKey, DataInput input) throws IOException {
 		FileStreamHandle fileHandle = fileMap.get(fileKey);
 		if(seq == 0){
 			//새로 생성.
@@ -129,7 +129,7 @@ public class FileTransportHandler {
 			
 		}
 
-		public synchronized void write(StreamInput input) throws IOException {
+		public synchronized void write(DataInput input) throws IOException {
 			int dataLength = input.readVInt();
 			logger.debug("fileHandler write dataLength={}", dataLength);
 			int nRead = 0;
