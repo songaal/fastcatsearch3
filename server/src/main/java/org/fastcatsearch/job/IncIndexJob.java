@@ -78,7 +78,7 @@ public class IncIndexJob extends IndexingJob {
 			CollectionConfig collectionConfig = irService.getCollectionConfig(collection);
 			
 			
-			CollectionHandler workingHandler = irService.getCollectionHandler(collection);
+			CollectionHandler workingHandler = irService.collectionHandler(collection);
 			if(workingHandler == null){
 				indexingLogger.error("["+collection+"] CollectionHandler is not running!");
 				EventDBLogger.error(EventDBLogger.CATE_INDEX, "컬렉션 "+collection+"가 서비스중이 아님.");

@@ -77,7 +77,7 @@ public class InfoCollectionCommand extends CollectionExtractCommand {
 		}
 		String dataSourceType = IRSettings.getDatasource(collection, true).sourceType;
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
-		CollectionHandler ch = irService.getCollectionHandler(collection);
+		CollectionHandler ch = irService.collectionHandler(collection);
 		boolean isRunning = (ch == null ? false : true);
 		String durationStr = "";
 		String strStartTime = "";

@@ -32,7 +32,7 @@ public class IRServiceTest extends TestCase{
 		String collection = "test3";
 		IRSettings.setHome(irHome);
 		IRService service = null;//IRService.getInstance();
-		CollectionHandler h = service.getCollectionHandler(collection);
+		CollectionHandler h = service.collectionHandler(collection);
 		h.printSegmentStatus();
 	}
 }

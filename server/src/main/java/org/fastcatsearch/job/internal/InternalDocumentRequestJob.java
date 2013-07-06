@@ -32,7 +32,7 @@ public class InternalDocumentRequestJob extends StreamableJob {
 		
 		try {
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-			CollectionHandler collectionHandler = irService.getCollectionHandler(collectionId);
+			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
 			
 			if(collectionHandler == null){
 				throw new FastcatSearchException("ERR-00520", collectionId);

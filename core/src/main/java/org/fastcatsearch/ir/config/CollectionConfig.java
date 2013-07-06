@@ -1,10 +1,7 @@
 package org.fastcatsearch.ir.config;
 
-import java.util.List;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 
 /**
  * 각 컬렉션별 셋팅을 가지고 있다.
@@ -19,10 +16,6 @@ import javax.xml.bind.annotation.XmlType;
 		<bucket-size>64K</bucket-size>
 		<work-memory-size>128M</work-memory-size>
 		<work-bucket-size>256</work-bucket-size>
-		<read-buffer-size>3M</read-buffer-size>
-		<write-buffer-size>3M</write-buffer-size>
-		<block-size>8</block-size>
-		<compression-type>fast</compression-type>
 	</index>
 	<data-plan>
 		<data-sequence-cycle>2</data-sequence-cycle>

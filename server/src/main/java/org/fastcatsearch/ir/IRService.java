@@ -22,12 +22,16 @@ import java.util.Map.Entry;
 import org.fastcatsearch.common.QueryCacheModule;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.env.FileNames;
+import org.fastcatsearch.env.FilePaths.Path;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionConfig;
+import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.config.CollectionStatus;
 import org.fastcatsearch.ir.config.CollectionsConfig;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
+import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.config.JAXBConfigs;
 import org.fastcatsearch.ir.group.GroupData;
@@ -36,18 +40,18 @@ import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.ShardSearchResult;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.settings.Schema;
+import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.module.ModuleException;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.IRSettings;
 import org.fastcatsearch.settings.Settings;
 
 
 public class IRService extends AbstractService{
 	
 	private Map<String, CollectionHandler> collectionHandlerMap = new HashMap<String, CollectionHandler>();
-//	private String[] collectionNameList;
-//	private String[][] tokenizerList;
+	
+	//TODO 캐시방식을 변경하자.
 	
 	private QueryCacheModule<Result> searchCache;
 	private QueryCacheModule<ShardSearchResult> shardSearchCache;
@@ -72,32 +76,20 @@ public class IRService extends AbstractService{
 		for (Collection collection : collectionsConfig.getCollectionList()) {
 			try {
 				String collectionId = collection.getId();
-//				File collectionDir = IRSettings.getCollectionHomeFile(collectionId);
 				
-				//
-				//TODO 
-				//
+				CollectionContext collectionContext = loadCollectionContext(collectionId); 
 				
-//				CollectionContext collectionContext = new CollectionContext("sample");
-//				collectionContext.load(collectionRootPath);
-//				collectionContextList[i] = collectionContext;
-				
-				// TODO 스키마는 CollectionContext 내부에서 로딩된다.!!!!
-				//CollectionConfig 도  CollectionContext 내부에..
-				
-				File collectionDir = environment.filePaths().getCollectionHome(collectionId).file();
-				Schema schema = IRSettings.getSchema(collectionId, true);
-				CollectionConfig collectionConfig = JAXBConfigs.readConfig(new File(collectionDir, "collection.xml"), CollectionConfig.class);
-				collectionConfigMap.put(collectionId, collectionConfig);
+				CollectionHandler collectionHandler = new CollectionHandler(collectionContext);
+				collectionHandlerMap.put(collectionId, collectionHandler);
 				
 				if(!collection.isActive()){
 					//active하지 않은 컬렉션은 map에 설정만 넣어두고 시작하지 않는다.
 					continue;
 				}
 
-				IndexConfig indexConfig = collectionConfig.getIndexConfig();
+//				IndexConfig indexConfig = collectionConfig.getIndexConfig();
 				
-				collectionHandlerMap.put(collectionId, new CollectionHandler(collectionId, collectionDir, collectionContext[i], indexConfig));
+//				collectionHandlerMap.put(collectionId, new CollectionHandler(collectionId, collectionDir, collectionContext[i], indexConfig));
 			} catch (IRException e) {
 				logger.error("[ERROR] "+e.getMessage(),e);
 			} catch (SettingException e) {
@@ -131,27 +123,42 @@ public class IRService extends AbstractService{
 	public List<Collection> getCollectionList(){
 		return collectionsConfig.getCollectionList();
 	}
-//	public String[][] getTokenizers() {
-//		return tokenizerList;
-//	}
 	
-	public CollectionHandler removeCollectionHandler(String collection){
-		return collectionHandlerMap.remove(collection);
+	//TODO 전체색인후 로드할때는 work schema를 읽어야한다.
+	//schema와 sequence가 동시에 바뀔수 있음.
+	public CollectionContext loadCollectionContext(String collectionId){
+		return loadCollectionContext(collectionId, -1);
+	}
+	public CollectionContext loadCollectionContext(String collectionId, int dataSequence){
+		Path homeDir = environment.filePaths().getCollectionHome(collectionId);
+		SchemaSetting schemaSetting = JAXBConfigs.readConfig(homeDir.file("schema.xml"), SchemaSetting.class);
+		CollectionConfig collectionConfig = JAXBConfigs.readConfig(homeDir.file("collection.xml"), CollectionConfig.class);
+		CollectionStatus collectionStatus = JAXBConfigs.readConfig(homeDir.file("status.xml"), CollectionStatus.class);
+		//dataSequence가 -1아 아니면 원하는 sequence의 정보를 읽어온다.
+		File infoFile = homeDir.path(collectionStatus.getData().getPathName(dataSequence)).file("info.xml");
+		DataInfo dataInfo = JAXBConfigs.readConfig(infoFile, DataInfo.class);
+		Schema schema = new Schema(schemaSetting);
+		CollectionContext collectionContext = new CollectionContext("sample");
+		collectionContext.init(schema, null, collectionConfig, collectionStatus, dataInfo);
+		return collectionContext;
 	}
 	
-	public CollectionHandler getCollectionHandler(String collection){
-		return collectionHandlerMap.get(collection);
+	public CollectionHandler removeCollectionHandler(String collectionId){
+		return collectionHandlerMap.remove(collectionId);
 	}
 	
-	public CollectionHandler putCollectionHandler(String collection, CollectionHandler collectionHandler){
-		return collectionHandlerMap.put(collection, collectionHandler);
+	public CollectionHandler collectionHandler(String collectionId){
+		return collectionHandlerMap.get(collectionId);
+	}
+	
+	public CollectionHandler putCollectionHandler(String collectionId, CollectionHandler collectionHandler){
+		return collectionHandlerMap.put(collectionId, collectionHandler);
 	}
 
-	public CollectionHandler newCollectionHandler(String collection, int newDataSequence) throws IRException, SettingException{
-		File collectionDir = new File(IRSettings.getCollectionHome(collection));
-		Schema schema = IRSettings.getSchema(collection, false);
-		IndexConfig indexConfig = collectionConfigMap.get(collection).getIndexConfig();
-		return new CollectionHandler(collection, collectionDir, schema, indexConfig, newDataSequence);
+	public CollectionHandler newCollectionHandler(String collectionId, int newDataSequence) throws IRException, SettingException{
+		CollectionContext collectionContext = loadCollectionContext(collectionId, newDataSequence); 
+		
+		return new CollectionHandler(collectionContext);
 	}
 	
 	public CollectionConfig getCollectionConfig(String collectionId){
@@ -178,115 +185,6 @@ public class IRService extends AbstractService{
 		return true;
 	}	
 	
-//	public void detectTokenizers() {
-//		String pkg = "org.fastcatsearch.ir.analysis.";
-//		ClassLoader clsldr = getClass().getClassLoader();
-//		String path = pkg.replace(".", "/");
-//		try {
-//			Enumeration<URL> em = clsldr.getResources(path);
-//			List<String[]> tokenizers = new ArrayList<String[]>();
-//			while(em.hasMoreElements()) {
-//				String urlstr = em.nextElement().toString();
-//				if(urlstr.startsWith("jar:file:")) {
-//					String jpath = urlstr.substring(9);
-//					int st = jpath.indexOf("!/");
-//					jpath = jpath.substring(0,st);
-//					JarFile jf = new JarFile(jpath);
-//					Enumeration<JarEntry>jee = jf.entries();
-//					while(jee.hasMoreElements()) {
-//						JarEntry je = jee.nextElement();
-//						String ename = je.getName();
-//						String[] ar = classifyTokenizers(ename,pkg);
-//						if(ar!=null) { tokenizers.add(ar); }
-//						
-//					}
-//				} else  if(urlstr.startsWith("file:")) {
-//					File file = new File(urlstr.substring(5));
-//					File[] dir = file.listFiles();
-//					for(int i=0;i<dir.length;i++) {
-//						String[] ar = classifyTokenizers(pkg+dir[i].getName(),pkg);
-//						if(ar!=null) { tokenizers.add(ar); }
-//					}
-//				}
-//			}
-//			if(tokenizers!=null && tokenizers.size() > 0) {
-//				tokenizerList = new String[tokenizers.size()][];
-//				tokenizerList = tokenizers.toArray(tokenizerList);
-//			}
-//		} catch (IOException e) { }
-//	}
-//
-//	public String[] classifyTokenizers(String ename, String pkg) {
-//		if(ename.endsWith(".class")) {
-//			ename = ename.substring(0,ename.length()-6);
-//			ename = ename.replaceAll("/", ".");
-//			if(ename.startsWith(pkg)) {
-//				try {
-//					Class<?> cls = Class.forName(ename);
-//					TokenizerAttributes tokenizerAttributes = cls.getAnnotation(TokenizerAttributes.class);
-//					if(tokenizerAttributes!=null) {
-//						return new String[] { tokenizerAttributes.name(), cls.getName() };
-//					}
-//				} catch (ClassNotFoundException e) { }
-//			}
-//		}
-//		return null;
-//	}
-	
-//	public void detectFieldTypes() {
-//		String pkg = "org.fastcatsearch.ir.config.";
-//		ClassLoader clsldr = getClass().getClassLoader();
-//		String path = pkg.replace(".", "/");
-//		try {
-//			Enumeration<URL> em = clsldr.getResources(path);
-//			while(em.hasMoreElements()) {
-//				String urlstr = em.nextElement().toString();
-//				if(urlstr.startsWith("jar:file:")) {
-//					String jpath = urlstr.substring(9);
-//					int st = jpath.indexOf("!/");
-//					jpath = jpath.substring(0,st);
-//					JarFile jf = new JarFile(jpath);
-//					Enumeration<JarEntry>jee = jf.entries();
-//					while(jee.hasMoreElements()) {
-//						JarEntry je = jee.nextElement();
-//						String ename = je.getName();
-//						classifyFieldTypes(ename,pkg);
-//					}
-//				} else  if(urlstr.startsWith("file:")) {
-//					File file = new File(urlstr.substring(5));
-//					File[] dir = file.listFiles();
-//					for(int i=0;i<dir.length;i++) {
-//						classifyFieldTypes(pkg+dir[i].getName(),pkg);
-//					}
-//				}
-//			}
-//		} catch (IOException e) { }
-//	}
-//	
-//	public String[] classifyFieldTypes(String ename, String pkg) {
-//		if(ename.endsWith(".class")) {
-//			ename = ename.substring(0,ename.length()-6);
-//			ename = ename.replaceAll("/", ".");
-//			if(ename.startsWith(pkg)) {
-//				try {
-//					Class<?> cls = Class.forName(ename);
-//					if(org.fastcatsearch.ir.config.Field.class.equals(cls)) {
-//					} else if(org.fastcatsearch.ir.field.SingleValueField.class.equals(cls)) {
-//					} else if(org.fastcatsearch.ir.field.MultiValueField.class.equals(cls)) {
-//					} else if(org.fastcatsearch.ir.field.MultiValueField.class.isAssignableFrom(cls)) {
-//					} else if(org.fastcatsearch.ir.config.Field.class.isAssignableFrom(cls)) {
-//						String fieldType = ename.substring(pkg.length());
-//						if(fieldType.endsWith("Field")) { fieldType = fieldType.substring(0,fieldType.length()-5); }
-//						fieldType = fieldType.toLowerCase();
-////						System.out.println("1: "+fieldType+":"+cls.getName());
-//						return new String[] { fieldType, cls.getName() };
-//					}
-//				} catch (ClassNotFoundException e) { }
-//			}
-//		}
-//		return null;
-//	}
-
 	@Override
 	protected boolean doClose() throws FastcatSearchException {
 		return true;

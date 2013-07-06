@@ -93,7 +93,7 @@ public class FilePaths {
 		return new Path(null, path);
 	}
 	
-	public class Path{
+	public class Path implements Cloneable {
 		private File root;
 		public Path(){
 		}
@@ -104,14 +104,34 @@ public class FilePaths {
 			this.root = new File(root, sub);
 		}
 		public Path append(String dir){
-			return new Path(root, dir);
+			root = new File(root, dir);
+			return this;
 		}
 		public File file(){
 			return root;
 		}
+		public Path append(String... dirs){
+			for (int i = 0; i < dirs.length; i++) {
+				root = new File(root, dirs[i]);
+			}
+			return this;
+		}
+		
 		@Override
 		public String toString(){
 			return root.getPath();
+		}
+		
+		@Override
+		public Path clone() {
+			return new Path(root);
+			
+		}
+		public File file(String name) {
+			return new File(root, name);
+		}
+		public Path path(String name) {
+			return new Path(new File(root, name));
 		}
 	}
 

@@ -142,28 +142,28 @@
 	</thead>
 	<tbody>
 	<%
-	for(int i = 0;i<colletionList.length;i++){
-		String collection = colletionList[i];
-		CollectionHandler collectionHandler = irService.getCollectionHandler(collection);
-		boolean isRunning = false;
-		String startTimeStr = "";
-		String durationStr = "";
-		if(collectionHandler == null){
-			isRunning = false;
-		}else{
-			isRunning = true;
-			long startTime = collectionHandler.getStartedTime();
-			long duration  = System.currentTimeMillis() - startTime;
-			startTimeStr = new Date(startTime).toString();
-			durationStr = Formatter.getFormatTime(duration);
-		}
-		
-		Schema schema = IRSettings.getSchema(collection, true);
-		
-		if(schema!=null) {
-			DataSourceSetting dataSourceSetting = IRSettings.getDatasource(collection, true);
-			String sourceType = dataSourceSetting.sourceType;
-%>
+		for(int i = 0;i<colletionList.length;i++){
+			String collection = colletionList[i];
+			CollectionHandler collectionHandler = irService.collectionHandler(collection);
+			boolean isRunning = false;
+			String startTimeStr = "";
+			String durationStr = "";
+			if(collectionHandler == null){
+		isRunning = false;
+			}else{
+		isRunning = true;
+		long startTime = collectionHandler.getStartedTime();
+		long duration  = System.currentTimeMillis() - startTime;
+		startTimeStr = new Date(startTime).toString();
+		durationStr = Formatter.getFormatTime(duration);
+			}
+			
+			Schema schema = IRSettings.getSchema(collection, true);
+			
+			if(schema!=null) {
+		DataSourceSetting dataSourceSetting = IRSettings.getDatasource(collection, true);
+		String sourceType = dataSourceSetting.sourceType;
+	%>
 	<tr>
 		<td class="first"><input type="radio" name="selectCollection" value="<%=collection%>" /></td>
 		<td><%=i+1 %></td>

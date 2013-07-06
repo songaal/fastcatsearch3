@@ -224,19 +224,19 @@ if(Dic.stopword.file != null && Dic.stopword.file.exists()){
 		</div>
 		
 <%
-		IRService irService = ServiceManager.getInstance().getService(IRService.class);
-		DBService dbHandler = ServiceManager.getInstance().getService(DBService.class);
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+				DBService dbHandler = ServiceManager.getInstance().getService(DBService.class);
 
-		//IRService irService = ServiceManager.getInstance().getService(IRService.class);
-		String[] colletionList = irService.getCollectionNames();
-		int size = 0;
-		String fullIndexingList = "";
-		String incIndexingList = "";
-		//DBService dbHandler = ServiceManager.getInstance().getService(DBService.class);
+				//IRService irService = ServiceManager.getInstance().getService(IRService.class);
+				String[] colletionList = irService.getCollectionNames();
+				int size = 0;
+				String fullIndexingList = "";
+				String incIndexingList = "";
+				//DBService dbHandler = ServiceManager.getInstance().getService(DBService.class);
 
-		for(int i = 0; i < colletionList.length; i++){
+				for(int i = 0; i < colletionList.length; i++){
 			String collection = colletionList[i];
-			CollectionHandler collectionHandler = irService.getCollectionHandler(collection);
+			CollectionHandler collectionHandler = irService.collectionHandler(collection);
 			int dataSequence = -1;
 			if(collectionHandler != null){
 				dataSequence = collectionHandler.getDataSequence();
@@ -252,21 +252,21 @@ if(Dic.stopword.file != null && Dic.stopword.file.exists()){
 			if(incIndexingSchedule != null && incIndexingSchedule.isActive){
 				incIndexingList += collection + ", "; 
 			}
-		}
+				}
 
-		fullIndexingList = fullIndexingList.trim();
-		incIndexingList = incIndexingList.trim();
+				fullIndexingList = fullIndexingList.trim();
+				incIndexingList = incIndexingList.trim();
 
-		if(fullIndexingList.length() > 0){
+				if(fullIndexingList.length() > 0){
 			fullIndexingList = fullIndexingList.substring(0, fullIndexingList.length() - 1);
-		}else{
+				}else{
 			fullIndexingList = "자동설정된 컬렉션이 없습니다.";
-		}
-		if(incIndexingList.length() > 0){
+				}
+				if(incIndexingList.length() > 0){
 			incIndexingList = incIndexingList.substring(0, incIndexingList.length() - 1);
-		}else{
+				}else{
 			incIndexingList = "자동설정된 컬렉션이 없습니다.";
-		}
+				}
 		%>
 		<div style="height:250px;">
 			<div style="float:left;width:48%;height:250px; background:#fff; margin: 5px 30px 5px 5px;">

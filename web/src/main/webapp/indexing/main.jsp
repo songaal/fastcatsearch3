@@ -102,7 +102,7 @@
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	for(int i = 0; i < colletionList.length; i++){
 		String collection = colletionList[i];
-		CollectionHandler collectionHandler = irService.getCollectionHandler(collection);
+		CollectionHandler collectionHandler = irService.collectionHandler(collection);
 		int dataSequence = -1;
 		int segmentSize = 0;
 		if(collectionHandler != null){

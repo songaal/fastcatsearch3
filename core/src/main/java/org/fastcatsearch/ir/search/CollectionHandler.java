@@ -26,6 +26,7 @@ import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.common.SettingException;
+import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.DocumentReader;
 import org.fastcatsearch.ir.document.DocumentRestorer;
@@ -61,15 +62,17 @@ public class CollectionHandler {
 	private File collectionDir;
 	private CollectionInfoFile collectionInfoFile;
 	private DataSequenceFile dataSequenceFile;
+	private CollectionContext collectionContext;
 	
 	private long startedTime;
 	private IndexConfig indexConfig;
 	
 	private CollectionSearcher collectionSearcher;
 	
-	public CollectionHandler(String collection, File collectionDir, Schema schema, IndexConfig indexConfig) throws IRException, SettingException{
+	public CollectionHandler(CollectionContext collectionContext) throws IRException, SettingException{
 		//-1 means reading dataSequence from file.
-		this(collection, collectionDir, schema, indexConfig, -1);
+//		this(collection, collectionDir, schema, indexConfig, -1);
+		this.collectionContext = collectionContext;
 	}
 	
 	public CollectionHandler(String collection, File collectionDir, Schema schema, IndexConfig indexConfig, int dataSequence) throws IRException, SettingException{
@@ -110,6 +113,9 @@ public class CollectionHandler {
 		startedTime = System.currentTimeMillis();
 	}
 	
+	public CollectionContext collectionContext(){
+		return collectionContext;
+	}
 	public CollectionSearcher searcher(){
 		return collectionSearcher;
 	}

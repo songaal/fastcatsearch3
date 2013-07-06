@@ -71,7 +71,7 @@ switch(cmd){
     	int segmentNumber = Integer.parseInt(request.getParameter("segment"));
     	int revisioinNumber = Integer.parseInt(request.getParameter("revision"));
     	
-    	CollectionHandler handler = IRService.getInstance().getCollectionHandler(collection);
+    	CollectionHandler handler = IRService.getInstance().collectionHandler(collection);
     	try {
 	boolean isSuccess = handler.restore(segmentNumber, revisioinNumber);
 	
@@ -102,22 +102,22 @@ switch(cmd){
 		if(CatServer.getInstance().isRunning()){
 	response.sendRedirect("main.jsp?message="+URLEncoder.encode("CatServer가 이미 시작되었습니다.", "utf-8"));
 		}else{
-			if(CatServer.getInstance().start()){
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("CatServer 시작에 성공하였습니다.", "utf-8"));
-			}else{
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("CatServer 시작에 실패하였습니다.", "utf-8"));
-			}
+	if(CatServer.getInstance().start()){
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("CatServer 시작에 성공하였습니다.", "utf-8"));
+	}else{
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("CatServer 시작에 실패하였습니다.", "utf-8"));
+	}
 		}
 	}else if(component == 1){
 		//ServiceHandler
 		if(WebService.getInstance().isRunning()){
 	response.sendRedirect("main.jsp?message="+URLEncoder.encode("ServiceHandler가 이미 시작되었습니다.", "utf-8"));
 		}else{
-			if(WebService.getInstance().start()){
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("ServiceHandler 시작에 성공하였습니다.", "utf-8"));
-			}else{
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("ServiceHandler 시작에 실패하였습니다.", "utf-8"));
-			}
+	if(WebService.getInstance().start()){
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("ServiceHandler 시작에 성공하였습니다.", "utf-8"));
+	}else{
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("ServiceHandler 시작에 실패하였습니다.", "utf-8"));
+	}
 		}
 		
 	}else if(component == 2){
@@ -125,11 +125,11 @@ switch(cmd){
 		if(IRService.getInstance().isRunning()){
 	response.sendRedirect("main.jsp?message="+URLEncoder.encode("IRService가 이미 시작되었습니다.", "utf-8"));
 		}else{
-			if(IRService.getInstance().start()){
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("IRService 시작에 성공하였습니다.", "utf-8"));
-			}else{
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("IRService 시작에 실패하였습니다.", "utf-8"));
-			}
+	if(IRService.getInstance().start()){
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("IRService 시작에 성공하였습니다.", "utf-8"));
+	}else{
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("IRService 시작에 실패하였습니다.", "utf-8"));
+	}
 		}
 		
 	}else if(component == 3){
@@ -137,11 +137,11 @@ switch(cmd){
 		if(DBService.getInstance().isRunning()){
 	response.sendRedirect("main.jsp?message="+URLEncoder.encode("DBHandler가 이미 시작되었습니다.", "utf-8"));
 		}else{
-			if(DBService.getInstance().start()){
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("DBHandler 시작에 성공하였습니다.", "utf-8"));
-			}else{
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("DBHandler 시작에 실패하였습니다.", "utf-8"));
-			}
+	if(DBService.getInstance().start()){
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("DBHandler 시작에 성공하였습니다.", "utf-8"));
+	}else{
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("DBHandler 시작에 실패하였습니다.", "utf-8"));
+	}
 		}
 		
 	}else if(component == 4){
@@ -149,77 +149,77 @@ switch(cmd){
 		if(JobService.getInstance().isRunning()){
 	response.sendRedirect("main.jsp?message="+URLEncoder.encode("JobController가 이미 시작되었습니다.", "utf-8"));
 		}else{
-			if(JobService.getInstance().start()){
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("JobController 시작에 성공하였습니다.", "utf-8"));
-			}else{
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("JobController 시작에 실패하였습니다.", "utf-8"));
-			}
+	if(JobService.getInstance().start()){
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("JobController 시작에 성공하였습니다.", "utf-8"));
+	}else{
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("JobController 시작에 실패하였습니다.", "utf-8"));
+	}
 		}
 	}else if(component == 5){
 		//KeywordService
 		if(KeywordService.getInstance().isRunning()){
 	response.sendRedirect("main.jsp?message="+URLEncoder.encode("KeywordService가 이미 시작되었습니다.", "utf-8"));
 		}else{
-			if(KeywordService.getInstance().start()){
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("KeywordService 시작에 성공하였습니다.", "utf-8"));
-			}else{
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("KeywordService 시작에 실패하였습니다.", "utf-8"));
-			}
+	if(KeywordService.getInstance().start()){
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("KeywordService 시작에 성공하였습니다.", "utf-8"));
+	}else{
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("KeywordService 시작에 실패하였습니다.", "utf-8"));
+	}
 		}
 	}else if(component == 6){
 		//QueryCacheService
 		if(QueryCacheService.getInstance().isRunning()){
 	response.sendRedirect("main.jsp?message="+URLEncoder.encode("QueryCacheService가 이미 시작되었습니다.", "utf-8"));
 		}else{
-			if(QueryCacheService.getInstance().start()){
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("QueryCacheService 시작에 성공하였습니다.", "utf-8"));
-			}else{
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("QueryCacheService 시작에 실패하였습니다.", "utf-8"));
-			}
+	if(QueryCacheService.getInstance().start()){
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("QueryCacheService 시작에 성공하였습니다.", "utf-8"));
+	}else{
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("QueryCacheService 시작에 실패하였습니다.", "utf-8"));
+	}
 		}
 	/* }else if(component == 7){
 		//IRClassLoader
 		if(IRClassLoader.getInstance().isRunning()){
 	response.sendRedirect("main.jsp?message="+URLEncoder.encode("DynamicClassLoader가 이미 시작되었습니다.", "utf-8"));
 		}else{
-			if(IRClassLoader.getInstance().start()){
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("DynamicClassLoader 시작에 성공하였습니다.", "utf-8"));
-			}else{
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("DynamicClassLoader 시작에 실패하였습니다.", "utf-8"));
-			}
+	if(IRClassLoader.getInstance().start()){
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("DynamicClassLoader 시작에 성공하였습니다.", "utf-8"));
+	}else{
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("DynamicClassLoader 시작에 실패하였습니다.", "utf-8"));
+	}
 		} */
 	}else if(component == 8){
 		//ManagementInfoService
 		if(ManagementInfoService.getInstance().isRunning()){
 	response.sendRedirect("main.jsp?message="+URLEncoder.encode("ManagementInfoService가 이미 시작되었습니다.", "utf-8"));
 		}else{
-			if(ManagementInfoService.getInstance().start()){
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("ManagementInfoService 시작에 성공하였습니다.", "utf-8"));
-			}else{
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("ManagementInfoService 시작에 실패하였습니다.", "utf-8"));
-			}
+	if(ManagementInfoService.getInstance().start()){
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("ManagementInfoService 시작에 성공하였습니다.", "utf-8"));
+	}else{
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("ManagementInfoService 시작에 실패하였습니다.", "utf-8"));
+	}
 		}
 	}else if(component == 9){
 		//StatisticsInfoService
 		if(StatisticsInfoService.getInstance().isRunning()){
-			response.sendRedirect("main.jsp?message="+URLEncoder.encode("StatisticsInfoService가 이미 시작되었습니다.", "utf-8"));
+	response.sendRedirect("main.jsp?message="+URLEncoder.encode("StatisticsInfoService가 이미 시작되었습니다.", "utf-8"));
 		}else{
-			if(StatisticsInfoService.getInstance().start()){
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("StatisticsInfoService 시작에 성공하였습니다.", "utf-8"));
-			}else{
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("StatisticsInfoService 시작에 실패하였습니다.", "utf-8"));
-			}
+	if(StatisticsInfoService.getInstance().start()){
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("StatisticsInfoService 시작에 성공하였습니다.", "utf-8"));
+	}else{
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("StatisticsInfoService 시작에 실패하였습니다.", "utf-8"));
+	}
 		}
 	}else if(component == 10){
 		//StatisticsInfoService
 		if(NodeService.getInstance().isRunning()){
-			response.sendRedirect("main.jsp?message="+URLEncoder.encode("NodeService가 이미 시작되었습니다.", "utf-8"));
+	response.sendRedirect("main.jsp?message="+URLEncoder.encode("NodeService가 이미 시작되었습니다.", "utf-8"));
 		}else{
-			if(NodeService.getInstance().start()){
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("NodeService 시작에 성공하였습니다.", "utf-8"));
-			}else{
-				response.sendRedirect("main.jsp?message="+URLEncoder.encode("NodeService 시작에 실패하였습니다.", "utf-8"));
-			}
+	if(NodeService.getInstance().start()){
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("NodeService 시작에 성공하였습니다.", "utf-8"));
+	}else{
+		response.sendRedirect("main.jsp?message="+URLEncoder.encode("NodeService 시작에 실패하였습니다.", "utf-8"));
+	}
 		}
 	}
 	

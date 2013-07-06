@@ -16,14 +16,14 @@
 
 package org.fastcatsearch.ir.config;
 
-public class SettingException extends Exception{
+public class ConfigException extends Exception{
 
 	private static final long serialVersionUID = -4765673974780435225L;
 
-	public SettingException(Exception e){
+	public ConfigException(Exception e){
 		super(e);
 	}
-	public SettingException(String message){
+	public ConfigException(String message){
 		super(message);
 	}
 }

@@ -77,7 +77,7 @@ public class DocumentSearchJob extends Job {
 			
 			//Not Exist in Cache
 			if(result == null){
-				CollectionHandler collectionHandler = irService.getCollectionHandler(collection);
+				CollectionHandler collectionHandler = irService.collectionHandler(collection);
 				
 				if(collectionHandler == null){
 					throw new FastcatSearchException("ERR-00520", collection);

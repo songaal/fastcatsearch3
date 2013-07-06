@@ -214,7 +214,7 @@ public class StatisticsInfoService extends AbstractService {
 		boolean[] result = new boolean[collectionNameList.length];
 		for(int i = 0; i < collectionNameList.length; i++){
 			String collectionName = collectionNameList[i];
-			result[i] = (irService.getCollectionHandler(collectionName) != null);
+			result[i] = (irService.collectionHandler(collectionName) != null);
 		}
 		//update isCollectionLive
 		isCollectionLive = result;
@@ -447,7 +447,7 @@ public class StatisticsInfoService extends AbstractService {
 						if(isCollectionLive[i]){
 			    			IndexingResultVO fullResult = indexingResult.select(collectionNameList[i], "F");
 			    			IndexingResultVO incResult = indexingResult.select(collectionNameList[i], "I");
-			    			CollectionHandler collectionHandler = irService.getCollectionHandler(collectionNameList[i]);
+			    			CollectionHandler collectionHandler = irService.collectionHandler(collectionNameList[i]);
 			    			int docCount = 0;
 			    			if(collectionHandler != null){
 			    				docCount = 0;

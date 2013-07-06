@@ -18,7 +18,6 @@
 <%@include file="../common.jsp" %>
 
 <%
-
 	String message = URLDecoder.decode(WebUtils.getString(request.getParameter("message"), ""),"utf-8");
 
 	IRConfig irConfig = IRSettings.getConfig(true);
@@ -33,7 +32,7 @@
 	CollectionHandler collectionHandler = null;
 	
 	if(collection.length() > 0){
-		collectionHandler = irService.getCollectionHandler(collection);
+		collectionHandler = irService.collectionHandler(collection);
 		System.out.println(collection+" : "+collectionHandler);
 		segmentList = collectionHandler.getAllSegmentNumberList();
 	}else{
@@ -60,11 +59,11 @@
 <![endif]-->
 <script type="text/javascript" src="<%=FASTCAT_MANAGE_ROOT%>js/common.js"></script>
 	<script type="text/javascript">
-		var collection = "<%=collection %>";
-		var segment = "<%=segment %>";
+		var collection = "<%=collection%>";
+		var segment = "<%=segment%>";
 
 		function alertMessage(){
-			var message = "<%=message %>";
+			var message = "<%=message%>";
 			if(message != "")
 				alert(message);
 		}
@@ -138,9 +137,9 @@
 		<select name="collection" onchange="javascript:selectCollection(this)">
 		<option value="">-</option>
 		<%
-		for(int i = 0; i < colletionList.length; i++){
+			for(int i = 0; i < colletionList.length; i++){
 			String col = colletionList[i];
-			if(irService.getCollectionHandler(col) == null){
+			if(irService.collectionHandler(col) == null){
 				continue;
 			}
 			if(collection == null){
@@ -148,7 +147,7 @@
 					collection = col;
 				}
 			}
-			%>
+		%>
 			<option value="<%=col %>" <%=col.equals(collection) ? "selected" : "" %> ><%=col %></option>
 			<%
 		}
