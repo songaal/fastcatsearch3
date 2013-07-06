@@ -19,23 +19,23 @@ package org.fastcatsearch.ir.index.temp;
 import java.io.File;
 import java.io.IOException;
 
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.index.IndexFieldOption;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
-import org.fastcatsearch.ir.io.ByteArrayOutput;
+import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IOUtil;
+import org.fastcatsearch.ir.io.IndexInput;
+import org.fastcatsearch.ir.io.IndexOutput;
 
 public class TempSearchFieldAppender extends TempSearchFieldMerger {
 
 	private CharVector cv;
 	private CharVector cvOld;
-	private ByteArrayOutput tempPostingOutput;
+	private BytesDataOutput tempPostingOutput;
 	private BytesBuffer[] buffers;
 
 	private int totalCount;
@@ -46,7 +46,7 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 	public TempSearchFieldAppender(int flushCount, long[] flushPosition, File tempFile) throws IOException {
 		super(flushCount, flushPosition, tempFile);
 
-		tempPostingOutput = new ByteArrayOutput(1024 * 1024);
+		tempPostingOutput = new BytesDataOutput(1024 * 1024);
 
 		buffers = new BytesBuffer[flushCount];
 
@@ -60,13 +60,13 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 
 	public boolean mergeAndAppendIndex(File segmentDir1, File targetDir, int indexInterval, IndexFieldOption[] fieldIndexOptions) throws IOException,
 			IRException {
-		StreamInput lexiconInput1 = new BufferedFileInput(segmentDir1, IRFileName.lexiconFile);
-		StreamOutput lexiconOutput = new BufferedFileOutput(targetDir, IRFileName.lexiconFile, false);
+		IndexInput lexiconInput1 = new BufferedFileInput(segmentDir1, IRFileName.lexiconFile);
+		IndexOutput lexiconOutput = new BufferedFileOutput(targetDir, IRFileName.lexiconFile, false);
 
-		StreamOutput indexOutput = new BufferedFileOutput(targetDir, IRFileName.indexFile, false);
+		IndexOutput indexOutput = new BufferedFileOutput(targetDir, IRFileName.indexFile, false);
 
-		StreamInput postingInput1 = new BufferedFileInput(segmentDir1, IRFileName.postingFile);
-		StreamOutput postingOutput = new BufferedFileOutput(targetDir, IRFileName.postingFile, false);
+		IndexInput postingInput1 = new BufferedFileInput(segmentDir1, IRFileName.postingFile);
+		IndexOutput postingOutput = new BufferedFileOutput(targetDir, IRFileName.postingFile, false);
 
 		// 같은 텀이 있을때에 posting 문서번호를 다 읽어서 머징한다.
 		// 같은 텀이 없다면 포스팅데이터를 뚝 떼어서 새로운 포스팅에 붙이면 된다.

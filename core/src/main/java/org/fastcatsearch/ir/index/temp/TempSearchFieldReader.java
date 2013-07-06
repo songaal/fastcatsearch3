@@ -21,11 +21,11 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.lucene.util.BytesRef;
-import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.Input;
+import org.fastcatsearch.ir.io.IndexInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +38,7 @@ public class TempSearchFieldReader {
 	private int id;
 	private CharVector term;
 	private BytesRef buffer;
-	private StreamInput tempInput;
+	private IndexInput tempInput;
 	private int left;
 	
 	public TempSearchFieldReader(int id, File tempFile, long startPos) throws IOException{

@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-import org.fastcatsearch.common.io.StreamOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +29,7 @@ import org.slf4j.LoggerFactory;
  * @author sangwook
  *
  */
-public class BufferedFileOutput extends StreamOutput {
+public class BufferedFileOutput extends IndexOutput {
 
 	private static Logger logger = LoggerFactory.getLogger(BufferedFileOutput.class);
 	
@@ -84,7 +83,7 @@ public class BufferedFileOutput extends StreamOutput {
     }
 	
 	@Override
-	public long size() throws IOException{
+	public long length() throws IOException {
 		return raf.length() + (long)count;
 	}
 	

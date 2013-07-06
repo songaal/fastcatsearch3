@@ -20,10 +20,10 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import org.fastcatsearch.al.HashFunctions;
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.CharVector;
+import org.fastcatsearch.ir.io.IndexOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +64,7 @@ public class MemoryPosting {
 	protected PostingBuffer newPostingBuffer(){
 		return new PostingBuffer();
 	}
-	public long save(StreamOutput output) throws IOException{
+	public long save(IndexOutput output) throws IOException{
 		//하나의 파일에 블럭단위로 write한다. 맨앞에 데이터 길이필요
 		
 		logger.debug("MemoryPosting term-count = {}", count);

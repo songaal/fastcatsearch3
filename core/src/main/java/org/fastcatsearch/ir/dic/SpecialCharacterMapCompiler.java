@@ -23,10 +23,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
-import org.fastcatsearch.ir.io.Output;
+import org.fastcatsearch.ir.io.IndexOutput;
 import org.fastcatsearch.ir.util.Formatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +43,7 @@ public class SpecialCharacterMapCompiler {
 		try {
 			logger.info("SpecialCharacterMap compile start!");
 			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(input),charset));
-			StreamOutput out = new BufferedFileOutput(output);
+			IndexOutput out = new BufferedFileOutput(output);
 			String line = null;
 			int cnt = 0;
 			while((line = br.readLine()) != null){

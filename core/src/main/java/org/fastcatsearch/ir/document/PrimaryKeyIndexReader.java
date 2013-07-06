@@ -21,9 +21,9 @@ import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.Input;
+import org.fastcatsearch.ir.io.IndexInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,8 +34,8 @@ public class PrimaryKeyIndexReader implements Cloneable {
 	private static Logger logger = LoggerFactory.getLogger(PrimaryKeyIndexReader.class);
 	private static final Lock lock = new ReentrantLock();
 	
-	private StreamInput input;
-	private StreamInput indexInput;
+	private IndexInput input;
+	private IndexInput indexInput;
 	private byte[][] keys;
 	private long[] pos;
 	private int count; //key 갯수 
@@ -44,7 +44,7 @@ public class PrimaryKeyIndexReader implements Cloneable {
 	public PrimaryKeyIndexReader(File dir, String filename) throws IOException{
 		this(dir, filename ,0, -1, 0);
 	}
-	public PrimaryKeyIndexReader(StreamInput input, byte[][] keys, long[] pos, int count, long limit) {
+	public PrimaryKeyIndexReader(IndexInput input, byte[][] keys, long[] pos, int count, long limit) {
 		this.input = input;
 		this.keys = keys;
 		this.pos = pos;
@@ -59,7 +59,7 @@ public class PrimaryKeyIndexReader implements Cloneable {
 		indexInput.seek(indexBasePosition);
 		
 		if(dataEndPosition < 0)
-			limit = input.size();
+			limit = input.length();
 		else
 			limit = dataEndPosition;
 		

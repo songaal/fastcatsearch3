@@ -19,6 +19,8 @@ package org.apache.lucene.store;
 
 import java.io.IOException;
 
+import org.fastcatsearch.ir.io.IndexOutput;
+
 /** Base implementation class for buffered {@link IndexOutput}. */
 public abstract class BufferedIndexOutput extends IndexOutput {
   /** The default buffer size in bytes ({@value #DEFAULT_BUFFER_SIZE}). */
@@ -127,7 +129,7 @@ public abstract class BufferedIndexOutput extends IndexOutput {
   }
 
   @Override
-  public long getFilePointer() {
+  public long position() {
     return bufferStart + bufferPosition;
   }
 

@@ -131,8 +131,11 @@ public class BytesStreamOutput extends StreamOutput implements BytesStream {
         return count;
     }
     
+    public byte[] bytes(){
+    	return buf;
+    }
     @Override
-    public BytesReference bytes() {
+    public BytesReference bytesReference() {
         return new BytesArray(buf, 0, count);
     }
     

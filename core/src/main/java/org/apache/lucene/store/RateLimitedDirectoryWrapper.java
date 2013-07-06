@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.Collection;
 
 import org.apache.lucene.store.IOContext.Context;
+import org.fastcatsearch.ir.io.IndexInput;
+import org.fastcatsearch.ir.io.IndexOutput;
 
 /**
  * 

@@ -26,6 +26,8 @@ import java.nio.channels.ClosedChannelException; // javadoc @link
 import java.nio.channels.FileChannel;
 import java.util.concurrent.Future; // javadoc
 
+import org.fastcatsearch.ir.io.IndexInput;
+
 /**
  * An {@link FSDirectory} implementation that uses java.nio's FileChannel's
  * positional read, which allows multiple threads to read from the same file
@@ -156,7 +158,7 @@ public class NIOFSDirectory extends FSDirectory {
       int readLength = bb.limit() - readOffset;
       assert readLength == len;
 
-      long pos = getFilePointer() + off;
+      long pos = position() + off;
       
       if (pos + len > end) {
         throw new EOFException("read past EOF: " + this);

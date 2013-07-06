@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.io.CharVector;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 
 public class AStringMvField extends AStringField implements MultiValueFieldType {
 
@@ -23,7 +23,7 @@ public class AStringMvField extends AStringField implements MultiValueFieldType 
 	}
 	
 	@Override
-	public void readFrom(StreamInput input) throws IOException {
+	public void readFrom(DataInput input) throws IOException {
 		int multiValueCount = input.readVInt();
 		fieldsData = new ArrayList<CharVector>(multiValueCount);
 		for (int i = 0; i < multiValueCount; i++) {
@@ -33,7 +33,7 @@ public class AStringMvField extends AStringField implements MultiValueFieldType 
 	}
 
 	@Override
-	public void writeTo(StreamOutput output) throws IOException {
+	public void writeTo(DataOutput output) throws IOException {
 		List<CharVector> list = (List<CharVector>) fieldsData;
 		int multiValueCount = list.size();
 		output.writeVInt(multiValueCount);
@@ -61,7 +61,7 @@ public class AStringMvField extends AStringField implements MultiValueFieldType 
 	}
 	
 	@Override
-	public void writeFixedDataTo(StreamOutput output) throws IOException {
+	public void writeFixedDataTo(DataOutput output) throws IOException {
 		//multi value필드는 데이터가 없으면 기록하지 않는다.
 		if(fieldsData == null){
 			return;
@@ -84,7 +84,7 @@ public class AStringMvField extends AStringField implements MultiValueFieldType 
 	}
 
 	@Override
-	public final void writeDataTo(StreamOutput output) throws IOException {
+	public final void writeDataTo(DataOutput output) throws IOException {
 		if(size > 0){
 			writeFixedDataTo(output);
 		}else{
@@ -102,7 +102,7 @@ public class AStringMvField extends AStringField implements MultiValueFieldType 
 		final List<CharVector> list = (List<CharVector>) fieldsData;
 		return new FieldDataWriter(list) {
 			@Override
-			protected void writeEachData(Object object, StreamOutput output) throws IOException {
+			protected void writeEachData(Object object, DataOutput output) throws IOException {
 				CharVector charVector = (CharVector) object;
 				if(size > 0){
 					output.writeAChars(charVector.array, charVector.start, size);

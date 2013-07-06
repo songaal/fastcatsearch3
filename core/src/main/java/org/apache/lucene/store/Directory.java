@@ -24,6 +24,8 @@ import java.io.Closeable;
 import java.util.Collection; // for javadocs
 
 import org.apache.lucene.util.IOUtils;
+import org.fastcatsearch.ir.io.IndexInput;
+import org.fastcatsearch.ir.io.IndexOutput;
 
 /** A Directory is a flat list of files.  Files may be written once, when they
  * are created.  Once a file is created it may only be opened for read, or
@@ -315,7 +317,7 @@ public abstract class Directory implements Closeable {
      */
     @Override
     protected void readInternal(byte[] b, int offset, int len) throws IOException {
-      long start = getFilePointer();
+      long start = position();
       if(start + len > length)
         throw new EOFException("read past EOF: " + this);
       base.seek(fileOffset + start);

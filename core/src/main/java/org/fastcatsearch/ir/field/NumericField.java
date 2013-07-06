@@ -2,7 +2,7 @@ package org.fastcatsearch.ir.field;
 
 import java.io.IOException;
 
-import org.fastcatsearch.common.io.StreamOutput;
+import org.fastcatsearch.ir.io.DataOutput;
 
 public abstract class NumericField extends Field {
 	public NumericField(String id) {
@@ -22,12 +22,12 @@ public abstract class NumericField extends Field {
 	}
 	
 	@Override
-	public void writeTo(StreamOutput output) throws IOException {
+	public void writeTo(DataOutput output) throws IOException {
 		writeFixedDataTo(output);
 	}
 	
 	@Override
-	public void writeDataTo(StreamOutput output) throws IOException {
+	public void writeDataTo(DataOutput output) throws IOException {
 		writeFixedDataTo(output);
 	}
 

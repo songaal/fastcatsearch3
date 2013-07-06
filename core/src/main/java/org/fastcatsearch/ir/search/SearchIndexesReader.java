@@ -29,7 +29,6 @@ import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.analysis.tokenattributes.StopwordAttribute;
 import org.apache.lucene.analysis.tokenattributes.SynonymAttribute;
 import org.apache.lucene.util.CharsRef;
-import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IRFileName;
@@ -37,11 +36,12 @@ import org.fastcatsearch.ir.document.PrimaryKeyIndexReader;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.index.IndexFieldOption;
 import org.fastcatsearch.ir.io.BufferedFileInput;
-import org.fastcatsearch.ir.io.ByteArrayOutput;
+import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.CharVectorTokenizer;
 import org.fastcatsearch.ir.io.FixedMinHeap;
 import org.fastcatsearch.ir.io.IOUtil;
+import org.fastcatsearch.ir.io.IndexInput;
 import org.fastcatsearch.ir.query.MultiTermOperatedClause;
 import org.fastcatsearch.ir.query.OperatedClause;
 import org.fastcatsearch.ir.query.OrOperatedClause;
@@ -64,9 +64,9 @@ import org.slf4j.LoggerFactory;
 public class SearchIndexesReader implements Cloneable {
 	private static Logger logger = LoggerFactory.getLogger(SearchIndexesReader.class);
 
-	private StreamInput postingInput;
-	private StreamInput lexiconInput;
-	private StreamInput indexInput;
+	private IndexInput postingInput;
+	private IndexInput lexiconInput;
+	private IndexInput indexInput;
 	private Schema schema;
 
 	private MemoryLexicon[] memoryLexicon;
@@ -88,7 +88,7 @@ public class SearchIndexesReader implements Cloneable {
 		this(schema, dir, 0);
 	}
 
-	public SearchIndexesReader(Schema schema, StreamInput postingInput, StreamInput lexiconInput, StreamInput indexInput, PrimaryKeyIndexReader pkReader,
+	public SearchIndexesReader(Schema schema, IndexInput postingInput, IndexInput lexiconInput, IndexInput indexInput, PrimaryKeyIndexReader pkReader,
 			MemoryLexicon[] memoryLexicon, long[] fileLimit,
 			AnalyzerPool[] queryTokenizerPool, IndexFieldOption[] fieldIndexOptions) {
 		this.schema = schema;
@@ -168,7 +168,7 @@ public class SearchIndexesReader implements Cloneable {
 			}
 
 		}
-		fileLimit[indexFieldSize - 1] = lexiconInput.size();
+		fileLimit[indexFieldSize - 1] = lexiconInput.length();
 
 		indexInput.close();
 
@@ -474,7 +474,7 @@ public class SearchIndexesReader implements Cloneable {
 		
 		PostingDoc[] termDocList = new PostingDoc[size];
 		int m = 0;
-		ByteArrayOutput pkOutput = new ByteArrayOutput();
+		BytesDataOutput pkOutput = new BytesDataOutput();
 		
 		String[] pkValues = null;
 		for (int i = 0; i < size; i++) {
@@ -498,7 +498,7 @@ public class SearchIndexesReader implements Cloneable {
 				field.writeTo(pkOutput);
 			}
 			
-			docNo = pkReader.get(pkOutput.array(), 0, (int) pkOutput.size());
+			docNo = pkReader.get(pkOutput.array(), 0, (int) pkOutput.position());
 			if (docNo != -1) {
 				termDocList[m] = new PostingDoc(docNo, 1);
 				m++;

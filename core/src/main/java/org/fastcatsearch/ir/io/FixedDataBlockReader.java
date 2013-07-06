@@ -19,7 +19,6 @@ package org.fastcatsearch.ir.io;
 import java.io.File;
 import java.io.IOException;
 
-import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.io.cache.CachedBlock;
 import org.fastcatsearch.ir.io.cache.LRUBlockCache;
 import org.fastcatsearch.ir.query.RankInfo;
@@ -31,7 +30,7 @@ public class FixedDataBlockReader {
 	private static Logger logger = LoggerFactory.getLogger(FixedDataBlockReader.class);
 	
 	private LRUBlockCache cache;
-	private StreamInput input;
+	private IndexInput input;
 	private int dataSize;
 	private int dataPerBlock;
 	private int blockSize;

@@ -37,7 +37,7 @@ public class ProcessLoggerJobTest {
 
 		job.writeTo(output);
 
-		BytesReference ref = output.bytes();
+		BytesReference ref = output.bytesReference();
 
 		StreamInput input = new BytesStreamInput(ref);
 		

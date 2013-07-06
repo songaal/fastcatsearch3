@@ -20,8 +20,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
+import org.fastcatsearch.ir.io.IndexOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +36,8 @@ import org.slf4j.LoggerFactory;
 public class PrimaryKeyIndexWriter {
 	private static Logger logger = LoggerFactory.getLogger(PrimaryKeyIndexWriter.class);
 	
-	private StreamOutput output;
-	private StreamOutput indexOutput;
+	private IndexOutput output;
+	private IndexOutput indexOutput;
 	private int[] bucket;
 	private byte[] array;
 	private int[] keyPos;
@@ -77,7 +77,7 @@ public class PrimaryKeyIndexWriter {
 		Arrays.fill(intValueArray, -1);
 	}
 	
-	public void setDestination(StreamOutput output, StreamOutput indexOutput){
+	public void setDestination(IndexOutput output, IndexOutput indexOutput){
 		this.output = output;
 		this.indexOutput = indexOutput;
 	}

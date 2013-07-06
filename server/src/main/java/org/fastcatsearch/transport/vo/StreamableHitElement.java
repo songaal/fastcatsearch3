@@ -2,6 +2,7 @@ package org.fastcatsearch.transport.vo;
 
 import java.io.IOException;
 
+import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.common.io.Streamable;
@@ -31,17 +32,14 @@ public class StreamableHitElement implements Streamable {
 		for (int hitElementInx = 0; hitElementInx < count; hitElementInx++) {
 			int docNo = input.readInt();
 			float score = input.readFloat();
-			int dataOffset = input.readInt();
-			int dataLength = input.readInt();
+			int rankDataSize = input.readInt();
 //			logger.debug("read dataLength = {},{}", dataOffset, dataLength);
-			byte[] rankData = null;
-			if(dataLength > 0){
-				rankData = new byte[dataLength];
-				for (int rankDataInx = dataOffset; rankDataInx < dataOffset + dataLength; rankDataInx++) {
-					rankData[rankDataInx] = input.readByte();
-				}
+			BytesRef[] rankData = new BytesRef[rankDataSize];
+			for (int rankDataInx = 0; rankDataInx < rankDataSize; rankDataInx++) {
+				rankData[rankDataInx] = new BytesRef(input.readVInt());
+				input.readBytes(rankData[rankDataInx]);
 			}
-			hitElements[hitElementInx] = new HitElement(docNo, score, rankData, dataOffset, dataLength);
+			hitElements[hitElementInx] = new HitElement(docNo, score, rankData);
 		}
 	}
 
@@ -51,18 +49,13 @@ public class StreamableHitElement implements Streamable {
 		output.writeInt(count);
 		for (int hitElementInx = 0; hitElementInx < count; hitElementInx++) {
 			HitElement hitElement = hitElements[hitElementInx];
-			byte[] rankData = hitElement.rankdata();
+			BytesRef[] rankData = hitElement.rankData();
 			output.writeInt(hitElement.docNo());
 			output.writeFloat(hitElement.score());
-			//새로운 배열에는 0부터 기록했기때문에 offset을 0으로 해준다.
-			output.writeInt(0);
-			output.writeInt(hitElement.dataLen());
-//			logger.debug("write dataLength = 0,{}", hitElement.dataLen());
-			if(hitElement.dataLen() > 0){
-				final int offset = hitElement.dataOffset();
-				for (int i = 0; i < hitElement.dataLen(); i++) {
-					output.writeByte(rankData[offset + i]);
-				}
+			output.writeInt(hitElement.rankDataSize());
+			for (int i = 0; i < hitElement.rankDataSize(); i++) {
+				output.writeVInt(rankData[i].length());
+				output.writeBytes(rankData[i]);
 			}
 		}
 	}

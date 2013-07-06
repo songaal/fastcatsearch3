@@ -22,12 +22,12 @@ import java.io.IOException;
 
 import junit.framework.TestCase;
 
-import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.CharVector;
+import org.fastcatsearch.ir.io.IndexInput;
 import org.fastcatsearch.ir.settings.Schema;
 
 
@@ -165,7 +165,7 @@ public class SearchFieldReaderTest extends TestCase{
 		String target = null;//IRSettings.getSegmentPath(collection, 0, 1);
 		File targetDir = new File(target);
 		
-		StreamInput postingInput = new BufferedFileInput(targetDir, IRFileName.postingFile);
+		IndexInput postingInput = new BufferedFileInput(targetDir, IRFileName.postingFile);
 		byte[] buffer = new byte[1024 * 1024 * 4];
 		while(true){
 			int len = -1;

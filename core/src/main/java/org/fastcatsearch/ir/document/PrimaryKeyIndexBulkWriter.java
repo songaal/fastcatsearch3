@@ -19,9 +19,9 @@ package org.fastcatsearch.ir.document;
 import java.io.File;
 import java.io.IOException;
 
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.BytesBuffer;
+import org.fastcatsearch.ir.io.IndexOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,8 +35,8 @@ public class PrimaryKeyIndexBulkWriter {
 	private static Logger logger = LoggerFactory.getLogger(PrimaryKeyIndexBulkWriter.class);
 	
 	private String filename;
-	private StreamOutput output;
-	private StreamOutput indexOutput;
+	private IndexOutput output;
+	private IndexOutput indexOutput;
 	private int indexInterval;
 	private int keyCount;
 	private int keyIndexCount;
@@ -55,7 +55,7 @@ public class PrimaryKeyIndexBulkWriter {
 		indexOutput.writeInt(0);
 	}
 
-	public PrimaryKeyIndexBulkWriter(StreamOutput output, StreamOutput indexOutput, int indexInterval, boolean isAppend) throws IOException{
+	public PrimaryKeyIndexBulkWriter(IndexOutput output, IndexOutput indexOutput, int indexInterval, boolean isAppend) throws IOException{
 		this.output = output;
 		this.indexOutput = indexOutput;
 		this.indexInterval = indexInterval;

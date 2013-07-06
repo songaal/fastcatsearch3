@@ -18,25 +18,23 @@ package org.fastcatsearch.ir.io;
 
 import java.io.IOException;
 
-import org.apache.lucene.util.BytesRef;
-import org.fastcatsearch.common.io.StreamInput;
-
-public class ByteArrayInput extends StreamInput {
+public class BytesDataInput extends DataInput {
 	public byte[] array;
 	public int start;
 	public int end;
 	public int pos;
 	
-	public ByteArrayInput(byte[] array, int start, int end){
+	public BytesDataInput(byte[] array, int start, int end){
 		this.array = array;
 		this.start = start;
 		this.end = end;
 	}
 	
 	@Override
-	public long size() throws IOException{
-		return end - start;
+	public long position() {
+		return pos;
 	}
+	
 	@Override
 	public void close() throws IOException {
 
@@ -44,16 +42,6 @@ public class ByteArrayInput extends StreamInput {
 	
 	public void reset() throws IOException {
 		pos = start;
-	}
-
-	@Override
-	public long position() throws IOException {
-		return pos;
-	}
-
-	@Override
-	public void seek(long p) throws IOException {
-		pos = (int)p;
 	}
 
 	@Override
@@ -74,7 +62,7 @@ public class ByteArrayInput extends StreamInput {
 
 	@Override
 	public void readBytes(byte[] b, int offset, int len) throws IOException {
-		System.arraycopy(array, start, b, offset, len);
+		System.arraycopy(array, pos, b, offset, len);
 	}
 
 

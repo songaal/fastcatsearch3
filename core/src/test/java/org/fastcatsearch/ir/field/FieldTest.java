@@ -12,18 +12,18 @@ import org.fastcatsearch.ir.field.AStringMvField;
 import org.fastcatsearch.ir.field.DatetimeField;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.field.IntField;
-import org.fastcatsearch.ir.io.ByteArrayInput;
-import org.fastcatsearch.ir.io.ByteArrayOutput;
+import org.fastcatsearch.ir.io.BytesDataInput;
+import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.junit.Test;
 
 public class FieldTest {
 
 	
-	private ByteArrayInput write(Field field) throws IOException{
-		ByteArrayOutput output = new ByteArrayOutput();
+	private BytesDataInput write(Field field) throws IOException{
+		BytesDataOutput output = new BytesDataOutput();
 		field.writeTo(output);
 		byte[] array = output.array();
-		return new ByteArrayInput(array, 0, array.length);
+		return new BytesDataInput(array, 0, array.length);
 	}
 	
 	
@@ -33,7 +33,7 @@ public class FieldTest {
 		String value = "1231435";
 		IntField field = new IntField("A", value);
 		
-		ByteArrayInput input = write(field);
+		BytesDataInput input = write(field);
 		
 		IntField field2 = new IntField("A");
 		field2.readFrom(input);
@@ -51,7 +51,7 @@ public class FieldTest {
 		
 		String value = "2013-06-12 12:30:11";
 		DatetimeField field = new DatetimeField("A", value);
-		ByteArrayInput input = write(field);
+		BytesDataInput input = write(field);
 		
 		DatetimeField field2 = new DatetimeField("A");
 		field2.readFrom(input);
@@ -75,7 +75,7 @@ public class FieldTest {
 		
 		
 		AStringField field = new AStringField("A", avalue);
-		ByteArrayInput input = write(field);
+		BytesDataInput input = write(field);
 		
 		AStringField field2 = new AStringField("A");
 		field2.readFrom(input);
@@ -91,7 +91,7 @@ public class FieldTest {
 	public void testFixedStringField() throws IOException {
 		int size = 10;
 		AStringField field = new AStringField("A", avalue, size);
-		ByteArrayInput input = write(field);
+		BytesDataInput input = write(field);
 		
 		AStringField field2 = new AStringField("A");
 		field2.readFrom(input);
@@ -111,7 +111,7 @@ public class FieldTest {
 		field.addValue(values[0]);
 		field.addValue(values[1]);
 		field.addValue(values[2]);
-		ByteArrayInput input = write(field);
+		BytesDataInput input = write(field);
 		
 		AStringMvField field2 = new AStringMvField("A");
 		field2.readFrom(input);

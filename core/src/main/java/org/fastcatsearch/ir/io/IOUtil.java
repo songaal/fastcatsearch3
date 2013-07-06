@@ -68,13 +68,13 @@ public final class IOUtil {
 		out.write((v >>> 0) & 0xFF);
 		return 4;
 	}
-	public static int writeInt(Output output, int v) throws IOException {
-		output.writeByte((v >>> 24) & 0xFF);
-		output.writeByte((v >>> 16) & 0xFF);
-		output.writeByte((v >>> 8) & 0xFF);
-		output.writeByte((v >>> 0) & 0xFF);
-		return 4;
-	}
+//	public static int writeInt(Output output, int v) throws IOException {
+//		output.writeByte((v >>> 24) & 0xFF);
+//		output.writeByte((v >>> 16) & 0xFF);
+//		output.writeByte((v >>> 8) & 0xFF);
+//		output.writeByte((v >>> 0) & 0xFF);
+//		return 4;
+//	}
 	public static int writeShort(BytesBuffer buffer, int v) {
 		buffer.write((v >>> 8) & 0xFF);
 		buffer.write((v >>> 0) & 0xFF);
@@ -129,22 +129,22 @@ public final class IOUtil {
 		return byteCnt;
 	}
 	
-	public static int writeVariableByte(Output output, int v) throws IOException {
-		int byteCnt=0;
-		do{
-			int b = (byte)(v & 0x7F); //하위 7비트 
-			v >>>= 7; //오른쪽으로 7비트 shift
-			if(v != 0){ //데이터가 남았으면 최상위 비트에 1을 표시한다.
-				b |= 0x80;
-				output.writeByte(b);
-			}else{
-				output.writeByte(b);
-			}
-			byteCnt++;
-		} while (v != 0);
-		
-		return byteCnt;
-	}
+//	public static int writeVariableByte(Output output, int v) throws IOException {
+//		int byteCnt=0;
+//		do{
+//			int b = (byte)(v & 0x7F); //하위 7비트 
+//			v >>>= 7; //오른쪽으로 7비트 shift
+//			if(v != 0){ //데이터가 남았으면 최상위 비트에 1을 표시한다.
+//				b |= 0x80;
+//				output.writeByte(b);
+//			}else{
+//				output.writeByte(b);
+//			}
+//			byteCnt++;
+//		} while (v != 0);
+//		
+//		return byteCnt;
+//	}
 	
 	//입력정수의 가변길이를 계산한다.
 	public static int lenVariableByte(int v) {
@@ -320,18 +320,18 @@ public final class IOUtil {
 	 * len 버퍼 데이터길이
 	 * size 고정데이터 길이. len이 길이보다 작으면 0으로 채워넣는다.
 	 * */
-	public static int writebytes(Output output, BytesBuffer buffer, int pos, int len, int size) throws IOException {
-		if(len >= size){
-			output.writeBytes(buffer.array(), pos, size);
-		}else{
-			output.writeBytes(buffer.array(), pos, len);
-			for (int i = 0; i < size - len; i++) {
-				output.writeByte(0);
-			}
-		}
-		
-		return size;
-	}	
+//	public static int writebytes(Output output, BytesBuffer buffer, int pos, int len, int size) throws IOException {
+//		if(len >= size){
+//			output.writeBytes(buffer.array(), pos, size);
+//		}else{
+//			output.writeBytes(buffer.array(), pos, len);
+//			for (int i = 0; i < size - len; i++) {
+//				output.writeByte(0);
+//			}
+//		}
+//		
+//		return size;
+//	}	
 	public static boolean merge(File segmentDir1, File segmentDir2, File targetDir, String filename) throws IOException{
 		FileChannel fc1 = new FileInputStream(new File(segmentDir1, filename)).getChannel();
 		FileChannel fc2 = new FileInputStream(new File(segmentDir2, filename)).getChannel();

@@ -18,7 +18,7 @@ public class StreamInputOutputTest {
 		output.writeLong(1024*1024*1024*1024);
 		output.writeVInt(8);
 		output.close();
-		BytesReference ref = output.bytes();
+		BytesReference ref = output.bytesReference();
 		
 		StreamInput input = new BytesStreamInput(ref);
 		assertEquals(4, input.readInt());

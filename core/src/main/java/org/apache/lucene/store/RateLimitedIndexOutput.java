@@ -17,6 +17,8 @@ package org.apache.lucene.store;
  */
 import java.io.IOException;
 
+import org.fastcatsearch.ir.io.IndexOutput;
+
 /**
  * A {@link RateLimiter rate limiting} {@link IndexOutput}
  * 
@@ -80,4 +82,10 @@ final class RateLimitedIndexOutput extends BufferedIndexOutput {
       delegate.close();
     }
   }
+
+@Override
+public void reset() throws IOException {
+	// TODO Auto-generated method stub
+	
+}
 }

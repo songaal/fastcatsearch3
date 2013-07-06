@@ -440,7 +440,7 @@ public class TransportModule extends AbstractModule {
         stream.close();
         
         
-        ChannelBuffer buffer = stream.bytes().toChannelBuffer();
+        ChannelBuffer buffer = stream.bytesReference().toChannelBuffer();
         MessageProtocol.writeHeader(buffer, type, requestId, status);
 
         ChannelFuture future = targetChannel.write(buffer);
@@ -515,7 +515,7 @@ public class TransportModule extends AbstractModule {
 	            stream.close();
 	            //TODO 만약 이 라인 이전에 에러발생시 cache가 리턴되지 않고 누락되는 잠재버그가 발생할수있다.
 	            
-	            ChannelBuffer buffer = stream.bytes().toChannelBuffer();
+	            ChannelBuffer buffer = stream.bytesReference().toChannelBuffer();
 	            MessageProtocol.writeHeader(buffer, type, requestId, status);
 	            //
 	            //TEST buffer 검증.

@@ -21,14 +21,12 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import org.fastcatsearch.al.HashFunctions;
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.ir.io.Input;
-import org.fastcatsearch.ir.io.Output;
+import org.fastcatsearch.ir.io.IndexInput;
+import org.fastcatsearch.ir.io.IndexOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,7 +83,7 @@ public class HashSetDictionary {
 		try {
 			long st = System.currentTimeMillis();
 			
-			StreamInput input = new BufferedFileInput(file);
+			IndexInput input = new BufferedFileInput(file);
 			bucketSize = input.readInt();
 			count = input.readInt();
 			keyUseLength = input.readInt();
@@ -119,7 +117,7 @@ public class HashSetDictionary {
 	
 	public void save(File file) throws IRException{
 		try {
-			StreamOutput output = new BufferedFileOutput(file);
+			IndexOutput output = new BufferedFileOutput(file);
 			output.writeInt(bucketSize);
 			output.writeInt(count);
 			output.writeInt(keyUseLength);

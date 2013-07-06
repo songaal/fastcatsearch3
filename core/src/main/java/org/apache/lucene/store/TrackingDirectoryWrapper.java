@@ -24,6 +24,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.fastcatsearch.ir.io.IndexInput;
+import org.fastcatsearch.ir.io.IndexOutput;
+
 /** A delegating Directory that records which files were
  *  written to and deleted. */
 public final class TrackingDirectoryWrapper extends Directory implements Closeable {

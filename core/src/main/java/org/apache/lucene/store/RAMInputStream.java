@@ -20,6 +20,8 @@ package org.apache.lucene.store;
 import java.io.IOException;
 import java.io.EOFException;
 
+import org.fastcatsearch.ir.io.IndexInput;
+
 /** A memory-resident {@link IndexInput} implementation. 
  *  
  *  @lucene.internal */
@@ -106,7 +108,7 @@ public class RAMInputStream extends IndexInput implements Cloneable {
   }
 
   @Override
-  public long getFilePointer() {
+  public long position() {
     return currentBufferIndex < 0 ? 0 : bufferStart + bufferPosition;
   }
 

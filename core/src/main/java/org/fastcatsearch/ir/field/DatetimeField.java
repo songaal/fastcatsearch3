@@ -5,8 +5,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.regex.Pattern;
 
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
+import org.fastcatsearch.ir.io.IndexInput;
+import org.fastcatsearch.ir.io.IndexOutput;
 
 public class DatetimeField extends Field {
 	public static final SimpleDateFormat inputFormat = new SimpleDateFormat("yyyyMMddHHmmssS");
@@ -39,22 +41,22 @@ public class DatetimeField extends Field {
 	}
 
 	@Override
-	public void readFrom(StreamInput input) throws IOException {
+	public void readFrom(DataInput input) throws IOException {
 		fieldsData = new Date(input.readLong());
 	}
 
 	@Override
-	public void writeTo(StreamOutput output) throws IOException {
+	public void writeTo(DataOutput output) throws IOException {
 		writeFixedDataTo(output);
 	}
 
 	@Override
-	public void writeFixedDataTo(StreamOutput output) throws IOException {
+	public void writeFixedDataTo(DataOutput output) throws IOException {
 		output.writeLong(((Date) fieldsData).getTime());
 	}
 
 	@Override
-	public void writeDataTo(StreamOutput output) throws IOException {
+	public void writeDataTo(DataOutput output) throws IOException {
 		writeFixedDataTo(output);
 	}
 

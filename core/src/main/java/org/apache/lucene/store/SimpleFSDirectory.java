@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+import org.fastcatsearch.ir.io.IndexInput;
+
 /** A straightforward implementation of {@link FSDirectory}
  *  using java.io.RandomAccessFile.  However, this class has
  *  poor concurrent performance (multiple threads will
@@ -107,7 +109,7 @@ public class SimpleFSDirectory extends FSDirectory {
     protected void readInternal(byte[] b, int offset, int len)
          throws IOException {
       synchronized (file) {
-        long position = off + getFilePointer();
+        long position = off + position();
         file.seek(position);
         int total = 0;
 

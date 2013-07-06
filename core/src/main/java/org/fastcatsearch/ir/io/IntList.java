@@ -41,7 +41,7 @@ public class IntList {
 		this.file = file;
 		if(file.exists()){
 			BufferedFileInput in = new BufferedFileInput(file);
-			size = (int) (in.size() / IOUtil.SIZE_OF_INT);
+			size = (int) (in.length() / IOUtil.SIZE_OF_INT);
 			intList = new int[size];
 			
 			for (int i = 0; i < size; i++)

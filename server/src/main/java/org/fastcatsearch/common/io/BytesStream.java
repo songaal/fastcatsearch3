@@ -23,5 +23,5 @@ import org.fastcatsearch.common.BytesReference;
 
 public interface BytesStream {
 
-    BytesReference bytes();
+    BytesReference bytesReference();
 }

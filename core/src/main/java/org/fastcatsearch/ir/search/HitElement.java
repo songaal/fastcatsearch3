@@ -72,11 +72,11 @@ public class HitElement {
 		return rankData;
 	}
 	
-	public BytesRef randData(int i){
+	public BytesRef rankData(int i){
 		return rankData[i];
 	}
 	
-	public int randDataSize(){
+	public int rankDataSize(){
 		if(rankData == null){
 			return 0;
 		}

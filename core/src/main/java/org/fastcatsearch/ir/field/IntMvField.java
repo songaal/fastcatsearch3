@@ -4,9 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
-import org.fastcatsearch.ir.io.Output;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 
 public class IntMvField extends IntField implements MultiValueFieldType {
 	public IntMvField(String id){
@@ -15,7 +14,7 @@ public class IntMvField extends IntField implements MultiValueFieldType {
 	}
 	
 	@Override
-	public void readFrom(StreamInput input) throws IOException {
+	public void readFrom(DataInput input) throws IOException {
 		int multiValueCount = input.readVInt();
 		fieldsData = new ArrayList<Object>(multiValueCount);
 		for (int i = 0; i < multiValueCount; i++) {
@@ -24,7 +23,7 @@ public class IntMvField extends IntField implements MultiValueFieldType {
 	}
 	
 	@Override
-	public void writeTo(StreamOutput output) throws IOException {
+	public void writeTo(DataOutput output) throws IOException {
 		List<Object> list = (List<Object>) fieldsData;
 		int multiValueCount = list.size();
 		output.writeVInt(multiValueCount);
@@ -32,7 +31,7 @@ public class IntMvField extends IntField implements MultiValueFieldType {
 	}
 	
 	@Override
-	public void writeFixedDataTo(StreamOutput output) throws IOException {
+	public void writeFixedDataTo(DataOutput output) throws IOException {
 		List<Object> list = (List<Object>) fieldsData;
 		for (int i = 0; i < list.size(); i++) {
 			Integer v = (Integer) list.get(i);
@@ -45,7 +44,7 @@ public class IntMvField extends IntField implements MultiValueFieldType {
 		final List<Integer> list = (List<Integer>) fieldsData;
 		return new FieldDataWriter(list) {
 			@Override
-			protected void writeEachData(Object object, StreamOutput output) throws IOException {
+			protected void writeEachData(Object object, DataOutput output) throws IOException {
 				Integer v = (Integer) object;
 				output.writeInt(v);
 				

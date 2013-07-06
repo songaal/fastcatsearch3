@@ -3,11 +3,10 @@ package org.fastcatsearch.ir.io;
 import java.io.File;
 import java.io.IOException;
 
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRFileName;
 
 public class FixedDataOutput implements SequencialDataOutput {
-	private StreamOutput dataOutput;
+	private IndexOutput dataOutput;
 	
 	public FixedDataOutput(File dir, String fileName) throws IOException{
 		this(dir, fileName, false);

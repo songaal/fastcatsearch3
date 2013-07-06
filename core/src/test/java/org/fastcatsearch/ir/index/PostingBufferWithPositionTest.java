@@ -5,11 +5,10 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.util.Random;
 
-import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.io.ByteArrayInput;
 import org.fastcatsearch.ir.io.BytesBuffer;
-import org.fastcatsearch.ir.io.Input;
+import org.fastcatsearch.ir.io.BytesDataInput;
+import org.fastcatsearch.ir.io.DataInput;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +29,7 @@ public class PostingBufferWithPositionTest {
 		BytesBuffer buffer = postingBuffer.buffer();
 //		logger.debug(">posting buffer size= {}", buffer.remaining());
 		
-		StreamInput postingInput = new ByteArrayInput(buffer.array(), buffer.pos(), buffer.limit());
+		DataInput postingInput = new BytesDataInput(buffer.array(), buffer.pos(), buffer.limit());
 		int count = postingInput.readInt();
 		int lastDocNo = postingInput.readInt();
 		assertEquals(1, count);
@@ -102,7 +101,7 @@ public class PostingBufferWithPositionTest {
 		BytesBuffer buffer = postingBuffer.buffer();
 //		logger.debug(">posting buffer size= {}", buffer.remaining());
 		
-		StreamInput postingInput = new ByteArrayInput(buffer.array(), buffer.pos(), buffer.limit());
+		DataInput postingInput = new BytesDataInput(buffer.array(), buffer.pos(), buffer.limit());
 		
 		int count = postingInput.readInt();
 		int lastDocNo = postingInput.readInt();

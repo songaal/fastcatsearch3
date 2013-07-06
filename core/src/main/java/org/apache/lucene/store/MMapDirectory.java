@@ -31,6 +31,7 @@ import java.security.PrivilegedActionException;
 import java.lang.reflect.Method;
 
 import org.apache.lucene.util.Constants;
+import org.fastcatsearch.ir.io.IndexInput;
 
 /** File-based {@link Directory} implementation that uses
  *  mmap for reading, and {@link

@@ -1,4 +1,4 @@
-package org.apache.lucene.store;
+package org.fastcatsearch.ir.io;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -19,6 +19,8 @@ package org.apache.lucene.store;
 
 import java.io.Closeable;
 import java.io.IOException;
+
+import org.apache.lucene.store.Directory;
 
 /** Abstract base class for output to a file in a Directory.  A random-access
  * output stream.  Used for all Lucene index output operations.
@@ -42,15 +44,19 @@ public abstract class IndexOutput extends DataOutput implements Closeable {
    * occur.
    * @see #seek(long)
    */
-  public abstract long getFilePointer();
+  @Override
+  public abstract long position() throws IOException;
 
   /** Sets current position in this file, where the next write will occur.
-   * @see #getFilePointer()
-   * @deprecated (4.1) This method will be removed in Lucene 5.0
+   * @see #position()
    */
-  @Deprecated
+  @Override
   public abstract void seek(long pos) throws IOException;
-
+  
+  public boolean seekPositionSupported(){
+	  return true;
+  }
+  
   /** The number of bytes in the file. */
   public abstract long length() throws IOException;
 

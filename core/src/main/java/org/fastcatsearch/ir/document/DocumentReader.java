@@ -26,7 +26,7 @@ import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.io.BufferedFileInput;
-import org.fastcatsearch.ir.io.ByteArrayInput;
+import org.fastcatsearch.ir.io.BytesDataInput;
 import org.fastcatsearch.ir.io.ByteRefArrayOutputStream;
 import org.fastcatsearch.ir.io.IOUtil;
 import org.fastcatsearch.ir.settings.FieldSetting;
@@ -50,7 +50,7 @@ public class DocumentReader {
 	private int baseDocNo;
 	private int documentCount;
 	private int lastDocNo = -1;
-	private ByteArrayInput lastBai;
+	private BytesDataInput lastBai;
 	
 	public DocumentReader(Schema schema, File dir) throws IOException{
 		this(schema, dir, 0);
@@ -76,7 +76,7 @@ public class DocumentReader {
 		
 		//baseDocNo만큼 빼서 세그먼트별 내부문서번호를 만든다.
 		docNo -= baseDocNo;
-		ByteArrayInput bai = null;
+		BytesDataInput bai = null;
 		
 		if(docNo != lastDocNo){
 			positionInput.seek(docNo * IOUtil.SIZE_OF_LONG);
@@ -110,7 +110,7 @@ public class DocumentReader {
 			}
 
 			BytesRef bytesRef = inflaterOutput.getBytesRef();
-			bai = new ByteArrayInput(bytesRef.bytes, 0, bytesRef.length);
+			bai = new BytesDataInput(bytesRef.bytes, 0, bytesRef.length);
 			
 			lastDocNo = docNo;
 			lastBai = bai;

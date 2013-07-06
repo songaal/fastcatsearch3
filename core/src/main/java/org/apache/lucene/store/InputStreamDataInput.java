@@ -17,12 +17,17 @@ package org.apache.lucene.store;
  * limitations under the License.
  */
 
-import java.io.*;
 
-import org.apache.lucene.store.DataInput;
+import java.io.Closeable;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.IndexInput;
 
 /**
- * A {@link DataInput} wrapping a plain {@link InputStream}.
+ * A {@link IndexInput} wrapping a plain {@link InputStream}.
  */
 public class InputStreamDataInput extends DataInput implements Closeable {
   private final InputStream is;

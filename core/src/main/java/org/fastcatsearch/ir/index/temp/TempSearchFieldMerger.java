@@ -20,14 +20,14 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.lucene.util.BytesRef;
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.index.IndexFieldOption;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
-import org.fastcatsearch.ir.io.ByteArrayOutput;
+import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IOUtil;
+import org.fastcatsearch.ir.io.IndexOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,10 +70,10 @@ public class TempSearchFieldMerger {
 			return;
 		}
 		
-		StreamOutput postingOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, 0), IRFileName.postingFile, false);
-		StreamOutput lexiconOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, 0), IRFileName.lexiconFile, false);
-		StreamOutput indexOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, 0), IRFileName.indexFile, false);
-	    ByteArrayOutput tempPostingOutput = new ByteArrayOutput(1024 * 1024);
+		IndexOutput postingOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, 0), IRFileName.postingFile, false);
+		IndexOutput lexiconOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, 0), IRFileName.lexiconFile, false);
+		IndexOutput indexOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, 0), IRFileName.indexFile, false);
+	    BytesDataOutput tempPostingOutput = new BytesDataOutput(1024 * 1024);
 		CharVector cv = null;
 		CharVector cvOld = null;
 

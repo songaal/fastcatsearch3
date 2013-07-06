@@ -4,11 +4,10 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.lucene.util.BytesRef;
-import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.common.IRFileName;
 
 public class FixedDataInput implements SequencialDataInput {
-	private StreamInput dataInput;
+	private IndexInput dataInput;
 	private int dataSize;
 	
 	public FixedDataInput(File dir, String fileName, int dataSize) throws IOException{

@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
+import org.fastcatsearch.ir.io.IndexInput;
+
 /** Reads bytes through to a primary IndexInput, computing
  *  checksum as it goes. Note that you cannot use seek().
  *
@@ -61,8 +63,8 @@ public class ChecksumIndexInput extends IndexInput {
   }
 
   @Override
-  public long getFilePointer() {
-    return main.getFilePointer();
+  public long position() {
+    return main.position();
   }
 
   @Override

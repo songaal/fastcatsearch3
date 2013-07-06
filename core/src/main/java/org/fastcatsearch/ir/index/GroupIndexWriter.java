@@ -21,8 +21,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
@@ -33,11 +31,13 @@ import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.field.FieldDataWriter;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
-import org.fastcatsearch.ir.io.ByteArrayOutput;
+import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.io.FixedDataOutput;
 import org.fastcatsearch.ir.io.IOUtil;
 import org.fastcatsearch.ir.io.Input;
 import org.fastcatsearch.ir.io.SequencialDataOutput;
+import org.fastcatsearch.ir.io.IndexInput;
+import org.fastcatsearch.ir.io.IndexOutput;
 import org.fastcatsearch.ir.io.VariableDataOutput;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.GroupIndexSetting;
@@ -53,11 +53,11 @@ import org.slf4j.LoggerFactory;
  */
 public class GroupIndexWriter {
 	private static Logger logger = LoggerFactory.getLogger(GroupIndexWriter.class);
-	private StreamOutput groupDataOutput;
-	private StreamOutput multiValueOutput;
+	private IndexOutput groupDataOutput;
+	private IndexOutput multiValueOutput;
 
-	private StreamOutput groupMapOutput;
-	private StreamOutput groupMapIndexOutput;
+	private IndexOutput groupMapOutput;
+	private IndexOutput groupMapIndexOutput;
 	private FieldSetting[] fieldSettingList;
 	private PrimaryKeyIndexWriter[] tempKeyIndexList; // temporary key index only use while indexing. Cannot flush this object due
 														// to need whole keys while indexing.
@@ -74,7 +74,7 @@ public class GroupIndexWriter {
 	private List<RefSetting> refSettingList;
 	private int[] fieldSequenceList;
 	private int fieldSize;
-	private ByteArrayOutput keyBuffer;
+	private BytesDataOutput keyBuffer;
 
 	public GroupIndexWriter(GroupIndexSetting groupIndexSetting, Map<String, FieldSetting> fieldSettingMap, Map<String, Integer> fieldSequenceMap,
 			File dir, IndexConfig indexConfig) throws IOException {
@@ -107,14 +107,14 @@ public class GroupIndexWriter {
 			File prevDir = IRFileName.getRevisionDir(dir, revision - 1);
 
 			/* READ Group Info */
-			StreamInput groupInfoInput = new BufferedFileInput(prevDir, IRFileName.groupInfoFile);
+			IndexInput groupInfoInput = new BufferedFileInput(prevDir, IRFileName.groupInfoFile);
 			int fieldCount = groupInfoInput.readInt();
 
 			pkReaderList = new PrimaryKeyIndexReader[fieldSize];
 			long[] dataBasePositionList = new long[fieldSize];
 			long[] indexBasePositionList = new long[fieldSize];
 			int[] groupKeySize = new int[fieldSize];
-			logger.debug("groupInfoInput.size() = {}", groupInfoInput.size());
+			logger.debug("groupInfoInput.size() = {}", groupInfoInput.length());
 			for (int i = 0; i < fieldCount; i++) {
 				groupKeySize[i] = groupInfoInput.readInt();
 				dataBasePositionList[i] = groupInfoInput.readLong();
@@ -172,7 +172,7 @@ public class GroupIndexWriter {
 			multiValueOutput = new BufferedFileOutput(dir, IRFileName.getMultiValueSuffixFileName(IRFileName.groupDataFile, id), isAppend);
 		}
 
-		keyBuffer = new ByteArrayOutput();
+		keyBuffer = new BytesDataOutput();
 
 	}
 
@@ -218,7 +218,7 @@ public class GroupIndexWriter {
 		count++;
 	}
 
-	private int writeGroupKey(int idx, ByteArrayOutput keyBuffer) throws IOException {
+	private int writeGroupKey(int idx, BytesDataOutput keyBuffer) throws IOException {
 		int groupNo = -1;
 		if (isAppend) {
 			// find key at previous append's pkmap
@@ -273,7 +273,7 @@ public class GroupIndexWriter {
 		 */
 		long[] currentDataPosition = new long[fieldSize];
 
-		StreamOutput groupInfoOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, revision), IRFileName.groupInfoFile);
+		IndexOutput groupInfoOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, revision), IRFileName.groupInfoFile);
 		groupInfoOutput.writeInt(fieldSize);
 
 		for (int idx = 0; idx < fieldSize; idx++) {
@@ -311,7 +311,7 @@ public class GroupIndexWriter {
 
 			// read previous pkinfo
 			File prevDir = IRFileName.getRevisionDir(baseDir, revision - 1);
-			StreamInput prevGroupInfoInput = new BufferedFileInput(prevDir, IRFileName.groupInfoFile);
+			IndexInput prevGroupInfoInput = new BufferedFileInput(prevDir, IRFileName.groupInfoFile);
 			int fieldCount = prevGroupInfoInput.readInt();
 
 			long[] prevDataPosition = new long[fieldSize];
@@ -329,8 +329,8 @@ public class GroupIndexWriter {
 			File tempPkFile = new File(IRFileName.getRevisionDir(baseDir, revision), IRFileName.getTempFileName(IRFileName.groupKeyMap));
 			File prevPkFile = new File(IRFileName.getRevisionDir(baseDir, revision - 1), IRFileName.groupKeyMap);
 
-			StreamOutput output = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, revision), IRFileName.groupKeyMap);
-			StreamOutput indexOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, revision), IRFileName.groupKeyMapIndex);
+			IndexOutput output = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, revision), IRFileName.groupKeyMap);
+			IndexOutput indexOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, revision), IRFileName.groupKeyMapIndex);
 
 			PrimaryKeyIndexMerger primaryKeyIndexMerger = new PrimaryKeyIndexMerger();
 			for (int i = 0; i < fieldSize; i++) {

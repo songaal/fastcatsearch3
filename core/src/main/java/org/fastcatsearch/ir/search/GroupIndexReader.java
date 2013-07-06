@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.lucene.util.BytesRef;
-import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.io.BufferedFileInput;
@@ -32,6 +31,7 @@ import org.fastcatsearch.ir.io.FixedDataInput;
 import org.fastcatsearch.ir.io.IOUtil;
 import org.fastcatsearch.ir.io.Input;
 import org.fastcatsearch.ir.io.SequencialDataInput;
+import org.fastcatsearch.ir.io.IndexInput;
 import org.fastcatsearch.ir.io.StreamInputRef;
 import org.fastcatsearch.ir.io.VariableDataInput;
 import org.fastcatsearch.ir.settings.FieldSetting;
@@ -50,10 +50,10 @@ import org.slf4j.LoggerFactory;
  */
 public class GroupIndexReader extends ReferencableIndexReader {
 	
-	private StreamInput groupDataInput;
+	private IndexInput groupDataInput;
 	private SequencialDataInput[] groupKeyInputList;
-	private StreamInput multiValueInput;
-	private StreamInput[] multiValueInputList;
+	private IndexInput multiValueInput;
+	private IndexInput[] multiValueInputList;
 	private DataRef[] refs;
 	private int fieldSize;
 	
@@ -69,7 +69,7 @@ public class GroupIndexReader extends ReferencableIndexReader {
 		List<RefSetting> refSettingList = groupIndexSetting.getRefList();
 		fieldSize = refSettingList.size();
 		
-		StreamInput groupInfoInput = new BufferedFileInput(IRFileName.getRevisionDir(dir, revision), IRFileName.groupInfoFile);
+		IndexInput groupInfoInput = new BufferedFileInput(IRFileName.getRevisionDir(dir, revision), IRFileName.groupInfoFile);
     	
 		keyBuf = new BytesBuffer[fieldSize];
 		fieldOffset = new int[fieldSize];

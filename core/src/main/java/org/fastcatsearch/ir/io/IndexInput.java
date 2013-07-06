@@ -1,4 +1,4 @@
-package org.apache.lucene.store;
+package org.fastcatsearch.ir.io;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -20,6 +20,9 @@ package org.apache.lucene.store;
 import java.io.Closeable;
 import java.io.IOException;
 
+import org.apache.lucene.store.AlreadyClosedException;
+import org.apache.lucene.store.Directory;
+
 /** Abstract base class for input from a file in a {@link Directory}.  A
  * random-access input stream.  Used for all Lucene index input operations.
  *
@@ -39,6 +42,10 @@ public abstract class IndexInput extends DataInput implements Cloneable,Closeabl
 
   private final String resourceDescription;
 
+  protected IndexInput(){ 
+	  resourceDescription = null; 
+  }
+  
   /** resourceDescription should be a non-null, opaque string
    *  describing this resource; it's returned from
    *  {@link #toString}. */
@@ -57,10 +64,10 @@ public abstract class IndexInput extends DataInput implements Cloneable,Closeabl
    * occur.
    * @see #seek(long)
    */
-  public abstract long getFilePointer();
+  public abstract long position();
 
   /** Sets current position in this file, where the next read will occur.
-   * @see #getFilePointer()
+   * @see #position()
    */
   public abstract void seek(long pos) throws IOException;
 

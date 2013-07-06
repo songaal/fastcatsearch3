@@ -19,13 +19,13 @@ package org.fastcatsearch.ir.document.merge;
 import java.io.File;
 import java.io.IOException;
 
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexBulkReader;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexBulkWriter;
 import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IOUtil;
+import org.fastcatsearch.ir.io.IndexOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,7 +145,7 @@ public class PrimaryKeyIndexMerger {
 	/*
 	 * For Group key map
 	 * */
-	public boolean merge(File file1, long base1, File file2, long base2, StreamOutput pkmapOutput, StreamOutput pkmapIndexOutput, int indexInterval) throws IOException {
+	public boolean merge(File file1, long base1, File file2, long base2, IndexOutput pkmapOutput, IndexOutput pkmapIndexOutput, int indexInterval) throws IOException {
 		PrimaryKeyIndexBulkReader r1 = null;
 		PrimaryKeyIndexBulkReader r2 = null;
 		

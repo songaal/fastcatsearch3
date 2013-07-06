@@ -51,7 +51,7 @@ public class StreamableGroupDataTest {
 		
 		BytesStreamOutput output = new BytesStreamOutput();
 		data.writeTo(output);
-		BytesReference ref = output.bytes();
+		BytesReference ref = output.bytesReference();
 		//----------
 		
 		StreamInput intput = new BytesStreamInput(ref);

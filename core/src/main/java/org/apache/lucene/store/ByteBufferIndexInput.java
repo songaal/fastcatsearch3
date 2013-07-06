@@ -24,6 +24,7 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 import org.apache.lucene.util.WeakIdentityMap;
+import org.fastcatsearch.ir.io.IndexInput;
 
 /**
  * Base IndexInput implementation that uses an array
@@ -144,7 +145,7 @@ abstract class ByteBufferIndexInput extends IndexInput {
   }
   
   @Override
-  public final long getFilePointer() {
+  public final long position() {
     try {
       return (((long) curBufIndex) << chunkSizePower) + curBuf.position() - offset;
     } catch (NullPointerException npe) {
@@ -186,7 +187,7 @@ abstract class ByteBufferIndexInput extends IndexInput {
   public final ByteBufferIndexInput clone() {
     final ByteBufferIndexInput clone = buildSlice(0L, this.length);
     try {
-      clone.seek(getFilePointer());
+      clone.seek(position());
     } catch(IOException ioe) {
       throw new RuntimeException("Should never happen: " + this, ioe);
     }

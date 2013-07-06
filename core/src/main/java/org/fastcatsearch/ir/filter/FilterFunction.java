@@ -20,7 +20,7 @@ import java.io.IOException;
 
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.field.Field;
-import org.fastcatsearch.ir.io.ByteArrayOutput;
+import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.io.DataRef;
 import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.query.Filter;
@@ -65,7 +65,7 @@ public abstract class FilterFunction {
 				
 				Field f = fieldSetting.createPatternField(filter.pattern(j));
 				int patternByteSize = fieldSetting.getByteSize();
-				ByteArrayOutput arrayOutput = new ByteArrayOutput(patternByteSize);
+				BytesDataOutput arrayOutput = new BytesDataOutput(patternByteSize);
 				f.writeFixedDataTo(arrayOutput);
 				patternList[j] = arrayOutput.bytesRef();
 				
@@ -78,7 +78,7 @@ public abstract class FilterFunction {
 				if(filter.isEndPatternExist()){
 					f = fieldSetting.createPatternField(filter.endPattern(j));
 					patternByteSize = fieldSetting.getByteSize();
-					arrayOutput = new ByteArrayOutput(patternByteSize);
+					arrayOutput = new BytesDataOutput(patternByteSize);
 					f.writeFixedDataTo(arrayOutput);
 					endPatternList[j] = arrayOutput.bytesRef();
 	//				f = fieldSetting.createField(filter.endPattern(j));

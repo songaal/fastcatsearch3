@@ -19,6 +19,8 @@ package org.apache.lucene.store;
 
 import java.io.IOException;
 
+import org.fastcatsearch.ir.io.IndexOutput;
+
 /**
  * A memory-resident {@link IndexOutput} implementation.
  *
@@ -171,7 +173,7 @@ public class RAMOutputStream extends IndexOutput {
   }
 
   @Override
-  public long getFilePointer() {
+  public long position() {
     return currentBufferIndex < 0 ? 0 : bufferStart + bufferPosition;
   }
 

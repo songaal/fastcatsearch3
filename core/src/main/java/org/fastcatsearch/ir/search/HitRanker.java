@@ -71,7 +71,7 @@ public class HitRanker extends FixedMaxPriorityQueue<HitElement>{
 		
 		for (int i = 0; i < sortFunctions.length; i++) {
 			//하나씩 비교해가면서 각 funtion의 비교결과가 0이 아닐때 까지 비교한다.
-			int r = sortFunctions[i].compare(one.randData(i), two.randData(i));
+			int r = sortFunctions[i].compare(one.rankData(i), two.rankData(i));
 			if(r != 0){
 				return r;
 			}

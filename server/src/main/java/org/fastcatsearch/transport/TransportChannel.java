@@ -59,7 +59,7 @@ public class TransportChannel {
         stream.writeGenericValue(obj);
         stream.close();
         
-        ChannelBuffer buffer = stream.bytes().toChannelBuffer();
+        ChannelBuffer buffer = stream.bytesReference().toChannelBuffer();
         MessageProtocol.writeHeader(buffer, type, requestId, status);
         ChannelFuture future = channel.write(buffer);
         future.addListener(new TransportModule.CacheFutureListener(cachedEntry));
@@ -76,7 +76,7 @@ public class TransportChannel {
         response.writeTo(stream);
         stream.close();
         
-        ChannelBuffer buffer = stream.bytes().toChannelBuffer();
+        ChannelBuffer buffer = stream.bytesReference().toChannelBuffer();
         MessageProtocol.writeHeader(buffer, type, requestId, status);
         ChannelFuture future = channel.write(buffer);
         future.addListener(new TransportModule.CacheFutureListener(cachedEntry));
@@ -95,7 +95,7 @@ public class TransportChannel {
         streamableThrowable.writeTo(stream);
         stream.close();
         
-        ChannelBuffer buffer = stream.bytes().toChannelBuffer();
+        ChannelBuffer buffer = stream.bytesReference().toChannelBuffer();
         MessageProtocol.writeHeader(buffer, type, requestId, status);
         ChannelFuture future = channel.write(buffer);
         future.addListener(new TransportModule.CacheFutureListener(cachedEntry));

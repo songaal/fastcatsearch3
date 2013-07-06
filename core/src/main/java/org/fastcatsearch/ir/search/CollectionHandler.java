@@ -23,7 +23,6 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.util.BytesRef;
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.common.SettingException;
@@ -38,9 +37,9 @@ import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.index.MultiKeyEntry;
 import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
-import org.fastcatsearch.ir.io.ByteArrayOutput;
+import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.io.BytesBuffer;
-import org.fastcatsearch.ir.io.Output;
+import org.fastcatsearch.ir.io.IndexOutput;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.PkRefSetting;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
@@ -375,7 +374,7 @@ public class CollectionHandler {
 			pkFieldSettingList[i] = schema.getFieldSetting(fieldId);
 			pkByteSize += pkFieldSettingList[i].getByteSize();
 		}
-		ByteArrayOutput pkOutput = new ByteArrayOutput(pkByteSize);
+		BytesDataOutput pkOutput = new BytesDataOutput(pkByteSize);
 		
 		
 		//apply delete set.
@@ -602,7 +601,7 @@ public class CollectionHandler {
 			pkFieldSettingList[i] = schema.getFieldSetting(fieldId);
 			pkByteSize += pkFieldSettingList[i].getByteSize();
 		}
-		ByteArrayOutput pkOutput = new ByteArrayOutput(pkByteSize);
+		BytesDataOutput pkOutput = new BytesDataOutput(pkByteSize);
 		
 		
 		if(deleteSet != null){
@@ -708,7 +707,7 @@ public class CollectionHandler {
 		int docCount = segmentInfo.getDocCount();
 		
 		//doc.position
-		StreamOutput fileOutput = new BufferedFileOutput(segmentDir, IRFileName.docPosition, true);
+		IndexOutput fileOutput = new BufferedFileOutput(segmentDir, IRFileName.docPosition, true);
 		logger.debug("restore = "+segmentInfo.docPositionFilesSize+", "+fileOutput);
 		fileOutput.setLength(segmentInfo.docPositionFilesSize);
 		fileOutput.close();

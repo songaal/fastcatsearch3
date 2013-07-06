@@ -24,9 +24,8 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
-import org.fastcatsearch.common.io.StreamInput;
 
-public class BufferedFileInput extends StreamInput implements Cloneable {
+public class BufferedFileInput extends IndexInput implements Cloneable {
 
 	private static final int chunkSize = 100 * 1024 * 1024;
 	protected boolean isClone;
@@ -160,7 +159,7 @@ public class BufferedFileInput extends StreamInput implements Cloneable {
 				// here, because there's no need to reread what we
 				// had in the buffer.
 				long after = bufferStart + bufferPosition + len;
-				if (after > size())
+				if (after > length())
 					throw new EOFException("read past EOF: " + this);
 				readInternal(b, offset, len);
 				bufferStart = after;
@@ -174,8 +173,8 @@ public class BufferedFileInput extends StreamInput implements Cloneable {
 	private void refill() throws IOException {
 		long start = bufferStart + bufferPosition;
 		long end = start + bufferSize;
-		if (end > size()) // don't read past EOF
-			end = size();
+		if (end > length()) // don't read past EOF
+			end = length();
 		int newLength = (int) (end - start);
 		if (newLength <= 0)
 			throw new EOFException("read past EOF: " + this);
@@ -274,8 +273,8 @@ public class BufferedFileInput extends StreamInput implements Cloneable {
 	}
 
 	@Override
-	public final long size() {
-		return end - off;
+	public final long length() {
+		return end;
 	}
 
 

@@ -21,14 +21,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.Input;
+import org.fastcatsearch.ir.io.IndexInput;
 
 
 public class FileInspector {
 	private File f;
-	private StreamInput in;
+	private IndexInput in;
 	
 	public FileInspector(String path) throws IOException{
 		f = new File(path);
@@ -125,14 +125,14 @@ public class FileInspector {
 		return in.position();
 	}
 	private void pos(long l) throws IOException{
-		if(l > in.size()){
-			System.out.println("Position "+l +" exceed filesize = "+in.size());
+		if(l > in.length()){
+			System.out.println("Position "+l +" exceed filesize = "+in.length());
 		}else{
 			in.seek(l);
 		}
 	}
 	
 	private long size() throws IOException{
-		return in.size();
+		return in.length();
 	}
 }

@@ -46,7 +46,7 @@ public class BitSet {
 		this.file = file;
 		if(file.exists()){
 			BufferedFileInput in = new BufferedFileInput(file);
-			int size = (int) (in.size() / IOUtil.SIZE_OF_LONG);
+			int size = (int) (in.length() / IOUtil.SIZE_OF_LONG);
 			bitdata = new long[size];
 			
 			for(int i=0;i<size;i++)

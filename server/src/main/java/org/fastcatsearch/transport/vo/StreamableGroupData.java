@@ -11,6 +11,10 @@ import org.fastcatsearch.ir.group.GroupData;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupEntryList;
 import org.fastcatsearch.ir.group.GroupingValue;
+import org.fastcatsearch.ir.group.value.DoubleGroupingValue;
+import org.fastcatsearch.ir.group.value.FloatGroupingValue;
+import org.fastcatsearch.ir.group.value.IntGroupingValue;
+import org.fastcatsearch.ir.group.value.LongGroupingValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +49,16 @@ public class StreamableGroupData implements Streamable {
 				int functionSize = input.readVInt();
 				GroupingValue[] valueList = new GroupingValue[functionSize];
 				for (int i = 0; i < functionSize; i++) {
-					valueList[i] = new GroupingValue((Number) input.readGenericValue());
+					Object obj = input.readGenericValue();
+					if(obj instanceof Integer){
+						valueList[i] = new IntGroupingValue((Integer) obj);
+					}else if(obj instanceof Long){
+						valueList[i] = new LongGroupingValue((Long) obj);
+					}else if(obj instanceof Float){
+						valueList[i] = new FloatGroupingValue((Float) obj);
+					}else if(obj instanceof Double){
+						valueList[i] = new DoubleGroupingValue((Double) obj);
+					}
 				}
 				entryList.add(new GroupEntry(key, valueList));
 			}
@@ -78,7 +91,7 @@ public class StreamableGroupData implements Streamable {
 				// 2. group entry list
 				output.writeVInt(groupEntry.functionSize());
 				for (GroupingValue groupingValue : groupEntry.groupingValues()) {
-					Number result = groupingValue.getResult();
+					Object result = groupingValue.get();
 					output.writeGenericValue(result);
 				}
 			}

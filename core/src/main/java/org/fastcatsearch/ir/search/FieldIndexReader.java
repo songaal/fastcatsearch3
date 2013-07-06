@@ -21,12 +21,12 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.DataRef;
 import org.fastcatsearch.ir.io.IOUtil;
 import org.fastcatsearch.ir.io.Input;
+import org.fastcatsearch.ir.io.IndexInput;
 import org.fastcatsearch.ir.io.StreamInputRef;
 import org.fastcatsearch.ir.settings.FieldIndexSetting;
 import org.fastcatsearch.ir.settings.FieldSetting;
@@ -41,15 +41,15 @@ public class FieldIndexReader extends ReferencableIndexReader {
 	protected boolean[] isMultiValue;
 	protected boolean hasMultiValue;
 	
-	private StreamInput indexInput;
-	private StreamInput multiValueInput;
-	private StreamInput[] multiValueInputList;
+	private IndexInput indexInput;
+	private IndexInput multiValueInput;
+	private IndexInput[] multiValueInputList;
 	
 	private int fieldSize;
 	private DataRef[] refs;
 	
 	
-	public FieldIndexReader(StreamInput indexInput, StreamInput multiValueInput, StreamInput[] multiValueInputList, DataRef[] refs, int dataSize, int[] fieldOffset, int[] fieldByteSize
+	public FieldIndexReader(IndexInput indexInput, IndexInput multiValueInput, IndexInput[] multiValueInputList, DataRef[] refs, int dataSize, int[] fieldOffset, int[] fieldByteSize
 			, boolean[] isMultiValue, boolean hasMultiValue, int fieldSize) {
 		this.indexInput = indexInput;
 		this.multiValueInput = multiValueInput;
@@ -88,7 +88,7 @@ public class FieldIndexReader extends ReferencableIndexReader {
     	}
     	
     	//multivalue용도..
-    	multiValueInputList = new StreamInput[fieldSize];
+    	multiValueInputList = new IndexInput[fieldSize];
     	
     	int offset = 0;
 		for (int i = 0; i < fieldSize; i++) {
@@ -138,9 +138,9 @@ public class FieldIndexReader extends ReferencableIndexReader {
 	@Override
 	public FieldIndexReader clone(){
 		DataRef[] refs2 = new DataRef[fieldSize];
-		StreamInput[] multiValueInputList2 = null;
+		IndexInput[] multiValueInputList2 = null;
 		if(hasMultiValue){
-			multiValueInputList2 = new StreamInput[fieldSize];
+			multiValueInputList2 = new IndexInput[fieldSize];
 		}
 		
 		for (int i = 0; i < fieldSize; i++) {

@@ -31,6 +31,8 @@ import java.util.concurrent.Future;
 
 import org.apache.lucene.util.ThreadInterruptedException;
 import org.apache.lucene.util.Constants;
+import org.fastcatsearch.ir.io.IndexInput;
+import org.fastcatsearch.ir.io.IndexOutput;
 
 /**
  * Base class for Directory implementations that store index
@@ -513,6 +515,12 @@ public abstract class FSDirectory extends Directory {
     public void setLength(long length) throws IOException {
       file.setLength(length);
     }
+
+	@Override
+	public void reset() throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
   }
 
   protected void fsync(String name) throws IOException {

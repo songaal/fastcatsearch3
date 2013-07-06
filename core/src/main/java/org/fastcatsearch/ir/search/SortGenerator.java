@@ -112,10 +112,10 @@ public class SortGenerator {
 			//정렬은 멀티밸류를 지원하지 않으며, 싱글밸류이기 때문에 즉시 bytesRef로 읽도록 한다.
 			if(fieldIndex[j] == ScoreField.fieldNumber){
 				rankData[j] = new BytesRef(ScoreField.fieldSize);
-				IOUtil.writeInt(rankData[j].bytes, 0, Float.floatToIntBits(ri.score()));
+				IOUtil.writeInt(rankData[j], Float.floatToIntBits(ri.score()));
 			}else if(fieldIndex[j] == HitField.fieldNumber){
 				rankData[j] = new BytesRef(HitField.fieldSize);
-				IOUtil.writeInt(rankData[j].bytes, 0, ri.hit());
+				IOUtil.writeInt(rankData[j], ri.hit());
 			}else{
 				BytesRef bytesRef = indexRef.getDataRef(j).bytesRef();
 				rankData[j] = bytesRef.duplicate();

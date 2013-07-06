@@ -22,7 +22,7 @@ import org.fastcatsearch.ir.group.GroupDataMerger;
 import org.fastcatsearch.ir.group.GroupHit;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.io.BitSet;
-import org.fastcatsearch.ir.io.ByteArrayOutput;
+import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.io.FixedHitQueue;
 import org.fastcatsearch.ir.io.FixedHitReader;
 import org.fastcatsearch.ir.io.FixedMinHeap;
@@ -684,7 +684,7 @@ public class CollectionSearcher {
 			}
 			logger.debug("DELETE-{} {} >> {}", new Object[] { i, deleteSet, deleteSet.getEntry() });
 
-			ByteArrayOutput pkOutput = new ByteArrayOutput();
+			BytesDataOutput pkOutput = new BytesDataOutput();
 
 			String[] pkValues = null;
 
@@ -704,7 +704,7 @@ public class CollectionSearcher {
 			}
 
 			PrimaryKeyIndexReader pkReader = new PrimaryKeyIndexReader(IRFileName.getRevisionDir(targetDir, lastRevision), IRFileName.primaryKeyMap);
-			docNo = pkReader.get(pkOutput.array(), 0, (int) pkOutput.size());
+			docNo = pkReader.get(pkOutput.array(), 0, (int) pkOutput.position());
 			pkReader.close();
 
 			if (docNo != -1) {

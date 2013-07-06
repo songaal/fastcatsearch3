@@ -25,6 +25,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 
+import org.fastcatsearch.ir.io.IndexInput;
+import org.fastcatsearch.ir.io.IndexOutput;
+
 
 /**
  * Expert: A Directory instance that switches files between

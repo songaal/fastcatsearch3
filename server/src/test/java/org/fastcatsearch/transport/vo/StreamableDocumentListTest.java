@@ -45,7 +45,7 @@ public class StreamableDocumentListTest {
 		BytesStreamOutput output = new BytesStreamOutput();
 		StreamableDocumentList1.writeTo(output);
 		
-		BytesReference ref = output.bytes();
+		BytesReference ref = output.bytesReference();
 		StreamInput input = new BytesStreamInput(ref);
 		
 		StreamableDocumentList StreamableDocumentList2 = new StreamableDocumentList();

@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.zip.Deflater;
 
 import org.apache.commons.io.FileUtils;
-import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.config.IndexConfig;
@@ -30,13 +29,12 @@ import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
-import org.fastcatsearch.ir.io.ByteArrayOutput;
-import org.fastcatsearch.ir.io.Input;
+import org.fastcatsearch.ir.io.BytesDataOutput;
+import org.fastcatsearch.ir.io.IndexInput;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.PkRefSetting;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
 import org.fastcatsearch.ir.settings.Schema;
-import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,8 +59,8 @@ public class DocumentWriter {
 	private BufferedFileOutput docOutput;
 	private BufferedFileOutput positionOutput;
 	private byte[] workingBuffer;
-	private ByteArrayOutput fbaos;
-	private ByteArrayOutput pkbaos;
+	private BytesDataOutput fbaos;
+	private BytesDataOutput pkbaos;
 	private BitSet deleteSet;
 	private int localDocNo;
 	private PrimaryKeyIndexWriter pkIndexWriter;
@@ -114,8 +112,8 @@ public class DocumentWriter {
 			pkIndexWriter = new PrimaryKeyIndexWriter(revisionDir, IRFileName.primaryKeyMap, indexInterval, bucketSize);
 		}
 
-		fbaos = new ByteArrayOutput(3 * 1024 * 1024); //초기 3Mb로 시작.
-		pkbaos = new ByteArrayOutput(1024); //초기 1kb로 시작.
+		fbaos = new BytesDataOutput(3 * 1024 * 1024); //초기 3Mb로 시작.
+		pkbaos = new BytesDataOutput(1024); //초기 1kb로 시작.
 		workingBuffer = new byte[1024];
 
 		if (isAppend) {
@@ -128,7 +126,7 @@ public class DocumentWriter {
 			FileUtils.copyFileToDirectory(prevDelete, revisionDir);
 			deleteSet = new BitSet(revisionDir, IRFileName.docDeleteSet);
 			
-			StreamInput docInput = new BufferedFileInput(dir, IRFileName.docStored);
+			IndexInput docInput = new BufferedFileInput(dir, IRFileName.docStored);
 			localDocNo = docInput.readInt();
 			docInput.close();
 		} else {

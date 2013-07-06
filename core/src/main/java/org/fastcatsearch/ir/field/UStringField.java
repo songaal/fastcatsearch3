@@ -2,9 +2,9 @@ package org.fastcatsearch.ir.field;
 
 import java.io.IOException;
 
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.io.CharVector;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 
 public class UStringField extends StringField {
 
@@ -24,19 +24,19 @@ public class UStringField extends StringField {
 	}
 	
 	@Override
-	public void readFrom(StreamInput input) throws IOException {
+	public void readFrom(DataInput input) throws IOException {
 		char[] chars = input.readUString();
 		fieldsData = new CharVector(chars, 0, chars.length);
 	}
 
 	@Override
-	public void writeTo(StreamOutput output) throws IOException {
+	public void writeTo(DataOutput output) throws IOException {
 		CharVector charVector = ((CharVector) fieldsData);
 		output.writeUString(charVector.array, charVector.start, charVector.length);
 	}
 
 	@Override
-	public void writeFixedDataTo(StreamOutput output) throws IOException {
+	public void writeFixedDataTo(DataOutput output) throws IOException {
 		
 		if(size > 0){
 			//고정길이 single value필드는 데이터가 없으면 고정길이만큼 0으로 기록한다.
@@ -60,7 +60,7 @@ public class UStringField extends StringField {
 	}
 	
 	@Override
-	public void writeDataTo(StreamOutput output) throws IOException {
+	public void writeDataTo(DataOutput output) throws IOException {
 		CharVector charVector = ((CharVector) fieldsData);
 		if(size > 0){
 			writeFixedDataTo(output);

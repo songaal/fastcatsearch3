@@ -22,16 +22,14 @@ import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
-import org.fastcatsearch.ir.io.ByteArrayInput;
+import org.fastcatsearch.ir.io.BytesDataInput;
 import org.fastcatsearch.ir.io.IOUtil;
-import org.fastcatsearch.ir.io.Input;
-import org.fastcatsearch.ir.io.Output;
+import org.fastcatsearch.ir.io.IndexInput;
+import org.fastcatsearch.ir.io.IndexOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,8 +45,8 @@ public class DocumentRestorer {
 	
 	public void setSize(int newSize) throws IRException, IOException{
 		
-		StreamInput docInput = new BufferedFileInput(dir, IRFileName.docStored);
-		StreamInput positionInput = new BufferedFileInput(dir, IRFileName.docPosition);
+		IndexInput docInput = new BufferedFileInput(dir, IRFileName.docStored);
+		IndexInput positionInput = new BufferedFileInput(dir, IRFileName.docPosition);
 		
 		//check document count and block size
 		int prevDocumentCount = docInput.readInt();
@@ -70,11 +68,11 @@ public class DocumentRestorer {
 		
 		if(newSize % blockSize == 0){
 			docInput.close();
-			StreamOutput out = new BufferedFileOutput(dir, IRFileName.docStored, true);
+			IndexOutput out = new BufferedFileOutput(dir, IRFileName.docStored, true);
 			out.seek(0);
 			out.writeInt(newSize);
 			out.setLength(pos + len);
-			logger.info("restored doc.stored file size() = {}", out.size());
+			logger.info("restored doc.stored file size() = {}", out.length());
 			out.close();
 		}else{
 			//if doc is in last block
@@ -95,7 +93,7 @@ public class DocumentRestorer {
 				decompresser.end();
 			}
 //			logger.debug("BlockLength="+resultLength);
-			ByteArrayInput bai = new ByteArrayInput(infOutput, 0, resultLength);
+			BytesDataInput bai = new BytesDataInput(infOutput, 0, resultLength);
 			for (int i = 0; i <= docOffset; i++) {
 				int docLen = bai.readInt();
 //				logger.debug("bai.position() = "+bai.position()+", docLen = "+docLen);
@@ -108,14 +106,14 @@ public class DocumentRestorer {
 			
 			int compressedDataLength = compresser.deflate(defOutput);
 			
-			StreamOutput out = new BufferedFileOutput(dir, IRFileName.docStored, true);
+			IndexOutput out = new BufferedFileOutput(dir, IRFileName.docStored, true);
 			out.seek(0);
 			out.writeInt(newSize);
 			out.setLength(pos);
-			out.seek(out.size());//move to end of file
+			out.seek(out.length());//move to end of file
 			out.writeInt(compressedDataLength);
 			out.writeBytes(defOutput, 0, compressedDataLength);
-			logger.info("restored doc.stored file size() = {}", out.size());
+			logger.info("restored doc.stored file size() = {}", out.length());
 			out.close();
 		}
 		

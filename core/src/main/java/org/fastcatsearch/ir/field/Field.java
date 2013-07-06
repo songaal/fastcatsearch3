@@ -6,8 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.common.io.StreamOutput;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,16 +101,16 @@ public abstract class Field {
 	
 	protected abstract Object parseData(String data);
 	
-	public abstract void readFrom(StreamInput input) throws IOException;
+	public abstract void readFrom(DataInput input) throws IOException;
 	
 	//필드데이터를 기록. string형의 경우 size정보가 앞에 붙는다.
-	public abstract void writeTo(StreamOutput output) throws IOException;
+	public abstract void writeTo(DataOutput output) throws IOException;
 
 	//고정길이로 데이터만을 기록. fieldIndex에서 필요. string형의 경우 size정보가 없음.
-	public abstract void writeFixedDataTo(StreamOutput output) throws IOException;
+	public abstract void writeFixedDataTo(DataOutput output) throws IOException;
 	
 	//고정길이필드는 고정으로, 가변은 가변으로 데이터만을 기록. string형의 경우 size정보가 없음.
-	public abstract void writeDataTo(StreamOutput output) throws IOException;
+	public abstract void writeDataTo(DataOutput output) throws IOException;
 	
 	//멀티밸류의 필드데이터를 하나씩 기록할수 있도록 도와주는 writer. group에서 필드값을 읽을 때 사용됨.
 	public abstract FieldDataWriter getDataWriter() throws IOException;

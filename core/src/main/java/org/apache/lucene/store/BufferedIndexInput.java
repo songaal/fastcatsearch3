@@ -20,6 +20,9 @@ package org.apache.lucene.store;
 import java.io.EOFException;
 import java.io.IOException;
 
+import org.fastcatsearch.ir.io.IndexInput;
+import org.fastcatsearch.ir.io.IndexOutput;
+
 /** Base implementation class for buffered {@link IndexInput}. */
 public abstract class BufferedIndexInput extends IndexInput {
 
@@ -285,7 +288,7 @@ public abstract class BufferedIndexInput extends IndexInput {
           throws IOException;
 
   @Override
-  public final long getFilePointer() { return bufferStart + bufferPosition; }
+  public final long position() { return bufferStart + bufferPosition; }
 
   @Override
   public final void seek(long pos) throws IOException {
@@ -312,7 +315,7 @@ public abstract class BufferedIndexInput extends IndexInput {
     clone.buffer = null;
     clone.bufferLength = 0;
     clone.bufferPosition = 0;
-    clone.bufferStart = getFilePointer();
+    clone.bufferStart = position();
 
     return clone;
   }

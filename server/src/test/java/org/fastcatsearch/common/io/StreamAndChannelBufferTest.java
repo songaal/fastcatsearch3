@@ -18,7 +18,7 @@ public class StreamAndChannelBufferTest {
 		stream.writeInt(4);
 		stream.writeLong(l);
 		stream.close();
-		ChannelBuffer buffer = stream.bytes().toChannelBuffer();
+		ChannelBuffer buffer = stream.bytesReference().toChannelBuffer();
 		assertEquals(4, buffer.readInt());
 		assertEquals(l, buffer.readLong());
 	}
@@ -31,7 +31,7 @@ public class StreamAndChannelBufferTest {
 			BytesStreamOutput stream = new BytesStreamOutput(8);
 			stream.writeLong(l);
 			stream.close();
-			ChannelBuffer buffer = stream.bytes().toChannelBuffer();
+			ChannelBuffer buffer = stream.bytesReference().toChannelBuffer();
 			assertEquals(l, buffer.readLong());
 			if((l % 100000000) == 0){
 				System.out.println(l+".. / "+Long.MAX_VALUE +" / "+(l*100.0 / (Long.MAX_VALUE*1.0))+"%");
@@ -54,7 +54,7 @@ public class StreamAndChannelBufferTest {
 		stream.writeVInt(8);
 		stream.close();
 		int dataLength = stream.size();
-		ChannelBuffer buffer = stream.bytes().toChannelBuffer();
+		ChannelBuffer buffer = stream.bytesReference().toChannelBuffer();
 		//전송후 받아서 다시 읽는다.
 		StreamInput wrappedStream = new ChannelBufferStreamInput(buffer, dataLength);
 		
@@ -73,7 +73,7 @@ public class StreamAndChannelBufferTest {
 			stream.writeLong(l);
 			stream.close();
 			int dataLength = stream.size();
-			ChannelBuffer buffer = stream.bytes().toChannelBuffer();
+			ChannelBuffer buffer = stream.bytesReference().toChannelBuffer();
 			//전송후 받아서 다시 읽는다.
 			StreamInput wrappedStream = new ChannelBufferStreamInput(buffer, dataLength);
 			assertEquals(l, wrappedStream.readLong());
