@@ -1,0 +1,70 @@
+<%--
+# Copyright (C) 2011 - 2013 Websquared, Inc.
+# All rights reserved.
+--%>
+
+<%@ page contentType="text/html; charset=UTF-8"%> 
+<%@page import="java.util.*"%>
+<%@page import="org.fastcatsearch.service.ServiceManager"%>
+<%@page import="com.fastcatsearch.util.*"%>
+<%@page import="org.fastcatsearch.db.DBService" %>
+<%@page import="org.fastcatsearch.db.vo.*" %>
+<%@page import="org.fastcatsearch.db.dao.*" %>
+<%@page import="org.fastcatsearch.plugin.*" %>
+<%@page import="org.fastcatsearch.plugin.PluginSetting.*" %>
+<%
+	List<PluginMenu> menuTypeList = new ArrayList<PluginMenu>();
+	String menuType = "dictionary";
+	
+	PluginService _pluginService = ServiceManager.getInstance().getService(PluginService.class);
+	for(Plugin _plugin : _pluginService.getPlugins()){
+		
+		PluginSetting pluginSetting = _plugin.getPluginSetting();
+		
+		String pluginId = pluginSetting.getId();
+		Menu menu = pluginSetting.getWeb().getUser().getMenu();
+		String pluginMenuType = menu.getRef();
+		if(pluginMenuType.equals(menuType)){
+			menuTypeList.add(new PluginMenu(pluginId, menu.getCategoryLabel()));
+		}
+	}
+%>
+
+<script>
+function selectDictionaryCategory(obj){
+	category = $(obj).val();
+	$('#postForm > input').val(category);
+	$('#postForm').submit();
+}	
+</script>
+
+<form id="postForm" action="<%=request.getRequestURI() %>" method="post" class="hidden">
+	<input type="hidden" name="category" />
+</form>
+
+<div class="sidebox">
+	<select onchange="selectDictionaryCategory(this)">
+		<option value="">::: 종류선택 :::</option>
+	<%
+		for(PluginMenu menu : menuTypeList){
+		String selected = "";
+			if(menu.pluginId().equals(category)){
+				selected = "selected";
+			}
+			%>
+			<option value="<%=menu.pluginId()%>" <%=selected %>><%=menu.categoryLabel() %></option>
+			<%
+		}
+	%>
+	</select>
+	
+	<h3>사전</h3>
+	<ul class="latest">
+		<li><a href="javascript:void(0)" onclick="submitPost('main.jsp', {category: '<%=category%>'})" <%=WebUtils.isSameServerPage(request.getServletPath(), "main.jsp")?"class='selected'":"" %>>사전정보</a></li>
+		<li><a href="javascript:void(0)" onclick="submitPost('synonymDic.jsp', {category: '<%=category%>'})" <%=WebUtils.isSameServerPage(request.getServletPath(), "synonymDic.jsp")?"class='selected'":"" %>>유사어사전</a></li>
+		<li><a href="javascript:void(0)" onclick="submitPost('userDic.jsp', {category: '<%=category%>'})" <%=WebUtils.isSameServerPage(request.getServletPath(), "userDic.jsp")?"class='selected'":"" %>>사용자사전</a></li>
+		<li><a href="javascript:void(0)" onclick="submitPost('stopDic.jsp', {category: '<%=category%>'})" <%=WebUtils.isSameServerPage(request.getServletPath(), "stopDic.jsp")?"class='selected'":"" %>>금지어사전</a></li>
+		<li><a href="javascript:void(0)" onclick="submitPost('systemDic.jsp', {category: '<%=category%>'})" <%=WebUtils.isSameServerPage(request.getServletPath(), "systemDic.jsp")?"class='selected'":"" %>>기본사전</a></li>
+	</ul>
+</div>
+

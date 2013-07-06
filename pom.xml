@@ -102,16 +102,6 @@
     <url>${fastcatsearchRepository}</url>
     </repository>
   </repositories>
-  <pluginRepositories>
-    <pluginRepository>
-        <id>autoincrement-versions-maven-plugin</id>
-        <name>autoincrement-versions-maven-plugin</name>
-        <url>http://autoincrement-versions-maven-plugin.googlecode.com/svn/repo</url>
-        <snapshots>
-            <enabled>true</enabled>
-        </snapshots>
-    </pluginRepository>
-  </pluginRepositories>
   <distributionManagement>
     <repository>
       <id>fastcatsearch</id>
@@ -123,6 +113,7 @@
   <modules>
     <module>core</module>
     <module>server</module>
+    <module>web</module>
   </modules>
   
   <build>
