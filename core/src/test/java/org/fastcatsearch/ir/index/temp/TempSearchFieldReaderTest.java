@@ -20,11 +20,10 @@ package org.fastcatsearch.ir.index.temp;
 import java.io.File;
 import java.io.IOException;
 
-import org.fastcatsearch.ir.index.temp.TempSearchFieldReader;
-import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.ir.io.FastByteBuffer;
-
 import junit.framework.TestCase;
+
+import org.fastcatsearch.ir.io.BytesBuffer;
+import org.fastcatsearch.ir.io.CharVector;
 
 
 public class TempSearchFieldReaderTest extends TestCase{
@@ -33,7 +32,7 @@ public class TempSearchFieldReaderTest extends TestCase{
 		TempSearchFieldReader reader = new TempSearchFieldReader(0,file, 0);
 		while(reader.next()){
 			CharVector term = reader.term();
-			FastByteBuffer buf = reader.buffer();
+			BytesBuffer buf = reader.buffer();
 			System.out.println("("+(int)term.array[0]+")"+new String(term.array, 1, term.length - 2)+ " = "+term.length);
 			
 		}

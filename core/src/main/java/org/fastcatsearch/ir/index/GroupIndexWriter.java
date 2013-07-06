@@ -311,7 +311,7 @@ public class GroupIndexWriter {
 
 			// read previous pkinfo
 			File prevDir = IRFileName.getRevisionDir(baseDir, revision - 1);
-			Input prevGroupInfoInput = new BufferedFileInput(prevDir, IRFileName.groupInfoFile);
+			StreamInput prevGroupInfoInput = new BufferedFileInput(prevDir, IRFileName.groupInfoFile);
 			int fieldCount = prevGroupInfoInput.readInt();
 
 			long[] prevDataPosition = new long[fieldSize];

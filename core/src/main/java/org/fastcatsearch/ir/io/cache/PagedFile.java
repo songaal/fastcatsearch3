@@ -119,7 +119,7 @@ public class PagedFile {
 				//set virtual position to channel position
 //				logger.debug("position() = "+position());
 				fc.position(position());
-				ByteBuffer tempBuf = ByteBuffer.wrap(dst.array, dst.offset, left);
+				ByteBuffer tempBuf = ByteBuffer.wrap(dst.bytes, dst.offset, left);
 				buf.position(buf.limit()); //invalidate buffer data
 				while(left > 0){
 					int n = fc.read(tempBuf);
@@ -134,12 +134,12 @@ public class PagedFile {
 //				logger.debug("left = "+left+", len="+len);
 				//has enough data 
 				if(len >= left){
-					buf.get(dst.array, dst.offset, left);
+					buf.get(dst.bytes, dst.offset, left);
 					dst.offset += left;
 					read += left;
 					left = 0;
 				}else{
-					buf.get(dst.array, dst.offset, len);
+					buf.get(dst.bytes, dst.offset, len);
 					dst.offset += len;
 					read += len;
 					left -= len;

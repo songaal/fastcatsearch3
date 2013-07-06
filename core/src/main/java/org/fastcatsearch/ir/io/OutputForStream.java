@@ -30,7 +30,7 @@ public class OutputForStream extends Output {
 	@Override
 	public void writeBytes(BytesBuffer dst) throws IOException {
 		int n = dst.remaining();
-		os.write(dst.array, dst.offset, dst.remaining());
+		os.write(dst.bytes, dst.offset, dst.remaining());
 		dst.pos(dst.offset + n);
 	}
 

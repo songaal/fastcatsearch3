@@ -21,13 +21,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.Input;
 
 
 public class FileInspector {
 	private File f;
-	private Input in;
+	private StreamInput in;
 	
 	public FileInspector(String path) throws IOException{
 		f = new File(path);
@@ -57,7 +58,7 @@ public class FileInspector {
 				}else if(line.equals("int")){
 					System.out.println("int = "+fi.getInt());
 				}else if(line.equals("vbint")){
-					System.out.println("vbint = "+fi.getVBInt());
+					System.out.println("vbint = "+fi.getVInt());
 				}else if(line.equals("long")){
 					System.out.println("long = "+fi.getLong());
 				}else if(line.equals("short")){
@@ -96,8 +97,8 @@ public class FileInspector {
 		
 	}
 
-	private int getVBInt() throws IOException {
-		return in.readVariableByte();
+	private int getVInt() throws IOException {
+		return in.readVInt();
 	}
 
 	private String getAChars(int i) throws IOException {
@@ -117,7 +118,8 @@ public class FileInspector {
 	
 	private int getBytes(int i) throws IOException {
 		byte[] data = new byte[i];
-		return in.readBytes(data, 0, i);
+		in.readBytes(data, 0, i);
+		return i;
 	}
 	private long pos() throws IOException{
 		return in.position();
@@ -126,7 +128,7 @@ public class FileInspector {
 		if(l > in.size()){
 			System.out.println("Position "+l +" exceed filesize = "+in.size());
 		}else{
-			in.position(l);
+			in.seek(l);
 		}
 	}
 	

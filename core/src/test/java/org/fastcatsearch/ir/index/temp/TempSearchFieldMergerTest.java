@@ -1,13 +1,6 @@
 package org.fastcatsearch.ir.index.temp;
 
-import static org.junit.Assert.*;
-
-import java.io.File;
-import java.io.IOException;
-
 import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.ir.io.FastByteBuffer;
-import org.fastcatsearch.ir.io.IOUtil;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

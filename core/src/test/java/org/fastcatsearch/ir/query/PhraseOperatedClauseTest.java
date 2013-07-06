@@ -1,6 +1,6 @@
 package org.fastcatsearch.ir.query;
 
-import org.fastcatsearch.ir.search.CompositeTermDoc;
+import org.fastcatsearch.ir.search.PostingDocs;
 import org.junit.Test;
 
 public class PhraseOperatedClauseTest {
@@ -9,9 +9,9 @@ public class PhraseOperatedClauseTest {
 	public void test() {
 		MultiTermOperatedClause phraseOperatedClause = new MultiTermOperatedClause();
 		
-		CompositeTermDoc termDocs1 = null;//new TermDocs(0, new CharVector("abc"), 5, new int[]{1,2,3,4,7,8}, new int[]{1,1,2,2,1});
-		CompositeTermDoc termDocs2 = null;//new TermDocs(0, new CharVector("def"), 5, new int[]{2,3,4,5,6,8}, new int[]{1,1,2,2,1});
-		CompositeTermDoc termDocs3 = null;//new TermDocs(0, new CharVector("ghi"), 5, new int[]{2,3,4,5,6,8}, new int[]{1,1,2,2,1});
+		PostingDocs termDocs1 = null;//new TermDocs(0, new CharVector("abc"), 5, new int[]{1,2,3,4,7,8}, new int[]{1,1,2,2,1});
+		PostingDocs termDocs2 = null;//new TermDocs(0, new CharVector("def"), 5, new int[]{2,3,4,5,6,8}, new int[]{1,1,2,2,1});
+		PostingDocs termDocs3 = null;//new TermDocs(0, new CharVector("ghi"), 5, new int[]{2,3,4,5,6,8}, new int[]{1,1,2,2,1});
 		
 		int queryPosition = 0;
 		

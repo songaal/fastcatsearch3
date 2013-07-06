@@ -3,16 +3,17 @@ package org.fastcatsearch.ir.io;
 import java.io.IOException;
 
 import org.apache.lucene.util.BytesRef;
+import org.fastcatsearch.common.io.StreamInput;
 /**
  * input에서 dataSize 만큼을 읽어서 byteRef로 리턴해주는 클래스. 
  * */
 public class StreamInputRef extends DataRef {
-	protected Input input;
+	protected StreamInput input;
 	protected int dataSize;
 	
 	public StreamInputRef(){ }
 	
-	public StreamInputRef(Input input, int dataSize) {
+	public StreamInputRef(StreamInput input, int dataSize) {
 		this.input = input;
 		this.dataSize = dataSize;
 		bytesRef = new BytesRef(dataSize);
@@ -31,7 +32,7 @@ public class StreamInputRef extends DataRef {
 	
 	@Override
 	public void skip() throws IOException{
-		input.position(input.position() + dataSize);
+		input.seek(input.position() + dataSize);
 		read++;
 	}
 	

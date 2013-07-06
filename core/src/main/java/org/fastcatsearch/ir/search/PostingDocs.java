@@ -21,18 +21,18 @@ import org.fastcatsearch.ir.search.posting.PostingDocsReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CompositePostingDoc {
-	private Logger logger = LoggerFactory.getLogger(CompositePostingDoc.class);
+public class PostingDocs {
+	private Logger logger = LoggerFactory.getLogger(PostingDocs.class);
 	private int indexFieldNum;
 	private CharVector term;
 	private PostingDoc[] postingDocList;
 	private int count;
 
-	public CompositePostingDoc(int indexFieldNum, CharVector term, int size) {
+	public PostingDocs(int indexFieldNum, CharVector term, int size) {
 		this(indexFieldNum, term, new PostingDoc[size], 0);
 	}
 
-	public CompositePostingDoc(int indexFieldNum, CharVector term, PostingDoc[] postingDocList, int count) {
+	public PostingDocs(int indexFieldNum, CharVector term, PostingDoc[] postingDocList, int count) {
 		this.indexFieldNum = indexFieldNum;
 		this.postingDocList = postingDocList;
 		this.term = term;

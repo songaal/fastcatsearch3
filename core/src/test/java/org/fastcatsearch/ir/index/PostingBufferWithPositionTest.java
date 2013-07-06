@@ -1,13 +1,14 @@
 package org.fastcatsearch.ir.index;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.util.Random;
 
+import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.io.ByteArrayInput;
-import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.Input;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -26,31 +27,31 @@ public class PostingBufferWithPositionTest {
 		postingBuffer.addOne(1, 15);
 		postingBuffer.finish();
 		
-		FastByteBuffer buffer = postingBuffer.buffer();
+		BytesBuffer buffer = postingBuffer.buffer();
 //		logger.debug(">posting buffer size= {}", buffer.remaining());
 		
-		Input postingInput = new ByteArrayInput(buffer.array(), buffer.pos(), buffer.limit());
+		StreamInput postingInput = new ByteArrayInput(buffer.array(), buffer.pos(), buffer.limit());
 		int count = postingInput.readInt();
 		int lastDocNo = postingInput.readInt();
 		assertEquals(1, count);
 		assertEquals(1, lastDocNo);
 		
-		assertEquals(1,postingInput.readVariableByte());
-		assertEquals(5,postingInput.readVariableByte());
+		assertEquals(1,postingInput.readVInt());
+		assertEquals(5,postingInput.readVInt());
 		int tfd = 1;
-		assertEquals(1,postingInput.readVariableByte());
-		assertEquals(3 - 1 - 1,postingInput.readVariableByte());
-		assertEquals(10 - 3 - 1,postingInput.readVariableByte());
-		assertEquals(12 - 10 - 1,postingInput.readVariableByte());
-		assertEquals(15 - 12 - 1,postingInput.readVariableByte());
+		assertEquals(1,postingInput.readVInt());
+		assertEquals(3 - 1 - 1,postingInput.readVInt());
+		assertEquals(10 - 3 - 1,postingInput.readVInt());
+		assertEquals(12 - 10 - 1,postingInput.readVInt());
+		assertEquals(15 - 12 - 1,postingInput.readVInt());
 				
-//		System.out.println(postingInput.readVariableByte());
-//		System.out.println(postingInput.readVariableByte());
-//		System.out.println(postingInput.readVariableByte());
-//		System.out.println(postingInput.readVariableByte());
-//		System.out.println(postingInput.readVariableByte());
-//		System.out.println(postingInput.readVariableByte());
-//		System.out.println(postingInput.readVariableByte());
+//		System.out.println(postingInput.readVInt());
+//		System.out.println(postingInput.readVInt());
+//		System.out.println(postingInput.readVInt());
+//		System.out.println(postingInput.readVInt());
+//		System.out.println(postingInput.readVInt());
+//		System.out.println(postingInput.readVInt());
+//		System.out.println(postingInput.readVInt());
 	}
 	
 	@Test
@@ -98,10 +99,10 @@ public class PostingBufferWithPositionTest {
 		}
 		postingBuffer.finish();
 		
-		FastByteBuffer buffer = postingBuffer.buffer();
+		BytesBuffer buffer = postingBuffer.buffer();
 //		logger.debug(">posting buffer size= {}", buffer.remaining());
 		
-		Input postingInput = new ByteArrayInput(buffer.array(), buffer.pos(), buffer.limit());
+		StreamInput postingInput = new ByteArrayInput(buffer.array(), buffer.pos(), buffer.limit());
 		
 		int count = postingInput.readInt();
 		int lastDocNo = postingInput.readInt();
@@ -116,17 +117,17 @@ public class PostingBufferWithPositionTest {
 		int prevId = -1;
 		
 //		while(true){
-//			logger.debug("> {}", postingInput.readVariableByte());
+//			logger.debug("> {}", postingInput.readVInt());
 //		}
 		for (int i = 0; i < count; i++) {
 			if (prevId >= 0) {
-				docId = postingInput.readVariableByte() + prevId + 1;
+				docId = postingInput.readVInt() + prevId + 1;
 			} else {
-				docId = postingInput.readVariableByte();
+				docId = postingInput.readVInt();
 			}
 			docs[n] = docId;
 
-			tf[n] = postingInput.readVariableByte();
+			tf[n] = postingInput.readVInt();
 			
 			assertEquals(actualDocs[n], docs[n]);
 			assertEquals(actualTf[n], tf[n]);
@@ -136,7 +137,7 @@ public class PostingBufferWithPositionTest {
 			int lastPos = -1;
 //			logger.debug("## {}:{} / {}", docs[n], tf[n]);
 			for (int j = 0; j < tf[n]; j++) {
-				positions[n][j] = postingInput.readVariableByte();
+				positions[n][j] = postingInput.readVInt();
 				if(j > 0){
 					positions[n][j] += (lastPos + 1);
 				}

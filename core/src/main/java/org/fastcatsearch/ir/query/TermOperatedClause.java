@@ -20,7 +20,7 @@ package org.fastcatsearch.ir.query;
 import java.io.IOException;
 
 import org.fastcatsearch.ir.search.PostingDoc;
-import org.fastcatsearch.ir.search.CompositePostingDoc;
+import org.fastcatsearch.ir.search.PostingDocs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,23 +31,23 @@ public class TermOperatedClause implements OperatedClause {
 	private static Logger logger = LoggerFactory.getLogger(TermOperatedClause.class);
 	private int pos;
 	
-	private CompositePostingDoc termDocs;
+	private PostingDocs termDocs;
 	private PostingDoc[] termDocList;
 	
 	private int weight;
 	private boolean ignoreTermFreq;
 	
-	public TermOperatedClause(CompositePostingDoc termDocs, int weight) throws IOException {
+	public TermOperatedClause(PostingDocs termDocs, int weight) throws IOException {
 		this(termDocs, weight, false);
 	}
-	public TermOperatedClause(CompositePostingDoc termDocs, int weight, boolean ignoreTermFreq) throws IOException {
+	public TermOperatedClause(PostingDocs termDocs, int weight, boolean ignoreTermFreq) throws IOException {
 		this.termDocs = termDocs;
-		termDocList = termDocs.termDocList();
+		termDocList = termDocs.postingDocList();
 		this.weight = weight;
 		this.ignoreTermFreq = ignoreTermFreq;
 	}
 
-	public CompositePostingDoc termDocs(){
+	public PostingDocs termDocs(){
 		return termDocs;
 	}
 	/* (non-Javadoc)

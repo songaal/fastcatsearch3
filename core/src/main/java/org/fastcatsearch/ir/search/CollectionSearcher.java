@@ -699,7 +699,7 @@ public class CollectionSearcher {
 
 			for (int j = 0; j < pkFieldSettingList.size(); j++) {
 				FieldSetting fieldSetting = pkFieldSettingList.get(j);
-				Field field = Field.createSingleValueField(fieldSetting, pkValues[j]);
+				Field field = fieldSetting.createField(pkValues[j]);
 				field.writeTo(pkOutput);
 			}
 

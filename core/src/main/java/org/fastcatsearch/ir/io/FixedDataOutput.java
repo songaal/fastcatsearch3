@@ -3,7 +3,6 @@ package org.fastcatsearch.ir.io;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRFileName;
 
@@ -25,9 +24,9 @@ public class FixedDataOutput implements SequencialDataOutput {
 	}
 	
 	@Override
-	public void write(BytesRef bytesRef) throws IOException{
-		dataOutput.writeVInt(bytesRef.length);
-		dataOutput.writeBytes(bytesRef.bytes, bytesRef.offset, bytesRef.length);
+	public void write(BytesBuffer bytesBuffer) throws IOException{
+		dataOutput.writeVInt(bytesBuffer.length);
+		dataOutput.writeBytes(bytesBuffer.bytes, bytesBuffer.offset, bytesBuffer.length);
 	}
 	
 	@Override

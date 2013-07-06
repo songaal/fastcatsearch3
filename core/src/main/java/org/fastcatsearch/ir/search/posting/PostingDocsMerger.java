@@ -5,15 +5,15 @@ import java.util.List;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.FixedMinHeap;
 import org.fastcatsearch.ir.search.PostingDoc;
-import org.fastcatsearch.ir.search.CompositePostingDoc;
+import org.fastcatsearch.ir.search.PostingDocs;
 
 public class PostingDocsMerger {
 	
 	private FixedMinHeap<PostingDocsReader> heap;
 
-	public PostingDocsMerger(List<CompositePostingDoc> termDocsList) {
+	public PostingDocsMerger(List<PostingDocs> termDocsList) {
 		heap = new FixedMinHeap<PostingDocsReader>(termDocsList.size());
-		for (CompositePostingDoc termDocs : termDocsList) {
+		for (PostingDocs termDocs : termDocsList) {
 			PostingDocsReader r = termDocs.getReader();
 			if (r.next()) {
 				heap.push(r);
@@ -23,8 +23,8 @@ public class PostingDocsMerger {
 
 	//initSize : 예상되는 termdoc 의 갯수.
 	//TODO 차후에 reader로 변경하여 메모리 사용을 줄이도록한다.
-	public CompositePostingDoc merge(int indexFieldNum, CharVector term, int initSize) {
-		CompositePostingDoc termDocs = new CompositePostingDoc(indexFieldNum, term, initSize);
+	public PostingDocs merge(int indexFieldNum, CharVector term, int initSize) {
+		PostingDocs termDocs = new PostingDocs(indexFieldNum, term, initSize);
 		PostingDoc prevTermDoc = null;
 		while (heap.size() > 0) {
 			PostingDocsReader r = heap.peek();

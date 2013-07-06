@@ -19,12 +19,6 @@ package org.fastcatsearch.ir.io;
 import java.io.IOException;
 import java.util.Random;
 
-import org.fastcatsearch.ir.io.BufferedFileInput;
-import org.fastcatsearch.ir.io.BufferedFileOutput;
-import org.fastcatsearch.ir.io.FastByteBuffer;
-
-
-
 import junit.framework.TestCase;
 
 public class BufferedFileInputOutputTest extends TestCase{
@@ -48,7 +42,7 @@ public class BufferedFileInputOutputTest extends TestCase{
 		
 		
 		byte[] readBuf2 = new byte[ DATA_SIZE];
-		FastByteBuffer readBuffer = new FastByteBuffer(readBuf2);
+		BytesBuffer readBuffer = new BytesBuffer(readBuf2);
 		
 		
 		BufferedFileInput bfi = new BufferedFileInput(filename);
@@ -56,7 +50,7 @@ public class BufferedFileInputOutputTest extends TestCase{
 		
 		for(int i=0;i<TRY;i++){
 			
-			bfi.position(writePos[i]);
+			bfi.seek(writePos[i]);
 			bfi.readBytes(readBuffer);
 			System.out.println(writePos[i]+ " : "+readBuf2.length);
 			
@@ -94,7 +88,7 @@ public class BufferedFileInputOutputTest extends TestCase{
 		BufferedFileOutput bfo = new BufferedFileOutput(filename);
 		for (int i = 0; i < TRY; i++) {
 			int size=writeBuf[i].length;
-			bfo.writeVariableByte(size);
+			bfo.writeVInt(size);
 			bfo.writeBytes(writeBuf[i], 0, size);
 		}
 		bfo.close();
@@ -103,10 +97,10 @@ public class BufferedFileInputOutputTest extends TestCase{
 		int totalCount = 0;
 		for(int i=0;i<TRY;i++){
 //			int size=writeBuf[i].length;
-			int size = bfi.readVariableByte();
+			int size = bfi.readVInt();
 			byte[] data = new byte[size];
 			System.out.println("size:"+size);
-			FastByteBuffer readBuffer = new FastByteBuffer(data);
+			BytesBuffer readBuffer = new BytesBuffer(data);
 			bfi.readBytes(readBuffer);
 			for(int k=0;k< size;k++){
 				totalCount++;
@@ -126,13 +120,13 @@ public class BufferedFileInputOutputTest extends TestCase{
 		
 		BufferedFileOutput bfo = new BufferedFileOutput(filename);
 		for (int i = 0; i < TRY; i++) {
-			bfo.writeVariableByte(i);
+			bfo.writeVInt(i);
 		}
 		bfo.close();
 		
 		BufferedFileInput bfi = new BufferedFileInput(filename);
 		for(int i=0;i<TRY;i++){
-			assertEquals(i, bfi.readVariableByte());
+			assertEquals(i, bfi.readVInt());
 		}
 	}
 	
@@ -165,7 +159,7 @@ public class BufferedFileInputOutputTest extends TestCase{
 		bfo = new BufferedFileOutput(filename2);
 		for (int i = 0; i < TRY; i++) {
 			writePos2[i] = bfo.position();
-			bfo.writeBytes(new FastByteBuffer(writeBuf, 0, writeBuf.length)); //압축 . 
+			bfo.writeBytes(new BytesBuffer(writeBuf, 0, writeBuf.length)); //압축 . 
 		}
 		bfo.close();
 		System.out.println("compressed write time = "+(System.currentTimeMillis() - st));
@@ -174,14 +168,14 @@ public class BufferedFileInputOutputTest extends TestCase{
 		
 		
 		byte[] readBuf2 = new byte[ DATA_SIZE];
-		FastByteBuffer readBuffer = new FastByteBuffer(readBuf2);
+		BytesBuffer readBuffer = new BytesBuffer(readBuf2);
 		
 		st = System.currentTimeMillis();
 		readBuffer.clear();
 		BufferedFileInput bfi = new BufferedFileInput(filename);
 		for(int i=0;i<TRY;i++){
 			
-			bfi.position(writePos[i]);
+			bfi.seek(writePos[i]);
 			bfi.readBytes(readBuffer);
 			
 			for(int k=0;k< DATA_SIZE;k++){
@@ -200,7 +194,7 @@ public class BufferedFileInputOutputTest extends TestCase{
 		bfi = new BufferedFileInput(filename2);
 		for(int i=0;i<TRY;i++){
 			
-			bfi.position(writePos2[i]);
+			bfi.seek(writePos2[i]);
 			bfi.readBytes(readBuffer);
 			
 			for(int k=0;k< DATA_SIZE;k++){

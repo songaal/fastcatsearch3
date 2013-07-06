@@ -33,6 +33,7 @@ public class ByteArrayInput extends StreamInput {
 		this.end = end;
 	}
 	
+	@Override
 	public long size() throws IOException{
 		return end - start;
 	}
@@ -63,11 +64,11 @@ public class ByteArrayInput extends StreamInput {
 	}
 
 	@Override
-	public void readBytes(BytesRef dst) throws IOException {
+	public void readBytes(BytesBuffer dst) throws IOException {
 		int len = dst.remaining();
 		if((end - pos) < len )
 			throw new IOException("not enough buffer data. data length = "+(end - pos)+", read request = "+len);
-		dst.append(array, pos, len);
+		dst.write(array, pos, len);
 		pos += len;
 	}
 

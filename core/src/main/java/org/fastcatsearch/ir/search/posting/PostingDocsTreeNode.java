@@ -2,22 +2,22 @@ package org.fastcatsearch.ir.search.posting;
 
 import org.fastcatsearch.ir.search.PostingDoc;
 import org.fastcatsearch.ir.search.TermDocCollector;
-import org.fastcatsearch.ir.search.CompositePostingDoc;
+import org.fastcatsearch.ir.search.PostingDocs;
 
 public class PostingDocsTreeNode extends NodeReader {
 
-	private CompositePostingDoc postingDocs;
+	private PostingDocs postingDocs;
 	private int pos;
 	private int count;
 	private int queryPosition;
 	private boolean isSynonym;
 	private PostingDoc postingDoc;
 	
-	public PostingDocsTreeNode(CompositePostingDoc termDocs, int queryPosition) {
+	public PostingDocsTreeNode(PostingDocs termDocs, int queryPosition) {
 		this(termDocs, queryPosition, false);
 	}
 	
-	public PostingDocsTreeNode(CompositePostingDoc termDocs, int queryPosition, boolean isSynonym) {
+	public PostingDocsTreeNode(PostingDocs termDocs, int queryPosition, boolean isSynonym) {
 		this.postingDocs = termDocs;
 		this.queryPosition = queryPosition;
 		this.isSynonym = isSynonym;

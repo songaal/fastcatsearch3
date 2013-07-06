@@ -3,12 +3,12 @@ package org.fastcatsearch.ir.io;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.lucene.util.BytesRef;
+import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRFileName;
 
 public class VariableDataOutput implements SequencialDataOutput {
-	private Output dataOutput;
-	private Output positionOutput;
+	private StreamOutput dataOutput;
+	private StreamOutput positionOutput;
 	
 	public VariableDataOutput(File dir, String fileName) throws IOException{
 		this(dir, fileName, false);
@@ -24,15 +24,15 @@ public class VariableDataOutput implements SequencialDataOutput {
 	@Override
 	public void write(byte[] buffer, int offset, int length) throws IOException{
 		positionOutput.writeLong(dataOutput.position());
-		dataOutput.writeVariableByte(length);
+		dataOutput.writeVInt(length);
 		dataOutput.writeBytes(buffer, offset, length);
 	}
 	
 	@Override
-	public void write(BytesRef bytesRef) throws IOException{
+	public void write(BytesBuffer bytesBuffer) throws IOException{
 		positionOutput.writeLong(dataOutput.position());
-		dataOutput.writeVariableByte(bytesRef.length);
-		dataOutput.writeBytes(bytesRef.bytes, bytesRef.offset, bytesRef.length);
+		dataOutput.writeVInt(bytesBuffer.length);
+		dataOutput.writeBytes(bytesBuffer.bytes, bytesBuffer.offset, bytesBuffer.length);
 	}
 	
 	@Override

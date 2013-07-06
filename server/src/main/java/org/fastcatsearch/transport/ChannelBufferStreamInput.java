@@ -146,4 +146,9 @@ public class ChannelBufferStreamInput extends StreamInput {
 	public long position() throws IOException {
 		return buffer.readerIndex();
 	}
+
+	@Override
+	public long size() throws IOException {
+		return endIndex - startIndex;
+	}
 }

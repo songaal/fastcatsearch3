@@ -29,24 +29,19 @@ import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.analysis.tokenattributes.StopwordAttribute;
 import org.apache.lucene.analysis.tokenattributes.SynonymAttribute;
 import org.apache.lucene.util.CharsRef;
+import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexReader;
-import org.fastcatsearch.ir.field.DoubleField;
 import org.fastcatsearch.ir.field.Field;
-import org.fastcatsearch.ir.field.FloatField;
 import org.fastcatsearch.ir.index.IndexFieldOption;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.ByteArrayOutput;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.CharVectorTokenizer;
-import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.FixedMinHeap;
 import org.fastcatsearch.ir.io.IOUtil;
-import org.fastcatsearch.ir.io.Input;
-import org.fastcatsearch.ir.query.AndOperatedClause;
-import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.MultiTermOperatedClause;
 import org.fastcatsearch.ir.query.OperatedClause;
 import org.fastcatsearch.ir.query.OrOperatedClause;
@@ -60,7 +55,6 @@ import org.fastcatsearch.ir.settings.IndexSetting;
 import org.fastcatsearch.ir.settings.PkRefSetting;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
 import org.fastcatsearch.ir.settings.Schema;
-import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,9 +64,9 @@ import org.slf4j.LoggerFactory;
 public class SearchIndexesReader implements Cloneable {
 	private static Logger logger = LoggerFactory.getLogger(SearchIndexesReader.class);
 
-	private Input postingInput;
-	private Input lexiconInput;
-	private Input indexInput;
+	private StreamInput postingInput;
+	private StreamInput lexiconInput;
+	private StreamInput indexInput;
 	private Schema schema;
 
 	private MemoryLexicon[] memoryLexicon;
@@ -94,7 +88,7 @@ public class SearchIndexesReader implements Cloneable {
 		this(schema, dir, 0);
 	}
 
-	public SearchIndexesReader(Schema schema, Input postingInput, Input lexiconInput, Input indexInput, PrimaryKeyIndexReader pkReader,
+	public SearchIndexesReader(Schema schema, StreamInput postingInput, StreamInput lexiconInput, StreamInput indexInput, PrimaryKeyIndexReader pkReader,
 			MemoryLexicon[] memoryLexicon, long[] fileLimit,
 			AnalyzerPool[] queryTokenizerPool, IndexFieldOption[] fieldIndexOptions) {
 		this.schema = schema;
@@ -244,7 +238,7 @@ public class SearchIndexesReader implements Cloneable {
 						totalClause = new OrOperatedClause(totalClause, idOperatedClause);
 					}
 				} else {
-					totalClause = new TermOperatedClause(new CompositePostingDoc(-1, fullTerm,  new PostingDoc[0], 0), 0);
+					totalClause = new TermOperatedClause(new PostingDocs(-1, fullTerm,  new PostingDoc[0], 0), 0);
 				}
 
 				continue;
@@ -345,7 +339,7 @@ public class SearchIndexesReader implements Cloneable {
 							queryPosition = positionOffset + position; //
 							positionOffset = position + 2; //다음 position은 +2 부터 할당한다. 공백도 1만큼 차지.
 						}
-						CompositePostingDoc termDocs = getPosting(indexFieldSequence, token);
+						PostingDocs termDocs = getPosting(indexFieldSequence, token);
 //						if (termList != null) {
 //							termList[i].add(token.toString());
 //							orgList[i].add(eojeol.toString());
@@ -356,12 +350,12 @@ public class SearchIndexesReader implements Cloneable {
 						//
 						//유사어확장.
 						//
-						List<CompositePostingDoc> synoymList = null;
+						List<PostingDocs> synoymList = null;
 						
 						if(option.useSynonym() && synonymAttribute != null){
 							CharVector[] synonymList = synonymAttribute.getSynonym();
 							if(synonymList != null){
-								synoymList = new ArrayList<CompositePostingDoc>(synonymList.length);
+								synoymList = new ArrayList<PostingDocs>(synonymList.length);
 								for (int j = 0; j < synonymList.length; j++) {
 									CharVector synonym = synonymList[j];
 									//여기서 synonym을 변경하면 사전의 entry가 변경되므로 변경하지 않도록한다.
@@ -372,7 +366,7 @@ public class SearchIndexesReader implements Cloneable {
 									synonym.toUpperCase();
 									
 									logger.debug("synonym = {}", synonym);
-									CompositePostingDoc synonymTermDocs = getPosting(indexFieldSequence, synonym);
+									PostingDocs synonymTermDocs = getPosting(indexFieldSequence, synonym);
 									
 									synoymList.add(synonymTermDocs);
 									
@@ -500,7 +494,7 @@ public class SearchIndexesReader implements Cloneable {
 			
 			for(int j = 0; j< pkFieldSettingList.length; j++){
 				FieldSetting fieldSetting = pkFieldSettingList[j];
-				Field field = Field.createSingleValueField(fieldSetting, pkValues[j]);
+				Field field = fieldSetting.createField(pkValues[j]);
 				field.writeTo(pkOutput);
 			}
 			
@@ -513,14 +507,14 @@ public class SearchIndexesReader implements Cloneable {
 		
 		OperatedClause idOperatedClause = null;
 		if (m > 0) {
-			idOperatedClause = new TermOperatedClause(new CompositePostingDoc(-1, new CharVector(termString), termDocList, m), weight);
+			idOperatedClause = new TermOperatedClause(new PostingDocs(-1, new CharVector(termString), termDocList, m), weight);
 		}
 
 		return idOperatedClause;
 		
 	}
 
-	protected CompositePostingDoc getPosting(String indexFieldId, CharVector singleTerm) throws IOException {
+	protected PostingDocs getPosting(String indexFieldId, CharVector singleTerm) throws IOException {
 		int indexSequence = schema.getSearchIndexSequence(indexFieldId);
 		if (indexSequence < 0)
 			throw new IOException("Unknown indexFieldId = " + indexFieldId);
@@ -529,7 +523,7 @@ public class SearchIndexesReader implements Cloneable {
 		return getPosting(indexSequence, singleTerm);
 	}
 
-	protected CompositePostingDoc getPosting(int indexFieldSequence, CharVector singleTerm) throws IOException {
+	protected PostingDocs getPosting(int indexFieldSequence, CharVector singleTerm) throws IOException {
 		if (memoryLexicon[indexFieldSequence].size() == 0)
 			return null;
 		if (singleTerm.length == 0)
@@ -544,7 +538,7 @@ public class SearchIndexesReader implements Cloneable {
 		if (found) {
 			pos = posInfo[1];
 		} else {
-			lexiconInput.position(posInfo[0]);
+			lexiconInput.seek(posInfo[0]);
 			while (lexiconInput.position() < fileLimit[indexFieldSequence]) {
 				char[] term2 = lexiconInput.readUString();
 
@@ -566,7 +560,7 @@ public class SearchIndexesReader implements Cloneable {
 					break;
 				} else {
 					// skip reading pos
-					lexiconInput.position(lexiconInput.position() + IOUtil.SIZE_OF_LONG);
+					lexiconInput.seek(lexiconInput.position() + IOUtil.SIZE_OF_LONG);
 				}
 			}
 		}
@@ -579,10 +573,10 @@ public class SearchIndexesReader implements Cloneable {
 		return null;
 	}
 
-	private CompositePostingDoc getTermDocs(int indexFieldSequence, CharVector singleTerm, long pos) throws IOException{
+	private PostingDocs getTermDocs(int indexFieldSequence, CharVector singleTerm, long pos) throws IOException{
 		// tt = System.currentTimeMillis();
-		postingInput.position(pos);
-		int len = postingInput.readVariableByte();
+		postingInput.seek(pos);
+		int len = postingInput.readVInt();
 		int count = postingInput.readInt();
 		int lastDocNo = postingInput.readInt();
 	
@@ -592,21 +586,21 @@ public class SearchIndexesReader implements Cloneable {
 		int docId = -1;
 		for (int i = 0; i < count; i++) {
 			if (prevId >= 0) {
-				docId = postingInput.readVariableByte() + prevId + 1;
+				docId = postingInput.readVInt() + prevId + 1;
 			} else {
-				docId = postingInput.readVariableByte();
+				docId = postingInput.readVInt();
 			}
 			
-			int tf = postingInput.readVariableByte();
+			int tf = postingInput.readVInt();
 			int[] positions = null;
 			if(tf > 0 && fieldIndexOptions[indexFieldSequence].isStorePosition()){
 				int prevPosition = -1;
 				positions = new int[tf];
 				for (int j = 0; j < tf; j++) {
 					if (prevPosition >= 0) {
-						positions[j] = postingInput.readVariableByte() + prevPosition + 1;
+						positions[j] = postingInput.readVInt() + prevPosition + 1;
 					} else {
-						positions[j] = postingInput.readVariableByte();
+						positions[j] = postingInput.readVInt();
 					}
 					prevPosition = positions[j];
 					
@@ -619,9 +613,9 @@ public class SearchIndexesReader implements Cloneable {
 			
 //			n++;
 		}
-		return new CompositePostingDoc(indexFieldSequence, singleTerm, termDocList, count);
+		return new PostingDocs(indexFieldSequence, singleTerm, termDocList, count);
 	}
-	protected CompositePostingDoc getExtendedPosting(int indexFieldSequence, CharVector singleTerm) throws IOException {
+	protected PostingDocs getExtendedPosting(int indexFieldSequence, CharVector singleTerm) throws IOException {
 
 		// SUFFIX SEARCH
 		if (singleTerm.array.length > 0 && singleTerm.array[0] == '*') {
@@ -666,7 +660,7 @@ public class SearchIndexesReader implements Cloneable {
 		return getPosting(indexFieldSequence, singleTerm);
 	}
 
-	protected CompositePostingDoc getPrefixPosting(int indexFieldSequence, CharVector singleTerm) throws IOException {
+	protected PostingDocs getPrefixPosting(int indexFieldSequence, CharVector singleTerm) throws IOException {
 		if (memoryLexicon[indexFieldSequence].size() == 0)
 			return null;
 
@@ -678,7 +672,7 @@ public class SearchIndexesReader implements Cloneable {
 
 		long lexiconPos = posInfo[0];
 		// logger.debug("lexiconPos = {}", lexiconPos);
-		lexiconInput.position(lexiconPos);
+		lexiconInput.seek(lexiconPos);
 
 		while (lexiconInput.position() < fileLimit[indexFieldSequence]) {
 			// lexiconInput
@@ -708,7 +702,7 @@ public class SearchIndexesReader implements Cloneable {
 		return makeTermDocs(indexFieldSequence, singleTerm, startPos, foundCount);
 	}
 
-	protected CompositePostingDoc getSuffixPosting(int indexFieldSequence, CharVector singleTerm) throws IOException {
+	protected PostingDocs getSuffixPosting(int indexFieldSequence, CharVector singleTerm) throws IOException {
 		if (memoryLexicon[indexFieldSequence].size() == 0)
 			return null;
 
@@ -720,7 +714,7 @@ public class SearchIndexesReader implements Cloneable {
 
 		long lexiconPos = posInfo[0];
 		// logger.debug("lexiconPos = {}", lexiconPos);
-		lexiconInput.position(lexiconPos);
+		lexiconInput.seek(lexiconPos);
 
 		boolean isIncludSearch = false;
 
@@ -748,7 +742,7 @@ public class SearchIndexesReader implements Cloneable {
 				break;
 			} else {
 				// skip reading pos
-				lexiconInput.position(lexiconInput.position() + IOUtil.SIZE_OF_LONG);
+				lexiconInput.seek(lexiconInput.position() + IOUtil.SIZE_OF_LONG);
 				// retry!
 			}
 		}
@@ -757,7 +751,7 @@ public class SearchIndexesReader implements Cloneable {
 		return makeTermDocs(indexFieldSequence, singleTerm, startPos, foundCount);
 	}
 
-	protected CompositePostingDoc getRangePosting(int indexFieldSequence, CharVector startTerm, CharVector endTerm)
+	protected PostingDocs getRangePosting(int indexFieldSequence, CharVector startTerm, CharVector endTerm)
 			throws IOException {
 		if (memoryLexicon[indexFieldSequence].size() == 0)
 			return null;
@@ -769,7 +763,7 @@ public class SearchIndexesReader implements Cloneable {
 		cmpValid = compareKey(startTermChars, endTerm);
 		// ensure startTerm <= endTerm
 		if (cmpValid > 0) {
-			return new CompositePostingDoc(indexFieldSequence, startTerm, 0);
+			return new PostingDocs(indexFieldSequence, startTerm, 0);
 		}
 
 		/*
@@ -789,7 +783,7 @@ public class SearchIndexesReader implements Cloneable {
 
 		long lexiconPos = posInfo[0];
 		logger.debug("lexiconPos = {} / limit = {}", lexiconPos, fileLimit[indexFieldSequence]);
-		lexiconInput.position(lexiconPos);
+		lexiconInput.seek(lexiconPos);
 
 		/*
 		 * startTerm
@@ -874,21 +868,21 @@ public class SearchIndexesReader implements Cloneable {
 	// thread-unsafe! 호출하는 메서드에서 thread-safe하게 호출해야한다.
 	int mpseq = 0;
 
-	private CompositePostingDoc makeTermDocs(int indexFieldSequence, CharVector term, long startPos, int foundCount) throws IOException {
+	private PostingDocs makeTermDocs(int indexFieldSequence, CharVector term, long startPos, int foundCount) throws IOException {
 		
 		if (foundCount > 0) {
 			FixedMinHeap<PostingDocsReader> heap = new FixedMinHeap<PostingDocsReader>(foundCount);
 			mpseq++;
 
 			long pos = startPos;
-			postingInput.position(pos);
+			postingInput.seek(pos);
 			
-			List<CompositePostingDoc> termDocsList = new ArrayList<CompositePostingDoc>(foundCount);
+			List<PostingDocs> termDocsList = new ArrayList<PostingDocs>(foundCount);
 			
 			for (int c = 0; c < foundCount; c++) {
 				int prevId = -1;
 				// 위치정보를 가지고 포스팅을 읽는다.
-				int len = postingInput.readVariableByte();
+				int len = postingInput.readVInt();
 				int count = postingInput.readInt();
 				int lastDocNo = postingInput.readInt();
 
@@ -903,12 +897,12 @@ public class SearchIndexesReader implements Cloneable {
 				
 				for (int i = 0; i < count; i++) {
 					if (prevId >= 0) {
-						docId = postingInput.readVariableByte() + prevId + 1;
+						docId = postingInput.readVInt() + prevId + 1;
 					} else {
-						docId = postingInput.readVariableByte();
+						docId = postingInput.readVInt();
 					}
 					
-					int tf = postingInput.readVariableByte();
+					int tf = postingInput.readVInt();
 					
 					int[] positions = null;
 					if(fieldIndexOptions[indexFieldSequence].isStorePosition()){
@@ -916,9 +910,9 @@ public class SearchIndexesReader implements Cloneable {
 						positions = new int[tf];
 						for (int j = 0; j < tf; j++) {
 							if (prevPosition >= 0) {
-								positions[j] = postingInput.readVariableByte() + prevPosition + 1;
+								positions[j] = postingInput.readVInt() + prevPosition + 1;
 							} else {
-								positions[j] = postingInput.readVariableByte();
+								positions[j] = postingInput.readVInt();
 							}
 							prevPosition = positions[j];
 						}
@@ -933,7 +927,7 @@ public class SearchIndexesReader implements Cloneable {
 
 //				TermDocsReader r = new TermDocsReader(new TermDocs(indexFieldSequence, term, termDocList, count));
 				
-				termDocsList.add(new CompositePostingDoc(indexFieldSequence, term, termDocList, count));
+				termDocsList.add(new PostingDocs(indexFieldSequence, term, termDocList, count));
 //				if (r.next()) {
 //					heap.push(r);
 //				}

@@ -424,4 +424,7 @@ public abstract class StreamInput extends InputStream implements Cloneable {
 		}
 	}
 
+	
+	public abstract long size() throws IOException;
+		
 }

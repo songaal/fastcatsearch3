@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.lucene.util.BytesRef;
+import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.io.BufferedFileInput;
@@ -49,10 +50,10 @@ import org.slf4j.LoggerFactory;
  */
 public class GroupIndexReader extends ReferencableIndexReader {
 	
-	private Input groupDataInput;
+	private StreamInput groupDataInput;
 	private SequencialDataInput[] groupKeyInputList;
-	private Input multiValueInput;
-	private Input[] multiValueInputList;
+	private StreamInput multiValueInput;
+	private StreamInput[] multiValueInputList;
 	private DataRef[] refs;
 	private int fieldSize;
 	
@@ -68,7 +69,7 @@ public class GroupIndexReader extends ReferencableIndexReader {
 		List<RefSetting> refSettingList = groupIndexSetting.getRefList();
 		fieldSize = refSettingList.size();
 		
-    	Input groupInfoInput = new BufferedFileInput(IRFileName.getRevisionDir(dir, revision), IRFileName.groupInfoFile);
+		StreamInput groupInfoInput = new BufferedFileInput(IRFileName.getRevisionDir(dir, revision), IRFileName.groupInfoFile);
     	
 		keyBuf = new BytesBuffer[fieldSize];
 		fieldOffset = new int[fieldSize];
@@ -149,13 +150,13 @@ public class GroupIndexReader extends ReferencableIndexReader {
 	public void read(int docNo, int sequence) throws IOException{
 		int offset = fieldOffset[sequence];
 		int pos = dataSize * docNo + offset;
-		groupDataInput.position(pos);
+		groupDataInput.seek(pos);
 		
 		if(isMultiValue[sequence]){
 			long ptr = groupDataInput.readLong();
 			if(ptr != -1){
-				multiValueInputList[sequence].position(ptr);
-				int count = multiValueInputList[sequence].readVariableByte();
+				multiValueInputList[sequence].seek(ptr);
+				int count = multiValueInputList[sequence].readVInt();
 				refs[sequence].reset(count);
 			}
 		}else{
@@ -176,6 +177,11 @@ public class GroupIndexReader extends ReferencableIndexReader {
 		
 	@Override
 	public GroupIndexReader clone(){
+		
+		//TODO
+		
+		
+		
 //		GroupFieldReader reader = null;
 //		try {
 //			reader = (GroupFieldReader) super.clone();

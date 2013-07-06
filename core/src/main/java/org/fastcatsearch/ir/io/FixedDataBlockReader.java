@@ -19,6 +19,7 @@ package org.fastcatsearch.ir.io;
 import java.io.File;
 import java.io.IOException;
 
+import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.io.cache.CachedBlock;
 import org.fastcatsearch.ir.io.cache.LRUBlockCache;
 import org.fastcatsearch.ir.query.RankInfo;
@@ -30,7 +31,7 @@ public class FixedDataBlockReader {
 	private static Logger logger = LoggerFactory.getLogger(FixedDataBlockReader.class);
 	
 	private LRUBlockCache cache;
-	private Input input;
+	private StreamInput input;
 	private int dataSize;
 	private int dataPerBlock;
 	private int blockSize;
@@ -54,7 +55,7 @@ public class FixedDataBlockReader {
 			blockObj = new CachedBlock(block, new byte[blockSize]);
 
 			synchronized(input){
-				input.position(block * blockSize);
+				input.seek(block * blockSize);
 				input.readBytes(blockObj.buf, 0, blockSize);
 			}
 			
@@ -87,7 +88,7 @@ public class FixedDataBlockReader {
 				long st = System.currentTimeMillis();
 				synchronized(input){
 //					t1 += (System.currentTimeMillis() -st);
-					input.position(block * blockSize);
+					input.seek(block * blockSize);
 					input.readBytes(blockObj.buf, 0, blockSize);
 //					t2 += (System.currentTimeMillis() -st);
 				}

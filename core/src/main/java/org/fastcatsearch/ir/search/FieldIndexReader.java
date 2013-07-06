@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.DataRef;
@@ -40,15 +41,15 @@ public class FieldIndexReader extends ReferencableIndexReader {
 	protected boolean[] isMultiValue;
 	protected boolean hasMultiValue;
 	
-	private Input indexInput;
-	private Input multiValueInput;
-	private Input[] multiValueInputList;
+	private StreamInput indexInput;
+	private StreamInput multiValueInput;
+	private StreamInput[] multiValueInputList;
 	
 	private int fieldSize;
 	private DataRef[] refs;
 	
 	
-	public FieldIndexReader(Input indexInput, Input multiValueInput, Input[] multiValueInputList, DataRef[] refs, int dataSize, int[] fieldOffset, int[] fieldByteSize
+	public FieldIndexReader(StreamInput indexInput, StreamInput multiValueInput, StreamInput[] multiValueInputList, DataRef[] refs, int dataSize, int[] fieldOffset, int[] fieldByteSize
 			, boolean[] isMultiValue, boolean hasMultiValue, int fieldSize) {
 		this.indexInput = indexInput;
 		this.multiValueInput = multiValueInput;
@@ -87,7 +88,7 @@ public class FieldIndexReader extends ReferencableIndexReader {
     	}
     	
     	//multivalue용도..
-    	multiValueInputList = new Input[fieldSize];
+    	multiValueInputList = new StreamInput[fieldSize];
     	
     	int offset = 0;
 		for (int i = 0; i < fieldSize; i++) {
@@ -137,9 +138,9 @@ public class FieldIndexReader extends ReferencableIndexReader {
 	@Override
 	public FieldIndexReader clone(){
 		DataRef[] refs2 = new DataRef[fieldSize];
-		Input[] multiValueInputList2 = null;
+		StreamInput[] multiValueInputList2 = null;
 		if(hasMultiValue){
-			multiValueInputList2 = new Input[fieldSize];
+			multiValueInputList2 = new StreamInput[fieldSize];
 		}
 		
 		for (int i = 0; i < fieldSize; i++) {
@@ -178,13 +179,13 @@ public class FieldIndexReader extends ReferencableIndexReader {
 		int offset = fieldOffset[sequence];
 		int length = fieldByteSize[sequence];
 		int pos = dataSize * docNo + offset;
-		indexInput.position(pos);
+		indexInput.seek(pos);
 		
 		if(isMultiValue[sequence]){
 			long ptr = indexInput.readLong();
 			if(ptr != -1){
-				multiValueInputList[sequence].position(ptr);
-				int count = multiValueInputList[sequence].readVariableByte();
+				multiValueInputList[sequence].seek(ptr);
+				int count = multiValueInputList[sequence].readVInt();
 				refs[sequence].reset(count);
 			}
 		}else{

@@ -4,11 +4,12 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.lucene.util.BytesRef;
+import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.common.IRFileName;
 
 public class VariableDataInput implements SequencialDataInput {
-	private Input dataInput;
-	private Input positionInput;
+	private StreamInput dataInput;
+	private StreamInput positionInput;
 	
 	public VariableDataInput(File dir, String fileName) throws IOException{
 		File dataFile = new File(dir, IRFileName.getSuffixFileName(fileName, "data"));
@@ -21,9 +22,9 @@ public class VariableDataInput implements SequencialDataInput {
 	//범위체크하지 않음.
 	@Override
 	public boolean read(BytesRef bytesRef, long sequence) throws IOException{
-		positionInput.position(sequence * IOUtil.SIZE_OF_LONG);
-		dataInput.position(positionInput.readLong());
-		int size = dataInput.readVariableByte();
+		positionInput.seek(sequence * IOUtil.SIZE_OF_LONG);
+		dataInput.seek(positionInput.readLong());
+		int size = dataInput.readVInt();
 		if(bytesRef == null || bytesRef.bytes.length < size){
 			bytesRef.bytes = new byte[size];
 		}

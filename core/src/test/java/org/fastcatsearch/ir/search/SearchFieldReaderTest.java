@@ -22,12 +22,12 @@ import java.io.IOException;
 
 import junit.framework.TestCase;
 
+import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.ir.io.Input;
 import org.fastcatsearch.ir.settings.Schema;
 
 
@@ -52,20 +52,20 @@ public class SearchFieldReaderTest extends TestCase{
 		int fieldNum = 0;
 		CharVector term = new CharVector("티셔츠");//나시 , 티셔츠, 남방 
 		
-		CompositeTermDoc termDocs = reader.getPosting(fieldNum, term);
+		PostingDocs termDocs = reader.getPosting(fieldNum, term);
 		
 		if(termDocs == null){
 			System.out.println("검색실패 !");
 			
 		}else{
 			int count = termDocs.count();
-			TermDoc[] termDocList = termDocs.termDocList();
+			PostingDoc[] postingDocList = termDocs.postingDocList();
 //			int[] docs =  termDocs.docs();
 //			int[] tfs = termDocs.tfs();
 			for(int i=0;i<count;i++){
-				TermDoc termDoc = termDocList[i];
+				PostingDoc postingDoc = postingDocList[i];
 				if(i < 10 || i > count - 10){
-					System.out.print("("+termDoc.docNo()+":"+termDoc.tf()+"), ");
+					System.out.print("("+postingDoc.docNo()+":"+postingDoc.tf()+"), ");
 				}
 			}
 		}
@@ -90,8 +90,8 @@ public class SearchFieldReaderTest extends TestCase{
 		CharVector term1 = new CharVector("티셔츠");//나시 , 티셔츠, 남방 
 		CharVector term2 = new CharVector("바지");
 		
-		CompositeTermDoc termDocs1 = reader.getPosting(fieldName1, term1);
-		CompositeTermDoc termDocs2 = reader.getPosting(fieldName2, term2);
+		PostingDocs termDocs1 = reader.getPosting(fieldName1, term1);
+		PostingDocs termDocs2 = reader.getPosting(fieldName2, term2);
 		
 		
 		//AND 검색에서는 하나라도 검색결과가 없다면 검색실패이다.
@@ -100,8 +100,8 @@ public class SearchFieldReaderTest extends TestCase{
 			
 		}else{
 			
-			TermDoc[] termDocList1 = termDocs1.termDocList();
-			TermDoc[] termDocList2 = termDocs2.termDocList();
+			PostingDoc[] termDocList1 = termDocs1.postingDocList();
+			PostingDoc[] termDocList2 = termDocs2.postingDocList();
 			
 			
 //			int[] docs1 =  termDocs1.docs();
@@ -165,12 +165,12 @@ public class SearchFieldReaderTest extends TestCase{
 		String target = null;//IRSettings.getSegmentPath(collection, 0, 1);
 		File targetDir = new File(target);
 		
-		Input postingInput = new BufferedFileInput(targetDir, IRFileName.postingFile);
+		StreamInput postingInput = new BufferedFileInput(targetDir, IRFileName.postingFile);
 		byte[] buffer = new byte[1024 * 1024 * 4];
 		while(true){
 			int len = -1;
 			try{
-				len = postingInput.readVariableByte();
+				len = postingInput.readVInt();
 			}catch(EOFException e){
 				break;
 			}

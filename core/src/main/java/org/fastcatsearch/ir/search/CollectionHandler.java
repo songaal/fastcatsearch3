@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.util.BytesRef;
+import org.fastcatsearch.common.io.StreamOutput;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.common.SettingException;
@@ -346,7 +347,7 @@ public class CollectionHandler {
 		while(pkBulkReader.next(buf) != -1){
 			//backward matching
 			for (int i = segmentSize - 1; i >= 0; i--) {
-				int localDocNo = pkReaderList[i].get(buf.array, buf.offset, buf.length);
+				int localDocNo = pkReaderList[i].get(buf.bytes, buf.offset, buf.length);
 //				logger.debug("check "+new String(buf.array, 0, buf.limit));
 				if(localDocNo != -1){
 					//add delete list
@@ -563,7 +564,7 @@ public class CollectionHandler {
 			while(pkBulkReader.next(buf) != -1){
 				//backward matching
 				for (int i = segmentSize - 2; i >= 0; i--) {
-					int localDocNo = pkList[i].get(buf.array, buf.offset, buf.length);
+					int localDocNo = pkList[i].get(buf.bytes, buf.offset, buf.length);
 					if(localDocNo != -1){
 						//add delete doc no
 						if(!deleteSetList[i].isSet(localDocNo)){
@@ -707,7 +708,7 @@ public class CollectionHandler {
 		int docCount = segmentInfo.getDocCount();
 		
 		//doc.position
-		Output fileOutput = new BufferedFileOutput(segmentDir, IRFileName.docPosition, true);
+		StreamOutput fileOutput = new BufferedFileOutput(segmentDir, IRFileName.docPosition, true);
 		logger.debug("restore = "+segmentInfo.docPositionFilesSize+", "+fileOutput);
 		fileOutput.setLength(segmentInfo.docPositionFilesSize);
 		fileOutput.close();

@@ -19,6 +19,7 @@ package org.fastcatsearch.ir.io;
 import java.io.File;
 import java.io.IOException;
 
+import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.io.cache.CachedBlock;
 import org.fastcatsearch.ir.io.cache.LRUBlockCache;
 import org.slf4j.Logger;
@@ -29,7 +30,7 @@ public class VariableDataBlockReader {
 	private static Logger logger = LoggerFactory.getLogger(VariableDataBlockReader.class);
 	
 	private LRUBlockCache cache;
-	private Input input;
+	private StreamInput input;
 	private int blockSize;
 	
 	public VariableDataBlockReader(File dir, String filename, int blockSize) throws IOException {
@@ -60,7 +61,7 @@ public class VariableDataBlockReader {
 				blockObj = new CachedBlock(block, new byte[blockSize]);
 	
 				synchronized(input){
-					input.position(block * blockSize);
+					input.seek(block * blockSize);
 					input.readBytes(blockObj.buf, 0, blockSize);
 				}
 				

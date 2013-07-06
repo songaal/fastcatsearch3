@@ -22,7 +22,7 @@ import java.nio.ByteBuffer;
 
 import org.fastcatsearch.ir.document.PrimaryKeyIndexWriter;
 import org.fastcatsearch.ir.document.merge.PrimaryKeyIndexMerger;
-import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IOUtil;
 
 import junit.framework.TestCase;
@@ -34,8 +34,8 @@ public class CompareKeyTest extends TestCase {
 	//compare가 의심이 가서 테스트를 진행함.
 	//2012-5-4 swsong
 	public void testForPrimaryKeyIndexWriter(){
-		FastByteBuffer buffer1 = new FastByteBuffer(4);
-		FastByteBuffer buffer2 = new FastByteBuffer(4);
+		BytesBuffer buffer1 = new BytesBuffer(4);
+		BytesBuffer buffer2 = new BytesBuffer(4);
 		int AA = 127;
 		for (int i = 0; i < 1000; i++) {
 			AA = i;
@@ -45,7 +45,7 @@ public class CompareKeyTest extends TestCase {
 			IOUtil.writeInt(buffer2, i+1);
 			buffer1.flip();
 			buffer2.flip();
-			int cmp = compareKey(buffer1.array, buffer2.array);
+			int cmp = compareKey(buffer1.bytes, buffer2.bytes);
 //			System.out.println("CMP = "+cmp);
 			String t = " = ";
 			if(cmp > 0){
@@ -86,8 +86,8 @@ public class CompareKeyTest extends TestCase {
 [2012-05-04 13:40:00,055] 460 / 148607 -- PK2
 	 * */
 	public void testTwoInt(){
-		FastByteBuffer buffer1 = new FastByteBuffer(4);
-		FastByteBuffer buffer2 = new FastByteBuffer(4);
+		BytesBuffer buffer1 = new BytesBuffer(4);
+		BytesBuffer buffer2 = new BytesBuffer(4);
 		int AA = 148608;
 //		int BB = 148608;
 		int BB = 148609;
@@ -97,7 +97,7 @@ public class CompareKeyTest extends TestCase {
 		IOUtil.writeInt(buffer2, BB);
 		buffer1.flip();
 		buffer2.flip();
-		int cmp = compareKey(buffer1.array, buffer2.array);
+		int cmp = compareKey(buffer1.bytes, buffer2.bytes);
 		String t = " = ";
 		if(cmp > 0){
 			t = " > ";
@@ -126,7 +126,7 @@ public class CompareKeyTest extends TestCase {
 		int[] pk1List = new int[]{148588, 148599, 148602, 148603, 148607};
 		int[] pk2List = new int[]{148599, 148602, 148603, 148607, 148608};
 		
-		FastByteBuffer buffer = new FastByteBuffer(4);
+		BytesBuffer buffer = new BytesBuffer(4);
 		String f1 = "test.pk1";
 		String f2 = "test.pk2";
 		String f3 = "test.pk3";
@@ -140,7 +140,7 @@ public class CompareKeyTest extends TestCase {
 			buffer.clear();
 			IOUtil.writeInt(buffer, pk1List[i]);
 			buffer.flip();
-			w.put(buffer.array, 0, buffer.array.length, i);
+			w.put(buffer.bytes, 0, buffer.bytes.length, i);
 		}
 		w.write();
 		w.close();
@@ -150,7 +150,7 @@ public class CompareKeyTest extends TestCase {
 			buffer.clear();
 			IOUtil.writeInt(buffer, pk2List[i]);
 			buffer.flip();
-			w.put(buffer.array, 0, buffer.array.length, i+100);
+			w.put(buffer.bytes, 0, buffer.bytes.length, i+100);
 		}
 		w.write();
 		w.close();
@@ -179,7 +179,7 @@ public class CompareKeyTest extends TestCase {
 		String a = "ab";
 		int b = '린';
 //		b = 'a';
-		FastByteBuffer buffer = new FastByteBuffer(2);
+		BytesBuffer buffer = new BytesBuffer(2);
 		IOUtil.writeUChar(buffer, b);
 		buffer.flip();
 		char cc = IOUtil.readUChar(buffer);

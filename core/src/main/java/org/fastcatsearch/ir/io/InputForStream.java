@@ -31,7 +31,7 @@ public class InputForStream extends Input {
 	public int readBytes(BytesBuffer dst) throws IOException {
 		int len = 0;
 		while(dst.remaining() > 0){
-			int n = is.read(dst.array, dst.offset, dst.remaining());
+			int n = is.read(dst.bytes, dst.offset, dst.remaining());
 			dst.pos(dst.offset + n);
 			len += n;
 		}

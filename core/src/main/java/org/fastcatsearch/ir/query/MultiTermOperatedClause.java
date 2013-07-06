@@ -22,7 +22,7 @@ import org.fastcatsearch.ir.search.CollectedEntry;
 import org.fastcatsearch.ir.search.PostingDoc;
 import org.fastcatsearch.ir.search.TermDocCollector;
 import org.fastcatsearch.ir.search.TermDocTreeReader;
-import org.fastcatsearch.ir.search.CompositePostingDoc;
+import org.fastcatsearch.ir.search.PostingDocs;
 import org.fastcatsearch.ir.search.posting.PostingDocsMerger;
 import org.fastcatsearch.ir.search.posting.PostingDocsTreeNode;
 
@@ -44,18 +44,18 @@ public class MultiTermOperatedClause implements OperatedClause {
 		termDocTreeReader = new TermDocTreeReader();
 	}
 	
-	public void addTerm(CompositePostingDoc termDocs, int queryPosition) {
+	public void addTerm(PostingDocs termDocs, int queryPosition) {
 		addTerm(termDocs, queryPosition);
 	}
 	
-	public void addTerm(CompositePostingDoc termDocs, int queryPosition, List<CompositePostingDoc> synonymList) {
+	public void addTerm(PostingDocs termDocs, int queryPosition, List<PostingDocs> synonymList) {
 		
 		if(termDocs != null){
 			termDocTreeReader.addNode(new PostingDocsTreeNode(termDocs, queryPosition));
 			termCount++;
 		}
 		
-		CompositePostingDoc sysnonymTermDocs = null;
+		PostingDocs sysnonymTermDocs = null;
 		if(synonymList != null){
 			if(synonymList.size() == 1){
 				sysnonymTermDocs = synonymList.get(0);

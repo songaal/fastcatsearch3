@@ -132,7 +132,7 @@ public class CachedFileInput extends Input{
 	}
 
 	public int readBytes(BytesBuffer dst) throws EOFException, IOException {
-		int n = readBytes(dst.array, dst.offset, dst.length - dst.offset);
+		int n = readBytes(dst.bytes, dst.offset, dst.length - dst.offset);
 		dst.offset = dst.length;
 		return n;
 	}

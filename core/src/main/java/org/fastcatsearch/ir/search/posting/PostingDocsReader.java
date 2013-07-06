@@ -1,13 +1,13 @@
 package org.fastcatsearch.ir.search.posting;
 
 import org.fastcatsearch.ir.search.PostingDoc;
-import org.fastcatsearch.ir.search.CompositePostingDoc;
+import org.fastcatsearch.ir.search.PostingDocs;
 
 public class PostingDocsReader implements Comparable<PostingDocsReader> {
-	private CompositePostingDoc termDocs;
+	private PostingDocs termDocs;
 	private int pos = -1;
 	
-	public PostingDocsReader(CompositePostingDoc termDocs) {
+	public PostingDocsReader(PostingDocs termDocs) {
 		this.termDocs = termDocs;
 	}
 

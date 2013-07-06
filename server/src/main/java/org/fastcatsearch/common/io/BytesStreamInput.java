@@ -157,4 +157,9 @@ public class BytesStreamInput extends StreamInput {
 	public void seek(long p) throws IOException {
 		pos = (int) p;
 	}
+
+	@Override
+	public long size() throws IOException {
+		return count;
+	}
 }

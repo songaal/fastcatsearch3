@@ -273,6 +273,7 @@ public class BufferedFileInput extends StreamInput implements Cloneable {
 		}
 	}
 
+	@Override
 	public final long size() {
 		return end - off;
 	}

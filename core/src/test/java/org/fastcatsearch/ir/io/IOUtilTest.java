@@ -25,7 +25,7 @@ import java.util.Random;
 
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
-import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IOUtil;
 
 import junit.framework.TestCase;
@@ -36,7 +36,7 @@ public class IOUtilTest extends TestCase{
 	int TESTNUM = 10;
 	
 	public void _testInt() throws IOException{
-		FastByteBuffer buffer = new FastByteBuffer(4);
+		BytesBuffer buffer = new BytesBuffer(4);
 		
 		for(int i=0;i<TESTNUM;i++){
 			int expected = r.nextInt();
@@ -48,7 +48,7 @@ public class IOUtilTest extends TestCase{
 		}
 	}
 	public void _testLong() throws IOException{
-		FastByteBuffer buffer = new FastByteBuffer(8);
+		BytesBuffer buffer = new BytesBuffer(8);
 		
 		for(int i=0;i<TESTNUM;i++){
 			long expected = r.nextLong();
@@ -60,7 +60,7 @@ public class IOUtilTest extends TestCase{
 		}
 	}
 	public void testVariableByteCode() throws IOException{
-		FastByteBuffer buffer = new FastByteBuffer(10);
+		BytesBuffer buffer = new BytesBuffer(10);
 		
 		for(int i=0;i<TESTNUM;i++){
 			int expected = r.nextInt();
@@ -75,7 +75,7 @@ public class IOUtilTest extends TestCase{
 	}
 	
 	public void _testShort() throws IOException{
-		FastByteBuffer buffer = new FastByteBuffer(2);
+		BytesBuffer buffer = new BytesBuffer(2);
 		
 		for(int i=0;i<TESTNUM;i++){
 			short expected = (short)(r.nextInt() & 0xFFFF);
@@ -119,7 +119,7 @@ public class IOUtilTest extends TestCase{
 	}
 	
 	public void testVBLen(){
-		FastByteBuffer buf = new FastByteBuffer(5);
+		BytesBuffer buf = new BytesBuffer(5);
 		
 		for (int i = 100000000; i < Integer.MAX_VALUE; i++) {
 			buf.clear();
@@ -128,7 +128,7 @@ public class IOUtilTest extends TestCase{
 			
 			int len = IOUtil.lenVariableByte(i);
 			
-			assertEquals(buf.limit, len);
+			assertEquals(buf.limit(), len);
 			
 			if(i % 100000000 == 0){
 				System.out.println("process.." + i+", /len="+len);
@@ -138,7 +138,7 @@ public class IOUtilTest extends TestCase{
 	
 	public void testLong(){
 		long expected = 401435124;
-		FastByteBuffer buf = new FastByteBuffer(8);
+		BytesBuffer buf = new BytesBuffer(8);
 		IOUtil.writeLong(buf, expected);
 		
 		
@@ -151,7 +151,7 @@ public class IOUtilTest extends TestCase{
 	
 	public void testInt(){
 		int expected = 11312123;
-		FastByteBuffer buf = new FastByteBuffer(4);
+		BytesBuffer buf = new BytesBuffer(4);
 		IOUtil.writeInt(buf, expected);
 		buf.flip();
 		

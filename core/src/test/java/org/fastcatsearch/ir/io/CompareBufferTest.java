@@ -18,7 +18,7 @@ package org.fastcatsearch.ir.io;
 
 import java.util.Random;
 
-import org.fastcatsearch.ir.io.FastByteBuffer;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IOUtil;
 
 import junit.framework.TestCase;
@@ -28,11 +28,11 @@ public class CompareBufferTest extends TestCase {
 		int a = 1235;
 		int b = 234567;
 		
-		FastByteBuffer ab = new FastByteBuffer(4);
+		BytesBuffer ab = new BytesBuffer(4);
 		IOUtil.writeInt(ab, a);
 		ab.flip();
 		
-		FastByteBuffer bb = new FastByteBuffer(4);
+		BytesBuffer bb = new BytesBuffer(4);
 		IOUtil.writeInt(bb, b);
 		bb.flip();
 		
@@ -48,7 +48,7 @@ public class CompareBufferTest extends TestCase {
 	}
 	
 	public void testCompliment(){
-		FastByteBuffer ab = new FastByteBuffer(4);
+		BytesBuffer ab = new BytesBuffer(4);
 		for (int i = -10; i < 10; i++) {
 			ab.clear();
 			IOUtil.writeInt(ab, i);
@@ -62,8 +62,8 @@ public class CompareBufferTest extends TestCase {
 	}
 	
 	public void testCompare(){
-		FastByteBuffer ab = new FastByteBuffer(4);
-		FastByteBuffer bb = new FastByteBuffer(4);
+		BytesBuffer ab = new BytesBuffer(4);
+		BytesBuffer bb = new BytesBuffer(4);
 		
 		
 //		int a = 12345;
@@ -89,7 +89,7 @@ public class CompareBufferTest extends TestCase {
 				
 				int R = a > b ? 1 : a == b ? 0 : -1;
 				try{
-					assertTrue(compareBuffer(ab.array, bb.array) == R);
+					assertTrue(compareBuffer(ab.bytes, bb.bytes) == R);
 				}catch(Error err){
 					err.printStackTrace();
 					System.out.println("a="+a+", b="+b);
@@ -99,7 +99,7 @@ public class CompareBufferTest extends TestCase {
 				}
 				makeCompliment(ab);
 				makeCompliment(bb);
-				assertTrue(compareBuffer(ab.array, bb.array) == -R);
+				assertTrue(compareBuffer(ab.bytes, bb.bytes) == -R);
 			}	
 		}
 	}
@@ -122,9 +122,9 @@ public class CompareBufferTest extends TestCase {
 //		System.out.println("(byte) (a & 0xff) = "+ (byte) (a & 0xff));
 //		System.out.println(Integer.toBinaryString((a & 0xff)));
 	}
-	private void makeCompliment(FastByteBuffer buffer){
-		for (int i = buffer.pos; i < buffer.limit; i++) {
-			buffer.array[i] = (byte) ~(buffer.array[i] & 0xff);
+	private void makeCompliment(BytesBuffer buffer){
+		for (int i = buffer.pos(); i < buffer.limit(); i++) {
+			buffer.bytes[i] = (byte) ~(buffer.bytes[i] & 0xff);
 		}
 	}
 	
