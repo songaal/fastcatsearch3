@@ -9,8 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.common.Strings;
+import org.fastcatsearch.env.Path;
 import org.fastcatsearch.ir.io.DataInput;
-import org.fastcatsearch.settings.IRSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,9 +18,11 @@ public class FileTransportHandler {
 	private static Logger logger = LoggerFactory.getLogger(FileTransportHandler.class);
 	
 	private Map<String, FileStreamHandle> fileMap;
+	private Path path;
 	
-	public FileTransportHandler(){
+	public FileTransportHandler(Path path){
 		fileMap = new ConcurrentHashMap<String, FileStreamHandle>();
+		this.path = path;
 	}
 	
 	//마지막 청크기록으로 모두 끝났다면 true 전송.
@@ -30,10 +32,10 @@ public class FileTransportHandler {
 		if(seq == 0){
 			//새로 생성.
 			if(fileHandle == null){
-				String absolutePath = IRSettings.path(filePath);
-				logger.debug("## {} >> {}", filePath, absolutePath);
+				File file = path.path(filePath).file();
+				logger.debug("## {} >> {}", filePath, file);
 				try {
-					File file = new File(absolutePath);
+//					File file = new File(absolutePath);
 					File dir = file.getParentFile();
 					if(dir != null){
 						dir.mkdirs();

@@ -14,12 +14,9 @@ import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.util.CharsRef;
-import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.analysis.AnalyzerFactory;
-import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.analysis.DefaultAnalyzerFactory;
 import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.settings.IRSettings;
 import org.fastcatsearch.util.DynamicClassLoader;
 import org.fastcatsearch.util.ResultStringer;
 

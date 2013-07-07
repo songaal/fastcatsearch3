@@ -15,15 +15,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.HashSet;
-
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 
 import org.fastcatsearch.datasource.SourceModifier;
+import org.fastcatsearch.env.Path;
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.config.FileSourceConfig;
 import org.fastcatsearch.ir.document.Document;
-import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.io.DirBufferedReader;
 import org.fastcatsearch.ir.settings.FieldSetting;
@@ -39,8 +36,8 @@ public class CollectFileParser extends SourceReader{
 	private static String DELETE ="﻿<<DELETE>>";
 	private int count; // how many fields are set
 
-	public CollectFileParser(Schema schema, FileParserConfig config, SourceModifier sourceModifier, Boolean isFull) throws IRException {
-		super(schema, sourceModifier);
+	public CollectFileParser(Path filePath, Schema schema, FileSourceConfig config, SourceModifier sourceModifier, Boolean isFull) throws IRException {
+		super(filePath, schema, sourceModifier);
 		try {
 			if(isFull){
 				br = new DirBufferedReader(new File(config.getFullFilePath()), config.getFileEncoding());
@@ -137,53 +134,6 @@ public class CollectFileParser extends SourceReader{
 		} catch (IOException e) {
 			throw new IRException(e);
 		}
-	}
-	
-	@XmlRootElement(name = "source")
-	public static class FileParserConfig extends SourceConfig {
-
-		private String fullFilePath;
-		private String incFilePath;
-		private String fileEncoding;
-		private String fileDocParser;
-		
-		@XmlElement
-		public String getIncFilePath() {
-			return incFilePath;
-		}
-
-		@XmlElement
-		public String getFullFilePath() {
-			return fullFilePath;
-		}
-
-		@XmlElement
-		public String getFileEncoding() {
-			return fileEncoding;
-		}
-		
-		@XmlElement
-		public String getFileDocParser() {
-			return fileDocParser;
-		}
-		
-		public void setIncFilePath(String incFilePath) {
-			this.incFilePath = incFilePath;
-		}
-
-		public void setFullFilePath(String fullFilePath) {
-			this.fullFilePath = fullFilePath;
-		}
-
-		public void setFileEncoding(String fileEncoding) {
-			this.fileEncoding = fileEncoding;
-		}
-
-		public void setFileDocParser(String fileDocParser) {
-			this.fileDocParser = fileDocParser;
-			
-		}
-		
 	}
 	
 }

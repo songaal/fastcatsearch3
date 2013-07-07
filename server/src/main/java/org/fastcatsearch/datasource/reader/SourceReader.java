@@ -23,6 +23,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.fastcatsearch.datasource.SourceModifier;
+import org.fastcatsearch.env.Path;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.DeleteIdSet;
@@ -39,6 +40,7 @@ public abstract class SourceReader {
 	
 	protected static Logger logger = LoggerFactory.getLogger(SourceReader.class);
 	
+	protected Path filePath;
 	protected List<FieldSetting> fieldSettingList;
 	protected int idFieldIndex;
 	protected DeleteIdSet deleteIdList;
@@ -52,7 +54,8 @@ public abstract class SourceReader {
 	
 	public SourceReader(){}
 	
-	public SourceReader(Schema schema, SourceModifier sourceModifier) throws IRException{
+	public SourceReader(Path filePath, Schema schema, SourceModifier sourceModifier) throws IRException{
+		this.filePath = filePath;
 		this.schema = schema;
 		fieldSettingList = schema.schemaSetting().getFieldSettingList();
 		
@@ -75,38 +78,5 @@ public abstract class SourceReader {
 		return deleteIdList;
 	}
 	
-	@XmlRootElement(name = "source")
-	public static class SourceConfig {
-		private String readerType;
-		private String configType;
-		private String sourceModifier;
-		
-		@XmlAttribute(required=true)
-		public String getReaderType(){
-			return readerType;
-		}
-		
-		@XmlAttribute(required=true)
-		public String getConfigType(){
-			return configType;
-		}
-		
-		@XmlElement
-		public String getSourceModifier(){
-			return sourceModifier;
-		}
-		
-		public void setReaderType(String readerType){
-			this.readerType = readerType;
-		}
-		
-		public void setConfigType(String configType){
-			this.configType = configType;
-		}
-		
-		public void setSourceModifier(String sourceModifier){
-			this.sourceModifier = sourceModifier;
-		}
-	}
 	
 }

@@ -15,7 +15,7 @@
 <%@page import="java.sql.Types.*"%>
 <%@page import="org.fastcatsearch.db.DBService"%>
 <%@page import="org.fastcatsearch.ir.common.IRException"%>
-<%@page import="org.fastcatsearch.datasource.DataSourceSetting"%>
+<%@page import="org.fastcatsearch.ir.config.DataSourceConfig"%>
 <%@page import="org.fastcatsearch.settings.IRSettings"%>
 <%@page import="org.fastcatsearch.ir.document.DocumentReader"%>
 <%@page import="org.fastcatsearch.ir.IRService"%>

@@ -35,7 +35,7 @@ public class PluginService extends AbstractService {
 		pluginMap = new HashMap<String, Plugin>();
 		//플러그인을 검색하여 
 		//무작위로 시작한다.
-		File pluginRootDir = environment.filePaths().getFile("plugin");
+		File pluginRootDir = environment.filePaths().file("plugin");
 		if(!pluginRootDir.exists()){
 			logger.info("플러그인 디렉토리가 없어서 플러그인을 로딩하지 않습니다. {}", pluginRootDir.getAbsolutePath());
 			return true;

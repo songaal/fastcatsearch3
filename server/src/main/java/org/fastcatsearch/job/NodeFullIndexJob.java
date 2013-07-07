@@ -27,13 +27,13 @@ import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.data.DataService;
 import org.fastcatsearch.data.DataStrategy;
-import org.fastcatsearch.datasource.DataSourceSetting;
 import org.fastcatsearch.datasource.reader.SourceReader;
 import org.fastcatsearch.datasource.reader.SourceReaderFactory;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRFileName;
 import org.fastcatsearch.ir.config.DataPlanConfig;
+import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
@@ -113,7 +113,7 @@ public class NodeFullIndexJob extends StreamableJob {
 
 			int segmentNumber = 0;
 
-			DataSourceSetting dsSetting = IRSettings.getDatasource(collectionId, true);
+			DataSourceConfig dsSetting = IRSettings.getDatasource(collectionId, true);
 			SourceReader sourceReader = SourceReaderFactory.createSourceReader(collectionId, workSchema, dsSetting, true);
 
 			if (sourceReader == null) {
@@ -121,7 +121,7 @@ public class NodeFullIndexJob extends StreamableJob {
 				throw new FastcatSearchException("데이터 수집기 생성중 에러발생. sourceType = " + dsSetting.sourceType);
 			}
 
-			File segmentDir = new File(IRSettings.getSegmentPath(collectionId, newDataSequence, segmentNumber));
+			File segmentDir = new File(IRSettings.getCollectionSegmentPath(collectionId, newDataSequence, segmentNumber));
 			indexingLogger.info("Segment Dir = " + segmentDir.getAbsolutePath());
 
 			/*
@@ -139,7 +139,7 @@ public class NodeFullIndexJob extends StreamableJob {
 				}
 			}
 //			CollectionHandler newHandler = new CollectionHandler(collectionId, collectionHomeDir, workSchema, IRSettings.getIndexConfig());
-			CollectionHandler newHandler = irService.newCollectionHandler(collectionId, newDataSequence);
+			CollectionHandler newHandler = irService.loadCollectionHandler(collectionId, newDataSequence);
 			int[] updateAndDeleteSize = newHandler.addSegment(segmentNumber, segmentDir, null); //collection.info 파일저장.
 			newHandler.saveDataSequenceFile(); //data.sequence 파일저장.
 			

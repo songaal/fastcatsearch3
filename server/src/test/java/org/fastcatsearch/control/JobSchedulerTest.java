@@ -15,14 +15,12 @@ import java.sql.Timestamp;
 
 import junit.framework.TestCase;
 
-import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.settings.IRSettings;
+import org.fastcatsearch.ir.common.SettingException;
 
 
 public class JobSchedulerTest extends TestCase{
 	public void test1() throws SettingException, FastcatSearchException{
-		IRSettings.setHome("\\fastcat");
 		JobService c = JobService.getInstance();
 		c.start();
 		c.setSchedule("addJob","org.fastcatsearch.ir.job.AddJob", "8 5", Timestamp.valueOf("2010-10-08 11:42"), 6000, true);

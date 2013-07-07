@@ -12,7 +12,7 @@
 <%@page import="org.fastcatsearch.ir.config.FieldSetting"%>
 <%@page import="com.fastcatsearch.util.WebUtils"%>
 <%@page import="org.fastcatsearch.ir.config.Schema"%>
-<%@page import="org.fastcatsearch.datasource.DataSourceSetting"%>
+<%@page import="org.fastcatsearch.ir.config.DataSourceConfig"%>
 <%@page import="java.io.File"%>
 <%@page import="java.io.FileOutputStream"%>
 <%@page import="java.util.Properties"%>
@@ -47,7 +47,7 @@
 	handler.close();
 		} catch (IOException e) {
 	response.sendRedirect("main.jsp?message="
-			+ URLEncoder.encode(URLEncoder.encode("컬렉션 " + collection + "을 중지하지 못했습니다.", "utf-8"), "utf-8"));
+	+ URLEncoder.encode(URLEncoder.encode("컬렉션 " + collection + "을 중지하지 못했습니다.", "utf-8"), "utf-8"));
 		} finally {
 	response.sendRedirect("main.jsp");
 		}
@@ -62,10 +62,10 @@
 	Schema schema = IRSettings.getSchema(collection, true);
 
 	CollectionHandler oldHandler = irService.putCollectionHandler(collection,
-			new CollectionHandler(collection, collectionDir, schema, IRSettings.getIndexConfig()));
+	new CollectionHandler(collection, collectionDir, schema, IRSettings.getIndexConfig()));
 	try {
 		if (oldHandler != null)
-			oldHandler.close();
+	oldHandler.close();
 	} catch (IOException e) {
 	}
 		} finally {
@@ -120,13 +120,13 @@
 	File collectionDir = IRSettings.getCollectionHomeFile(collection);
 	Schema schema = IRSettings.getSchema(collection, true);
 	irService.putCollectionHandler(collection,
-			new CollectionHandler(collection, collectionDir, schema, IRSettings.getIndexConfig()));
+	new CollectionHandler(collection, collectionDir, schema, IRSettings.getIndexConfig()));
 
 	response.sendRedirect("main.jsp?message="
-			+ URLEncoder.encode(URLEncoder.encode(collection + " 컬렉션을 생성하였습니다.", "utf-8"), "utf-8"));
+	+ URLEncoder.encode(URLEncoder.encode(collection + " 컬렉션을 생성하였습니다.", "utf-8"), "utf-8"));
 		} else {
 	response.sendRedirect("main.jsp?message="
-			+ URLEncoder.encode(URLEncoder.encode("설정파일에 " + collection + " 컬렉션이 존재합니다.", "utf-8"), "utf-8"));
+	+ URLEncoder.encode(URLEncoder.encode("설정파일에 " + collection + " 컬렉션이 존재합니다.", "utf-8"), "utf-8"));
 		}
 
 		break;
@@ -138,7 +138,7 @@
 		CollectionHandler handler = irService.collectionHandler(collection);
 		if (handler != null) {
 	response.sendRedirect("main.jsp?message="
-			+ URLEncoder.encode(URLEncoder.encode(collection + " 컬렉션이 실행중이므로 삭제할수 없습니다.", "utf-8"), "utf-8"));
+	+ URLEncoder.encode(URLEncoder.encode(collection + " 컬렉션이 실행중이므로 삭제할수 없습니다.", "utf-8"), "utf-8"));
 	return;
 		} else {
 	/*
@@ -176,8 +176,8 @@
 	for (int i = 0; i < list.length; i++) {
 		String s = list[i];
 		if (!(collection.equalsIgnoreCase(s))) {
-			listString += s;
-			listString += ",";
+	listString += s;
+	listString += ",";
 		}
 	}
 
@@ -194,7 +194,7 @@
 	}
 
 	response.sendRedirect("main.jsp?message="
-			+ URLEncoder.encode(URLEncoder.encode(collection + " 컬렉션을 삭제하였습니다.", "utf-8"), "utf-8"));
+	+ URLEncoder.encode(URLEncoder.encode(collection + " 컬렉션을 삭제하였습니다.", "utf-8"), "utf-8"));
 		}
 		break;
 	}
@@ -252,7 +252,7 @@
 		String customReaderClass = request.getParameter("customReaderClass");
 		String customConfigFile = request.getParameter("customConfigFile");
 
-		DataSourceSetting setting = IRSettings.getDatasource(collection, true);
+		DataSourceConfig setting = IRSettings.getDatasource(collection, true);
 		Properties props = setting.getProperties();
 		props.setProperty("source.type", sourceType);
 		props.setProperty("source.from", sourceFrom);
@@ -310,10 +310,10 @@
 		int tag = IRSettings.recoverWorkeSchema(collection, fieldname);
 		if (tag == 0) {
 	response.sendRedirect("schemaEditer.jsp?message="
-			+ URLEncoder.encode(URLEncoder.encode(fieldname + "필드를 복원하였습니다.", "utf-8"), "utf-8"));
+	+ URLEncoder.encode(URLEncoder.encode(fieldname + "필드를 복원하였습니다.", "utf-8"), "utf-8"));
 		} else {
 	response.sendRedirect("schemaEditer.jsp?message="
-			+ URLEncoder.encode(URLEncoder.encode(fieldname + "필드를 복원이 실패하였습니다.", "utf-8"), "utf-8"));
+	+ URLEncoder.encode(URLEncoder.encode(fieldname + "필드를 복원이 실패하였습니다.", "utf-8"), "utf-8"));
 		}
 		break;
 	}
@@ -370,7 +370,7 @@
 
 	String selectSQL = null;
 	selectSQL = "SELECT * FROM ( SELECT ROW_NUMBER() OVER() AS rownum, " + collection + "WebPageSource.* FROM "
-			+ collection + "WebPageSource ) AS tmp WHERE cate = ? and rownum >= ? and rownum <= ?";
+	+ collection + "WebPageSource ) AS tmp WHERE cate = ? and rownum >= ? and rownum <= ?";
 	pstmt = conn.prepareStatement(selectSQL);
 	int parameterIndex = 1;
 	pstmt.setString(parameterIndex++, category);
@@ -392,7 +392,7 @@
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		String upt_dt = sdf.format(new Date(upt_ts.getTime()));
 		stringer.object().key("id").value(id).key("link").value(link).key("title").value(title).key("cate")
-				.value(cate).key("encoding").value(encoding).key("upt_dt").value(upt_dt).endObject();
+		.value(cate).key("encoding").value(encoding).key("upt_dt").value(upt_dt).endObject();
 	}
 	stringer.endArray();
 	stringer.endObject();
@@ -403,9 +403,9 @@
 		} finally {
 	try {
 		if (rs != null)
-			rs.close();
+	rs.close();
 		if (pstmt != null)
-			pstmt.close();
+	pstmt.close();
 	} catch (SQLException e) {
 	}
 		}
@@ -428,9 +428,9 @@
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		try {
 	String insertSQL = "insert into "
-			+ collection
-			+ "WebPageSource(id, link, title, cate, upt_dt) (select case when max(id) is null then 0 else max(id)+1 end,?,?,?,? from "
-			+ collection + "WebPageSource)";
+	+ collection
+	+ "WebPageSource(id, link, title, cate, upt_dt) (select case when max(id) is null then 0 else max(id)+1 end,?,?,?,? from "
+	+ collection + "WebPageSource)";
 	pstmt = conn.prepareStatement(insertSQL);
 	int parameterIndex = 1;
 	pstmt.setString(parameterIndex++, link);
@@ -443,7 +443,7 @@
 		} finally {
 	try {
 		if (pstmt != null)
-			pstmt.close();
+	pstmt.close();
 	} catch (SQLException e) {
 		e.printStackTrace();
 	}
@@ -470,7 +470,7 @@
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		try {
 	String updateSQL = "UPDATE " + collection
-			+ "WebPageSource SET link = ?,title = ?,cate = ?,upt_dt = ? WHERE id = ?";
+	+ "WebPageSource SET link = ?,title = ?,cate = ?,upt_dt = ? WHERE id = ?";
 	pstmt = conn.prepareStatement(updateSQL);
 	int parameterIndex = 1;
 	pstmt.setString(parameterIndex++, link);
@@ -484,7 +484,7 @@
 		} finally {
 	try {
 		if (pstmt != null)
-			pstmt.close();
+	pstmt.close();
 	} catch (SQLException e) {
 		e.printStackTrace();
 	}
@@ -515,7 +515,7 @@
 		} finally {
 	try {
 		if (pstmt != null)
-			pstmt.close();
+	pstmt.close();
 	} catch (SQLException e) {
 		e.printStackTrace();
 	}
@@ -550,7 +550,7 @@
 		} finally {
 	try {
 		if (stmt != null)
-			stmt.close();
+	stmt.close();
 	} catch (SQLException e) {
 		e.printStackTrace();
 	}

@@ -23,8 +23,8 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Properties;
 
-import org.fastcatsearch.datasource.DataSourceSetting;
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.settings.IRSettings;
 import org.fastcatsearch.util.DynamicClassLoader;
 import org.slf4j.Logger;
@@ -44,7 +44,7 @@ public class MakeSchema {
 	private static String strSize = "size=";
 	private static String strPrimary = "primary=";
 
-	public static boolean makeSchema(String collection) throws IRException, SQLException {
+	public static boolean makeSchema(String collectionId, DataSourceConfig setting) throws IRException, SQLException {
 		String strHead = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 
 		Connection con = null;
@@ -54,7 +54,7 @@ public class MakeSchema {
 		FileOutputStream writer = null;
 		ResultSet r = null;
 
-		DataSourceSetting setting = IRSettings.getDatasource(collection, true);
+//		DataSourceSetting setting = IRSettings.getDatasource(collection, true);
 		if ( "db".equalsIgnoreCase(setting.sourceType) == false )
 			return false;
 
@@ -93,7 +93,7 @@ public class MakeSchema {
 			int columnCount = rsMetadata.getColumnCount();
 
 			sb.append(strHead).append("\r\n");
-			sb.append(strSchemaHead).append(" ").append(strName).append(strDelimeter).append(collection).append(strDelimeter);
+			sb.append(strSchemaHead).append(" ").append(strName).append(strDelimeter).append(collectionId).append(strDelimeter);
 			sb.append(" ").append("version=\"1.0\">").append("\r\n");
 
 			for (int i = 0; i < columnCount; i++)
@@ -101,7 +101,7 @@ public class MakeSchema {
 			sb.append(strSchemaTail);
 
 			try {
-				writer = new FileOutputStream(IRSettings.getKey(collection, IRSettings.schemaWorkFilename));
+				writer = new FileOutputStream(IRSettings.getKey(collectionId, IRSettings.schemaWorkFilename));
 				writer.write(sb.toString().getBytes());
 			} catch (IOException e) {
 				logger.error(e.getMessage(), e);

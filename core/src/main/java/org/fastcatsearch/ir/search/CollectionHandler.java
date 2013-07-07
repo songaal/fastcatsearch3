@@ -57,11 +57,10 @@ public class CollectionHandler {
 	private SegmentInfo[] segmentInfoList;
 	private int segmentSize;
 //	private Schema schema;
-	private Schema schema;
 	private String collectionId;
 	private File collectionDir;
 	private CollectionInfoFile collectionInfoFile;
-	private DataSequenceFile dataSequenceFile;
+//	private DataSequenceFile dataSequenceFile;
 	private CollectionContext collectionContext;
 	
 	private long startedTime;
@@ -73,23 +72,23 @@ public class CollectionHandler {
 		//-1 means reading dataSequence from file.
 //		this(collection, collectionDir, schema, indexConfig, -1);
 		this.collectionContext = collectionContext;
-	}
-	
-	public CollectionHandler(String collection, File collectionDir, Schema schema, IndexConfig indexConfig, int dataSequence) throws IRException, SettingException{
-		this.indexConfig = indexConfig;
-		this.collectionId = collection;
-		this.collectionDir = collectionDir;
-		this.schema = schema;
+//	}
+//	
+//	public CollectionHandler(String collection, File collectionDir, Schema schema, IndexConfig indexConfig, int dataSequence) throws IRException, SettingException{
+//		this.indexConfig = indexConfig;
+		this.collectionId = collectionContext.collectionId();
+//		this.collectionDir = collectionDir;
+//		this.schema = schema;
 //		String collectionHomeDir = IRSettings.getCollectionHome(collection);
 //		schema = IRSettings.getSchema(collection, true);
 //		IRConfig irConfig = IRSettings.getConfig(true);
-		dataSequenceFile = new DataSequenceFile(collectionDir, dataSequence);
-		int seq = dataSequenceFile.getSequence();
-		File dataDir = dataSequenceFile.getDataDirFile();
+//		dataSequenceFile = new DataSequenceFile(collectionDir, dataSequence);
+//		int seq = dataSequenceFile.getSequence();
+//		File dataDir = dataSequenceFile.getDataDirFile();
 		//		String dirName = (seq == 0 ? "data" : "data"+seq);
 //		dataDir = new File(collectionDir, dirName);
 //		dataDir = IRSettings.getCollectionDataPath(collection, seq);
-		logger.info("["+collection+"] Open data"+seq+", "+dataDir);
+		logger.info("[{}] Open data{}, {}", collection , seq, dataDir);
 //		new File(dataDir).mkdirs();
 		dataDir.mkdir();
 		
@@ -148,8 +147,8 @@ public class CollectionHandler {
 						deleteSet = new BitSet(IRFileName.getRevisionDir(segmentDir, revision), IRFileName.docDeleteSet);
 					}
 					
-					segmentSearcherList[i] = new SegmentSearcher(schema, segmentDir, baseDocNo, docCount, deleteSet, revision);
-					documentReaderList[i] = new DocumentReader(schema, segmentDir, baseDocNo);
+					segmentSearcherList[i] = new SegmentSearcher(collectionContext.schema(), segmentDir, baseDocNo, docCount, deleteSet, revision);
+					documentReaderList[i] = new DocumentReader(collectionContext.schema(), segmentDir, baseDocNo);
 				}
 			} catch (IOException e) {
 				throw new IRException(e);
@@ -170,7 +169,7 @@ public class CollectionHandler {
 	}
 	
 	public int getDataSequence(){
-		return dataSequenceFile.getSequence();
+		return collectionContext.collectionStatus().getDataStatus().getSequence();
 		
 	}
 	

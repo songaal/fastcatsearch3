@@ -18,7 +18,6 @@ public class Environment {
 	private File homeFile;
 	
 	private SettingManager settingManager;
-	private FilePaths filePaths;
 	
 	private boolean isMasterNode;
 	
@@ -37,7 +36,6 @@ public class Environment {
 	
 	public Environment init(){
 		settingManager = new SettingManager(this);
-		filePaths = new FilePaths(this);
 		
 		String myNodeName = settingManager.getSettings().getString("me","me");
 		String masterNodeName = settingManager.getSettings().getString("master", "master");
@@ -58,8 +56,8 @@ public class Environment {
 		return settingManager;
 	}
 	
-	public FilePaths filePaths(){
-		return filePaths;
+	public Path filePaths(){
+		return new Path(homeFile);
 	}
 
 	public boolean isMasterNode(){

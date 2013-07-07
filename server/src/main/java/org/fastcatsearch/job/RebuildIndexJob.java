@@ -75,7 +75,7 @@ public class RebuildIndexJob extends Job {
 			
 			int segmentNumber = 0;
 			
-			File segmentDir = new File(IRSettings.getSegmentPath(collection, newDataSequence, segmentNumber));
+			File segmentDir = new File(IRSettings.getCollectionSegmentPath(collection, newDataSequence, segmentNumber));
 			indexingLogger.info("Segment Dir = "+segmentDir.getAbsolutePath());
 //			SegmentRebuilder writer = new SegmentRebuilder(workSchema, segmentDir);
 //			writer.indexDocument();
@@ -86,7 +86,7 @@ public class RebuildIndexJob extends Job {
 			
 			Schema newSchema = IRSettings.getSchema(collectionHomeDir, false);
 //			CollectionHandler newHandler = new CollectionHandler(collection, new File(collectionHomeDir), newSchema, IRSettings.getIndexConfig());
-			CollectionHandler newHandler = irService.newCollectionHandler(collection, -1);
+			CollectionHandler newHandler = irService.loadCollectionHandler(collection, -1);
 			newHandler.addSegment(segmentNumber, segmentDir, null);
 			
 			newHandler.saveDataSequenceFile();

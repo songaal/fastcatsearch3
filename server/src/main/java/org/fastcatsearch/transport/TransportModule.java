@@ -157,7 +157,7 @@ public class TransportModule extends AbstractModule {
 		 * Server
 		 * */
         
-        fileTransportHandler  = new FileTransportHandler(); 
+        fileTransportHandler  = new FileTransportHandler(environment.filePaths()); 
         serverBootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(
                 Executors.newCachedThreadPool(),
                 Executors.newCachedThreadPool(),

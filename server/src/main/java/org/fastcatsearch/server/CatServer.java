@@ -20,6 +20,7 @@ import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.data.DataService;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.management.ManagementInfoService;
@@ -27,10 +28,8 @@ import org.fastcatsearch.notification.NotificationService;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.processlogger.ProcessLoggerService;
 import org.fastcatsearch.service.KeywordService;
-import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.service.WebService;
-import org.fastcatsearch.settings.IRSettings;
 import org.fastcatsearch.statistics.StatisticsInfoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -141,7 +140,6 @@ public class CatServer {
 			System.exit(1);
 		}
 
-		IRSettings.setHome(serverHome);
 		Environment environment = new Environment(serverHome).init();
 		// Settings settings = environment.settingManager().getSettings();
 		this.serviceManager = new ServiceManager(environment);

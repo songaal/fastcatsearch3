@@ -105,13 +105,13 @@ public class WebService extends AbstractService{
 		
 		try {
 			
-			Resource configXml = Resource.newResource(environment.filePaths().getPath("conf/webapp.xml"));
+			Resource configXml = Resource.newResource(environment.filePaths().path("conf", "webapp.xml").toString());
 			if(configXml != null && configXml.exists()){
 				logger.info("Load webapp >> {}", configXml.getFile().getAbsolutePath());
 		        XmlConfiguration configuration = new XmlConfiguration(configXml.getInputStream());
 		        if(configuration != null){
 			        WebAppContext webapp = (WebAppContext)configuration.configure();
-			        File workDir = environment.filePaths().getFile("work");
+			        File workDir = environment.filePaths().file("work");
 					if(workDir.exists()){
 						try {
 							FileUtils.deleteDirectory(workDir);

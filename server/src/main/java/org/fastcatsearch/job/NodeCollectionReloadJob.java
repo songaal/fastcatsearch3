@@ -1,12 +1,13 @@
 package org.fastcatsearch.job;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.common.IndexingType;
+import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
@@ -14,7 +15,6 @@ import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.IRSettings;
 
 public class NodeCollectionReloadJob extends StreamableJob {
 	long startTime;
@@ -34,12 +34,14 @@ public class NodeCollectionReloadJob extends StreamableJob {
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
 		
-		File collectionHome = new File(IRSettings.getCollectionHome(collectionId));
+//		File collectionHome = new File(IRSettings.getCollectionHome(collectionId));
 		try{
-			Schema schema = IRSettings.getSchema(collectionId, true);
+			long st = System.currentTimeMillis();
+//			Schema schema = IRSettings.getSchema(collectionId, true);
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+			Schema schema = irService.collectionContext(collectionId).schema();
 //			CollectionHandler newHandler = new CollectionHandler(collectionId, collectionHome, schema, IRSettings.getIndexConfig());
-			CollectionHandler newHandler = irService.newCollectionHandler(collectionId, -1);
+			CollectionHandler newHandler = irService.loadCollectionHandler(collectionId, -1);
 			//이미 수정된 모든 파일이 복사되었기 때문에 collection.info, delete.set을 수정하는 addSegment를 수행핦 필요없음.
 			//수행하면 세그먼트가 더 늘어나서, 오히려 에러발생.
 //			int[] updateAndDeleteSize = newHandler.addSegment(segmentNumber, null);
@@ -58,16 +60,19 @@ public class NodeCollectionReloadJob extends StreamableJob {
 			SegmentInfo si = newHandler.getLastSegmentInfo();
 			logger.info(si.toString());
 			int docSize = si.getDocCount();
-			
+			int newDataSequence = newHandler.getDataSequence();
 			/*
 			 * indextime 파일 업데이트.
 			 */
+			CollectionContext collectionContext = irService.collectionContext(collectionId);
+			collectionContext.updateCollectionStatus(IndexingType.FULL_INDEXING, newDataSequence, count.intValue(), st , System.currentTimeMillis());
+			
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			String startDt = sdf.format(startTime);
 			String endDt = sdf.format(new Date());
 			int duration = (int) (System.currentTimeMillis() - startTime);
 			String durationStr = Formatter.getFormatTime(duration);
-			IRSettings.storeIndextime(collectionId, "FULL", startDt, endDt, durationStr, docSize);
+//			IRSettings.storeIndextime(collectionId, "FULL", startDt, endDt, durationStr, docSize);
 			
 			/*
 			 * 5초후에 캐시 클리어.

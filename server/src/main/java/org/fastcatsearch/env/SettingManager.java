@@ -21,8 +21,8 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
-import org.fastcatsearch.datasource.DataSourceSetting;
 import org.fastcatsearch.ir.common.SettingException;
+import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.settings.Settings;
 import org.jdom.Document;
@@ -43,191 +43,12 @@ public class SettingManager {
 		this.environment = environment;
 	}
 
-	public void applyWorkSchemaFile(String collection) {
-		String workFilepath = getKey(collection, schemaWorkFilename);
-		File workf = new File(workFilepath);
-
-		if (!workf.exists())
-			return;
-
-		String bakFilepath = getKey(collection, schemaFilename + bakupSuffix);
-		File bakf = new File(bakFilepath);
-
-		String filepath = getKey(collection, schemaFilename);
-		File f = new File(filepath);
-
-		if (bakf.exists())
-			bakf.delete();
-		if (f.exists())
-			f.renameTo(bakf);
-
-		workf.renameTo(f);
-
-	}
-
-	public void initSchema(String collection) {
-		String contents = "<schema name=\"" + collection + "\" version=\"1.0\">" + Environment.LINE_SEPARATOR + "</schema>";
-		String configFile = getKey(collection, schemaFilename);
-		FileOutputStream writer = null;
-		try {
-			writer = new FileOutputStream(configFile);
-			writer.write(contents.getBytes());
-		} catch (IOException e) {
-			logger.error(e.getMessage(), e);
-		} finally {
-			try {
-				writer.close();
-			} catch (IOException e) {
-				// ignore
-			}
-
-		}
-	}
-
-	public Schema getSchema(String collection, boolean reload) throws SettingException {
-		Element root = null;
-		Schema schema = null;
-
-		if (!reload) {
-			schema = (Schema) getFromCache(collection, schemaObject);
-			if (schema != null)
-				return schema;
-		}
-
-		if (!reload) {
-			root = (Element) getFromCache(collection, schemaFilename);
-		}
-
-		if (root == null)
-			root = getXml(collection, schemaFilename);
-
-		if (root == null)
-			return null;
-
-		putToCache(collection, schema, schemaObject);
-
-		schema = getSchema0(collection, root);
-		putToCache(schema, schemaObject);
-
-		return schema;
-	}
-
-	public Schema getWorkSchema(String collection) throws SettingException {
-		return getWorkSchema(collection, false, false);
-	}
-
-	public Schema getWorkSchema(String collection, boolean reload, boolean create) throws SettingException {
-		Element root = null;
-		if (reload)
-			root = getXml(collection, schemaWorkFilename);
-
-		if (root == null) {
-			if (create) {
-				String workSchemaFileDir = getKey(collection, schemaWorkFilename);
-				String schemaFileDir = getKey(collection, schemaFilename);
-				File fworkSchema = new File(workSchemaFileDir);
-				try {
-					if (!fworkSchema.exists())
-						FileUtils.touch(fworkSchema);
-					File fschema = new File(schemaFileDir);
-					FileUtils.copyFile(fschema, fworkSchema);
-				} catch (IOException e) {
-					logger.error(e.getMessage(), e);
-				}
-				root = getXml(collection, schemaWorkFilename);
-			} else {
-				return null;
-			}
-		}
-
-		return getSchema0(collection, root);
-	}
-
-
-	public int deleteWorkSchema(String collection) throws SettingException {
-		String xmlDir = getKey(collection, schemaWorkFilename);
-		File workSchema = new File(xmlDir);
-		try {
-			FileUtils.forceDelete(workSchema);
-		} catch (IOException e) {
-			logger.error(e.getMessage(), e);
-			return 1;
-		}
-
-		return 0;
-	}
-
-	public DataSourceSetting getDatasource(String collection, boolean reload) {
-		if (!reload) {
-			Properties p = (Properties) getFromCache(collection, datasourceFilename);
-			if (p != null)
-				return new DataSourceSetting(p);
-		}
-		return new DataSourceSetting(getXmlProperties(collection, datasourceFilename));
-	}
-
-	/**
-	 * datasourceFilename에 .1 .2 가 붙은 파일들을 순차적으로 찾는다.
-	 * */
-	public List<DataSourceSetting> getMultiDatasource(String collection, boolean reload) {
-
-		List<DataSourceSetting> list = new ArrayList<DataSourceSetting>();
-
-		File f = new File(getKey(collection, datasourceFilename));
-		Properties p = null;
-		if (!reload) {
-			p = (Properties) getFromCache(collection, datasourceFilename);
-		}
-		if (p == null) {
-			p = getXmlProperties(collection, datasourceFilename);
-		}
-		list.add(new DataSourceSetting(p));
-
-		for (int i = 1;; i++) {
-			f = new File(getKey(collection, datasourceFilename + "." + i));
-
-			if (!f.exists()) {
-				break;
-			}
-
-			p = null;
-			if (!reload) {
-				p = (Properties) getFromCache(collection, datasourceFilename + "." + i);
-			}
-			if (p == null) {
-				p = getXmlProperties(collection, datasourceFilename + "." + i);
-			}
-			list.add(new DataSourceSetting(p));
-			logger.debug("Multi Datasource {} >> {}", i, f.getName());
-
-		}
-
-		return list;
-	}
-
-	public void storeDataSourceSetting(String collection, DataSourceSetting setting) {
-		if (setting == null) {
-			logger.error("DataSourceSetting file is null.");
-		} else {
-			Properties props = setting.getProperties();
-			storeXmlProperties(collection, props, datasourceFilename);
-			putToCache(collection, props, datasourceFilename);
-		}
-
-	}
-
-	public void initDatasource(String collection) {
-		Properties props = new Properties();
-		DataSourceSetting.init(props);
-		storeXmlProperties(collection, props, datasourceFilename);
-	}
-
 	public String getSimpleDatetime() {
 		return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
 	}
 
 	private Object getFromCache(String settingName) {
-		String key = environment.filePaths().makePath("conf").append(settingName).toString();
+		String key = environment.filePaths().path("conf", settingName).toString();
 		return settingCache.get(key);
 	}
 
@@ -237,7 +58,7 @@ public class SettingManager {
 	}
 
 	private Object putToCache(Object setting, String settingName) {
-		String key = environment.filePaths().makePath("conf").append(settingName).toString();
+		String key = environment.filePaths().path("conf", settingName).toString();
 		settingCache.put(key, setting);
 		return setting;
 	}
@@ -249,11 +70,11 @@ public class SettingManager {
 	}
 
 	public String getKey(String collection, String filename) {
-		return environment.filePaths().makePath("collection").append(collection).append(filename).toString();
+		return environment.filePaths().path("collection", collection, filename).toString();
 	}
 
 	public String getKey(String filename) {
-		return environment.filePaths().makePath("conf").append(filename).toString();
+		return environment.filePaths().path("conf", filename).toString();
 	}
 
 	public Element getXml(String collection, String filename) {
@@ -326,7 +147,7 @@ public class SettingManager {
 			if(obj != null){
 				return (Settings) obj;
 			}
-			File configFile = environment.filePaths().makePath("conf").append(FileNames.serverConfig).file();
+			File configFile = environment.filePaths().path("conf", FileNames.serverConfig).file();
 	        InputStream input = null;
 	        try{
 	        	Yaml yaml = new Yaml();

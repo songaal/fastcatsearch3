@@ -11,7 +11,7 @@
 <%@page import="org.fastcatsearch.settings.IRSettings"%>
 <%@page import="org.fastcatsearch.ir.config.Schema"%>
 <%@page import="org.fastcatsearch.ir.config.IRConfig"%>
-<%@page import="org.fastcatsearch.datasource.DataSourceSetting"%>
+<%@page import="org.fastcatsearch.ir.config.DataSourceConfig"%>
 <%@page import="org.fastcatsearch.ir.util.Formatter"%>
 <%@page import="org.fastcatsearch.ir.config.FieldSetting"%>
 <%@page import="com.fastcatsearch.util.WebUtils"%>
@@ -36,7 +36,7 @@
 	
 	if(collection == null){
 		if(colletionList.length > 0)
-			collection = colletionList[0];
+	collection = colletionList[0];
 		
 	}
 %>
@@ -84,7 +84,7 @@
 
 	
 	function alertMessage(){
-		var message = "<%=message %>";
+		var message = "<%=message%>";
 		if(message != "")
 			alert(message);
 	}
@@ -188,17 +188,16 @@ $(function () {
 	if(!"".equals(collection)) {
 
 
-		DataSourceSetting dataSourceSetting = IRSettings.getDatasource(collection, true);
+		DataSourceConfig dataSourceSetting = IRSettings.getDatasource(collection, true);
 		if(sourceType == null)
-			sourceType = dataSourceSetting.sourceType;
+	sourceType = dataSourceSetting.sourceType;
 		
 		String sourceFrom = dataSourceSetting.sourceFrom;
 		if(sourceFrom == null)
-			sourceFrom = "SINGLE";
+	sourceFrom = "SINGLE";
 		
 		if(sourceType == null || sourceType.length() == 0)
-			sourceType = "DB";
-	
+	sourceType = "DB";
 %>
 
 <form action="collectionService.jsp" method="post" name="saveForm" id="saveForm" onsubmit="return checkForm(this)">
@@ -434,8 +433,7 @@ $(function () {
 
 </html>
 
-<%!
-	public String setTextView(String value, String name, boolean isEnabled){
+<%!public String setTextView(String value, String name, boolean isEnabled){
 		return setTextView(value, name, isEnabled, 85, false);
 	}
 	public String setTextView(String value, String name, boolean isEnabled, boolean hasHelp){
@@ -473,5 +471,4 @@ $(function () {
 				
 			return value;
 		}
-	}
-%>
+	}%>

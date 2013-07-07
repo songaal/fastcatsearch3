@@ -17,7 +17,7 @@
 <%@page import="org.fastcatsearch.settings.IRSettings"%>
 <%@page import="org.fastcatsearch.ir.config.Schema"%>
 <%@page import="org.fastcatsearch.ir.config.IRConfig"%>
-<%@page import="org.fastcatsearch.datasource.DataSourceSetting"%>
+<%@page import="org.fastcatsearch.ir.config.DataSourceConfig"%>
 <%@page import="org.fastcatsearch.ir.util.Formatter"%>
 <%@page import="org.fastcatsearch.db.DBService" %>
 <%@page import="org.fastcatsearch.service.*" %>

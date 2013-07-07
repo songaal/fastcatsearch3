@@ -17,16 +17,16 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
-import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.fastcatsearch.datasource.DataSourceSetting;
 import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.env.Path;
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.config.DataSourceConfig;
+import org.fastcatsearch.ir.config.FileSourceConfig;
 import org.fastcatsearch.ir.document.Document;
-import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.io.DirBufferedReader;
 import org.fastcatsearch.ir.settings.FieldSetting;
@@ -50,13 +50,13 @@ public class FastcatSearchCollectFileParser extends SourceReader {
 	private Pattern CPAT;
 	private int count; // how many fields are set
 
-	public FastcatSearchCollectFileParser(Schema schema, DataSourceSetting config, SourceModifier sourceModifier, Boolean isFull) throws IRException {
-		super(schema, sourceModifier);
+	public FastcatSearchCollectFileParser(Path filePath, Schema schema, FileSourceConfig config, SourceModifier sourceModifier, Boolean isFull) throws IRException {
+		super(filePath, schema, sourceModifier);
 		try {
 			if(isFull){
-				br = new DirBufferedReader(new File(config.fullFilePath), config.fileEncoding);
+				br = new DirBufferedReader(new File(config.getFullFilePath()), config.getFileEncoding());
 			}else{
-				br = new DirBufferedReader(new File(config.incFilePath), config.fileEncoding);
+				br = new DirBufferedReader(new File(config.getIncFilePath()), config.getFileEncoding());
 			}
 		} catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage(),e);

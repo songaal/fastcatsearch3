@@ -18,20 +18,21 @@ import java.util.Date;
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.common.io.Streamable;
-import org.fastcatsearch.datasource.DataSourceSetting;
 import org.fastcatsearch.datasource.reader.SourceReader;
 import org.fastcatsearch.datasource.reader.SourceReaderFactory;
 import org.fastcatsearch.db.dao.IndexingResult;
+import org.fastcatsearch.env.CollectionFilePaths;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.config.CollectionConfig;
+import org.fastcatsearch.ir.common.IndexingType;
+import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataPlanConfig;
+import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.SegmentWriter;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.ir.search.DataSequenceFile;
 import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
@@ -44,7 +45,6 @@ import org.fastcatsearch.processlogger.ProcessLoggerService;
 import org.fastcatsearch.processlogger.log.IndexingFinishProcessLog;
 import org.fastcatsearch.processlogger.log.IndexingStartProcessLog;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.IRSettings;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,17 +52,6 @@ import org.slf4j.LoggerFactory;
 public class FullIndexJob extends IndexingJob {
 	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 			
-	public static void main(String[] args) throws FastcatSearchException {
-		String homePath = args[0];
-		String collectionId = args[1];
-		IRSettings.setHome(homePath);
-		
-		FullIndexJob job = new FullIndexJob();
-		job.setArgs(new String[]{collectionId});
-		job.run();
-	}
-	
-	
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
 		String[] args = getStringArrayArgs();
@@ -89,14 +78,17 @@ public class FullIndexJob extends IndexingJob {
 			notificationService.notify(new IndexingStartNotification(collectionId, IndexingResult.TYPE_FULL_INDEXING,
 					startTime(), isScheduled()));
 			
-//			IRConfig irconfig = IRSettings.getConfig(true);
-			DataPlanConfig dataPlanConfig = irService.getCollectionConfig(collectionId).getDataPlanConfig();
+			CollectionContext collectionContext = irService.collectionContext(collectionId);
+			CollectionFilePaths  collectionFilePaths = collectionContext.collectionFilePaths();
+			DataPlanConfig dataPlanConfig = collectionContext.collectionConfig().getDataPlanConfig();
 			int DATA_SEQUENCE_CYCLE = dataPlanConfig.getDataSequenceCycle();
 			
-			File collectionHomeDir = new File(IRSettings.getCollectionHome(collectionId));
-			Schema workSchema = IRSettings.getWorkSchema(collectionId, true, false);
-			if(workSchema == null)
-				workSchema = IRSettings.getSchema(collectionId, false);
+			File collectionHomeDir = collectionFilePaths.home().file();
+			Schema workSchema = collectionContext.workSchema();
+			if(workSchema == null){
+				//workschema가 없으면 기존 schema로 색인수행.
+				workSchema = collectionContext.schema();
+			}
 			
 			if(workSchema.getFieldSize() == 0){
 				indexingLogger.error("["+collectionId+"] Full Indexing Canceled. Schema field is empty. time = "+Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
@@ -109,12 +101,13 @@ public class FullIndexJob extends IndexingJob {
 //				throw new FastcatSearchException("컬렉션 스키마에 주키(Primary Key)를 설정해야합니다.");
 //			}
 			
-			DataSequenceFile dataSequenceFile = new DataSequenceFile(collectionHomeDir, -1); //read sequence
-			int	newDataSequence = (dataSequenceFile.getSequence() + 1) % DATA_SEQUENCE_CYCLE;
+			int currentDataSequence = collectionContext.collectionStatus().getDataStatus().getSequence();
+//			DataSequenceFile dataSequenceFile = new DataSequenceFile(collectionHomeDir, -1); //read sequence
+			int	newDataSequence = (currentDataSequence + 1) % DATA_SEQUENCE_CYCLE;
 			
-			logger.debug("dataSequence="+newDataSequence+", DATA_SEQUENCE_CYCLE="+DATA_SEQUENCE_CYCLE);
+			logger.debug("dataSequence={}, DATA_SEQUENCE_CYCLE={}", newDataSequence, DATA_SEQUENCE_CYCLE);
 			
-			File collectionDataDir = new File(IRSettings.getCollectionDataPath(collectionId, newDataSequence));
+			File collectionDataDir = collectionFilePaths.dataPath(newDataSequence).file();
 			FileUtils.deleteDirectory(collectionDataDir);
 			
 			//Make new CollectionHandler
@@ -123,7 +116,7 @@ public class FullIndexJob extends IndexingJob {
 			int segmentNumber = 0;
 			//1.xml을 unmarshar해서 sourceconfig객체로 가지고 있는다.
 			//2. 
-			DataSourceSetting dsSetting = IRSettings.getDatasource(collectionId, true);
+			DataSourceConfig dsSetting = collectionContext.dataSourceSetting();
 			SourceReader sourceReader = SourceReaderFactory.createSourceReader(collectionId, workSchema, dsSetting, true);
 			
 			if(sourceReader == null){
@@ -134,12 +127,8 @@ public class FullIndexJob extends IndexingJob {
 			/*
 			 * 색인파일 생성.
 			 */
-			
-			
-			CollectionConfig collectionConfig = irService.getCollectionConfig(collectionId);
-			
-			IndexConfig indexConfig = collectionConfig.getIndexConfig();
-			File segmentDir = new File(IRSettings.getSegmentPath(collectionId, newDataSequence, segmentNumber));
+			IndexConfig indexConfig = collectionContext.collectionConfig().getIndexConfig();
+			File segmentDir = collectionFilePaths.segmentPath(newDataSequence, segmentNumber).file();
 			indexingLogger.info("Segment Dir = "+segmentDir.getAbsolutePath());
 			SegmentWriter writer = null;
 			int count = 0;
@@ -191,13 +180,13 @@ public class FullIndexJob extends IndexingJob {
 			}
 			
 			//apply schema setting
-			IRSettings.applyWorkSchemaFile(collectionId);
+			collectionContext.applyWorkSchemaFile(collectionId);
 			
 //			File collectionDir = new File(IRSettings.getCollectionHome(collectionId));
 //			Schema newSchema = IRSettings.getSchema(collectionId, false);
 //			CollectionHandler newHandler = new CollectionHandler(collectionId, collectionDir, newSchema, indexConfig, newDataSequence);
 
-			CollectionHandler newHandler = irService.newCollectionHandler(collectionId, newDataSequence);
+			CollectionHandler newHandler = irService.loadCollectionHandler(collectionId, newDataSequence);
 			updateAndDeleteSize = newHandler.addSegment(segmentNumber, segmentDir, null);
 			updateAndDeleteSize[1] += writer.getDuplicateDocCount();//중복문서 삭제카운트
 //			logger.info("== SegmentStatus ==");
@@ -221,13 +210,18 @@ public class FullIndexJob extends IndexingJob {
 			/*
 			 * indextime 파일 업데이트.
 			 */
+			
+			
+			//TODO 
+			
+			collectionContext.updateCollectionStatus(IndexingType.FULL_INDEXING, newDataSequence, count, st , System.currentTimeMillis());
+			
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			String startDt = sdf.format(st);
 			String endDt = sdf.format(new Date());
 			int duration = (int) (System.currentTimeMillis() - st);
 			String durationStr = Formatter.getFormatTime(duration);
-			IRSettings.storeIndextime(collectionId, "FULL", startDt, endDt, durationStr, count);
-			
+//			IRSettings.storeIndextime(collectionId, "FULL", startDt, endDt, durationStr, count);
 			/*
 			 * 5초후에 캐시 클리어.
 			 */

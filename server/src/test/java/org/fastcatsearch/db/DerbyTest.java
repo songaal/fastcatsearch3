@@ -1,14 +1,10 @@
 package org.fastcatsearch.db;
 
-import static org.junit.Assert.*;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.settings.IRSettings;
 import org.junit.Test;
 
 public class DerbyTest {

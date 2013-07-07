@@ -10,7 +10,7 @@
 <%@page import="org.fastcatsearch.settings.IRSettings"%>
 <%@page import="org.fastcatsearch.ir.config.Schema"%>
 <%@page import="org.fastcatsearch.ir.config.IRConfig"%>
-<%@page import="org.fastcatsearch.datasource.DataSourceSetting"%>
+<%@page import="org.fastcatsearch.ir.config.DataSourceConfig"%>
 <%@page import="org.fastcatsearch.ir.util.Formatter"%>
 <%@page import="com.fastcatsearch.util.WebUtils"%>
 <%@page import="org.fastcatsearch.service.*"%>
@@ -22,14 +22,12 @@
 <%@include file="../common.jsp" %>
 
 <%
-
 	String message = URLDecoder.decode(WebUtils.getString(request.getParameter("message"), ""),"utf-8");
 
 	IRService irService = ServiceManager.getInstance().getService(IRService.class);
 	IRConfig irConfig = IRSettings.getConfig(true);
 	String collectinListStr = irConfig.getString("collection.list");
 	String[] colletionList = collectinListStr.split(",");
-	
 %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -60,7 +58,7 @@
 	});
 	
 	function alertMessage(){
-		var message = "<%=message %>";
+		var message = "<%=message%>";
 		if(message != "")
 			alert(message);
 	}
@@ -143,26 +141,26 @@
 	<tbody>
 	<%
 		for(int i = 0;i<colletionList.length;i++){
-			String collection = colletionList[i];
-			CollectionHandler collectionHandler = irService.collectionHandler(collection);
-			boolean isRunning = false;
-			String startTimeStr = "";
-			String durationStr = "";
-			if(collectionHandler == null){
-		isRunning = false;
-			}else{
-		isRunning = true;
-		long startTime = collectionHandler.getStartedTime();
-		long duration  = System.currentTimeMillis() - startTime;
-		startTimeStr = new Date(startTime).toString();
-		durationStr = Formatter.getFormatTime(duration);
-			}
-			
-			Schema schema = IRSettings.getSchema(collection, true);
-			
-			if(schema!=null) {
-		DataSourceSetting dataSourceSetting = IRSettings.getDatasource(collection, true);
-		String sourceType = dataSourceSetting.sourceType;
+		String collection = colletionList[i];
+		CollectionHandler collectionHandler = irService.collectionHandler(collection);
+		boolean isRunning = false;
+		String startTimeStr = "";
+		String durationStr = "";
+		if(collectionHandler == null){
+			isRunning = false;
+		}else{
+			isRunning = true;
+			long startTime = collectionHandler.getStartedTime();
+			long duration  = System.currentTimeMillis() - startTime;
+			startTimeStr = new Date(startTime).toString();
+			durationStr = Formatter.getFormatTime(duration);
+		}
+		
+		Schema schema = IRSettings.getSchema(collection, true);
+		
+		if(schema!=null) {
+			DataSourceConfig dataSourceSetting = IRSettings.getDatasource(collection, true);
+			String sourceType = dataSourceSetting.sourceType;
 	%>
 	<tr>
 		<td class="first"><input type="radio" name="selectCollection" value="<%=collection%>" /></td>

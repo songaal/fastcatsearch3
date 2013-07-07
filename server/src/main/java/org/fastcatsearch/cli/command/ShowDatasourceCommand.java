@@ -12,9 +12,9 @@ import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.cli.command.exception.CollectionNotDefinedException;
 import org.fastcatsearch.cli.command.exception.CollectionNotFoundException;
-import org.fastcatsearch.datasource.DataSourceSetting;
 import org.fastcatsearch.db.DBContext;
 import org.fastcatsearch.db.DBService;
+import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.settings.IRSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +51,7 @@ public class ShowDatasourceCommand extends CollectionExtractCommand {
 		if (cmd.length != 2)
 			return new CommandResult("invalid command", CommandResult.Status.SUCCESS);
 
-		DataSourceSetting ds = IRSettings.getDatasource(collection, true);
+		DataSourceConfig ds = IRSettings.getDatasource(collection, true);
 
 		if (ds == null)
 			return new CommandResult("error invalid DataSource [" + collection + "] schema data",
@@ -71,7 +71,7 @@ public class ShowDatasourceCommand extends CollectionExtractCommand {
 
 	}
 
-	private boolean getDatasource(DataSourceSetting ds, String collection) {
+	private boolean getDatasource(DataSourceConfig ds, String collection) {
 		try {
 			if (ds.sourceType.equals("FILE")) {
 				addRecord(data, "fullFilePath", ds.fullFilePath);

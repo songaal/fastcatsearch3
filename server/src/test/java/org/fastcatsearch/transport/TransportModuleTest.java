@@ -10,7 +10,6 @@ import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.TestJob;
-import org.fastcatsearch.settings.IRSettings;
 import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.transport.common.SendFileResultFuture;
 import org.junit.Test;
@@ -48,7 +47,6 @@ public class TransportModuleTest {
 	};
 	
 	public static void main(String[] args) throws FastcatSearchException, TransportException {
-		IRSettings.setHome("testHome/fastcatsearch");
 		Environment environment = new Environment("testHome/fastcatsearch");
 //		new TransportServiceTest().testSendMessage(environment);
 		new TransportModuleTest().testSendFile(environment);
@@ -111,8 +109,7 @@ public class TransportModuleTest {
 	}
 	@Test
 	public void test3(){
-		IRSettings.setHome("testHome/fastcatsearch");
-		File home = new File(IRSettings.HOME);
+		File home = new File(".");
 		String filePath = "collection/AdbeRdr11000_ko_KR.dmg";
 		File file = new File(home, filePath);
 		logger.debug("home : {}", home.getPath());

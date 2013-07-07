@@ -23,6 +23,7 @@ import junit.framework.TestCase;
 
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
+import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.SegmentWriter;
@@ -41,12 +42,12 @@ public class CollectionHandlerTest extends TestCase{
 	String homePath = "testHome/";
 	String collection ="test3";
 	int dataSequence = 0;
-	
+	CollectionContext collectionContext;
 	public void testLoad() throws IRException, SettingException, IOException{
 		IndexConfig indexConfig = null;
 		File collectionDir = null;
 		Schema schema = new Schema(null);
-		CollectionHandler h = new CollectionHandler(collection, collectionDir, schema, indexConfig, 0);
+		CollectionHandler h = new CollectionHandler(collectionContext);
 	}
 	
 	public void testSearch() throws IRException, SettingException, IOException{
@@ -65,7 +66,7 @@ public class CollectionHandlerTest extends TestCase{
 		IndexConfig indexConfig = null;
 		File collectionDir = null;
 		Schema schema = new Schema(null);
-		CollectionHandler h = new CollectionHandler(collection, collectionDir, schema, indexConfig, 0);
+		CollectionHandler h = new CollectionHandler(collectionContext);
 		h.printSegmentStatus();
 		Result result = h.searcher().search(q);
 		
@@ -77,7 +78,7 @@ public class CollectionHandlerTest extends TestCase{
 		IndexConfig indexConfig = null;
 		File collectionDir = null;
 		Schema schema = new Schema(null);
-		CollectionHandler h = new CollectionHandler(collection, collectionDir, schema, indexConfig, 0);
+		CollectionHandler h = new CollectionHandler(collectionContext);
 		int segmentNumber = 0;
 		System.out.println("segmentNumber = "+segmentNumber);
 		{
@@ -98,7 +99,7 @@ public class CollectionHandlerTest extends TestCase{
 		Schema schema = new Schema(null);
 		IndexConfig indexConfig = null;
 		File collectionDir = null;
-		CollectionHandler h = new CollectionHandler(collection, collectionDir, schema, indexConfig, 0);
+		CollectionHandler h = new CollectionHandler(collectionContext);
 		int segmentNumber = h.getNextSegmentNumber();
 		System.out.println("segmentNumber = "+segmentNumber);
 		

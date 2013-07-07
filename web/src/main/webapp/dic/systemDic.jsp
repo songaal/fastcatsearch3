@@ -13,7 +13,7 @@
 <%@page import="org.fastcatsearch.ir.config.IRConfig"%>
 <%@page import="org.fastcatsearch.ir.dic.Dictionary"%>
 <%@page import="org.fastcatsearch.ir.io.CharVector"%>
-<%@page import="org.fastcatsearch.datasource.DataSourceSetting"%>
+<%@page import="org.fastcatsearch.ir.config.DataSourceConfig"%>
 <%@page import="org.fastcatsearch.plugin.Plugin"%>
 <%@page import="org.fastcatsearch.plugin.AnalysisPlugin"%>
 <%@page import="org.fastcatsearch.plugin.PluginService"%>

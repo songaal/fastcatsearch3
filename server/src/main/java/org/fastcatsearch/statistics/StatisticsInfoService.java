@@ -14,6 +14,7 @@ package org.fastcatsearch.statistics;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -26,6 +27,7 @@ import org.fastcatsearch.db.vo.IndexingResultVO;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentInfo;
@@ -92,13 +94,18 @@ public class StatisticsInfoService extends AbstractService {
 		lastUpdatedEventTime = new Timestamp(0);
 		keywordCache = new SearchKeywordCache();
 		irService = ServiceManager.getInstance().getService(IRService.class);
-		collectionNameList = irService.getCollectionNames();
+		List<Collection> collectionList = irService.getCollectionList();
+		int collectionSize = collectionList.size();
+		collectionNameList = new String[collectionSize];
+		for (int i = 0; i < collectionNameList.length; i++) {
+			collectionNameList[i] = collectionList.get(i).getId();
+		}
 		collectionSeq = new AsciiCharTrie();
-		collectionStatisticsList = new RealTimeCollectionStatistics[collectionNameList.length];
-		collectionStatisticsListPerMinute = new RealTimeCollectionStatistics[collectionNameList.length];
-		collectionStatisticsListPerHour = new RealTimeCollectionStatistics[collectionNameList.length];
-		collectionStatisticsListPerDay = new RealTimeCollectionStatistics[collectionNameList.length];
-		collectionStatisticsListPerMonth = new RealTimeCollectionStatistics[collectionNameList.length];
+		collectionStatisticsList = new RealTimeCollectionStatistics[collectionSize];
+		collectionStatisticsListPerMinute = new RealTimeCollectionStatistics[collectionSize];
+		collectionStatisticsListPerHour = new RealTimeCollectionStatistics[collectionSize];
+		collectionStatisticsListPerDay = new RealTimeCollectionStatistics[collectionSize];
+		collectionStatisticsListPerMonth = new RealTimeCollectionStatistics[collectionSize];
 		
 		globalCollectionStatistics = new RealTimeCollectionStatistics(GLOBAL_COLLECTION_NAME);
 		globalCollectionStatisticsPerMinute = new RealTimeCollectionStatistics(GLOBAL_COLLECTION_NAME);
@@ -106,9 +113,9 @@ public class StatisticsInfoService extends AbstractService {
 		globalCollectionStatisticsPerDay = new RealTimeCollectionStatistics(GLOBAL_COLLECTION_NAME);
 		globalCollectionStatisticsPerMonth = new RealTimeCollectionStatistics(GLOBAL_COLLECTION_NAME);
 		
-		indexingInfoList = new IndexingInfo[collectionNameList.length];
+		indexingInfoList = new IndexingInfo[collectionSize];
 		
-		for(int i = 0; i < collectionNameList.length; i++){
+		for(int i = 0; i < collectionSize; i++){
 			String collectionName = collectionNameList[i];
 			collectionSeq.put(collectionName, i);
 			collectionStatisticsList[i] = new RealTimeCollectionStatistics(collectionName);

@@ -40,7 +40,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<%@page import="org.fastcatsearch.datasource.DataSourceSetting"%>
+<%@page import="org.fastcatsearch.ir.config.DataSourceConfig"%>
 <%@page import="org.fastcatsearch.ir.config.Schema"%>
 <%@page import="java.sql.Driver"%>
 <%@page import="java.sql.DriverManager"%>
@@ -191,118 +191,118 @@
 	</tr>
 	<%
 		//Connection extConn = null;
-		
-		DBService dbHandler = ServiceManager.getInstance().getService(DBService.class);
-		DBContext dbContext = dbHandler.getDBContext();
-		if(userSQL.length() > 0){
-			if(executeType.equalsIgnoreCase("U_DB")){
-		try{
-			long st = System.currentTimeMillis();
-			n = dbContext.updateSQL(userSQL);
-			resultString = n+" 개의 행이 적용되었습니다. "+Formatter.getFormatTime(System.currentTimeMillis() - st);
-		}catch(SQLException e){
-			message = e.getMessage();
-		}
-			}else if(executeType.equalsIgnoreCase("U_MONDB")){
-		try{
-			long st = System.currentTimeMillis();
-			n = dbContext.updateSQL(userSQL);
-			resultString = n+" 개의 행이 적용되었습니다. "+Formatter.getFormatTime(System.currentTimeMillis() - st);
-		}catch(SQLException e){
-			message = e.getMessage();
-		}
-			}else if(executeType.equalsIgnoreCase("S_DB")){
-		try{
-			long st = System.currentTimeMillis();
-			rs = dbContext.selectSQL(userSQL);
-			resultString = "성공적으로 실행되었습니다. "+Formatter.getFormatTime(System.currentTimeMillis() - st);
-		}catch(SQLException e){
-			message = e.getMessage();
-			dbContext.close();
-		}
-			}else if(executeType.equalsIgnoreCase("S_MONDB")){
-		try{
-			long st = System.currentTimeMillis();
-			rs = dbContext.selectSQL(userSQL);
-			resultString = "성공적으로 실행되었습니다. "+Formatter.getFormatTime(System.currentTimeMillis() - st);
-		}catch(SQLException e){
-			message = e.getMessage();
-			dbContext.close();
-		}
-			}else if(executeType.equalsIgnoreCase("U_D")){
-		try{
-			long st = System.currentTimeMillis();
-			Schema schema = IRSettings.getSchema(collection, false);
-			DataSourceSetting dsSetting = IRSettings.getDatasource(collection, false);
 			
-			if(dsSetting.driver != null){
-				Object object = DynamicClassLoader.loadObject(dsSetting.driver);
-				if(object == null){
-					message = "Cannot find sql driver = "+dsSetting.driver;
-				}else{
-					Driver driver = (Driver)object;
-					DriverManager.registerDriver(driver);
-					Properties info = new Properties();
-					info.put("user", dsSetting.user);
-					info.put("password", dsSetting.password);
-					Connection con = null;
-					try{
-						con = driver.connect(dsSetting.url, info);
-						if(con != null){
-							con.setAutoCommit(true);
-							Statement stmt = con.createStatement();
-							n = stmt.executeUpdate(userSQL);
-							stmt.close();
-							resultString = n+" 개의 행이 적용되었습니다. "+Formatter.getFormatTime(System.currentTimeMillis() - st);
-						}else{
-							message = "서버에 연결에 실패하였습니다. JDBC URL 또는 사용자 계정정보가 올바른지 확인하여 주십시오.<br/>";
-							message += "JDBC_URL = "+dsSetting.url+", USER = "+dsSetting.user+", PASSWD = "+dsSetting.password;
-						}
-					}finally{
-						con.close();
-					}
-				}
+			DBService dbHandler = ServiceManager.getInstance().getService(DBService.class);
+			DBContext dbContext = dbHandler.getDBContext();
+			if(userSQL.length() > 0){
+		if(executeType.equalsIgnoreCase("U_DB")){
+			try{
+		long st = System.currentTimeMillis();
+		n = dbContext.updateSQL(userSQL);
+		resultString = n+" 개의 행이 적용되었습니다. "+Formatter.getFormatTime(System.currentTimeMillis() - st);
+			}catch(SQLException e){
+		message = e.getMessage();
 			}
-		}catch(SQLException e){
-			message = e.getMessage();
-		}
+		}else if(executeType.equalsIgnoreCase("U_MONDB")){
+			try{
+		long st = System.currentTimeMillis();
+		n = dbContext.updateSQL(userSQL);
+		resultString = n+" 개의 행이 적용되었습니다. "+Formatter.getFormatTime(System.currentTimeMillis() - st);
+			}catch(SQLException e){
+		message = e.getMessage();
+			}
+		}else if(executeType.equalsIgnoreCase("S_DB")){
+			try{
+		long st = System.currentTimeMillis();
+		rs = dbContext.selectSQL(userSQL);
+		resultString = "성공적으로 실행되었습니다. "+Formatter.getFormatTime(System.currentTimeMillis() - st);
+			}catch(SQLException e){
+		message = e.getMessage();
+		dbContext.close();
+			}
+		}else if(executeType.equalsIgnoreCase("S_MONDB")){
+			try{
+		long st = System.currentTimeMillis();
+		rs = dbContext.selectSQL(userSQL);
+		resultString = "성공적으로 실행되었습니다. "+Formatter.getFormatTime(System.currentTimeMillis() - st);
+			}catch(SQLException e){
+		message = e.getMessage();
+		dbContext.close();
+			}
+		}else if(executeType.equalsIgnoreCase("U_D")){
+			try{
+		long st = System.currentTimeMillis();
+		Schema schema = IRSettings.getSchema(collection, false);
+		DataSourceConfig dsSetting = IRSettings.getDatasource(collection, false);
 		
-			}else if(executeType.equalsIgnoreCase("S_D")){
-		
-		try{
-			long st = System.currentTimeMillis();
-			Schema schema = IRSettings.getSchema(collection, false);
-			DataSourceSetting dsSetting = IRSettings.getDatasource(collection, false);
-			if(dsSetting.driver != null){
-				Object object = DynamicClassLoader.loadObject(dsSetting.driver);
-			
-				if(object == null){
-					message = "Cannot find sql driver = "+dsSetting.driver;
-				}else{
-					Driver driver = (Driver)object;
-					DriverManager.registerDriver(driver);
-					Properties info = new Properties();
-					info.put("user", dsSetting.user);
-					info.put("password", dsSetting.password);
-					Connection extConn = driver.connect(dsSetting.url, info);
-					if(extConn != null){
-						extConn.setAutoCommit(true);
-						Statement stmt = extConn.createStatement();
-						stmt.setMaxRows(100);
-						rs = stmt.executeQuery(userSQL);
-						resultString = "성공적으로 실행되었습니다. "+Formatter.getFormatTime(System.currentTimeMillis() - st);
+		if(dsSetting.driver != null){
+			Object object = DynamicClassLoader.loadObject(dsSetting.driver);
+			if(object == null){
+				message = "Cannot find sql driver = "+dsSetting.driver;
+			}else{
+				Driver driver = (Driver)object;
+				DriverManager.registerDriver(driver);
+				Properties info = new Properties();
+				info.put("user", dsSetting.user);
+				info.put("password", dsSetting.password);
+				Connection con = null;
+				try{
+					con = driver.connect(dsSetting.url, info);
+					if(con != null){
+						con.setAutoCommit(true);
+						Statement stmt = con.createStatement();
+						n = stmt.executeUpdate(userSQL);
+						stmt.close();
+						resultString = n+" 개의 행이 적용되었습니다. "+Formatter.getFormatTime(System.currentTimeMillis() - st);
 					}else{
 						message = "서버에 연결에 실패하였습니다. JDBC URL 또는 사용자 계정정보가 올바른지 확인하여 주십시오.<br/>";
 						message += "JDBC_URL = "+dsSetting.url+", USER = "+dsSetting.user+", PASSWD = "+dsSetting.password;
 					}
+				}finally{
+					con.close();
 				}
 			}
-			
-		}catch(Exception e){
-			e.printStackTrace();
-			message = e.getMessage();
 		}
+			}catch(SQLException e){
+		message = e.getMessage();
 			}
+			
+		}else if(executeType.equalsIgnoreCase("S_D")){
+			
+			try{
+		long st = System.currentTimeMillis();
+		Schema schema = IRSettings.getSchema(collection, false);
+		DataSourceConfig dsSetting = IRSettings.getDatasource(collection, false);
+		if(dsSetting.driver != null){
+			Object object = DynamicClassLoader.loadObject(dsSetting.driver);
+		
+			if(object == null){
+				message = "Cannot find sql driver = "+dsSetting.driver;
+			}else{
+				Driver driver = (Driver)object;
+				DriverManager.registerDriver(driver);
+				Properties info = new Properties();
+				info.put("user", dsSetting.user);
+				info.put("password", dsSetting.password);
+				Connection extConn = driver.connect(dsSetting.url, info);
+				if(extConn != null){
+					extConn.setAutoCommit(true);
+					Statement stmt = extConn.createStatement();
+					stmt.setMaxRows(100);
+					rs = stmt.executeQuery(userSQL);
+					resultString = "성공적으로 실행되었습니다. "+Formatter.getFormatTime(System.currentTimeMillis() - st);
+				}else{
+					message = "서버에 연결에 실패하였습니다. JDBC URL 또는 사용자 계정정보가 올바른지 확인하여 주십시오.<br/>";
+					message += "JDBC_URL = "+dsSetting.url+", USER = "+dsSetting.user+", PASSWD = "+dsSetting.password;
+				}
+			}
+		}
+		
+			}catch(Exception e){
+		e.printStackTrace();
+		message = e.getMessage();
+			}
+		}
 	%>
 		<tr>
 		<th>메시지</th>

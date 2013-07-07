@@ -46,8 +46,8 @@ public class KeywordService extends AbstractService{
 	private Timer timer;
 	private int hourOfDay;
 	private int sequence;
-	private String logPath = environment.filePaths().makePath("logs").append(".keyword.").toString();
-	private String logPathFail = environment.filePaths().makePath("logs").append(".keyword.fail.").toString();
+	private String logPath = environment.filePaths().path("logs", ".keyword.").toString();
+//	private String logPathFail = environment.filePaths().path("logs", ".keyword.fail.").toString();
 	private PrintWriter keywordWriter;
 	private PrintWriter keywordWriterFail;
 	
@@ -89,7 +89,8 @@ public class KeywordService extends AbstractService{
 //		logger.debug("Switch keyword file "+old +" -> "+sequence+", hourOfDay="+hourOfDay);
 		
 		try {
-			File file = new File(logPath + sequence);
+			File file = environment.filePaths().path("logs", ".keyword."+ sequence).file();
+//			File file = new File(logPath + sequence);
 			if(!file.exists()) { file.createNewFile(); }
 			keywordWriter = new PrintWriter(new BufferedWriter(new FileWriter(file)));
 		} catch (IOException e) {
@@ -109,7 +110,8 @@ public class KeywordService extends AbstractService{
 //		logger.debug("Switch fail keyword file "+old +" -> "+sequence+", hourOfDay="+hourOfDay);
 		
 		try {
-			File file = new File(logPathFail + sequence);
+			File file = environment.filePaths().path("logs", ".keyword.fail."+ sequence).file();
+//			File file = new File(logPathFail + sequence);
 			if(!file.exists()) { file.createNewFile(); }
 			keywordWriterFail = new PrintWriter(new BufferedWriter(new FileWriter(file)));
 		} catch (IOException e) {

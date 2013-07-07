@@ -25,7 +25,7 @@ public class FileSendToNodeJob extends Job {
 		
 		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 		Node node = nodeService.getNodeById(nodeId);
-		File sourceFile = environment.filePaths().getFile(filepath);
+		File sourceFile = environment.filePaths().file(filepath);
 		SendFileResultFuture resultFuture = nodeService.sendFile(node, sourceFile, new File(filepath));
 		if(resultFuture == null){
 			throw new FastcatSearchException("ERR-00700", filepath);

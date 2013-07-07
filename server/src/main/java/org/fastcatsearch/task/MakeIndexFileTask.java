@@ -14,11 +14,11 @@ package org.fastcatsearch.task;
 import java.io.File;
 
 import org.apache.commons.io.FileUtils;
-import org.fastcatsearch.datasource.DataSourceSetting;
 import org.fastcatsearch.datasource.reader.SourceReader;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.CollectionConfig;
+import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.SegmentWriter;
 import org.fastcatsearch.ir.settings.Schema;
@@ -30,11 +30,11 @@ import org.slf4j.LoggerFactory;
 public class MakeIndexFileTask extends Task {
 	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 	
-	public int makeIndex(String collection, File collectionHomeDir, Schema workSchema, File collectionDataDir, DataSourceSetting dsSetting
+	public int makeIndex(String collectionId, File collectionHomeDir, Schema workSchema, File collectionDataDir, DataSourceConfig dsSetting
 			, SourceReader sourceReader, File segmentDir) throws Exception {
 			
 		if(workSchema.getFieldSize() == 0){
-			throw new TaskException("["+collection+"] Full Indexing Canceled. Schema field is empty.");
+			throw new TaskException("["+collectionId+"] Full Indexing Canceled. Schema field is empty.");
 		}
 		
 		//주키가 없으면 색인실패
@@ -54,7 +54,7 @@ public class MakeIndexFileTask extends Task {
 		
 		try{
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-			CollectionConfig collectionConfig = irService.getCollectionConfig(collection);
+			CollectionConfig collectionConfig = irService.collectionContext(collectionId).collectionConfig();
 			
 			writer = new SegmentWriter(workSchema, segmentDir, collectionConfig.getIndexConfig());
 			
@@ -86,7 +86,7 @@ public class MakeIndexFileTask extends Task {
 		}
 		int dupCount =  writer.getDuplicateDocCount();//중복문서 삭제카운트
 		if(count == 0){
-			throw new TaskException("["+collection+"] Full Indexing Canceled due to no documents.");
+			throw new TaskException("["+collectionId+"] Full Indexing Canceled due to no documents.");
 		}
 		
 		return dupCount;

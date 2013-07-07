@@ -14,7 +14,6 @@ import org.fastcatsearch.data.DataService;
 import org.fastcatsearch.data.DataStrategy;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.field.DocNoField;
 import org.fastcatsearch.ir.field.Field;
@@ -22,7 +21,6 @@ import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.field.UnknownField;
 import org.fastcatsearch.ir.group.GroupData;
 import org.fastcatsearch.ir.group.GroupResults;
-import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.io.FixedHitReader;
 import org.fastcatsearch.ir.query.Groups;
 import org.fastcatsearch.ir.query.Metadata;
@@ -40,7 +38,6 @@ import org.fastcatsearch.job.internal.InternalSearchJob;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.IRSettings;
 import org.fastcatsearch.transport.vo.StreamableDocumentList;
 import org.fastcatsearch.transport.vo.StreamableShardSearchResult;
 
@@ -127,15 +124,10 @@ public class ClusterSearchJob extends Job {
 		}
 		
 		//
-		//collectionIdList 내의 스키마는 동일하다는 가정하에 진행한다.
+		//collectionIdList 내의 스키마는 동일하다는 가정하에 진행한다. collectionIdList[0] 의 스키마를 가져온다.
 		//
 		
-		Schema schema = null;
-		try {
-			schema = IRSettings.getSchema(collectionIdList[0], false);
-		} catch (SettingException e) {
-			logger.error("", e);
-		}
+		Schema schema = irService.collectionContext(collectionIdList[0]).schema();
 		SearchResultAggregator aggregator = new SearchResultAggregator(q, schema);
 		ShardSearchResult aggregatedSearchResult = aggregator.aggregate(resultList);
 		int totalSize = aggregatedSearchResult.getTotalCount();

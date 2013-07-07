@@ -17,10 +17,10 @@ import javax.servlet.http.HttpServlet;
 
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.db.DBService;
+import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.service.KeywordService;
-import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.settings.IRSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,8 +38,8 @@ public class CatServerServlet extends HttpServlet {
     public CatServerServlet(){}
 
     public void init() {
-    	String ServerHome = getServletContext().getRealPath("/WEB-INF/search");
-		System.out.println("Init ServerHome = "+ServerHome);
+    	String serverHome = getServletContext().getRealPath("/WEB-INF/search");
+		System.out.println("Init ServerHome = "+serverHome);
 		String home;
 		home = getServletConfig().getInitParameter("fastcat_manage_root");
 		if(home != null){ 
@@ -51,15 +51,15 @@ public class CatServerServlet extends HttpServlet {
 			getServletContext().setAttribute("FASTCAT_SEARCH_ROOT", getServletContext().getContextPath()+home); 
 		}
 		
-		File f = new File(ServerHome);
+		File f = new File(serverHome);
 		if(!f.exists()){
-			System.err.println("Error! Path \""+ServerHome+"\" is not exist!");
+			System.err.println("Error! Path \""+serverHome+"\" is not exist!");
 			System.exit(1);
 		}
 		
 		logger = LoggerFactory.getLogger(CatServerServlet.class);
 		
-		IRSettings.setHome(ServerHome);
+		Environment environment = new Environment(serverHome).init();
 		dbHandler = DBService.getInstance();
 		keywordService = KeywordService.getInstance();
 		jobController = JobService.getInstance();

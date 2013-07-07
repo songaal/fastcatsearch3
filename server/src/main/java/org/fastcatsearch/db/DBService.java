@@ -37,7 +37,6 @@ import org.fastcatsearch.plugin.PluginSetting;
 import org.fastcatsearch.plugin.PluginSetting.DAO;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.IRSettings;
 import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.util.DynamicClassLoader;
 
@@ -65,7 +64,7 @@ public class DBService extends AbstractService {
 	}
 
 	protected boolean doStart() throws FastcatSearchException {
-		JDBC_URL = "jdbc:derby:" + IRSettings.path(DB_NAME);
+		JDBC_URL = "jdbc:derby:" + environment.filePaths().path(DB_NAME);
 
 //		IRConfig config = IRSettings.getConfig();
 //		String dbhandlerType = config.getString("dbhandler.type");
