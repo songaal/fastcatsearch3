@@ -435,6 +435,7 @@ public class CollectionSearcher {
 
 		// search 조건에 입력한 요약옵션(8)과 별도로 view에 셋팅한 요약길이를 확인하여 검색필드가 아니더라도 요약해주도록함.
 		int[] extraSnipetSize = new int[fieldSize];
+		int[] fragmentSize = new int[fieldSize];
 		boolean[] extraUseHighlight = new boolean[fieldSize];
 
 		int jj = 0;
@@ -455,8 +456,10 @@ public class CollectionSearcher {
 
 			if (v.summarySize() > 0) {
 				extraSnipetSize[jj] = v.summarySize();
+				fragmentSize[jj] = v.fragments();
 			} else {
 				extraSnipetSize[jj] = -1;
+				fragmentSize[jj] = -1;
 			}
 
 			jj++;
@@ -522,7 +525,7 @@ public class CollectionSearcher {
 						if (extraUseHighlight[j]) {
 							tags = meta.tags();
 						}
-						text = has.highlight(analyzer, text, query, tags, extraSnipetSize[j]);
+						text = has.highlight(analyzer, text, query, tags, extraSnipetSize[j], fragmentSize[j]);
 					}
 					row[i].put(j, text.toCharArray());
 

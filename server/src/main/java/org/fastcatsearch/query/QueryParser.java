@@ -195,7 +195,9 @@ public class QueryParser {
 					List<View> views = new ArrayList<View>(list.length);
 					for (int k = 0; k < list.length; k++) {
 						String[] str = list[k].split(FIELD_SEPARATOR2);
-						if(str.length > 1){
+						if(str.length > 2){
+							views.add(new View(str[0], Integer.parseInt(str[1]), Integer.parseInt(str[2]), false));
+						} else if(str.length > 1){
 							views.add(new View(str[0], Integer.parseInt(str[1])));
 						}else{
 							views.add(new View(list[k]));
