@@ -23,7 +23,7 @@ import java.util.Map;
 
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.DataRef;
 import org.fastcatsearch.ir.io.BytesBuffer;
@@ -69,7 +69,7 @@ public class GroupIndexReader extends ReferencableIndexReader {
 		List<RefSetting> refSettingList = groupIndexSetting.getRefList();
 		fieldSize = refSettingList.size();
 		
-		IndexInput groupInfoInput = new BufferedFileInput(IRFileName.getRevisionDir(dir, revision), IRFileName.groupInfoFile);
+		IndexInput groupInfoInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.groupInfoFile);
     	
 		keyBuf = new BytesBuffer[fieldSize];
 		fieldOffset = new int[fieldSize];
@@ -86,7 +86,7 @@ public class GroupIndexReader extends ReferencableIndexReader {
     	}
     	groupInfoInput.close();
     	
-    	groupDataInput = new BufferedFileInput(dir, IRFileName.groupDataFile);
+    	groupDataInput = new BufferedFileInput(dir, IndexFileNames.groupDataFile);
     	groupKeyInputList = new SequencialDataInput[fieldSize];
     	
     	int offset = 0;
@@ -113,15 +113,15 @@ public class GroupIndexReader extends ReferencableIndexReader {
 			dataSize = offset;
 			
     		if(fieldSetting.isVariableField()){
-    			groupKeyInputList[idx] = new VariableDataInput(dir, IRFileName.getSuffixFileName(IRFileName.groupKeyFile, id, Integer.toString(idx)));
+    			groupKeyInputList[idx] = new VariableDataInput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyFile, id, Integer.toString(idx)));
     		}else{
     			int dataSize = fieldSetting.getByteSize();
-    			groupKeyInputList[idx] = new FixedDataInput(dir, IRFileName.getSuffixFileName(IRFileName.groupKeyFile, id, Integer.toString(idx)), dataSize);
+    			groupKeyInputList[idx] = new FixedDataInput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyFile, id, Integer.toString(idx)), dataSize);
     		}
     	}
     	
     	if(hasMultiValue){
-    		multiValueInput = new BufferedFileInput(dir, IRFileName.getMultiValueSuffixFileName(IRFileName.groupDataFile, id));
+    		multiValueInput = new BufferedFileInput(dir, IndexFileNames.getMultiValueSuffixFileName(IndexFileNames.groupDataFile, id));
     	}
 	}
 	

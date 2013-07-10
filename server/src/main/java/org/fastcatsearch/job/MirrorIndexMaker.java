@@ -15,7 +15,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.DataInput;
@@ -45,8 +45,8 @@ public class MirrorIndexMaker {
 		try {
 			//1. doc문서파일.
 			byte[] buf = new byte[8 * 1024];
-			DataInput fileInput = new BufferedFileInput(newRevDir, IRFileName.docPosition);
-			DataOutput fileOutput = new BufferedFileOutput(mirrorDir, IRFileName.docPosition);
+			DataInput fileInput = new BufferedFileInput(newRevDir, IndexFileNames.docPosition);
+			DataOutput fileOutput = new BufferedFileOutput(mirrorDir, IndexFileNames.docPosition);
 			fileInput.seek(segmentInfo.docPositionFilesSize);
 			int nread = 0;
 //			while((nread = fileInput.readBytes(buf, 0, buf.length)) > 0){

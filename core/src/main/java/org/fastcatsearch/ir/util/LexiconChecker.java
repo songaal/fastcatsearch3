@@ -20,7 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 
 
@@ -38,7 +38,7 @@ public class LexiconChecker {
 	
 	public LexiconChecker(File dir, int revision) throws IOException{
 		System.out.println("Check dir = "+dir.getAbsolutePath());
-		indexInput = new BufferedFileInput(IRFileName.getRevisionDir(dir, revision), IRFileName.indexFile);
+		indexInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.indexFile);
 	}
 	
 	public void close() throws IOException{

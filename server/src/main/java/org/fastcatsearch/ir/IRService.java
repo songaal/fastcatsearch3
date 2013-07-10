@@ -22,7 +22,7 @@ import java.util.Map.Entry;
 import org.fastcatsearch.common.QueryCacheModule;
 import org.fastcatsearch.env.CollectionFilePaths;
 import org.fastcatsearch.env.Environment;
-import org.fastcatsearch.env.FileNames;
+import org.fastcatsearch.env.SettingFileNames;
 import org.fastcatsearch.env.Path;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.common.IRException;
@@ -46,6 +46,7 @@ import org.fastcatsearch.module.ModuleException;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
+import org.fastcatsearch.util.CollectionContextUtil;
 
 
 public class IRService extends AbstractService{
@@ -66,16 +67,13 @@ public class IRService extends AbstractService{
 		super(environment, settings, serviceManager);
 	}
 	
-	
-	
-	
 	protected boolean doStart() throws FastcatSearchException {
 		
 //		collectionConfigMap = new HashMap<String, CollectionConfig>(); 
 		// collections 셋팅을 읽어온다.
 		File collectionsRoot = environment.filePaths().getCollectionsRoot().file();
 		
-		collectionsConfig = JAXBConfigs.readConfig(new File(collectionsRoot, FileNames.collectionsXml), CollectionsConfig.class);
+		collectionsConfig = JAXBConfigs.readConfig(new File(collectionsRoot, SettingFileNames.collections), CollectionsConfig.class);
 		
 		for (Collection collection : collectionsConfig.getCollectionList()) {
 			try {
@@ -137,22 +135,10 @@ public class IRService extends AbstractService{
 	public CollectionContext loadCollectionContext(String collectionId){
 		return loadCollectionContext(collectionId, -1);
 	}
+	
 	public CollectionContext loadCollectionContext(String collectionId, int dataSequence){
 		CollectionFilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
-		Path homeDir = collectionFilePaths.home();
-		SchemaSetting schemaSetting = JAXBConfigs.readConfig(homeDir.file("schema.xml"), SchemaSetting.class);
-		SchemaSetting workSchemaSetting = JAXBConfigs.readConfig(homeDir.file("schema.work.xml"), SchemaSetting.class);
-		CollectionConfig collectionConfig = JAXBConfigs.readConfig(homeDir.file("collection.xml"), CollectionConfig.class);
-		DataSourceConfig dataSourceSetting = JAXBConfigs.readConfig(homeDir.file("datasource.xml"), DataSourceConfig.class);
-		CollectionStatus collectionStatus = JAXBConfigs.readConfig(homeDir.file("status.xml"), CollectionStatus.class);
-		//dataSequence가 -1아 아니면 원하는 sequence의 정보를 읽어온다.
-		File infoFile = collectionFilePaths.dataPath(dataSequence).file("info.xml");
-		DataInfo dataInfo = JAXBConfigs.readConfig(infoFile, DataInfo.class);
-		Schema schema = new Schema(schemaSetting);
-		Schema workSchema = new Schema(workSchemaSetting);
-		CollectionContext collectionContext = new CollectionContext(collectionId, collectionFilePaths);
-		collectionContext.init(schema, workSchema, collectionConfig, dataSourceSetting, collectionStatus, dataInfo);
-		return collectionContext;
+		return CollectionContextUtil.load(collectionFilePaths, dataSequence);
 	}
 	
 	public CollectionHandler removeCollectionHandler(String collectionId){
@@ -164,6 +150,13 @@ public class IRService extends AbstractService{
 		return collectionHandlerMap.put(collectionId, collectionHandler);
 	}
 
+	//전체색인시작할때.
+	public CollectionHandler initCollectionHandler(String collectionId, int newDataSequence) throws IRException, SettingException{
+		CollectionContext collectionContext = loadCollectionContext(collectionId, newDataSequence); 
+		
+		return new CollectionHandler(collectionContext);
+	}
+	
 	public CollectionHandler loadCollectionHandler(String collectionId, int newDataSequence) throws IRException, SettingException{
 		CollectionContext collectionContext = loadCollectionContext(collectionId, newDataSequence); 
 		

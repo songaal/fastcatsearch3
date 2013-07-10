@@ -31,7 +31,7 @@ import org.apache.lucene.analysis.tokenattributes.SynonymAttribute;
 import org.apache.lucene.util.CharsRef;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexReader;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.index.IndexFieldOption;
@@ -114,9 +114,9 @@ public class SearchIndexesReader implements Cloneable {
 		memoryLexicon = new MemoryLexicon[indexFieldSize];
 		fileLimit = new long[indexFieldSize];
 		logger.debug("seg reader dir = {}", dir.getAbsolutePath());
-		postingInput = new BufferedFileInput(IRFileName.getRevisionDir(dir, revision), IRFileName.postingFile);
-		lexiconInput = new BufferedFileInput(IRFileName.getRevisionDir(dir, revision), IRFileName.lexiconFile);
-		indexInput = new BufferedFileInput(IRFileName.getRevisionDir(dir, revision), IRFileName.indexFile);
+		postingInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.postingFile);
+		lexiconInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.lexiconFile);
+		indexInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.indexFile);
 
 		int fieldCount = postingInput.readInt();
 		fieldIndexOptions = new IndexFieldOption[fieldCount];
@@ -182,7 +182,7 @@ public class SearchIndexesReader implements Cloneable {
 		}
 		
 		
-		pkReader = new PrimaryKeyIndexReader(IRFileName.getRevisionDir(dir, revision), IRFileName.primaryKeyMap);
+		pkReader = new PrimaryKeyIndexReader(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.primaryKeyMap);
 	}
 
 	@Override

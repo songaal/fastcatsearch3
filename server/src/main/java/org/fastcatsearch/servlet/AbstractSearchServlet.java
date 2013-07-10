@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -171,6 +172,9 @@ public abstract class AbstractSearchServlet extends WebServiceHttpServlet {
 
 	public String queryString() {
 		try {
+			//2013-7-8
+			//URL에 +로 들어오는 경우는 없으며, +로 들어오면 검색식의 일부이므로 decode시 공백으로 치환되지 않도록 강제 인코딩을 해준다.
+			searchCondition = searchCondition.replaceAll("\\+", URLEncoder.encode("+", requestCharset));
 			return "cn=" + collectionName + "&fl=" + URLDecoder.decode(fields, requestCharset) + "&se="
 					+ URLDecoder.decode(searchCondition, requestCharset) + "&gr="
 					+ URLDecoder.decode(groupFields, requestCharset) + "&gc=" + URLDecoder.decode(groupCondition, requestCharset)

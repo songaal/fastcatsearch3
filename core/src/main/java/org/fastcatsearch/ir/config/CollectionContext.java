@@ -1,10 +1,12 @@
 package org.fastcatsearch.ir.config;
 
-import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.fastcatsearch.env.CollectionFilePaths;
 import org.fastcatsearch.ir.common.IndexingType;
+import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.settings.Schema;
+import org.fastcatsearch.ir.util.Formatter;
 
 public class CollectionContext {
 	private String collectionId;
@@ -12,7 +14,7 @@ public class CollectionContext {
 	private Schema schema;
 	private Schema workSchema;
 	private CollectionConfig collectionConfig;
-	private DataSourceConfig dataSourceSetting;
+	private DataSourceConfig dataSourceConfig;
 	private CollectionStatus collectionStatus;
 	private DataInfo dataInfo;
 	
@@ -26,7 +28,7 @@ public class CollectionContext {
 		this.schema = schema;
 		this.workSchema = workSchema;
 		this.collectionConfig = collectionConfig;
-		this.dataSourceSetting = dataSourceSetting;
+		this.dataSourceConfig = dataSourceSetting;
 		this.collectionStatus = collectionStatus;
 		this.dataInfo = dataInfo;
 	}
@@ -47,12 +49,18 @@ public class CollectionContext {
 		return workSchema;
 	}
 	
+	public int getNextDataSequence(){
+		int currentDataSequence = collectionStatus.getDataStatus().getSequence();
+		int DATA_SEQUENCE_CYCLE = collectionConfig.getDataPlanConfig().getDataSequenceCycle();
+		return (currentDataSequence + 1) % DATA_SEQUENCE_CYCLE;
+	}
+	
 	public CollectionConfig collectionConfig(){
 		return collectionConfig;
 	}
 	
-	public DataSourceConfig dataSourceSetting(){
-		return dataSourceSetting;
+	public DataSourceConfig dataSourceConfig(){
+		return dataSourceConfig;
 	}
 	
 	public CollectionStatus collectionStatus(){
@@ -63,15 +71,33 @@ public class CollectionContext {
 		return dataInfo;
 	}
 
-	public void applyWorkSchemaFile(String collectionId) {
-		// TODO Auto-generated method stub
-		
+	public void applyWorkSchema() {
+		if(schema != workSchema){
+			schema.update(workSchema);
+		}
 	}
 	
-	public void updateCollectionStatus(IndexingType indexingType, int dataSequence, int count, long starTime, long endTime){
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		
-		
-		//TODO  collectionStatus 를 업데이트...
+	public void updateCollectionStatus(IndexingType indexingType, int dataSequence, int totalCount, int updateCount, int deleteCount, long startTime, long endTime){
+		collectionStatus.getDataStatus().setSequence(dataSequence);
+		if(indexingType == IndexingType.FULL_INDEXING){
+			collectionStatus.getFullIndexStatus().setDocumentCount(totalCount);
+			collectionStatus.getFullIndexStatus().setUpdateCount(updateCount);
+			collectionStatus.getFullIndexStatus().setDeleteCount(deleteCount);
+			collectionStatus.getFullIndexStatus().setStartTime(Formatter.formatDate(new Date(startTime)));
+			collectionStatus.getFullIndexStatus().setEndTime(Formatter.formatDate(new Date(endTime)));
+			collectionStatus.getFullIndexStatus().setDuration(Formatter.getFormatTime(endTime - startTime));
+			collectionStatus.setAddIndexStatus(null);
+		}else{
+			collectionStatus.getAddIndexStatus().setDocumentCount(totalCount);
+			collectionStatus.getAddIndexStatus().setUpdateCount(updateCount);
+			collectionStatus.getAddIndexStatus().setDeleteCount(deleteCount);
+			collectionStatus.getAddIndexStatus().setStartTime(Formatter.formatDate(new Date(startTime)));
+			collectionStatus.getAddIndexStatus().setEndTime(Formatter.formatDate(new Date(endTime)));
+			collectionStatus.getAddIndexStatus().setDuration(Formatter.getFormatTime(endTime - startTime));
+		}
 	}
+
+	public void addSegmentInfo(SegmentInfo segmentInfo) {
+		dataInfo.getSegmentInfoList().add(segmentInfo);
+	}		
 }

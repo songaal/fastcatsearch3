@@ -31,7 +31,7 @@ import org.fastcatsearch.datasource.reader.SourceReader;
 import org.fastcatsearch.datasource.reader.SourceReaderFactory;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.DataPlanConfig;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.io.DataInput;
@@ -161,7 +161,7 @@ public class NodeFullIndexJob extends StreamableJob {
 			//
 			Collection<File> files = FileUtils.listFiles(segmentDir, null, true);
 			//add collection.info 파일
-			File collectionInfoFile = new File(collectionDataDir, IRFileName.collectionInfoFile);
+			File collectionInfoFile = new File(collectionDataDir, IndexFileNames.collectionInfoFile);
 			files.add(collectionInfoFile);
 			int totalFileCount = files.size();
 

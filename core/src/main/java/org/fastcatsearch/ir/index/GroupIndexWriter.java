@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexReader;
@@ -94,20 +94,20 @@ public class GroupIndexWriter {
 		fieldSettingList = new FieldSetting[fieldSize];
 		fieldSequenceList = new int[fieldSize];
 
-		groupDataOutput = new BufferedFileOutput(dir, IRFileName.groupDataFile, isAppend);
+		groupDataOutput = new BufferedFileOutput(dir, IndexFileNames.groupDataFile, isAppend);
 
 		String id = groupIndexSetting.getId();
 
 		if (isAppend) {
-			groupMapOutput = new BufferedFileOutput(IRFileName.getRevisionDir(dir, revision), IRFileName.getTempFileName(IRFileName
-					.getSuffixFileName(IRFileName.groupKeyMap, id)));
-			groupMapIndexOutput = new BufferedFileOutput(IRFileName.getRevisionDir(dir, revision), IRFileName.getTempFileName(IRFileName
-					.getSuffixFileName(IRFileName.groupKeyMapIndex, id)));
+			groupMapOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.getTempFileName(IndexFileNames
+					.getSuffixFileName(IndexFileNames.groupKeyMap, id)));
+			groupMapIndexOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.getTempFileName(IndexFileNames
+					.getSuffixFileName(IndexFileNames.groupKeyMapIndex, id)));
 			// read previous pkmap
-			File prevDir = IRFileName.getRevisionDir(dir, revision - 1);
+			File prevDir = IndexFileNames.getRevisionDir(dir, revision - 1);
 
 			/* READ Group Info */
-			IndexInput groupInfoInput = new BufferedFileInput(prevDir, IRFileName.groupInfoFile);
+			IndexInput groupInfoInput = new BufferedFileInput(prevDir, IndexFileNames.groupInfoFile);
 			int fieldCount = groupInfoInput.readInt();
 
 			pkReaderList = new PrimaryKeyIndexReader[fieldSize];
@@ -127,17 +127,17 @@ public class GroupIndexWriter {
 				if (i < fieldCount - 1) {
 					endPos = dataBasePositionList[i + 1];
 				}
-				pkReaderList[i] = new PrimaryKeyIndexReader(prevDir, IRFileName.getSuffixFileName(IRFileName.groupKeyMap, id),
+				pkReaderList[i] = new PrimaryKeyIndexReader(prevDir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyMap, id),
 						dataBasePositionList[i], endPos, indexBasePositionList[i]);
 				// 이전 번호이후부터 그룹번호 부여.
 				groupNumber[i] = pkReaderList[i].count();
 			}
 
 		} else {
-			groupMapOutput = new BufferedFileOutput(IRFileName.getRevisionDir(dir, revision),
-					IRFileName.getSuffixFileName(IRFileName.groupKeyMap, id));
-			groupMapIndexOutput = new BufferedFileOutput(IRFileName.getRevisionDir(dir, revision), IRFileName.getSuffixFileName(
-					IRFileName.groupKeyMapIndex, id));
+			groupMapOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(dir, revision),
+					IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyMap, id));
+			groupMapIndexOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.getSuffixFileName(
+					IndexFileNames.groupKeyMapIndex, id));
 		}
 
 		tempKeyIndexList = new PrimaryKeyIndexWriter[fieldSize];
@@ -149,10 +149,10 @@ public class GroupIndexWriter {
 
 		for (int idx = 0; idx < fieldSize; idx++) {
 			if (fieldSettingList[idx].isVariableField()) {
-				keyOutputList[idx] = new VariableDataOutput(dir, IRFileName.getSuffixFileName(IRFileName.groupKeyFile, id, Integer.toString(idx)),
+				keyOutputList[idx] = new VariableDataOutput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyFile, id, Integer.toString(idx)),
 						isAppend);
 			} else {
-				keyOutputList[idx] = new FixedDataOutput(dir, IRFileName.getSuffixFileName(IRFileName.groupKeyFile, id, Integer.toString(idx)),
+				keyOutputList[idx] = new FixedDataOutput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyFile, id, Integer.toString(idx)),
 						isAppend);
 			}
 			tempKeyIndexList[idx] = new PrimaryKeyIndexWriter(null, null, indexInterval, bucketSize);
@@ -169,7 +169,7 @@ public class GroupIndexWriter {
 		}
 
 		if (hasMultiValue) {
-			multiValueOutput = new BufferedFileOutput(dir, IRFileName.getMultiValueSuffixFileName(IRFileName.groupDataFile, id), isAppend);
+			multiValueOutput = new BufferedFileOutput(dir, IndexFileNames.getMultiValueSuffixFileName(IndexFileNames.groupDataFile, id), isAppend);
 		}
 
 		keyBuffer = new BytesDataOutput();
@@ -259,10 +259,10 @@ public class GroupIndexWriter {
 			groupMapIndexOutput.close();
 
 			if (isAppend) {
-				File tempGroupMapIndexFile = new File(IRFileName.getRevisionDir(baseDir, revision),
-						IRFileName.getTempFileName(IRFileName.groupKeyMapIndex));
+				File tempGroupMapIndexFile = new File(IndexFileNames.getRevisionDir(baseDir, revision),
+						IndexFileNames.getTempFileName(IndexFileNames.groupKeyMapIndex));
 				tempGroupMapIndexFile.delete();
-				File tempPkFile = new File(IRFileName.getRevisionDir(baseDir, revision), IRFileName.getTempFileName(IRFileName.groupKeyMap));
+				File tempPkFile = new File(IndexFileNames.getRevisionDir(baseDir, revision), IndexFileNames.getTempFileName(IndexFileNames.groupKeyMap));
 				tempPkFile.delete();
 			}
 			return;
@@ -273,7 +273,7 @@ public class GroupIndexWriter {
 		 */
 		long[] currentDataPosition = new long[fieldSize];
 
-		IndexOutput groupInfoOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, revision), IRFileName.groupInfoFile);
+		IndexOutput groupInfoOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(baseDir, revision), IndexFileNames.groupInfoFile);
 		groupInfoOutput.writeInt(fieldSize);
 
 		for (int idx = 0; idx < fieldSize; idx++) {
@@ -302,16 +302,16 @@ public class GroupIndexWriter {
 		groupMapIndexOutput.close();
 
 		if (isAppend) {
-			File tempGroupMapIndexkFile = new File(IRFileName.getRevisionDir(baseDir, revision),
-					IRFileName.getTempFileName(IRFileName.groupKeyMapIndex));
+			File tempGroupMapIndexkFile = new File(IndexFileNames.getRevisionDir(baseDir, revision),
+					IndexFileNames.getTempFileName(IndexFileNames.groupKeyMapIndex));
 			tempGroupMapIndexkFile.delete();
 
 			// right after group setting count
 			groupInfoOutput.seek(IOUtil.SIZE_OF_INT);
 
 			// read previous pkinfo
-			File prevDir = IRFileName.getRevisionDir(baseDir, revision - 1);
-			IndexInput prevGroupInfoInput = new BufferedFileInput(prevDir, IRFileName.groupInfoFile);
+			File prevDir = IndexFileNames.getRevisionDir(baseDir, revision - 1);
+			IndexInput prevGroupInfoInput = new BufferedFileInput(prevDir, IndexFileNames.groupInfoFile);
 			int fieldCount = prevGroupInfoInput.readInt();
 
 			long[] prevDataPosition = new long[fieldSize];
@@ -326,11 +326,11 @@ public class GroupIndexWriter {
 			prevGroupInfoInput.close();
 
 			// pkindex merge
-			File tempPkFile = new File(IRFileName.getRevisionDir(baseDir, revision), IRFileName.getTempFileName(IRFileName.groupKeyMap));
-			File prevPkFile = new File(IRFileName.getRevisionDir(baseDir, revision - 1), IRFileName.groupKeyMap);
+			File tempPkFile = new File(IndexFileNames.getRevisionDir(baseDir, revision), IndexFileNames.getTempFileName(IndexFileNames.groupKeyMap));
+			File prevPkFile = new File(IndexFileNames.getRevisionDir(baseDir, revision - 1), IndexFileNames.groupKeyMap);
 
-			IndexOutput output = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, revision), IRFileName.groupKeyMap);
-			IndexOutput indexOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, revision), IRFileName.groupKeyMapIndex);
+			IndexOutput output = new BufferedFileOutput(IndexFileNames.getRevisionDir(baseDir, revision), IndexFileNames.groupKeyMap);
+			IndexOutput indexOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(baseDir, revision), IndexFileNames.groupKeyMapIndex);
 
 			PrimaryKeyIndexMerger primaryKeyIndexMerger = new PrimaryKeyIndexMerger();
 			for (int i = 0; i < fieldSize; i++) {

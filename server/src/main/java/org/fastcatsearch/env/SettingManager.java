@@ -1,10 +1,10 @@
 package org.fastcatsearch.env;
 
-import static org.fastcatsearch.env.FileNames.bakupSuffix;
-import static org.fastcatsearch.env.FileNames.datasourceFilename;
-import static org.fastcatsearch.env.FileNames.schemaFilename;
-import static org.fastcatsearch.env.FileNames.schemaObject;
-import static org.fastcatsearch.env.FileNames.schemaWorkFilename;
+import static org.fastcatsearch.env.SettingFileNames.bakupSuffix;
+import static org.fastcatsearch.env.SettingFileNames.datasource;
+import static org.fastcatsearch.env.SettingFileNames.schema;
+import static org.fastcatsearch.env.SettingFileNames.schemaObject;
+import static org.fastcatsearch.env.SettingFileNames.workSchema;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -142,19 +142,19 @@ public class SettingManager {
 	public Settings getSettings() {
 		//load config file
 		Settings serverSettings = null;
-		synchronized(FileNames.serverConfig){
-			Object obj = getFromCache(FileNames.serverConfig);
+		synchronized(SettingFileNames.serverConfig){
+			Object obj = getFromCache(SettingFileNames.serverConfig);
 			if(obj != null){
 				return (Settings) obj;
 			}
-			File configFile = environment.filePaths().path("conf", FileNames.serverConfig).file();
+			File configFile = environment.filePaths().path("conf", SettingFileNames.serverConfig).file();
 	        InputStream input = null;
 	        try{
 	        	Yaml yaml = new Yaml();
 	        	input = new FileInputStream(configFile);
 	        	Map<String, Object> data = (Map<String, Object>) yaml.load(input);
 	        	serverSettings = new Settings(data);
-	        	putToCache(serverSettings, FileNames.serverConfig);
+	        	putToCache(serverSettings, SettingFileNames.serverConfig);
 	        } catch (FileNotFoundException e) {
 	        	logger.error("설정파일을 찾을수 없습니다. file = {}", configFile.getAbsolutePath());
 			} finally {

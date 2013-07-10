@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
@@ -57,7 +57,7 @@ public class FieldIndexWriter {
 		fieldSize = refSettingList.size();
 		fieldSequenceList = new int[fieldSize];
 		String id = fieldIndexSetting.getId();
-		output = new BufferedFileOutput(dir, IRFileName.getSuffixFileName(IRFileName.fieldIndexFile, id), isAppend);
+		output = new BufferedFileOutput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.fieldIndexFile, id), isAppend);
 		
 		for (int idx = 0; idx < fieldSize; idx++) {
 			RefSetting rs = refSettingList.get(idx);
@@ -70,7 +70,7 @@ public class FieldIndexWriter {
 			fieldSequenceList[idx] = fieldSequenceMap.get(fieldId);
 		}
 		if(hasMultiValue){
-			multiValueOutput = new BufferedFileOutput(dir, IRFileName.getMultiValueSuffixFileName(IRFileName.fieldIndexFile, id), isAppend);
+			multiValueOutput = new BufferedFileOutput(dir, IndexFileNames.getMultiValueSuffixFileName(IndexFileNames.fieldIndexFile, id), isAppend);
 		}
 	}
 	

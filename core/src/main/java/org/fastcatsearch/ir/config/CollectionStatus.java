@@ -7,8 +7,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 /**
 <collection-status>
 	<data-status sequence="2"/>
-	<index-full documents="50" start="2013-05-20 13:03:32" end="2013-05-20 13:03:32" duration="365ms" />
-	<index-add documents="5" start="2013-05-20 13:03:32" end="2013-05-20 13:03:32" duration="365ms" />	
+	<index-full documents="50" updates ="1" deletes="20" start="2013-05-20 13:03:32" end="2013-05-20 13:03:32" duration="365ms" />
+	<index-add documents="5" updates ="1" deletes="20" start="2013-05-20 13:03:32" end="2013-05-20 13:03:32" duration="365ms" />	
 </collection-status>
  * */
 @XmlRootElement(name = "collection-status")
@@ -71,6 +71,8 @@ public class CollectionStatus {
 	
 	public class IndexStatus {
 		private int documentCount;
+		private int updateCount;
+		private int deleteCount;
 		private String startTime;
 		private String endTime;
 		private String duration;
@@ -82,6 +84,22 @@ public class CollectionStatus {
 		}
 		public void setDocumentCount(int documentCount) {
 			this.documentCount = documentCount;
+		}
+		
+		@XmlAttribute(name="updates")
+		public int getUpdateCount() {
+			return updateCount;
+		}
+		public void setUpdateCount(int updateCount) {
+			this.updateCount = updateCount;
+		}
+		
+		@XmlAttribute(name="deletes")
+		public int getDeleteCount() {
+			return deleteCount;
+		}
+		public void setDeleteCount(int deleteCount) {
+			this.deleteCount = deleteCount;
 		}
 		
 		@XmlAttribute(name="start")

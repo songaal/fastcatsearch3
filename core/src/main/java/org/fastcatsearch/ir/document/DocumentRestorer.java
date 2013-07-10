@@ -23,7 +23,7 @@ import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.BytesDataInput;
@@ -45,8 +45,8 @@ public class DocumentRestorer {
 	
 	public void setSize(int newSize) throws IRException, IOException{
 		
-		IndexInput docInput = new BufferedFileInput(dir, IRFileName.docStored);
-		IndexInput positionInput = new BufferedFileInput(dir, IRFileName.docPosition);
+		IndexInput docInput = new BufferedFileInput(dir, IndexFileNames.docStored);
+		IndexInput positionInput = new BufferedFileInput(dir, IndexFileNames.docPosition);
 		
 		//check document count and block size
 		int prevDocumentCount = docInput.readInt();
@@ -68,7 +68,7 @@ public class DocumentRestorer {
 		
 		if(newSize % blockSize == 0){
 			docInput.close();
-			IndexOutput out = new BufferedFileOutput(dir, IRFileName.docStored, true);
+			IndexOutput out = new BufferedFileOutput(dir, IndexFileNames.docStored, true);
 			out.seek(0);
 			out.writeInt(newSize);
 			out.setLength(pos + len);
@@ -106,7 +106,7 @@ public class DocumentRestorer {
 			
 			int compressedDataLength = compresser.deflate(defOutput);
 			
-			IndexOutput out = new BufferedFileOutput(dir, IRFileName.docStored, true);
+			IndexOutput out = new BufferedFileOutput(dir, IndexFileNames.docStored, true);
 			out.seek(0);
 			out.writeInt(newSize);
 			out.setLength(pos);

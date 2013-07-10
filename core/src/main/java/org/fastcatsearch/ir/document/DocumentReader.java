@@ -23,12 +23,13 @@ import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
 import org.apache.lucene.util.BytesRef;
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BytesDataInput;
 import org.fastcatsearch.ir.io.ByteRefArrayOutputStream;
 import org.fastcatsearch.ir.io.IOUtil;
+import org.fastcatsearch.ir.io.IndexInput;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.slf4j.Logger;
@@ -37,12 +38,12 @@ import org.slf4j.LoggerFactory;
 
 
 
-public class DocumentReader {
+public class DocumentReader implements Cloneable {
 	private static Logger logger = LoggerFactory.getLogger(DocumentReader.class);
 	
 	private List<FieldSetting> fields;
-	private BufferedFileInput docInput;
-	private BufferedFileInput positionInput;
+	private IndexInput docInput;
+	private IndexInput positionInput;
 	private ByteRefArrayOutputStream inflaterOutput;
 	private final byte[] workingBuffer;
 	private byte[] docReadBuffer;
@@ -52,20 +53,34 @@ public class DocumentReader {
 	private int lastDocNo = -1;
 	private BytesDataInput lastBai;
 	
-	public DocumentReader(Schema schema, File dir) throws IOException{
+	public DocumentReader(Schema schema, File dir) throws IOException {
 		this(schema, dir, 0);
 	}
-	public DocumentReader(Schema schema, File dir, int baseDocNo) throws IOException{
+	public DocumentReader(Schema schema, File dir, int baseDocNo) throws IOException {
 		this.baseDocNo = baseDocNo;				
 		fields = schema.schemaSetting().getFieldSettingList();
-		docInput = new BufferedFileInput(dir, IRFileName.docStored);
-		positionInput = new BufferedFileInput(dir, IRFileName.docPosition);
+		docInput = new BufferedFileInput(dir, IndexFileNames.docStored);
+		positionInput = new BufferedFileInput(dir, IndexFileNames.docPosition);
 		inflaterOutput = new ByteRefArrayOutputStream(3 * 1024 * 1024); //자동 증가됨.
 		documentCount = docInput.readInt();
 		logger.info("DocumentCount = {}", documentCount);
 		workingBuffer = new byte[1024];
 		docReadBuffer = new byte[3 * 1024 * 1024];
 	}
+	
+	//clone용도.
+	public DocumentReader(List<FieldSetting> fields, IndexInput docInput, IndexInput positionInput, int baseDocNo, int documentCount) {
+		this.fields = fields;
+		this.docInput = docInput;
+		this.positionInput = positionInput;
+		this.baseDocNo = baseDocNo;
+		this.documentCount = documentCount;
+		
+		inflaterOutput = new ByteRefArrayOutputStream(3 * 1024 * 1024); //자동 증가됨.
+		workingBuffer = new byte[1024];
+		docReadBuffer = new byte[3 * 1024 * 1024];
+	}
+	
 	
 	public int getDocumentCount(){
 		return documentCount;
@@ -135,6 +150,10 @@ public class DocumentReader {
 		
 	}
 	
+	@Override
+	public DocumentReader clone(){
+		return new DocumentReader(fields, docInput, positionInput, baseDocNo, documentCount);
+	}
 	public void close() throws IOException{
 		docInput.close();
 		positionInput.close();

@@ -4,14 +4,14 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.lucene.util.BytesRef;
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 
 public class FixedDataInput implements SequencialDataInput {
 	private IndexInput dataInput;
 	private int dataSize;
 	
 	public FixedDataInput(File dir, String fileName, int dataSize) throws IOException{
-		File dataFile = new File(dir, IRFileName.getSuffixFileName(fileName, "data"));
+		File dataFile = new File(dir, IndexFileNames.getSuffixFileName(fileName, "data"));
 		dataInput = new BufferedFileInput(dataFile);
 		this.dataSize = dataSize;
 	}

@@ -19,7 +19,7 @@ package org.fastcatsearch.ir.index;
 import java.io.File;
 import java.io.IOException;
 
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +32,7 @@ public class SegmentInfoWriter {
 	
 	public SegmentInfoWriter(File segmentDir) throws IOException {
 		this.segmentDir = segmentDir;
-		segmentInfoOutput = new BufferedFileOutput(segmentDir, IRFileName.segmentInfoFile);
+		segmentInfoOutput = new BufferedFileOutput(segmentDir, IndexFileNames.segmentInfoFile);
 	}
 	
 	public void close() throws IOException{
@@ -47,16 +47,16 @@ public class SegmentInfoWriter {
 		segmentInfoOutput.writeLong(currentTimeMillis);
 		logger.debug("segment write baseDoc={}, count={}, revision={}, doc={}, store={}, group = {}"
 				, baseDocNo, docCount, revision
-				, new File(segmentDir, IRFileName.docPosition).length()
-				, new File(segmentDir, IRFileName.docStored).length()
-				, new File(segmentDir, IRFileName.groupDataFile).length());
-		segmentInfoOutput.writeLong(new File(segmentDir, IRFileName.docPosition).length());
-		segmentInfoOutput.writeLong(new File(segmentDir, IRFileName.docStored).length()); //need to modify doc count, when rollback
-		segmentInfoOutput.writeLong(new File(segmentDir, IRFileName.groupDataFile).length());
+				, new File(segmentDir, IndexFileNames.docPosition).length()
+				, new File(segmentDir, IndexFileNames.docStored).length()
+				, new File(segmentDir, IndexFileNames.groupDataFile).length());
+		segmentInfoOutput.writeLong(new File(segmentDir, IndexFileNames.docPosition).length());
+		segmentInfoOutput.writeLong(new File(segmentDir, IndexFileNames.docStored).length()); //need to modify doc count, when rollback
+		segmentInfoOutput.writeLong(new File(segmentDir, IndexFileNames.groupDataFile).length());
 		//group.key
 		int cnt = 0;
 		for (;;) {
-			File f0 = new File(segmentDir, IRFileName.getSuffixFileName(IRFileName.groupKeyFile, Integer.toString(cnt)));
+			File f0 = new File(segmentDir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyFile, Integer.toString(cnt)));
 			if(!f0.exists()){
 				break;
 			}else{
@@ -65,11 +65,11 @@ public class SegmentInfoWriter {
 		}
 		segmentInfoOutput.writeInt(cnt);
 		for (int i = 0; i < cnt; i++) {
-			segmentInfoOutput.writeLong(new File(segmentDir, IRFileName.getSuffixFileName(IRFileName.groupKeyFile, Integer.toString(i))).length());
+			segmentInfoOutput.writeLong(new File(segmentDir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyFile, Integer.toString(i))).length());
 		}
 		
 		//필드색인파일.
-		segmentInfoOutput.writeLong(new File(segmentDir, IRFileName.fieldIndexFile).length());
+		segmentInfoOutput.writeLong(new File(segmentDir, IndexFileNames.fieldIndexFile).length());
 	}
 	
 }

@@ -314,9 +314,9 @@ public abstract class DataInput extends InputStream implements Cloneable {
 	 * stream they were cloned from.
 	 */
 	@Override
-	public IndexInput clone() {
+	public DataInput clone() {
 		try {
-			return (IndexInput) super.clone();
+			return (DataInput) super.clone();
 		} catch (CloneNotSupportedException e) {
 			throw new Error("This cannot happen: Failing to clone DataInput");
 		}

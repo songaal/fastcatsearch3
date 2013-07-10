@@ -21,11 +21,11 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
+import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.document.DocumentWriter;
-import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
 import org.slf4j.Logger;
@@ -59,7 +59,7 @@ public class SegmentAppender {
 		try{
 			segmentInfo = new SegmentInfo(-1, targetDir);
 			
-			IRFileName.getRevisionDir(targetDir, revision).mkdirs();
+			IndexFileNames.getRevisionDir(targetDir, revision).mkdirs();
 			
 			documentWriter = new DocumentWriter(schema, targetDir, indexConfig, true);
 			searchIndexesWriter = new SearchIndexesWriter(schema, targetDir, revision, indexConfig);
@@ -102,7 +102,7 @@ public class SegmentAppender {
 		return documentWriter.getDuplicateDocCount();
 	}
 	
-	public void close() throws IOException, IRException{
+	public SegmentInfo close() throws IOException, IRException{
 		boolean errorOccured = false;
 		try{
 			documentWriter.close();
@@ -131,7 +131,7 @@ public class SegmentAppender {
 		
 		if(count == 0 || errorOccured){
 			//delete new revisin dir
-			File revisionDir = IRFileName.getRevisionDir(targetDir, revision);
+			File revisionDir = IndexFileNames.getRevisionDir(targetDir, revision);
 			FileUtils.deleteDirectory(revisionDir);
 			return;
 		}
@@ -141,8 +141,8 @@ public class SegmentAppender {
 		segmentInfoWriter.close();
 		
 		//backup a original copy of current revision's segment.info
-		File f = new File(targetDir, IRFileName.segmentInfoFile);
-		File revisionDir = IRFileName.getRevisionDir(targetDir, revision);
+		File f = new File(targetDir, IndexFileNames.segmentInfoFile);
+		File revisionDir = IndexFileNames.getRevisionDir(targetDir, revision);
 //		logger.debug("segminfo = "+f.getAbsolutePath());
 		FileUtils.copyFileToDirectory(f, revisionDir);
 		

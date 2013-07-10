@@ -63,6 +63,9 @@ public class Formatter {
 	 * @param date
 	 * @return
 	 */
+	public static String formatDate() {
+		return formatDate(new Date());
+	}
 	public static String formatDate(Date date) {
 		return DATEFORMAT_DEFAULT_FORMAT.format(date);
 	}

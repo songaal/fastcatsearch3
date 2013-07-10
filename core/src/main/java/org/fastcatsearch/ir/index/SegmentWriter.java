@@ -18,10 +18,12 @@ package org.fastcatsearch.ir.index;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
+import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.document.DocumentWriter;
@@ -62,7 +64,7 @@ public class SegmentWriter {
 			this.targetDir = targetDir;
 			this.baseDocNo = docBaseNo;
 			//make a default 0 revision directory
-			IRFileName.getRevisionDir(targetDir, REVISION).mkdirs();
+			IndexFileNames.getRevisionDir(targetDir, REVISION).mkdirs();
 			boolean isAppend = false;
 			if (revision > 0){
 				isAppend = true;
@@ -145,7 +147,7 @@ public class SegmentWriter {
 		return documentWriter.getDuplicateDocCount();
 	}
 	
-	public void close() throws IOException, IRException{
+	public SegmentInfo close() throws IOException, IRException{
 		boolean errorOccured = false;
 		Exception exception = null;
 		try{
@@ -177,34 +179,41 @@ public class SegmentWriter {
 			errorOccured = true;
 		}
 		
+		SegmentInfo segmentInfo = new SegmentInfo();
+		segmentInfo.update(REVISION, lastDocNo, documentWriter.getDuplicateDocCount(), Formatter.formatDate());
+		
 		
 		//
 		//문서가 0건일 경우 새로생성한 리비전 디렉토리를 삭제하고
 		// SegmentInfo를 업데이트 하지 않는다.
 		//
-		if(lastDocNo == 0){
-			File revisionDir = IRFileName.getRevisionDir(targetDir, REVISION);
-			FileUtils.deleteDirectory(revisionDir);
-			return;
-		}
+//		if(lastDocNo == 0){
+//			File revisionDir = IRFileName.getRevisionDir(targetDir, REVISION);
+//			FileUtils.deleteDirectory(revisionDir);
+//			return;
+//		}
 		
 		if(errorOccured){
-			File revisionDir = IRFileName.getRevisionDir(targetDir, REVISION);
+			File revisionDir = IndexFileNames.getRevisionDir(targetDir, REVISION);
 			FileUtils.deleteDirectory(revisionDir);
 			throw new IRException(exception);
 		}
 		
 		
-		SegmentInfoWriter segmentInfoWriter = new SegmentInfoWriter(targetDir);
-		segmentInfoWriter.write(baseDocNo, lastDocNo, REVISION, System.currentTimeMillis());
-		segmentInfoWriter.close();
-		File f = new File(targetDir, IRFileName.segmentInfoFile);
-		File revisionDir = IRFileName.getRevisionDir(targetDir, REVISION);
-		FileUtils.copyFileToDirectory(f, revisionDir);
+//		SegmentInfoWriter segmentInfoWriter = new SegmentInfoWriter(targetDir);
+//		segmentInfoWriter.write(baseDocNo, lastDocNo, REVISION, System.currentTimeMillis());
+//		segmentInfoWriter.close();
+//		File f = new File(targetDir, IRFileName.segmentInfoFile);
+//		File revisionDir = IRFileName.getRevisionDir(targetDir, REVISION);
+//		FileUtils.copyFileToDirectory(f, revisionDir);
+		
+		
 		
 		logger.info("Total {} documents indexed, elapsed = {}, mem = {}",
 				new Object[]{lastDocNo, Formatter.getFormatTime(System.currentTimeMillis() - startTime), Formatter.getFormatSize(Runtime.getRuntime().totalMemory())});
 		
+		
+		return segmentInfo;
 	}
 	
 }

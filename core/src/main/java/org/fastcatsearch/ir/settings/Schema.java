@@ -136,5 +136,16 @@ public class Schema {
 	public int getFieldSize(){
 		return fieldSettingMap.size();
 	}
+
+	public void update(Schema other) {
+		this.collectionId = other.collectionId;
+		this.schemaSetting = other.schemaSetting;
+		this.fieldSequenceMap = other.fieldSequenceMap;
+		this.searchIndexSequenceMap = other.searchIndexSequenceMap;
+		this.fieldIndexSequenceMap = other.fieldIndexSequenceMap;
+		this.groupIndexSequenceMap = other.groupIndexSequenceMap;
+		this.fieldSettingMap = other.fieldSettingMap;
+		this.analyzerPoolManager = other.analyzerPoolManager;
+	}
 	
 }

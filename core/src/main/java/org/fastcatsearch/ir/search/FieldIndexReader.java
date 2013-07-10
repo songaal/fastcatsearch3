@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.DataRef;
 import org.fastcatsearch.ir.io.IOUtil;
@@ -82,9 +82,9 @@ public class FieldIndexReader extends ReferencableIndexReader {
 			}
     	}
     	
-    	indexInput = new BufferedFileInput(dir, IRFileName.getSuffixFileName(IRFileName.fieldIndexFile, id));
+    	indexInput = new BufferedFileInput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.fieldIndexFile, id));
     	if(hasMultiValue){
-    		multiValueInput = new BufferedFileInput(dir, IRFileName.getMultiValueSuffixFileName(IRFileName.fieldIndexFile, id));
+    		multiValueInput = new BufferedFileInput(dir, IndexFileNames.getMultiValueSuffixFileName(IndexFileNames.fieldIndexFile, id));
     	}
     	
     	//multivalue용도..

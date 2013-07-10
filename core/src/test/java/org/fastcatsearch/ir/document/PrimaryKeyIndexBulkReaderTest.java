@@ -21,7 +21,7 @@ import java.io.IOException;
 
 import junit.framework.TestCase;
 
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IOUtil;
 
@@ -36,7 +36,7 @@ public class PrimaryKeyIndexBulkReaderTest extends TestCase{
 		int indexNum = 2;
 		int segmentNumber = 1;
 		File readDir= null;// new File(IRSettings.getSegmentPath(collection, indexNum, segmentNumber));
-		PrimaryKeyIndexBulkReader reader = new PrimaryKeyIndexBulkReader(readDir, IRFileName.primaryKeyMap);
+		PrimaryKeyIndexBulkReader reader = new PrimaryKeyIndexBulkReader(readDir, IndexFileNames.primaryKeyMap);
 		BytesBuffer buf =  new BytesBuffer(1024 * 8);
 		int docNo = -1;
 		while((docNo = reader.next(buf)) != -1){

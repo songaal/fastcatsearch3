@@ -82,7 +82,7 @@ public class RebuildIndexJob extends Job {
 //			writer.close();
 			
 			//apply schema setting
-			IRSettings.applyWorkSchemaFile(collection);
+			IRSettings.applyWorkSchemaFile();
 			
 			Schema newSchema = IRSettings.getSchema(collectionHomeDir, false);
 //			CollectionHandler newHandler = new CollectionHandler(collection, new File(collectionHomeDir), newSchema, IRSettings.getIndexConfig());

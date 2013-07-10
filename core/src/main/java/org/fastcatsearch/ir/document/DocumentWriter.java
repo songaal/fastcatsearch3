@@ -23,7 +23,7 @@ import java.util.zip.Deflater;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.io.BitSet;
@@ -96,8 +96,8 @@ public class DocumentWriter {
 			}
 		}
 		
-		docOutput = new BufferedFileOutput(dir, IRFileName.docStored, isAppend);
-		positionOutput = new BufferedFileOutput(dir, IRFileName.docPosition, isAppend);
+		docOutput = new BufferedFileOutput(dir, IndexFileNames.docStored, isAppend);
+		positionOutput = new BufferedFileOutput(dir, IndexFileNames.docPosition, isAppend);
 
 		indexInterval = indexConfig.getPkTermInterval();
 		int bucketSize = indexConfig.getPkBucketSize();
@@ -106,10 +106,10 @@ public class DocumentWriter {
 		// 증분수집일 경우, pk를 나중에 쉽게 읽을 수 있도록 임시벌크파일 형태로 기록한다.
 		//
 		if (isAppend) {
-			pkIndexWriter = new PrimaryKeyIndexWriter(revisionDir, IRFileName.getTempFileName(IRFileName.primaryKeyMap), indexInterval, bucketSize);
+			pkIndexWriter = new PrimaryKeyIndexWriter(revisionDir, IndexFileNames.getTempFileName(IndexFileNames.primaryKeyMap), indexInterval, bucketSize);
 		} else {
 			// 전체색인의 경우는 이후에 다시 작업할 일이 없으므로, 완전한 pk map파일로 기록한다.
-			pkIndexWriter = new PrimaryKeyIndexWriter(revisionDir, IRFileName.primaryKeyMap, indexInterval, bucketSize);
+			pkIndexWriter = new PrimaryKeyIndexWriter(revisionDir, IndexFileNames.primaryKeyMap, indexInterval, bucketSize);
 		}
 
 		fbaos = new BytesDataOutput(3 * 1024 * 1024); //초기 3Mb로 시작.
@@ -122,15 +122,15 @@ public class DocumentWriter {
 			// DocumentWriter.close()시 이전 rev와 새 rev의 중복되는 문서를
 			// delete처리해준다.
 //			File prevDelete = new File(IRFileName.getRevisionDir(dir, revision - 1), IRFileName.docDeleteSet);
-			File prevDelete = new File(revisionDir, IRFileName.docDeleteSet);
+			File prevDelete = new File(revisionDir, IndexFileNames.docDeleteSet);
 			FileUtils.copyFileToDirectory(prevDelete, revisionDir);
-			deleteSet = new BitSet(revisionDir, IRFileName.docDeleteSet);
+			deleteSet = new BitSet(revisionDir, IndexFileNames.docDeleteSet);
 			
-			IndexInput docInput = new BufferedFileInput(dir, IRFileName.docStored);
+			IndexInput docInput = new BufferedFileInput(dir, IndexFileNames.docStored);
 			localDocNo = docInput.readInt();
 			docInput.close();
 		} else {
-			deleteSet = new BitSet(revisionDir, IRFileName.docDeleteSet);
+			deleteSet = new BitSet(revisionDir, IndexFileNames.docDeleteSet);
 
 			docOutput.writeInt(0); // document count
 		}

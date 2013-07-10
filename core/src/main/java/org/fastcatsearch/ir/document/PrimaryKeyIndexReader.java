@@ -22,6 +22,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.fastcatsearch.ir.io.BufferedFileInput;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.Input;
 import org.fastcatsearch.ir.io.IndexInput;
 import org.slf4j.Logger;
@@ -96,6 +97,11 @@ public class PrimaryKeyIndexReader implements Cloneable {
 	public int get(byte[] data) throws IOException{
 		return get(data, 0, data.length);
 	}
+	
+	public int get(BytesBuffer bytesBuffer) throws IOException{
+		return get(bytesBuffer.bytes, bytesBuffer.offset, bytesBuffer.length);
+	}
+	
 	
 	public int get(byte[] data, int offset, int length) throws IOException{
 		//if index is empty, it has no entry.

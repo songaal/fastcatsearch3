@@ -8,8 +8,9 @@ import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.common.SettingException;
+import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.document.DocumentReader;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexReader;
@@ -73,7 +74,7 @@ public class CollectionSearcher {
 		if (segmentSize == 1) {
 			// 머징필요없음.
 			try {
-				GroupHit groupHit = collectionHandler.getSegmentSearcher(0).doGrouping(q);
+				GroupHit groupHit = collectionHandler.segmentSearcher(0).doGrouping(q);
 				// GroupHit groupHit = segmentSearcherList[0].doGrouping(q);
 				return groupHit.groupData();
 			} catch (IOException e) {
@@ -91,7 +92,7 @@ public class CollectionSearcher {
 			try {
 				for (int i = 0; i < segmentSize; i++) {
 					// GroupHit groupHit = segmentSearcherList[i].doGrouping(q);
-					GroupHit groupHit = collectionHandler.getSegmentSearcher(i).doGrouping(q);
+					GroupHit groupHit = collectionHandler.segmentSearcher(i).doGrouping(q);
 					// searchTotalSize += groupHit.searchTotalCount();
 
 					if (dataMerger != null) {
@@ -148,10 +149,10 @@ public class CollectionSearcher {
 		int totalSize = 0;
 		try {
 			for (int i = 0; i < segmentSize; i++) {
-				Hit hit = collectionHandler.getSegmentSearcher(i).search(q);
-				totalSize += hit.getTotalCount();
-				FixedHitReader hitReader = hit.getHitList().getReader();
-				GroupData groupData = hit.getGroupData();
+				Hit hit = collectionHandler.segmentSearcher(i).search(q);
+				totalSize += hit.totalCount();
+				FixedHitReader hitReader = hit.hitStack().getReader();
+				GroupData groupData = hit.groupData();
 
 				// posting data
 				if (hitReader.next()) {
@@ -213,8 +214,8 @@ public class CollectionSearcher {
 
 			// make doc number lists to send each columns
 			for (int m = segmentSize - 1; m >= 0; m--) {
-				if (docNo >= collectionHandler.getSegmentInfo(m).getBaseDocNo()) {
-					documentList.add(collectionHandler.getDocumentReader(m).readDocument(docNo));
+				if (docNo >= collectionHandler.segmentReader(m).segmentInfo().getBaseNumber()) {
+					documentList.add(collectionHandler.segmentReader(m).segmentSearcher().getDocument(docNo));
 					break;
 				}
 			}
@@ -256,7 +257,7 @@ public class CollectionSearcher {
 		int totalSize = 0;
 		try {
 			for (int i = 0; i < collectionHandler.segmentSize(); i++) {
-				Hit hit = collectionHandler.getSegmentSearcher(i).search(q);
+				Hit hit = collectionHandler.segmentSearcher(i).search(q);
 				// List<HighlightInfo> summaryList = hit.getSummary();
 				//
 				// for (int j = 0; j < summaryList.size(); j++) {
@@ -264,9 +265,9 @@ public class CollectionSearcher {
 				// logger.debug("HighlightInfo = {}", si);
 				// totalSummarySet.add(si);
 				// }
-				totalSize += hit.getTotalCount();
-				FixedHitReader hitReader = hit.getHitList().getReader();
-				GroupData groupData = hit.getGroupData();
+				totalSize += hit.totalCount();
+				FixedHitReader hitReader = hit.hitStack().getReader();
+				GroupData groupData = hit.groupData();
 
 				// posting data
 				if (hitReader.next()) {
@@ -384,14 +385,14 @@ public class CollectionSearcher {
 			// make doc number lists to send each columns
 			for (int m = collectionHandler.segmentSize() - 1; m >= 0; m--) {
 				// logger.debug("docNo="+docNo+" , segmentInfoList["+m+"].getBaseDocNo()="+segmentInfoList[m].getBaseDocNo());
-				if (docNo >= collectionHandler.getSegmentInfo(m).getBaseDocNo()) {
+				if (docNo >= collectionHandler.segmentReader(m).segmentInfo().getBaseNumber()) {
 					segmentNumber = m;
 					break;
 				}
 			}
 
 			eachDocIds[idx] = docNo;
-			Document doc = collectionHandler.getDocumentReader(segmentNumber).readDocument(docNo);
+			Document doc = collectionHandler.segmentReader(segmentNumber).segmentSearcher().getDocument(docNo);
 			doc.setScore(score);
 			eachDocList[idx] = doc;
 
@@ -563,12 +564,12 @@ public class CollectionSearcher {
 		ArrayList<Row> rowList = new ArrayList<Row>();
 
 		for (int i = 0; i < segmentSize; i++) {
-			int docCount = collectionHandler.getSegmentInfo(i).getDocCount();
+			int docCount = collectionHandler.segmentReader(i).segmentInfo().getDocCount();
 			totalSize += docCount;
 			segEndNums[i] = totalSize - 1;
 		}
 
-		SegmentInfo lastSegInfo = collectionHandler.getSegmentInfo(segmentSize - 1);
+		SegmentInfo lastSegInfo = collectionHandler.segmentReader(segmentSize - 1).segmentInfo();
 		if (lastSegInfo == null) {
 			logger.error("There is no indexed data.");
 			throw new IRException("색인된 데이터가 없습니다.");
@@ -594,9 +595,9 @@ public class CollectionSearcher {
 			BitSet deleteSet = null;
 			// 마지막 세그먼트(현재세그먼트)이면 숫자 suffix없이 삭제문서파일을 읽는다.
 			if (segNo == segmentSize - 1) {
-				deleteSet = new BitSet(IRFileName.getRevisionDir(lastSegDir, lastSegRevision), IRFileName.docDeleteSet);
+				deleteSet = new BitSet(IndexFileNames.getRevisionDir(lastSegDir, lastSegRevision), IndexFileNames.docDeleteSet);
 			} else {
-				deleteSet = new BitSet(IRFileName.getRevisionDir(lastSegDir, lastSegRevision), IRFileName.getSuffixFileName(IRFileName.docDeleteSet,
+				deleteSet = new BitSet(IndexFileNames.getRevisionDir(lastSegDir, lastSegRevision), IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet,
 						Integer.toString(segNo)));
 			}
 
@@ -677,10 +678,10 @@ public class CollectionSearcher {
 			BitSet deleteSet = null;
 
 			if (i < segmentSize - 1) {
-				deleteSet = new BitSet(IRFileName.getRevisionDir(lastSegDir, lastSegRevision), IRFileName.getSuffixFileName(IRFileName.docDeleteSet,
+				deleteSet = new BitSet(IndexFileNames.getRevisionDir(lastSegDir, lastSegRevision), IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet,
 						Integer.toString(i)));
 			} else {
-				deleteSet = new BitSet(IRFileName.getRevisionDir(lastSegDir, lastSegRevision), IRFileName.docDeleteSet);
+				deleteSet = new BitSet(IndexFileNames.getRevisionDir(lastSegDir, lastSegRevision), IndexFileNames.docDeleteSet);
 			}
 			logger.debug("DELETE-{} {} >> {}", new Object[] { i, deleteSet, deleteSet.getEntry() });
 
@@ -703,7 +704,7 @@ public class CollectionSearcher {
 				field.writeTo(pkOutput);
 			}
 
-			PrimaryKeyIndexReader pkReader = new PrimaryKeyIndexReader(IRFileName.getRevisionDir(targetDir, lastRevision), IRFileName.primaryKeyMap);
+			PrimaryKeyIndexReader pkReader = new PrimaryKeyIndexReader(IndexFileNames.getRevisionDir(targetDir, lastRevision), IndexFileNames.primaryKeyMap);
 			docNo = pkReader.get(pkOutput.array(), 0, (int) pkOutput.position());
 			pkReader.close();
 

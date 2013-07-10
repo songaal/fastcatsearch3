@@ -4,15 +4,15 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.lucene.util.BytesRef;
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 
 public class VariableDataInput implements SequencialDataInput {
 	private IndexInput dataInput;
 	private IndexInput positionInput;
 	
 	public VariableDataInput(File dir, String fileName) throws IOException{
-		File dataFile = new File(dir, IRFileName.getSuffixFileName(fileName, "data"));
-		File positionFile = new File(dir, IRFileName.getSuffixFileName(fileName, "position"));
+		File dataFile = new File(dir, IndexFileNames.getSuffixFileName(fileName, "data"));
+		File positionFile = new File(dir, IndexFileNames.getSuffixFileName(fileName, "position"));
 		
 		dataInput = new BufferedFileInput(dataFile);
 		positionInput = new BufferedFileInput(positionFile);

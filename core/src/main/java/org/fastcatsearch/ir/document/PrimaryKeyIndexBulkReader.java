@@ -60,7 +60,7 @@ public class PrimaryKeyIndexBulkReader {
 		int len = input.readVInt();
 		buf.limit(len);
 		input.readBytes(buf);
-		buf.flip();
+//		buf.flip();
 		int docNo = input.readInt();
 	
 		return docNo;

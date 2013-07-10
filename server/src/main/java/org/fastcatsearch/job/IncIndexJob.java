@@ -17,14 +17,13 @@ import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.datasource.reader.SourceReader;
-import org.fastcatsearch.datasource.reader.SourceReaderFactory;
 import org.fastcatsearch.env.CollectionFilePaths;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexingType;
-import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.DataPlanConfig;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.IndexConfig;
@@ -32,7 +31,6 @@ import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.SegmentAppender;
 import org.fastcatsearch.ir.index.SegmentWriter;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.result.IndexingJobResult;
@@ -76,7 +74,7 @@ public class IncIndexJob extends IndexingJob {
 			}
 			
 			boolean isAppend = false;
-			SegmentInfo currentSegmentInfo = workingHandler.getLastSegmentInfo();
+			org.fastcatsearch.ir.config.DataInfo.SegmentInfo currentSegmentInfo = workingHandler.getLastSegmentInfo();
 			if(currentSegmentInfo == null){
 				indexingLogger.error("["+collectionId+"] has no segment!  Do full-indexing first!!");
 				return null;
@@ -112,12 +110,12 @@ public class IncIndexJob extends IndexingJob {
 			int dataSequence = workingHandler.getDataSequence();
 			logger.debug("workingHandler={}, dataSequence={}", workingHandler, dataSequence);
 			
-			DataSourceConfig dsSetting = collectionContext.dataSourceSetting();
+			DataSourceConfig dsSetting = collectionContext.dataSourceConfig();
 			SourceReader sourceReader = SourceReaderFactory.createSourceReader(collectionId, schema, dsSetting, true);
 			
 			if(sourceReader == null){
 				EventDBLogger.error(EventDBLogger.CATE_INDEX, "데이터수집기를 생성할 수 없습니다.");
-				throw new FastcatSearchException("데이터 수집기 생성중 에러발생. sourceType = "+dsSetting.sourceType);
+				throw new FastcatSearchException("데이터 수집기 생성중 에러발생. sourceType = "+dsSetting.getConfigType());
 			}
 			//Check prev doc No.
 			//case.1 : forceAppend
@@ -129,16 +127,15 @@ public class IncIndexJob extends IndexingJob {
 			int[] updateAndDeleteSize = {0, 0};
 			logger.debug("currentSegmentInfo = {}, isAppend={}",currentSegmentInfo, isAppend);
 			File segmentDir = null;
+			SegmentInfo segmentInfo = null;
 			if(forceAppend || (isAppend && !forceSeparate)){
-				int segmentNumber = currentSegmentInfo.getSegmentNumber();
-				int revision = workingHandler.getLastSegmentInfo().getLastRevision();
-				//
+				String segmentNumber = currentSegmentInfo.getId();
 				//새로운 리비전으로 증가한다.
-				//
-				revision++;
+				int revision = workingHandler.getLastSegmentReader().segmentInfo().getNextRevision();
+				
 				segmentDir = collectionFilePaths.segmentPath(dataSequence, segmentNumber).file();
 //				segmentDir = new File(IRSettings.getCollectionSegmentPath(collectionId, dataSequence, segmentNumber));
-				indexingLogger.info("Revision Dir = {}", new File(segmentDir,revision+"").getAbsolutePath());
+				indexingLogger.info("Revision Dir = {}", new File(segmentDir, Integer.toString(revision)).getAbsolutePath());
 				logger.info("Revision Dir = "+new File(segmentDir,revision+"").getAbsolutePath());
 				SegmentAppender appender = null;
 				try{
@@ -164,7 +161,7 @@ public class IncIndexJob extends IndexingJob {
 					throw e;
 				}finally{
 					if(appender != null){
-						appender.close();
+						segmentInfo = appender.close();
 					}
 					sourceReader.close();
 				}
@@ -178,20 +175,22 @@ public class IncIndexJob extends IndexingJob {
 						return null;
 					}else{
 						//count가 0이고 삭제문서만 존재할 경우 리비전은 증가하지 않은 상태.
-						updateAndDeleteSize = workingHandler.appendSegment(segmentNumber, segmentDir, sourceReader.getDeleteList(), false);
+//						updateAndDeleteSize = workingHandler.appendSegment(segmentNumber, segmentDir, sourceReader.getDeleteList(), false);
+						updateAndDeleteSize = workingHandler.updateRevision(segmentInfo, segmentDir, sourceReader.getDeleteList());
 					}
 				}else{
 					//그외의 경우는 새로운 리비전 디렉토리 생성됨.
-					updateAndDeleteSize = workingHandler.appendSegment(segmentNumber, segmentDir, sourceReader.getDeleteList(), true);
+					updateAndDeleteSize = workingHandler.updateRevision(segmentNumber, segmentDir, sourceReader.getDeleteList(), true);
 				}
-				updateAndDeleteSize[1] += appender.getDuplicateDocCount();//중복문서 삭제카운트
+				updateAndDeleteSize[1] += appender.getDuplicateDocCount();//중복문서 삭제카운트. 엄밀하게는 업데이트 카운트. 
 				logger.info("== SegmentStatus ==");
 				workingHandler.printSegmentStatus();
 				logger.info("===================");
 			}else{
-				int nextSegmentBaseNumber = currentSegmentInfo.getBaseDocNo() + currentSegmentInfo.getDocCount();
-				int newSegmentNumber = workingHandler.getNextSegmentNumber();
-				segmentDir = collectionFilePaths.segmentPath(dataSequence, newSegmentNumber).file();
+//				int nextSegmentBaseNumber = currentSegmentInfo.getBaseDocNo() + currentSegmentInfo.getDocCount();
+				int nextSegmentBaseNumber = currentSegmentInfo.getNextBaseNumber();
+				String newSegmentId = currentSegmentInfo.getNextId();
+				segmentDir = collectionFilePaths.segmentPath(dataSequence, newSegmentId).file();
 //				segmentDir = new File(IRSettings.getCollectionSegmentPath(collectionId, dataSequence, newSegmentNumber));
 				int revision = workingHandler.getLastSegmentInfo().getLastRevision();
 				indexingLogger.info("Segment Dir = "+segmentDir.getAbsolutePath()+", baseNo = "+nextSegmentBaseNumber);
@@ -230,15 +229,15 @@ public class IncIndexJob extends IndexingJob {
 				int indexedCount = writer.getDocumentCount();
 				if(indexedCount == 0){
 					if(deleteCount == 0){
-						indexingLogger.info("["+collectionId+"] Incremental Indexing Canceled due to no documents. time = "+Formatter.getFormatTime(System.currentTimeMillis() - st));
+						indexingLogger.info("[{}] Incremental Indexing Canceled due to no documents. time = {}", collectionId, Formatter.getFormatTime(System.currentTimeMillis() - st));
 						return null;
 					}else{
 						//추가문서는 없고, 삭제문서만 있을때는 append로 처리한다.
-						int segmentNumber = currentSegmentInfo.getSegmentNumber();
-						updateAndDeleteSize = workingHandler.appendSegment(segmentNumber, segmentDir, sourceReader.getDeleteList(), false);
+						String segmentId = currentSegmentInfo.getId();
+						updateAndDeleteSize = workingHandler.appendSegment(currentSegmentInfo, segmentDir, sourceReader.getDeleteList(), false);
 					}
 				}else{
-					updateAndDeleteSize = workingHandler.addSegment(newSegmentNumber, segmentDir, sourceReader.getDeleteList());
+					updateAndDeleteSize = workingHandler.addSegment(newSegmentId, segmentDir, sourceReader.getDeleteList());
 				}
 				updateAndDeleteSize[1] += writer.getDuplicateDocCount();//중복문서 삭제카운트
 				logger.info("== SegmentStatus ==");

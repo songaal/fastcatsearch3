@@ -18,9 +18,9 @@ package org.fastcatsearch.ir.common;
 
 import java.io.File;
 
-public class IRFileName {
-	public static String segmentInfoFile = "segment.info";
-	public static String collectionInfoFile = "collection.info";
+public class IndexFileNames {
+//	public static String segmentInfoFile = "segment.info";
+//	public static String collectionInfoFile = "collection.info";
 	
 	public static String docStored = "doc.stored";
 	public static String docPosition = "doc.position";
@@ -41,7 +41,7 @@ public class IRFileName {
 	public static String groupKeyMapIndex = "group.map.index";
 	public static String groupInfoFile = "group.info";
 	
-	public static String dataSequenceFile = "data.sequence";
+//	public static String dataSequenceFile = "data.sequence";
 	
 	public static String getTempFileName(String name){
 		return name + "." + tempFile;

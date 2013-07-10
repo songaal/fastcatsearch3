@@ -19,7 +19,7 @@ package org.fastcatsearch.ir.document.merge;
 import java.io.File;
 import java.io.IOException;
 
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexBulkReader;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexBulkWriter;
 import org.fastcatsearch.ir.io.BitSet;
@@ -52,12 +52,12 @@ public class PrimaryKeyIndexMerger {
 		PrimaryKeyIndexBulkReader r2 = null;
 		
 		if(prevRevisionDir.isDirectory())
-			r1 = new PrimaryKeyIndexBulkReader(prevRevisionDir, IRFileName.primaryKeyMap);
+			r1 = new PrimaryKeyIndexBulkReader(prevRevisionDir, IndexFileNames.primaryKeyMap);
 		else
 			r1 = new PrimaryKeyIndexBulkReader(prevRevisionDir);
 		
 		if(tempPkFile.isDirectory())
-			r2 = new PrimaryKeyIndexBulkReader(tempPkFile, IRFileName.primaryKeyMap);
+			r2 = new PrimaryKeyIndexBulkReader(tempPkFile, IndexFileNames.primaryKeyMap);
 		else
 			r2 = new PrimaryKeyIndexBulkReader(tempPkFile);
 		
@@ -150,12 +150,12 @@ public class PrimaryKeyIndexMerger {
 		PrimaryKeyIndexBulkReader r2 = null;
 		
 		if(file1.isDirectory())
-			r1 = new PrimaryKeyIndexBulkReader(file1, IRFileName.primaryKeyMap, base1);
+			r1 = new PrimaryKeyIndexBulkReader(file1, IndexFileNames.primaryKeyMap, base1);
 		else
 			r1 = new PrimaryKeyIndexBulkReader(file1, base1);
 		
 		if(file2.isDirectory())
-			r2 = new PrimaryKeyIndexBulkReader(file2, IRFileName.primaryKeyMap, base2);
+			r2 = new PrimaryKeyIndexBulkReader(file2, IndexFileNames.primaryKeyMap, base2);
 		else
 			r2 = new PrimaryKeyIndexBulkReader(file2, base2);
 		

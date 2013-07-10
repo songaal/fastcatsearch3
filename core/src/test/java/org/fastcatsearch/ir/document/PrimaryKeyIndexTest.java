@@ -20,7 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Random;
 
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexReader;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexWriter;
 

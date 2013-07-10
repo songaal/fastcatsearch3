@@ -3,7 +3,7 @@ package org.fastcatsearch.ir.io;
 import java.io.File;
 import java.io.IOException;
 
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 
 public class FixedDataOutput implements SequencialDataOutput {
 	private IndexOutput dataOutput;
@@ -12,7 +12,7 @@ public class FixedDataOutput implements SequencialDataOutput {
 		this(dir, fileName, false);
 	}
 	public FixedDataOutput(File dir, String fileName, boolean append) throws IOException{
-		File dataFile = new File(dir, IRFileName.getSuffixFileName(fileName, "data"));
+		File dataFile = new File(dir, IndexFileNames.getSuffixFileName(fileName, "data"));
 		dataOutput = new BufferedFileOutput(dataFile, append);
 	}
 	

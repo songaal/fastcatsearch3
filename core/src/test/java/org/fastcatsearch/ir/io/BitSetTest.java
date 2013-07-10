@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Random;
 
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.io.BitSet;
 
 import junit.framework.TestCase;
@@ -50,7 +50,7 @@ public class BitSetTest extends TestCase {
 		File segmentDir = new File("/Users/swsong/search/fastcat_basic/collection/news/data/1");
 		int revision = 45;
 		System.out.println(segmentDir);
-		BitSet deleteSet = new BitSet(IRFileName.getRevisionDir(segmentDir, revision), IRFileName.docDeleteSet);
+		BitSet deleteSet = new BitSet(IndexFileNames.getRevisionDir(segmentDir, revision), IndexFileNames.docDeleteSet);
 		for(int i=0; i<100;i++){
 			System.out.println(i);
 			if(deleteSet.isSet(i)){

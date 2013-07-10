@@ -20,7 +20,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.lucene.util.BytesRef;
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.index.IndexFieldOption;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.BytesDataOutput;
@@ -70,9 +70,9 @@ public class TempSearchFieldMerger {
 			return;
 		}
 		
-		IndexOutput postingOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, 0), IRFileName.postingFile, false);
-		IndexOutput lexiconOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, 0), IRFileName.lexiconFile, false);
-		IndexOutput indexOutput = new BufferedFileOutput(IRFileName.getRevisionDir(baseDir, 0), IRFileName.indexFile, false);
+		IndexOutput postingOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(baseDir, 0), IndexFileNames.postingFile, false);
+		IndexOutput lexiconOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(baseDir, 0), IndexFileNames.lexiconFile, false);
+		IndexOutput indexOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(baseDir, 0), IndexFileNames.indexFile, false);
 	    BytesDataOutput tempPostingOutput = new BytesDataOutput(1024 * 1024);
 		CharVector cv = null;
 		CharVector cvOld = null;

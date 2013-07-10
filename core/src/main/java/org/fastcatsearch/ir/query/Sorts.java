@@ -30,7 +30,7 @@ import org.fastcatsearch.ir.settings.SchemaSetting;
 
 
 public class Sorts {
-	
+	public static final Sorts DEFAULT_SORTS = new Sorts(); 
 	private List<Sort> sortList;
 	
 	public Sorts(){

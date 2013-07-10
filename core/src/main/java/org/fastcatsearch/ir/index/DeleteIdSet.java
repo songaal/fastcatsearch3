@@ -4,7 +4,7 @@ import java.util.HashSet;
 
 import org.fastcatsearch.ir.common.IRException;
 
-public class DeleteIdSet extends HashSet<MultiKeyEntry>{
+public class DeleteIdSet extends HashSet<PrimaryKeys>{
 
 	private static final long serialVersionUID = -518125101167212596L;
 
@@ -19,7 +19,7 @@ public class DeleteIdSet extends HashSet<MultiKeyEntry>{
 			throw new IRException("id field갯수가 일치하지 않습니다.");
 		}
 		
-		add(new MultiKeyEntry(keys));
+		add(new PrimaryKeys(keys));
 	}
 	
 	public int keySize(){

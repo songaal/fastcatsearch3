@@ -1,9 +1,9 @@
 package org.fastcatsearch.ir.index;
 
-public class MultiKeyEntry {
+public class PrimaryKeys {
 	private String[] keys;
 
-	public MultiKeyEntry(String... keys) {
+	public PrimaryKeys(String... keys) {
 		this.keys = keys;
 	}
 

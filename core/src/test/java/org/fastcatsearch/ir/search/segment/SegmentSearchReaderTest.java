@@ -46,7 +46,7 @@ import org.fastcatsearch.ir.query.Term;
 import org.fastcatsearch.ir.search.Hit;
 import org.fastcatsearch.ir.search.HitElement;
 import org.fastcatsearch.ir.search.SegmentInfo;
-import org.fastcatsearch.ir.search.SegmentSearcher;
+import org.fastcatsearch.ir.search.SegmentReader;
 import org.fastcatsearch.ir.settings.Schema;
 
 
@@ -70,7 +70,7 @@ public class SegmentSearchReaderTest extends TestCase{
 		sorts.add(new Sort("_score_", false));
 		q.setSorts(sorts);
 		SegmentInfo segmentInfo = new SegmentInfo(0, segDir);
-		SegmentSearcher searcher = new SegmentSearcher(schema, segDir, segmentInfo.getBaseDocNo(), segmentInfo.getDocCount());
+		SegmentReader searcher = new SegmentReader(schema, segDir, segmentInfo.getBaseDocNo(), segmentInfo.getDocCount());
 		Hit hit = searcher.search(q);
 		FixedHitStack s = hit.getHitList();
 		FixedHitReader hitReader = s.getReader();
@@ -113,11 +113,11 @@ public class SegmentSearchReaderTest extends TestCase{
 		
 		q.setMeta(new Metadata(0,rows,0,null));
 		
-		SegmentSearcher[] readers = new SegmentSearcher[segmentSize];
+		SegmentReader[] readers = new SegmentReader[segmentSize];
 		SegmentInfo segmentInfo1 = new SegmentInfo(0, seg1Dir);
 		SegmentInfo segmentInfo2 = new SegmentInfo(1, seg2Dir);
-		readers[0] = new SegmentSearcher(schema, seg1Dir, segmentInfo1.getBaseDocNo(), segmentInfo1.getDocCount());
-		readers[1] = new SegmentSearcher(schema, seg2Dir, segmentInfo2.getBaseDocNo(), segmentInfo2.getDocCount());
+		readers[0] = new SegmentReader(schema, seg1Dir, segmentInfo1.getBaseDocNo(), segmentInfo1.getDocCount());
+		readers[1] = new SegmentReader(schema, seg2Dir, segmentInfo2.getBaseDocNo(), segmentInfo2.getDocCount());
 		
 		FixedMinHeap<FixedHitReader> heap = new FixedMinHeap<FixedHitReader>(rows);
 		GroupDataMerger frequencyMerger = new GroupDataMerger(groups, segmentSize);

@@ -40,7 +40,7 @@ import org.fastcatsearch.ir.config.DBReaderConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.index.DeleteIdSet;
-import org.fastcatsearch.ir.index.MultiKeyEntry;
+import org.fastcatsearch.ir.index.PrimaryKeys;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
@@ -227,7 +227,7 @@ public class DBReader extends SourceReader{
 		if(useBackup){
 			try{
 				BufferedWriter deleteBackupWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath.path(deleteFileName).file()), config.getBackupFileEncoding()));
-				Iterator<MultiKeyEntry> iter = deleteIdList.iterator();
+				Iterator<PrimaryKeys> iter = deleteIdList.iterator();
 				
 				while(iter.hasNext()){
 					deleteBackupWriter.write(iter.next().toString());

@@ -31,7 +31,7 @@ import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.util.CharsRef;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.common.IRFileName;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.field.Field;
@@ -134,7 +134,7 @@ public class SearchIndexesWriter {
 		flushPosition = new long[1024];
 		flushCount = 0;
 
-		tempFile = new File(dir, IRFileName.tempFile);
+		tempFile = new File(dir, IndexFileNames.tempFile);
 		tempOutput = new BufferedFileOutput(tempFile, false);
 	}
 
@@ -322,8 +322,8 @@ public class SearchIndexesWriter {
 				}
 
 				if (isAppend) {
-					File prevAppendDir = IRFileName.getRevisionDir(baseDir, revision - 1);
-					File revisionDir = IRFileName.getRevisionDir(baseDir, revision);
+					File prevAppendDir = IndexFileNames.getRevisionDir(baseDir, revision - 1);
+					File revisionDir = IndexFileNames.getRevisionDir(baseDir, revision);
 
 					TempSearchFieldAppender appender = new TempSearchFieldAppender(flushCount, flushPosition, tempFile);
 					// no need baseDocNo param. it;s already added.., docWriter appending job makes doc number follows prev doc
