@@ -19,17 +19,19 @@ package org.fastcatsearch.ir.query;
 public class View {
 	private String fieldId;
 	private int summarySize; //요약길이
+	private int fragments; //요약 블럭 갯수
 	private boolean highlight; //일치단어 하이라이팅 여부.
 	
 	public View(String fieldId){
-		this(fieldId, 0, false);
+		this(fieldId, 0, 0, false);
 	}
 	public View(String fieldId, int summary){
-		this(fieldId, summary, false);
+		this(fieldId, summary, 0, false);
 	}
-	public View(String fieldId, int summary, boolean highlight){
+	public View(String fieldId, int summary, int fragments, boolean highlight){
 		this.fieldId = fieldId;
 		this.summarySize = summary;
+		this.fragments = fragments;
 		this.highlight = highlight;
 	}
 	public String fieldId(){
@@ -38,11 +40,13 @@ public class View {
 	public int summarySize(){
 		return summarySize;
 	}
+	public int fragments() {
+		return fragments;
+	}
 	public boolean highlight(){
 		return highlight;
 	}
 	public String toString(){
 		return fieldId+":"+summarySize+":"+highlight;
 	}
-	
 }

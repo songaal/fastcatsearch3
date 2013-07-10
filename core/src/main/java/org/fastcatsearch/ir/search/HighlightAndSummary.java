@@ -22,8 +22,6 @@ import org.apache.lucene.analysis.Analyzer;
 
 public interface HighlightAndSummary {
 	
-//	public char[] modify(HighlightInfo summaryInfo, String target, String[] highlightTags);
-	
-	public String highlight(Analyzer analyzer, String pText, String query, String[] tags, int len) throws IOException;
+	public String highlight(Analyzer analyzer, String pText, String query, String[] tags, int len, int maxFragments) throws IOException;
 	    
 }
