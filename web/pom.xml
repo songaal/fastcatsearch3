@@ -1,51 +1,51 @@
 <?xml version="1.0"?>
-<!--
-  Copyright 2013 Websquared, Inc.
-  
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-  
-    http://www.apache.org/licenses/LICENSE-2.0
-  
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
--->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>com.fastcatsearch</groupId>
-    <artifactId>fastcatsearch-com</artifactId>
-    <version>2.0.8</version>
-  </parent>
-  <artifactId>manager-web</artifactId>
-  <name>fastcatsearch-com/web</name>
-  <description>fastcatsearch-com/web</description>
-  <url>fastcatsearch.com</url>
-  <packaging>war</packaging>
-  <build>
-  	<finalName>manager</finalName>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-war-plugin</artifactId>
-        <version>2.1.1</version>
-        <configuration>
-          <outputDirectory>${project.build.directory}/../../target/${project.parent.artifactId}-${project.version}</outputDirectory>
-          <packagingExcludes>WEB-INF/lib/*.jar</packagingExcludes>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.14</version>
-        <configuration>
-          <skipTests>true</skipTests>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+<!-- Copyright 2013 Websquared, Inc. Licensed under the Apache License, Version 
+	2.0 (the "License"); you may not use this file except in compliance with 
+	the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 
+	Unless required by applicable law or agreed to in writing, software distributed 
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
+	the specific language governing permissions and limitations under the License. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>web</artifactId>
+	<name>fastcatsearch-web</name>
+	<description>fastcatsearch/web</description>
+	<url>fastcatsearch.org</url>
+	<packaging>war</packaging>
+	<dependencies>
+		<dependency>
+			<groupId>org.fastcatsearch.fastcatsearch</groupId>
+			<artifactId>core</artifactId>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.fastcatsearch.fastcatsearch</groupId>
+			<artifactId>core</artifactId>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+	</dependencies>
+	<build>
+		<finalName>manager</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.1.1</version>
+				<configuration>
+					<outputDirectory>${project.build.directory}/../../target/${project.parent.artifactId}-${project.version}</outputDirectory>
+					<packagingExcludes>WEB-INF/lib/*.jar</packagingExcludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<groupId>org.fastcatsearch.fastcatsearch</groupId>
+	<parent>
+		<groupId>org.fastcatsearch</groupId>
+		<artifactId>fastcatsearch</artifactId>
+		<version>2</version>
+	</parent>
 </project>
