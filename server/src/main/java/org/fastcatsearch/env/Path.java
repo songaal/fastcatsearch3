@@ -23,7 +23,7 @@ public class Path {
 		return newPath();
 
 	}
-
+	
 	public Path path(String... dirs) {
 		return new Path(file(dirs));
 	}

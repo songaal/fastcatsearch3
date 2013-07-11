@@ -55,6 +55,17 @@ public class CollectionContext {
 		return (currentDataSequence + 1) % DATA_SEQUENCE_CYCLE;
 	}
 	
+	public String getLastIndexTime(){
+		if(collectionStatus.getAddIndexStatus() != null){
+			return collectionStatus.getAddIndexStatus().getStartTime();
+		}else{
+			if(collectionStatus.getFullIndexStatus() != null){
+				return collectionStatus.getFullIndexStatus().getStartTime();	
+			}
+		}
+		return null;
+	}
+	
 	public CollectionConfig collectionConfig(){
 		return collectionConfig;
 	}

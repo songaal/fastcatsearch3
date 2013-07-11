@@ -50,7 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class DBReader extends SourceReader{
+public class DBReader extends DataSourceReader{
 	
 	private static Logger logger = LoggerFactory.getLogger(DBReader.class);
 	private int BULK_SIZE;
@@ -66,16 +66,15 @@ public class DBReader extends SourceReader{
 	private int readCount;
 	private boolean isFull;
 	
-	private IndexStatus indexStatus;
-	
 	boolean useBackup;
 	private BufferedWriter backupWriter;
 	private String startTime;
 	private String deleteFileName;
 	private DBReaderConfig config;
+	private String lastIndexTime;
 	
-	public DBReader(Path filePath, Schema schema, DBReaderConfig config, IndexStatus indexStatus, SourceModifier sourceModifier, boolean isFull) throws IRException {
-		super(filePath, schema, sourceModifier);
+	public DBReader(Path filePath, Schema schema, DBReaderConfig config, SourceModifier sourceModifier, String lastIndexTime, boolean isFull) throws IRException {
+		super(filePath, schema, config, sourceModifier);
 		this.config = config;
 		this.isFull = isFull;
 		this.BULK_SIZE = config.getBulkSize();
@@ -84,7 +83,7 @@ public class DBReader extends SourceReader{
 		fieldSet = new Object[BULK_SIZE][fieldSettingList.size()];
 		deleteIdList = new DeleteIdSet(primaryKeySize);
 		
-		this.indexStatus = indexStatus;
+		this.lastIndexTime = lastIndexTime;
 //		scMap = SpecialCharacterMap.getMap();
 		try{
 			if(config.getJdbcDriver() != null && config.getJdbcDriver().length() > 0){
@@ -188,12 +187,12 @@ public class DBReader extends SourceReader{
 	}
 	
 	private String q(String query){
-		if(indexStatus != null){
-			if(indexStatus.getStartTime() != null && indexStatus.getStartTime().length() > 0){
-				query = query.replaceAll("\\$\\{last_index_time\\}", "'"+indexStatus.getEndTime()+"'");
-			}
-			if(indexStatus.getEndTime() != null && indexStatus.getEndTime().length() > 0){
-				query = query.replaceAll("\\$\\{last_end_index_time\\}", "'"+indexStatus.getEndTime()+"'");
+		if(lastIndexTime != null){
+			if(lastIndexTime.length() == 0){
+				//현재시각으로 넣어준다.
+				return query.replaceAll("\\$\\{last_index_time\\}", "'"+Formatter.formatDate()+"'");
+			}else{
+				return query.replaceAll("\\$\\{last_index_time\\}", "'"+lastIndexTime+"'");
 			}
 		}
 			

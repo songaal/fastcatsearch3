@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 
-public class FileUtils {
+public class FileUtils extends org.apache.commons.io.FileUtils {
 	public static void cleanCollectionDataDirectorys(File collectionDir) throws IOException{
 		
 		File[] dataDirList = collectionDir.listFiles(new FileFilter(){

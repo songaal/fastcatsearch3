@@ -22,7 +22,6 @@ import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.IRSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,22 +51,21 @@ public class UseCollectionCommand extends Command {
 			//
 			context.setAttribute(SESSION_KEY_USING_COLLECTION, null);
 		} else if(cmd.length >= 3) {
-			String collection = cmd[2];
-			logger.debug("using collection : {} -> {}", new Object[] { context.getAttribute(SESSION_KEY_USING_COLLECTION), collection });
+			String collectionId = cmd[2];
+			logger.debug("using collection : {} -> {}", new Object[] { context.getAttribute(SESSION_KEY_USING_COLLECTION), collectionId });
 			
-//			String collectinListStr = IRSettings.getConfig().getString("collection.list");
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-			String[] collectinListStr = irService.getCollectionNames();
+			List<Collection> collectionList = irService.getCollectionList();
 			
-			List<String>collectionNames  = Arrays.asList(collectinListStr);
-			
-			if(collectionNames.contains(collection)) {
-				msg = printData("Using collection "+collection);
-				context.setAttribute(SESSION_KEY_USING_COLLECTION, collection);
-				return new CommandResult(msg, CommandResult.Status.SUCCESS);
+			for(Collection collectionInfo : collectionList){
+				if(collectionInfo.getId().equalsIgnoreCase(collectionId)) {
+					msg = printData("Using collection "+collectionId);
+					context.setAttribute(SESSION_KEY_USING_COLLECTION, collectionId);
+					return new CommandResult(msg, CommandResult.Status.SUCCESS);
+				}
 			}
 			
-			msg = printData(new Object[] { "'"+collection+"' Not Found" });
+			msg = printData(new Object[] { "'"+collectionId+"' Not Found" });
 			return new CommandResult(msg, CommandResult.Status.FAIL);
 		}
 		return new CommandResult("No result", CommandResult.Status.FAIL);

@@ -9,9 +9,11 @@ import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.cli.command.exception.CollectionNotDefinedException;
 import org.fastcatsearch.cli.command.exception.CollectionNotFoundException;
+import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.Schema;
-import org.fastcatsearch.settings.IRSettings;
+import org.fastcatsearch.service.ServiceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,49 +64,55 @@ public class ShowSchemaCommand extends CollectionExtractCommand {
 
 	}
 
-	private boolean getSchema(String collection) {
-
-		Schema schema = null;
-		try {
-			schema = IRSettings.getSchema(collection, true);
-			for (FieldSetting fs : schema.schemaSetting().getFieldSettingList()){
-				getFieldData(fs, collection);
-			}
-		} catch (Exception e) {
-			return false;
+	private boolean getSchema(String collectionId) {
+		IRService irService = ServiceManager.getInstance().getService(IRService.class);
+		CollectionContext collectionContext = irService.collectionContext(collectionId);
+		Schema schema = collectionContext.schema();
+		for (FieldSetting fs : schema.schemaSetting().getFieldSettingList()){
+//			getFieldData(fs, collectionId);
 		}
+			
+//		Schema schema = null;
+//		try {
+//			schema = IRSettings.getSchema(collection, true);
+//			for (FieldSetting fs : schema.schemaSetting().getFieldSettingList()){
+//				getFieldData(fs, collection);
+//			}
+//		} catch (Exception e) {
+//			return false;
+//		}
 
 		return true;
 	}
 
-	private boolean getFieldData(FieldSetting fs, String collection) {
-		try {
-			addRecord(data, collection, fs.getId(), fs.getType().toString(), fs.getSize() + "",
-					getIndexTokenName(fs), (fs.sortSetting == null ? "" : "O"), (fs.sortSetting == null ? ""
-							: (fs.sortSetting.sortSize > 0 ? fs.sortSetting.sortSize + "" : "0")),
-					(fs.groupSetting == null ? "" : "O"), (fs.filterSetting == null ? "" : "O"),
-					(fs.store == true ? "O" : ""), (fs.normalize == true ? "O" : ""), (fs.column == true ? "O" : ""),
-					(fs.virtual == true ? "O" : ""), (fs.modify == true ? "O" : ""), (fs.tagRemove == true ? "O" : ""),
-					(fs.multiValue == true ? "0" : ""));
-			return true;
-		} catch (Exception e) {
-			return false;
-		}
-	}
+//	private boolean getFieldData(FieldSetting fs, String collection) {
+//		try {
+//			addRecord(data, collection, fs.getId(), fs.getType().toString(), fs.getSize() + "",
+//					getIndexTokenName(fs), (fs.sortSetting == null ? "" : "O"), (fs.sortSetting == null ? ""
+//							: (fs.sortSetting.sortSize > 0 ? fs.sortSetting.sortSize + "" : "0")),
+//					(fs.groupSetting == null ? "" : "O"), (fs.filterSetting == null ? "" : "O"),
+//					(fs.store == true ? "O" : ""), (fs.normalize == true ? "O" : ""), (fs.column == true ? "O" : ""),
+//					(fs.virtual == true ? "O" : ""), (fs.modify == true ? "O" : ""), (fs.tagRemove == true ? "O" : ""),
+//					(fs.multiValue == true ? "0" : ""));
+//			return true;
+//		} catch (Exception e) {
+//			return false;
+//		}
+//	}
+//
+//	private String getIndexTokenName(FieldSetting fs) {
+//		if (fs.indexSetting == null)
+//			return "";
+//		else
+//			return fs.indexSetting.indexAnalyzerPool.getClass().getSimpleName();
+//	}
 
-	private String getIndexTokenName(FieldSetting fs) {
-		if (fs.indexSetting == null)
-			return "";
-		else
-			return fs.indexSetting.indexAnalyzerPool.getClass().getSimpleName();
-	}
-
-	private void addRecord(List<Object[]> data, String cn, String fName, String fType, String fSize,
-			String index, String sort, String sortSize, String Group, String filter, String store, String normalize,
-			String column, String virtual, String modify, String tagRemove, String multiValue) {
-		data.add(new Object[] { cn, fName, key, fType, fSize, index, sort, sortSize, Group, filter, store, normalize,
-				column, virtual, modify, tagRemove, multiValue });
-	}
+//	private void addRecord(List<Object[]> data, String cn, String fName, String fType, String fSize,
+//			String index, String sort, String sortSize, String Group, String filter, String store, String normalize,
+//			String column, String virtual, String modify, String tagRemove, String multiValue) {
+//		data.add(new Object[] { cn, fName, key, fType, fSize, index, sort, sortSize, Group, filter, store, normalize,
+//				column, virtual, modify, tagRemove, multiValue });
+//	}
 
 	private void addEmptyRecord(List<Object[]> data) {
 		data.add(new Object[] { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" });

@@ -12,7 +12,7 @@ import org.fastcatsearch.ir.document.Document;
  * 이 클래스에서는 이들을 가공하여 Document를 생성한다.
  * RemoteResourceRepository는 내부적으로 transport 모듈을 사용하여 통신상의 통일성을 갖도록 한다.
  * */
-public class RemoteResourceReader extends SourceReader {
+public class RemoteResourceReader extends DataSourceReader {
 
 	
 	public RemoteResourceReader(){

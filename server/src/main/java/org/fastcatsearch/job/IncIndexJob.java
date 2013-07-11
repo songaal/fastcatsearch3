@@ -16,7 +16,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
-import org.fastcatsearch.datasource.reader.SourceReader;
+import org.fastcatsearch.datasource.reader.DataSourceReader;
+import org.fastcatsearch.datasource.reader.DataSourceReaderFactory;
 import org.fastcatsearch.env.CollectionFilePaths;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
@@ -54,11 +55,11 @@ public class IncIndexJob extends IndexingJob {
 			forceSeparate = "separate".equalsIgnoreCase(args[1]);
 		}
 		if(forceAppend){
-			indexingLogger.info("["+collectionId+"] Add Indexing Start! (forceAppend)");
+			indexingLogger.info("[{}] Add Indexing Start! (forceAppend)", collectionId);
 		}else if(forceSeparate){
-			indexingLogger.info("["+collectionId+"] Add Indexing Start! (forceSeparate)");
+			indexingLogger.info("[{}] Add Indexing Start! (forceSeparate)", collectionId);
 		}else{
-			indexingLogger.info("["+collectionId+"] Add Indexing Start!");
+			indexingLogger.info("[{}] Add Indexing Start!", collectionId);
 		}
 		
 		long st = System.currentTimeMillis(); 
@@ -68,15 +69,15 @@ public class IncIndexJob extends IndexingJob {
 			
 			CollectionHandler workingHandler = irService.collectionHandler(collectionId);
 			if(workingHandler == null){
-				indexingLogger.error("["+collectionId+"] CollectionHandler is not running!");
+				indexingLogger.error("[{}] CollectionHandler is not running!", collectionId);
 				EventDBLogger.error(EventDBLogger.CATE_INDEX, "컬렉션 "+collectionId+"가 서비스중이 아님.");
 				throw new FastcatSearchException("## ["+collectionId+"] CollectionHandler is not running...");
 			}
 			
 			boolean isAppend = false;
-			org.fastcatsearch.ir.config.DataInfo.SegmentInfo currentSegmentInfo = workingHandler.getLastSegmentInfo();
+			SegmentInfo currentSegmentInfo = workingHandler.getLastSegmentReader().segmentInfo();
 			if(currentSegmentInfo == null){
-				indexingLogger.error("["+collectionId+"] has no segment!  Do full-indexing first!!");
+				indexingLogger.error("[{}] has no segment!  Do full-indexing first!!", collectionId);
 				return null;
 			}
 			
@@ -88,12 +89,12 @@ public class IncIndexJob extends IndexingJob {
 			File collectionHomeDir = collectionFilePaths.home().file();
 			Schema schema = collectionContext.schema();
 			
-			int docCount = currentSegmentInfo.getDocCount();
+			int docCount = currentSegmentInfo.getDocumentCount();
 			
 			boolean useSeparateAddIndexing = dataPlanConfig.isSeparateIncIndexing();
 			int segmentDocumentLimit = dataPlanConfig.getSegmentDocumentLimit(); //irconfig.getInt("segment.document.limit");
 		
-			if(useSeparateAddIndexing && currentSegmentInfo.getSegmentNumber() == 0){
+			if(useSeparateAddIndexing && currentSegmentInfo.getId().equals("0")){
 				//only has full indexing data
 				//make separete segment 
 				isAppend = false;
@@ -109,9 +110,9 @@ public class IncIndexJob extends IndexingJob {
 			
 			int dataSequence = workingHandler.getDataSequence();
 			logger.debug("workingHandler={}, dataSequence={}", workingHandler, dataSequence);
-			
+			String lastIndexTime = collectionContext.getLastIndexTime();
 			DataSourceConfig dsSetting = collectionContext.dataSourceConfig();
-			SourceReader sourceReader = SourceReaderFactory.createSourceReader(collectionId, schema, dsSetting, true);
+			DataSourceReader sourceReader = DataSourceReaderFactory.createSourceReader(collectionFilePaths.home(), schema, dsSetting, lastIndexTime, true);
 			
 			if(sourceReader == null){
 				EventDBLogger.error(EventDBLogger.CATE_INDEX, "데이터수집기를 생성할 수 없습니다.");
@@ -171,16 +172,18 @@ public class IncIndexJob extends IndexingJob {
 				int indexedCount = appender.getDocumentCount();
 				if(indexedCount == 0){
 					if(deleteCount == 0){
-						indexingLogger.info("["+collectionId+"] Incremental Indexing Canceled due to no documents. time = "+Formatter.getFormatTime(System.currentTimeMillis() - st));
+						indexingLogger.info("[{}] Incremental Indexing Canceled due to no documents. time = {}", collectionId, Formatter.getFormatTime(System.currentTimeMillis() - st));
 						return null;
 					}else{
 						//count가 0이고 삭제문서만 존재할 경우 리비전은 증가하지 않은 상태.
 //						updateAndDeleteSize = workingHandler.appendSegment(segmentNumber, segmentDir, sourceReader.getDeleteList(), false);
-						updateAndDeleteSize = workingHandler.updateRevision(segmentInfo, segmentDir, sourceReader.getDeleteList());
+						//updateAndDeleteSize = ;
+						workingHandler.updateRevision(segmentInfo, segmentDir, sourceReader.getDeleteList());
 					}
 				}else{
 					//그외의 경우는 새로운 리비전 디렉토리 생성됨.
-					updateAndDeleteSize = workingHandler.updateRevision(segmentNumber, segmentDir, sourceReader.getDeleteList(), true);
+					//updateAndDeleteSize = ;
+					workingHandler.updateRevision(segmentInfo, segmentDir, sourceReader.getDeleteList());
 				}
 				updateAndDeleteSize[1] += appender.getDuplicateDocCount();//중복문서 삭제카운트. 엄밀하게는 업데이트 카운트. 
 				logger.info("== SegmentStatus ==");
@@ -192,8 +195,8 @@ public class IncIndexJob extends IndexingJob {
 				String newSegmentId = currentSegmentInfo.getNextId();
 				segmentDir = collectionFilePaths.segmentPath(dataSequence, newSegmentId).file();
 //				segmentDir = new File(IRSettings.getCollectionSegmentPath(collectionId, dataSequence, newSegmentNumber));
-				int revision = workingHandler.getLastSegmentInfo().getLastRevision();
-				indexingLogger.info("Segment Dir = "+segmentDir.getAbsolutePath()+", baseNo = "+nextSegmentBaseNumber);
+				int revision = workingHandler.getLastSegmentReader().segmentInfo().getRevision();
+				indexingLogger.info("Segment Dir = {}, baseNo = {}", segmentDir.getAbsolutePath(), nextSegmentBaseNumber);
 				FileUtils.deleteDirectory(segmentDir);
 				
 				SegmentWriter writer = null;
@@ -234,10 +237,12 @@ public class IncIndexJob extends IndexingJob {
 					}else{
 						//추가문서는 없고, 삭제문서만 있을때는 append로 처리한다.
 						String segmentId = currentSegmentInfo.getId();
-						updateAndDeleteSize = workingHandler.appendSegment(currentSegmentInfo, segmentDir, sourceReader.getDeleteList(), false);
+						//updateAndDeleteSize = ;
+						workingHandler.updateRevision(currentSegmentInfo, segmentDir, sourceReader.getDeleteList());
 					}
 				}else{
-					updateAndDeleteSize = workingHandler.addSegment(newSegmentId, segmentDir, sourceReader.getDeleteList());
+					//updateAndDeleteSize = ;
+					workingHandler.addSegment(currentSegmentInfo, segmentDir, sourceReader.getDeleteList());
 				}
 				updateAndDeleteSize[1] += writer.getDuplicateDocCount();//중복문서 삭제카운트
 				logger.info("== SegmentStatus ==");
@@ -245,9 +250,9 @@ public class IncIndexJob extends IndexingJob {
 				logger.info("===================");
 			}
 			irService.putCollectionHandler(collectionId, workingHandler);
-			SegmentInfo si = workingHandler.getLastSegmentInfo();
-			indexingLogger.info(si.toString());
-			int docSize = si.getDocCount();
+//			SegmentInfo si = workingHandler.getLastSegmentInfo();
+//			indexingLogger.info(si.toString());
+//			int docSize = si.getDocCount();
 			
 			
 			
@@ -260,13 +265,13 @@ public class IncIndexJob extends IndexingJob {
 			int duration = (int) (System.currentTimeMillis() - st);
 			String durationStr = Formatter.getFormatTime(duration);
 			
-			collectionContext.updateCollectionStatus(IndexingType.ADD_INDEXING, dataSequence, count, st , System.currentTimeMillis());
+//			collectionContext.updateCollectionStatus(IndexingType.ADD_INDEXING, dataSequence, count, st , System.currentTimeMillis());
 //			IRSettings.storeIndextime(collectionId, "INC", startDt, endDt, durationStr, count);
 			
 			//5초후에 캐시 클리어.
 			getJobExecutor().offer(new CacheServiceRestartJob(5000));
 			
-			indexingLogger.info("["+collectionId+"] Incremental Indexing Finished! docs = {}, update = {}, delete = {}, time = {}", count, updateAndDeleteSize[0], updateAndDeleteSize[1], durationStr);
+			indexingLogger.info("[{}] Incremental Indexing Finished! docs = {}, update = {}, delete = {}, time = {}", collectionId, count, updateAndDeleteSize[0], updateAndDeleteSize[1], durationStr);
 			
 			return new JobResult(new IndexingJobResult(collectionId, segmentDir, count, updateAndDeleteSize[0], updateAndDeleteSize[1], duration));
 			

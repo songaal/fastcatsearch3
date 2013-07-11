@@ -23,6 +23,7 @@ import junit.framework.TestCase;
 
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
+import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.group.GroupData;
 import org.fastcatsearch.ir.group.GroupDataMerger;
 import org.fastcatsearch.ir.group.GroupDataReader;
@@ -45,7 +46,6 @@ import org.fastcatsearch.ir.query.Sorts;
 import org.fastcatsearch.ir.query.Term;
 import org.fastcatsearch.ir.search.Hit;
 import org.fastcatsearch.ir.search.HitElement;
-import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.search.SegmentReader;
 import org.fastcatsearch.ir.settings.Schema;
 
@@ -69,17 +69,17 @@ public class SegmentSearchReaderTest extends TestCase{
 		Sorts sorts = new Sorts();
 		sorts.add(new Sort("_score_", false));
 		q.setSorts(sorts);
-		SegmentInfo segmentInfo = new SegmentInfo(0, segDir);
-		SegmentReader searcher = new SegmentReader(schema, segDir, segmentInfo.getBaseDocNo(), segmentInfo.getDocCount());
-		Hit hit = searcher.search(q);
-		FixedHitStack s = hit.getHitList();
-		FixedHitReader hitReader = s.getReader();
-		int i = 0;
-		while(hitReader.next()){
-			i++;
-			HitElement he = hitReader.read();
-			System.out.println(i+") " +he.docNo()+" : "+he.score());
-		}
+		SegmentInfo segmentInfo = null;//new SegmentInfo(0, segDir);
+		SegmentReader searcher = null;//new SegmentReader(schema, segDir, segmentInfo.getBaseDocNo(), segmentInfo.getDocCount());
+//		Hit hit = searcher.search(q);
+//		FixedHitStack s = hit.getHitList();
+//		FixedHitReader hitReader = s.getReader();
+//		int i = 0;
+//		while(hitReader.next()){
+//			i++;
+//			HitElement he = hitReader.read();
+//			System.out.println(i+") " +he.docNo()+" : "+he.score());
+//		}
 	}
 	
 	public void testMultiple() throws SettingException, IOException, ClauseException, IRException{
@@ -114,10 +114,10 @@ public class SegmentSearchReaderTest extends TestCase{
 		q.setMeta(new Metadata(0,rows,0,null));
 		
 		SegmentReader[] readers = new SegmentReader[segmentSize];
-		SegmentInfo segmentInfo1 = new SegmentInfo(0, seg1Dir);
-		SegmentInfo segmentInfo2 = new SegmentInfo(1, seg2Dir);
-		readers[0] = new SegmentReader(schema, seg1Dir, segmentInfo1.getBaseDocNo(), segmentInfo1.getDocCount());
-		readers[1] = new SegmentReader(schema, seg2Dir, segmentInfo2.getBaseDocNo(), segmentInfo2.getDocCount());
+//		SegmentInfo segmentInfo1 = new SegmentInfo(0, seg1Dir);
+//		SegmentInfo segmentInfo2 = new SegmentInfo(1, seg2Dir);
+//		readers[0] = new SegmentReader(schema, seg1Dir, segmentInfo1.getBaseDocNo(), segmentInfo1.getDocCount());
+//		readers[1] = new SegmentReader(schema, seg2Dir, segmentInfo2.getBaseDocNo(), segmentInfo2.getDocCount());
 		
 		FixedMinHeap<FixedHitReader> heap = new FixedMinHeap<FixedHitReader>(rows);
 		GroupDataMerger frequencyMerger = new GroupDataMerger(groups, segmentSize);
@@ -125,18 +125,18 @@ public class SegmentSearchReaderTest extends TestCase{
 		
 		for (int i = 0; i < readers.length; i++) {
 			
-			Hit hit = readers[i].search(q);
-			FixedHitReader hitReader = hit.getHitList().getReader();
-			GroupData groupFreq = hit.getGroupData();
-			
-			//posting data
-			if(hitReader.next()){
-				heap.push(hitReader);
-			}
-			//그룹결과 put
-			for (int k = 0; k < groupFreq.groupSize(); k++) {
-				frequencyMerger.put(k, groupFreq.getGroupDataReader(k));
-			}
+//			Hit hit = readers[i].search(q);
+//			FixedHitReader hitReader = hit.getHitList().getReader();
+//			GroupData groupFreq = hit.getGroupData();
+//			
+//			//posting data
+//			if(hitReader.next()){
+//				heap.push(hitReader);
+//			}
+//			//그룹결과 put
+//			for (int k = 0; k < groupFreq.groupSize(); k++) {
+//				frequencyMerger.put(k, groupFreq.getGroupDataReader(k));
+//			}
 		}
 		
 		

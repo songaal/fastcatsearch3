@@ -14,7 +14,7 @@ package org.fastcatsearch.task;
 import java.io.File;
 
 import org.apache.commons.io.FileUtils;
-import org.fastcatsearch.datasource.reader.SourceReader;
+import org.fastcatsearch.datasource.reader.DataSourceReader;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.CollectionConfig;
@@ -30,8 +30,8 @@ import org.slf4j.LoggerFactory;
 public class MakeIndexFileTask extends Task {
 	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 	
-	public int makeIndex(String collectionId, File collectionHomeDir, Schema workSchema, File collectionDataDir, DataSourceConfig dsSetting
-			, SourceReader sourceReader, File segmentDir) throws Exception {
+	public int makeIndex(String collectionId, File collectionHomeDir, Schema workSchema, File collectionDataDir,
+			DataSourceReader sourceReader, File segmentDir) throws Exception {
 			
 		if(workSchema.getFieldSize() == 0){
 			throw new TaskException("["+collectionId+"] Full Indexing Canceled. Schema field is empty.");
@@ -44,9 +44,6 @@ public class MakeIndexFileTask extends Task {
 		
 		FileUtils.deleteDirectory(collectionDataDir);
 		
-		if(sourceReader == null){
-			throw new TaskException("데이터 수집기 생성중 에러발생. sourceType = "+dsSetting.sourceType);
-		}
 		
 		indexingLogger.info("Segment Dir = "+segmentDir.getAbsolutePath());
 		SegmentWriter writer = null;

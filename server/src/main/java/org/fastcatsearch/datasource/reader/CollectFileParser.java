@@ -27,7 +27,7 @@ import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.Schema;
 
 
-public class CollectFileParser extends SourceReader{
+public class CollectFileParser extends DataSourceReader{
 	
 	private DirBufferedReader br;
 	private Document document;
@@ -37,7 +37,7 @@ public class CollectFileParser extends SourceReader{
 	private int count; // how many fields are set
 
 	public CollectFileParser(Path filePath, Schema schema, FileSourceConfig config, SourceModifier sourceModifier, Boolean isFull) throws IRException {
-		super(filePath, schema, sourceModifier);
+		super(filePath, schema, config, sourceModifier);
 		try {
 			if(isFull){
 				br = new DirBufferedReader(new File(config.getFullFilePath()), config.getFileEncoding());

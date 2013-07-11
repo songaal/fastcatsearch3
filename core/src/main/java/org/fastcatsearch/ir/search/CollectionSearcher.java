@@ -565,9 +565,9 @@ public class CollectionSearcher {
 		// 이 배열의 index번호는 세그먼트번호.
 		int[] segEndNums = new int[segmentSize];
 		ArrayList<Row> rowList = new ArrayList<Row>();
-
+		
 		for (int i = 0; i < segmentSize; i++) {
-			int docCount = collectionHandler.segmentReader(i).segmentInfo().getDocCount();
+			int docCount = collectionHandler.segmentReader(i).segmentInfo().getDocumentCount();
 			totalSize += docCount;
 			segEndNums[i] = totalSize - 1;
 		}
@@ -577,12 +577,12 @@ public class CollectionSearcher {
 			logger.error("There is no indexed data.");
 			throw new IRException("색인된 데이터가 없습니다.");
 		}
-		File lastSegDir = lastSegInfo.getSegmentDir();
-		int lastSegRevision = lastSegInfo.getLastRevision();
+//		File lastSegDir = lastSegInfo.getSegmentDir();
+//		int lastSegRevision = lastSegInfo.getLastRevision();
 
 		// 총문서갯수와 시작번호에 근거해서 이 시작번호가 어느 세그먼트에 속하고 이 세그먼트의 어느 위치에서 시작되는지를 구한다.
 		// [세스머튼번호,시작번호,끝번호][2] = matchSegment(int[][], 조회시작변수);
-		int[][] matchSeg = this.matchSegment(segEndNums, start, rows);
+		int[][] matchSeg = matchSegment(segEndNums, start, rows);
 		// logger.debug("start: "+start+", rows "+rows+", result "+matchSeg.length);
 		// targetsegInfo = this.getSegmentInfo(우에서 얻은 세그먼트번호);
 		// 해당 세그먼트의 deleteSet객체를 얻는다.
@@ -591,23 +591,24 @@ public class CollectionSearcher {
 			int startNo = matchSeg[i][1];
 			int endNo = matchSeg[i][2];
 			// logger.debug("segNo: "+segNo+"startNo "+startNo+"endNo "+endNo);
-			SegmentInfo segInfo = collectionHandler.getSegmentInfo(segNo);
-			File targetDir = segInfo.getSegmentDir();
-			int lastRevision = segInfo.getLastRevision();
-			DocumentReader reader = new DocumentReader(collectionHandler.schema(), targetDir);
+			SegmentReader segmentReader = collectionHandler.segmentReader(segNo);
+//			File targetDir = segmentReader.getSegmentDir();
+//			int lastRevision = segmentReader.getLastRevision();
+			int revision = segmentReader.segmentInfo().getRevision();
+			DocumentReader reader = new DocumentReader(collectionHandler.schema(), segmentReader.segmentDir());
 			BitSet deleteSet = null;
 			// 마지막 세그먼트(현재세그먼트)이면 숫자 suffix없이 삭제문서파일을 읽는다.
 			if (segNo == segmentSize - 1) {
-				deleteSet = new BitSet(IndexFileNames.getRevisionDir(lastSegDir, lastSegRevision), IndexFileNames.docDeleteSet);
+				deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.docDeleteSet);
 			} else {
-				deleteSet = new BitSet(IndexFileNames.getRevisionDir(lastSegDir, lastSegRevision), IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet,
+				deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet,
 						Integer.toString(segNo)));
 			}
 
 			for (int j = startNo; j <= endNo; j++) {
 				Document document = reader.readDocument(j);
 				Row row = new Row(fieldSize);
-				row.setRowTag(segNo + "-" + lastRevision + "-" + j);
+				row.setRowTag(segNo + "-" + revision + "-" + j);
 				for (int m = 0; m < fieldSize; m++) {
 					int fieldNum = fieldNumList[m];
 					Field field = document.get(fieldNum);
@@ -637,7 +638,7 @@ public class CollectionSearcher {
 	}
 
 	// 원문조회기능.
-	public Result searchDocument(String collectionId, String id) throws IRException, IOException, SettingException {
+	public Result searchDocument(String collectionId, String primaryKey) throws IRException, IOException, SettingException {
 		if (collectionHandler.segmentSize() == 0) {
 			logger.warn("Collection {} is not indexed!", collectionId);
 		}
@@ -668,23 +669,23 @@ public class CollectionSearcher {
 		// 이 배열의 index번호는 세그먼트번호.
 		ArrayList<Row> rowList = new ArrayList<Row>();
 
-		SegmentInfo lastSegInfo = collectionHandler.getSegmentInfo(segmentSize - 1);
-		File lastSegDir = lastSegInfo.getSegmentDir();
-		int lastSegRevision = lastSegInfo.getLastRevision();
+//		SegmentInfo lastSegInfo = collectionHandler.getSegmentInfo(segmentSize - 1);
+//		File lastSegDir = lastSegInfo.getSegmentDir();
+//		int lastSegRevision = lastSegInfo.getLastRevision();
 
 		for (int i = 0; i < segmentSize; i++) {
-			SegmentInfo segInfo = collectionHandler.getSegmentInfo(i);
-			File targetDir = segInfo.getSegmentDir();
-			int lastRevision = segInfo.getLastRevision();
-
-			DocumentReader reader = new DocumentReader(collectionHandler.schema(), targetDir);
+			SegmentReader segmentReader = collectionHandler.segmentReader(i);
+//			File targetDir = segmentReader.getSegmentDir();
+//			int lastRevision = segmentReader.getLastRevision();
+			int revision = segmentReader.segmentInfo().getRevision();
+			DocumentReader reader = new DocumentReader(collectionHandler.schema(), segmentReader.segmentDir());
 			BitSet deleteSet = null;
 
 			if (i < segmentSize - 1) {
-				deleteSet = new BitSet(IndexFileNames.getRevisionDir(lastSegDir, lastSegRevision), IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet,
+				deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet,
 						Integer.toString(i)));
 			} else {
-				deleteSet = new BitSet(IndexFileNames.getRevisionDir(lastSegDir, lastSegRevision), IndexFileNames.docDeleteSet);
+				deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.docDeleteSet);
 			}
 			logger.debug("DELETE-{} {} >> {}", new Object[] { i, deleteSet, deleteSet.getEntry() });
 
@@ -694,9 +695,9 @@ public class CollectionSearcher {
 
 			if (pkFieldSettingList.size() > 1) {
 				// 결합 pk일경우 값들은 ';'로 구분되어있다.
-				pkValues = id.split(";");
+				pkValues = primaryKey.split(";");
 			} else {
-				pkValues = new String[] { id };
+				pkValues = new String[] { primaryKey };
 			}
 
 			int docNo = -1;
@@ -707,14 +708,14 @@ public class CollectionSearcher {
 				field.writeTo(pkOutput);
 			}
 
-			PrimaryKeyIndexReader pkReader = new PrimaryKeyIndexReader(IndexFileNames.getRevisionDir(targetDir, lastRevision), IndexFileNames.primaryKeyMap);
+			PrimaryKeyIndexReader pkReader = new PrimaryKeyIndexReader(segmentReader.revisionDir(), IndexFileNames.primaryKeyMap);
 			docNo = pkReader.get(pkOutput.array(), 0, (int) pkOutput.position());
 			pkReader.close();
 
 			if (docNo != -1) {
 				Document document = reader.readDocument(docNo);
 				Row row = new Row(fieldSize);
-				row.setRowTag(i + "-" + lastRevision + "-" + docNo);
+				row.setRowTag(i + "-" + revision + "-" + docNo);
 				for (int m = 0; m < fieldSize; m++) {
 					int fieldNum = fieldNumList[m];
 					Field field = document.get(fieldNum);

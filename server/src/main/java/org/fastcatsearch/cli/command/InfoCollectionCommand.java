@@ -12,11 +12,12 @@ import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.cli.command.exception.CollectionNotDefinedException;
 import org.fastcatsearch.cli.command.exception.CollectionNotFoundException;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.settings.Schema;
+import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.IRSettings;
 
 public class InfoCollectionCommand extends CollectionExtractCommand {
 
@@ -67,17 +68,12 @@ public class InfoCollectionCommand extends CollectionExtractCommand {
 		}
 	}
 
-	private boolean getCollectionData(String collection) {
-
-		Schema schema = null;
-		try {
-			schema = IRSettings.getSchema(collection, true);
-		} catch (Exception e) {
-			return false;
-		}
-		String dataSourceType = IRSettings.getDatasource(collection, true).sourceType;
+	private boolean getCollectionData(String collectionId) {
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
-		CollectionHandler ch = irService.collectionHandler(collection);
+		CollectionContext collectionContext = irService.collectionContext(collectionId);
+		Schema schema = collectionContext.schema();
+		String sourceReaderType = collectionContext.dataSourceConfig().getReaderType();
+		CollectionHandler ch = irService.collectionHandler(collectionId);
 		boolean isRunning = (ch == null ? false : true);
 		String durationStr = "";
 		String strStartTime = "";
@@ -87,18 +83,17 @@ public class InfoCollectionCommand extends CollectionExtractCommand {
 			strStartTime = new Date(startTime).toString();
 			durationStr = Formatter.getFormatTime(duration);
 		}
-
-		addRecord(data, collection, schema.getFieldSettingList().size() + "", schema.getIndexSettingList().size() + "",
-				schema.getFilterSettingList().size() + "", schema.getGroupSettingList().size() + "", schema
-						.getSortSettingList().size() + "", dataSourceType, (isRunning ? "Running" : "stop"),
+		SchemaSetting schemaSetting = schema.schemaSetting();
+		addRecord(data, collectionId, schemaSetting.getFieldSettingList().size() + "", schemaSetting.getIndexSettingList().size() + "",
+				schemaSetting.getFieldIndexSettingList().size() + "", sourceReaderType, (isRunning ? "Running" : "stop"),
 				strStartTime, durationStr);
 
 		return true;
 	}
 
-	private void addRecord(List<Object[]> data, String cn, String ftc, String ifc, String ffc, String gfc, String sfc,
+	private void addRecord(List<Object[]> data, String cn, String ftc, String ifc, String ffc,
 			String dst, String status, String sdate, String runtime) {
-		data.add(new Object[] { cn, ftc, ifc, ffc, gfc, sfc, dst, status, sdate, runtime });
+		data.add(new Object[] { cn, ftc, ifc, ffc, dst, status, sdate, runtime });
 	}
 
 	// collection name", "total field count", "indexing field count",	"fileter

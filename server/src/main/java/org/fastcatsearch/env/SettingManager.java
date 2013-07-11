@@ -1,11 +1,5 @@
 package org.fastcatsearch.env;
 
-import static org.fastcatsearch.env.SettingFileNames.bakupSuffix;
-import static org.fastcatsearch.env.SettingFileNames.datasource;
-import static org.fastcatsearch.env.SettingFileNames.schema;
-import static org.fastcatsearch.env.SettingFileNames.schemaObject;
-import static org.fastcatsearch.env.SettingFileNames.workSchema;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -13,17 +7,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.io.FileUtils;
-import org.fastcatsearch.ir.common.SettingException;
-import org.fastcatsearch.ir.config.DataSourceConfig;
-import org.fastcatsearch.ir.settings.Schema;
+import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.settings.Settings;
 import org.jdom.Document;
 import org.jdom.Element;

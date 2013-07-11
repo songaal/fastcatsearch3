@@ -10,7 +10,6 @@ import org.fastcatsearch.cli.command.exception.CollectionNotFoundException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.IRSettings;
 
 public abstract class CollectionExtractCommand extends Command {
 /*

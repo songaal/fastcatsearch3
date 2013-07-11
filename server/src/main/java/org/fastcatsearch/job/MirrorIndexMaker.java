@@ -16,18 +16,18 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.ir.common.IndexFileNames;
+import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
-import org.fastcatsearch.ir.search.SegmentInfo;
 
 
 public class MirrorIndexMaker {
 
 	public MirrorIndexInfo make(SegmentInfo segmentInfo, File newRevDir, boolean isAppended) {
 //		File curRevDir = new File(segmentInfo.getSegmentDir(), segmentInfo.getLastRevision()+"");
-		File newSegmentDir = segmentInfo.getSegmentDir();
+		File newSegmentDir = null;//segmentInfo.getSegmentDir();
 		
 		File mirrorDir = new File(newSegmentDir.getParentFile(), "mirror");
 		//상위의 mirror디렉토리에 미러색인파일을 기록한다.
@@ -40,14 +40,14 @@ public class MirrorIndexMaker {
 		}
 		mirrorDir.mkdir();
 		
-		int docCount = segmentInfo.getDocCount();
+		int docCount = segmentInfo.getDocumentCount();
 		
 		try {
 			//1. doc문서파일.
 			byte[] buf = new byte[8 * 1024];
 			DataInput fileInput = new BufferedFileInput(newRevDir, IndexFileNames.docPosition);
 			DataOutput fileOutput = new BufferedFileOutput(mirrorDir, IndexFileNames.docPosition);
-			fileInput.seek(segmentInfo.docPositionFilesSize);
+//			fileInput.seek(segmentInfo.docPositionFilesSize);
 			int nread = 0;
 //			while((nread = fileInput.readBytes(buf, 0, buf.length)) > 0){
 //				fileOutput.writeBytes(buf, 0, nread);

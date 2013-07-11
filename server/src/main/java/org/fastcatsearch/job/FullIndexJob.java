@@ -12,12 +12,11 @@
 package org.fastcatsearch.job;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.common.io.Streamable;
-import org.fastcatsearch.datasource.reader.SourceReader;
+import org.fastcatsearch.datasource.reader.DataSourceReader;
+import org.fastcatsearch.datasource.reader.DataSourceReaderFactory;
 import org.fastcatsearch.db.dao.IndexingResult;
 import org.fastcatsearch.env.CollectionFilePaths;
 import org.fastcatsearch.exception.FastcatSearchException;
@@ -83,9 +82,9 @@ public class FullIndexJob extends IndexingJob {
 			CollectionContext collectionContext = irService.collectionContext(collectionId);
 			CollectionFilePaths  collectionFilePaths = collectionContext.collectionFilePaths();
 			DataPlanConfig dataPlanConfig = collectionContext.collectionConfig().getDataPlanConfig();
-			int DATA_SEQUENCE_CYCLE = dataPlanConfig.getDataSequenceCycle();
+//			int DATA_SEQUENCE_CYCLE = dataPlanConfig.getDataSequenceCycle();
 			
-			File collectionHomeDir = collectionFilePaths.home().file();
+//			File collectionHomeDir = collectionFilePaths.home().file();
 			Schema workSchema = collectionContext.workSchema();
 			if(workSchema == null){
 				//workschema가 없으면 기존 schema로 색인수행.
@@ -119,12 +118,12 @@ public class FullIndexJob extends IndexingJob {
 			int segmentNumber = 0;
 			//1.xml을 unmarshar해서 sourceconfig객체로 가지고 있는다.
 			//2. 
-			DataSourceConfig dsSetting = collectionContext.dataSourceConfig();
-			SourceReader sourceReader = SourceReaderFactory.createSourceReader(collectionId, workSchema, dsSetting, true);
+			DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
+			DataSourceReader sourceReader = DataSourceReaderFactory.createSourceReader(collectionFilePaths.home(), workSchema, dataSourceConfig, null, true);
 			
 			if(sourceReader == null){
 //				EventDBLogger.error(EventDBLogger.CATE_INDEX, "데이터수집기를 생성할 수 없습니다.");
-				throw new FastcatSearchException("데이터 수집기 생성중 에러발생. sourceType = "+dsSetting.sourceType);
+				throw new FastcatSearchException("데이터 수집기 생성중 에러발생. sourceType = "+dataSourceConfig.getConfigType());
 			}
 			
 			/*

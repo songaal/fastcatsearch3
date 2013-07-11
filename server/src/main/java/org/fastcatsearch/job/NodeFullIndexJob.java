@@ -20,33 +20,35 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.data.DataService;
 import org.fastcatsearch.data.DataStrategy;
-import org.fastcatsearch.datasource.reader.SourceReader;
-import org.fastcatsearch.datasource.reader.SourceReaderFactory;
+import org.fastcatsearch.datasource.reader.DataSourceReader;
+import org.fastcatsearch.datasource.reader.DataSourceReaderFactory;
+import org.fastcatsearch.env.CollectionFilePaths;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IndexFileNames;
+import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.DataPlanConfig;
 import org.fastcatsearch.ir.config.DataSourceConfig;
+import org.fastcatsearch.ir.config.IndexConfig;
+import org.fastcatsearch.ir.index.SegmentWriter;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.ir.search.DataSequenceFile;
-import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.IRSettings;
 import org.fastcatsearch.task.MakeIndexFileTask;
 import org.fastcatsearch.transport.common.SendFileResultFuture;
+import org.fastcatsearch.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,14 +78,17 @@ public class NodeFullIndexJob extends StreamableJob {
 			long startTime = System.currentTimeMillis();
 //			IRConfig irconfig = IRSettings.getConfig(true);
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-			DataPlanConfig dataPlanConfig = irService.getCollectionConfig(collectionId).getDataPlanConfig();
-			int DATA_SEQUENCE_CYCLE = dataPlanConfig.getDataSequenceCycle();
+			CollectionContext collectionContext = irService.collectionContext(collectionId);
+			DataPlanConfig dataPlanConfig = collectionContext.collectionConfig().getDataPlanConfig();
+//			int DATA_SEQUENCE_CYCLE = dataPlanConfig.getDataSequenceCycle();
 //			int DATA_SEQUENCE_CYCLE = irconfig.getInt("data.sequence.cycle");
-
-			File collectionHomeDir = new File(IRSettings.getCollectionHome(collectionId));
-			Schema workSchema = IRSettings.getWorkSchema(collectionId, true, false);
-			if (workSchema == null)
-				workSchema = IRSettings.getSchema(collectionId, false);
+			CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
+			
+//			File collectionHomeDir = new File(IRSettings.getCollectionHome(collectionId));
+			Schema workSchema = collectionContext.workSchema();
+			if (workSchema == null){
+				workSchema = collectionContext.schema();
+			}
 
 			if (workSchema.getFieldSize() == 0) {
 				indexingLogger.error("[" + collectionId + "] Full Indexing Canceled. Schema field is empty. time = "
@@ -98,39 +103,44 @@ public class NodeFullIndexJob extends StreamableJob {
 //				throw new FastcatSearchException("컬렉션 스키마에 주키(Primary Key)를 설정해야합니다.");
 //			}
 			
-			DataSequenceFile dataSequenceFile = new DataSequenceFile(collectionHomeDir, -1); // read
+//			DataSequenceFile dataSequenceFile = new DataSequenceFile(collectionHomeDir, -1); // read
 																								// sequence
-			int newDataSequence = (dataSequenceFile.getSequence() + 1) % DATA_SEQUENCE_CYCLE;
+//			int newDataSequence = (dataSequenceFile.getSequence() + 1) % DATA_SEQUENCE_CYCLE;
 
-			logger.debug("dataSequence=" + newDataSequence + ", DATA_SEQUENCE_CYCLE=" + DATA_SEQUENCE_CYCLE);
-
-			File collectionDataDir = new File(IRSettings.getCollectionDataPath(collectionId, newDataSequence));
-			FileUtils.deleteDirectory(collectionDataDir);
-
+//			logger.debug("dataSequence=" + newDataSequence + ", DATA_SEQUENCE_CYCLE=" + DATA_SEQUENCE_CYCLE);
+			int newDataSequence = collectionContext.getNextDataSequence();
+			File collectionDataDir = collectionFilePaths.dataPath(newDataSequence).file();
+			FileUtils.cleanCollectionDataDirectorys(collectionDataDir);
+			
 			// Make new CollectionHandler
 			// this handler's schema or other setting can be different from
 			// working segment handler's one.
 
 			int segmentNumber = 0;
 
-			DataSourceConfig dsSetting = IRSettings.getDatasource(collectionId, true);
-			SourceReader sourceReader = SourceReaderFactory.createSourceReader(collectionId, workSchema, dsSetting, true);
-
-			if (sourceReader == null) {
-				EventDBLogger.error(EventDBLogger.CATE_INDEX, "데이터수집기를 생성할 수 없습니다.");
-				throw new FastcatSearchException("데이터 수집기 생성중 에러발생. sourceType = " + dsSetting.sourceType);
+			DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
+			DataSourceReader sourceReader = DataSourceReaderFactory.createSourceReader(collectionFilePaths.home(), workSchema, dataSourceConfig, null, true);
+			
+			if(sourceReader == null){
+//				EventDBLogger.error(EventDBLogger.CATE_INDEX, "데이터수집기를 생성할 수 없습니다.");
+				throw new FastcatSearchException("데이터 수집기 생성중 에러발생. sourceType = "+dataSourceConfig.getConfigType());
 			}
 
-			File segmentDir = new File(IRSettings.getCollectionSegmentPath(collectionId, newDataSequence, segmentNumber));
-			indexingLogger.info("Segment Dir = " + segmentDir.getAbsolutePath());
-
+			SegmentInfo segmentInfo = null;
+			IndexConfig indexConfig = collectionContext.collectionConfig().getIndexConfig();
+			File segmentDir = collectionFilePaths.segmentPath(newDataSequence, segmentNumber).file();
+			indexingLogger.info("Segment Dir = {}", segmentDir.getAbsolutePath());
+			SegmentWriter writer = null;
+			int count = 0;
+			int[] updateAndDeleteSize = {0, 0};
+			
 			/*
 			 * 색인파일 생성.
 			 */
 			MakeIndexFileTask makeIndexFileTask = new MakeIndexFileTask();
 			int dupCount = 0;
 			try{
-				dupCount = makeIndexFileTask.makeIndex(collectionId, collectionHomeDir, workSchema, collectionDataDir, dsSetting, sourceReader, segmentDir);
+				dupCount = makeIndexFileTask.makeIndex(collectionId, collectionFilePaths.home().file(), workSchema, collectionDataDir, sourceReader, segmentDir);
 			}finally{
 				try{
 					sourceReader.close();
@@ -140,8 +150,9 @@ public class NodeFullIndexJob extends StreamableJob {
 			}
 //			CollectionHandler newHandler = new CollectionHandler(collectionId, collectionHomeDir, workSchema, IRSettings.getIndexConfig());
 			CollectionHandler newHandler = irService.loadCollectionHandler(collectionId, newDataSequence);
-			int[] updateAndDeleteSize = newHandler.addSegment(segmentNumber, segmentDir, null); //collection.info 파일저장.
-			newHandler.saveDataSequenceFile(); //data.sequence 파일저장.
+//			int[] updateAndDeleteSize = 
+			newHandler.addSegment(segmentInfo, segmentDir, null); //collection.info 파일저장.
+//			newHandler.saveDataSequenceFile(); //data.sequence 파일저장.
 			
 			
 			/*
@@ -161,8 +172,8 @@ public class NodeFullIndexJob extends StreamableJob {
 			//
 			Collection<File> files = FileUtils.listFiles(segmentDir, null, true);
 			//add collection.info 파일
-			File collectionInfoFile = new File(collectionDataDir, IndexFileNames.collectionInfoFile);
-			files.add(collectionInfoFile);
+//			File collectionInfoFile = new File(collectionDataDir, IndexFileNames.collectionInfoFile);
+//			files.add(collectionInfoFile);
 			int totalFileCount = files.size();
 
 			//TODO 순차적전송이라서 여러노드전송시 속도가 느림.해결요망.  
@@ -177,7 +188,7 @@ public class NodeFullIndexJob extends StreamableJob {
 				int fileCount = 1;
 				while (fileIterator.hasNext()) {
 					File sourceFile = fileIterator.next();
-					File targetFile = environment.filePaths().getRelativePathFile(sourceFile);
+					File targetFile = environment.filePaths().path(sourceFile.getPath()).file();
 					logger.debug("sourceFile >> {}", sourceFile.getPath());
 					logger.debug("targetFile >> {}", targetFile.getPath());
 					logger.info("[{} / {}]파일 {} 전송시작! ", new Object[] { fileCount, totalFileCount, sourceFile.getPath() });
@@ -233,19 +244,19 @@ public class NodeFullIndexJob extends StreamableJob {
 				oldCollectionHandler.close();
 			}
 			
-			SegmentInfo si = newHandler.getLastSegmentInfo();
+			SegmentInfo si = newHandler.getLastSegmentReader().segmentInfo();
 			logger.info(si.toString());
-			int docSize = si.getDocCount();
+			int docSize = si.getDocumentCount();
 			
 			/*
 			 * indextime 파일 업데이트.
 			 */
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			String startDt = sdf.format(startTime);
-			String endDt = sdf.format(new Date());
+//			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//			String startDt = sdf.format(startTime);
+//			String endDt = sdf.format(new Date());
 			int duration = (int) (System.currentTimeMillis() - startTime);
-			String durationStr = Formatter.getFormatTime(duration);
-			IRSettings.storeIndextime(collectionId, "FULL", startDt, endDt, durationStr, docSize);
+//			String durationStr = Formatter.getFormatTime(duration);
+//			IRSettings.storeIndextime(collectionId, "FULL", startDt, endDt, durationStr, docSize);
 			
 			/*
 			 * 5초후에 캐시 클리어.

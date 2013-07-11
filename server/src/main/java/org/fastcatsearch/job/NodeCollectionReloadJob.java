@@ -8,10 +8,10 @@ import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.ir.search.SegmentInfo;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.service.ServiceManager;
@@ -49,7 +49,7 @@ public class NodeCollectionReloadJob extends StreamableJob {
 	//		logger.info("== SegmentStatus ==");
 //			newHandler.printSegmentStatus();
 			
-			newHandler.saveDataSequenceFile();
+//			newHandler.saveDataSequenceFile();
 			
 			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, newHandler);
 			if(oldCollectionHandler != null){
@@ -57,15 +57,15 @@ public class NodeCollectionReloadJob extends StreamableJob {
 				oldCollectionHandler.close();
 			}
 			
-			SegmentInfo si = newHandler.getLastSegmentInfo();
+			SegmentInfo si = newHandler.getLastSegmentReader().segmentInfo();
 			logger.info(si.toString());
-			int docSize = si.getDocCount();
+			int docSize = si.getDocumentCount();
 			int newDataSequence = newHandler.getDataSequence();
 			/*
 			 * indextime 파일 업데이트.
 			 */
 			CollectionContext collectionContext = irService.collectionContext(collectionId);
-			collectionContext.updateCollectionStatus(IndexingType.FULL_INDEXING, newDataSequence, count.intValue(), st , System.currentTimeMillis());
+//			collectionContext.updateCollectionStatus(IndexingType.FULL_INDEXING, newDataSequence, count.intValue(), st , System.currentTimeMillis());
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			String startDt = sdf.format(startTime);

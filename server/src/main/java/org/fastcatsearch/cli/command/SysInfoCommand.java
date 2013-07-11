@@ -7,7 +7,6 @@ import org.fastcatsearch.cli.Command;
 import org.fastcatsearch.cli.CommandException;
 import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
-import org.fastcatsearch.settings.IRSettings;
 
 public class SysInfoCommand extends Command {
 
@@ -29,8 +28,8 @@ public class SysInfoCommand extends Command {
 			ArrayList<Object[]> data = new ArrayList<Object[]>();
 //			StringBuilder sb = new StringBuilder();
 			
-			data.add(new Object[]{"search engine version : ",	IRSettings.VERSION});
-			data.add(new Object[]{"search engine home : ",		IRSettings.HOME});
+//			data.add(new Object[]{"search engine version : ",	environment.VERSION});
+			data.add(new Object[]{"search engine home : ",		environment.home()});
 			data.add(new Object[]{"java Vendor : ",System.getProperty("java.vendor")});
 			data.add(new Object[]{"java name   : ",System.getProperty("java.vm.name")});
 			data.add(new Object[]{"java version: ",System.getProperty("java.version")});

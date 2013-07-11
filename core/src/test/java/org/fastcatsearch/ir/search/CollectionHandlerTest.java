@@ -89,7 +89,7 @@ public class CollectionHandlerTest extends TestCase{
 			Document doc = null;
 			writer.addDocument(doc);
 			writer.close();
-			h.addSegment(segmentNumber, indexDir, null);
+//			h.addSegment(segmentNumber, indexDir, null);
 		}
 		
 		h.printSegmentStatus();
@@ -100,8 +100,8 @@ public class CollectionHandlerTest extends TestCase{
 		IndexConfig indexConfig = null;
 		File collectionDir = null;
 		CollectionHandler h = new CollectionHandler(collectionContext);
-		int segmentNumber = h.getNextSegmentNumber();
-		System.out.println("segmentNumber = "+segmentNumber);
+//		int segmentNumber = h.getNextSegmentNumber();
+//		System.out.println("segmentNumber = "+segment?Number);
 		
 		String source = homePath+"dbData/db.data.2";
 		File sourceFile = new File(source);
@@ -112,7 +112,7 @@ public class CollectionHandlerTest extends TestCase{
 		writer.close();
 
 		
-		h.addSegment(segmentNumber, indexDir, null);
+//		h.addSegment(segmentNumber, indexDir, null);
 		
 		h.printSegmentStatus();
 	}

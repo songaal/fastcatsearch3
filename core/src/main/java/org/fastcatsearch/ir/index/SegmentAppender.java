@@ -57,7 +57,7 @@ public class SegmentAppender {
 	
 	private void init(Schema schema, File targetDir, int revision, IndexConfig indexConfig) throws IRException{
 		try{
-			segmentInfo = new SegmentInfo(-1, targetDir);
+			segmentInfo = new SegmentInfo();
 			
 			IndexFileNames.getRevisionDir(targetDir, revision).mkdirs();
 			
@@ -133,23 +133,26 @@ public class SegmentAppender {
 			//delete new revisin dir
 			File revisionDir = IndexFileNames.getRevisionDir(targetDir, revision);
 			FileUtils.deleteDirectory(revisionDir);
-			return;
+			return null;
 		}
 		
-		SegmentInfoWriter segmentInfoWriter = new SegmentInfoWriter(targetDir);
-		segmentInfoWriter.write(segmentInfo.getBaseDocNo(), (lastDocNo + 1), revision, System.currentTimeMillis());
-		segmentInfoWriter.close();
+		segmentInfo.update(revision, lastDocNo + 1, 0, Formatter.formatDate());
+		
+//		SegmentInfoWriter segmentInfoWriter = new SegmentInfoWriter(targetDir);
+//		segmentInfoWriter.write(segmentInfo.getBaseDocNo(), (lastDocNo + 1), revision, System.currentTimeMillis());
+//		segmentInfoWriter.close();
 		
 		//backup a original copy of current revision's segment.info
-		File f = new File(targetDir, IndexFileNames.segmentInfoFile);
-		File revisionDir = IndexFileNames.getRevisionDir(targetDir, revision);
-//		logger.debug("segminfo = "+f.getAbsolutePath());
-		FileUtils.copyFileToDirectory(f, revisionDir);
+//		File f = new File(targetDir, IndexFileNames.segmentInfoFile);
+//		File revisionDir = IndexFileNames.getRevisionDir(targetDir, revision);
+////		logger.debug("segminfo = "+f.getAbsolutePath());
+//		FileUtils.copyFileToDirectory(f, revisionDir);
 		
 		logger.info("{} documents indexed, total = {} docs, elapsed = {}, mem = {}", 
 				new Object[]{count, lastDocNo + 1, Formatter.getFormatTime(System.currentTimeMillis() - startTime), Formatter.getFormatSize(Runtime.getRuntime().totalMemory())});
-		logger.info("doc base number = {}", segmentInfo.getBaseDocNo());
+		logger.info("doc base number = {}", segmentInfo.getBaseNumber());
 		
+		return segmentInfo;
 	}
 
 }

@@ -19,7 +19,6 @@ import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.IRSettings;
 
 /**
  * 

@@ -220,6 +220,9 @@ public class CollectionHandler {
 	
 	//동일 세그먼트에 리비전추가.
 	public SegmentInfo updateRevision(SegmentInfo segmentInfo, File segmentDir, DeleteIdSet deleteSet) throws IOException, IRException{
+		
+		//TODO 추가문서는 없고 delete문서만 존재할경우.
+		
 		BitSet[] deleteSetList = null;
 		
 		//TODO 작업 Lock을 걸어서 작업중에는 검색이 안되도록 한다.

@@ -34,7 +34,7 @@ import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.util.HTMLTagRemover;
 
 
-public class FastcatSearchCollectFileParser extends SourceReader {
+public class FastcatSearchCollectFileParser extends DataSourceReader {
 	
 	private DirBufferedReader br;
 	private Document document;
@@ -51,7 +51,7 @@ public class FastcatSearchCollectFileParser extends SourceReader {
 	private int count; // how many fields are set
 
 	public FastcatSearchCollectFileParser(Path filePath, Schema schema, FileSourceConfig config, SourceModifier sourceModifier, Boolean isFull) throws IRException {
-		super(filePath, schema, sourceModifier);
+		super(filePath, schema, config, sourceModifier);
 		try {
 			if(isFull){
 				br = new DirBufferedReader(new File(config.getFullFilePath()), config.getFileEncoding());

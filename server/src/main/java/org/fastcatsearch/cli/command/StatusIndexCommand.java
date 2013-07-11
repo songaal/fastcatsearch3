@@ -13,7 +13,6 @@ package org.fastcatsearch.cli.command;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.fastcatsearch.cli.Command;
@@ -27,7 +26,6 @@ import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.IRSettings;
 
 /**
  * 
