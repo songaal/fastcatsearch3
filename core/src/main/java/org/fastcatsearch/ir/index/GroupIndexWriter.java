@@ -265,6 +265,11 @@ public class GroupIndexWriter {
 				File tempPkFile = new File(IndexFileNames.getRevisionDir(baseDir, revision), IndexFileNames.getTempFileName(IndexFileNames.groupKeyMap));
 				tempPkFile.delete();
 			}
+			
+			//pk reader닫지 않는 버그수정.
+			for (int i = 0; i < pkReaderList.length; i++) {
+				pkReaderList[i].close();
+			}
 			return;
 		}
 
