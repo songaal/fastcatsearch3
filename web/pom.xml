@@ -23,7 +23,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.fastcatsearch.fastcatsearch</groupId>
-			<artifactId>core</artifactId>
+			<artifactId>server</artifactId>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
