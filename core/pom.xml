@@ -19,14 +19,14 @@
     <fastcatsearchRepository>http://repos.fastcatsearch.org/nexus/content/repositories/fastcatsearch-org/</fastcatsearchRepository>
   </properties>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.fastcatsearch.fastcatsearch</groupId>
+  <groupId>org.fastcatgroup.fastcatsearch</groupId>
   <artifactId>core</artifactId>
   <name>fastcatsearch-core</name>
   <description>fastcatsearch/core</description>
   <url>fastcatsearch.org</url>
   <packaging>jar</packaging>
   <parent>
-  	<groupId>org.fastcatsearch</groupId>
+  	<groupId>org.fastcatgroup</groupId>
   	<artifactId>fastcatsearch</artifactId>
   	<version>2</version>
   </parent>

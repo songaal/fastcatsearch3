@@ -9,7 +9,7 @@
 		<fastcatsearchRepository>http://repos.fastcatsearch.org/nexus/content/repositories/fastcatsearch-org/</fastcatsearchRepository>
 	</properties>
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.fastcatsearch</groupId>
+	<groupId>org.fastcatgroup</groupId>
 	<artifactId>fastcatsearch</artifactId>
 	<version>2</version>
 	<name>fastcatsearch</name>
