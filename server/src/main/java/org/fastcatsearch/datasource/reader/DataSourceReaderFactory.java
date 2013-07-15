@@ -11,6 +11,7 @@
 
 package org.fastcatsearch.datasource.reader;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +30,7 @@ public class DataSourceReaderFactory {
 	
 	
 	//멀티소스일때 리더를 결합한 compositeSourceReader를 리턴해준다.
-	public static DataSourceReader createSourceReader(Path filePath, Schema schema, List<DataSourceConfig> dataSourceConfigList, String lastIndexTime, boolean isFullIndexing) throws IRException{
+	public static DataSourceReader createSourceReader(File filePath, Schema schema, List<DataSourceConfig> dataSourceConfigList, String lastIndexTime, boolean isFullIndexing) throws IRException{
 		
 		List<DataSourceReader> readerList = new ArrayList<DataSourceReader>(dataSourceConfigList.size());
 		
@@ -39,7 +40,7 @@ public class DataSourceReaderFactory {
 		return new CompositeDataSourceReader(readerList);
 		
 	}
-	public static DataSourceReader createSourceReader(Path filePath, Schema schema, DataSourceConfig dataSourceConfig, String lastIndexTime, boolean isFullIndexing) throws IRException{
+	public static DataSourceReader createSourceReader(File filePath, Schema schema, DataSourceConfig dataSourceConfig, String lastIndexTime, boolean isFullIndexing) throws IRException{
 	
 		SourceModifier sourceModifier = null;
 		if(dataSourceConfig.getSourceModifier() != null && dataSourceConfig.getSourceModifier().length() > 0){

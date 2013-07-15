@@ -18,13 +18,11 @@ import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.datasource.reader.DataSourceReader;
 import org.fastcatsearch.datasource.reader.DataSourceReaderFactory;
 import org.fastcatsearch.db.dao.IndexingResult;
-import org.fastcatsearch.env.CollectionFilePaths;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.CollectionContextWriter;
 import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.DataPlanConfig;
@@ -46,6 +44,8 @@ import org.fastcatsearch.processlogger.log.IndexingFinishProcessLog;
 import org.fastcatsearch.processlogger.log.IndexingStartProcessLog;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
+import org.fastcatsearch.util.CollectionContextUtil;
+import org.fastcatsearch.util.CollectionFilePaths;
 import org.fastcatsearch.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,7 +109,7 @@ public class FullIndexJob extends IndexingJob {
 			
 //			logger.debug("dataSequence={}, DATA_SEQUENCE_CYCLE={}", newDataSequence, DATA_SEQUENCE_CYCLE);
 			
-			File collectionDataDir = collectionFilePaths.dataPath(newDataSequence).file();
+			File collectionDataDir = collectionFilePaths.dataFile(newDataSequence);
 			FileUtils.cleanCollectionDataDirectorys(collectionDataDir);
 			
 			//Make new CollectionHandler
@@ -119,7 +119,7 @@ public class FullIndexJob extends IndexingJob {
 			//1.xml을 unmarshar해서 sourceconfig객체로 가지고 있는다.
 			//2. 
 			DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
-			DataSourceReader sourceReader = DataSourceReaderFactory.createSourceReader(collectionFilePaths.home(), workSchema, dataSourceConfig, null, true);
+			DataSourceReader sourceReader = DataSourceReaderFactory.createSourceReader(collectionFilePaths.file(), workSchema, dataSourceConfig, null, true);
 			
 			if(sourceReader == null){
 //				EventDBLogger.error(EventDBLogger.CATE_INDEX, "데이터수집기를 생성할 수 없습니다.");
@@ -131,7 +131,7 @@ public class FullIndexJob extends IndexingJob {
 			 */
 			SegmentInfo segmentInfo = null;
 			IndexConfig indexConfig = collectionContext.collectionConfig().getIndexConfig();
-			File segmentDir = collectionFilePaths.segmentPath(newDataSequence, segmentNumber).file();
+			File segmentDir = collectionFilePaths.segmentFile(newDataSequence, segmentNumber);
 			indexingLogger.info("Segment Dir = {}", segmentDir.getAbsolutePath());
 			SegmentWriter writer = null;
 			int count = 0;
@@ -238,7 +238,7 @@ public class FullIndexJob extends IndexingJob {
 			
 			
 			//최종 셋팅들을 모두 저장한다.
-			CollectionContextWriter.write(collectionContext);
+			CollectionContextUtil.write(collectionContext);
 			
 			
 			return new JobResult(result);

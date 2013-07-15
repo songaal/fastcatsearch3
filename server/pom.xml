@@ -17,12 +17,7 @@
 	<packaging>jar</packaging>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.fastcatgroup.fastcatsearch</groupId>
-			<artifactId>core</artifactId>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
+		
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>

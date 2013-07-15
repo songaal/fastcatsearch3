@@ -24,7 +24,6 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.util.BytesRef;
-import org.fastcatsearch.env.CollectionFilePaths;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.common.SettingException;
@@ -43,6 +42,7 @@ import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.PkRefSetting;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
 import org.fastcatsearch.ir.settings.Schema;
+import org.fastcatsearch.util.CollectionFilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,7 +85,7 @@ public class CollectionHandler {
 		int dataSequence = collectionContext.collectionStatus().getDataStatus().getSequence();
 		collectionContext.collectionFilePaths();
 		
-		File dataDir = collectionFilePaths.dataPath(dataSequence).file();
+		File dataDir = collectionFilePaths.dataFile(dataSequence);
 		if(!dataDir.exists()){
 			logger.info("create collection data directory [{}]", dataDir.getAbsolutePath());
 			dataDir.mkdir();
@@ -95,8 +95,8 @@ public class CollectionHandler {
 		
 		try {
 			for(SegmentInfo segmentInfo : collectionContext.dataInfo().getSegmentInfoList()){
-				File segmentDir = collectionFilePaths.segmentPath(dataSequence, segmentInfo.getId()).file();
-				File revisionDir = collectionFilePaths.revisionPath(dataSequence, segmentInfo.getId(), segmentInfo.getRevision()).file();
+				File segmentDir = collectionFilePaths.segmentFile(dataSequence, segmentInfo.getId());
+				File revisionDir = collectionFilePaths.revisionFile(dataSequence, segmentInfo.getId(), segmentInfo.getRevision());
 				BitSet deleteSet = new BitSet(revisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
 				segmentReaderList.add(new SegmentReader(collectionContext.schema(), segmentDir, segmentInfo, deleteSet));
 			}

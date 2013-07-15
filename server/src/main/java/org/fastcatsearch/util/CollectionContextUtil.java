@@ -2,7 +2,6 @@ package org.fastcatsearch.util;
 
 import java.io.File;
 
-import org.fastcatsearch.env.CollectionFilePaths;
 import org.fastcatsearch.env.Path;
 import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.CollectionContext;
@@ -17,7 +16,7 @@ import org.fastcatsearch.settings.SettingFileNames;
 public class CollectionContextUtil {
 	
 	public static CollectionContext init(CollectionFilePaths collectionFilePaths) {
-		Path collectionDir = collectionFilePaths.home();
+		Path collectionDir = new Path(collectionFilePaths.file());
 		SchemaSetting schemaSetting = new SchemaSetting();
 		JAXBConfigs.writeConfig(collectionDir.file(SettingFileNames.schema), schemaSetting, SchemaSetting.class);
 		CollectionConfig collectionConfig = new CollectionConfig();
@@ -27,7 +26,7 @@ public class CollectionContextUtil {
 		CollectionStatus collectionStatus = new CollectionStatus();
 		JAXBConfigs.writeConfig(collectionDir.file(SettingFileNames.collectionStatus), collectionStatus, CollectionStatus.class);
 		DataInfo dataInfo = new DataInfo();
-		JAXBConfigs.writeConfig(collectionFilePaths.dataPath(0).file(SettingFileNames.dataInfo), dataInfo, DataInfo.class);
+		JAXBConfigs.writeConfig(new File(collectionFilePaths.dataFile(0), SettingFileNames.dataInfo), dataInfo, DataInfo.class);
 		Schema schema = new Schema(schemaSetting);
 		CollectionContext collectionContext = new CollectionContext(collectionFilePaths.collectionId(), collectionFilePaths);
 		collectionContext.init(schema, null, collectionConfig, dataSourceConfig, collectionStatus, dataInfo);
@@ -35,7 +34,7 @@ public class CollectionContextUtil {
 	}
 	
 	public static CollectionContext load(CollectionFilePaths collectionFilePaths, int dataSequence){
-		Path collectionDir = collectionFilePaths.home();
+		Path collectionDir = new Path(collectionFilePaths.file());
 		SchemaSetting schemaSetting = JAXBConfigs.readConfig(collectionDir.file(SettingFileNames.schema), SchemaSetting.class);
 		SchemaSetting workSchemaSetting = JAXBConfigs.readConfig(collectionDir.file(SettingFileNames.workSchema), SchemaSetting.class);
 		CollectionConfig collectionConfig = JAXBConfigs.readConfig(collectionDir.file(SettingFileNames.collection), CollectionConfig.class);
@@ -43,7 +42,7 @@ public class CollectionContextUtil {
 		//TODO datasource가 여러개이면 config를 List로 가지고 있게 한다. 
 		CollectionStatus collectionStatus = JAXBConfigs.readConfig(collectionDir.file(SettingFileNames.collectionStatus), CollectionStatus.class);
 		//dataSequence가 -1아 아니면 원하는 sequence의 정보를 읽어온다.
-		File infoFile = collectionFilePaths.dataPath(dataSequence).file(SettingFileNames.dataInfo);
+		File infoFile = new File(collectionFilePaths.dataFile(dataSequence), SettingFileNames.dataInfo);
 		DataInfo dataInfo = null;
 		if(infoFile.exists()){
 			dataInfo = JAXBConfigs.readConfig(infoFile, DataInfo.class);
@@ -73,7 +72,7 @@ public class CollectionContextUtil {
 		DataInfo dataInfo = collectionContext.dataInfo();
 		DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
 		
-		File collectionDir = collectionFilePaths.home().file();
+		File collectionDir = collectionFilePaths.file();
 		
 		if(schema != null){
 			JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.schema), schema, Schema.class);
@@ -88,7 +87,7 @@ public class CollectionContextUtil {
 			JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.collectionStatus), collectionStatus, CollectionStatus.class);
 		}
 		if(dataInfo != null){
-			File dataDir = collectionFilePaths.dataPath(collectionStatus.getDataStatus().getSequence()).file();
+			File dataDir = collectionFilePaths.dataFile(collectionStatus.getDataStatus().getSequence());
 			JAXBConfigs.writeConfig(new File(dataDir, SettingFileNames.dataInfo), dataInfo, DataInfo.class);
 		}
 		if(dataSourceConfig != null){

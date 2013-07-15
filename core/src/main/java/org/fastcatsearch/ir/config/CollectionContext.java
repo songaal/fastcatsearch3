@@ -2,11 +2,11 @@ package org.fastcatsearch.ir.config;
 
 import java.util.Date;
 
-import org.fastcatsearch.env.CollectionFilePaths;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
+import org.fastcatsearch.util.CollectionFilePaths;
 
 public class CollectionContext {
 	private String collectionId;

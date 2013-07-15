@@ -18,7 +18,6 @@ import java.util.Date;
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.datasource.reader.DataSourceReader;
 import org.fastcatsearch.datasource.reader.DataSourceReaderFactory;
-import org.fastcatsearch.env.CollectionFilePaths;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
@@ -37,6 +36,7 @@ import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.util.CollectionFilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +86,7 @@ public class IncIndexJob extends IndexingJob {
 			DataPlanConfig dataPlanConfig = collectionContext.collectionConfig().getDataPlanConfig();
 			int DATA_SEQUENCE_CYCLE = dataPlanConfig.getDataSequenceCycle();
 			
-			File collectionHomeDir = collectionFilePaths.home().file();
+			File collectionHomeDir = collectionFilePaths.file();
 			Schema schema = collectionContext.schema();
 			
 			int docCount = currentSegmentInfo.getDocumentCount();
@@ -112,7 +112,7 @@ public class IncIndexJob extends IndexingJob {
 			logger.debug("workingHandler={}, dataSequence={}", workingHandler, dataSequence);
 			String lastIndexTime = collectionContext.getLastIndexTime();
 			DataSourceConfig dsSetting = collectionContext.dataSourceConfig();
-			DataSourceReader sourceReader = DataSourceReaderFactory.createSourceReader(collectionFilePaths.home(), schema, dsSetting, lastIndexTime, true);
+			DataSourceReader sourceReader = DataSourceReaderFactory.createSourceReader(collectionFilePaths.file(), schema, dsSetting, lastIndexTime, true);
 			
 			if(sourceReader == null){
 				EventDBLogger.error(EventDBLogger.CATE_INDEX, "데이터수집기를 생성할 수 없습니다.");
@@ -134,7 +134,7 @@ public class IncIndexJob extends IndexingJob {
 				//새로운 리비전으로 증가한다.
 				int revision = workingHandler.getLastSegmentReader().segmentInfo().getNextRevision();
 				
-				segmentDir = collectionFilePaths.segmentPath(dataSequence, segmentNumber).file();
+				segmentDir = collectionFilePaths.segmentFile(dataSequence, segmentNumber);
 //				segmentDir = new File(IRSettings.getCollectionSegmentPath(collectionId, dataSequence, segmentNumber));
 				indexingLogger.info("Revision Dir = {}", new File(segmentDir, Integer.toString(revision)).getAbsolutePath());
 				logger.info("Revision Dir = "+new File(segmentDir,revision+"").getAbsolutePath());
@@ -193,7 +193,7 @@ public class IncIndexJob extends IndexingJob {
 //				int nextSegmentBaseNumber = currentSegmentInfo.getBaseDocNo() + currentSegmentInfo.getDocCount();
 				int nextSegmentBaseNumber = currentSegmentInfo.getNextBaseNumber();
 				String newSegmentId = currentSegmentInfo.getNextId();
-				segmentDir = collectionFilePaths.segmentPath(dataSequence, newSegmentId).file();
+				segmentDir = collectionFilePaths.segmentFile(dataSequence, newSegmentId);
 //				segmentDir = new File(IRSettings.getCollectionSegmentPath(collectionId, dataSequence, newSegmentNumber));
 				int revision = workingHandler.getLastSegmentReader().segmentInfo().getRevision();
 				indexingLogger.info("Segment Dir = {}, baseNo = {}", segmentDir.getAbsolutePath(), nextSegmentBaseNumber);

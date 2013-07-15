@@ -28,7 +28,6 @@ import org.fastcatsearch.data.DataService;
 import org.fastcatsearch.data.DataStrategy;
 import org.fastcatsearch.datasource.reader.DataSourceReader;
 import org.fastcatsearch.datasource.reader.DataSourceReaderFactory;
-import org.fastcatsearch.env.CollectionFilePaths;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IndexFileNames;
@@ -48,6 +47,7 @@ import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.task.MakeIndexFileTask;
 import org.fastcatsearch.transport.common.SendFileResultFuture;
+import org.fastcatsearch.util.CollectionFilePaths;
 import org.fastcatsearch.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,7 +109,7 @@ public class NodeFullIndexJob extends StreamableJob {
 
 //			logger.debug("dataSequence=" + newDataSequence + ", DATA_SEQUENCE_CYCLE=" + DATA_SEQUENCE_CYCLE);
 			int newDataSequence = collectionContext.getNextDataSequence();
-			File collectionDataDir = collectionFilePaths.dataPath(newDataSequence).file();
+			File collectionDataDir = collectionFilePaths.dataFile(newDataSequence);
 			FileUtils.cleanCollectionDataDirectorys(collectionDataDir);
 			
 			// Make new CollectionHandler
@@ -119,7 +119,7 @@ public class NodeFullIndexJob extends StreamableJob {
 			int segmentNumber = 0;
 
 			DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
-			DataSourceReader sourceReader = DataSourceReaderFactory.createSourceReader(collectionFilePaths.home(), workSchema, dataSourceConfig, null, true);
+			DataSourceReader sourceReader = DataSourceReaderFactory.createSourceReader(collectionFilePaths.file(), workSchema, dataSourceConfig, null, true);
 			
 			if(sourceReader == null){
 //				EventDBLogger.error(EventDBLogger.CATE_INDEX, "데이터수집기를 생성할 수 없습니다.");
@@ -128,7 +128,7 @@ public class NodeFullIndexJob extends StreamableJob {
 
 			SegmentInfo segmentInfo = null;
 			IndexConfig indexConfig = collectionContext.collectionConfig().getIndexConfig();
-			File segmentDir = collectionFilePaths.segmentPath(newDataSequence, segmentNumber).file();
+			File segmentDir = collectionFilePaths.segmentFile(newDataSequence, segmentNumber);
 			indexingLogger.info("Segment Dir = {}", segmentDir.getAbsolutePath());
 			SegmentWriter writer = null;
 			int count = 0;
@@ -140,7 +140,7 @@ public class NodeFullIndexJob extends StreamableJob {
 			MakeIndexFileTask makeIndexFileTask = new MakeIndexFileTask();
 			int dupCount = 0;
 			try{
-				dupCount = makeIndexFileTask.makeIndex(collectionId, collectionFilePaths.home().file(), workSchema, collectionDataDir, sourceReader, segmentDir);
+				dupCount = makeIndexFileTask.makeIndex(collectionId, collectionFilePaths.file(), workSchema, collectionDataDir, sourceReader, segmentDir);
 			}finally{
 				try{
 					sourceReader.close();

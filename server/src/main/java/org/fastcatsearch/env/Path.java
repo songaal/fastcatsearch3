@@ -2,6 +2,8 @@ package org.fastcatsearch.env;
 
 import java.io.File;
 
+import org.fastcatsearch.util.CollectionFilePaths;
+
 public class Path {
 
 	private File root;

@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.fastcatsearch.common.QueryCacheModule;
-import org.fastcatsearch.env.CollectionFilePaths;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.common.IRException;
@@ -40,6 +39,7 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.util.CollectionContextUtil;
+import org.fastcatsearch.util.CollectionFilePaths;
 
 
 public class IRService extends AbstractService{
@@ -71,7 +71,6 @@ public class IRService extends AbstractService{
 		for (Collection collection : collectionsConfig.getCollectionList()) {
 			try {
 				String collectionId = collection.getId();
-				
 				CollectionContext collectionContext = loadCollectionContext(collectionId); 
 				
 				CollectionHandler collectionHandler = new CollectionHandler(collectionContext);

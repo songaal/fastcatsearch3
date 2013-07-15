@@ -15,20 +15,6 @@
 	<description>fastcatsearch/web</description>
 	<url>fastcatsearch.org</url>
 	<packaging>war</packaging>
-	<dependencies>
-		<dependency>
-			<groupId>org.fastcatgroup.fastcatsearch</groupId>
-			<artifactId>core</artifactId>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.fastcatgroup.fastcatsearch</groupId>
-			<artifactId>server</artifactId>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
-	</dependencies>
 	<build>
 		<finalName>manager</finalName>
 		<plugins>
