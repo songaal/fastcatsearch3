@@ -10,28 +10,27 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.fastcatgroup.fastcatsearch</groupId>
-	<artifactId>web</artifactId>
+	<artifactId>fastcatsearch-web</artifactId>
 	<name>fastcatsearch-web</name>
 	<description>fastcatsearch/web</description>
 	<url>fastcatsearch.org</url>
 	<packaging>war</packaging>
+	<parent>
+		<groupId>org.fastcatgroup</groupId>
+		<artifactId>fastcatsearch</artifactId>
+		<version>2.13.7</version>
+	</parent>
 	<build>
-		<finalName>manager</finalName>
+		<finalName>${artifactId}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>
 				<version>2.1.1</version>
 				<configuration>
-					<outputDirectory>${project.build.directory}/../../target/${project.parent.artifactId}-${project.version}</outputDirectory>
 					<packagingExcludes>WEB-INF/lib/*.jar</packagingExcludes>
 				</configuration>
 			</plugin>
 		</plugins>
 	</build>
-	<parent>
-		<groupId>org.fastcatgroup</groupId>
-		<artifactId>fastcatsearch</artifactId>
-		<version>2</version>
-	</parent>
 </project>
