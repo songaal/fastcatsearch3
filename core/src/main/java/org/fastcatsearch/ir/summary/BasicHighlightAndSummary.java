@@ -62,6 +62,11 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		
     	TokenStream tokenStream = null;
     	
+    	
+    	
+    	//TODO 스니펫만 만들고 하이라이팅을 하지 않는필드에 대해서는 DummyFormatter를 만들어서 넣어준다.
+    	
+    	
     	Formatter formatter = new SimpleHTMLFormatter(tags[0], tags[1]);
     	
 		//
