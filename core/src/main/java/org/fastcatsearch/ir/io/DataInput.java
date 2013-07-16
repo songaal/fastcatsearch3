@@ -267,30 +267,7 @@ public abstract class DataInput extends InputStream implements Cloneable {
 
 	// ascii는 1byte로 읽고 나머지는 2byte로 읽는다.
 	public String readString() throws IOException {
-		int charCount = readVInt();
-		char[] chars = CachedCharArray.getCharArray(charCount);
-		int c, charIndex = 0;
-		while (charIndex < charCount) {
-			c = readByte() & 0xff;
-			switch (c >> 4) {
-			case 0:
-			case 1:
-			case 2:
-			case 3:
-			case 4:
-			case 5:
-			case 6:
-			case 7:
-				chars[charIndex++] = (char) c;
-				break;
-			case 12:
-			case 13:
-			case 14:
-				chars[charIndex++] = (char) (((c & 0xFF) << 8) | (readByte() & 0xFF));
-				break;
-			}
-		}
-		return new String(chars, 0, charCount);
+		return new String(readUString());
 	}
 
 	// /** Reads a string.

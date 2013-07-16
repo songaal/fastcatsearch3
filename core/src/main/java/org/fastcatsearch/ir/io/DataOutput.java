@@ -244,18 +244,7 @@ public abstract class DataOutput extends OutputStream {
 
 	// ascii는 1byte로 기록하고 나머지는 2byte로 기록한다.
 	public void writeString(String str) throws IOException {
-		int charCount = str.length();
-		writeVInt(charCount);
-		int c;
-		for (int i = 0; i < charCount; i++) {
-			c = str.charAt(i);
-			if (c <= 0x007F) {
-				writeByte((byte) c);
-			} else {
-				writeByte((byte) (c >> 8));
-				writeByte((byte) c);
-			}
-		}
+		writeUString(str.toCharArray(), 0, str.length());
 	}
 
 	public void writeFloat(float v) throws IOException {
