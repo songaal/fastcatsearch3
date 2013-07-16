@@ -4,12 +4,11 @@
 --%>
 
 <%@ page contentType="text/html; charset=UTF-8"%>
-<%@page import="com.fastcatsearch.util.*"%>
+<%@page import="org.fastcatsearch.web.*"%>
 <%@page import="java.net.URLConnection"%>
 <%@page import="java.net.URL"%>
 <%@page import="java.io.BufferedReader"%>
 <%@page import="java.io.InputStreamReader"%>
-<%@page import="org.fastcatsearch.settings.IRSettings"%>
 <%@page import="java.net.URLDecoder"%>
 <%@include file="webroot.jsp"%>
 <%
