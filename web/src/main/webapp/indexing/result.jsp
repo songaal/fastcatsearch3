@@ -7,14 +7,13 @@
 
 <%@page import="org.fastcatsearch.ir.search.CollectionHandler"%>
 <%@page import="org.fastcatsearch.ir.IRService"%>
-<%@page import="org.fastcatsearch.settings.IRSettings"%>
-<%@page import="org.fastcatsearch.ir.config.Schema"%>
+<%@page import="org.fastcatsearch.ir.settings.Schema"%>
 <%@page import="org.fastcatsearch.ir.config.DataSourceConfig"%>
 <%@page import="org.fastcatsearch.ir.util.Formatter"%>
 <%@page import="org.fastcatsearch.db.DBService"%>
 <%@page import="org.fastcatsearch.db.dao.IndexingResult"%>
 <%@page import="org.fastcatsearch.db.vo.*"%>
-<%@page import="com.fastcatsearch.util.WebUtils"%>
+<%@page import="org.fastcatsearch.web.WebUtils"%>
 <%@page import="org.fastcatsearch.service.*"%>
 <%@page import="org.fastcatsearch.ir.config.CollectionsConfig.*"%>
 

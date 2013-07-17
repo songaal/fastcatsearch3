@@ -17,7 +17,7 @@
 <%@page import="org.fastcatsearch.management.ManagementInfoService"%>
 <%@page import="org.fastcatsearch.server.CatServer"%>
 <%@page import="org.fastcatsearch.statistics.StatisticsInfoService"%>
-<%@page import="com.fastcatsearch.util.WebUtils"%>
+<%@page import="org.fastcatsearch.web.WebUtils"%>
 <%@page import="org.fastcatsearch.cluster.*"%>
 <%@page import="org.fastcatsearch.service.*"%>
 <%@page import="org.fastcatsearch.plugin.*"%>

@@ -8,12 +8,12 @@
 <%@page import="org.fastcatsearch.ir.search.CollectionHandler"%>
 <%@page import="org.fastcatsearch.ir.IRService"%>
 <%@page import="org.fastcatsearch.settings.IRSettings"%>
-<%@page import="org.fastcatsearch.ir.config.Schema"%>
+<%@page import="org.fastcatsearch.ir.settings.Schema"%>
 <%@page import="org.fastcatsearch.ir.config.IRConfig"%>
 <%@page import="org.fastcatsearch.ir.config.DataSourceConfig"%>
 <%@page import="org.fastcatsearch.ir.util.Formatter"%>
 <%@page import="org.fastcatsearch.ir.config.FieldSetting"%>
-<%@page import="com.fastcatsearch.util.WebUtils"%>
+<%@page import="org.fastcatsearch.web.WebUtils"%>
 
 <%@page import="java.util.Date"%>
 <%@page import="java.util.Calendar"%>

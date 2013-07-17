@@ -6,7 +6,7 @@
 <%@page import="org.fastcatsearch.job.DictionaryCompileApplyJob"%>
 <%@page import="org.fastcatsearch.job.HashSetDictionaryCompileApplyJob"%>
 <%@page import="org.fastcatsearch.job.HashMapDictionaryCompileApplyJob"%>
-<%@page import="com.fastcatsearch.util.WebUtils"%>
+<%@page import="org.fastcatsearch.web.WebUtils"%>
 <%@page import="org.fastcatsearch.job.DictionaryReloadJob"%>
 <%@page import="org.fastcatsearch.ir.dic.HashMapDictionary"%>
 <%@page import="org.fastcatsearch.ir.dic.HashSetDictionary"%>
@@ -15,7 +15,7 @@
 <%@page import="org.fastcatsearch.ir.search.CollectionHandler"%>
 <%@page import="org.fastcatsearch.ir.IRService"%>
 <%@page import="org.fastcatsearch.settings.IRSettings"%>
-<%@page import="org.fastcatsearch.ir.config.Schema"%>
+<%@page import="org.fastcatsearch.ir.settings.Schema"%>
 <%@page import="org.fastcatsearch.ir.config.IRConfig"%>
 <%@page import="org.fastcatsearch.ir.config.DataSourceConfig"%>
 <%@page import="org.fastcatsearch.ir.util.Formatter"%>

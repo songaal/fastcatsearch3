@@ -5,7 +5,7 @@
 
 <%@ page contentType="text/html; charset=UTF-8"%> 
 
-<%@page import="com.fastcatsearch.util.WebUtils"%>
+<%@page import="org.fastcatsearch.web.WebUtils"%>
 <%@page import="org.fastcatsearch.ir.IRService"%>
 <%@page import="org.fastcatsearch.settings.IRSettings"%>
 <%@page import="org.fastcatsearch.ir.config.*"%>

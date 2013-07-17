@@ -18,6 +18,7 @@
 <%@page import="org.fastcatsearch.db.dao.IndexingSchedule"%>
 <%@page import="org.fastcatsearch.db.vo.*"%>
 <%@page import="org.fastcatsearch.ir.config.CollectionsConfig.*"%>
+<%@page import="org.fastcatsearch.ir.config.*"%>
 
 
 <%@page import="org.fastcatsearch.ir.util.Formatter"%>
@@ -203,7 +204,7 @@ if(Dic.stopword.file != null && Dic.stopword.file.exists()){
 		
 <%
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-				DBService dbHandler = ServiceManager.getInstance().getService(DBService.class);
+			DBService dbHandler = ServiceManager.getInstance().getService(DBService.class);
 
 				//IRService irService = ServiceManager.getInstance().getService(IRService.class);
 				List<Collection> collectionList = irService.getCollectionList();
@@ -216,12 +217,18 @@ if(Dic.stopword.file != null && Dic.stopword.file.exists()){
 				for(int i = 0; i < collectionList.size(); i++){
 					String collection = collectionList.get(i).getId();
 					CollectionHandler collectionHandler = irService.collectionHandler(collection);
-					collectionHandler.get
+					if(collectionHandler == null){
+						continue;
+					}
+					CollectionContext collectionContext = collectionHandler.collectionContext();
+					
 					int dataSequence = -1;
 					if(collectionHandler != null){
 						dataSequence = collectionHandler.getDataSequence();
-						String dir = IRSettings.getCollectionDataPath(collection, dataSequence);
-						size += FileUtils.sizeOfDirectory(new File(dir));
+						File dataDir = collectionContext.collectionFilePaths().dataFile(dataSequence);
+						if(dataDir != null && dataDir.exists()){
+							size += FileUtils.sizeOfDirectory(dataDir);
+						}
 					}
 					IndexingSchedule indexingSchedule = dbHandler.getDAO("IndexingSchedule");
 					IndexingScheduleVO fullIndexingSchedule = indexingSchedule.select(collection, "F");
@@ -238,14 +245,14 @@ if(Dic.stopword.file != null && Dic.stopword.file.exists()){
 				incIndexingList = incIndexingList.trim();
 
 				if(fullIndexingList.length() > 0){
-			fullIndexingList = fullIndexingList.substring(0, fullIndexingList.length() - 1);
+					fullIndexingList = fullIndexingList.substring(0, fullIndexingList.length() - 1);
 				}else{
-			fullIndexingList = "자동설정된 컬렉션이 없습니다.";
+					fullIndexingList = "자동설정된 컬렉션이 없습니다.";
 				}
 				if(incIndexingList.length() > 0){
-			incIndexingList = incIndexingList.substring(0, incIndexingList.length() - 1);
+					incIndexingList = incIndexingList.substring(0, incIndexingList.length() - 1);
 				}else{
-			incIndexingList = "자동설정된 컬렉션이 없습니다.";
+					incIndexingList = "자동설정된 컬렉션이 없습니다.";
 				}
 		%>
 		<div style="height:250px;">
@@ -257,7 +264,7 @@ if(Dic.stopword.file != null && Dic.stopword.file.exists()){
 			<tbody>
 			<tr>
 				<th class="first">컬렉션갯수</th>
-				<td><%=colletionList.length %>개</td>
+				<td><%=collectionList.size() %>개</td>
 			</tr>
 			<tr>
 				<th class="first">색인파일 DISK 사용량</th>
@@ -327,60 +334,7 @@ if(Dic.stopword.file != null && Dic.stopword.file.exists()){
 			</div>
 			</div>
 		</div>
-<%
-LicenseInfo linfo = LicenseSettings.getInstance().getLicenseInfo();
-if(linfo != null){					
-%>
-		<div style="height:250px">
-			<div style="float:left;width:48%; background:#fff; margin: 5px 5px 5px 5px;">
-			<h2>라이선스정보</h2>
-			<div class="fbox">
-			<table summary="라이선스정보" class="tbl01">
-			<colgroup><col width="30%" /><col width="70%" /></colgroup>
-			<tbody>
-			<% if (linfo.getCompanyCode() != null) { %>
-			<tr>
-				<th class="first">업체명</th>
-				<td><%=linfo.getCompanyName() %>(<%=linfo.getCompanyCode()%>)</td>
-			</tr>
-			<tr>
-				<th class="first">제품명</th>
-				<td><%=linfo.getProductName() %></td>
-			</tr>
-			<tr>
-				<th class="first">서버ID</th>
-				<td><%=LicenseSettings.getServerId() %></td>
-			</tr>
-			<tr>
-				<th class="first">라이선스타입</th>
-				<td><%=linfo.getDisplayLicenseType() %></td>
-			</tr>
-			<tr>
-				<th class="first">가용수량</th>
-				<td><%=linfo.getLicenseQuantity() %> EA</td>
-			</tr>
-			<tr>
-				<th class="first">발급일자</th>
-				<td><%=linfo.getDisplayCreateDate() %></td>
-			</tr>
-			<tr>
-				<th class="first">만료일자</th>
-				<td><%=linfo.getDisplayExpiredDate() %></td>
-			</tr>
-			<% } else { %>
-			<tr>
-				<th></th>
-				<td>라이센스 정보가 없습니다.</td>
-			</tr>
-			<% } %>
-			</tbody>
-			</table>
-			</div>
-			</div>
-		</div>
-<%
-}
-%>
+
 <!-- E : #mainContent --></div>
 
 <!-- footer -->

@@ -4,7 +4,7 @@
 --%>
 
 <%@page import="java.lang.reflect.Field"%>
-<%@page import="com.fastcatsearch.util.WebUtils"%>
+<%@page import="org.fastcatsearch.web.WebUtils"%>
 <%@page import="org.fastcatsearch.settings.IRSettings"%>
 <%@page import="org.fastcatsearch.ir.analysis.FieldTokenizer"%>
 <%@page import="org.fastcatsearch.ir.io.CharVector"%>
@@ -41,7 +41,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <%@page import="org.fastcatsearch.ir.config.DataSourceConfig"%>
-<%@page import="org.fastcatsearch.ir.config.Schema"%>
+<%@page import="org.fastcatsearch.ir.settings.Schema"%>
 <%@page import="java.sql.Driver"%>
 <%@page import="java.sql.DriverManager"%>
 <%@page import="java.util.Properties"%>

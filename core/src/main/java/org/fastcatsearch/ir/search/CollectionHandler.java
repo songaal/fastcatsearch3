@@ -77,6 +77,9 @@ public class CollectionHandler {
 		return startedTime;
 	}
 	
+	public CollectionFilePaths collectionFilePaths(){
+		return collectionFilePaths;
+	}
 	public CollectionContext collectionContext(){
 		return collectionContext;
 	}

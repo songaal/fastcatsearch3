@@ -8,7 +8,7 @@
 <%@page import="java.util.Map"%>
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%@page import="org.fastcatsearch.ir.config.IRConfig"%>
-<%@page import="com.fastcatsearch.util.WebUtils"%>
+<%@page import="org.fastcatsearch.web.WebUtils"%>
 <%@page import="java.io.File"%>
 <%@page import="java.io.FileWriter"%>
 <%@page import="java.io.IOException"%>
@@ -23,10 +23,10 @@
 <%@page import="org.fastcatsearch.db.DBService"%>
 <%@page import="org.fastcatsearch.management.ManagementInfoService"%>
 <%@page import="org.fastcatsearch.statistics.StatisticsInfoService"%>
-<%@page import="com.fastcatsearch.license.LicenseInfo"%>
+<%@page import="org.fastcatsearch.license.LicenseInfo"%>
 <%@page import="org.fastcatsearch.server.CatServer"%>
 <%@page import="org.fastcatsearch.cluster.NodeService"%>
-<%@page import="com.fastcatsearch.license.*"%>
+<%@page import="org.fastcatsearch.license.*"%>
 
 <%@include file="../common.jsp" %>
 

@@ -10,8 +10,8 @@
 <%@page import="java.util.Date"%>
 <%@page import="java.text.SimpleDateFormat"%>
 <%@page import="org.fastcatsearch.ir.config.FieldSetting"%>
-<%@page import="com.fastcatsearch.util.WebUtils"%>
-<%@page import="org.fastcatsearch.ir.config.Schema"%>
+<%@page import="org.fastcatsearch.web.WebUtils"%>
+<%@page import="org.fastcatsearch.ir.settings.Schema"%>
 <%@page import="org.fastcatsearch.ir.config.DataSourceConfig"%>
 <%@page import="java.io.File"%>
 <%@page import="java.io.FileOutputStream"%>

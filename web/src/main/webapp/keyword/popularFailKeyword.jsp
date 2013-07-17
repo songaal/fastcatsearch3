@@ -6,7 +6,7 @@
 <%@ page contentType="text/html; charset=UTF-8"%> 
 
 <%@page import="org.fastcatsearch.db.DBService"%>
-<%@page import="com.fastcatsearch.util.WebUtils"%>
+<%@page import="org.fastcatsearch.web.WebUtils"%>
 <%@page import="org.fastcatsearch.ir.util.Formatter"%>
 <%@page import="org.fastcatsearch.keyword.KeywordHit"%>
 <%@page import="org.fastcatsearch.keyword.KeywordFail"%>

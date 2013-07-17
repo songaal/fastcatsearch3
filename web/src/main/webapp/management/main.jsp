@@ -19,7 +19,7 @@
 <%@page import="org.fastcatsearch.server.CatServer"%>
 <%@page import="org.fastcatsearch.statistics.StatisticsInfoService"%>
 <%@page import="org.fastcatsearch.cluster.NodeService"%>
-<%@page import="com.fastcatsearch.util.WebUtils"%>
+<%@page import="org.fastcatsearch.web.WebUtils"%>
 
 <%@page import="java.util.concurrent.ThreadPoolExecutor"%>
 <%@page import="java.sql.Timestamp"%>

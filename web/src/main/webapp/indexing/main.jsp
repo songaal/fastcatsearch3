@@ -7,14 +7,11 @@
 
 <%@page import="org.fastcatsearch.ir.search.CollectionHandler"%>
 <%@page import="org.fastcatsearch.ir.IRService"%>
-<%@page import="org.fastcatsearch.settings.IRSettings"%>
-<%@page import="org.fastcatsearch.ir.config.Schema"%>
-<%@page import="org.fastcatsearch.ir.config.IRConfig"%>
+<%@page import="org.fastcatsearch.ir.settings.Schema"%>
 <%@page import="org.fastcatsearch.ir.config.DataSourceConfig"%>
 <%@page import="org.fastcatsearch.ir.util.Formatter"%>
 <%@page import="org.fastcatsearch.db.DBService"%>
 <%@page import="org.fastcatsearch.db.dao.IndexingResult"%>
-<%@page import="org.fastcatsearch.ir.search.SegmentInfo"%>
 <%@page import="org.apache.commons.io.FileUtils"%>
 <%@page import="org.fastcatsearch.service.*"%>
 
@@ -29,7 +26,7 @@
 <%
 	IRService irService = ServiceManager.getInstance().getService(IRService.class);
 	//String[] colNames = irService.getCollectionNames();
-	IRConfig irConfig = IRSettings.getConfig(true);
+	//IRConfig irConfig = IRSettings.getConfig(true);
 	String collectinListStr = irConfig.getString("collection.list");
 	String[] colletionList = collectinListStr.split(",");
 	

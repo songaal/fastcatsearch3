@@ -29,6 +29,9 @@ public class DataSourceReaderFactory {
 	public static DataSourceReader createSourceReader(File filePath, Schema schema, DataSourceConfig dataSourceConfig, String lastIndexTime, boolean isFullIndexing) throws IRException{
 	
 		DataSourceReader dataSourceReader = new DataSourceReader(filePath, schema);
+		
+		//TODO dataSourceReader가 null일수 있다.
+		
 		for(DBSourceConfig dbSourceConfig : dataSourceConfig.getDBSourceConfigList()){
 			String sourceReaderType = dbSourceConfig.getSourceReader();
 			String sourceModifierType = dbSourceConfig.getSourceModifier();

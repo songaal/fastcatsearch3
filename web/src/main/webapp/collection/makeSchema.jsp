@@ -6,7 +6,7 @@
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%@page import="org.fastcatsearch.settings.IRSettings"%>
 <%@page import="java.net.URLEncoder"%>
-<%@page import="com.fastcatsearch.util.WebUtils"%>
+<%@page import="org.fastcatsearch.web.WebUtils"%>
 <%@page import="java.util.*"%>
 <%@page import="java.text.*"%>
 <%@page import="java.net.*"%>
@@ -19,7 +19,7 @@
 <%@page import="org.fastcatsearch.settings.IRSettings"%>
 <%@page import="org.fastcatsearch.ir.document.DocumentReader"%>
 <%@page import="org.fastcatsearch.ir.IRService"%>
-<%@page import="com.fastcatsearch.util.MakeSchema"%>	 
+<%@page import="org.fastcatsearch.util.MakeSchema"%>	 
 <%boolean result = false;
 try
 {

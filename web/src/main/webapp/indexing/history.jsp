@@ -7,7 +7,7 @@
 
 <%@page import="org.fastcatsearch.db.DBService"%>
 <%@page import="org.fastcatsearch.db.dao.IndexingResult"%>
-<%@page import="com.fastcatsearch.util.WebUtils"%>
+<%@page import="org.fastcatsearch.web.WebUtils"%>
 <%@page import="org.fastcatsearch.db.dao.IndexingHistory"%>
 <%@page import="org.fastcatsearch.db.vo.*"%>
 <%@page import="org.fastcatsearch.ir.util.Formatter"%>

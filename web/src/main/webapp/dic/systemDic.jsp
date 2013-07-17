@@ -9,7 +9,7 @@
 <%@page import="org.fastcatsearch.ir.search.CollectionHandler"%>
 <%@page import="org.fastcatsearch.ir.IRService"%>
 <%@page import="org.fastcatsearch.settings.IRSettings"%>
-<%@page import="org.fastcatsearch.ir.config.Schema"%>
+<%@page import="org.fastcatsearch.ir.settings.Schema"%>
 <%@page import="org.fastcatsearch.ir.config.IRConfig"%>
 <%@page import="org.fastcatsearch.ir.dic.Dictionary"%>
 <%@page import="org.fastcatsearch.ir.io.CharVector"%>
@@ -18,7 +18,7 @@
 <%@page import="org.fastcatsearch.plugin.AnalysisPlugin"%>
 <%@page import="org.fastcatsearch.plugin.PluginService"%>
 <%@page import="org.fastcatsearch.ir.util.Formatter"%>
-<%@page import="com.fastcatsearch.util.WebUtils"%>
+<%@page import="org.fastcatsearch.web.WebUtils"%>
 <%@page import="java.util.Date"%>
 <%@page import="java.util.Calendar"%>
 <%@page import="java.util.Collection"%>
