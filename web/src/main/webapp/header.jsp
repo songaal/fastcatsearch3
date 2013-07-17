@@ -4,22 +4,12 @@
 --%>
 
 <%@ page contentType="text/html; charset=UTF-8"%> 
-<%@page import="org.fastcatsearch.settings.IRSettings"%>
 
 <%
-Object authObj = session.getAttribute("authorized");
-boolean isAuthorized = (authObj != null) ? true : false;
-Object accessLogObj = session.getAttribute("lastAccessLog");
-String[] accessLog = null;
-if(accessLogObj != null){
-	accessLog = (String[])accessLogObj;
-}
+boolean isAuthorized = true;
+Object authObj = "익명사용자";
+String[] accessLog = new String[]{"",""};
 
-if(!IRSettings.isAuthUsed()){
-	isAuthorized = true;
-	authObj = "익명사용자";
-	accessLog = new String[]{"",""};
-}
 %>
 
 <% { %>
