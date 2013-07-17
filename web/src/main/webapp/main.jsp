@@ -5,10 +5,11 @@
 
 <%@page import="org.fastcatsearch.db.dao.SearchEvent"%>
 <%@ page contentType="text/html; charset=UTF-8"%>
-<%@page import="org.fastcatsearch.web.*"%>
+<%@page import="com.fastcatsearch.util.*"%>
 <%@page import="java.net.URLConnection"%>
 <%@page import="java.net.URL"%>
 <%@page import="java.io.*"%>
+<%@page import="org.fastcatsearch.settings.IRSettings"%>
 <%@page import="org.fastcatsearch.db.dao.JobHistory"%>
 <%@page import="org.fastcatsearch.db.DBService"%>
 <%@page import="org.fastcatsearch.log.EventDBLogger"%>
@@ -17,10 +18,9 @@
 <%@page import="org.fastcatsearch.service.*"%>
 <%@page import="org.fastcatsearch.db.dao.IndexingSchedule"%>
 <%@page import="org.fastcatsearch.db.vo.*"%>
-<%@page import="org.fastcatsearch.ir.config.CollectionsConfig.*"%>
-
 
 <%@page import="org.fastcatsearch.ir.util.Formatter"%>
+<%@page import="com.fastcatsearch.license.*"%>
 
 <%@page import="org.apache.commons.io.FileUtils"%>
 <%@page import="java.util.List"%>
@@ -31,6 +31,28 @@
 <%
 	String cmd = request.getParameter("cmd");
 	String message = "";
+	if ("login".equals(cmd)) {
+		String username = request.getParameter("username");
+		String passwd = request.getParameter("passwd");
+		String[] accessLog = IRSettings.isCorrectPasswd(username, passwd);
+		if(accessLog != null){
+	//로긴 성공
+	session.setAttribute("authorized", username);
+	session.setAttribute("lastAccessLog", accessLog);
+	session.setMaxInactiveInterval(60 * 30); //30 minutes
+	IRSettings.storeAccessLog(username, ""); //ip주소는 공란으로 남겨두고 사용하지 않도록함. 
+	//request.getRemoteAddr()로는 제대로된 사용자 ip를 알아낼수 없음.
+	//jetty에서는 getHeader("REMOTE_ADDR"); 또는 req.getHeaer("WL-Proxy-Client-IP")+","+req.getHeaer("Proxy-Client-IP")+","+req.getHeaer("X-Forwarded-For")) 등을 제공하지 않는다.
+	message = "";
+		}else{
+	message = "아이디와 비밀번호를 확인해주세요.";
+		}
+		
+	}else if ("logout".equals(cmd)) {
+		session.invalidate();
+		response.sendRedirect(FASTCAT_MANAGE_ROOT+"index.jsp");
+		return;
+	}
 %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -108,11 +130,11 @@
 			<tbody>
 			<tr>
 				<th class="first">검색엔진 버전</th>
-				<td>FastcatSearch v2</td>
+				<td>FastcatSearch v<%=IRSettings.VERSION%></td>
 			</tr>
 			<tr>
 				<th class="first">검색엔진 HOME</th>
-				<td><%=systemProps.getProperty("fastcatsearch.home")%></td>
+				<td><%=IRSettings.HOME%></td>
 			</tr>
 			<tr>
 				<th class="first">JDK벤더/버전</th>
@@ -206,32 +228,30 @@ if(Dic.stopword.file != null && Dic.stopword.file.exists()){
 				DBService dbHandler = ServiceManager.getInstance().getService(DBService.class);
 
 				//IRService irService = ServiceManager.getInstance().getService(IRService.class);
-				List<Collection> collectionList = irService.getCollectionList();
-				//String[] colletionList = irService.getCollectionNames();
+				String[] colletionList = irService.getCollectionNames();
 				int size = 0;
 				String fullIndexingList = "";
 				String incIndexingList = "";
 				//DBService dbHandler = ServiceManager.getInstance().getService(DBService.class);
 
-				for(int i = 0; i < collectionList.size(); i++){
-					String collection = collectionList.get(i).getId();
-					CollectionHandler collectionHandler = irService.collectionHandler(collection);
-					collectionHandler.get
-					int dataSequence = -1;
-					if(collectionHandler != null){
-						dataSequence = collectionHandler.getDataSequence();
-						String dir = IRSettings.getCollectionDataPath(collection, dataSequence);
-						size += FileUtils.sizeOfDirectory(new File(dir));
-					}
-					IndexingSchedule indexingSchedule = dbHandler.getDAO("IndexingSchedule");
-					IndexingScheduleVO fullIndexingSchedule = indexingSchedule.select(collection, "F");
-					IndexingScheduleVO incIndexingSchedule = indexingSchedule.select(collection, "I");
-					if(fullIndexingSchedule != null && fullIndexingSchedule.isActive){
-						fullIndexingList += collection + ", "; 
-					}
-					if(incIndexingSchedule != null && incIndexingSchedule.isActive){
-						incIndexingList += collection + ", "; 
-					}
+				for(int i = 0; i < colletionList.length; i++){
+			String collection = colletionList[i];
+			CollectionHandler collectionHandler = irService.collectionHandler(collection);
+			int dataSequence = -1;
+			if(collectionHandler != null){
+				dataSequence = collectionHandler.getDataSequence();
+				String dir = IRSettings.getCollectionDataPath(collection, dataSequence);
+				size += FileUtils.sizeOfDirectory(new File(dir));
+			}
+			IndexingSchedule indexingSchedule = dbHandler.getDAO("IndexingSchedule");
+			IndexingScheduleVO fullIndexingSchedule = indexingSchedule.select(collection, "F");
+			IndexingScheduleVO incIndexingSchedule = indexingSchedule.select(collection, "I");
+			if(fullIndexingSchedule != null && fullIndexingSchedule.isActive){
+				fullIndexingList += collection + ", "; 
+			}
+			if(incIndexingSchedule != null && incIndexingSchedule.isActive){
+				incIndexingList += collection + ", "; 
+			}
 				}
 
 				fullIndexingList = fullIndexingList.trim();
