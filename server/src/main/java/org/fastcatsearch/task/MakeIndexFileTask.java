@@ -18,7 +18,7 @@ import org.fastcatsearch.datasource.reader.DataSourceReader;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.CollectionConfig;
-import org.fastcatsearch.ir.config.DataSourceConfig;
+import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.SegmentWriter;
 import org.fastcatsearch.ir.settings.Schema;
@@ -58,7 +58,7 @@ public class MakeIndexFileTask extends Task {
 			long startTime = System.currentTimeMillis();
 			long lapTime = startTime;
 			while(sourceReader.hasNext()){
-				Document doc = sourceReader.next();
+				Document doc = sourceReader.nextDocument();
 				int lastDocNo = writer.addDocument(doc);
 				
 				if(lastDocNo % 10000 == 0){

@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
+
 import org.junit.Test;
 
 public class CollectionConfigTest {
@@ -43,7 +45,7 @@ public class CollectionConfigTest {
 			"	</cluster>\n" + 
 			"</collection-config>";
 	@Test
-	public void testRead() throws IOException {
+	public void testRead() throws IOException, JAXBException {
 		
 		InputStream is = new ByteArrayInputStream(configXml.getBytes());
 		CollectionConfig collectionConfig = JAXBConfigs.readConfig(is, CollectionConfig.class);

@@ -16,7 +16,7 @@ import org.fastcatsearch.db.DBContext;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.DataSourceConfig;
+import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.service.ServiceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,13 +55,13 @@ public class ShowDatasourceCommand extends CollectionExtractCommand {
 
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		CollectionContext collectionContext = irService.collectionContext(collectionId);
-		DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
+		SingleSourceConfig dataSourceConfig = null;//collectionContext.dataSourceConfig();
 
 		if (dataSourceConfig == null)
 			return new CommandResult("error invalid DataSource [" + collectionId + "] schema data",
 					CommandResult.Status.SUCCESS);
 
-		logger.debug("ReaderType {}", dataSourceConfig.getReaderType());
+//		logger.debug("ReaderType {}", dataSourceConfig.getReaderType());
 
 //		if (getDatasource(dataSourceConfig, collectionId)) {
 //			if (dataSourceConfig.sourceType.equals("WEB") == false)
@@ -75,7 +75,7 @@ public class ShowDatasourceCommand extends CollectionExtractCommand {
 
 	}
 
-	private boolean getDatasource(DataSourceConfig ds, String collection) {
+	private boolean getDatasource(SingleSourceConfig ds, String collection) {
 		try {
 //			if (ds.sourceType.equals("FILE")) {
 //				addRecord(data, "fullFilePath", ds.fullFilePath);

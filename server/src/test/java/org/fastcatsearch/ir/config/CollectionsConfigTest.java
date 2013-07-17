@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
+
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.junit.Test;
 
@@ -18,7 +20,7 @@ public class CollectionsConfigTest {
 			"	<collection active=\"true\">sample2</collection>\n" + 
 			"</collections>";
 	@Test
-	public void testRead() throws IOException {
+	public void testRead() throws IOException, JAXBException {
 		InputStream is = new ByteArrayInputStream(collectionsConfigXml.getBytes());
 		CollectionsConfig collectionsConfig = JAXBConfigs.readConfig(is, CollectionsConfig.class);
 		List<Collection> collectionList = collectionsConfig.getCollectionList();

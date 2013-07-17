@@ -55,6 +55,7 @@ public class CollectionHandler {
 	private CollectionContext collectionContext;
 	
 	private long startedTime;
+	private boolean isLoaded;
 	
 	private CollectionSearcher collectionSearcher;
 	private CollectionFilePaths collectionFilePaths;
@@ -62,13 +63,16 @@ public class CollectionHandler {
 	public CollectionHandler(CollectionContext collectionContext) throws IRException, SettingException{
 		this.collectionContext = collectionContext;
 		this.collectionId = collectionContext.collectionId();
-		
-		loadSearcherAndReader();
-		
-		this.collectionSearcher = new CollectionSearcher(this);
-		startedTime = System.currentTimeMillis();
+		this.collectionFilePaths = collectionContext.collectionFilePaths();
 	}
 
+	public void load() throws IRException{
+		loadSearcherAndReader();
+		this.collectionSearcher = new CollectionSearcher(this);
+		startedTime = System.currentTimeMillis();
+		isLoaded = true;
+	}
+	
 	public long getStartedTime(){
 		return startedTime;
 	}
@@ -78,6 +82,10 @@ public class CollectionHandler {
 	}
 	public CollectionSearcher searcher(){
 		return collectionSearcher;
+	}
+	
+	public boolean isLoaded(){
+		return isLoaded;
 	}
 	
 	private void loadSearcherAndReader() throws IRException{
@@ -93,15 +101,18 @@ public class CollectionHandler {
 		
 		segmentReaderList = new ArrayList<SegmentReader>();
 		
-		try {
-			for(SegmentInfo segmentInfo : collectionContext.dataInfo().getSegmentInfoList()){
-				File segmentDir = collectionFilePaths.segmentFile(dataSequence, segmentInfo.getId());
-				File revisionDir = collectionFilePaths.revisionFile(dataSequence, segmentInfo.getId(), segmentInfo.getRevision());
-				BitSet deleteSet = new BitSet(revisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
-				segmentReaderList.add(new SegmentReader(collectionContext.schema(), segmentDir, segmentInfo, deleteSet));
+		//색인기록이 있다면 세그먼트를 로딩한다. 
+		if(collectionContext.dataInfo() != null){
+			try {
+				for(SegmentInfo segmentInfo : collectionContext.dataInfo().getSegmentInfoList()){
+					File segmentDir = collectionFilePaths.segmentFile(dataSequence, segmentInfo.getId());
+					File revisionDir = collectionFilePaths.revisionFile(dataSequence, segmentInfo.getId(), segmentInfo.getRevision());
+					BitSet deleteSet = new BitSet(revisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
+					segmentReaderList.add(new SegmentReader(collectionContext.schema(), segmentDir, segmentInfo, deleteSet));
+				}
+			} catch (IOException e) {
+				throw new IRException(e);
 			}
-		} catch (IOException e) {
-			throw new IRException(e);
 		}
 	}
 	
@@ -109,6 +120,8 @@ public class CollectionHandler {
 		for(SegmentReader segmentReader : segmentReaderList){
 			segmentReader.close();
 		}
+		collectionSearcher = null;
+		isLoaded = false;
 	}
 	
 	public String collectionId(){

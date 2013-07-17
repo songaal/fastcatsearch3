@@ -13,10 +13,10 @@
 		<field id="comment" type="ustring" modify="true"/>
 	</field-list>
 	
-	<primary>
+	<primary-key>
 		<field ref="id" />
 		<field ref="category" />
-	</primary>		
+	</primary-key>		
 	
 	<!-- pk는 스키마에 보이지는 않지만 자동으로 index-list에 추가된다. -->
 	<index-list>

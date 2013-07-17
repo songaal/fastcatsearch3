@@ -27,6 +27,7 @@ import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.DataPlanConfig;
 import org.fastcatsearch.ir.config.DataSourceConfig;
+import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.DeleteIdSet;
@@ -123,7 +124,7 @@ public class FullIndexJob extends IndexingJob {
 			
 			if(sourceReader == null){
 //				EventDBLogger.error(EventDBLogger.CATE_INDEX, "데이터수집기를 생성할 수 없습니다.");
-				throw new FastcatSearchException("데이터 수집기 생성중 에러발생. sourceType = "+dataSourceConfig.getConfigType());
+				throw new FastcatSearchException("데이터 수집기 생성중 에러발생. sourceType = "+dataSourceConfig);
 			}
 			
 			/*
@@ -147,7 +148,7 @@ public class FullIndexJob extends IndexingJob {
 				while(sourceReader.hasNext()){
 					
 //					t = System.currentTimeMillis();
-					Document doc = sourceReader.next();
+					Document doc = sourceReader.nextDocument();
 					int lastDocNo = writer.addDocument(doc);
 					
 					if(lastDocNo % 10000 == 0){

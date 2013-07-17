@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 public class Environment {
 	
-	private static final Logger logger = LoggerFactory.getLogger(Environment.class);
+	private static Logger logger;
 	
 	public static final String FILE_SEPARATOR = System.getProperty("file.separator");
 	public static final String PATH_SEPARATOR = System.getProperty("path.separator");
@@ -31,7 +31,12 @@ public class Environment {
 		
 		System.setProperty("fastcatsearch.home", homeFile.getAbsolutePath());
 		System.setProperty("logback.configurationFile", new File(new File(homeFile, "conf"), "logback.xml").getAbsolutePath());
+		System.setProperty("log.path", new File(homeFile, "logs").getAbsolutePath());
+		
+		logger = LoggerFactory.getLogger(Environment.class);
+		 
 		logger.info("Setting Home = {}", home);
+		logger.info("logback.configurationFile = {}", new File(new File(homeFile, "conf"), "logback.xml").getAbsolutePath());
 	}
 	
 	public Environment init(){

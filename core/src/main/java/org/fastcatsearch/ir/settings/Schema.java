@@ -63,6 +63,7 @@ public class Schema {
 		}
 		
 		//필드셋팅객체
+		this.fieldSettingMap = new HashMap<String, FieldSetting>();
 		for(FieldSetting fieldSetting : schemaSetting.getFieldSettingList()){
 			fieldSettingMap.put(fieldSetting.getId(), fieldSetting);
 		}
@@ -88,7 +89,6 @@ public class Schema {
 				logger.error("분석기 {}를 로드할수 없습니다.", analyzerClassName);
 			}
 			
-			analyzerPoolManager.registerAnalyzer(analyzerId, factory);
 		}
 		
 		//primary key

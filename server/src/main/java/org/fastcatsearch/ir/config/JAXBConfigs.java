@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
@@ -18,12 +19,18 @@ public class JAXBConfigs {
 	private static final Logger logger = LoggerFactory.getLogger(JAXBConfigs.class);
 	
 	public static <T> T readConfig(File file, Class<T> jaxbConfigClass){
+		if(!file.exists()){
+			return null;
+		}
+		
 		InputStream is = null;
 		try{
 			is = new FileInputStream(file);
-			return readConfig(is, jaxbConfigClass);
+			T config = readConfig(is, jaxbConfigClass);
+			logger.debug("read config {}, {}", config, file.getName());
+			return config;
 		}catch(Exception e){
-			logger.error("JAXBConfig file read error", e);
+			logger.error("JAXBConfig file unmarshal error "+file.getAbsolutePath(), e);
 		}finally{
 			if(is != null){
 				try {
@@ -35,18 +42,16 @@ public class JAXBConfigs {
 		return null;
 	}
 	
-	public static <T> T readConfig(InputStream is, Class<T> jaxbConfigClass) {
-		try{
-			JAXBContext context = JAXBContext.newInstance(jaxbConfigClass);
-			
-			Unmarshaller unmarshaller = context.createUnmarshaller();
-	
-			T config = (T) unmarshaller.unmarshal(is);
-			return config;
-		}catch(Exception e){
-			logger.error("JAXBConfig file read error", e);
+	public static <T> T readConfig(InputStream is, Class<T> jaxbConfigClass) throws JAXBException {
+		if(is == null){
+			return null;
 		}
-		return null;
+		JAXBContext context = JAXBContext.newInstance(jaxbConfigClass);
+		
+		Unmarshaller unmarshaller = context.createUnmarshaller();
+
+		T config = (T) unmarshaller.unmarshal(is);
+		return config;
 	}
 	
 	

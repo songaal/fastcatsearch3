@@ -26,6 +26,7 @@ import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.DataPlanConfig;
 import org.fastcatsearch.ir.config.DataSourceConfig;
+import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.SegmentAppender;
@@ -111,12 +112,12 @@ public class IncIndexJob extends IndexingJob {
 			int dataSequence = workingHandler.getDataSequence();
 			logger.debug("workingHandler={}, dataSequence={}", workingHandler, dataSequence);
 			String lastIndexTime = collectionContext.getLastIndexTime();
-			DataSourceConfig dsSetting = collectionContext.dataSourceConfig();
-			DataSourceReader sourceReader = DataSourceReaderFactory.createSourceReader(collectionFilePaths.file(), schema, dsSetting, lastIndexTime, true);
+			DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
+			DataSourceReader sourceReader = DataSourceReaderFactory.createSourceReader(collectionFilePaths.file(), schema, dataSourceConfig, lastIndexTime, true);
 			
 			if(sourceReader == null){
 				EventDBLogger.error(EventDBLogger.CATE_INDEX, "데이터수집기를 생성할 수 없습니다.");
-				throw new FastcatSearchException("데이터 수집기 생성중 에러발생. sourceType = "+dsSetting.getConfigType());
+				throw new FastcatSearchException("데이터 수집기 생성중 에러발생. sourceType = "+dataSourceConfig);
 			}
 			//Check prev doc No.
 			//case.1 : forceAppend
@@ -146,7 +147,7 @@ public class IncIndexJob extends IndexingJob {
 					while(sourceReader.hasNext()){
 						
 //						t = System.currentTimeMillis();
-						Document doc = sourceReader.next();
+						Document doc = sourceReader.nextDocument();
 						appender.addDocument(doc);
 						count++;
 						if(count % 10000 == 0){
@@ -208,7 +209,7 @@ public class IncIndexJob extends IndexingJob {
 					while(sourceReader.hasNext()){
 						
 //						t = System.currentTimeMillis();
-						Document doc = sourceReader.next();
+						Document doc = sourceReader.nextDocument();
 						writer.addDocument(doc);
 						count++;
 						if(count % 10000 == 0){

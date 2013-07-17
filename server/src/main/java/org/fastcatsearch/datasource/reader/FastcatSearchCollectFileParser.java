@@ -17,6 +17,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,7 +26,7 @@ import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.env.Path;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.config.DataSourceConfig;
+import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.config.FileSourceConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.DeleteIdSet;
@@ -34,10 +36,10 @@ import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.util.HTMLTagRemover;
 
 
-public class FastcatSearchCollectFileParser extends DataSourceReader {
+public class FastcatSearchCollectFileParser extends SingleSourceReader {
 	
 	private DirBufferedReader br;
-	private Document document;
+	private Map<String, Object> document;
 	
 	
 	private static String DOC_START ="<doc>";
@@ -50,8 +52,8 @@ public class FastcatSearchCollectFileParser extends DataSourceReader {
 	private Pattern CPAT;
 	private int count; // how many fields are set
 
-	public FastcatSearchCollectFileParser(Path filePath, Schema schema, FileSourceConfig config, SourceModifier sourceModifier, Boolean isFull) throws IRException {
-		super(filePath, schema, config, sourceModifier);
+	public FastcatSearchCollectFileParser(File filePath, FileSourceConfig config, String lastIndexTime, boolean isFull) throws IRException {
+		super(filePath, config, lastIndexTime, isFull);
 		try {
 			if(isFull){
 				br = new DirBufferedReader(new File(config.getFullFilePath()), config.getFileEncoding());
@@ -73,14 +75,12 @@ public class FastcatSearchCollectFileParser extends DataSourceReader {
 		OPAT = Pattern.compile(OPEN_PATTERN);
 		CPAT = Pattern.compile(CLOSE_PATTERN);
 		
-		deleteIdList = new DeleteIdSet(primaryKeySize);
-		
 	}
 	
+	@Override
 	public boolean hasNext() throws IRException{
-		int size = fieldSettingList.size();
 		String line = null;
-		document = new Document(size);
+		document = new HashMap<String, Object>();
 		
 		String oneDoc = readOneDoc();
 		if(oneDoc == null)
@@ -92,8 +92,9 @@ public class FastcatSearchCollectFileParser extends DataSourceReader {
 		
 		String openTag = "";
 		boolean isOpened = false;
-		int tagNum = -1;
-		FieldSetting fs = null;
+//		int tagNum = -1;
+//		String tag = null;
+//		FieldSetting fs = null;
 		count = 0;
 		while(true){
 			try {
@@ -114,15 +115,15 @@ public class FastcatSearchCollectFileParser extends DataSourceReader {
 					Matcher m = OPAT.matcher(line);
 					if(m.matches()){
 						String tag = m.group(1);
-						int tempTagNum = schema.getFieldSequence(tag);
-						if(tempTagNum < 0){
-						}else{
-							tagNum = tempTagNum;
+//						int tempTagNum = schema.getFieldSequence(tag);
+//						if(tempTagNum < 0){
+//						}else{
+//							tagNum = tempTagNum;
 							openTag = tag;
 							isOpened = true;
-							fs = fieldSettingList.get(tagNum);
-							continue;
-						}
+//							fs = fieldSettingList.get(tagNum);
+//							continue;
+//						}
 					}
 				}
 				
@@ -133,10 +134,10 @@ public class FastcatSearchCollectFileParser extends DataSourceReader {
 						if(openTag.equals(closeTag)){
 							isOpened = false;
 							String targetStr = sb.toString();
-							if(fs.isRemoveTag()){
-								targetStr = HTMLTagRemover.clean(targetStr);
-							}
-							document.set(tagNum, fs.createField(targetStr));
+//							if(fs.isRemoveTag()){
+//								targetStr = HTMLTagRemover.clean(targetStr);
+//							}
+							document.put(openTag, targetStr);
 							sb = new StringBuffer();
 							count++;
 							continue;
@@ -204,17 +205,19 @@ public class FastcatSearchCollectFileParser extends DataSourceReader {
 		}
 	}
 
-	public Document next() throws IRException{
-		if(count != document.size()){
-//			throw new IRException("Collect document's field count is diffent from setting's. Check field names. it's case sensitive. collect field size = "+count+", document.size()="+document.size());
-			logger.warn("Collect document's field count is diffent from setting's. Check field names. it's case sensitive. collect field size = "+count+", document.size()="+document.size());
-			if(hasNext() == false)
-				return null;
-		}
+	@Override
+	public Map<String, Object> next() throws IRException{
+//		if(count != document.size()){
+////			throw new IRException("Collect document's field count is diffent from setting's. Check field names. it's case sensitive. collect field size = "+count+", document.size()="+document.size());
+//			logger.warn("Collect document's field count is diffent from setting's. Check field names. it's case sensitive. collect field size = "+count+", document.size()="+document.size());
+//			if(hasNext() == false)
+//				return null;
+//		}
 		count = 0;
 		return document;
 	}
 	
+	@Override
 	public void close() throws IRException{
 		try {
 			br.close();

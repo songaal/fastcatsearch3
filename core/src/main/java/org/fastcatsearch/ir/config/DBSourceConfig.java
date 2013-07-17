@@ -3,8 +3,8 @@ package org.fastcatsearch.ir.config;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name = "source")
-public class DBReaderConfig extends DataSourceConfig {
+@XmlRootElement(name = "db")
+public class DBSourceConfig extends SingleSourceConfig {
 
 	private String driver;
 	private String url;

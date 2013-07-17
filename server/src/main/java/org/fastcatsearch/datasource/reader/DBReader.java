@@ -36,7 +36,7 @@ import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.env.Path;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.CollectionStatus.IndexStatus;
-import org.fastcatsearch.ir.config.DBReaderConfig;
+import org.fastcatsearch.ir.config.DBSourceConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.index.DeleteIdSet;
@@ -50,7 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class DBReader extends DataSourceReader{
+public class DBReader extends SingleSourceReader {
 	
 	private static Logger logger = LoggerFactory.getLogger(DBReader.class);
 	private int BULK_SIZE;
@@ -58,9 +58,10 @@ public class DBReader extends DataSourceReader{
 	private Connection con;
 	private PreparedStatement pstmt;
 	private ResultSet r;
-	private Object[][] fieldSet;
+//	private Object[][] fieldSet;
 	private int columnCount;
 	private String[] columnName;
+	private Map<String, Object>[] dataSet;
 	
 	private int bulkCount;
 	private int readCount;
@@ -70,21 +71,19 @@ public class DBReader extends DataSourceReader{
 	private BufferedWriter backupWriter;
 	private String startTime;
 	private String deleteFileName;
-	private DBReaderConfig config;
+	private DBSourceConfig config;
 	private String lastIndexTime;
 	
-	public DBReader(Path filePath, Schema schema, DBReaderConfig config, SourceModifier sourceModifier, String lastIndexTime, boolean isFull) throws IRException {
-		super(filePath, schema, config, sourceModifier);
+	public DBReader(File filePath, DBSourceConfig config, String lastIndexTime, boolean isFull) throws IRException {
+		super(filePath, config, lastIndexTime, isFull);
 		this.config = config;
 		this.isFull = isFull;
 		this.BULK_SIZE = config.getBulkSize();
 		this.startTime = Formatter.getFormatTime(System.currentTimeMillis());
 		
-		fieldSet = new Object[BULK_SIZE][fieldSettingList.size()];
-		deleteIdList = new DeleteIdSet(primaryKeySize);
+//		fieldSet = new Object[BULK_SIZE][];
+		dataSet = new Map[BULK_SIZE];
 		
-		this.lastIndexTime = lastIndexTime;
-//		scMap = SpecialCharacterMap.getMap();
 		try{
 			if(config.getJdbcDriver() != null && config.getJdbcDriver().length() > 0){
 				Object object = DynamicClassLoader.loadObject(config.getJdbcDriver());
@@ -120,7 +119,7 @@ public class DBReader extends DataSourceReader{
 				
 				useBackup = (config.getFullBackupPath() != null && config.getFullBackupPath().length() > 0);
 				if(useBackup){
-					backupWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath.path(config.getFullBackupPath()).file()), config.getBackupFileEncoding()));
+					backupWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(filePath, config.getFullBackupPath())), config.getBackupFileEncoding()));
 					deleteFileName = config.getFullBackupPath()+".delete";
 				}
 			}else{
@@ -140,7 +139,7 @@ public class DBReader extends DataSourceReader{
 				pstmt = con.prepareStatement(q(config.getIncQuery()));
 				useBackup = (config.getIncBackupPath() != null && config.getIncBackupPath().length() > 0);
 				if(useBackup){
-					backupWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath.path(config.getIncBackupPath()).file()), config.getBackupFileEncoding()));
+					backupWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(filePath, config.getIncBackupPath())), config.getBackupFileEncoding()));
 					deleteFileName = config.getIncBackupPath()+".delete";
 				}
 			}
@@ -199,8 +198,9 @@ public class DBReader extends DataSourceReader{
 		return query;
 	}
 	
+	@Override
 	public void close() throws IRException{
-		logger.info("DBReader has read "+totalCnt+" docs");
+		logger.info("DBReader has read {} docs", totalCnt);
 		try {
 			doAfterQuery();
 		} catch (SQLException e) { 
@@ -225,7 +225,7 @@ public class DBReader extends DataSourceReader{
 		//write delete doc list
 		if(useBackup){
 			try{
-				BufferedWriter deleteBackupWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath.path(deleteFileName).file()), config.getBackupFileEncoding()));
+				BufferedWriter deleteBackupWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(filePath, deleteFileName)), config.getBackupFileEncoding()));
 				Iterator<PrimaryKeys> iter = deleteIdList.iterator();
 				
 				while(iter.hasNext()){
@@ -241,7 +241,7 @@ public class DBReader extends DataSourceReader{
 	private int executeUpdateQuery(String query) throws SQLException {
 		if (query == null || query.length() == 0)
 			return -1;
-		logger.debug("Execute Update SQL = "+query);
+		logger.debug("Execute Update SQL = {}", query);
 		PreparedStatement pstmt = con.prepareStatement(query);
 		int count = pstmt.executeUpdate();
 		pstmt.close();
@@ -267,6 +267,8 @@ public class DBReader extends DataSourceReader{
 		if(count != -1)
 			logger.info("After query updated "+count+" rows.");
 	}
+	
+	@Override
 	public boolean hasNext() throws IRException{
 		if(readCount >= bulkCount){
 			fill();
@@ -278,7 +280,9 @@ public class DBReader extends DataSourceReader{
 		}
 		return true;
 	}
-	public final Document next() throws IRException {
+	
+	@Override
+	protected final Map<String, Object> next() throws IRException {
 		if(readCount >= bulkCount){
 			fill();
 			if(bulkCount == 0)
@@ -286,25 +290,25 @@ public class DBReader extends DataSourceReader{
 			readCount = 0;
 		}
 		
-		Document document = new Document(fieldSettingList.size());
-		for (int i = 0; i < fieldSettingList.size(); i++) {
-			FieldSetting fs = fieldSettingList.get(i);
-			String data = "";
-//			if(!fs.isBlob())
-			
-			data = (String) fieldSet[readCount][i];
-			
-//			logger.debug("read data="+data+", readCount="+readCount+", i="+i);
-			Field f = fs.createField(data);
-			document.set(i,  f);
-		}
-		
-		readCount++;
-		return document;
+//		Document document = new Document(fieldSettingList.size());
+//		for (int i = 0; i < fieldSettingList.size(); i++) {
+//			FieldSetting fs = fieldSettingList.get(i);
+//			String data = "";
+////			if(!fs.isBlob())
+//			
+//			data = (String) fieldSet[readCount][i];
+//			
+////			logger.debug("read data="+data+", readCount="+readCount+", i="+i);
+//			Field f = fs.createField(data);
+//			document.set(i,  f);
+//		}
+//		readCount++;
+		return dataSet[readCount++];
 	}
 	
 	byte[] data = new byte[16 * 1024];
 	int totalCnt = 0;
+	
 	private void fill() throws IRException {
 		bulkCount = 0;
 		try{
@@ -426,34 +430,36 @@ public class DBReader extends DataSourceReader{
 					}
 				}
 				
-				if(useBackup){
-					try {
-						backupWriter.write("<doc>");
-						backupWriter.newLine();
-					} catch (IOException e) {
-						logger.error("Backup writer error => "+e.getMessage(),e);
-					}
-				}
+				dataSet[bulkCount] = keyValueMap;
 				
-				for (int i = 0; i < fieldSettingList.size(); i++) {
-					FieldSetting fs = fieldSettingList.get(i);
-					Object value = null;
-					if(fs.isModify()){
-						if(sourceModifier != null){
-							try{
-								value = sourceModifier.modify(fs.getId(), keyValueMap);
-							}catch(IRException e){
-								logger.error(e.toString(),e);
-							}
-						}
-					}else{
-						//value = r.getString(fs.name);
-						value = keyValueMap.get(fs.getId());
-						if(value == null){
-							logger.error("DB에 {} 필드가 존재하지 않거나 해당 필드를 수집쿼리에서 SELECT하지 않았습니다.", fs.getId());
-							throw new IRException("DB에 "+fs.getId()+"필드가 존재하지 않거나 해당 필드를 수집쿼리에서 SELECT하지 않았습니다.");
-						}
-					}
+//				if(useBackup){
+//					try {
+//						backupWriter.write("<doc>");
+//						backupWriter.newLine();
+//					} catch (IOException e) {
+//						logger.error("Backup writer error => "+e.getMessage(),e);
+//					}
+//				}
+				
+//				for (int i = 0; i < fieldSettingList.size(); i++) {
+//					FieldSetting fs = fieldSettingList.get(i);
+//					Object value = null;
+//					if(fs.isModify()){
+//						if(sourceModifier != null){
+//							try{
+//								value = sourceModifier.modify(fs.getId(), keyValueMap);
+//							}catch(IRException e){
+//								logger.error(e.toString(),e);
+//							}
+//						}
+//					}else{
+//						//value = r.getString(fs.name);
+//						value = keyValueMap.get(fs.getId());
+//						if(value == null){
+//							logger.error("DB에 {} 필드가 존재하지 않거나 해당 필드를 수집쿼리에서 SELECT하지 않았습니다.", fs.getId());
+//							throw new IRException("DB에 "+fs.getId()+"필드가 존재하지 않거나 해당 필드를 수집쿼리에서 SELECT하지 않았습니다.");
+//						}
+//					}
 					
 //					if(fs.isBlob()){
 //						//BLOB Field
@@ -474,74 +480,74 @@ public class DBReader extends DataSourceReader{
 //						}
 //					}else{
 						//문자필드
-						String str = null;
-						if(value != null)
-							str = (String) value;
-						
-//						if(fs.normalize && str != null){
-//							str = new String(scMap.getNormarlizedString(str));
+//						String str = null;
+//						if(value != null)
+//							str = (String) value;
+//						
+////						if(fs.normalize && str != null){
+////							str = new String(scMap.getNormarlizedString(str));
+////						}
+//						
+//						if(str == null) str = "";
+//						
+//						//html remove
+//						if(fs.isRemoveTag()){
+//							str = HTMLTagRemover.clean(str);
 //						}
 						
-						if(str == null) str = "";
+//						fieldSet[bulkCount][i] = str;
+//						if(useBackup){
+//							try {
+//								backupWriter.write("<");
+//								backupWriter.write(fs.getId());
+//								backupWriter.write(">");
+//								backupWriter.newLine();
+//								backupWriter.write(str);
+//								backupWriter.newLine();
+//								backupWriter.write("</");
+//								backupWriter.write(fs.getId());
+//								backupWriter.write(">");
+//								backupWriter.newLine();
+//							} catch (IOException e) { }
+//						}
 						
-						//html remove
-						if(fs.isRemoveTag()){
-							str = HTMLTagRemover.clean(str);
-						}
-						
-						fieldSet[bulkCount][i] = str;
-						if(useBackup){
-							try {
-								backupWriter.write("<");
-								backupWriter.write(fs.getId());
-								backupWriter.write(">");
-								backupWriter.newLine();
-								backupWriter.write(str);
-								backupWriter.newLine();
-								backupWriter.write("</");
-								backupWriter.write(fs.getId());
-								backupWriter.write(">");
-								backupWriter.newLine();
-							} catch (IOException e) { }
-						}
-						
-					}
+//					}
 					
 //				}
 				
-				if(hasLob){
-					for (int i = 0; i < keyValueMap.size(); i++) {
-						Object val = keyValueMap.get(i);
-						if(val instanceof InputStream){
-							try {
-								((InputStream)val).close();
-							} catch (IOException e) {
-								logger.error(e.getMessage(),e);
-							}
-						} else if(val instanceof File) {
-							File vfile = (File)val;
-							if(vfile.exists()) {
-								try {
-									vfile.delete();
-								} catch (SecurityException e) {
-									logger.error(e.getMessage(),e);
-								}
-							}
-						}
-					}
-				}
+//				if(hasLob){
+//					for (int i = 0; i < keyValueMap.size(); i++) {
+//						Object val = keyValueMap.get(i);
+//						if(val instanceof InputStream){
+//							try {
+//								((InputStream)val).close();
+//							} catch (IOException e) {
+//								logger.error(e.getMessage(),e);
+//							}
+//						} else if(val instanceof File) {
+//							File vfile = (File)val;
+//							if(vfile.exists()) {
+//								try {
+//									vfile.delete();
+//								} catch (SecurityException e) {
+//									logger.error(e.getMessage(),e);
+//								}
+//							}
+//						}
+//					}
+//				}
 				
 				
-				if(useBackup){
-					try {
-						backupWriter.write("</doc>");
-						backupWriter.newLine();
-						backupWriter.newLine();
-					} catch (IOException e) { }
-				}
+//				if(useBackup){
+//					try {
+//						backupWriter.write("</doc>");
+//						backupWriter.newLine();
+//						backupWriter.newLine();
+//					} catch (IOException e) { }
+//				}
 				
 				//추가한 문서가 삭제리스트에 존재하면 삭제된것이 아니므로 리스트에서 빼준다.
-				deleteIdList.remove(fieldSet[bulkCount][idFieldIndex]);
+//				deleteIdList.remove(fieldSet[bulkCount][idFieldIndex]);
 //				if(deleteIdList.remove(fieldSet[bulkCount][idFieldIndex])){
 //					logger.debug("Removed id = "+fieldSet[bulkCount][idFieldIndex]);
 //				}else{
@@ -553,6 +559,7 @@ public class DBReader extends DataSourceReader{
 				
 				if(bulkCount >= BULK_SIZE) break;
 			}
+			
 			
 		}catch(SQLException e){
 			
@@ -570,8 +577,9 @@ public class DBReader extends DataSourceReader{
 			try{
 				if (backupWriter != null) backupWriter.close();
 			} catch (IOException e1) { }
-				throw new IRException(e);
-			}
+			
+			throw new IRException(e);
+		}
 	}
 
 }

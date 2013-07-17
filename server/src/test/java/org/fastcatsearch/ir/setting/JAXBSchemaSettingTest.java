@@ -1,7 +1,6 @@
 package org.fastcatsearch.ir.setting;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -12,8 +11,8 @@ import java.util.List;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 
+import org.fastcatsearch.ir.config.JAXBConfigs;
 import org.fastcatsearch.ir.settings.AnalyzerSetting;
 import org.fastcatsearch.ir.settings.FieldIndexSetting;
 import org.fastcatsearch.ir.settings.FieldSetting;
@@ -22,6 +21,7 @@ import org.fastcatsearch.ir.settings.IndexSetting;
 import org.fastcatsearch.ir.settings.PkRefSetting;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
 import org.fastcatsearch.ir.settings.RefSetting;
+import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.junit.Test;
 
@@ -96,17 +96,20 @@ public class JAXBSchemaSettingTest {
 		
 		is = new FileInputStream("src/test/resources/schema.xml");
 		
-		JAXBContext context = JAXBContext.newInstance(SchemaSetting.class);
-		
-		Unmarshaller unmarshaller = context.createUnmarshaller();
-
-		SchemaSetting setting = (SchemaSetting) unmarshaller.unmarshal(is);
+		SchemaSetting setting = JAXBConfigs.readConfig(is, SchemaSetting.class);
+//		JAXBContext context = JAXBContext.newInstance(SchemaSetting.class);
+//		
+//		Unmarshaller unmarshaller = context.createUnmarshaller();
+//
+//		SchemaSetting setting = (SchemaSetting) unmarshaller.unmarshal(is);
 		
 		is.close();
 		
 		System.out.println(setting);
 		System.out.println(setting.getFieldSettingList().get(0).getId());
 		System.out.println(setting.getAnalyzerSettingList().size());
+		
+		Schema schema = new Schema(setting);
 	}
 	
 

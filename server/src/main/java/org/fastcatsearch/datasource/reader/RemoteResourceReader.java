@@ -1,8 +1,10 @@
 package org.fastcatsearch.datasource.reader;
 
 import java.io.File;
+import java.util.Map;
 
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.document.Document;
 
 /**
@@ -12,10 +14,11 @@ import org.fastcatsearch.ir.document.Document;
  * 이 클래스에서는 이들을 가공하여 Document를 생성한다.
  * RemoteResourceRepository는 내부적으로 transport 모듈을 사용하여 통신상의 통일성을 갖도록 한다.
  * */
-public class RemoteResourceReader extends DataSourceReader {
+public class RemoteResourceReader extends SingleSourceReader {
 
 	
-	public RemoteResourceReader(){
+	public RemoteResourceReader(File filePath, SingleSourceConfig sourceConfig, String lastIndexTime, boolean isFull){
+		super(filePath, sourceConfig, lastIndexTime, isFull);
 		//TODO
 		// 1. 외부 리소스 저장소에 연결.
 		// 2. 디렉토리 또는 파일요청 (셋팅파일에 정의)
@@ -28,20 +31,6 @@ public class RemoteResourceReader extends DataSourceReader {
 		return false;
 	}
 
-	@Override
-	public Document next() throws IRException {
-		// TODO
-		// 얻어온 리소스를 이용하여 완전한 Document 생성.
-		// 필요시 File filter이용.
-		
-		return null;
-	}
-
-	@Override
-	public void close() throws IRException {
-		// TODO Auto-generated method stub
-
-	}
 
 	class RemoteResourceRepositoryConnector {
 		
@@ -56,6 +45,18 @@ public class RemoteResourceReader extends DataSourceReader {
 		public File readFile(){ 
 			return null;
 		}
+		
+	}
+
+
+	@Override
+	protected Map<String, Object> next() throws IRException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	public void close() throws IRException {
+		// TODO Auto-generated method stub
 		
 	}
 }

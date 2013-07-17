@@ -16,76 +16,134 @@
 
 package org.fastcatsearch.datasource.reader;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
-
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import java.util.Map;
 
 import org.fastcatsearch.datasource.SourceModifier;
-import org.fastcatsearch.env.Path;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.document.Document;
+import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.index.DeleteIdSet;
-import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
 import org.fastcatsearch.ir.settings.Schema;
-import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * 데이터소스 리더.
  * 
- * TODO 고려사항 : DataSourceReader를 일반 class로 만들고 internalDataSourceReader를 받아서 처리하게 한다.
- * internalDataSourceReader는 field별 데이터만 셋팅하게 하고 
- * DataSourceReader가 modify수행후 document를 만들어서 최종리턴을 한다.
- * 내부 internalDataSourceReader 가 여러개이면 멀티소스리더같이 동작하게 된다.  
+ * TODO 고려사항 : DataSourceReader를 일반 class로 만들고 internalDataSourceReader를 받아서 처리하게 한다. internalDataSourceReader는 field별 데이터만 셋팅하게
+ * 하고 DataSourceReader가 modify수행후 document를 만들어서 최종리턴을 한다. 내부 internalDataSourceReader 가 여러개이면 멀티소스리더같이 동작하게 된다.
  * */
-public abstract class DataSourceReader {
-	
+public class DataSourceReader {
+
 	protected static Logger logger = LoggerFactory.getLogger(DataSourceReader.class);
-	
-	protected Path filePath;
+
+	protected File filePath;
 	protected List<FieldSetting> fieldSettingList;
 	protected int idFieldIndex;
-	protected DeleteIdSet deleteIdList;
+
 	protected SourceModifier sourceModifier;
 	protected Schema schema;
 	protected int primaryKeySize;
-	protected DataSourceConfig dataSourceConfig;
-	
-	public abstract boolean hasNext() throws IRException;
-	public abstract Document next() throws IRException;
-	public abstract void close() throws IRException;
-	
-	public DataSourceReader(){}
-	
-	public DataSourceReader(Path filePath, Schema schema, DataSourceConfig dataSourceConfig, SourceModifier sourceModifier) throws IRException{
+
+	private DeleteIdSet deleteIdList;
+
+	private List<SingleSourceReader> singleSourceReaderList;
+	private int readerPos;
+	private SingleSourceReader currentReader;
+
+	// DataSourceConfig안에는 SingleSourceConfig가 여러개 들어있다.
+	public DataSourceReader(File filePath, Schema schema) throws IRException {
 		this.filePath = filePath;
 		this.schema = schema;
-		this.dataSourceConfig = dataSourceConfig;
+
 		fieldSettingList = schema.schemaSetting().getFieldSettingList();
-//		idFieldIndex = schemaSetting.getIndexID();
-//		if(idFieldIndex == -1){
-//			throw new IRException("Schema has no primary key!");
-//		}
-		this.sourceModifier = sourceModifier;
-		
+
 		PrimaryKeySetting primaryKeySetting = schema.schemaSetting().getPrimaryKeySetting();
-		if(primaryKeySetting != null && primaryKeySetting.getFieldList().size() > 0){
+		if (primaryKeySetting != null && primaryKeySetting.getFieldList().size() > 0) {
 			int pkFieldSize = primaryKeySetting.getFieldList().size();
 			deleteIdList = new DeleteIdSet(pkFieldSize);
 		}
-		
+
 		primaryKeySize = schema.schemaSetting().getPrimaryKeySetting().getFieldList().size();
+
+		deleteIdList = new DeleteIdSet(primaryKeySize);
+		singleSourceReaderList = new ArrayList<SingleSourceReader>();
+
+		nextReader();
 	}
-	
-	public final DeleteIdSet getDeleteList(){
+
+	private void nextReader() {
+		if (readerPos < singleSourceReaderList.size()) {
+			currentReader = singleSourceReaderList.get(readerPos++);
+		} else {
+			currentReader = null;
+		}
+	}
+
+	public final DeleteIdSet getDeleteList() {
 		return deleteIdList;
 	}
-	
-	
+
+	public void addSourceReader(SingleSourceReader sourceReader) {
+		sourceReader.setDeleteIdList(deleteIdList);
+		singleSourceReaderList.add(sourceReader);
+	}
+
+	public boolean hasNext() throws IRException {
+		try {
+			while (true) {
+				if (currentReader == null) {
+					// 다음번 reader가 null이면 모두 읽은 것임.
+					return false;
+				}
+
+				if (currentReader.hasNext()) {
+					return true;
+				} else {
+					currentReader.close();
+					// 이번리더를 다 읽었으면 다음 리더로 이동.
+					nextReader();
+				}
+			}
+		} catch (Throwable e) {
+			close();
+			throw new IRException(e.getMessage());
+		}
+	}
+
+	public Document nextDocument() throws IRException {
+		try {
+			Map<String, Object> map = currentReader.nextElement();
+			// Schema를 기반으로 Document로 만든다.
+			Document document = new Document(fieldSettingList.size());
+			for (int i = 0; i < fieldSettingList.size(); i++) {
+				FieldSetting fs = fieldSettingList.get(i);
+				String key = fs.getId();
+				Object data = map.get(key);
+
+				// logger.debug("read data="+data+", readCount="+readCount+", i="+i);
+				Field f = fs.createField(data.toString());
+				document.set(i, f);
+			}
+			return document;
+		} catch (Throwable e) {
+			close();
+			throw new IRException(e.getMessage());
+		}
+	}
+
+	public void close() {
+		for (SingleSourceReader reader : singleSourceReaderList) {
+			try {
+				reader.close();
+			} catch (IRException e) {
+			}
+		}
+	}
+
 }

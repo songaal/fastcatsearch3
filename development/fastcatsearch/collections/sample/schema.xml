@@ -13,10 +13,10 @@
 		<field id="comment" type="ustring" modify="true"/>
 	</field-list>
 	
-	<primary>
+	<primary-key>
 		<field ref="id" />
 		<field ref="category" />
-	</primary>		
+	</primary-key>		
 	
 	<!-- pk는 스키마에 보이지는 않지만 자동으로 index-list에 추가된다. -->
 	<index-list>
@@ -39,10 +39,10 @@
 	</index-list>
 	
 	<analyzer-list>
-		<analyzer id="korean_index" corePoolSize="10" maximumPoolSize="100">com.fastcatsearch.plugin.analysis.korean.StandardKoreanAnalyzer</analyzer>
-		<analyzer id="korean_query" corePoolSize="10" maximumPoolSize="100">com.fastcatsearch.plugin.analysis.korean.StandardKoreanAnalyzer</analyzer>
-		<analyzer id="product_index" corePoolSize="10" maximumPoolSize="100">com.fastcatsearch.plugin.analysis.product.StandardProductAnalyzer</analyzer>
-		<analyzer id="product_query" corePoolSize="10" maximumPoolSize="100">com.fastcatsearch.plugin.analysis.product.StandardProductAnalyzer</analyzer>
+		<analyzer id="korean_index" corePoolSize="10" maximumPoolSize="100">org.fastcatsearch.plugin.analysis.ko.standard.StandardKoreanAnalyzer</analyzer>
+		<analyzer id="korean_query" corePoolSize="10" maximumPoolSize="100">org.fastcatsearch.plugin.analysis.ko.standard.StandardKoreanAnalyzer</analyzer>
+		<analyzer id="product_index" corePoolSize="10" maximumPoolSize="100">org.fastcatsearch.plugin.analysis.product.StandardProductAnalyzer</analyzer>
+		<analyzer id="product_query" corePoolSize="10" maximumPoolSize="100">org.fastcatsearch.plugin.analysis.product.StandardProductAnalyzer</analyzer>
 		<analyzer id="keyword" corePoolSize="10" maximumPoolSize="100">org.apache.lucene.analysis.core.KeywordAnalyzer</analyzer>
 	</analyzer-list>
 	

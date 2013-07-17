@@ -16,7 +16,6 @@ import org.fastcatsearch.ir.io.AsciiCharTrie;
 
 @XmlRootElement(name = "schema")
 @XmlType(propOrder = { "fieldSettingList", "primaryKeySetting", "indexSettingList", "analyzerSettingList", "fieldIndexSettingList", "groupIndexSettingList" })
-@XmlSeeAlso({ArrayList.class, FieldSetting.class})
 public class SchemaSetting {
 	
 	private List<FieldSetting> fieldSettingList;

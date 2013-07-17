@@ -95,6 +95,6 @@ public class Path {
 	}
 
 	public CollectionFilePaths collectionFilePaths(String collectionId) {
-		return new CollectionFilePaths(root, collectionId);
+		return new CollectionFilePaths(getCollectionsRoot().file(), collectionId);
 	}
 }

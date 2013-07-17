@@ -72,15 +72,18 @@ public class IRService extends AbstractService{
 			try {
 				String collectionId = collection.getId();
 				CollectionContext collectionContext = loadCollectionContext(collectionId); 
-				
+				if(collectionContext == null){
+					continue;
+				}
 				CollectionHandler collectionHandler = new CollectionHandler(collectionContext);
 				collectionHandlerMap.put(collectionId, collectionHandler);
 				
 				if(!collection.isActive()){
-					//active하지 않은 컬렉션은 map에 설정만 넣어두고 시작하지 않는다.
+					//active하지 않은 컬렉션은 map에 설정만 넣어두고 로드하지 않는다.
 					continue;
 				}
 
+				collectionHandler.load();
 //				IndexConfig indexConfig = collectionConfig.getIndexConfig();
 				
 //				collectionHandlerMap.put(collectionId, new CollectionHandler(collectionId, collectionDir, collectionContext[i], indexConfig));
@@ -130,6 +133,11 @@ public class IRService extends AbstractService{
 	
 	public CollectionContext loadCollectionContext(String collectionId, int dataSequence){
 		CollectionFilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
+		if(!collectionFilePaths.file().exists()){
+			//디렉토리가 존재하지 않으면.
+			logger.error("[{}]컬렉션 디렉토리가 존재하지 않습니다.", collectionId);
+			return null;
+		}
 		return CollectionContextUtil.load(collectionFilePaths, dataSequence);
 	}
 	

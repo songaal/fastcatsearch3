@@ -44,10 +44,10 @@ public class CollectionStatus {
 		this.addIndexStatus = addIndexStatus;
 	}
 	
-	public class DataStatus {
+	public static class DataStatus {
 		private int sequence;
 		
-		@XmlAttribute(name="data-status")
+		@XmlAttribute
 		public int getSequence(){
 			return sequence;
 		}
@@ -69,7 +69,7 @@ public class CollectionStatus {
 		}
 	}
 	
-	public class IndexStatus {
+	public static class IndexStatus {
 		private int documentCount;
 		private int updateCount;
 		private int deleteCount;

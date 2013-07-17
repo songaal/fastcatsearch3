@@ -1,39 +1,52 @@
 package org.fastcatsearch.ir.config;
 
-import javax.xml.bind.annotation.XmlAttribute;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name = "data-source")
+@XmlRootElement(name = "datasource")
 public class DataSourceConfig {
-	private String readerType;
-	private String configType;
-	private String sourceModifier;
-	
-	@XmlAttribute(required=true)
-	public String getReaderType(){
-		return readerType;
+	private List<DBSourceConfig> dbSourceConfigList;
+	private List<FileSourceConfig> fileSourceConfigList;
+
+	@XmlElement(name = "db")
+	public List<DBSourceConfig> getDBSourceConfigList() {
+		return dbSourceConfigList;
 	}
-	
-	@XmlAttribute(required=true)
-	public String getConfigType(){
-		return configType;
+
+	public void setDBSourceConfigList(List<DBSourceConfig> dbSourceConfigList) {
+		this.dbSourceConfigList = dbSourceConfigList;
 	}
-	
-	@XmlElement
-	public String getSourceModifier(){
-		return sourceModifier;
+
+	@XmlElement(name = "file")
+	public List<FileSourceConfig> getFileSourceConfigList() {
+		return fileSourceConfigList;
 	}
-	
-	public void setReaderType(String readerType){
-		this.readerType = readerType;
+
+	public void setFileSourceConfigList(List<FileSourceConfig> fileSourceConfigList) {
+		this.fileSourceConfigList = fileSourceConfigList;
 	}
-	
-	public void setConfigType(String configType){
-		this.configType = configType;
-	}
-	
-	public void setSourceModifier(String sourceModifier){
-		this.sourceModifier = sourceModifier;
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		if (dbSourceConfigList != null) {
+			for (DBSourceConfig sourceConfig : dbSourceConfigList) {
+				if (sb.length() > 0) {
+					sb.append(",");
+				}
+				sb.append(sourceConfig.getClass());
+			}
+		}
+		if (fileSourceConfigList != null) {
+			for (FileSourceConfig sourceConfig : fileSourceConfigList) {
+				if (sb.length() > 0) {
+					sb.append(",");
+				}
+				sb.append(sourceConfig.getClass());
+			}
+		}
+		return sb.toString();
 	}
 }

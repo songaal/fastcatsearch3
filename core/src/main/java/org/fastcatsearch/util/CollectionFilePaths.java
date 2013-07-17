@@ -8,7 +8,7 @@ public class CollectionFilePaths {
 	private String collectionId;
 	
 	public CollectionFilePaths(File collectionRoot, String collectionId) {
-		this.root = new File(root, collectionId);
+		this.root = new File(collectionRoot, collectionId);
 		this.collectionId = collectionId;
 	}
 
