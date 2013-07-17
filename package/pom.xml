@@ -72,14 +72,6 @@
 										<include>${parent.artifactId}-server-${project.version}-javadoc.jar</include>
 									</includes>
 								</resource>
-								<resource>
-									<directory>${project.parent.basedir}/web/target</directory>
-									<includes>
-										<include>${parent.artifactId}-web-${project.version}.jar</include>
-										<include>${parent.artifactId}-web-${project.version}-sources.jar</include>
-										<include>${parent.artifactId}-web-${project.version}-javadoc.jar</include>
-									</includes>
-								</resource>
 							</resources>
 						</configuration>
 					</execution>
