@@ -60,7 +60,7 @@ public class Document {
 		StringBuffer sb = new StringBuffer();
 		sb.append("[Document]");
 		for (int index = 0; index < fields.size(); index++) {
-			sb.append("\nF_").append(index).append("=").append(fields.get(index).toString());
+			sb.append("\nF_").append(index).append("[").append(fields.get(index).getClass().getSimpleName()).append("]=").append(fields.get(index).toString());
 		}
 		return sb.toString();
 	}

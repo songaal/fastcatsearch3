@@ -67,6 +67,7 @@ public class BufferedFileOutput extends IndexOutput {
 			long fp = raf.length();
 			raf.seek(fp);
 		}
+		logger.debug("File open {}", f.getAbsolutePath());
 	}
 	
 	public String toString(){
@@ -92,10 +93,9 @@ public class BufferedFileOutput extends IndexOutput {
 	}
 	
 	public void close() throws IOException {
-//		logger.debug("close Called, Buffer Use Size  : ", count);
 		flush();
-//		logger.debug("outptu {} [{}]", f.getAbsolutePath(), raf.length());
 		raf.close();
+		logger.debug("File close {}", f.getAbsolutePath());
 	}
 
 	public long position() throws IOException {
@@ -106,13 +106,6 @@ public class BufferedFileOutput extends IndexOutput {
 		flush();
 		raf.seek(p);
 	}
-	
-//	public synchronized void writeByte(int b) throws IOException {
-//		if (count >= buf.length) {
-//		    flush();
-//		}
-//		buf[count++] = (byte)b;
-//	}
 	
 	public synchronized void writeBytes(byte b[], int off, int len) throws IOException {
 		if (len >= buf.length) {

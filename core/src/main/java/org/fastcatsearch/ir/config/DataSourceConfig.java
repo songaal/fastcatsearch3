@@ -1,5 +1,6 @@
 package org.fastcatsearch.ir.config;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -26,6 +27,17 @@ public class DataSourceConfig {
 
 	public void setFileSourceConfigList(List<FileSourceConfig> fileSourceConfigList) {
 		this.fileSourceConfigList = fileSourceConfigList;
+	}
+
+	public List<SingleSourceConfig> getSourceConfigList() {
+		List<SingleSourceConfig> list = new ArrayList<SingleSourceConfig>();
+		if (dbSourceConfigList != null) {
+			list.addAll(dbSourceConfigList);
+		}
+		if (fileSourceConfigList != null) {
+			list.addAll(fileSourceConfigList);
+		}
+		return list;
 	}
 
 	@Override

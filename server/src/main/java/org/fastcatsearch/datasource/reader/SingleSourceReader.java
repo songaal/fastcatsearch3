@@ -25,19 +25,17 @@ public abstract class SingleSourceReader {
 	protected SourceModifier sourceModifier;
 	protected DeleteIdSet deleteIdList;
 	
+	public abstract void init() throws IRException; //초기화. 파일을 여는등의 작업.
 	public abstract boolean hasNext() throws IRException;
 	protected abstract Map<String, Object> next() throws IRException;
 	public abstract void close() throws IRException;
 	
-	public SingleSourceReader(File filePath, SingleSourceConfig singleSourceConfig, String lastIndexTime, boolean isFull) {
+	public SingleSourceReader(File filePath, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime, boolean isFull) {
 		this.filePath = filePath;
 		this.singleSourceConfig = singleSourceConfig;
 		this.lastIndexTime = lastIndexTime;
 		this.isFull = isFull;
-		this.sourceModifier = DynamicClassLoader.loadObject(singleSourceConfig.getSourceModifier(), SourceModifier.class);
-		if(sourceModifier == null){
-			logger.error("unable to find source modifier class {}", singleSourceConfig.getSourceModifier());
-		}
+		this.sourceModifier = sourceModifier;
 	}
 	
 	protected Map<String, Object> nextElement() throws IRException {

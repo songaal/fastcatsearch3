@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
@@ -66,7 +67,7 @@ public class GroupIndexWriter {
 	private int revision;
 	private boolean isAppend;
 	private File baseDir;
-	private PrimaryKeyIndexReader[] pkReaderList;
+	private PrimaryKeyIndexReader[] prevPkReaderList; //이전 pk reader 리스트. 증분색인시에 사용됨.
 	private int indexInterval;
 	private int count;
 	private boolean hasMultiValue;
@@ -77,12 +78,12 @@ public class GroupIndexWriter {
 	private BytesDataOutput keyBuffer;
 
 	public GroupIndexWriter(GroupIndexSetting groupIndexSetting, Map<String, FieldSetting> fieldSettingMap, Map<String, Integer> fieldSequenceMap,
-			File dir, IndexConfig indexConfig) throws IOException {
+			File dir, IndexConfig indexConfig) throws IOException, IRException {
 		this(groupIndexSetting, fieldSettingMap, fieldSequenceMap, dir, 0, indexConfig);
 	}
 
 	public GroupIndexWriter(GroupIndexSetting groupIndexSetting, Map<String, FieldSetting> fieldSettingMap, Map<String, Integer> fieldSequenceMap,
-			File dir, int revision, IndexConfig indexConfig) throws IOException {
+			File dir, int revision, IndexConfig indexConfig) throws IOException, IRException {
 		this.revision = revision;
 		if (revision > 0) {
 			this.isAppend = true;
@@ -110,7 +111,10 @@ public class GroupIndexWriter {
 			IndexInput groupInfoInput = new BufferedFileInput(prevDir, IndexFileNames.groupInfoFile);
 			int fieldCount = groupInfoInput.readInt();
 
-			pkReaderList = new PrimaryKeyIndexReader[fieldSize];
+			if(fieldCount != fieldSize){
+				throw new IRException("색인된 색인필드갯수와 스키마의 색인필드갯수가 다릅니다. schema="+fieldSize+", indexed="+fieldCount);
+			}
+			prevPkReaderList = new PrimaryKeyIndexReader[fieldSize];
 			long[] dataBasePositionList = new long[fieldSize];
 			long[] indexBasePositionList = new long[fieldSize];
 			int[] groupKeySize = new int[fieldSize];
@@ -127,10 +131,10 @@ public class GroupIndexWriter {
 				if (i < fieldCount - 1) {
 					endPos = dataBasePositionList[i + 1];
 				}
-				pkReaderList[i] = new PrimaryKeyIndexReader(prevDir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyMap, id),
+				prevPkReaderList[i] = new PrimaryKeyIndexReader(prevDir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyMap, id),
 						dataBasePositionList[i], endPos, indexBasePositionList[i]);
 				// 이전 번호이후부터 그룹번호 부여.
-				groupNumber[i] = pkReaderList[i].count();
+				groupNumber[i] = prevPkReaderList[i].count();
 			}
 
 		} else {
@@ -148,6 +152,16 @@ public class GroupIndexWriter {
 		int bucketSize = indexConfig.getPkBucketSize();
 
 		for (int idx = 0; idx < fieldSize; idx++) {
+			RefSetting rs = refSettingList.get(idx);
+			
+			String fieldId = rs.getRef();
+			FieldSetting fieldSetting = fieldSettingMap.get(fieldId);
+			fieldSettingList[idx] = fieldSetting;
+			if (fieldSetting.isMultiValue()) {
+				hasMultiValue = true;
+			}
+			fieldSequenceList[idx] = fieldSequenceMap.get(fieldId);
+			
 			if (fieldSettingList[idx].isVariableField()) {
 				keyOutputList[idx] = new VariableDataOutput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyFile, id, Integer.toString(idx)),
 						isAppend);
@@ -157,15 +171,6 @@ public class GroupIndexWriter {
 			}
 			tempKeyIndexList[idx] = new PrimaryKeyIndexWriter(null, null, indexInterval, bucketSize);
 
-			RefSetting rs = refSettingList.get(idx);
-
-			String fieldId = rs.getRef();
-			FieldSetting fieldSetting = fieldSettingMap.get(fieldId);
-			fieldSettingList[idx] = fieldSetting;
-			if (fieldSetting.isMultiValue()) {
-				hasMultiValue = true;
-			}
-			fieldSequenceList[idx] = fieldSequenceMap.get(fieldId);
 		}
 
 		if (hasMultiValue) {
@@ -222,7 +227,7 @@ public class GroupIndexWriter {
 		int groupNo = -1;
 		if (isAppend) {
 			// find key at previous append's pkmap
-			groupNo = pkReaderList[idx].get(keyBuffer.array(), 0, (int) keyBuffer.position());
+			groupNo = prevPkReaderList[idx].get(keyBuffer.array(), 0, (int) keyBuffer.position());
 			if (groupNo == -1) {
 				groupNo = tempKeyIndexList[idx].get(keyBuffer.array(), 0, (int) keyBuffer.position());
 			}
@@ -264,11 +269,11 @@ public class GroupIndexWriter {
 				tempGroupMapIndexFile.delete();
 				File tempPkFile = new File(IndexFileNames.getRevisionDir(baseDir, revision), IndexFileNames.getTempFileName(IndexFileNames.groupKeyMap));
 				tempPkFile.delete();
-			}
-			
-			//pk reader닫지 않는 버그수정.
-			for (int i = 0; i < pkReaderList.length; i++) {
-				pkReaderList[i].close();
+				
+				//pk reader닫지 않는 버그수정.
+				for (int i = 0; i < prevPkReaderList.length; i++) {
+					prevPkReaderList[i].close();
+				}
 			}
 			return;
 		}
@@ -326,7 +331,7 @@ public class GroupIndexWriter {
 				prevDataPosition[i] = prevGroupInfoInput.readLong();
 				prevGroupInfoInput.readLong();// index position
 
-				pkReaderList[i].close();
+				prevPkReaderList[i].close();
 			}
 			prevGroupInfoInput.close();
 

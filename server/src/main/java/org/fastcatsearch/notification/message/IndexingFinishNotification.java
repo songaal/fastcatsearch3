@@ -75,8 +75,12 @@ public class IndexingFinishNotification extends Notification {
 			IndexingJobResult result2 = (IndexingJobResult) result;
 			params[5] = "문서수["+Integer.toString(result2.docSize)+"]";
 		}else{
-			StreamableThrowable throwable = (StreamableThrowable) result;
-			params[5] = "에러내역: "+throwable.getThrowable().toString();
+			if(result instanceof StreamableThrowable){
+				StreamableThrowable throwable = (StreamableThrowable) result;
+				params[5] = "에러내역: "+throwable.getThrowable().toString();
+			}else{
+				params[5] = "실패결과: " + result.toString();
+			}
 		}
 		return getFormattedMessage(params);
 	}

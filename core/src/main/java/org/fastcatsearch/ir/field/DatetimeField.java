@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
+import org.fastcatsearch.ir.io.IOUtil;
 import org.fastcatsearch.ir.io.IndexInput;
 import org.fastcatsearch.ir.io.IndexOutput;
 
@@ -16,11 +17,11 @@ public class DatetimeField extends Field {
 	public static final Pattern ptn = Pattern.compile("[- :.,]");
 
 	public DatetimeField(String id) {
-		super(id);
+		super(id, IOUtil.SIZE_OF_LONG);
 	}
 
-	public DatetimeField(String id, String data) {
-		super(id, data);
+	public DatetimeField(String id, String data) throws FieldDataParseException {
+		super(id, data, IOUtil.SIZE_OF_LONG);
 	}
 
 	@Override

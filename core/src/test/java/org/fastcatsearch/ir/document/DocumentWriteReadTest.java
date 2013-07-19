@@ -31,6 +31,7 @@ import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.field.AStringField;
 import org.fastcatsearch.ir.field.AStringMvField;
 import org.fastcatsearch.ir.field.DatetimeField;
+import org.fastcatsearch.ir.field.FieldDataParseException;
 import org.fastcatsearch.ir.field.IntField;
 import org.fastcatsearch.ir.field.IntMvField;
 import org.fastcatsearch.ir.field.LongField;
@@ -244,7 +245,7 @@ public class DocumentWriteReadTest extends TestCase{
 		}
 	}
 	
-	private Document createDocument(int i){
+	private Document createDocument(int i) throws FieldDataParseException{
 		Document document = new Document(6);
 		document.add(new LongField("id", Integer.toString(i)));
 		UStringMvField f2 = new UStringMvField("title");
@@ -283,7 +284,7 @@ public class DocumentWriteReadTest extends TestCase{
 		List<FieldSetting> fieldSettingList = new ArrayList<FieldSetting>();
 		FieldSetting fieldSetting = new FieldSetting("id", "글아이디",  FieldSetting.Type.LONG);
 		fieldSettingList.add(fieldSetting);
-		fieldSetting = new FieldSetting("title", "제목",  FieldSetting.Type.USTRING);
+		fieldSetting = new FieldSetting("title", "제목",  FieldSetting.Type.STRING);
 		fieldSetting.setSize(30);
 		fieldSettingList.add(fieldSetting);
 		fieldSetting = new FieldSetting("price", "가격",  FieldSetting.Type.INT);

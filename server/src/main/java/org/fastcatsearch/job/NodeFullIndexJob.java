@@ -247,7 +247,7 @@ public class NodeFullIndexJob extends StreamableJob {
 			
 			SegmentInfo si = newHandler.getLastSegmentReader().segmentInfo();
 			logger.info(si.toString());
-			int docSize = si.getDocumentCount();
+			int docSize = si.getRevisionInfo().getDocumentCount();
 			
 			/*
 			 * indextime 파일 업데이트.

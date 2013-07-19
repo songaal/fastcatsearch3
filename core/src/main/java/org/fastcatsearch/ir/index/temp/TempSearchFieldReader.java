@@ -87,14 +87,8 @@ public class TempSearchFieldReader {
 		int len = array.length;
 		term = new CharVector(array, 0, len);
 		
-//		if(logger.isDebugEnabled())
-//			logger.debug("####"+left+":"+len+"=("+(int)array[0]+")"+ new String(array,1, len - 1));
-		
-//		logger.debug("len = "+len+","+term);
 		int bufLength = tempInput.readVInt();
-		
 		buffer = new BytesRef(bufLength);
-//		buffer.limit(bufLength);
 		tempInput.readBytes(buffer);
 		left--;
 		

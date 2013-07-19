@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.field.Field;
@@ -47,15 +48,17 @@ public class FieldIndexWriter {
 	private int[] fieldSequenceList;
 	private boolean hasMultiValue;
 	private int fieldSize;
+	private int[] fieldIndexSizeList;
 	
-	public FieldIndexWriter(FieldIndexSetting fieldIndexSetting, Map<String, FieldSetting> fieldSettingMap, Map<String, Integer> fieldSequenceMap, File dir) throws IOException {
+	public FieldIndexWriter(FieldIndexSetting fieldIndexSetting, Map<String, FieldSetting> fieldSettingMap, Map<String, Integer> fieldSequenceMap, File dir) throws IOException, IRException {
 		this(fieldIndexSetting, fieldSettingMap, fieldSequenceMap, dir, false);
 	}
 	
-	public FieldIndexWriter(FieldIndexSetting fieldIndexSetting, Map<String, FieldSetting> fieldSettingMap, Map<String, Integer> fieldSequenceMap, File dir, boolean isAppend) throws IOException {
+	public FieldIndexWriter(FieldIndexSetting fieldIndexSetting, Map<String, FieldSetting> fieldSettingMap, Map<String, Integer> fieldSequenceMap, File dir, boolean isAppend) throws IOException, IRException {
 		refSettingList = fieldIndexSetting.getRefList();
 		fieldSize = refSettingList.size();
 		fieldSequenceList = new int[fieldSize];
+		fieldIndexSizeList = new int[fieldSize];
 		String id = fieldIndexSetting.getId();
 		output = new BufferedFileOutput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.fieldIndexFile, id), isAppend);
 		
@@ -63,6 +66,8 @@ public class FieldIndexWriter {
 			RefSetting rs = refSettingList.get(idx);
 			
 			String fieldId = rs.getRef();
+			int fieldIndexSize = rs.getSize();
+			fieldIndexSizeList[idx] = fieldIndexSize;
 			FieldSetting fieldSetting = fieldSettingMap.get(fieldId);
 			if(fieldSetting.isMultiValue()){
 				hasMultiValue = true;
@@ -74,7 +79,7 @@ public class FieldIndexWriter {
 		}
 	}
 	
-	public void write(Document document) throws IOException{
+	public void write(Document document) throws IOException, IRException{
 		
 		for (int idx = 0; idx < fieldSize; idx++) {
 			int k = fieldSequenceList[idx];
@@ -83,9 +88,33 @@ public class FieldIndexWriter {
 			if(f.isMultiValue()){
 				long ptr = multiValueOutput.position();
 				output.writeLong(ptr);
-				f.writeFixedDataTo(multiValueOutput);
+				if(f.isFixedSize()){
+					f.writeFixedDataTo(multiValueOutput);
+				}else{
+					//정해진 길이가 있다면 해당 길이로 자른다.
+					int limitSize = fieldIndexSizeList[idx];
+					Field tmpField = f.clone();
+					if(limitSize > 0){
+						tmpField.setSize(limitSize);
+						tmpField.writeFixedDataTo(multiValueOutput);
+					}else{
+						throw new IRException("가변길이필드는 필드색인이 불가능합니다. 필드색인SIZE 필요. field-index-size = "+limitSize);
+					}
+				}
 			}else{
-				f.writeFixedDataTo(output);	
+				if(f.isFixedSize()){
+					f.writeFixedDataTo(output);
+				}else{
+					//정해진 길이가 있다면 해당 길이로 자른다.
+					int limitSize = fieldIndexSizeList[idx];
+					Field tmpField = f.clone();
+					if(limitSize > 0){
+						tmpField.setSize(limitSize);
+						tmpField.writeFixedDataTo(output);
+					}else{
+						throw new IRException("가변길이필드는 필드색인이 불가능합니다. 필드색인SIZE 필요. field-index-size = "+limitSize);
+					}
+				}
 			}
 		}
 	}

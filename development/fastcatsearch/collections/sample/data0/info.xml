@@ -1,0 +1,4 @@
+<data-info documents="7500" deletes="300">
+	<segment id="0" base="0" revision="2" documents="6000" deletes="250" createTime="2013-06-15 15:30:00" />
+	<segment id="1" base="6000" revision="1" documents="1500" deletes="50" createTime="2013-06-15 16:30:00" />
+</data-info>

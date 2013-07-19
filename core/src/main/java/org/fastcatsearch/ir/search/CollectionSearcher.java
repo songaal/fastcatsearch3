@@ -567,7 +567,7 @@ public class CollectionSearcher {
 		ArrayList<Row> rowList = new ArrayList<Row>();
 		
 		for (int i = 0; i < segmentSize; i++) {
-			int docCount = collectionHandler.segmentReader(i).segmentInfo().getDocumentCount();
+			int docCount = collectionHandler.segmentReader(i).segmentInfo().getRevisionInfo().getDocumentCount();
 			totalSize += docCount;
 			segEndNums[i] = totalSize - 1;
 		}

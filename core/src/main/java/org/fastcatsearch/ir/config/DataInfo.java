@@ -1,5 +1,6 @@
 package org.fastcatsearch.ir.config;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAttribute;
@@ -12,18 +13,36 @@ import javax.xml.bind.annotation.XmlType;
 	<segment id="0" base="0" revision="2" documents="6000" deletes="250" createTime="2013-06-15 15:30:00" />
 	<segment id="1" base="6000" revision="1" documents="1500" deletes="50" createTime="2013-06-15 16:30:00" />
 </data-info>
+
+<data-info documents="7500" deletes="60">
+	<segment id="0" base="0" revision="0">
+		<revision documents="1000" deletes="0" createTime="2013-06-15 15:20:00">
+	</segment>
+	<segment id="1" base="1000" revision="2">
+		<revision documents="5000" deletes="10" createTime="2013-06-15 16:20:00">
+	</segment>
+	<segment id="2" base="6000" revision="1">
+		<revision documents="1500" deletes="50" createTime="2013-06-15 16:30:00"/>
+	</segment>
+</data-info>
  * */
 
 @XmlRootElement(name = "data-info")
 public class DataInfo {
-	private String sequence;
 	private int documents;
 	private int deletes;
 	private List<SegmentInfo> segmentInfoList;
 	
 	
-	public DataInfo(){
-		sequence = "0";
+	public DataInfo(){ }
+
+	public DataInfo copy(){
+		DataInfo dataInfo = new DataInfo();
+		dataInfo.documents = this.documents;
+		dataInfo.deletes = this.deletes;
+		dataInfo.segmentInfoList = new ArrayList<SegmentInfo>();
+		dataInfo.segmentInfoList.addAll(segmentInfoList);
+		return dataInfo;
 	}
 	
 	@XmlAttribute
@@ -61,30 +80,33 @@ public class DataInfo {
 		return segmentInfoList.size() - 1;
 	}
 	public SegmentInfo getLastSegmentInfo(){
+		if(segmentInfoList.size() == 0){
+			return null;
+		}
 		return segmentInfoList.get(segmentInfoList.size() - 1);
 	}
 	
 	public String toString(){
-		return ("[DataInfo]seq={}, base no = {}, docCount = {}, revision = {}, time = {}");
+		return ("[DataInfo] documents["+documents+"] docCount["+deletes+"] segments["+segmentInfoList+"]");
 	}
 	
 	/**
 	 <segment id="0" base="0" revision="2" documents="6000" updates="100" deletes="250" createTime="2013-06-15 15:30:00" />
-	 * */
+	 
+	 <segment id="0" base="0" revision="0">
+		<revision documents="1000" deletes="0" createTime="2013-06-15 15:20:00">
+	</segment>
 	
+	 * */
 	@XmlRootElement(name = "segment")
-	@XmlType(propOrder = { "createTime", "deletes", "documents", "revision", "baseNumber", "id" })
+	@XmlType(propOrder = { "createTime", "deleteCount", "updateCount", "documentCount", "revision", "baseNumber", "id" })
 	public static class SegmentInfo {
 		private String id;
 		private int baseNumber;
 		private int revision;
-		private int documentCount;
-		private int updateCount;
-		private int deleteCount;
-		private String createTime;
+		private RevisionInfo revisionInfo;
 		
-		
-		public SegmentInfo() { 
+		public SegmentInfo() {
 			this.id = "0";
 		}
 		
@@ -94,22 +116,21 @@ public class DataInfo {
 		}
 		
 		public String toString(){
-			return "[SegmentInfo] id["+id+"] base["+baseNumber+"] revision["+revision+"] documents["+documentCount+"] deletes["+deleteCount+"] createTime["+createTime+"]";
+			return "[SegmentInfo] id["+id+"] base["+baseNumber+"] revision["+revision+"]";
 		}
 		
 		public void update(int revision, int documents, int deletes, String createTime){
 			this.revision = revision;
-			this.documentCount = documents;
-			this.deleteCount = deletes;
-			this.createTime = createTime;
+			revisionInfo.documentCount = documents;
+			revisionInfo.deleteCount = deletes;
+			revisionInfo.createTime = createTime;
 		}
 		
 		//id와 baseNumber는 변경되지 않는다.
 		//TODO 상위 data info 의 문서수도 변경되야 한다.
 		public void update(SegmentInfo segmentInfo){
-			update(segmentInfo.revision, segmentInfo.documentCount, segmentInfo.deleteCount, segmentInfo.createTime);
+			update(segmentInfo.revision, segmentInfo.revisionInfo.documentCount, segmentInfo.revisionInfo.deleteCount, segmentInfo.revisionInfo.createTime);
 		}
-		
 		
 		@XmlAttribute
 		public String getId() {
@@ -120,7 +141,7 @@ public class DataInfo {
 			this.id = id;
 		}
 
-		@XmlAttribute
+		@XmlAttribute(name = "base")
 		public int getBaseNumber() {
 			return baseNumber;
 		}
@@ -135,6 +156,43 @@ public class DataInfo {
 		}
 		public void setRevision(int revision) {
 			this.revision = revision;
+		}
+		
+		@XmlElement(name = "revision")
+		public RevisionInfo getRevisionInfo() {
+			return revisionInfo;
+		}
+
+		public void setRevisionInfo(RevisionInfo revisionInfo) {
+			this.revisionInfo = revisionInfo;
+		}
+
+		public String getNextId(){
+			return Integer.toString(Integer.parseInt(id) + 1);
+		}
+		
+		public int getNextRevision(){
+			return revision + 1;
+		}
+		
+		public int getNextBaseNumber(){
+			return baseNumber + revisionInfo.documentCount;
+		}
+	}
+	
+	/**
+	 <revision documents="1000" deletes="0" createTime="2013-06-15 15:20:00">
+	 * */
+	@XmlRootElement(name = "revision")
+	public static class RevisionInfo {
+		
+		private int documentCount;
+		private int updateCount;
+		private int deleteCount;
+		private String createTime;
+		
+		public String toString(){
+			return "[RevisionInfo] documents["+documentCount+"] deletes["+deleteCount+"] createTime["+createTime+"]";
 		}
 		
 		@XmlAttribute(name="documents")
@@ -169,19 +227,7 @@ public class DataInfo {
 		public void setCreateTime(String createTime) {
 			this.createTime = createTime;
 		}
-
-		
-		public String getNextId(){
-			return Integer.toString(Integer.parseInt(id) + 1);
-		}
-		
-		public int getNextRevision(){
-			return revision + 1;
-		}
-		
-		public int getNextBaseNumber(){
-			return baseNumber + documentCount;
-		}
 	}
+
 	
 }

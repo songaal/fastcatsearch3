@@ -3,6 +3,7 @@ package org.fastcatsearch.datasource.reader;
 import java.io.File;
 import java.util.Map;
 
+import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.document.Document;
@@ -17,8 +18,8 @@ import org.fastcatsearch.ir.document.Document;
 public class RemoteResourceReader extends SingleSourceReader {
 
 	
-	public RemoteResourceReader(File filePath, SingleSourceConfig sourceConfig, String lastIndexTime, boolean isFull){
-		super(filePath, sourceConfig, lastIndexTime, isFull);
+	public RemoteResourceReader(File filePath, SingleSourceConfig sourceConfig, SourceModifier sourceModifier, String lastIndexTime, boolean isFull){
+		super(filePath, sourceConfig, sourceModifier, lastIndexTime, isFull);
 		//TODO
 		// 1. 외부 리소스 저장소에 연결.
 		// 2. 디렉토리 또는 파일요청 (셋팅파일에 정의)
@@ -56,6 +57,11 @@ public class RemoteResourceReader extends SingleSourceReader {
 	}
 	@Override
 	public void close() throws IRException {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void init() throws IRException {
 		// TODO Auto-generated method stub
 		
 	}

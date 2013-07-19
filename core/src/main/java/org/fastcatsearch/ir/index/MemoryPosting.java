@@ -70,8 +70,10 @@ public class MemoryPosting {
 		logger.debug("MemoryPosting term-count = {}", count);
 		//sort
 		int[] sortedID = new int[count];
-		for (int i = 0; i < count; i++)
+		for (int i = 0; i < count; i++){
 			sortedID[i] = i;
+		}
+		
 		if(count > 0){
 			long st = System.currentTimeMillis();
 			logger.debug("MemoryPosting term sort...");
@@ -83,19 +85,21 @@ public class MemoryPosting {
 		
 		//텀갯수
 		output.writeInt(count);
-		logger.debug("count = {}", count);
+		logger.debug("term count = {}", count);
 		
 		for (int i = 0; i < count; i++) {
 			int id = sortedID[i];
 			int pos = keyPos[id];
 			int len = -1;
 			//마지막 원소이면
-			if(id == count - 1)
+			if(id == count - 1){
 				len = keyUseLength - pos;
-			else
+			}else{
 				len = keyPos[id+1] - pos;
+			}
 			
 			output.writeUString(keyArray, pos, len);
+			
 			if(postingArray[id] == null){
 				logger.error("id={}, len={}, term={}", id, len, new String(keyArray, pos, len));
 			}
@@ -104,6 +108,7 @@ public class MemoryPosting {
 //			logger.debug("write memory posting {} >> {} : {}", id, new String(keyArray, pos, len), buf);
 			//데이터길이 
 			output.writeVInt(buf.length());
+//			logger.debug("term = {} >> {}", new String(keyArray, pos, len), buf.length());
 			if(buf.length() > 0){
 				output.writeBytes(buf);
 //				logger.debug("write memory posting {} >> {} ,data={}", id, new String(keyArray, pos, len), buf.length());

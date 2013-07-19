@@ -24,14 +24,19 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class BufferedFileInput extends IndexInput implements Cloneable {
-
+	private static Logger logger = LoggerFactory.getLogger(BufferedFileInput.class);
+	
 	private static final int chunkSize = 100 * 1024 * 1024;
 	protected boolean isClone;
 
 	protected final RandomAccessFile file;
-
+	protected final File f;
+	
 	protected byte[] buffer;
 
 	private long bufferStart = 0; // position in file of buffer
@@ -56,10 +61,12 @@ public class BufferedFileInput extends IndexInput implements Cloneable {
 	public BufferedFileInput(File f) throws IOException {
 		off = 0L;
 		end = f.length();
+		this.f = f;
 		file = new RandomAccessFile(f, "r");
 		channel = file.getChannel();
 		byteBuf = ByteBuffer.allocate(bufferSize);
 		byteBuf.flip(); // pos와 limit을 모두 0으로 만들어준다.
+		logger.debug("File open {}", f.getAbsolutePath());
 	}
 
 	@Override
@@ -252,6 +259,7 @@ public class BufferedFileInput extends IndexInput implements Cloneable {
 	@Override
 	public void close() throws IOException {
 		if (!isClone) {
+			logger.debug("File close {}", f.getAbsolutePath());
 			file.close();
 		}
 	}

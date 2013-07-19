@@ -156,7 +156,7 @@ public class DynamicClassLoader {
 			}
 		}
 		
-		logger.warn("Classloader cannot find {}", className);
+//		logger.warn("Classloader cannot find {}", className);
 		return null;
 	}
 	

@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.field.Field;
+import org.fastcatsearch.ir.field.FieldDataParseException;
 import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.io.DataRef;
 import org.fastcatsearch.ir.io.BytesBuffer;
@@ -69,88 +70,21 @@ public abstract class FilterFunction {
 				f.writeFixedDataTo(arrayOutput);
 				patternList[j] = arrayOutput.bytesRef();
 				
-				
-	//			Field f = fieldSetting.createField(filter.pattern(j));
-	//			int patternByteSize = fieldSetting.getByteSize();
-	//			patternList[j] = new FastByteBuffer(patternByteSize);
-	//			f.getFixedBytes(patternList[j]);
-	//			patternList[j].flip();
 				if(filter.isEndPatternExist()){
 					f = fieldSetting.createPatternField(filter.endPattern(j));
 					patternByteSize = fieldSetting.getByteSize();
 					arrayOutput = new BytesDataOutput(patternByteSize);
 					f.writeFixedDataTo(arrayOutput);
 					endPatternList[j] = arrayOutput.bytesRef();
-	//				f = fieldSetting.createField(filter.endPattern(j));
-	//				patternByteSize = fieldSetting.getByteSize();
-	//				endPatternList[j] = new FastByteBuffer(patternByteSize);
-	//				f.getFixedBytes(endPatternList[j]);
-	//				endPatternList[j].flip();
 				}
 			}
 		} catch (IOException e) {
 			throw new FilterException("필터패턴생성중 에러", e);
+		} catch (FieldDataParseException e) {
+			throw new FilterException("필터패턴을 파싱할 수 없습니다.", e);
 		}
-//		for (int j = 0; j < patternCount; j++) {
-//			//2012-10-22 swsong
-//			//패턴의 byte 데이터를 얻기위해 필드객체를 생성한다.
-//			//멀티밸류의 경우도 있으므로, createPatternField를 사용하도록 한다.
-//			String pat = filter.pattern(j);
-//			if(fieldSetting.isNumeric() && "".equals(pat)) {
-////				pat = "0"; 
-//			}
-////			logger.debug("pat-1 = {}", pat);
-//			Field f = fieldSetting.createPatternField(pat);
-//			int patternByteSize = fieldSetting.getPatternByteSize(pat);
-//			patternList[j] = new FastByteBuffer(patternByteSize);
-//			f.getRealBytes(patternList[j]);
-//			patternList[j].flip();
-//			
-//			if(filter.isEndPatternExist()){
-//				pat = filter.endPattern(j);
-////				logger.debug("pat-2 = {}", pat);
-//				if("".equals(pat)) {
-//					//종료패턴의 경우는 비어있으면 null로 비워둔다. 즉, 종료조건 체크안함. 
-//				}else{
-//					f = fieldSetting.createPatternField(pat);
-//					patternByteSize = fieldSetting.getPatternByteSize(pat);
-//					endPatternList[j] = new FastByteBuffer(patternByteSize);
-//					f.getRealBytes(endPatternList[j]);
-//					endPatternList[j].flip();
-//				}
-//			}
-//			
-////			logger.debug("Filter pattern-{} >> {}, {}", new Object[]{j, patternList[j].toAlphaString(), endPatternList[j] != null?endPatternList[j].toAlphaString():"null"});
-//		}
-		
-		//section필터의 경우 입력 패턴과 상관없으므로 에러발생한면 안됨.
-//		for (int j = 0; j < patternCount; j++) {
-//			int patternLength = filter.pattern(j).length();
-//			if(fieldSetting.type == FieldSetting.Type.AChar){
-//				//패턴길이가 데이터크기보다 크면 비교가 안되므로 무조건 매칭이 안됨.
-//				if(patternLength > fieldByteSize){
-//					throw new TooLongFilterPatternException("시작패턴 문자열이 필드길이보다 큽니다. 필드 = "+fieldSetting.name+", 패턴 = "+filter.pattern(j)+", patternSize="+patternLength+", fieldSize="+fieldByteSize);
-//				}
-//			}else if(fieldSetting.type == FieldSetting.Type.UChar){
-//				if(patternLength * 2 > fieldByteSize){
-//					throw new TooLongFilterPatternException("시작패턴 문자열이 필드길이보다 큽니다. 필드 = "+fieldSetting.name+", 패턴 = "+filter.pattern(j)+", patternSize="+(patternLength * 2)+", fieldSize="+fieldByteSize);
-//				}
-//			}
-//			
-//			if(filter.isEndPatternExist()){
-//				int endPatternLength = filter.endPattern(j).length();
-//				if(fieldSetting.type == FieldSetting.Type.AChar){
-//					//패턴길이가 데이터크기보다 크면 비교가 안되므로 무조건 매칭이 안됨.
-//					if(endPatternLength > fieldByteSize){
-//						throw new TooLongFilterPatternException("끝패턴 문자열이 필드길이보다 큽니다. 필드 = "+fieldSetting.name+", 패턴 = "+filter.endPattern(j)+", endPatternSize="+endPatternLength+", fieldSize="+fieldByteSize);
-//					}
-//				}else if(fieldSetting.type == FieldSetting.Type.UChar){
-//					if(endPatternLength * 2 > fieldByteSize){
-//						throw new TooLongFilterPatternException("끝패턴 문자열이 필드길이보다 큽니다. 필드 = "+fieldSetting.name+", 패턴 = "+filter.endPattern(j)+", endPatternSize="+(endPatternLength * 2)+", fieldSize="+fieldByteSize);
-//					}
-//				}
-//			}
-//		}
+
+
 	}
 	
 	//나중에 대소문자구분 필터기능을 적용시 사용한다.

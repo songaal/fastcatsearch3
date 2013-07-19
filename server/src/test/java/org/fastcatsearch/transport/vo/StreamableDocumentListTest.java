@@ -13,6 +13,7 @@ import org.fastcatsearch.common.io.StreamInput;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.field.DoubleField;
 import org.fastcatsearch.ir.field.Field;
+import org.fastcatsearch.ir.field.FieldDataParseException;
 import org.fastcatsearch.ir.field.IntField;
 import org.fastcatsearch.ir.field.UStringField;
 import org.fastcatsearch.ir.io.BytesBuffer;
@@ -23,7 +24,7 @@ import org.junit.Test;
 public class StreamableDocumentListTest {
 
 	@Test
-	public void testWriteAndRead() throws IOException {
+	public void testWriteAndRead() throws IOException, FieldDataParseException {
 		List<Document> documentList = new ArrayList<Document>();
 		Document document1 = new Document(4);
 		document1.add(new IntField("f0", "1"));

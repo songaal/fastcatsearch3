@@ -461,7 +461,7 @@ public class StatisticsInfoService extends AbstractService {
 				    			int segmentSize = collectionHandler.segmentSize();
 				    			for (int j = 0; j < segmentSize; j++) {
 				    				SegmentInfo seginfo = collectionHandler.segmentReader(j).segmentInfo();
-				    				docCount += seginfo.getDocumentCount();
+				    				docCount += seginfo.getRevisionInfo().getDocumentCount();
 								}
 			    			}
 			    			indexingInfoList[i].reset();

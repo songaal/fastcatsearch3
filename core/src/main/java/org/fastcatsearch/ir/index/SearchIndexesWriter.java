@@ -91,9 +91,9 @@ public class SearchIndexesWriter {
 		if (revision > 0)
 			isAppend = true;
 
-		indexInterval = indexConfig.getIndexTermInterval();// irconfig.getInt("index.term.interval");
-		indexBucketSize = indexConfig.getIndexWorkBucketSize();// irconfig.getByteSize("index.work.bucket.size");
-		workMemoryLimit = indexConfig.getIndexWorkMemorySize();// irconfig.getByteSize("index.work.memory");
+		indexInterval = indexConfig.getIndexTermInterval();
+		indexBucketSize = indexConfig.getIndexWorkBucketSize();
+		workMemoryLimit = indexConfig.getIndexWorkMemorySize();
 		workMemoryCheck = 10000; // 10000번에 한번씩 메모리 체크.
 		analyzerPools = new AnalyzerPool[indexSettingSize];
 		analyzerList = new Analyzer[indexSettingSize];
@@ -107,6 +107,11 @@ public class SearchIndexesWriter {
 			IndexSetting is = indexSettingList.get(i);
 			String indexAnalyzer = is.getIndexAnalyzer();
 			analyzerPools[i] = schema.getAnalyzerPool(indexAnalyzer);
+
+			if (analyzerPools[i] == null) {
+				// 분석기 못찾음.
+				throw new IRException("분석기를 찾을 수 없습니다. " + indexAnalyzer);
+			}
 
 			analyzerList[i] = analyzerPools[i].getFromPool();
 
@@ -175,10 +180,12 @@ public class SearchIndexesWriter {
 		// 같은문서에 indexFieldNum가 중복되어서 들어오면 multi-field-index로 처리한다.
 		if (field.isMultiValue()) {
 			Iterator<Object> iterator = field.getValueIterator();
-			while (iterator.hasNext()) {
-				indexValue(indexFieldNum, docNo, iterator.next(), positionIncrementGap);
-				// 멀티밸류도 positionIncrementGap을 증가시킨다. 즉, 필드가 다를때처럼 position거리가 멀어진다.
-				positionIncrementGap += positionIncrementGap;
+			if (iterator != null) {
+				while (iterator.hasNext()) {
+					indexValue(indexFieldNum, docNo, iterator.next(), positionIncrementGap);
+					// 멀티밸류도 positionIncrementGap을 증가시킨다. 즉, 필드가 다를때처럼 position거리가 멀어진다.
+					positionIncrementGap += positionIncrementGap;
+				}
 			}
 		} else {
 			indexValue(indexFieldNum, docNo, field.getValue(), positionIncrementGap);
@@ -248,9 +255,10 @@ public class SearchIndexesWriter {
 
 	private long writeMemoryPosting(IndexOutput output) throws IOException {
 		int i = 0;
-		logger.debug("## Save index-{} storepos = {}", i, fieldIndexOptions[i].isStorePosition());
-		long pos = memoryPosting[i].save(output);
-		for (i = 1; i < memoryPosting.length; i++) {
+		// logger.debug("## Save index-{} storepos = {}", i, fieldIndexOptions[i].isStorePosition());
+		long pos = output.position();
+		// long pos = memoryPosting[i].save(output);
+		for (i = 0; i < memoryPosting.length; i++) {
 			logger.debug("## Save index-{} storepos = {}", i, fieldIndexOptions[i].isStorePosition());
 			memoryPosting[i].save(output);
 		}

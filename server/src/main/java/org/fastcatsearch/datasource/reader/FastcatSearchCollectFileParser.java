@@ -39,7 +39,7 @@ import org.fastcatsearch.util.HTMLTagRemover;
 public class FastcatSearchCollectFileParser extends SingleSourceReader {
 	
 	private DirBufferedReader br;
-	private Map<String, Object> document;
+	private Map<String, Object> dataMap;
 	
 	
 	private static String DOC_START ="<doc>";
@@ -50,16 +50,23 @@ public class FastcatSearchCollectFileParser extends SingleSourceReader {
 	private static String CLOSE_PATTERN = "^<\\/([\\w]+[^>]*)>$";
 	private Pattern OPAT;
 	private Pattern CPAT;
-	private int count; // how many fields are set
 
-	public FastcatSearchCollectFileParser(File filePath, FileSourceConfig config, String lastIndexTime, boolean isFull) throws IRException {
-		super(filePath, config, lastIndexTime, isFull);
+	public FastcatSearchCollectFileParser(File filePath, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime, boolean isFull) throws IRException {
+		super(filePath, singleSourceConfig, sourceModifier, lastIndexTime, isFull);
+	}
+	
+	@Override
+	public void init() throws IRException {
+		FileSourceConfig config = (FileSourceConfig) singleSourceConfig;
 		try {
+			File file = null;
 			if(isFull){
-				br = new DirBufferedReader(new File(config.getFullFilePath()), config.getFileEncoding());
+				file = new Path(filePath).makePath(config.getFullFilePath()).file();
+				br = new DirBufferedReader(file, config.getFileEncoding());
 			}else{
-				br = new DirBufferedReader(new File(config.getIncFilePath()), config.getFileEncoding());
+				br = new DirBufferedReader(file, config.getFileEncoding());
 			}
+			logger.info("Collect file = {}, {}", file.getAbsolutePath(), config.getFileEncoding());
 		} catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage(),e);
 			throw new IRException(e);
@@ -70,21 +77,23 @@ public class FastcatSearchCollectFileParser extends SingleSourceReader {
 			logger.error(e.getMessage(),e);
 			throw new IRException(e);
 		}
-		document = null;
+		dataMap = null;
 		
 		OPAT = Pattern.compile(OPEN_PATTERN);
 		CPAT = Pattern.compile(CLOSE_PATTERN);
-		
 	}
 	
 	@Override
 	public boolean hasNext() throws IRException{
 		String line = null;
-		document = new HashMap<String, Object>();
+		dataMap = new HashMap<String, Object>();
 		
 		String oneDoc = readOneDoc();
-		if(oneDoc == null)
+		if(oneDoc == null){
 			return false;
+		}
+		
+		logger.debug("ONE DOC = {}", oneDoc);
 		
 		BufferedReader reader = new BufferedReader(new StringReader(oneDoc));
 		
@@ -92,10 +101,7 @@ public class FastcatSearchCollectFileParser extends SingleSourceReader {
 		
 		String openTag = "";
 		boolean isOpened = false;
-//		int tagNum = -1;
-//		String tag = null;
-//		FieldSetting fs = null;
-		count = 0;
+		
 		while(true){
 			try {
 				line = reader.readLine();
@@ -105,8 +111,9 @@ public class FastcatSearchCollectFileParser extends SingleSourceReader {
 					break;
 				}
 				
-				if(line.length() == 0)
+				if(line.length() == 0){
 					continue;
+				}
 				
 				line = line.trim();
 				
@@ -115,15 +122,12 @@ public class FastcatSearchCollectFileParser extends SingleSourceReader {
 					Matcher m = OPAT.matcher(line);
 					if(m.matches()){
 						String tag = m.group(1);
-//						int tempTagNum = schema.getFieldSequence(tag);
-//						if(tempTagNum < 0){
-//						}else{
-//							tagNum = tempTagNum;
-							openTag = tag;
-							isOpened = true;
-//							fs = fieldSettingList.get(tagNum);
-//							continue;
-//						}
+						openTag = tag;
+						isOpened = true;
+						if(logger.isTraceEnabled()){
+							logger.trace("OpenTag [{}]", tag);
+						}
+						continue;
 					}
 				}
 				
@@ -134,22 +138,21 @@ public class FastcatSearchCollectFileParser extends SingleSourceReader {
 						if(openTag.equals(closeTag)){
 							isOpened = false;
 							String targetStr = sb.toString();
-//							if(fs.isRemoveTag()){
-//								targetStr = HTMLTagRemover.clean(targetStr);
-//							}
-							document.put(openTag, targetStr);
+							if(logger.isTraceEnabled()){
+								logger.trace("CloseTag [{}]", closeTag);
+								logger.trace("Data [{}]", targetStr);
+							}
+							dataMap.put(openTag, targetStr);
 							sb = new StringBuffer();
-							count++;
 							continue;
 						}
 					}
 				}
 				
-//				logger.debug("DOC = "+oneDoc);
 				
-				
-				if(sb.length() > 0)
+				if(sb.length() > 0){
 					sb.append(Environment.LINE_SEPARATOR);
+				}
 				
 				sb.append(line);
 			
@@ -161,7 +164,7 @@ public class FastcatSearchCollectFileParser extends SingleSourceReader {
 			}
 		}
 //		logger.debug("doc = "+document);
-		if(document == null)
+		if(dataMap == null)
 			return false;
 		
 		return true;
@@ -207,23 +210,20 @@ public class FastcatSearchCollectFileParser extends SingleSourceReader {
 
 	@Override
 	public Map<String, Object> next() throws IRException{
-//		if(count != document.size()){
-////			throw new IRException("Collect document's field count is diffent from setting's. Check field names. it's case sensitive. collect field size = "+count+", document.size()="+document.size());
-//			logger.warn("Collect document's field count is diffent from setting's. Check field names. it's case sensitive. collect field size = "+count+", document.size()="+document.size());
-//			if(hasNext() == false)
-//				return null;
-//		}
-		count = 0;
-		return document;
+		return dataMap;
 	}
 	
 	@Override
 	public void close() throws IRException{
 		try {
-			br.close();
+			if(br != null){
+				br.close();
+			}
 		} catch (IOException e) {
 			throw new IRException(e);
 		}
 	}
+
+	
 	
 }

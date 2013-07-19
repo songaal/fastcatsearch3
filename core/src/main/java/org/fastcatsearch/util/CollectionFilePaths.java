@@ -2,8 +2,13 @@ package org.fastcatsearch.util;
 
 import java.io.File;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class CollectionFilePaths {
+	private static final Logger logger = LoggerFactory.getLogger(CollectionFilePaths.class);
+	
 	private File root;
 	private String collectionId;
 	
@@ -41,7 +46,7 @@ public class CollectionFilePaths {
 	}
 	
 	public File dataFile(Object dataSequence) {
-		return file("data" + dataSequence.toString());
+		return file(dataPath(dataSequence));
 	}
 
 	public File segmentFile(Object dataSequence, Object segmentNumber) {

@@ -34,6 +34,7 @@ import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexReader;
 import org.fastcatsearch.ir.field.Field;
+import org.fastcatsearch.ir.field.FieldDataParseException;
 import org.fastcatsearch.ir.index.IndexFieldOption;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BytesDataOutput;
@@ -459,7 +460,7 @@ public class SearchIndexesReader implements Cloneable {
 		return false;
 	}
 
-	private OperatedClause getPrimaryKeyOperatedClause(Term term) throws IOException {
+	private OperatedClause getPrimaryKeyOperatedClause(Term term) throws IOException, FieldDataParseException {
 		int weight = term.weight();
 		String termString = term.termString();
 		String[] list = termString.split(" ");

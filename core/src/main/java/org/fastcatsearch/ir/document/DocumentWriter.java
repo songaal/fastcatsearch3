@@ -91,8 +91,9 @@ public class DocumentWriter {
 			int sequence = 0;
 			for (PkRefSetting refSetting : refList) {
 				String fieldId = refSetting.getRef();
-				logger.debug("pk field {} >> {}", fieldId, sequence);
-				primaryKeyFieldIdList[sequence++] = schema.getFieldSequence(fieldId);
+				primaryKeyFieldIdList[sequence] = schema.getFieldSequence(fieldId);
+				logger.debug("pk field [{}]{} >> {}", sequence, fieldId, primaryKeyFieldIdList[sequence]);
+				sequence++;
 			}
 		}
 		
@@ -163,7 +164,7 @@ public class DocumentWriter {
 			for (int fieldId : primaryKeyFieldIdList) {
 				Field f = document.get(fieldId);
 				if(f == null || f.isNull()){
-					throw new IOException("PK field value cannot be null.");
+					throw new IOException("PK field value cannot be null. fieldId="+fieldId+", field="+f);
 				} else {
 					f.writeFixedDataTo(pkbaos);
 				}

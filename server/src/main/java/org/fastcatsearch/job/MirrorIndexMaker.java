@@ -40,7 +40,7 @@ public class MirrorIndexMaker {
 		}
 		mirrorDir.mkdir();
 		
-		int docCount = segmentInfo.getDocumentCount();
+		int docCount = segmentInfo.getRevisionInfo().getDocumentCount();
 		
 		try {
 			//1. doc문서파일.

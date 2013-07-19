@@ -128,10 +128,10 @@ public class IRService extends AbstractService{
 	//TODO 전체색인후 로드할때는 work schema를 읽어야한다.
 	//schema와 sequence가 동시에 바뀔수 있음.
 	public CollectionContext loadCollectionContext(String collectionId){
-		return loadCollectionContext(collectionId, -1);
+		return loadCollectionContext(collectionId, null);
 	}
 	
-	public CollectionContext loadCollectionContext(String collectionId, int dataSequence){
+	public CollectionContext loadCollectionContext(String collectionId, Integer dataSequence){
 		CollectionFilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
 		if(!collectionFilePaths.file().exists()){
 			//디렉토리가 존재하지 않으면.
@@ -160,12 +160,8 @@ public class IRService extends AbstractService{
 	public CollectionHandler loadCollectionHandler(String collectionId, int newDataSequence) throws IRException, SettingException{
 		CollectionContext collectionContext = loadCollectionContext(collectionId, newDataSequence); 
 		
-		return new CollectionHandler(collectionContext);
+		return new CollectionHandler(collectionContext).load();
 	}
-	
-//	public CollectionConfig getCollectionConfig(String collectionId){
-//		return collectionConfigMap.get(collectionId);
-//	}
 	
 	protected boolean doStop() throws FastcatSearchException {
 		Iterator<Entry<String, CollectionHandler>> iter = collectionHandlerMap.entrySet().iterator();

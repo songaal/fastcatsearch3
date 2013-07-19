@@ -11,7 +11,7 @@ public class AStringField extends StringField {
 	public AStringField(String id) {
 		super(id);
 	}
-	public AStringField(String id, String data) {
+	public AStringField(String id, String data) throws FieldDataParseException {
 		super(id, data);
 	}
 	
@@ -19,7 +19,7 @@ public class AStringField extends StringField {
 		super(id, size);
 	}
 	
-	public AStringField(String id, String data, int size) {
+	public AStringField(String id, String data, int size) throws FieldDataParseException {
 		super(id, data, size);
 	}
 	

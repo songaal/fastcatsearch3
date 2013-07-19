@@ -28,7 +28,7 @@ public class FieldTest {
 	
 	
 	@Test
-	public void testIntegerField() throws IOException {
+	public void testIntegerField() throws IOException, FieldDataParseException {
 		
 		String value = "1231435";
 		IntField field = new IntField("A", value);
@@ -47,7 +47,7 @@ public class FieldTest {
 	}
 	
 	@Test
-	public void testDatetimeField() throws IOException {
+	public void testDatetimeField() throws IOException, FieldDataParseException {
 		
 		String value = "2013-06-12 12:30:11";
 		DatetimeField field = new DatetimeField("A", value);
@@ -71,7 +71,7 @@ public class FieldTest {
 			"Same with BufferedReader's readLine()";
 	
 	@Test
-	public void testStringField() throws IOException {
+	public void testStringField() throws IOException, FieldDataParseException {
 		
 		
 		AStringField field = new AStringField("A", avalue);
@@ -88,7 +88,7 @@ public class FieldTest {
 	}
 	
 	@Test
-	public void testFixedStringField() throws IOException {
+	public void testFixedStringField() throws IOException, FieldDataParseException {
 		int size = 10;
 		AStringField field = new AStringField("A", avalue, size);
 		BytesDataInput input = write(field);
@@ -104,7 +104,7 @@ public class FieldTest {
 	}
 	
 	@Test
-	public void testFixedStringMvField() throws IOException {
+	public void testFixedStringMvField() throws IOException, FieldDataParseException {
 		int size = 10;
 		String[] values = new String[]{"123456789011", "223456789011", "323456789011"};
 		AStringMvField field = new AStringMvField("A", size);

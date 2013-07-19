@@ -11,7 +11,7 @@ import org.fastcatsearch.ir.io.DataOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class Field {
+public abstract class Field implements Cloneable {
 	protected static Logger logger = LoggerFactory.getLogger(Field.class);
 	protected final String OutputMultiValueDelimiter = "\n";
 	
@@ -26,9 +26,11 @@ public abstract class Field {
 		this.id = id;
 	}
 	
-	public Field(String id, String data){
+	public Field(String id, String data) throws FieldDataParseException {
 		this.id = id;
-		this.fieldsData = parseData(data);
+		if(data != null){
+			this.fieldsData = parseData(data);
+		}
 	}
 	
 	public Field(String id, int size){
@@ -36,10 +38,12 @@ public abstract class Field {
 		this.size = size;
 	}
 	
-	public Field(String id, String data, int size){
+	public Field(String id, String data, int size) throws FieldDataParseException{
 		this.id = id;
 		this.size = size;
-		this.fieldsData = parseData(data);
+		if(data != null){
+			this.fieldsData = parseData(data);
+		}
 	}
 	
 	public String toString(){
@@ -49,7 +53,7 @@ public abstract class Field {
 			return null;
 		}
 	}
-	public void addValues(StringTokenizer tokenizer){
+	public void addValues(StringTokenizer tokenizer) throws FieldDataParseException{
 		if(!multiValue){
 			throw new RuntimeException("multivalue가 아닌 필드에는 값을 추가할 수 없습니다.");
 		}
@@ -59,7 +63,7 @@ public abstract class Field {
 		}
 	}
 	
-	public void addValue(String value){
+	public void addValue(String value) throws FieldDataParseException{
 		if(!multiValue){
 			throw new RuntimeException("multivalue가 아닌 필드에는 값을 추가할 수 없습니다.");
 		}
@@ -99,17 +103,17 @@ public abstract class Field {
 		return fieldsData == null;
 	}
 	
-	protected abstract Object parseData(String data);
+	protected abstract Object parseData(String data) throws FieldDataParseException;
 	
 	public abstract void readFrom(DataInput input) throws IOException;
 	
-	//필드데이터를 기록. string형의 경우 size정보가 앞에 붙는다.
+	//필드데이터를 기록. string형의 경우 size정보를 앞에 기록한다. document writer에서 사용.
 	public abstract void writeTo(DataOutput output) throws IOException;
 
-	//고정길이로 데이터만을 기록. fieldIndex에서 필요. string형의 경우 size정보가 없음.
+	//고정길이로 데이터만을 기록. field-index에서 필요. string형의 경우 size정보를 기록하지 않고 데이터만 저장.
 	public abstract void writeFixedDataTo(DataOutput output) throws IOException;
 	
-	//고정길이필드는 고정으로, 가변은 가변으로 데이터만을 기록. string형의 경우 size정보가 없음.
+	//고정길이필드는 고정으로, 가변은 가변으로 데이터만을 기록. string형의 경우 size정보를 기록하지 않고 데이터만 저장.
 	public abstract void writeDataTo(DataOutput output) throws IOException;
 	
 	//멀티밸류의 필드데이터를 하나씩 기록할수 있도록 도와주는 writer. group에서 필드값을 읽을 때 사용됨.
@@ -163,70 +167,18 @@ public abstract class Field {
 		this.fieldsData = fieldsData;
 	}
 	
-//	public static Field createField(FieldSetting fieldSetting){
-//		String fieldId = fieldSetting.getId();
-//		if(fieldSetting.getType() == FieldSetting.Type.INT){
-//			if(fieldSetting.isMultiValue()){
-//				return new IntMvField(fieldId);
-//			}else{
-//				return new IntField(fieldId);
-//			}
-//		}else if(fieldSetting.getType() == FieldSetting.Type.LONG){
-//			if(fieldSetting.isMultiValue()){
-//				return new LongMvField(fieldId);
-//			}else{
-//				return new LongField(fieldId);
-//			}
-//		}else if(fieldSetting.getType() == FieldSetting.Type.FLOAT){
-//			if(fieldSetting.isMultiValue()){
-//				return new FloatMvField(fieldId);
-//			}else{
-//				return new FloatField(fieldId);
-//			}
-//		}else if(fieldSetting.getType() == FieldSetting.Type.DOUBLE){
-//			if(fieldSetting.isMultiValue()){
-//				return new DoubleMvField(fieldId);
-//			}else{
-//				return new DoubleField(fieldId);
-//			}
-//		}else if(fieldSetting.getType() == FieldSetting.Type.DATETIME){
-//			return new DatetimeField(fieldId);
-//		}else if(fieldSetting.getType() == FieldSetting.Type.ASTRING){
-//			if(fieldSetting.isMultiValue()){
-//				return new AStringMvField(fieldId, fieldSetting.getSize());
-//			}else{
-//				return new AStringField(fieldId, fieldSetting.getSize());
-//			}
-//		}else if(fieldSetting.getType() == FieldSetting.Type.USTRING){
-//			if(fieldSetting.isMultiValue()){
-//				return new UStringMvField(fieldId, fieldSetting.getSize());
-//			}else{
-//				return new UStringField(fieldId, fieldSetting.getSize());
-//			}
-//		}
-//		
-//		throw new RuntimeException("지원하지 않는 필드타입입니다. Type = "+ fieldSetting.getType());
-//	}
+	public boolean isFixedSize(){
+		return size > 0;
+	}
 	
-//	public static Field createSingleValueField(FieldSetting fieldSetting, String data){
-//		String fieldId = fieldSetting.getId();
-//		if(fieldSetting.getType() == FieldSetting.Type.INT){
-//			return new IntField(fieldId, data);
-//		}else if(fieldSetting.getType() == FieldSetting.Type.LONG){
-//			return new LongField(fieldId, data);
-//		}else if(fieldSetting.getType() == FieldSetting.Type.FLOAT){
-//			return new FloatField(fieldId, data);
-//		}else if(fieldSetting.getType() == FieldSetting.Type.DOUBLE){
-//			return new DoubleField(fieldId, data);
-//		}else if(fieldSetting.getType() == FieldSetting.Type.DATETIME){
-//			return new DatetimeField(fieldId, data);
-//		}else if(fieldSetting.getType() == FieldSetting.Type.ASTRING){
-//			return new AStringField(fieldId, data);
-//		}else if(fieldSetting.getType() == FieldSetting.Type.USTRING){
-//			return new UStringField(fieldId, data);
-//		}
-//		
-//		throw new RuntimeException("지원하지 않는 필드타입입니다. Type = "+ fieldSetting.getType());
-//	}
+	@Override
+	public Field clone(){
+		try {
+			return (Field) super.clone();
+		} catch (CloneNotSupportedException e) {
+			logger.error("clone error", e);
+		}
+		return null;
+	}
 
 }

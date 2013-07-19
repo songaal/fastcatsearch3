@@ -90,7 +90,7 @@ public class IncIndexJob extends IndexingJob {
 			File collectionHomeDir = collectionFilePaths.file();
 			Schema schema = collectionContext.schema();
 			
-			int docCount = currentSegmentInfo.getDocumentCount();
+			int docCount = currentSegmentInfo.getRevisionInfo().getDocumentCount();
 			
 			boolean useSeparateAddIndexing = dataPlanConfig.isSeparateIncIndexing();
 			int segmentDocumentLimit = dataPlanConfig.getSegmentDocumentLimit(); //irconfig.getInt("segment.document.limit");

@@ -7,6 +7,7 @@ import javax.xml.bind.annotation.XmlType;
 public class RefSetting {
 	private String ref;
 	private boolean removeTag;
+	private int size;
 	
 	public RefSetting() {}
 	
@@ -38,5 +39,13 @@ public class RefSetting {
 		this.removeTag = removeTag;
 	}
 	
+	@XmlAttribute
+	public int getSize() {
+		return size;
+	}
+
+	public void setSize(int size) {
+		this.size = size;
+	}
 	
 }

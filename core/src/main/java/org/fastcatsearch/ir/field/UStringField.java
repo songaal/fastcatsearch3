@@ -11,7 +11,7 @@ public class UStringField extends StringField {
 	public UStringField(String id) {
 		super(id);
 	}
-	public UStringField(String id, String data) {
+	public UStringField(String id, String data) throws FieldDataParseException {
 		super(id, data);
 	}
 	
@@ -19,7 +19,7 @@ public class UStringField extends StringField {
 		super(id, size);
 	}
 	
-	public UStringField(String id, String data, int size) {
+	public UStringField(String id, String data, int size) throws FieldDataParseException {
 		super(id, data, size);
 	}
 	

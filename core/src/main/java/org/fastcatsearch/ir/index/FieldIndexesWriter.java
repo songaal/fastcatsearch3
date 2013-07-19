@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.settings.FieldIndexSetting;
 import org.fastcatsearch.ir.settings.Schema;
@@ -18,9 +19,10 @@ public class FieldIndexesWriter {
 	private FieldIndexWriter[] fieldIndexWriterList;
 	private int indexSize;
 	
-	public FieldIndexesWriter(Schema schema, File dir, boolean isAppend) throws IOException {
+	public FieldIndexesWriter(Schema schema, File dir, boolean isAppend) throws IOException, IRException {
 		List<FieldIndexSetting> fieldIndexSettingList = schema.schemaSetting().getFieldIndexSettingList();
 		indexSize = fieldIndexSettingList.size();
+		fieldIndexWriterList = new FieldIndexWriter[indexSize];
 		int i = 0;
 		for(FieldIndexSetting fieldIndexSetting : fieldIndexSettingList){
 			fieldIndexWriterList[i++] = new FieldIndexWriter(fieldIndexSetting, schema.fieldSettingMap(), schema.fieldSequenceMap(), dir, isAppend);
@@ -29,7 +31,7 @@ public class FieldIndexesWriter {
 	}
 	
 	
-	public void write(Document document) throws IOException{
+	public void write(Document document) throws IOException, IRException{
 		for (int i = 0; i < indexSize; i++) {
 			fieldIndexWriterList[i].write(document);
 		}

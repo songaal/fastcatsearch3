@@ -15,7 +15,8 @@ import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.service.ServiceManager;
 
 public abstract class Notification implements Streamable {
-
+	private static final ResourceBundle resourceBundle = ResourceBundle.getBundle("org.fastcatsearch.notification.message.FastcatSearchNotificationCode_ko_KR", new ResourceBundleControl(Charset.forName("UTF-8")));
+	
 	//알림 발생 노드.
 	protected Node origin;
 	//리소스 파일에 정의된 알림코드.
@@ -31,7 +32,6 @@ public abstract class Notification implements Streamable {
 	public abstract String toMessageString();
 	
 	protected String getFormattedMessage(Object... params){
-		ResourceBundle resourceBundle = ResourceBundle.getBundle("org.fastcatsearch.notification.message.FastcatSearchNotificationCode_ko_KR", new ResourceBundleControl(Charset.forName("UTF-8")));
 		if (resourceBundle != null) {
 			try{
 				return MessageFormat.format(resourceBundle.getString(messageCode), params);
@@ -40,7 +40,7 @@ public abstract class Notification implements Streamable {
 				return params.toString();
 			}
 		} else {
-			return null;
+			return params.toString();
 		}
 	}
 	

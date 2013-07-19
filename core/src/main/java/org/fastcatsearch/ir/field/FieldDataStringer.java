@@ -20,7 +20,7 @@ public class FieldDataStringer {
 			return parseDoubleType(byteRef.bytes, byteRef.offset);
 		}else if(type == FieldSetting.Type.DATETIME){
 			return parseDateTimeType(byteRef.bytes, byteRef.offset);
-		}else if(type == FieldSetting.Type.USTRING){
+		}else if(type == FieldSetting.Type.STRING){
 			return parseUStringType(byteRef.bytes, byteRef.offset, byteRef.length);
 		}else if(type == FieldSetting.Type.ASTRING){
 			return parseAStringType(byteRef.bytes, byteRef.offset, byteRef.length);

@@ -4,15 +4,16 @@ import java.io.IOException;
 
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
+import org.fastcatsearch.ir.io.IOUtil;
 
 public class FloatField extends NumericField {
 	
 	public FloatField(String id){
-		super(id);
+		super(id, IOUtil.SIZE_OF_INT);
 	}
 	
-	public FloatField(String id, String data){
-		super(id, data);
+	public FloatField(String id, String data) throws FieldDataParseException{
+		super(id, data, IOUtil.SIZE_OF_INT);
 	}
 	
 	@Override

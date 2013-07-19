@@ -37,6 +37,7 @@ import org.fastcatsearch.env.Path;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.CollectionStatus.IndexStatus;
 import org.fastcatsearch.ir.config.DBSourceConfig;
+import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.index.DeleteIdSet;
@@ -74,9 +75,13 @@ public class DBReader extends SingleSourceReader {
 	private DBSourceConfig config;
 	private String lastIndexTime;
 	
-	public DBReader(File filePath, DBSourceConfig config, String lastIndexTime, boolean isFull) throws IRException {
-		super(filePath, config, lastIndexTime, isFull);
-		this.config = config;
+	public DBReader(File filePath, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime, boolean isFull) throws IRException {
+		super(filePath, singleSourceConfig, sourceModifier, lastIndexTime, isFull);
+	}
+	
+	@Override
+	public void init() throws IRException {
+		this.config = (DBSourceConfig) singleSourceConfig;
 		this.isFull = isFull;
 		this.BULK_SIZE = config.getBulkSize();
 		this.startTime = Formatter.getFormatTime(System.currentTimeMillis());
@@ -182,7 +187,6 @@ public class DBReader extends SingleSourceReader {
 			
 			throw new IRException(e);
 		}
-			
 	}
 	
 	private String q(String query){

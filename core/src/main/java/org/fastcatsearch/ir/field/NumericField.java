@@ -5,16 +5,16 @@ import java.io.IOException;
 import org.fastcatsearch.ir.io.DataOutput;
 
 public abstract class NumericField extends Field {
-	public NumericField(String id) {
-		super(id);
+	public NumericField(String id, int size) {
+		super(id, size);
 	}
 	
-	public NumericField(String id, String data) {
-		super(id, data);
+	public NumericField(String id, String data, int size) throws FieldDataParseException {
+		super(id, data, size);
 	}
 
 	@Override
-	protected Number parseData(String data) {
+	protected Number parseData(String data) throws FieldDataParseException {
 		if(data == null){
 			return null;
 		}
@@ -31,6 +31,6 @@ public abstract class NumericField extends Field {
 		writeFixedDataTo(output);
 	}
 
-	protected abstract Number parseNumber(String data);
+	protected abstract Number parseNumber(String data)  throws FieldDataParseException;
 	
 }

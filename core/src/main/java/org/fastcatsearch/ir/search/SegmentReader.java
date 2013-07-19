@@ -141,7 +141,7 @@ public class SegmentReader {
 	}
 	
 	protected int docCount(){
-		return segmentInfo.getDocumentCount();
+		return segmentInfo.getRevisionInfo().getDocumentCount();
 	}
 	
 	protected int baseDocNumber(){

@@ -73,8 +73,6 @@ public class DataSourceReader {
 
 		deleteIdList = new DeleteIdSet(primaryKeySize);
 		singleSourceReaderList = new ArrayList<SingleSourceReader>();
-
-		nextReader();
 	}
 
 	private void nextReader() {
@@ -94,6 +92,9 @@ public class DataSourceReader {
 		singleSourceReaderList.add(sourceReader);
 	}
 
+	public void init(){
+		nextReader();
+	}
 	public boolean hasNext() throws IRException {
 		try {
 			while (true) {
@@ -123,12 +124,14 @@ public class DataSourceReader {
 			Document document = new Document(fieldSettingList.size());
 			for (int i = 0; i < fieldSettingList.size(); i++) {
 				FieldSetting fs = fieldSettingList.get(i);
+				
 				String key = fs.getId();
 				Object data = map.get(key);
 
 				// logger.debug("read data="+data+", readCount="+readCount+", i="+i);
-				Field f = fs.createField(data.toString());
+				Field f = fs.createField(data);
 				document.set(i, f);
+				logger.debug("doc [{}]{}:{}", i, fs.getId(), f);
 			}
 			return document;
 		} catch (Throwable e) {

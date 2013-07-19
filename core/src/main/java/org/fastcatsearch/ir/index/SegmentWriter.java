@@ -85,7 +85,7 @@ public class SegmentWriter {
 		return lastDocNo;
 	}
 	public int addDocument(Document doc) throws IRException, IOException{
-		
+		logger.debug("doc >> {}", doc);
 		int docNo = documentWriter.write(doc);
 		//ensure lastDocNo == docNo
 		if(lastDocNo != docNo)

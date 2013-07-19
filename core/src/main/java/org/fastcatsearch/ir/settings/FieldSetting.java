@@ -28,6 +28,7 @@ import org.fastcatsearch.ir.field.DatetimeField;
 import org.fastcatsearch.ir.field.DoubleField;
 import org.fastcatsearch.ir.field.DoubleMvField;
 import org.fastcatsearch.ir.field.Field;
+import org.fastcatsearch.ir.field.FieldDataParseException;
 import org.fastcatsearch.ir.field.FloatField;
 import org.fastcatsearch.ir.field.FloatMvField;
 import org.fastcatsearch.ir.field.IntField;
@@ -37,13 +38,15 @@ import org.fastcatsearch.ir.field.LongMvField;
 import org.fastcatsearch.ir.field.UStringField;
 import org.fastcatsearch.ir.field.UStringMvField;
 import org.fastcatsearch.ir.io.IOUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @XmlRootElement(name = "field")
 // propOrder는 xml writer의 기록순서인데, attribute의 경우 next attribute를 현재 attribute의 앞에 기록하므로 proporder를 거꾸로 정의해야 올바른 순서로 보여진다.
 @XmlType(propOrder = { "multiValueDelimiter", "multiValue", "modify", "removeTag", "store",
 		"size", "name", "type", "id" })
 public class FieldSetting {
-
+	protected static Logger logger = LoggerFactory.getLogger(FieldSetting.class);
 	private String id;
 	private String name;
 	private Type type;
@@ -55,7 +58,7 @@ public class FieldSetting {
 	private String multiValueDelimiter = "\n";
 
 	public static enum Type {
-		UNKNOWN, ASTRING, USTRING, INT, LONG, FLOAT, DOUBLE, DATETIME, BLOB, __SCORE, __HIT, __DOCNO 
+		UNKNOWN, ASTRING, STRING, INT, LONG, FLOAT, DOUBLE, DATETIME, BLOB, __SCORE, __HIT, __DOCNO 
 	}
 
 	//JAXB를 위해서는 default 생성자가 꼭 필요하다.
@@ -157,7 +160,7 @@ public class FieldSetting {
 			return IOUtil.SIZE_OF_LONG;
 		else if(type == Type.DATETIME)
 			return IOUtil.SIZE_OF_LONG;
-		else if(type == Type.USTRING)
+		else if(type == Type.STRING)
 			return size * 2;
 		else if(type == Type.ASTRING)
 			return size;
@@ -165,9 +168,22 @@ public class FieldSetting {
 		return size;
 	}
 	public Field createField(){
-		return createField(null);
+		Field field = null;
+		try {
+			field = createField(null);
+		} catch (FieldDataParseException e) { 
+			//data가 null일 경우 parse exception은 발생하지 않으므로 무시.
+			logger.error("createField 에러.", e);
+		}
+		
+		return field;
 	}
-	public Field createField(String data){
+	public Field createField(Object dataObject) throws FieldDataParseException{
+		String data = null;
+		if(dataObject != null){
+			data = dataObject.toString();
+		}
+		
 		Field field = null;
 		if(type == FieldSetting.Type.INT){
 			if(multiValue){
@@ -201,7 +217,7 @@ public class FieldSetting {
 			}else{
 				field = new AStringField(id, data, size);
 			}
-		}else if(type == FieldSetting.Type.USTRING){
+		}else if(type == FieldSetting.Type.STRING){
 			if(multiValue){
 				field = new UStringMvField(id, size);
 			}else{
@@ -218,13 +234,13 @@ public class FieldSetting {
 		}
 		return field;
 	}
-	public Field createPatternField(String data){
+	public Field createPatternField(String data) throws FieldDataParseException{
 		return createSingleValueField(data, data.length());
 	}
-	public Field createPrimaryKeyField(String data){
+	public Field createPrimaryKeyField(String data) throws FieldDataParseException{
 		return createSingleValueField(data, 0);
 	}
-	public Field createSingleValueField(String data, int length){
+	public Field createSingleValueField(String data, int length) throws FieldDataParseException{
 		if(type == FieldSetting.Type.INT){
 			return new IntField(id, data);
 		}else if(type == FieldSetting.Type.LONG){
@@ -241,7 +257,7 @@ public class FieldSetting {
 			}else{
 				return new AStringField(id, data, size);
 			}
-		}else if(type == FieldSetting.Type.USTRING){
+		}else if(type == FieldSetting.Type.STRING){
 			if(length > 0){
 				return new UStringField(id, data, length);
 			}else{
@@ -254,7 +270,7 @@ public class FieldSetting {
 
 	public boolean isVariableField() {
 		if(type == FieldSetting.Type.ASTRING
-				|| type == FieldSetting.Type.USTRING){
+				|| type == FieldSetting.Type.STRING){
 			return size <= 0;
 		}
 		

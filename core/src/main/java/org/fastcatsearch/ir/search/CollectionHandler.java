@@ -33,6 +33,7 @@ import org.fastcatsearch.ir.document.PrimaryKeyIndexBulkReader;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexReader;
 import org.fastcatsearch.ir.document.merge.PrimaryKeyIndexMerger;
 import org.fastcatsearch.ir.field.Field;
+import org.fastcatsearch.ir.field.FieldDataParseException;
 import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.index.PrimaryKeys;
 import org.fastcatsearch.ir.io.BitSet;
@@ -66,11 +67,14 @@ public class CollectionHandler {
 		this.collectionFilePaths = collectionContext.collectionFilePaths();
 	}
 
-	public void load() throws IRException{
+	public CollectionHandler load() throws IRException{
+		logger.info("Collection[{}] Loaded!", collectionId);
+		segmentReaderList = new ArrayList<SegmentReader>();
 		loadSearcherAndReader();
 		this.collectionSearcher = new CollectionSearcher(this);
 		startedTime = System.currentTimeMillis();
 		isLoaded = true;
+		return this;
 	}
 	
 	public long getStartedTime(){
@@ -93,7 +97,7 @@ public class CollectionHandler {
 	
 	private void loadSearcherAndReader() throws IRException{
 		
-		int dataSequence = collectionContext.collectionStatus().getDataStatus().getSequence();
+		int dataSequence = collectionContext.collectionStatus().getSequence();
 		collectionContext.collectionFilePaths();
 		
 		File dataDir = collectionFilePaths.dataFile(dataSequence);
@@ -102,10 +106,8 @@ public class CollectionHandler {
 			dataDir.mkdir();
 		}
 		
-		segmentReaderList = new ArrayList<SegmentReader>();
-		
 		//색인기록이 있다면 세그먼트를 로딩한다. 
-		if(collectionContext.dataInfo() != null){
+		if(collectionContext.dataInfo().getSegmentInfoList() != null){
 			try {
 				for(SegmentInfo segmentInfo : collectionContext.dataInfo().getSegmentInfoList()){
 					File segmentDir = collectionFilePaths.segmentFile(dataSequence, segmentInfo.getId());
@@ -132,7 +134,7 @@ public class CollectionHandler {
 	}
 	
 	public int getDataSequence(){
-		return collectionContext.collectionStatus().getDataStatus().getSequence();
+		return collectionContext.collectionStatus().getSequence();
 		
 	}
 	
@@ -429,8 +431,15 @@ public class CollectionHandler {
 			//multivalue는 불가능.
 			for (int i = 0; i < pkSize; i++) {
 				String idString = ids.getKey(i);
-				Field field = pkFieldSettingList[i].createPrimaryKeyField(idString);
-				field.writeFixedDataTo(pkOutput);
+				
+				Field field = null;
+				try {
+					field = pkFieldSettingList[i].createPrimaryKeyField(idString);
+					field.writeFixedDataTo(pkOutput);
+				} catch (FieldDataParseException e) {
+					//id 값을 필드로 만드는데 실패했다면 건너뛴다.
+					logger.error("ID필드를 만들수 없습니다. {}, {}", idString, e);
+				}
 			}
 			BytesRef bytesRef = pkOutput.bytesRef();
 			

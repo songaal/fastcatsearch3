@@ -14,12 +14,15 @@ public abstract class FieldDataWriter {
 	}
 	
 	public int count(){
+		if(list == null){
+			return 0;
+		}
 		return list.size();
 	}
 	
 	public boolean write(DataOutput output) throws IOException{
-		if(pos++ < list.size()){
-			writeEachData(list.get(pos), output);
+		if(pos < list.size()){
+			writeEachData(list.get(pos++), output);
 			return true;
 		}
 		return false;

@@ -5,21 +5,45 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
-<collection-status>
-	<data-status sequence="2"/>
+<collection-status sequence="2">
 	<index-full documents="50" updates ="1" deletes="20" start="2013-05-20 13:03:32" end="2013-05-20 13:03:32" duration="365ms" />
 	<index-add documents="5" updates ="1" deletes="20" start="2013-05-20 13:03:32" end="2013-05-20 13:03:32" duration="365ms" />	
 </collection-status>
  * */
 @XmlRootElement(name = "collection-status")
 public class CollectionStatus {
-	private DataStatus dataStatus;
+	private int sequence;
 	private IndexStatus fullIndexStatus;
 	private IndexStatus addIndexStatus;
 	
-	@XmlElement(name="data-status")
-	public DataStatus getDataStatus(){
-		return dataStatus;
+	
+	public CollectionStatus copy(){
+		CollectionStatus collectionStatus = new CollectionStatus();
+		collectionStatus.sequence = sequence;
+		collectionStatus.fullIndexStatus = fullIndexStatus.copy();
+		collectionStatus.addIndexStatus = addIndexStatus.copy();
+		return collectionStatus;
+	}
+	
+	@XmlAttribute
+	public int getSequence(){
+		return sequence;
+	}
+	
+	public void setSequence(int sequence){
+		this.sequence = sequence;
+	}
+	
+	public String getPathName(){
+		return "data"+sequence;
+	}
+	
+	public String getPathName(int seq){
+		if(seq != -1){
+			return "data"+seq;
+		}else{
+			return getPathName();
+		}
 	}
 	
 	@XmlElement(name="index-full")
@@ -32,41 +56,12 @@ public class CollectionStatus {
 		return addIndexStatus;
 	}
 	
-	public void setDataStatus(DataStatus dataStatus){
-		this.dataStatus = dataStatus;
-	}
-	
 	public void setFullIndexStatus(IndexStatus fullIndexStatus){
 		this.fullIndexStatus = fullIndexStatus;
 	}
 	
 	public void setAddIndexStatus(IndexStatus addIndexStatus){
 		this.addIndexStatus = addIndexStatus;
-	}
-	
-	public static class DataStatus {
-		private int sequence;
-		
-		@XmlAttribute
-		public int getSequence(){
-			return sequence;
-		}
-		
-		public void setSequence(int sequence){
-			this.sequence = sequence;
-		}
-		
-		public String getPathName(){
-			return "data"+sequence;
-		}
-		
-		public String getPathName(int seq){
-			if(seq != -1){
-				return "data"+seq;
-			}else{
-				return getPathName();
-			}
-		}
 	}
 	
 	public static class IndexStatus {
@@ -77,6 +72,16 @@ public class CollectionStatus {
 		private String endTime;
 		private String duration;
 		
+		public IndexStatus copy(){
+			IndexStatus indexStatus = new IndexStatus();
+			indexStatus.documentCount = documentCount;
+			indexStatus.updateCount = updateCount;
+			indexStatus.deleteCount = deleteCount;
+			indexStatus.startTime = startTime;
+			indexStatus.endTime = endTime;
+			indexStatus.duration = duration;
+			return indexStatus;
+		}
 		
 		@XmlAttribute(name="documents")
 		public int getDocumentCount() {

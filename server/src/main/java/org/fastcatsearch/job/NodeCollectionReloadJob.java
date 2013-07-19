@@ -59,7 +59,7 @@ public class NodeCollectionReloadJob extends StreamableJob {
 			
 			SegmentInfo si = newHandler.getLastSegmentReader().segmentInfo();
 			logger.info(si.toString());
-			int docSize = si.getDocumentCount();
+			int docSize = si.getRevisionInfo().getDocumentCount();
 			int newDataSequence = newHandler.getDataSequence();
 			/*
 			 * indextime 파일 업데이트.

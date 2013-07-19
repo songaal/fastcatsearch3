@@ -37,7 +37,7 @@ public class CollectionContextUtil {
 		return collectionContext;
 	}
 	
-	public static CollectionContext load(CollectionFilePaths collectionFilePaths, int dataSequence){
+	public static CollectionContext load(CollectionFilePaths collectionFilePaths, Integer dataSequence){
 		Path collectionDir = new Path(collectionFilePaths.file());
 		File schemaFile = collectionDir.file(SettingFileNames.schema);
 		logger.debug("schemaFile >> {}", schemaFile.getAbsolutePath());
@@ -55,11 +55,21 @@ public class CollectionContextUtil {
 		}
 		
 		CollectionStatus collectionStatus = JAXBConfigs.readConfig(collectionDir.file(SettingFileNames.collectionStatus), CollectionStatus.class);
-		//dataSequence가 -1아 아니면 원하는 sequence의 정보를 읽어온다.
+		
+		if(dataSequence == null){
+			//dataSequence가 없으므로 indexedSequence로 선택하여 로딩한다.
+			int indexedSequence = collectionStatus.getSequence();
+			dataSequence = indexedSequence;
+			
+		}
+		//dataSequence가 null아 아니면 원하는 sequence의 정보를 읽어온다.
 		File infoFile = new File(collectionFilePaths.dataFile(dataSequence), SettingFileNames.dataInfo);
 		DataInfo dataInfo = null;
 		if(infoFile.exists()){
 			dataInfo = JAXBConfigs.readConfig(infoFile, DataInfo.class);
+		}else{
+			logger.info("File not found : {}", infoFile);
+			dataInfo = new DataInfo();
 		}
 		Schema schema = new Schema(schemaSetting);
 		Schema workSchema = null;
@@ -96,7 +106,7 @@ public class CollectionContextUtil {
 			JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.collectionStatus), collectionStatus, CollectionStatus.class);
 		}
 		if(dataInfo != null){
-			File dataDir = collectionFilePaths.dataFile(collectionStatus.getDataStatus().getSequence());
+			File dataDir = collectionFilePaths.dataFile(collectionStatus.getSequence());
 			JAXBConfigs.writeConfig(new File(dataDir, SettingFileNames.dataInfo), dataInfo, DataInfo.class);
 		}
 		if(dataSourceConfig != null){

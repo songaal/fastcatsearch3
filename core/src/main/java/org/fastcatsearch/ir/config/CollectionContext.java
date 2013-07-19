@@ -23,14 +23,21 @@ public class CollectionContext {
 		this.collectionFilePaths = collectionFilePaths;
 	}
 
-	public void init(Schema schema, Schema workSchema, CollectionConfig collectionConfig, DataSourceConfig dataSourceSetting
+	public void init(Schema schema, Schema workSchema, CollectionConfig collectionConfig, DataSourceConfig dataSourceConfig
 			, CollectionStatus collectionStatus, DataInfo dataInfo){
 		this.schema = schema;
 		this.workSchema = workSchema;
 		this.collectionConfig = collectionConfig;
-		this.dataSourceConfig = dataSourceSetting;
+		this.dataSourceConfig = dataSourceConfig;
 		this.collectionStatus = collectionStatus;
 		this.dataInfo = dataInfo;
+	}
+	
+	
+	public CollectionContext newCollectionContext(){
+		CollectionContext collectionContext = new CollectionContext(collectionId, collectionFilePaths);
+		collectionContext.init(schema, workSchema, collectionConfig, dataSourceConfig, collectionStatus.copy(), dataInfo.copy());
+		return collectionContext;
 	}
 	
 	public String collectionId(){
@@ -50,9 +57,9 @@ public class CollectionContext {
 	}
 	
 	public int getNextDataSequence(){
-		int currentDataSequence = collectionStatus.getDataStatus().getSequence();
-		int DATA_SEQUENCE_CYCLE = collectionConfig.getDataPlanConfig().getDataSequenceCycle();
-		return (currentDataSequence + 1) % DATA_SEQUENCE_CYCLE;
+		int currentDataSequence = collectionStatus.getSequence();
+		int dataSequenceCycle = collectionConfig.getDataPlanConfig().getDataSequenceCycle();
+		return (currentDataSequence + 1) % dataSequenceCycle;
 	}
 	
 	public String getLastIndexTime(){
@@ -83,13 +90,13 @@ public class CollectionContext {
 	}
 
 	public void applyWorkSchema() {
-		if(schema != workSchema){
+		if(schema != workSchema && workSchema != null){
 			schema.update(workSchema);
 		}
 	}
 	
 	public void updateCollectionStatus(IndexingType indexingType, int dataSequence, int totalCount, int updateCount, int deleteCount, long startTime, long endTime){
-		collectionStatus.getDataStatus().setSequence(dataSequence);
+		collectionStatus.setSequence(dataSequence);
 		if(indexingType == IndexingType.FULL_INDEXING){
 			collectionStatus.getFullIndexStatus().setDocumentCount(totalCount);
 			collectionStatus.getFullIndexStatus().setUpdateCount(updateCount);

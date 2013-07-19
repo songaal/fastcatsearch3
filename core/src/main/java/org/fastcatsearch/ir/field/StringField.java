@@ -7,7 +7,7 @@ public abstract class StringField extends Field {
 	public StringField(String id) {
 		super(id);
 	}
-	public StringField(String id, String data) {
+	public StringField(String id, String data) throws FieldDataParseException {
 		super(id, data);
 	}
 	
@@ -15,7 +15,7 @@ public abstract class StringField extends Field {
 		super(id, size);
 	}
 	
-	public StringField(String id, String data, int size) {
+	public StringField(String id, String data, int size) throws FieldDataParseException {
 		super(id, data, size);
 	}
 	

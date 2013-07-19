@@ -108,6 +108,7 @@ public class TempSearchFieldMerger {
 				while(true){
 					int idx = heap[1];
 					cv = reader[idx].term();
+					
 					//if cv == null, all readers are done
 					//if cvOld !=  cv , term is changed and cvOld has to be wrote 
 					if( (cv == null  || !cv.equals(cvOld)) && cvOld!= null){
@@ -164,12 +165,12 @@ public class TempSearchFieldMerger {
 						termCount++;
 					}
 					
-					try{
-						buffers[bufferCount++] = reader[idx].buffer();
-					}catch(ArrayIndexOutOfBoundsException e){
-						logger.info("bufferCount = {}, buffers.len = {}, idx = {}, reader = {}", new Object[]{bufferCount, buffers.length, idx, reader.length});
-						throw e;
-					}
+//					try{
+//						buffers[bufferCount++] = reader[idx].buffer();
+//					}catch(ArrayIndexOutOfBoundsException e){
+//						logger.info("{}:{} bufferCount = {}, buffers.len = {}, idx = {}, reader = {}", cvOld, cv, bufferCount, buffers.length, idx, reader.length);
+//						throw e;
+//					}
 					//backup cv to old
 					cvOld = cv;
 					

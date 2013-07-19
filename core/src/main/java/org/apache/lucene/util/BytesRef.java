@@ -63,7 +63,8 @@ public final class BytesRef extends BytesBuffer implements Comparable<BytesRef>,
 	 * Create a BytesRef pointing to a new array of size <code>capacity</code>. Offset and length will both be zero.
 	 */
 	public BytesRef(int capacity) {
-		this.bytes = new byte[capacity];
+		this(new byte[capacity]);
+//		this.bytes = new byte[capacity];
 	}
 
 	/**
