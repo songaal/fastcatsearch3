@@ -70,6 +70,11 @@ public class FieldSetting {
 		this.type = type;
 	}
 	
+	@Override
+	public String toString(){
+		return "[FieldSetting]"+id+", type="+type+", size="+size+", mv="+multiValue;
+	}
+	
 	@XmlAttribute(required = true)
 	public String getId() {
 		return id;

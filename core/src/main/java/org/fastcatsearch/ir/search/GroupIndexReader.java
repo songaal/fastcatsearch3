@@ -89,6 +89,22 @@ public class GroupIndexReader extends ReferencableIndexReader {
     	groupDataInput = new BufferedFileInput(dir, IndexFileNames.groupDataFile);
     	groupKeyInputList = new SequencialDataInput[fieldSize];
     	
+    	//멀티밸류 필드가 존재하는지 확인.
+    	for (int idx = 0; idx < fieldSize; idx++) {
+    		fieldOffset[idx] = dataSize;
+    		RefSetting refSetting = refSettingList.get(idx);
+			FieldSetting fieldSetting = fieldSettingMap.get(refSetting.getRef());
+			if(fieldSetting.isMultiValue()){
+				hasMultiValue = true;
+				break;
+			}
+    	}
+    	if(hasMultiValue){
+    		multiValueInput = new BufferedFileInput(dir, IndexFileNames.getMultiValueSuffixFileName(IndexFileNames.groupDataFile, id));
+    	}
+   
+    	refs = new DataRef[fieldSize];
+    	multiValueInputList = new IndexInput[fieldSize];
     	int offset = 0;
     	for (int idx = 0; idx < fieldSize; idx++) {
     		fieldOffset[idx] = dataSize;
@@ -98,7 +114,6 @@ public class GroupIndexReader extends ReferencableIndexReader {
 			fieldOffset[idx] = offset;
 			
 			if(fieldSetting.isMultiValue()){
-				hasMultiValue = true;
 				isMultiValue[idx] = true;
 				//멀티밸류의 경우는 input을 여러개 clone해서 사용해야함.
 				//read시 데이터를 읽어서 리턴하는 것이아니라, stream을 전달하기때문에, 동일 input사용시 여러필드에서 position을 각자 움직이면 문제가 발생한다. 
@@ -120,9 +135,7 @@ public class GroupIndexReader extends ReferencableIndexReader {
     		}
     	}
     	
-    	if(hasMultiValue){
-    		multiValueInput = new BufferedFileInput(dir, IndexFileNames.getMultiValueSuffixFileName(IndexFileNames.groupDataFile, id));
-    	}
+    	
 	}
 	
 	@Override

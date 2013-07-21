@@ -1,0 +1,139 @@
+[2013-07-19 18:04:01,962 INFO] (Environment.java:38) Setting Home = /Users/swsong/TEST_HOME/fastcatsearch2.13.7/
+[2013-07-19 18:04:01,987 INFO] (Environment.java:39) logback.configurationFile = /Users/swsong/TEST_HOME/fastcatsearch2.13.7/conf/logback.xml
+[2013-07-19 18:04:02,133 DEBUG] (AbstractService.java:32) Service [org.fastcatsearch.plugin.PluginService] >> {}
+
+[2013-07-19 18:04:02,137 DEBUG] (AbstractService.java:32) Service [org.fastcatsearch.db.DBService] >> {}
+
+[2013-07-19 18:04:02,139 DEBUG] (AbstractService.java:32) Service [org.fastcatsearch.service.KeywordService] >> {}
+
+[2013-07-19 18:04:02,147 DEBUG] (AbstractService.java:32) Service [org.fastcatsearch.control.JobService] >> pool: {max: 300}
+
+[2013-07-19 18:04:02,157 DEBUG] (AbstractService.java:32) Service [org.fastcatsearch.ir.IRService] >> document: {read_buffer_size: 3m, write_buffer_size: 3m, block_size: 8, compression_type: fast}
+index:
+  pk_term_interval: 64
+  pk_bucket_size: 16k
+  data_sequence_cycle: 3
+  work: {buck_size: 256, memory_size: 128m, check_size: 10000}
+search: {highlight_summary: org.fastcatsearch.summary.SimpleHighlightAndSummary, response_type: json}
+common: null
+segment: {separate_inc_indexing: true, document_limit: 2000000, revision_backup_size: null}
+collection:
+- {id: pc, name: 피씨}
+- {id: elec, name: 가전}
+
+[2013-07-19 18:04:02,165 DEBUG] (AbstractService.java:32) Service [org.fastcatsearch.statistics.StatisticsInfoService] >> {start_on_load: false}
+
+[2013-07-19 18:04:02,170 DEBUG] (AbstractService.java:32) Service [org.fastcatsearch.management.ManagementInfoService] >> {start_on_load: false}
+
+[2013-07-19 18:04:02,177 DEBUG] (AbstractService.java:32) Service [org.fastcatsearch.cluster.NodeService] >> index: null
+node_list:
+- {id: node1, address: 127.0.0.1, port: 9090, disabled: false, data: true}
+- {id: node2, address: 127.0.0.1, port: 9091, disabled: false, data: true}
+me: node1
+master: node1
+
+[2013-07-19 18:04:02,191 DEBUG] (AbstractService.java:32) Service [org.fastcatsearch.data.DataService] >> default:
+  data_node: [node2]
+  index_node: [node1]
+  shard: 1
+  replica: 0
+collection:
+- id: test
+  index_node: node1
+  data_node: [node1]
+  shard: 1
+  replica: 0
+- id: vol2
+  index_node: node2
+  data_node: [node1]
+  shard: 1
+  replica: 0
+- id: vol3
+  index_node: node1
+  data_node: [node1]
+  shard: 1
+  replica: 0
+
+[2013-07-19 18:04:02,203 DEBUG] (AbstractService.java:32) Service [org.fastcatsearch.service.WebService] >> {port: 8080, admin: null}
+
+[2013-07-19 18:04:02,208 DEBUG] (AbstractService.java:32) Service [org.fastcatsearch.notification.NotificationService] >> {}
+
+[2013-07-19 18:04:02,212 DEBUG] (AbstractService.java:32) Service [org.fastcatsearch.alert.ClusterAlertService] >> {}
+
+[2013-07-19 18:04:02,214 DEBUG] (AbstractService.java:32) Service [org.fastcatsearch.processlogger.ProcessLoggerService] >> {}
+
+[2013-07-19 18:04:02,214 INFO] (CatServer.java:172) ServerHome = /Users/swsong/TEST_HOME/fastcatsearch2.13.7
+[2013-07-19 18:04:02,470 INFO] (AbstractService.java:63) PluginService 시작!
+[2013-07-19 18:04:03,253 ERROR] (CatServer.java:197) CatServer 시작에 실패했습니다.
+org.fastcatsearch.exception.FastcatSearchException: ERR-00314: 관리DB로의 연결을 생성할수 없습니다. DB를 이미 사용중인 프로세스가 있는지 확인필요.
+	at org.fastcatsearch.db.DBService.doStart(DBService.java:110) ~[classes/:na]
+	at org.fastcatsearch.service.AbstractService.start(AbstractService.java:62) ~[classes/:na]
+	at org.fastcatsearch.server.CatServer.start(CatServer.java:177) [classes/:na]
+	at org.fastcatsearch.server.CatServer.main(CatServer.java:62) [classes/:na]
+Caused by: java.sql.SQLException: Failed to start database '/Users/swsong/TEST_HOME/fastcatsearch2.13.7/db' with class loader sun.misc.Launcher$AppClassLoader@558fe7c3, see the next exception for details.
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory40.getSQLException(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.jdbc.Util.newEmbedSQLException(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.jdbc.Util.seeNextException(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.jdbc.EmbedConnection.bootDatabase(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.jdbc.EmbedConnection.<init>(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.jdbc.EmbedConnection30.<init>(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.jdbc.EmbedConnection40.<init>(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.jdbc.Driver40.getNewEmbedConnection(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.jdbc.InternalDriver.connect(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.jdbc.AutoloadedDriver.connect(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at java.sql.DriverManager.getConnection(DriverManager.java:582) ~[na:1.6.0_51]
+	at java.sql.DriverManager.getConnection(DriverManager.java:185) ~[na:1.6.0_51]
+	at org.fastcatsearch.db.ConnectionManager.getConnection(ConnectionManager.java:26) ~[classes/:na]
+	at org.fastcatsearch.db.DBService.doStart(DBService.java:108) ~[classes/:na]
+	... 3 common frames omitted
+Caused by: org.apache.derby.impl.jdbc.EmbedSQLException: Failed to start database '/Users/swsong/TEST_HOME/fastcatsearch2.13.7/db' with class loader sun.misc.Launcher$AppClassLoader@558fe7c3, see the next exception for details.
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory.getSQLException(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory40.wrapArgsForTransportAcrossDRDA(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	... 17 common frames omitted
+Caused by: org.apache.derby.impl.jdbc.EmbedSQLException: Another instance of Derby may have already booted the database /Users/swsong/TEST_HOME/fastcatsearch2.13.7/db.
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory.getSQLException(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory40.wrapArgsForTransportAcrossDRDA(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory40.getSQLException(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.jdbc.Util.generateCsSQLException(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	... 14 common frames omitted
+Caused by: org.apache.derby.iapi.error.StandardException: Another instance of Derby may have already booted the database /Users/swsong/TEST_HOME/fastcatsearch2.13.7/db.
+	at org.apache.derby.iapi.error.StandardException.newException(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.store.raw.data.BaseDataFileFactory.privGetJBMSLockOnDB(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.store.raw.data.BaseDataFileFactory.run(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at java.security.AccessController.doPrivileged(Native Method) ~[na:1.6.0_51]
+	at org.apache.derby.impl.store.raw.data.BaseDataFileFactory.getJBMSLockOnDB(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.store.raw.data.BaseDataFileFactory.boot(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.services.monitor.BaseMonitor.boot(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.services.monitor.TopService.bootModule(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.services.monitor.BaseMonitor.startModule(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.iapi.services.monitor.Monitor.bootServiceModule(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.store.raw.RawStore.boot(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.services.monitor.BaseMonitor.boot(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.services.monitor.TopService.bootModule(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.services.monitor.BaseMonitor.startModule(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.iapi.services.monitor.Monitor.bootServiceModule(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.store.access.RAMAccessManager.boot(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.services.monitor.BaseMonitor.boot(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.services.monitor.TopService.bootModule(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.services.monitor.BaseMonitor.startModule(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.iapi.services.monitor.Monitor.bootServiceModule(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.db.BasicDatabase.bootStore(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.db.BasicDatabase.boot(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.services.monitor.BaseMonitor.boot(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.services.monitor.TopService.bootModule(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.services.monitor.BaseMonitor.bootService(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.services.monitor.BaseMonitor.startProviderService(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.services.monitor.BaseMonitor.findProviderAndStartService(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.impl.services.monitor.BaseMonitor.startPersistentService(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	at org.apache.derby.iapi.services.monitor.Monitor.startPersistentService(Unknown Source) ~[derby-10.9.1.0.jar:na]
+	... 14 common frames omitted
+[2013-07-19 18:04:03,255 INFO] (CatServer.java:272) CatServer shutdown!
+[2013-07-19 18:04:03,255 INFO] (CatServer.java:220) CatServer started!
+[2013-07-19 18:04:27,560 INFO] (CatServer.java:302) Server Shutdown Requested!
+[2013-07-19 18:04:27,561 ERROR] (CatServer.java:306) CatServer.shutdownHookFail
+java.lang.NullPointerException: null
+	at org.fastcatsearch.plugin.PluginService.doStop(PluginService.java:139) ~[classes/:na]
+	at org.fastcatsearch.service.AbstractService.stop(AbstractService.java:79) ~[classes/:na]
+	at org.fastcatsearch.server.CatServer.stop(CatServer.java:261) ~[classes/:na]
+	at org.fastcatsearch.server.CatServer$ServerShutdownHook.run(CatServer.java:303) ~[classes/:na]
+[2013-07-19 18:04:27,561 INFO] (CatServer.java:308) Server Shutdown Complete!

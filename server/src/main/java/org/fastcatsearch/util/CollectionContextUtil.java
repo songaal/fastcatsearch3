@@ -109,8 +109,33 @@ public class CollectionContextUtil {
 			File dataDir = collectionFilePaths.dataFile(collectionStatus.getSequence());
 			JAXBConfigs.writeConfig(new File(dataDir, SettingFileNames.dataInfo), dataInfo, DataInfo.class);
 		}
+		
 		if(dataSourceConfig != null){
-			JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.datasourceConfig), dataSourceConfig, SingleSourceConfig.class);
+			JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.datasourceConfig), dataSourceConfig, DataSourceConfig.class);
+		}
+		
+	}
+	
+	//TODO 색인이 끝나고 상태 저장.
+	public static void writeStatus(CollectionContext collectionContext) {
+		CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
+		
+		Schema schema = collectionContext.schema();
+		CollectionStatus collectionStatus = collectionContext.collectionStatus();
+		DataInfo dataInfo = collectionContext.dataInfo();
+		
+		File collectionDir = collectionFilePaths.file();
+		
+		//TODO schema가 업데이트 되었으면 저장.
+//		if(schema != null){
+//			JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.schema), schema, Schema.class);
+//		}
+//		if(workSchema != null){
+			//삭제.
+//		}
+		if(dataInfo != null){
+			File dataDir = collectionFilePaths.dataFile(collectionStatus.getSequence());
+			JAXBConfigs.writeConfig(new File(dataDir, SettingFileNames.dataInfo), dataInfo, DataInfo.class);
 		}
 		
 	}

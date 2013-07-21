@@ -69,7 +69,7 @@ public class SegmentWriter {
 			if (revision > 0){
 				isAppend = true;
 			}
-			documentWriter = new DocumentWriter(schema, targetDir, indexConfig, isAppend);
+			documentWriter = new DocumentWriter(schema, targetDir, revision, indexConfig);
 			searchIndexesWriter = new SearchIndexesWriter(schema, targetDir, revision, indexConfig);
 			fieldIndexesWriter = new FieldIndexesWriter(schema, targetDir, isAppend);
 			groupIndexesWriter = new GroupIndexesWriter(schema, targetDir, revision, indexConfig);

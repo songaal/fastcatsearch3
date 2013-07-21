@@ -34,7 +34,9 @@ public class DataInfo {
 	private List<SegmentInfo> segmentInfoList;
 	
 	
-	public DataInfo(){ }
+	public DataInfo(){ 
+		segmentInfoList = new ArrayList<SegmentInfo>();
+	}
 
 	public DataInfo copy(){
 		DataInfo dataInfo = new DataInfo();
@@ -99,7 +101,7 @@ public class DataInfo {
 	
 	 * */
 	@XmlRootElement(name = "segment")
-	@XmlType(propOrder = { "createTime", "deleteCount", "updateCount", "documentCount", "revision", "baseNumber", "id" })
+	@XmlType(propOrder = { "revisionInfo", "revision", "baseNumber", "id" })
 	public static class SegmentInfo {
 		private String id;
 		private int baseNumber;
@@ -121,6 +123,9 @@ public class DataInfo {
 		
 		public void update(int revision, int documents, int deletes, String createTime){
 			this.revision = revision;
+			if(revisionInfo == null){
+				revisionInfo = new RevisionInfo();
+			}
 			revisionInfo.documentCount = documents;
 			revisionInfo.deleteCount = deletes;
 			revisionInfo.createTime = createTime;
@@ -183,6 +188,7 @@ public class DataInfo {
 	/**
 	 <revision documents="1000" deletes="0" createTime="2013-06-15 15:20:00">
 	 * */
+	@XmlType(propOrder = { "createTime", "deleteCount", "updateCount", "documentCount" })
 	@XmlRootElement(name = "revision")
 	public static class RevisionInfo {
 		

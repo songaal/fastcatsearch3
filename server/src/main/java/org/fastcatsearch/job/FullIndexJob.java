@@ -234,7 +234,7 @@ public class FullIndexJob extends IndexingJob {
 			
 			
 			//최종 셋팅들을 모두 저장한다.
-			CollectionContextUtil.write(collectionContext);
+			CollectionContextUtil.writeStatus(collectionContext);
 			
 			
 			return new JobResult(result);

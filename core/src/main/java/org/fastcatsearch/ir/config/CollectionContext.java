@@ -7,8 +7,12 @@ import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.util.CollectionFilePaths;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CollectionContext {
+	protected static Logger logger = LoggerFactory.getLogger(CollectionContext.class);
+	
 	private String collectionId;
 	private CollectionFilePaths collectionFilePaths;
 	private Schema schema;
@@ -91,7 +95,9 @@ public class CollectionContext {
 
 	public void applyWorkSchema() {
 		if(schema != workSchema && workSchema != null){
-			schema.update(workSchema);
+			logger.debug("applyWorkSchema >> {}", schema);
+			logger.debug("applyWorkSchema workSchema>> {}", workSchema);
+//			schema.update(workSchema);
 		}
 	}
 	
@@ -116,6 +122,9 @@ public class CollectionContext {
 	}
 
 	public void addSegmentInfo(SegmentInfo segmentInfo) {
+		if(dataInfo == null){
+			dataInfo = new DataInfo();
+		}
 		dataInfo.getSegmentInfoList().add(segmentInfo);
 	}		
 }

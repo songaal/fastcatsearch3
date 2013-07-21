@@ -17,6 +17,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -58,15 +59,19 @@ public class FastcatSearchCollectFileParser extends SingleSourceReader {
 	@Override
 	public void init() throws IRException {
 		FileSourceConfig config = (FileSourceConfig) singleSourceConfig;
+		String fileEncoding = config.getFileEncoding();
+		if(fileEncoding == null){
+			fileEncoding = Charset.defaultCharset().toString();
+		}
 		try {
 			File file = null;
 			if(isFull){
 				file = new Path(filePath).makePath(config.getFullFilePath()).file();
-				br = new DirBufferedReader(file, config.getFileEncoding());
+				br = new DirBufferedReader(file, fileEncoding);
 			}else{
-				br = new DirBufferedReader(file, config.getFileEncoding());
+				br = new DirBufferedReader(file, fileEncoding);
 			}
-			logger.info("Collect file = {}, {}", file.getAbsolutePath(), config.getFileEncoding());
+			logger.info("Collect file = {}, {}", file.getAbsolutePath(), fileEncoding);
 		} catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage(),e);
 			throw new IRException(e);

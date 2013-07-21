@@ -73,11 +73,16 @@ public class DocumentWriter {
 	private int[] primaryKeyFieldIdList;
 
 	public DocumentWriter(Schema schema, File dir, IndexConfig indexConfig) throws IOException, IRException {
-		this(schema, dir, indexConfig, false);
+		this(schema, dir, 0, indexConfig);
 	}
 
-	public DocumentWriter(Schema schema, File revisionDir, IndexConfig indexConfig, boolean isAppend) throws IOException, IRException {
-		this.dir = revisionDir;
+	public DocumentWriter(Schema schema, File dir, int revision, IndexConfig indexConfig) throws IOException, IRException {
+		this.dir = dir;
+		
+		boolean isAppend = revision > 0;
+		
+		File revisionDir = IndexFileNames.getRevisionDir(dir, revision);
+		
 		compressor = new Deflater(Deflater.BEST_SPEED);
 		fields = schema.schemaSetting().getFieldSettingList();
 		

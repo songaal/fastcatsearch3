@@ -25,6 +25,10 @@ public class SchemaSetting {
 	private List<FieldIndexSetting> fieldIndexSettingList;
 	private List<GroupIndexSetting> groupIndexSettingList;
 	
+	public String toString(){
+		return "[SchemaSetting] fl="+fieldSettingList+", pk="+primaryKeySetting+", idx="+indexSettingList+", an="+analyzerSettingList+", fidx="+fieldIndexSettingList+", grp="+groupIndexSettingList;
+	}
+	
 	//@XmlElement는 FieldSetting에서 @XmlRootElement로 선언한 것과 별개로 다시 선언해주어야 한다. 여기서는 field가 root가 아니므로.
 	@XmlElementWrapper(name="field-list")
 	@XmlElement(name="field")

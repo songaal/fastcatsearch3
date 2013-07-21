@@ -24,6 +24,11 @@ public class Schema {
 	private AnalyzerPoolManager analyzerPoolManager;
 	private String collectionId;
 	
+	public String toString(){
+		return "[Schema]" + schemaSetting; 
+		
+	}
+	
 	public Schema(String collectionId, SchemaSetting schemaSetting){
 		this(schemaSetting);
 		this.collectionId = collectionId;

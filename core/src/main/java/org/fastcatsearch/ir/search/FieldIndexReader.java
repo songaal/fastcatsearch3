@@ -94,8 +94,13 @@ public class FieldIndexReader extends ReferencableIndexReader {
 		for (int i = 0; i < fieldSize; i++) {
 			RefSetting rs = refList.get(i);
 			FieldSetting fieldSetting = fieldSettingMap.get(rs.getRef());
+			if(rs.getSize() > 0){
+				fieldByteSize[i] = rs.getSize();
+			}else{
+				fieldByteSize[i] = fieldSetting.getByteSize();
+			}
+			logger.debug("fieldSetting size {} >> {}", rs.getRef(), fieldByteSize[i]);
 			
-			fieldByteSize[i] = fieldSetting.getByteSize();
 			fieldOffset[i] = offset;
 			if(fieldSetting.isMultiValue()){
 				//멀티밸류의 경우는 input을 여러개 clone해서 사용해야함.

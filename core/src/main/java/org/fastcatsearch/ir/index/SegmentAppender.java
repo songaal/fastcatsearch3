@@ -61,7 +61,7 @@ public class SegmentAppender {
 			
 			IndexFileNames.getRevisionDir(targetDir, revision).mkdirs();
 			
-			documentWriter = new DocumentWriter(schema, targetDir, indexConfig, true);
+			documentWriter = new DocumentWriter(schema, targetDir, revision, indexConfig);
 			searchIndexesWriter = new SearchIndexesWriter(schema, targetDir, revision, indexConfig);
 			fieldIndexesWriter = new FieldIndexesWriter(schema, targetDir, true);
 			groupIndexesWriter = new GroupIndexesWriter(schema, targetDir, revision, indexConfig);

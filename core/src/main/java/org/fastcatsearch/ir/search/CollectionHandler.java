@@ -227,6 +227,7 @@ public class CollectionHandler {
 			segmentReaderList.get(i).setDeleteSet(deleteSetList[i]);
 		}
 		
+		logger.debug("Add newSegmentInfo >> {}", newSegmentInfo);
 		collectionContext.addSegmentInfo(newSegmentInfo);
 		
 		segmentReaderList.add(new SegmentReader(collectionContext.schema(), newSegmentDir, newSegmentInfo));
