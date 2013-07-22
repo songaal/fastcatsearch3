@@ -68,7 +68,7 @@ public class DocumentWriter {
 	private File dir;
 	private int indexInterval;
 	private int count;
-	private int duplicateDocCount;
+	private int updateDocCount;
 	private PrimaryKeySetting primaryKeySetting;
 	private int[] primaryKeyFieldIdList;
 
@@ -143,8 +143,8 @@ public class DocumentWriter {
 
 	}
 
-	public int getDuplicateDocCount() {
-		return duplicateDocCount;
+	public int getUpdateDocCount() {
+		return updateDocCount;
 	}
 
 	public int write(Document document) throws IOException, IRException {
@@ -180,7 +180,7 @@ public class DocumentWriter {
 			if (preDocNo >= 0) {
 				// logger.trace("----- = "+preDocNo);
 				deleteSet.set(preDocNo);
-				duplicateDocCount++;// 수집시 데이터내에 서로 중복된 문서가 발견된 경우 count증가.
+				updateDocCount++;// 수집시 데이터내에 서로 중복된 문서가 발견된 경우 count증가.
 			}
 		}
 		

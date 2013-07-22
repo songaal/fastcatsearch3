@@ -47,9 +47,9 @@ public class FullIndexRequest extends IndexingJob {
 			notificationService = serviceManager.getService(NotificationService.class);
 
 			processLoggerService.log(IndexingProcessLogger.class, new IndexingStartProcessLog(collectionId,
-					IndexingResult.TYPE_FULL_INDEXING, startTime(), isScheduled()));
+					IndexingResult.TYPE_FULL_INDEXING, jobStartTime(), isScheduled()));
 			notificationService.notify(new IndexingStartNotification(collectionId, IndexingResult.TYPE_FULL_INDEXING,
-					startTime(), isScheduled()));
+					jobStartTime(), isScheduled()));
 
 			DataService dataService = serviceManager.getService(DataService.class);
 			DataStrategy dataStrategy = dataService.getCollectionDataStrategy(collectionId);
@@ -94,10 +94,10 @@ public class FullIndexRequest extends IndexingJob {
 			}
 
 			processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId,
-					IndexingResult.TYPE_FULL_INDEXING, isSuccess, startTime(), endTime, isScheduled(), streamableResult));
+					IndexingResult.TYPE_FULL_INDEXING, isSuccess, jobStartTime(), endTime, isScheduled(), streamableResult));
 
 			notificationService.notify(new IndexingFinishNotification(collectionId, IndexingResult.TYPE_FULL_INDEXING, isSuccess,
-					startTime(), endTime, streamableResult));
+					jobStartTime(), endTime, streamableResult));
 		}
 	}
 }

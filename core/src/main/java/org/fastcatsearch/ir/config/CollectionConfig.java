@@ -2,6 +2,7 @@ package org.fastcatsearch.ir.config;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 /**
  * 각 컬렉션별 셋팅을 가지고 있다.
@@ -36,6 +37,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * */
 
 @XmlRootElement(name = "collection-config")
+@XmlType(propOrder = { "name", "indexConfig", "dataPlanConfig", "clusterConfig" })
 public class CollectionConfig {
 
 	private String name;

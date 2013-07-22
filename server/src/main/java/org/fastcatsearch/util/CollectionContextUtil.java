@@ -7,6 +7,8 @@ import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionStatus;
 import org.fastcatsearch.ir.config.DataInfo;
+import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
+import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.config.JAXBConfigs;
@@ -116,26 +118,59 @@ public class CollectionContextUtil {
 		
 	}
 	
-	//TODO 색인이 끝나고 상태 저장.
-	public static void writeStatus(CollectionContext collectionContext) {
+	// 색인이 끝나고 dataInfo 저장.
+	public static void saveDataInfo(CollectionContext collectionContext) {
+		CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
+		DataInfo dataInfo = collectionContext.dataInfo();
+		CollectionStatus collectionStatus = collectionContext.collectionStatus();
+		
+		if(dataInfo != null){
+			logger.debug("Save DataInfo >> {}", dataInfo);
+			File dataDir = collectionFilePaths.dataFile(collectionStatus.getSequence());
+			JAXBConfigs.writeConfig(new File(dataDir, SettingFileNames.dataInfo), dataInfo, DataInfo.class);
+			
+			SegmentInfo lastSegmentInfo = dataInfo.getLastSegmentInfo();
+			RevisionInfo revisionInfo = lastSegmentInfo.getRevisionInfo();
+			if(revisionInfo != null){
+				logger.debug("Save RevisionInfo >> {}", revisionInfo);
+				File revisionDir = new File(new File(dataDir, Integer.toString(lastSegmentInfo.getRevision())), SettingFileNames.revisionInfo);
+				JAXBConfigs.writeConfig(revisionDir, revisionInfo, RevisionInfo.class);
+			}
+		}
+		
+	}
+	
+	//색인끝나고 sequence 및 last 색인건수 저장.
+	public static void saveCollectionStatus(CollectionContext collectionContext) {
+		CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
+		CollectionStatus collectionStatus = collectionContext.collectionStatus();
+		File collectionDir = collectionFilePaths.file();
+		
+		if(collectionStatus != null){
+			logger.debug("Save CollectionStatus >> {}", collectionStatus);
+			JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.collectionStatus), collectionStatus, CollectionStatus.class);
+		}
+	}
+
+	public static void applyWorkSchema(CollectionContext collectionContext) {
 		CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
 		
 		Schema schema = collectionContext.schema();
-		CollectionStatus collectionStatus = collectionContext.collectionStatus();
-		DataInfo dataInfo = collectionContext.dataInfo();
-		
+		Schema workSchema = collectionContext.workSchema();
 		File collectionDir = collectionFilePaths.file();
 		
-		//TODO schema가 업데이트 되었으면 저장.
-//		if(schema != null){
-//			JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.schema), schema, Schema.class);
-//		}
-//		if(workSchema != null){
-			//삭제.
-//		}
-		if(dataInfo != null){
-			File dataDir = collectionFilePaths.dataFile(collectionStatus.getSequence());
-			JAXBConfigs.writeConfig(new File(dataDir, SettingFileNames.dataInfo), dataInfo, DataInfo.class);
+		if(schema != workSchema && schema != null && workSchema != null){
+			logger.debug("applyWorkSchema >> {}", schema);
+			logger.debug("applyWorkSchema workSchema>> {}", workSchema);
+			//스키마 업데이트.
+			schema.update(workSchema);
+			
+			JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.schema), schema, Schema.class);
+			collectionContext.setWorkSchema(null);
+			File workSchemaFile = new File(collectionDir, SettingFileNames.schema);
+			if(workSchemaFile.exists()){
+				workSchemaFile.delete();
+			}
 		}
 		
 	}

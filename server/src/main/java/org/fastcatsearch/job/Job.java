@@ -96,11 +96,11 @@ public abstract class Job implements Runnable, Serializable {
 		return noResult;
 	}
 	
-	public long startTime(){
+	public long jobStartTime(){
 		return startTime;
 	}
 	
-	public long endTime(){
+	public long jobEndTime(){
 		return endTime;
 	}
 	

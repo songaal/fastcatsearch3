@@ -157,6 +157,10 @@ public class IRService extends AbstractService{
 		return new CollectionHandler(collectionContext);
 	}
 	
+	public CollectionHandler loadCollectionHandler(CollectionContext collectionContext) throws IRException, SettingException{
+		return new CollectionHandler(collectionContext).load();
+	}
+	
 	public CollectionHandler loadCollectionHandler(String collectionId, int newDataSequence) throws IRException, SettingException{
 		CollectionContext collectionContext = loadCollectionContext(collectionId, newDataSequence); 
 		

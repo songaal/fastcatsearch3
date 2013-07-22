@@ -2,6 +2,7 @@ package org.fastcatsearch.ir.config;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 /**
 <data-plan>
@@ -13,6 +14,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * */
 
 @XmlRootElement(name = "data-plan")
+@XmlType(propOrder = { "segmentRevisionBackupSize", "segmentDocumentLimit", "separateIncIndexing", "dataSequenceCycle" })
 public class DataPlanConfig {
 	private int dataSequenceCycle;
 	private boolean isSeparateIncIndexing;

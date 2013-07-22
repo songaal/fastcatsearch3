@@ -18,12 +18,9 @@ package org.fastcatsearch.ir.document;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BytesBuffer;
-import org.fastcatsearch.ir.io.Input;
 import org.fastcatsearch.ir.io.IndexInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 public class PrimaryKeyIndexReader implements Cloneable {
 	private static Logger logger = LoggerFactory.getLogger(PrimaryKeyIndexReader.class);
-	private static final Lock lock = new ReentrantLock();
+//	private static final Lock lock = new ReentrantLock();
 	
 	private IndexInput input;
 	private IndexInput indexInput;
@@ -113,8 +110,8 @@ public class PrimaryKeyIndexReader implements Cloneable {
 //		long position = pos[idx] + dataBasePosition;
 		long position = pos[idx];
 //		logger.debug("input ="+input.size()+", position="+position+", length="+length + ", "+pos[idx]+", "+dataBasePosition);
-		try{
-			lock.lock();
+//		try{
+//			lock.lock();
 			input.seek(position);
 			
 			while(input.position() < limit){
@@ -133,9 +130,9 @@ public class PrimaryKeyIndexReader implements Cloneable {
 					return -1;
 	//			}
 			}
-		}finally{
-			lock.unlock();
-		}
+//		}finally{
+//			lock.unlock();
+//		}
 		//get EOF
 		return -1;
 	}

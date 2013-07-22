@@ -7,26 +7,23 @@
 
 <%@page import="org.fastcatsearch.web.WebUtils"%>
 <%@page import="org.fastcatsearch.ir.IRService"%>
-<%@page import="org.fastcatsearch.settings.IRSettings"%>
 <%@page import="org.fastcatsearch.ir.config.*"%>
 <%@page import="org.fastcatsearch.ir.analysis.Tokenizer"%>
 <%@page import="org.fastcatsearch.ir.io.CharVector"%>
-<%@page import="org.fastcatsearch.util.DynamicClassLoader2"%>
+<%@page import="org.fastcatsearch.util.DynamicClassLoader"%>
+<%@page import="org.fastcatsearch.ir.*"%>
+<%@page import="org.fastcatsearch.service.*"%>
+<%@page import="org.fastcatsearch.ir.config.CollectionsConfig.Collection"%>
+
+<%@page import="java.util.List"%>
 
 <%@include file="../common.jsp" %>
 
 <%
-	String tokenizerStr = WebUtils.getString(request.getParameter("tokenizer"),"org.fastcatsearch.ir.tokenizer.Tokenizer.KoreanTokenizer");
-	String contents = WebUtils.getString(request.getParameter("contents"),"");
-	Object object = DynamicClassLoader.loadObject(tokenizerStr);
-	Tokenizer tokenizer = null;
-	if(object != null){
-		tokenizer = (Tokenizer)object;
-	}
-	
-	IRConfig irConfig = IRSettings.getConfig(true);
-	String collectinListStr = irConfig.getString("collection.list");
-	String[] colletionList = collectinListStr.split(",");
+	IRService irService = ServiceManager.getInstance().getService(IRService.class);
+	List<Collection> collectionList = irService.getCollectionList();
+	/* String collectinListStr = irService.
+	String[] colletionList = collectinListStr.split(","); */
 	String collection = "";
 %>
 
@@ -133,8 +130,9 @@
 		<input type="text" id="cn" name="cn" size="20" class='inp02'/>
 		<select id="selectCollection" onchange="selectCollection(this)" style="width:100px">
 		<option value="">::선택::</option>
-	<% for(int i = 0;i < colletionList.length;i++){ %>
-		<% String col = colletionList[i]; %>
+	<% for(int i = 0;i < collectionList.size();i++){ %>
+		<% if(!collectionList.get(i).isActive()) continue; %>
+		<% String col = collectionList.get(i).getId(); %>
 		<% if(collection == null){ %>
 			<% if(i == 0){ %>
 				<% collection = col; %>

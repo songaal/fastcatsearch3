@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PostingDocs {
-	private Logger logger = LoggerFactory.getLogger(PostingDocs.class);
+	private static Logger logger = LoggerFactory.getLogger(PostingDocs.class);
 	private int indexFieldNum;
 	private CharVector term;
 	private PostingDoc[] postingDocList;

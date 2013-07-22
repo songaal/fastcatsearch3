@@ -88,14 +88,13 @@ public class SegmentWriter {
 		logger.debug("doc >> {}", doc);
 		int docNo = documentWriter.write(doc);
 		//ensure lastDocNo == docNo
-		if(lastDocNo != docNo)
+		if(lastDocNo != docNo){
 			throw new IRException("Doc number is strange. docNo="+docNo+", lastDocNo="+lastDocNo);
-//		t1 += (System.currentTimeMillis() - t);
-//		logger.info("lastDocNo = {}", lastDocNo);
-//		t = System.currentTimeMillis();
+		}
+		
 		/*
 		 * searchWriter를 거치면서 doc의 영문자들이 모두 대문자로 변환된다.
-		 * 그 결과 filter, sort, group의 데이터는 모두 대문자로 색인된다.
+		 * 그 결과 field, group의 데이터는 모두 대문자로 색인된다.
 		 * 차후 대소문자 구별 검색, 필터등을 구현하려면 searchWriter의 해당부분을 수정해야한다. 
 		 * 
 		 * */
@@ -105,46 +104,11 @@ public class SegmentWriter {
 		return lastDocNo++;
 	}
 	
-//	@Deprecated
-//	public int indexDocument() throws IRException{
-//		try{
-////			long t, t1 = 0, t2 = 0, t3 = 0, t4 = 0;
-//			startTime = System.currentTimeMillis();
-//			
-//			long lapTime = startTime;
-//			while(!requestStop && sourceReader.hasNext()){
-//				
-////				t = System.currentTimeMillis();
-//				Document doc = sourceReader.next();
-////				logger.debug("doc = "+doc);
-//				addDocument(doc);
-//				
-//				if(lastDocNo % 10000 == 0){
-//					logger.info("{} documents indexed, lap = {} ms, elapsed = {}, mem = {}",
-//							new Object[]{lastDocNo, System.currentTimeMillis() - lapTime, Formatter.getFormatTime(System.currentTimeMillis() - startTime), Formatter.getFormatSize(Runtime.getRuntime().totalMemory())});
-//					
-//					lapTime = System.currentTimeMillis();
-////					logger.debug("DocNo = "+i+", memory = "+Runtime.getRuntime().totalMemory()+", ");
-////					logger.debug(">>>" +t1+", "+t2+", "+t3+", "+t4);
-//				}
-//			}
-//			
-//			logger.info("{} documents indexed, lap = {} ms, elapsed = {}, mem = {}",
-//					new Object[]{lastDocNo, System.currentTimeMillis() - lapTime, Formatter.getFormatTime(System.currentTimeMillis() - startTime), Formatter.getFormatSize(Runtime.getRuntime().totalMemory())});
-//			return lastDocNo;
-//		}catch(IRException e){
-//			logger.error("SegmentWriter write IRException. "+e.getMessage(),e);
-//			throw e;
-//		}catch(IOException e){
-//			logger.error("SegmentWriter write IOException. "+e.getMessage(),e);
-//			throw new IRException(e);
-//		}
-//		
-//	}
+
 	//색인중에 문서번호가 같은 데이터가 존재할 경우 내부적으로 삭제처리된다.
 	//이 갯수를 색인결과의 삭제문서 갯수에 더해줘야 전체적인 문서수가 일치하게 된다.
 	public int getDuplicateDocCount(){
-		return documentWriter.getDuplicateDocCount();
+		return documentWriter.getUpdateDocCount();
 	}
 	
 	public SegmentInfo close() throws IOException, IRException{
@@ -180,7 +144,7 @@ public class SegmentWriter {
 		}
 		
 		SegmentInfo segmentInfo = new SegmentInfo();
-		segmentInfo.update(REVISION, lastDocNo, documentWriter.getDuplicateDocCount(), Formatter.formatDate());
+		segmentInfo.update(REVISION, lastDocNo, documentWriter.getUpdateDocCount(), 0, Formatter.formatDate());
 		
 		
 		//

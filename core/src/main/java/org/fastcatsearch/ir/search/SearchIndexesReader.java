@@ -78,7 +78,6 @@ public class SearchIndexesReader implements Cloneable {
 
 	private AnalyzerPool[] queryTokenizerPool;
 	private List<IndexSetting> indexSettingList;
-	private FieldSetting[] fieldSettingList;
 	private FieldSetting[] pkFieldSettingList;
 	
 	
@@ -293,9 +292,10 @@ public class SearchIndexesReader implements Cloneable {
 					}
 					
 					
-					
+					logger.debug("find {} at {} by {}", eojeol, fieldId, tokenizer);
 					TokenStream tokenStream = tokenizer.tokenStream(fieldId, eojeol.getReader());
-				
+					tokenStream.reset();
+					
 					if(tokenStream.hasAttribute(CharsRefTermAttribute.class)){
 						termAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
 					}

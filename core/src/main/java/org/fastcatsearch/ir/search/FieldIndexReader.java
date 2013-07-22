@@ -157,7 +157,12 @@ public class FieldIndexReader extends ReferencableIndexReader {
 			}
 		}
 		
-		FieldIndexReader reader = new FieldIndexReader(indexInput.clone(), multiValueInput.clone(), multiValueInputList2, refs2
+		IndexInput mvInput = null; 
+		if(hasMultiValue){
+			mvInput = multiValueInput.clone();
+		}
+		
+		FieldIndexReader reader = new FieldIndexReader(indexInput.clone(), mvInput, multiValueInputList2, refs2
 				, dataSize, fieldOffset, fieldByteSize, isMultiValue, hasMultiValue, fieldSize);
 		return reader;
 	}

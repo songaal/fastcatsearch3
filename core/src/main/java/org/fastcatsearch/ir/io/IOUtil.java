@@ -95,21 +95,27 @@ public final class IOUtil {
 		buffer.write(v & 0xFF);
 	}
 
-	public static int writeVariableByte(BytesBuffer buffer, int v) {
-		int byteCnt=0;
-		do{
-			int b = (byte)(v & 0x7F); //하위 7비트 
-			v >>>= 7; //오른쪽으로 7비트 shift
-			if(v != 0){ //데이터가 남았으면 최상위 비트에 1을 표시한다.
-				b |= 0x80;
-				buffer.write(b);
-			}else{
-				buffer.write(b);
-			}
-			byteCnt++;
-		} while (v != 0);
+	public static void writeVariableByte(BytesBuffer buffer, int i) {
+//		int byteCnt=0;
+//		do{
+//			int b = (byte)(v & 0x7F); //하위 7비트 
+//			v >>>= 7; //오른쪽으로 7비트 shift
+//			if(v != 0){ //데이터가 남았으면 최상위 비트에 1을 표시한다.
+//				b |= 0x80;
+//				buffer.write(b);
+//			}else{
+//				buffer.write(b);
+//			}
+//			byteCnt++;
+//		} while (v != 0);
+//		
+//		return byteCnt;
 		
-		return byteCnt;
+		while ((i & ~0x7F) != 0) {
+			buffer.write((byte) ((i & 0x7F) | 0x80));
+			i >>>= 7;
+		}
+		buffer.write((byte) i);
 	}
 	
 	public static int writeVariableByte(OutputStream os, int v) throws IOException {
@@ -240,16 +246,39 @@ public final class IOUtil {
 
 	
 	public static int readVariableByte(BytesBuffer buffer) {
-		int v = 0;
-		int b = 0;
-		int shift = 0;
-		do{
-			b = buffer.read();
-			v |= ((b & 0x7F) << shift);
-			shift += 7;
-		} while((b & 0x80) > 0);
+//		int v = 0;
+//		int b = 0;
+//		int shift = 0;
+//		do{
+//			b = buffer.read();
+//			v |= ((b & 0x7F) << shift);
+//			shift += 7;
+//		} while((b & 0x80) > 0);
+//		
+//		return v;
+		byte b = buffer.readByte();
+		if (b >= 0)
+			return b;
+		int i = b & 0x7F;
+		b = buffer.readByte();
+		i |= (b & 0x7F) << 7;
+		if (b >= 0)
+			return i;
+		b = buffer.readByte();
+		i |= (b & 0x7F) << 14;
+		if (b >= 0)
+			return i;
+		b = buffer.readByte();
+		i |= (b & 0x7F) << 21;
+		if (b >= 0)
+			return i;
+		b = buffer.readByte();
+		// Warning: the next ands use 0x0F / 0xF0 - beware copy/paste errors:
+		i |= (b & 0x0F) << 28;
+		if ((b & 0xF0) == 0)
+			return i;
 		
-		return v;
+		return -1;
 	}
 	public static int readVariableByte(byte[] buffer, int pos) {
 		int v = 0;

@@ -100,6 +100,7 @@ public class PostingBuffer {
 		}
 		postingVector.flip();
 //		logger.debug("posting buffer finish size = {}", postingVector.length());
+		logger.debug("finish posting buffer lastDocFrequency[{}] postingSize[{}], lastDocNo[{}]", lastDocFrequency, postingSize, lastDocNo);
 		IOUtil.writeInt(postingVector, postingSize);
 		IOUtil.writeInt(postingVector, lastDocNo);
 		postingVector.pos(0);

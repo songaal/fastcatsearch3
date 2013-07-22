@@ -99,7 +99,7 @@ public class SegmentAppender {
 	//색인중에 문서번호가 같은 데이터가 존재할 경우 내부적으로 삭제처리된다.
 	//이 갯수를 색인결과의 삭제문서 갯수에 더해줘야 전체적인 문서수가 일치하게 된다.
 	public int getDuplicateDocCount(){
-		return documentWriter.getDuplicateDocCount();
+		return documentWriter.getUpdateDocCount();
 	}
 	
 	public SegmentInfo close() throws IOException, IRException{
@@ -136,7 +136,7 @@ public class SegmentAppender {
 			return null;
 		}
 		
-		segmentInfo.update(revision, lastDocNo + 1, 0, Formatter.formatDate());
+		segmentInfo.update(revision, lastDocNo + 1, 0, 0, Formatter.formatDate());
 		
 //		SegmentInfoWriter segmentInfoWriter = new SegmentInfoWriter(targetDir);
 //		segmentInfoWriter.write(segmentInfo.getBaseDocNo(), (lastDocNo + 1), revision, System.currentTimeMillis());

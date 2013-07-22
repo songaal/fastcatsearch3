@@ -145,6 +145,7 @@ public class Schema {
 	public void update(Schema other) {
 		this.collectionId = other.collectionId;
 		this.schemaSetting = other.schemaSetting;
+		//work schema는 업데이트하지 않는다.
 		this.fieldSequenceMap = other.fieldSequenceMap;
 		this.searchIndexSequenceMap = other.searchIndexSequenceMap;
 		this.fieldIndexSequenceMap = other.fieldIndexSequenceMap;

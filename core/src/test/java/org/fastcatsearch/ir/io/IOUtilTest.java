@@ -64,7 +64,8 @@ public class IOUtilTest extends TestCase{
 		
 		for(int i=0;i<TESTNUM;i++){
 			int expected = r.nextInt();
-			int len = IOUtil.writeVariableByte(buffer, expected);
+			int len = 0;
+			IOUtil.writeVariableByte(buffer, expected);
 			buffer.clear();
 			int actual = IOUtil.readVariableByte(buffer);
 			buffer.clear();

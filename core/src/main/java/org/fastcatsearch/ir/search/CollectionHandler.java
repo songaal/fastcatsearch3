@@ -68,12 +68,12 @@ public class CollectionHandler {
 	}
 
 	public CollectionHandler load() throws IRException{
-		logger.info("Collection[{}] Loaded!", collectionId);
 		segmentReaderList = new ArrayList<SegmentReader>();
 		loadSearcherAndReader();
 		this.collectionSearcher = new CollectionSearcher(this);
 		startedTime = System.currentTimeMillis();
 		isLoaded = true;
+		logger.info("Collection[{}] Loaded! {}", collectionId, collectionFilePaths.file().getAbsolutePath());
 		return this;
 	}
 	
@@ -105,6 +105,8 @@ public class CollectionHandler {
 			logger.info("create collection data directory [{}]", dataDir.getAbsolutePath());
 			dataDir.mkdir();
 		}
+		
+		logger.debug("Load CollectionHandler [{}] data >> {}", collectionId, dataDir.getAbsolutePath());
 		
 		//색인기록이 있다면 세그먼트를 로딩한다. 
 		if(collectionContext.dataInfo().getSegmentInfoList() != null){
@@ -227,9 +229,10 @@ public class CollectionHandler {
 			segmentReaderList.get(i).setDeleteSet(deleteSetList[i]);
 		}
 		
-		logger.debug("Add newSegmentInfo >> {}", newSegmentInfo);
-		collectionContext.addSegmentInfo(newSegmentInfo);
+//		logger.debug("Add newSegmentInfo >> {}", newSegmentInfo);
+//		collectionContext.addSegmentInfo(newSegmentInfo);
 		
+		//새로생성된 세그먼트는 로딩하여 리스트에 추가해준다. 
 		segmentReaderList.add(new SegmentReader(collectionContext.schema(), newSegmentDir, newSegmentInfo));
 		
 		//TODO collectionContext 저장!

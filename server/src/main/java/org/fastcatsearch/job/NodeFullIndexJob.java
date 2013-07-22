@@ -109,7 +109,7 @@ public class NodeFullIndexJob extends StreamableJob {
 //			int newDataSequence = (dataSequenceFile.getSequence() + 1) % DATA_SEQUENCE_CYCLE;
 
 //			logger.debug("dataSequence=" + newDataSequence + ", DATA_SEQUENCE_CYCLE=" + DATA_SEQUENCE_CYCLE);
-			int newDataSequence = collectionContext.getNextDataSequence();
+			int newDataSequence = collectionContext.nextDataSequence();
 			File collectionDataDir = collectionFilePaths.dataFile(newDataSequence);
 			FileUtils.cleanCollectionDataDirectorys(collectionDataDir);
 			

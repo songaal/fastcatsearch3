@@ -3,6 +3,8 @@ package org.fastcatsearch.ir.config;
 import java.util.Date;
 
 import org.fastcatsearch.ir.common.IndexingType;
+import org.fastcatsearch.ir.config.CollectionStatus.IndexStatus;
+import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
@@ -38,7 +40,7 @@ public class CollectionContext {
 	}
 	
 	
-	public CollectionContext newCollectionContext(){
+	public CollectionContext copy(){
 		CollectionContext collectionContext = new CollectionContext(collectionId, collectionFilePaths);
 		collectionContext.init(schema, workSchema, collectionConfig, dataSourceConfig, collectionStatus.copy(), dataInfo.copy());
 		return collectionContext;
@@ -60,10 +62,16 @@ public class CollectionContext {
 		return workSchema;
 	}
 	
-	public int getNextDataSequence(){
+	public void setWorkSchema(Schema schema){
+		workSchema = schema;
+	}
+	
+	public int nextDataSequence(){
 		int currentDataSequence = collectionStatus.getSequence();
 		int dataSequenceCycle = collectionConfig.getDataPlanConfig().getDataSequenceCycle();
-		return (currentDataSequence + 1) % dataSequenceCycle;
+		int nextDataSequence = (currentDataSequence + 1) % dataSequenceCycle;
+		collectionStatus.setSequence(nextDataSequence);
+		return nextDataSequence;
 	}
 	
 	public String getLastIndexTime(){
@@ -93,38 +101,45 @@ public class CollectionContext {
 		return dataInfo;
 	}
 
-	public void applyWorkSchema() {
-		if(schema != workSchema && workSchema != null){
-			logger.debug("applyWorkSchema >> {}", schema);
-			logger.debug("applyWorkSchema workSchema>> {}", workSchema);
-//			schema.update(workSchema);
-		}
-	}
-	
-	public void updateCollectionStatus(IndexingType indexingType, int dataSequence, int totalCount, int updateCount, int deleteCount, long startTime, long endTime){
-		collectionStatus.setSequence(dataSequence);
+	public void updateCollectionStatus(IndexingType indexingType, int totalCount, int updateCount, int deleteCount, long startTime, long endTime){
 		if(indexingType == IndexingType.FULL_INDEXING){
-			collectionStatus.getFullIndexStatus().setDocumentCount(totalCount);
-			collectionStatus.getFullIndexStatus().setUpdateCount(updateCount);
-			collectionStatus.getFullIndexStatus().setDeleteCount(deleteCount);
-			collectionStatus.getFullIndexStatus().setStartTime(Formatter.formatDate(new Date(startTime)));
-			collectionStatus.getFullIndexStatus().setEndTime(Formatter.formatDate(new Date(endTime)));
-			collectionStatus.getFullIndexStatus().setDuration(Formatter.getFormatTime(endTime - startTime));
+			IndexStatus indexStatus = collectionStatus.getFullIndexStatus();
+			if(indexStatus == null){
+				indexStatus = new IndexStatus();
+				collectionStatus.setFullIndexStatus(indexStatus);
+			}
+			indexStatus.setDocumentCount(totalCount);
+			indexStatus.setUpdateCount(updateCount);
+			indexStatus.setDeleteCount(deleteCount);
+			indexStatus.setStartTime(Formatter.formatDate(new Date(startTime)));
+			indexStatus.setEndTime(Formatter.formatDate(new Date(endTime)));
+			indexStatus.setDuration(Formatter.getFormatTime(endTime - startTime));
 			collectionStatus.setAddIndexStatus(null);
 		}else{
-			collectionStatus.getAddIndexStatus().setDocumentCount(totalCount);
-			collectionStatus.getAddIndexStatus().setUpdateCount(updateCount);
-			collectionStatus.getAddIndexStatus().setDeleteCount(deleteCount);
-			collectionStatus.getAddIndexStatus().setStartTime(Formatter.formatDate(new Date(startTime)));
-			collectionStatus.getAddIndexStatus().setEndTime(Formatter.formatDate(new Date(endTime)));
-			collectionStatus.getAddIndexStatus().setDuration(Formatter.getFormatTime(endTime - startTime));
+			IndexStatus indexStatus = collectionStatus.getAddIndexStatus();
+			if(indexStatus == null){
+				indexStatus = new IndexStatus();
+				collectionStatus.setAddIndexStatus(indexStatus);
+			}
+			indexStatus.setDocumentCount(totalCount);
+			indexStatus.setUpdateCount(updateCount);
+			indexStatus.setDeleteCount(deleteCount);
+			indexStatus.setStartTime(Formatter.formatDate(new Date(startTime)));
+			indexStatus.setEndTime(Formatter.formatDate(new Date(endTime)));
+			indexStatus.setDuration(Formatter.getFormatTime(endTime - startTime));
 		}
 	}
 
 	public void addSegmentInfo(SegmentInfo segmentInfo) {
-		if(dataInfo == null){
+		addSegmentInfo(segmentInfo, false);
+	}
+	//isFullIndexing == true이면 기존 dataInfo를 없애고 새로 생성.
+	public void addSegmentInfo(SegmentInfo segmentInfo, boolean isFullIndexing) {
+		
+		logger.debug("ADD segmentInfo >> {}", segmentInfo);
+		if(isFullIndexing || dataInfo == null){
 			dataInfo = new DataInfo();
 		}
-		dataInfo.getSegmentInfoList().add(segmentInfo);
+		dataInfo.addSegmentInfo(segmentInfo);
 	}		
 }
