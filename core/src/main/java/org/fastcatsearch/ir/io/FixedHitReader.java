@@ -93,9 +93,4 @@ public class FixedHitReader implements Comparable<FixedHitReader>{
 		
 	}
 
-	public void dump(){
-		for (int i = head; i < tail; i++) {
-			logger.debug("FixedHitReader list-{} >> {}", i, list[i]);
-		}
-	}
 }

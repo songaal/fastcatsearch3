@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
 import org.apache.lucene.search.highlight.Formatter;
 import org.apache.lucene.search.highlight.Fragmenter;
@@ -16,6 +17,9 @@ import org.apache.lucene.search.highlight.Scorer;
 import org.apache.lucene.search.highlight.SimpleFragmenter;
 import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
 import org.apache.lucene.search.highlight.WeightedTerm;
+import org.apache.lucene.util.Attribute;
+import org.apache.lucene.util.CharsRef;
+import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.search.HighlightAndSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +78,13 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		//
     	List<WeightedTerm> terms = new ArrayList<WeightedTerm>();
     	tokenStream = analyzer.tokenStream("", new StringReader(query));
-		CharsRefTermAttribute refTermAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
+    	
+    	CharsRefTermAttribute termAttribute = null;
+    	if(tokenStream.hasAttribute(CharsRefTermAttribute.class)){
+    		termAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
+    	}
+    	
+    	CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
 		while(tokenStream.incrementToken()) {
 			//
 			// TODO:
@@ -82,7 +92,15 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 			// 이 부분에서 가중치 를 많이 주면 해당 단어로 요약의 중심이 
 			// 이동되므로 명사일 경우 가중치를 더 주는 방식을 고려해 본다.
 			//
-			terms.add(new WeightedTerm(1.0f, refTermAttribute.toString()));
+			String termString = null;
+			if (termAttribute != null) {
+				CharsRef charRef = termAttribute.charsRef();
+				termString = charRef.toString();
+			} else {
+				termString = new String(charTermAttribute.buffer(), 0, charTermAttribute.length());
+			}
+			logger.debug("HL >> {}", termString);
+			terms.add(new WeightedTerm(1.0f, termString));
 		}
 		
 		WeightedTerm[] weightedTerms = new WeightedTerm[terms.size()];

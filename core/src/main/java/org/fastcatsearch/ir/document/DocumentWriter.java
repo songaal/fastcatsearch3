@@ -80,7 +80,7 @@ public class DocumentWriter {
 		this.dir = dir;
 		
 		boolean isAppend = revision > 0;
-		
+		String segmentId = dir.getName();
 		File revisionDir = IndexFileNames.getRevisionDir(dir, revision);
 		
 		compressor = new Deflater(Deflater.BEST_SPEED);
@@ -122,21 +122,24 @@ public class DocumentWriter {
 		pkbaos = new BytesDataOutput(1024); //초기 1kb로 시작.
 		workingBuffer = new byte[1024];
 
+		String docDeleteSetName = IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentId);
 		if (isAppend) {
+			File prevRevisionDir = IndexFileNames.getRevisionDir(dir, revision - 1);
 			// copy prev revision's delete.set
 			// 증분색인의 append일 경우에는 이전 revision의 deleteSet을 가져와서 사용한다.
 			// DocumentWriter.close()시 이전 rev와 새 rev의 중복되는 문서를
 			// delete처리해준다.
 //			File prevDelete = new File(IRFileName.getRevisionDir(dir, revision - 1), IRFileName.docDeleteSet);
-			File prevDelete = new File(revisionDir, IndexFileNames.docDeleteSet);
+			File prevDelete = new File(prevRevisionDir, docDeleteSetName);
+			//이전 리비전의 delete.set을 현재 리비전 dir로 가져와서 이어쓰도록 한다.
 			FileUtils.copyFileToDirectory(prevDelete, revisionDir);
-			deleteSet = new BitSet(revisionDir, IndexFileNames.docDeleteSet);
+			deleteSet = new BitSet(revisionDir, docDeleteSetName);
 			
 			IndexInput docInput = new BufferedFileInput(dir, IndexFileNames.docStored);
 			localDocNo = docInput.readInt();
 			docInput.close();
 		} else {
-			deleteSet = new BitSet(revisionDir, IndexFileNames.docDeleteSet);
+			deleteSet = new BitSet(revisionDir, docDeleteSetName, true);
 
 			docOutput.writeInt(0); // document count
 		}
@@ -173,12 +176,13 @@ public class DocumentWriter {
 				} else {
 					f.writeFixedDataTo(pkbaos);
 				}
+				logger.debug("PK >> {}", f);
 			}
 			
 			int preDocNo = pkIndexWriter.put(pkbaos.array(), 0, (int) pkbaos.position(), localDocNo);
 			// logger.trace("document doc no = "+localDocNo);
 			if (preDocNo >= 0) {
-				// logger.trace("----- = "+preDocNo);
+				 logger.debug("DUP delete >> {}", preDocNo);
 				deleteSet.set(preDocNo);
 				updateDocCount++;// 수집시 데이터내에 서로 중복된 문서가 발견된 경우 count증가.
 			}

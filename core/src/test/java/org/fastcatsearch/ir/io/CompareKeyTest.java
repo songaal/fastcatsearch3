@@ -175,23 +175,6 @@ public class CompareKeyTest extends TestCase {
 		return 0;
     }
 	
-	public void testUString(){
-		String a = "ab";
-		int b = '린';
-//		b = 'a';
-		BytesBuffer buffer = new BytesBuffer(2);
-		IOUtil.writeUChar(buffer, b);
-		buffer.flip();
-		char cc = IOUtil.readUChar(buffer);
-		System.out.println("cc = "+cc);
-		buffer.clear();
-		System.out.println(b +" : "+buffer);
-		for (int i = 0; i < buffer.size(); i++) {
-			int c = buffer.read();
-			System.out.println(i+ " >> "+c);
-			System.out.println(i+ " >> "+(byte)c);
-			System.out.println(i+ " >> "+(c & 0xFF));
-		}
-	}
+	
     
 }

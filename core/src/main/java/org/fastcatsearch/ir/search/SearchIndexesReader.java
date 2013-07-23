@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
@@ -43,6 +44,7 @@ import org.fastcatsearch.ir.io.CharVectorTokenizer;
 import org.fastcatsearch.ir.io.FixedMinHeap;
 import org.fastcatsearch.ir.io.IOUtil;
 import org.fastcatsearch.ir.io.IndexInput;
+import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.MultiTermOperatedClause;
 import org.fastcatsearch.ir.query.OperatedClause;
 import org.fastcatsearch.ir.query.OrOperatedClause;
@@ -55,6 +57,7 @@ import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.IndexSetting;
 import org.fastcatsearch.ir.settings.PkRefSetting;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
+import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,14 +76,13 @@ public class SearchIndexesReader implements Cloneable {
 	private MemoryLexicon[] memoryLexicon;
 	private long[] fileLimit;
 	private IndexFieldOption[] fieldIndexOptions;
-	
+
 	private PrimaryKeyIndexReader pkReader;
 
 	private AnalyzerPool[] queryTokenizerPool;
 	private List<IndexSetting> indexSettingList;
 	private FieldSetting[] pkFieldSettingList;
-	
-	
+
 	public SearchIndexesReader() {
 	}
 
@@ -88,9 +90,9 @@ public class SearchIndexesReader implements Cloneable {
 		this(schema, dir, 0);
 	}
 
-	public SearchIndexesReader(Schema schema, IndexInput postingInput, IndexInput lexiconInput, IndexInput indexInput, PrimaryKeyIndexReader pkReader,
-			MemoryLexicon[] memoryLexicon, long[] fileLimit,
-			AnalyzerPool[] queryTokenizerPool, IndexFieldOption[] fieldIndexOptions) {
+	public SearchIndexesReader(Schema schema, IndexInput postingInput, IndexInput lexiconInput, IndexInput indexInput,
+			PrimaryKeyIndexReader pkReader, MemoryLexicon[] memoryLexicon, long[] fileLimit, AnalyzerPool[] queryTokenizerPool,
+			IndexFieldOption[] fieldIndexOptions) {
 		this.schema = schema;
 		this.postingInput = postingInput;
 		this.lexiconInput = lexiconInput;
@@ -105,10 +107,9 @@ public class SearchIndexesReader implements Cloneable {
 	public SearchIndexesReader(Schema schema, File dir, int revision) throws IOException, IRException {
 		this.schema = schema;
 		indexSettingList = schema.schemaSetting().getIndexSettingList();
-		
+
 		schema.schemaSetting().getFieldSettingList();
-		
-		
+
 		int indexFieldSize = indexSettingList.size();
 		queryTokenizerPool = new AnalyzerPool[indexFieldSize];
 		memoryLexicon = new MemoryLexicon[indexFieldSize];
@@ -123,20 +124,20 @@ public class SearchIndexesReader implements Cloneable {
 		for (int i = 0; i < fieldCount; i++) {
 			fieldIndexOptions[i] = new IndexFieldOption(postingInput.readInt());
 		}
-		
-//		fieldSettingList = new FieldSetting[indexFieldSize];
-		
+
+		// fieldSettingList = new FieldSetting[indexFieldSize];
+
 		for (int i = 0; i < indexFieldSize; i++) {
 			IndexSetting is = indexSettingList.get(i);
-//			fieldSettingList[i] = schema.getFieldSetting(fieldId);
+			// fieldSettingList[i] = schema.getFieldSetting(fieldId);
 			String queryAnalyzerName = is.getQueryAnalyzer();
-//			queryTokenizerPool[i] = is.queryAnalyzerPool;
+			// queryTokenizerPool[i] = is.queryAnalyzerPool;
 			queryTokenizerPool[i] = schema.getAnalyzerPool(queryAnalyzerName);
 
-			if(queryTokenizerPool[i] != null) {
+			if (queryTokenizerPool[i] != null) {
 				logger.debug("QueryTokenizer[{}] = {}", i, queryTokenizerPool[i].getClass().getSimpleName());
-			}else{
-				//분석기를 못찾았을 경우.
+			} else {
+				// 분석기를 못찾았을 경우.
 				throw new IRException("Query analyzer not found >> " + queryAnalyzerName);
 			}
 
@@ -172,35 +173,33 @@ public class SearchIndexesReader implements Cloneable {
 
 		indexInput.close();
 
-		
 		PrimaryKeySetting primaryKeySetting = schema.schemaSetting().getPrimaryKeySetting();
 		List<PkRefSetting> pkRefSettingList = primaryKeySetting.getFieldList();
 		pkFieldSettingList = new FieldSetting[pkRefSettingList.size()];
-		
-		for(int i = 0; i < pkRefSettingList.size(); i++){
+
+		for (int i = 0; i < pkRefSettingList.size(); i++) {
 			pkFieldSettingList[i] = schema.getFieldSetting(pkRefSettingList.get(i).getRef());
 		}
-		
-		
+
 		pkReader = new PrimaryKeyIndexReader(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.primaryKeyMap);
 	}
 
 	@Override
 	public SearchIndexesReader clone() {
-		return new SearchIndexesReader(schema, postingInput.clone(), lexiconInput.clone(), indexInput.clone(), pkReader.clone(), memoryLexicon, fileLimit,
-			queryTokenizerPool, fieldIndexOptions);
+		return new SearchIndexesReader(schema, postingInput.clone(), lexiconInput.clone(), indexInput.clone(), pkReader.clone(), memoryLexicon,
+				fileLimit, queryTokenizerPool, fieldIndexOptions);
 	}
 
-	public OperatedClause getOperatedClause(Term term) throws IOException, IRException {
+	public OperatedClause getOperatedClause(Term term, HighlightInfo highlightInfo) throws IOException, IRException {
 		String[] fieldIdList = term.fieldname();
 		int[] fieldSequence = null;
-//		ArrayList<String>[] termList = null;
-//		ArrayList<String>[] orgList = null;
-//		if (summary != null) {
-//			fieldSequence = new int[fieldname.length];
-//			termList = new ArrayList[fieldname.length];
-//			orgList = new ArrayList[fieldname.length];
-//		}
+		// ArrayList<String>[] termList = null;
+		// ArrayList<String>[] orgList = null;
+		// if (summary != null) {
+		// fieldSequence = new int[fieldname.length];
+		// termList = new ArrayList[fieldname.length];
+		// orgList = new ArrayList[fieldname.length];
+		// }
 
 		Term.Type type = term.type();
 		int weight = term.weight();
@@ -209,28 +208,26 @@ public class SearchIndexesReader implements Cloneable {
 		CharVector fullTerm = new CharVector(term.termString());
 
 		// make all Alphabet to upperCase
-//		fullTerm.toUpperCase();
-//		CharVector token = new CharVector();
+		// fullTerm.toUpperCase();
+		// CharVector token = new CharVector();
 		OperatedClause totalClause = null;
 
 		String primaryKeyId = schema.schemaSetting().getPrimaryKeySetting().getId();
 
 		for (int i = 0; i < fieldIdList.length; i++) {
 			String fieldId = fieldIdList[i];
-			
-			
-//			if (summary != null) {
-//				termList[i] = new ArrayList<String>();
-//				orgList[i] = new ArrayList<String>(); // new ArrayList<String>(5);
-//			}
-			logger.debug("getOperatedClause {} at {}, type={}",term.termString(), fieldId, type);
-			
-			
+
+			// if (summary != null) {
+			// termList[i] = new ArrayList<String>();
+			// orgList[i] = new ArrayList<String>(); // new ArrayList<String>(5);
+			// }
+			logger.debug("getOperatedClause {} at {}, type={}", term.termString(), fieldId, type);
+
 			// if this is primary key field..
-			 if(fieldId.equals(primaryKeyId)){
-				
+			if (fieldId.equals(primaryKeyId)) {
+
 				OperatedClause idOperatedClause = getPrimaryKeyOperatedClause(term);
-				
+
 				if (idOperatedClause != null) {
 					if (totalClause == null) {
 						totalClause = idOperatedClause;
@@ -238,22 +235,25 @@ public class SearchIndexesReader implements Cloneable {
 						totalClause = new OrOperatedClause(totalClause, idOperatedClause);
 					}
 				} else {
-					totalClause = new TermOperatedClause(new PostingDocs(-1, fullTerm,  new PostingDoc[0], 0), 0);
+					totalClause = new TermOperatedClause(new PostingDocs(-1, fullTerm, new PostingDoc[0], 0), 0);
 				}
 
 				continue;
 			}
 
-//			int indexFieldSequence = schema.indexnames.get(fn);
+			// int indexFieldSequence = schema.indexnames.get(fn);
 			int indexFieldSequence = schema.getSearchIndexSequence(fieldId);
-//			logger.debug("fieldname = {} => {}", fn, indexFieldSequence);
-//			if (fieldSequence != null){
-//				fieldSequence[i] = schema.getFieldSequence(fn);
-//				
-//			}
-//				fieldSequence[i] = schemaSetting.fieldnames.get(fn);
-			 
-			 
+			
+			//필드별 사용된 analyzer를 map에 넣어주어 나중에 highlight시 해당 analyzer를 사용할수 있도록 한다.
+			if (highlightInfo != null) {
+				List<IndexSetting> list = schema.schemaSetting().getIndexSettingList();
+				IndexSetting indexSetting = list.get(indexFieldSequence);
+				String queryAnalyzerName = indexSetting.getQueryAnalyzer();
+				for (RefSetting refSetting : indexSetting.getFieldList()) {
+					highlightInfo.add(refSetting.getRef(), queryAnalyzerName, term.termString());
+				}
+			}
+
 			if (indexFieldSequence < 0) {
 				throw new IRException("Unknown Search Fieldname = " + fieldId);
 				// logger.error("Unknown Search Fieldname = "+fn);
@@ -265,164 +265,161 @@ public class SearchIndexesReader implements Cloneable {
 
 			try {
 				CharVectorTokenizer charVectorTokenizer = new CharVectorTokenizer(fullTerm);
-				
+
 				CharsRefTermAttribute termAttribute = null;
 				PositionIncrementAttribute positionAttribute = null;
 				SynonymAttribute synonymAttribute = null;
 				StopwordAttribute stopwordAttribute = null;
-				
+
 				MultiTermOperatedClause phraseOperatedClause = new MultiTermOperatedClause(fieldIndexOptions[indexFieldSequence].isStorePosition());
-				
+
 				int positionOffset = 0;
 				CharVector token = null;
-				
-				while(charVectorTokenizer.hasNext()){
+
+				while (charVectorTokenizer.hasNext()) {
 					CharVector eojeol = charVectorTokenizer.next();
-					
-					if(option.useWildcard()){
-						if(isWildcardTerm(eojeol)){
-							
+
+					if (option.useWildcard()) {
+						if (isWildcardTerm(eojeol)) {
+
 						}
 					}
-					
-					if(option.isBoolean()){
-						if(isBooeanOperator(eojeol)){
-							
+
+					if (option.isBoolean()) {
+						if (isBooeanOperator(eojeol)) {
+
 						}
 					}
-					
-					
+
 					logger.debug("find {} at {} by {}", eojeol, fieldId, tokenizer);
 					TokenStream tokenStream = tokenizer.tokenStream(fieldId, eojeol.getReader());
 					tokenStream.reset();
-					
-					if(tokenStream.hasAttribute(CharsRefTermAttribute.class)){
+
+					if (tokenStream.hasAttribute(CharsRefTermAttribute.class)) {
 						termAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
 					}
-					if(tokenStream.hasAttribute(PositionIncrementAttribute.class)){
+					if (tokenStream.hasAttribute(PositionIncrementAttribute.class)) {
 						positionAttribute = tokenStream.getAttribute(PositionIncrementAttribute.class);
 					}
 					CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
-					
-					if(tokenStream.hasAttribute(SynonymAttribute.class)){
+
+					if (tokenStream.hasAttribute(SynonymAttribute.class)) {
 						synonymAttribute = tokenStream.getAttribute(SynonymAttribute.class);
 					}
-					if(tokenStream.hasAttribute(StopwordAttribute.class)){
+					if (tokenStream.hasAttribute(StopwordAttribute.class)) {
 						stopwordAttribute = tokenStream.getAttribute(StopwordAttribute.class);
 					}
-					
-		//			PosTagAttribute tagAttribute = tokenStream.getAttribute(PosTagAttribute.class);
-					
-					while(tokenStream.incrementToken()){
-		
-						if(termAttribute != null){
+
+					// PosTagAttribute tagAttribute = tokenStream.getAttribute(PosTagAttribute.class);
+
+					while (tokenStream.incrementToken()) {
+
+						if (termAttribute != null) {
 							CharsRef charRef = termAttribute.charsRef();
 							char[] buffer = new char[charRef.length()];
 							System.arraycopy(charRef.chars, charRef.offset, buffer, 0, charRef.length);
 							token = new CharVector(buffer, 0, buffer.length);
-						}else{
+						} else {
 							token = new CharVector(charTermAttribute.buffer(), 0, charTermAttribute.length());
 						}
-						
+
 						logger.debug("token = {}", token);
-						//token.toUpperCase();
+						// token.toUpperCase();
 						//
 						// stopword
 						//
-						if(option.useStopword() && stopwordAttribute != null && stopwordAttribute.isStopword()){
+						if (option.useStopword() && stopwordAttribute != null && stopwordAttribute.isStopword()) {
 							logger.debug("stopword : {}", token);
 							continue;
 						}
-						
+
 						int queryPosition = 0;
-						if(positionAttribute != null){
+						if (positionAttribute != null) {
 							int position = positionAttribute.getPositionIncrement();
 							queryPosition = positionOffset + position; //
-							positionOffset = position + 2; //다음 position은 +2 부터 할당한다. 공백도 1만큼 차지.
+							positionOffset = position + 2; // 다음 position은 +2 부터 할당한다. 공백도 1만큼 차지.
 						}
 						PostingDocs termDocs = getPosting(indexFieldSequence, token);
-//						if (termList != null) {
-//							termList[i].add(token.toString());
-//							orgList[i].add(eojeol.toString());
-//						}
-						
-						//OperatedClause mainTermClause = new TermOperatedClause(termDocs, weight, ignoreTermFreq);
-						
+						// if (termList != null) {
+						// termList[i].add(token.toString());
+						// orgList[i].add(eojeol.toString());
+						// }
+
+						// OperatedClause mainTermClause = new TermOperatedClause(termDocs, weight, ignoreTermFreq);
+
 						//
-						//유사어확장.
+						// 유사어확장.
 						//
 						List<PostingDocs> synoymList = null;
-						
-						if(option.useSynonym() && synonymAttribute != null){
+
+						if (option.useSynonym() && synonymAttribute != null) {
 							CharVector[] synonymList = synonymAttribute.getSynonym();
-							if(synonymList != null){
+							if (synonymList != null) {
 								synoymList = new ArrayList<PostingDocs>(synonymList.length);
 								for (int j = 0; j < synonymList.length; j++) {
 									CharVector synonym = synonymList[j];
-									//여기서 synonym을 변경하면 사전의 entry가 변경되므로 변경하지 않도록한다.
+									// 여기서 synonym을 변경하면 사전의 entry가 변경되므로 변경하지 않도록한다.
 									synonym = synonym.duplicate();
 									//
-									//유사어도 ignore case
+									// 유사어도 ignore case
 									//
 									synonym.toUpperCase();
-									
+
 									logger.debug("synonym = {}", synonym);
 									PostingDocs synonymTermDocs = getPosting(indexFieldSequence, synonym);
-									
+
 									synoymList.add(synonymTermDocs);
-									
+
 									if (synonymTermDocs != null) {
 										// add synonym terms.
-//										if (termList != null) {
-//											// logger.debug("add synonym = {}", synonym);
-//											termList[i].add(synonym.toString());
-//											orgList[i].add("");
-//										}
-		
-//										// make synonym clauses
-//										// give synonym a lesser score
-//										OperatedClause clause = new TermOperatedClause(termDocs, weight - 1, ignoreTermFreq);
-//										if (synonymClause == null)
-//											synonymClause = clause;
-//										else
-//											synonymClause = new OrOperatedClause(synonymClause, clause);
+										// if (termList != null) {
+										// // logger.debug("add synonym = {}", synonym);
+										// termList[i].add(synonym.toString());
+										// orgList[i].add("");
+										// }
+
+										// // make synonym clauses
+										// // give synonym a lesser score
+										// OperatedClause clause = new TermOperatedClause(termDocs, weight - 1, ignoreTermFreq);
+										// if (synonymClause == null)
+										// synonymClause = clause;
+										// else
+										// synonymClause = new OrOperatedClause(synonymClause, clause);
 									}
 								}
 							}
 						}
-						
-						
-						phraseOperatedClause.addTerm(termDocs, queryPosition, synoymList);
-						
-//						if (synonymClause != null) {
-//							mainTermClause = new OrOperatedClause(mainTermClause, synonymClause);
-//						}
 
-//						if (oneFieldClause == null) {
-//							oneFieldClause = mainTermClause;
-//						} else {
-//							// append tokens with OR, AND
-//							if (type == Term.Type.AND) {
-//								oneFieldClause = new AndOperatedClause(oneFieldClause, mainTermClause);
-////								logger.debug("AND {}", oneFieldClause.toString());
-//							} else if (type == Term.Type.OR) {
-//								oneFieldClause = new OrOperatedClause(oneFieldClause, mainTermClause);
-//							}
-//						}
+						phraseOperatedClause.addTerm(termDocs, queryPosition, synoymList);
+
+						// if (synonymClause != null) {
+						// mainTermClause = new OrOperatedClause(mainTermClause, synonymClause);
+						// }
+
+						// if (oneFieldClause == null) {
+						// oneFieldClause = mainTermClause;
+						// } else {
+						// // append tokens with OR, AND
+						// if (type == Term.Type.AND) {
+						// oneFieldClause = new AndOperatedClause(oneFieldClause, mainTermClause);
+						// // logger.debug("AND {}", oneFieldClause.toString());
+						// } else if (type == Term.Type.OR) {
+						// oneFieldClause = new OrOperatedClause(oneFieldClause, mainTermClause);
+						// }
+						// }
 					}// while
 
-				
 					oneFieldClause = phraseOperatedClause;
 				}
-			}catch(IOException e){
+			} catch (IOException e) {
 				logger.error("", e);
 			} finally {
 				queryTokenizerPool[indexFieldSequence].releaseToPool(tokenizer);
 			}
 
-//			if (oneFieldClause == null) {
-//				oneFieldClause = new TermOperatedClause(null, weight);
-//			}
+			// if (oneFieldClause == null) {
+			// oneFieldClause = new TermOperatedClause(null, weight);
+			// }
 
 			if (totalClause == null) {
 				totalClause = oneFieldClause;
@@ -432,24 +429,23 @@ public class SearchIndexesReader implements Cloneable {
 
 		}// for
 
-//		if (summary != null) {
-//			logger.debug("fieldSequence.length = {}", fieldSequence.length);
-//			for (int i = 0; i < fieldSequence.length; i++) {
-//				if (termList[i].size() > 0) {
-//					logger.debug("summary-{} term size = {}", i, termList[i].size());
-//					HighlightInfo hi = new HighlightInfo(fieldSequence[i], termList[i], orgList[i], option.useHighlight(), option.useSummary());
-//					logger.debug("Add summanry {} = {}", i, hi);
-//					summary.add(hi);
-//				}
-//			}
-//		}
+		// if (summary != null) {
+		// logger.debug("fieldSequence.length = {}", fieldSequence.length);
+		// for (int i = 0; i < fieldSequence.length; i++) {
+		// if (termList[i].size() > 0) {
+		// logger.debug("summary-{} term size = {}", i, termList[i].size());
+		// HighlightInfo hi = new HighlightInfo(fieldSequence[i], termList[i], orgList[i], option.useHighlight(),
+		// option.useSummary());
+		// logger.debug("Add summanry {} = {}", i, hi);
+		// summary.add(hi);
+		// }
+		// }
+		// }
 
-		
 		return totalClause;
 
 	}
 
-	
 	private boolean isBooeanOperator(CharVector token1) {
 		// TODO Auto-generated method stub
 		return false;
@@ -472,47 +468,47 @@ public class SearchIndexesReader implements Cloneable {
 		quickSort(list, 0, list.length - 1);
 		size = removeRedundancy(list, list.length);
 		logger.debug("search primary key! size={}", size);
-		
+
 		PostingDoc[] termDocList = new PostingDoc[size];
 		int m = 0;
 		BytesDataOutput pkOutput = new BytesDataOutput();
-		
+
 		String[] pkValues = null;
 		for (int i = 0; i < size; i++) {
-			
+
 			pkOutput.reset();
-			
+
 			String pkValue = list[i];
-			
-			if(pkFieldSettingList.length > 1){
-				//결합 pk일경우 값들은 ';'로 구분되어있다.
+
+			if (pkFieldSettingList.length > 1) {
+				// 결합 pk일경우 값들은 ';'로 구분되어있다.
 				pkValues = pkValue.split(";");
-			}else{
-				pkValues = new String[]{pkValue};
+			} else {
+				pkValues = new String[] { pkValue };
 			}
-			
+
 			int docNo = -1;
-			
-			for(int j = 0; j< pkFieldSettingList.length; j++){
+
+			for (int j = 0; j < pkFieldSettingList.length; j++) {
 				FieldSetting fieldSetting = pkFieldSettingList[j];
 				Field field = fieldSetting.createField(pkValues[j]);
 				field.writeTo(pkOutput);
 			}
-			
+
 			docNo = pkReader.get(pkOutput.array(), 0, (int) pkOutput.position());
 			if (docNo != -1) {
 				termDocList[m] = new PostingDoc(docNo, 1);
 				m++;
 			}
 		}
-		
+
 		OperatedClause idOperatedClause = null;
 		if (m > 0) {
 			idOperatedClause = new TermOperatedClause(new PostingDocs(-1, new CharVector(termString), termDocList, m), weight);
 		}
 
 		return idOperatedClause;
-		
+
 	}
 
 	protected PostingDocs getPosting(String indexFieldId, CharVector singleTerm) throws IOException {
@@ -529,7 +525,7 @@ public class SearchIndexesReader implements Cloneable {
 			return null;
 		if (singleTerm.length == 0)
 			return null;
-		
+
 		long[] posInfo = new long[2];
 		boolean found = memoryLexicon[indexFieldSequence].binsearch(singleTerm, posInfo);
 
@@ -547,16 +543,18 @@ public class SearchIndexesReader implements Cloneable {
 
 				if (cmp == 0) {
 					pos = lexiconInput.readLong();
-					if(logger.isDebugEnabled()){
-						logger.debug("search success = {} at field-{}", new String(singleTerm.array, singleTerm.start, singleTerm.length),indexFieldSequence);
+					if (logger.isDebugEnabled()) {
+						logger.debug("search success = {} at field-{}", new String(singleTerm.array, singleTerm.start, singleTerm.length),
+								indexFieldSequence);
 					}
 					break;
 				} else if (cmp > 0) {
 					// if term value is greater than this term, there's no such
 					// word.
 					// search fail
-					if(logger.isDebugEnabled()){
-						logger.debug("search fail = {} at field-{}", new String(singleTerm.array, singleTerm.start, singleTerm.length), indexFieldSequence);
+					if (logger.isDebugEnabled()) {
+						logger.debug("search fail = {} at field-{}", new String(singleTerm.array, singleTerm.start, singleTerm.length),
+								indexFieldSequence);
 					}
 					break;
 				} else {
@@ -567,22 +565,22 @@ public class SearchIndexesReader implements Cloneable {
 		}
 
 		if (pos >= 0) {
-			
+
 			return getTermDocs(indexFieldSequence, singleTerm, pos);
 		}
 
 		return null;
 	}
 
-	private PostingDocs getTermDocs(int indexFieldSequence, CharVector singleTerm, long pos) throws IOException{
+	private PostingDocs getTermDocs(int indexFieldSequence, CharVector singleTerm, long pos) throws IOException {
 		// tt = System.currentTimeMillis();
 		postingInput.seek(pos);
 		int len = postingInput.readVInt();
 		int count = postingInput.readInt();
 		int lastDocNo = postingInput.readInt();
-	
+
 		PostingDoc[] termDocList = new PostingDoc[count];
-		
+
 		int prevId = -1;
 		int docId = -1;
 		for (int i = 0; i < count; i++) {
@@ -591,10 +589,9 @@ public class SearchIndexesReader implements Cloneable {
 			} else {
 				docId = postingInput.readVInt();
 			}
-			
 			int tf = postingInput.readVInt();
 			int[] positions = null;
-			if(tf > 0 && fieldIndexOptions[indexFieldSequence].isStorePosition()){
+			if (tf > 0 && fieldIndexOptions[indexFieldSequence].isStorePosition()) {
 				int prevPosition = -1;
 				positions = new int[tf];
 				for (int j = 0; j < tf; j++) {
@@ -604,18 +601,20 @@ public class SearchIndexesReader implements Cloneable {
 						positions[j] = postingInput.readVInt();
 					}
 					prevPosition = positions[j];
-					
+
 				}
-				
+
 			}
-			
+			logger.debug("getTermDocs {} >> {} : {} / {}", singleTerm, docId, tf, positions);
+
 			termDocList[i] = new PostingDoc(docId, tf, positions);
 			prevId = docId;
-			
-//			n++;
+
+			// n++;
 		}
 		return new PostingDocs(indexFieldSequence, singleTerm, termDocList, count);
 	}
+
 	protected PostingDocs getExtendedPosting(int indexFieldSequence, CharVector singleTerm) throws IOException {
 
 		// SUFFIX SEARCH
@@ -680,11 +679,11 @@ public class SearchIndexesReader implements Cloneable {
 			char[] term2 = lexiconInput.readUString();
 			int cmp = comparePrefixKey(term2, indexFieldSequence, singleTerm);
 			// logger.debug("compare key "+new String(term2)+" = "+cmp);
-			
-			//작거나 같으면 prefix에 부합한다.2013-05-28 swsong.
-    		if(cmp <= 0){
+
+			// 작거나 같으면 prefix에 부합한다.2013-05-28 swsong.
+			if (cmp <= 0) {
 				long pos = lexiconInput.readLong();
-				if (foundCount == 0){
+				if (foundCount == 0) {
 					startPos = pos;
 				}
 				foundCount++;
@@ -696,7 +695,7 @@ public class SearchIndexesReader implements Cloneable {
 				// logger.debug("search finish! = "+new String(singleTerm.array,
 				// singleTerm.start, singleTerm.length));
 				break;
-			} 
+			}
 		}
 
 		// logger.debug("startPos = {}, foundCount = {}", startPos, foundCount);
@@ -727,7 +726,8 @@ public class SearchIndexesReader implements Cloneable {
 		while (lexiconInput.position() < fileLimit[indexFieldSequence]) {
 			// lexiconInput
 			char[] term2 = lexiconInput.readUString();
-			int cmp = isIncludSearch ? compareIncludingKey(term2, indexFieldSequence, singleTerm) : compareSuffixKey(term2, indexFieldSequence, singleTerm);
+			int cmp = isIncludSearch ? compareIncludingKey(term2, indexFieldSequence, singleTerm) : compareSuffixKey(term2, indexFieldSequence,
+					singleTerm);
 			// logger.debug("compare key "+new String(term2)+" = "+cmp);
 			if (cmp == 0) {
 				long pos = lexiconInput.readLong();
@@ -752,11 +752,10 @@ public class SearchIndexesReader implements Cloneable {
 		return makeTermDocs(indexFieldSequence, singleTerm, startPos, foundCount);
 	}
 
-	protected PostingDocs getRangePosting(int indexFieldSequence, CharVector startTerm, CharVector endTerm)
-			throws IOException {
+	protected PostingDocs getRangePosting(int indexFieldSequence, CharVector startTerm, CharVector endTerm) throws IOException {
 		if (memoryLexicon[indexFieldSequence].size() == 0)
 			return null;
-		logger.debug("Range : {} ~ {}", startTerm,  endTerm);
+		logger.debug("Range : {} ~ {}", startTerm, endTerm);
 
 		int cmpValid = 0;
 		char[] startTermChars = new char[startTerm.length];
@@ -814,7 +813,7 @@ public class SearchIndexesReader implements Cloneable {
 				// smallers than this term.
 				// term2 = prevTerm;
 				// startPos = prevPos;
-//				logger.debug("range start2 term = {}", new String(term2));
+				// logger.debug("range start2 term = {}", new String(term2));
 				isStarted = true;
 
 				if (compareKey(term2, endTerm) == 0) {
@@ -870,16 +869,16 @@ public class SearchIndexesReader implements Cloneable {
 	int mpseq = 0;
 
 	private PostingDocs makeTermDocs(int indexFieldSequence, CharVector term, long startPos, int foundCount) throws IOException {
-		
+
 		if (foundCount > 0) {
 			FixedMinHeap<PostingDocsReader> heap = new FixedMinHeap<PostingDocsReader>(foundCount);
 			mpseq++;
 
 			long pos = startPos;
 			postingInput.seek(pos);
-			
+
 			List<PostingDocs> termDocsList = new ArrayList<PostingDocs>(foundCount);
-			
+
 			for (int c = 0; c < foundCount; c++) {
 				int prevId = -1;
 				// 위치정보를 가지고 포스팅을 읽는다.
@@ -888,25 +887,25 @@ public class SearchIndexesReader implements Cloneable {
 				int lastDocNo = postingInput.readInt();
 
 				// logger.debug("prefix posting {} / {}", c, foundCount);
-//	    		logger.debug("prefix posting len = {}", len);
-//	    		logger.debug("prefix posting count = {}", count);
-//	    		logger.debug("prefix posting lastDocNo = {}", lastDocNo);
+				// logger.debug("prefix posting len = {}", len);
+				// logger.debug("prefix posting count = {}", count);
+				// logger.debug("prefix posting lastDocNo = {}", lastDocNo);
 
 				PostingDoc[] termDocList = new PostingDoc[count];
-				
+
 				int docId = -1;
-				
+
 				for (int i = 0; i < count; i++) {
 					if (prevId >= 0) {
 						docId = postingInput.readVInt() + prevId + 1;
 					} else {
 						docId = postingInput.readVInt();
 					}
-					
+
 					int tf = postingInput.readVInt();
-					
+
 					int[] positions = null;
-					if(fieldIndexOptions[indexFieldSequence].isStorePosition()){
+					if (fieldIndexOptions[indexFieldSequence].isStorePosition()) {
 						int prevPosition = -1;
 						positions = new int[tf];
 						for (int j = 0; j < tf; j++) {
@@ -917,21 +916,21 @@ public class SearchIndexesReader implements Cloneable {
 							}
 							prevPosition = positions[j];
 						}
-						
+
 					}
-					
+
 					termDocList[i] = new PostingDoc(docId, tf, positions);
-					
+
 					prevId = docId;
 
 				}
 
-//				TermDocsReader r = new TermDocsReader(new TermDocs(indexFieldSequence, term, termDocList, count));
-				
+				// TermDocsReader r = new TermDocsReader(new TermDocs(indexFieldSequence, term, termDocList, count));
+
 				termDocsList.add(new PostingDocs(indexFieldSequence, term, termDocList, count));
-//				if (r.next()) {
-//					heap.push(r);
-//				}
+				// if (r.next()) {
+				// heap.push(r);
+				// }
 
 			}// for
 
@@ -940,31 +939,31 @@ public class SearchIndexesReader implements Cloneable {
 		return null;
 	}
 
-//	private void addTermDocs(TermDocs termDocs, int prevDocNo, int prevTfSum) {
-//
-//		if (termDocs.docs().length == termDocs.count()) {
-//			int newLength = (int) (termDocs.docs().length * 1.2);
-//			try {
-//				int[] newDocs = new int[newLength];
-//				int[] newTfs = new int[newLength];
-//				System.arraycopy(termDocs.docs(), 0, newDocs, 0, termDocs.docs().length);
-//				System.arraycopy(termDocs.tfs(), 0, newTfs, 0, termDocs.tfs().length);
-//
-//				termDocs.setDocs(newDocs);
-//				termDocs.setTfs(newTfs);
-//			} catch (OutOfMemoryError e) {
-//				logger.error("OOM! while allocating memory size = " + newLength, e);
-//				throw e;
-//			}
-//		}
-//
-//		int count = termDocs.count();
-//		termDocs.docs()[count] = prevDocNo;
-//		termDocs.tfs()[count] = prevTfSum;
-//		count++;
-//		termDocs.setCount(count);
-//		// logger.info("termDoc count = "+count+" : "+prevDocNo+", "+prevTfSum);
-//	}
+	// private void addTermDocs(TermDocs termDocs, int prevDocNo, int prevTfSum) {
+	//
+	// if (termDocs.docs().length == termDocs.count()) {
+	// int newLength = (int) (termDocs.docs().length * 1.2);
+	// try {
+	// int[] newDocs = new int[newLength];
+	// int[] newTfs = new int[newLength];
+	// System.arraycopy(termDocs.docs(), 0, newDocs, 0, termDocs.docs().length);
+	// System.arraycopy(termDocs.tfs(), 0, newTfs, 0, termDocs.tfs().length);
+	//
+	// termDocs.setDocs(newDocs);
+	// termDocs.setTfs(newTfs);
+	// } catch (OutOfMemoryError e) {
+	// logger.error("OOM! while allocating memory size = " + newLength, e);
+	// throw e;
+	// }
+	// }
+	//
+	// int count = termDocs.count();
+	// termDocs.docs()[count] = prevDocNo;
+	// termDocs.tfs()[count] = prevTfSum;
+	// count++;
+	// termDocs.setCount(count);
+	// // logger.info("termDoc count = "+count+" : "+prevDocNo+", "+prevTfSum);
+	// }
 
 	private int compareKey(char[] t, CharVector term) {
 

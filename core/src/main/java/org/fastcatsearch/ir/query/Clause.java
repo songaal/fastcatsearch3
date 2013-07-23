@@ -17,6 +17,7 @@
 package org.fastcatsearch.ir.query;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.search.SearchIndexesReader;
@@ -81,12 +82,12 @@ public class Clause {
 		return operator;
 	}
 
-	public OperatedClause getOperatedClause(SearchIndexesReader reader) throws ClauseException, IOException, IRException {
-		return getOperatedClause(-1, reader);
+	public OperatedClause getOperatedClause(SearchIndexesReader reader, HighlightInfo highlightInfo) throws ClauseException, IOException, IRException {
+		return getOperatedClause(-1, reader, highlightInfo);
 
 	}
 
-	public OperatedClause getOperatedClause(int docCount, SearchIndexesReader reader) throws ClauseException, IOException,
+	public OperatedClause getOperatedClause(int docCount, SearchIndexesReader reader, HighlightInfo highlightInfo) throws ClauseException, IOException,
 			IRException {
 		OperatedClause clause1 = null;
 		OperatedClause clause2 = null;
@@ -94,18 +95,9 @@ public class Clause {
 		if (operand1 != null) {
 			if (operand1 instanceof Term) {
 				Term term = (Term) operand1;
-				clause1 = reader.getOperatedClause(term);
-				// if(summary != null && (term.option().useSummary() || term.option().useHighlight())){
-				// logger.debug("(term.option() = {}", term.option());
-				// logger.debug("(term.option() & Term.SUMMARY) = {}", term.option().useSummary());
-				// logger.debug("(term.option() & Term.HIGHLIGHT) = {}", term.option().useHighlight());
-				// clause1 = reader.getOperatedClause(term);
-				// logger.debug("clause1 = {}", clause1);
-				// }else{
-				// clause1 = reader.getOperatedClause(term);
-				// }
+				clause1 = reader.getOperatedClause(term, highlightInfo);
 			} else {
-				clause1 = ((Clause) operand1).getOperatedClause(docCount, reader);
+				clause1 = ((Clause) operand1).getOperatedClause(docCount, reader, highlightInfo);
 			}
 		}
 
@@ -122,15 +114,21 @@ public class Clause {
 
 		if (operand2 instanceof Term) {
 			Term term = (Term) operand2;
-			clause2 = reader.getOperatedClause(term);
-			// if(summary != null && ((term.option() & Term.SUMMARY) > 0 || (term.option() & Term.HIGHLIGHT) > 0)){
-			// clause2 = reader.getOperatedClause(term, summary);
-			// }else{
-			// clause2 = reader.getOperatedClause(term);
-			// }
+			if (operator == Operator.NOT){
+				//NOT은 하이라이팅을 하지 않는다.
+				clause2 = reader.getOperatedClause(term, null);
+			}else{
+				clause2 = reader.getOperatedClause(term, highlightInfo);
+			}
+		
 		} else {
 			// unary NOT 필드는 두번째 항에 들어올수도 있으므로 docCount를 넣어주도록 한다.
-			clause2 = ((Clause) operand2).getOperatedClause(docCount, reader);
+			if (operator == Operator.NOT){
+				//NOT은 하이라이팅을 하지 않는다.
+				clause2 = ((Clause) operand2).getOperatedClause(docCount, reader, null);
+			}else{
+				clause2 = ((Clause) operand2).getOperatedClause(docCount, reader, highlightInfo);
+			}
 		}
 
 		if (operator == Operator.AND)

@@ -1,6 +1,7 @@
 package org.fastcatsearch.ir.search;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.document.Document;
@@ -17,6 +18,7 @@ import org.fastcatsearch.ir.query.Clause;
 import org.fastcatsearch.ir.query.ClauseException;
 import org.fastcatsearch.ir.query.Filters;
 import org.fastcatsearch.ir.query.Groups;
+import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.HitFilter;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.OperatedClause;
@@ -27,6 +29,10 @@ import org.fastcatsearch.ir.settings.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Single Thread로 동작한다.
+ * 동시에 여러 thread에서 함께 사용할 수 없으며, 한번에 하나의 검색에만 사용.
+ * */
 public class SegmentSearcher {
 	private static Logger logger = LoggerFactory.getLogger(SegmentSearcher.class);
 
@@ -41,9 +47,12 @@ public class SegmentSearcher {
 
 	private int totalCount;
 
+	private HighlightInfo highlightInfo;
+
 	public SegmentSearcher(SegmentReader segmentReader) {
 		this.segmentReader = segmentReader;
 		this.schema = segmentReader.schema();
+		highlightInfo = new HighlightInfo();
 	}
 
 	public Document getDocument(int docNo) throws IOException {
@@ -55,7 +64,7 @@ public class SegmentSearcher {
 
 	public Hit search(Query query) throws ClauseException, IOException, IRException {
 		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), query.getGroupFilters(), query.getSorts());
-		return new Hit(rankHitList(), makeGroupData(), totalCount);
+		return new Hit(rankHitList(), makeGroupData(), totalCount, highlightInfo);
 	}
 
 	public GroupHit doGrouping(Query query) throws ClauseException, IOException, IRException {
@@ -77,7 +86,7 @@ public class SegmentSearcher {
 		if (clause == null) {
 			operatedClause = new AllDocumentOperatedClause(docCount);
 		} else {
-			operatedClause = clause.getOperatedClause(docCount, segmentReader.newSearchIndexesReader());
+			operatedClause = clause.getOperatedClause(docCount, segmentReader.newSearchIndexesReader(), highlightInfo);
 		}
 
 		// filter
@@ -136,6 +145,8 @@ public class SegmentSearcher {
 				RankInfo rankInfo = new RankInfo();
 				if (operatedClause.next(rankInfo)) {
 					rankInfoList[nread] = rankInfo;
+					
+					logger.debug("search rankInfo {}", rankInfo);
 				} else {
 					exausted = true;
 					break;
@@ -210,6 +221,8 @@ public class SegmentSearcher {
 			HitElement el = ranker.pop();
 			// local문서번호를 global문서번호로 바꿔준다.
 			el.docNo(baseDocNo + el.docNo());
+			
+			logger.debug("rank hit {} + {}", baseDocNo, el.docNo());
 			hitStack.push(el);
 
 		}

@@ -62,7 +62,7 @@ public class PostingBuffer {
 		}
 	}
 	public void addOne(int docNo, int position) throws IRException{
-		
+		logger.debug("add >> {}, {}", docNo, position);
 		//동일한 문서번호면 freq를 올려준다.
 		if(docNo == lastDocNo){
 			lastDocFrequency++;
@@ -86,9 +86,9 @@ public class PostingBuffer {
 	protected void writeLastDocInfo(){
 		ensurePostingVectorCapasity(10);
 		//lastDocDelta 기록.
-		IOUtil.writeVariableByte(postingVector, lastDocDelta);
+		IOUtil.writeVInt(postingVector, lastDocDelta);
 		//lastDocFrequency 기록.
-		IOUtil.writeVariableByte(postingVector, lastDocFrequency);
+		IOUtil.writeVInt(postingVector, lastDocFrequency);
 		
 		lastDocFrequency = 0;
 	}
@@ -117,7 +117,7 @@ public class PostingBuffer {
 		return lastDocNo;
 	}
 	public int firstDocNo(){
-		return IOUtil.readVariableByte(postingVector.bytes, 8);
+		return IOUtil.readVInt(postingVector.bytes, 8);
 	}
 	
 	public BytesBuffer buffer(){

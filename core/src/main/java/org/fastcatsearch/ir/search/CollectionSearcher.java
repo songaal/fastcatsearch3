@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.common.SettingException;
@@ -29,6 +31,7 @@ import org.fastcatsearch.ir.io.FixedHitReader;
 import org.fastcatsearch.ir.io.FixedMinHeap;
 import org.fastcatsearch.ir.query.ClauseException;
 import org.fastcatsearch.ir.query.Groups;
+import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.Result;
@@ -254,19 +257,20 @@ public class CollectionSearcher {
 			dataMerger = new GroupDataMerger(groups, collectionHandler.segmentSize());
 		}
 		// Set<HighlightInfo> totalSummarySet = new HashSet<HighlightInfo>();
+
+		// 하이라이팅에 사용될 필드별 analyzer 들.
+		HighlightInfo highlightInfo = null;
+
 		int totalSize = 0;
 		try {
 			for (int i = 0; i < collectionHandler.segmentSize(); i++) {
 				Hit hit = collectionHandler.segmentSearcher(i).search(q);
-				// List<HighlightInfo> summaryList = hit.getSummary();
-				//
-				// for (int j = 0; j < summaryList.size(); j++) {
-				// HighlightInfo si = summaryList.get(j);
-				// logger.debug("HighlightInfo = {}", si);
-				// totalSummarySet.add(si);
-				// }
+				if (highlightInfo == null) {
+					highlightInfo = hit.highlightInfo();
+				}
 				totalSize += hit.totalCount();
 				FixedHitReader hitReader = hit.hitStack().getReader();
+
 				GroupData groupData = hit.groupData();
 
 				// posting data
@@ -316,7 +320,7 @@ public class CollectionSearcher {
 			hitMerger.heapify();
 		}
 
-		result = makeSearchResult(q, collectionHandler.schema(), totalHit, totalSize);
+		result = makeSearchResult(q, collectionHandler.schema(), totalHit, totalSize, highlightInfo);
 
 		// TODO
 		// group function에서 생성된 경과를 groupResultGenerator에서 char key 로 변경하기 때문에 type이 필요하게 되었다.
@@ -339,13 +343,13 @@ public class CollectionSearcher {
 		return result;
 	}
 
-	public Result makeSearchResult(Query q, Schema schema, FixedHitQueue totalHit, int totalSize) throws IOException {
+	public Result makeSearchResult(Query q, Schema schema, FixedHitQueue totalHit, int totalSize, HighlightInfo highlightInfo) throws IOException {
 		Metadata meta = q.getMeta();
-		List<View> fieldNames = q.getViews();
-		String[] fieldNameList = new String[fieldNames.size()];
+		List<View> viewList = q.getViews();
+		String[] fieldNameList = new String[viewList.size()];
 		int[] fieldSummarySize = new int[schema.getFieldSize()];
-		for (int i = 0; i < fieldNames.size(); i++) {
-			View view = fieldNames.get(i);
+		for (int i = 0; i < viewList.size(); i++) {
+			View view = viewList.get(i);
 			fieldNameList[i] = view.fieldId();
 			int num = collectionHandler.schema().getFieldSequence(fieldNameList[i]);
 			if (num >= 0) {
@@ -362,22 +366,11 @@ public class CollectionSearcher {
 		Document[] eachDocList = new Document[realSize];
 		int[] eachDocIds = new int[realSize];
 
-		// int[] tags = new int[realSize]; //to tell which segment the result doc is in.
-		// int[][] eachDocIds = new int[segmentSize][];
-		// int[][] eachDocScores = new int[segmentSize][];
-		// Document[][] eachDocList = new Document[segmentSize][];
-		// int[] cnt = new int[segmentSize];
-
-		// for (int i = 0; i < segmentSize; i++) {
-		// eachDocIds[i] = new int[realSize];
-		// eachDocScores[i] = new int[realSize];
-		// }
-
 		int idx = 0;
 		while (hitReader.next()) {
 			HitElement e = hitReader.read();
 
-			// logger.debug(e.docNo()+":"+e.score());
+			logger.debug("FOUND {}:{}", e.docNo(), e.score());
 			int docNo = e.docNo();
 			float score = e.score();
 			int segmentNumber = -1;
@@ -405,23 +398,6 @@ public class CollectionSearcher {
 
 		}
 
-		// Make document list
-		// read documents as many as cnt at each segments
-		// long st = System.currentTimeMillis();
-		// // logger.debug("==== Read Documnet ====");
-		// for (int i = 0; i < segmentSize; i++) {
-		// eachDocList[i] = new Document[cnt[i]];
-		// for (int j = 0; j < cnt[i]; j++) {
-		// int docNo = eachDocIds[i][j];
-		// int score = eachDocScores[i][j];
-		// Document doc = documentReaderList[i].readDocument(docNo);
-		// // logger.debug("DOC {} >> {}",docNo, doc);
-		// doc.setScore(score);
-		// eachDocList[i][j] = doc;
-		// }
-		// }
-		// logger.debug("read doc time = "+(System.currentTimeMillis() - st));
-
 		// each segment's read position
 		// int[] pos = new int[segmentSize];
 		Row[] row = new Row[realSize];
@@ -432,7 +408,7 @@ public class CollectionSearcher {
 		List<View> views = q.getViews();
 		Iterator<View> iter = views.iterator();
 		int fieldSize = views.size();
-		int[] fieldNumList = new int[fieldSize];
+		int[] fieldSequenceList = new int[fieldSize];
 
 		// search 조건에 입력한 요약옵션(8)과 별도로 view에 셋팅한 요약길이를 확인하여 검색필드가 아니더라도 요약해주도록함.
 		int[] extraSnipetSize = new int[fieldSize];
@@ -453,7 +429,7 @@ public class CollectionSearcher {
 				i = collectionHandler.schema().getFieldSequence(fieldId);
 			}
 
-			fieldNumList[jj] = i;
+			fieldSequenceList[jj] = i;
 
 			if (v.summarySize() > 0) {
 				extraSnipetSize[jj] = v.summarySize();
@@ -462,72 +438,55 @@ public class CollectionSearcher {
 				extraSnipetSize[jj] = -1;
 				fragmentSize[jj] = -1;
 			}
+			extraUseHighlight[jj] = v.highlight();
 
 			jj++;
 		}
-		int size = schema.getFieldSize();
-		// HighlightInfo[] hilightInfoList = new HighlightInfo[size];
-		// Iterator<HighlightInfo> summaryIter = totalSummarySet.iterator();
-		// // logger.debug("totalSummarySet = "+totalSummarySet.size());
-		// while (summaryIter.hasNext()) {
-		// HighlightInfo si = (HighlightInfo) summaryIter.next();
-		// logger.debug("si = {}", si);
-		// int fieldNum = si.fieldNumber();
-		// if (hilightInfoList[fieldNum] == null) {
-		// hilightInfoList[fieldNum] = si;
-		// if (fieldSummarySize[fieldNum] != -1) {
-		// hilightInfoList[fieldNum].setSummarySize(fieldSummarySize[fieldNum]);
-		// logger.debug("Setting summary field no={}, summary size={}", fieldNum, fieldSummarySize[fieldNum]);
-		// }
-		// } else {
-		// // ignore
-		// // throw new IRException("The same fieldname appears more than once in clauses. field number = "+fn[j]);
-		// // TODO The same fieldname appears more than once in clauses.
-		// }
-		// hilightInfoList[fieldNum].setFieldSetting(collectionHandler.schema().schemaSetting().getFieldSettingList().get(fieldNum));
-		// }
 
-		// view에 셋팅한 요약길이로 hilightInfoList의 요약길이를 다시 셋팅해준다.
-		// for (int i = 0; i < fieldSize; i++) {
-		// int fieldNum = fieldNumList[i];
-		// if (extraSnipetSize[i] > 0 && fieldNum != UnknownField.fieldNumber) {
-		// if (hilightInfoList[fieldNum] == null) {
-		// hilightInfoList[fieldNum] = new HighlightInfo(fieldNum, null, null, false, true);
-		// hilightInfoList[fieldNum].setSummarySize(extraSnipetSize[i]);
-		// } else {
-		// hilightInfoList[fieldNum].setSummarySize(extraSnipetSize[i]);
-		// }
-		// }
-		// }
+		int size = schema.getFieldSize();
 
 		for (int i = 0; i < realSize; i++) {
 			Document document = eachDocList[i];
 			row[i] = new Row(fieldSize);
 			for (int j = 0; j < fieldSize; j++) {
 
-				// TODO analyzer와 query string을 받아온다.
-				Analyzer analyzer = null;
-				String query = "검색문자열";
-
-				int fieldNum = fieldNumList[j];
-				if (fieldNum == ScoreField.fieldNumber) {
+				int fieldSequence = fieldSequenceList[j];
+				if (fieldSequence == ScoreField.fieldNumber) {
 					float score = document.getScore();
 					row[i].put(j, Float.toString(score).toCharArray());
-				} else if (fieldNum == DocNoField.fieldNumber) {
+				} else if (fieldSequence == DocNoField.fieldNumber) {
 					row[i].put(j, Integer.toString(eachDocIds[i]).toCharArray());
-				} else if (fieldNum == UnknownField.fieldNumber) {
+				} else if (fieldSequence == UnknownField.fieldNumber) {
 					row[i].put(j, UnknownField.value().toCharArray());
 				} else {
-					Field field = document.get(fieldNum);
+					Field field = document.get(fieldSequence);
 					String text = field.toString();
+
 					if (has != null) {
-						String[] tags = null;
-						// TODO meta.option을 확인하여 Force Highlight면 모든 필드에 대해 Highlighting을 수행하도록 한다.
-						if (extraUseHighlight[j]) {
-							tags = meta.tags();
+						String analyzerId = highlightInfo.getAnalyzer(fieldNameList[j]);
+						String queryString = highlightInfo.getQueryString(fieldNameList[j]);
+						if (analyzerId != null && queryString != null) {
+							AnalyzerPool analyzerPool = schema.getAnalyzerPool(analyzerId);
+							if (analyzerPool != null) {
+								Analyzer analyzer = analyzerPool.getFromPool();
+								if (analyzer != null) {
+									try {
+										String[] tags = null;
+										// TODO meta.option을 확인하여 Force Highlight면 모든 필드에 대해 Highlighting을 수행하도록 한다.
+										if (extraUseHighlight[j]) {
+											tags = meta.tags();
+										}
+										
+										text = has.highlight(analyzer, text, queryString, tags, extraSnipetSize[j], fragmentSize[j]);
+									} finally {
+										analyzerPool.releaseToPool(analyzer);
+									}
+								}
+							}
 						}
-						text = has.highlight(analyzer, text, query, tags, extraSnipetSize[j], fragmentSize[j]);
+
 					}
+
 					row[i].put(j, text.toCharArray());
 
 				}
@@ -565,7 +524,7 @@ public class CollectionSearcher {
 		// 이 배열의 index번호는 세그먼트번호.
 		int[] segEndNums = new int[segmentSize];
 		ArrayList<Row> rowList = new ArrayList<Row>();
-		
+
 		for (int i = 0; i < segmentSize; i++) {
 			int docCount = collectionHandler.segmentReader(i).segmentInfo().getRevisionInfo().getDocumentCount();
 			totalSize += docCount;
@@ -577,8 +536,8 @@ public class CollectionSearcher {
 			logger.error("There is no indexed data.");
 			throw new IRException("색인된 데이터가 없습니다.");
 		}
-//		File lastSegDir = lastSegInfo.getSegmentDir();
-//		int lastSegRevision = lastSegInfo.getLastRevision();
+		// File lastSegDir = lastSegInfo.getSegmentDir();
+		// int lastSegRevision = lastSegInfo.getLastRevision();
 
 		// 총문서갯수와 시작번호에 근거해서 이 시작번호가 어느 세그먼트에 속하고 이 세그먼트의 어느 위치에서 시작되는지를 구한다.
 		// [세스머튼번호,시작번호,끝번호][2] = matchSegment(int[][], 조회시작변수);
@@ -592,8 +551,8 @@ public class CollectionSearcher {
 			int endNo = matchSeg[i][2];
 			// logger.debug("segNo: "+segNo+"startNo "+startNo+"endNo "+endNo);
 			SegmentReader segmentReader = collectionHandler.segmentReader(segNo);
-//			File targetDir = segmentReader.getSegmentDir();
-//			int lastRevision = segmentReader.getLastRevision();
+			// File targetDir = segmentReader.getSegmentDir();
+			// int lastRevision = segmentReader.getLastRevision();
 			int revision = segmentReader.segmentInfo().getRevision();
 			DocumentReader reader = new DocumentReader(collectionHandler.schema(), segmentReader.segmentDir());
 			BitSet deleteSet = null;
@@ -669,21 +628,21 @@ public class CollectionSearcher {
 		// 이 배열의 index번호는 세그먼트번호.
 		ArrayList<Row> rowList = new ArrayList<Row>();
 
-//		SegmentInfo lastSegInfo = collectionHandler.getSegmentInfo(segmentSize - 1);
-//		File lastSegDir = lastSegInfo.getSegmentDir();
-//		int lastSegRevision = lastSegInfo.getLastRevision();
+		// SegmentInfo lastSegInfo = collectionHandler.getSegmentInfo(segmentSize - 1);
+		// File lastSegDir = lastSegInfo.getSegmentDir();
+		// int lastSegRevision = lastSegInfo.getLastRevision();
 
 		for (int i = 0; i < segmentSize; i++) {
 			SegmentReader segmentReader = collectionHandler.segmentReader(i);
-//			File targetDir = segmentReader.getSegmentDir();
-//			int lastRevision = segmentReader.getLastRevision();
+			// File targetDir = segmentReader.getSegmentDir();
+			// int lastRevision = segmentReader.getLastRevision();
 			int revision = segmentReader.segmentInfo().getRevision();
 			DocumentReader reader = new DocumentReader(collectionHandler.schema(), segmentReader.segmentDir());
 			BitSet deleteSet = null;
 
 			if (i < segmentSize - 1) {
-				deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet,
-						Integer.toString(i)));
+				deleteSet = new BitSet(segmentReader.revisionDir(),
+						IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, Integer.toString(i)));
 			} else {
 				deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.docDeleteSet);
 			}

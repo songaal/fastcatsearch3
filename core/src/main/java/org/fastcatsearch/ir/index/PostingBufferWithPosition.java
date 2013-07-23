@@ -52,9 +52,9 @@ public class PostingBufferWithPosition extends PostingBuffer {
 		
 		//동일한 문서번호면 freq를 올려준다.
 		if(docNo == lastDocNo){
-			IOUtil.writeVariableByte(positionBuffer, position - lastDocPosition - 1);
+			IOUtil.writeVInt(positionBuffer, position - lastDocPosition - 1);
 		}else if(docNo > lastDocNo){
-			IOUtil.writeVariableByte(positionBuffer, position);
+			IOUtil.writeVInt(positionBuffer, position);
 		}
 		lastDocPosition = position;
 	}

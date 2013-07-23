@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
 import org.apache.lucene.search.highlight.Scorer;
 import org.apache.lucene.search.highlight.TextFragment;
@@ -19,7 +20,7 @@ public class TokenizedTermScorer implements Scorer {
 	float maxTermWeight = 0;
 	private HashMap<String,WeightedTerm> termsToFind;
 
-	private CharsRefTermAttribute termAtt;
+	private CharTermAttribute termAtt;
 
 	public TokenizedTermScorer(WeightedTerm[] weightedTerms) {
 		termsToFind = new HashMap<String,WeightedTerm>();
@@ -47,7 +48,7 @@ public class TokenizedTermScorer implements Scorer {
 		//
 		//
 		//
-		termAtt = tokenStream.addAttribute(CharsRefTermAttribute.class);
+		termAtt = tokenStream.addAttribute(CharTermAttribute.class);
 		return null;
 	}
 

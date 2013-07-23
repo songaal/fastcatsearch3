@@ -1,5 +1,8 @@
 package org.apache.lucene.search.highlight;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,48 +21,51 @@ package org.apache.lucene.search.highlight;
  */
 
 /**
- * Simple {@link Formatter} implementation to highlight terms with a pre and
- * post tag.
+ * Simple {@link Formatter} implementation to highlight terms with a pre and post tag.
  */
 public class SimpleHTMLFormatter implements Formatter {
-  
-  private static final String DEFAULT_PRE_TAG = "<B>";
-  private static final String DEFAULT_POST_TAG = "</B>";
-  
-  private String preTag;
-  private String postTag;
+	private static Logger logger = LoggerFactory.getLogger(SimpleHTMLFormatter.class);
 
-  public SimpleHTMLFormatter(String preTag, String postTag) {
-	  System.out.println(preTag+":"+postTag);
-	  if(preTag != null && preTag.trim().length() > 0){
-		  this.preTag = preTag;
-	  }
-	  if(postTag != null && postTag.trim().length() > 0){
-		  this.postTag = postTag;
-	  }
-  }
+	private static final String DEFAULT_PRE_TAG = "<B>";
+	private static final String DEFAULT_POST_TAG = "</B>";
 
-  /** Default constructor uses HTML: &lt;B&gt; tags to markup terms. */
-  public SimpleHTMLFormatter() {
-    this(DEFAULT_PRE_TAG, DEFAULT_POST_TAG);
-  }
+	private String preTag;
+	private String postTag;
 
-  /* (non-Javadoc)
-   * @see org.apache.lucene.search.highlight.Formatter#highlightTerm(java.lang.String, org.apache.lucene.search.highlight.TokenGroup)
-   */
-  @Override
-  public String highlightTerm(String originalText, TokenGroup tokenGroup) {
-    if (tokenGroup.getTotalScore() <= 0) {
-      return originalText;
-    }
+	public SimpleHTMLFormatter(String preTag, String postTag) {
+		if (preTag != null && preTag.trim().length() > 0) {
+			this.preTag = preTag;
+		}
+		if (postTag != null && postTag.trim().length() > 0) {
+			this.postTag = postTag;
+		}
+	}
 
-    // Allocate StringBuilder with the right number of characters from the
-    // beginning, to avoid char[] allocations in the middle of appends.
-    StringBuilder returnBuffer = new StringBuilder(preTag.length() + originalText.length() + postTag.length());
-    returnBuffer.append(preTag);
-    returnBuffer.append(originalText);
-    returnBuffer.append(postTag);
-    return returnBuffer.toString();
-  }
+	/** Default constructor uses HTML: &lt;B&gt; tags to markup terms. */
+	public SimpleHTMLFormatter() {
+		this(DEFAULT_PRE_TAG, DEFAULT_POST_TAG);
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.apache.lucene.search.highlight.Formatter#highlightTerm(java.lang.String,
+	 * org.apache.lucene.search.highlight.TokenGroup)
+	 */
+	@Override
+	public String highlightTerm(String originalText, TokenGroup tokenGroup) {
+		if (tokenGroup.getTotalScore() <= 0) {
+			return originalText;
+		}
+		if(preTag == null || postTag == null){
+			return originalText; 
+		}
+		// Allocate StringBuilder with the right number of characters from the
+		// beginning, to avoid char[] allocations in the middle of appends.
+		StringBuilder returnBuffer = new StringBuilder(preTag.length() + originalText.length() + postTag.length());
+		returnBuffer.append(preTag);
+		returnBuffer.append(originalText);
+		returnBuffer.append(postTag);
+		return returnBuffer.toString();
+	}
 }

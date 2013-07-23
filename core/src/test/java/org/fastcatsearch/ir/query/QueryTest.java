@@ -80,7 +80,7 @@ public class QueryTest extends TestCase{
 		Metadata meta2 = q.getMeta();
 		int start = meta2.start();
 		int rows  = meta2.rows();
-		OperatedClause oc = c2.getOperatedClause(reader);
+		OperatedClause oc = c2.getOperatedClause(reader, null);
 		RankInfo docInfo = new RankInfo();
 		int count = 0;
 		

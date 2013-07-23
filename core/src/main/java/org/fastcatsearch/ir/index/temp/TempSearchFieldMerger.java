@@ -128,10 +128,10 @@ public class TempSearchFieldMerger {
 							if(k == 0){
 								tempPostingOutput.writeBytes(buf.array(), buf.pos(), buf.remaining());
 							}else{
-								int firstNo = IOUtil.readVariableByte(buf);
+								int firstNo = IOUtil.readVInt(buf);
 								int newDocNo = firstNo - prevDocNo - 1;
 								
-								IOUtil.writeVariableByte(tempPostingOutput, newDocNo);
+								IOUtil.writeVInt(tempPostingOutput, newDocNo);
 								tempPostingOutput.writeBytes(buf.array(), buf.pos(), buf.remaining());
 							}
 							
@@ -165,12 +165,12 @@ public class TempSearchFieldMerger {
 						termCount++;
 					}
 					
-//					try{
-//						buffers[bufferCount++] = reader[idx].buffer();
-//					}catch(ArrayIndexOutOfBoundsException e){
-//						logger.info("{}:{} bufferCount = {}, buffers.len = {}, idx = {}, reader = {}", cvOld, cv, bufferCount, buffers.length, idx, reader.length);
-//						throw e;
-//					}
+					try{
+						buffers[bufferCount++] = reader[idx].buffer();
+					}catch(ArrayIndexOutOfBoundsException e){
+						logger.info("{}:{} bufferCount = {}, buffers.len = {}, idx = {}, reader = {}", cvOld, cv, bufferCount, buffers.length, idx, reader.length);
+						throw e;
+					}
 					//backup cv to old
 					cvOld = cv;
 					

@@ -144,7 +144,7 @@ public class SearchIndexesWriter {
 	}
 
 	public void write(Document doc) throws IRException, IOException {
-		write(doc, count++);
+		write(doc, count);
 	}
 
 	public void write(Document doc, int docNo) throws IRException, IOException {
@@ -159,7 +159,7 @@ public class SearchIndexesWriter {
 			}
 		}
 
-		if (count % workMemoryCheck == 0) {
+		if ((count + 1) % workMemoryCheck == 0) {
 			int workingMemorySize = checkWorkingMemorySize();
 			logger.debug("SearchField Memory = {}, limit = {}", Formatter.getFormatSize(workingMemorySize), Formatter.getFormatSize(workMemoryLimit));
 			if (workingMemorySize > workMemoryLimit) {
@@ -268,11 +268,6 @@ public class SearchIndexesWriter {
 	private void clearMemoryPosting() throws IOException {
 		for (int i = 0; i < memoryPosting.length; i++) {
 			memoryPosting[i].clear();
-			// if(fieldIndexOptions[i].isStorePosition()){
-			// memoryPosting[i] = new MemoryPostingWithPosition(indexBucketSize);
-			// }else{
-			// memoryPosting[i] = new MemoryPosting(indexBucketSize);
-			// }
 		}
 	}
 

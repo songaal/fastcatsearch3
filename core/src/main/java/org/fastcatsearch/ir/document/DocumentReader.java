@@ -95,7 +95,6 @@ public class DocumentReader implements Cloneable {
 		
 		if(docNo != lastDocNo){
 			positionInput.seek(docNo * IOUtil.SIZE_OF_LONG);
-			
 			long pos = positionInput.readLong();
 			//find a document block
 			docInput.seek(pos);

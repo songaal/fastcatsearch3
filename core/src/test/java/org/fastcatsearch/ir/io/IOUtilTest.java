@@ -47,27 +47,16 @@ public class IOUtilTest extends TestCase{
 			assertEquals(expected, actual);
 		}
 	}
-	public void _testLong() throws IOException{
-		BytesBuffer buffer = new BytesBuffer(8);
-		
-		for(int i=0;i<TESTNUM;i++){
-			long expected = r.nextLong();
-			IOUtil.writeLong(buffer, expected);
-			buffer.clear();
-			long actual = IOUtil.readLong(buffer);
-			buffer.clear();
-			assertEquals(expected, actual);
-		}
-	}
+	
 	public void testVariableByteCode() throws IOException{
 		BytesBuffer buffer = new BytesBuffer(10);
 		
 		for(int i=0;i<TESTNUM;i++){
 			int expected = r.nextInt();
 			int len = 0;
-			IOUtil.writeVariableByte(buffer, expected);
+			IOUtil.writeVInt(buffer, expected);
 			buffer.clear();
-			int actual = IOUtil.readVariableByte(buffer);
+			int actual = IOUtil.readVInt(buffer);
 			buffer.clear();
 			assertEquals(expected, actual);
 			assertEquals(len, IOUtil.lenVariableByte(expected));
@@ -75,56 +64,14 @@ public class IOUtilTest extends TestCase{
 		}
 	}
 	
-	public void _testShort() throws IOException{
-		BytesBuffer buffer = new BytesBuffer(2);
-		
-		for(int i=0;i<TESTNUM;i++){
-			short expected = (short)(r.nextInt() & 0xFFFF);
-			IOUtil.writeShort(buffer, expected);
-			buffer.clear();
-			short actual = IOUtil.readShort(buffer);
-			buffer.clear();
-			assertEquals(expected, actual);
-		}
-	}
 	
-	public void testByteBuffer() throws IOException{
-		ByteBuffer buffer = ByteBuffer.allocate(4);
-		int i = 111111;
-		
-		File f = new File("test.txt");
-		
-		BufferedFileOutput out = new BufferedFileOutput(f);
-		out.writeInt(i);
-		out.close();
-		
-		BufferedFileInput in = new BufferedFileInput(f);
-		System.out.println("bfi = "+in.readInt());
-		in.close();
-		System.out.println((i >>> 24) & 0xFF);
-		System.out.println((i >>> 16) & 0xFF);
-		System.out.println((i >>> 8) & 0xFF);
-		System.out.println((i >>> 0) & 0xFF);
-		
-		FileChannel fc = new FileInputStream(f).getChannel();
-		fc.read(buffer);
-		buffer.flip();
-		System.out.println("-----");
-		fc.close();
-		
-		f.delete();
-		
-		int j = IOUtil.readInt(buffer);
-		System.out.println("J = "+j);
-		
-	}
 	
 	public void testVBLen(){
 		BytesBuffer buf = new BytesBuffer(5);
 		
 		for (int i = 100000000; i < Integer.MAX_VALUE; i++) {
 			buf.clear();
-			IOUtil.writeVariableByte(buf, i);
+			IOUtil.writeVInt(buf, i);
 			buf.flip();
 			
 			int len = IOUtil.lenVariableByte(i);

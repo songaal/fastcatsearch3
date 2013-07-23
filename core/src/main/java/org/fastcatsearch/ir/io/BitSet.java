@@ -37,22 +37,29 @@ public class BitSet {
 	public BitSet(int size){
 		bitdata = new long[size];
 	}
-	
 	public BitSet(File dir, String filename) throws IOException{
-		this(new File(dir, filename));
+		this(dir, filename, false);
+	}
+	public BitSet(File dir, String filename, boolean create) throws IOException{
+		this(new File(dir, filename), create);
 	}
 	
 	public BitSet(File file) throws IOException{
+		this(file, false);
+	}
+	public BitSet(File file, boolean create) throws IOException{
 		this.file = file;
-		if(file.exists()){
+		if(!create && file.exists()){
 			BufferedFileInput in = new BufferedFileInput(file);
 			int size = (int) (in.length() / IOUtil.SIZE_OF_LONG);
 			bitdata = new long[size];
 			
-			for(int i=0;i<size;i++)
+			for(int i=0;i<size;i++){
 				bitdata[i] = in.readLong();
-			
+				logger.debug("delete set {}", bitdata[i]);
+			}
 			in.close();
+			
 		}else{
 			//파일이 없으면 빈 파일을 생성해준다.
 			bitdata = new long[DEFAULT_BIT_SIZE];

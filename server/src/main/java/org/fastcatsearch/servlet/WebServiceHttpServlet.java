@@ -68,6 +68,14 @@ public class WebServiceHttpServlet extends HttpServlet {
 		return value;
 	}
 	
+	protected String getParameterFromMap(Map<String,String[]> kvmap, String key, String defaultValue) {
+		String[] value = kvmap.get(key);
+		if (value != null && value.length > 0) {
+			return value[0];
+		}
+		return defaultValue;
+	}
+	
 	protected ResultStringer getResultStringer(String rootElement, boolean isBeautify, String jsonCallback) {
 		ResultStringer rStringer = null;
 		if (resultType == JSON_TYPE) {

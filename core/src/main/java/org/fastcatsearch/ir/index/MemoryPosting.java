@@ -240,7 +240,7 @@ public class MemoryPosting {
 			p = newPostingBuffer();
 			put2(term, p);
 		}
-		
+		logger.debug("term >> {}", term);
 		p.addOne(docNo, position);
 	}
 	

@@ -81,10 +81,10 @@ public class PostingBufferWithSeq {
 //			logger.debug("docNo="+docNo+" : "+tf);
 		}else{
 			if(count == 0){
-				IOUtil.writeVariableByte(buffer, docNo);
+				IOUtil.writeVInt(buffer, docNo);
 	//			logger.debug("*** docNo="+docNo);
 			}else{
-				IOUtil.writeVariableByte(buffer, docNo - lastDocNo - 1);
+				IOUtil.writeVInt(buffer, docNo - lastDocNo - 1);
 	//			logger.debug("222 docNo="+(docNo - lastDocNo - 1));
 			}
 			//tf
@@ -106,10 +106,10 @@ public class PostingBufferWithSeq {
 			buffer.length = buffer.bytes.length;
 		}
 		if(count == 0){
-			IOUtil.writeVariableByte(buffer, docNo);
+			IOUtil.writeVInt(buffer, docNo);
 //			logger.debug("*** docNo="+docNo);
 		}else{
-			IOUtil.writeVariableByte(buffer, docNo - lastDocNo - 1);
+			IOUtil.writeVInt(buffer, docNo - lastDocNo - 1);
 //			logger.debug("222 docNo="+(docNo - lastDocNo - 1));
 		}
 		//tf

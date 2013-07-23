@@ -69,6 +69,9 @@ public class SegmentWriter {
 			if (revision > 0){
 				isAppend = true;
 			}
+			
+			//pkWriter필요.
+			
 			documentWriter = new DocumentWriter(schema, targetDir, revision, indexConfig);
 			searchIndexesWriter = new SearchIndexesWriter(schema, targetDir, revision, indexConfig);
 			fieldIndexesWriter = new FieldIndexesWriter(schema, targetDir, isAppend);

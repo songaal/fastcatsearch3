@@ -150,7 +150,7 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 
 						int count2 = totalCount;
 						int lastDocNo2 = prevDocNo;
-						int firstDocNo2 = IOUtil.readVariableByte(tempPostingOutput.array(), 0);
+						int firstDocNo2 = IOUtil.readVInt(tempPostingOutput.array(), 0);
 						int sz2 = IOUtil.lenVariableByte(firstDocNo2);
 						int newFirstDocNo = firstDocNo2 - lastDocNo1 - 1;
 						int delta = IOUtil.lenVariableByte(newFirstDocNo) - sz2;
@@ -213,7 +213,7 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 						// logger.debug("len2 ="+len);
 						int count = totalCount;
 						int lastDocNo = prevDocNo;
-						int firstDocNo = IOUtil.readVariableByte(tempPostingOutput.array(), 0);
+						int firstDocNo = IOUtil.readVInt(tempPostingOutput.array(), 0);
 						int sz = IOUtil.lenVariableByte(firstDocNo);
 
 						len -= sz;
@@ -345,11 +345,11 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 						// 첫번째 문서번호부터 끝까지 기록한다.
 						tempPostingOutput.writeBytes(buf.array(), buf.pos(), buf.remaining());
 					} else {
-						int firstNo = IOUtil.readVariableByte(buf);
+						int firstNo = IOUtil.readVInt(buf);
 						int newDocNo = firstNo - prevDocNo - 1;
 						logger.debug("newDocNo = " + newDocNo + ", firstNo=" + firstNo + ", prevDocNo = " + prevDocNo);
 
-						IOUtil.writeVariableByte(tempPostingOutput, newDocNo);
+						IOUtil.writeVInt(tempPostingOutput, newDocNo);
 						tempPostingOutput.writeBytes(buf.array(), buf.pos(), buf.remaining());
 					}
 					prevDocNo = lastDocNo;
@@ -365,8 +365,7 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 			try {
 				buffers[bufferCount++] = reader[idx].buffer();
 			} catch (ArrayIndexOutOfBoundsException e) {
-				logger.info("### bufferCount= {}, buffers.len={}, idx={}, reader={}",
-						new Object[] { bufferCount, buffers.length, idx, reader.length });
+				logger.info("### bufferCount= {}, buffers.len={}, idx={}, reader={}", bufferCount, buffers.length, idx, reader.length);
 				throw e;
 			}
 

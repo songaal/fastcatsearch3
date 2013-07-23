@@ -4,25 +4,20 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.fastcatsearch.ir.group.GroupResult;
-import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.util.ResultStringer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 public abstract class AbstractSearchServlet extends WebServiceHttpServlet {
 
@@ -30,7 +25,7 @@ public abstract class AbstractSearchServlet extends WebServiceHttpServlet {
 	protected static AtomicLong taskSeq = new AtomicLong();
 	protected static Logger searchLogger = LoggerFactory.getLogger("SEARCH_LOG");
 
-	public static final int DEFAULT_TIMEOUT = 5; //5초.
+	public static final int DEFAULT_TIMEOUT = 5; // 5초.
 	public static final int IS_ALIVE = 3;
 
 	protected String requestCharset;
@@ -78,8 +73,8 @@ public abstract class AbstractSearchServlet extends WebServiceHttpServlet {
 
 		String queryString = queryString();
 
-		logger.debug("queryString = " + queryString);
-		logger.debug("timeout = " + timeout + " s");
+		logger.debug("queryString = {}", queryString);
+		logger.debug("timeout = {} s", timeout);
 
 		long requestId = taskSeq.incrementAndGet();
 		searchLogger.info("{},{}", requestId, queryString);
@@ -95,136 +90,60 @@ public abstract class AbstractSearchServlet extends WebServiceHttpServlet {
 	protected abstract AbstractSearchResultWriter createSearchResultWriter(Writer writer);
 
 	public void prepare(HttpServletRequest request) {
-    	if(requestCharset == null) {
-    		requestCharset = "UTF-8";
-    	}
-    	
-    	if(responseCharset == null) {
-    		responseCharset = "UTF-8";
-    	}
-    	
-		requestCharset = getParameter(request, "requestCharset", "UTF-8");
-		responseCharset = getParameter(request, "responseCharset", "UTF-8");
-    	
-    	String queryString = request.getQueryString();
-    	
-    	Map<String,String> kvmap = new HashMap<String,String>();
-    	
-    	try {
-	    	if(queryString != null){
-	    		queryString = URLDecoder.decode(queryString, requestCharset);
-	    		if(queryString.endsWith("&")) { 
-	    			queryString = queryString.substring(0,queryString.length()-1); 
-	    		}
-	    	} else {
-	    		queryString = "";
-	    		Map<String,String[]> parameters = request.getParameterMap();
-	    		for(String key : parameters.keySet()) {
-	    			String[] param = parameters.get(key);
-	    			if(param!=null && param.length > 0) {
-		    			queryString = queryString + "&"+ key +"="+param[0];
-	    			}
-	    		}
-	    		if(queryString.length() > 0) {
-	    			queryString = "?"+queryString.substring(1);
-	    		}
-	    	}
-	    	logger.debug("queryString = "+queryString);
-    	} catch (UnsupportedEncodingException e) {
-    	}
-    	
-		Pattern ptn1 = Pattern.compile("[?&]+([^&]*)");
-		Pattern ptn2 = Pattern.compile("([^=]+)=(.*)");
-    	
-    	Matcher mat1 = ptn1.matcher(queryString);
-    	Matcher mat2 = null;
-    	
-    	while(mat1.find()) {
-    		mat2 = ptn2.matcher(mat1.group(1));
-    		if(mat2.find()) {
-    			kvmap.put(mat2.group(1), mat2.group(2));
-    		}
-    	}
 		
-		String timeoutStr = getParameter(kvmap, "timeout", Integer.toString(DEFAULT_TIMEOUT));
+		Map<String,String[]> parameters = request.getParameterMap();
+		
+		requestCharset = getParameterFromMap(parameters, "requestCharset", "UTF-8");
+		responseCharset = getParameterFromMap(parameters, "responseCharset", "UTF-8");
 		try {
-			timeout = Integer.parseInt(timeoutStr);
+			timeout = Integer.parseInt(getParameterFromMap(parameters, "timeout", String.valueOf(DEFAULT_TIMEOUT)));
 		} catch (NumberFormatException e) {
 			timeout = DEFAULT_TIMEOUT;
 		}
-		isAdmin = "true".equals(request.getParameter("admin"));
-
-		collectionName = getParameter(kvmap, "cn", "");
-		fields = getParameter(kvmap, "fl", "");
-		searchCondition = getParameter(kvmap, "se", "");
-		groupFields = getParameter(kvmap, "gr", "");
-		groupCondition = getParameter(kvmap, "gc", "");
-		groupFilter = getParameter(kvmap, "gf", "");
-		sortFields = getParameter(kvmap, "ra", "");
-		filterFields = getParameter(kvmap, "ft", "");
-		startNumber = getParameter(kvmap, "sn", "");
-		resultLength = getParameter(kvmap, "ln", "");
-		highlightTags = getParameter(kvmap, "ht", "");
-		searchOption = getParameter(kvmap, "so", "");
-		userData = getParameter(kvmap, "ud", "");
-		jsonCallback = getParameter(kvmap, "jsoncallback", "");
+		isAdmin = "true".equals(getParameterFromMap(parameters, "admin", ""));
+		collectionName = getParameterFromMap(parameters, "cn", "");
+		fields = getParameterFromMap(parameters, "fl", "");
+		searchCondition = getParameterFromMap(parameters, "se", "");
+		groupFields = getParameterFromMap(parameters, "gr", "");
+		groupCondition = getParameterFromMap(parameters, "gc", "");
+		groupFilter = getParameterFromMap(parameters, "gf", "");
+		sortFields = getParameterFromMap(parameters, "ra", "");
+		filterFields = getParameterFromMap(parameters, "ft", "");
+		startNumber = getParameterFromMap(parameters, "sn", "");
+		resultLength = getParameterFromMap(parameters, "ln", "");
+		highlightTags = getParameterFromMap(parameters, "ht", "");
+		searchOption = getParameterFromMap(parameters, "so", "");
+		userData = getParameterFromMap(parameters, "ud", "");
+		jsonCallback = getParameterFromMap(parameters, "jsoncallback", "");
 	}
 
 	public String queryString() {
 		try {
-			//2013-7-8
-			//URL에 +로 들어오는 경우는 없으며, +로 들어오면 검색식의 일부이므로 decode시 공백으로 치환되지 않도록 강제 인코딩을 해준다.
-			searchCondition = searchCondition.replaceAll("\\+", URLEncoder.encode("+", requestCharset));
-			return "cn=" + collectionName + "&fl=" + URLDecoder.decode(fields, requestCharset) + "&se="
-					+ URLDecoder.decode(searchCondition, requestCharset) + "&gr="
-					+ URLDecoder.decode(groupFields, requestCharset) + "&gc=" + URLDecoder.decode(groupCondition, requestCharset)
-					+ "&gf=" + URLDecoder.decode(groupFilter, requestCharset) + "&ra="
-					+ URLDecoder.decode(sortFields, requestCharset) + "&ft=" + URLDecoder.decode(filterFields, requestCharset)
-					+ "&sn=" + URLDecoder.decode(startNumber, requestCharset) + "&ln="
-					+ URLDecoder.decode(resultLength, requestCharset) + "&ht=" + URLDecoder.decode(highlightTags, requestCharset)
-					+ "&so=" + URLDecoder.decode(searchOption, requestCharset) + "&ud="
-					+ URLDecoder.decode(userData, requestCharset);
+			return "cn=" + collectionName + "&fl=" + URLDecoder.decode(fields, requestCharset) + "&se=" + URLDecoder.decode(searchCondition, requestCharset) + "&gr="
+			                + URLDecoder.decode(groupFields, requestCharset) + "&gc=" + URLDecoder.decode(groupCondition, requestCharset) + "&gf="
+			                + URLDecoder.decode(groupFilter, requestCharset) + "&ra=" + URLDecoder.decode(sortFields, requestCharset) + "&ft="
+			                + URLDecoder.decode(filterFields, requestCharset) + "&sn=" + URLDecoder.decode(startNumber, requestCharset) + "&ln="
+			                + URLDecoder.decode(resultLength, requestCharset) + "&ht=" + URLDecoder.decode(highlightTags, requestCharset) + "&so="
+			                + URLDecoder.decode(searchOption, requestCharset) + "&ud=" + URLDecoder.decode(userData, requestCharset);
 		} catch (UnsupportedEncodingException e) {
 			logger.error("", e);
 		}
 		return "";
 	}
-	
+
 	public void writeHeader(HttpServletResponse response, ResultStringer stringer) {
 		writeHeader(response, stringer, responseCharset);
 	}
-	
+
 	public ResultStringer getResultStringer() {
-		return getResultStringer("fastcat",isAdmin, jsonCallback);
+		return getResultStringer("fastcatsearch", isAdmin, jsonCallback);
 	}
 
-	protected void writeSearchLog(long requestId, Object obj, long searchTime){
-    	if(obj instanceof Result){
+	protected void writeSearchLog(long requestId, Object obj, long searchTime) {
+		if (obj instanceof Result) {
 			Result result = (Result) obj;
-			String logStr = requestId+","+searchTime+","+result.getCount()+","+result.getTotalCount();
-			if(result.getGroupResult() != null){
-				String grStr = ",";
-				GroupResults groupResults = result.getGroupResult();
-				GroupResult[] gr = groupResults.groupResultList();
-				for (int i = 0; i < gr.length; i++) {
-					if(i > 0)
-						grStr += ",";
-					grStr += gr[i].size();
-				}
-				logStr += grStr;
-			}
+			String logStr = requestId + "," + searchTime + "," + result.getCount() + "," + result.getTotalCount();
 			searchLogger.info(logStr);
-			
-		}else if(obj instanceof GroupResults){
-			GroupResults groupResults = (GroupResults) obj;
-			GroupResult[] gr = groupResults.groupResultList();
-			String grStr = requestId+",0,0,0";
-			for (int i = 0; i < gr.length; i++) {
-				if(i > 0)
-					grStr += ",";
-				grStr += gr[i].size();
-			}
-			searchLogger.info(grStr);
 		}
-    }
+	}
 }
