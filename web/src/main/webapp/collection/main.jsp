@@ -7,14 +7,14 @@
 
 <%@page import="org.fastcatsearch.ir.search.CollectionHandler"%>
 <%@page import="org.fastcatsearch.ir.IRService"%>
-<%@page import="org.fastcatsearch.settings.IRSettings"%>
 <%@page import="org.fastcatsearch.ir.settings.Schema"%>
-<%@page import="org.fastcatsearch.ir.config.IRConfig"%>
 <%@page import="org.fastcatsearch.ir.config.DataSourceConfig"%>
 <%@page import="org.fastcatsearch.ir.util.Formatter"%>
 <%@page import="org.fastcatsearch.web.WebUtils"%>
 <%@page import="org.fastcatsearch.service.*"%>
+<%@page import="org.fastcatsearch.ir.config.CollectionsConfig.*"%>
 
+<%@page import="java.util.List"%>
 <%@page import="java.util.Date"%>
 <%@page import="java.util.Calendar"%>
 <%@page import="java.net.URLDecoder"%>
@@ -25,9 +25,7 @@
 	String message = URLDecoder.decode(WebUtils.getString(request.getParameter("message"), ""),"utf-8");
 
 	IRService irService = ServiceManager.getInstance().getService(IRService.class);
-	IRConfig irConfig = IRSettings.getConfig(true);
-	String collectinListStr = irConfig.getString("collection.list");
-	String[] colletionList = collectinListStr.split(",");
+	List<Collection> collectionList = irService.getCollectionList();
 %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -123,77 +121,75 @@
 		<th rowspan = "2" class="first">선택</th>
 		<th rowspan = "2">번호</th>
 		<th rowspan="2">컬렉션명</th>
-		<th colspan="5">필드갯수</th>
-		<th rowspan="2">데이터<br />
-			소스타입</th>
+		<th colspan="4">필드갯수</th>
 		<th rowspan="2">상태</th>
 		<th rowspan="2">실행시간</th>
 		<th rowspan="2">실행</th>
 	</tr>
 	<tr>
-		<th>총필드수</th>
-		<th>색인필드수</th>
-		<th>필터필드수</th>
-		<th>그룹필드수</th>
-		<th>정렬필드수</th>
+		<th>총필드갯수</th>
+		<th>검색색인갯수</th>
+		<th>필드색인갯수</th>
+		<th>그룹색인갯수</th>
 	</tr>
 	</thead>
 	<tbody>
-	<%
-		for(int i = 0;i<colletionList.length;i++){
-		String collection = colletionList[i];
-		CollectionHandler collectionHandler = irService.collectionHandler(collection);
-		boolean isRunning = false;
-		String startTimeStr = "";
-		String durationStr = "";
-		if(collectionHandler == null){
-			isRunning = false;
-		}else{
-			isRunning = true;
-			long startTime = collectionHandler.getStartedTime();
-			long duration  = System.currentTimeMillis() - startTime;
-			startTimeStr = new Date(startTime).toString();
-			durationStr = Formatter.getFormatTime(duration);
-		}
-		
-		Schema schema = IRSettings.getSchema(collection, true);
-		
-		if(schema!=null) {
-			DataSourceConfig dataSourceSetting = IRSettings.getDatasource(collection, true);
-			String sourceType = dataSourceSetting.sourceType;
-	%>
-	<tr>
-		<td class="first"><input type="radio" name="selectCollection" value="<%=collection%>" /></td>
-		<td><%=i+1 %></td>
-		<td><a href="schema.jsp?collection=<%=collection%>"><strong class="small tb"><%=collection%></strong></a></td>
-		<td><%=schema.getFieldSettingList().size()%></td>
-		<td><%=schema.getIndexSettingList().size()%></td>
-		<td><%=schema.getFilterSettingList().size()%></td>
-		<td><%=schema.getGroupSettingList().size()%></td>
-		<td><%=schema.getSortSettingList().size()%></td>
-		<td><a href="datasource.jsp?collection=<%=collection%>"><%=sourceType%></a></td>
-		<td><%=isRunning ? "실행중" : "정지"%></td>
-		<td><%=durationStr%>&nbsp;</td>
-		<td><%
-		if(isRunning){
-			%>
-			<a class="btn_s" href="collectionService.jsp?cmd=0&collection=<%=collection%>">정지</a>
-			<%
-		}else{
-			%>
-			<a class="btn_s" href="collectionService.jsp?cmd=1&collection=<%=collection%>">시작</a>
-			<%	
-		}
-		%>
-		</td>
-	</tr>
 <%
-		} else {
+	if(collectionList == null || collectionList.size() == 0){
 %>
 	<tr>
 		<td class="first" colspan="12" >컬렉션이 존재하지 않습니다.</td>
 	</tr>
 <%
+	}else{
+		
+		int i = 0;
+		for(Collection col : collectionList){
+			String collection = col.getId();
+			CollectionHandler collectionHandler = irService.collectionHandler(collection);
+			boolean isRunning = false;
+			String durationStr = "";
+			if(collectionHandler == null){
+				continue;
+			}
+			
+			if(collectionHandler.isLoaded()){
+				isRunning = true;
+			
+				long startTime = collectionHandler.getStartedTime();
+				long duration  = System.currentTimeMillis() - startTime;
+				durationStr = Formatter.getFormatTime(duration);
+			}else{
+				isRunning = false;
+			}
+			
+			Schema schema = collectionHandler.schema();
+			
+		%>
+		<tr>
+			<td class="first"><input type="radio" name="selectCollection" value="<%=collection%>" /></td>
+			<td><%=(i++) + 1 %></td>
+			<td><a href="schema.jsp?collection=<%=collection%>"><strong class="small tb"><%=collection%></strong></a></td>
+			<td><%=schema.schemaSetting().getFieldSettingList().size()%></td>
+			<td><%=schema.schemaSetting().getIndexSettingList().size()%></td>
+			<td><%=schema.schemaSetting().getFieldIndexSettingList().size()%></td>
+			<td><%=schema.schemaSetting().getGroupIndexSettingList().size()%></td>
+			<td><%=isRunning ? "실행중" : "정지"%></td>
+			<td><%=durationStr%>&nbsp;</td>
+			<td><%
+			if(isRunning){
+				%>
+				<a class="btn_s" href="collectionService.jsp?cmd=0&collection=<%=collection%>">정지</a>
+				<%
+			}else{
+				%>
+				<a class="btn_s" href="collectionService.jsp?cmd=1&collection=<%=collection%>">시작</a>
+				<%	
+			}
+			%>
+			</td>
+		</tr>
+	<%
 		}
 	}
 %>

@@ -30,6 +30,10 @@ public class Path {
 		return new Path(file(dirs));
 	}
 	
+	public Path configPath() {
+		return new Path(root, "conf");
+	}
+	
 	public File file(String... dirs) {
 		File file = root;
 		for (int i = 0; i < dirs.length; i++) {

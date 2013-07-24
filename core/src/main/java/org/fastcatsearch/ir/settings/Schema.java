@@ -34,6 +34,10 @@ public class Schema {
 		this.collectionId = collectionId;
 	}
 	public Schema(SchemaSetting schemaSetting){
+		if(schemaSetting == null){
+			return;
+		}
+		
 		this.schemaSetting = schemaSetting;
 		
 		//필드명 : 번호 맵핑.

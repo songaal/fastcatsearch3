@@ -30,6 +30,10 @@ public class CollectionsConfig {
 		this.collectionList = collectionList;
 	}
 
+	public boolean contains(String collectionId){
+		return collectionList.contains(collectionId);
+	}
+	
 	public void addCollection(String id){
 		addCollection(id, true);
 	}

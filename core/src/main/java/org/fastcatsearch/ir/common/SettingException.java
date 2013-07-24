@@ -16,7 +16,7 @@
 
 package org.fastcatsearch.ir.common;
 
-public class SettingException extends Exception{
+public class SettingException extends Exception {
 
 	private static final long serialVersionUID = -4765673974780435225L;
 
@@ -25,5 +25,8 @@ public class SettingException extends Exception{
 	}
 	public SettingException(String message){
 		super(message);
+	}
+	public SettingException(String message, Exception e){
+		super(message, e);
 	}
 }

@@ -37,7 +37,7 @@ public class SettingManager {
 	}
 
 	private Object getFromCache(String settingName) {
-		String key = environment.filePaths().path("conf", settingName).toString();
+		String key = environment.filePaths().configPath().path(settingName).toString();
 		return settingCache.get(key);
 	}
 
@@ -47,7 +47,7 @@ public class SettingManager {
 	}
 
 	private Object putToCache(Object setting, String settingName) {
-		String key = environment.filePaths().path("conf", settingName).toString();
+		String key = environment.filePaths().configPath().path(settingName).toString();
 		settingCache.put(key, setting);
 		return setting;
 	}
@@ -63,7 +63,7 @@ public class SettingManager {
 	}
 
 	public String getKey(String filename) {
-		return environment.filePaths().path("conf", filename).toString();
+		return environment.filePaths().configPath().path(filename).toString();
 	}
 
 	public Element getXml(String collection, String filename) {
@@ -136,7 +136,7 @@ public class SettingManager {
 			if(obj != null){
 				return (Settings) obj;
 			}
-			File configFile = environment.filePaths().path("conf", SettingFileNames.serverConfig).file();
+			File configFile = environment.filePaths().configPath().path(SettingFileNames.serverConfig).file();
 	        InputStream input = null;
 	        try{
 	        	Yaml yaml = new Yaml();
