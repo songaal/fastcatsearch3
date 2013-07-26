@@ -15,7 +15,7 @@ public class IndexRef<T extends ReferencableIndexReader> {
 	public IndexRef(){
 		this(5);
 	}
-	public IndexRef(int size){ 
+	public IndexRef(int size){
 		readerList = new ArrayList<T>(size);
 		dataRefList = new ArrayList<DataRef>(size);
 		readerSequencePairMap = new HashMap<String, ReaderSequencePair<T>>(size);

@@ -1,7 +1,5 @@
 package org.fastcatsearch.ir.group.value;
 
-import java.util.List;
-
 import org.fastcatsearch.ir.group.GroupingValue;
 
 public class IntGroupingValue extends GroupingValue<Integer> {
@@ -44,7 +42,11 @@ public class IntGroupingValue extends GroupingValue<Integer> {
 	}
 
 	public static IntGroupingValue[] createList(int groupKeySize) {
-		return new IntGroupingValue[groupKeySize];
+		IntGroupingValue[] list = new IntGroupingValue[groupKeySize];
+		for (int i = 0; i < groupKeySize; i++) {
+			list[i] = new IntGroupingValue(0);
+		}
+		return list;
 	}
 
 }

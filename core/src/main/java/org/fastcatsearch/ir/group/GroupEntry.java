@@ -26,7 +26,13 @@ public class GroupEntry {
 	protected GroupingValue[] groupingValue;
 	
 	public String toString(){
-		return "[GroupEntry]"+key + " : " + groupingValue;
+		String valueString = "";
+		if(groupingValue != null){
+			for (GroupingValue value : groupingValue) {
+				valueString += (value.toString() + ",");
+			}
+		}
+		return "[GroupEntry]"+key + " : " + valueString;
 	}
 	public GroupEntry(String key) {
 		this(key, null);

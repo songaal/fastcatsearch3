@@ -56,7 +56,8 @@ public class GroupDataGenerator {
 	private static Logger logger = LoggerFactory.getLogger(GroupDataGenerator.class);
 	
 	private int[] indexSequence;
-	private int groupFieldSize;
+//	private int groupFieldSize;
+	private int groupSize;
 	private GroupFunction[][] groupFunctionList;
 	private int totalSearchCount;
 	private IndexRef<GroupIndexReader> indexRef;
@@ -71,50 +72,57 @@ public class GroupDataGenerator {
 	
 	public GroupDataGenerator(List<Group> groupList, Schema schema, GroupIndexesReader groupIndexesReader, FieldIndexesReader fieldIndexesReader) throws IOException {
 		
-		int groupSize = groupList.size();
+		this.groupSize = groupList.size();
 		
 		this.indexSequence = new int[groupSize];
 		groupFieldIdList = new String[groupSize];
+		fieldSettingList = new FieldSetting[groupSize];
 		groupFunctionList = new GroupFunction[groupSize][];
 		fieldIndexRefList = new IndexRef[groupSize];
+		fieldBytesRefMap = new Map[groupSize];
 		groupKeySizeList = new int[groupSize];
 		
 		List<String> fieldNameList = new ArrayList<String>(groupSize);
 		for (int i = 0; i < groupSize; i++) {
 			Group group = groupList.get(i);
-			String fieldname = group.fieldname();
-			if(!fieldNameList.contains(fieldname)){
+			String fieldname = group.fieldId();
+//			if(!fieldNameList.contains(fieldname)){
 				fieldNameList.add(fieldname);
-			}
+				logger.debug(">> group field name >> {}", fieldname);
+//			}
 		}
 		
 		indexRef = groupIndexesReader.selectIndexRef(fieldNameList.toArray(new String[0]));
+		logger.debug("group indexref size = {}", indexRef.getSize());
 		
 		for (int i = 0; i < groupSize; i++) {
 			Group group = groupList.get(i);
-			String fieldId = group.fieldname();
+			String fieldId = group.fieldId();
 			int idx = schema.getGroupIndexSequence(fieldId);
 			
 			if(idx < 0){
 				continue;
 			}
 			
-			groupFieldIdList[groupFieldSize] = fieldId;
-			fieldSettingList[groupFieldSize] = schema.fieldSettingMap().get(fieldId);
+			groupFieldIdList[i] = fieldId;
+			fieldSettingList[i] = schema.fieldSettingMap().get(fieldId);
 			
 			GroupIndexReader groupIndexReader = groupIndexesReader.getIndexReader(i);
 			
 			//각 필드의 필드번호를 차례로 저장한다.
-			indexSequence[groupFieldSize] = idx;
+			indexSequence[i] = idx;
 			
-			int groupKeySize = groupIndexReader.getGroupKeySize(idx);
-			groupKeySizeList[groupFieldSize] = groupKeySize;
-			groupFunctionList[groupFieldSize] = group.function();
+			int groupKeySize = groupIndexReader.getGroupKeySize(i);
+			groupKeySizeList[i] = groupKeySize;
+			groupFunctionList[i] = group.function();
 			
 			//내부 grouping object 배열 초기화.
 			List<String> paramFieldNameList = new ArrayList<String>(groupSize);
-			for(GroupFunction groupFunction : groupFunctionList[groupFieldSize]){
-				
+			for(GroupFunction groupFunction : groupFunctionList[i]){
+				if(groupFunction == null){
+					//그룹기능이름이 잘못되어서 null로 들어올수 있다. 
+					continue;
+				}
 				//범위 그룹핑은 COUNT와 동일하게 int형으로 생성. 
 				if(groupFunction instanceof RangeCountGroupFunction){
 					groupFunction.init(IntGroupingValue.createList(groupKeySize));
@@ -143,11 +151,12 @@ public class GroupDataGenerator {
 				}else{
 					//COUNT일 것이므로, int로 만들어준다.
 					groupFunction.init(IntGroupingValue.createList(groupKeySize));
+					logger.debug("groupFunction #{} valuelist = {}", i, groupFunction.valueList);
 				}
 			}
-			fieldIndexRefList[groupFieldSize] = fieldIndexesReader.selectIndexRef(paramFieldNameList.toArray(new String[0]));
+			fieldIndexRefList[i] = fieldIndexesReader.selectIndexRef(paramFieldNameList.toArray(new String[0]));
 			//동일한 필드가 파라미터로 여러번 들어올경우 한번만 읽기위해서는 동일한 bytesRef 참조를 가지고 있도록 한다. 
-			fieldBytesRefMap[groupFieldSize] = new HashMap<String, NumberDataRef>(paramFieldNameList.size());
+			fieldBytesRefMap[i] = new HashMap<String, NumberDataRef>(paramFieldNameList.size());
 			int sequence = 0;
 			for(String paramFieldId : paramFieldNameList){
 				DataRef dataRef = fieldIndexRef.getDataRef(sequence++); 
@@ -164,10 +173,10 @@ public class GroupDataGenerator {
 				}
 				
 				//차후 dataRef.next하면서 데이터를 읽는다. 
-				fieldBytesRefMap[groupFieldSize].put(paramFieldId, numberDataRef);
+				fieldBytesRefMap[i].put(paramFieldId, numberDataRef);
 			}
 			
-			groupFieldSize++;
+//			groupFieldSize++;
 		}
 	}
 	
@@ -184,8 +193,9 @@ public class GroupDataGenerator {
 			int docNo = ri.docNo();
 			indexRef.read(ri.docNo());
 			
-			for(int i = 0; i < groupFieldSize ;i++){
+			for(int i = 0; i < groupSize ;i++){
 				fieldIndexRefList[i].read(docNo);
+				logger.debug("aread doc : {}", docNo);
 				
 				redundancyCheck.clear();
 				while(indexRef.getDataRef(i).next()){
@@ -193,6 +203,9 @@ public class GroupDataGenerator {
 					BytesRef bytesRef = indexRef.getDataRef(i).bytesRef();
 					int groupNo = bytesRef.toIntValue();
 					for(GroupFunction groupFunction : groupFunctionList[i]){
+						if(groupFunction == null){
+							continue;
+						}
 						Number value = null;
 						if(groupFunction.fieldId != null){
 							NumberDataRef numberDataRef = fieldBytesRefMap[i].get(groupFunction.fieldId);
@@ -201,6 +214,7 @@ public class GroupDataGenerator {
 								groupFunction.addValue(groupNo, value);
 							}
 						}else{
+							logger.debug("add group value groupNo={} val={}", groupNo, value);
 							groupFunction.addValue(groupNo, value);
 						}
 					}
@@ -213,11 +227,11 @@ public class GroupDataGenerator {
 	
 	//make an each group data
 	public GroupData generate() throws IOException{
-		List<GroupEntryList> result = new ArrayList<GroupEntryList>(groupFieldSize);
+		List<GroupEntryList> result = new ArrayList<GroupEntryList>(groupSize);
 		
-		BytesRef keyBuffer = null;
+		BytesRef keyBuffer = new BytesRef();
 		
-		for(int i = 0; i < groupFieldSize ;i++){
+		for(int i = 0; i < groupSize ;i++){
 			
 			String fieldId = groupFieldIdList[i];
 			ReaderSequencePair<GroupIndexReader> readerSequencePair = indexRef.getReaderSequencePair(fieldId);
@@ -236,34 +250,42 @@ public class GroupDataGenerator {
 			
 			//group function 갯수만큼 []를 만든다.
 			int functionSize = groupFunctionList[i].length;
+			//모든 키에대해 검사를 수행한다.
 			for (int groupNo = 0; groupNo < groupKeySizeList[i]; groupNo++) {
 				
 				GroupingValue[] valueList = new GroupingValue[functionSize];
 				
-				String key = null;
-				
-				if(groupIndexReader.readKey(sequence, groupNo, keyBuffer)){
-					key = FieldDataStringer.parse(fieldType, keyBuffer);
-				}
-				
 				int j = 0;
 				boolean hasValue = false;
 				for(GroupFunction groupFunction : groupFunctionList[i]){
+					if(groupFunction == null){
+						continue;
+					}
 					GroupingValue groupingValue = groupFunction.value(groupNo);
 					if(groupingValue != null){
 						valueList[j++] = groupingValue; 
 						hasValue = true;
 					}
 				}
-				
+
+				//각 키별 결과를 추가해준다.
+				//해당키에 결과가 없으면 추가하지 않으므로, 값이 있는 키만 그룹핑 결과로 나오게 된다.
 				if(hasValue){
+					String key = null;
+					
+					if(groupIndexReader.readKey(sequence, groupNo, keyBuffer)){
+						key = FieldDataStringer.parse(fieldType, keyBuffer);
+					}
+					logger.debug("groupEntryList.add {}, {}", key, valueList);
 					groupEntryList.add(new GroupEntry(key, valueList));
 				}
 				
 			}
 			
 			//sort by unit name, and make it easy while segment group freq merging.
-			Collections.sort(groupEntryList.getEntryList(), GroupEntryList.KeyAscendingComparator);
+			if(groupEntryList.size() > 0){
+				Collections.sort(groupEntryList.getEntryList(), GroupEntryList.KeyAscendingComparator);
+			}
 			
 			result.add(groupEntryList);
 		}

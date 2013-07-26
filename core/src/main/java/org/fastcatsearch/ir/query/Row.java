@@ -18,6 +18,7 @@ package org.fastcatsearch.ir.query;
 
 
 public class Row {
+	private static char[] EMPTY_ROW = new char[0];
 	private char[][] row;
 	private int fieldCount;
 	
@@ -47,7 +48,11 @@ public class Row {
 	}
 	
 	public void put(int i, char[] fieldData){
-		row[i] = fieldData;
+		if(fieldData == null){
+			row[i] = EMPTY_ROW;
+		}else{
+			row[i] = fieldData;
+		}
 	}
 	
 	public char[] get(int i){

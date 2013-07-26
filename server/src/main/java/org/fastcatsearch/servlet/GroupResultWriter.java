@@ -60,7 +60,7 @@ public class GroupResultWriter extends AbstractSearchResultWriter {
     		for (int i = 0; i < groupResultList.length; i++) {
     			stringer.array("group_item");
 				GroupResult groupResult = groupResultList[i];
-				int size = groupResult.size();
+				int size = groupResult == null ? 0 : groupResult.size();
 				for (int k = 0; k < size; k++) {
 					GroupEntry e = groupResult.getEntry(k);
 					String keyData = e.key;

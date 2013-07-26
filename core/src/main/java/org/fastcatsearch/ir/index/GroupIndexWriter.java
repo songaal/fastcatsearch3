@@ -95,9 +95,10 @@ public class GroupIndexWriter {
 		fieldSettingList = new FieldSetting[fieldSize];
 		fieldSequenceList = new int[fieldSize];
 
-		groupDataOutput = new BufferedFileOutput(dir, IndexFileNames.groupDataFile, isAppend);
-
 		String id = groupIndexSetting.getId();
+		
+		groupDataOutput = new BufferedFileOutput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.groupDataFile, id), isAppend);
+
 
 		if (isAppend) {
 			groupMapOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.getTempFileName(IndexFileNames
@@ -213,6 +214,7 @@ public class GroupIndexWriter {
 					}
 
 				} else {
+					keyBuffer.reset();
 					field.writeDataTo(keyBuffer);
 					groupNo = writeGroupKey(idx, keyBuffer);
 					groupDataOutput.writeInt(groupNo);
@@ -223,6 +225,9 @@ public class GroupIndexWriter {
 		count++;
 	}
 
+	/*
+	 *  idx : 인덱스 내부필드 순차번호
+	 */
 	private int writeGroupKey(int idx, BytesDataOutput keyBuffer) throws IOException {
 		int groupNo = -1;
 		if (isAppend) {
@@ -239,6 +244,12 @@ public class GroupIndexWriter {
 			// write key index
 			tempKeyIndexList[idx].put(keyBuffer.array(), 0, (int) keyBuffer.position(), groupNo);
 			keyOutputList[idx].write(keyBuffer.array(), 0, (int) keyBuffer.position());
+			
+			String str = "";
+			for (int i = 0; i < keyBuffer.position(); i++) {
+				str += (keyBuffer.array()[i] +",");
+			}
+			logger.debug("write group key field#{} [{}] size[{}] >> gr[{}]", idx, str, keyBuffer.position(), groupNo);
 		}
 		return groupNo;
 	}
@@ -312,9 +323,9 @@ public class GroupIndexWriter {
 		groupMapIndexOutput.close();
 
 		if (isAppend) {
-			File tempGroupMapIndexkFile = new File(IndexFileNames.getRevisionDir(baseDir, revision),
+			File tempGroupMapIndexFile = new File(IndexFileNames.getRevisionDir(baseDir, revision),
 					IndexFileNames.getTempFileName(IndexFileNames.groupKeyMapIndex));
-			tempGroupMapIndexkFile.delete();
+			tempGroupMapIndexFile.delete();
 
 			// right after group setting count
 			groupInfoOutput.seek(IOUtil.SIZE_OF_INT);

@@ -43,7 +43,11 @@ public class LongGroupingValue extends GroupingValue<Long> {
 	}
 
 	public static LongGroupingValue[] createList(int groupKeySize) {
-		return new LongGroupingValue[groupKeySize];
+		LongGroupingValue[] list = new LongGroupingValue[groupKeySize];
+		for (int i = 0; i < groupKeySize; i++) {
+			list[i] = new LongGroupingValue(0L);
+		}
+		return list;
 	}
 
 }

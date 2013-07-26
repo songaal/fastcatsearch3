@@ -222,8 +222,8 @@ public class QueryParser {
 					break;
 				}
 				case 9: //GROUP
-					//&gr=sellprice:freq:key_desc,goodkind:section_freq:5:freq_asc
-					//category:section_freq;2:key_asc:10  => section은 2개로 하고, 키로 내림차순 정렬, 상위10개만 가져옴. 
+					//&gr=sellprice:COUNT:key_desc,goodkind:section_COUNT:5:COUNT_asc
+					//category:section_COUNT;2:key_asc:10  => section은 2개로 하고, 키로 내림차순 정렬, 상위10개만 가져옴. 
 				{
 					String[] list = value.split(FIELD_SEPARATOR1);
 					Groups g = new Groups();
@@ -254,6 +254,7 @@ public class QueryParser {
 						}
 						
 						GroupFunction[] groupFunctions = new GroupFunction[functionList.length];
+						int idx = 0;
 						for (int j = 0; j < functionList.length; j++) {
 							String functionExpr = functionList[j];
 							String functionName = null; 
@@ -269,11 +270,11 @@ public class QueryParser {
 							}
 							
 							GroupFunction groupFunction = null;
-							if(functionName.equals(Group.DEFAULT_GROUP_FUNCTION_NAME)){
+							if(functionName.equalsIgnoreCase(Group.DEFAULT_GROUP_FUNCTION_NAME)){
 								//기본 클래스.
 								groupFunction = new CountGroupFunction(sortOrder, param);
 							}else{
-								//사용자가 만든 XXXX_freq
+								//사용자가 만든 XXXX_COUNT
 								String className = convertToClassName(functionName);
 								groupFunction = DynamicClassLoader.loadObject(className, GroupFunction.class
 										, new Class<?>[] {int.class, String.class}, new Object[]{sortOrder, param});
@@ -382,13 +383,13 @@ public class QueryParser {
 	}
 	
 	private int getGroupSortOrder(String string) {
-		if(string.equalsIgnoreCase("key_asc")){
+		if(string.equalsIgnoreCase("KEY_ASC")){
 			return Group.SORT_KEY_ASC;
-		}else if(string.equalsIgnoreCase("key_desc")){
+		}else if(string.equalsIgnoreCase("KEY_DESC")){
 			return Group.SORT_KEY_DESC;
-		}else if(string.equalsIgnoreCase("freq_asc")){
+		}else if(string.equalsIgnoreCase("COUNT_ASC")){
 			return Group.SORT_VALUE_ASC;
-		}else if(string.equalsIgnoreCase("freq_desc")){
+		}else if(string.equalsIgnoreCase("COUNT_DESC")){
 			return Group.SORT_VALUE_DESC;
 		}
 		return 0;

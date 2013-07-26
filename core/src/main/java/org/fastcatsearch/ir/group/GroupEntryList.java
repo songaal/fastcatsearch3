@@ -16,6 +16,7 @@
 
 package org.fastcatsearch.ir.group;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -28,9 +29,9 @@ import org.fastcatsearch.ir.query.Group;
  * */
 public class GroupEntryList {
 	private List<GroupEntry> entryList;
-	private int totalCount;
+	private int totalCount; //검색결과 갯수이며, 그룹핑 결과갯수는 아닌다.
 	
-	public GroupEntryList(){}
+	public GroupEntryList(){ }
 	
 	public GroupEntryList(List<GroupEntry> e, int totalCount){
 		this.entryList = e;
@@ -60,6 +61,9 @@ public class GroupEntryList {
 		this.totalCount = totalCount;
 	}
 	public void add(GroupEntry groupEntry) {
+		if(entryList == null){
+			entryList = new ArrayList<GroupEntry>(); 
+		}
 		entryList.add(groupEntry);
 	}
 	

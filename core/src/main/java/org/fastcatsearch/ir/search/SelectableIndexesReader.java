@@ -9,8 +9,7 @@ import org.fastcatsearch.ir.settings.RefSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class SelectableIndexesReader<T extends ReferencableIndexReader, S extends MultiRefFieldSetting> implements
-		Cloneable {
+public abstract class SelectableIndexesReader<T extends ReferencableIndexReader, S extends MultiRefFieldSetting> implements Cloneable {
 	protected static Logger logger = LoggerFactory.getLogger(SelectableIndexesReader.class);
 
 	protected List<T> readerList;
@@ -41,9 +40,12 @@ public abstract class SelectableIndexesReader<T extends ReferencableIndexReader,
 
 				for (int i = 0; i < fieldList.length; i++) {
 					String fieldId = fieldList[i];
-					if (!refList.contains(fieldId)) {
-						// 필드가 없으면 실패하고 다음 인덱스를 본다.
-						continue OUTTER;
+
+					for (RefSetting refSetting : refList) {
+						if (!refSetting.getRef().equals(fieldId)) {
+							// 필드가 없으면 실패하고 다음 인덱스를 본다.
+							continue OUTTER;
+						}
 					}
 				}
 
@@ -51,15 +53,20 @@ public abstract class SelectableIndexesReader<T extends ReferencableIndexReader,
 				T reader = cloneReader(j);
 				for (int i = 0; i < fieldList.length; i++) {
 					String fieldId = fieldList[i];
-					int sequence = refList.indexOf(fieldId);
-					indexRef.add(fieldId, reader, sequence);
+					for (int sequence = 0; sequence < refList.size(); sequence++) {
+						if (refList.get(sequence).getRef().equals(fieldId)) {
+							logger.debug("Select Index field={} r={}, seq={}", fieldId, reader, sequence);
+							indexRef.add(fieldId, reader, sequence);
+							break;
+						}
+					}
 				}
+			}
+			if (indexRef.getSize() > 0) {
+				return indexRef;
 			}
 		}
 
-		if (indexRef.getSize() > 0) {
-			return indexRef;
-		}
 
 		// 2. 없으면 단일인덱스를 조합한다.
 
@@ -70,12 +77,13 @@ public abstract class SelectableIndexesReader<T extends ReferencableIndexReader,
 				S setting = indexSettingList.get(j);
 				List<RefSetting> refList = setting.getRefList();
 				if (refList.size() == 1) {
-					for (int k = 0; k < refList.size(); k++) {
-						// 동일필드명을 찾는다.
-						if (refList.get(k).getRef().equals(fieldId)) {
-							T reader = cloneReader(j);// readerList.get(j).clone();
-							indexRef.add(fieldId, reader, 0); // 단일필드이므로 sequence는 0이다.
-						}
+					String refFieldId = refList.get(0).getRef();
+					// 동일필드명을 찾는다.
+					if (refFieldId.equals(fieldId)) {
+						T reader = cloneReader(j);
+						indexRef.add(fieldId, reader, 0); // 단일필드이므로 sequence는 0이다.
+						logger.debug("Select Index2 field={} r={}, seq={}", fieldId, reader, 0);
+						break;
 					}
 				}
 

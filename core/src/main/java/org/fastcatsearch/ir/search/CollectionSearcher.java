@@ -460,9 +460,10 @@ public class CollectionSearcher {
 					row[i].put(j, UnknownField.value().toCharArray());
 				} else {
 					Field field = document.get(fieldSequence);
+					logger.debug("field#{} >> {}", i, field);
 					String text = field.toString();
 
-					if (has != null) {
+					if (has != null && text != null) {
 						String analyzerId = highlightInfo.getAnalyzer(fieldNameList[j]);
 						String queryString = highlightInfo.getQueryString(fieldNameList[j]);
 						if (analyzerId != null && queryString != null) {
@@ -487,7 +488,11 @@ public class CollectionSearcher {
 
 					}
 
-					row[i].put(j, text.toCharArray());
+					if(text != null){
+						row[i].put(j, text.toCharArray());
+					}else{
+						row[i].put(j, null);
+					}
 
 				}
 			}

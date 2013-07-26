@@ -29,48 +29,30 @@ public class Group {
 	
 	public static final String DEFAULT_GROUP_FUNCTION_NAME = CountGroupFunction.FUNCTION_NAME;
 	
-	private String fieldname;
-//	private String function;
+	private String fieldId;
 	private GroupFunction[] functionList;
-//	private String[] param; //function에 사용될 파라미터 (custom function일 경우 사용자 파라미터)
-//	private int sectionCount; //how many sections 
 	private int sortOrder;
 	private int limit;
 	
-//	public Group(String fieldname, int function){
-//		this(fieldname, function, 5);
-//	}
-//	public Group(String fieldname, String function, int sectionCount){
-//		this(fieldname, function, sectionCount, OPT_FREQ_ASC);
-//	}
-//	public Group(String fieldname, int function, int sectionCount, int sortOrder){
-//		this(fieldname, function, sectionCount, sortOrder, -1);
-//	}
-//	public Group(String fieldname, int function, int sectionCount, int sortOrder, int limit){
-//		
-//	}
-	public Group(String fieldname, GroupFunction[] functionList, int sortOrder){
-		this(fieldname, functionList, sortOrder, 0);
+
+	public Group(String fieldId, GroupFunction[] functionList, int sortOrder){
+		this(fieldId, functionList, sortOrder, 0);
 	}
-	public Group(String fieldname, GroupFunction[] functionList, int sortOrder, int limit){
-		this.fieldname = fieldname;
+	public Group(String fieldId, GroupFunction[] functionList, int sortOrder, int limit){
+		this.fieldId = fieldId;
 		this.functionList = functionList;
 		this.sortOrder = sortOrder;
 		this.limit = limit;
 	}
 	public String toString(){
-		return fieldname+":"+functionList+":"+sortOrder+":"+limit;
-//		return fieldname+":"+function+":"+sectionCount+":"+sortOrder+":"+limit;
+		return "[Group]"+fieldId+":"+functionList+":"+sortOrder+":"+limit;
 	}
-	public String fieldname(){
-		return fieldname;
+	public String fieldId(){
+		return fieldId;
 	}
 	public GroupFunction[] function(){
 		return functionList;
 	}
-//	public int sectionCount(){
-//		return sectionCount;
-//	}
 	public int sortOrder(){
 		return sortOrder;
 	}

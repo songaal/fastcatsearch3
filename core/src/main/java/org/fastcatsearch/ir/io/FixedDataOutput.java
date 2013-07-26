@@ -12,19 +12,17 @@ public class FixedDataOutput implements SequencialDataOutput {
 		this(dir, fileName, false);
 	}
 	public FixedDataOutput(File dir, String fileName, boolean append) throws IOException{
-		File dataFile = new File(dir, IndexFileNames.getSuffixFileName(fileName, "data"));
+		File dataFile = new File(dir, fileName);
 		dataOutput = new BufferedFileOutput(dataFile, append);
 	}
 	
 	@Override
 	public void write(byte[] buffer, int offset, int length) throws IOException{
-		dataOutput.writeVInt(length);
 		dataOutput.writeBytes(buffer, offset, length);
 	}
 	
 	@Override
 	public void write(BytesBuffer bytesBuffer) throws IOException{
-		dataOutput.writeVInt(bytesBuffer.length);
 		dataOutput.writeBytes(bytesBuffer.bytes, bytesBuffer.offset, bytesBuffer.length);
 	}
 	

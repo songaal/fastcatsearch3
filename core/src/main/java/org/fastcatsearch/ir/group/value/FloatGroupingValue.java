@@ -45,7 +45,11 @@ public class FloatGroupingValue extends GroupingValue<Float> {
 	}
 
 	public static FloatGroupingValue[] createList(int groupKeySize) {
-		return new FloatGroupingValue[groupKeySize];
+		FloatGroupingValue[] list = new FloatGroupingValue[groupKeySize];
+		for (int i = 0; i < groupKeySize; i++) {
+			list[i] = new FloatGroupingValue(0.0f);
+		}
+		return list;
 	}
 
 }

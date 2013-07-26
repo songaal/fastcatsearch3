@@ -67,9 +67,8 @@ public class GroupDataMerger {
 	public GroupData merge() {
 
 		List<GroupEntryList> list = new ArrayList<GroupEntryList>(heapList.length);
-
 		for (int groupNum = 0; groupNum < heapList.length; groupNum++) {
-
+			prevEntry = null; //초기화.
 			GroupEntryList groupEntryList = new GroupEntryList();
 			// loop until heapList has no readers
 			while (heapList[groupNum].size() > 0) {
@@ -83,6 +82,7 @@ public class GroupDataMerger {
 					prevEntry.merge(entry);
 				} else {
 					// 다른 그룹출현.
+					logger.debug("groupEntryList.add2 {}", prevEntry);
 					groupEntryList.add(prevEntry);
 					prevEntry = entry;
 				}
@@ -94,7 +94,10 @@ public class GroupDataMerger {
 
 				heapList[groupNum].heapify();
 			}
-			groupEntryList.add(prevEntry);
+			if(prevEntry != null){
+				logger.debug("groupEntryList.add3 {}", prevEntry);
+				groupEntryList.add(prevEntry);
+			}
 
 			list.add(groupEntryList);
 		}

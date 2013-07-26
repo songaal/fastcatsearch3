@@ -43,7 +43,11 @@ public class DoubleGroupingValue extends GroupingValue<Double> {
 	}
 
 	public static DoubleGroupingValue[] createList(int groupKeySize) {
-		return new DoubleGroupingValue[groupKeySize];
+		DoubleGroupingValue[] list = new DoubleGroupingValue[groupKeySize];
+		for (int i = 0; i < groupKeySize; i++) {
+			list[i] = new DoubleGroupingValue(0.0);
+		}
+		return list;
 	}
 
 }

@@ -60,9 +60,10 @@ public class GroupIndexReader extends ReferencableIndexReader {
 	protected int dataSize;//색인된 한 문서의 필드데이터의  길이
 	protected int[] fieldOffset;
 	protected int[] groupKeySize;
-	protected BytesBuffer[] keyBuf;
 	protected boolean[] isMultiValue;
 	protected boolean hasMultiValue;
+	
+	private GroupIndexReader() {}
 	
 	public GroupIndexReader(GroupIndexSetting groupIndexSetting, Map<String, FieldSetting> fieldSettingMap, File dir, int revision) throws IOException, IRException{
 		String id = groupIndexSetting.getId();
@@ -71,27 +72,24 @@ public class GroupIndexReader extends ReferencableIndexReader {
 		
 		IndexInput groupInfoInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.groupInfoFile);
     	
-		keyBuf = new BytesBuffer[fieldSize];
 		fieldOffset = new int[fieldSize];
 		groupKeySize = new int[fieldSize];
 		isMultiValue = new boolean[fieldSize];
-		
+		//TODO 이게 모지?
     	int fieldCount = groupInfoInput.readInt();
     	
     	for (int idx = 0; idx < fieldSize; idx++) {
-			keyBuf[idx] = new BytesBuffer(fieldSize);
 			groupKeySize[idx] = groupInfoInput.readInt();
     		long dataBasePosition = groupInfoInput.readLong();
     		long indexBasePosition = groupInfoInput.readLong();
     	}
     	groupInfoInput.close();
     	
-    	groupDataInput = new BufferedFileInput(dir, IndexFileNames.groupDataFile);
+    	groupDataInput = new BufferedFileInput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.groupDataFile, id));
     	groupKeyInputList = new SequencialDataInput[fieldSize];
     	
     	//멀티밸류 필드가 존재하는지 확인.
     	for (int idx = 0; idx < fieldSize; idx++) {
-    		fieldOffset[idx] = dataSize;
     		RefSetting refSetting = refSettingList.get(idx);
 			FieldSetting fieldSetting = fieldSettingMap.get(refSetting.getRef());
 			if(fieldSetting.isMultiValue()){
@@ -101,10 +99,10 @@ public class GroupIndexReader extends ReferencableIndexReader {
     	}
     	if(hasMultiValue){
     		multiValueInput = new BufferedFileInput(dir, IndexFileNames.getMultiValueSuffixFileName(IndexFileNames.groupDataFile, id));
+    		multiValueInputList = new IndexInput[fieldSize];
     	}
    
     	refs = new DataRef[fieldSize];
-    	multiValueInputList = new IndexInput[fieldSize];
     	int offset = 0;
     	for (int idx = 0; idx < fieldSize; idx++) {
     		fieldOffset[idx] = dataSize;
@@ -164,7 +162,7 @@ public class GroupIndexReader extends ReferencableIndexReader {
 		int offset = fieldOffset[sequence];
 		int pos = dataSize * docNo + offset;
 		groupDataInput.seek(pos);
-		
+		logger.debug("group data read docNo[{}], dataSize[{}], offset[{}] = pos[{}]", docNo, dataSize, offset, pos);
 		if(isMultiValue[sequence]){
 			long ptr = groupDataInput.readLong();
 			if(ptr != -1){
@@ -175,6 +173,8 @@ public class GroupIndexReader extends ReferencableIndexReader {
 		}else{
 			//이미 input의 position을 움직여 놓았으므로 더이상 아무것도 하지 않는다.
 			groupDataInput.readBytes(refs[sequence].bytesRef().bytes, 0, IOUtil.SIZE_OF_INT);
+			logger.debug("fill group data to {} as {}", refs[sequence], IOUtil.readInt(refs[sequence].bytesRef().bytes, 0));
+			refs[sequence].reset(1); //sigle value는 한개 읽음으로 표시.
 		}
 	}
 	
@@ -187,43 +187,44 @@ public class GroupIndexReader extends ReferencableIndexReader {
 	public int getGroupKeySize(int fieldSequence) {
 		return groupKeySize[fieldSequence];
 	}
-		
+	
 	@Override
 	public GroupIndexReader clone(){
+		DataRef[] refs2 = new DataRef[fieldSize];
+		IndexInput[] multiValueInputList2 = null;
+		if(hasMultiValue){
+			multiValueInputList2 = new IndexInput[fieldSize];
+		}
 		
-		//TODO
+		for (int i = 0; i < fieldSize; i++) {
+			if(isMultiValue[i]){
+				multiValueInputList2[i] = multiValueInput.clone();
+				refs2[i] = new StreamInputRef(multiValueInputList2[i], IOUtil.SIZE_OF_INT);
+			}else{
+				refs2[i] = new DataRef(IOUtil.SIZE_OF_INT);
+			}
+		}
 		
-		
-		
-//		GroupFieldReader reader = null;
-//		try {
-//			reader = (GroupFieldReader) super.clone();
-//		} catch (CloneNotSupportedException e) {
-//			return null;
-//		}
-//    	reader.groupDataInput = groupDataInput.clone();
-//    	Input[] groupKeyInputList2 = new Input[groupKeyInputList.length];
-//    	for (int i = 0; i < groupKeyInputList2.length; i++) {
-//    		groupKeyInputList2[i] = groupKeyInputList[i].clone();
-//		}
-//    	reader.groupKeyInputList = groupKeyInputList2;
-//    	if(hasMultiValue){
-//	    	reader.multiValueInput = multiValueInput.clone();
-//		}
-//    	
-//    	reader.keyBuf = new FastByteBuffer[fieldSize];
-//    	for (int idx = 0; idx < fieldSize; idx++) {
-//    		reader.keyBuf[idx] = new FastByteBuffer(groupSettingList.get(idx).keyByteSize);
-//    	}
-//    	
-////    	reader.buffer = new FastByteBuffer(IOUtil.SIZE_OF_INT);
-//    	if(hasMultiValue){
-//    		reader.bufferMV = new FastByteBuffer(IOUtil.SIZE_OF_INT + multiValueOverhead);
-//    	}
-		GroupIndexReader reader = null;
-		
-    	return reader;
-    }
+		SequencialDataInput[] newGroupKeyInputList = new  SequencialDataInput[groupKeyInputList.length];
+		for (int i=0; i<  groupKeyInputList.length; i++) {
+			newGroupKeyInputList[i] = groupKeyInputList[i].clone();
+		}
+		GroupIndexReader reader = new GroupIndexReader();
+		reader.groupDataInput = groupDataInput.clone();
+		reader.groupKeyInputList = newGroupKeyInputList;
+		if(hasMultiValue){
+			reader.multiValueInput = multiValueInput.clone();
+		}
+		reader.multiValueInputList = multiValueInputList2;
+		reader.refs = refs2;
+		reader.fieldSize = fieldSize;
+		reader.dataSize = dataSize;
+		reader.fieldOffset = fieldOffset;
+		reader.groupKeySize = groupKeySize;
+		reader.isMultiValue = isMultiValue;
+		reader.hasMultiValue = hasMultiValue;
+		return reader;
+	}
 	
 	@Override
 	public void close() throws IOException{
@@ -233,6 +234,12 @@ public class GroupIndexReader extends ReferencableIndexReader {
 		}
 		if(hasMultiValue){
 			multiValueInput.close();
+			for(IndexInput indexInput : multiValueInputList){
+				//multi-value가 아닌 필드는 input객체가 null이므로 건너뛴다.
+				if(indexInput != null){
+					indexInput.close();
+				}
+			}
 		}
 	}
 

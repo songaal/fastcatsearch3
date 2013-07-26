@@ -183,7 +183,7 @@ public final class IOUtil {
 	public static char[] readUChars(byte[] buffer, int pos, int len) {
 		char[] array = new char[len / 2];
 		for (int i = 0; i < array.length; i++){
-			array[i] = (char) readShort(buffer, pos);
+			array[i] = (char) readShort(buffer, pos + i * 2);
 		}
 		
 		return array;

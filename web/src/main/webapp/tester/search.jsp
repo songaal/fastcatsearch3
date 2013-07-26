@@ -462,12 +462,12 @@
 							$("#groupResultWrapper").append($("<div id='pGroupResult"+i+"'></div>"));
 							$("#groupResultWrapper").append($("<p>"));
 
-							var colNames = ["no", "key", "frequency"];
+							var colNames = ["no", "key", "value"];
 							
 							var colModel = [
 							   		{"name": "_no_", "index": "no", "width": "50", "sorttype": "int", "align": "center"},
 									{"name": "key", "index": "key", "width": "200", "sorttype": "text"},
-									{"name": "freq", "index": "freq", "width": "100", "sorttype": "int", "align": "center"}
+									{"name": "COUNT", "index": "COUNT", "width": "100", "sorttype": "int", "align": "center"}
 							   	];							
 
 							if( data_obj.group_result[i][0]["sum"] ) {

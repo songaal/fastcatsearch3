@@ -20,6 +20,11 @@ public class RefSetting {
 		this.removeTag = removeTag;
 	}
 	
+	@Override
+	public String toString(){
+		return "[RefSetting]"+ref+", "+removeTag+", "+size;
+	}
+	
 	
 	@XmlAttribute(required = true)
 	public String getRef() {
