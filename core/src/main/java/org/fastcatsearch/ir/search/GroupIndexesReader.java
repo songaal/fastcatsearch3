@@ -20,7 +20,7 @@ public class GroupIndexesReader extends SelectableIndexesReader<GroupIndexReader
 		readerList = new ArrayList<GroupIndexReader>(indexCount);
 		for (int i = 0; i < indexCount; i++) {
 			GroupIndexSetting setting = indexSettingList.get(i);
-			readerList.add(new GroupIndexReader(setting, schema.fieldSettingMap(), dir, revision));
+			readerList.add(new GroupIndexReader(setting, schema.fieldSettingMap(), dir));
 		}
 		
 	}

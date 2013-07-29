@@ -45,6 +45,7 @@ public class BufferedFileOutput extends IndexOutput {
 	public BufferedFileOutput(File file) throws IOException{
 		this(file, false);
 	}
+	
 	public BufferedFileOutput(File dir, String filename) throws IOException{
 		this(dir, filename, false);
 	}
@@ -107,7 +108,8 @@ public class BufferedFileOutput extends IndexOutput {
 		raf.seek(p);
 	}
 	
-	public synchronized void writeBytes(byte b[], int off, int len) throws IOException {
+//	public synchronized void writeBytes(byte b[], int off, int len) throws IOException {
+	public void writeBytes(byte b[], int off, int len) throws IOException {
 		if (len >= buf.length) {
 		    flush();
 		    raf.write(b, off, len);

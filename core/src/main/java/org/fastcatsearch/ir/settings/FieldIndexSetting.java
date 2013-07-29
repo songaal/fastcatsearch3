@@ -16,33 +16,31 @@
 
 package org.fastcatsearch.ir.settings;
 
-import java.util.List;
-
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "field-index")
-@XmlType(propOrder = { "ignoreCase", "size", "refList", "name", "id" })
-public class FieldIndexSetting implements MultiRefFieldSetting {
+@XmlType(propOrder = { "ignoreCase", "size", "ref", "name", "id" })
+public class FieldIndexSetting implements ReferencableFieldSetting {
 	
 	private String id;
 	private String name;
-	private List<RefSetting> refList;
+	private String ref;
 	private int size;
 	private boolean ignoreCase;
 	
 	public FieldIndexSetting() {}
 	
-	public FieldIndexSetting(String id, String name) {
+	public FieldIndexSetting(String id, String name, String ref) {
 		this.id = id;
 		this.name = name;
+		this.ref = ref;
 	}
-	public FieldIndexSetting(String id, String name, List<RefSetting> refList, int size, boolean ignoreCase) {
+	public FieldIndexSetting(String id, String name, String ref, int size, boolean ignoreCase) {
 		this.id = id;
 		this.name = name;
-		this.refList = refList;
+		this.ref = ref;
 		this.size = size;
 		this.ignoreCase = ignoreCase;
 	}
@@ -57,9 +55,10 @@ public class FieldIndexSetting implements MultiRefFieldSetting {
 		return name;
 	}
 
-	@XmlElement(name="field", required=true)
-	public List<RefSetting> getRefList() {
-		return refList;
+
+	@XmlAttribute
+	public String getRef() {
+		return ref;
 	}
 
 	@XmlAttribute
@@ -79,11 +78,11 @@ public class FieldIndexSetting implements MultiRefFieldSetting {
 	public void setName(String name) {
 		this.name = name;
 	}
-
-	public void setRefList(List<RefSetting> refList) {
-		this.refList = refList;
+	
+	public void setRef(String ref) {
+		this.ref = ref;
 	}
-
+	
 	public void setSize(int size) {
 		this.size = size;
 	}
@@ -93,7 +92,7 @@ public class FieldIndexSetting implements MultiRefFieldSetting {
 	}
 
 	public String toString(){
-		return "[FieldIndex="+id+":"+name+":"+refList+":"+size+":"+ignoreCase+"]";
+		return "[FieldIndex="+id+":"+name+":"+ref+":"+size+":"+ignoreCase+"]";
 	}
 
 	

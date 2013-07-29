@@ -88,7 +88,7 @@ public class DocumentWriter {
 		
 		primaryKeySetting = schema.schemaSetting().getPrimaryKeySetting();
 		
-		if (primaryKeySetting != null) {
+		if (primaryKeySetting != null &&  primaryKeySetting.getFieldList() != null) {
 			List<PkRefSetting> refList = primaryKeySetting.getFieldList();
 			
 			primaryKeyFieldIdList = new int[refList.size()];

@@ -311,23 +311,15 @@ public class DocumentWriteReadTest extends TestCase{
 		setting.getIndexSettingList().add(indexSetting);
 		
 		List<FieldIndexSetting> fieldIndexSettingList = new ArrayList<FieldIndexSetting>();
-		FieldIndexSetting fieldIndexSetting = new FieldIndexSetting("title", "title field index");
-		fieldIndexSetting.setRefList(new ArrayList<RefSetting>());
-		fieldIndexSetting.getRefList().add(new RefSetting("title"));
+		FieldIndexSetting fieldIndexSetting = new FieldIndexSetting("title", "title field index", "title");
 		fieldIndexSettingList.add(fieldIndexSetting);
-		fieldIndexSetting = new FieldIndexSetting("title_tags", "title tags field index");
-		fieldIndexSetting.setRefList(new ArrayList<RefSetting>());
-		fieldIndexSetting.getRefList().add(new RefSetting("title"));
-		fieldIndexSetting.getRefList().add(new RefSetting("tags"));
+		fieldIndexSetting = new FieldIndexSetting("tags", "title tags field index", "tags");
 		fieldIndexSettingList.add(fieldIndexSetting);
 		setting.setFieldIndexSettingList(fieldIndexSettingList);
 		
 		
 		List<GroupIndexSetting> groupSettingList = new ArrayList<GroupIndexSetting>();
-		GroupIndexSetting groupIndexSetting = new GroupIndexSetting("category", "category_group");
-		groupIndexSetting.setRefList(new ArrayList<RefSetting>());
-		groupIndexSetting.getRefList().add(new RefSetting("category"));
-		groupIndexSetting.getRefList().add(new RefSetting("tags"));
+		GroupIndexSetting groupIndexSetting = new GroupIndexSetting("category", "category_group", "category");
 		groupSettingList.add(groupIndexSetting);
 		setting.setGroupIndexSettingList(groupSettingList);
 		

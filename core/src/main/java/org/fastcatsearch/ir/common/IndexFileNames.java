@@ -35,10 +35,10 @@ public class IndexFileNames {
 	
 	public static String fieldIndexFile = "field.index";
 	
-	public static String groupDataFile = "group.data";
-	public static String groupKeyFile = "group.key";
-	public static String groupKeyMap = "group.map";
-	public static String groupKeyMapIndex = "group.map.index";
+	public static String groupIndexFile = "group.index";
+	public static String groupKeyFile = "group.key"; //그룹순차번호별 key string저장.
+	public static String groupKeyMap = "group.map"; //증분색인시 이전 리비전과의 머징을 위해 필요한 pk파일. group writer에서만 사용된다.
+	public static String groupKeyMapIndex = "group.map.index"; //그룹 pk의 index파일이나 단순 생성만 하고 사용은 안함. 
 	public static String groupInfoFile = "group.info";
 	
 //	public static String dataSequenceFile = "data.sequence";

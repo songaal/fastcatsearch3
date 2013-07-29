@@ -55,7 +55,7 @@ public class FieldSetting {
 	private boolean removeTag;
 	private boolean modify;
 	private boolean multiValue;
-	private String multiValueDelimiter = "\n";
+	private String multiValueDelimiter = ",";
 
 	public static enum Type {
 		UNKNOWN, ASTRING, STRING, INT, LONG, FLOAT, DOUBLE, DATETIME, BLOB, __SCORE, __HIT, __DOCNO 

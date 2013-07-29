@@ -52,14 +52,19 @@ public class PrimaryKeyIndexReader implements Cloneable {
 	public PrimaryKeyIndexReader(File dir, String filename, long dataBasePosition, long dataEndPosition, long indexBasePosition) throws IOException{
 		input = new BufferedFileInput(dir, filename);
 //		logger.debug("input = "+input+", size="+input.size());
-		input.seek(dataBasePosition);
+		if(dataBasePosition >= 0){
+			input.seek(dataBasePosition);
+		}
 		indexInput = new BufferedFileInput(dir, filename+".index");
-		indexInput.seek(indexBasePosition);
+		if(indexBasePosition >= 0){
+			indexInput.seek(indexBasePosition);
+		}
 		
-		if(dataEndPosition < 0)
+		if(dataEndPosition < 0){
 			limit = input.length();
-		else
+		}else{
 			limit = dataEndPosition;
+		}
 		
 		this.count = input.readInt();
 //		logger.debug("** count="+count);

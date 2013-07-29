@@ -16,28 +16,27 @@
 
 package org.fastcatsearch.ir.settings;
 
-import java.util.List;
-
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
-@XmlType(propOrder = { "refList", "name", "id"})
-public class GroupIndexSetting implements MultiRefFieldSetting {
+@XmlType(propOrder = { "ignoreCase", "ref", "name", "id"})
+public class GroupIndexSetting implements ReferencableFieldSetting {
 	
 	private String id;
 	private String name;
-	private List<RefSetting> refList;
+	private String ref;
+	private boolean ignoreCase;
 	
 	public GroupIndexSetting() {}
 	
-	public GroupIndexSetting(String id, String name){
+	public GroupIndexSetting(String id, String name, String ref){
 		this.id = id;
 		this.name = name;
+		this.ref = ref;
 	}
 	
 	public String toString(){
-		return "[group="+id+":"+name+":"+refList+"]";
+		return "[group="+id+":"+name+":"+ref+":"+ignoreCase+"]";
 	}
 
 	@XmlAttribute(name="id", required=true)
@@ -58,12 +57,24 @@ public class GroupIndexSetting implements MultiRefFieldSetting {
 		this.name = name;
 	}
 
-	@XmlElement(name="field", required=true)
-	public List<RefSetting> getRefList() {
-		return refList;
+	@XmlAttribute
+	public String getRef() {
+		return ref;
 	}
 
-	public void setRefList(List<RefSetting> refList) {
-		this.refList = refList;
+	public void setRef(String ref) {
+		this.ref = ref;
 	}
+
+	@XmlAttribute
+	public boolean isIgnoreCase() {
+		return ignoreCase;
+	}
+
+	public void setIgnoreCase(boolean ignoreCase) {
+		this.ignoreCase = ignoreCase;
+	}
+
+	
+
 }

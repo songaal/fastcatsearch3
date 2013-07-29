@@ -55,19 +55,13 @@ public class JAXBSchemaSettingTest {
 		setting.setIndexSettingList(indexSettingList);
 		
 		List<FieldIndexSetting> fieldIndexSettingList = new ArrayList<FieldIndexSetting>();
-		FieldIndexSetting fieldIndexSetting = new FieldIndexSetting("title", "title field index");
-		fieldIndexSetting.setRefList(new ArrayList<RefSetting>());
-		fieldIndexSetting.getRefList().add(new RefSetting("title"));
-		fieldIndexSetting.getRefList().add(new RefSetting("content"));
+		FieldIndexSetting fieldIndexSetting = new FieldIndexSetting("title", "title field index", "title");
 		fieldIndexSettingList.add(fieldIndexSetting);
 		setting.setFieldIndexSettingList(fieldIndexSettingList);
 		
 		
 		List<GroupIndexSetting> groupSettingList = new ArrayList<GroupIndexSetting>();
-		GroupIndexSetting groupIndexSetting = new GroupIndexSetting("category", "category_group");
-		groupIndexSetting.setRefList(new ArrayList<RefSetting>());
-		groupIndexSetting.getRefList().add(new RefSetting("category"));
-		groupIndexSetting.getRefList().add(new RefSetting("tags"));
+		GroupIndexSetting groupIndexSetting = new GroupIndexSetting("category", "category_group", "category");
 		groupSettingList.add(groupIndexSetting);
 		setting.setGroupIndexSettingList(groupSettingList);
 		

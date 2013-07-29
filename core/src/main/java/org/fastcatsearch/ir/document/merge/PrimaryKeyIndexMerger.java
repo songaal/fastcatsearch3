@@ -32,12 +32,9 @@ import org.slf4j.LoggerFactory;
 
 public class PrimaryKeyIndexMerger {
 	private static Logger logger = LoggerFactory.getLogger(PrimaryKeyIndexMerger.class);
-	private static Logger debugLogger = LoggerFactory.getLogger("DEBUG_LOG");
 	private PrimaryKeyIndexBulkWriter w;
 	
-	public PrimaryKeyIndexMerger(){ 
-		debugLogger.debug("--------------------------------------------");
-	}
+	public PrimaryKeyIndexMerger(){ }
 	
 	/*
 	 * 증분색인후 이전 revision의 pk와 새 revision의 pk를 머징하면서  동일한 pk가 발견되면 이전 revision의 문서번호를 deleteSet에 넣어준다.
@@ -79,11 +76,11 @@ public class PrimaryKeyIndexMerger {
 				//prev doc no put to deleteSet
 				
 				//TODO 이 코드는 디버그용임..
-				if(debugLogger.isDebugEnabled()){
-					int id = IOUtil.readInt(buf1.bytes, 0);
-//					debugLogger.debug("{} / {} -- delete", docNo1, id);
-//					debugLogger.debug("{} / {} -- PK0", docNo2, id);
-				}
+//				if(logger.isTraceEnabled()){
+//					int id = IOUtil.readInt(buf1.bytes, 0);
+////					logger.debug("{} / {} -- delete", docNo1, id);
+////					logger.debug("{} / {} -- PK0", docNo2, id);
+//				}
 				//////
 				if(deleteSet != null){
 					deleteSet.set(docNo1);
@@ -97,17 +94,17 @@ public class PrimaryKeyIndexMerger {
 				buf2.clear();
 				docNo2 = r2.next(buf2);
 			}else if(ret < 0){
-				if(debugLogger.isDebugEnabled()){
+				if(logger.isTraceEnabled()){
 					int id = IOUtil.readInt(buf1.bytes, 0);
-					debugLogger.debug("{} / {} -- PK1", docNo1, id);
+					logger.debug("{} / {} -- PK1", docNo1, id);
 				}
 				w.write(buf1, docNo1);
 				buf1.clear();
 				docNo1 = r1.next(buf1);
 			}else{
-				if(debugLogger.isDebugEnabled()){
+				if(logger.isTraceEnabled()){
 					int id = IOUtil.readInt(buf2.bytes, 0);
-					debugLogger.debug("{} / {} -- PK2", docNo2, id);
+					logger.debug("{} / {} -- PK2", docNo2, id);
 				}
 				w.write(buf2, docNo2);
 				buf2.clear();
@@ -116,9 +113,9 @@ public class PrimaryKeyIndexMerger {
 		}
 		
 		while(docNo1 >= 0){
-			if(debugLogger.isDebugEnabled()){
+			if(logger.isTraceEnabled()){
 				int id = IOUtil.readInt(buf1.bytes, 0);
-				debugLogger.debug("{} / {} -- PK1", docNo1, id);
+				logger.debug("{} / {} -- PK1", docNo1, id);
 			}
 			w.write(buf1, docNo1);
 			buf1.clear();
@@ -126,9 +123,9 @@ public class PrimaryKeyIndexMerger {
 		}
 		
 		while(docNo2 >= 0){
-			if(debugLogger.isDebugEnabled()){
+			if(logger.isTraceEnabled()){
 				int id = IOUtil.readInt(buf2.bytes, 0);
-				debugLogger.debug("{} / {} -- PK2", docNo2, id);
+				logger.debug("{} / {} -- PK2", docNo2, id);
 			}
 			w.write(buf2, docNo2);
 			buf2.clear();
@@ -138,28 +135,16 @@ public class PrimaryKeyIndexMerger {
 		r1.close();
 		r2.close();
 		w.close();
-		debugLogger.debug("--------------------------------------------");
 		return inSegmentDocUpdateCount;
 	}
 
 	/*
 	 * For Group key map
 	 * */
-	public boolean merge(File file1, long base1, File file2, long base2, IndexOutput pkmapOutput, IndexOutput pkmapIndexOutput, int indexInterval) throws IOException {
-		PrimaryKeyIndexBulkReader r1 = null;
-		PrimaryKeyIndexBulkReader r2 = null;
-		
-		if(file1.isDirectory())
-			r1 = new PrimaryKeyIndexBulkReader(file1, IndexFileNames.primaryKeyMap, base1);
-		else
-			r1 = new PrimaryKeyIndexBulkReader(file1, base1);
-		
-		if(file2.isDirectory())
-			r2 = new PrimaryKeyIndexBulkReader(file2, IndexFileNames.primaryKeyMap, base2);
-		else
-			r2 = new PrimaryKeyIndexBulkReader(file2, base2);
-		
-		w = new PrimaryKeyIndexBulkWriter(pkmapOutput, pkmapIndexOutput, indexInterval, true);
+	public boolean merge(File file1, File file2, IndexOutput pkmapOutput, IndexOutput pkmapIndexOutput, int indexInterval) throws IOException {
+		PrimaryKeyIndexBulkReader r1 = new PrimaryKeyIndexBulkReader(file1);
+		PrimaryKeyIndexBulkReader r2 = new PrimaryKeyIndexBulkReader(file2);
+		w = new PrimaryKeyIndexBulkWriter(pkmapOutput, pkmapIndexOutput, indexInterval);
 		
 		BytesBuffer buf1 = new BytesBuffer(1024);
 		BytesBuffer buf2 = new BytesBuffer(1024);
@@ -209,6 +194,70 @@ public class PrimaryKeyIndexMerger {
 		
 		return true;
 	}
+//	public boolean merge(File file1, long base1, File file2, long base2, IndexOutput pkmapOutput, IndexOutput pkmapIndexOutput, int indexInterval) throws IOException {
+//		PrimaryKeyIndexBulkReader r1 = null;
+//		PrimaryKeyIndexBulkReader r2 = null;
+//		
+//		if(file1.isDirectory())
+//			r1 = new PrimaryKeyIndexBulkReader(file1, IndexFileNames.primaryKeyMap, base1);
+//		else
+//			r1 = new PrimaryKeyIndexBulkReader(file1, base1);
+//		
+//		if(file2.isDirectory())
+//			r2 = new PrimaryKeyIndexBulkReader(file2, IndexFileNames.primaryKeyMap, base2);
+//		else
+//			r2 = new PrimaryKeyIndexBulkReader(file2, base2);
+//		
+//		w = new PrimaryKeyIndexBulkWriter(pkmapOutput, pkmapIndexOutput, indexInterval, true);
+//		
+//		BytesBuffer buf1 = new BytesBuffer(1024);
+//		BytesBuffer buf2 = new BytesBuffer(1024);
+//		
+//		int docNo1 = r1.next(buf1);
+//		int docNo2 = r2.next(buf2);
+//		
+//		//merge in ascending order 
+//		while(docNo1 >= 0 && docNo2 >= 0){
+//			
+//			int ret = BytesBuffer.compareBuffer(buf1, buf2);
+//			
+//			if(ret == 0){
+//				//must write doc2 number because doc1 was replaced with doc2.
+//				
+//				w.write(buf1, docNo2);
+//				buf1.clear();
+//				docNo1 = r1.next(buf1);
+//				buf2.clear();
+//				docNo2 = r2.next(buf2);
+//			}else if(ret < 0){
+//				w.write(buf1, docNo1);
+//				buf1.clear();
+//				docNo1 = r1.next(buf1);
+//			}else{
+//				w.write(buf2, docNo2);
+//				buf2.clear();
+//				docNo2 = r2.next(buf2);
+//			}
+//		}
+//		
+//		while(docNo1 >= 0){
+//			w.write(buf1, docNo1);
+//			buf1.clear();
+//			docNo1 = r1.next(buf1);
+//		}
+//		
+//		while(docNo2 >= 0){
+//			w.write(buf2, docNo2);
+//			buf2.clear();
+//			docNo2 = r2.next(buf2);
+//		}
+//		
+//		r1.close();
+//		r2.close();
+//		w.close();
+//		
+//		return true;
+//	}
 	
 	public int getKeyCount(){
 		return w.getKeyCount();

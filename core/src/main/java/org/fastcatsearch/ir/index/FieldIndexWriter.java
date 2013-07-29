@@ -44,46 +44,55 @@ public class FieldIndexWriter {
 	private static Logger logger = LoggerFactory.getLogger(FieldIndexWriter.class);
 	private IndexOutput output;
 	private IndexOutput multiValueOutput;
-	private List<RefSetting> refSettingList;
-	private int[] fieldSequenceList;
-	private boolean hasMultiValue;
-	private int fieldSize;
-	private int[] fieldIndexSizeList;
+//	private List<RefSetting> refSettingList;
+//	private int[] fieldSequenceList;
+	private boolean isMultiValue;
+//	private int fieldSize;
+//	private int[] fieldIndexSizeList;
+	private int limitSize;
+	private int fieldSequence;
 	
 	public FieldIndexWriter(FieldIndexSetting fieldIndexSetting, Map<String, FieldSetting> fieldSettingMap, Map<String, Integer> fieldSequenceMap, File dir) throws IOException, IRException {
 		this(fieldIndexSetting, fieldSettingMap, fieldSequenceMap, dir, false);
 	}
 	
 	public FieldIndexWriter(FieldIndexSetting fieldIndexSetting, Map<String, FieldSetting> fieldSettingMap, Map<String, Integer> fieldSequenceMap, File dir, boolean isAppend) throws IOException, IRException {
-		refSettingList = fieldIndexSetting.getRefList();
-		fieldSize = refSettingList.size();
-		fieldSequenceList = new int[fieldSize];
-		fieldIndexSizeList = new int[fieldSize];
+//		refSettingList = fieldIndexSetting.getRef();
+//		fieldSize = refSettingList.size();
+//		fieldSequenceList = new int[fieldSize];
+//		fieldIndexSizeList = new int[fieldSize];
 		String id = fieldIndexSetting.getId();
 		output = new BufferedFileOutput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.fieldIndexFile, id), isAppend);
 		
-		for (int idx = 0; idx < fieldSize; idx++) {
-			RefSetting rs = refSettingList.get(idx);
+//		for (int idx = 0; idx < fieldSize; idx++) {
+//			RefSetting rs = refSettingList.get(idx);
 			
-			String fieldId = rs.getRef();
-			int fieldIndexSize = rs.getSize();
-			fieldIndexSizeList[idx] = fieldIndexSize;
-			FieldSetting fieldSetting = fieldSettingMap.get(fieldId);
-			if(fieldSetting.isMultiValue()){
-				hasMultiValue = true;
-			}
-			fieldSequenceList[idx] = fieldSequenceMap.get(fieldId);
-		}
-		if(hasMultiValue){
+		String fieldId = fieldIndexSetting.getRef();
+		fieldSequence = fieldSequenceMap.get(fieldId);
+		FieldSetting refFieldSetting = fieldSettingMap.get(fieldId);
+		limitSize = fieldIndexSetting.getSize();
+		
+		isMultiValue = refFieldSetting.isMultiValue();
+		if(isMultiValue){
 			multiValueOutput = new BufferedFileOutput(dir, IndexFileNames.getMultiValueSuffixFileName(IndexFileNames.fieldIndexFile, id), isAppend);
 		}
+			
+//			fieldIndexSizeList[idx] = fieldIndexSize;
+//			if(fieldSetting.isMultiValue()){
+//				hasMultiValue = true;
+//			}
+//			fieldSequenceList[idx] = fieldSequenceMap.get(fieldId);
+//		}
+		
+		
+		
 	}
 	
 	public void write(Document document) throws IOException, IRException{
 		
-		for (int idx = 0; idx < fieldSize; idx++) {
-			int k = fieldSequenceList[idx];
-			Field f = document.get(k);
+//		for (int idx = 0; idx < fieldSize; idx++) {
+//			int k = fieldSequenceList[idx];
+			Field f = document.get(fieldSequence);
 			
 			if(f.isMultiValue()){
 				long ptr = multiValueOutput.position();
@@ -92,7 +101,7 @@ public class FieldIndexWriter {
 					f.writeFixedDataTo(multiValueOutput);
 				}else{
 					//정해진 길이가 있다면 해당 길이로 자른다.
-					int limitSize = fieldIndexSizeList[idx];
+//					int limitSize = fieldIndexSizeList[idx];
 					Field tmpField = f.clone();
 					if(limitSize > 0){
 						tmpField.setSize(limitSize);
@@ -106,7 +115,7 @@ public class FieldIndexWriter {
 					f.writeFixedDataTo(output);
 				}else{
 					//정해진 길이가 있다면 해당 길이로 자른다.
-					int limitSize = fieldIndexSizeList[idx];
+//					int limitSize = fieldIndexSizeList[idx];
 					Field tmpField = f.clone();
 					if(limitSize > 0){
 						tmpField.setSize(limitSize);
@@ -116,20 +125,20 @@ public class FieldIndexWriter {
 					}
 				}
 			}
-		}
+//		}
 	}
 	
 	public void flush() throws IOException{
 		output.flush();
 		
-		if(hasMultiValue){
+		if(isMultiValue){
 			multiValueOutput.flush();
 		}
 	}
 	public void close() throws IOException{
 		output.close();
 		
-		if(hasMultiValue){
+		if(isMultiValue){
 			multiValueOutput.close();
 		}
 	}

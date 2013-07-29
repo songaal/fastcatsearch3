@@ -38,6 +38,7 @@ public abstract class GroupFunction {
 	}
 	
 	public void init(GroupingValue[] valueList){
+		logger.debug("INIT GroupFunction size={}, {}", valueList.length, valueList);
 		this.valueList = valueList;
 	}
 	

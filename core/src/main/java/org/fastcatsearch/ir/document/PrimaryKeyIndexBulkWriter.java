@@ -40,28 +40,26 @@ public class PrimaryKeyIndexBulkWriter {
 	private int indexInterval;
 	private int keyCount;
 	private int keyIndexCount;
-	private long pos1, pos2;
-	private boolean isAppend;
+//	private long pos1, pos2;
 	
 	public PrimaryKeyIndexBulkWriter(File f, int indexInterval) throws IOException{
 		this.filename = f.getName();
 		this.indexInterval = indexInterval;
 		output = new BufferedFileOutput(f);
 		indexOutput = new BufferedFileOutput(f.getParentFile(),f.getName()+".index");
-		pos1 = output.position();
-		pos2 = indexOutput.position();
+//		pos1 = output.position();
+//		pos2 = indexOutput.position();
 		
 		output.writeInt(0);
 		indexOutput.writeInt(0);
 	}
 
-	public PrimaryKeyIndexBulkWriter(IndexOutput output, IndexOutput indexOutput, int indexInterval, boolean isAppend) throws IOException{
+	public PrimaryKeyIndexBulkWriter(IndexOutput output, IndexOutput indexOutput, int indexInterval) throws IOException{
 		this.output = output;
 		this.indexOutput = indexOutput;
 		this.indexInterval = indexInterval;
-		this.isAppend = isAppend;
-		pos1 = output.position();
-		pos2 = indexOutput.position();
+//		pos1 = output.position();
+//		pos2 = indexOutput.position();
 		output.writeInt(0);
 		indexOutput.writeInt(0);
 	}
@@ -70,21 +68,25 @@ public class PrimaryKeyIndexBulkWriter {
 	public void close() throws IOException{
 //		logger.debug(filename +" filesize=" + output.position()+", count="+keyCount);
 		long t = output.position();
-		output.seek(pos1);
+		output.seek(0);
 		output.writeInt(keyCount);
-		if(!isAppend)
-			output.close();
-		else
-			output.seek(t);
+		output.close();
+		
+//		if(!isAppend)
+//			output.close();
+//		else
+//			output.seek(t);
 		
 //		logger.debug(filename +".index filesize=" + indexOutput.seek()+", count="+keyIndexCount);
 		t = indexOutput.position();
-		indexOutput.seek(pos2);
+		indexOutput.seek(0);
 		indexOutput.writeInt(keyIndexCount);
-		if(!isAppend)
-			indexOutput.close();
-		else
-			indexOutput.seek(t);
+		indexOutput.close();
+		
+//		if(!isAppend)
+//			indexOutput.close();
+//		else
+//			indexOutput.seek(t);
 		
 	}
 	public void write(BytesBuffer buf, int value) throws IOException{

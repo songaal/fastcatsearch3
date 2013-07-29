@@ -17,7 +17,7 @@ public class DataWriterReadTest {
 		BytesRef bytesRef = output.bytesRef();
 		System.out.println(bytesRef.offset);
 		System.out.println(bytesRef.length());
-		System.out.println(bytesRef.po());
+		System.out.println(bytesRef.pos());
 		
 		int actual = IOUtil.readInt(bytesRef);
 		assertEquals(100, actual);
