@@ -56,7 +56,7 @@ public class BitSet {
 			
 			for(int i=0;i<size;i++){
 				bitdata[i] = in.readLong();
-				logger.debug("delete set {}", bitdata[i]);
+//				logger.debug("delete set {}", bitdata[i]);
 			}
 			in.close();
 			

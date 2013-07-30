@@ -9,6 +9,7 @@ import org.apache.lucene.util.BytesRef;
 public class StreamInputRef extends DataRef {
 	protected IndexInput input;
 	protected int dataSize;
+	protected long resetPosition;
 	
 	public StreamInputRef(){ }
 	
@@ -17,6 +18,23 @@ public class StreamInputRef extends DataRef {
 		this.dataSize = dataSize;
 		bytesRef = new BytesRef(dataSize);
 		count = 1; //기본 1.
+	}
+	
+	@Override
+	public void reset() {
+		try {
+			input.seek(resetPosition);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		read = 0;
+	}
+	
+	@Override
+	public void init(int count){
+		this.count = count;
+		resetPosition = input.position();
+		this.read = 0; //0으로 리셋.
 	}
 	
 	@Override

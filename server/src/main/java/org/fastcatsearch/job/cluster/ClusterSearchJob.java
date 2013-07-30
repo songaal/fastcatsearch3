@@ -19,7 +19,7 @@ import org.fastcatsearch.ir.field.DocNoField;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.field.UnknownField;
-import org.fastcatsearch.ir.group.GroupData;
+import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.io.FixedHitReader;
 import org.fastcatsearch.ir.query.Groups;
@@ -286,10 +286,10 @@ public class ClusterSearchJob extends Job {
 		/*
 		 * Group Result
 		 * */
-		GroupData groupData = aggregatedSearchResult.getGroupData();
+		GroupsData groupsData = aggregatedSearchResult.getGroupsData();
 		GroupResults groupResults = null;
-		if(aggregatedSearchResult.getGroupData() != null){
-			groupResults = groups.getGroupResultsGenerator().generate(groupData);
+		if(aggregatedSearchResult.getGroupsData() != null){
+			groupResults = groups.getGroupsResultGenerator().generate(groupsData);
 		}
 		
 		Result searchResult = new Result(row, groupResults, fieldSize, fieldNameList, realSize, totalSize, meta);

@@ -32,7 +32,7 @@ public class StreamableShardSearchResult implements Streamable {
 		sHitElement.readFrom(input);
 		int count = sHitElement.count();
 		
-		StreamableGroupData sGroupData = new StreamableGroupData();
+		StreamableGroupsData sGroupData = new StreamableGroupsData();
 		if(input.readBoolean()){
 			sGroupData.readFrom(input);
 		}
@@ -54,9 +54,9 @@ public class StreamableShardSearchResult implements Streamable {
 		output.writeInt(shardSearchResult.shardId());
 		output.writeInt(shardSearchResult.getTotalCount());
 		new StreamableHitElement(shardSearchResult.getHitElementList(), shardSearchResult.getCount()).writeTo(output);
-		if(shardSearchResult.getGroupData() != null){
+		if(shardSearchResult.getGroupsData() != null){
 			output.writeBoolean(true);
-			new StreamableGroupData(shardSearchResult.getGroupData()).writeTo(output);
+			new StreamableGroupsData(shardSearchResult.getGroupsData()).writeTo(output);
 		}else{
 			output.writeBoolean(false);
 		}

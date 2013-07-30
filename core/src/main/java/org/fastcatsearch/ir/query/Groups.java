@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.fastcatsearch.ir.group.GroupDataGenerator;
-import org.fastcatsearch.ir.group.GroupResultsGenerator;
+import org.fastcatsearch.ir.group.GroupsResultGenerator;
 import org.fastcatsearch.ir.search.FieldIndexesReader;
 import org.fastcatsearch.ir.search.GroupIndexesReader;
 import org.fastcatsearch.ir.settings.Schema;
@@ -63,8 +63,8 @@ public class Groups {
 	public GroupDataGenerator getGroupDataGenerator(Schema schema, GroupIndexesReader groupIndexesReader, FieldIndexesReader fieldIndexesReader) throws IOException{
 		return new GroupDataGenerator(groupList, schema, groupIndexesReader, fieldIndexesReader);
 	}
-	public GroupResultsGenerator getGroupResultsGenerator() {
-		return new GroupResultsGenerator(this);
+	public GroupsResultGenerator getGroupsResultGenerator() {
+		return new GroupsResultGenerator(this);
 	}
 	public Clause getGroupClause(){
 		return clause;

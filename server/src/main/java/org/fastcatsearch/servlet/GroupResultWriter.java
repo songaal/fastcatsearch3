@@ -53,13 +53,15 @@ public class GroupResultWriter extends AbstractSearchResultWriter {
 	public void writeBody(GroupResults groupResults, ResultStringer stringer) throws StringifyException {
 		
 		if(groupResults == null){
-    		stringer.key("group_result").value("null");
+    		stringer.key("group_result").array("group_list").endArray();
 		} else {
 			GroupResult[] groupResultList = groupResults.groupResultList();
     		stringer.key("group_result").array("group_list");
     		for (int i = 0; i < groupResultList.length; i++) {
-    			stringer.array("group_item");
-				GroupResult groupResult = groupResultList[i];
+    			GroupResult groupResult = groupResultList[i];
+    			stringer.object()
+    			.key("label").value(groupResult.fieldId())
+    			.key("result").array("group_item");
 				int size = groupResult == null ? 0 : groupResult.size();
 				for (int k = 0; k < size; k++) {
 					GroupEntry e = groupResult.getEntry(k);
@@ -67,8 +69,8 @@ public class GroupResultWriter extends AbstractSearchResultWriter {
 					String[] functionName = groupResult.headerNameList();
 					
 					stringer.object()
-						.key("_no_").value(k+1)
-						.key("key").value(keyData);
+						.key("_NO").value(k+1)
+						.key("_KEY").value(keyData);
 					
 					for (int j = 0; j < functionName.length; j++) {
 						stringer.key(functionName[j]).value(e.groupingValue(j));
@@ -76,7 +78,8 @@ public class GroupResultWriter extends AbstractSearchResultWriter {
 					
 					stringer.endObject();
 				}//for
-				stringer.endArray();
+				stringer.endArray();//group_item
+				stringer.endObject();
     		}//for
     		stringer.endArray();
 		}//if else

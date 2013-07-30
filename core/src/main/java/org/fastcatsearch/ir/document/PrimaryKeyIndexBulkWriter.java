@@ -19,6 +19,7 @@ package org.fastcatsearch.ir.document;
 import java.io.File;
 import java.io.IOException;
 
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IndexOutput;
@@ -46,7 +47,7 @@ public class PrimaryKeyIndexBulkWriter {
 		this.filename = f.getName();
 		this.indexInterval = indexInterval;
 		output = new BufferedFileOutput(f);
-		indexOutput = new BufferedFileOutput(f.getParentFile(),f.getName()+".index");
+		indexOutput = new BufferedFileOutput(f.getParentFile(), IndexFileNames.getIndexFileName(f.getName()));
 //		pos1 = output.position();
 //		pos2 = indexOutput.position();
 		

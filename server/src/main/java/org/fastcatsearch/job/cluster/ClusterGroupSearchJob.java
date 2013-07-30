@@ -11,7 +11,7 @@ import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.data.DataService;
 import org.fastcatsearch.data.DataStrategy;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.group.GroupData;
+import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Groups;
 import org.fastcatsearch.ir.query.Query;
@@ -22,7 +22,7 @@ import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.transport.vo.StreamableGroupData;
+import org.fastcatsearch.transport.vo.StreamableGroupsData;
 
 public class ClusterGroupSearchJob extends Job {
 
@@ -82,7 +82,7 @@ public class ClusterGroupSearchJob extends Job {
 			resultFutureList[i] = nodeService.sendRequest(dataNode, job);
 		}
 		
-		List<GroupData> resultList = new ArrayList<GroupData>(collectionIdList.length);
+		List<GroupsData> resultList = new ArrayList<GroupsData>(collectionIdList.length);
 		
 		for (int i = 0; i < collectionIdList.length; i++) {
 			//TODO 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
@@ -98,7 +98,7 @@ public class ClusterGroupSearchJob extends Job {
 				}
 			}
 			
-			StreamableGroupData obj2 = (StreamableGroupData) obj;
+			StreamableGroupsData obj2 = (StreamableGroupsData) obj;
 			resultList.add(obj2.groupData());
 			
 		}

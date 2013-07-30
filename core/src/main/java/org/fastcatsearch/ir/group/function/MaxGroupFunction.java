@@ -36,4 +36,9 @@ public class MaxGroupFunction extends GroupFunction {
 		return FUNCTION_NAME + "_" + fieldId;
 	}
 
+	@Override
+	public void done() {
+		
+	}
+
 }

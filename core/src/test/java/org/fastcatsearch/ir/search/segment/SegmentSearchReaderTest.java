@@ -24,7 +24,7 @@ import junit.framework.TestCase;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
-import org.fastcatsearch.ir.group.GroupData;
+import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.group.GroupDataMerger;
 import org.fastcatsearch.ir.group.GroupDataReader;
 import org.fastcatsearch.ir.group.GroupEntry;
@@ -174,7 +174,7 @@ public class SegmentSearchReaderTest extends TestCase{
 //			System.out.println(e.docNo()+":"+e.score());
 //		}
 		
-		GroupData groupData = frequencyMerger.merge();
+		GroupsData groupData = frequencyMerger.merge();
 //		GroupEntryList[] groupResult = groupData.list();
 		for(int i=0;i<groupData.groupSize();i++){
 			GroupEntryList entryList = groupData.getGroupEntryList(i);

@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.group.GroupData;
+import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.query.Metadata;
@@ -14,7 +14,7 @@ import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.transport.vo.StreamableGroupData;
+import org.fastcatsearch.transport.vo.StreamableGroupsData;
 
 public class InternalGroupSearchJob extends StreamableJob {
 	private String query;
@@ -41,7 +41,7 @@ public class InternalGroupSearchJob extends StreamableJob {
 		collection = meta.collectionId();
 		
 		try {
-			GroupData result = null;
+			GroupsData result = null;
 			boolean noCache = false;
 			//no cache 옵션이 없으면 캐시를 확인한다.
 			if((q.getMeta().option() & Query.SEARCH_OPT_NOCACHE) > 0)
@@ -66,7 +66,7 @@ public class InternalGroupSearchJob extends StreamableJob {
 				}
 			}
 			
-			return new JobResult(new StreamableGroupData(result));
+			return new JobResult(new StreamableGroupsData(result));
 			
 		} catch (FastcatSearchException e){
 			throw e;

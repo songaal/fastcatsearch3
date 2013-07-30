@@ -53,7 +53,7 @@ public class GroupDataMerger {
 		}
 	}
 
-	public void put(GroupData groupData) {
+	public void put(GroupsData groupData) {
 		totalSearchCount += groupData.totalSearchCount();
 		for (int groupNum = 0; groupNum < groupData.groupSize(); groupNum++) {
 			GroupDataReader reader = groupData.getGroupDataReader(groupNum);
@@ -64,7 +64,7 @@ public class GroupDataMerger {
 
 	}
 
-	public GroupData merge() {
+	public GroupsData merge() {
 
 		List<GroupEntryList> list = new ArrayList<GroupEntryList>(heapList.length);
 		for (int groupNum = 0; groupNum < heapList.length; groupNum++) {
@@ -101,7 +101,7 @@ public class GroupDataMerger {
 
 			list.add(groupEntryList);
 		}
-		return new GroupData(list, totalSearchCount);
+		return new GroupsData(list, totalSearchCount);
 	}
 
 }

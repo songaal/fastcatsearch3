@@ -15,7 +15,7 @@ import java.util.Map;
 
 
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.group.GroupData;
+import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Groups;
 import org.fastcatsearch.ir.query.Metadata;
@@ -68,9 +68,9 @@ public class GroupSearchJob extends Job {
 					throw new FastcatSearchException("ERR-00520", collection);
 				}
 				
-				GroupData groupData = collectionHandler.searcher().doGrouping(q);
+				GroupsData groupData = collectionHandler.searcher().doGrouping(q);
 				Groups groups =q.getGroups();
-				groupResults = groups.getGroupResultsGenerator().generate(groupData);
+				groupResults = groups.getGroupsResultGenerator().generate(groupData);
 				if(groupResults != null){
 					irService.groupingCache().put(queryString, groupResults);
 					logger.debug("CACHE_PUT result>>{}, qr >>{}", groupResults, queryString);

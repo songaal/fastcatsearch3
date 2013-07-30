@@ -24,20 +24,28 @@ package org.fastcatsearch.ir.group;
  * */
 public class GroupResult {
 
+	private String fieldId;
 	private String[] headerNameList;
 	private int totalCount;
 	private int size;
 	private GroupEntry[] entryList;
 	
-	public GroupResult(){}
+	public GroupResult(String fieldId){
+		this.fieldId = fieldId;
+	}
 	
-	public GroupResult(String[] headerNameList, int totalCount, int limit){
+	public GroupResult(String fieldId, String[] headerNameList, int totalCount, int limit){
+		this.fieldId = fieldId;
 		this.headerNameList = headerNameList;
 		this.totalCount = totalCount;
 		this.size = limit;
 		entryList = new GroupEntry[limit];
 	}
 
+	public String fieldId(){
+		return fieldId;
+	}
+	
 	public String[] headerNameList(){
 		return headerNameList;
 	}

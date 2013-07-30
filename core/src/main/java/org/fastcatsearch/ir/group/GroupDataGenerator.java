@@ -34,7 +34,6 @@ import org.fastcatsearch.ir.group.value.FloatGroupingValue;
 import org.fastcatsearch.ir.group.value.IntGroupingValue;
 import org.fastcatsearch.ir.group.value.LongGroupingValue;
 import org.fastcatsearch.ir.io.DataRef;
-import org.fastcatsearch.ir.io.NumberDataRef;
 import org.fastcatsearch.ir.query.Group;
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.search.FieldIndexReader;
@@ -44,7 +43,6 @@ import org.fastcatsearch.ir.search.GroupIndexesReader;
 import org.fastcatsearch.ir.search.IndexRef;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.FieldSetting.Type;
-import org.fastcatsearch.ir.settings.GroupIndexSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,18 +52,16 @@ import org.slf4j.LoggerFactory;
 public class GroupDataGenerator {
 	private static Logger logger = LoggerFactory.getLogger(GroupDataGenerator.class);
 	
-	private int[] indexSequence;
-//	private int groupFieldSize;
+//	private int[] indexSequence;
 	private int groupSize;
 	private GroupFunction[][] groupFunctionList;
 	private int totalSearchCount;
 	private IndexRef<GroupIndexReader> indexRef;
-	private IndexRef<FieldIndexReader> fieldIndexRef;
-	private Set<Integer> redundancyCheck = new HashSet<Integer>();
+	private Set<Integer> redundancyCheck;
 	private IndexRef<FieldIndexReader>[] fieldIndexRefList;
-	private Map<String, NumberDataRef>[] fieldBytesRefMap;
+	private Map<String, DataRef>[] fieldBytesRefMap;
 	private int[] groupKeySizeList; //그룹별 키의 총 갯수.
-	private String[] groupFieldIdList;
+//	private String[] groupFieldIdList;
 	private FieldSetting[] fieldSettingList;
 	
 	
@@ -73,13 +69,14 @@ public class GroupDataGenerator {
 		
 		this.groupSize = groupList.size();
 		
-		this.indexSequence = new int[groupSize];
-		groupFieldIdList = new String[groupSize];
+//		this.indexSequence = new int[groupSize];
+//		groupFieldIdList = new String[groupSize];
 		fieldSettingList = new FieldSetting[groupSize];
 		groupFunctionList = new GroupFunction[groupSize][];
 		fieldIndexRefList = new IndexRef[groupSize];
 		fieldBytesRefMap = new Map[groupSize];
 		groupKeySizeList = new int[groupSize];
+		redundancyCheck = new HashSet<Integer>();
 		
 		List<String> fieldNameList = new ArrayList<String>(groupSize);
 		for (int i = 0; i < groupSize; i++) {
@@ -103,23 +100,17 @@ public class GroupDataGenerator {
 				continue;
 			}
 			
-//			ReaderSequencePair<GroupIndexReader> readerSequencePair = indexRef.getReader(i);
-			GroupIndexReader groupIndexReader = indexRef.getReader(i);//readerSequencePair.reader();
-//			int sequence = readerSequencePair.sequence();
+			GroupIndexReader groupIndexReader = indexRef.getReader(i);
 			int groupKeySize = groupIndexReader.getGroupKeySize();
 			groupKeySizeList[i] = groupKeySize;
 			logger.debug("group#{} [{}] groupKeySize[{}]", i, fieldId, groupKeySize);
 			
-			groupFieldIdList[i] = fieldId;
+//			groupFieldIdList[i] = fieldId;
 			fieldSettingList[i] = schema.fieldSettingMap().get(fieldId);
-//			indexRef.(fieldId)
-//			GroupIndexReader groupIndexReader = groupIndexesReader.getIndexReader(idx);
 			
 			//각 필드의 필드번호를 차례로 저장한다.
-			indexSequence[i] = idx;
+//			indexSequence[i] = idx;
 			
-//			int groupKeySize = groupIndexReader.getGroupKeySize(idx);
-//			groupKeySizeList[i] = groupKeySize;
 			groupFunctionList[i] = group.function();
 			int functionSize = groupFunctionList[i].length;
 			//내부 grouping object 배열 초기화.
@@ -147,6 +138,8 @@ public class GroupDataGenerator {
 					//
 					if(groupFunction.fieldId != null){
 						
+						//TODO 동일한 필드를 여러번 function 수행할때는 어떻게 할까.
+						
 						if(!paramFieldNameList.contains(groupFunction.fieldId)){
 							paramFieldNameList.add(groupFunction.fieldId);
 							
@@ -167,28 +160,32 @@ public class GroupDataGenerator {
 				}
 				
 			}
-			fieldIndexRefList[i] = fieldIndexesReader.selectIndexRef(paramFieldNameList.toArray(new String[0]));
-			//동일한 필드가 파라미터로 여러번 들어올경우 한번만 읽기위해서는 동일한 bytesRef 참조를 가지고 있도록 한다. 
-			fieldBytesRefMap[i] = new HashMap<String, NumberDataRef>(paramFieldNameList.size());
-			int k = 0;
-			for(String paramFieldId : paramFieldNameList){
-				DataRef dataRef = fieldIndexRef.getDataRef(k++); 
-				FieldSetting fieldSetting = schema.fieldSettingMap().get(paramFieldId);
-				NumberDataRef numberDataRef = null;
-				if(fieldSetting.getType() == FieldSetting.Type.INT){
-					numberDataRef = dataRef.getNumberDataRef(Integer.class);
-				}else if(fieldSetting.getType() == FieldSetting.Type.LONG){
-					numberDataRef = dataRef.getNumberDataRef(Long.class);
-				}else if(fieldSetting.getType() == FieldSetting.Type.FLOAT){
-					numberDataRef = dataRef.getNumberDataRef(Float.class);
-				}else if(fieldSetting.getType() == FieldSetting.Type.DOUBLE){
-					numberDataRef = dataRef.getNumberDataRef(Double.class);
-				}
-				
-				//차후 dataRef.next하면서 데이터를 읽는다. 
-				fieldBytesRefMap[i].put(paramFieldId, numberDataRef);
-			}
 			
+			if(paramFieldNameList.size() > 0){
+				fieldIndexRefList[i] = fieldIndexesReader.selectIndexRef(paramFieldNameList.toArray(new String[0]));
+				fieldBytesRefMap[i] = new HashMap<String, DataRef>(paramFieldNameList.size());
+			
+				//동일한 필드가 파라미터로 여러번 들어올경우 한번만 읽기위해서는 동일한 bytesRef 참조를 가지고 있도록 한다. 
+				int k = 0;
+				
+				for(String paramFieldId : paramFieldNameList){
+					//stream input ref일수도 있다.
+					DataRef dataRef = fieldIndexRefList[i].getDataRef(k++); 
+					FieldSetting fieldSetting = schema.fieldSettingMap().get(paramFieldId);
+					if(fieldSetting.getType() == FieldSetting.Type.INT){
+						dataRef.setNumberType(Integer.class);
+					}else if(fieldSetting.getType() == FieldSetting.Type.LONG){
+						dataRef.setNumberType(Long.class);
+					}else if(fieldSetting.getType() == FieldSetting.Type.FLOAT){
+						dataRef.setNumberType(Float.class);
+					}else if(fieldSetting.getType() == FieldSetting.Type.DOUBLE){
+						dataRef.setNumberType(Double.class);
+					}
+					
+					//차후 dataRef.next하면서 데이터를 읽는다. 
+					fieldBytesRefMap[i].put(paramFieldId, dataRef);
+				}
+			}
 		}
 	}
 	
@@ -206,9 +203,9 @@ public class GroupDataGenerator {
 			indexRef.read(ri.docNo());
 			
 			for(int i = 0; i < groupSize ;i++){
-				fieldIndexRefList[i].read(docNo);
-				logger.debug("aread doc : {}", docNo);
-				
+				if(fieldIndexRefList[i] != null){
+					fieldIndexRefList[i].read(docNo);
+				}
 				redundancyCheck.clear();
 				while(indexRef.getDataRef(i).next()){
 					//multi-value는 여러번..
@@ -220,9 +217,10 @@ public class GroupDataGenerator {
 						}
 						Number value = null;
 						if(groupFunction.fieldId != null){
-							NumberDataRef numberDataRef = fieldBytesRefMap[i].get(groupFunction.fieldId);
-							while(numberDataRef.next()){
-								value = numberDataRef.getNumber();
+							DataRef dataRef = fieldBytesRefMap[i].get(groupFunction.fieldId);
+							dataRef.reset();
+							while(dataRef.next()){
+								value = dataRef.getNumber();
 								groupFunction.addValue(groupNo, value);
 							}
 						}else{
@@ -238,26 +236,30 @@ public class GroupDataGenerator {
 	}
 	
 	//make an each group data
-	public GroupData generate() throws IOException{
+	public GroupsData generate() throws IOException{
 		List<GroupEntryList> result = new ArrayList<GroupEntryList>(groupSize);
 		
 		BytesRef keyBuffer = new BytesRef();
 		
 		for (int i = 0; i < groupSize; i++) {
 			
-//			String fieldId = groupFieldIdList[i];
+			if(groupKeySizeList[i] == 0){
+				//키가 없는 필드는 돌지 않는다. 빈 결과 추가.
+				result.add(new GroupEntryList());
+				continue;
+			}
+			
 			GroupIndexReader groupIndexReader = indexRef.getReader(i);
 
-			Type fieldType = fieldSettingList[i].getType();
 			// 키는 어떠한 필드타입도 가능하다.
 			GroupEntryList groupEntryList = new GroupEntryList();
 
+			//범위 그룹핑은 후처리를 수행한다.
 			for (GroupFunction groupFunction : groupFunctionList[i]) {
-				if (groupFunction instanceof RangeCountGroupFunction) {
-					((RangeCountGroupFunction) groupFunction).done();
-				}
+				groupFunction.done();
 			}
 			
+			Type fieldType = fieldSettingList[i].getType();
 			//group function 갯수만큼 []를 만든다.
 			int functionSize = groupFunctionList[i].length;
 			//모든 키에대해 검사를 수행한다.
@@ -302,7 +304,7 @@ public class GroupDataGenerator {
 		
 		
 		//total frequency is no need now, because when merging total freq will be counted again. 
-		return new GroupData(result, totalSearchCount);
+		return new GroupsData(result, totalSearchCount);
 	}
 
 }

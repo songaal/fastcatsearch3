@@ -22,23 +22,23 @@ public class GroupResultWriterTest {
 	@Before
 	public void init(){
 		
-		String[] headerNameList = new String[]{"KEY", "COUNT"};
+		String[] headerNameList = new String[]{"COUNT"};
 		int groupSize = 3;
 		int totalSearchCount = 11200;
 		result =  new GroupResults(groupSize, totalSearchCount);
-		GroupResult groupResult1 = new GroupResult(headerNameList, 10000, 3);
+		GroupResult groupResult1 = new GroupResult("category", headerNameList, 10000, 3);
 		groupResult1.setEntry(0, new GroupEntry("1", new IntGroupingValue(800)));
 		groupResult1.setEntry(1, new GroupEntry("2", new IntGroupingValue(150)));
 		groupResult1.setEntry(2, new GroupEntry("3", new IntGroupingValue(50)));
 		result.add(groupResult1);
-		GroupResult groupResult2 = new GroupResult(headerNameList, 1000, 3);
+		
+		GroupResult groupResult2 = new GroupResult("language", headerNameList, 1000, 3);
 		groupResult2.setEntry(0, new GroupEntry("Korea", new IntGroupingValue(650)));
 		groupResult2.setEntry(1, new GroupEntry("Japan", new IntGroupingValue(250)));
 		groupResult2.setEntry(2, new GroupEntry("America", new IntGroupingValue(100)));
-		
-		
 		result.add(groupResult2);
-		GroupResult groupResult3 = new GroupResult(headerNameList, 200, 3);
+		
+		GroupResult groupResult3 = new GroupResult("regdate", headerNameList, 200, 3);
 		groupResult3.setEntry(0, new GroupEntry(new Date().toString(), new IntGroupingValue(100)));
 		groupResult3.setEntry(1, new GroupEntry(new Date().toString(), new IntGroupingValue(70)));
 		groupResult3.setEntry(2, new GroupEntry(new Date().toString(), new IntGroupingValue(30)));

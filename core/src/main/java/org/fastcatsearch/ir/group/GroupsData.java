@@ -5,11 +5,11 @@ import java.util.List;
 /**
  * 여러그룹의 그룹핑 결과를 담는다.
  * */
-public class GroupData {
+public class GroupsData {
 	private int totalSearchCount;
 	private List<GroupEntryList> list;
 	
-	public GroupData(List<GroupEntryList> list, int totalSearchCount){
+	public GroupsData(List<GroupEntryList> list, int totalSearchCount){
 		this.list = list;
 		this.totalSearchCount = totalSearchCount;
 	}

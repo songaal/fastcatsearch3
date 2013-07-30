@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.IndexOutput;
 import org.slf4j.Logger;
@@ -54,11 +55,16 @@ public class PrimaryKeyIndexWriter {
 	public PrimaryKeyIndexWriter(int bucketSize) throws IOException{
 		this(null, null, 0, bucketSize);
 	}
-
+	public PrimaryKeyIndexWriter(int indexInterval, int bucketSize) throws IOException{
+		this(null, null, indexInterval, bucketSize);
+	}
 	public PrimaryKeyIndexWriter(File dir, String filename, int indexInterval, int bucketSize) throws IOException{
+		
+		String indexFilename = IndexFileNames.getIndexFileName(filename);;
+		
 		if(dir != null && filename != null){
 			output = new BufferedFileOutput(dir, filename);
-			indexOutput = new BufferedFileOutput(dir, filename+".index");
+			indexOutput = new BufferedFileOutput(dir, indexFilename);
 		}
 		this.indexInterval = indexInterval;
 		this.bucketSize = bucketSize;

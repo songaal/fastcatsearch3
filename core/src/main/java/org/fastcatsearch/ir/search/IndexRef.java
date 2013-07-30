@@ -11,14 +11,16 @@ import org.fastcatsearch.ir.io.DataRef;
 public class IndexRef<T extends ReferencableIndexReader> {
 	protected List<T> readerList;
 	protected List<DataRef> dataRefList;
-//	protected Map<String, ReaderSequencePair<T>> readerSequencePairMap;
+	protected Map<Integer, T> readerSequenceMap;
+	protected int sequence;
+	
 	public IndexRef(){
 		this(5);
 	}
 	public IndexRef(int size){
 		readerList = new ArrayList<T>(size);
 		dataRefList = new ArrayList<DataRef>(size);
-//		readerSequencePairMap = new HashMap<String, ReaderSequencePair<T>>(size);
+		readerSequenceMap = new HashMap<Integer, T>(size);
 		readerList = new ArrayList<T>(size);
 	}
 	
@@ -37,41 +39,28 @@ public class IndexRef<T extends ReferencableIndexReader> {
 	}
 	
 	public void add(String fieldId, T reader) throws IOException {
+		readerSequenceMap.put(sequence++, reader);
+		
+		if(reader == null){
+			dataRefList.add(DataRef.EMPTY_DATAREF);
+			return;
+		}
+		
+		
+		//unique한 reader 리스트. 
 		if(!readerList.contains(reader)){
 			readerList.add(reader);
 		}
 		
 		DataRef dataRef = reader.getRef();
 		dataRefList.add(dataRef);
-//		readerSequencePairMap.put(fieldId, new ReaderSequencePair<T>(reader, indexSequence));
-		readerList.add(reader);
 	}
 	
 	public int getSize(){
-		return dataRefList.size();
+		return sequence;
 	}
 	public T getReader(int sequence){
-		return readerList.get(sequence);
+		return readerSequenceMap.get(sequence);
 	}
 	
-//	public ReaderSequencePair<T> getReaderSequencePair(String fieldId){
-//		return readerSequencePairMap.get(fieldId);
-//	}
-	
-//	public static class ReaderSequencePair<T> {
-//		private T reader;
-//		private int indexSequence;
-//		public ReaderSequencePair(T reader, int indexSequence) {
-//			this.reader = reader;
-//			this.indexSequence = indexSequence;
-//		}
-//		
-//		public T reader(){
-//			return reader;
-//		}
-//		
-//		public int sequence(){
-//			return indexSequence;
-//		}
-//	}
 }

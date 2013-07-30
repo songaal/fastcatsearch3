@@ -49,10 +49,11 @@ public class FieldIndexReader extends ReferencableIndexReader {
 	
 	public FieldIndexReader(FieldIndexSetting fieldIndexSetting, Map<String, FieldSetting> fieldSettingMap, File dir) throws IOException, IRException{
 		String id = fieldIndexSetting.getId();
-		FieldSetting refFieldSetting = fieldSettingMap.get(id);
+		String refId = fieldIndexSetting.getRef();
+		FieldSetting refFieldSetting = fieldSettingMap.get(refId);
 		
-		File dataFile = new File(dir, IndexFileNames.getSuffixFileName(IndexFileNames.fieldIndexFile, indexId));
-		File multiValueFile = new File(dir, IndexFileNames.getMultiValueSuffixFileName(IndexFileNames.fieldIndexFile, indexId));
+		File dataFile = new File(dir, IndexFileNames.getSuffixFileName(IndexFileNames.fieldIndexFile, id));
+		File multiValueFile = new File(dir, IndexFileNames.getMultiValueSuffixFileName(IndexFileNames.fieldIndexFile, id));
     	
 		int dataSize = refFieldSetting.getByteSize();
 		if(dataSize <= 0){
@@ -65,7 +66,7 @@ public class FieldIndexReader extends ReferencableIndexReader {
 			}
 		}
 			
-		init(indexId, refFieldSetting, dataFile, multiValueFile, dataSize);
+		init(id, refFieldSetting, dataFile, multiValueFile, dataSize);
 		
 	}
 	

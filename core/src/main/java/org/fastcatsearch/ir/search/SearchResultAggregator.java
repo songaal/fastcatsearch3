@@ -3,7 +3,7 @@ package org.fastcatsearch.ir.search;
 import java.io.IOException;
 import java.util.List;
 
-import org.fastcatsearch.ir.group.GroupData;
+import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.group.GroupDataMerger;
 import org.fastcatsearch.ir.io.FixedHitQueue;
 import org.fastcatsearch.ir.io.FixedHitReader;
@@ -78,7 +78,7 @@ public class SearchResultAggregator {
 					hitMerger.push(hitReader);
 				}
 				
-				GroupData groupData = result.getGroupData();
+				GroupsData groupData = result.getGroupsData();
 				if(groupData != null){
 					//Put GroupResult
 					dataMerger.put(groupData);
@@ -109,7 +109,7 @@ public class SearchResultAggregator {
 				hitMerger.heapify();
 			}
 			
-			GroupData groupData = null;
+			GroupsData groupData = null;
 			if(dataMerger != null){
 				groupData = dataMerger.merge();
 			}

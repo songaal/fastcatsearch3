@@ -61,5 +61,7 @@ public abstract class GroupFunction {
 	}
 	
 	public abstract void addValue(int groupNo, Number value);
-	
+
+	public abstract void done();
+		
 }

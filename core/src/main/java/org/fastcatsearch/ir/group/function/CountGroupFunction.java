@@ -36,4 +36,9 @@ public class CountGroupFunction extends GroupFunction {
 		return FUNCTION_NAME;
 	}
 
+	@Override
+	public void done() {
+		
+	}
+
 }

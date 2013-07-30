@@ -16,7 +16,7 @@
 
 package org.fastcatsearch.ir.query;
 
-import org.fastcatsearch.ir.group.GroupData;
+import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.FixedHitReader;
 import org.fastcatsearch.ir.search.HitElement;
 
@@ -28,16 +28,16 @@ public class ShardSearchResult {
 	private int count;
 	private int totalCount;
 	private HitElement[] rows;
-	private GroupData groupData;
+	private GroupsData groupData;
 	
 	public ShardSearchResult(){}
-	public ShardSearchResult(HitElement[] rows, int count, int totalCount, GroupData groupData){
+	public ShardSearchResult(HitElement[] rows, int count, int totalCount, GroupsData groupData){
 		this(null, -1, rows, count, totalCount, groupData);
 	}
-	public ShardSearchResult(int shardId, HitElement[] rows, int count, int totalCount, GroupData groupData){
+	public ShardSearchResult(int shardId, HitElement[] rows, int count, int totalCount, GroupsData groupData){
 		this(null, shardId, rows, count, totalCount, groupData);
 	}
-	public ShardSearchResult(String collectionId, int shardId, HitElement[] rows, int count, int totalCount, GroupData groupData){
+	public ShardSearchResult(String collectionId, int shardId, HitElement[] rows, int count, int totalCount, GroupsData groupData){
 		this.collectionId = collectionId;
 		this.shardId = shardId;
 		this.rows = rows;
@@ -66,11 +66,11 @@ public class ShardSearchResult {
 		return rows;
 	}
 	
-	public void setGroupData(GroupData groupData){
+	public void setGroupData(GroupsData groupData){
 		this.groupData = groupData;
 	}
 	
-	public GroupData getGroupData(){
+	public GroupsData getGroupsData(){
 		return groupData;
 	}
 	

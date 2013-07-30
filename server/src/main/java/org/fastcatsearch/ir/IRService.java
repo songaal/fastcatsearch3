@@ -32,7 +32,7 @@ import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.JAXBConfigs;
-import org.fastcatsearch.ir.group.GroupData;
+import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.ShardSearchResult;
@@ -56,7 +56,7 @@ public class IRService extends AbstractService {
 	private QueryCacheModule<Result> searchCache;
 	private QueryCacheModule<ShardSearchResult> shardSearchCache;
 	private QueryCacheModule<GroupResults> groupingCache;
-	private QueryCacheModule<GroupData> groupingDataCache;
+	private QueryCacheModule<GroupsData> groupingDataCache;
 	private QueryCacheModule<Result> documentCache;
 	// private Map<String, CollectionConfig> collectionConfigMap;
 	private CollectionsConfig collectionsConfig;
@@ -119,7 +119,7 @@ public class IRService extends AbstractService {
 		searchCache = new QueryCacheModule<Result>(environment, settings);
 		shardSearchCache = new QueryCacheModule<ShardSearchResult>(environment, settings);
 		groupingCache = new QueryCacheModule<GroupResults>(environment, settings);
-		groupingDataCache = new QueryCacheModule<GroupData>(environment, settings);
+		groupingDataCache = new QueryCacheModule<GroupsData>(environment, settings);
 		documentCache = new QueryCacheModule<Result>(environment, settings);
 		try {
 			searchCache.load();
@@ -246,7 +246,7 @@ public class IRService extends AbstractService {
 		return groupingCache;
 	}
 
-	public QueryCacheModule<GroupData> groupingDataCache() {
+	public QueryCacheModule<GroupsData> groupingDataCache() {
 		return groupingDataCache;
 	}
 

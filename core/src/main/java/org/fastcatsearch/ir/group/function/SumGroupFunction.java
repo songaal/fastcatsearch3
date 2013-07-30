@@ -35,4 +35,9 @@ public class SumGroupFunction extends GroupFunction {
 	public String getHeaderName() {
 		return FUNCTION_NAME + "_" + fieldId;
 	}
+
+	@Override
+	public void done() {
+		
+	}
 }

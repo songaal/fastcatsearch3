@@ -2,15 +2,15 @@ package org.fastcatsearch.ir.group;
 
 
 public class GroupHit {
-	protected GroupData groupData;
+	protected GroupsData groupData;
 	protected int searchTotalCount;
 	
-	public GroupHit(GroupData groupData, int searchTotalCount){
+	public GroupHit(GroupsData groupData, int searchTotalCount){
 		this.groupData = groupData;
 		this.searchTotalCount = searchTotalCount;
 	}
 	
-	public GroupData groupData(){
+	public GroupsData groupData(){
 		return groupData;
 	}
 	

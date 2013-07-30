@@ -9,7 +9,7 @@ import org.fastcatsearch.common.BytesReference;
 import org.fastcatsearch.common.io.BytesStreamInput;
 import org.fastcatsearch.common.io.BytesStreamOutput;
 import org.fastcatsearch.common.io.StreamInput;
-import org.fastcatsearch.ir.group.GroupData;
+import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupEntryList;
 import org.fastcatsearch.ir.group.value.IntGroupingValue;
@@ -43,10 +43,10 @@ public class StreamableGroupDataTest {
 			totalSearchCount += totalcount;
 			
 		}
-		GroupData groupData = new GroupData(groupEntryListArray, totalSearchCount);
+		GroupsData groupData = new GroupsData(groupEntryListArray, totalSearchCount);
 		
 		
-		StreamableGroupData data = new StreamableGroupData(groupData);
+		StreamableGroupsData data = new StreamableGroupsData(groupData);
 		
 		BytesStreamOutput output = new BytesStreamOutput();
 		data.writeTo(output);
@@ -54,7 +54,7 @@ public class StreamableGroupDataTest {
 		//----------
 		
 		StreamInput intput = new BytesStreamInput(ref);
-		StreamableGroupData actual = new StreamableGroupData();
+		StreamableGroupsData actual = new StreamableGroupsData();
 		actual.readFrom(intput);
 		
 		

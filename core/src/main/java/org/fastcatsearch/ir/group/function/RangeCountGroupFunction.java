@@ -34,6 +34,7 @@ public class RangeCountGroupFunction extends GroupFunction {
 		return FUNCTION_NAME + "_" + fieldId;
 	}
 	
+	@Override
 	public void done() {
 		if (fieldId != null) {
 			int sectionCount = Integer.parseInt(fieldId);

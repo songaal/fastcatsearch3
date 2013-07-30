@@ -7,7 +7,7 @@ import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.document.DocumentReader;
 import org.fastcatsearch.ir.filter.FilterException;
-import org.fastcatsearch.ir.group.GroupData;
+import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.group.GroupDataGenerator;
 import org.fastcatsearch.ir.group.GroupHit;
 import org.fastcatsearch.ir.io.BitSet;
@@ -231,9 +231,9 @@ public class SegmentSearcher {
 	}
 
 	// 그룹결과는 문서를 next로 다읽은 경우에 완료된다.
-	private GroupData makeGroupData() throws IOException {
+	private GroupsData makeGroupData() throws IOException {
 		if (groupGenerator == null)
-			return new GroupData(null, totalCount);
+			return new GroupsData(null, totalCount);
 
 		return groupGenerator.generate();
 	}

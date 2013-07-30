@@ -20,7 +20,7 @@ import org.fastcatsearch.ir.field.DocNoField;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.field.UnknownField;
-import org.fastcatsearch.ir.group.GroupData;
+import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.group.GroupDataMerger;
 import org.fastcatsearch.ir.group.GroupHit;
 import org.fastcatsearch.ir.group.GroupResults;
@@ -58,7 +58,7 @@ public class CollectionSearcher {
 		has = new BasicHighlightAndSummary();
 	}
 
-	public GroupData doGrouping(Query q) throws IRException, IOException, SettingException {
+	public GroupsData doGrouping(Query q) throws IRException, IOException, SettingException {
 
 		int segmentSize = collectionHandler.segmentSize();
 		if (segmentSize == 0) {
@@ -112,7 +112,7 @@ public class CollectionSearcher {
 			 * Group Result
 			 */
 
-			GroupData groupData = null;
+			GroupsData groupData = null;
 			if (dataMerger != null) {
 				groupData = dataMerger.merge();
 			}
@@ -155,7 +155,7 @@ public class CollectionSearcher {
 				Hit hit = collectionHandler.segmentSearcher(i).search(q);
 				totalSize += hit.totalCount();
 				FixedHitReader hitReader = hit.hitStack().getReader();
-				GroupData groupData = hit.groupData();
+				GroupsData groupData = hit.groupData();
 
 				// posting data
 				if (hitReader.next()) {
@@ -199,7 +199,7 @@ public class CollectionSearcher {
 			hitMerger.heapify();
 		}
 
-		GroupData groupData = null;
+		GroupsData groupData = null;
 		if (dataMerger != null) {
 			groupData = dataMerger.merge();
 		}
@@ -271,7 +271,7 @@ public class CollectionSearcher {
 				totalSize += hit.totalCount();
 				FixedHitReader hitReader = hit.hitStack().getReader();
 
-				GroupData groupData = hit.groupData();
+				GroupsData groupData = hit.groupData();
 
 				// posting data
 				if (hitReader.next()) {
@@ -289,7 +289,7 @@ public class CollectionSearcher {
 			throw new IRException(e);
 		}
 
-		GroupData groupData = null;
+		GroupsData groupData = null;
 		if (dataMerger != null) {
 			groupData = dataMerger.merge();
 		}
@@ -337,7 +337,7 @@ public class CollectionSearcher {
 		 * Group Result
 		 */
 		if (groups != null) {
-			GroupResults groupResults = groups.getGroupResultsGenerator().generate(groupData);
+			GroupResults groupResults = groups.getGroupsResultGenerator().generate(groupData);
 			result.setGroupResult(groupResults);
 		}
 		return result;

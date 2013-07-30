@@ -33,7 +33,7 @@ public abstract class ReferencableIndexReader implements Cloneable {
     	isMultiValue = refFieldSetting.isMultiValue();
     	if(isMultiValue){
     		multiValueInput = new BufferedFileInput(multiValueFile);
-    		dataRef = new StreamInputRef(multiValueInput, dataSize); //멀티밸류도 data는 int이다.
+    		dataRef = new StreamInputRef(multiValueInput, dataSize);
     	}else{
     		dataRef = new DataRef(dataSize);
     	}
@@ -53,13 +53,13 @@ public abstract class ReferencableIndexReader implements Cloneable {
 			if(ptr != -1){
 				multiValueInput.seek(ptr);
 				int count = multiValueInput.readVInt();
-				dataRef.reset(count);
+				dataRef.init(count);
 			}
 		}else{
 			//이미 input의 position을 움직여 놓았으므로 더이상 아무것도 하지 않는다.
 			dataInput.readBytes(dataRef.bytesRef().bytes, 0, dataSize);
 			logger.debug("fill group data to {} as {}", dataRef, IOUtil.readInt(dataRef.bytesRef().bytes, 0));
-			dataRef.reset(1); //single value는 한개 읽음으로 표시.
+			dataRef.init(1); //single value는 한개 읽음으로 표시.
 		}
 	}
 	

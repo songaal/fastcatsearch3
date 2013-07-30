@@ -11,13 +11,22 @@ public class DataRef {
 	
 	protected int count; //멀티밸류의 경우 여러번 읽어야하므로 갯수를 정해준다.
 	
+	private Class<? extends Number> numberType;
+	
+	public final static DataRef EMPTY_DATAREF = new DataRef();
+	
 	public DataRef(){ }
 		
 	public DataRef(int size) {
 		bytesRef = new BytesRef(size);
 	}
 
-	public void reset(int count){
+	//다시 읽을때사용.
+	public void reset(){
+		read = 0;
+	}
+	
+	public void init(int count){
 		this.count = count;
 		this.read = 0; //0으로 리셋.
 	}
@@ -35,6 +44,25 @@ public class DataRef {
 		return bytesRef;
 	}
 	
+	public void setNumberType(Class<? extends Number> numberType){
+		this.numberType = numberType;
+	}
+	
+	public Number getNumber(){
+		
+		if(numberType == Integer.class){
+			return bytesRef.toIntValue();
+		}else if(numberType == Long.class){
+			return bytesRef.toLongValue();
+		}else if(numberType == Float.class){
+			return Float.intBitsToFloat(bytesRef.toIntValue());
+		}else if(numberType == Double.class){
+			return Double.longBitsToDouble(bytesRef.toLongValue());
+		}
+		
+		return null;
+	}
+	
 	public int count(){
 		return count;
 	}
@@ -43,10 +71,4 @@ public class DataRef {
 		//do nothing
 	}
 	
-	public NumberDataRef getNumberDataRef(Class<? extends Number> numberType){
-		NumberDataRef obj = new NumberDataRef(numberType);
-		obj.bytesRef = bytesRef;
-		obj.read = read;
-		return obj;
-	}
 }

@@ -23,11 +23,10 @@ import java.util.Map;
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
-import org.fastcatsearch.ir.io.BufferedFileInput;
+import org.fastcatsearch.ir.document.PrimaryKeyIndexReader;
 import org.fastcatsearch.ir.io.DataRef;
 import org.fastcatsearch.ir.io.FixedDataInput;
 import org.fastcatsearch.ir.io.IOUtil;
-import org.fastcatsearch.ir.io.IndexInput;
 import org.fastcatsearch.ir.io.SequencialDataInput;
 import org.fastcatsearch.ir.io.StreamInputRef;
 import org.fastcatsearch.ir.io.VariableDataInput;
@@ -47,14 +46,15 @@ public class GroupIndexReader extends ReferencableIndexReader {
 	private SequencialDataInput groupKeyInput;
 	protected int groupKeySize;
 	
-	private GroupIndexReader() {}
+	public GroupIndexReader() {}
 	
-	public GroupIndexReader(GroupIndexSetting groupIndexSetting, Map<String, FieldSetting> fieldSettingMap, File dir) throws IOException, IRException{
+	public GroupIndexReader(GroupIndexSetting groupIndexSetting, Map<String, FieldSetting> fieldSettingMap, File dir, int revision) throws IOException, IRException{
 		String id = groupIndexSetting.getId();
-		FieldSetting refFieldSetting = fieldSettingMap.get(id);
+		String refId = groupIndexSetting.getRef();
+		FieldSetting refFieldSetting = fieldSettingMap.get(refId);
 		
-		File dataFile = new File(dir, IndexFileNames.getSuffixFileName(IndexFileNames.groupIndexFile, indexId));
-		File multiValueFile = new File(dir, IndexFileNames.getMultiValueSuffixFileName(IndexFileNames.groupIndexFile, indexId));
+		File dataFile = new File(dir, IndexFileNames.getSuffixFileName(IndexFileNames.groupIndexFile, id));
+		File multiValueFile = new File(dir, IndexFileNames.getMultiValueSuffixFileName(IndexFileNames.groupIndexFile, id));
     	
 		init(id, refFieldSetting, dataFile, multiValueFile, IOUtil.SIZE_OF_INT);
 		
@@ -65,31 +65,12 @@ public class GroupIndexReader extends ReferencableIndexReader {
 			groupKeyInput = new FixedDataInput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyFile, id), dataSize);
 		}
 		
-//		IndexInput groupInfoInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.groupInfoFile);
-//		fieldOffset = new int[fieldSize];
-//		groupKeySize = new int[fieldSize];
-//		isMultiValue = new boolean[fieldSize];
-		//TODO 이게 모지?
-//    	int fieldCount = groupInfoInput.readInt();
-//    	
-//    	for (int idx = 0; idx < fieldSize; idx++) {
-//			groupKeySize[idx] = groupInfoInput.readInt();
-//    		long dataBasePosition = groupInfoInput.readLong();
-//    		long indexBasePosition = groupInfoInput.readLong();
-//    	}
-//    	groupInfoInput.close();
-//    	
-//    	dataInput = new BufferedFileInput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.groupDataFile, id));
-//    	
-//    	FieldSetting fieldSetting = fieldSettingMap.get(groupIndexSetting.getRef());
-//    	isMultiValue = fieldSetting.isMultiValue();
-//    	if(isMultiValue){
-//    		multiValueInput = new BufferedFileInput(dir, IndexFileNames.getMultiValueSuffixFileName(IndexFileNames.groupDataFile, id));
-//    		dataRef = new StreamInputRef(multiValueInput, dataSize); //멀티밸류도 data는 int이다.
-//    	}else{
-//    		dataRef = new DataRef(dataSize);
-//    	}
-    	
+		File revisionDir = new File(dir, Integer.toString(revision));
+		PrimaryKeyIndexReader pkReader = new PrimaryKeyIndexReader(revisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyMap, id));
+		groupKeySize = pkReader.count();
+		pkReader.close();
+		logger.debug("Group {} >> keysize:{}", id, groupKeySize);
+
 	}
 	
 	//특정 그룹필드의 키값을 읽어온다.

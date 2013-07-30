@@ -131,15 +131,30 @@ public class Schema {
 	}
 
 	public int getSearchIndexSequence(String indexFieldId) {
-		return searchIndexSequenceMap.get(indexFieldId);
+		Integer i = searchIndexSequenceMap.get(indexFieldId);
+		if(i == null){
+			return -1;
+		}else{
+			return i;
+		}
 	}
 	
 	public int getFieldIndexSequence(String indexFieldId) {
-		return fieldIndexSequenceMap.get(indexFieldId);
+		Integer i = fieldIndexSequenceMap.get(indexFieldId);
+		if(i == null){
+			return -1;
+		}else{
+			return i;
+		}
 	}
 	
 	public int getGroupIndexSequence(String indexFieldId) {
-		return groupIndexSequenceMap.get(indexFieldId);
+		Integer i = groupIndexSequenceMap.get(indexFieldId);
+		if(i == null){
+			return -1;
+		}else{
+			return i;
+		}
 	}
 	
 	public int getFieldSize(){

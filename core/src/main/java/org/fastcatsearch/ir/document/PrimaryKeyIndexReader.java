@@ -19,6 +19,7 @@ package org.fastcatsearch.ir.document;
 import java.io.File;
 import java.io.IOException;
 
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IndexInput;
@@ -39,9 +40,8 @@ public class PrimaryKeyIndexReader implements Cloneable {
 	private int count; //key 갯수 
 	private long limit;
 	
-	public PrimaryKeyIndexReader(File dir, String filename) throws IOException{
-		this(dir, filename ,0, -1, 0);
-	}
+	private PrimaryKeyIndexReader() {}
+	
 	public PrimaryKeyIndexReader(IndexInput input, byte[][] keys, long[] pos, int count, long limit) {
 		this.input = input;
 		this.keys = keys;
@@ -49,22 +49,24 @@ public class PrimaryKeyIndexReader implements Cloneable {
 		this.count = count;
 		this.limit = limit;
 	}
-	public PrimaryKeyIndexReader(File dir, String filename, long dataBasePosition, long dataEndPosition, long indexBasePosition) throws IOException{
+	public PrimaryKeyIndexReader(File dir, String filename) throws IOException{
+		String pkIndexFilename = IndexFileNames.getIndexFileName(filename);
+		
 		input = new BufferedFileInput(dir, filename);
 //		logger.debug("input = "+input+", size="+input.size());
-		if(dataBasePosition >= 0){
-			input.seek(dataBasePosition);
-		}
-		indexInput = new BufferedFileInput(dir, filename+".index");
-		if(indexBasePosition >= 0){
-			indexInput.seek(indexBasePosition);
-		}
+//		if(dataBasePosition >= 0){
+//			input.seek(dataBasePosition);
+//		}
+		indexInput = new BufferedFileInput(dir, pkIndexFilename);
+//		if(indexBasePosition >= 0){
+//			indexInput.seek(indexBasePosition);
+//		}
 		
-		if(dataEndPosition < 0){
+//		if(dataEndPosition < 0){
 			limit = input.length();
-		}else{
-			limit = dataEndPosition;
-		}
+//		}else{
+//			limit = dataEndPosition;
+//		}
 		
 		this.count = input.readInt();
 //		logger.debug("** count="+count);
@@ -86,7 +88,14 @@ public class PrimaryKeyIndexReader implements Cloneable {
 	}
 	
 	public PrimaryKeyIndexReader clone(){
-		return new PrimaryKeyIndexReader(input.clone(), keys, pos, count, limit);
+		PrimaryKeyIndexReader reader = new PrimaryKeyIndexReader();
+		reader.input = input.clone();
+		reader.keys = keys;
+		reader.pos = pos;
+		reader.count = count;
+		reader.limit = limit;
+		return reader;
+		
 	}
 	public int count(){
 		return count;

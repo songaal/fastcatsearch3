@@ -462,25 +462,25 @@
 							$("#groupResultWrapper").append($("<div id='pGroupResult"+i+"'></div>"));
 							$("#groupResultWrapper").append($("<p>"));
 
-							var colNames = ["no", "key", "value"];
+							var colNames = ["_NO", "_KEY", "VALUE"];
 							
 							var colModel = [
-							   		{"name": "_no_", "index": "no", "width": "50", "sorttype": "int", "align": "center"},
-									{"name": "key", "index": "key", "width": "200", "sorttype": "text"},
+							   		{"name": "_NO", "index": "_NO", "width": "50", "sorttype": "int", "align": "center"},
+									{"name": "_KEY", "index": "_KEY", "width": "200", "sorttype": "text"},
 									{"name": "COUNT", "index": "COUNT", "width": "100", "sorttype": "int", "align": "center"}
 							   	];							
 
-							if( data_obj.group_result[i][0]["sum"] ) {
+							/* if( data_obj.group_result[i][0]["sum"] ) {
 								colModel[colModel.length] = {"name": "sum"};//, "index": "sum", "width": "100", "sorttype": "int", "align": "center"};
 								colNames[colNames.length] = "sum";
 							}
 							if(data_obj.group_result[i][0]["max"] ) {
 								colModel[colModel.length] = {"name": "max"};//, "index": "max", "width": "100", "sorttype": "int", "align": "center"};
 								colNames[colNames.length] = "max";
-							}
+							} */
 
 							$("#groupResult"+i).jqGrid({
-								data: data_obj.group_result[i],
+								data: data_obj.group_result[i].result,
 								datatype: "local",
 								height: 'auto',
 								mtype: 'POST',
@@ -490,7 +490,7 @@
 							   	colModel: colModel,
 							   	pager: "#pGroupResult"+i,
 							   	viewrecords: false,
-							   	caption: "그룹결과"+(i+1) + " - " + data_obj.group_result[i].length
+							   	caption: "그룹결과"+(i+1) + " - " + data_obj.group_result[i].label + " - 총 " + data_obj.group_result[i].result.length+"개"
 							});											 	
 						}
 				 	}//if

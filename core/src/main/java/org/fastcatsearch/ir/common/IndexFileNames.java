@@ -19,29 +19,25 @@ package org.fastcatsearch.ir.common;
 import java.io.File;
 
 public class IndexFileNames {
-//	public static String segmentInfoFile = "segment.info";
-//	public static String collectionInfoFile = "collection.info";
 	
-	public static String docStored = "doc.stored";
-	public static String docPosition = "doc.position";
-	public static String docDeleteSet = "delete.set"; //deleted docs in segment
-	public static String primaryKeyMap = "pk.map";
-	public static String primaryKeyMapIndex = "pk.map.index";
+	public static final String docStored = "doc.stored";
+	public static final String docPosition = "doc.position";
+	public static final String docDeleteSet = "delete.set"; //deleted docs in segment
+	public static final String primaryKeyMap = "pk.map";
+	public static final String primaryKeyMapIndex = "pk.map.index";
 	
-	public static String postingFile = "posting";
-	public static String lexiconFile = "lexicon";
-	public static String indexFile = "index";
-	public static String tempFile = "temp";
+	public static final String postingFile = "posting";
+	public static final String lexiconFile = "lexicon";
+	public static final String indexFile = "index";
+	public static final String tempFile = "temp";
 	
-	public static String fieldIndexFile = "field.index";
+	public static final String fieldIndexFile = "field.index";
 	
-	public static String groupIndexFile = "group.index";
-	public static String groupKeyFile = "group.key"; //그룹순차번호별 key string저장.
-	public static String groupKeyMap = "group.map"; //증분색인시 이전 리비전과의 머징을 위해 필요한 pk파일. group writer에서만 사용된다.
-	public static String groupKeyMapIndex = "group.map.index"; //그룹 pk의 index파일이나 단순 생성만 하고 사용은 안함. 
-	public static String groupInfoFile = "group.info";
-	
-//	public static String dataSequenceFile = "data.sequence";
+	public static final String groupIndexFile = "group.index";
+	public static final String groupKeyFile = "group.key"; //그룹순차번호별 key string저장.
+	public static final String groupKeyMap = "group.pk"; //증분색인시 이전 리비전과의 머징을 위해 필요한 pk파일. group writer에서만 사용된다.
+//	public static final String groupKeyMapIndex = "group.pk.index"; //그룹 pk의 index파일이나 단순 생성만 하고 사용은 안함. 
+	public static final String groupInfoFile = "group.info";
 	
 	public static String getTempFileName(String name){
 		return name + "." + tempFile;
@@ -60,11 +56,18 @@ public class IndexFileNames {
 		return name + ".mv." + suffix;
 	}
 	
-	public static File getRevisionDir(File parent, int revision){
-		return new File(parent, revision+"/");
+//	public static String getIndexSuffixFileName(String name, String suffix){
+//		return name + ".index." + suffix;
+//	}
+	public static String getIndexFileName(String name){
+		return name + ".index";
 	}
 	
-	public static File getBackupDir(File parent, int revision){
-		return new File(parent, ".bak."+revision);
+	public static File getRevisionDir(File parent, int revision){
+		return new File(parent, Integer.toString(revision));
 	}
+	
+//	public static File getBackupDir(File parent, int revision){
+//		return new File(parent, ".bak."+revision);
+//	}
 }

@@ -28,15 +28,15 @@ import org.slf4j.LoggerFactory;
  * 전달받은 frequencyList 를 정렬하고, limit만큼만 잘라준다.
  * 
  * */
-public class GroupResultsGenerator {
-	protected static Logger logger = LoggerFactory.getLogger(GroupResultsGenerator.class);
+public class GroupsResultGenerator {
+	protected static Logger logger = LoggerFactory.getLogger(GroupsResultGenerator.class);
 	private GroupResults result;
 	private Groups groups;
-	public GroupResultsGenerator(Groups groups){
+	public GroupsResultGenerator(Groups groups){
 		this.groups = groups;
 	}
 	
-	public GroupResults generate(GroupData groupData) {
+	public GroupResults generate(GroupsData groupData) {
 		
 		//FIXME Assert groupList의 갯수 == groupSettingList 의 갯수.
 		// group 쿼리가 문제가 있어서 없어졌을 경우, 어떻게 해야 할까?
@@ -51,6 +51,7 @@ public class GroupResultsGenerator {
 			}
 			
 			Group group = groups.getGroup(i);
+			String fieldId = group.fieldId();
 			GroupFunction[] groupFunctionList = group.function();
 			int limit = group.limit();
 			
@@ -71,7 +72,7 @@ public class GroupResultsGenerator {
 			
 			//Fill GroupResult
 			//GroupResult내부의 array로 GroupEntry의 reference를 복사해준다. 
-			GroupResult groupResult = new GroupResult(headerNameList, entryCount, limit);
+			GroupResult groupResult = new GroupResult(fieldId, headerNameList, entryCount, limit);
 			for (int k = 0; k < limit; k++) {
 				GroupEntry e = groupEntryList.getEntry(k);
 				logger.debug(">> {}", e);
