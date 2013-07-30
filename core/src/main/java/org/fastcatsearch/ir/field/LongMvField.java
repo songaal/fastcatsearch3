@@ -13,6 +13,11 @@ public class LongMvField extends LongField implements MultiValueFieldType {
 		multiValue = true;
 	}
 	
+	public LongMvField(String id, String data){
+		super(id, data);
+		multiValue = true;
+	}
+	
 	@Override
 	public void readFrom(DataInput input) throws IOException {
 		int multiValueCount = input.readVInt();

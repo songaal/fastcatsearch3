@@ -26,24 +26,57 @@ public class FieldTest {
 		return new BytesDataInput(array, 0, array.length);
 	}
 	
+	private BytesDataInput writeRawString(Field field) throws IOException{
+		BytesDataOutput output = new BytesDataOutput();
+		field.writeRawTo(output);
+		byte[] array = output.array();
+		return new BytesDataInput(array, 0, array.length);
+	}
+	
+	@Test
+	public void testRawField() throws IOException, FieldDataParseException {
+		UStringMvField field = new UStringMvField("tags", "강아지", 10);
+		field.parseIndexable();
+		System.out.println(field.getDataString());
+		
+	}
 	
 	@Test
 	public void testIntegerField() throws IOException, FieldDataParseException {
 		
 		String value = "1231435";
 		IntField field = new IntField("A", value);
-		
+		assertEquals(value, field.rawString()); 
+		field.parseIndexable();
 		BytesDataInput input = write(field);
 		
 		IntField field2 = new IntField("A");
 		field2.readFrom(input);
-		
+		assertEquals(null, field2.rawString()); 
 		String value2 = field2.getValue().toString();
 		
 		assertEquals(value, value2);
 		
 		System.out.println(value2);
 		
+	}
+	
+	@Test
+	public void testRawIntegerField() throws IOException, FieldDataParseException {
+		
+		String value = "1231435";
+		IntField field = new IntField("A", value);
+		assertEquals(value, field.rawString()); 
+		field.parseIndexable();
+		BytesDataInput input = writeRawString(field);
+		
+		IntField field2 = new IntField("A");
+		field2.readRawFrom(input);
+		assertEquals(value, field2.rawString()); 
+		
+		field2.parseIndexable();
+		String value2 = field2.getValue().toString();
+		assertEquals(value, value2);
 	}
 	
 	@Test
@@ -115,7 +148,7 @@ public class FieldTest {
 		
 		AStringMvField field2 = new AStringMvField("A");
 		field2.readFrom(input);
-		Iterator<Object> iterator = field2.getValueIterator();
+		Iterator<Object> iterator = field2.getMultiValueIterator();
 		int i = 0;
 		while(iterator.hasNext()){
 			String val = iterator.next().toString();
@@ -126,6 +159,35 @@ public class FieldTest {
 		}
 		
 		System.out.println(field.getValue());
+		
+	}
+	
+	@Test
+	public void testRawFixedStringMvField() throws IOException, FieldDataParseException {
+		int size = 10;
+		String[] values = new String[]{"123456789011", "223456789011", "323456789011"};
+		String value = "123456789011,223456789011,323456789011";
+		AStringMvField field = new AStringMvField("A", value, size);
+		BytesDataInput input = writeRawString(field);
+		
+		AStringMvField field2 = new AStringMvField("A", size);
+		field2.readRawFrom(input);
+		
+		assertEquals(value, field.rawString());
+		assertEquals(value, field2.rawString());
+		
+		field2.parseIndexable(",");
+		
+		Iterator<Object> iterator = field2.getMultiValueIterator();
+		int i = 0;
+		while(iterator.hasNext()){
+			String val = iterator.next().toString();
+			if(values[i].length() > size){
+				values[i] = values[i].substring(0, size);
+			}
+			assertEquals(values[i++], val);
+			System.out.println(val);
+		}
 		
 	}
 

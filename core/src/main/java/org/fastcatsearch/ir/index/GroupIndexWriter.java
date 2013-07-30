@@ -50,11 +50,8 @@ public class GroupIndexWriter {
 	private static Logger logger = LoggerFactory.getLogger(GroupIndexWriter.class);
 
 	private String indexId;
-	private IndexOutput groupDataOutput;
+	private IndexOutput groupIndexOutput;
 	private IndexOutput multiValueOutput;
-
-	private IndexOutput groupMapOutput;
-	private IndexOutput groupMapIndexOutput;
 
 	private PrimaryKeyIndexWriter memoryKeyIndex;
 
@@ -92,17 +89,7 @@ public class GroupIndexWriter {
 		String id = groupIndexSetting.getId();
 		this.indexId = id;
 
-		groupDataOutput = new BufferedFileOutput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.groupIndexFile, id), isAppend);
-
-		if (isAppend) {
-
-			// read previous pkmap
-			File prevDir = IndexFileNames.getRevisionDir(dir, revision - 1);
-
-			PrimaryKeyIndexReader prevPkReader = new PrimaryKeyIndexReader(prevDir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyMap, id));
-			groupNumber = prevPkReader.count();
-			prevPkReader.close();
-		}
+		groupIndexOutput = new BufferedFileOutput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.groupIndexFile, id), isAppend);
 
 		indexInterval = indexConfig.getPkTermInterval();
 		int bucketSize = indexConfig.getPkBucketSize();
@@ -124,6 +111,13 @@ public class GroupIndexWriter {
 		}
 
 		keyBuffer = new BytesDataOutput();
+		
+		if (isAppend) {
+			// read previous pkmap
+			File prevDir = IndexFileNames.getRevisionDir(dir, revision - 1);
+			prevPkReader = new PrimaryKeyIndexReader(prevDir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyMap, id));
+			groupNumber = prevPkReader.count();
+		}
 
 	}
 
@@ -132,9 +126,10 @@ public class GroupIndexWriter {
 		Field field = document.get(fieldSequence);
 		if (field == null) {
 			if (isMultiValue) {
-				groupDataOutput.writeLong(-1L);
+				logger.debug("[{}] MV-GROUPINDEX1 {}", indexId, -1);
+				groupIndexOutput.writeLong(-1L);
 			} else {
-				groupDataOutput.writeInt(-1);
+				groupIndexOutput.writeInt(-1);
 			}
 		} else {
 			int groupNo = -1;
@@ -144,24 +139,27 @@ public class GroupIndexWriter {
 				int multiValueCount = writer.count();
 
 				if (multiValueCount > 0) {
-					groupDataOutput.writeLong(ptr);
+//					logger.debug("Multivalue group write count[{}] at {}", multiValueCount, ptr);
+					logger.debug("[{}] MV-GROUPINDEX2 {}", indexId, ptr);
+					groupIndexOutput.writeLong(ptr);
 					multiValueOutput.writeVInt(multiValueCount);
 					keyBuffer.reset();
 					while (writer.write(keyBuffer)) {
 						groupNo = writeGroupKey(keyBuffer);
+//						logger.debug("Multivalue group write {} at {}", groupNo, multiValueOutput.position());
 						multiValueOutput.writeInt(groupNo);
-
 						keyBuffer.reset();
 					}
 				} else {
-					groupDataOutput.writeLong(-1);
+					logger.debug("[{}] MV-GROUPINDEX3 {}", indexId, -1);
+					groupIndexOutput.writeLong(-1);
 				}
 
 			} else {
 				keyBuffer.reset();
 				field.writeDataTo(keyBuffer);
 				groupNo = writeGroupKey(keyBuffer);
-				groupDataOutput.writeInt(groupNo);
+				groupIndexOutput.writeInt(groupNo);
 			}
 		}
 
@@ -198,21 +196,21 @@ public class GroupIndexWriter {
 	}
 
 	public void flush() throws IOException {
-		groupDataOutput.flush();
+		groupIndexOutput.flush();
 		if (isMultiValue) {
 			multiValueOutput.flush();
 		}
 	}
 
 	public void close() throws IOException {
-		groupDataOutput.close();
+		groupIndexOutput.close();
+		keyOutput.close();
+		
 		if (isMultiValue) {
 			multiValueOutput.close();
 		}
 
 		if (count <= 0) {
-			keyOutput.close();
-
 			if (isAppend) {
 				prevPkReader.close();
 			}
@@ -228,22 +226,25 @@ public class GroupIndexWriter {
 		File pkFile = new File(revisionDir, pkFilename);
 		File pkIndexFile = new File(revisionDir, pkIndexFilename);
 
+		IndexOutput groupPkOutput = null;
+		IndexOutput groupPkIndexOutput = null;
+		
 		if (isAppend) {
 			// 머징을 위해 일단 TEMP파일로 생성한다.
-			groupMapOutput = new BufferedFileOutput(tempPkFile);
-			groupMapIndexOutput = new BufferedFileOutput(tempPkIndexFile);
+			groupPkOutput = new BufferedFileOutput(tempPkFile);
+			groupPkIndexOutput = new BufferedFileOutput(tempPkIndexFile);
 		} else {
-			groupMapOutput = new BufferedFileOutput(pkFile);
-			groupMapIndexOutput = new BufferedFileOutput(pkIndexFile);
+			groupPkOutput = new BufferedFileOutput(pkFile);
+			groupPkIndexOutput = new BufferedFileOutput(pkIndexFile);
 		}
 
 		// int keyCount = memoryKeyIndex.count();
 		// 별도 저장필요없음.나중에 pk에서 키 갯수읽으면 됨.
-		keyOutput.close();
-		memoryKeyIndex.setDestination(groupMapOutput, groupMapIndexOutput);
+		
+		memoryKeyIndex.setDestination(groupPkOutput, groupPkIndexOutput);
 		memoryKeyIndex.write();
-		groupMapOutput.close();
-		groupMapIndexOutput.close();
+		groupPkOutput.close();
+		groupPkIndexOutput.close();
 
 		if (isAppend) {
 			// 임시 map index파일 삭제.

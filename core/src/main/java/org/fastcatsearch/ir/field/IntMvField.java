@@ -13,6 +13,11 @@ public class IntMvField extends IntField implements MultiValueFieldType {
 		multiValue = true;
 	}
 	
+	public IntMvField(String id, String data){
+		super(id, data);
+		multiValue = true;
+	}
+	
 	@Override
 	public void readFrom(DataInput input) throws IOException {
 		int multiValueCount = input.readVInt();

@@ -59,8 +59,10 @@ public abstract class SelectableIndexesReader<T extends ReferencableIndexReader,
 	}
 
 	public void close() throws IOException {
-		for (T reader : readerList) {
-			reader.close();
+		if(readerList != null){
+			for (T reader : readerList) {
+				reader.close();
+			}
 		}
 	}
 

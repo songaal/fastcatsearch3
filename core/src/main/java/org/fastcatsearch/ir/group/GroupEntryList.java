@@ -93,6 +93,10 @@ public class GroupEntryList {
 	};
 
 	public void sort(int sortOrder) {
+		if(entryList == null){
+			return;
+		}
+		
 		if(sortOrder == Group.SORT_KEY_ASC){
 			Collections.sort(entryList, GroupEntryList.KeyAscendingComparator);
 		}else if(sortOrder == Group.SORT_KEY_DESC){

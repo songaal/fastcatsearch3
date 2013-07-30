@@ -11,7 +11,7 @@ public class UStringField extends StringField {
 	public UStringField(String id) {
 		super(id);
 	}
-	public UStringField(String id, String data) throws FieldDataParseException {
+	public UStringField(String id, String data) {
 		super(id, data);
 	}
 	
@@ -19,8 +19,18 @@ public class UStringField extends StringField {
 		super(id, size);
 	}
 	
-	public UStringField(String id, String data, int size) throws FieldDataParseException {
+	public UStringField(String id, String data, int size) {
 		super(id, data, size);
+	}
+	
+	@Override
+	public void readRawFrom(DataInput input) throws IOException {
+		rawString = new String(input.readUString());
+	}
+
+	@Override
+	public void writeRawTo(DataOutput output) throws IOException {
+		output.writeUString(rawString.toCharArray(), 0, rawString.length());
 	}
 	
 	@Override

@@ -138,10 +138,10 @@ public class DocumentReader implements Cloneable {
 			FieldSetting fs = fields.get(i);
 			Field f = null;
 			boolean hasValue = bai.readBoolean();
-			f = fs.createField();
+			f = fs.createEmptyField();
 			
 			if(hasValue){
-				f.readFrom(bai);
+				f.readRawFrom(bai);
 			}			
 			document.set(i, f);
 		}

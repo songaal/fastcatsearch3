@@ -491,7 +491,7 @@ public class SearchIndexesReader implements Cloneable {
 
 			for (int j = 0; j < pkFieldSettingList.length; j++) {
 				FieldSetting fieldSetting = pkFieldSettingList[j];
-				Field field = fieldSetting.createField(pkValues[j]);
+				Field field = fieldSetting.createIndexableField(pkValues[j]);
 				field.writeTo(pkOutput);
 			}
 

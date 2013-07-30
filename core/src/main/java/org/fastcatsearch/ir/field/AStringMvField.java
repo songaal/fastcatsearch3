@@ -16,10 +16,13 @@ public class AStringMvField extends AStringField implements MultiValueFieldType 
 	}
 
 	public AStringMvField(String id, int size) {
-		super(id);
-		this.size = size;
+		super(id, size);
 		multiValue = true;
-
+	}
+	
+	public AStringMvField(String id, String data, int size) {
+		super(id, data, size);
+		multiValue = true;
 	}
 
 	@Override
@@ -119,23 +122,5 @@ public class AStringMvField extends AStringField implements MultiValueFieldType 
 		};
 
 	}
-
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		final List<CharVector> list = (List<CharVector>) fieldsData;
-		if (list != null) {
-			for (int i = 0; i < list.size(); i++) {
-				CharVector charVector = (CharVector) list.get(i);
-				sb.append(charVector.toString());
-				if (i < list.size() - 1) {
-					sb.append(OutputMultiValueDelimiter);
-				}
-			}
-		}else{
-			return null;
-		}
-
-		return sb.toString();
-	}
+	
 }

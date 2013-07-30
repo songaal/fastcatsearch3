@@ -12,7 +12,7 @@ public class FloatField extends NumericField {
 		super(id, IOUtil.SIZE_OF_INT);
 	}
 	
-	public FloatField(String id, String data) throws FieldDataParseException{
+	public FloatField(String id, String data) {
 		super(id, data, IOUtil.SIZE_OF_INT);
 	}
 	

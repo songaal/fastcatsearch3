@@ -11,6 +11,12 @@ public class FloatMvField extends FloatField implements MultiValueFieldType {
 	
 	public FloatMvField(String id){
 		super(id);
+		multiValue = true;
+	}
+	
+	public FloatMvField(String id, String data){
+		super(id, data);
+		multiValue = true;
 	}
 	
 	@Override

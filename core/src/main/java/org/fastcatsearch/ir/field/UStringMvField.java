@@ -16,12 +16,15 @@ public class UStringMvField extends UStringField implements MultiValueFieldType 
 	}
 
 	public UStringMvField(String id, int size) {
-		super(id);
-		this.size = size;
+		super(id, size);
 		multiValue = true;
-
 	}
 
+	public UStringMvField(String id, String data, int size) {
+		super(id, data, size);
+		multiValue = true;
+	}
+	
 	@Override
 	public void readFrom(DataInput input) throws IOException {
 		int multiValueCount = input.readVInt();
@@ -120,21 +123,21 @@ public class UStringMvField extends UStringField implements MultiValueFieldType 
 		};
 	}
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		final List<CharVector> list = (List<CharVector>) fieldsData;
-		if (list != null) {
-			for (int i = 0; i < list.size(); i++) {
-				CharVector charVector = (CharVector) list.get(i);
-				sb.append(charVector.toString());
-				if (i < list.size() - 1) {
-					sb.append(OutputMultiValueDelimiter);
-				}
-			}
-		}else{
-			return null;
-		}
-		return sb.toString();
-	}
+//	@Override
+//	public String toString() {
+//		StringBuilder sb = new StringBuilder();
+//		final List<CharVector> list = (List<CharVector>) fieldsData;
+//		if (list != null) {
+//			for (int i = 0; i < list.size(); i++) {
+//				CharVector charVector = (CharVector) list.get(i);
+//				sb.append(charVector.toString());
+//				if (i < list.size() - 1) {
+//					sb.append(DEFAULT_MULTI_VALUE_DELIMITER);
+//				}
+//			}
+//		}else{
+//			return null;
+//		}
+//		return sb.toString();
+//	}
 }

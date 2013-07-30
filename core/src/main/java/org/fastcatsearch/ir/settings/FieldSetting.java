@@ -172,10 +172,12 @@ public class FieldSetting {
 		
 		return size;
 	}
-	public Field createField(){
+	
+	//빈 데이터 필드생성. 디스크나 네트워크에서 문서를 읽기전에 빈 객체 필요시 사용. 
+	public Field createEmptyField(){
 		Field field = null;
 		try {
-			field = createField(null);
+			field = createIndexableField(null);
 		} catch (FieldDataParseException e) { 
 			//data가 null일 경우 parse exception은 발생하지 않으므로 무시.
 			logger.error("createField 에러.", e);
@@ -183,7 +185,10 @@ public class FieldSetting {
 		
 		return field;
 	}
-	public Field createField(Object dataObject) throws FieldDataParseException{
+	public Field createIndexableField(Object dataObject) throws FieldDataParseException{
+		return createIndexableField(dataObject, null);
+	}
+	public Field createIndexableField(Object dataObject, String multiValueDelimiter) throws FieldDataParseException{
 		String data = null;
 		if(dataObject != null){
 			data = dataObject.toString();
@@ -192,25 +197,25 @@ public class FieldSetting {
 		Field field = null;
 		if(type == FieldSetting.Type.INT){
 			if(multiValue){
-				field = new IntMvField(id);
+				field = new IntMvField(id, data);
 			}else{
 				field = new IntField(id, data);
 			}
 		}else if(type == FieldSetting.Type.LONG){
 			if(multiValue){
-				field = new LongMvField(id);
+				field = new LongMvField(id, data);
 			}else{
 				field = new LongField(id, data);
 			}
 		}else if(type == FieldSetting.Type.FLOAT){
 			if(multiValue){
-				field = new FloatMvField(id);
+				field = new FloatMvField(id, data);
 			}else{
 				field = new FloatField(id, data);
 			}
 		}else if(type == FieldSetting.Type.DOUBLE){
 			if(multiValue){
-				field = new DoubleMvField(id);
+				field = new DoubleMvField(id, data);
 			}else{
 				field = new DoubleField(id, data);
 			}
@@ -218,13 +223,13 @@ public class FieldSetting {
 			return new DatetimeField(id, data);
 		}else if(type == FieldSetting.Type.ASTRING){
 			if(multiValue){
-				field = new AStringMvField(id, size);
+				field = new AStringMvField(id, data, size);
 			}else{
 				field = new AStringField(id, data, size);
 			}
 		}else if(type == FieldSetting.Type.STRING){
 			if(multiValue){
-				field = new UStringMvField(id, size);
+				field = new UStringMvField(id, data, size);
 			}else{
 				field = new UStringField(id, data, size);
 			}
@@ -233,10 +238,10 @@ public class FieldSetting {
 		if(field == null){
 			throw new RuntimeException("지원하지 않는 필드타입입니다. Type = "+ type);
 		}
-		//다중값은 addValues로 데이터를 넣어준다.
-		if(multiValue && data != null){
-			field.addValues(new StringTokenizer(data, multiValueDelimiter));
-		}
+		
+		//필드스트링을 색인이 용이한 data로 변환한다.
+		field.parseIndexable(multiValueDelimiter);
+		
 		return field;
 	}
 	public Field createPatternField(String data) throws FieldDataParseException{
@@ -247,32 +252,33 @@ public class FieldSetting {
 	}
 	public Field createSingleValueField(String data, int length) throws FieldDataParseException{
 		if(type == FieldSetting.Type.INT){
-			return new IntField(id, data);
+			return new IntField(id, data).parseIndexable();
 		}else if(type == FieldSetting.Type.LONG){
-			return new LongField(id, data);
+			return new LongField(id, data).parseIndexable();
 		}else if(type == FieldSetting.Type.FLOAT){
-			return new FloatField(id, data);
+			return new FloatField(id, data).parseIndexable();
 		}else if(type == FieldSetting.Type.DOUBLE){
-			return new DoubleField(id, data);
+			return new DoubleField(id, data).parseIndexable();
 		}else if(type == FieldSetting.Type.DATETIME){
-			return new DatetimeField(id, data);
+			return new DatetimeField(id, data).parseIndexable();
 		}else if(type == FieldSetting.Type.ASTRING){
 			if(length > 0){
-				return new AStringField(id, data, length);
+				return new AStringField(id, data, length).parseIndexable();
 			}else{
-				return new AStringField(id, data, size);
+				return new AStringField(id, data, size).parseIndexable();
 			}
 		}else if(type == FieldSetting.Type.STRING){
 			if(length > 0){
-				return new UStringField(id, data, length);
+				return new UStringField(id, data, length).parseIndexable();
 			}else{
-				return new UStringField(id, data, size);
+				return new UStringField(id, data, size).parseIndexable();
 			}
 		}
 		
 		throw new RuntimeException("지원하지 않는 필드타입입니다. Type = "+ type);
 	}
 
+	
 	public boolean isVariableField() {
 		if(type == FieldSetting.Type.ASTRING
 				|| type == FieldSetting.Type.STRING){

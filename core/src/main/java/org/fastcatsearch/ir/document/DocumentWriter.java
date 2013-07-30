@@ -163,7 +163,7 @@ public class DocumentWriter {
 				fbaos.writeBoolean(false);
 			} else {
 				fbaos.writeBoolean(true);
-				f.writeTo(fbaos);
+				f.writeRawTo(fbaos);
 			}
 		}
 		

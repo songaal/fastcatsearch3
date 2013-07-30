@@ -11,6 +11,13 @@ public class DoubleMvField extends DoubleField implements MultiValueFieldType {
 	
 	public DoubleMvField(String id){
 		super(id);
+		multiValue = true;
+		fieldsData = new ArrayList<Object>();
+	}
+	
+	public DoubleMvField(String id, String data){
+		super(id, data);
+		multiValue = true;
 	}
 	
 	@Override

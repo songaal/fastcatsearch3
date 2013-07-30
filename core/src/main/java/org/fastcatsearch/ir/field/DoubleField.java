@@ -12,7 +12,7 @@ public class DoubleField extends NumericField {
 		super(id, IOUtil.SIZE_OF_LONG);
 	}
 	
-	public DoubleField(String id, String data) throws FieldDataParseException{
+	public DoubleField(String id, String data) {
 		super(id, data, IOUtil.SIZE_OF_LONG);
 	}
 	

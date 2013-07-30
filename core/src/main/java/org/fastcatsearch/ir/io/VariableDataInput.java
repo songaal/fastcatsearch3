@@ -16,7 +16,7 @@ public class VariableDataInput implements SequencialDataInput {
 	
 	public VariableDataInput(File dir, String fileName) throws IOException{
 		File dataFile = new File(dir, fileName);
-		File positionFile = new File(dir, IndexFileNames.getSuffixFileName(fileName, "position"));
+		File positionFile = new File(dir, IndexFileNames.getPositionFileName(fileName));
 		
 		dataInput = new BufferedFileInput(dataFile);
 		positionInput = new BufferedFileInput(positionFile);

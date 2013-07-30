@@ -14,7 +14,7 @@ public class VariableDataOutput implements SequencialDataOutput {
 	}
 	public VariableDataOutput(File dir, String fileName, boolean append) throws IOException{
 		File dataFile = new File(dir, fileName);
-		File positionFile = new File(dir, IndexFileNames.getSuffixFileName(fileName, "position"));
+		File positionFile = new File(dir, IndexFileNames.getPositionFileName(fileName));
 		
 		dataOutput = new BufferedFileOutput(dataFile, append);
 		positionOutput = new BufferedFileOutput(positionFile, append);

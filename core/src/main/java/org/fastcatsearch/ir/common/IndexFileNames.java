@@ -56,9 +56,10 @@ public class IndexFileNames {
 		return name + ".mv." + suffix;
 	}
 	
-//	public static String getIndexSuffixFileName(String name, String suffix){
-//		return name + ".index." + suffix;
-//	}
+	public static String getPositionFileName(String name){
+		return name + ".position";
+	}
+	
 	public static String getIndexFileName(String name){
 		return name + ".index";
 	}

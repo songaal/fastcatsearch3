@@ -448,6 +448,7 @@ public class CollectionSearcher {
 		for (int i = 0; i < realSize; i++) {
 			Document document = eachDocList[i];
 			row[i] = new Row(fieldSize);
+			logger.debug("document#{}---------------", i);
 			for (int j = 0; j < fieldSize; j++) {
 
 				int fieldSequence = fieldSequenceList[j];
@@ -460,7 +461,7 @@ public class CollectionSearcher {
 					row[i].put(j, UnknownField.value().toCharArray());
 				} else {
 					Field field = document.get(fieldSequence);
-					logger.debug("field#{} >> {}", i, field);
+					logger.debug("field#{} >> {}", j, field);
 					String text = field.toString();
 
 					if (has != null && text != null) {
@@ -668,7 +669,7 @@ public class CollectionSearcher {
 
 			for (int j = 0; j < pkFieldSettingList.size(); j++) {
 				FieldSetting fieldSetting = pkFieldSettingList.get(j);
-				Field field = fieldSetting.createField(pkValues[j]);
+				Field field = fieldSetting.createIndexableField(pkValues[j]);
 				field.writeTo(pkOutput);
 			}
 

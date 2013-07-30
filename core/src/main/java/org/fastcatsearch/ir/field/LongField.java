@@ -12,7 +12,7 @@ public class LongField extends NumericField {
 		super(id, IOUtil.SIZE_OF_LONG);
 	}
 	
-	public LongField(String id, String data) throws FieldDataParseException{
+	public LongField(String id, String data) {
 		super(id, data, IOUtil.SIZE_OF_LONG);
 	}
 	

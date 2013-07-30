@@ -12,7 +12,7 @@ public class IntField extends NumericField {
 		super(id, IOUtil.SIZE_OF_INT);
 	}
 	
-	public IntField(String id, String data) throws FieldDataParseException{
+	public IntField(String id, String data) {
 		super(id, data, IOUtil.SIZE_OF_INT);
 	}
 	

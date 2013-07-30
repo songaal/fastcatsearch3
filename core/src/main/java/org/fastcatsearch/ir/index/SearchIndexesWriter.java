@@ -179,7 +179,7 @@ public class SearchIndexesWriter {
 
 		// 같은문서에 indexFieldNum가 중복되어서 들어오면 multi-field-index로 처리한다.
 		if (field.isMultiValue()) {
-			Iterator<Object> iterator = field.getValueIterator();
+			Iterator<Object> iterator = field.getMultiValueIterator();
 			if (iterator != null) {
 				while (iterator.hasNext()) {
 					indexValue(indexFieldNum, docNo, iterator.next(), positionIncrementGap);

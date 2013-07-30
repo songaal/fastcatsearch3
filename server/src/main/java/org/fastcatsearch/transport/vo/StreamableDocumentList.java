@@ -48,7 +48,7 @@ public class StreamableDocumentList implements Streamable {
 						Constructor<?> constructor = clazz.getConstructor(String.class, int.class);
 						field = (Field) constructor.newInstance(id, size);
 					} catch (NoSuchMethodException ignore) { }
-					field.readFrom(input);
+					field.readRawFrom(input);
 					document.set(fieldInx, field);
 
 				} catch (Exception e) {
@@ -77,7 +77,7 @@ public class StreamableDocumentList implements Streamable {
 				output.writeInt(size);
 				output.writeString(className);
 				
-				field.writeTo(output);
+				field.writeRawTo(output);
 			}
 		}
 	}

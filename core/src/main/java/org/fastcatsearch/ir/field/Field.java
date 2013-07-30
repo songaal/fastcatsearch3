@@ -2,10 +2,12 @@ package org.fastcatsearch.ir.field;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.fastcatsearch.ir.filter.NotSupportedFilterFunctionException;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.slf4j.Logger;
@@ -13,111 +15,153 @@ import org.slf4j.LoggerFactory;
 
 public abstract class Field implements Cloneable {
 	protected static Logger logger = LoggerFactory.getLogger(Field.class);
-	protected final String OutputMultiValueDelimiter = "\n";
-	
+	protected static final String DEFAULT_MULTI_VALUE_DELIMITER = "\n";
+
 	protected String id;
 	protected int size;
 	protected boolean store;
 	protected boolean removeTag;
 	protected boolean multiValue;
+	protected String rawString;
 	protected Object fieldsData;
-	
-	public Field(String id){
+
+	public Field(String id) {
 		this.id = id;
 	}
-	
-	public Field(String id, String data) throws FieldDataParseException {
+
+	public Field(String id, String data) {
 		this.id = id;
-		if(data != null){
-			this.fieldsData = parseData(data);
-		}
+		this.rawString = data;
 	}
-	
-	public Field(String id, int size){
+
+	public Field(String id, int size) {
 		this.id = id;
 		this.size = size;
 	}
-	
-	public Field(String id, String data, int size) throws FieldDataParseException{
+
+	public Field(String id, String data, int size) {
 		this.id = id;
+		this.rawString = data;
 		this.size = size;
-		if(data != null){
-			this.fieldsData = parseData(data);
+	}
+
+	public String rawString() {
+		return rawString;
+	}
+
+	public Field parseIndexable() throws FieldDataParseException {
+		parseIndexable(null);
+		return this;
+	}
+	public void parseIndexable(String multiValueDelimiter) throws FieldDataParseException {
+		if (rawString != null) {
+			if (multiValue) {
+				if(multiValueDelimiter == null){
+					multiValueDelimiter = DEFAULT_MULTI_VALUE_DELIMITER;
+				}
+				StringTokenizer tokenizer = new StringTokenizer(rawString.trim(), multiValueDelimiter);
+				while (tokenizer.hasMoreElements()) {
+					addValue(tokenizer.nextToken());
+				}
+			} else {
+				fieldsData = parseData(rawString);
+			}
 		}
 	}
+
+	public String toString() {
+		if(rawString != null){
+			return rawString;
+		} else if (fieldsData != null) {
+			return fieldsData.toString();
+		}else{
+			return null;
+		}
+	}
+
+//	public void addValues(StringTokenizer tokenizer) throws FieldDataParseException {
+//		if (!multiValue) {
+//			throw new RuntimeException("multivalue가 아닌 필드에는 값을 추가할 수 없습니다.");
+//		}
+//
+//		while (tokenizer.hasMoreElements()) {
+//			addValue(tokenizer.nextToken());
+//		}
+//	}
+
+	public void addValue(String value) throws FieldDataParseException {
+		if (!multiValue) {
+			throw new UnsupportedOperationException("multivalue가 아닌 필드에는 값을 추가할 수 없습니다.");
+		}
+
+		if(fieldsData == null){
+			fieldsData = new ArrayList<Object>();
+		}
+		Object v = parseData(value);
+		((List<Object>) fieldsData).add(v);
+
+	}
+
+	public Object getValue() {
+		return fieldsData;
+	}
 	
-	public String toString(){
+	public List<Object> getMultiValues() {
+		if (!multiValue) {
+			throw new UnsupportedOperationException("multivalue가 아닌 필드는 지원하지 않습니다.");
+		}
+		
+		return (List<Object>) fieldsData;
+	}
+
+	public Iterator<Object> getMultiValueIterator() {
+		if (!multiValue) {
+			throw new UnsupportedOperationException("multivalue가 아닌 필드에는 Iterator를 사용할 수 없습니다.");
+		}
+
+		if (fieldsData == null) {
+			return null;
+		}
+		return ((List<Object>) fieldsData).iterator();
+
+	}
+
+	public boolean isNull() {
+		return fieldsData == null;
+	}
+
+	public void readRawFrom(DataInput input) throws IOException {
+		rawString = new String(input.readAString());
+	}
+
+	public void writeRawTo(DataOutput output) throws IOException {
+		output.writeAString(rawString.toCharArray(), 0, rawString.length());
+	}
+
+	protected abstract Object parseData(String rawString) throws FieldDataParseException;
+
+	public abstract void readFrom(DataInput input) throws IOException;
+
+	// 필드데이터를 기록. string형의 경우 size정보를 앞에 기록한다. document writer에서 사용.
+	public abstract void writeTo(DataOutput output) throws IOException;
+
+	// 고정길이로 데이터만을 기록. field-index에서 필요. string형의 경우 size정보를 기록하지 않고 데이터만 저장.
+	public abstract void writeFixedDataTo(DataOutput output) throws IOException;
+
+	// 고정길이필드는 고정으로, 가변은 가변으로 데이터만을 기록. string형의 경우 size정보를 기록하지 않고 데이터만 저장.
+	public abstract void writeDataTo(DataOutput output) throws IOException;
+
+	// 멀티밸류의 필드데이터를 하나씩 기록할수 있도록 도와주는 writer. group에서 필드값을 읽을 때 사용됨.
+	public abstract FieldDataWriter getDataWriter() throws IOException;
+
+	//fieldData로 부터 생성하는 string
+	public String getDataString(){
 		if(fieldsData != null){
 			return fieldsData.toString();
 		}else{
 			return null;
 		}
 	}
-	public void addValues(StringTokenizer tokenizer) throws FieldDataParseException{
-		if(!multiValue){
-			throw new RuntimeException("multivalue가 아닌 필드에는 값을 추가할 수 없습니다.");
-		}
-		
-		while (tokenizer.hasMoreElements()) {
-			addValue(tokenizer.nextToken());
-		}
-	}
-	
-	public void addValue(String value) throws FieldDataParseException{
-		if(!multiValue){
-			throw new RuntimeException("multivalue가 아닌 필드에는 값을 추가할 수 없습니다.");
-		}
-		
-		if(fieldsData == null){
-			fieldsData = new ArrayList<Object>();
-		}
-		
-		if(!(fieldsData instanceof List)){
-			Object backUp = fieldsData;
-			fieldsData = new ArrayList<Object>();
-			((List<Object>) fieldsData).add(backUp);
-		}
-		
-		Object v = parseData(value);
-		((List<Object>) fieldsData).add(v);
-		
-	}
-	
-	public Object getValue(){
-		return fieldsData;
-	}
-	
-	public Iterator<Object> getValueIterator(){
-		if(!multiValue){
-			throw new RuntimeException("multivalue가 아닌 필드에는 Enumeration을 사용할 수 없습니다.");
-		}
-		
-		if(fieldsData == null){
-			return null;
-		}
-		return ((List<Object>) fieldsData).iterator();
-		
-	}
-	
-	public boolean isNull(){
-		return fieldsData == null;
-	}
-	
-	protected abstract Object parseData(String data) throws FieldDataParseException;
-	
-	public abstract void readFrom(DataInput input) throws IOException;
-	
-	//필드데이터를 기록. string형의 경우 size정보를 앞에 기록한다. document writer에서 사용.
-	public abstract void writeTo(DataOutput output) throws IOException;
-
-	//고정길이로 데이터만을 기록. field-index에서 필요. string형의 경우 size정보를 기록하지 않고 데이터만 저장.
-	public abstract void writeFixedDataTo(DataOutput output) throws IOException;
-	
-	//고정길이필드는 고정으로, 가변은 가변으로 데이터만을 기록. string형의 경우 size정보를 기록하지 않고 데이터만 저장.
-	public abstract void writeDataTo(DataOutput output) throws IOException;
-	
-	//멀티밸류의 필드데이터를 하나씩 기록할수 있도록 도와주는 writer. group에서 필드값을 읽을 때 사용됨.
-	public abstract FieldDataWriter getDataWriter() throws IOException;
 	
 	public String getId() {
 		return id;
@@ -166,13 +210,13 @@ public abstract class Field implements Cloneable {
 	public void setFieldsData(Object fieldsData) {
 		this.fieldsData = fieldsData;
 	}
-	
-	public boolean isFixedSize(){
+
+	public boolean isFixedSize() {
 		return size > 0;
 	}
-	
+
 	@Override
-	public Field clone(){
+	public Field clone() {
 		try {
 			return (Field) super.clone();
 		} catch (CloneNotSupportedException e) {

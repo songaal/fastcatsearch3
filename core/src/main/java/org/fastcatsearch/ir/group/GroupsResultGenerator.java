@@ -46,9 +46,9 @@ public class GroupsResultGenerator {
 		
 		int i = 0;
 		for (GroupEntryList groupEntryList : groupData.list()) {
-			if(groupEntryList.size() == 0){
-				continue;
-			}
+//			if(groupEntryList.size() == 0){
+//				continue;
+//			}
 			
 			Group group = groups.getGroup(i);
 			String fieldId = group.fieldId();
@@ -56,8 +56,6 @@ public class GroupsResultGenerator {
 			int limit = group.limit();
 			
 			//정렬
-			Collections.sort(groupEntryList.getEntryList(), GroupEntryList.KeyAscendingComparator);
-			
 			groupEntryList.sort(group.sortOrder());
 			
 			//그룹결과에 표시할 헤더명.

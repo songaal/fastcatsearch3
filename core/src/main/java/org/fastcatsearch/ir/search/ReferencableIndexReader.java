@@ -45,20 +45,23 @@ public abstract class ReferencableIndexReader implements Cloneable {
 	}
 	
 	public void read(int docNo) throws IOException{
-		int pos = dataSize * docNo;
-		dataInput.seek(pos);
-		logger.debug("index data read docNo[{}] pos[{}]", docNo, pos);
+		
 		if(isMultiValue){
+			//multi-value는 위치가 8byte씩 기록되어있다. 
+			dataInput.seek(IOUtil.SIZE_OF_LONG * docNo);
 			long ptr = dataInput.readLong();
 			if(ptr != -1){
 				multiValueInput.seek(ptr);
+				logger.debug("ref index read pos {}, seek {}", multiValueInput.position(), ptr);
 				int count = multiValueInput.readVInt();
 				dataRef.init(count);
 			}
 		}else{
+			int pos = dataSize * docNo;
+			dataInput.seek(pos);
 			//이미 input의 position을 움직여 놓았으므로 더이상 아무것도 하지 않는다.
 			dataInput.readBytes(dataRef.bytesRef().bytes, 0, dataSize);
-			logger.debug("fill group data to {} as {}", dataRef, IOUtil.readInt(dataRef.bytesRef().bytes, 0));
+//			logger.debug("fill group data to {} as {}", dataRef, IOUtil.readInt(dataRef.bytesRef().bytes, 0));
 			dataRef.init(1); //single value는 한개 읽음으로 표시.
 		}
 	}

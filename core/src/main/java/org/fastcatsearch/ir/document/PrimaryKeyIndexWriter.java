@@ -112,9 +112,9 @@ public class PrimaryKeyIndexWriter {
 		logger.debug("sort time = "+(System.currentTimeMillis() - st)+"ms");
 		//term count
 		output.writeInt(count);
-		long indexPos = indexOutput.position();
+//		long indexPos = indexOutput.position();
 		indexOutput.writeInt(0);//write later again.
-		logger.debug("pk count = "+count);
+		logger.debug("pk count = {}", count);
 		int idxCount = 0;
 		
 		for (int i = 0; i < count; i++) {
@@ -140,14 +140,14 @@ public class PrimaryKeyIndexWriter {
 			output.writeInt(intValueArray[id]);
 		}
 		
-		logger.debug("pk index count = "+idxCount);
-		logger.debug("filesize = "+output.position()+" bytes");
+		logger.debug("pk index count = {}", idxCount);
+		logger.debug("filesize = {} bytes", output.position());
 	
 		//write idxCount
-		long p = indexOutput.position();
-		indexOutput.seek(indexPos);
+//		long p = indexOutput.position();
+		indexOutput.seek(0);
 		indexOutput.writeInt(idxCount);
-		indexOutput.seek(p);
+//		indexOutput.seek(p);
 	}
 	
 	public void close() throws IOException{

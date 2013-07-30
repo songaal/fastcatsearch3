@@ -8,8 +8,6 @@ import java.util.regex.Pattern;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.io.IOUtil;
-import org.fastcatsearch.ir.io.IndexInput;
-import org.fastcatsearch.ir.io.IndexOutput;
 
 public class DatetimeField extends Field {
 	public static final SimpleDateFormat inputFormat = new SimpleDateFormat("yyyyMMddHHmmssS");
@@ -26,10 +24,10 @@ public class DatetimeField extends Field {
 
 	@Override
 	protected Date parseData(String data) {
-		if (data == null) {
+		if (rawString == null) {
 			return null;
 		}
-
+		
 		data = ptn.matcher(data).replaceAll("");
 		for (int strlen = data.length(); strlen < 17; strlen++) {
 			data += "0";
@@ -67,7 +65,7 @@ public class DatetimeField extends Field {
 	}
 
 	@Override
-	public String toString() {
+	public String getDataString() {
 		if (fieldsData != null) {
 			return outputFormat.format((Date) fieldsData);
 		} else {
