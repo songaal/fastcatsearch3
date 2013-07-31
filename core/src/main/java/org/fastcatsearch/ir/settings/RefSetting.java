@@ -2,12 +2,12 @@ package org.fastcatsearch.ir.settings;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 @XmlType(propOrder = { "removeTag", "ref" })
 public class RefSetting {
 	private String ref;
 	private boolean removeTag;
-	private int size;
 	
 	public RefSetting() {}
 	
@@ -22,7 +22,7 @@ public class RefSetting {
 	
 	@Override
 	public String toString(){
-		return "[RefSetting]"+ref+", "+removeTag+", "+size;
+		return "[RefSetting]"+ref+", "+removeTag;
 	}
 	
 	
@@ -36,21 +36,13 @@ public class RefSetting {
 	}
 
 	@XmlAttribute
-	public boolean isRemoveTag() {
+	@XmlJavaTypeAdapter(OptionalBooleanFalseAdapter.class)
+	public Boolean isRemoveTag() {
 		return removeTag;
 	}
 
-	public void setRemoveTag(boolean removeTag) {
+	public void setRemoveTag(Boolean removeTag) {
 		this.removeTag = removeTag;
-	}
-	
-	@XmlAttribute
-	public int getSize() {
-		return size;
-	}
-
-	public void setSize(int size) {
-		this.size = size;
 	}
 	
 }

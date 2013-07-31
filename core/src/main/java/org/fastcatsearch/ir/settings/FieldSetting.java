@@ -21,6 +21,7 @@ import java.util.StringTokenizer;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.fastcatsearch.ir.field.AStringField;
 import org.fastcatsearch.ir.field.AStringMvField;
@@ -50,15 +51,15 @@ public class FieldSetting {
 	private String id;
 	private String name;
 	private Type type;
-	private int size = -1;
+	private int size;
 	private boolean store = true;
 	private boolean removeTag;
 	private boolean modify;
 	private boolean multiValue;
-	private String multiValueDelimiter = ",";
+	private String multiValueDelimiter;
 
 	public static enum Type {
-		UNKNOWN, ASTRING, STRING, INT, LONG, FLOAT, DOUBLE, DATETIME, BLOB, __SCORE, __HIT, __DOCNO 
+		UNKNOWN, ASTRING, STRING, INT, LONG, FLOAT, DOUBLE, DATETIME, BLOB, _SCORE, _HIT, _DOCNO 
 	}
 
 	//JAXB를 위해서는 default 생성자가 꼭 필요하다.
@@ -103,45 +104,51 @@ public class FieldSetting {
 	}
 
 	@XmlAttribute
-	public int getSize() {
+	@XmlJavaTypeAdapter(OptionalIntPositiveAdapter.class)
+	public Integer getSize() {
 		return size;
 	}
 
-	public void setSize(int size) {
+	public void setSize(Integer size) {
 		this.size = size;
 	}
 
 	@XmlAttribute(required = true)
-	public boolean isStore() {
+	@XmlJavaTypeAdapter(OptionalBooleanTrueAdapter.class)
+	public Boolean isStore() {
 		return store;
 	}
 
-	public void setStore(boolean store) {
+	public void setStore(Boolean store) {
 		this.store = store;
 	}
+	
 	@XmlAttribute
-	public boolean isRemoveTag() {
+	@XmlJavaTypeAdapter(OptionalBooleanFalseAdapter.class)
+	public Boolean isRemoveTag() {
 		return removeTag;
 	}
 
-	public void setRemoveTag(boolean removeTag) {
+	public void setRemoveTag(Boolean removeTag) {
 		this.removeTag = removeTag;
 	}
 
 	@XmlAttribute
-	public boolean isModify() {
+	@XmlJavaTypeAdapter(OptionalBooleanFalseAdapter.class)
+	public Boolean isModify() {
 		return modify;
 	}
 
-	public void setModify(boolean modify) {
+	public void setModify(Boolean modify) {
 		this.modify = modify;
 	}
 	@XmlAttribute
-	public boolean isMultiValue() {
+	@XmlJavaTypeAdapter(OptionalBooleanFalseAdapter.class)
+	public Boolean isMultiValue() {
 		return multiValue;
 	}
 
-	public void setMultiValue(boolean multiValue) {
+	public void setMultiValue(Boolean multiValue) {
 		this.multiValue = multiValue;
 	}
 	@XmlAttribute
@@ -294,9 +301,9 @@ public class FieldSetting {
 				|| type == FieldSetting.Type.FLOAT
 				|| type == FieldSetting.Type.DOUBLE
 				|| type == FieldSetting.Type.DATETIME
-				|| type == FieldSetting.Type.__HIT
-				|| type == FieldSetting.Type.__SCORE
-				|| type == FieldSetting.Type.__DOCNO;
+				|| type == FieldSetting.Type._HIT
+				|| type == FieldSetting.Type._SCORE
+				|| type == FieldSetting.Type._DOCNO;
 	}
 
 }

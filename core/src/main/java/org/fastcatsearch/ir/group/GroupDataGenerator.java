@@ -78,17 +78,15 @@ public class GroupDataGenerator {
 		groupKeySizeList = new int[groupSize];
 		redundancyCheck = new HashSet<Integer>();
 		
-		List<String> fieldNameList = new ArrayList<String>(groupSize);
+		List<String> fieldIdList = new ArrayList<String>(groupSize);
 		for (int i = 0; i < groupSize; i++) {
 			Group group = groupList.get(i);
-			String fieldname = group.fieldId();
-//			if(!fieldNameList.contains(fieldname)){
-				fieldNameList.add(fieldname);
-				logger.debug(">> group field name >> {}", fieldname);
-//			}
+			String fieldId = group.fieldId();
+			fieldIdList.add(fieldId);
+			logger.debug(">> group field name >> {}", fieldId);
 		}
 		
-		indexRef = groupIndexesReader.selectIndexRef(fieldNameList.toArray(new String[0]));
+		indexRef = groupIndexesReader.selectIndexRef(fieldIdList.toArray(new String[0]));
 		logger.debug("group indexref size = {}", indexRef.getSize());
 		
 		for (int i = 0; i < groupSize; i++) {

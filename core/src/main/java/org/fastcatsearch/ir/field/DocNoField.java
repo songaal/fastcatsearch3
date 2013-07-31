@@ -5,5 +5,5 @@ import org.fastcatsearch.ir.settings.FieldSetting.Type;
 public class DocNoField {
 	
 	public static int fieldNumber = -3;
-	public static String fieldName = Type.__DOCNO.toString();
+	public static String fieldName = Type._DOCNO.toString();
 }

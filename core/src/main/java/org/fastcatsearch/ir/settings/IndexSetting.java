@@ -22,6 +22,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 @XmlType(propOrder = { "ignoreCase", "positionIncrementGap", "queryAnalyzer", "indexAnalyzer", "fieldList", "id"} )
 @XmlRootElement(name = "index")
@@ -72,6 +73,7 @@ public class IndexSetting {
 	}
 
 	@XmlAttribute
+	@XmlJavaTypeAdapter(OptionalStringAdapter.class)
 	public String getIndexAnalyzer() {
 		return indexAnalyzer;
 	}
@@ -81,6 +83,7 @@ public class IndexSetting {
 	}
 
 	@XmlAttribute
+	@XmlJavaTypeAdapter(OptionalStringAdapter.class)
 	public String getQueryAnalyzer() {
 		return queryAnalyzer;
 	}
@@ -90,29 +93,32 @@ public class IndexSetting {
 	}
 
 	@XmlAttribute
-	public int getPositionIncrementGap() {
+	@XmlJavaTypeAdapter(OptionalIntPositiveAdapter.class)
+	public Integer getPositionIncrementGap() {
 		return positionIncrementGap;
 	}
 
-	public void setPositionIncrementGap(int positionIncrementGap) {
+	public void setPositionIncrementGap(Integer positionIncrementGap) {
 		this.positionIncrementGap = positionIncrementGap;
 	}
 
 	@XmlAttribute
-	public boolean isIgnoreCase() {
+	@XmlJavaTypeAdapter(OptionalBooleanFalseAdapter.class)
+	public Boolean isIgnoreCase() {
 		return ignoreCase;
 	}
 
-	public void setIgnoreCase(boolean ignoreCase) {
+	public void setIgnoreCase(Boolean ignoreCase) {
 		this.ignoreCase = ignoreCase;
 	}
 	
 	@XmlAttribute
-	public boolean isStorePosition() {
+	@XmlJavaTypeAdapter(OptionalBooleanFalseAdapter.class)
+	public Boolean isStorePosition() {
 		return storePosition;
 	}
 
-	public void setStorePosition(boolean storePosition) {
+	public void setStorePosition(Boolean storePosition) {
 		this.storePosition = storePosition;
 	}
 	

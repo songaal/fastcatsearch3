@@ -18,6 +18,7 @@ package org.fastcatsearch.ir.settings;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 @XmlType(propOrder = { "ignoreCase", "ref", "name", "id"})
 public class GroupIndexSetting implements ReferencableFieldSetting {
@@ -67,11 +68,12 @@ public class GroupIndexSetting implements ReferencableFieldSetting {
 	}
 
 	@XmlAttribute
-	public boolean isIgnoreCase() {
+	@XmlJavaTypeAdapter(OptionalBooleanFalseAdapter.class)
+	public Boolean isIgnoreCase() {
 		return ignoreCase;
 	}
 
-	public void setIgnoreCase(boolean ignoreCase) {
+	public void setIgnoreCase(Boolean ignoreCase) {
 		this.ignoreCase = ignoreCase;
 	}
 

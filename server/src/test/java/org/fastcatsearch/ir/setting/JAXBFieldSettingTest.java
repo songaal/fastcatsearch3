@@ -1,6 +1,7 @@
 package org.fastcatsearch.ir.setting;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.StringReader;
@@ -19,6 +20,8 @@ public class JAXBFieldSettingTest {
 	public void testSettingMarshall() throws JAXBException {
 		
 		FieldSetting setting = new FieldSetting("title", "타이틀", FieldSetting.Type.STRING);
+		setting.setRemoveTag(true);
+		setting.setStore(false);
 		JAXBContext context = JAXBContext.newInstance(setting.getClass());
 		
 		Marshaller marshaller = context.createMarshaller();
@@ -29,17 +32,18 @@ public class JAXBFieldSettingTest {
 	
 	@Test
 	public void testSettingUnmarshall() throws JAXBException {
-		String fieldSettingXML = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
-				"<field id=\"title\" type=\"ACHAR\" name=\"문서제목\" size=\"100\" primary=\"false\" store=\"false\" remove-tag=\"true\" virtual=\"false\" modify=\"false\" multi-value=\"false\" multi-value-delimiter=\"0\" multi-value-max-count=\"0\"/>";
+		String fieldSettingXML = 
+				"<field id=\"title\" type=\"ACHAR\" name=\"문서제목\" size=\"100\" store=\"\" removeTag=\"true\" modify=\"\" multiValue=\"false\" multiValueDelimiter=\",\" />";
 		
 		JAXBContext context = JAXBContext.newInstance(FieldSetting.class);
 		
 		Unmarshaller unmarshaller = context.createUnmarshaller();
-//		unmarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 
 		FieldSetting setting = (FieldSetting) unmarshaller.unmarshal(new StringReader(fieldSettingXML));
 		assertTrue(setting.isRemoveTag());
-		assertEquals(100, setting.getSize());
+		assertEquals(100, setting.getSize().intValue());
+		assertTrue(setting.isStore());
+		assertFalse(setting.isModify());
 	}
 
 }

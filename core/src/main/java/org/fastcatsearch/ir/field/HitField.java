@@ -27,8 +27,8 @@ import org.fastcatsearch.ir.settings.FieldSetting.Type;
  * 
  */
 public class HitField {
-	public static String fieldName = Type.__HIT.toString();
+	public static String fieldName = Type._HIT.toString();
 	public static int fieldNumber = -3;
 	public static int fieldSize = IOUtil.SIZE_OF_INT;
-	public static FieldSetting field = new FieldSetting(fieldName, null, Type.__HIT);
+	public static FieldSetting field = new FieldSetting(fieldName, null, Type._HIT);
 }

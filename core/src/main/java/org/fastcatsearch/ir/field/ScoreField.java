@@ -26,8 +26,8 @@ import org.fastcatsearch.ir.settings.FieldSetting.Type;
  *
  */
 public class ScoreField {
-	public static String fieldName = Type.__SCORE.toString();
+	public static String fieldName = Type._SCORE.toString();
 	public static int fieldNumber = -2;
 	public static int fieldSize = IOUtil.SIZE_OF_INT;
-	public static FieldSetting field = new FieldSetting(fieldName, null, Type.__SCORE);
+	public static FieldSetting field = new FieldSetting(fieldName, null, Type._SCORE);
 }

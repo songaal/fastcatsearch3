@@ -12,10 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FieldIndexesReader extends SelectableIndexesReader<FieldIndexReader, FieldIndexSetting> {
-	protected static Logger logger = LoggerFactory.getLogger(FieldIndexesReader.class);
 
-	protected List<FieldIndexReader> readerList;
-	protected List<FieldIndexSetting> indexSettingList;
 	public FieldIndexesReader(){ }
 	
 	public FieldIndexesReader(Schema schema, File dir) throws IOException, IRException {

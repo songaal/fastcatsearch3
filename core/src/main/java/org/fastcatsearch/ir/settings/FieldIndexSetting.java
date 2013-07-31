@@ -19,6 +19,7 @@ package org.fastcatsearch.ir.settings;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 @XmlRootElement(name = "field-index")
 @XmlType(propOrder = { "ignoreCase", "size", "ref", "name", "id" })
@@ -62,12 +63,14 @@ public class FieldIndexSetting implements ReferencableFieldSetting {
 	}
 
 	@XmlAttribute
-	public int getSize() {
+	@XmlJavaTypeAdapter(OptionalIntPositiveAdapter.class)
+	public Integer getSize() {
 		return size;
 	}
 
 	@XmlAttribute
-	public boolean isIgnoreCase() {
+	@XmlJavaTypeAdapter(OptionalBooleanFalseAdapter.class)
+	public Boolean isIgnoreCase() {
 		return ignoreCase;
 	}
 
@@ -83,11 +86,11 @@ public class FieldIndexSetting implements ReferencableFieldSetting {
 		this.ref = ref;
 	}
 	
-	public void setSize(int size) {
+	public void setSize(Integer size) {
 		this.size = size;
 	}
 
-	public void setIgnoreCase(boolean ignoreCase) {
+	public void setIgnoreCase(Boolean ignoreCase) {
 		this.ignoreCase = ignoreCase;
 	}
 

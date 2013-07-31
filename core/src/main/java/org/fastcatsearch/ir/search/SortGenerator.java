@@ -43,52 +43,53 @@ public class SortGenerator {
 	private Logger logger = LoggerFactory.getLogger(SortGenerator.class);
 	private int[] fieldIndex; //쿼리 소트필드들의 필드번호
 	private boolean[] isAscending; //쿼리 소트필드들의 정렬방식
-	private int dataSize; //쿼리 소트필드들의 데이터길이 
+//	private int dataSize; //쿼리 소트필드들의 데이터길이 
 	private IndexRef<FieldIndexReader> indexRef;
 	private BytesRef[] dataList;
 	private int sortSize;//다중정렬갯수.
 	
 	public SortGenerator(List<Sort> querySortList, Schema schema, FieldIndexesReader fieldIndexesReader) throws IOException{
-		this.dataSize = 0;
+//		this.dataSize = 0;
 		this.sortSize = querySortList.size();
 		
-		List<String> fieldIdList = new ArrayList<String>(sortSize);
 		this.fieldIndex = new int[sortSize];
 		this.isAscending = new boolean[sortSize];
 		this.dataList = new BytesRef[sortSize];
 		
+		List<String> fieldIdList = new ArrayList<String>(sortSize);
 		for (int i = 0; i < sortSize; i++) {
 			Sort sort = querySortList.get(i);
-			String fieldname = sort.fieldId();
-			int idx = schema.getFieldIndexSequence(fieldname);
+			String fieldId = sort.fieldId();
+			fieldIdList.add(fieldId);
+			int idx = schema.getFieldIndexSequence(fieldId);
 			
 			//save each sort field number in order
 			if(idx == -1){
-				if(fieldname.equalsIgnoreCase(ScoreField.fieldName)){
+				if(fieldId.equalsIgnoreCase(ScoreField.fieldName)){
 					fieldIndex[i] = ScoreField.fieldNumber;
-					dataSize += ScoreField.fieldSize;
-				}else if(fieldname.equalsIgnoreCase(HitField.fieldName)){
+//					dataSize += ScoreField.fieldSize;
+				}else if(fieldId.equalsIgnoreCase(HitField.fieldName)){
 					fieldIndex[i] = HitField.fieldNumber;
-					dataSize += HitField.fieldSize;
+//					dataSize += HitField.fieldSize;
 				}else{
-					throw new IOException("Unknown sort field name = "+fieldname);
+					throw new IOException("Unknown sort field name = "+fieldId);
 				}
 			}else{
 				fieldIndex[i] = idx;
-				dataSize += schema.getFieldSetting(fieldname).getByteSize();
+//				dataSize += schema.getFieldSetting(fieldId).getByteSize();
 			}
 			isAscending[i] = sort.asc();
-			logger.debug("##SortGenerator-{} => {}, dataSize={}, isAscending[{}]={}", i, fieldname, dataSize, isAscending[i]);
+			logger.debug("##SortGenerator-{} => {}, isAscending[{}]={}", i, fieldId, isAscending[i]);
 			
 		}
 		
 		indexRef = fieldIndexesReader.selectIndexRef(fieldIdList.toArray(new String[0]));
-		int indexSequence = 0;
 		for (int sequence = 0; sequence < sortSize; sequence++) {
 			//데이터와 연결되어 있는 필드만 추가해준다. 
 			if(fieldIndex[sequence] >= 0){
-				dataList[sequence] = indexRef.getDataRef(indexSequence++).bytesRef();
+				dataList[sequence] = indexRef.getDataRef(sequence).bytesRef();
 			}
+			//score, hit 필드등은 여기서는 null이며, 아래 getHitElement 에서 읽을때 객체를 생성한다. 
 		}
 	}
 	
