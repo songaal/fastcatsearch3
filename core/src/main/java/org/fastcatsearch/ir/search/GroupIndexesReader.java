@@ -31,7 +31,11 @@ public class GroupIndexesReader extends SelectableIndexesReader<GroupIndexReader
 		reader.indexSettingList = indexSettingList;
     	reader.readerList = new ArrayList<GroupIndexReader>(readerList.size());
     	for (GroupIndexReader r : readerList) {
-    		reader.readerList.add(r.clone());
+    		GroupIndexReader newReader = null;
+    		if(r != null){
+    			newReader = r.clone();
+    		}
+    		reader.readerList.add(newReader);
 		}
     	
     	return reader;

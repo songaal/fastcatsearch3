@@ -23,7 +23,13 @@ public class FieldIndexesReader extends SelectableIndexesReader<FieldIndexReader
 		readerList = new ArrayList<FieldIndexReader>(indexCount);
 		for (int i = 0; i < indexCount; i++) {
 			FieldIndexSetting setting = indexSettingList.get(i);
-			readerList.add(new FieldIndexReader(setting, schema.fieldSettingMap(), dir));
+			FieldIndexReader reader = null;
+			try{
+				reader = new FieldIndexReader(setting, schema.fieldSettingMap(), dir);
+			}catch(Exception e){
+				logger.error("필드색인 {}로딩중 에러 >> {}", setting.getId(), e);
+			}
+			readerList.add(reader);
 		}
 		
 	}
@@ -34,7 +40,11 @@ public class FieldIndexesReader extends SelectableIndexesReader<FieldIndexReader
 		reader.indexSettingList = indexSettingList;
     	reader.readerList = new ArrayList<FieldIndexReader>(readerList.size());
     	for (FieldIndexReader r : readerList) {
-    		reader.readerList.add(r.clone());
+    		FieldIndexReader newReader = null;
+    		if(r != null){
+    			newReader = r.clone();
+    		}
+    		reader.readerList.add(newReader);
 		}
     	
     	return reader;

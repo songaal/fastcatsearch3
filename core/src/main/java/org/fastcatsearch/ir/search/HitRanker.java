@@ -48,7 +48,7 @@ public class HitRanker extends FixedMaxPriorityQueue<HitElement>{
 			Sort sort = querySortList.get(i);
 			String fieldId = sort.fieldId();
 			int idx = schema.getFieldSequence(fieldId);
-			////////__HIT , __SCORE 필드의 경우 처리해준다.
+			////////_HIT , _SCORE 필드의 경우 처리해준다.
 			if(idx == -1){
 				if(fieldId.equalsIgnoreCase(ScoreField.fieldName)){
 					sortFunctions[i] = sort.createSortFunction(ScoreField.field);

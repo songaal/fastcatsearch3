@@ -31,19 +31,6 @@ import org.fastcatsearch.ir.settings.FieldSetting;
 
 public class FieldIndexReader extends ReferencableIndexReader {
 	
-//	public FieldIndexReader(IndexInput indexInput, IndexInput multiValueInput, IndexInput[] multiValueInputList, DataRef[] refs, int dataSize, int[] fieldOffset, int[] fieldByteSize
-//			, boolean[] isMultiValue, boolean hasMultiValue, int fieldSize) {
-//		this.indexInput = indexInput;
-//		this.multiValueInput = multiValueInput;
-////		this.multiValueInputList = multiValueInputList;
-//		this.dataRef = dataRef;
-//		this.dataSize = dataSize;
-//		this.fieldOffset = fieldOffset;
-//		this.fieldByteSize = fieldByteSize;
-//		this.isMultiValue = isMultiValue;
-//		this.hasMultiValue = hasMultiValue;
-//	}
-	
 	public FieldIndexReader() { }
 	
 	
