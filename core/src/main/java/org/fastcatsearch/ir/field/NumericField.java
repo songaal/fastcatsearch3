@@ -26,12 +26,12 @@ public abstract class NumericField extends Field {
 	
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
-		writeFixedDataTo(output);
+		writeFixedDataTo(output, 0);
 	}
 	
 	@Override
-	public void writeDataTo(DataOutput output) throws IOException {
-		writeFixedDataTo(output);
+	public void writeDataTo(DataOutput output, boolean upperCase) throws IOException {
+		writeFixedDataTo(output, 0, upperCase);
 	}
 
 	protected abstract Number parseNumber(String data)  throws FieldDataParseException;

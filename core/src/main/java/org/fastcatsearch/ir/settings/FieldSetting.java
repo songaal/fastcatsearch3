@@ -44,8 +44,7 @@ import org.slf4j.LoggerFactory;
 
 @XmlRootElement(name = "field")
 // propOrder는 xml writer의 기록순서인데, attribute의 경우 next attribute를 현재 attribute의 앞에 기록하므로 proporder를 거꾸로 정의해야 올바른 순서로 보여진다.
-@XmlType(propOrder = { "multiValueDelimiter", "multiValue", "modify", "removeTag", "store",
-		"size", "name", "type", "id" })
+@XmlType(propOrder = { "multiValueDelimiter", "multiValue", "modify", "removeTag", "store", "size", "name", "type", "id" })
 public class FieldSetting {
 	protected static Logger logger = LoggerFactory.getLogger(FieldSetting.class);
 	private String id;
@@ -59,23 +58,24 @@ public class FieldSetting {
 	private String multiValueDelimiter;
 
 	public static enum Type {
-		UNKNOWN, ASTRING, STRING, INT, LONG, FLOAT, DOUBLE, DATETIME, BLOB, _SCORE, _HIT, _DOCNO 
+		UNKNOWN, ASTRING, STRING, INT, LONG, FLOAT, DOUBLE, DATETIME, BLOB, _SCORE, _HIT, _DOCNO
 	}
 
-	//JAXB를 위해서는 default 생성자가 꼭 필요하다.
-	public FieldSetting() {}
-	
-	public FieldSetting(String id, String name, Type type){
+	// JAXB를 위해서는 default 생성자가 꼭 필요하다.
+	public FieldSetting() {
+	}
+
+	public FieldSetting(String id, String name, Type type) {
 		this.id = id;
 		this.name = name;
 		this.type = type;
 	}
-	
+
 	@Override
-	public String toString(){
-		return "[FieldSetting]"+id+", type="+type+", size="+size+", mv="+multiValue;
+	public String toString() {
+		return "[FieldSetting]" + id + ", type=" + type + ", size=" + size + ", mv=" + multiValue;
 	}
-	
+
 	@XmlAttribute(required = true)
 	public String getId() {
 		return id;
@@ -122,7 +122,7 @@ public class FieldSetting {
 	public void setStore(Boolean store) {
 		this.store = store;
 	}
-	
+
 	@XmlAttribute
 	@XmlJavaTypeAdapter(OptionalBooleanFalseAdapter.class)
 	public Boolean isRemoveTag() {
@@ -142,6 +142,7 @@ public class FieldSetting {
 	public void setModify(Boolean modify) {
 		this.modify = modify;
 	}
+
 	@XmlAttribute
 	@XmlJavaTypeAdapter(OptionalBooleanFalseAdapter.class)
 	public Boolean isMultiValue() {
@@ -151,6 +152,7 @@ public class FieldSetting {
 	public void setMultiValue(Boolean multiValue) {
 		this.multiValue = multiValue;
 	}
+
 	@XmlAttribute
 	public String getMultiValueDelimiter() {
 		return multiValueDelimiter;
@@ -159,150 +161,163 @@ public class FieldSetting {
 	public void setMultiValueDelimiter(String multiValueDelimiter) {
 		this.multiValueDelimiter = multiValueDelimiter;
 	}
-	
-	
-	public int getByteSize(){
-		if(type == Type.INT)
+
+	//sz가 0보다 크면 sz를 사용하고 아니면 기존 size를 사용한다.
+	public int getByteSize(int sz) {
+		// string필드의 경우만 sz를 설정할수 있으며, 나머지 필드는 사이즈 셋팅이 불가능하다.
+		if (type == Type.STRING) {
+			if (sz > 0) {
+				return sz * 2;
+			}
+		} else if (type == Type.ASTRING) {
+			if (sz > 0) {
+				return sz;
+			}
+		}
+		return getByteSize();
+
+	}
+
+	public int getByteSize() {
+		if (type == Type.INT)
 			return IOUtil.SIZE_OF_INT;
-		else if(type == Type.LONG)
+		else if (type == Type.LONG)
 			return IOUtil.SIZE_OF_LONG;
-		else if(type == Type.FLOAT)
+		else if (type == Type.FLOAT)
 			return IOUtil.SIZE_OF_INT;
-		else if(type == Type.DOUBLE)
+		else if (type == Type.DOUBLE)
 			return IOUtil.SIZE_OF_LONG;
-		else if(type == Type.DATETIME)
+		else if (type == Type.DATETIME)
 			return IOUtil.SIZE_OF_LONG;
-		else if(type == Type.STRING)
+		else if (type == Type.STRING)
 			return size * 2;
-		else if(type == Type.ASTRING)
+		else if (type == Type.ASTRING)
 			return size;
-		
+
 		return size;
 	}
-	
-	//빈 데이터 필드생성. 디스크나 네트워크에서 문서를 읽기전에 빈 객체 필요시 사용. 
-	public Field createEmptyField(){
+
+	// 빈 데이터 필드생성. 디스크나 네트워크에서 문서를 읽기전에 빈 객체 필요시 사용.
+	public Field createEmptyField() {
 		Field field = null;
 		try {
 			field = createIndexableField(null);
-		} catch (FieldDataParseException e) { 
-			//data가 null일 경우 parse exception은 발생하지 않으므로 무시.
+		} catch (FieldDataParseException e) {
+			// data가 null일 경우 parse exception은 발생하지 않으므로 무시.
 			logger.error("createField 에러.", e);
 		}
-		
+
 		return field;
 	}
-	public Field createIndexableField(Object dataObject) throws FieldDataParseException{
+
+	public Field createIndexableField(Object dataObject) throws FieldDataParseException {
 		return createIndexableField(dataObject, null);
 	}
-	public Field createIndexableField(Object dataObject, String multiValueDelimiter) throws FieldDataParseException{
+
+	public Field createIndexableField(Object dataObject, String multiValueDelimiter) throws FieldDataParseException {
 		String data = null;
-		if(dataObject != null){
+		if (dataObject != null) {
 			data = dataObject.toString();
 		}
-		
+
 		Field field = null;
-		if(type == FieldSetting.Type.INT){
-			if(multiValue){
+		if (type == FieldSetting.Type.INT) {
+			if (multiValue) {
 				field = new IntMvField(id, data);
-			}else{
+			} else {
 				field = new IntField(id, data);
 			}
-		}else if(type == FieldSetting.Type.LONG){
-			if(multiValue){
+		} else if (type == FieldSetting.Type.LONG) {
+			if (multiValue) {
 				field = new LongMvField(id, data);
-			}else{
+			} else {
 				field = new LongField(id, data);
 			}
-		}else if(type == FieldSetting.Type.FLOAT){
-			if(multiValue){
+		} else if (type == FieldSetting.Type.FLOAT) {
+			if (multiValue) {
 				field = new FloatMvField(id, data);
-			}else{
+			} else {
 				field = new FloatField(id, data);
 			}
-		}else if(type == FieldSetting.Type.DOUBLE){
-			if(multiValue){
+		} else if (type == FieldSetting.Type.DOUBLE) {
+			if (multiValue) {
 				field = new DoubleMvField(id, data);
-			}else{
+			} else {
 				field = new DoubleField(id, data);
 			}
-		}else if(type == FieldSetting.Type.DATETIME){
+		} else if (type == FieldSetting.Type.DATETIME) {
 			return new DatetimeField(id, data);
-		}else if(type == FieldSetting.Type.ASTRING){
-			if(multiValue){
+		} else if (type == FieldSetting.Type.ASTRING) {
+			if (multiValue) {
 				field = new AStringMvField(id, data, size);
-			}else{
+			} else {
 				field = new AStringField(id, data, size);
 			}
-		}else if(type == FieldSetting.Type.STRING){
-			if(multiValue){
+		} else if (type == FieldSetting.Type.STRING) {
+			if (multiValue) {
 				field = new UStringMvField(id, data, size);
-			}else{
+			} else {
 				field = new UStringField(id, data, size);
 			}
 		}
-		
-		if(field == null){
-			throw new RuntimeException("지원하지 않는 필드타입입니다. Type = "+ type);
+
+		if (field == null) {
+			throw new RuntimeException("지원하지 않는 필드타입입니다. Type = " + type);
 		}
-		
-		//필드스트링을 색인이 용이한 data로 변환한다.
+
+		// 필드스트링을 색인이 용이한 data로 변환한다.
 		field.parseIndexable(multiValueDelimiter);
-		
+
 		return field;
 	}
-	public Field createPatternField(String data) throws FieldDataParseException{
+
+	public Field createPatternField(String data) throws FieldDataParseException {
 		return createSingleValueField(data, data.length());
 	}
-	public Field createPrimaryKeyField(String data) throws FieldDataParseException{
+
+	public Field createPrimaryKeyField(String data) throws FieldDataParseException {
 		return createSingleValueField(data, 0);
 	}
-	public Field createSingleValueField(String data, int length) throws FieldDataParseException{
-		if(type == FieldSetting.Type.INT){
+
+	public Field createSingleValueField(String data, int length) throws FieldDataParseException {
+		if (type == FieldSetting.Type.INT) {
 			return new IntField(id, data).parseIndexable();
-		}else if(type == FieldSetting.Type.LONG){
+		} else if (type == FieldSetting.Type.LONG) {
 			return new LongField(id, data).parseIndexable();
-		}else if(type == FieldSetting.Type.FLOAT){
+		} else if (type == FieldSetting.Type.FLOAT) {
 			return new FloatField(id, data).parseIndexable();
-		}else if(type == FieldSetting.Type.DOUBLE){
+		} else if (type == FieldSetting.Type.DOUBLE) {
 			return new DoubleField(id, data).parseIndexable();
-		}else if(type == FieldSetting.Type.DATETIME){
+		} else if (type == FieldSetting.Type.DATETIME) {
 			return new DatetimeField(id, data).parseIndexable();
-		}else if(type == FieldSetting.Type.ASTRING){
-			if(length > 0){
+		} else if (type == FieldSetting.Type.ASTRING) {
+			if (length > 0) {
 				return new AStringField(id, data, length).parseIndexable();
-			}else{
+			} else {
 				return new AStringField(id, data, size).parseIndexable();
 			}
-		}else if(type == FieldSetting.Type.STRING){
-			if(length > 0){
+		} else if (type == FieldSetting.Type.STRING) {
+			if (length > 0) {
 				return new UStringField(id, data, length).parseIndexable();
-			}else{
+			} else {
 				return new UStringField(id, data, size).parseIndexable();
 			}
 		}
-		
-		throw new RuntimeException("지원하지 않는 필드타입입니다. Type = "+ type);
+
+		throw new RuntimeException("지원하지 않는 필드타입입니다. Type = " + type);
 	}
 
-	
 	public boolean isVariableField() {
-		if(type == FieldSetting.Type.ASTRING
-				|| type == FieldSetting.Type.STRING){
+		if (type == FieldSetting.Type.ASTRING || type == FieldSetting.Type.STRING) {
 			return size <= 0;
 		}
-		
+
 		return false;
 	}
-	
+
 	public boolean isNumericField() {
-		return type == FieldSetting.Type.INT
-				|| type == FieldSetting.Type.LONG
-				|| type == FieldSetting.Type.FLOAT
-				|| type == FieldSetting.Type.DOUBLE
-				|| type == FieldSetting.Type.DATETIME
-				|| type == FieldSetting.Type._HIT
-				|| type == FieldSetting.Type._SCORE
+		return type == FieldSetting.Type.INT || type == FieldSetting.Type.LONG || type == FieldSetting.Type.FLOAT || type == FieldSetting.Type.DOUBLE
+				|| type == FieldSetting.Type.DATETIME || type == FieldSetting.Type._HIT || type == FieldSetting.Type._SCORE
 				|| type == FieldSetting.Type._DOCNO;
 	}
 

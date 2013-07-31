@@ -86,6 +86,7 @@ public class GroupIndexReader extends ReferencableIndexReader {
 	@Override
 	public GroupIndexReader clone(){
 		GroupIndexReader reader = new GroupIndexReader();
+		reader.indexId = indexId;
 		reader.dataInput = dataInput.clone();
 		reader.groupKeyInput = groupKeyInput.clone();
 		if(isMultiValue){

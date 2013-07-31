@@ -143,6 +143,7 @@ public class DocumentReader implements Cloneable {
 			if(hasValue){
 				f.readRawFrom(bai);
 			}			
+			logger.debug("read doc#{} field#{} >> {}", docNo, i, f);
 			document.set(i, f);
 		}
 		return document;

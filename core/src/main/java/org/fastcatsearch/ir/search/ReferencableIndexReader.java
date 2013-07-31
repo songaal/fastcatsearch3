@@ -52,8 +52,8 @@ public abstract class ReferencableIndexReader implements Cloneable {
 			long ptr = dataInput.readLong();
 			if(ptr != -1){
 				multiValueInput.seek(ptr);
-				logger.debug("ref index read pos {}, seek {}", multiValueInput.position(), ptr);
 				int count = multiValueInput.readVInt();
+				logger.debug("{} ref index read pos {}, seek {}, count {}, {}", indexId, multiValueInput.position(), ptr, count, multiValueInput);
 				dataRef.init(count);
 			}
 		}else{

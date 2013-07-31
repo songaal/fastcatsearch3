@@ -32,11 +32,11 @@ public class LongMvField extends LongField implements MultiValueFieldType {
 		List<Object> list = (List<Object>) fieldsData;
 		int multiValueCount = list.size();
 		output.writeVInt(multiValueCount);
-		writeFixedDataTo(output);
+		writeFixedDataTo(output, 0);
 	}
 	
 	@Override
-	public void writeFixedDataTo(DataOutput output) throws IOException {
+	public void writeFixedDataTo(DataOutput output, int indexSize, boolean upperCase) throws IOException {
 		List<Object> list = (List<Object>) fieldsData;
 		for (int i = 0; i < list.size(); i++) {
 			Long v = (Long) list.get(i);

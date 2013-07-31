@@ -23,6 +23,7 @@ import java.util.Map;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.io.DataRef;
+import org.fastcatsearch.ir.io.IndexInput;
 import org.fastcatsearch.ir.io.StreamInputRef;
 import org.fastcatsearch.ir.settings.FieldIndexSetting;
 import org.fastcatsearch.ir.settings.FieldSetting;
@@ -42,15 +43,17 @@ public class FieldIndexReader extends ReferencableIndexReader {
 		File dataFile = new File(dir, IndexFileNames.getSuffixFileName(IndexFileNames.fieldIndexFile, id));
 		File multiValueFile = new File(dir, IndexFileNames.getMultiValueSuffixFileName(IndexFileNames.fieldIndexFile, id));
     	
-		int dataSize = refFieldSetting.getByteSize();
+		int indexDataSize = fieldIndexSetting.getSize();
+		int dataSize = refFieldSetting.getByteSize(indexDataSize);
 		if(dataSize <= 0){
-			//field셋팅의 길이가 가변이라면.
-			if(fieldIndexSetting.getSize() > 0){
-				dataSize = fieldIndexSetting.getSize();
-			}else{
-				//error 
+//			//field셋팅의 길이가 가변이라면.
+//			if(fieldIndexSetting.getSize() > 0){
+//				int byteSize = data * 2;
+//				dataSize = fieldIndexSetting.getSize();
+//			}else{
+//				//error 
 				throw new IRException("필드색인은 고정길이필드이거나 field index size를 정해야 합니다.");
-			}
+//			}
 		}
 			
 		init(id, refFieldSetting, dataFile, multiValueFile, dataSize);
@@ -61,6 +64,7 @@ public class FieldIndexReader extends ReferencableIndexReader {
 	@Override
 	public FieldIndexReader clone(){
 		FieldIndexReader reader = new FieldIndexReader();
+		reader.indexId = indexId;
 		reader.dataInput = dataInput.clone();
 		if(isMultiValue){
 			reader.multiValueInput = multiValueInput.clone();

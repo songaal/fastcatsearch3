@@ -130,6 +130,7 @@ public class Schema {
 		return fieldSettingMap.get(fieldId);
 	}
 
+	
 	public int getSearchIndexSequence(String indexFieldId) {
 		Integer i = searchIndexSequenceMap.get(indexFieldId);
 		if(i == null){
@@ -157,6 +158,32 @@ public class Schema {
 		}
 	}
 	
+	public IndexSetting getSearchIndexSetting(String indexFieldId){
+		int sequence = getSearchIndexSequence(indexFieldId);
+		if(sequence == -1){
+			return null;
+		}
+		List<IndexSetting> list = schemaSetting.getIndexSettingList();
+		return list.get(sequence);
+	}
+	
+	public FieldIndexSetting getFieldIndexSetting(String indexFieldId){
+		int sequence = getFieldIndexSequence(indexFieldId);
+		if(sequence == -1){
+			return null;
+		}
+		List<FieldIndexSetting> list = schemaSetting.getFieldIndexSettingList();
+		return list.get(sequence);
+	}
+	
+	public GroupIndexSetting getGroupIndexSetting(String indexFieldId){
+		int sequence = getGroupIndexSequence(indexFieldId);
+		if(sequence == -1){
+			return null;
+		}
+		List<GroupIndexSetting> list = schemaSetting.getGroupIndexSettingList();
+		return list.get(sequence);
+	}
 	public int getFieldSize(){
 		return fieldSettingMap.size();
 	}

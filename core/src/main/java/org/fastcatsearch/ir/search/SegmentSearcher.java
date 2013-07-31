@@ -90,33 +90,16 @@ public class SegmentSearcher {
 		}
 
 		// filter
-		// Filters filters = q.getFilters();
 		if (filters != null) {
-			try {
-				hitFilter = filters.getHitFilter(schema.fieldSettingMap(), segmentReader.newFieldIndexesReader(), BULK_SIZE);
-			} catch (FilterException e) {
-				logger.error("패턴의 길이가 필드길이보다 커서 필터링을 수행할수 없습니다.", e);
-			}
+			//schema를 통해 field index setting을 알아야 필터링시 ignorecase등의 정보를 활용가능하다.
+			hitFilter = filters.getHitFilter(schema, segmentReader.newFieldIndexesReader(), BULK_SIZE);
 		}
 
-		// group
-		// Groups groups = q.getGroups();
-		// Clause groupClause = null;
-		// Filters groupFilters = null;
-		// OperatedClause groupOperatedClause = null;
-
+		//group
 		if (groups != null) {
 			groupGenerator = groups.getGroupDataGenerator(schema, segmentReader.newGroupIndexesReader(), fieldIndexesReader);
-			// group clause
-			// groupClause = q.getGroupClause();
-			// if(groupClause != null){
-			// groupOperatedClause = groupClause.getOperatedClause(docCount, searchFieldReader);
-			// groupClauseRemain = groupOperatedClause.next(groupClauseDocInfo);
-			// }
-			// group filter
-			// groupFilters = q.getGroupFilters();
 			if (groupFilters != null) {
-				groupHitFilter = groupFilters.getHitFilter(schema.fieldSettingMap(), fieldIndexesReader, BULK_SIZE);
+				groupHitFilter = groupFilters.getHitFilter(schema, fieldIndexesReader, BULK_SIZE);
 			}
 		}
 

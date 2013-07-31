@@ -46,17 +46,17 @@ public class DatetimeField extends Field {
 
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
-		writeFixedDataTo(output);
+		writeFixedDataTo(output, 0);
 	}
 
 	@Override
-	public void writeFixedDataTo(DataOutput output) throws IOException {
+	public void writeFixedDataTo(DataOutput output, int indexSize, boolean upperCase) throws IOException {
 		output.writeLong(((Date) fieldsData).getTime());
 	}
 
 	@Override
-	public void writeDataTo(DataOutput output) throws IOException {
-		writeFixedDataTo(output);
+	public void writeDataTo(DataOutput output, boolean upperCase) throws IOException {
+		writeFixedDataTo(output, 0);
 	}
 
 	@Override

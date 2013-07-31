@@ -156,10 +156,6 @@
 	<td style="text-align:left;"><input type="text" id="gr" name="gr" size="80" value="" class='inp02 help'/></td>
 	</tr>
 	<tr>
-	<th>그룹조건(gc)</th>
-	<td style="text-align:left;"><input type="text" id="gc" name="gc" size="80" value="" class='inp02 help'/></td>
-	</tr>
-	<tr>
 	<th>그룹필터(gf)</th>
 	<td style="text-align:left;"><input type="text" id="gf" name="gf" size="80" value="" class='inp02 help'/></td>
 	</tr>
@@ -277,7 +273,6 @@
 					"&fl="+$('#fl').val()+
 					"&se="+encodeURIComponent($('#se').val())+
 					"&gr="+$('#gr').val()+
-					"&gc="+encodeURIComponent($('#gc').val())+
 					"&gf="+$('#gf').val()+
 					"&ra="+$('#ra').val()+
 					"&ft="+encodeURIComponent($('#ft').val())+
@@ -325,7 +320,6 @@
 		$('#fl').val(getCookie("fl"));
 		$('#se').val(getCookie("se"));
 		$('#gr').val(getCookie("gr"));
-		$('#gc').val(getCookie("gc"));
 		$('#gf').val(getCookie("gf"));
 		$('#ra').val(getCookie("ra"));
 		$('#ft').val(getCookie("ft"));
@@ -342,7 +336,6 @@
 		setCookie("fl", $('#fl').val());
 		setCookie("se", $('#se').val());
 		setCookie("gr", $('#gr').val());
-		setCookie("gc", $('#gc').val());
 		setCookie("gf", $('#gf').val());
 		setCookie("ra", $('#ra').val());
 		setCookie("ft", $('#ft').val());
@@ -379,7 +372,6 @@
 				fl: $('#fl').val(),
 				se: encodeURIComponent($('#se').val()),
 				gr: $('#gr').val(),
-				gc: encodeURIComponent($('#gc').val()),
 				gf: $('#gf').val(),
 				ra: $('#ra').val(),
 				ft: encodeURIComponent($('#ft').val()),

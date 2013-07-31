@@ -26,6 +26,7 @@ import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IOUtil;
 import org.fastcatsearch.ir.query.Filter;
 import org.fastcatsearch.ir.query.RankInfo;
+import org.fastcatsearch.ir.settings.FieldIndexSetting;
 import org.fastcatsearch.ir.settings.FieldSetting;
 
 
@@ -38,11 +39,11 @@ import org.fastcatsearch.ir.settings.FieldSetting;
  */
 public class MatchFilter extends FilterFunction {
 
-	public MatchFilter(Filter filter, FieldSetting fieldSetting) throws FilterException {
-		this(filter, fieldSetting, false);
+	public MatchFilter(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting) throws FilterException {
+		super(filter, fieldIndexSetting, fieldSetting, false);
 	}
-	public MatchFilter(Filter filter, FieldSetting fieldSetting, boolean isBoostFunction) throws FilterException {
-		super(filter, fieldSetting, isBoostFunction);
+	public MatchFilter(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting, boolean isBoostFunction) throws FilterException {
+		super(filter, fieldIndexSetting, fieldSetting, isBoostFunction);
 	}
 	
 	@Override
@@ -54,8 +55,10 @@ public class MatchFilter extends FilterFunction {
 				BytesRef patternBuf = patternList[j];
 				int plen = patternBuf.length;
 				
-				//패턴이 데이터보다 크면 match확인필요없음.
-				if(plen > fieldByteSize){
+				logger.debug("Match Filter pat len[{}] fieldByteSize[{}] data[{}]", plen, fieldByteSize, new String(bytesRef.toUCharArray()));
+				//패턴이 데이터보다 크면 match확인필요없음. 다음으로 진행.
+//				if(plen > fieldByteSize){
+				if(plen > bytesRef.length()) {
 					continue;
 				}
 				
@@ -63,7 +66,8 @@ public class MatchFilter extends FilterFunction {
 					boolean isMatch = true;
 					if(!patternBuf.bytesEquals(bytesRef, plen)){
 						isMatch = false;
-						break;
+						//
+//						break;
 					}
 					
 //					for (int k = 0; k < len; k++) {
@@ -96,7 +100,7 @@ public class MatchFilter extends FilterFunction {
 						if(isMatch) {
 							//일치하는것이 하나라도 있으면 미리 끝낸다
 							//buffer를 다 읽지 않았으므로 position을 변경해준다.
-							//logger.debug("Matched >> {}", new String(buffer.array, pos, fieldByteSize));
+							logger.debug("Matched >> {}", rankInfo);
 //							buffer.pos(endPos);
 							if(isBoostFunction){
 								//boost옵션이 있다면 점수를 올려주고 리턴한다.

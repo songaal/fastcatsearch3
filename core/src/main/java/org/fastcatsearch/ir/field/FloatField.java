@@ -27,7 +27,7 @@ public class FloatField extends NumericField {
 	}
 
 	@Override
-	public void writeFixedDataTo(DataOutput output) throws IOException {
+	public void writeFixedDataTo(DataOutput output, int indexSize, boolean upperCase) throws IOException {
 		output.writeInt(Float.floatToIntBits((Float)fieldsData));
 	}
 

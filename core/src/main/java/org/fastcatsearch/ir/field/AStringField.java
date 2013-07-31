@@ -34,30 +34,25 @@ public class AStringField extends StringField {
 		CharVector charVector = ((CharVector) fieldsData);
 		if(size > 0){
 			output.writeVInt(size);
-			writeFixedDataTo(output);
+			writeFixedDataTo(output, 0);
 		}else{
 			output.writeAString(charVector.array, charVector.start, charVector.length);
 		}
 	}
 
 	@Override
-	public void writeFixedDataTo(DataOutput output) throws IOException {
+	public void writeFixedDataTo(DataOutput output, int indexSize, boolean upperCase) throws IOException {
 
+		int size = indexSize > 0 ? indexSize : this.size;
 		if(size > 0){
 			//고정길이 single value필드는 데이터가 없으면 고정길이만큼 0으로 기록한다.
 			if(fieldsData == null){
 				for (int j = 0; j < size; j++) {
-					output.writeByte(0);
+					output.writeAChar(0);
 				}
-				return;
-			}
-			
-			CharVector charVector = (CharVector) fieldsData;
-			output.writeAChars(charVector.array, charVector.start, size);
-			if(charVector.length < size){
-				for (int j = 0; j < size - charVector.length; j++) {
-					output.writeByte(0);
-				}
+			}else{
+				CharVector charVector = (CharVector) fieldsData;
+				output.writeAChars(charVector.array, charVector.start, size, upperCase);
 			}
 		}else{
 			throw new IOException("가변길이필드는 지원하지 않습니다.");
@@ -65,12 +60,12 @@ public class AStringField extends StringField {
 	}
 	
 	@Override
-	public void writeDataTo(DataOutput output) throws IOException {
+	public void writeDataTo(DataOutput output, boolean upperCase) throws IOException {
 		CharVector charVector = ((CharVector) fieldsData);
 		if(size > 0){
-			writeFixedDataTo(output);
+			writeFixedDataTo(output, 0, upperCase);
 		}else{
-			output.writeAChars(charVector.array, charVector.start, charVector.length);
+			output.writeAChars(charVector.array, charVector.start, charVector.length, upperCase);
 		}
 		
 	}

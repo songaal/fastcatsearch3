@@ -366,4 +366,6 @@ public final class BytesRef extends BytesBuffer implements Comparable<BytesRef>,
 	public int remaining() {
 		return length - offset;
 	}
+
+	
 }

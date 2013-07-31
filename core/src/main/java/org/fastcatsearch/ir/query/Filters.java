@@ -24,6 +24,7 @@ import java.util.Map;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.search.FieldIndexesReader;
 import org.fastcatsearch.ir.settings.FieldSetting;
+import org.fastcatsearch.ir.settings.Schema;
 
 
 
@@ -55,7 +56,7 @@ public class Filters {
 		return filterList;
 	}
 	
-	public HitFilter getHitFilter(Map<String, FieldSetting> fieldSettingMap, FieldIndexesReader fieldIndexesReader, int bulkSize) throws IOException, IRException {
-		return new HitFilter(filterList, fieldSettingMap, fieldIndexesReader, bulkSize);
+	public HitFilter getHitFilter(Schema schema, FieldIndexesReader fieldIndexesReader, int bulkSize) throws IOException, IRException {
+		return new HitFilter(filterList, schema, fieldIndexesReader, bulkSize);
 	}
 }

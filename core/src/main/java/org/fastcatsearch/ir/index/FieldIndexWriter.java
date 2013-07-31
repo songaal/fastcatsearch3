@@ -18,127 +18,113 @@ package org.fastcatsearch.ir.index;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.field.Field;
+import org.fastcatsearch.ir.field.FieldDataWriter;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
+import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.io.IndexOutput;
 import org.fastcatsearch.ir.settings.FieldIndexSetting;
 import org.fastcatsearch.ir.settings.FieldSetting;
-import org.fastcatsearch.ir.settings.RefSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-
 /**
  * 단일 필드인덱스에 대한 색인클래스. 하위에 여러필드를 가질수 있다.
+ * 
  * @author sangwook.song
- *
+ * 
  */
 public class FieldIndexWriter {
 	private static Logger logger = LoggerFactory.getLogger(FieldIndexWriter.class);
-	private IndexOutput output;
+	private String indexId;
+	private IndexOutput fieldIndexOutput;
 	private IndexOutput multiValueOutput;
-//	private List<RefSetting> refSettingList;
-//	private int[] fieldSequenceList;
 	private boolean isMultiValue;
-//	private int fieldSize;
-//	private int[] fieldIndexSizeList;
 	private int limitSize;
 	private int fieldSequence;
-	
-	public FieldIndexWriter(FieldIndexSetting fieldIndexSetting, Map<String, FieldSetting> fieldSettingMap, Map<String, Integer> fieldSequenceMap, File dir) throws IOException, IRException {
+	private boolean isIgnoreCase;
+
+	public FieldIndexWriter(FieldIndexSetting fieldIndexSetting, Map<String, FieldSetting> fieldSettingMap, Map<String, Integer> fieldSequenceMap,
+			File dir) throws IOException, IRException {
 		this(fieldIndexSetting, fieldSettingMap, fieldSequenceMap, dir, false);
 	}
-	
-	public FieldIndexWriter(FieldIndexSetting fieldIndexSetting, Map<String, FieldSetting> fieldSettingMap, Map<String, Integer> fieldSequenceMap, File dir, boolean isAppend) throws IOException, IRException {
-//		refSettingList = fieldIndexSetting.getRef();
-//		fieldSize = refSettingList.size();
-//		fieldSequenceList = new int[fieldSize];
-//		fieldIndexSizeList = new int[fieldSize];
+
+	public FieldIndexWriter(FieldIndexSetting fieldIndexSetting, Map<String, FieldSetting> fieldSettingMap, Map<String, Integer> fieldSequenceMap,
+			File dir, boolean isAppend) throws IOException, IRException {
 		String id = fieldIndexSetting.getId();
-		output = new BufferedFileOutput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.fieldIndexFile, id), isAppend);
-		
-//		for (int idx = 0; idx < fieldSize; idx++) {
-//			RefSetting rs = refSettingList.get(idx);
-			
-		String fieldId = fieldIndexSetting.getRef();
-		fieldSequence = fieldSequenceMap.get(fieldId);
-		FieldSetting refFieldSetting = fieldSettingMap.get(fieldId);
-		limitSize = fieldIndexSetting.getSize();
-		
+		this.indexId = id;
+		fieldIndexOutput = new BufferedFileOutput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.fieldIndexFile, id), isAppend);
+
+		String refFieldId = fieldIndexSetting.getRef();
+		fieldSequence = fieldSequenceMap.get(refFieldId);
+		FieldSetting refFieldSetting = fieldSettingMap.get(refFieldId);
+		limitSize = fieldIndexSetting.getSize(); // 색인시 제한 길이. bytesize가 아님.
+
+		isIgnoreCase = fieldIndexSetting.isIgnoreCase();
+
 		isMultiValue = refFieldSetting.isMultiValue();
-		if(isMultiValue){
+		if (isMultiValue) {
 			multiValueOutput = new BufferedFileOutput(dir, IndexFileNames.getMultiValueSuffixFileName(IndexFileNames.fieldIndexFile, id), isAppend);
 		}
-			
-//			fieldIndexSizeList[idx] = fieldIndexSize;
-//			if(fieldSetting.isMultiValue()){
-//				hasMultiValue = true;
-//			}
-//			fieldSequenceList[idx] = fieldSequenceMap.get(fieldId);
-//		}
-		
-		
-		
+
 	}
-	
-	public void write(Document document) throws IOException, IRException{
-		
-//		for (int idx = 0; idx < fieldSize; idx++) {
-//			int k = fieldSequenceList[idx];
-			Field f = document.get(fieldSequence);
-			
-			if(f.isMultiValue()){
-				long ptr = multiValueOutput.position();
-				output.writeLong(ptr);
-				if(f.isFixedSize()){
-					f.writeFixedDataTo(multiValueOutput);
-				}else{
-					//정해진 길이가 있다면 해당 길이로 자른다.
-//					int limitSize = fieldIndexSizeList[idx];
-					Field tmpField = f.clone();
-					if(limitSize > 0){
-						tmpField.setSize(limitSize);
-						tmpField.writeFixedDataTo(multiValueOutput);
-					}else{
-						throw new IRException("가변길이필드는 필드색인이 불가능합니다. 필드색인SIZE 필요. field-index-size = "+limitSize);
-					}
-				}
-			}else{
-				if(f.isFixedSize()){
-					f.writeFixedDataTo(output);
-				}else{
-					//정해진 길이가 있다면 해당 길이로 자른다.
-//					int limitSize = fieldIndexSizeList[idx];
-					Field tmpField = f.clone();
-					if(limitSize > 0){
-						tmpField.setSize(limitSize);
-						tmpField.writeFixedDataTo(output);
-					}else{
-						throw new IRException("가변길이필드는 필드색인이 불가능합니다. 필드색인SIZE 필요. field-index-size = "+limitSize);
-					}
-				}
+
+	public void write(Document document) throws IOException, IRException {
+
+		Field field = document.get(fieldSequence);
+
+		if (!field.isFixedSize() && limitSize <= 0) {
+			throw new IRException("가변길이필드는 필드색인이 불가능합니다. 필드색인SIZE 필요. 필드 = " + indexId + ". 현재 field index size = " + limitSize);
+		}
+
+		if (isIgnoreCase) {
+
+			// TODO
+			// 필드 객체자체를 바꾸면 다음 index writer에서 혼동되므로 clone한 객체를 바꿔야한다.
+
+		}
+//		if (isIgnoreCase) {
+//			logger.debug("field index write IGNORECASE1 {}", field.getDataString());
+////			field.toUpperCase();
+//		}
+		logger.debug("field index write IGNORECASE2 {} >> {}", indexId, field.getDataString());
+
+		if (isMultiValue) {
+			long ptr = multiValueOutput.position();
+			int multiValueCount = field.getMultiValueCount();
+
+			if (multiValueCount > 0) {
+				fieldIndexOutput.writeLong(ptr);
+				multiValueOutput.writeVInt(multiValueCount);
+				// 정해진 길이가 있다면 해당 길이로 자른다.
+				field.writeFixedDataTo(multiValueOutput, limitSize, isIgnoreCase);
+			} else {
+				fieldIndexOutput.writeLong(-1);
 			}
-//		}
+
+		} else {
+			field.writeFixedDataTo(fieldIndexOutput, limitSize, isIgnoreCase);
+			
+		}
 	}
-	
-	public void flush() throws IOException{
-		output.flush();
-		
-		if(isMultiValue){
+
+	public void flush() throws IOException {
+		fieldIndexOutput.flush();
+
+		if (isMultiValue) {
 			multiValueOutput.flush();
 		}
 	}
-	public void close() throws IOException{
-		output.close();
-		
-		if(isMultiValue){
+
+	public void close() throws IOException {
+		fieldIndexOutput.close();
+
+		if (isMultiValue) {
 			multiValueOutput.close();
 		}
 	}

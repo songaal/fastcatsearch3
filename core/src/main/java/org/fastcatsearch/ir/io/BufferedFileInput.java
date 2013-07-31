@@ -69,6 +69,10 @@ public class BufferedFileInput extends IndexInput implements Cloneable {
 		logger.debug("File open {}", f.getAbsolutePath());
 	}
 
+	public String toString(){
+		return "["+getClass().getName()+"]"+f.getName()+", length="+f.length();
+	}
+	
 	@Override
 	public BufferedFileInput clone() {
 		BufferedFileInput clone = (BufferedFileInput) super.clone();

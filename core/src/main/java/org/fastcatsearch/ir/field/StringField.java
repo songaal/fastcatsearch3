@@ -38,7 +38,7 @@ public abstract class StringField extends Field {
 
 	@Override
 	public String getDataString() {
-		if (isMultiValue()) {
+		if (multiValue) {
 			StringBuilder sb = new StringBuilder();
 			final List<CharVector> list = (List<CharVector>) fieldsData;
 			if (list != null) {
@@ -58,4 +58,19 @@ public abstract class StringField extends Field {
 			return super.getDataString();
 		}
 	}
+
+//	@Override
+//	public void toUpperCase() {
+//		if (fieldsData != null) {
+//			if (multiValue) {
+//				for (CharVector charVector : (List<CharVector>) fieldsData) {
+//					if (charVector != null) {
+//						charVector.toUpperCase();
+//					}
+//				}
+//			} else {
+//				((CharVector) fieldsData).toUpperCase();
+//			}
+//		}
+//	}
 }

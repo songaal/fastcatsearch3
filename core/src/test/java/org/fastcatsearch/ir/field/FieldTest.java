@@ -64,7 +64,7 @@ public class FieldTest {
 	@Test
 	public void testRawIntegerField() throws IOException, FieldDataParseException {
 		
-		String value = "1231435";
+		String value = "4163526";
 		IntField field = new IntField("A", value);
 		assertEquals(value, field.rawString()); 
 		field.parseIndexable();

@@ -28,7 +28,7 @@ public class DoubleField extends NumericField {
 	
 
 	@Override
-	public void writeFixedDataTo(DataOutput output) throws IOException {
+	public void writeFixedDataTo(DataOutput output, int indexSize, boolean upperCase) throws IOException {
 		output.writeLong(Double.doubleToLongBits((Double)fieldsData));
 	}
 

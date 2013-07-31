@@ -26,6 +26,7 @@ import org.fastcatsearch.ir.io.DataRef;
 import org.fastcatsearch.ir.search.FieldIndexReader;
 import org.fastcatsearch.ir.search.FieldIndexesReader;
 import org.fastcatsearch.ir.search.IndexRef;
+import org.fastcatsearch.ir.settings.FieldIndexSetting;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
@@ -47,7 +48,7 @@ public class HitFilter {
 	private List<DataRef> dataRefList;
 	
 	
-	public HitFilter(List<Filter> filterList, Map<String, FieldSetting> fieldSettingMap, FieldIndexesReader fieldIndexesReader, int bulkSize) throws IOException, IRException {
+	public HitFilter(List<Filter> filterList, Schema schema, FieldIndexesReader fieldIndexesReader, int bulkSize) throws IOException, IRException {
 		int size = filterList.size();
 		this.filterList = new Filter[size];
 		filterFunctions = new FilterFunction[size];
@@ -55,7 +56,7 @@ public class HitFilter {
 		String[] fieldList = new String[size];
 		int k = 0;
 		for (Filter filter : filterList) {
-			fieldList[k++] = filter.fieldname();
+			fieldList[k++] = filter.fieldIndexId();
 		}
 		//각 필드에대한 indexreader를 clone해서 dataRef와 연결시킨다.
 		fieldIndexRef = fieldIndexesReader.selectIndexRef(fieldList);
@@ -65,9 +66,17 @@ public class HitFilter {
 		for (int i = 0; i < size; i++) {
 			Filter filter = filterList.get(i);
 			this.filterList[i] = filter;
-			String fieldname = filter.fieldname();
-			FieldSetting fieldSetting = fieldSettingMap.get(fieldname);
-			filterFunctions[i] = filter.createFilterFunction(fieldSetting);
+			String fieldIndexId = filter.fieldIndexId();
+			
+			FieldIndexSetting fieldIndexSetting = schema.getFieldIndexSetting(fieldIndexId);
+			if(fieldIndexSetting == null){
+				//잘못된 필드명.
+				throw new IRException("색인되지 않은 필드입니다. "+fieldIndexId);
+			}
+			
+			String fieldId = fieldIndexSetting.getRef();
+			FieldSetting fieldSetting = schema.getFieldSetting(fieldId);
+			filterFunctions[i] = filter.createFilterFunction(fieldIndexSetting, fieldSetting);
 		}
 	}
 

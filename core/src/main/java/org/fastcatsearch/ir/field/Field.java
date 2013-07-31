@@ -2,12 +2,10 @@ package org.fastcatsearch.ir.field;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.fastcatsearch.ir.filter.NotSupportedFilterFunctionException;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.slf4j.Logger;
@@ -79,16 +77,6 @@ public abstract class Field implements Cloneable {
 		}
 	}
 
-//	public void addValues(StringTokenizer tokenizer) throws FieldDataParseException {
-//		if (!multiValue) {
-//			throw new RuntimeException("multivalue가 아닌 필드에는 값을 추가할 수 없습니다.");
-//		}
-//
-//		while (tokenizer.hasMoreElements()) {
-//			addValue(tokenizer.nextToken());
-//		}
-//	}
-
 	public void addValue(String value) throws FieldDataParseException {
 		if (!multiValue) {
 			throw new UnsupportedOperationException("multivalue가 아닌 필드에는 값을 추가할 수 없습니다.");
@@ -106,6 +94,15 @@ public abstract class Field implements Cloneable {
 		return fieldsData;
 	}
 	
+	public int getMultiValueCount() {
+		if (!multiValue) {
+			throw new UnsupportedOperationException("multivalue가 아닌 필드는 지원하지 않습니다.");
+		}
+		if(fieldsData == null){
+			return 0;
+		}
+		return ((List<Object>) fieldsData).size();
+	}
 	public List<Object> getMultiValues() {
 		if (!multiValue) {
 			throw new UnsupportedOperationException("multivalue가 아닌 필드는 지원하지 않습니다.");
@@ -130,10 +127,13 @@ public abstract class Field implements Cloneable {
 		return fieldsData == null;
 	}
 
+	
+	/*
+	 * Document Index에서 사용.
+	 * */
 	public void readRawFrom(DataInput input) throws IOException {
 		rawString = new String(input.readAString());
 	}
-
 	public void writeRawTo(DataOutput output) throws IOException {
 		output.writeAString(rawString.toCharArray(), 0, rawString.length());
 	}
@@ -142,16 +142,35 @@ public abstract class Field implements Cloneable {
 
 	public abstract void readFrom(DataInput input) throws IOException;
 
+	/*
+	 * PK에서 사용.
+	 * */
 	// 필드데이터를 기록. string형의 경우 size정보를 앞에 기록한다. document writer에서 사용.
 	public abstract void writeTo(DataOutput output) throws IOException;
 
+	/*
+	 * Field Index에서 사용.
+	 * */
 	// 고정길이로 데이터만을 기록. field-index에서 필요. string형의 경우 size정보를 기록하지 않고 데이터만 저장.
-	public abstract void writeFixedDataTo(DataOutput output) throws IOException;
+	public void writeFixedDataTo(DataOutput output) throws IOException {
+		writeFixedDataTo(output, 0, false);
+	}
+	public void writeFixedDataTo(DataOutput output, int indexSize) throws IOException {
+		writeFixedDataTo(output, indexSize, false);
+	}
+	public abstract void writeFixedDataTo(DataOutput output, int indexSize, boolean upperCase) throws IOException;
 
+	
+	/*
+	 * Group Index에서 사용.
+	 * */
 	// 고정길이필드는 고정으로, 가변은 가변으로 데이터만을 기록. string형의 경우 size정보를 기록하지 않고 데이터만 저장.
-	public abstract void writeDataTo(DataOutput output) throws IOException;
+	public void writeDataTo(DataOutput output) throws IOException {
+		writeDataTo(output, false);
+	}
+	public abstract void writeDataTo(DataOutput output, boolean upperCase) throws IOException;
 
-	// 멀티밸류의 필드데이터를 하나씩 기록할수 있도록 도와주는 writer. group에서 필드값을 읽을 때 사용됨.
+	// 멀티밸류의 필드데이터를 하나씩 기록할수 있도록 도와주는 writer. group에서 사용됨.
 	public abstract FieldDataWriter getDataWriter() throws IOException;
 
 	//fieldData로 부터 생성하는 string
@@ -224,5 +243,6 @@ public abstract class Field implements Cloneable {
 		}
 		return null;
 	}
+
 
 }

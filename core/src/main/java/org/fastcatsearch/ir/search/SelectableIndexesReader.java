@@ -31,11 +31,10 @@ public abstract class SelectableIndexesReader<T extends ReferencableIndexReader,
 			T reader = null;
 			for (int j = 0; j < indexSettingList.size(); j++) {
 				S setting = indexSettingList.get(j);
-				String refFieldId = setting.getRef();
+				String indexFieldId = setting.getId();
 				// 동일필드명을 찾는다.
-				if (refFieldId.equals(fieldId)) {
+				if (indexFieldId.equals(fieldId)) {
 					reader = cloneReader(j);
-					
 					break;
 				}
 
@@ -61,7 +60,9 @@ public abstract class SelectableIndexesReader<T extends ReferencableIndexReader,
 	public void close() throws IOException {
 		if(readerList != null){
 			for (T reader : readerList) {
-				reader.close();
+				if(reader != null){
+					reader.close();
+				}
 			}
 		}
 	}

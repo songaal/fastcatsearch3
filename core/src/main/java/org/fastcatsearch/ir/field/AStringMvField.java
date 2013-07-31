@@ -47,11 +47,6 @@ public class AStringMvField extends AStringField implements MultiValueFieldType 
 				CharVector charVector = (CharVector) list.get(i);
 				output.writeVInt(size);
 				output.writeAChars(charVector.array, charVector.start, size);
-				if (charVector.length < size) {
-					for (int j = 0; j < size - charVector.length; j++) {
-						output.writeAChar(0);
-					}
-				}
 			}
 		} else {
 			// 가변길이
@@ -64,22 +59,19 @@ public class AStringMvField extends AStringField implements MultiValueFieldType 
 	}
 
 	@Override
-	public void writeFixedDataTo(DataOutput output) throws IOException {
+	public void writeFixedDataTo(DataOutput output, int indexSize, boolean upperCase) throws IOException {
+		
 		// multi value필드는 데이터가 없으면 기록하지 않는다.
 		if (fieldsData == null) {
 			return;
 		}
 
+		int size = indexSize > 0 ? indexSize : this.size;
 		if (size > 0) {
 			List<CharVector> list = (List<CharVector>) fieldsData;
 			for (int i = 0; i < list.size(); i++) {
 				CharVector charVector = (CharVector) list.get(i);
-				output.writeAChars(charVector.array, charVector.start, size);
-				if (charVector.length < size) {
-					for (int j = 0; j < size - charVector.length; j++) {
-						output.writeAChar(0);
-					}
-				}
+				output.writeAChars(charVector.array, charVector.start, size, upperCase);
 			}
 		} else {
 			throw new IOException("가변길이필드는 지원하지 않습니다.");
@@ -87,14 +79,14 @@ public class AStringMvField extends AStringField implements MultiValueFieldType 
 	}
 
 	@Override
-	public final void writeDataTo(DataOutput output) throws IOException {
+	public final void writeDataTo(DataOutput output, boolean upperCase) throws IOException {
 		if (size > 0) {
-			writeFixedDataTo(output);
+			writeFixedDataTo(output, 0, upperCase);
 		} else {
 			List<CharVector> list = (List<CharVector>) fieldsData;
 			for (int i = 0; i < list.size(); i++) {
 				CharVector charVector = (CharVector) list.get(i);
-				output.writeAChars(charVector.array, charVector.start, charVector.length);
+				output.writeAChars(charVector.array, charVector.start, charVector.length, upperCase);
 			}
 		}
 
@@ -108,15 +100,10 @@ public class AStringMvField extends AStringField implements MultiValueFieldType 
 			protected void writeEachData(Object object, DataOutput output) throws IOException {
 				CharVector charVector = (CharVector) object;
 				if (size > 0) {
-					output.writeAChars(charVector.array, charVector.start, size);
-					if (charVector.length < size) {
-						for (int j = 0; j < size - charVector.length; j++) {
-							output.writeAChar(0);
-						}
-					}
+					output.writeAChars(charVector.array, charVector.start, size, upperCase);
 				} else {
 					// 가변길이.
-					output.writeAChars(charVector.array, charVector.start, charVector.length);
+					output.writeAChars(charVector.array, charVector.start, charVector.length, upperCase);
 				}
 			}
 		};

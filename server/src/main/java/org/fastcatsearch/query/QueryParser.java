@@ -66,7 +66,6 @@ public class QueryParser {
 	private String SEARCH = "se";
 	private String FILTER = "ft";
 	private String GROUP = "gr";
-	private String GROUP_CLAUSE = "gc";
 	private String GROUP_FILTER = "gf";
 	private String RANK = "ra";
 	
@@ -92,7 +91,6 @@ public class QueryParser {
 		map.put(SEARCH, i++);
 		map.put(FILTER, i++);
 		map.put(GROUP, i++);
-		map.put(GROUP_CLAUSE, i++);
 		map.put(GROUP_FILTER, i++);
 		map.put(RANK, i++);
 	}
@@ -120,18 +118,18 @@ public class QueryParser {
 			for (int i = 0; i < groups.length; i++) {
 				String[] tmp = groups[i].split(VALUE_SEPARATOR);
 				if(tmp.length < 2){
-//					logger.debug("Skip parsing = "+groups[i]);
+//					logger.debug("Skip parsing = {}", groups[i]);
 					continue;
 				}
 				String type = tmp[0];
 				String value= tmp[1];
 				Integer typeNum = map.get(type);
 				if(typeNum == null || typeNum == -1){
-					logger.debug("Unknown query component = "+type);
+					logger.debug("Unknown query component = {}", type);
 					continue;
 				}
 				
-	//			logger.debug(">>"+type +" = "+value);
+				logger.debug(">>{} = {} ({})", type, value, typeNum);
 				
 				switch(typeNum){
 				case 0: //COLLECTION_NAME
@@ -288,21 +286,15 @@ public class QueryParser {
 					query.setGroups(g);
 					break;
 				}
-				case 10://GROUP_CLAUSE
-					//&gc={price:1000:0}
-				{
-					Clause clause = (Clause)makeClause(value);
-					query.setGroupClause(clause);
-					break;
-				}
-				case 11://GROUP_FILTER
+				
+				case 10://GROUP_FILTER
 					//&gf=upd_date:section:2010-10-10:2011-01-01
 				{
 					Filters f = makeFilters(value);
 					query.setGroupFilters(f);
 					break;
 				}
-				case 12: //RANK
+				case 11: //RANK
 					//&ra=_score_,price:asc,point:desc
 				{	Sorts s = new Sorts();
 					String[] list = value.split(FIELD_SEPARATOR1);
@@ -533,10 +525,10 @@ public class QueryParser {
 		for (int k = 0; k < list.length; k++) {
 			String[] str = list[k].split(FIELD_SEPARATOR2);
 			if(str.length <= 1){
-				logger.error("Filter grammar error.");
+				logger.error("Filter grammar error. >> {}", value);
 				return f;
 			}else if(str.length <= 2){
-				logger.error("Filter pattern string is empty.");
+				logger.error("Filter pattern string is empty. >> {}", value);
 				return f;
 			}
 			String field = str[0];

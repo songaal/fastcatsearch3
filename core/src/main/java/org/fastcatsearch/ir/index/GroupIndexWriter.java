@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
+import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.IndexConfig;
@@ -30,6 +31,7 @@ import org.fastcatsearch.ir.document.merge.PrimaryKeyIndexMerger;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.field.FieldDataWriter;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.io.FixedDataOutput;
 import org.fastcatsearch.ir.io.IndexOutput;
@@ -66,8 +68,8 @@ public class GroupIndexWriter {
 	private int indexInterval;
 	private int count;
 	private boolean isMultiValue;
-
-	// private int fieldSize;
+	private boolean isIgnoreCase;
+	
 	private BytesDataOutput keyBuffer;
 
 	private int fieldSequence;
@@ -94,11 +96,12 @@ public class GroupIndexWriter {
 		indexInterval = indexConfig.getPkTermInterval();
 		int bucketSize = indexConfig.getPkBucketSize();
 
-		String fieldId = groupIndexSetting.getRef();
-		fieldSequence = fieldSequenceMap.get(fieldId);
-		FieldSetting refFieldSetting = fieldSettingMap.get(fieldId);
+		String refFieldId = groupIndexSetting.getRef();
+		fieldSequence = fieldSequenceMap.get(refFieldId);
+		FieldSetting refFieldSetting = fieldSettingMap.get(refFieldId);
 		isMultiValue = refFieldSetting.isMultiValue();
-
+		isIgnoreCase = groupIndexSetting.isIgnoreCase();
+		
 		if (refFieldSetting.isVariableField()) {
 			keyOutput = new VariableDataOutput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyFile, id), isAppend);
 		} else {
@@ -126,39 +129,38 @@ public class GroupIndexWriter {
 		Field field = document.get(fieldSequence);
 		if (field == null) {
 			if (isMultiValue) {
-				logger.debug("[{}] MV-GROUPINDEX1 {}", indexId, -1);
 				groupIndexOutput.writeLong(-1L);
 			} else {
 				groupIndexOutput.writeInt(-1);
 			}
 		} else {
+			
 			int groupNo = -1;
-			if (field.isMultiValue()) {
+			if (isMultiValue) {
 				long ptr = multiValueOutput.position();
 				FieldDataWriter writer = field.getDataWriter();
+				writer.setUpperCase(isIgnoreCase);
 				int multiValueCount = writer.count();
 
 				if (multiValueCount > 0) {
-//					logger.debug("Multivalue group write count[{}] at {}", multiValueCount, ptr);
-					logger.debug("[{}] MV-GROUPINDEX2 {}", indexId, ptr);
 					groupIndexOutput.writeLong(ptr);
 					multiValueOutput.writeVInt(multiValueCount);
 					keyBuffer.reset();
 					while (writer.write(keyBuffer)) {
-						groupNo = writeGroupKey(keyBuffer);
-//						logger.debug("Multivalue group write {} at {}", groupNo, multiValueOutput.position());
+						BytesRef bytesRef = keyBuffer.bytesRef();
+						groupNo = writeGroupKey(bytesRef);
 						multiValueOutput.writeInt(groupNo);
 						keyBuffer.reset();
 					}
 				} else {
-					logger.debug("[{}] MV-GROUPINDEX3 {}", indexId, -1);
 					groupIndexOutput.writeLong(-1);
 				}
 
 			} else {
 				keyBuffer.reset();
-				field.writeDataTo(keyBuffer);
-				groupNo = writeGroupKey(keyBuffer);
+				field.writeDataTo(keyBuffer, isIgnoreCase);
+				BytesRef bytesRef = keyBuffer.bytesRef();
+				groupNo = writeGroupKey(bytesRef);
 				groupIndexOutput.writeInt(groupNo);
 			}
 		}
@@ -169,28 +171,28 @@ public class GroupIndexWriter {
 	/*
 	 * idx : 인덱스 내부필드 순차번호
 	 */
-	private int writeGroupKey(BytesDataOutput keyBuffer) throws IOException {
+	private int writeGroupKey(BytesBuffer keyBuffer) throws IOException {
 		int groupNo = -1;
 		if (isAppend) {
 			// find key at previous append's pkmap
-			groupNo = prevPkReader.get(keyBuffer.array(), 0, (int) keyBuffer.position());
+			groupNo = prevPkReader.get(keyBuffer);
 			if (groupNo == -1) {
-				groupNo = memoryKeyIndex.get(keyBuffer.array(), 0, (int) keyBuffer.position());
+				groupNo = memoryKeyIndex.get(keyBuffer);
 			}
 		} else {
-			groupNo = memoryKeyIndex.get(keyBuffer.array(), 0, (int) keyBuffer.position());
+			groupNo = memoryKeyIndex.get(keyBuffer);
 		}
 		if (groupNo == -1) {
 			groupNo = groupNumber++;
 			// write key index
-			memoryKeyIndex.put(keyBuffer.array(), 0, (int) keyBuffer.position(), groupNo);
-			keyOutput.write(keyBuffer.array(), 0, (int) keyBuffer.position());
+			memoryKeyIndex.put(keyBuffer, groupNo);
+			keyOutput.write(keyBuffer);
 
-			String str = "";
-			for (int i = 0; i < keyBuffer.position(); i++) {
-				str += (keyBuffer.array()[i] + ",");
-			}
-			logger.debug("write group key field [{}] size[{}] >> gr[{}]", str, keyBuffer.position(), groupNo);
+//			String str = "";
+//			for (int i = 0; i < keyBuffer.position(); i++) {
+//				str += ((char)keyBuffer.array()[i] + ",");
+//			}
+//			logger.debug("write group key field [{}] size[{}] >> gr[{}]", str, keyBuffer.position(), groupNo);
 		}
 		return groupNo;
 	}

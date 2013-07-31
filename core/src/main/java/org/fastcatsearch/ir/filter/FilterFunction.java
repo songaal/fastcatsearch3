@@ -26,6 +26,7 @@ import org.fastcatsearch.ir.io.DataRef;
 import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.query.Filter;
 import org.fastcatsearch.ir.query.RankInfo;
+import org.fastcatsearch.ir.settings.FieldIndexSetting;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +52,7 @@ public abstract class FilterFunction {
 	case SUFFIX_BOOST:
 	case EXCLUDE:
 */
-	public FilterFunction(Filter filter, FieldSetting fieldSetting, boolean isBoostFunction) throws FilterException{
+	public FilterFunction(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting, boolean isBoostFunction) throws FilterException{
 		this.fieldSetting = fieldSetting;
 		this.isBoostFunction = isBoostFunction;
 		this.fieldByteSize = fieldSetting.getByteSize();
@@ -59,19 +60,30 @@ public abstract class FilterFunction {
 		patternList = new BytesRef[patternCount];
 		endPatternList = new BytesRef[patternCount];
 		boostScore = filter.boostScore();
+		boolean isIgnoreCase = fieldIndexSetting.isIgnoreCase();
+		
 		try {
 			for (int j = 0; j < patternCount; j++) {
 				//패턴의 byte 데이터를 얻기위해 필드객체를 생성한다.
 				//패턴과 필드데이터를 같은 길이의 byte[]로 만들어놓고 비교를 한다.
-				
-				Field f = fieldSetting.createPatternField(filter.pattern(j));
+				String pattern = filter.pattern(j);
+				logger.debug("Filter Pattern {} : {} isIgnoreCase={}", fieldIndexSetting.getId(), pattern, isIgnoreCase);
+				if(isIgnoreCase){
+					pattern = pattern.toUpperCase();
+				}
+				logger.debug("Filter Pattern2 {}", pattern);
+				Field f = fieldSetting.createPatternField(pattern);
 				int patternByteSize = fieldSetting.getByteSize();
 				BytesDataOutput arrayOutput = new BytesDataOutput(patternByteSize);
 				f.writeFixedDataTo(arrayOutput);
 				patternList[j] = arrayOutput.bytesRef();
 				
 				if(filter.isEndPatternExist()){
-					f = fieldSetting.createPatternField(filter.endPattern(j));
+					pattern = filter.endPattern(j);
+					if(isIgnoreCase){
+						pattern = pattern.toUpperCase();
+					}
+					f = fieldSetting.createPatternField(pattern);
 					patternByteSize = fieldSetting.getByteSize();
 					arrayOutput = new BytesDataOutput(patternByteSize);
 					f.writeFixedDataTo(arrayOutput);
@@ -87,20 +99,6 @@ public abstract class FilterFunction {
 
 	}
 	
-	//나중에 대소문자구분 필터기능을 적용시 사용한다.
-//	public boolean isTheCaseInsensitiveSame(char a, char b){
-//		//모두 소문자로 바꾸어 연산을 한다.
-//		if(a <= 'Z' && a >= 'A' ){
-//			a += 32;
-//		}
-////		
-//		if(b <= 'Z' && b >= 'A'){
-//			b += 32;
-//		}
-//		
-//		return a == b;
-//	}
-	
 	/**
 	 * 필터링에서 buffer의 데이터는 셋팅필드의 바이트길이로 계산되어 입력된다.
 	 * 즉, 길이가 10인 셋팅필드에 실제데이터가 1바이트만 들어있든 5바이트만 들어있든 받는 쪽에서는 알수없으므로(나머지는 0으로 채워져있다.), 무조건 패턴길이만큼 비교를 해봐야 한다.   
@@ -108,10 +106,6 @@ public abstract class FilterFunction {
 	 * @return true : 포함됨, false : 포함되지 않음.
 	 */
 	public abstract boolean filtering(RankInfo rankInfo, DataRef dataRef) throws IOException;
-//		return filtering(rankInfo, dataRef, false);
-//	}
-	
-//	public abstract boolean filtering(RankInfo rankInfo, DataRef dataRef, boolean skip) throws IOException;
 		
 	public int getFieldByteSize(){
 		return fieldByteSize;

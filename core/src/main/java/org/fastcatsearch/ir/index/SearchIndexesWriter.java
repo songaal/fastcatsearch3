@@ -217,7 +217,7 @@ public class SearchIndexesWriter {
 				key = new CharVector(charTermAttribute.buffer(), 0, charTermAttribute.length());
 			}
 			// 영문 토크나이저 사용시 스테밍된 결과가 소문자로 반환되어 다시한번 key를 uppercase로 변환필요.
-			key.toUpperCase();
+//			key.toUpperCase();
 			int position = -1;
 			if (positionAttribute != null) {
 				position = positionAttribute.getPositionIncrement() + positionIncrementGap;

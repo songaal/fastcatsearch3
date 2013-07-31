@@ -107,10 +107,8 @@ public class MemoryPosting {
 			BytesBuffer buf = postingArray[id].buffer();
 //			logger.debug("write memory posting {} >> {} : {}", id, new String(keyArray, pos, len), buf);
 			//데이터길이 
-			logger.debug("write data buf.length() >> {}", buf.length());
 			output.writeVInt(buf.length());
 //			logger.debug("term = {} >> {}", new String(keyArray, pos, len), buf.length());
-			logger.debug("write data before {}", output.position());
 			if(buf.length() > 0){
 				output.writeBytes(buf);
 //				logger.debug("write memory posting {} >> {} ,data={}", id, new String(keyArray, pos, len), buf.length());
@@ -120,7 +118,6 @@ public class MemoryPosting {
 				//버퍼가 비어있도록 진행하도록 수정.
 //				throw new IOException("buf is empty");
 			}
-			logger.debug("write data after {}", output.position());
 		}
 		
 		logger.debug("==================");

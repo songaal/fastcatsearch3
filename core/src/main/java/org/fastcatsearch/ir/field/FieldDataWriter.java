@@ -8,6 +8,7 @@ import org.fastcatsearch.ir.io.DataOutput;
 public abstract class FieldDataWriter {
 	protected int pos;
 	protected List<?> list;
+	protected boolean upperCase;
 	
 	public FieldDataWriter(List<?> list){
 		this.list = list;
@@ -29,5 +30,9 @@ public abstract class FieldDataWriter {
 	}
 	
 	protected abstract void writeEachData(Object object, DataOutput output) throws IOException;
+
+	public void setUpperCase(boolean isIgnoreCase) {
+		upperCase = isIgnoreCase;		
+	}
 		
 }

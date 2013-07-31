@@ -22,6 +22,7 @@ import java.util.Arrays;
 
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
+import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IndexOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -273,7 +274,9 @@ public class PrimaryKeyIndexWriter {
 		return false;
 	}
 	
-	
+	public int put(BytesBuffer buffer, int docNo) throws IOException {
+		return put(buffer.bytes, buffer.offset, buffer.length, docNo);
+	}
 	public int put(byte[] data, int offset, int dataLength, int docNo) throws IOException {
 		int hashValue = rsHash(data, offset, dataLength);
 		int prev = -1;
@@ -330,7 +333,9 @@ public class PrimaryKeyIndexWriter {
 		
 		return old;
 	}
-	
+	public int get(BytesBuffer buffer) {
+		return get(buffer.bytes, buffer.offset, buffer.length);
+	}
 	public int get(byte[] data, int offset, int dataLength) {
 		int hashValue = rsHash(data, offset, dataLength);
 		int idx = bucket[hashValue];

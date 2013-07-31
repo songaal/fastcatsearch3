@@ -60,16 +60,20 @@ public abstract class DataOutput extends OutputStream {
 	 * @see IndexInput#readByte()
 	 */
 	public abstract void writeByte(byte b) throws IOException;
-	public void writeByte(int b) throws IOException{
+
+	public void writeByte(int b) throws IOException {
 		writeByte(b);
 	}
+
 	@Override
 	public void write(int b) throws IOException {
 		writeByte((byte) b);
 	}
+
 	public void writeBytes(byte[] b) throws IOException {
 		writeBytes(b, b.length);
 	}
+
 	/**
 	 * Writes an array of bytes.
 	 * 
@@ -264,139 +268,177 @@ public abstract class DataOutput extends OutputStream {
 	public void writeBoolean(boolean b) throws IOException {
 		writeByte(b ? ONE : ZERO);
 	}
-	
+
 	public void writeAChar(int v) throws IOException {
-		if(v > 0xFF){
-			throw new IOException("Input number exceeds byte range. char="+(char)v);
+		writeAChar(v, false);
+	}
+
+	public void writeAChar(int v, boolean upperCase) throws IOException {
+		if (upperCase && v >= 97 && v <= 122) {
+			v -= 32;
 		}
 		writeByte((byte) v);
 	}
-	
-    public void writeUChar(int v) throws IOException {
+
+	public void writeUChar(int v) throws IOException {
+		writeUChar(v, false);
+	}
+
+	public void writeUChar(int v, boolean upperCase) throws IOException {
+		if (upperCase && v >= 97 && v <= 122) {
+			v -= 32;
+		}
 		writeShort((short) v);
 	}
-	
-    public void writeAString(char[] v, int start, int length) throws IOException {
+
+	public void writeAString(char[] v, int start, int length) throws IOException {
 		writeVInt(length);
-		for (int i = 0; i < length; i++) {
-			writeAChar(v[start + i]);
-		}
+		writeAChars(v, start, length);
 	}
-    
+
 	public void writeUString(char[] v, int start, int length) throws IOException {
 		writeVInt(length);
-		for (int i = 0; i < length; i++) {
-			writeUChar(v[start + i]);
-		}
+		writeUChars(v, start, length);
 	}
-	
+
 	public void writeAChars(char[] v, int start, int length) throws IOException {
-		for (int i = 0; i < length; i++) {
-			writeAChar(v[start + i]);
+		writeAChars(v, start, length, false);
+	}
+
+	public void writeAChars(char[] v, int start, int length, boolean upperCase) throws IOException {
+		if (start >= v.length) {
+			throw new IOException("start position exceeds array length. start=" + start + ", array.length=" + v.length);
+		}
+		int newLength = length;
+		if (start + length > v.length) {
+			newLength = v.length - start;
+		}
+		for (int i = 0; i < newLength; i++) {
+			writeAChar(v[start + i], upperCase);
+		}
+
+		// 나머지 0으로 기록. length와 newLength 가 동일하다면 수행되지 않음.
+		for (int i = 0; i < length - newLength; i++) {
+			writeAChar(0);
 		}
 	}
-	
+
 	public void writeUChars(char[] v, int start, int length) throws IOException {
-		for (int i = 0; i < length; i++) {
-			writeUChar(v[start + i]);
+		writeUChars(v, start, length, false);
+	}
+
+	public void writeUChars(char[] v, int start, int length, boolean upperCase) throws IOException {
+		if (start >= v.length) {
+			throw new IOException("start position exceeds array length. start=" + start + ", array.length=" + v.length);
+		}
+		int newLength = length;
+		if (start + length > v.length) {
+			newLength = v.length - start;
+		}
+		for (int i = 0; i < newLength; i++) {
+			writeUChar(v[start + i], upperCase);
+		}
+
+		// 나머지 0으로 기록. length와 newLength 가 동일하다면 수행되지 않음.
+		for (int i = 0; i < length - newLength; i++) {
+			writeUChar(0);
 		}
 	}
-	
-	
-    public void writeStringArray(String[] array) throws IOException {
-        writeVInt(array.length);
-        for (String s : array) {
-            writeString(s);
-        }
-    }
 
-    /**
-     * Writes a string array, for nullable string, writes it as 0 (empty string).
-     */
-    public void writeStringArrayNullable(String[] array) throws IOException {
-        if (array == null) {
-            writeVInt(0);
-        } else {
-            writeVInt(array.length);
-            for (String s : array) {
-                writeString(s);
-            }
-        }
-    }
+	public void writeStringArray(String[] array) throws IOException {
+		writeVInt(array.length);
+		for (String s : array) {
+			writeString(s);
+		}
+	}
 
-    public void writeMap(Map<String, Object> map) throws IOException {
-        writeGenericValue(map);
-    }
+	/**
+	 * Writes a string array, for nullable string, writes it as 0 (empty string).
+	 */
+	public void writeStringArrayNullable(String[] array) throws IOException {
+		if (array == null) {
+			writeVInt(0);
+		} else {
+			writeVInt(array.length);
+			for (String s : array) {
+				writeString(s);
+			}
+		}
+	}
 
-    public void writeGenericValue(Object value) throws IOException {
-        if (value == null) {
-            writeByte((byte) -1);
-            return;
-        }
-        Class type = value.getClass();
-        if (type == String.class) {
-            writeByte((byte) 0);
-            writeString((String) value);
-        } else if (type == Integer.class) {
-            writeByte((byte) 1);
-            writeInt((Integer) value);
-        } else if (type == Long.class) {
-            writeByte((byte) 2);
-            writeLong((Long) value);
-        } else if (type == Float.class) {
-            writeByte((byte) 3);
-            writeFloat((Float) value);
-        } else if (type == Double.class) {
-            writeByte((byte) 4);
-            writeDouble((Double) value);
-        } else if (type == Boolean.class) {
-            writeByte((byte) 5);
-            writeBoolean((Boolean) value);
-        } else if (type == byte[].class) {
-            writeByte((byte) 6);
-            writeVInt(((byte[]) value).length);
-            writeBytes(((byte[]) value));
-        } else if (value instanceof List) {
-            writeByte((byte) 7);
-            List list = (List) value;
-            writeVInt(list.size());
-            for (Object o : list) {
-                writeGenericValue(o);
-            }
-        } else if (value instanceof Object[]) {
-            writeByte((byte) 8);
-            Object[] list = (Object[]) value;
-            writeVInt(list.length);
-            for (Object o : list) {
-                writeGenericValue(o);
-            }
-        } else if (value instanceof Map) {
-            if (value instanceof LinkedHashMap) {
-                writeByte((byte) 9);
-            } else {
-                writeByte((byte) 10);
-            }
-            Map<String, Object> map = (Map<String, Object>) value;
-            writeVInt(map.size());
-            for (Map.Entry<String, Object> entry : map.entrySet()) {
-                writeString(entry.getKey());
-                writeGenericValue(entry.getValue());
-            }
-        } else if (type == Byte.class) {
-            writeByte((byte) 11);
-            writeByte((Byte) value);
-        } else if (type == Date.class) {
-            writeByte((byte) 12);
-            writeLong(((Date) value).getTime());
-        } else if (value instanceof BytesBuffer) {
-            writeByte((byte) 14);
-            writeVInt(((BytesBuffer) value).length());
-            writeBytes((BytesBuffer) value);
-        } else if (type == Short.class) {
-            writeByte((byte) 16);
-            writeShort((Short) value);
-        } else {
-            throw new IOException("Can't write type [" + type + "]");
-        }
-    }
+	public void writeMap(Map<String, Object> map) throws IOException {
+		writeGenericValue(map);
+	}
+
+	public void writeGenericValue(Object value) throws IOException {
+		if (value == null) {
+			writeByte((byte) -1);
+			return;
+		}
+		Class type = value.getClass();
+		if (type == String.class) {
+			writeByte((byte) 0);
+			writeString((String) value);
+		} else if (type == Integer.class) {
+			writeByte((byte) 1);
+			writeInt((Integer) value);
+		} else if (type == Long.class) {
+			writeByte((byte) 2);
+			writeLong((Long) value);
+		} else if (type == Float.class) {
+			writeByte((byte) 3);
+			writeFloat((Float) value);
+		} else if (type == Double.class) {
+			writeByte((byte) 4);
+			writeDouble((Double) value);
+		} else if (type == Boolean.class) {
+			writeByte((byte) 5);
+			writeBoolean((Boolean) value);
+		} else if (type == byte[].class) {
+			writeByte((byte) 6);
+			writeVInt(((byte[]) value).length);
+			writeBytes(((byte[]) value));
+		} else if (value instanceof List) {
+			writeByte((byte) 7);
+			List list = (List) value;
+			writeVInt(list.size());
+			for (Object o : list) {
+				writeGenericValue(o);
+			}
+		} else if (value instanceof Object[]) {
+			writeByte((byte) 8);
+			Object[] list = (Object[]) value;
+			writeVInt(list.length);
+			for (Object o : list) {
+				writeGenericValue(o);
+			}
+		} else if (value instanceof Map) {
+			if (value instanceof LinkedHashMap) {
+				writeByte((byte) 9);
+			} else {
+				writeByte((byte) 10);
+			}
+			Map<String, Object> map = (Map<String, Object>) value;
+			writeVInt(map.size());
+			for (Map.Entry<String, Object> entry : map.entrySet()) {
+				writeString(entry.getKey());
+				writeGenericValue(entry.getValue());
+			}
+		} else if (type == Byte.class) {
+			writeByte((byte) 11);
+			writeByte((Byte) value);
+		} else if (type == Date.class) {
+			writeByte((byte) 12);
+			writeLong(((Date) value).getTime());
+		} else if (value instanceof BytesBuffer) {
+			writeByte((byte) 14);
+			writeVInt(((BytesBuffer) value).length());
+			writeBytes((BytesBuffer) value);
+		} else if (type == Short.class) {
+			writeByte((byte) 16);
+			writeShort((Short) value);
+		} else {
+			throw new IOException("Can't write type [" + type + "]");
+		}
+	}
 }
