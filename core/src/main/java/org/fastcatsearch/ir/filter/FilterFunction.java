@@ -39,7 +39,7 @@ public abstract class FilterFunction {
 	protected BytesRef[] patternList;
 	protected BytesRef[] endPatternList;
 	protected int boostScore;
-	protected int fieldByteSize;
+//	protected int fieldByteSize;
 	protected boolean isBoostFunction;
 	
 /*	case MATCH:
@@ -55,7 +55,7 @@ public abstract class FilterFunction {
 	public FilterFunction(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting, boolean isBoostFunction) throws FilterException{
 		this.fieldSetting = fieldSetting;
 		this.isBoostFunction = isBoostFunction;
-		this.fieldByteSize = fieldSetting.getByteSize();
+//		this.fieldByteSize = fieldSetting.getByteSize();
 		patternCount = filter.patternLength();
 		patternList = new BytesRef[patternCount];
 		endPatternList = new BytesRef[patternCount];
@@ -68,6 +68,8 @@ public abstract class FilterFunction {
 				//패턴과 필드데이터를 같은 길이의 byte[]로 만들어놓고 비교를 한다.
 				String pattern = filter.pattern(j);
 				logger.debug("Filter Pattern {} : {} isIgnoreCase={}", fieldIndexSetting.getId(), pattern, isIgnoreCase);
+				
+				//ignoreCase로 색인되어있다면 패턴도 대문자로 변환한다.
 				if(isIgnoreCase){
 					pattern = pattern.toUpperCase();
 				}
@@ -107,9 +109,9 @@ public abstract class FilterFunction {
 	 */
 	public abstract boolean filtering(RankInfo rankInfo, DataRef dataRef) throws IOException;
 		
-	public int getFieldByteSize(){
-		return fieldByteSize;
-	}
+//	public int getFieldByteSize(){
+//		return fieldByteSize;
+//	}
 	
 	public BytesRef[] getPatternList(){
 		return patternList;

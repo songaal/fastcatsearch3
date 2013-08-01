@@ -176,7 +176,7 @@ public class CollectionSearcher {
 		// 각 세그먼트의 결과들을 rankdata를 기준으로 재정렬한다.
 		FixedHitQueue totalHit = new FixedHitQueue(rows);
 		int c = 1, n = 0;
-		// while(heap.size() > 0){
+
 		// 이미 각 세그먼트의 결과들은 정렬이되어서 전달이 된다.
 		// 그러므로, 여기서는 원하는 갯수가 다 차면 더이상 정렬을 수행할 필요없이 early termination이 가능하다.
 		while (hitMerger.size() > 0) {
@@ -236,11 +236,8 @@ public class CollectionSearcher {
 		Metadata meta = q.getMeta();
 		int start = meta.start();
 		int rows = meta.rows();
-		String collection = meta.collectionId();
-		// Schema schema = IRSettings.getSchema(collection, false);
 
 		Groups groups = q.getGroups();
-		// int groupSize = (groups != null) ? q.getGroups().size() : 0;
 
 		Sorts sorts = q.getSorts();
 		FixedMinHeap<FixedHitReader> hitMerger = null;
@@ -250,13 +247,10 @@ public class CollectionSearcher {
 			hitMerger = new FixedMinHeap<FixedHitReader>(collectionHandler.segmentSize());
 		}
 
-		// HitMerger hitMerger = sorts.createMerger(schemaSetting, segmentSize);
-		// FixedMinHeap<FixedHitReader> heap = new FixedMinHeap<FixedHitReader>(segmentSize);
 		GroupDataMerger dataMerger = null;
 		if (groups != null) {
 			dataMerger = new GroupDataMerger(groups, collectionHandler.segmentSize());
 		}
-		// Set<HighlightInfo> totalSummarySet = new HashSet<HighlightInfo>();
 
 		// 하이라이팅에 사용될 필드별 analyzer 들.
 		HighlightInfo highlightInfo = null;
@@ -323,10 +317,6 @@ public class CollectionSearcher {
 		result = makeSearchResult(q, collectionHandler.schema(), totalHit, totalSize, highlightInfo);
 
 		// TODO
-		// group function에서 생성된 경과를 groupResultGenerator에서 char key 로 변경하기 때문에 type이 필요하게 되었다.
-		// group function에서 즉시 char key로 생성하면 안될까? 정렬도 하고. 전부다. 그게 맞는거 같은데...
-		// function에 sort, limit등의 옵션도 다 들어있으니 거기서 최종결과가 나와야한다. 아니면 최종 key값이라도 통일되어야..
-		// 분산에서는 raw 리스트를 넘기므로 일단 스킵.
 		// 제일 큰 문제는 정렬과 키값생성이 groupResultGenerator에서 수행되면 function plugin이 제 기능을 다하지 못한다....특히 datetime에 대해서...
 		// 그리고 plugin에서 int 키 값을 String으로 바꾸었는데, groupResultGenerator에서는 int형으로 인식하므로 null 에러가 발생가능성도 있다.
 		// 즉, group function에서 최종 키값을 생성필요.
@@ -390,20 +380,9 @@ public class CollectionSearcher {
 			eachDocList[idx] = doc;
 
 			idx++;
-			// tags[idx++] = segmentNumber;
-			// // logger.debug(segmentNumber+" / docNo:" + docNo);
-			// eachDocIds[segmentNumber][cnt[segmentNumber]] = docNo;
-			// eachDocScores[segmentNumber][cnt[segmentNumber]] = score;
-			// cnt[segmentNumber]++;
-
 		}
 
-		// each segment's read position
-		// int[] pos = new int[segmentSize];
 		Row[] row = new Row[realSize];
-
-		// logger.debug("=================");
-		// logger.debug("realSize = "+realSize);
 
 		List<View> views = q.getViews();
 		Iterator<View> iter = views.iterator();

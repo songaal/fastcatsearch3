@@ -52,4 +52,8 @@ public class FloatGroupingValue extends GroupingValue<Float> {
 		return list;
 	}
 
+	@Override
+	public boolean isEmpty() {
+		return value == null || (Float) value == 0.0f;
+	}
 }

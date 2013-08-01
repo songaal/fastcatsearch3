@@ -16,8 +16,6 @@
 
 package org.fastcatsearch.ir.settings;
 
-import java.util.StringTokenizer;
-
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
@@ -44,13 +42,14 @@ import org.slf4j.LoggerFactory;
 
 @XmlRootElement(name = "field")
 // propOrder는 xml writer의 기록순서인데, attribute의 경우 next attribute를 현재 attribute의 앞에 기록하므로 proporder를 거꾸로 정의해야 올바른 순서로 보여진다.
-@XmlType(propOrder = { "multiValueDelimiter", "multiValue", "modify", "removeTag", "store", "size", "name", "type", "id" })
+@XmlType(propOrder = { "multiValueDelimiter", "multiValue", "modify", "removeTag", "store", "size", "name", "source", "type", "id" })
 public class FieldSetting {
 	protected static Logger logger = LoggerFactory.getLogger(FieldSetting.class);
 	private String id;
 	private String name;
 	private Type type;
 	private int size;
+	private String source;
 	private boolean store = true;
 	private boolean removeTag;
 	private boolean modify;
@@ -73,7 +72,7 @@ public class FieldSetting {
 
 	@Override
 	public String toString() {
-		return "[FieldSetting]" + id + ", type=" + type + ", size=" + size + ", mv=" + multiValue;
+		return "[FieldSetting]" + id + ", type=" + type + ", source=" + source + ", size=" + size + ", mv=" + multiValue;
 	}
 
 	@XmlAttribute(required = true)
@@ -103,6 +102,16 @@ public class FieldSetting {
 		this.type = type;
 	}
 
+	@XmlAttribute
+	@XmlJavaTypeAdapter(OptionalStringAdapter.class)
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
+	}
+	
 	@XmlAttribute
 	@XmlJavaTypeAdapter(OptionalIntPositiveAdapter.class)
 	public Integer getSize() {

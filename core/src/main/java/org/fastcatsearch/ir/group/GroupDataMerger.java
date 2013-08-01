@@ -31,9 +31,10 @@ public class GroupDataMerger {
 	private GroupFunction[][] groupFunctionList;
 	private int totalSearchCount;
 	private GroupEntry prevEntry;
-
+	private int groupSize;
+	
 	public GroupDataMerger(Groups groups, int segmentSize) {
-		int groupSize = groups.size();
+		groupSize = groups.size();
 		heapList = new FixedMinHeap[groupSize];
 		groupFunctionList = new GroupFunction[groupSize][];
 		for (int i = 0; i < groupSize; i++) {
@@ -67,7 +68,7 @@ public class GroupDataMerger {
 	public GroupsData merge() {
 
 		List<GroupEntryList> list = new ArrayList<GroupEntryList>(heapList.length);
-		for (int groupNum = 0; groupNum < heapList.length; groupNum++) {
+		for (int groupNum = 0; groupNum < groupSize; groupNum++) {
 			prevEntry = null; //초기화.
 			GroupEntryList groupEntryList = new GroupEntryList();
 			// loop until heapList has no readers

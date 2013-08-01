@@ -46,14 +46,7 @@ public class FieldIndexReader extends ReferencableIndexReader {
 		int indexDataSize = fieldIndexSetting.getSize();
 		int dataSize = refFieldSetting.getByteSize(indexDataSize);
 		if(dataSize <= 0){
-//			//field셋팅의 길이가 가변이라면.
-//			if(fieldIndexSetting.getSize() > 0){
-//				int byteSize = data * 2;
-//				dataSize = fieldIndexSetting.getSize();
-//			}else{
-//				//error 
-				throw new IRException("필드색인은 고정길이필드이거나 field index size를 정해야 합니다.");
-//			}
+			throw new IRException("필드색인은 고정길이필드이거나 field index size를 정해야 합니다.");
 		}
 			
 		init(id, refFieldSetting, dataFile, multiValueFile, dataSize);

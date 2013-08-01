@@ -43,6 +43,7 @@ import org.fastcatsearch.ir.search.GroupIndexesReader;
 import org.fastcatsearch.ir.search.IndexRef;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.FieldSetting.Type;
+import org.fastcatsearch.ir.settings.GroupIndexSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,8 +70,6 @@ public class GroupDataGenerator {
 		
 		this.groupSize = groupList.size();
 		
-//		this.indexSequence = new int[groupSize];
-//		groupFieldIdList = new String[groupSize];
 		fieldSettingList = new FieldSetting[groupSize];
 		groupFunctionList = new GroupFunction[groupSize][];
 		fieldIndexRefList = new IndexRef[groupSize];
@@ -81,7 +80,7 @@ public class GroupDataGenerator {
 		List<String> fieldIdList = new ArrayList<String>(groupSize);
 		for (int i = 0; i < groupSize; i++) {
 			Group group = groupList.get(i);
-			String fieldId = group.fieldId();
+			String fieldId = group.groupIndexId();
 			fieldIdList.add(fieldId);
 			logger.debug(">> group field name >> {}", fieldId);
 		}
@@ -91,8 +90,8 @@ public class GroupDataGenerator {
 		
 		for (int i = 0; i < groupSize; i++) {
 			Group group = groupList.get(i);
-			String fieldId = group.fieldId();
-			int idx = schema.getGroupIndexSequence(fieldId);
+			String groupIndexId = group.groupIndexId();
+			int idx = schema.getGroupIndexSequence(groupIndexId);
 			
 			if(idx < 0){
 				continue;
@@ -101,13 +100,11 @@ public class GroupDataGenerator {
 			GroupIndexReader groupIndexReader = indexRef.getReader(i);
 			int groupKeySize = groupIndexReader.getGroupKeySize();
 			groupKeySizeList[i] = groupKeySize;
-			logger.debug("group#{} [{}] groupKeySize[{}]", i, fieldId, groupKeySize);
+			logger.debug("group#{} [{}] groupKeySize[{}]", i, groupIndexId, groupKeySize);
 			
-//			groupFieldIdList[i] = fieldId;
-			fieldSettingList[i] = schema.fieldSettingMap().get(fieldId);
-			
-			//각 필드의 필드번호를 차례로 저장한다.
-//			indexSequence[i] = idx;
+			GroupIndexSetting groupIndexSetting = schema.getGroupIndexSetting(groupIndexId);
+			String refId = groupIndexSetting.getRef();
+			fieldSettingList[i] = schema.fieldSettingMap().get(refId);
 			
 			groupFunctionList[i] = group.function();
 			int functionSize = groupFunctionList[i].length;
@@ -272,7 +269,8 @@ public class GroupDataGenerator {
 						continue;
 					}
 					GroupingValue groupingValue = groupFunction.value(groupNo);
-					if(groupingValue != null){
+					//null이거나 비어있지 않으면 추가.
+					if(groupingValue != null && !groupingValue.isEmpty()){
 						valueList[j++] = groupingValue; 
 						hasValue = true;
 					}

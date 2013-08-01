@@ -44,29 +44,19 @@ public class Filter {
 	private int boostScore;
 	
 	public Filter(String fieldIndexId, int function, String pattern){
-		this.fieldIndexId = fieldIndexId;
-		this.function = function;
-		//2012-04-19 송상욱
-		//필터데이터는 대소문자가 구분되어 저장되어 있으므로, pattern도 강제 대소문자 변환을 하지 않는다.
-		//case-insensitive 필터링을 하고 싶으면 filtering메소드 내에서 수행한다.
-		
-		//2012-10-22 swsong
-		//필터데이터는 영문자가 대문자로 변환되어 색인되는 형태로 바뀜. searchFieldWriter에서 Document 필드데이터를 변경.
-		//그러므로 여기서도 모두 대문자로 변환한다.
-//		this.patternList = new String[]{pattern};
-		this.patternList = new String[]{pattern.toUpperCase()};
+		this(fieldIndexId, function, pattern, null, 0);
 	}
 	public Filter(String fieldIndexId, int function, String pattern, String endPattern){
-		this(fieldIndexId, function, pattern);
-//		this.endPatternList = new String[]{endPattern};
-		this.endPatternList = new String[]{endPattern.toUpperCase()};
+		this(fieldIndexId, function, pattern, endPattern, 0);
 	}
 	public Filter(String fieldIndexId, int function, String pattern, int boostScore){
-		this(fieldIndexId, function, pattern);
-		this.boostScore = boostScore;
+		this(fieldIndexId, function, pattern, null, boostScore);
 	}
 	public Filter(String fieldIndexId, int function, String pattern, String endPattern, int boostScore){
-		this(fieldIndexId, function, pattern, endPattern);
+		this.fieldIndexId = fieldIndexId;
+		this.function = function;
+		this.patternList = new String[]{pattern};
+		this.endPatternList = new String[]{endPattern};
 		this.boostScore = boostScore;
 	}
 	

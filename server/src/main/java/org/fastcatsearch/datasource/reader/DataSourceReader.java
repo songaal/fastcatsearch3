@@ -126,9 +126,14 @@ public class DataSourceReader {
 				FieldSetting fs = fieldSettingList.get(i);
 				
 				String key = fs.getId();
+				String source = fs.getSource();
+				if(source != null && source.length() > 0){
+					//source가 있다면 source에서 데이터를 가져온다.
+					key = source;
+				}
 				Object data = map.get(key);
 				String multiValueDelimiter = fs.getMultiValueDelimiter();
-				// logger.debug("read data="+data+", readCount="+readCount+", i="+i);
+				
 				Field f = fs.createIndexableField(data, multiValueDelimiter);
 				document.set(i, f);
 				logger.debug("doc [{}]{}:{}", i, fs.getId(), f);

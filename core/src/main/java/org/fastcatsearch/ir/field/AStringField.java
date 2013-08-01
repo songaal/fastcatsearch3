@@ -23,6 +23,19 @@ public class AStringField extends StringField {
 		super(id, data, size);
 	}
 	
+	
+	@Override
+	public void writeRawTo(DataOutput output) throws IOException {
+		
+		if(size > 0 && rawString.length() > size){
+			String modifiedString = rawString.substring(0,  size);
+			output.writeAString(modifiedString.toCharArray(), 0, modifiedString.length());
+		}else{
+			super.writeRawTo(output);
+		}
+	}
+	
+	
 	@Override
 	public void readFrom(DataInput input) throws IOException {
 		char[] chars = input.readAString();
@@ -34,7 +47,7 @@ public class AStringField extends StringField {
 		CharVector charVector = ((CharVector) fieldsData);
 		if(size > 0){
 			output.writeVInt(size);
-			writeFixedDataTo(output, 0);
+			writeFixedDataTo(output, 0, false);
 		}else{
 			output.writeAString(charVector.array, charVector.start, charVector.length);
 		}

@@ -24,6 +24,7 @@ import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.io.FixedHitReader;
 import org.fastcatsearch.ir.io.FixedMinHeap;
 import org.fastcatsearch.ir.query.Sort;
+import org.fastcatsearch.ir.settings.FieldIndexSetting;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.sort.SortFunction;
@@ -51,19 +52,22 @@ public class HitMerger extends FixedMinHeap<FixedHitReader> {
 		
 		for (int i = 0; i < size; i++) {
 			Sort sort = querySortList.get(i);
-			String fieldId = sort.fieldId();
-			int idx = schema.getFieldSequence(fieldId);
+			String fieldIndexId = sort.fieldIndexId();
+			int idx = schema.getFieldIndexSequence(fieldIndexId);
+			
 			////////_hit_ , _score_ 필드의 경우 처리해준다.
 			if(idx == -1){
-				if(fieldId.equalsIgnoreCase(ScoreField.fieldName)){
+				if(fieldIndexId.equalsIgnoreCase(ScoreField.fieldName)){
 					sortFunctions[i] = sort.createSortFunction(ScoreField.field);
-				}else if(fieldId.equalsIgnoreCase(HitField.fieldName)){
+				}else if(fieldIndexId.equalsIgnoreCase(HitField.fieldName)){
 					sortFunctions[i] = sort.createSortFunction(HitField.field);
 				}else{
-					throw new IOException("Unknown sort field name = "+fieldId);
+					throw new IOException("Unknown sort field name = "+fieldIndexId);
 				}
 			}else{
-				FieldSetting fieldSetting = schema.getFieldSetting(fieldId);
+				FieldIndexSetting fieldIndexSetting = schema.getFieldIndexSetting(fieldIndexId);
+				String refId = fieldIndexSetting.getRef();
+				FieldSetting fieldSetting = schema.getFieldSetting(refId);
 				sortFunctions[i] = sort.createSortFunction(fieldSetting);
 			}
 			

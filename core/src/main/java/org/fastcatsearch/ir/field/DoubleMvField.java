@@ -35,7 +35,7 @@ public class DoubleMvField extends DoubleField implements MultiValueFieldType {
 		List<Object> list = (List<Object>) fieldsData;
 		int multiValueCount = list.size();
 		output.writeVInt(multiValueCount);
-		writeFixedDataTo(output, 0);
+		writeFixedDataTo(output, 0, false);
 	}
 
 	@Override

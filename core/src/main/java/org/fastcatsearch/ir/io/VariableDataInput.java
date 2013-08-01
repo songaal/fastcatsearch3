@@ -39,7 +39,7 @@ public class VariableDataInput implements SequencialDataInput {
 		for (int i = 0; i < size; i++) {
 			str += (bytesRef.bytes[i] +",");
 		}
-		logger.debug("read variable data [{}] seq[{}]", str, sequence);
+//		logger.debug("read variable data [{}] seq[{}]", str, sequence);
 		
 		bytesRef.offset = 0;
 		bytesRef.length = size;

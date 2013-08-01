@@ -42,6 +42,12 @@ public class GroupEntry {
 		this.groupingValue = groupingValue;
 	}
 
+	public int size(){
+		if(groupingValue == null){
+			return 0;
+		}
+		return groupingValue.length;
+	}
 	public GroupingValue[] groupingValues(){
 		return groupingValue;
 	}

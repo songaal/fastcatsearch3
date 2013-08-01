@@ -59,7 +59,7 @@ public class SortGenerator {
 		List<String> fieldIdList = new ArrayList<String>(sortSize);
 		for (int i = 0; i < sortSize; i++) {
 			Sort sort = querySortList.get(i);
-			String fieldId = sort.fieldId();
+			String fieldId = sort.fieldIndexId();
 			fieldIdList.add(fieldId);
 			int idx = schema.getFieldIndexSequence(fieldId);
 			

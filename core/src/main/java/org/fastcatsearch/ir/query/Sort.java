@@ -24,23 +24,23 @@ import org.fastcatsearch.ir.sort.NumericDescSortFunction;
 import org.fastcatsearch.ir.sort.SortFunction;
 
 public class Sort {
-	private String fieldId;
+	private String fieldIndexId;
 	boolean asc;
 	
-	public Sort(String fieldId){
-		this(fieldId, true);
+	public Sort(String fieldIndexId){
+		this(fieldIndexId, true);
 	}
-	public Sort(String fieldId, boolean asc){
-		this.fieldId = fieldId;
+	public Sort(String fieldIndexId, boolean asc){
+		this.fieldIndexId = fieldIndexId;
 		this.asc = asc;
 	}
 	
 	public String toString(){
-		return "[SORT]"+fieldId+":"+asc;
+		return "[SORT]"+fieldIndexId+":"+asc;
 	}
 	
-	public String fieldId(){
-		return fieldId;
+	public String fieldIndexId(){
+		return fieldIndexId;
 	}
 	public boolean asc(){
 		return asc;

@@ -38,6 +38,8 @@ public abstract class GroupingValue<T> implements Comparable<GroupingValue<T>> {
 		return value;
 	}
 	
+	public abstract boolean isEmpty();
+	
 	public abstract void add(T obj);
 	
 	public abstract void setIfMax(T obj);

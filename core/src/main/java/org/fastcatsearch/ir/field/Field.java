@@ -59,7 +59,7 @@ public abstract class Field implements Cloneable {
 				}
 				StringTokenizer tokenizer = new StringTokenizer(rawString.trim(), multiValueDelimiter);
 				while (tokenizer.hasMoreElements()) {
-					addValue(tokenizer.nextToken());
+					addValue(tokenizer.nextToken().trim());
 				}
 			} else {
 				fieldsData = parseData(rawString);

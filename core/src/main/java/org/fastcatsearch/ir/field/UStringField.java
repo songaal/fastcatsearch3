@@ -30,7 +30,13 @@ public class UStringField extends StringField {
 
 	@Override
 	public void writeRawTo(DataOutput output) throws IOException {
-		output.writeUString(rawString.toCharArray(), 0, rawString.length());
+		
+		if(size > 0 && rawString.length() > size){
+			String modifiedString = rawString.substring(0,  size);
+			output.writeUString(modifiedString.toCharArray(), 0, modifiedString.length());
+		}else{
+			output.writeUString(rawString.toCharArray(), 0, rawString.length());
+		}
 	}
 	
 	@Override

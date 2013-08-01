@@ -1,8 +1,10 @@
 package org.fastcatsearch.ir.field;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.fastcatsearch.ir.io.CharVector;
+import org.fastcatsearch.ir.io.DataOutput;
 
 public abstract class StringField extends Field {
 
@@ -30,7 +32,9 @@ public abstract class StringField extends Field {
 
 		if (size > 0) {
 			if (data.length() > size) {
+				logger.debug("Parse data1 {} >> {}", id, data);
 				data = data.substring(0, size);
+				logger.debug("Parse data2 {} >> {}, {}", id, size, data);
 			}
 		}
 		return new CharVector(data);
@@ -59,18 +63,4 @@ public abstract class StringField extends Field {
 		}
 	}
 
-//	@Override
-//	public void toUpperCase() {
-//		if (fieldsData != null) {
-//			if (multiValue) {
-//				for (CharVector charVector : (List<CharVector>) fieldsData) {
-//					if (charVector != null) {
-//						charVector.toUpperCase();
-//					}
-//				}
-//			} else {
-//				((CharVector) fieldsData).toUpperCase();
-//			}
-//		}
-//	}
 }

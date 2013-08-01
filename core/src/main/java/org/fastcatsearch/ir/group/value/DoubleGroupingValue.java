@@ -50,4 +50,9 @@ public class DoubleGroupingValue extends GroupingValue<Double> {
 		return list;
 	}
 
+	@Override
+	public boolean isEmpty() {
+		return value == null || (Double) value == 0.0;
+	}
+
 }

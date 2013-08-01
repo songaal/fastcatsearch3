@@ -48,5 +48,10 @@ public class IntGroupingValue extends GroupingValue<Integer> {
 		}
 		return list;
 	}
+	
+	@Override
+	public boolean isEmpty() {
+		return value == null || (Integer) value == 0;
+	}
 
 }

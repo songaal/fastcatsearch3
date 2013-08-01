@@ -111,7 +111,12 @@ public class Schema {
 		return analyzerPoolManager.getPool(analyzerId);
 	}
 	public int getFieldSequence(String fieldId){
-		return fieldSequenceMap.get(fieldId);
+		Integer i =  fieldSequenceMap.get(fieldId);
+		if(i == null){
+			return -1;
+		}else{
+			return i;
+		}
 	}
 	
 	public SchemaSetting schemaSetting(){
