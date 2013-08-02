@@ -38,7 +38,8 @@ public class LexiconChecker {
 	
 	public LexiconChecker(File dir, int revision) throws IOException{
 		System.out.println("Check dir = "+dir.getAbsolutePath());
-		indexInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.indexFile);
+		String id = "";
+		indexInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.getSearchIndexFileName(id));
 	}
 	
 	public void close() throws IOException{

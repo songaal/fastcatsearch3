@@ -129,7 +129,7 @@ public class PrimaryKeyIndexWriter {
 				len = keyPos[id+1] - pos;
 			
 			//write pkmap index
-			if(i % indexInterval == 0){
+			if(indexInterval > 0 && i % indexInterval == 0){
 				indexOutput.writeVInt(len);
 				indexOutput.writeBytes(array, pos, len);
 				indexOutput.writeLong(output.position());

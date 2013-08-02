@@ -59,9 +59,9 @@ public class TempSearchFieldMerger {
 			return;
 		}
 		
-		IndexOutput postingOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(baseDir, 0), IndexFileNames.getSuffixFileName(IndexFileNames.postingFile, indexId));
-		IndexOutput lexiconOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(baseDir, 0), IndexFileNames.getSuffixFileName(IndexFileNames.lexiconFile, indexId));
-		IndexOutput indexOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(baseDir, 0), IndexFileNames.getSuffixFileName(IndexFileNames.indexFile, indexId));
+		IndexOutput postingOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(baseDir, 0), IndexFileNames.getSearchPostingFileName(indexId));
+		IndexOutput lexiconOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(baseDir, 0), IndexFileNames.getSearchLexiconFileName(indexId));
+		IndexOutput indexOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(baseDir, 0), IndexFileNames.getSearchIndexFileName(indexId));
 	    BytesDataOutput tempPostingOutput = new BytesDataOutput(1024 * 1024);
 		CharVector cv = null;
 		CharVector cvOld = null;

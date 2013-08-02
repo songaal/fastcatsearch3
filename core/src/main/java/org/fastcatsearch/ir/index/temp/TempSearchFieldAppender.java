@@ -60,13 +60,13 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 
 	public boolean mergeAndAppendIndex(File segmentDir1, File targetDir, int indexInterval, IndexFieldOption fieldIndexOption) throws IOException,
 			IRException {
-		IndexInput lexiconInput1 = new BufferedFileInput(segmentDir1, IndexFileNames.getSuffixFileName(IndexFileNames.lexiconFile, indexId));
-		IndexOutput lexiconOutput = new BufferedFileOutput(targetDir, IndexFileNames.getSuffixFileName(IndexFileNames.lexiconFile, indexId));
+		IndexInput lexiconInput1 = new BufferedFileInput(segmentDir1, IndexFileNames.getSearchLexiconFileName(indexId));
+		IndexOutput lexiconOutput = new BufferedFileOutput(targetDir, IndexFileNames.getSearchLexiconFileName(indexId));
 
-		IndexOutput indexOutput = new BufferedFileOutput(targetDir, IndexFileNames.getSuffixFileName(IndexFileNames.indexFile, indexId));
+		IndexOutput indexOutput = new BufferedFileOutput(targetDir, IndexFileNames.getSearchIndexFileName(indexId));
 
-		IndexInput postingInput1 = new BufferedFileInput(segmentDir1, IndexFileNames.getSuffixFileName(IndexFileNames.postingFile, indexId));
-		IndexOutput postingOutput = new BufferedFileOutput(targetDir, IndexFileNames.getSuffixFileName(IndexFileNames.postingFile, indexId));
+		IndexInput postingInput1 = new BufferedFileInput(segmentDir1, IndexFileNames.getSearchPostingFileName(indexId));
+		IndexOutput postingOutput = new BufferedFileOutput(targetDir, IndexFileNames.getSearchPostingFileName(indexId));
 
 		// 같은 텀이 있을때에 posting 문서번호를 다 읽어서 머징한다.
 		// 같은 텀이 없다면 포스팅데이터를 뚝 떼어서 새로운 포스팅에 붙이면 된다.

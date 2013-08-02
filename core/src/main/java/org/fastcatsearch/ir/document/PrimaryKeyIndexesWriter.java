@@ -48,7 +48,6 @@ public class PrimaryKeyIndexesWriter {
 	private BytesDataOutput pkbaos;
 	private BitSet deleteSet;
 	private PrimaryKeyIndexWriter indexWriter;
-	private int indexInterval;
 	private int updateDocCount;
 	private PrimaryKeySetting primaryKeySetting;
 	private int[] primaryKeyFieldIdList;
@@ -88,10 +87,10 @@ public class PrimaryKeyIndexesWriter {
 		// 증분수집일 경우, pk를 나중에 쉽게 읽을 수 있도록 임시벌크파일 형태로 기록한다.
 		//
 		if (isAppend) {
-			indexWriter = new PrimaryKeyIndexWriter(revisionDir, IndexFileNames.getTempFileName(IndexFileNames.primaryKeyMap), indexInterval, indexConfig.getPkBucketSize());
+			indexWriter = new PrimaryKeyIndexWriter(revisionDir, IndexFileNames.getTempFileName(IndexFileNames.primaryKeyMap), indexConfig.getPkTermInterval(), indexConfig.getPkBucketSize());
 		} else {
 			// 전체색인의 경우는 이후에 다시 작업할 일이 없으므로, 완전한 pk map파일로 기록한다.
-			indexWriter = new PrimaryKeyIndexWriter(revisionDir, IndexFileNames.primaryKeyMap, indexInterval, indexConfig.getPkBucketSize());
+			indexWriter = new PrimaryKeyIndexWriter(revisionDir, IndexFileNames.primaryKeyMap, indexConfig.getPkTermInterval(), indexConfig.getPkBucketSize());
 		}
 
 		pkbaos = new BytesDataOutput(1024); //초기 1kb로 시작.

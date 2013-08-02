@@ -20,11 +20,10 @@ import java.io.File;
 
 public class IndexFileNames {
 	
-	public static final String docStored = "doc.stored";
-	public static final String docPosition = "doc.position";
+	public static final String docStored = "document.stored";
+	public static final String docPosition = "document.position";
 	public static final String docDeleteSet = "delete.set"; //deleted docs in segment
-	public static final String primaryKeyMap = "pk.map";
-	public static final String primaryKeyMapIndex = "pk.map.index";
+	public static final String primaryKeyMap = "primarykey.map";
 	
 	public static final String postingFile = "posting";
 	public static final String lexiconFile = "lexicon";
@@ -36,11 +35,19 @@ public class IndexFileNames {
 	public static final String groupIndexFile = "group.index";
 	public static final String groupKeyFile = "group.key"; //그룹순차번호별 key string저장.
 	public static final String groupKeyMap = "group.pk"; //증분색인시 이전 리비전과의 머징을 위해 필요한 pk파일. group writer에서만 사용된다.
-//	public static final String groupKeyMapIndex = "group.pk.index"; //그룹 pk의 index파일이나 단순 생성만 하고 사용은 안함. 
-	public static final String groupInfoFile = "group.info";
 	
 	public static String getTempFileName(String name){
 		return name + "." + tempFile;
+	}
+	
+	public static String getSearchPostingFileName(String name){
+		return "search." + name + "." + postingFile;
+	}
+	public static String getSearchLexiconFileName(String name){
+		return "search." + name + "." + lexiconFile;
+	}
+	public static String getSearchIndexFileName(String name){
+		return "search." + name + "." + indexFile;
 	}
 	
 	public static String getSuffixFileName(String name, String suffix){

@@ -22,6 +22,7 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
+import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
@@ -40,41 +41,42 @@ public class SegmentWriter {
 	private int count;
 	private boolean requestStop;
 	private long startTime;
-	
-	private int baseDocNo;
+
+	private SegmentInfo segmentInfo;
 	private DocumentWriter documentWriter;
 	private PrimaryKeyIndexesWriter primaryKeyIndexesWriter;
 	private SearchIndexesWriter searchIndexesWriter;
 	private FieldIndexesWriter fieldIndexesWriter;
 	private GroupIndexesWriter groupIndexesWriter;
-	
+
 	private String segmentId;
 	private File targetDir;
-	private final int REVISION = 0;
-
-
+	private int revision;
 	// usually this constructor is used, except for certain segment rebuild
 	// for Full indexing
 	public SegmentWriter(Schema schema, File targetDir, IndexConfig indexConfig) throws IRException {
-		this(schema, targetDir, 0, 0, indexConfig);
+		this(schema, targetDir, 0, indexConfig);
 	}
 
 	// for Add indexing
-	public SegmentWriter(Schema schema, File targetDir, int baseDocNo, int revision, IndexConfig indexConfig) throws IRException {
-		init(schema, targetDir, baseDocNo, revision, indexConfig);
+	public SegmentWriter(Schema schema, File targetDir, int revision, IndexConfig indexConfig) throws IRException {
+		init(schema, targetDir, revision, indexConfig);
 	}
 
-	public void init(Schema schema, File targetDir, int baseDocNo, int revision, IndexConfig indexConfig) throws IRException {
+	public void init(Schema schema, File targetDir, int revision, IndexConfig indexConfig) throws IRException {
 		try {
 			this.segmentId = targetDir.getName();
 			this.targetDir = targetDir;
-			this.baseDocNo = baseDocNo;
+			this.revision = revision;
+			
 			// make a default 0 revision directory
-			IndexFileNames.getRevisionDir(targetDir, REVISION).mkdirs();
+			IndexFileNames.getRevisionDir(targetDir, revision).mkdirs();
 			boolean isAppend = false;
 			if (revision > 0) {
 				isAppend = true;
 			}
+
+//			segmentInfo = new SegmentInfo(segmentId, baseDocNo);
 
 			documentWriter = new DocumentWriter(schema, targetDir, revision, indexConfig);
 			primaryKeyIndexesWriter = new PrimaryKeyIndexesWriter(schema, targetDir, revision, indexConfig);
@@ -104,7 +106,7 @@ public class SegmentWriter {
 		searchIndexesWriter.write(document);
 		fieldIndexesWriter.write(document);
 		groupIndexesWriter.write(document);
-		
+
 		lastDocNo = docNo;
 		count++;
 		return docNo;
@@ -160,19 +162,19 @@ public class SegmentWriter {
 		}
 	}
 
-	public SegmentInfo close() throws IOException, IRException {
+	public RevisionInfo close() throws IOException, IRException {
 		try {
 			closeWriter();
-			SegmentInfo segmentInfo = new SegmentInfo(segmentId, baseDocNo);
-			segmentInfo.update(REVISION, lastDocNo, primaryKeyIndexesWriter.getUpdateDocCount(), 0, Formatter.formatDate());
+			//lastDocNo + 1? 
+			RevisionInfo revisionInfo = new RevisionInfo(revision, lastDocNo, primaryKeyIndexesWriter.getUpdateDocCount(), 0, Formatter.formatDate());
 			logger.info(
-					"Total {} documents indexed, elapsed = {}, mem = {}",
-					new Object[] { lastDocNo, Formatter.getFormatTime(System.currentTimeMillis() - startTime),
+					"Segment [{}] Total {} documents indexed, elapsed = {}, mem = {}",
+					new Object[] { segmentId, lastDocNo, Formatter.getFormatTime(System.currentTimeMillis() - startTime),
 							Formatter.getFormatSize(Runtime.getRuntime().totalMemory()) });
 
-			return segmentInfo;
+			return revisionInfo;
 		} catch (Exception e) {
-			File revisionDir = IndexFileNames.getRevisionDir(targetDir, REVISION);
+			File revisionDir = IndexFileNames.getRevisionDir(targetDir, revision);
 			FileUtils.deleteDirectory(revisionDir);
 			throw new IRException(e);
 		}

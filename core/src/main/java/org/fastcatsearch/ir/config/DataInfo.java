@@ -149,25 +149,27 @@ public class DataInfo {
 			this.baseNumber = baseNumber;
 		}
 		
+		public SegmentInfo copy(){
+			SegmentInfo segmentInfo = new SegmentInfo();
+			segmentInfo.id = id;
+			segmentInfo.baseNumber = baseNumber;
+			segmentInfo.baseNumber = baseNumber;
+			segmentInfo.revisionInfo = revisionInfo;
+			return segmentInfo;
+		}
 		public String toString(){
 			return "[SegmentInfo] id["+id+"] base["+baseNumber+"] revision["+revision+"] revisionInfo["+revisionInfo+"]";
 		}
 		
-		public void update(int revision, int documents, int updates, int deletes, String createTime){
-			this.revision = revision;
-			if(revisionInfo == null){
-				revisionInfo = new RevisionInfo();
-			}
-			revisionInfo.documentCount = documents;
-			revisionInfo.updateCount = updates;
-			revisionInfo.deleteCount = deletes;
-			revisionInfo.createTime = createTime;
-		}
+//		public void updateRevision(int revision, int documents, int updates, int deletes, String createTime){
+//			updateRevision(new RevisionInfo(revision, documents, updates, deletes, createTime));
+//		}
 		
 		//id와 baseNumber는 변경되지 않는다.
 		//TODO 상위 data info 의 문서수도 변경되야 한다.
-		public void update(SegmentInfo segmentInfo){
-			update(segmentInfo.revision, segmentInfo.revisionInfo.documentCount, segmentInfo.revisionInfo.updateCount, segmentInfo.revisionInfo.deleteCount, segmentInfo.revisionInfo.createTime);
+		public void updateRevision(RevisionInfo revisionInfo){
+			this.revision = revisionInfo.revision;
+			this.revisionInfo = revisionInfo;
 		}
 		
 		@XmlAttribute
@@ -225,13 +227,33 @@ public class DataInfo {
 	@XmlRootElement(name = "revision")
 	public static class RevisionInfo {
 		
+		private int revision;
 		private int documentCount;
 		private int updateCount;
 		private int deleteCount;
 		private String createTime;
 		
+		public RevisionInfo(){
+		}
+		
+		public RevisionInfo(int revision, int documentCount, int updateCount, int deleteCount, String createTime){
+			this.revision = revision;
+			this.documentCount = documentCount;
+			this.updateCount = updateCount;
+			this.deleteCount = deleteCount;
+			this.createTime = createTime;
+		}
 		public String toString(){
-			return "[RevisionInfo] documents["+documentCount+"] updateCount["+updateCount+"] deletes["+deleteCount+"] createTime["+createTime+"]";
+			return "[RevisionInfo] revision["+revision+"] documents["+documentCount+"] updateCount["+updateCount+"] deletes["+deleteCount+"] createTime["+createTime+"]";
+		}
+		
+		@XmlAttribute(name="revision")
+		public int getRevision() {
+			return revision;
+		}
+
+		public void setRevision(int revision) {
+			this.revision = revision;
 		}
 		
 		@XmlAttribute(name="documents")

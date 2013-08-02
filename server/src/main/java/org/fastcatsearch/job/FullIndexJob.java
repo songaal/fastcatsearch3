@@ -25,6 +25,7 @@ import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo;
+import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.DataPlanConfig;
 import org.fastcatsearch.ir.config.DataSourceConfig;
@@ -117,11 +118,11 @@ public class FullIndexJob extends IndexingJob {
 			/*
 			 * 색인파일 생성.
 			 */
-			SegmentInfo segmentInfo = null;
 			IndexConfig indexConfig = collectionContext.collectionConfig().getIndexConfig();
 			File segmentDir = collectionFilePaths.segmentFile(newDataSequence, segmentNumber);
 			indexingLogger.info("Segment Dir = {}", segmentDir.getAbsolutePath());
 			SegmentWriter writer = null;
+			RevisionInfo revisionInfo = null;
 			int count = 0;
 			
 			try{
@@ -145,7 +146,9 @@ public class FullIndexJob extends IndexingJob {
 			}finally{
 				Exception exception = null;
 				try{
-					segmentInfo = writer.close();
+					revisionInfo = writer.close();
+					
+					
 					//전체색인에서는 delete id set을 적용하지 않는다.
 //					DeleteIdSet deleteIdSet = sourceReader.getDeleteList();
 //					segmentInfo.getRevisionInfo().setDeleteCount(deleteIdSet.size());
@@ -171,6 +174,9 @@ public class FullIndexJob extends IndexingJob {
 				result = new IndexingJobResult(collectionId, segmentDir, 0, 0, 0, (int)(System.currentTimeMillis() - startTime));
 				return new JobResult(result);
 			}
+			
+			SegmentInfo segmentInfo = new SegmentInfo(segmentNumber.toString(), 0);
+			segmentInfo.updateRevision(revisionInfo);
 			
 			//append segment info
 			collectionContext.addSegmentInfo(segmentInfo, true);
