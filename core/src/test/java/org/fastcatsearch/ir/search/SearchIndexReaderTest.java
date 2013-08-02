@@ -31,7 +31,7 @@ import org.fastcatsearch.ir.io.IndexInput;
 import org.fastcatsearch.ir.settings.Schema;
 
 
-public class SearchFieldReaderTest extends TestCase{
+public class SearchIndexReaderTest extends TestCase{
 	String homePath = "testHome/";
 	String collection ="test3";
 	
@@ -47,12 +47,12 @@ public class SearchFieldReaderTest extends TestCase{
 		String target = null;
 		File targetDir = new File(target); 
 		
-		SearchIndexesReader reader = new SearchIndexesReader(schema, targetDir);
+		SearchIndexReader reader = new SearchIndexReader();
 		
 		int fieldNum = 0;
 		CharVector term = new CharVector("티셔츠");//나시 , 티셔츠, 남방 
 		
-		PostingDocs termDocs = reader.getPosting(fieldNum, term);
+		PostingDocs termDocs = reader.getPosting(term);
 		
 		if(termDocs == null){
 			System.out.println("검색실패 !");
@@ -83,15 +83,15 @@ public class SearchFieldReaderTest extends TestCase{
 		
 		long st = System.currentTimeMillis();
 		
-		SearchIndexesReader reader = new SearchIndexesReader(schema, targetDir);
+		SearchIndexReader reader = new SearchIndexReader();
 		
 		String fieldName1 ="title";
 		String fieldName2 ="title";
 		CharVector term1 = new CharVector("티셔츠");//나시 , 티셔츠, 남방 
 		CharVector term2 = new CharVector("바지");
 		
-		PostingDocs termDocs1 = reader.getPosting(fieldName1, term1);
-		PostingDocs termDocs2 = reader.getPosting(fieldName2, term2);
+		PostingDocs termDocs1 = reader.getPosting(term1);
+		PostingDocs termDocs2 = reader.getPosting(term2);
 		
 		
 		//AND 검색에서는 하나라도 검색결과가 없다면 검색실패이다.

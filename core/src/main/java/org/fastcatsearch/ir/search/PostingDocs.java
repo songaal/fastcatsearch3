@@ -23,25 +23,25 @@ import org.slf4j.LoggerFactory;
 
 public class PostingDocs {
 	private static Logger logger = LoggerFactory.getLogger(PostingDocs.class);
-	private int indexFieldNum;
+//	private int indexFieldNum;
 	private CharVector term;
 	private PostingDoc[] postingDocList;
 	private int count;
 
-	public PostingDocs(int indexFieldNum, CharVector term, int size) {
-		this(indexFieldNum, term, new PostingDoc[size], 0);
+//	public PostingDocs(int indexFieldNum, CharVector term, int size) {
+	public PostingDocs(CharVector term, int size) {
+		this(term, new PostingDoc[size], 0);
 	}
 
-	public PostingDocs(int indexFieldNum, CharVector term, PostingDoc[] postingDocList, int count) {
-		this.indexFieldNum = indexFieldNum;
+	public PostingDocs(CharVector term, PostingDoc[] postingDocList, int count) {
 		this.postingDocList = postingDocList;
 		this.term = term;
 		this.count = count;
 	}
 
-	public int indexFieldNum() {
-		return indexFieldNum;
-	}
+//	public int indexFieldNum() {
+//		return indexFieldNum;
+//	}
 
 	public CharVector term() {
 		return term;

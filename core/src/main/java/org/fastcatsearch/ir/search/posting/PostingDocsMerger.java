@@ -23,8 +23,8 @@ public class PostingDocsMerger {
 
 	//initSize : 예상되는 termdoc 의 갯수.
 	//TODO 차후에 reader로 변경하여 메모리 사용을 줄이도록한다.
-	public PostingDocs merge(int indexFieldNum, CharVector term, int initSize) {
-		PostingDocs termDocs = new PostingDocs(indexFieldNum, term, initSize);
+	public PostingDocs merge(CharVector term, int initSize) {
+		PostingDocs termDocs = new PostingDocs(term, initSize);
 		PostingDoc prevTermDoc = null;
 		while (heap.size() > 0) {
 			PostingDocsReader r = heap.peek();

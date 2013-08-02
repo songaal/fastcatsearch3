@@ -30,6 +30,7 @@ public class HitElement {
 	
 	private String collection; //transient. ShardSearchResult에서 정보를 가지고 있음. 
 	private int shardId = -1; //transient. ShardSearchResult에서 정보를 가지고 있음.
+	private int segmentSequence;
 	
 	private int docNo;
 	private float score; //매칭점수
@@ -58,10 +59,14 @@ public class HitElement {
 	public int shardid() {
 		return shardId;
 	}
+	public int segmentSequence(){
+		return segmentSequence;
+	}
 	public int docNo(){
 		return docNo;
 	}
-	public void docNo(int docNo){
+	public void docNo(int segmentSequence, int docNo){
+		this.segmentSequence = segmentSequence;
 		this.docNo = docNo;
 	}
 	public float score(){
@@ -83,12 +88,15 @@ public class HitElement {
 		return rankData.length;
 	}
 	
-	public HitElement addBaseDocNo(int baseDocNo){
-		docNo += baseDocNo;
-		return this;
-	}
+//	public HitElement addBaseDocNo(int baseDocNo){
+//		docNo += baseDocNo;
+//		return this;
+//	}
 	public String toString(){
 		StringBuffer sb = new StringBuffer();
+		sb.append("[seg#");
+		sb.append(segmentSequence);
+		sb.append("]");
 		sb.append(docNo);
 		sb.append(":");
 		sb.append(score);

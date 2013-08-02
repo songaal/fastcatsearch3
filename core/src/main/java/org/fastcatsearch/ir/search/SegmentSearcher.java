@@ -74,7 +74,7 @@ public class SegmentSearcher {
 
 	public void search(Metadata meta, Clause clause, Filters filters, Groups groups, Filters groupFilters, Sorts sorts) throws ClauseException,
 			IOException, IRException {
-		FieldIndexesReader fieldIndexesReader = segmentReader.newFieldIndexesReader();
+		FieldIndexesReader fieldIndexesReader = null;
 		int sortMaxSize = meta.start() + meta.rows() - 1;
 
 		int docCount = segmentReader.docCount();
@@ -97,6 +97,9 @@ public class SegmentSearcher {
 
 		//group
 		if (groups != null) {
+			if(fieldIndexesReader == null){
+				fieldIndexesReader = segmentReader.newFieldIndexesReader();
+			}
 			groupGenerator = groups.getGroupDataGenerator(schema, segmentReader.newGroupIndexesReader(), fieldIndexesReader);
 			if (groupFilters != null) {
 				groupHitFilter = groupFilters.getHitFilter(schema, fieldIndexesReader, BULK_SIZE);
@@ -109,6 +112,9 @@ public class SegmentSearcher {
 		if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
 			ranker = new DefaultRanker(sortMaxSize);
 		} else {
+			if(fieldIndexesReader == null){
+				fieldIndexesReader = segmentReader.newFieldIndexesReader();
+			}
 			sortGenerator = sorts.getSortGenerator(schema, fieldIndexesReader);
 			// ranker에 정렬 로직이 담겨있다.
 			// ranker 안에는 필드타입과 정렬옵션을 확인하여 적합한 byte[] 비교를 수행한다.
@@ -197,16 +203,14 @@ public class SegmentSearcher {
 	 * @return
 	 */
 	private FixedHitStack rankHitList() {
-		int baseDocNo = segmentReader.baseDocNumber();
+		int segmentSequence = segmentReader.sequence();
 		int size = ranker.size();
-		// logger.debug("size="+size);
 		FixedHitStack hitStack = new FixedHitStack(size);
 		for (int i = 0; i < size; i++) {
 			HitElement el = ranker.pop();
-			// local문서번호를 global문서번호로 바꿔준다.
-			el.docNo(baseDocNo + el.docNo());
+			el.docNo(segmentSequence, el.docNo());
 			
-			logger.debug("rank hit {} + {}", baseDocNo, el.docNo());
+			logger.debug("rank hit seg#{} {} ", segmentSequence, el.docNo());
 			hitStack.push(el);
 
 		}

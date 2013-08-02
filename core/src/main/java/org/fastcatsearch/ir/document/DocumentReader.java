@@ -36,7 +36,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-
+/**
+ * 문서번호는 세그먼트마다 0부터 시작하는 번호로 read한다. baseNo와는 상관없는 내부문서번호. 
+ * */
 
 public class DocumentReader implements Cloneable {
 	private static Logger logger = LoggerFactory.getLogger(DocumentReader.class);
@@ -45,13 +47,16 @@ public class DocumentReader implements Cloneable {
 	private IndexInput docInput;
 	private IndexInput positionInput;
 	private ByteRefArrayOutputStream inflaterOutput;
-	private final byte[] workingBuffer;
+	private byte[] workingBuffer;
 	private byte[] docReadBuffer;
 	
 	private int baseDocNo;
 	private int documentCount;
 	private int lastDocNo = -1;
 	private BytesDataInput lastBai;
+	
+	public DocumentReader() {
+	}
 	
 	public DocumentReader(Schema schema, File dir) throws IOException {
 		this(schema, dir, 0);
@@ -61,36 +66,24 @@ public class DocumentReader implements Cloneable {
 		fields = schema.schemaSetting().getFieldSettingList();
 		docInput = new BufferedFileInput(dir, IndexFileNames.docStored);
 		positionInput = new BufferedFileInput(dir, IndexFileNames.docPosition);
-		inflaterOutput = new ByteRefArrayOutputStream(3 * 1024 * 1024); //자동 증가됨.
 		documentCount = docInput.readInt();
 		logger.info("DocumentCount = {}", documentCount);
-		workingBuffer = new byte[1024];
-		docReadBuffer = new byte[3 * 1024 * 1024];
-	}
-	
-	//clone용도.
-	public DocumentReader(List<FieldSetting> fields, IndexInput docInput, IndexInput positionInput, int baseDocNo, int documentCount) {
-		this.fields = fields;
-		this.docInput = docInput;
-		this.positionInput = positionInput;
-		this.baseDocNo = baseDocNo;
-		this.documentCount = documentCount;
 		
 		inflaterOutput = new ByteRefArrayOutputStream(3 * 1024 * 1024); //자동 증가됨.
 		workingBuffer = new byte[1024];
 		docReadBuffer = new byte[3 * 1024 * 1024];
 	}
-	
 	
 	public int getDocumentCount(){
 		return documentCount;
 	}
 	
 	public Document readDocument(int docNo) throws IOException{
-		if(docNo < baseDocNo) throw new IOException("Request docNo cannot less than baseDocNo! docNo = "+docNo+", baseDocNo = "+baseDocNo);
+//		if(docNo < baseDocNo) throw new IOException("Request docNo cannot less than baseDocNo! docNo = "+docNo+", baseDocNo = "+baseDocNo);
 		
 		//baseDocNo만큼 빼서 세그먼트별 내부문서번호를 만든다.
-		docNo -= baseDocNo;
+//		docNo -= baseDocNo;
+		
 		BytesDataInput bai = null;
 		
 		if(docNo != lastDocNo){
@@ -143,16 +136,27 @@ public class DocumentReader implements Cloneable {
 			if(hasValue){
 				f.readRawFrom(bai);
 			}			
-			logger.debug("read doc#{} field#{} >> {}", docNo, i, f);
+//			logger.debug("read doc#{} field#{} >> {}", docNo, i, f);
 			document.set(i, f);
 		}
+		document.setDocId(docNo + baseDocNo);
 		return document;
 		
 	}
 	
 	@Override
 	public DocumentReader clone(){
-		return new DocumentReader(fields, docInput, positionInput, baseDocNo, documentCount);
+		DocumentReader reader = new DocumentReader();
+		reader.fields = fields;
+		reader.docInput = docInput;
+		reader.positionInput = positionInput;
+//		reader.baseDocNo = baseDocNo;
+		reader.documentCount = documentCount;
+		
+		reader.inflaterOutput = new ByteRefArrayOutputStream(3 * 1024 * 1024); //자동 증가됨.
+		reader.workingBuffer = new byte[1024];
+		reader.docReadBuffer = new byte[3 * 1024 * 1024];
+		return reader;
 	}
 	public void close() throws IOException{
 		docInput.close();

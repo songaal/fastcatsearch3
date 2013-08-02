@@ -22,19 +22,19 @@ public class TermDocTreeReaderTest {
 		TermDocTreeReader reader = new TermDocTreeReader();
 		
 		termDocList = makeTermDocList(COUNT);
-		PostingDocs termDocs = new PostingDocs(1, new CharVector("aa"), termDocList, termDocList.length);
+		PostingDocs termDocs = new PostingDocs(new CharVector("aa"), termDocList, termDocList.length);
 		PostingDocsTreeNode node = new PostingDocsTreeNode(termDocs, 0, false);
 		reader.addNode(node);
 		expectedCount += COUNT;
 		
 		termDocList = makeTermDocList(COUNT);
-		termDocs = new PostingDocs(1, new CharVector("bb"), termDocList, termDocList.length);
+		termDocs = new PostingDocs(new CharVector("bb"), termDocList, termDocList.length);
 		node = new PostingDocsTreeNode(termDocs, 0, false);
 		reader.addNode(node);
 		expectedCount += COUNT;
 		
 		termDocList = makeTermDocList(COUNT);
-		termDocs = new PostingDocs(1, new CharVector("cc"), termDocList, termDocList.length);
+		termDocs = new PostingDocs(new CharVector("cc"), termDocList, termDocList.length);
 		node = new PostingDocsTreeNode(termDocs, 0, false);
 		reader.addNode(node);
 		expectedCount += COUNT;

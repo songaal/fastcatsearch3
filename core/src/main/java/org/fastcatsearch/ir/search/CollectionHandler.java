@@ -115,7 +115,7 @@ public class CollectionHandler {
 					File segmentDir = collectionFilePaths.segmentFile(dataSequence, segmentInfo.getId());
 					File revisionDir = collectionFilePaths.revisionFile(dataSequence, segmentInfo.getId(), segmentInfo.getRevision());
 					BitSet deleteSet = new BitSet(revisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
-					segmentReaderList.add(new SegmentReader(collectionContext.schema(), segmentDir, segmentInfo, deleteSet));
+					segmentReaderList.add(new SegmentReader(nextSegmentSequence(), collectionContext.schema(), segmentDir, segmentInfo, deleteSet));
 				}
 			} catch (IOException e) {
 				throw new IRException(e);
@@ -232,14 +232,17 @@ public class CollectionHandler {
 //		logger.debug("Add newSegmentInfo >> {}", newSegmentInfo);
 //		collectionContext.addSegmentInfo(newSegmentInfo);
 		
-		//새로생성된 세그먼트는 로딩하여 리스트에 추가해준다. 
-		segmentReaderList.add(new SegmentReader(collectionContext.schema(), newSegmentDir, newSegmentInfo));
+		//새로생성된 세그먼트는 로딩하여 리스트에 추가해준다.
+		
+		segmentReaderList.add(new SegmentReader(nextSegmentSequence(), collectionContext.schema(), newSegmentDir, newSegmentInfo));
 		
 		//TODO collectionContext 저장!
 		
 		return newSegmentInfo;
 	}
-	
+	private int nextSegmentSequence(){
+		return segmentReaderList.size();
+	}
 	//동일 세그먼트에 리비전추가.
 	public SegmentInfo updateRevision(SegmentInfo segmentInfo, File segmentDir, DeleteIdSet deleteSet) throws IOException, IRException{
 		
@@ -295,7 +298,7 @@ public class CollectionHandler {
 		collectionContext.addSegmentInfo(segmentInfo);
 		
 		lastSegmentReader.close();
-		segmentReaderList.add(new SegmentReader(collectionContext.schema(), segmentDir, segmentInfo));
+		segmentReaderList.add(new SegmentReader(nextSegmentSequence(), collectionContext.schema(), segmentDir, segmentInfo));
 		
 		//TODO collectionContext 저장!
 		

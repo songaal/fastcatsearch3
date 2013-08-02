@@ -1,11 +1,9 @@
 package org.fastcatsearch.ir.search;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
@@ -20,10 +18,10 @@ import org.fastcatsearch.ir.field.DocNoField;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.field.UnknownField;
-import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.group.GroupDataMerger;
 import org.fastcatsearch.ir.group.GroupHit;
 import org.fastcatsearch.ir.group.GroupResults;
+import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.io.FixedHitQueue;
@@ -354,28 +352,18 @@ public class CollectionSearcher {
 
 		int realSize = totalHit.size();
 		Document[] eachDocList = new Document[realSize];
-		int[] eachDocIds = new int[realSize];
 
 		int idx = 0;
 		while (hitReader.next()) {
 			HitElement e = hitReader.read();
 
-			logger.debug("FOUND {}:{}", e.docNo(), e.score());
 			int docNo = e.docNo();
 			float score = e.score();
-			int segmentNumber = -1;
+			int segmentSequence = e.segmentSequence();
+			//문서번호는 segmentSequence+docNo 에 유일하며, docNo만으로는 세그먼트끼리는 중복된다.
+			logger.debug("FOUND [seq#{}] {}:{}", segmentSequence, e.docNo(), e.score());
 
-			// make doc number lists to send each columns
-			for (int m = collectionHandler.segmentSize() - 1; m >= 0; m--) {
-				// logger.debug("docNo="+docNo+" , segmentInfoList["+m+"].getBaseDocNo()="+segmentInfoList[m].getBaseDocNo());
-				if (docNo >= collectionHandler.segmentReader(m).segmentInfo().getBaseNumber()) {
-					segmentNumber = m;
-					break;
-				}
-			}
-
-			eachDocIds[idx] = docNo;
-			Document doc = collectionHandler.segmentReader(segmentNumber).segmentSearcher().getDocument(docNo);
+			Document doc = collectionHandler.segmentReader(segmentSequence).segmentSearcher().getDocument(docNo);
 			doc.setScore(score);
 			eachDocList[idx] = doc;
 
@@ -422,8 +410,6 @@ public class CollectionSearcher {
 			jj++;
 		}
 
-		int size = schema.getFieldSize();
-
 		for (int i = 0; i < realSize; i++) {
 			Document document = eachDocList[i];
 			row[i] = new Row(fieldSize);
@@ -435,7 +421,7 @@ public class CollectionSearcher {
 					float score = document.getScore();
 					row[i].put(j, Float.toString(score).toCharArray());
 				} else if (fieldSequence == DocNoField.fieldNumber) {
-					row[i].put(j, Integer.toString(eachDocIds[i]).toCharArray());
+					row[i].put(j, Integer.toString(document.getDocId()).toCharArray());
 				} else if (fieldSequence == UnknownField.fieldNumber) {
 					row[i].put(j, UnknownField.value().toCharArray());
 				} else {
@@ -622,7 +608,7 @@ public class CollectionSearcher {
 			// File targetDir = segmentReader.getSegmentDir();
 			// int lastRevision = segmentReader.getLastRevision();
 			int revision = segmentReader.segmentInfo().getRevision();
-			DocumentReader reader = new DocumentReader(collectionHandler.schema(), segmentReader.segmentDir());
+			//DocumentReader reader = new DocumentReader(collectionHandler.schema(), segmentReader.segmentDir());
 			BitSet deleteSet = null;
 
 			if (i < segmentSize - 1) {
@@ -652,12 +638,14 @@ public class CollectionSearcher {
 				field.writeTo(pkOutput);
 			}
 
+			//FIXME segmentReader내부의 PrimaryKeyIndexReader를 사용해야한다. 
 			PrimaryKeyIndexReader pkReader = new PrimaryKeyIndexReader(segmentReader.revisionDir(), IndexFileNames.primaryKeyMap);
 			docNo = pkReader.get(pkOutput.array(), 0, (int) pkOutput.position());
 			pkReader.close();
 
 			if (docNo != -1) {
-				Document document = reader.readDocument(docNo);
+				
+				Document document = segmentReader.newDocumentReader().readDocument(docNo);
 				Row row = new Row(fieldSize);
 				row.setRowTag(i + "-" + revision + "-" + docNo);
 				for (int m = 0; m < fieldSize; m++) {

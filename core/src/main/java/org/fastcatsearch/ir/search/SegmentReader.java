@@ -23,10 +23,7 @@ import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.document.DocumentReader;
-import org.fastcatsearch.ir.group.GroupHit;
 import org.fastcatsearch.ir.io.BitSet;
-import org.fastcatsearch.ir.query.ClauseException;
-import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.CloseableThreadLocal;
 import org.slf4j.Logger;
@@ -42,16 +39,15 @@ import org.slf4j.LoggerFactory;
  */
 public class SegmentReader {
 
-	private static Logger logger = LoggerFactory.getLogger(SegmentReader.class);
+	private static final Logger logger = LoggerFactory.getLogger(SegmentReader.class);
 
+	private int segmentSequence;
 	private Schema schema;
 	private SearchIndexesReader searchIndexesReader;
 	private FieldIndexesReader fieldIndexesReader;
 	private GroupIndexesReader groupIndexesReader;
 	private DocumentReader documentReader;
 	private BitSet deleteSet;
-//	private int baseDocNo;
-//	private int docCount;
 	private SegmentInfo segmentInfo;
 	private File segmentDir;
 
@@ -83,24 +79,15 @@ public class SegmentReader {
 		}
 	};
 	
-//	public SegmentReader(Schema schema, File segmentDir, int baseDocNo, int docCount) throws IOException, IRException {
-//		this(schema, segmentDir, baseDocNo, docCount, new BitSet(0), 0);
-//	}
-//
-//	public SegmentReader(Schema schema, File segmentDir, int baseDocNo, int docCount, int revision) throws IOException, IRException {
-//		this(schema, segmentDir, baseDocNo, docCount, null, revision);
-//	}
-
-	public SegmentReader(Schema schema, File segmentDir, SegmentInfo segmentInfo) throws IOException, IRException {
-		this(schema, segmentDir, segmentInfo, new BitSet(0));
+	public SegmentReader(int segmentSequence, Schema schema, File segmentDir, SegmentInfo segmentInfo) throws IOException, IRException {
+		this(segmentSequence, schema, segmentDir, segmentInfo, new BitSet(0));
 	}
 			
-	public SegmentReader(Schema schema, File segmentDir, SegmentInfo segmentInfo, BitSet bitset) throws IOException, IRException {
+	public SegmentReader(int segmentSequence, Schema schema, File segmentDir, SegmentInfo segmentInfo, BitSet bitset) throws IOException, IRException {
+		this.segmentSequence = segmentSequence;
 		this.schema = schema;
 		this.segmentDir = segmentDir;
 		this.segmentInfo = segmentInfo;
-//		this.baseDocNo = baseDocNo;
-//		this.docCount = docCount;
 		int revision = segmentInfo.getRevision();
 		
 		// reader들은 thread-safe하지 않다. clone해서 사용됨.
@@ -113,6 +100,9 @@ public class SegmentReader {
 		this.groupIndexesReader = new GroupIndexesReader(schema, segmentDir, revision);
 
 		this.documentReader = new DocumentReader(schema, segmentDir, segmentInfo.getBaseNumber());
+		
+//		this.documentReader = new DocumentReader(schema, segmentDir);
+		
 		if (bitset != null) {
 			deleteSet = bitset;
 		} else {
@@ -122,6 +112,10 @@ public class SegmentReader {
 
 	public SegmentSearcher segmentSearcher(){
 		return new SegmentSearcher(this);
+	}
+	
+	protected int sequence(){
+		return segmentSequence;
 	}
 	
 	protected Schema schema(){

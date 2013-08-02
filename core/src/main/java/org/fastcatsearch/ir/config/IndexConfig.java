@@ -14,9 +14,9 @@ import javax.xml.bind.annotation.XmlElement;
 public class IndexConfig {
 	private int pkTermInterval;
 	private int pkBucketSize;
-	private int indexTermInterval;
+	private int indexTermInterval;// inmemory lexicon ratio = 1/indexTermInterval
 	private int indexWorkBucketSize;
-	private int indexWorkMemorySize;
+	private int indexWorkMemorySize;// limit memory use. if exeed this value, flush.
 	
 
 	@XmlElement(name="pk-term-interval")

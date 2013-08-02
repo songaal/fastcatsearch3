@@ -43,8 +43,8 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 	private byte[] buffer = new byte[1024 * 1024];
 	private int bufferCount = 0;
 
-	public TempSearchFieldAppender(int flushCount, long[] flushPosition, File tempFile) throws IOException {
-		super(flushCount, flushPosition, tempFile);
+	public TempSearchFieldAppender(String indexId, int flushCount, long[] flushPosition, File tempFile) throws IOException {
+		super(indexId, flushCount, flushPosition, tempFile);
 
 		tempPostingOutput = new BytesDataOutput(1024 * 1024);
 
@@ -52,21 +52,21 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 
 		reader = new TempSearchFieldReader[flushCount];
 		for (int m = 0; m < flushCount; m++) {
-			reader[m] = new TempSearchFieldReader(m, tempFile, flushPosition[m]);
+			reader[m] = new TempSearchFieldReader(m, indexId, tempFile, flushPosition[m]);
 			reader[m].next();
 		}
 
 	}
 
-	public boolean mergeAndAppendIndex(File segmentDir1, File targetDir, int indexInterval, IndexFieldOption[] fieldIndexOptions) throws IOException,
+	public boolean mergeAndAppendIndex(File segmentDir1, File targetDir, int indexInterval, IndexFieldOption fieldIndexOption) throws IOException,
 			IRException {
-		IndexInput lexiconInput1 = new BufferedFileInput(segmentDir1, IndexFileNames.lexiconFile);
-		IndexOutput lexiconOutput = new BufferedFileOutput(targetDir, IndexFileNames.lexiconFile, false);
+		IndexInput lexiconInput1 = new BufferedFileInput(segmentDir1, IndexFileNames.getSuffixFileName(IndexFileNames.lexiconFile, indexId));
+		IndexOutput lexiconOutput = new BufferedFileOutput(targetDir, IndexFileNames.getSuffixFileName(IndexFileNames.lexiconFile, indexId));
 
-		IndexOutput indexOutput = new BufferedFileOutput(targetDir, IndexFileNames.indexFile, false);
+		IndexOutput indexOutput = new BufferedFileOutput(targetDir, IndexFileNames.getSuffixFileName(IndexFileNames.indexFile, indexId));
 
-		IndexInput postingInput1 = new BufferedFileInput(segmentDir1, IndexFileNames.postingFile);
-		IndexOutput postingOutput = new BufferedFileOutput(targetDir, IndexFileNames.postingFile, false);
+		IndexInput postingInput1 = new BufferedFileInput(segmentDir1, IndexFileNames.getSuffixFileName(IndexFileNames.postingFile, indexId));
+		IndexOutput postingOutput = new BufferedFileOutput(targetDir, IndexFileNames.getSuffixFileName(IndexFileNames.postingFile, indexId));
 
 		// 같은 텀이 있을때에 posting 문서번호를 다 읽어서 머징한다.
 		// 같은 텀이 없다면 포스팅데이터를 뚝 떼어서 새로운 포스팅에 붙이면 된다.
@@ -74,197 +74,201 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 		// indexOutput은 indexInterval번마다 기록해준다.
 
 		try {
-			int fieldCount = fieldIndexOptions.length;
 
-			postingOutput.writeInt(fieldCount);
-			for (int i = 0; i < fieldCount; i++) {
-				postingOutput.writeInt(fieldIndexOptions[i].value());
+			//Posting 파일의 맨처음 int는 색인필드옵션이다.
+			postingOutput.writeInt(fieldIndexOption.value());
+
+//			prepareNextSearchField(i);
+			makeHeap(flushCount);
+
+			int termCount1 = lexiconInput1.readInt();
+			bufferCount = 0;
+
+			int termCount = 0;
+			int indexTermCount = 0;
+			long position = 0;
+
+			long lexiconFileHeadPos = lexiconOutput.position();
+			long indexFileHeadPos = indexOutput.position();
+
+			lexiconOutput.writeInt(termCount);
+			indexOutput.writeInt(indexTermCount);
+
+			int cmp = 0;
+
+			CharVector term1 = null;
+			CharVector term2 = new CharVector();
+
+			if (termCount1 > 0) {
+				char[] t = lexiconInput1.readUString();
+				term1 = new CharVector(t, 0, t.length);
+				lexiconInput1.readLong();
 			}
+			termCount1--;
 
-			for (int i = 0; i < fieldCount; i++) {
-				prepareNextSearchField(i);
-				makeHeap(flushCount);
+			boolean hasNext = readNextIndex(term2);
 
-				int termCount1 = lexiconInput1.readInt();
-				bufferCount = 0;
+			CharVector term = null;
 
-				int termCount = 0;
-				int indexTermCount = 0;
-				long position = 0;
+			while (termCount1 >= 0 || hasNext) {
+				// logger.debug("CMP = "+new String(term1.array, term1.start, term1.length)+":"+new String(term2.array,
+				// term2.start, term2.length));
+				if (termCount1 >= 0 && hasNext)
+					cmp = compareKey(term1, term2);
+				else if (termCount1 < 0) // input1이 다 소진되었으면 input2를 읽도록 유도. 크기가 작은 걸 읽는다.
+					cmp = 1;
+				else if (!hasNext)
+					cmp = -1;
 
-				long lexiconFileHeadPos = lexiconOutput.position();
-				long indexFileHeadPos = indexOutput.position();
+				long pointer = lexiconOutput.position();
 
-				lexiconOutput.writeInt(termCount);
-				indexOutput.writeInt(indexTermCount);
-
-				int cmp = 0;
-
-				CharVector term1 = null;
-				CharVector term2 = new CharVector();
-
-				if (termCount1 > 0) {
-					char[] t = lexiconInput1.readUString();
-					term1 = new CharVector(t, 0, t.length);
-					lexiconInput1.readLong();
-				}
-				termCount1--;
-
-				boolean hasNext = readNextIndex(term2);
-
-				CharVector term = null;
-
-				while (termCount1 >= 0 || hasNext) {
-					// logger.debug("CMP = "+new String(term1.array, term1.start, term1.length)+":"+new String(term2.array,
-					// term2.start, term2.length));
-					if (termCount1 >= 0 && hasNext)
-						cmp = compareKey(term1, term2);
-					else if (termCount1 < 0) // input1이 다 소진되었으면 input2를 읽도록 유도. 크기가 작은 걸 읽는다.
-						cmp = 1;
-					else if (!hasNext)
-						cmp = -1;
-
-					long pointer = lexiconOutput.position();
-
-					if (cmp <= 0) {
-						term = term1;
-					} else {
-						term = term2;
-					}
-
-					if (cmp == 0) {
-
-						// posting merge.
-						int len1 = postingInput1.readVInt();
-						int len2 = (int) tempPostingOutput.position(); // only data length (exclude header)
-
-						int count1 = postingInput1.readInt();
-						int lastDocNo1 = postingInput1.readInt();
-
-						int data1Length = (int) (len1 - IOUtil.SIZE_OF_INT * 2);
-						if (data1Length > buffer.length) {
-							buffer = new byte[data1Length];
-						}
-
-						postingInput1.readBytes(buffer, 0, data1Length);
-
-						int count2 = totalCount;
-						int lastDocNo2 = prevDocNo;
-						int firstDocNo2 = IOUtil.readVInt(tempPostingOutput.array(), 0);
-						int sz2 = IOUtil.lenVariableByte(firstDocNo2);
-						int newFirstDocNo = firstDocNo2 - lastDocNo1 - 1;
-						int delta = IOUtil.lenVariableByte(newFirstDocNo) - sz2;
-						long newLen = len1 + len2 + delta;
-
-						position = postingOutput.position();
-						postingOutput.writeVLong(newLen);
-						postingOutput.writeInt(count1 + count2);
-						postingOutput.writeInt(lastDocNo2);
-						postingOutput.writeBytes(buffer, 0, data1Length);
-
-						len2 -= sz2;
-
-						postingOutput.writeVInt(newFirstDocNo);
-						postingOutput.writeBytes(tempPostingOutput.array(), sz2, len2);
-
-						lexiconOutput.writeUString(term.array, term.start, term.length);
-						lexiconOutput.writeLong(position);
-
-						// read both term1, term2
-						if (termCount1 > 0) {
-							char[] t = lexiconInput1.readUString();
-							term1 = new CharVector(t, 0, t.length);
-							lexiconInput1.readLong();
-						}
-						termCount1--;
-
-						hasNext = readNextIndex(term2);
-
-					} else if (cmp < 0) {
-
-						int len = postingInput1.readVInt();
-						if (len > buffer.length)
-							buffer = new byte[len];
-						if (len < 8)
-							throw new IOException("Terrible Error!!");
-						// logger.debug("len1 = "+len);
-						postingInput1.readBytes(buffer, 0, len);
-
-						position = postingOutput.position();
-
-						// write posting
-						postingOutput.writeVInt(len);
-						postingOutput.writeBytes(buffer, 0, len);
-
-						// write lexicon
-						lexiconOutput.writeUString(term.array, term.start, term.length);
-						lexiconOutput.writeLong(position);
-
-						if (termCount1 > 0) {
-							char[] t = lexiconInput1.readUString();
-							term1 = new CharVector(t, 0, t.length);
-							lexiconInput1.readLong();
-						}
-						termCount1--;
-
-					} else {
-
-						int len = (int) tempPostingOutput.position();
-						// logger.debug("len2 ="+len);
-						int count = totalCount;
-						int lastDocNo = prevDocNo;
-						int firstDocNo = IOUtil.readVInt(tempPostingOutput.array(), 0);
-						int sz = IOUtil.lenVariableByte(firstDocNo);
-
-						len -= sz;
-
-						int sz2 = IOUtil.lenVariableByte(firstDocNo);
-
-						position = postingOutput.position();
-
-						int len2 = IOUtil.SIZE_OF_INT * 2 + sz2 + len;
-						if (len2 < 8)
-							throw new IOException("Terrible Error!! " + len2);
-						postingOutput.writeVInt(len2);
-						postingOutput.writeInt(count);
-						postingOutput.writeInt(lastDocNo);
-						postingOutput.writeVInt(firstDocNo);
-						postingOutput.writeBytes(tempPostingOutput.array(), sz, len);
-
-						// write term
-						lexiconOutput.writeUString(term.array, term.start, term.length);
-						lexiconOutput.writeLong(position);
-
-						hasNext = readNextIndex(term2);
-
-					}
-
-					if (indexInterval > 0 && (termCount % indexInterval) == 0) {
-						indexOutput.writeUString(term.array, term.start, term.length);
-						indexOutput.writeLong(pointer);
-						indexOutput.writeLong(position);
-						indexTermCount++;
-					}
-					termCount++;
-				}// while
-
-				logger.debug("## indexTermCount = " + indexTermCount);
-				long prevPos = lexiconOutput.position();
-				lexiconOutput.seek(lexiconFileHeadPos);
-				lexiconOutput.writeInt(termCount);
-				logger.debug("WRITE LEXICON COUNT = {} at {}", termCount, lexiconFileHeadPos);
-				lexiconOutput.seek(prevPos);
-
-				if (termCount > 0) {
-					prevPos = indexOutput.position();
-					indexOutput.seek(indexFileHeadPos);
-					indexOutput.writeInt(indexTermCount);
-					indexOutput.seek(prevPos);
+				if (cmp <= 0) {
+					term = term1;
 				} else {
-					long pointer = lexiconOutput.position();
-					indexOutput.writeLong(pointer);
+					term = term2;
 				}
+
+				if (cmp == 0) {
+
+					// posting merge.
+					int len1 = postingInput1.readVInt();
+					int len2 = (int) tempPostingOutput.position(); // only data length (exclude header)
+
+					int count1 = postingInput1.readInt();
+					int lastDocNo1 = postingInput1.readInt();
+
+					int data1Length = (int) (len1 - IOUtil.SIZE_OF_INT * 2);
+					if (data1Length > buffer.length) {
+						buffer = new byte[data1Length];
+					}
+
+					postingInput1.readBytes(buffer, 0, data1Length);
+
+					int count2 = totalCount;
+					int lastDocNo2 = prevDocNo;
+					int firstDocNo2 = IOUtil.readVInt(tempPostingOutput.array(), 0);
+					int sz2 = IOUtil.lenVariableByte(firstDocNo2);
+					int newFirstDocNo = firstDocNo2 - lastDocNo1 - 1;
+					int delta = IOUtil.lenVariableByte(newFirstDocNo) - sz2;
+					long newLen = len1 + len2 + delta;
+
+					position = postingOutput.position();
+					postingOutput.writeVLong(newLen);
+					postingOutput.writeInt(count1 + count2);
+					postingOutput.writeInt(lastDocNo2);
+					postingOutput.writeBytes(buffer, 0, data1Length);
+
+					len2 -= sz2;
+
+					postingOutput.writeVInt(newFirstDocNo);
+					postingOutput.writeBytes(tempPostingOutput.array(), sz2, len2);
+
+					lexiconOutput.writeUString(term.array, term.start, term.length);
+					lexiconOutput.writeLong(position);
+
+					// read both term1, term2
+					if (termCount1 > 0) {
+						char[] t = lexiconInput1.readUString();
+						term1 = new CharVector(t, 0, t.length);
+						lexiconInput1.readLong();
+					}
+					termCount1--;
+
+					hasNext = readNextIndex(term2);
+
+				} else if (cmp < 0) {
+
+					int len = postingInput1.readVInt();
+					if (len > buffer.length)
+						buffer = new byte[len];
+					if (len < 8)
+						throw new IOException("Terrible Error!!");
+					// logger.debug("len1 = "+len);
+					postingInput1.readBytes(buffer, 0, len);
+
+					position = postingOutput.position();
+
+					// write posting
+					postingOutput.writeVInt(len);
+					postingOutput.writeBytes(buffer, 0, len);
+
+					// write lexicon
+					lexiconOutput.writeUString(term.array, term.start, term.length);
+					lexiconOutput.writeLong(position);
+
+					if (termCount1 > 0) {
+						char[] t = lexiconInput1.readUString();
+						term1 = new CharVector(t, 0, t.length);
+						lexiconInput1.readLong();
+					}
+					termCount1--;
+
+				} else {
+
+					int len = (int) tempPostingOutput.position();
+					// logger.debug("len2 ="+len);
+					int count = totalCount;
+					int lastDocNo = prevDocNo;
+					int firstDocNo = IOUtil.readVInt(tempPostingOutput.array(), 0);
+					int sz = IOUtil.lenVariableByte(firstDocNo);
+
+					len -= sz;
+
+					int sz2 = IOUtil.lenVariableByte(firstDocNo);
+
+					position = postingOutput.position();
+
+					int len2 = IOUtil.SIZE_OF_INT * 2 + sz2 + len;
+					if (len2 < 8)
+						throw new IOException("Terrible Error!! " + len2);
+					postingOutput.writeVInt(len2);
+					postingOutput.writeInt(count);
+					postingOutput.writeInt(lastDocNo);
+					postingOutput.writeVInt(firstDocNo);
+					postingOutput.writeBytes(tempPostingOutput.array(), sz, len);
+
+					// write term
+					lexiconOutput.writeUString(term.array, term.start, term.length);
+					lexiconOutput.writeLong(position);
+
+					hasNext = readNextIndex(term2);
+
+				}
+
+				if (indexInterval > 0 && (termCount % indexInterval) == 0) {
+					indexOutput.writeUString(term.array, term.start, term.length);
+					indexOutput.writeLong(pointer);
+					indexOutput.writeLong(position);
+					indexTermCount++;
+				}
+				termCount++;
+			}// while
+
+//			logger.debug("## indexTermCount = " + indexTermCount);
+//			long prevPos = lexiconOutput.position();
+//			lexiconOutput.seek(lexiconFileHeadPos);
+//			lexiconOutput.writeInt(termCount);
+//			logger.debug("WRITE LEXICON COUNT = {} at {}", termCount, lexiconFileHeadPos);
+//			lexiconOutput.seek(prevPos);
+
+			if (termCount > 0) {
+				lexiconOutput.seek(0);
+				lexiconOutput.writeInt(termCount);
+				indexOutput.seek(0);
+				indexOutput.writeInt(indexTermCount);
+//				prevPos = indexOutput.position();
+//				indexOutput.seek(indexFileHeadPos);
+//				indexOutput.writeInt(indexTermCount);
+//				indexOutput.seek(prevPos);
+			} else {
+//				long pointer = lexiconOutput.position();
+//				indexOutput.writeLong(pointer);
 			}
+			logger.debug("## write index [{}] termCount[{}] indexTermCount[{}] indexInterval[{}]", indexId, termCount, indexTermCount, indexInterval);
+			
+			lexiconOutput.flush();
+			indexOutput.flush();
+			postingOutput.flush();
 
 		} finally {
 			IOException exception = null;

@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 public class PrimaryKeyIndexReader implements Cloneable {
 	private static Logger logger = LoggerFactory.getLogger(PrimaryKeyIndexReader.class);
-//	private static final Lock lock = new ReentrantLock();
 	
 	private IndexInput input;
 	private IndexInput indexInput;

@@ -26,6 +26,7 @@ import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.document.DocumentWriter;
+import org.fastcatsearch.ir.document.PrimaryKeyIndexesWriter;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
 import org.slf4j.Logger;
@@ -40,6 +41,7 @@ public class SegmentAppender {
 	private long startTime;
 
 	private DocumentWriter documentWriter;
+	private PrimaryKeyIndexesWriter primaryKeyIndexesWriter;
 	private SearchIndexesWriter searchIndexesWriter;
 	private FieldIndexesWriter fieldIndexesWriter;
 	private GroupIndexesWriter groupIndexesWriter;
@@ -95,12 +97,6 @@ public class SegmentAppender {
 		return lastDocNo;
 	}
 	
-
-	//색인중에 문서번호가 같은 데이터가 존재할 경우 내부적으로 삭제처리된다.
-	//이 갯수를 색인결과의 삭제문서 갯수에 더해줘야 전체적인 문서수가 일치하게 된다.
-	public int getDuplicateDocCount(){
-		return documentWriter.getUpdateDocCount();
-	}
 	
 	public SegmentInfo close() throws IOException, IRException{
 		boolean errorOccured = false;

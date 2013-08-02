@@ -26,6 +26,7 @@ import org.fastcatsearch.ir.field.Field;
 public class Document {
 	
 	private List<Field> fields;
+	private int docId; //검색결과로 채워진다. 색인시에는 아무연관이 없다.
 	private float score; //after search, this has cetain value.
 	
 	public Document(int size){
@@ -46,6 +47,14 @@ public class Document {
 	
 	public Field get(int index){
 		return fields.get(index);
+	}
+	
+	public void setDocId(int docId){
+		this.docId = docId;
+	}
+	
+	public int getDocId(){
+		return docId;
 	}
 	
 	public void setScore(float score){

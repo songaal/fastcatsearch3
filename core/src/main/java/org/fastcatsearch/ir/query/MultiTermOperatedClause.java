@@ -31,7 +31,6 @@ public class MultiTermOperatedClause implements OperatedClause {
 
 	private TermDocTreeReader termDocTreeReader;
 	private int termCount;
-//	private List<TermDoc> totalTermDocList;
 	private TermDocCollector termDocCollector;
 	private boolean storePosition;
 	
@@ -60,7 +59,7 @@ public class MultiTermOperatedClause implements OperatedClause {
 			if(synonymList.size() == 1){
 				sysnonymTermDocs = synonymList.get(0);
 			}else{
-				sysnonymTermDocs = new PostingDocsMerger(synonymList).merge(termDocs.indexFieldNum(), termDocs.term(), 1024);
+				sysnonymTermDocs = new PostingDocsMerger(synonymList).merge(termDocs.term(), 1024);
 			}
 			termDocTreeReader.addNode(new PostingDocsTreeNode(sysnonymTermDocs, queryPosition, true));
 			termCount++;

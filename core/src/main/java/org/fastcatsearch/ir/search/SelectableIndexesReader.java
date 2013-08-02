@@ -19,7 +19,6 @@ public abstract class SelectableIndexesReader<T extends ReferencableIndexReader,
 	public SelectableIndexesReader() {
 	}
 
-
 	public IndexRef<T> selectIndexRef(String[] fieldList) throws IOException {
 		IndexRef<T> indexRef = new IndexRef<T>();
 
@@ -39,11 +38,11 @@ public abstract class SelectableIndexesReader<T extends ReferencableIndexReader,
 				}
 
 			}
-			
+
 			indexRef.add(fieldId, reader);
 			logger.debug("Select Index2 field={} r={}", fieldId, reader);
-			
-			if(reader == null){
+
+			if (reader == null) {
 				logger.error("색인된 필드를 찾지못함.>>{}", fieldId);
 			}
 		}
@@ -58,9 +57,9 @@ public abstract class SelectableIndexesReader<T extends ReferencableIndexReader,
 	}
 
 	public void close() throws IOException {
-		if(readerList != null){
+		if (readerList != null) {
 			for (T reader : readerList) {
-				if(reader != null){
+				if (reader != null) {
 					reader.close();
 				}
 			}

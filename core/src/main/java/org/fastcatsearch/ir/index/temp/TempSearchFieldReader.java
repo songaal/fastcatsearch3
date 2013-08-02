@@ -35,38 +35,44 @@ import org.slf4j.LoggerFactory;
 public class TempSearchFieldReader {
 	private static Logger logger = LoggerFactory.getLogger(TempSearchFieldReader.class);
 	
-	private int id;
+	private int sequence;
+	private String indexId;
 	private CharVector term;
 	private BytesRef buffer;
 	private IndexInput tempInput;
 	private int left;
 	
-	public TempSearchFieldReader(int id, File tempFile, long startPos) throws IOException{
-		this.id = id;
+	public TempSearchFieldReader(int sequence, String indexId, File tempFile, long startPos) throws IOException{
+		this.sequence = sequence;
+		this.indexId = indexId;
 		this.tempInput = new BufferedFileInput(tempFile);
 		tempInput.seek(startPos);
-		logger.debug("{} - reader input position = {}", id, startPos);
-		logger.debug("{} - filesize = {}", id, tempFile.length());
+		logger.debug("{} - reader input position = {}", indexId, startPos);
+		logger.debug("{} - filesize = {}", indexId, tempFile.length());
 		left = tempInput.readInt();
-		logger.debug("{} - count = {}", id, left);
+		logger.debug("{} - count = {}", indexId, left);
 	}
 	
 	//read next field terms
-	public boolean resume(){
-		try {
-//			logger.debug(id+" - reader resume position = "+tempInput.position());
-			left = tempInput.readInt();
-		} catch (IOException e) {
-			return false;
-		}
-		logger.debug("{} - count = {}", id, left);
-		return true;
-	}
+//	public boolean resume(){
+//		try {
+////			logger.debug(id+" - reader resume position = "+tempInput.position());
+//			left = tempInput.readInt();
+//		} catch (IOException e) {
+//			return false;
+//		}
+//		logger.debug("{} - count = {}", indexId, left);
+//		return true;
+//	}
 	public void close() throws IOException{
 		tempInput.close();
 	}
-	public int getId(){
-		return id;
+	public String indexId(){
+		return indexId;
+	}
+	
+	public int sequence(){
+		return sequence;
 	}
 	
 	public boolean next() throws IOException{
@@ -81,7 +87,7 @@ public class TempSearchFieldReader {
 			array = tempInput.readUString();
 		}catch(EOFException e){
 			logger.error(e.getMessage(),e);
-			logger.debug("{} - count = {}", id, left);
+			logger.debug("{} - count = {}", indexId, left);
 			throw e;
 		}
 		int len = array.length;
@@ -103,8 +109,5 @@ public class TempSearchFieldReader {
 	}
 	public BytesRef buffer(){
 		return buffer;
-	}
-	public int id(){
-		return id;
 	}
 }
