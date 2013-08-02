@@ -150,10 +150,12 @@ public class SearchIndexesWriter {
 	public void write(Document doc, int docNo) throws IRException, IOException {
 
 		for (int i = 0; i < indexSettingList.size(); i++) {
+			IndexSetting indexSetting = indexSettingList.get(i);
+			boolean ignoreCase = indexSetting.isIgnoreCase();
 			int[] sequenceList = indexFieldSequence[i];
 			int positionIncrementGap = positionIncrementGapList[i];
 			for (int sequence : sequenceList) {
-				write(i, count, doc.get(sequence), analyzerList[i], positionIncrementGap);
+				write(i, count, doc.get(sequence), analyzerList[i], ignoreCase, positionIncrementGap);
 				// positionIncrementGap은 필드가 증가할때마다 동일량으로 증가. 예) 0, 100, 200, 300...
 				positionIncrementGap += positionIncrementGap;
 			}
@@ -171,7 +173,7 @@ public class SearchIndexesWriter {
 		count++;
 	}
 
-	private void write(int indexFieldNum, int docNo, Field field, Analyzer analyzer, int positionIncrementGap) throws IRException, IOException {
+	private void write(int indexFieldNum, int docNo, Field field, Analyzer analyzer, boolean upperCase, int positionIncrementGap) throws IRException, IOException {
 		if (field == null) {
 			return;
 		}
@@ -182,17 +184,17 @@ public class SearchIndexesWriter {
 			Iterator<Object> iterator = field.getMultiValueIterator();
 			if (iterator != null) {
 				while (iterator.hasNext()) {
-					indexValue(indexFieldNum, docNo, iterator.next(), positionIncrementGap);
+					indexValue(indexFieldNum, docNo, iterator.next(), upperCase, positionIncrementGap);
 					// 멀티밸류도 positionIncrementGap을 증가시킨다. 즉, 필드가 다를때처럼 position거리가 멀어진다.
 					positionIncrementGap += positionIncrementGap;
 				}
 			}
 		} else {
-			indexValue(indexFieldNum, docNo, field.getValue(), positionIncrementGap);
+			indexValue(indexFieldNum, docNo, field.getValue(), upperCase, positionIncrementGap);
 		}
 	}
 
-	private void indexValue(int indexFieldNum, int docNo, Object value, int positionIncrementGap) throws IOException, IRException {
+	private void indexValue(int indexFieldNum, int docNo, Object value, boolean upperCase, int positionIncrementGap) throws IOException, IRException {
 		char[] fieldValue = value.toString().toCharArray();
 		TokenStream tokenStream = analyzerList[indexFieldNum].tokenStream(Integer.toString(indexFieldNum), new CharArrayReader(fieldValue));
 		tokenStream.reset();
@@ -217,7 +219,9 @@ public class SearchIndexesWriter {
 				key = new CharVector(charTermAttribute.buffer(), 0, charTermAttribute.length());
 			}
 			// 영문 토크나이저 사용시 스테밍된 결과가 소문자로 반환되어 다시한번 key를 uppercase로 변환필요.
-//			key.toUpperCase();
+			if(upperCase){
+				key.toUpperCase();
+			}
 			int position = -1;
 			if (positionAttribute != null) {
 				position = positionAttribute.getPositionIncrement() + positionIncrementGap;

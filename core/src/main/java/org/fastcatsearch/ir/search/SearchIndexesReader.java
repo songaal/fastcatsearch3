@@ -90,20 +90,6 @@ public class SearchIndexesReader implements Cloneable {
 		this(schema, dir, 0);
 	}
 
-	public SearchIndexesReader(Schema schema, IndexInput postingInput, IndexInput lexiconInput, IndexInput indexInput,
-			PrimaryKeyIndexReader pkReader, MemoryLexicon[] memoryLexicon, long[] fileLimit, AnalyzerPool[] queryTokenizerPool,
-			IndexFieldOption[] fieldIndexOptions) {
-		this.schema = schema;
-		this.postingInput = postingInput;
-		this.lexiconInput = lexiconInput;
-		this.indexInput = indexInput;
-		this.pkReader = pkReader;
-		this.memoryLexicon = memoryLexicon;
-		this.fileLimit = fileLimit;
-		this.queryTokenizerPool = queryTokenizerPool;
-		this.fieldIndexOptions = fieldIndexOptions;
-	}
-
 	public SearchIndexesReader(Schema schema, File dir, int revision) throws IOException, IRException {
 		this.schema = schema;
 		indexSettingList = schema.schemaSetting().getIndexSettingList();
@@ -186,20 +172,26 @@ public class SearchIndexesReader implements Cloneable {
 
 	@Override
 	public SearchIndexesReader clone() {
-		return new SearchIndexesReader(schema, postingInput.clone(), lexiconInput.clone(), indexInput.clone(), pkReader.clone(), memoryLexicon,
-				fileLimit, queryTokenizerPool, fieldIndexOptions);
+		
+		SearchIndexesReader reader = new SearchIndexesReader();
+		reader.schema = schema;
+		reader.postingInput = postingInput.clone();
+		reader.lexiconInput = lexiconInput.clone();
+		reader.indexInput = indexInput.clone();
+		reader.pkReader = pkReader.clone();
+		reader.memoryLexicon = memoryLexicon;
+		reader.fileLimit = fileLimit;
+		reader.queryTokenizerPool = queryTokenizerPool;
+		reader.fieldIndexOptions = fieldIndexOptions;
+		reader.indexSettingList = indexSettingList;
+		reader.pkFieldSettingList = pkFieldSettingList;
+		
+		return reader;
 	}
 
 	public OperatedClause getOperatedClause(Term term, HighlightInfo highlightInfo) throws IOException, IRException {
-		String[] fieldIdList = term.fieldname();
+		String[] indexFieldIdList = term.indexFieldId();
 		int[] fieldSequence = null;
-		// ArrayList<String>[] termList = null;
-		// ArrayList<String>[] orgList = null;
-		// if (summary != null) {
-		// fieldSequence = new int[fieldname.length];
-		// termList = new ArrayList[fieldname.length];
-		// orgList = new ArrayList[fieldname.length];
-		// }
 
 		Term.Type type = term.type();
 		int weight = term.weight();
@@ -207,24 +199,17 @@ public class SearchIndexesReader implements Cloneable {
 
 		CharVector fullTerm = new CharVector(term.termString());
 
-		// make all Alphabet to upperCase
-		// fullTerm.toUpperCase();
-		// CharVector token = new CharVector();
 		OperatedClause totalClause = null;
 
 		String primaryKeyId = schema.schemaSetting().getPrimaryKeySetting().getId();
 
-		for (int i = 0; i < fieldIdList.length; i++) {
-			String fieldId = fieldIdList[i];
+		for (int i = 0; i < indexFieldIdList.length; i++) {
+			String indexFieldId = indexFieldIdList[i];
 
-			// if (summary != null) {
-			// termList[i] = new ArrayList<String>();
-			// orgList[i] = new ArrayList<String>(); // new ArrayList<String>(5);
-			// }
-			logger.debug("getOperatedClause {} at {}, type={}", term.termString(), fieldId, type);
+			logger.debug("getOperatedClause {} at {}, type={}", term.termString(), indexFieldId, type);
 
 			// if this is primary key field..
-			if (fieldId.equals(primaryKeyId)) {
+			if (indexFieldId.equals(primaryKeyId)) {
 
 				OperatedClause idOperatedClause = getPrimaryKeyOperatedClause(term);
 
@@ -242,27 +227,29 @@ public class SearchIndexesReader implements Cloneable {
 			}
 
 			// int indexFieldSequence = schema.indexnames.get(fn);
-			int indexFieldSequence = schema.getSearchIndexSequence(fieldId);
+			int indexFieldSequence = schema.getSearchIndexSequence(indexFieldId);
+			if (indexFieldSequence < 0) {
+				throw new IRException("Unknown Search Fieldname = " + indexFieldId);
+				// continue;
+			}
+			
+			IndexSetting indexSetting = indexSettingList.get(indexFieldSequence);
 			
 			//필드별 사용된 analyzer를 map에 넣어주어 나중에 highlight시 해당 analyzer를 사용할수 있도록 한다.
 			if (highlightInfo != null) {
-				List<IndexSetting> list = schema.schemaSetting().getIndexSettingList();
-				IndexSetting indexSetting = list.get(indexFieldSequence);
 				String queryAnalyzerName = indexSetting.getQueryAnalyzer();
 				for (RefSetting refSetting : indexSetting.getFieldList()) {
 					highlightInfo.add(refSetting.getRef(), queryAnalyzerName, term.termString());
 				}
 			}
 
-			if (indexFieldSequence < 0) {
-				throw new IRException("Unknown Search Fieldname = " + fieldId);
-				// logger.error("Unknown Search Fieldname = "+fn);
-				// continue;
-			}
-
 			OperatedClause oneFieldClause = null;
 			Analyzer tokenizer = queryTokenizerPool[indexFieldSequence].getFromPool();
-
+			boolean ignoreCase = indexSetting.isIgnoreCase();
+			if(ignoreCase){
+				fullTerm = fullTerm.toUpperCase();
+			}
+			
 			try {
 				CharVectorTokenizer charVectorTokenizer = new CharVectorTokenizer(fullTerm);
 
@@ -290,9 +277,11 @@ public class SearchIndexesReader implements Cloneable {
 
 						}
 					}
-
-					logger.debug("find {} at {} by {}", eojeol, fieldId, tokenizer);
-					TokenStream tokenStream = tokenizer.tokenStream(fieldId, eojeol.getReader());
+					
+					
+					
+					logger.debug("find {} [ignorecase={}] at {} by {}", eojeol,ignoreCase, indexFieldId, tokenizer);
+					TokenStream tokenStream = tokenizer.tokenStream(indexFieldId, eojeol.getReader());
 					tokenStream.reset();
 
 					if (tokenStream.hasAttribute(CharsRefTermAttribute.class)) {

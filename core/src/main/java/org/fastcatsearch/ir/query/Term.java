@@ -37,7 +37,7 @@ public class Term {
 	
 	public static final Option OPTION_DEFAULT = new Option(SYNONYM | STOPWORD); //기본 옵션.
 	
-	private String[] fieldname;
+	private String[] indexFieldId;
 	private boolean fieldConcat; //필드결합 검색인지..
 	private String termString;
 	private int weight;
@@ -45,23 +45,23 @@ public class Term {
 	protected Option option;
 	
 	public Term(){}
-	public Term(String fieldname, String termString){
-		this(new String[]{fieldname}, termString, 1, Type.ALL);
+	public Term(String indexFieldId, String termString){
+		this(new String[]{indexFieldId}, termString, 1, Type.ALL);
 	}
-	public Term(String fieldname, String termString, int weight, Type type){
-		this(new String[]{fieldname}, termString, weight, type);
+	public Term(String indexFieldId, String termString, int weight, Type type){
+		this(new String[]{indexFieldId}, termString, weight, type);
 	}
-	public Term(String[] fieldname, String termString){
-		this(fieldname, termString, 1, Type.ALL);
+	public Term(String[] indexFieldId, String termString){
+		this(indexFieldId, termString, 1, Type.ALL);
 	}
-	public Term(String[] fieldname, String termString, Type type){
-		this(fieldname, termString, 1, type);
+	public Term(String[] indexFieldId, String termString, Type type){
+		this(indexFieldId, termString, 1, type);
 	}
-	public Term(String[] fieldname, String termString, int weight, Type type){
-		this(fieldname, termString, weight, type, OPTION_DEFAULT);
+	public Term(String[] indexFieldId, String termString, int weight, Type type){
+		this(indexFieldId, termString, weight, type, OPTION_DEFAULT);
 	}
-	public Term(String[] fieldname, String termString, int weight, Type type, Option option){
-		this.fieldname = fieldname;
+	public Term(String[] indexFieldId, String termString, int weight, Type type, Option option){
+		this.indexFieldId = indexFieldId;
 		//remove escapse character '\'
 		this.termString = termString.replaceAll("\\\\","");
 		this.weight = weight;
@@ -71,9 +71,9 @@ public class Term {
 	
 	public String toString(){
 		String fieldList = "";
-		for(int i=0;i<fieldname.length;i++){
-			fieldList += fieldname[i];
-			if(i < fieldname.length - 1){
+		for(int i=0;i<indexFieldId.length;i++){
+			fieldList += indexFieldId[i];
+			if(i < indexFieldId.length - 1){
 				if(fieldConcat){
 					fieldList += "+";
 				}else{
@@ -84,8 +84,8 @@ public class Term {
 		
 		return "{"+fieldList+":"+type+"("+termString+"):"+weight+":"+option+"}";
 	}
-	public String[] fieldname(){
-		return fieldname;
+	public String[] indexFieldId(){
+		return indexFieldId;
 	}
 	public String termString(){
 		return termString;

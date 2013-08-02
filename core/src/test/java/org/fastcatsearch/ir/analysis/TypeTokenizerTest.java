@@ -48,7 +48,7 @@ public class TypeTokenizerTest extends TestCase {
 				"significantly promoted the dissipation of Phe or Pyr in soils and remediation efficiency varied greatly among plant species and cropping patterns. Rape had the lowest ability for the removal of PAHs, while alfalfa showed highest ability for the remediation of Phe and white clover was most effective for Pyr. Mixed cropping of rape with alfalfa or white clover was however far better for the remediation of soil PAHs than single cropping. ? " +
 				"2010 Springer-Verlag.... $130,000...";
 		
-		str = "HospitUn Rambla S.L. nano* *aa *.. asf?s";
+//		str = "HospitUn Rambla S.L. nano* *aa *.. asf?s";
 		char[] charr = str.toCharArray();
 		tokenizer.setInput(charr);
 		CharVector token = new CharVector();
