@@ -24,17 +24,14 @@ import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 </data-info>
  * */
 
-
-//TODO segmentInfoList가 순서대로 나와야한다.
-
-
-
 @XmlRootElement(name = "data-info")
 @XmlType(propOrder = { "segmentInfoList", "deletes", "updates", "documents" })
 public class DataInfo {
 	private int documents;
 	private int updates;
 	private int deletes;
+	
+	//TODO id 순서대로 list에 추가되도록 adapter만들어야한다. 
 	private List<SegmentInfo> segmentInfoList;
 	
 	
@@ -48,7 +45,9 @@ public class DataInfo {
 		dataInfo.updates = this.updates;
 		dataInfo.deletes = this.deletes;
 		dataInfo.segmentInfoList = new ArrayList<SegmentInfo>();
-		dataInfo.segmentInfoList.addAll(segmentInfoList);
+		for(SegmentInfo segmentInfo : segmentInfoList){
+			dataInfo.segmentInfoList.add(segmentInfo.copy());
+		}
 		return dataInfo;
 	}
 	
@@ -68,6 +67,22 @@ public class DataInfo {
 		segmentInfoList.add(segmentInfo);
 		RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 		addUpdate(revisionInfo.getDocumentCount(), revisionInfo.getUpdateCount(), revisionInfo.getDeleteCount());
+	}
+	
+	public void updateSegmentInfo(SegmentInfo segmentInfo) {
+		if(segmentInfoList.contains(segmentInfo)){
+			int index = segmentInfoList.indexOf(segmentInfo);
+			SegmentInfo prevSegmentInfo = segmentInfoList.get(index);
+			RevisionInfo prevRevisionInfo = prevSegmentInfo.getRevisionInfo();
+			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
+			
+			revisionInfo.updateCount += prevRevisionInfo.updateCount;
+			revisionInfo.deleteCount += prevRevisionInfo.deleteCount;
+			
+			prevSegmentInfo.update(segmentInfo);
+		}else{
+			addSegmentInfo(segmentInfo);
+		}
 	}
 	
 	@XmlAttribute
@@ -125,12 +140,9 @@ public class DataInfo {
 	}
 	
 	/**
-	 <segment id="0" base="0" revision="2" documents="6000" updates="100" deletes="250" createTime="2013-06-15 15:30:00" />
-	 
 	 <segment id="0" base="0" revision="0">
-		<revision documents="1000" deletes="0" createTime="2013-06-15 15:20:00">
+		<revision documents="1000" updates="5" deletes="0" createTime="2013-06-15 15:20:00" />
 	</segment>
-	
 	 * */
 	@XmlRootElement(name = "segment")
 	@XmlType(propOrder = { "revisionInfo", "revision", "baseNumber", "id" })
@@ -149,11 +161,16 @@ public class DataInfo {
 			this.baseNumber = baseNumber;
 		}
 		
+		@Override
+		public boolean equals(Object other){
+			//id가 동일하면 같은 SegmentInfo이다.
+			return this.id.equals(((SegmentInfo) other).id);
+		}
 		public SegmentInfo copy(){
 			SegmentInfo segmentInfo = new SegmentInfo();
 			segmentInfo.id = id;
 			segmentInfo.baseNumber = baseNumber;
-			segmentInfo.baseNumber = baseNumber;
+			segmentInfo.revision = revision;
 			segmentInfo.revisionInfo = revisionInfo;
 			return segmentInfo;
 		}
@@ -161,20 +178,35 @@ public class DataInfo {
 			return "[SegmentInfo] id["+id+"] base["+baseNumber+"] revision["+revision+"] revisionInfo["+revisionInfo+"]";
 		}
 		
-//		public void updateRevision(int revision, int documents, int updates, int deletes, String createTime){
-//			updateRevision(new RevisionInfo(revision, documents, updates, deletes, createTime));
-//		}
+		public void update(SegmentInfo segmentInfo){
+			this.id = segmentInfo.id;
+			this.baseNumber = segmentInfo.baseNumber;
+			this.revision = segmentInfo.revision;
+			this.revisionInfo = segmentInfo.revisionInfo;
+		}
 		
 		//id와 baseNumber는 변경되지 않는다.
 		//TODO 상위 data info 의 문서수도 변경되야 한다.
 		public void updateRevision(RevisionInfo revisionInfo){
+			if(revisionInfo == null){
+				return;
+			}
+			
 			this.revision = revisionInfo.revision;
+			if(this.revisionInfo != null){
+				//누적숫자로 유지한다.
+				revisionInfo.updateCount += this.revisionInfo.updateCount;
+				revisionInfo.deleteCount += this.revisionInfo.deleteCount;
+			}
 			this.revisionInfo = revisionInfo;
 		}
 		
 		@XmlAttribute
 		public String getId() {
 			return id;
+		}
+		public int getIntId() {
+			return Integer.parseInt(id);
 		}
 
 		public void setId(String id) {
@@ -212,11 +244,22 @@ public class DataInfo {
 		}
 		
 		public int getNextRevision(){
-			return revision + 1;
+			if(revisionInfo != null){
+				return revision + 1;
+			}else{
+				return 0;
+			}
 		}
 		
 		public int getNextBaseNumber(){
 			return baseNumber + revisionInfo.documentCount;
+		}
+		
+		public SegmentInfo getNextSegmentInfo(){
+			SegmentInfo nextSegmentInfo = new SegmentInfo();
+			nextSegmentInfo.id = getNextId();
+			nextSegmentInfo.baseNumber = getNextBaseNumber();
+			return nextSegmentInfo;
 		}
 	}
 	

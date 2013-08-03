@@ -81,7 +81,10 @@ public class MakeIndexFileTask extends Task {
 				e.printStackTrace();
 			}
 		}
-		int dupCount =  writer.getDuplicateDocCount();//중복문서 삭제카운트
+		
+		//FIXME 
+		
+		int dupCount =  0;//writer.getDuplicateDocCount();//중복문서 삭제카운트
 		if(count == 0){
 			throw new TaskException("["+collectionId+"] Full Indexing Canceled due to no documents.");
 		}

@@ -69,6 +69,7 @@ public class FastcatSearchCollectFileParser extends SingleSourceReader {
 				file = new Path(filePath).makePath(config.getFullFilePath()).file();
 				br = new DirBufferedReader(file, fileEncoding);
 			}else{
+				file = new Path(filePath).makePath(config.getIncFilePath()).file();
 				br = new DirBufferedReader(file, fileEncoding);
 			}
 			logger.info("Collect file = {}, {}", file.getAbsolutePath(), fileEncoding);

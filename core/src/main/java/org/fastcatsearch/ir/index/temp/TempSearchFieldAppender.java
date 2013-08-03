@@ -19,6 +19,7 @@ package org.fastcatsearch.ir.index.temp;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.index.IndexFieldOption;
@@ -36,7 +37,7 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 	private CharVector cv;
 	private CharVector cvOld;
 	private BytesDataOutput tempPostingOutput;
-	private BytesBuffer[] buffers;
+	private BytesRef[] buffers;
 
 	private int totalCount;
 	private int prevDocNo;
@@ -48,7 +49,7 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 
 		tempPostingOutput = new BytesDataOutput(1024 * 1024);
 
-		buffers = new BytesBuffer[flushCount];
+		buffers = new BytesRef[flushCount];
 
 		reader = new TempSearchFieldReader[flushCount];
 		for (int m = 0; m < flushCount; m++) {
@@ -181,8 +182,8 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 					int len = postingInput1.readVInt();
 					if (len > buffer.length)
 						buffer = new byte[len];
-					if (len < 8)
-						throw new IOException("Terrible Error!!");
+//					if (len < 8)
+//						throw new IOException("Terrible Error!!");
 					// logger.debug("len1 = "+len);
 					postingInput1.readBytes(buffer, 0, len);
 
@@ -337,8 +338,8 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 				prevDocNo = -1;
 				totalCount = 0;
 				for (int k = 0; k < bufferCount; k++) {
-					BytesBuffer buf = buffers[k];
-					buf.flip();
+					BytesRef buf = buffers[k];
+					buf.reset();
 
 					// count 와 lastNo를 읽어둔다.
 					int count = IOUtil.readInt(buf);

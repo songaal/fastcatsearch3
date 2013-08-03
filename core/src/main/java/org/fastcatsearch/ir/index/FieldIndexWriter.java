@@ -58,7 +58,7 @@ public class FieldIndexWriter {
 			File dir, boolean isAppend) throws IOException, IRException {
 		String id = fieldIndexSetting.getId();
 		this.indexId = id;
-		fieldIndexOutput = new BufferedFileOutput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.fieldIndexFile, id), isAppend);
+		fieldIndexOutput = new BufferedFileOutput(dir, IndexFileNames.getFieldIndexFileName(id), isAppend);
 
 		String refFieldId = fieldIndexSetting.getRef();
 		fieldSequence = fieldSequenceMap.get(refFieldId);
@@ -69,7 +69,7 @@ public class FieldIndexWriter {
 
 		isMultiValue = refFieldSetting.isMultiValue();
 		if (isMultiValue) {
-			multiValueOutput = new BufferedFileOutput(dir, IndexFileNames.getMultiValueSuffixFileName(IndexFileNames.fieldIndexFile, id), isAppend);
+			multiValueOutput = new BufferedFileOutput(dir, IndexFileNames.getMultiValueFileName(IndexFileNames.getFieldIndexFileName(id)), isAppend);
 		}
 
 	}

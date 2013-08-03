@@ -79,12 +79,12 @@ public class SegmentReader {
 		}
 	};
 	
-	public SegmentReader(int segmentSequence, Schema schema, File segmentDir, SegmentInfo segmentInfo) throws IOException, IRException {
-		this(segmentSequence, schema, segmentDir, segmentInfo, new BitSet(0));
+	public SegmentReader(SegmentInfo segmentInfo, Schema schema, File segmentDir) throws IOException, IRException {
+		this(segmentInfo, schema, segmentDir, new BitSet(0));
 	}
 			
-	public SegmentReader(int segmentSequence, Schema schema, File segmentDir, SegmentInfo segmentInfo, BitSet bitset) throws IOException, IRException {
-		this.segmentSequence = segmentSequence;
+	public SegmentReader(SegmentInfo segmentInfo, Schema schema, File segmentDir, BitSet bitset) throws IOException, IRException {
+		this.segmentSequence = segmentInfo.getIntId();
 		this.schema = schema;
 		this.segmentDir = segmentDir;
 		this.segmentInfo = segmentInfo;

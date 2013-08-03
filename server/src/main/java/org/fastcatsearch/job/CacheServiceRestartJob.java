@@ -19,7 +19,9 @@ import org.fastcatsearch.exception.FastcatSearchException;
 public class CacheServiceRestartJob extends Job{
 	private int delay;
 	
-	public CacheServiceRestartJob(){ }
+	public CacheServiceRestartJob(){ 
+		delay = 1000; //1초.
+	}
 	
 	public CacheServiceRestartJob(int delay){ 
 		this.delay = delay;

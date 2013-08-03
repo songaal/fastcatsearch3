@@ -100,12 +100,10 @@ public class IRService extends AbstractService {
 
 				collectionHandlerMap.put(collectionId, collectionHandler);
 
-				if (!collection.isActive()) {
-					// active하지 않은 컬렉션은 map에 설정만 넣어두고 로드하지 않는다.
-					continue;
+				// active하지 않은 컬렉션은 map에 설정만 넣어두고 로드하지 않는다.
+				if (collection.isActive()) {
+					collectionHandler.load();
 				}
-
-				collectionHandler.load();
 
 			} catch (IRException e) {
 				logger.error("[ERROR] " + e.getMessage(), e);

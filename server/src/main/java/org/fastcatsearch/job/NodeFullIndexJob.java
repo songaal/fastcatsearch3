@@ -152,7 +152,7 @@ public class NodeFullIndexJob extends StreamableJob {
 //			CollectionHandler newHandler = new CollectionHandler(collectionId, collectionHomeDir, workSchema, IRSettings.getIndexConfig());
 			CollectionHandler newHandler = irService.loadCollectionHandler(collectionId, newDataSequence);
 //			int[] updateAndDeleteSize = 
-			newHandler.addSegment(segmentInfo, segmentDir, null); //collection.info 파일저장.
+			newHandler.updateCollection(segmentInfo, segmentDir, null); //collection.info 파일저장.
 //			newHandler.saveDataSequenceFile(); //data.sequence 파일저장.
 			
 			

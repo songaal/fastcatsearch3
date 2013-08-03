@@ -98,6 +98,7 @@ public class FullIndexJob extends IndexingJob {
 				throw new FastcatSearchException("["+collectionId+"] Full Indexing Canceled. Schema field is empty. time = "+Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - startTime));
 			}
 			
+			collectionContext.clearDataInfoAndStatus();
 			int newDataSequence = collectionContext.nextDataSequence();
 			
 			File collectionDataDir = collectionFilePaths.dataFile(newDataSequence);
@@ -179,7 +180,7 @@ public class FullIndexJob extends IndexingJob {
 			segmentInfo.updateRevision(revisionInfo);
 			
 			//append segment info
-			collectionContext.addSegmentInfo(segmentInfo, true);
+			collectionContext.addSegmentInfo(segmentInfo);
 			
 			//apply schema setting
 			CollectionContextUtil.applyWorkSchema(collectionContext);
@@ -202,7 +203,7 @@ public class FullIndexJob extends IndexingJob {
 			/*
 			 * 5초후에 캐시 클리어.
 			 */
-			getJobExecutor().offer(new CacheServiceRestartJob(5000));
+			getJobExecutor().offer(new CacheServiceRestartJob());
 			
 			//컬렉션 status 저장.
 			int updateDocumentCount = segmentInfo.getRevisionInfo().getUpdateCount();

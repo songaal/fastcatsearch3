@@ -128,6 +128,29 @@ public class CollectionContextUtil {
 		}
 
 	}
+	
+	public static void saveAfterIndexing(CollectionContext collectionContext) {
+		CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
+
+		Schema schema = collectionContext.schema();
+		CollectionStatus collectionStatus = collectionContext.collectionStatus();
+		DataInfo dataInfo = collectionContext.dataInfo();
+
+		File collectionDir = collectionFilePaths.file();
+
+		if (schema != null && schema.schemaSetting() != null) {
+			SchemaSetting schemaSetting = schema.schemaSetting();
+			JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.schema), schemaSetting, SchemaSetting.class);
+		}
+		if (collectionStatus != null) {
+			JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.collectionStatus), collectionStatus, CollectionStatus.class);
+		}
+		if (dataInfo != null) {
+			File dataDir = collectionFilePaths.dataFile(collectionStatus.getSequence());
+			dataDir.mkdirs();
+			JAXBConfigs.writeConfig(new File(dataDir, SettingFileNames.dataInfo), dataInfo, DataInfo.class);
+		}
+	}
 
 	// 색인이 끝나고 dataInfo 저장.
 	public static void saveDataInfo(CollectionContext collectionContext) {
@@ -163,22 +186,19 @@ public class CollectionContextUtil {
 		}
 	}
 
+	//workschema파일이 존재한다면 workschema를 schema로 대치하고 
+	//schema파일을 저장하고, workschema파일을 지운다.
 	public static void applyWorkSchema(CollectionContext collectionContext) {
 		CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
-
 		Schema schema = collectionContext.schema();
 		Schema workSchema = collectionContext.workSchema();
 		File collectionDir = collectionFilePaths.file();
-
-		if (schema != workSchema && schema != null && workSchema != null) {
-			logger.debug("applyWorkSchema >> {}", schema);
-			logger.debug("applyWorkSchema workSchema>> {}", workSchema);
-			// 스키마 업데이트.
+		
+		if (workSchema != null) {
 			schema.update(workSchema);
-
-			JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.schema), schema, Schema.class);
 			collectionContext.setWorkSchema(null);
-			File workSchemaFile = new File(collectionDir, SettingFileNames.schema);
+			JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.schema), schema, Schema.class);
+			File workSchemaFile = new File(collectionDir, SettingFileNames.workSchema);
 			if (workSchemaFile.exists()) {
 				workSchemaFile.delete();
 			}

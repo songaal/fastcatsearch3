@@ -14,10 +14,10 @@ import javax.xml.bind.annotation.XmlType;
  * */
 
 @XmlRootElement(name = "data-plan")
-@XmlType(propOrder = { "segmentRevisionBackupSize", "segmentDocumentLimit", "separateIncIndexing", "dataSequenceCycle" })
+@XmlType(propOrder = { "segmentRevisionBackupSize", "segmentDocumentLimit", "dataSequenceCycle" })
 public class DataPlanConfig {
 	private int dataSequenceCycle;
-	private boolean isSeparateIncIndexing;
+//	private boolean isSeparateIncIndexing;
 	private int documentLimit;
 	private int segmentRevisionBackupSize;
 	
@@ -28,13 +28,13 @@ public class DataPlanConfig {
 	public void setDataSequenceCycle(int dataSequenceCycle) {
 		this.dataSequenceCycle = dataSequenceCycle;
 	}
-	@XmlElement(name="separate-inc-indexing")
-	public boolean isSeparateIncIndexing() {
-		return isSeparateIncIndexing;
-	}
-	public void setSeparateIncIndexing(boolean isSeparateIncIndexing) {
-		this.isSeparateIncIndexing = isSeparateIncIndexing;
-	}
+//	@XmlElement(name="separate-inc-indexing")
+//	public boolean isSeparateIncIndexing() {
+//		return isSeparateIncIndexing;
+//	}
+//	public void setSeparateIncIndexing(boolean isSeparateIncIndexing) {
+//		this.isSeparateIncIndexing = isSeparateIncIndexing;
+//	}
 	
 	@XmlElement(name="segment-document-limit")
 	public int getSegmentDocumentLimit() {

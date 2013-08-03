@@ -81,7 +81,7 @@ public class BytesDataOutput extends DataOutput {
 	@Override
 	public void writeBytes(byte[] dst, int offset, int length) throws IOException {
 		if ((offset < 0) || (offset > dst.length) || (length < 0) || ((offset + length) > dst.length) || ((offset + length) < 0)) {
-			throw new IndexOutOfBoundsException();
+			throw new IndexOutOfBoundsException("offset="+offset+", length="+length+", dst.length="+dst.length);
 		} else if (length == 0) {
 			return;
 		}

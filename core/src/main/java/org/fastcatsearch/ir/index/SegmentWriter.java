@@ -42,7 +42,6 @@ public class SegmentWriter {
 	private boolean requestStop;
 	private long startTime;
 
-	private SegmentInfo segmentInfo;
 	private DocumentWriter documentWriter;
 	private PrimaryKeyIndexesWriter primaryKeyIndexesWriter;
 	private SearchIndexesWriter searchIndexesWriter;
@@ -98,9 +97,12 @@ public class SegmentWriter {
 	public int getDocumentCount() {
 		return count;
 	}
-
+	
+	/**
+	 * 색인후 내부 문서번호를 리턴한다. 
+	 */
 	public int addDocument(Document document) throws IRException, IOException {
-		logger.debug("doc >> {}", document);
+//		logger.debug("doc >> {}", document);
 		int docNo = documentWriter.write(document);
 		primaryKeyIndexesWriter.write(document, docNo);
 		searchIndexesWriter.write(document);
@@ -114,9 +116,9 @@ public class SegmentWriter {
 
 	// 색인중에 문서번호가 같은 데이터가 존재할 경우 내부적으로 삭제처리된다.
 	// 이 갯수를 색인결과의 삭제문서 갯수에 더해줘야 전체적인 문서수가 일치하게 된다.
-	public int getDuplicateDocCount() {
-		return primaryKeyIndexesWriter.getUpdateDocCount();
-	}
+//	public int getDuplicateDocCount() {
+//		return primaryKeyIndexesWriter.getUpdateDocCount();
+//	}
 
 	private void closeWriter() throws Exception {
 		boolean errorOccured = false;
@@ -165,14 +167,24 @@ public class SegmentWriter {
 	public RevisionInfo close() throws IOException, IRException {
 		try {
 			closeWriter();
-			//lastDocNo + 1? 
-			RevisionInfo revisionInfo = new RevisionInfo(revision, lastDocNo, primaryKeyIndexesWriter.getUpdateDocCount(), 0, Formatter.formatDate());
-			logger.info(
-					"Segment [{}] Total {} documents indexed, elapsed = {}, mem = {}",
-					new Object[] { segmentId, lastDocNo, Formatter.getFormatTime(System.currentTimeMillis() - startTime),
-							Formatter.getFormatSize(Runtime.getRuntime().totalMemory()) });
-
-			return revisionInfo;
+			
+			if(count == 0){
+				//리비전디렉토리 지우고, reurn null
+				File revisionDir = IndexFileNames.getRevisionDir(targetDir, revision);
+				FileUtils.deleteDirectory(revisionDir);
+				return null;
+			}else{
+				//lastDocNo + 1? 
+				//여기서는 동일 수집문서내 pk중복만 처리하고 삭제문서갯수는 알수 없다.
+				//삭제문서는 DataSourceReader에서 알수 있으므로, 이 writer를 호출하는 class에서처 처리한다.
+				RevisionInfo revisionInfo = new RevisionInfo(revision, lastDocNo, primaryKeyIndexesWriter.getUpdateDocCount(), 0, Formatter.formatDate());
+				logger.info(
+						"Segment [{}] Total {} documents indexed, elapsed = {}, mem = {}",
+						new Object[] { segmentId, lastDocNo, Formatter.getFormatTime(System.currentTimeMillis() - startTime),
+								Formatter.getFormatSize(Runtime.getRuntime().totalMemory()) });
+	
+				return revisionInfo;
+			}
 		} catch (Exception e) {
 			File revisionDir = IndexFileNames.getRevisionDir(targetDir, revision);
 			FileUtils.deleteDirectory(revisionDir);

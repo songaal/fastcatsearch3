@@ -53,20 +53,20 @@ public class GroupIndexReader extends ReferencableIndexReader {
 		String refId = groupIndexSetting.getRef();
 		FieldSetting refFieldSetting = fieldSettingMap.get(refId);
 		
-		File dataFile = new File(dir, IndexFileNames.getSuffixFileName(IndexFileNames.groupIndexFile, id));
-		File multiValueFile = new File(dir, IndexFileNames.getMultiValueSuffixFileName(IndexFileNames.groupIndexFile, id));
+		File dataFile = new File(dir, IndexFileNames.getGroupIndexFileName(id));
+		File multiValueFile = new File(dir, IndexFileNames.getMultiValueFileName(IndexFileNames.getGroupIndexFileName(id)));
     	
 		init(id, refFieldSetting, dataFile, multiValueFile, IOUtil.SIZE_OF_INT);
 		
 		if(refFieldSetting.isVariableField()){
-			groupKeyInput = new VariableDataInput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyFile, id));
+			groupKeyInput = new VariableDataInput(dir, IndexFileNames.getGroupKeyFileName(id));
 		}else{
 			int dataSize = refFieldSetting.getByteSize();
-			groupKeyInput = new FixedDataInput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyFile, id), dataSize);
+			groupKeyInput = new FixedDataInput(dir, IndexFileNames.getGroupKeyFileName(id), dataSize);
 		}
 		
 		File revisionDir = new File(dir, Integer.toString(revision));
-		PrimaryKeyIndexReader pkReader = new PrimaryKeyIndexReader(revisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyMap, id));
+		PrimaryKeyIndexReader pkReader = new PrimaryKeyIndexReader(revisionDir, IndexFileNames.getGroupKeyMapFileName(id));
 		groupKeySize = pkReader.count();
 		pkReader.close();
 		logger.debug("Group {} >> keysize:{}", id, groupKeySize);

@@ -165,7 +165,7 @@ public class SearchIndexReaderTest extends TestCase{
 		String target = null;//IRSettings.getSegmentPath(collection, 0, 1);
 		File targetDir = new File(target);
 		
-		IndexInput postingInput = new BufferedFileInput(targetDir, IndexFileNames.postingFile);
+		IndexInput postingInput = new BufferedFileInput(targetDir, IndexFileNames.getSearchTempFileName("a"));
 		byte[] buffer = new byte[1024 * 1024 * 4];
 		while(true){
 			int len = -1;

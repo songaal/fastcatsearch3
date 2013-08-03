@@ -91,7 +91,7 @@ public class GroupIndexWriter {
 		String id = groupIndexSetting.getId();
 		this.indexId = id;
 
-		groupIndexOutput = new BufferedFileOutput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.groupIndexFile, id), isAppend);
+		groupIndexOutput = new BufferedFileOutput(dir, IndexFileNames.getGroupIndexFileName(id), isAppend);
 
 		indexInterval = indexConfig.getPkTermInterval();
 		int bucketSize = indexConfig.getPkBucketSize();
@@ -103,14 +103,14 @@ public class GroupIndexWriter {
 		isIgnoreCase = groupIndexSetting.isIgnoreCase();
 		
 		if (refFieldSetting.isVariableField()) {
-			keyOutput = new VariableDataOutput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyFile, id), isAppend);
+			keyOutput = new VariableDataOutput(dir, IndexFileNames.getGroupKeyFileName(id), isAppend);
 		} else {
-			keyOutput = new FixedDataOutput(dir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyFile, id), isAppend);
+			keyOutput = new FixedDataOutput(dir, IndexFileNames.getGroupKeyFileName(id), isAppend);
 		}
 		memoryKeyIndex = new PrimaryKeyIndexWriter(indexInterval, bucketSize);
 
 		if (isMultiValue) {
-			multiValueOutput = new BufferedFileOutput(dir, IndexFileNames.getMultiValueSuffixFileName(IndexFileNames.groupIndexFile, id), isAppend);
+			multiValueOutput = new BufferedFileOutput(dir, IndexFileNames.getMultiValueFileName(IndexFileNames.getGroupIndexFileName(id)), isAppend);
 		}
 
 		keyBuffer = new BytesDataOutput();
@@ -118,7 +118,7 @@ public class GroupIndexWriter {
 		if (isAppend) {
 			// read previous pkmap
 			File prevDir = IndexFileNames.getRevisionDir(dir, revision - 1);
-			prevPkReader = new PrimaryKeyIndexReader(prevDir, IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyMap, id));
+			prevPkReader = new PrimaryKeyIndexReader(prevDir, IndexFileNames.getGroupKeyMapFileName(id));
 			groupNumber = prevPkReader.count();
 		}
 
@@ -219,7 +219,7 @@ public class GroupIndexWriter {
 			return;
 		}
 
-		String pkFilename = IndexFileNames.getSuffixFileName(IndexFileNames.groupKeyMap, indexId);
+		String pkFilename = IndexFileNames.getGroupKeyMapFileName(indexId);
 		String pkIndexFilename = IndexFileNames.getIndexFileName(pkFilename);
 
 		File tempPkFile = new File(revisionDir, IndexFileNames.getTempFileName(pkFilename));

@@ -120,7 +120,7 @@ public class SearchIndexWriter {
 		flushPosition = new long[1024];
 		flushCount = 0;
 
-		tempFile = new File(dir, IndexFileNames.getSuffixFileName(IndexFileNames.getTempFileName(IndexFileNames.postingFile), indexId));
+		tempFile = new File(dir, IndexFileNames.getSearchTempFileName(indexId));
 		tempOutput = new BufferedFileOutput(tempFile, false);
 	}
 

@@ -25,31 +25,54 @@ public class IndexFileNames {
 	public static final String docDeleteSet = "delete.set"; //deleted docs in segment
 	public static final String primaryKeyMap = "primarykey.map";
 	
-	public static final String postingFile = "posting";
-	public static final String lexiconFile = "lexicon";
-	public static final String indexFile = "index";
 	public static final String tempFile = "temp";
-	
-	public static final String fieldIndexFile = "field.index";
-	
-	public static final String groupIndexFile = "group.index";
-	public static final String groupKeyFile = "group.key"; //그룹순차번호별 key string저장.
-	public static final String groupKeyMap = "group.pk"; //증분색인시 이전 리비전과의 머징을 위해 필요한 pk파일. group writer에서만 사용된다.
 	
 	public static String getTempFileName(String name){
 		return name + "." + tempFile;
 	}
 	
+	//
+	// search
+	//
+	public static String getSearchTempFileName(String name){
+		return "search." + name + ".temp";
+	}
 	public static String getSearchPostingFileName(String name){
-		return "search." + name + "." + postingFile;
+		return "search." + name + ".posting";
 	}
 	public static String getSearchLexiconFileName(String name){
-		return "search." + name + "." + lexiconFile;
+		return "search." + name + ".lexicon";
 	}
 	public static String getSearchIndexFileName(String name){
-		return "search." + name + "." + indexFile;
+		return "search." + name + ".index";
 	}
 	
+	//
+	// group
+	//
+	public static String getGroupIndexFileName(String name){
+		return "group." + name + ".index";
+	}
+	//증분색인시 이전 리비전과의 머징을 위해 필요한 pk파일. group writer에서만 사용된다.
+	public static String getGroupKeyMapFileName(String name){
+		return "group." + name + ".pk";
+	}
+	 //그룹순차번호별 key string저장.
+	public static String getGroupKeyFileName(String name){
+		return "group." + name + ".key";
+	}
+	
+	//
+	// field index
+	//
+	public static String getFieldIndexFileName(String name){
+		return "field." + name + ".index";
+	}
+	
+	
+	//
+	// common
+	//
 	public static String getSuffixFileName(String name, String suffix){
 		return name + "." + suffix;
 	}
@@ -62,7 +85,9 @@ public class IndexFileNames {
 	public static String getMultiValueSuffixFileName(String name, String suffix){
 		return name + ".mv." + suffix;
 	}
-	
+	public static String getMultiValueFileName(String name){
+		return name + ".mv";
+	}
 	public static String getPositionFileName(String name){
 		return name + ".position";
 	}

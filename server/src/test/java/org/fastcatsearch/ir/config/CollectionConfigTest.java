@@ -63,7 +63,7 @@ public class CollectionConfigTest {
 		assertEquals(2, dataPlanConfig.getDataSequenceCycle());
 		assertEquals(2000000, dataPlanConfig.getSegmentDocumentLimit());
 		assertEquals(2, dataPlanConfig.getSegmentRevisionBackupSize());
-		assertEquals(true, dataPlanConfig.isSeparateIncIndexing());
+//		assertEquals(true, dataPlanConfig.isSeparateIncIndexing());
 		
 		
 		ClusterConfig clusterConfig = collectionConfig.getClusterConfig();

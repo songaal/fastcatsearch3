@@ -40,8 +40,8 @@ public class FieldIndexReader extends ReferencableIndexReader {
 		String refId = fieldIndexSetting.getRef();
 		FieldSetting refFieldSetting = fieldSettingMap.get(refId);
 		
-		File dataFile = new File(dir, IndexFileNames.getSuffixFileName(IndexFileNames.fieldIndexFile, id));
-		File multiValueFile = new File(dir, IndexFileNames.getMultiValueSuffixFileName(IndexFileNames.fieldIndexFile, id));
+		File dataFile = new File(dir, IndexFileNames.getFieldIndexFileName(id));
+		File multiValueFile = new File(dir, IndexFileNames.getMultiValueFileName(IndexFileNames.getFieldIndexFileName(id)));
     	
 		int indexDataSize = fieldIndexSetting.getSize();
 		int dataSize = refFieldSetting.getByteSize(indexDataSize);

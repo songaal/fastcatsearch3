@@ -130,16 +130,15 @@ public class CollectionContext {
 		}
 	}
 
-	public void addSegmentInfo(SegmentInfo segmentInfo) {
-		addSegmentInfo(segmentInfo, false);
+	public void updateSegmentInfo(SegmentInfo segmentInfo) {
+		dataInfo.updateSegmentInfo(segmentInfo);
 	}
-	//isFullIndexing == true이면 기존 dataInfo를 없애고 새로 생성.
-	public void addSegmentInfo(SegmentInfo segmentInfo, boolean isFullIndexing) {
-		
-		logger.debug("ADD segmentInfo >> {}", segmentInfo);
-		if(isFullIndexing || dataInfo == null){
-			dataInfo = new DataInfo();
-		}
+	public void addSegmentInfo(SegmentInfo segmentInfo) {
 		dataInfo.addSegmentInfo(segmentInfo);
-	}		
+	}
+
+	public void clearDataInfoAndStatus() {
+		dataInfo.getSegmentInfoList().clear();
+		collectionStatus.clear();
+	}
 }

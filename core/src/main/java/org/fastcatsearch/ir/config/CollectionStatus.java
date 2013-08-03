@@ -29,6 +29,10 @@ public class CollectionStatus {
 		return collectionStatus;
 	}
 
+	public void clear(){
+		fullIndexStatus = null;
+		addIndexStatus = null;
+	}
 	@Override
 	public String toString(){
 		return "[CollectionStatus] seq["+sequence+"] last-full=["+fullIndexStatus+"] last-add=["+addIndexStatus+"]";
