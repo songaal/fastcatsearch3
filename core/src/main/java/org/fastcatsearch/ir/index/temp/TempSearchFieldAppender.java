@@ -61,7 +61,6 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 		// 단지, 세그먼트 2의 문서번호는 동일한 수만 큼 증가했으므로 포스팅별 시작문서번호, lastDocNo가 조정되야 한다.(+seg2BaseDocNo)
 		// indexOutput은 indexInterval번마다 기록해준다.
 
-		boolean isStorePosition = fieldIndexOption.isStorePosition();
 		try {
 
 			//Posting 파일의 맨처음 int는 색인필드옵션이다.
@@ -88,8 +87,6 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 			CharVector term = null;
 
 			while (oldIndexTermCount >= 0 || hasNext) {
-				// logger.debug("CMP = "+new String(term1.array, term1.start, term1.length)+":"+new String(term2.array,
-				// term2.start, term2.length));
 				if (oldIndexTermCount >= 0 && hasNext)
 					cmp = compareKey(term1, term2);
 				else if (oldIndexTermCount < 0) // input1이 다 소진되었으면 input2를 읽도록 유도. 크기가 작은 걸 읽는다.
@@ -109,7 +106,7 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 
 					// posting merge.
 					int len1 = postingInput1.readVInt();
-					logger.debug("1term={} >> len1 = {}", term, len1);
+//					logger.debug("1term={} >> len1 = {}", term, len1);
 					int len2 = (int) tempPostingOutput.position(); // only data length (exclude header)
 
 					int count1 = postingInput1.readInt();
@@ -144,24 +141,16 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 					lexiconOutput.writeUString(term.array, term.start, term.length);
 					lexiconOutput.writeLong(position);
 
-					// read both term1, term2
-//					if (oldIndexTermCount > 0) {
-//						char[] t = lexiconInput1.readUString();
-//						term1 = new CharVector(t, 0, t.length);
-//						lexiconInput1.readLong();
-//					}
-//					oldIndexTermCount--;
 					term1 = readNextOldLexicon(lexiconInput1);
 					hasNext = readNextTempIndex(term2);
 
 				} else if (cmp < 0) {
 
 					int len = postingInput1.readVInt();
-					if (len > buffer.length)
+					if (len > buffer.length){
 						buffer = new byte[len];
-//					if (len < 8)
-//						throw new IOException("Terrible Error!!");
-					logger.debug("2term={} >> len1 = {}", term, len);
+					}
+					
 					postingInput1.readBytes(buffer, 0, len);
 
 					position = postingOutput.position();
@@ -174,18 +163,11 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 					lexiconOutput.writeUString(term.array, term.start, term.length);
 					lexiconOutput.writeLong(position);
 
-//					if (oldIndexTermCount > 0) {
-//						char[] t = lexiconInput1.readUString();
-//						term1 = new CharVector(t, 0, t.length);
-//						lexiconInput1.readLong();
-//					}
-//					oldIndexTermCount--;
 					term1 = readNextOldLexicon(lexiconInput1);
 
 				} else {
 
 					int len = (int) tempPostingOutput.position();
-					// logger.debug("len2 ="+len);
 					int count = totalCount;
 					int lastDocNo = prevDocNo;
 					int firstDocNo = IOUtil.readVInt(tempPostingOutput.array(), 0);
@@ -223,22 +205,11 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 				termCount++;
 			}// while
 
-//			logger.debug("## indexTermCount = " + indexTermCount);
-//			long prevPos = lexiconOutput.position();
-//			lexiconOutput.seek(lexiconFileHeadPos);
-//			lexiconOutput.writeInt(termCount);
-//			logger.debug("WRITE LEXICON COUNT = {} at {}", termCount, lexiconFileHeadPos);
-//			lexiconOutput.seek(prevPos);
-
 			if (termCount > 0) {
 				lexiconOutput.seek(0);
 				lexiconOutput.writeInt(termCount);
 				indexOutput.seek(0);
 				indexOutput.writeInt(indexTermCount);
-//				prevPos = indexOutput.position();
-//				indexOutput.seek(indexFileHeadPos);
-//				indexOutput.writeInt(indexTermCount);
-//				indexOutput.seek(prevPos);
 			} else {
 //				long pointer = lexiconOutput.position();
 //				indexOutput.writeLong(pointer);

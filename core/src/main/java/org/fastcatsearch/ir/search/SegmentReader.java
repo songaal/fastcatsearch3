@@ -80,7 +80,7 @@ public class SegmentReader {
 	};
 	
 	public SegmentReader(SegmentInfo segmentInfo, Schema schema, File segmentDir) throws IOException, IRException {
-		this(segmentInfo, schema, segmentDir, new BitSet(0));
+		this(segmentInfo, schema, segmentDir, null);
 	}
 			
 	public SegmentReader(SegmentInfo segmentInfo, Schema schema, File segmentDir, BitSet bitset) throws IOException, IRException {
@@ -101,7 +101,6 @@ public class SegmentReader {
 
 		this.documentReader = new DocumentReader(schema, segmentDir, segmentInfo.getBaseNumber());
 		
-//		this.documentReader = new DocumentReader(schema, segmentDir);
 		
 		if (bitset != null) {
 			deleteSet = bitset;

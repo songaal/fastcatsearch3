@@ -79,8 +79,6 @@ public class SegmentSearcher {
 
 		int docCount = segmentReader.docCount();
 		// Search
-		// summary = new ArrayList<HighlightInfo>();
-		// Clause clause = q.getClause();
 		OperatedClause operatedClause = null;
 
 		if (clause == null) {
@@ -135,7 +133,7 @@ public class SegmentSearcher {
 				if (operatedClause.next(rankInfo)) {
 					rankInfoList[nread] = rankInfo;
 					
-					logger.debug("search rankInfo {}", rankInfo);
+//					logger.debug("search rankInfo {}", rankInfo);
 				} else {
 					exausted = true;
 					break;

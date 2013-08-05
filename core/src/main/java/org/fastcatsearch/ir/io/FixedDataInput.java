@@ -32,11 +32,11 @@ public class FixedDataInput implements SequencialDataInput {
 		dataInput.readBytes(bytesRef.bytes, 0, dataSize);
 		
 		
-		String str = "";
-		for (int i = 0; i < dataSize; i++) {
-			str += (bytesRef.bytes[i] +",");
-		}
-		logger.debug("read fixed data [{}] seq[{}]", str, sequence);
+//		String str = "";
+//		for (int i = 0; i < dataSize; i++) {
+//			str += (bytesRef.bytes[i] +",");
+//		}
+//		logger.debug("read fixed data [{}] seq[{}]", str, sequence);
 		bytesRef.offset = 0;
 		bytesRef.length = dataSize;
 		return true;

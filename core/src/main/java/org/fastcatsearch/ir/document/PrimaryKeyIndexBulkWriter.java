@@ -75,8 +75,6 @@ public class PrimaryKeyIndexBulkWriter {
 	public void write(BytesBuffer buf, int value) throws IOException{
 		
 		//write pkmap index
-		logger.debug("Write pk key={} : {}", buf.toAlphaString(), value);
-		
 		if(keyCount % indexInterval == 0){
 			indexOutput.writeVInt(buf.remaining());
 			indexOutput.writeBytes(buf);

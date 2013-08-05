@@ -77,16 +77,16 @@ public class GroupDataGenerator {
 		groupKeySizeList = new int[groupSize];
 		redundancyCheck = new HashSet<Integer>();
 		
-		List<String> fieldIdList = new ArrayList<String>(groupSize);
+		List<String> indexIdList = new ArrayList<String>(groupSize);
 		for (int i = 0; i < groupSize; i++) {
 			Group group = groupList.get(i);
-			String fieldId = group.groupIndexId();
-			fieldIdList.add(fieldId);
-			logger.debug(">> group field name >> {}", fieldId);
+			String indexId = group.groupIndexId();
+			indexIdList.add(indexId);
+			logger.debug(">> group index id >> {}", indexId);
 		}
 		
-		indexRef = groupIndexesReader.selectIndexRef(fieldIdList.toArray(new String[0]));
-		logger.debug("group indexref size = {}", indexRef.getSize());
+		indexRef = groupIndexesReader.selectIndexRef(indexIdList.toArray(new String[0]));
+//		logger.debug("group indexref size = {}", indexRef.getSize());
 		
 		for (int i = 0; i < groupSize; i++) {
 			Group group = groupList.get(i);
@@ -123,7 +123,7 @@ public class GroupDataGenerator {
 				if(groupFunction instanceof CountGroupFunction){
 					//int로 만들어준다.
 					groupFunction.init(IntGroupingValue.createList(groupKeySize));
-					logger.debug("groupFunction #{} valuelist = {}", i, groupFunction.valueList);
+//					logger.debug("groupFunction #{} valuelist = {}", i, groupFunction.valueList);
 				}else if(groupFunction instanceof RangeCountGroupFunction){
 					//범위 그룹핑은 COUNT와 동일하게 int형으로 생성. 
 					groupFunction.init(IntGroupingValue.createList(groupKeySize));
@@ -284,7 +284,7 @@ public class GroupDataGenerator {
 					if(groupIndexReader.readKey(groupNo, keyBuffer)){
 						key = FieldDataStringer.parse(fieldType, keyBuffer);
 					}
-					logger.debug("groupEntryList.add {}, {}", key, valueList);
+//					logger.debug("groupEntryList.add {}, {}", key, valueList);
 					groupEntryList.add(new GroupEntry(key, valueList));
 				}
 				

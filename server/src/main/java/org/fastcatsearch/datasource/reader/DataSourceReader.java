@@ -136,7 +136,7 @@ public class DataSourceReader {
 				
 				Field f = fs.createIndexableField(data, multiValueDelimiter);
 				document.set(i, f);
-				logger.debug("doc [{}]{}:{}", i, fs.getId(), f);
+//				logger.debug("doc [{}]{}:{}", i, fs.getId(), f);
 			}
 			return document;
 		} catch (Throwable e) {

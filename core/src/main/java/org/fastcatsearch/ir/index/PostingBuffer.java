@@ -62,7 +62,7 @@ public class PostingBuffer {
 		}
 	}
 	public void addOne(int docNo, int position) throws IRException{
-		logger.debug("add >> {}, {}", docNo, position);
+//		logger.debug("add >> {}, {}", docNo, position);
 		//동일한 문서번호면 freq를 올려준다.
 		if(docNo == lastDocNo){
 			lastDocFrequency++;
@@ -89,21 +89,15 @@ public class PostingBuffer {
 		IOUtil.writeVInt(postingVector, lastDocDelta);
 		//lastDocFrequency 기록.
 		IOUtil.writeVInt(postingVector, lastDocFrequency);
-		logger.debug("writeLastDocInfo pos2={}/ {} [{}]", postingVector.offset, postingVector.limit(), postingVector.hashCode());
 		lastDocFrequency = 0;
 	}
 
 	public void finish(){
 		//flush 안된 남은 posting정보 기록. 
 		if(lastDocFrequency > 0){
-			logger.debug("finish >> {} [{}]", postingVector.offset, postingVector.hashCode());
 			writeLastDocInfo();
 		}
-		logger.debug("writeLastDocInfo flip1={} / {} = {} [{}]", postingVector.offset, postingVector.limit(), postingVector.length(), postingVector.hashCode());
 		postingVector.flip();
-		logger.debug("writeLastDocInfo flip2={} / {} = {} [{}]", postingVector.offset, postingVector.limit(), postingVector.length(), postingVector.hashCode());
-//		logger.debug("posting buffer finish size = {}", postingVector.length());
-		logger.debug("finish posting buffer lastDocFrequency[{}] postingSize[{}], lastDocNo[{}]", lastDocFrequency, postingSize, lastDocNo);
 		IOUtil.writeInt(postingVector, postingSize);
 		IOUtil.writeInt(postingVector, lastDocNo);
 		postingVector.pos(0);

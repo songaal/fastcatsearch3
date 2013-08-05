@@ -71,7 +71,11 @@ public class CollectionContextUtil {
 			}
 			
 			// dataSequence가 null아 아니면 원하는 sequence의 정보를 읽어온다.
-			File infoFile = new File(collectionFilePaths.dataFile(dataSequence), SettingFileNames.dataInfo);
+			File dataDir = collectionFilePaths.dataFile(dataSequence); 
+			if(!dataDir.exists()){
+				dataDir.mkdirs();
+			}
+			File infoFile = new File(dataDir, SettingFileNames.dataInfo);
 			DataInfo dataInfo = null;
 			if (infoFile.exists()) {
 				dataInfo = JAXBConfigs.readConfig(infoFile, DataInfo.class);

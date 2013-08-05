@@ -85,7 +85,7 @@ public class MemoryPosting {
 		
 		//텀갯수
 		output.writeInt(count);
-		logger.debug("term count = {}", count);
+//		logger.debug("term count = {}", count);
 		
 		for (int i = 0; i < count; i++) {
 			int id = sortedID[i];
@@ -105,14 +105,11 @@ public class MemoryPosting {
 			}
 			postingArray[id].finish();
 			BytesBuffer buf = postingArray[id].buffer();
-			logger.debug("write memory posting {} >> {} : len={}", id, new String(keyArray, pos, len), buf.length());
 			//데이터길이 
 			output.writeVInt(buf.length());
 //			logger.debug("term = {} >> {}", new String(keyArray, pos, len), buf.length());
 			if(buf.length() > 0){
 				output.writeBytes(buf);
-//				logger.debug("write memory posting {} >> {} ,data={}", id, new String(keyArray, pos, len), buf.length());
-				
 			}else{
 				logger.error("buffer empty >> {} = {} ,data=0 ", id, new String(keyArray, pos, len));
 				//버퍼가 비어있도록 진행하도록 수정.
@@ -121,9 +118,7 @@ public class MemoryPosting {
 		}
 		
 		logger.debug("==================");
-		logger.debug("outPos = {}", outPos);
-		logger.debug("count = {}", count);
-		logger.debug("end = {}", output.position());
+		logger.debug("outPos = {}, count = {}, end = {}", outPos, count, output.position());
 		
 		return outPos;
 	}
@@ -237,7 +232,7 @@ public class MemoryPosting {
 			p = newPostingBuffer();
 			put2(term, p);
 		}
-		logger.debug("term >> {}", term);
+//		logger.debug("term >> {}", term);
 		p.addOne(docNo, position);
 	}
 	
