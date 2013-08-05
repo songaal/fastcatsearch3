@@ -61,7 +61,7 @@ public class PrimaryKeyIndexWriter {
 	}
 	public PrimaryKeyIndexWriter(File dir, String filename, int indexInterval, int bucketSize) throws IOException{
 		
-		String indexFilename = IndexFileNames.getIndexFileName(filename);;
+		String indexFilename = IndexFileNames.getIndexFileName(filename);
 		
 		if(dir != null && filename != null){
 			output = new BufferedFileOutput(dir, filename);

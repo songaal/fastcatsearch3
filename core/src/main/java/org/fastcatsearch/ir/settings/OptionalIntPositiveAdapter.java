@@ -18,7 +18,7 @@ public class OptionalIntPositiveAdapter extends XmlAdapter<Integer, Integer> {
 
 	@Override
 	public Integer marshal(Integer v) throws Exception {
-		if(v > 0){
+		if(v != null && v > 0){
 			return v;
 		}
 		return null;

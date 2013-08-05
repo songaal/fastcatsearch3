@@ -18,7 +18,7 @@ public class OptionalStringAdapter extends XmlAdapter<String, String> {
 
 	@Override
 	public String marshal(String v) throws Exception {
-		if(v.length() == 0){
+		if(v == null || v.length() == 0){
 			return null;
 		}
 		return v;

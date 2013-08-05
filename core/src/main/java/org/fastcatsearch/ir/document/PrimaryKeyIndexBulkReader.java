@@ -19,7 +19,6 @@ package org.fastcatsearch.ir.document;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BytesBuffer;
 import org.slf4j.Logger;
@@ -33,23 +32,23 @@ public class PrimaryKeyIndexBulkReader {
 	private int keyCount;
 	
 	public PrimaryKeyIndexBulkReader(File file) throws IOException{
-		this(file, 0);
-	}
-	public PrimaryKeyIndexBulkReader(File file, long dataBasePosition) throws IOException{
+//		this(file, 0);
+//	}
+//	public PrimaryKeyIndexBulkReader(File file, long dataBasePosition) throws IOException{
 		input  = new BufferedFileInput(file);
-		input.seek(dataBasePosition);
+//		input.seek(dataBasePosition);
 		keyCount = input.readInt();
 	}
 	
-	public PrimaryKeyIndexBulkReader(File dir, String filename) throws IOException{
-		this(dir, filename, 0);
-	}
+//	public PrimaryKeyIndexBulkReader(File dir, String filename) throws IOException{
+//		this(dir, filename, 0);
+//	}
 	
-	public PrimaryKeyIndexBulkReader(File dir, String filename, long dataBasePosition) throws IOException{
-		input  = new BufferedFileInput(dir, filename);
-		input.seek(dataBasePosition);
-		keyCount = input.readInt();
-	}
+//	public PrimaryKeyIndexBulkReader(File dir, String filename, long dataBasePosition) throws IOException{
+//		input  = new BufferedFileInput(dir, filename);
+//		input.seek(dataBasePosition);
+//		keyCount = input.readInt();
+//	}
 	
 	public int next(BytesBuffer buf) throws IOException{
 		if(keyCount <= 0){
@@ -60,7 +59,6 @@ public class PrimaryKeyIndexBulkReader {
 		int len = input.readVInt();
 		buf.limit(len);
 		input.readBytes(buf);
-//		buf.flip();
 		int docNo = input.readInt();
 	
 		return docNo;

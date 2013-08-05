@@ -33,6 +33,9 @@ public class Schema {
 		this(schemaSetting);
 		this.collectionId = collectionId;
 	}
+	public boolean isEmpty(){
+		return schemaSetting == null;
+	}
 	public Schema(SchemaSetting schemaSetting){
 		if(schemaSetting == null){
 			return;

@@ -30,18 +30,23 @@ import org.fastcatsearch.ir.io.IndexOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-
-
 public class TempSearchFieldMerger {
 	protected static Logger logger = LoggerFactory.getLogger(TempSearchFieldMerger.class);
-	
+
 	protected int[] heap;
 	protected TempSearchFieldReader[] reader;
 	protected String indexId;
 	protected int flushCount;
+	protected BytesDataOutput tempPostingOutput;
 	
-	public TempSearchFieldMerger(String indexId, int flushCount, long[] flushPosition, File tempFile) throws IOException{ 
+	private int bufferCount = 0;
+	private CharVector cv;
+	private CharVector cvOld;
+	private int totalCount;
+	private int prevDocNo;
+	private BytesRef[] buffers;
+
+	public TempSearchFieldMerger(String indexId, int flushCount, long[] flushPosition, File tempFile) throws IOException {
 		this.indexId = indexId;
 		this.flushCount = flushCount;
 		reader = new TempSearchFieldReader[flushCount];
@@ -49,313 +54,336 @@ public class TempSearchFieldMerger {
 			reader[m] = new TempSearchFieldReader(m, indexId, tempFile, flushPosition[m]);
 			reader[m].next();
 		}
+
+		tempPostingOutput = new BytesDataOutput(1024 * 1024);
+		// 동일한 단어는 최대 flush갯수 만큼 buffer 배열에 쌓이게 된다.
+		buffers = new BytesRef[flushCount];
 	}
-	
-	public void mergeAndMakeIndex(File baseDir, int indexInterval, IndexFieldOption fieldIndexOption) throws IOException{
+
+	public void mergeAndMakeIndex(File baseDir, int indexInterval, IndexFieldOption fieldIndexOption) throws IOException {
 		logger.debug("**** mergeAndMakeIndex ****");
 		logger.debug("flushCount={}", flushCount);
-		
-		if(flushCount <= 0){
+
+		if (flushCount <= 0) {
 			return;
 		}
-		
-		IndexOutput postingOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(baseDir, 0), IndexFileNames.getSearchPostingFileName(indexId));
-		IndexOutput lexiconOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(baseDir, 0), IndexFileNames.getSearchLexiconFileName(indexId));
-		IndexOutput indexOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(baseDir, 0), IndexFileNames.getSearchIndexFileName(indexId));
-	    BytesDataOutput tempPostingOutput = new BytesDataOutput(1024 * 1024);
-		CharVector cv = null;
-		CharVector cvOld = null;
 
-		try{
+		IndexOutput postingOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(baseDir, 0),
+				IndexFileNames.getSearchPostingFileName(indexId));
+		IndexOutput lexiconOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(baseDir, 0),
+				IndexFileNames.getSearchLexiconFileName(indexId));
+		IndexOutput indexOutput = new BufferedFileOutput(IndexFileNames.getRevisionDir(baseDir, 0), IndexFileNames.getSearchIndexFileName(indexId));
+
+		try {
 			postingOutput.writeInt(fieldIndexOption.value());
-			
-			//to each field
+
+			// to each field
 			logger.debug("## MERGE field = {}", indexId);
 
-//			prepareNextSearchField(i);
 			makeHeap(flushCount);
-			
-			//동일한 단어는 최대 flush갯수 만큼 buffer 배열에 쌓이게 된다.
-			BytesRef[] buffers = new BytesRef[flushCount] ;
-			int bufferCount = 0; //posting buffer's count in the same term
-			
+
 			int termCount = 0;
 			int indexTermCount = 0;
-			
-//			long lexiconFileHeadPos = lexiconOutput.position();
-//			long indexFileHeadPos = indexOutput.position();
-			
-			lexiconOutput.writeInt(termCount);//termCount
-			indexOutput.writeInt(indexTermCount);//indexTermCount
-//				boolean isStorePosition = fieldIndexOptions[i].isStorePosition();
 
-			while(true){
-				int idx = heap[1];
-				cv = reader[idx].term();
+			lexiconOutput.writeInt(termCount);// termCount
+			indexOutput.writeInt(indexTermCount);// indexTermCount
+
+			CharVector term = new CharVector();
+			while (readNextTempIndex(term)) {
+				int len = (int) tempPostingOutput.position();
+				int count = totalCount;
+				int lastDocNo = prevDocNo;
+				int firstDocNo = IOUtil.readVInt(tempPostingOutput.array(), 0);
+				int sz = IOUtil.lenVariableByte(firstDocNo);
+
+				len -= sz;
+
+				int sz2 = IOUtil.lenVariableByte(firstDocNo);
+
+				long postingPosition = postingOutput.position();
+
+				int len2 = IOUtil.SIZE_OF_INT * 2 + sz2 + len;
+				if (len2 < 8)
+					throw new IOException("Terrible Error!! " + len2);
 				
-				//if cv == null, all readers are done
-				//if cvOld !=  cv , term is changed and cvOld has to be wrote 
-				if( (cv == null  || !cv.equals(cvOld)) && cvOld!= null){
-					//merge buffers
-					int prevDocNo = -1;
-					int totalCount = 0;
-					
-//						logger.debug("MERGE {}, count={}", cvOld, bufferCount);
-					for (int k = 0; k < bufferCount; k++) {
-						BytesRef buf = buffers[k];
-						buf.reset();
-						
-						int count = IOUtil.readInt(buf);
-						int lastDocNo = IOUtil.readInt(buf);
-						totalCount += count;
-						
-						if(k == 0){
-							tempPostingOutput.writeBytes(buf.array(), buf.pos(), buf.remaining());
-						}else{
-							int firstNo = IOUtil.readVInt(buf);
-							int newDocNo = firstNo - prevDocNo - 1;
-							
-							IOUtil.writeVInt(tempPostingOutput, newDocNo);
-							tempPostingOutput.writeBytes(buf.array(), buf.pos(), buf.remaining());
-						}
-						
-						prevDocNo = lastDocNo;
-					}
-					
-					long postingPosition = postingOutput.position();
-					//write size
-					//포스팅 한개는 Int사이즈를 넘을 수 없다.
-					postingOutput.writeVInt(IOUtil.SIZE_OF_INT * 2 + (int)tempPostingOutput.position());
-					//count, lastDocNo are required for later (index compact)
-					postingOutput.writeInt(totalCount);//count
-					postingOutput.writeInt(prevDocNo);//lastDocNo
-					postingOutput.writeBytes(tempPostingOutput.array(), 0, (int)tempPostingOutput.position());
-					tempPostingOutput.reset();
-					
-					bufferCount = 0;
-					
-					long pointer = lexiconOutput.position();
-//					write term
-					lexiconOutput.writeUString(cvOld.array, cvOld.start, cvOld.length);
-					lexiconOutput.writeLong(postingPosition);
-					
-					if(indexInterval > 0 && (termCount % indexInterval) == 0){
-						indexOutput.writeUString(cvOld.array, cvOld.start, cvOld.length);
-						indexOutput.writeLong(pointer);
-						indexOutput.writeLong(postingPosition);
-						indexTermCount++;
-					}
-					
-					termCount++;
+				
+				//1. Write Posting
+				postingOutput.writeVInt(len2);
+				postingOutput.writeInt(count);
+				postingOutput.writeInt(lastDocNo);
+				postingOutput.writeVInt(firstDocNo);
+				postingOutput.writeBytes(tempPostingOutput.array(), sz, len);
+
+				
+				//2. Write Lexicon
+				long lexiconPosition = lexiconOutput.position();
+				lexiconOutput.writeUString(term.array, term.start, term.length);
+				lexiconOutput.writeLong(postingPosition);
+				
+				//3. Write Index
+				if (indexInterval > 0 && (termCount % indexInterval) == 0) {
+					indexOutput.writeUString(term.array, term.start, term.length);
+					indexOutput.writeLong(lexiconPosition);
+					indexOutput.writeLong(postingPosition);
+					indexTermCount++;
 				}
+				termCount++;
 				
-				try{
-					buffers[bufferCount++] = reader[idx].buffer();
-				}catch(ArrayIndexOutOfBoundsException e){
-					logger.info("{}:{} bufferCount = {}, buffers.len = {}, idx = {}, reader = {}", cvOld, cv, bufferCount, buffers.length, idx, reader.length);
-					throw e;
-				}
-				//backup cv to old
-				cvOld = cv;
-				
-				reader[idx].next();
-				
-				if(cv == null){
-					//all readers are done
-					break;
-				}
-				
-				heapify(1, flushCount);
-				
-			} //while(true)
-		
-			//Write term count on head position
-//			long prevPos = lexiconOutput.position();
-//			lexiconOutput.seek(prevPos);
-			if(termCount > 0){
+			}
+
+
+			// Write term count on head position
+			// long prevPos = lexiconOutput.position();
+			// lexiconOutput.seek(prevPos);
+			if (termCount > 0) {
 				lexiconOutput.seek(0);
 				lexiconOutput.writeInt(termCount);
-//				logger.debug("*** indexOutput.size() = "+indexOutput.size());
-//				prevPos = indexOutput.position();
 				indexOutput.seek(0);
 				indexOutput.writeInt(indexTermCount);
-//				indexOutput.seek(prevPos);
-//				logger.debug("*** indexOutput.size() = "+indexOutput.size());
-			}else{
-				//이미 indexTermCount는 0으로 셋팅되어 있으므로 기록할 필요없음.
-//				long pointer = lexiconOutput.position();
-//				indexOutput.writeLong(pointer);
+			} else {
+				// 이미 indexTermCount는 0으로 셋팅되어 있으므로 기록할 필요없음.
 			}
 			logger.debug("## write index [{}] termCount[{}] indexTermCount[{}] indexInterval[{}]", indexId, termCount, indexTermCount, indexInterval);
-			
+
 			lexiconOutput.flush();
 			indexOutput.flush();
 			postingOutput.flush();
-			
-		}finally {
+
+		} finally {
 			IOException exception = null;
-			
-			try{
-				if(postingOutput != null){
+
+			try {
+				if (postingOutput != null) {
 					postingOutput.close();
 				}
-			}catch(IOException e){ 
+			} catch (IOException e) {
 				exception = e;
 			}
-			try{
-				if(lexiconOutput != null){
+			try {
+				if (lexiconOutput != null) {
 					lexiconOutput.close();
 				}
-			}catch(IOException e){ 
+			} catch (IOException e) {
 				exception = e;
 			}
-			try{
-				if(indexOutput != null){
+			try {
+				if (indexOutput != null) {
 					indexOutput.close();
 				}
-			}catch(IOException e){ 
+			} catch (IOException e) {
 				exception = e;
 			}
-			
-			if(exception != null){
+
+			if (exception != null) {
 				throw exception;
 			}
 		}
 	}
-	
 
-	public void close() throws IOException{
+	// 여러번 flush된 임시 posing 파일에서 정렬된 단어들을 읽어들여 posting을 tempPostingOutput 하나로 머징한다.
+	protected boolean readNextTempIndex(CharVector term) throws IOException {
+		tempPostingOutput.reset();
+		boolean termMade = false;
+
+		// int kk = 0;
+		while (true) {
+			int idx = heap[1];
+			cv = reader[idx].term();
+
+			if (cv == null && cvOld == null) {
+				// if cv and cvOld are null, it's done
+				return false;
+			}
+
+			// cv == null일경우는 모든 reader가 종료되어 null이 된경우이며
+			// cvOld 와 cv 가 다른 경우는 머징시 텀이 바뀐경우. cvOld를 기록해야한다.
+			if ((cv == null || !cv.equals(cvOld)) && cvOld != null) {
+				// merge buffers
+				prevDocNo = -1;
+				totalCount = 0;
+				for (int k = 0; k < bufferCount; k++) {
+					BytesRef buf = buffers[k];
+					// buf.reset();
+
+					// count 와 lastNo를 읽어둔다.
+					int count = IOUtil.readInt(buf);
+					int lastDocNo = IOUtil.readInt(buf);
+					totalCount += count;
+					// logger.debug("count="+count);
+					if (k == 0) {
+						// 첫번째 문서번호부터 끝까지 기록한다.
+						tempPostingOutput.writeBytes(buf.array(), buf.pos(), buf.remaining());
+					} else {
+						int firstNo = IOUtil.readVInt(buf);
+						int newDocNo = firstNo - prevDocNo - 1;
+						logger.debug("newDocNo={}, firstNo={}, prevDocNo={}", newDocNo, firstNo, prevDocNo);
+
+						IOUtil.writeVInt(tempPostingOutput, newDocNo);
+						tempPostingOutput.writeBytes(buf.array(), buf.pos(), buf.remaining());
+					}
+					prevDocNo = lastDocNo;
+				}
+
+				termMade = true;
+				term.init(cvOld.array, cvOld.start, cvOld.length);
+
+				bufferCount = 0;
+
+			}
+
+			try {
+				buffers[bufferCount++] = reader[idx].buffer();
+			} catch (ArrayIndexOutOfBoundsException e) {
+				logger.info("### bufferCount= {}, buffers.len={}, idx={}, reader={}", bufferCount, buffers.length, idx, reader.length);
+				throw e;
+			}
+
+			// backup cv to old
+			cvOld = cv;
+
+			reader[idx].next();
+
+			heapify(1, flushCount);
+
+			if (termMade) {
+				return true;
+			}
+		} // while(true)
+
+	}
+
+	public void close() throws IOException {
 		IOException exception = null;
 		for (int i = 0; i < flushCount; i++) {
-			if(reader[i] != null){
-				try{
+			if (reader[i] != null) {
+				try {
 					reader[i].close();
-				}catch(IOException e){ 
+				} catch (IOException e) {
 					exception = e;
 				}
 			}
 		}
-		if(exception != null){
+		if (exception != null) {
 			throw exception;
 		}
 	}
-	
-	protected void makeHeap(int heapSize){
+
+	protected void makeHeap(int heapSize) {
 		heap = new int[heapSize + 1];
-		//index starts from 1
+		// index starts from 1
 		for (int i = 0; i < heapSize; i++) {
-			heap[i+1] = i;
+			heap[i + 1] = i;
 		}
-		
-		int n = heapSize >> 1; //last inner node index
-		
+
+		int n = heapSize >> 1; // last inner node index
+
 		for (int i = n; i > 0; i--) {
 			heapify(i, heapSize);
 		}
-		
+
 	}
-	
-	protected void heapify(int idx, int heapSize){
-		
+
+	protected void heapify(int idx, int heapSize) {
+
 		int temp = -1;
 		int child = -1;
 
-		while(idx <= heapSize){
+		while (idx <= heapSize) {
 			int left = idx << 1;// *=2
 			int right = left + 1;
-			
-			if(left <= heapSize){
-				if(right <= heapSize){
-					//키워드가 동일할 경우 먼저 flush된 reader가 우선해야, docNo가 오름차순 정렬순서대로 올바로 기록됨.
-					//flush후 머징시 문제가 생기는 버그 해결됨 2013-5-21 swsong
+
+			if (left <= heapSize) {
+				if (right <= heapSize) {
+					// 키워드가 동일할 경우 먼저 flush된 reader가 우선해야, docNo가 오름차순 정렬순서대로 올바로 기록됨.
+					// flush후 머징시 문제가 생기는 버그 해결됨 2013-5-21 swsong
 					int c = compareKey(left, right);
-					if(c < 0){
+					if (c < 0) {
 						child = left;
-					}else if(c > 0){
+					} else if (c > 0) {
 						child = right;
-					}else{
-						//하위 value 둘이 같아서 seq확인.
-						//같다면 id가 작은게 우선.
+					} else {
+						// 하위 value 둘이 같아서 seq확인.
+						// 같다면 id가 작은게 우선.
 						int a = heap[left];
 						int b = heap[right];
-						if(reader[a].sequence() < reader[b].sequence()){
+						if (reader[a].sequence() < reader[b].sequence()) {
 							child = left;
-						}else{
+						} else {
 							child = right;
 						}
 					}
-				}else{
-					//if there is no right el.
+				} else {
+					// if there is no right el.
 					child = left;
 				}
-			}else{
-				//no children
+			} else {
+				// no children
 				break;
 			}
-			
-			//compare and swap
+
+			// compare and swap
 			int c = compareKey(child, idx);
-			if(c < 0){
+			if (c < 0) {
 				temp = heap[child];
 				heap[child] = heap[idx];
 				heap[idx] = temp;
 				idx = child;
-//				System.out.println("idx1="+idx);
-			}else if(c == 0){
-				//하위와 자신의 value가 같아서 seq확인
-				//같다면 seq가 작은게 우선.
+				// System.out.println("idx1="+idx);
+			} else if (c == 0) {
+				// 하위와 자신의 value가 같아서 seq확인
+				// 같다면 seq가 작은게 우선.
 				int a = heap[idx];
 				int b = heap[child];
-				if(reader[a].sequence() > reader[b].sequence()){
-					//하위의 seq가 작아서 child채택!
+				if (reader[a].sequence() > reader[b].sequence()) {
+					// 하위의 seq가 작아서 child채택!
 					temp = heap[child];
 					heap[child] = heap[idx];
 					heap[idx] = temp;
 					idx = child;
-				}else{
-					//내것을 그대로 사용.
-					//sorted
+				} else {
+					// 내것을 그대로 사용.
+					// sorted
 					break;
 				}
-			}else{
-				//sorted, then do not check child
+			} else {
+				// sorted, then do not check child
 				break;
 			}
 
 		}
 	}
-	
-	protected int compareKey(int one, int another){
+
+	protected int compareKey(int one, int another) {
 
 		int a = heap[one];
 		int b = heap[another];
-		
+
 		return compareKey(reader[a].term(), reader[b].term());
 	}
-	
-	protected int compareKey(CharVector term1, CharVector term2){
-		
-		//reader gets EOS, returns null
-		if(term1 == null && term2 == null){
+
+	protected int compareKey(CharVector term1, CharVector term2) {
+
+		// reader gets EOS, returns null
+		if (term1 == null && term2 == null) {
 			return 0;
-		}else if(term1 == null)
+		} else if (term1 == null)
 			return 1;
-		else if(term2 == null)
+		else if (term2 == null)
 			return -1;
-		
+
 		int len = (term1.length < term2.length) ? term1.length : term2.length;
-				
+
 		int aoff = term1.start;
 		int boff = term2.start;
-		
+
 		for (int i = 0; i < len; i++) {
-			if(term1.array[aoff + i] != term2.array[boff + i])
+			if (term1.array[aoff + i] != term2.array[boff + i])
 				return term1.array[aoff + i] - term2.array[boff + i];
 		}
-		
-		if(term1.length != term2.length)
+
+		if (term1.length != term2.length)
 			return term1.length - term2.length;
-		
+
 		return term1.length - term2.length;
 	}
 }

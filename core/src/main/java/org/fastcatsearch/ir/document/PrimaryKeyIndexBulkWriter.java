@@ -35,21 +35,16 @@ import org.slf4j.LoggerFactory;
 public class PrimaryKeyIndexBulkWriter {
 	private static Logger logger = LoggerFactory.getLogger(PrimaryKeyIndexBulkWriter.class);
 	
-	private String filename;
 	private IndexOutput output;
 	private IndexOutput indexOutput;
 	private int indexInterval;
 	private int keyCount;
 	private int keyIndexCount;
-//	private long pos1, pos2;
 	
 	public PrimaryKeyIndexBulkWriter(File f, int indexInterval) throws IOException{
-		this.filename = f.getName();
 		this.indexInterval = indexInterval;
 		output = new BufferedFileOutput(f);
 		indexOutput = new BufferedFileOutput(f.getParentFile(), IndexFileNames.getIndexFileName(f.getName()));
-//		pos1 = output.position();
-//		pos2 = indexOutput.position();
 		
 		output.writeInt(0);
 		indexOutput.writeInt(0);
@@ -59,41 +54,28 @@ public class PrimaryKeyIndexBulkWriter {
 		this.output = output;
 		this.indexOutput = indexOutput;
 		this.indexInterval = indexInterval;
-//		pos1 = output.position();
-//		pos2 = indexOutput.position();
 		output.writeInt(0);
 		indexOutput.writeInt(0);
 	}
 	
 	
 	public void close() throws IOException{
-//		logger.debug(filename +" filesize=" + output.position()+", count="+keyCount);
 		long t = output.position();
 		output.seek(0);
 		output.writeInt(keyCount);
 		output.close();
 		
-//		if(!isAppend)
-//			output.close();
-//		else
-//			output.seek(t);
-		
-//		logger.debug(filename +".index filesize=" + indexOutput.seek()+", count="+keyIndexCount);
 		t = indexOutput.position();
 		indexOutput.seek(0);
 		indexOutput.writeInt(keyIndexCount);
 		indexOutput.close();
 		
-//		if(!isAppend)
-//			indexOutput.close();
-//		else
-//			indexOutput.seek(t);
 		
 	}
 	public void write(BytesBuffer buf, int value) throws IOException{
 		
 		//write pkmap index
-		BytesBuffer clone = new BytesBuffer(buf.array(), buf.pos(), buf.limit());
+		logger.debug("Write pk key={} : {}", buf.toAlphaString(), value);
 		
 		if(keyCount % indexInterval == 0){
 			indexOutput.writeVInt(buf.remaining());
@@ -102,8 +84,8 @@ public class PrimaryKeyIndexBulkWriter {
 			keyIndexCount++;
 		}
 		
-		output.writeVInt(clone.remaining());
-		output.writeBytes(clone);
+		output.writeVInt(buf.remaining());
+		output.writeBytes(buf);
 		output.writeInt(value);
 		keyCount++;
 	}

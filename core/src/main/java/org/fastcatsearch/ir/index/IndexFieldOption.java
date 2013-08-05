@@ -26,4 +26,9 @@ public class IndexFieldOption {
 	public boolean isStorePosition(){
 		return (optionValue & STORE_POSITION) > 0 ;
 	}
+	
+	public boolean equals(Object obj){
+		IndexFieldOption other = (IndexFieldOption) obj;
+		return optionValue == other.optionValue;
+	}
 }

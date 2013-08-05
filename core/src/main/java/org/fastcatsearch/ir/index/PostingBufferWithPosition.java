@@ -69,7 +69,7 @@ public class PostingBufferWithPosition extends PostingBuffer {
 		ensurePostingVectorCapasity(positionBuffer.length());
 		
 		postingVector.write(positionBuffer.array(), positionBuffer.pos(), positionBuffer.length());
-		
+		logger.debug("writeLastDocInfoWithPosition pos3={}/ {} [{}]", postingVector.offset, postingVector.limit(), postingVector.hashCode());
 		//positionVector 초기화.
 		if(positionBuffer.size() >= 128){
 			//너무크면 버리고 새로 만든다.

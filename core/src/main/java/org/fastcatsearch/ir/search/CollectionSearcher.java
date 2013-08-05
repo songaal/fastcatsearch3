@@ -524,16 +524,18 @@ public class CollectionSearcher {
 			SegmentReader segmentReader = collectionHandler.segmentReader(segNo);
 			// File targetDir = segmentReader.getSegmentDir();
 			// int lastRevision = segmentReader.getLastRevision();
+			String segmentId = segmentReader.segmentInfo().getId();
 			int revision = segmentReader.segmentInfo().getRevision();
 			DocumentReader reader = new DocumentReader(collectionHandler.schema(), segmentReader.segmentDir());
 			BitSet deleteSet = null;
+			deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentId));
 			// 마지막 세그먼트(현재세그먼트)이면 숫자 suffix없이 삭제문서파일을 읽는다.
-			if (segNo == segmentSize - 1) {
-				deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.docDeleteSet);
-			} else {
-				deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet,
-						Integer.toString(segNo)));
-			}
+//			if (segNo == segmentSize - 1) {
+//				deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.docDeleteSet);
+//			} else {
+//				deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet,
+//						Integer.toString(segNo)));
+//			}
 
 			for (int j = startNo; j <= endNo; j++) {
 				Document document = reader.readDocument(j);
@@ -607,16 +609,18 @@ public class CollectionSearcher {
 			SegmentReader segmentReader = collectionHandler.segmentReader(i);
 			// File targetDir = segmentReader.getSegmentDir();
 			// int lastRevision = segmentReader.getLastRevision();
+			
+			String segmentId = segmentReader.segmentInfo().getId();
 			int revision = segmentReader.segmentInfo().getRevision();
 			//DocumentReader reader = new DocumentReader(collectionHandler.schema(), segmentReader.segmentDir());
 			BitSet deleteSet = null;
-
-			if (i < segmentSize - 1) {
-				deleteSet = new BitSet(segmentReader.revisionDir(),
-						IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, Integer.toString(i)));
-			} else {
-				deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.docDeleteSet);
-			}
+			deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentId));
+//			if (i < segmentSize - 1) {
+//				deleteSet = new BitSet(segmentReader.revisionDir(),
+//						IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, Integer.toString(i)));
+//			} else {
+//				deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.docDeleteSet);
+//			}
 			logger.debug("DELETE-{} {} >> {}", new Object[] { i, deleteSet, deleteSet.getEntry() });
 
 			BytesDataOutput pkOutput = new BytesDataOutput();

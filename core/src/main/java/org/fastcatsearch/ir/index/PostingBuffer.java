@@ -89,16 +89,19 @@ public class PostingBuffer {
 		IOUtil.writeVInt(postingVector, lastDocDelta);
 		//lastDocFrequency 기록.
 		IOUtil.writeVInt(postingVector, lastDocFrequency);
-		
+		logger.debug("writeLastDocInfo pos2={}/ {} [{}]", postingVector.offset, postingVector.limit(), postingVector.hashCode());
 		lastDocFrequency = 0;
 	}
 
 	public void finish(){
 		//flush 안된 남은 posting정보 기록. 
 		if(lastDocFrequency > 0){
+			logger.debug("finish >> {} [{}]", postingVector.offset, postingVector.hashCode());
 			writeLastDocInfo();
 		}
+		logger.debug("writeLastDocInfo flip1={} / {} = {} [{}]", postingVector.offset, postingVector.limit(), postingVector.length(), postingVector.hashCode());
 		postingVector.flip();
+		logger.debug("writeLastDocInfo flip2={} / {} = {} [{}]", postingVector.offset, postingVector.limit(), postingVector.length(), postingVector.hashCode());
 //		logger.debug("posting buffer finish size = {}", postingVector.length());
 		logger.debug("finish posting buffer lastDocFrequency[{}] postingSize[{}], lastDocNo[{}]", lastDocFrequency, postingSize, lastDocNo);
 		IOUtil.writeInt(postingVector, postingSize);

@@ -99,13 +99,13 @@ public class MemoryPosting {
 			}
 			
 			output.writeUString(keyArray, pos, len);
-			logger.debug("key>> {}", new String(keyArray, pos, len));
+//			logger.debug("key>> {}", new String(keyArray, pos, len));
 			if(postingArray[id] == null){
 				logger.error("id={}, len={}, term={}", id, len, new String(keyArray, pos, len));
 			}
 			postingArray[id].finish();
 			BytesBuffer buf = postingArray[id].buffer();
-//			logger.debug("write memory posting {} >> {} : {}", id, new String(keyArray, pos, len), buf);
+			logger.debug("write memory posting {} >> {} : len={}", id, new String(keyArray, pos, len), buf.length());
 			//데이터길이 
 			output.writeVInt(buf.length());
 //			logger.debug("term = {} >> {}", new String(keyArray, pos, len), buf.length());

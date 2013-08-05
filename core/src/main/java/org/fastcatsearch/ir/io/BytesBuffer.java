@@ -79,8 +79,8 @@ public class BytesBuffer {
 	// read하지 않고 값을 확인하고 싶을때 사용.
 	// 2012-5-5 array[pos+offset] & 0xFF는 음수 byte를 양의 int로 바꾸어 주므로 올바른 값을 리턴할수 없다.
 	// byte데이터 그대로를 리턴하도록 한다.
-	public byte get(int offset) {
-		return bytes[offset + offset];
+	public byte get(int i) {
+		return bytes[offset + i];
 	}
 
 	public byte[] array() {

@@ -18,7 +18,7 @@ public class OptionalBooleanFalseAdapter extends XmlAdapter<Boolean, Boolean> {
 
 	@Override
 	public Boolean marshal(Boolean v) throws Exception {
-		if(v){
+		if(v != null && v.booleanValue()){
 			return v;
 		}
 		return null;

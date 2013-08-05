@@ -19,44 +19,26 @@ package org.fastcatsearch.ir.index.temp;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.index.IndexFieldOption;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
-import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IOUtil;
 import org.fastcatsearch.ir.io.IndexInput;
 import org.fastcatsearch.ir.io.IndexOutput;
 
 public class TempSearchFieldAppender extends TempSearchFieldMerger {
 
-	private CharVector cv;
-	private CharVector cvOld;
-	private BytesDataOutput tempPostingOutput;
-	private BytesRef[] buffers;
-
 	private int totalCount;
 	private int prevDocNo;
 	private byte[] buffer = new byte[1024 * 1024];
-	private int bufferCount = 0;
 
+	private int oldIndexTermCount;
+	
 	public TempSearchFieldAppender(String indexId, int flushCount, long[] flushPosition, File tempFile) throws IOException {
 		super(indexId, flushCount, flushPosition, tempFile);
-
-		tempPostingOutput = new BytesDataOutput(1024 * 1024);
-
-		buffers = new BytesRef[flushCount];
-
-		reader = new TempSearchFieldReader[flushCount];
-		for (int m = 0; m < flushCount; m++) {
-			reader[m] = new TempSearchFieldReader(m, indexId, tempFile, flushPosition[m]);
-			reader[m].next();
-		}
-
 	}
 
 	public boolean mergeAndAppendIndex(File segmentDir1, File targetDir, int indexInterval, IndexFieldOption fieldIndexOption) throws IOException,
@@ -69,54 +51,48 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 		IndexInput postingInput1 = new BufferedFileInput(segmentDir1, IndexFileNames.getSearchPostingFileName(indexId));
 		IndexOutput postingOutput = new BufferedFileOutput(targetDir, IndexFileNames.getSearchPostingFileName(indexId));
 
+		IndexFieldOption option1 = new IndexFieldOption(postingInput1.readInt());
+		if(!fieldIndexOption.equals(option1)){
+			throw new IRException("Cannot append indexes. Index option is the same. new="+fieldIndexOption.value() +", old="+ option1.value());
+		}
+		
 		// 같은 텀이 있을때에 posting 문서번호를 다 읽어서 머징한다.
 		// 같은 텀이 없다면 포스팅데이터를 뚝 떼어서 새로운 포스팅에 붙이면 된다.
 		// 단지, 세그먼트 2의 문서번호는 동일한 수만 큼 증가했으므로 포스팅별 시작문서번호, lastDocNo가 조정되야 한다.(+seg2BaseDocNo)
 		// indexOutput은 indexInterval번마다 기록해준다.
 
+		boolean isStorePosition = fieldIndexOption.isStorePosition();
 		try {
 
 			//Posting 파일의 맨처음 int는 색인필드옵션이다.
 			postingOutput.writeInt(fieldIndexOption.value());
 
-//			prepareNextSearchField(i);
 			makeHeap(flushCount);
 
-			int termCount1 = lexiconInput1.readInt();
-			bufferCount = 0;
+			oldIndexTermCount = lexiconInput1.readInt();
 
 			int termCount = 0;
 			int indexTermCount = 0;
 			long position = 0;
-
-			long lexiconFileHeadPos = lexiconOutput.position();
-			long indexFileHeadPos = indexOutput.position();
 
 			lexiconOutput.writeInt(termCount);
 			indexOutput.writeInt(indexTermCount);
 
 			int cmp = 0;
 
-			CharVector term1 = null;
+			CharVector term1 = readNextOldLexicon(lexiconInput1);
 			CharVector term2 = new CharVector();
 
-			if (termCount1 > 0) {
-				char[] t = lexiconInput1.readUString();
-				term1 = new CharVector(t, 0, t.length);
-				lexiconInput1.readLong();
-			}
-			termCount1--;
-
-			boolean hasNext = readNextIndex(term2);
+			boolean hasNext = readNextTempIndex(term2);
 
 			CharVector term = null;
 
-			while (termCount1 >= 0 || hasNext) {
+			while (oldIndexTermCount >= 0 || hasNext) {
 				// logger.debug("CMP = "+new String(term1.array, term1.start, term1.length)+":"+new String(term2.array,
 				// term2.start, term2.length));
-				if (termCount1 >= 0 && hasNext)
+				if (oldIndexTermCount >= 0 && hasNext)
 					cmp = compareKey(term1, term2);
-				else if (termCount1 < 0) // input1이 다 소진되었으면 input2를 읽도록 유도. 크기가 작은 걸 읽는다.
+				else if (oldIndexTermCount < 0) // input1이 다 소진되었으면 input2를 읽도록 유도. 크기가 작은 걸 읽는다.
 					cmp = 1;
 				else if (!hasNext)
 					cmp = -1;
@@ -133,6 +109,7 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 
 					// posting merge.
 					int len1 = postingInput1.readVInt();
+					logger.debug("1term={} >> len1 = {}", term, len1);
 					int len2 = (int) tempPostingOutput.position(); // only data length (exclude header)
 
 					int count1 = postingInput1.readInt();
@@ -168,14 +145,14 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 					lexiconOutput.writeLong(position);
 
 					// read both term1, term2
-					if (termCount1 > 0) {
-						char[] t = lexiconInput1.readUString();
-						term1 = new CharVector(t, 0, t.length);
-						lexiconInput1.readLong();
-					}
-					termCount1--;
-
-					hasNext = readNextIndex(term2);
+//					if (oldIndexTermCount > 0) {
+//						char[] t = lexiconInput1.readUString();
+//						term1 = new CharVector(t, 0, t.length);
+//						lexiconInput1.readLong();
+//					}
+//					oldIndexTermCount--;
+					term1 = readNextOldLexicon(lexiconInput1);
+					hasNext = readNextTempIndex(term2);
 
 				} else if (cmp < 0) {
 
@@ -184,7 +161,7 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 						buffer = new byte[len];
 //					if (len < 8)
 //						throw new IOException("Terrible Error!!");
-					// logger.debug("len1 = "+len);
+					logger.debug("2term={} >> len1 = {}", term, len);
 					postingInput1.readBytes(buffer, 0, len);
 
 					position = postingOutput.position();
@@ -197,12 +174,13 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 					lexiconOutput.writeUString(term.array, term.start, term.length);
 					lexiconOutput.writeLong(position);
 
-					if (termCount1 > 0) {
-						char[] t = lexiconInput1.readUString();
-						term1 = new CharVector(t, 0, t.length);
-						lexiconInput1.readLong();
-					}
-					termCount1--;
+//					if (oldIndexTermCount > 0) {
+//						char[] t = lexiconInput1.readUString();
+//						term1 = new CharVector(t, 0, t.length);
+//						lexiconInput1.readLong();
+//					}
+//					oldIndexTermCount--;
+					term1 = readNextOldLexicon(lexiconInput1);
 
 				} else {
 
@@ -232,7 +210,7 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 					lexiconOutput.writeUString(term.array, term.start, term.length);
 					lexiconOutput.writeLong(position);
 
-					hasNext = readNextIndex(term2);
+					hasNext = readNextTempIndex(term2);
 
 				}
 
@@ -316,76 +294,16 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 
 		return true;
 	}
-
-	private boolean readNextIndex(CharVector term) throws IOException {
-		tempPostingOutput.reset();
-		boolean termMade = false;
-
-		// int kk = 0;
-		while (true) {
-			int idx = heap[1];
-			cv = reader[idx].term();
-
-			if (cv == null && cvOld == null) {
-				// if cv and cvOld are null, it's done
-				return false;
-			}
-
-			// cv == null일경우는 모든 reader가 종료되어 null이 된경우이며
-			// cvOld 와 cv 가 다른 경우는 머징시 텀이 바뀐경우. cvOld를 기록해야한다.
-			if ((cv == null || !cv.equals(cvOld)) && cvOld != null) {
-				// merge buffers
-				prevDocNo = -1;
-				totalCount = 0;
-				for (int k = 0; k < bufferCount; k++) {
-					BytesRef buf = buffers[k];
-					buf.reset();
-
-					// count 와 lastNo를 읽어둔다.
-					int count = IOUtil.readInt(buf);
-					int lastDocNo = IOUtil.readInt(buf);
-					totalCount += count;
-					// logger.debug("count="+count);
-					if (k == 0) {
-						// 첫번째 문서번호부터 끝까지 기록한다.
-						tempPostingOutput.writeBytes(buf.array(), buf.pos(), buf.remaining());
-					} else {
-						int firstNo = IOUtil.readVInt(buf);
-						int newDocNo = firstNo - prevDocNo - 1;
-						logger.debug("newDocNo = " + newDocNo + ", firstNo=" + firstNo + ", prevDocNo = " + prevDocNo);
-
-						IOUtil.writeVInt(tempPostingOutput, newDocNo);
-						tempPostingOutput.writeBytes(buf.array(), buf.pos(), buf.remaining());
-					}
-					prevDocNo = lastDocNo;
-				}
-
-				termMade = true;
-				term.init(cvOld.array, cvOld.start, cvOld.length);
-
-				bufferCount = 0;
-
-			}
-
-			try {
-				buffers[bufferCount++] = reader[idx].buffer();
-			} catch (ArrayIndexOutOfBoundsException e) {
-				logger.info("### bufferCount= {}, buffers.len={}, idx={}, reader={}", bufferCount, buffers.length, idx, reader.length);
-				throw e;
-			}
-
-			// backup cv to old
-			cvOld = cv;
-
-			reader[idx].next();
-
-			heapify(1, flushCount);
-
-			if (termMade)
-				return true;
-
-		} // while(true)
-
+	private CharVector readNextOldLexicon(IndexInput lexiconInput1) throws IOException {
+		CharVector term = null;
+		if (oldIndexTermCount > 0) {
+			char[] t = lexiconInput1.readUString();
+			term = new CharVector(t, 0, t.length);
+			lexiconInput1.readLong();
+		}
+		oldIndexTermCount--;
+		
+		return term;
 	}
-
+	
 }

@@ -29,9 +29,12 @@ import org.fastcatsearch.ir.io.IndexOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+/**
+ * pk는 1MB의 제약이 있다.
+ * */
 public class PrimaryKeyIndexMerger {
 	private static Logger logger = LoggerFactory.getLogger(PrimaryKeyIndexMerger.class);
+	private static final int KEY_MAX_SIZE = 1024 * 1024;
 	private PrimaryKeyIndexBulkWriter w;
 	
 	public PrimaryKeyIndexMerger(){ }
@@ -42,26 +45,21 @@ public class PrimaryKeyIndexMerger {
 	 * For Document primary key map
 	 * file2's primary key is appended at file1's ends
 	 * */
-	public int merge(File prevRevisionDir, File tempPkFile, File newPkFile, int indexInterval, BitSet deleteSet) throws IOException {
+//	public int merge2(File prevRevisionDir, File tempPkFile, File newPkFile, int indexInterval, BitSet deleteSet) throws IOException {
+//		
+//		
+//		
+//	}
+	public int merge(File pkFile1, File pkFile2, File newPkFile, int indexInterval, BitSet deleteSet) throws IOException {
 		int inSegmentDocUpdateCount = 0; //동일세그먼트내에서 이전 rev와 새 rev사이의 중복문서가 발견될 경우 update사이즈를 증가시킨다.
 		
-		PrimaryKeyIndexBulkReader r1 = null;
-		PrimaryKeyIndexBulkReader r2 = null;
-		
-		if(prevRevisionDir.isDirectory())
-			r1 = new PrimaryKeyIndexBulkReader(prevRevisionDir, IndexFileNames.primaryKeyMap);
-		else
-			r1 = new PrimaryKeyIndexBulkReader(prevRevisionDir);
-		
-		if(tempPkFile.isDirectory())
-			r2 = new PrimaryKeyIndexBulkReader(tempPkFile, IndexFileNames.primaryKeyMap);
-		else
-			r2 = new PrimaryKeyIndexBulkReader(tempPkFile);
+		PrimaryKeyIndexBulkReader r1 = new PrimaryKeyIndexBulkReader(pkFile1);
+		PrimaryKeyIndexBulkReader r2 = new PrimaryKeyIndexBulkReader(pkFile2);
 		
 		w = new PrimaryKeyIndexBulkWriter(newPkFile, indexInterval);
 		
-		BytesBuffer buf1 = new BytesBuffer(1024);
-		BytesBuffer buf2 = new BytesBuffer(1024);
+		BytesBuffer buf1 = new BytesBuffer(KEY_MAX_SIZE);
+		BytesBuffer buf2 = new BytesBuffer(KEY_MAX_SIZE);
 		
 		int docNo1 = r1.next(buf1);
 		int docNo2 = r2.next(buf2);
@@ -146,8 +144,8 @@ public class PrimaryKeyIndexMerger {
 		PrimaryKeyIndexBulkReader r2 = new PrimaryKeyIndexBulkReader(file2);
 		w = new PrimaryKeyIndexBulkWriter(pkmapOutput, pkmapIndexOutput, indexInterval);
 		
-		BytesBuffer buf1 = new BytesBuffer(1024);
-		BytesBuffer buf2 = new BytesBuffer(1024);
+		BytesBuffer buf1 = new BytesBuffer(KEY_MAX_SIZE);
+		BytesBuffer buf2 = new BytesBuffer(KEY_MAX_SIZE);
 		
 		int docNo1 = r1.next(buf1);
 		int docNo2 = r2.next(buf2);
@@ -194,70 +192,6 @@ public class PrimaryKeyIndexMerger {
 		
 		return true;
 	}
-//	public boolean merge(File file1, long base1, File file2, long base2, IndexOutput pkmapOutput, IndexOutput pkmapIndexOutput, int indexInterval) throws IOException {
-//		PrimaryKeyIndexBulkReader r1 = null;
-//		PrimaryKeyIndexBulkReader r2 = null;
-//		
-//		if(file1.isDirectory())
-//			r1 = new PrimaryKeyIndexBulkReader(file1, IndexFileNames.primaryKeyMap, base1);
-//		else
-//			r1 = new PrimaryKeyIndexBulkReader(file1, base1);
-//		
-//		if(file2.isDirectory())
-//			r2 = new PrimaryKeyIndexBulkReader(file2, IndexFileNames.primaryKeyMap, base2);
-//		else
-//			r2 = new PrimaryKeyIndexBulkReader(file2, base2);
-//		
-//		w = new PrimaryKeyIndexBulkWriter(pkmapOutput, pkmapIndexOutput, indexInterval, true);
-//		
-//		BytesBuffer buf1 = new BytesBuffer(1024);
-//		BytesBuffer buf2 = new BytesBuffer(1024);
-//		
-//		int docNo1 = r1.next(buf1);
-//		int docNo2 = r2.next(buf2);
-//		
-//		//merge in ascending order 
-//		while(docNo1 >= 0 && docNo2 >= 0){
-//			
-//			int ret = BytesBuffer.compareBuffer(buf1, buf2);
-//			
-//			if(ret == 0){
-//				//must write doc2 number because doc1 was replaced with doc2.
-//				
-//				w.write(buf1, docNo2);
-//				buf1.clear();
-//				docNo1 = r1.next(buf1);
-//				buf2.clear();
-//				docNo2 = r2.next(buf2);
-//			}else if(ret < 0){
-//				w.write(buf1, docNo1);
-//				buf1.clear();
-//				docNo1 = r1.next(buf1);
-//			}else{
-//				w.write(buf2, docNo2);
-//				buf2.clear();
-//				docNo2 = r2.next(buf2);
-//			}
-//		}
-//		
-//		while(docNo1 >= 0){
-//			w.write(buf1, docNo1);
-//			buf1.clear();
-//			docNo1 = r1.next(buf1);
-//		}
-//		
-//		while(docNo2 >= 0){
-//			w.write(buf2, docNo2);
-//			buf2.clear();
-//			docNo2 = r2.next(buf2);
-//		}
-//		
-//		r1.close();
-//		r2.close();
-//		w.close();
-//		
-//		return true;
-//	}
 	
 	public int getKeyCount(){
 		return w.getKeyCount();

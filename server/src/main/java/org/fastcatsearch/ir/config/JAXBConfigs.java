@@ -80,7 +80,7 @@ public class JAXBConfigs {
 			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 			marshaller.marshal(jaxbConfig, os);
 		}catch(Exception e){
-			logger.error("JAXBConfig file read error", e);
+			logger.error("JAXBConfig file write error", e);
 		}
 	}
 }

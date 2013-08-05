@@ -29,15 +29,20 @@ public class CollectionStatus {
 		return collectionStatus;
 	}
 
-	public void clear(){
+	public boolean isEmpty() {
+		return fullIndexStatus == null && addIndexStatus == null;
+	}
+
+	public void clear() {
 		fullIndexStatus = null;
 		addIndexStatus = null;
 	}
+
 	@Override
-	public String toString(){
-		return "[CollectionStatus] seq["+sequence+"] last-full=["+fullIndexStatus+"] last-add=["+addIndexStatus+"]";
+	public String toString() {
+		return "[CollectionStatus] seq[" + sequence + "] last-full=[" + fullIndexStatus + "] last-add=[" + addIndexStatus + "]";
 	}
-	
+
 	@XmlAttribute
 	public int getSequence() {
 		return sequence;
@@ -98,10 +103,11 @@ public class CollectionStatus {
 		}
 
 		@Override
-		public String toString(){
-			return "[IndexStatus] docs["+documentCount+"] updates["+updateCount+"] deletes["+deleteCount+"] start["+startTime+"]"+"] end["+endTime+"]"+"] duration["+duration+"]";
+		public String toString() {
+			return "[IndexStatus] docs[" + documentCount + "] updates[" + updateCount + "] deletes[" + deleteCount + "] start[" + startTime + "]"
+					+ "] end[" + endTime + "]" + "] duration[" + duration + "]";
 		}
-		
+
 		@XmlAttribute(name = "documents")
 		public int getDocumentCount() {
 			return documentCount;
@@ -157,4 +163,5 @@ public class CollectionStatus {
 		}
 
 	}
+
 }

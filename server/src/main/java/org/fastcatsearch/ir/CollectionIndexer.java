@@ -7,6 +7,7 @@ import org.fastcatsearch.datasource.reader.DataSourceReader;
 import org.fastcatsearch.datasource.reader.DataSourceReaderFactory;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataPlanConfig;
 import org.fastcatsearch.ir.config.DataSourceConfig;
@@ -36,7 +37,7 @@ public class CollectionIndexer {
 
 	public SegmentInfo addIndex(CollectionHandler collectionHandler) throws IOException, IRException, FastcatSearchException {
 		long st = System.currentTimeMillis();
-		collectionContext.nextDataSequence();
+//		collectionContext.nextDataSequence();
 
 		CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
 		DataPlanConfig dataPlanConfig = collectionContext.collectionConfig().getDataPlanConfig();
@@ -57,7 +58,7 @@ public class CollectionIndexer {
 				workingSegmentInfo = segmentInfo.getNextSegmentInfo();
 			} else {
 				// 기존 segment에 append되는 증분색인.
-				workingSegmentInfo = segmentInfo;
+				workingSegmentInfo = segmentInfo.copy();
 			}
 		} else {
 			// 로딩된 세그먼트가 없음.
@@ -115,17 +116,24 @@ public class CollectionIndexer {
 		} finally {
 			if (segmentWriter != null) {
 				revisionInfo = segmentWriter.close();
+				logger.debug("segmentWriter close revisionInfo={}", revisionInfo);
 			}
 			sourceReader.close();
 		}
 
 		workingSegmentInfo.updateRevision(revisionInfo);
 
+		//schema도 apply해두어야 세그먼트 로딩시 수정된 schema로 로딩을 할수 있다.
+		//여기서는 증분색인이므로 무시. 
+		//전체색인시는 collectionhandler자체를 재로딩 해야함.
+		//여기서 새 context객체를 업데이트해주어야 아래에서  collectionHandler.updateCollection 수행시 새 context에 셋팅이된다.
+		collectionHandler.updateContext(collectionContext);
 		// collectionHandler에 append
 
 		// count가 0일 경우, revision디렉토리는 삭제되었고 segmentInfo파일도 업데이트 되지 않은 상태이다.
-		int deleteCount = sourceReader.getDeleteList().size();
 		int indexedCount = segmentWriter.getDocumentCount();
+		int updateCount = 0;
+		int deleteCount = sourceReader.getDeleteList().size();
 		if (indexedCount == 0) {
 			if (deleteCount == 0) {
 				logger.info("[{}] Incremental Indexing Canceled due to no documents. time = {}", collectionContext.collectionId(),
@@ -144,12 +152,13 @@ public class CollectionIndexer {
 			collectionHandler.updateCollection(workingSegmentInfo, segmentDir, sourceReader.getDeleteList());
 		}
 
+		
 		logger.info("== SegmentStatus ==");
 		collectionHandler.printSegmentStatus();
 		logger.info("===================");
 		
-		//Add indexing에서는 work schema가 적용되지 않았으므로, apply 하지 않는다.
-//		CollectionContextUtil.applyWorkSchema(collectionContext);
+		collectionContext.updateCollectionStatus(IndexingType.ADD_INDEXING, indexedCount, updateCount, deleteCount, st , System.currentTimeMillis());
+		
 		CollectionContextUtil.saveAfterIndexing(collectionContext);
 		
 		

@@ -61,14 +61,15 @@ public class CollectionContextUtil {
 				dataSourceConfig = new DataSourceConfig();
 			}
 
-			CollectionStatus collectionStatus = JAXBConfigs.readConfig(collectionDir.file(SettingFileNames.collectionStatus), CollectionStatus.class);
+			File collectionStatusFile = collectionDir.file(SettingFileNames.collectionStatus);
+			CollectionStatus collectionStatus = JAXBConfigs.readConfig(collectionStatusFile, CollectionStatus.class);
 
 			if (dataSequence == null) {
 				// dataSequence가 없으므로 indexedSequence로 선택하여 로딩한다.
 				int indexedSequence = collectionStatus.getSequence();
 				dataSequence = indexedSequence;
-
 			}
+			
 			// dataSequence가 null아 아니면 원하는 sequence의 정보를 읽어온다.
 			File infoFile = new File(collectionFilePaths.dataFile(dataSequence), SettingFileNames.dataInfo);
 			DataInfo dataInfo = null;
@@ -77,7 +78,17 @@ public class CollectionContextUtil {
 			} else {
 				logger.info("File not found : {}", infoFile);
 				dataInfo = new DataInfo();
+				JAXBConfigs.writeConfig(infoFile, dataInfo, DataInfo.class);
 			}
+			
+			logger.debug("dataInfo.getSegmentInfoList() >> {}", dataInfo.getSegmentInfoList().size());
+			if(dataInfo.getSegmentInfoList().size() == 0 && !collectionStatus.isEmpty()){
+				//SegmentInfoList가 없다면 data디렉토리를 지웠거나 색인이 안된상태이므로, 확인차 status초기화해준다.
+				collectionStatus.clear();
+				JAXBConfigs.writeConfig(collectionStatusFile, collectionStatus, CollectionStatus.class);
+			}
+			
+			
 			Schema schema = new Schema(schemaSetting);
 			Schema workSchema = null;
 			if (workSchemaSetting != null) {
@@ -148,7 +159,16 @@ public class CollectionContextUtil {
 		if (dataInfo != null) {
 			File dataDir = collectionFilePaths.dataFile(collectionStatus.getSequence());
 			dataDir.mkdirs();
+			logger.debug("Save DataInfo >> {}", dataInfo);
 			JAXBConfigs.writeConfig(new File(dataDir, SettingFileNames.dataInfo), dataInfo, DataInfo.class);
+			
+			SegmentInfo lastSegmentInfo = dataInfo.getLastSegmentInfo();
+			File revisionDir = collectionFilePaths.revisionFile(collectionStatus.getSequence(), lastSegmentInfo.getId(), lastSegmentInfo.getRevision());
+			RevisionInfo revisionInfo = lastSegmentInfo.getRevisionInfo();
+			if (revisionInfo != null) {
+				logger.debug("Save RevisionInfo >> {}", revisionInfo);
+				JAXBConfigs.writeConfig(new File(revisionDir, SettingFileNames.revisionInfo), revisionInfo, RevisionInfo.class);
+			}
 		}
 	}
 
@@ -164,11 +184,11 @@ public class CollectionContextUtil {
 			JAXBConfigs.writeConfig(new File(dataDir, SettingFileNames.dataInfo), dataInfo, DataInfo.class);
 
 			SegmentInfo lastSegmentInfo = dataInfo.getLastSegmentInfo();
+			File revisionDir = collectionFilePaths.revisionFile(collectionStatus.getSequence(), lastSegmentInfo.getId(), lastSegmentInfo.getRevision());
 			RevisionInfo revisionInfo = lastSegmentInfo.getRevisionInfo();
 			if (revisionInfo != null) {
 				logger.debug("Save RevisionInfo >> {}", revisionInfo);
-				File revisionDir = new File(new File(dataDir, Integer.toString(lastSegmentInfo.getRevision())), SettingFileNames.revisionInfo);
-				JAXBConfigs.writeConfig(revisionDir, revisionInfo, RevisionInfo.class);
+				JAXBConfigs.writeConfig(new File(revisionDir, SettingFileNames.revisionInfo), revisionInfo, RevisionInfo.class);
 			}
 		}
 
@@ -194,7 +214,9 @@ public class CollectionContextUtil {
 		Schema workSchema = collectionContext.workSchema();
 		File collectionDir = collectionFilePaths.file();
 		
-		if (workSchema != null) {
+		logger.debug("applyWorkSchema schema={}", schema);
+		logger.debug("applyWorkSchema workSchema={}", workSchema);
+		if (workSchema != null && !workSchema.isEmpty()) {
 			schema.update(workSchema);
 			collectionContext.setWorkSchema(null);
 			JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.schema), schema, Schema.class);

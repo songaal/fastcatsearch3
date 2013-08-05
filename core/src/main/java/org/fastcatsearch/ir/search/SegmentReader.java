@@ -106,7 +106,7 @@ public class SegmentReader {
 		if (bitset != null) {
 			deleteSet = bitset;
 		} else {
-			deleteSet = new BitSet(IndexFileNames.getRevisionDir(segmentDir, revision), IndexFileNames.docDeleteSet);
+			deleteSet = new BitSet(IndexFileNames.getRevisionDir(segmentDir, revision), IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
 		}
 	}
 
