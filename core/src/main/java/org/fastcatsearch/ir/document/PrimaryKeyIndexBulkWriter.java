@@ -41,14 +41,14 @@ public class PrimaryKeyIndexBulkWriter {
 	private int keyCount;
 	private int keyIndexCount;
 	
-	public PrimaryKeyIndexBulkWriter(File f, int indexInterval) throws IOException{
-		this.indexInterval = indexInterval;
-		output = new BufferedFileOutput(f);
-		indexOutput = new BufferedFileOutput(f.getParentFile(), IndexFileNames.getIndexFileName(f.getName()));
-		
-		output.writeInt(0);
-		indexOutput.writeInt(0);
-	}
+//	public PrimaryKeyIndexBulkWriter(File f, int indexInterval) throws IOException{
+//		this.indexInterval = indexInterval;
+//		output = new BufferedFileOutput(f);
+//		indexOutput = new BufferedFileOutput(f.getParentFile(), IndexFileNames.getIndexFileName(f.getName()));
+//		
+//		output.writeInt(0);
+//		indexOutput.writeInt(0);
+//	}
 
 	public PrimaryKeyIndexBulkWriter(IndexOutput output, IndexOutput indexOutput, int indexInterval) throws IOException{
 		this.output = output;
