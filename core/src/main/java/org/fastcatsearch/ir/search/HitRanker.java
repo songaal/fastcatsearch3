@@ -80,8 +80,15 @@ public class HitRanker extends FixedMaxPriorityQueue<HitElement>{
 			}
 		}
 		
-		//정렬 데이터가 모두 같다면 문서번호가 최신인걸 보여준다. 
-		return two.docNo() - one.docNo();
+		return one.compareTo(two);
+		
+//		//최신세그먼트 우선.
+//		if(one.segmentSequence() != two.segmentSequence()){
+//			return two.segmentSequence() - one.segmentSequence();
+//		}
+//		
+//		//정렬 데이터가 모두 같다면 문서번호가 최신인걸 보여준다. 
+//		return two.docNo() - one.docNo();
 	}
 	
 }

@@ -66,11 +66,11 @@ public class FileInspector {
 				}else if(line.startsWith("achar")){
 					String ii = line.substring(5);
 					int i = Integer.parseInt(ii);
-					System.out.println("achar"+i+" = "+fi.getAChars(i));
+//					System.out.println("achar"+i+" = "+fi.getAChars(i));
 				}else if(line.startsWith("uchar")){
 					String ii = line.substring(5);
 					int i = Integer.parseInt(ii);
-					System.out.println("uchar"+i+" = "+fi.getUChars(i));
+//					System.out.println("uchar"+i+" = "+fi.getUChars(i));
 				}else if(line.startsWith("byte")){
 					String ii = line.substring(4);
 					int i = Integer.parseInt(ii);
@@ -101,13 +101,13 @@ public class FileInspector {
 		return in.readVInt();
 	}
 
-	private String getAChars(int i) throws IOException {
-		return new String(in.readAChars(i));
-	}
-
-	private String getUChars(int i) throws IOException {
-		return new String(in.readUChars(i));
-	}
+//	private String getAChars(int i) throws IOException {
+//		return new String(in.readAChars(i));
+//	}
+//
+//	private String getUChars(int i) throws IOException {
+//		return new String(in.readUChars(i));
+//	}
 	private long getLong() throws IOException {
 		return in.readLong();
 	}

@@ -297,7 +297,7 @@ public abstract class DataOutput extends OutputStream {
 	}
 
 	public void writeUString(char[] v, int start, int length) throws IOException {
-		writeVInt(length);
+		writeVInt(length * 2);
 		writeUChars(v, start, length);
 	}
 

@@ -25,21 +25,24 @@ import org.slf4j.LoggerFactory;
  * @author sangwook.song
  *
  */
-public class HitElement {
+public class HitElement implements Comparable<HitElement> {
 	protected static Logger logger = LoggerFactory.getLogger(HitElement.class);
 	
 	private String collection; //transient. ShardSearchResult에서 정보를 가지고 있음. 
 	private int shardId = -1; //transient. ShardSearchResult에서 정보를 가지고 있음.
-	private int segmentSequence;
 	
+	private int segmentSequence;
 	private int docNo;
 	private float score; //매칭점수
 	private BytesRef[] rankData; //필드값으로 정렬할 경우 필드값 데이터
 	
 	public HitElement(int docNo, float score){
-		this(docNo, score, null);
+		this(-1, docNo, score, null);
 	}
 	public HitElement(int docNo, float score, BytesRef[] dataList){
+		this(-1, docNo, score, dataList);
+	}
+	public HitElement(int segmentSequence, int docNo, float score, BytesRef[] dataList){
 		this.docNo = docNo;
 		this.score = score;
 		this.rankData = dataList;
@@ -109,6 +112,17 @@ public class HitElement {
 //			}
 //		}
 		return sb.toString();
+	}
+	@Override
+	public int compareTo(HitElement other) {
+		
+		//최신세그먼트 우선.
+		if(segmentSequence != other.segmentSequence){
+			return other.segmentSequence - segmentSequence;
+		}
+		
+		//정렬 데이터가 모두 같다면 문서번호가 최신인걸 보여준다. 
+		return other.docNo - docNo;
 	}
 	
 }

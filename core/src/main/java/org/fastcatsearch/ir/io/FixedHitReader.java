@@ -44,7 +44,7 @@ public class FixedHitReader implements Comparable<FixedHitReader>{
 	}
 	
 	public FixedHitReader(String collection, int shardId, HitElement[] list, int head, int tail){
-		this.collection =collection;
+		this.collection = collection;
 		this.shardId = shardId;
 		this.list = list;
 		this.head = head - 1;
@@ -83,10 +83,12 @@ public class FixedHitReader implements Comparable<FixedHitReader>{
 		//같은 컬렉션에 같은 shard일 경우에만 비교를 하고 
 		//다를 경우는 문서번호가 의미가 없으므로 같음으로 넘긴다.
 		if(collection == r.collection && shardId == r.shardId){
-			if(two.docNo() == one.docNo()){
+			return one.compareTo(two);
+			
+//			if(two.docNo() == one.docNo()){
 			//문서번호가 최신인걸 보여준다. 머징시 문서번호가 큰 순으로 보여주려면 역정렬 필요. 
-				return two.docNo() - one.docNo();
-			}
+//				return two.docNo() - one.docNo();
+//			}
 		}
 		
 		return 0;

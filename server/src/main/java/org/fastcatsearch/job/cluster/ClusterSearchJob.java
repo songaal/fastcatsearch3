@@ -23,22 +23,27 @@ import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.io.FixedHitReader;
 import org.fastcatsearch.ir.query.Groups;
+import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
-import org.fastcatsearch.ir.query.ShardSearchResult;
+import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.View;
+import org.fastcatsearch.ir.search.DocIdList;
+import org.fastcatsearch.ir.search.DocumentResult;
 import org.fastcatsearch.ir.search.HitElement;
 import org.fastcatsearch.ir.search.SearchResultAggregator;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.internal.InternalDocumentRequestJob;
+import org.fastcatsearch.job.internal.InternalDocumentSearchJob;
 import org.fastcatsearch.job.internal.InternalSearchJob;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableDocumentList;
+import org.fastcatsearch.transport.vo.StreamableDocumentResult;
 import org.fastcatsearch.transport.vo.StreamableShardSearchResult;
 
 public class ClusterSearchJob extends Job {
@@ -102,7 +107,8 @@ public class ClusterSearchJob extends Job {
 			resultFutureList[i] = nodeService.sendRequest(dataNode, job);
 		}
 		
-		List<ShardSearchResult> resultList = new ArrayList<ShardSearchResult>(collectionIdList.length);
+		List<InternalSearchResult> resultList = new ArrayList<InternalSearchResult>(collectionIdList.length);
+		HighlightInfo highlightInfo = null;
 		
 		for (int i = 0; i < collectionIdList.length; i++) {
 			//TODO 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
@@ -119,7 +125,11 @@ public class ClusterSearchJob extends Job {
 			}
 			
 			StreamableShardSearchResult obj2 = (StreamableShardSearchResult) obj;
-			resultList.add(obj2.shardSearchResult());
+			InternalSearchResult internalSearchResult = obj2.getInternalSearchResult();
+			resultList.add(internalSearchResult);
+			
+			//TODO highlightInfo 들을 머지해야하나?
+			highlightInfo = internalSearchResult.getHighlightInfo();
 			
 		}
 		
@@ -129,7 +139,7 @@ public class ClusterSearchJob extends Job {
 		
 		Schema schema = irService.collectionContext(collectionIdList[0]).schema();
 		SearchResultAggregator aggregator = new SearchResultAggregator(q, schema);
-		ShardSearchResult aggregatedSearchResult = aggregator.aggregate(resultList);
+		InternalSearchResult aggregatedSearchResult = aggregator.aggregate(resultList);
 		int totalSize = aggregatedSearchResult.getTotalCount();
 		
 		
@@ -139,15 +149,15 @@ public class ClusterSearchJob extends Job {
 		
 		//internalSearchResult의 결과를 보면서 컬렉션 별로 분류한다.
 		int realSize = aggregatedSearchResult.getCount();
-		int[][] docIdList = new int[collectionIdList.length][];
-		int[] length = new int[collectionIdList.length];
+		DocIdList[] docIdList = new DocIdList[collectionIdList.length];
+//		int[] length = new int[collectionIdList.length];
 		int[] collectionTags = new int[realSize]; //해당 문서가 어느컬렉션에 속하는지 알려주는 항목.
 		int[] eachDocIds = new int[realSize];
 		float[] eachScores = new float[realSize];
 		
 		
 		for (int i = 0; i < collectionIdList.length; i++) {
-			docIdList[i] = new int[realSize];
+			docIdList[i] = new DocIdList(realSize);
 		}
 		
 		int idx = 0;
@@ -155,7 +165,7 @@ public class ClusterSearchJob extends Job {
 		while(hitReader.next()){
 			HitElement el = hitReader.read();
 			int collectionNo = collectionNumberMap.get(el.collection());
-			docIdList[collectionNo][ length[collectionNo]++ ] = el.docNo();
+			docIdList[collectionNo].add(el.segmentSequence(), el.docNo());
 			collectionTags[idx] = collectionNo;
 			eachDocIds[idx] = el.docNo();
 			eachScores[idx] = el.score();
@@ -164,7 +174,8 @@ public class ClusterSearchJob extends Job {
 		
 		//document 요청을 보낸다.
 		resultFutureList = new ResultFuture[collectionIdList.length];
-		
+		List<View> views = q.getViews(); 
+		String[] tags = q.getMeta().tags();
 		for (int i = 0; i < collectionIdList.length; i++) {
 			String cId = collectionIdList[i];
 			DataStrategy dataStrategy = dataService.getCollectionDataStrategy(cId);
@@ -176,12 +187,13 @@ public class ClusterSearchJob extends Job {
 			logger.debug("collection [{}] search at {}", cId, dataNode);
 			String queryStr = queryString.replace("cn="+collectionId, "cn="+cId);
 			logger.debug("query-{} >> {}", i, queryStr);
-			InternalDocumentRequestJob job = new InternalDocumentRequestJob(cId, docIdList[i], length[i]);
+//			InternalDocumentSearchJob job = new InternalDocumentSearchJob(cId, docIdList[i], length[i]);
+			InternalDocumentSearchJob job = new InternalDocumentSearchJob(collectionId, docIdList[i], views, tags, highlightInfo);
 			resultFutureList[i] = nodeService.sendRequest(dataNode, job);
 		}
 		
 		//document 결과를 받는다.
-		Iterator<Document>[] docResultList = new Iterator[collectionIdList.length];
+		DocumentResult[] docResultList = new DocumentResult[collectionIdList.length];
 		
 		for (int i = 0; i < collectionIdList.length; i++) {
 			String cId = collectionIdList[i];
@@ -198,89 +210,20 @@ public class ClusterSearchJob extends Job {
 				}
 			}
 			
-			StreamableDocumentList obj2 = (StreamableDocumentList) obj;
-			List<Document> documentList = obj2.documentList();
-			if(documentList != null){
-				docResultList[i] = documentList.iterator();
+			StreamableDocumentResult obj2 = (StreamableDocumentResult) obj;
+			DocumentResult documentResult = obj2.documentResult();
+			if(documentResult != null){
+				docResultList[i] = documentResult;
 			}else{
 				logger.warn("{}의 documentList가 null입니다.", cId);
 			}
 		}
-		
-		Row[] row = new Row[realSize];
-//		AsciiCharTrie fieldnames = schema.fieldnames;
-		List<View> views = q.getViews();
-		Iterator<View> iter = views.iterator();
-		int fieldSize = views.size();
-		List<View> fieldNames = q.getViews();
-		String[] fieldNameList = new String[fieldNames.size()];
-		int[] fieldNumList = new int[fieldSize];
-		for (int i = 0; i < fieldNames.size(); i++) {
-			View view = fieldNames.get(i);
-			fieldNameList[i] = view.fieldId();
-			int num = schema.getFieldSequence(fieldNameList[i]);
-//			if(num >= 0){
-//				fieldSummarySize[num] = view.summarySize();
-//				logger.trace("Summary size = {} : {}", num, fieldSummarySize[num]);
-//			}
-		}
-		
-		
-		//search 조건에 입력한 요약옵션(8)과 별도로 view에 셋팅한 요약길이를 확인하여 검색필드가 아니더라도 요약해주도록함.
-		int[] extraSnipetSize = new int[fieldSize];
-		
-		int jj = 0;
-		while(iter.hasNext()){
-			View v = iter.next();
-			String fn = v.fieldId();
-			int i = -1;
-			
-			if(fn.equalsIgnoreCase(ScoreField.fieldName)){
-				i = ScoreField.fieldNumber;
-			}else if(fn.equalsIgnoreCase(DocNoField.fieldName)){
-				i = DocNoField.fieldNumber;
-			}else{
-				i = schema.getFieldSequence(fn);
-			}
-			
-			fieldNumList[jj] = i;
-			
-			if(v.summarySize() > 0){
-				extraSnipetSize[jj] = v.summarySize();
-			}else{
-				extraSnipetSize[jj] = -1;
-			}
-			
-			jj++;
-		}
-		
-		//
-		//TODO 일단 highlight는 없다. 구현필요.
-		//
+		String[] fieldIdList = docResultList[0].fieldIdList();
+		Row[] rows = new Row[realSize];
 		for (int i = 0; i < realSize; i++) {
 			int collectionNumber = collectionTags[i];
-			Iterator<Document> docIterator = docResultList[collectionNumber];
-//			int segmentNumber = tags[i];
-//			int p = pos[segmentNumber]++;
-//			Document document = eachDocList[segmentNumber][p];
-			Document document = docIterator.next();//eachDocList[i];
-			document.setScore(eachScores[i]);
-			row[i] = new Row(fieldSize);
-			for (int j = 0; j < fieldSize; j++) {
-				int fieldNum = fieldNumList[j];
-				if(fieldNum == ScoreField.fieldNumber){
-					float score = document.getScore();
-					row[i].put(j, Float.toString(score).toCharArray());
-				}else if(fieldNum == DocNoField.fieldNumber){
-//					row[i].put(j, (eachDocIds[segmentNumber][p]+"").toCharArray());
-					row[i].put(j, Integer.toString(eachDocIds[i]).toCharArray());
-				}else if(fieldNum == UnknownField.fieldNumber){
-					row[i].put(j, UnknownField.value().toCharArray());
-				}else{
-					Field field = document.get(fieldNum);
-					row[i].put(j, field.toString().toCharArray());
-				}
-			}
+			DocumentResult documentResult = docResultList[collectionNumber];
+			rows[i] = documentResult.next();
 		}
 		
 		/*
@@ -292,7 +235,7 @@ public class ClusterSearchJob extends Job {
 			groupResults = groups.getGroupsResultGenerator().generate(groupsData);
 		}
 		
-		Result searchResult = new Result(row, groupResults, fieldSize, fieldNameList, realSize, totalSize, meta);
+		Result searchResult = new Result(rows, groupResults, fieldIdList, realSize, totalSize, meta.start());
 		
 		irService.searchCache().put(queryString, searchResult);
 		logger.debug("CACHE_PUT result>>{}, qr >>{}", searchResult, queryString);

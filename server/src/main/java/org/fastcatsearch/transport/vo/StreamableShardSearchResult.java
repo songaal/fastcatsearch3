@@ -1,22 +1,24 @@
 package org.fastcatsearch.transport.vo;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
-import org.fastcatsearch.ir.query.ShardSearchResult;
+import org.fastcatsearch.ir.query.HighlightInfo;
+import org.fastcatsearch.ir.query.InternalSearchResult;
 
 public class StreamableShardSearchResult implements Streamable {
-	private ShardSearchResult shardSearchResult;
+	private InternalSearchResult shardSearchResult;
 
 	public StreamableShardSearchResult(){ } 
 
-	public StreamableShardSearchResult(ShardSearchResult shardSearchResult) {
+	public StreamableShardSearchResult(InternalSearchResult shardSearchResult) {
 		this.shardSearchResult = shardSearchResult;
 	}
 
-	public ShardSearchResult shardSearchResult() {
+	public InternalSearchResult getInternalSearchResult() {
 		return shardSearchResult;
 	}
 	
@@ -36,9 +38,12 @@ public class StreamableShardSearchResult implements Streamable {
 		if(input.readBoolean()){
 			sGroupData.readFrom(input);
 		}
-		
-		this.shardSearchResult = new ShardSearchResult(collectionId, shardId, sHitElement.getHitElementList(), count, totalCount,
-				sGroupData.groupData());
+		HighlightInfo highlightInfo = null;
+		if(input.readBoolean()){
+			highlightInfo = new HighlightInfo((Map<String, String>) input.readGenericValue(), (Map<String, String>) input.readGenericValue());
+		}
+		this.shardSearchResult = new InternalSearchResult(collectionId, shardId, sHitElement.getHitElementList(), count, totalCount,
+				sGroupData.groupData(), highlightInfo);
 
 	}
 
@@ -57,6 +62,13 @@ public class StreamableShardSearchResult implements Streamable {
 		if(shardSearchResult.getGroupsData() != null){
 			output.writeBoolean(true);
 			new StreamableGroupsData(shardSearchResult.getGroupsData()).writeTo(output);
+		}else{
+			output.writeBoolean(false);
+		}
+		if(shardSearchResult.getHighlightInfo() != null){
+			output.writeBoolean(true);
+			output.writeGenericValue(shardSearchResult.getHighlightInfo().fieldAnalyzerMap());
+			output.writeGenericValue(shardSearchResult.getHighlightInfo().fieldQueryMap());
 		}else{
 			output.writeBoolean(false);
 		}

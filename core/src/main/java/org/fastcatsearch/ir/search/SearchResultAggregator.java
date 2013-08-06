@@ -11,7 +11,7 @@ import org.fastcatsearch.ir.io.FixedMinHeap;
 import org.fastcatsearch.ir.query.Groups;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
-import org.fastcatsearch.ir.query.ShardSearchResult;
+import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Sorts;
 import org.fastcatsearch.ir.settings.Schema;
 import org.slf4j.Logger;
@@ -28,7 +28,7 @@ public class SearchResultAggregator {
 		this.schema = schema;
 	}
 	
-	public ShardSearchResult aggregate(List<ShardSearchResult> resultList) {
+	public InternalSearchResult aggregate(List<InternalSearchResult> resultList) {
 		
 		int mergeSize = resultList.size();
 		
@@ -69,7 +69,7 @@ public class SearchResultAggregator {
 			}
 			
 			for (int i = 0; i < resultList.size(); i++) {
-				ShardSearchResult result = resultList.get(i);
+				InternalSearchResult result = resultList.get(i);
 				totalCount += result.getTotalCount();
 				FixedHitReader hitReader = result.getFixedHitReader();
 				
@@ -114,7 +114,7 @@ public class SearchResultAggregator {
 				groupData = dataMerger.merge();
 			}
 			
-			return new ShardSearchResult(totalHit.getHitElementList(), count, totalCount, groupData);
+			return new InternalSearchResult(totalHit.getHitElementList(), count, totalCount, groupData);
 		}
 		
 	}

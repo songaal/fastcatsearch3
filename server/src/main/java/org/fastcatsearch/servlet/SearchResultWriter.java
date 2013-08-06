@@ -99,7 +99,7 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 		rStringer.key("result");
 		//data
 		Row[] rows = result.getData();
-		int start = result.getMetadata().start();
+		int start = result.getStart();
 
 		if(rows.length == 0){
 			rStringer.array("item").object()

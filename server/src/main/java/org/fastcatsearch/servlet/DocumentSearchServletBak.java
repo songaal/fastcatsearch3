@@ -295,7 +295,7 @@ public class DocumentSearchServletBak extends WebServiceHttpServlet {
 			writer.write("\t["); //array
 			//data
 			Row[] rows = result.getData();
-			int start = result.getMetadata().start();
+			int start = result.getStart();
 			
 			if(rows.length == 0){
 				writer.write("\t\t{\"_no_\": \"No result found!\"}");
@@ -438,7 +438,7 @@ public class DocumentSearchServletBak extends WebServiceHttpServlet {
 			
 			//data
 			Row[] rows = result.getData();
-			int start = result.getMetadata().start();
+			int start = result.getStart();
 			
 			if(rows.length == 0){
 				writer.write("\t<result>");

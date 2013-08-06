@@ -61,6 +61,14 @@ public class SegmentSearcher {
 		}
 		return documentReader.readDocument(docNo);
 	}
+	
+	//true인 index의 필드값만 채워진다.
+	public Document getDocument(int docNo, boolean[] fieldSelectOption) throws IOException {
+		if (documentReader == null) {
+			documentReader = segmentReader.newDocumentReader();
+		}
+		return documentReader.readDocument(docNo, fieldSelectOption);
+	}
 
 	public Hit search(Query query) throws ClauseException, IOException, IRException {
 		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), query.getGroupFilters(), query.getSorts());
@@ -206,6 +214,8 @@ public class SegmentSearcher {
 		FixedHitStack hitStack = new FixedHitStack(size);
 		for (int i = 0; i < size; i++) {
 			HitElement el = ranker.pop();
+			
+			//여기에서 segment번호를 셋팅해준다. 
 			el.docNo(segmentSequence, el.docNo());
 			
 			logger.debug("rank hit seg#{} {} ", segmentSequence, el.docNo());

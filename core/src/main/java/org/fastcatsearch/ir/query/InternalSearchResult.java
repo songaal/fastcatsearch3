@@ -18,9 +18,10 @@ package org.fastcatsearch.ir.query;
 
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.FixedHitReader;
+import org.fastcatsearch.ir.search.DocIdList;
 import org.fastcatsearch.ir.search.HitElement;
 
-public class ShardSearchResult {
+public class InternalSearchResult {
 
 	private String collectionId;
 	private int shardId;
@@ -29,21 +30,22 @@ public class ShardSearchResult {
 	private int totalCount;
 	private HitElement[] rows;
 	private GroupsData groupData;
+	private HighlightInfo highlightInfo;
 	
-	public ShardSearchResult(){}
-	public ShardSearchResult(HitElement[] rows, int count, int totalCount, GroupsData groupData){
-		this(null, -1, rows, count, totalCount, groupData);
+	public InternalSearchResult(HitElement[] rows, int count, int totalCount, GroupsData groupData){
+		this(null, -1, rows, count, totalCount, groupData, null);
 	}
-	public ShardSearchResult(int shardId, HitElement[] rows, int count, int totalCount, GroupsData groupData){
-		this(null, shardId, rows, count, totalCount, groupData);
+	public InternalSearchResult(int shardId, HitElement[] rows, int count, int totalCount, GroupsData groupData){
+		this(null, shardId, rows, count, totalCount, groupData, null);
 	}
-	public ShardSearchResult(String collectionId, int shardId, HitElement[] rows, int count, int totalCount, GroupsData groupData){
+	public InternalSearchResult(String collectionId, int shardId, HitElement[] rows, int count, int totalCount, GroupsData groupData, HighlightInfo highlightInfo){
 		this.collectionId = collectionId;
 		this.shardId = shardId;
 		this.rows = rows;
 		this.count = count;
 		this.totalCount = totalCount;
 		this.groupData = groupData;
+		this.highlightInfo = highlightInfo;
 	}
 	
 	public String collectionId(){
@@ -66,6 +68,14 @@ public class ShardSearchResult {
 		return rows;
 	}
 	
+	public DocIdList getDocIdList(){
+		DocIdList docIdList = new DocIdList(count);
+		for (int i = 0; i < count; i++) {
+			HitElement el = rows[i];
+			docIdList.add(el.segmentSequence(), el.docNo());
+		}
+		return docIdList;
+	}
 	public void setGroupData(GroupsData groupData){
 		this.groupData = groupData;
 	}
@@ -74,15 +84,18 @@ public class ShardSearchResult {
 		return groupData;
 	}
 	
+	public HighlightInfo getHighlightInfo(){
+		return highlightInfo;
+	}
 	public FixedHitReader getFixedHitReader(){
 		return new FixedHitReader(collectionId, shardId, rows, 0, count);
 	}
 	
 	public String toString(){
 		if(groupData != null){
-			return "[Result]collectionId="+collectionId+", shardId="+shardId+", count = "+count+", totalCount = "+totalCount+", groupResult.length = "+groupData.groupSize();
+			return "[Result]collectionId="+collectionId+", shardId="+shardId+", count = "+count+", totalCount = "+totalCount+", groupResult.length = "+groupData.groupSize()+", highlightInfo = "+highlightInfo;
 		}else{
-			return "[Result]collectionId="+collectionId+", shardId="+shardId+", count = "+count+", totalCount = "+totalCount;
+			return "[Result]collectionId="+collectionId+", shardId="+shardId+", count = "+count+", totalCount = "+totalCount+", highlightInfo = "+highlightInfo;
 		}
 	}
 	

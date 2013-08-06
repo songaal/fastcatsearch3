@@ -110,6 +110,10 @@ public class Schema {
 	public String collectionId(){
 		return collectionId;
 	}
+	
+	public AnalyzerPoolManager getAnalyzerPoolManager(){
+		return analyzerPoolManager;
+	}
 	public AnalyzerPool getAnalyzerPool(String analyzerId){
 		return analyzerPoolManager.getPool(analyzerId);
 	}

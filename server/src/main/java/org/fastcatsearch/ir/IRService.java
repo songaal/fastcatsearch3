@@ -35,7 +35,7 @@ import org.fastcatsearch.ir.config.JAXBConfigs;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Result;
-import org.fastcatsearch.ir.query.ShardSearchResult;
+import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
@@ -54,7 +54,7 @@ public class IRService extends AbstractService {
 	// TODO 캐시방식을 변경하자.
 
 	private QueryCacheModule<Result> searchCache;
-	private QueryCacheModule<ShardSearchResult> shardSearchCache;
+	private QueryCacheModule<InternalSearchResult> shardSearchCache;
 	private QueryCacheModule<GroupResults> groupingCache;
 	private QueryCacheModule<GroupsData> groupingDataCache;
 	private QueryCacheModule<Result> documentCache;
@@ -114,7 +114,7 @@ public class IRService extends AbstractService {
 		}
 
 		searchCache = new QueryCacheModule<Result>(environment, settings);
-		shardSearchCache = new QueryCacheModule<ShardSearchResult>(environment, settings);
+		shardSearchCache = new QueryCacheModule<InternalSearchResult>(environment, settings);
 		groupingCache = new QueryCacheModule<GroupResults>(environment, settings);
 		groupingDataCache = new QueryCacheModule<GroupsData>(environment, settings);
 		documentCache = new QueryCacheModule<Result>(environment, settings);
@@ -235,7 +235,7 @@ public class IRService extends AbstractService {
 		return searchCache;
 	}
 
-	public QueryCacheModule<ShardSearchResult> shardSearchCache() {
+	public QueryCacheModule<InternalSearchResult> shardSearchCache() {
 		return shardSearchCache;
 	}
 

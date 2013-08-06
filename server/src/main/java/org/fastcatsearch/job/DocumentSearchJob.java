@@ -83,7 +83,7 @@ public class DocumentSearchJob extends Job {
 					throw new FastcatSearchException("ERR-00520", collection);
 				}
 				
-				result = collectionHandler.searcher().searchDocument(collectionName, idStr);
+				result = collectionHandler.searcher().findDocument(collectionName, idStr);
 				
 				if(!noCache){
 					irService.documentCache().put(cacheKey, result);

@@ -28,6 +28,7 @@ import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BytesDataInput;
 import org.fastcatsearch.ir.io.ByteRefArrayOutputStream;
+import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.IOUtil;
 import org.fastcatsearch.ir.io.IndexInput;
 import org.fastcatsearch.ir.settings.FieldSetting;
@@ -35,72 +36,78 @@ import org.fastcatsearch.ir.settings.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
- * 문서번호는 세그먼트마다 0부터 시작하는 번호로 read한다. baseNo와는 상관없는 내부문서번호. 
+ * 문서번호는 세그먼트마다 0부터 시작하는 번호로 read한다. baseNo와는 상관없는 내부문서번호.
  * */
 
 public class DocumentReader implements Cloneable {
 	private static Logger logger = LoggerFactory.getLogger(DocumentReader.class);
-	
+
 	private List<FieldSetting> fields;
 	private IndexInput docInput;
 	private IndexInput positionInput;
 	private ByteRefArrayOutputStream inflaterOutput;
 	private byte[] workingBuffer;
 	private byte[] docReadBuffer;
-	
+
 	private int baseDocNo;
 	private int documentCount;
 	private int lastDocNo = -1;
-	private BytesDataInput lastBai;
-	
+	private DataInput lastBai;
+
 	public DocumentReader() {
 	}
-	
+
 	public DocumentReader(Schema schema, File dir) throws IOException {
 		this(schema, dir, 0);
 	}
+
 	public DocumentReader(Schema schema, File dir, int baseDocNo) throws IOException {
-		this.baseDocNo = baseDocNo;				
+		this.baseDocNo = baseDocNo;
 		fields = schema.schemaSetting().getFieldSettingList();
 		docInput = new BufferedFileInput(dir, IndexFileNames.docStored);
 		positionInput = new BufferedFileInput(dir, IndexFileNames.docPosition);
 		documentCount = docInput.readInt();
 		logger.info("DocumentCount = {}", documentCount);
-		
-		inflaterOutput = new ByteRefArrayOutputStream(3 * 1024 * 1024); //자동 증가됨.
+
+		inflaterOutput = new ByteRefArrayOutputStream(3 * 1024 * 1024); // 자동 증가됨.
 		workingBuffer = new byte[1024];
 		docReadBuffer = new byte[3 * 1024 * 1024];
 	}
-	
-	public int getDocumentCount(){
+
+	public int getDocumentCount() {
 		return documentCount;
 	}
-	
-	public Document readDocument(int docNo) throws IOException{
-//		if(docNo < baseDocNo) throw new IOException("Request docNo cannot less than baseDocNo! docNo = "+docNo+", baseDocNo = "+baseDocNo);
-		
-		//baseDocNo만큼 빼서 세그먼트별 내부문서번호를 만든다.
-//		docNo -= baseDocNo;
-		
-		BytesDataInput bai = null;
-		
-		if(docNo != lastDocNo){
+
+	// 내부 문서번호로 호출한다.
+	public Document readDocument(int docNo) throws IOException {
+		return readDocument(docNo, null);
+	}
+
+	public Document readDocument(int docNo, boolean[] fieldSelectOption) throws IOException {
+		// if(docNo < baseDocNo) throw new
+		// IOException("Request docNo cannot less than baseDocNo! docNo = "+docNo+", baseDocNo = "+baseDocNo);
+
+		// baseDocNo만큼 빼서 세그먼트별 내부문서번호를 만든다.
+		// docNo -= baseDocNo;
+
+		DataInput bai = null;
+
+		if (docNo != lastDocNo) {
 			positionInput.seek(docNo * IOUtil.SIZE_OF_LONG);
 			long pos = positionInput.readLong();
-			//find a document block
+			// find a document block
 			docInput.seek(pos);
 			int len = docInput.readInt();
-			
-			if(len > docReadBuffer.length){
+
+			if (len > docReadBuffer.length) {
 				docReadBuffer = new byte[len];
 			}
-			
+
 			docInput.readBytes(docReadBuffer, 0, len);
-			
+
 			Inflater decompressor = new Inflater();
-			
+
 			inflaterOutput.reset();
 			try {
 				decompressor.setInput(docReadBuffer, 0, len);
@@ -109,7 +116,7 @@ public class DocumentReader implements Cloneable {
 					int count = decompressor.inflate(workingBuffer);
 					inflaterOutput.write(workingBuffer, 0, count);
 				}
-				
+
 			} catch (DataFormatException e) {
 				throw new IOException("DataFormatException");
 			} finally {
@@ -118,47 +125,53 @@ public class DocumentReader implements Cloneable {
 
 			BytesRef bytesRef = inflaterOutput.getBytesRef();
 			bai = new BytesDataInput(bytesRef.bytes, 0, bytesRef.length);
-			
+
 			lastDocNo = docNo;
 			lastBai = bai;
-		}else{
+		} else {
 			lastBai.reset();
 			bai = lastBai;
 		}
-		
+
 		Document document = new Document(fields.size());
 		for (int i = 0; i < fields.size(); i++) {
 			FieldSetting fs = fields.get(i);
 			Field f = null;
 			boolean hasValue = bai.readBoolean();
-			f = fs.createEmptyField();
+//			logger.debug("read hasValue={}, select={}, fs={} ", hasValue, fieldSelectOption[i], fs);
+			if (hasValue) {
+				//1. fieldSelectOption 옵션이 없으면 모두 읽음.
+				//2. 옵션이 존재한다면, true인 필드만을 읽는다.
+				if(fieldSelectOption == null || (fieldSelectOption != null && fieldSelectOption[i])){
+					f = fs.createEmptyField();
+					f.readRawFrom(bai);
+				}else{
+					bai.skipVIntData();
+				}
+			}
 			
-			if(hasValue){
-				f.readRawFrom(bai);
-			}			
-//			logger.debug("read doc#{} field#{} >> {}", docNo, i, f);
 			document.set(i, f);
 		}
 		document.setDocId(docNo + baseDocNo);
 		return document;
-		
 	}
-	
+
 	@Override
-	public DocumentReader clone(){
+	public DocumentReader clone() {
 		DocumentReader reader = new DocumentReader();
 		reader.fields = fields;
 		reader.docInput = docInput;
 		reader.positionInput = positionInput;
-//		reader.baseDocNo = baseDocNo;
+		// reader.baseDocNo = baseDocNo;
 		reader.documentCount = documentCount;
-		
-		reader.inflaterOutput = new ByteRefArrayOutputStream(3 * 1024 * 1024); //자동 증가됨.
+
+		reader.inflaterOutput = new ByteRefArrayOutputStream(3 * 1024 * 1024); // 자동 증가됨.
 		reader.workingBuffer = new byte[1024];
 		reader.docReadBuffer = new byte[3 * 1024 * 1024];
 		return reader;
 	}
-	public void close() throws IOException{
+
+	public void close() throws IOException {
 		docInput.close();
 		positionInput.close();
 	}

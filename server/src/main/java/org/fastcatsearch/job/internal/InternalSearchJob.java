@@ -8,7 +8,7 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
-import org.fastcatsearch.ir.query.ShardSearchResult;
+import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.log.EventDBLogger;
@@ -40,7 +40,7 @@ public class InternalSearchJob extends StreamableJob {
 		String collection = meta.collectionId();
 
 		try {
-			ShardSearchResult result = null;
+			InternalSearchResult result = null;
 			boolean noCache = false;
 			//no cache 옵션이 없으면 캐시를 확인한다.
 			if((q.getMeta().option() & Query.SEARCH_OPT_NOCACHE) > 0){
@@ -60,7 +60,7 @@ public class InternalSearchJob extends StreamableJob {
 					throw new FastcatSearchException("ERR-00520", collection);
 				}
 				
-				result = collectionHandler.searcher().searchShard(q);
+				result = collectionHandler.searcher().searchInternal(q);
 				irService.shardSearchCache().put(queryString, result);
 			}
 

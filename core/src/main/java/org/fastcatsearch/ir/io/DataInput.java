@@ -398,6 +398,14 @@ public abstract class DataInput extends InputStream implements Cloneable {
 		}
 	}
 
+	//읽어서 버린다.
+	public void skipVIntData() throws IOException{
+		int len = readVInt();
+		for (int i = 0; i < len; i++){
+			readByte();
+		}
+	}
+	
 	public char[] readAString() throws IOException {
 		int len = readVInt();
 		char[] cs = new char[len];
@@ -409,28 +417,28 @@ public abstract class DataInput extends InputStream implements Cloneable {
 	}
 
 	public char[] readUString() throws IOException {
-		int len = readVInt();
-		char[] cs = new char[len];
+		int byteSize = readVInt();
+		char[] cs = new char[byteSize / 2];
 
-		for (int i = 0; i < len; i++) {
+		for (int i = 0; i < cs.length; i++) {
 			cs[i] = (char) readShort();
 		}
 		return cs;
 	}
 
-	public int readUString(char[] cs, int maxLength) throws IOException {
-		int len = readVInt();
-		if (maxLength < len)
-			return len;
-
-		for (int i = 0; i < len; i++) {
-			if (i < maxLength) {
-				cs[i] = (char) readShort();
-			}
-		}
-
-		return len;
-	}
+//	public int readUString(char[] cs, int maxLength) throws IOException {
+//		int len = readVInt();
+//		if (maxLength < len)
+//			return len;
+//
+//		for (int i = 0; i < len; i++) {
+//			if (i < maxLength) {
+//				cs[i] = (char) readShort();
+//			}
+//		}
+//
+//		return len;
+//	}
 
 	public char readAChar() throws IOException {
 		return (char) readByte();
@@ -440,26 +448,26 @@ public abstract class DataInput extends InputStream implements Cloneable {
 		return (char) readShort();
 	}
 
-	public char[] readAChars(int len) throws IOException {
-		char[] cs = new char[len];
+//	public char[] readAChars(int len) throws IOException {
+//		char[] cs = new char[len];
+//
+//		for (int i = 0; i < len; i++)
+//			cs[i] = (char) readByte();
+//
+//		return cs;
+//	}
+//
+//	public char[] readUChars(int len) throws IOException {
+//		char[] cs = new char[len];
+//
+//		for (int i = 0; i < len; i++)
+//			cs[i] = (char) readShort();
+//
+//		return cs;
+//	}
 
-		for (int i = 0; i < len; i++)
-			cs[i] = (char) readByte();
-
-		return cs;
-	}
-
-	public char[] readUChars(int len) throws IOException {
-		char[] cs = new char[len];
-
-		for (int i = 0; i < len; i++)
-			cs[i] = (char) readShort();
-
-		return cs;
-	}
-
-	public void readUChars(char[] cs, int len) throws IOException {
-		for (int i = 0; i < len; i++)
-			cs[i] = (char) readShort();
-	}
+//	public void readUChars(char[] cs, int len) throws IOException {
+//		for (int i = 0; i < len; i++)
+//			cs[i] = (char) readShort();
+//	}
 }

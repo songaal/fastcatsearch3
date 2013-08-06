@@ -25,11 +25,16 @@ public class StreamableHitElement implements Streamable {
 		this.count = count;
 	}
 
+	/*
+	 * collectionId와 shardId는 broker에서만 필요하므로 전송하지 않는다.
+	 * 브로커에서 직접만들어 사용한다.
+	 * */
 	@Override
 	public void readFrom(DataInput input) throws IOException {
 		count = input.readInt();
 		this.hitElements = new HitElement[count];
 		for (int hitElementInx = 0; hitElementInx < count; hitElementInx++) {
+			int segmentSequence = input.readInt();
 			int docNo = input.readInt();
 			float score = input.readFloat();
 			int rankDataSize = input.readInt();
@@ -39,7 +44,7 @@ public class StreamableHitElement implements Streamable {
 				rankData[rankDataInx] = new BytesRef(input.readVInt());
 				input.readBytes(rankData[rankDataInx]);
 			}
-			hitElements[hitElementInx] = new HitElement(docNo, score, rankData);
+			hitElements[hitElementInx] = new HitElement(segmentSequence, docNo, score, rankData);
 		}
 	}
 
@@ -50,6 +55,7 @@ public class StreamableHitElement implements Streamable {
 		for (int hitElementInx = 0; hitElementInx < count; hitElementInx++) {
 			HitElement hitElement = hitElements[hitElementInx];
 			BytesRef[] rankData = hitElement.rankData();
+			output.writeInt(hitElement.segmentSequence());
 			output.writeInt(hitElement.docNo());
 			output.writeFloat(hitElement.score());
 			output.writeInt(hitElement.rankDataSize());

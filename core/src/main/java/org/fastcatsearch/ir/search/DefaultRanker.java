@@ -32,8 +32,13 @@ public class DefaultRanker extends FixedMaxPriorityQueue<HitElement>{
 	
 	@Override
 	protected int compare(HitElement one, HitElement two) {
-		//최신문서 순으로 보여준다.
-		return two.docNo() - one.docNo() ;
+		return one.compareTo(two);
+//		//최신문서 순으로 보여준다.
+//		//최신 세그먼트를 우선으로 보여주고 세그먼트가 같으면 문서번호로 구분한다.
+//		if(one.segmentSequence() != two.segmentSequence()){
+//			return two.segmentSequence() - one.segmentSequence();
+//		}
+//		return two.docNo() - one.docNo() ;
 	}
 	
 }

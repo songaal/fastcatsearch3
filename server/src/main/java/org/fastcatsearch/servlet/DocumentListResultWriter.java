@@ -65,7 +65,7 @@ public  class DocumentListResultWriter extends AbstractDocumentListResultWriter 
 		rStringer.key("result");
 		// data
 		Row[] rows = result.getData();
-		int start = result.getMetadata().start();
+		int start = result.getStart();
 
 		if (rows.length == 0) {
 			rStringer.array("item").object().key("_no_").value("No result found!").endObject().endArray();

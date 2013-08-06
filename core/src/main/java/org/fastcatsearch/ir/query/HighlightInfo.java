@@ -33,6 +33,10 @@ public class HighlightInfo {
 		this.fieldQueryMap = new HashMap<String, String>();
 	}
 	
+	public HighlightInfo(Map<String, String> fieldAnalyzerMap, Map<String, String> fieldQueryMap) {
+		this.fieldAnalyzerMap = fieldAnalyzerMap;
+		this.fieldQueryMap = fieldQueryMap;
+	}
 	public void add(String fieldId, String analyzer, String termString){
 		fieldAnalyzerMap.put(fieldId, analyzer);
 		String value = fieldQueryMap.get(fieldId);
@@ -50,5 +54,13 @@ public class HighlightInfo {
 	
 	public String getQueryString(String fieldId){
 		return fieldQueryMap.get(fieldId);
+	}
+	
+	public Map<String, String> fieldAnalyzerMap(){
+		return fieldAnalyzerMap;
+	}
+	
+	public Map<String, String> fieldQueryMap(){
+		return fieldQueryMap;
 	}
 }

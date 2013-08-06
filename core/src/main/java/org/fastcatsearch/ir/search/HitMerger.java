@@ -92,7 +92,8 @@ public class HitMerger extends FixedMinHeap<FixedHitReader> {
 		
 		if(r1.collection() == r2.collection() && r1.shardId() == r2.shardId()){
 			//정렬 데이터가 모두 같다면 문서번호가 최신인걸 보여준다. 
-			return two.docNo() - one.docNo();
+//			return two.docNo() - one.docNo();
+			return one.compareTo(two);
 		}else{
 			//컬렉션이 shard가 다르면 비교하지 않고 같음으로 넘긴다.
 			return 0;

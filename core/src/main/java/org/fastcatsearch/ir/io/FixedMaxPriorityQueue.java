@@ -56,16 +56,14 @@ public abstract class FixedMaxPriorityQueue<T> {
 			size++;
 			heap[size] = e;
 			upHeap();
-//			logger.debug("PUSHBACK = "+e);
-//		} else if (size > 0 && compareTo(peek(), e) > 0) {
 		} else if (size > 0 && compare(peek(), e) > 0) {
 			heap[1] = e;
-//			logger.debug("PUSHTOP = "+e);
 			downHeap();
 		} else{
+			//reject
 //			logger.debug("REJECT = "+e);
 		}
-//		logger.debug("TOP = "+heap[1]);
+		
 		return true;
 	}
 	

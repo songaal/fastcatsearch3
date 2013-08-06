@@ -23,11 +23,11 @@ public class Result {
 
 	private int count;
 	private int totalCount;
-	private int fieldCount;
+//	private int fieldCount;
 	private String[] fieldNameList;
 	private Row[] rows;
 	private GroupResults groupResults;
-	private Metadata meta;
+	private int start;
 	
 	//원문조회기능에서 필요.
 	private int docCount;
@@ -35,17 +35,17 @@ public class Result {
 	private int segmentCount;
 	
 	public Result(){}
-	public Result(Row[] data, int fieldCount, String[] fieldNameList, int count, int totalCount, Metadata meta){
-		this(data, null, fieldCount, fieldNameList, count, totalCount, meta);
+	public Result(Row[] data, int fieldCount, String[] fieldNameList, int count, int totalCount, int start){
+		this(data, null, fieldNameList, count, totalCount, start);
 	}
-	public Result(Row[] data, GroupResults groupResults, int fieldCount, String[] fieldNameList, int count, int totalCount, Metadata meta){
+	public Result(Row[] data, GroupResults groupResults, String[] fieldNameList, int count, int totalCount, int start){
 		this.rows = data;
 		this.groupResults = groupResults;
-		this.fieldCount = fieldCount;
+//		this.fieldCount = fieldCount;
 		this.fieldNameList = fieldNameList;
 		this.count = count;
 		this.totalCount = totalCount;
-		this.meta = meta;
+		this.start = start;
 	}
 	
 	public int getTotalCount(){
@@ -57,7 +57,7 @@ public class Result {
 	}
 	
 	public int getFieldCount(){
-		return fieldCount;
+		return fieldNameList.length;
 	}
 	
 	public Row[] getData(){
@@ -76,15 +76,15 @@ public class Result {
 		return groupResults;
 	}
 	
-	public Metadata getMetadata(){
-		return meta;
+	public int getStart(){
+		return start;
 	}
 	
 	public String toString(){
 		if(groupResults != null){
-			return "[Result]count = "+count+", totalCount = "+totalCount+", fieldCount = "+fieldCount+", groupResult.length = "+groupResults.groupSize();
+			return "[Result]count = "+count+", totalCount = "+totalCount+", fieldCount = "+fieldNameList.length+", groupResult.length = "+groupResults.groupSize();
 		}else{
-			return "[Result]count = "+count+", totalCount = "+totalCount+", fieldCount = "+fieldCount;
+			return "[Result]count = "+count+", totalCount = "+totalCount+", fieldCount = "+fieldNameList.length;
 		}
 	}
 	

@@ -73,7 +73,7 @@ public abstract class Field implements Cloneable {
 		} else if (fieldsData != null) {
 			return fieldsData.toString();
 		}else{
-			return null;
+			return "";
 		}
 	}
 

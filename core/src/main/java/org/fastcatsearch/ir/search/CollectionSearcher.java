@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.common.SettingException;
@@ -34,7 +35,7 @@ import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
-import org.fastcatsearch.ir.query.ShardSearchResult;
+import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Sorts;
 import org.fastcatsearch.ir.query.View;
 import org.fastcatsearch.ir.settings.FieldSetting;
@@ -119,7 +120,7 @@ public class CollectionSearcher {
 
 	}
 
-	public ShardSearchResult searchShard(Query q) throws IRException, IOException, SettingException {
+	public InternalSearchResult searchInternal(Query q) throws IRException, IOException, SettingException {
 		int segmentSize = collectionHandler.segmentSize();
 		if (segmentSize == 0) {
 			logger.warn("Collection {} is not indexed!", collectionHandler.collectionId());
@@ -147,14 +148,23 @@ public class CollectionSearcher {
 		if (groups != null) {
 			dataMerger = new GroupDataMerger(groups, segmentSize);
 		}
+		
+		// 하이라이팅에 사용될 필드별 analyzer 들.
+		HighlightInfo highlightInfo = null;
+		
 		int totalSize = 0;
 		try {
 			for (int i = 0; i < segmentSize; i++) {
 				Hit hit = collectionHandler.segmentSearcher(i).search(q);
+				if (highlightInfo == null) {
+					highlightInfo = hit.highlightInfo();
+				}
+				
 				totalSize += hit.totalCount();
 				FixedHitReader hitReader = hit.hitStack().getReader();
+				
 				GroupsData groupData = hit.groupData();
-
+				
 				// posting data
 				if (hitReader.next()) {
 					hitMerger.push(hitReader);
@@ -202,7 +212,7 @@ public class CollectionSearcher {
 			groupData = dataMerger.merge();
 		}
 		HitElement[] hitElementList = totalHit.getHitElementList();
-		return new ShardSearchResult(collectionId, shardId, hitElementList, totalHit.size(), totalSize, groupData);
+		return new InternalSearchResult(collectionId, shardId, hitElementList, totalHit.size(), totalSize, groupData, highlightInfo);
 	}
 
 	public List<Document> requestDocument(int[] docIdList) throws IOException {
@@ -224,198 +234,75 @@ public class CollectionSearcher {
 
 		return documentList;
 	}
-
+	
 	public Result search(Query q) throws IRException, IOException, SettingException {
-		if (collectionHandler.segmentSize() == 0) {
-			logger.warn("Collection {} is not indexed!", collectionHandler.collectionId());
-		}
-
-		Result result = null;
-		Metadata meta = q.getMeta();
-		int start = meta.start();
-		int rows = meta.rows();
-
-		Groups groups = q.getGroups();
-
-		Sorts sorts = q.getSorts();
-		FixedMinHeap<FixedHitReader> hitMerger = null;
-		if (sorts != null) {
-			hitMerger = sorts.createMerger(collectionHandler.schema(), collectionHandler.segmentSize());
-		} else {
-			hitMerger = new FixedMinHeap<FixedHitReader>(collectionHandler.segmentSize());
-		}
-
-		GroupDataMerger dataMerger = null;
-		if (groups != null) {
-			dataMerger = new GroupDataMerger(groups, collectionHandler.segmentSize());
-		}
-
-		// 하이라이팅에 사용될 필드별 analyzer 들.
-		HighlightInfo highlightInfo = null;
-
-		int totalSize = 0;
-		try {
-			for (int i = 0; i < collectionHandler.segmentSize(); i++) {
-				Hit hit = collectionHandler.segmentSearcher(i).search(q);
-				if (highlightInfo == null) {
-					highlightInfo = hit.highlightInfo();
-				}
-				totalSize += hit.totalCount();
-				FixedHitReader hitReader = hit.hitStack().getReader();
-
-				GroupsData groupData = hit.groupData();
-
-				// posting data
-				if (hitReader.next()) {
-					hitMerger.push(hitReader);
-				}
-				// Put GroupResult
-
-				if (dataMerger != null) {
-					dataMerger.put(groupData);
-				}
-			}
-		} catch (IOException e) {
-			throw new IRException(e);
-		} catch (ClauseException e) {
-			throw new IRException(e);
-		}
-
-		GroupsData groupData = null;
-		if (dataMerger != null) {
-			groupData = dataMerger.merge();
-		}
-
-		// 각 세그먼트의 결과들을 rankdata를 기준으로 재정렬한다.
-		FixedHitQueue totalHit = new FixedHitQueue(rows);
-		int c = 1, n = 0;
-		// while(heap.size() > 0){
-		// 이미 각 세그먼트의 결과들은 정렬이되어서 전달이 된다.
-		// 그러므로, 여기서는 원하는 갯수가 다 차면 더이상 정렬을 수행할 필요없이 early termination이 가능하다.
-		while (hitMerger.size() > 0) {
-			FixedHitReader r = hitMerger.peek();
-			HitElement el = r.read();
-			if (c >= start) {
-				totalHit.push(el);
-				n++;
-			}
-			c++;
-
-			// 결과가 만들어졌으면 일찍 끝낸다.
-			if (n == rows)
-				break;
-
-			if (!r.next()) {
-				// 다 읽은 것은 버린다.
-				hitMerger.pop();
-			}
-			hitMerger.heapify();
-		}
-
-		result = makeSearchResult(q, collectionHandler.schema(), totalHit, totalSize, highlightInfo);
-
-		// TODO
-		// 제일 큰 문제는 정렬과 키값생성이 groupResultGenerator에서 수행되면 function plugin이 제 기능을 다하지 못한다....특히 datetime에 대해서...
-		// 그리고 plugin에서 int 키 값을 String으로 바꾸었는데, groupResultGenerator에서는 int형으로 인식하므로 null 에러가 발생가능성도 있다.
-		// 즉, group function에서 최종 키값을 생성필요.
-		// 정렬은 entry가 numeric인지 string인지 확인하여 알아서 수행.
-		// groupResultGenerator는 필요없게된다..
-
-		/*
-		 * Group Result
-		 */
-		if (groups != null) {
-			GroupResults groupResults = groups.getGroupsResultGenerator().generate(groupData);
-			result.setGroupResult(groupResults);
-		}
-		return result;
+		InternalSearchResult internalSearchResult = searchInternal(q);
+		DocIdList hitList = internalSearchResult.getDocIdList();
+		int realSize = internalSearchResult.getCount();
+		HighlightInfo highlightInfo = internalSearchResult.getHighlightInfo();
+		DocumentResult documentResult = searchDocument(hitList, q.getViews(), q.getMeta().tags(), highlightInfo);
+		int fieldSize = q.getViews().size();
+		int totalSize = internalSearchResult.getTotalCount();
+		int start = q.getMeta().start();
+		return new Result(documentResult.rows(), fieldSize, documentResult.fieldIdList(), realSize, totalSize, start);
 	}
+	
+//	public DocumentResult searchDocument(HitElement[] list, int realSize, List<View> views, String[] tags, HighlightInfo highlightInfo) throws IOException {
+//		DocIdList docIdList = new DocIdList(realSize);
+//		for (int i = 0; i < realSize; i++) {
+//			HitElement el = list[i];
+//			docIdList.add(el.segmentSequence(), el.docNo());
+//		}
+//		return searchDocument(docIdList, views, tags, highlightInfo);
+//	}
+	public DocumentResult searchDocument(DocIdList list, List<View> views, String[] tags, HighlightInfo highlightInfo) throws IOException {
 
-	public Result makeSearchResult(Query q, Schema schema, FixedHitQueue totalHit, int totalSize, HighlightInfo highlightInfo) throws IOException {
-		Metadata meta = q.getMeta();
-		List<View> viewList = q.getViews();
-		String[] fieldNameList = new String[viewList.size()];
-		int[] fieldSummarySize = new int[schema.getFieldSize()];
-		for (int i = 0; i < viewList.size(); i++) {
-			View view = viewList.get(i);
-			fieldNameList[i] = view.fieldId();
-			int num = collectionHandler.schema().getFieldSequence(fieldNameList[i]);
-			if (num >= 0) {
-				fieldSummarySize[num] = view.summarySize();
-				logger.trace("Summary size = {} : {}", num, fieldSummarySize[num]);
+		int realSize = list.size();
+		Row[] row = new Row[realSize];
+		
+		int fieldSize = collectionHandler.schema().getFieldSize();
+		int viewSize = views.size();
+		int[] fieldSequenceList = new int[viewSize];
+		String[] fieldIdList = new String[viewSize];
+		boolean[] fieldSelectOption = new boolean[fieldSize]; //true인 index의 필드값만 채워진다.
+		for (int i = 0; i < views.size(); i++) {
+			View v = views.get(i);
+			String fieldId = v.fieldId();
+			fieldIdList[i] = fieldId;
+			int sequence = -1;
+			if (fieldId.equalsIgnoreCase(ScoreField.fieldName)) {
+				sequence = ScoreField.fieldNumber;
+			} else if (fieldId.equalsIgnoreCase(DocNoField.fieldName)) {
+				sequence = DocNoField.fieldNumber;
+			} else {
+				sequence = collectionHandler.schema().getFieldSequence(fieldId);
+				fieldSelectOption[sequence] = true;
 			}
+
+			fieldSequenceList[i] = sequence;
 		}
-
-		FixedHitReader hitReader = totalHit.getReader();
-
-		// logger.debug("==== ranking ====");
-
-		int realSize = totalHit.size();
+		
 		Document[] eachDocList = new Document[realSize];
 
 		int idx = 0;
-		while (hitReader.next()) {
-			HitElement e = hitReader.read();
-
-			int docNo = e.docNo();
-			float score = e.score();
-			int segmentSequence = e.segmentSequence();
+		for(int i=0;i < list.size(); i++){
+			
+			int segmentSequence = list.segmentSequence(i);
+			int docNo = list.docNo(i);
 			//문서번호는 segmentSequence+docNo 에 유일하며, docNo만으로는 세그먼트끼리는 중복된다.
-			logger.debug("FOUND [seq#{}] {}:{}", segmentSequence, e.docNo(), e.score());
+			logger.debug("FOUND [seq#{}] {}:{}", segmentSequence, docNo);
 
-			Document doc = collectionHandler.segmentReader(segmentSequence).segmentSearcher().getDocument(docNo);
-			doc.setScore(score);
-			eachDocList[idx] = doc;
-
-			idx++;
-		}
-
-		Row[] row = new Row[realSize];
-
-		List<View> views = q.getViews();
-		Iterator<View> iter = views.iterator();
-		int fieldSize = views.size();
-		int[] fieldSequenceList = new int[fieldSize];
-
-		// search 조건에 입력한 요약옵션(8)과 별도로 view에 셋팅한 요약길이를 확인하여 검색필드가 아니더라도 요약해주도록함.
-		int[] extraSnipetSize = new int[fieldSize];
-		int[] fragmentSize = new int[fieldSize];
-		boolean[] extraUseHighlight = new boolean[fieldSize];
-
-		int jj = 0;
-		while (iter.hasNext()) {
-			View v = iter.next();
-			String fieldId = v.fieldId();
-			int i = -1;
-
-			if (fieldId.equalsIgnoreCase(ScoreField.fieldName)) {
-				i = ScoreField.fieldNumber;
-			} else if (fieldId.equalsIgnoreCase(DocNoField.fieldName)) {
-				i = DocNoField.fieldNumber;
-			} else {
-				i = collectionHandler.schema().getFieldSequence(fieldId);
-			}
-
-			fieldSequenceList[jj] = i;
-
-			if (v.summarySize() > 0) {
-				extraSnipetSize[jj] = v.summarySize();
-				fragmentSize[jj] = v.fragments();
-			} else {
-				extraSnipetSize[jj] = -1;
-				fragmentSize[jj] = -1;
-			}
-			extraUseHighlight[jj] = v.highlight();
-
-			jj++;
+			Document doc = collectionHandler.segmentReader(segmentSequence).segmentSearcher().getDocument(docNo, fieldSelectOption);
+			eachDocList[idx++] = doc;
 		}
 
 		for (int i = 0; i < realSize; i++) {
 			Document document = eachDocList[i];
-			row[i] = new Row(fieldSize);
+			row[i] = new Row(viewSize);
 			logger.debug("document#{}---------------", i);
-			for (int j = 0; j < fieldSize; j++) {
-
+			for (int j = 0; j < viewSize; j++) {
+				View view = views.get(j);
+				
 				int fieldSequence = fieldSequenceList[j];
 				if (fieldSequence == ScoreField.fieldNumber) {
 					float score = document.getScore();
@@ -427,31 +314,18 @@ public class CollectionSearcher {
 				} else {
 					Field field = document.get(fieldSequence);
 					logger.debug("field#{} >> {}", j, field);
-					String text = field.toString();
+					String text = null;
+					if(field != null){
+						text = field.toString();
+					}
 
 					if (has != null && text != null) {
-						String analyzerId = highlightInfo.getAnalyzer(fieldNameList[j]);
-						String queryString = highlightInfo.getQueryString(fieldNameList[j]);
+						String fiedlName = view.fieldId();
+						String analyzerId = highlightInfo.getAnalyzer(fiedlName);
+						String queryString = highlightInfo.getQueryString(fiedlName);
 						if (analyzerId != null && queryString != null) {
-							AnalyzerPool analyzerPool = schema.getAnalyzerPool(analyzerId);
-							if (analyzerPool != null) {
-								Analyzer analyzer = analyzerPool.getFromPool();
-								if (analyzer != null) {
-									try {
-										String[] tags = null;
-										// TODO meta.option을 확인하여 Force Highlight면 모든 필드에 대해 Highlighting을 수행하도록 한다.
-										if (extraUseHighlight[j]) {
-											tags = meta.tags();
-										}
-										
-										text = has.highlight(analyzer, text, queryString, tags, extraSnipetSize[j], fragmentSize[j]);
-									} finally {
-										analyzerPool.releaseToPool(analyzer);
-									}
-								}
-							}
+							text = getHighlightedSnippet(text, analyzerId, queryString, tags, view);
 						}
-
 					}
 
 					if(text != null){
@@ -464,9 +338,25 @@ public class CollectionSearcher {
 			}
 		}
 
-		return new Result(row, fieldSize, fieldNameList, realSize, totalSize, meta);
+		return new DocumentResult(row ,fieldIdList);
 	}
+	
 
+
+	private String getHighlightedSnippet(String text, String analyzerId, String queryString, String[] tags, View view) throws IOException{
+		AnalyzerPool analyzerPool = collectionHandler.schema().getAnalyzerPool(analyzerId);
+		if (analyzerPool != null) {
+			Analyzer analyzer = analyzerPool.getFromPool();
+			if (analyzer != null) {
+				try {
+					text = has.highlight(analyzer, text, queryString, view.isHighlighted() ? tags : null, view.snippetSize(), view.fragmentSize());
+				} finally {
+					analyzerPool.releaseToPool(analyzer);
+				}
+			}
+		}
+		return text;
+	}
 	// 원문조회기능.
 	public Result listDocument(String collectionId, int start, int rows) throws IRException, IOException, SettingException {
 		if (collectionHandler.segmentSize() == 0) {
@@ -561,7 +451,7 @@ public class CollectionSearcher {
 
 		// //////////////////////////////////////
 
-		result = new Result(row, fieldSize, fieldNameList, row.length, row.length, meta);
+		result = new Result(row, fieldSize, fieldNameList, row.length, row.length, start);
 		result.setSegmentCount(segmentSize);
 		result.setDeletedDocCount(deletedDocCount);
 		result.setDocCount(totalSize);
@@ -570,7 +460,7 @@ public class CollectionSearcher {
 	}
 
 	// 원문조회기능.
-	public Result searchDocument(String collectionId, String primaryKey) throws IRException, IOException, SettingException {
+	public Result findDocument(String collectionId, String primaryKey) throws IRException, IOException, SettingException {
 		if (collectionHandler.segmentSize() == 0) {
 			logger.warn("Collection {} is not indexed!", collectionId);
 		}
@@ -674,7 +564,7 @@ public class CollectionSearcher {
 
 		// //////////////////////////////////////
 
-		result = new Result(row, fieldSize, fieldNameList, row.length, row.length, meta);
+		result = new Result(row, fieldSize, fieldNameList, row.length, row.length, 1);
 		result.setSegmentCount(segmentSize);
 		result.setDeletedDocCount(deletedDocCount);
 		result.setDocCount(totalSize);

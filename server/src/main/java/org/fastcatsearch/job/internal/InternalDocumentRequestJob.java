@@ -13,6 +13,10 @@ import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableDocumentList;
 
+/*
+ * 문서의 모든 필드를 통째로 가져오는 job.
+ *
+ * */
 public class InternalDocumentRequestJob extends StreamableJob {
 	
 	private String collectionId;

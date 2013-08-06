@@ -18,35 +18,35 @@ package org.fastcatsearch.ir.query;
 
 public class View {
 	private String fieldId;
-	private int summarySize; //요약길이
-	private int fragments; //요약 블럭 갯수
-	private boolean highlight; //일치단어 하이라이팅 여부.
+	private int snippetSize; //요약길이
+	private int fragmentSize; //요약 블럭 갯수
+	private boolean highlighted; //일치단어 하이라이팅 여부.
 	
 	public View(String fieldId){
 		this(fieldId, 0, 0, false);
 	}
-	public View(String fieldId, int summary){
-		this(fieldId, summary, 0, false);
+	public View(String fieldId, int snippetSize){
+		this(fieldId, snippetSize, 1, false);
 	}
-	public View(String fieldId, int summary, int fragments, boolean highlight){
+	public View(String fieldId, int snippetSize, int fragmentSize, boolean highlighted){
 		this.fieldId = fieldId;
-		this.summarySize = summary;
-		this.fragments = fragments;
-		this.highlight = highlight;
+		this.snippetSize = snippetSize;
+		this.fragmentSize = fragmentSize;
+		this.highlighted = highlighted;
 	}
 	public String fieldId(){
 		return fieldId;
 	}
-	public int summarySize(){
-		return summarySize;
+	public int snippetSize(){
+		return snippetSize;
 	}
-	public int fragments() {
-		return fragments;
+	public int fragmentSize() {
+		return fragmentSize;
 	}
-	public boolean highlight(){
-		return highlight;
+	public boolean isHighlighted(){
+		return highlighted;
 	}
 	public String toString(){
-		return fieldId+":"+summarySize+":"+highlight;
+		return fieldId+":"+snippetSize+":"+fragmentSize+":"+highlighted;
 	}
 }
