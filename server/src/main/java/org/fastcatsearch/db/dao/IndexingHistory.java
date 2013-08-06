@@ -38,20 +38,11 @@ public class IndexingHistory extends DAOBase {
 	
 	@Override
 	public boolean createTable() throws SQLException {
-		Statement stmt = null;
-		Connection conn = null;
-		try {
-			conn = conn();
-			String createSQL = "create table "
-					+ tableName
-					+ "(id int GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) primary key, collection varchar(20), type char(1), isSuccess smallint, docSize int, updateSize int, deleteSize int, isScheduled smallint, startTime timestamp, endTime timestamp, duration int)";
-			stmt = conn.createStatement();
-			stmt.executeUpdate(createSQL);
-			return true;
-		} finally {
-			releaseResource(stmt);
-			releaseConnection(conn);
-		}
+		String createSQL = "create table "
+				+ tableName
+				+ "(id int GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) primary key, collection varchar(20), type char(4), isSuccess smallint, docSize int, updateSize int, deleteSize int, isScheduled smallint, startTime timestamp, endTime timestamp, duration int)";
+		executeUpdate(createSQL);
+		return true;
 	}
 
 	public int insert(String collection, IndexingType type, boolean isSuccess, int docSize, int updateSize, int deleteSize,

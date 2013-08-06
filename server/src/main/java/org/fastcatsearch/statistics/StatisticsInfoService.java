@@ -452,8 +452,8 @@ public class StatisticsInfoService extends AbstractService {
 						//업데이트 되었으면 채워넣고, 안 되었으면 그대로...
 						//처음시작시에만 모두 채워넣는다.
 						if(isCollectionLive[i]){
-			    			IndexingResultVO fullResult = indexingResult.select(collectionNameList[i], "F");
-			    			IndexingResultVO incResult = indexingResult.select(collectionNameList[i], "I");
+			    			IndexingResultVO fullResult = indexingResult.select(collectionNameList[i], "FULL");
+			    			IndexingResultVO incResult = indexingResult.select(collectionNameList[i], "ADD");
 			    			CollectionHandler collectionHandler = irService.collectionHandler(collectionNameList[i]);
 			    			int docCount = 0;
 			    			if(collectionHandler != null){

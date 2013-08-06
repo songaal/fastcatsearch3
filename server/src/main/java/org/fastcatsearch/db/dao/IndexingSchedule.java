@@ -35,21 +35,11 @@ public class IndexingSchedule extends DAOBase {
 	}
 
 	public boolean createTable() throws SQLException {
-		Connection conn = null;
-		Statement stmt = null;
-		String createSQL = "";
-		try {
-			conn = conn();
-			createSQL = "create table " + tableName
-					+ "(collection varchar(20), type char(1), period int, startTime timestamp, isActive smallint"
+		String createSQL = "create table " + tableName
+					+ "(collection varchar(20), type char(4), period int, startTime timestamp, isActive smallint"
 					+ ",PRIMARY KEY (collection, type))";
-			stmt = conn.createStatement();
-			stmt.executeUpdate(createSQL);
-			return true;
-		} finally {
-			releaseResource(stmt);
-			releaseConnection(conn);
-		}
+		executeUpdate(createSQL);
+		return true;
 	}
 
 	public synchronized int delete(String collection) {

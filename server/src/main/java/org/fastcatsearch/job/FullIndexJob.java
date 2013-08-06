@@ -32,7 +32,7 @@ public class FullIndexJob extends IndexingJob {
 
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
-		prepare(IndexingType.FULL_INDEXING);
+		prepare(IndexingType.FULL);
 
 		indexingLogger.info("[{}] Full Indexing Start!", collectionId);
 
@@ -58,7 +58,7 @@ public class FullIndexJob extends IndexingJob {
 			
 			
 			//status를 바꾸고 context를 저장한다.
-			collectionContext.updateCollectionStatus(IndexingType.FULL_INDEXING, revisionInfo, indexingStartTime(), System.currentTimeMillis());
+			collectionContext.updateCollectionStatus(IndexingType.FULL, revisionInfo, indexingStartTime(), System.currentTimeMillis());
 			CollectionContextUtil.saveAfterIndexing(collectionContext);
 			
 			// apply schema setting

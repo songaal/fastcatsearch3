@@ -37,7 +37,7 @@ public class IncIndexJob extends IndexingJob {
 	
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
-		prepare(IndexingType.ADD_INDEXING);
+		prepare(IndexingType.ADD);
 		
 		indexingLogger.info("[{}] Add Indexing Start!", collectionId);
 
@@ -73,7 +73,7 @@ public class IncIndexJob extends IndexingJob {
 			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 			//////////////////////////////////////////////////////////////////////////////////////////
 			
-			collectionContext.updateCollectionStatus(IndexingType.ADD_INDEXING, revisionInfo, indexingStartTime(), System.currentTimeMillis());
+			collectionContext.updateCollectionStatus(IndexingType.ADD, revisionInfo, indexingStartTime(), System.currentTimeMillis());
 			CollectionContextUtil.saveAfterIndexing(collectionContext);
 			
 			File segmentDir = collectionContext.collectionFilePaths().segmentFile(collectionContext.getDataSequence(), segmentInfo.getId());

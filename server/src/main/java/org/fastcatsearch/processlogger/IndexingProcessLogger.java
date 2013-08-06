@@ -23,9 +23,9 @@ public class IndexingProcessLogger implements ProcessLogger {
 			if (dbService != null) {
 
 				IndexingResult indexingResult = dbService.getDAO("IndexingResult", IndexingResult.class);
-				if (log.getIndexingType() == IndexingType.FULL_INDEXING) {
+				if (log.getIndexingType() == IndexingType.FULL) {
 					// 전체색인시는 증분색인 정보를 클리어해준다.
-					indexingResult.delete(log.getCollection(), IndexingType.FULL_INDEXING);
+					indexingResult.delete(log.getCollection(), IndexingType.FULL);
 				}
 				int result = indexingResult.updateOrInsert(log.getCollection(), log.getIndexingType(), IndexingResult.STATUS_RUNNING, 0, 0, 0,
 						log.isScheduled(), new Timestamp(log.getStartTime()), null, 0);

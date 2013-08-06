@@ -26,7 +26,7 @@ public class ProcessLoggerJobTest {
 	@Test
 	public void test() throws IOException {
 
-		IndexingStartProcessLog log = new IndexingStartProcessLog("test", IndexingType.FULL_INDEXING, 11111111111111L, false);
+		IndexingStartProcessLog log = new IndexingStartProcessLog("test", IndexingType.FULL, 11111111111111L, false);
 
 		ProcessLoggerJob job = new ProcessLoggerJob(IndexingProcessLogger.class, log);
 
@@ -44,7 +44,7 @@ public class ProcessLoggerJobTest {
 		IndexingStartProcessLog indexingStartProcessLog = (IndexingStartProcessLog) job2.getProcessLog();
 
 		assertEquals("test", indexingStartProcessLog.getCollection());
-		assertEquals(IndexingType.FULL_INDEXING, indexingStartProcessLog.getIndexingType());
+		assertEquals(IndexingType.FULL, indexingStartProcessLog.getIndexingType());
 		assertEquals(11111111111111L, indexingStartProcessLog.getStartTime());
 	}
 

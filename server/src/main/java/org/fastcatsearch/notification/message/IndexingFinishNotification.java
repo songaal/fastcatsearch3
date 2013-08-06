@@ -67,7 +67,7 @@ public class IndexingFinishNotification extends Notification {
 	public String toMessageString() {
 		Object[] params = new Object[6];
 		params[0] = collection;
-		params[1] = (indexingType == IndexingType.FULL_INDEXING)?"전체":"증분";
+		params[1] = (indexingType == IndexingType.FULL)?"전체":"증분";
 		params[2] = isSuccess?"성공":"실패";
 		params[3] = new Timestamp(startTime).toString();
 		params[4] = new Timestamp(endTime).toString();

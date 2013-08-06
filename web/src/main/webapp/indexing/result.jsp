@@ -136,8 +136,8 @@
 		String collection = col.getId();
 		
 		IndexingResult indexingResult = dbHandler.getDAO("IndexingResult");
-		IndexingResultVO fullIndexingResult = indexingResult.select(collection, "F");
-		IndexingResultVO incIndexingResult = indexingResult.select(collection, "I");
+		IndexingResultVO fullIndexingResult = indexingResult.select(collection, "FULL");
+		IndexingResultVO incIndexingResult = indexingResult.select(collection, "ADD");
 		
 		String startTimeStr = "";
 		String durationStr = "";

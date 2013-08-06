@@ -106,7 +106,7 @@ public class CollectionContext {
 
 	public void updateCollectionStatus(IndexingType indexingType, RevisionInfo revisionInfo, long startTime, long endTime){
 		IndexStatus indexStatus = null;
-		if(indexingType == IndexingType.FULL_INDEXING){
+		if(indexingType == IndexingType.FULL){
 			indexStatus = collectionStatus.getFullIndexStatus();
 			if(indexStatus == null){
 				indexStatus = new IndexStatus();

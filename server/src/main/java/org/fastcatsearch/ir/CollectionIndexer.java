@@ -340,7 +340,7 @@ public class CollectionIndexer {
 		logger.info("===================");
 
 
-		collectionContext.updateCollectionStatus(IndexingType.ADD_INDEXING, revisionInfo, st, System.currentTimeMillis());
+		collectionContext.updateCollectionStatus(IndexingType.ADD, revisionInfo, st, System.currentTimeMillis());
 
 		CollectionContextUtil.saveAfterIndexing(collectionContext);
 

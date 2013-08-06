@@ -49,7 +49,7 @@ public class IndexingStartNotification extends Notification {
 
 	@Override
 	public String toMessageString() {
-		return getFormattedMessage(collection, indexingType == IndexingType.FULL_INDEXING ? "전체" : "증분", isScheduled ? "스케쥴" : "수동", new Timestamp(
+		return getFormattedMessage(collection, indexingType == IndexingType.FULL ? "전체" : "증분", isScheduled ? "스케쥴" : "수동", new Timestamp(
 				startTime).toString());
 	}
 

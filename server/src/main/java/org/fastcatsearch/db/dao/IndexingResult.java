@@ -45,20 +45,11 @@ public class IndexingResult extends DAOBase {
 	public boolean createTable() throws SQLException {
 		String createSQL = "create table "
 				+ tableName
-				+ "(collection varchar(20), type char(1), status smallint, docSize int, updateSize int, deleteSize int, isScheduled smallint, startTime timestamp, endTime timestamp, duration int" +
+				+ "(collection varchar(20), type char(4), status smallint, docSize int, updateSize int, deleteSize int, isScheduled smallint, startTime timestamp, endTime timestamp, duration int" +
 				",PRIMARY KEY (collection, type))";
 
-		Statement stmt = null;
-		Connection conn = null;
-		try {
-			conn = conn();
-			stmt = conn.createStatement();
-			stmt.executeUpdate(createSQL);
-			return true;
-		} finally {
-			releaseResource(stmt);
-			releaseConnection(conn);
-		}
+		executeUpdate(createSQL);
+		return true;
 	}
 
 	public synchronized int repairStatus() throws SQLException {
