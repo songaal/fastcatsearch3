@@ -12,107 +12,102 @@
 package org.fastcatsearch.job;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
-import org.apache.commons.io.FileUtils;
-import org.fastcatsearch.datasource.reader.DataSourceReader;
-import org.fastcatsearch.datasource.reader.DataSourceReaderFactory;
+import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.CollectionIndexer;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
-import org.fastcatsearch.ir.config.DataPlanConfig;
-import org.fastcatsearch.ir.config.DataSourceConfig;
-import org.fastcatsearch.ir.config.SingleSourceConfig;
-import org.fastcatsearch.ir.config.IndexConfig;
-import org.fastcatsearch.ir.document.Document;
-import org.fastcatsearch.ir.index.SegmentWriter;
+import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.transport.vo.StreamableThrowable;
+import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.CollectionFilePaths;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class IncIndexJob extends IndexingJob {
 
-	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
+	private static final long serialVersionUID = -2307892463724479369L;
 	
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
-		String[] args = getStringArrayArgs();
-		String collectionId = args[0];
-		boolean forceAppend = false;
-		boolean forceSeparate = false;
-		if(args.length > 1){
-			forceAppend = "append".equalsIgnoreCase(args[1]);
-			forceSeparate = "separate".equalsIgnoreCase(args[1]);
-		}
-		if(forceAppend){
-			indexingLogger.info("[{}] Add Indexing Start! (forceAppend)", collectionId);
-		}else if(forceSeparate){
-			indexingLogger.info("[{}] Add Indexing Start! (forceSeparate)", collectionId);
-		}else{
-			indexingLogger.info("[{}] Add Indexing Start!", collectionId);
-		}
+		prepare(IndexingType.ADD_INDEXING);
 		
-		long st = System.currentTimeMillis(); 
+		indexingLogger.info("[{}] Add Indexing Start!", collectionId);
+
+		updateStatusStart();
+		
+		boolean isSuccess = false;
+		Object result = null;
+		Throwable throwable = null;
+		
 		try {
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			
-			
-			CollectionHandler workingHandler = irService.collectionHandler(collectionId);
-			if(workingHandler == null){
+			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
+			if(collectionHandler == null){
 				indexingLogger.error("[{}] CollectionHandler is not running!", collectionId);
 				EventDBLogger.error(EventDBLogger.CATE_INDEX, "컬렉션 "+collectionId+"가 서비스중이 아님.");
 				throw new FastcatSearchException("## ["+collectionId+"] CollectionHandler is not running...");
 			}
 			
-			
-			
-			boolean isAppend = false;
-			SegmentInfo currentSegmentInfo = workingHandler.getLastSegmentReader().segmentInfo();
+			SegmentInfo currentSegmentInfo = collectionHandler.getLastSegmentReader().segmentInfo();
 			if(currentSegmentInfo == null){
 				indexingLogger.error("[{}] has no segment!  Do full-indexing first!!", collectionId);
 				return null;
 			}
 			
-			//copy한다.
+			/*
+			 * Do indexing!!
+			 */
+			//////////////////////////////////////////////////////////////////////////////////////////
 			CollectionContext collectionContext = irService.collectionContext(collectionId).copy();
-			CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
-			int dataSequence = workingHandler.getDataSequence();
 			CollectionIndexer collectionIndexer = new CollectionIndexer(collectionContext);
-			SegmentInfo segmentInfo = collectionIndexer.addIndex(workingHandler);
+			SegmentInfo segmentInfo = collectionIndexer.addIndexing(collectionHandler);
+			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
+			//////////////////////////////////////////////////////////////////////////////////////////
 			
-			File segmentDir = collectionFilePaths.segmentFile(dataSequence, segmentInfo.getId());
+			collectionContext.updateCollectionStatus(IndexingType.ADD_INDEXING, revisionInfo, indexingStartTime(), System.currentTimeMillis());
+			CollectionContextUtil.saveAfterIndexing(collectionContext);
 			
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			String startDt = sdf.format(st);
-			String endDt = sdf.format(new Date());
-			int duration = (int) (System.currentTimeMillis() - st);
-			String durationStr = Formatter.getFormatTime(duration);
+			File segmentDir = collectionContext.collectionFilePaths().segmentFile(collectionContext.getDataSequence(), segmentInfo.getId());
+			DeleteIdSet deleteIdSet = collectionIndexer.deleteIdSet();
+			collectionHandler.updateCollection(collectionContext, segmentInfo, segmentDir, deleteIdSet);
 			
-//			collectionContext.updateCollectionStatus(IndexingType.ADD_INDEXING, dataSequence, count, st , System.currentTimeMillis());
-//			IRSettings.storeIndextime(collectionId, "INC", startDt, endDt, durationStr, count);
+			int duration = (int) (System.currentTimeMillis() - indexingStartTime());
 			
-			//5초후에 캐시 클리어.
-			getJobExecutor().offer(new CacheServiceRestartJob(5000));
+			//캐시 클리어.
+			getJobExecutor().offer(new CacheServiceRestartJob());
 			
-			indexingLogger.info("[{}] Incremental Indexing Finished! docs = {}, update = {}, delete = {}, time = {}", collectionId, count, 0, 0, durationStr);
+			indexingLogger.info("[{}] Incremental Indexing Finished! revisionInfo={}, time = {}", collectionId, revisionInfo, Formatter.getFormatTime(duration));
+			logger.info("== SegmentStatus ==");
+			collectionHandler.printSegmentStatus();
+			logger.info("===================");
 			
-			return new JobResult(new IndexingJobResult(collectionId, segmentDir, count.intValue(), 0, 0, duration));
+			result = new IndexingJobResult(collectionId, revisionInfo, duration);
+			isSuccess = true;
+
+			return new JobResult(result);
 			
-		} catch (Exception e) {
-//			EventDBLogger.error(EventDBLogger.CATE_INDEX, "증분색인에러", EventDBLogger.getStackTrace(e));
-			throw new FastcatSearchException("ERR-00501", e, collectionId);
+		} catch (Throwable e) {
+			indexingLogger.error("[" + collectionId + "] Indexing", e);
+			throwable = e;
+			throw new FastcatSearchException("ERR-00501", throwable, collectionId);
+		} finally {
+			Streamable streamableResult = null;
+			if (throwable != null) {
+				streamableResult = new StreamableThrowable(throwable);
+			} else if (result instanceof IndexingJobResult) {
+				streamableResult = (IndexingJobResult) result;
+			}
+			
+			updateStatusFinish(isSuccess, streamableResult);
 		}
 		
 		

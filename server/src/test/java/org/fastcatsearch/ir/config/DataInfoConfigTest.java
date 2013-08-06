@@ -34,10 +34,10 @@ public class DataInfoConfigTest {
 		DataInfo dataInfo = new DataInfo();
 		dataInfo.setSegmentInfoList(new ArrayList<SegmentInfo>());
 		SegmentInfo segmentInfo = new SegmentInfo("0", 0);
-		segmentInfo.updateRevision(new RevisionInfo(0, 200, 10, 0,Formatter.formatDate(new Date())));
+		segmentInfo.updateRevision(new RevisionInfo(0, 200, 100, 10, 0,Formatter.formatDate(new Date())));
 		dataInfo.getSegmentInfoList().add(segmentInfo);
 		segmentInfo = new SegmentInfo("1", 1000);
-		segmentInfo.updateRevision(new RevisionInfo(0, 400, 20, 0, Formatter.formatDate(new Date())));
+		segmentInfo.updateRevision(new RevisionInfo(0, 400, 350, 20, 0, Formatter.formatDate(new Date())));
 		dataInfo.getSegmentInfoList().add(segmentInfo);
 		
 		ByteArrayOutputStream os = new ByteArrayOutputStream();

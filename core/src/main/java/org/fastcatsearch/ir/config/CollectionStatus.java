@@ -82,9 +82,10 @@ public class CollectionStatus {
 		this.addIndexStatus = addIndexStatus;
 	}
 
-	@XmlType(propOrder = { "duration", "endTime", "startTime", "deleteCount", "updateCount", "documentCount" })
+	@XmlType(propOrder = { "duration", "endTime", "startTime", "deleteCount", "updateCount", "insertCount", "documentCount" })
 	public static class IndexStatus {
 		private int documentCount;
+		private int insertCount;
 		private int updateCount;
 		private int deleteCount;
 		private String startTime;
@@ -94,6 +95,7 @@ public class CollectionStatus {
 		public IndexStatus copy() {
 			IndexStatus indexStatus = new IndexStatus();
 			indexStatus.documentCount = documentCount;
+			indexStatus.insertCount = insertCount;
 			indexStatus.updateCount = updateCount;
 			indexStatus.deleteCount = deleteCount;
 			indexStatus.startTime = startTime;
@@ -104,7 +106,7 @@ public class CollectionStatus {
 
 		@Override
 		public String toString() {
-			return "[IndexStatus] docs[" + documentCount + "] updates[" + updateCount + "] deletes[" + deleteCount + "] start[" + startTime + "]"
+			return "[IndexStatus] docs[" + documentCount + "] inserts[" + insertCount  + "] updates[" + updateCount + "] deletes[" + deleteCount + "] start[" + startTime + "]"
 					+ "] end[" + endTime + "]" + "] duration[" + duration + "]";
 		}
 
@@ -117,6 +119,15 @@ public class CollectionStatus {
 			this.documentCount = documentCount;
 		}
 
+		@XmlAttribute(name = "inserts")
+		public int getInsertCount() {
+			return insertCount;
+		}
+
+		public void setInsertCount(int insertCount) {
+			this.insertCount = insertCount;
+		}
+		
 		@XmlAttribute(name = "updates")
 		public int getUpdateCount() {
 			return updateCount;

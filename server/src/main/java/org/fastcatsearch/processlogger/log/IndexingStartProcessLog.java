@@ -2,19 +2,20 @@ package org.fastcatsearch.processlogger.log;
 
 import java.io.IOException;
 
+import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 
 public class IndexingStartProcessLog implements ProcessLog {
 
 	private String collection;
-	private String indexingType;
+	private IndexingType indexingType;
 	private long startTime;
 	private boolean isScheduled;
 
 	public IndexingStartProcessLog(){ }
 	
-	public IndexingStartProcessLog(String collection, String indexingType, long startTime, boolean isScheduled) {
+	public IndexingStartProcessLog(String collection, IndexingType indexingType, long startTime, boolean isScheduled) {
 		this.collection = collection;
 		this.indexingType = indexingType;
 		this.startTime = startTime;
@@ -25,7 +26,7 @@ public class IndexingStartProcessLog implements ProcessLog {
 		return collection;
 	}
 
-	public String getIndexingType() {
+	public IndexingType getIndexingType() {
 		return indexingType;
 	}
 
@@ -40,7 +41,7 @@ public class IndexingStartProcessLog implements ProcessLog {
 	@Override
 	public void readFrom(DataInput input) throws IOException {
 		collection = input.readString();
-		indexingType = input.readString();
+		indexingType = IndexingType.valueOf(input.readString());
 		startTime = input.readLong();
 		isScheduled = input.readBoolean();
 	}
@@ -48,7 +49,7 @@ public class IndexingStartProcessLog implements ProcessLog {
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
 		output.writeString(collection);
-		output.writeString(indexingType);
+		output.writeString(indexingType.name());
 		output.writeLong(startTime);
 		output.writeBoolean(isScheduled);
 	}

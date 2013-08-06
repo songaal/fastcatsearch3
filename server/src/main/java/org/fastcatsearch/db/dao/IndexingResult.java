@@ -20,12 +20,13 @@ import java.sql.Timestamp;
 
 import org.fastcatsearch.db.ConnectionManager;
 import org.fastcatsearch.db.vo.IndexingResultVO;
+import org.fastcatsearch.ir.common.IndexingType;
 
 public class IndexingResult extends DAOBase {
 
-	public final static String TYPE_NONE_INDEXING = "-";
-	public final static String TYPE_FULL_INDEXING = "F";
-	public final static String TYPE_INC_INDEXING = "I";
+//	public final static String TYPE_NONE_INDEXING = "-";
+//	public final static String TYPE_FULL_INDEXING = "F";
+//	public final static String TYPE_INC_INDEXING = "I";
 	
 	public final static int STATUS_FAIL = -1;
 	public final static int STATUS_SUCCESS = 0;
@@ -81,7 +82,7 @@ public class IndexingResult extends DAOBase {
 		}
 	}
 
-	public int updateOrInsert(String collection, String type, int status, int docSize, int updateSize, int deleteSize,
+	public int updateOrInsert(String collection, IndexingType type, int status, int docSize, int updateSize, int deleteSize,
 			boolean isScheduled, Timestamp startTime, Timestamp endTime, int duration) {
 
 		String checkSQL = "select count(collection) from " + tableName + " where collection=? and type=?";
@@ -103,7 +104,7 @@ public class IndexingResult extends DAOBase {
 		}
 	}
 
-	public synchronized int insert(String collection, String type, int status, int docSize, int updateSize, int deleteSize,
+	public synchronized int insert(String collection, IndexingType type, int status, int docSize, int updateSize, int deleteSize,
 			boolean isScheduled, Timestamp startTime, Timestamp endTime, int duration) {
 		String insertSQL = "insert into "
 				+ tableName
@@ -117,7 +118,7 @@ public class IndexingResult extends DAOBase {
 			pstmt = conn.prepareStatement(insertSQL);
 			int parameterIndex = 1;
 			pstmt.setString(parameterIndex++, collection);
-			pstmt.setString(parameterIndex++, type);
+			pstmt.setString(parameterIndex++, type.name());
 			pstmt.setShort(parameterIndex++, (short) status);
 			pstmt.setInt(parameterIndex++, docSize);
 			pstmt.setInt(parameterIndex++, updateSize);
@@ -136,7 +137,7 @@ public class IndexingResult extends DAOBase {
 		}
 	}
 
-	public synchronized int update(String collection, String type, int status, int docSize, int updateSize, int deleteSize,
+	public synchronized int update(String collection, IndexingType type, int status, int docSize, int updateSize, int deleteSize,
 			boolean isScheduled, Timestamp startTime, Timestamp endTime, int duration) {
 		String updateSQL = "update " + tableName
 				+ " set status=?, docSize=?, updateSize=?, deleteSize=?, isScheduled=?, startTime=?, endTime=?, duration=? "
@@ -157,7 +158,7 @@ public class IndexingResult extends DAOBase {
 			pstmt.setTimestamp(parameterIndex++, endTime);
 			pstmt.setInt(parameterIndex++, duration);
 			pstmt.setString(parameterIndex++, collection);
-			pstmt.setString(parameterIndex++, type);
+			pstmt.setString(parameterIndex++, type.name());
 			return pstmt.executeUpdate();
 		} catch (SQLException e) {
 			logger.error(e.getMessage(), e);
@@ -168,7 +169,7 @@ public class IndexingResult extends DAOBase {
 		}
 	}
 
-	public synchronized int updateResult(String collection, String type, int status, int docSize, int updateSize, int deleteSize,
+	public synchronized int updateResult(String collection, IndexingType type, int status, int docSize, int updateSize, int deleteSize,
 			Timestamp endTime, int duration) {
 		String updateSQL = "update " + tableName
 				+ " set status=?, docSize=?, updateSize=?, deleteSize=?, endTime=?, duration=? "
@@ -188,7 +189,7 @@ public class IndexingResult extends DAOBase {
 			pstmt.setTimestamp(parameterIndex++, endTime);
 			pstmt.setInt(parameterIndex++, duration);
 			pstmt.setString(parameterIndex++, collection);
-			pstmt.setString(parameterIndex++, type);
+			pstmt.setString(parameterIndex++, type.name());
 			return pstmt.executeUpdate();
 		} catch (SQLException e) {
 			logger.error(e.getMessage(), e);
@@ -242,7 +243,7 @@ public class IndexingResult extends DAOBase {
 		return r;
 	}
 
-	public synchronized int delete(String collection, String type) {
+	public synchronized int delete(String collection, IndexingType type) {
 		String deleteSQL = "delete from " + tableName + " where collection=? and type=?";
 
 		Connection conn = null;
@@ -253,7 +254,7 @@ public class IndexingResult extends DAOBase {
 			pstmt = conn.prepareStatement(deleteSQL);
 			int parameterIndex = 1;
 			pstmt.setString(parameterIndex++, collection);
-			pstmt.setString(parameterIndex++, type);
+			pstmt.setString(parameterIndex++, type.name());
 			return pstmt.executeUpdate();
 
 		} catch (SQLException e) {

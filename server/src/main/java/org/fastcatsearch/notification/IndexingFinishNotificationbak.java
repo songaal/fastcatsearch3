@@ -51,19 +51,19 @@ public class IndexingFinishNotificationbak extends StreamableJob {
 			IndexingHistory indexingHistory = dbService.getDAO("IndexingHistory", IndexingHistory.class);
 			if (isSuccess) {
 				IndexingJobResult indexingJobResult = (IndexingJobResult) result;
-				indexingResult.updateResult(collection, indexingType, IndexingResult.STATUS_SUCCESS, indexingJobResult.docSize,
-						indexingJobResult.updateSize, indexingJobResult.deleteSize, new Timestamp(endTime),
-						(int) (endTime - startTime));
-				indexingHistory.insert(collection, indexingType, true, indexingJobResult.docSize, indexingJobResult.updateSize,
-						indexingJobResult.deleteSize, isScheduled(), new Timestamp(startTime), new Timestamp(endTime),
-						(int) (endTime - startTime));
+//				indexingResult.updateResult(collection, indexingType, IndexingResult.STATUS_SUCCESS, indexingJobResult.docSize,
+//						indexingJobResult.updateSize, indexingJobResult.deleteSize, new Timestamp(endTime),
+//						(int) (endTime - startTime));
+//				indexingHistory.insert(collection, indexingType, true, indexingJobResult.docSize, indexingJobResult.updateSize,
+//						indexingJobResult.deleteSize, isScheduled(), new Timestamp(startTime), new Timestamp(endTime),
+//						(int) (endTime - startTime));
 			} else {
 				
-				indexingResult.updateResult(collection, indexingType, IndexingResult.STATUS_FAIL, 0, 0, 0, new Timestamp(endTime),
-						(int) (endTime - startTime));
-				
-				indexingHistory.insert(collection, indexingType, false, 0, 0, 0, isScheduled(), new Timestamp(startTime),
-						new Timestamp(endTime), (int) (endTime - startTime));
+//				indexingResult.updateResult(collection, indexingType, IndexingResult.STATUS_FAIL, 0, 0, 0, new Timestamp(endTime),
+//						(int) (endTime - startTime));
+//				
+//				indexingHistory.insert(collection, indexingType, false, 0, 0, 0, isScheduled(), new Timestamp(startTime),
+//						new Timestamp(endTime), (int) (endTime - startTime));
 			}
 
 		}

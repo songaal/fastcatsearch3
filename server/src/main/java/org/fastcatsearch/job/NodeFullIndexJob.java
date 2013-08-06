@@ -77,15 +77,12 @@ public class NodeFullIndexJob extends StreamableJob {
 		try {
 			
 			long startTime = System.currentTimeMillis();
-//			IRConfig irconfig = IRSettings.getConfig(true);
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-			CollectionContext collectionContext = irService.collectionContext(collectionId);
+			CollectionContext collectionContext = irService.collectionContext(collectionId).copy();
+			
 			DataPlanConfig dataPlanConfig = collectionContext.collectionConfig().getDataPlanConfig();
-//			int DATA_SEQUENCE_CYCLE = dataPlanConfig.getDataSequenceCycle();
-//			int DATA_SEQUENCE_CYCLE = irconfig.getInt("data.sequence.cycle");
 			CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
 			
-//			File collectionHomeDir = new File(IRSettings.getCollectionHome(collectionId));
 			Schema workSchema = collectionContext.workSchema();
 			if (workSchema == null){
 				workSchema = collectionContext.schema();
@@ -98,24 +95,12 @@ public class NodeFullIndexJob extends StreamableJob {
 						+ Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - startTime));
 			}
 
-			// 주키가 없으면 색인실패
-//			if (workSchema.getIndexID() == -1) {
-//				EventDBLogger.error(EventDBLogger.CATE_INDEX, "컬렉션 스키마에 주키가 없음.");
-//				throw new FastcatSearchException("컬렉션 스키마에 주키(Primary Key)를 설정해야합니다.");
-//			}
-			
-//			DataSequenceFile dataSequenceFile = new DataSequenceFile(collectionHomeDir, -1); // read
-																								// sequence
-//			int newDataSequence = (dataSequenceFile.getSequence() + 1) % DATA_SEQUENCE_CYCLE;
-
-//			logger.debug("dataSequence=" + newDataSequence + ", DATA_SEQUENCE_CYCLE=" + DATA_SEQUENCE_CYCLE);
 			int newDataSequence = collectionContext.nextDataSequence();
 			File collectionDataDir = collectionFilePaths.dataFile(newDataSequence);
 			FileUtils.cleanCollectionDataDirectorys(collectionDataDir);
 			
 			// Make new CollectionHandler
-			// this handler's schema or other setting can be different from
-			// working segment handler's one.
+			// this handler's schema or other setting can be different from working segment handler's one.
 
 			int segmentNumber = 0;
 
@@ -123,7 +108,6 @@ public class NodeFullIndexJob extends StreamableJob {
 			DataSourceReader sourceReader = DataSourceReaderFactory.createSourceReader(collectionFilePaths.file(), workSchema, dataSourceConfig, null, true);
 			
 			if(sourceReader == null){
-//				EventDBLogger.error(EventDBLogger.CATE_INDEX, "데이터수집기를 생성할 수 없습니다.");
 				throw new FastcatSearchException("데이터 수집기 생성중 에러발생. sourceType = "+dataSourceConfig);
 			}
 
@@ -152,7 +136,7 @@ public class NodeFullIndexJob extends StreamableJob {
 //			CollectionHandler newHandler = new CollectionHandler(collectionId, collectionHomeDir, workSchema, IRSettings.getIndexConfig());
 			CollectionHandler newHandler = irService.loadCollectionHandler(collectionId, newDataSequence);
 //			int[] updateAndDeleteSize = 
-			newHandler.updateCollection(segmentInfo, segmentDir, null); //collection.info 파일저장.
+			newHandler.updateCollection(collectionContext, segmentInfo, segmentDir, null); //collection.info 파일저장.
 //			newHandler.saveDataSequenceFile(); //data.sequence 파일저장.
 			
 			
@@ -249,32 +233,22 @@ public class NodeFullIndexJob extends StreamableJob {
 			logger.info(si.toString());
 			int docSize = si.getRevisionInfo().getDocumentCount();
 			
-			/*
-			 * indextime 파일 업데이트.
-			 */
-//			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-//			String startDt = sdf.format(startTime);
-//			String endDt = sdf.format(new Date());
 			int duration = (int) (System.currentTimeMillis() - startTime);
-//			String durationStr = Formatter.getFormatTime(duration);
-//			IRSettings.storeIndextime(collectionId, "FULL", startDt, endDt, durationStr, docSize);
 			
 			/*
-			 * 5초후에 캐시 클리어.
+			 * 캐시 클리어.
 			 */
-			getJobExecutor().offer(new CacheServiceRestartJob(5000));
+			getJobExecutor().offer(new CacheServiceRestartJob());
 			
 			int updateSize = updateAndDeleteSize[0];
 			int deleteSize = updateAndDeleteSize[1] + dupCount;
-			return new JobResult(new IndexingJobResult(collectionId, segmentDir, docSize, updateSize, deleteSize, duration));
+			return null;//new JobResult(new IndexingJobResult(collectionId, segmentDir, docSize, updateSize, deleteSize, duration));
 			
 		} catch (Exception e) {
-//			EventDBLogger.error(EventDBLogger.CATE_INDEX, "전체색인에러", EventDBLogger.getStackTrace(e));
 			indexingLogger.error("[" + collectionId + "] Indexing error = " + e.getMessage(), e);
 			throw new FastcatSearchException("ERR-00500", e, collectionId);
 		}
 
-//		return new JobResult(indexingJobResult);
 	}
 
 	@Override

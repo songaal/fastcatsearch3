@@ -177,7 +177,7 @@ public class SegmentWriter {
 				//여기서는 동일 수집문서내 pk중복만 처리하고 삭제문서갯수는 알수 없다.
 				//삭제문서는 DataSourceReader에서 알수 있으므로, 이 writer를 호출하는 class에서처 처리한다.
 				int documentSize = lastDocNo + 1; //문서갯수는 번호 + 1이다.
-				RevisionInfo revisionInfo = new RevisionInfo(revision, documentSize, primaryKeyIndexesWriter.getUpdateDocCount(), 0, Formatter.formatDate());
+				RevisionInfo revisionInfo = new RevisionInfo(revision, documentSize, count, primaryKeyIndexesWriter.getUpdateDocCount(), 0, Formatter.formatDate());
 				logger.info(
 						"Segment [{}] Total {} documents indexed, elapsed = {}, mem = {}",
 						new Object[] { segmentId, documentSize, Formatter.getFormatTime(System.currentTimeMillis() - startTime),

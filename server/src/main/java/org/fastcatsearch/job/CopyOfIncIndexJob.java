@@ -184,12 +184,12 @@ public class CopyOfIncIndexJob extends IndexingJob {
 						
 						//TODO revisionInfo는 업데이트!!
 						
-						workingHandler.updateCollection(segmentInfo, segmentDir, sourceReader.getDeleteList());
+						workingHandler.updateCollection(collectionContext, segmentInfo, segmentDir, sourceReader.getDeleteList());
 					}
 				}else{
 					//그외의 경우는 새로운 리비전 디렉토리 생성됨.
 					//updateAndDeleteSize = ;
-					workingHandler.updateCollection(segmentInfo, segmentDir, sourceReader.getDeleteList());
+					workingHandler.updateCollection(collectionContext, segmentInfo, segmentDir, sourceReader.getDeleteList());
 				}
 //				updateAndDeleteSize[1] += appender.getDuplicateDocCount();//중복문서 삭제카운트. 엄밀하게는 업데이트 카운트. 
 				logger.info("== SegmentStatus ==");
@@ -248,11 +248,11 @@ public class CopyOfIncIndexJob extends IndexingJob {
 						//FIXME segmentInfo에도 udpate, workingHandler에도 ???
 						
 						segmentInfo.updateRevision(revisionInfo);
-						workingHandler.updateCollection(segmentInfo, segmentDir, sourceReader.getDeleteList());
+						workingHandler.updateCollection(collectionContext, segmentInfo, segmentDir, sourceReader.getDeleteList());
 					}
 				}else{
 					segmentInfo.updateRevision(revisionInfo);
-					workingHandler.updateCollection(currentSegmentInfo, segmentDir, sourceReader.getDeleteList());
+					workingHandler.updateCollection(collectionContext, currentSegmentInfo, segmentDir, sourceReader.getDeleteList());
 				}
 //				updateAndDeleteSize[1] += writer.getDuplicateDocCount();//중복문서 삭제카운트
 				logger.info("== SegmentStatus ==");
@@ -283,7 +283,7 @@ public class CopyOfIncIndexJob extends IndexingJob {
 			
 			indexingLogger.info("[{}] Incremental Indexing Finished! docs = {}, update = {}, delete = {}, time = {}", collectionId, count, updateAndDeleteSize[0], updateAndDeleteSize[1], durationStr);
 			
-			return new JobResult(new IndexingJobResult(collectionId, segmentDir, count, updateAndDeleteSize[0], updateAndDeleteSize[1], duration));
+			return null;//new JobResult(new IndexingJobResult(collectionId, segmentDir, count, updateAndDeleteSize[0], updateAndDeleteSize[1], duration));
 			
 		} catch (Exception e) {
 //			EventDBLogger.error(EventDBLogger.CATE_INDEX, "증분색인에러", EventDBLogger.getStackTrace(e));

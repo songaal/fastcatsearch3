@@ -11,54 +11,46 @@
 
 package org.fastcatsearch.job.result;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 
 public class IndexingJobResult implements Streamable {
 	public String collection;
-	public int docSize;
-	public int updateSize;
-	public int deleteSize;
+	public RevisionInfo  revisionInfo;
 	public int duration;
-	public File segmentDir;
 	
 	public IndexingJobResult(){ }
 	
-	public IndexingJobResult(String collection, File segmentDir, int docSize, int updateSize, int deleteSize, int duration) {
+	public IndexingJobResult(String collection, RevisionInfo  revisionInfo, int duration) {
 		this.collection = collection;
-		this.segmentDir = segmentDir;
-		this.docSize = docSize;
-		this.updateSize = updateSize;
-		this.deleteSize = deleteSize;
+		this.revisionInfo = revisionInfo;
 		this.duration = duration;
 		
 	}
 
 	public String toString(){
-		return "[IndexingResult] collection = "+collection+", docSize = "+docSize+", updateSize = "+updateSize+", deleteSize = "+deleteSize+", duration = "+duration+", path="+segmentDir.getPath();
+		return "[IndexingResult] collection = "+collection+", revisionInfo = " + revisionInfo + " duration = "+duration;
 	}
 
 	@Override
 	public void readFrom(DataInput input) throws IOException {
 		collection = input.readString();
-		docSize = input.readInt();
-		updateSize = input.readInt();
-		deleteSize = input.readInt();
+		revisionInfo = new RevisionInfo(input.readInt(), input.readInt(), input.readInt(), input.readInt(), input.readInt(), input.readString());
 		duration = input.readInt();
-		segmentDir = new File(input.readString());
 	}
 
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
 		output.writeString(collection);
-		output.writeInt(docSize);
-		output.writeInt(updateSize);
-		output.writeInt(deleteSize);
+		output.writeInt(revisionInfo.getDocumentCount());
+		output.writeInt(revisionInfo.getInsertCount());
+		output.writeInt(revisionInfo.getUpdateCount());
+		output.writeInt(revisionInfo.getDeleteCount());
+		output.writeString(revisionInfo.getCreateTime());
 		output.writeInt(duration);
-		output.writeString(segmentDir.getPath());
 	}
 }

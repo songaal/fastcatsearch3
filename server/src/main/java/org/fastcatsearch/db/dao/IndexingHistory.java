@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.fastcatsearch.db.ConnectionManager;
 import org.fastcatsearch.db.vo.IndexingHistoryVO;
+import org.fastcatsearch.ir.common.IndexingType;
 
 public class IndexingHistory extends DAOBase {
 
@@ -53,7 +54,7 @@ public class IndexingHistory extends DAOBase {
 		}
 	}
 
-	public int insert(String collection, String type, boolean isSuccess, int docSize, int updateSize, int deleteSize,
+	public int insert(String collection, IndexingType type, boolean isSuccess, int docSize, int updateSize, int deleteSize,
 			boolean isScheduled, Timestamp startTime, Timestamp endTime, int duration) {
 		PreparedStatement pstmt = null;
 		Connection conn = null;
@@ -65,7 +66,7 @@ public class IndexingHistory extends DAOBase {
 			pstmt = conn.prepareStatement(insertSQL);
 			int parameterIndex = 1;
 			pstmt.setString(parameterIndex++, collection);
-			pstmt.setString(parameterIndex++, type);
+			pstmt.setString(parameterIndex++, type.name());
 			pstmt.setBoolean(parameterIndex++, isSuccess);
 			pstmt.setInt(parameterIndex++, docSize);
 			pstmt.setInt(parameterIndex++, updateSize);

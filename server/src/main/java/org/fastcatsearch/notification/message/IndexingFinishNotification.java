@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.db.dao.IndexingResult;
+import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.result.IndexingJobResult;
@@ -13,7 +14,7 @@ import org.fastcatsearch.transport.vo.StreamableThrowable;
 public class IndexingFinishNotification extends Notification {
 
 	private String collection;
-	private String indexingType;
+	private IndexingType indexingType;
 	private boolean isSuccess;
 	private long startTime;
 	private long endTime;
@@ -21,7 +22,7 @@ public class IndexingFinishNotification extends Notification {
 
 	public IndexingFinishNotification() { }
 	
-	public IndexingFinishNotification(String collection, String indexingType, boolean isSuccess, long startTime, long endTime,
+	public IndexingFinishNotification(String collection, IndexingType indexingType, boolean isSuccess, long startTime, long endTime,
 			Streamable result) {
 		super("MSG-01001");
 		this.collection = collection;
@@ -35,7 +36,7 @@ public class IndexingFinishNotification extends Notification {
 	@Override
 	public void readFrom(DataInput input) throws IOException {
 		collection = input.readString();
-		indexingType = input.readString();
+		indexingType = IndexingType.valueOf(input.readString());
 		isSuccess = input.readBoolean();
 		startTime = input.readLong();
 		endTime = input.readLong();
@@ -50,7 +51,7 @@ public class IndexingFinishNotification extends Notification {
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
 		output.writeString(collection);
-		output.writeString(indexingType);
+		output.writeString(indexingType.name());
 		output.writeBoolean(isSuccess);
 		output.writeLong(startTime);
 		output.writeLong(endTime);
@@ -66,14 +67,14 @@ public class IndexingFinishNotification extends Notification {
 	public String toMessageString() {
 		Object[] params = new Object[6];
 		params[0] = collection;
-		params[1] = indexingType.equals(IndexingResult.TYPE_FULL_INDEXING)?"전체":"증분";
+		params[1] = (indexingType == IndexingType.FULL_INDEXING)?"전체":"증분";
 		params[2] = isSuccess?"성공":"실패";
 		params[3] = new Timestamp(startTime).toString();
 		params[4] = new Timestamp(endTime).toString();
 		
 		if(isSuccess){
 			IndexingJobResult result2 = (IndexingJobResult) result;
-			params[5] = "문서수["+Integer.toString(result2.docSize)+"]";
+			params[5] = "문서수["+Integer.toString(result2.revisionInfo.getDocumentCount())+"]";
 		}else{
 			if(result instanceof StreamableThrowable){
 				StreamableThrowable throwable = (StreamableThrowable) result;

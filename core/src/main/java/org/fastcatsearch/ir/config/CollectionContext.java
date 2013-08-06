@@ -74,6 +74,9 @@ public class CollectionContext {
 		return nextDataSequence;
 	}
 	
+	public int getDataSequence(){
+		return collectionStatus.getSequence();
+	}
 	public String getLastIndexTime(){
 		if(collectionStatus.getAddIndexStatus() != null){
 			return collectionStatus.getAddIndexStatus().getStartTime();
@@ -101,33 +104,30 @@ public class CollectionContext {
 		return dataInfo;
 	}
 
-	public void updateCollectionStatus(IndexingType indexingType, int totalCount, int updateCount, int deleteCount, long startTime, long endTime){
+	public void updateCollectionStatus(IndexingType indexingType, RevisionInfo revisionInfo, long startTime, long endTime){
+		IndexStatus indexStatus = null;
 		if(indexingType == IndexingType.FULL_INDEXING){
-			IndexStatus indexStatus = collectionStatus.getFullIndexStatus();
+			indexStatus = collectionStatus.getFullIndexStatus();
 			if(indexStatus == null){
 				indexStatus = new IndexStatus();
 				collectionStatus.setFullIndexStatus(indexStatus);
 			}
-			indexStatus.setDocumentCount(totalCount);
-			indexStatus.setUpdateCount(updateCount);
-			indexStatus.setDeleteCount(deleteCount);
-			indexStatus.setStartTime(Formatter.formatDate(new Date(startTime)));
-			indexStatus.setEndTime(Formatter.formatDate(new Date(endTime)));
-			indexStatus.setDuration(Formatter.getFormatTime(endTime - startTime));
+			//전체색인시 증분색인 status는 지워준다.
 			collectionStatus.setAddIndexStatus(null);
 		}else{
-			IndexStatus indexStatus = collectionStatus.getAddIndexStatus();
+			indexStatus = collectionStatus.getAddIndexStatus();
 			if(indexStatus == null){
 				indexStatus = new IndexStatus();
 				collectionStatus.setAddIndexStatus(indexStatus);
 			}
-			indexStatus.setDocumentCount(totalCount);
-			indexStatus.setUpdateCount(updateCount);
-			indexStatus.setDeleteCount(deleteCount);
-			indexStatus.setStartTime(Formatter.formatDate(new Date(startTime)));
-			indexStatus.setEndTime(Formatter.formatDate(new Date(endTime)));
-			indexStatus.setDuration(Formatter.getFormatTime(endTime - startTime));
 		}
+		indexStatus.setDocumentCount(revisionInfo.getDocumentCount());
+		indexStatus.setInsertCount(revisionInfo.getInsertCount());
+		indexStatus.setUpdateCount(revisionInfo.getUpdateCount());
+		indexStatus.setDeleteCount(revisionInfo.getDeleteCount());
+		indexStatus.setStartTime(Formatter.formatDate(new Date(startTime)));
+		indexStatus.setEndTime(Formatter.formatDate(new Date(endTime)));
+		indexStatus.setDuration(Formatter.getFormatTime(endTime - startTime));
 	}
 
 	public void updateSegmentInfo(SegmentInfo segmentInfo) {

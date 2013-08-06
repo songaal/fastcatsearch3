@@ -206,8 +206,10 @@ public class CollectionHandler {
 	
 	// 1. 타 세그먼트에 삭제 문서를 적용한다.
 	// 2. 해당 segment reader 재로딩 및 대체하기.
-	public void updateCollection(SegmentInfo segmentInfo, File segmentDir, DeleteIdSet deleteSet) throws IOException, IRException {
+	public void updateCollection(CollectionContext collectionContext, SegmentInfo segmentInfo, File segmentDir, DeleteIdSet deleteSet) throws IOException, IRException {
 
+		this.collectionContext = collectionContext;
+		
 		// TODO segmentInfo null일경우, 즉 추가문서없이 deleteSet만 요청된 경우 처리가 필요하다.
 		String segmentId = segmentInfo.getId();
 		SegmentReader lastSegmentReader = getSegmentReader(segmentId);
@@ -476,8 +478,8 @@ public class CollectionHandler {
 		return segmentReaderList.size();
 	}
 
-	public void updateContext(CollectionContext collectionContext) {
-		this.collectionContext = collectionContext;
-	}
+//	public void updateContext(CollectionContext collectionContext) {
+//		this.collectionContext = collectionContext;
+//	}
 
 }

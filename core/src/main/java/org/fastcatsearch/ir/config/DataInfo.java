@@ -8,18 +8,16 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
-
 /**
 <data-info documents="7500" updates="15" deletes="60">
 	<segment id="0" base="0" revision="0">
-		<revision documents="1000" updates="5" deletes="0" createTime="2013-06-15 15:20:00">
+		<revision documents="1000" inserts="990" updates="5" deletes="0" createTime="2013-06-15 15:20:00">
 	</segment>
 	<segment id="1" base="1000" revision="2">
-		<revision documents="5000" updates="5" deletes="10" createTime="2013-06-15 16:20:00">
+		<revision documents="5000" inserts="990" updates="5" deletes="10" createTime="2013-06-15 16:20:00">
 	</segment>
 	<segment id="2" base="6000" revision="1">
-		<revision documents="1500" updates="5" deletes="50" createTime="2013-06-15 16:30:00"/>
+		<revision documents="1500" inserts="990" updates="5" deletes="50" createTime="2013-06-15 16:30:00"/>
 	</segment>
 </data-info>
  * */
@@ -264,14 +262,15 @@ public class DataInfo {
 	}
 	
 	/**
-	 <revision documents="1000" updates="10" deletes="0" createTime="2013-06-15 15:20:00">
+	 <revision documents="1000" insertCount="990" updates="10" deletes="0" createTime="2013-06-15 15:20:00">
 	 * */
-	@XmlType(propOrder = { "createTime", "deleteCount", "updateCount", "documentCount" })
+	@XmlType(propOrder = { "createTime", "deleteCount", "updateCount", "insertCount", "documentCount" })
 	@XmlRootElement(name = "revision")
 	public static class RevisionInfo {
 		
 		private int revision;
 		private int documentCount;
+		private int insertCount;
 		private int updateCount;
 		private int deleteCount;
 		private String createTime;
@@ -279,15 +278,16 @@ public class DataInfo {
 		public RevisionInfo(){
 		}
 		
-		public RevisionInfo(int revision, int documentCount, int updateCount, int deleteCount, String createTime){
+		public RevisionInfo(int revision, int documentCount, int insertCount, int updateCount, int deleteCount, String createTime){
 			this.revision = revision;
 			this.documentCount = documentCount;
+			this.insertCount = insertCount;
 			this.updateCount = updateCount;
 			this.deleteCount = deleteCount;
 			this.createTime = createTime;
 		}
 		public String toString(){
-			return "[RevisionInfo] revision["+revision+"] documents["+documentCount+"] updateCount["+updateCount+"] deletes["+deleteCount+"] createTime["+createTime+"]";
+			return "[RevisionInfo] revision["+revision+"] documents["+documentCount+"] insertCount["+insertCount+"] updateCount["+updateCount+"] deletes["+deleteCount+"] createTime["+createTime+"]";
 		}
 		
 		@XmlAttribute(name="revision")
@@ -308,6 +308,14 @@ public class DataInfo {
 			this.documentCount = documentCount;
 		}
 
+		@XmlAttribute(name="inserts")
+		public int getInsertCount() {
+			return insertCount;
+		}
+		public void setInsertCount(int insertCount) {
+			this.insertCount = insertCount;
+		}
+		
 		@XmlAttribute(name="updates")
 		public int getUpdateCount() {
 			return updateCount;

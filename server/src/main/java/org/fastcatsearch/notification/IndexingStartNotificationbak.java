@@ -32,16 +32,16 @@ public class IndexingStartNotificationbak extends StreamableJob {
 		if (dbService != null) {
 
 			IndexingResult indexingResult = dbService.getDAO("IndexingResult", IndexingResult.class);
-			if (indexingType == IndexingResult.TYPE_FULL_INDEXING) {
-				// 전체색인시는 증분색인 정보를 클리어해준다.
-				indexingResult.delete(collection, IndexingResult.TYPE_INC_INDEXING);
-			}
-			int result = indexingResult.updateOrInsert(collection, indexingType, IndexingResult.STATUS_RUNNING, 0, 0, 0,
-					isScheduled, new Timestamp(startTime), null, 0);
+//			if (indexingType == IndexingResult.TYPE_FULL_INDEXING) {
+//				// 전체색인시는 증분색인 정보를 클리어해준다.
+//				indexingResult.delete(collection, IndexingResult.TYPE_INC_INDEXING);
+//			}
+//			int result = indexingResult.updateOrInsert(collection, indexingType, IndexingResult.STATUS_RUNNING, 0, 0, 0,
+//					isScheduled, new Timestamp(startTime), null, 0);
 
-			if (result > 0) {
+//			if (result > 0) {
 				return new JobResult(true);
-			}
+//			}
 		}
 
 		return new JobResult(false);

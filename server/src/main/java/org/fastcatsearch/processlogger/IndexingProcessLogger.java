@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.dao.IndexingHistory;
 import org.fastcatsearch.db.dao.IndexingResult;
+import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.processlogger.log.IndexingFinishProcessLog;
 import org.fastcatsearch.processlogger.log.IndexingStartProcessLog;
@@ -22,18 +23,18 @@ public class IndexingProcessLogger implements ProcessLogger {
 			if (dbService != null) {
 
 				IndexingResult indexingResult = dbService.getDAO("IndexingResult", IndexingResult.class);
-				if (log.getIndexingType().equals(IndexingResult.TYPE_FULL_INDEXING)) {
+				if (log.getIndexingType() == IndexingType.FULL_INDEXING) {
 					// 전체색인시는 증분색인 정보를 클리어해준다.
-					indexingResult.delete(log.getCollection(), IndexingResult.TYPE_INC_INDEXING);
+					indexingResult.delete(log.getCollection(), IndexingType.FULL_INDEXING);
 				}
-				int result = indexingResult.updateOrInsert(log.getCollection(), log.getIndexingType(),
-						IndexingResult.STATUS_RUNNING, 0, 0, 0, log.isScheduled(), new Timestamp(log.getStartTime()), null, 0);
+				int result = indexingResult.updateOrInsert(log.getCollection(), log.getIndexingType(), IndexingResult.STATUS_RUNNING, 0, 0, 0,
+						log.isScheduled(), new Timestamp(log.getStartTime()), null, 0);
 
 			}
 
 		} else if (processLog instanceof IndexingFinishProcessLog) {
 			//
-			//색인종료
+			// 색인종료
 			//
 			IndexingFinishProcessLog log = (IndexingFinishProcessLog) processLog;
 
@@ -47,10 +48,10 @@ public class IndexingProcessLogger implements ProcessLogger {
 					//
 					IndexingJobResult indexingJobResult = (IndexingJobResult) log.getResult();
 					indexingResult.updateResult(log.getCollection(), log.getIndexingType(), IndexingResult.STATUS_SUCCESS,
-							indexingJobResult.docSize, indexingJobResult.updateSize, indexingJobResult.deleteSize, new Timestamp(
-									log.getEndTime()), (int) log.getDurationTime());
-					indexingHistory.insert(log.getCollection(), log.getIndexingType(), true, indexingJobResult.docSize,
-							indexingJobResult.updateSize, indexingJobResult.deleteSize, log.isScheduled(),
+							indexingJobResult.revisionInfo.getInsertCount(), indexingJobResult.revisionInfo.getUpdateCount(),
+							indexingJobResult.revisionInfo.getDeleteCount(), new Timestamp(log.getEndTime()), (int) log.getDurationTime());
+					indexingHistory.insert(log.getCollection(), log.getIndexingType(), true, indexingJobResult.revisionInfo.getInsertCount(),
+							indexingJobResult.revisionInfo.getUpdateCount(), indexingJobResult.revisionInfo.getDeleteCount(), log.isScheduled(),
 							new Timestamp(log.getStartTime()), new Timestamp(log.getEndTime()), (int) log.getDurationTime());
 				} else {
 					//

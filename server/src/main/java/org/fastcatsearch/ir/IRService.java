@@ -58,7 +58,6 @@ public class IRService extends AbstractService {
 	private QueryCacheModule<GroupResults> groupingCache;
 	private QueryCacheModule<GroupsData> groupingDataCache;
 	private QueryCacheModule<Result> documentCache;
-	// private Map<String, CollectionConfig> collectionConfigMap;
 	private CollectionsConfig collectionsConfig;
 	private File collectionsRoot;
 	
@@ -213,7 +212,7 @@ public class IRService extends AbstractService {
 			Entry<String, CollectionHandler> entry = iter.next();
 			try {
 				entry.getValue().close();
-				logger.info("Collection " + entry.getKey() + " Shutdown!");
+				logger.info("Shutdown Collection [{}]", entry.getKey());
 			} catch (IOException e) {
 				logger.error("[ERROR] " + e.getMessage(), e);
 				throw new FastcatSearchException("IRService 종료중 에러발생.", e);

@@ -38,8 +38,8 @@ public abstract class Job implements Runnable, Serializable {
 	protected boolean isScheduled;
 	protected boolean noResult; //결과가 필요없는 단순 호출 작업
 	
-	protected long startTime;
-	protected long endTime;
+	private long startTime;
+	private long endTime;
 	
 	
 	public void setEnvironment(Environment environment) {
