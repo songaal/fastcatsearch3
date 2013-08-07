@@ -280,10 +280,12 @@ public class FieldSetting {
 		return field;
 	}
 
+	//create variable size data field
 	public Field createPatternField(String data) throws FieldDataParseException {
 		return createSingleValueField(data, data.length());
 	}
 
+	//create fixed size data field
 	public Field createPrimaryKeyField(String data) throws FieldDataParseException {
 		return createSingleValueField(data, 0);
 	}
