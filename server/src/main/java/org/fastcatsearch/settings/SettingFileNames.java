@@ -1,7 +1,7 @@
 package org.fastcatsearch.settings;
 
 public class SettingFileNames {
-	
+	public static final String idConfig = "id.conf";
 	public static final String serverConfig = "server.conf";
 	public static final String schemaObject = "_schemaObject_";
 	public static final String passwdFilename = "password.xml";

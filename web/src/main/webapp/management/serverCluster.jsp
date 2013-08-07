@@ -5,8 +5,6 @@
 
 <%@ page contentType="text/html; charset=UTF-8"%> 
 
-<%@page import="org.fastcatsearch.settings.IRSettings"%>
-<%@page import="org.fastcatsearch.ir.config.IRConfig"%>
 <%@page import="org.fastcatsearch.control.JobService"%>
 <%@page import="org.fastcatsearch.ir.IRService"%>
 <%@page import="org.fastcatsearch.service.KeywordService"%>
@@ -33,8 +31,6 @@
 
 <%
 	String message = URLDecoder.decode(WebUtils.getString(request.getParameter("message"), ""),"utf-8");
-	IRConfig irConfig = IRSettings.getConfig(true);
-	Properties systemProps = System.getProperties();
 	
 	long upTime = System.currentTimeMillis() - CatServer.startTime;
 	NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);

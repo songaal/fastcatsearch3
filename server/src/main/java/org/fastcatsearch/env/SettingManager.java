@@ -128,22 +128,30 @@ public class SettingManager {
 		}
 	}
 
-	public Settings getSettings() {
+	public Settings getIdSettings() {
+		return getSettings(SettingFileNames.idConfig);
+	}
+	
+	public Settings getServerSettings() {
+		return getSettings(SettingFileNames.serverConfig);
+	}
+	
+	public Settings getSettings(String yamlSettingName) {
 		//load config file
 		Settings serverSettings = null;
-		synchronized(SettingFileNames.serverConfig){
-			Object obj = getFromCache(SettingFileNames.serverConfig);
+		synchronized(yamlSettingName){
+			Object obj = getFromCache(yamlSettingName);
 			if(obj != null){
 				return (Settings) obj;
 			}
-			File configFile = environment.filePaths().configPath().path(SettingFileNames.serverConfig).file();
+			File configFile = environment.filePaths().configPath().path(yamlSettingName).file();
 	        InputStream input = null;
 	        try{
 	        	Yaml yaml = new Yaml();
 	        	input = new FileInputStream(configFile);
 	        	Map<String, Object> data = (Map<String, Object>) yaml.load(input);
 	        	serverSettings = new Settings(data);
-	        	putToCache(serverSettings, SettingFileNames.serverConfig);
+	        	putToCache(serverSettings, yamlSettingName);
 	        } catch (FileNotFoundException e) {
 	        	logger.error("설정파일을 찾을수 없습니다. file = {}", configFile.getAbsolutePath());
 			} finally {

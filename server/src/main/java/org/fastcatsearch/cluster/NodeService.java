@@ -31,8 +31,8 @@ public class NodeService extends AbstractService {
 	protected boolean doStart() throws FastcatSearchException {
 		JobService jobService = serviceManager.getService(JobService.class);
 
-		String myNodeName = settings.getString("me");
-		String masterNodeName = settings.getString("master");
+		String myNodeId = environment.myNodeId();
+		String masterNodeId = environment.masterNodeId();
 
 		nodeList = new ArrayList<Node>();
 		List<Settings> nodeSettingList = settings.getSettingList("node_list");
@@ -42,8 +42,6 @@ public class NodeService extends AbstractService {
 			String address = nodeSetting.getString("address");
 			int port = nodeSetting.getInt("port");
 			boolean isEnabled = !nodeSetting.getBoolean("disabled");
-			boolean isMe = myNodeName.equals(id);
-			boolean isMaster = masterNodeName.equals(id);
 
 			Node node = new Node(id, address, port);
 			nodeList.add(node);
@@ -54,11 +52,11 @@ public class NodeService extends AbstractService {
 				node.setDisabled();
 			}
 
-			if (isMe) {
+			if(myNodeId.equals(id)){
 				myNode = node;
 			}
 
-			if (isMaster) {
+			if (masterNodeId.equals(id)) {
 				masterNode = node;
 			}
 
@@ -71,7 +69,10 @@ public class NodeService extends AbstractService {
 			throw new FastcatSearchException("ERR-00301");
 		}
 
-		transportModule = new TransportModule(environment, settings, jobService);
+		//자기자신은 active하다.
+		myNode.setActive();
+		
+		transportModule = new TransportModule(environment, settings.getSubSettings("transport"), jobService);
 		if (myNode.port() > 0) {
 			transportModule.settings().put("node_port", myNode.port());
 		}

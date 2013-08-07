@@ -22,7 +22,6 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.ThreadPoolFactory;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
@@ -66,7 +65,6 @@ public class JobService extends AbstractService implements JobExecutor {
 
 	private static JobService instance;
 
-//	private JobHandler jobHandler;
 	public void asSingleton() {
 		instance = this;
 	}
@@ -78,9 +76,6 @@ public class JobService extends AbstractService implements JobExecutor {
 		super(environment, settings, serviceManager);
 	}
 
-//	public JobHandler jobHandler(){
-//		return jobHandler;
-//	}
 	protected boolean doStart() throws FastcatSearchException {
 		jobIdIncrement = new AtomicLong();
 		resultFutureMap = new ConcurrentHashMap<Long, ResultFuture>();

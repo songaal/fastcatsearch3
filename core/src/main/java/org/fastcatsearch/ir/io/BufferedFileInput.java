@@ -66,7 +66,7 @@ public class BufferedFileInput extends IndexInput implements Cloneable {
 		channel = file.getChannel();
 		byteBuf = ByteBuffer.allocate(bufferSize);
 		byteBuf.flip(); // pos와 limit을 모두 0으로 만들어준다.
-		logger.debug("File open {}", f.getAbsolutePath());
+//		logger.debug("File open {}", f.getAbsolutePath());
 	}
 
 	public String toString(){
@@ -263,7 +263,7 @@ public class BufferedFileInput extends IndexInput implements Cloneable {
 	@Override
 	public void close() throws IOException {
 		if (!isClone) {
-			logger.debug("File close {}", f.getAbsolutePath());
+//			logger.debug("File close {}", f.getAbsolutePath());
 			file.close();
 		}
 	}

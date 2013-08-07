@@ -72,6 +72,7 @@ String[] accessLog = new String[]{"",""};
 				<table><tr><td>
 					<ul>
 						<li><a href="<%=__FASTCAT_MANAGE_ROOT__%>management/monitorPopup.jsp" target="fc_monitor">실시간모니터링(팝업)</a></li>
+						<li><a href="<%=__FASTCAT_MANAGE_ROOT__%>management/serverCluster.jsp">서버클러스터상태</a></li>
 						<li><a href="<%=__FASTCAT_MANAGE_ROOT__%>management/main.jsp">시스템상태</a></li>
 						<li><a href="<%=__FASTCAT_MANAGE_ROOT__%>management/searchEvent.jsp">이벤트내역</a></li>
 						<li><a href="<%=__FASTCAT_MANAGE_ROOT__%>management/jobHistory.jsp">작업히스토리</a></li>

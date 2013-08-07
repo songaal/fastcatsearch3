@@ -5,8 +5,6 @@
 
 <%@ page contentType="text/html; charset=UTF-8"%> 
 
-<%@page import="org.fastcatsearch.settings.IRSettings"%>
-<%@page import="org.fastcatsearch.ir.config.IRConfig"%>
 <%@page import="org.fastcatsearch.control.JobService"%>
 <%@page import="org.fastcatsearch.ir.IRService"%>
 <%@page import="org.fastcatsearch.service.KeywordService"%>
@@ -33,7 +31,6 @@
 
 <%
 	String message = URLDecoder.decode(WebUtils.getString(request.getParameter("message"), ""),"utf-8");
-	IRConfig irConfig = IRSettings.getConfig(true);
 	Properties systemProps = System.getProperties();
 	
 	ThreadPoolExecutor executor = JobService.getInstance().getJobExecutor();
@@ -95,6 +92,7 @@
 			<ul class="latest">
 			<li><a href="<%=FASTCAT_MANAGE_ROOT%>management/main.jsp" class="selected">시스템상태</a></li>
 			<li><a href="<%=FASTCAT_MANAGE_ROOT%>management/serverCluster.jsp">서버클러스터</a></li>
+			<li><a href="<%=FASTCAT_MANAGE_ROOT%>management/plugin.jsp">플러그인</a></li>
 			<li><a href="<%=FASTCAT_MANAGE_ROOT%>management/searchEvent.jsp">이벤트내역</a></li>
 			<li><a href="<%=FASTCAT_MANAGE_ROOT%>management/jobHistory.jsp">작업히스토리</a></li>
 			<li><a href="<%=FASTCAT_MANAGE_ROOT%>management/account.jsp">계정관리</a></li>
@@ -324,7 +322,7 @@
 	<tbody>
 	<tr>
 		<th>검색엔진 홈</th>
-		<td><%=IRSettings.HOME%></td>
+		<td>---</td>
 	</tr>
 	<tr>
 		<th>시스템시각</th>

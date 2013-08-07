@@ -22,7 +22,6 @@ import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.management.ManagementInfoService;
 import org.fastcatsearch.notification.NotificationService;
 import org.fastcatsearch.plugin.PluginService;
@@ -141,7 +140,6 @@ public class CatServer {
 		}
 
 		Environment environment = new Environment(serverHome).init();
-		// Settings settings = environment.settingManager().getSettings();
 		this.serviceManager = new ServiceManager(environment);
 		serviceManager.asSingleton();
 
@@ -158,9 +156,12 @@ public class CatServer {
 		NodeService nodeService = serviceManager.createService("node", NodeService.class);
 		DataService dataService = serviceManager.createService("data", DataService.class);
 
-		WebService webService = serviceManager.createService("web", WebService.class);
-		if (webService == null) {
-			throw new FastcatSearchException("웹서비스를 초기화하지 못했습니다.");
+		WebService webService = null;
+		if(environment.isMasterNode()){
+			webService = serviceManager.createService("web", WebService.class);
+			if (webService == null) {
+				throw new FastcatSearchException("웹서비스를 초기화하지 못했습니다.");
+			}
 		}
 		
 		NotificationService notificationService = serviceManager.createService("notification", NotificationService.class);
@@ -205,20 +206,7 @@ public class CatServer {
 
 		startTime = System.currentTimeMillis();
 
-		// try {
-		// boolean isValidLicense = LicenseSettings.getInstance().load();
-		// if(isValidLicense){
-		// logger.info("유효한 라이선스입니다. 기한 = {}",
-		// LicenseSettings.getInstance().getLicenseInfo().getDisplayExpiredDate());
-		// }else{
-		// logger.warn("라이선스가 유효하지 않습니다.");
-		// }
-		// } catch (LicenseException e1) {
-		// logger.error("라이선스 에러.", e1);
-		// }
-
 		logger.info("CatServer started!");
-		EventDBLogger.info(EventDBLogger.CATE_MANAGEMENT, "검색엔진이 시작했습니다.", "");
 		isRunning = true;
 
 		if (keepAlive) {
@@ -254,44 +242,42 @@ public class CatServer {
 	public void stop() throws FastcatSearchException {
 
 		// FIXME 뜨는 도중 에러 발생시 NullPointerException 발생가능성.
-		serviceManager.getService(NotificationService.class).stop();
-		serviceManager.getService(ClusterAlertService.class).stop();
-		serviceManager.getService(ProcessLoggerService.class).stop();
+		serviceManager.stopService(NotificationService.class);
+		serviceManager.stopService(ClusterAlertService.class);
+		serviceManager.stopService(ProcessLoggerService.class);
 		
-		serviceManager.getService(PluginService.class).stop();
-		serviceManager.getService(NodeService.class).stop();
-		serviceManager.getService(StatisticsInfoService.class).stop();
-		serviceManager.getService(ManagementInfoService.class).stop();
-		serviceManager.getService(KeywordService.class).stop();
-		serviceManager.getService(IRService.class).stop();
-		serviceManager.getService(WebService.class).stop();
-		serviceManager.getService(JobService.class).stop();
-		serviceManager.getService(DataService.class).stop();
-		serviceManager.getService(DBService.class).stop();
+		serviceManager.stopService(PluginService.class);
+		serviceManager.stopService(NodeService.class);
+		serviceManager.stopService(StatisticsInfoService.class);
+		serviceManager.stopService(ManagementInfoService.class);
+		serviceManager.stopService(KeywordService.class);
+		serviceManager.stopService(IRService.class);
+		serviceManager.stopService(WebService.class);
+		serviceManager.stopService(JobService.class);
+		serviceManager.stopService(DataService.class);
+		serviceManager.stopService(DBService.class);
 
 		logger.info("CatServer shutdown!");
-		// EventDBLogger.info(EventDBLogger.CATE_MANAGEMENT, "검색엔진이 정지했습니다.",
-		// "");
 		isRunning = false;
 
 		// Runtime.getRuntime().removeShutdownHook(shutdownHook);
 	}
 
 	public void close() throws FastcatSearchException {
-		serviceManager.getService(NotificationService.class).close();
-		serviceManager.getService(ClusterAlertService.class).close();
-		serviceManager.getService(ProcessLoggerService.class).close();
+		serviceManager.closeService(NotificationService.class);
+		serviceManager.closeService(ClusterAlertService.class);
+		serviceManager.closeService(ProcessLoggerService.class);
 		
-		serviceManager.getService(PluginService.class).close();
-		serviceManager.getService(NodeService.class).close();
-		serviceManager.getService(StatisticsInfoService.class).close();
-		serviceManager.getService(ManagementInfoService.class).close();
-		serviceManager.getService(KeywordService.class).close();
-		serviceManager.getService(IRService.class).close();
-		serviceManager.getService(WebService.class).close();
-		serviceManager.getService(JobService.class).close();
-		serviceManager.getService(DBService.class).close();
-		serviceManager.getService(DataService.class).close();
+		serviceManager.closeService(PluginService.class);
+		serviceManager.closeService(NodeService.class);
+		serviceManager.closeService(StatisticsInfoService.class);
+		serviceManager.closeService(ManagementInfoService.class);
+		serviceManager.closeService(KeywordService.class);
+		serviceManager.closeService(IRService.class);
+		serviceManager.closeService(WebService.class);
+		serviceManager.closeService(JobService.class);
+		serviceManager.closeService(DBService.class);
+		serviceManager.closeService(DataService.class);
 	}
 
 	protected class ServerShutdownHook extends Thread {

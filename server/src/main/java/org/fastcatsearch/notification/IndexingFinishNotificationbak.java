@@ -69,7 +69,7 @@ public class IndexingFinishNotificationbak extends StreamableJob {
 		}
 		
 		//notification관련 셋팅을 얻어와서 통지를 수행한다.
-		environment.settingManager().getSettings();
+		environment.settingManager().getServerSettings();
 		
 		
 		//무조건 true

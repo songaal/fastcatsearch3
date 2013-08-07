@@ -10,7 +10,6 @@
 <%@page import="java.net.URL"%>
 <%@page import="java.io.BufferedReader"%>
 <%@page import="java.io.InputStreamReader"%>
-<%@page import="org.fastcatsearch.settings.IRSettings"%>
 <%@page import="org.fastcatsearch.db.dao.JobHistory"%>
 <%@page import="org.fastcatsearch.db.DBService"%>
 <%@page import="org.fastcatsearch.log.EventDBLogger"%>
@@ -20,7 +19,7 @@
 <%
 	String cmd = request.getParameter("cmd");
 	String message = "";
-	if ("login".equals(cmd)) {
+	/* if ("login".equals(cmd)) {
 		String username = request.getParameter("username");
 		String passwd = request.getParameter("passwd");
 		String[] accessLog = IRSettings.isCorrectPasswd(username, passwd);
@@ -41,7 +40,7 @@
 		session.invalidate();
 		response.sendRedirect(FASTCAT_MANAGE_ROOT+"index.jsp");
 		return;
-	}
+	} */
 %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">

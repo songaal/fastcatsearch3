@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.settings.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,7 @@ public class ServiceManager {
 	public <T extends AbstractService> T createService(String settingName, Class<T> serviceClass){
 		try {
 			Constructor<T> construct = serviceClass.getConstructor(Environment.class, Settings.class, ServiceManager.class);
-			T t = construct.newInstance(environment, environment.settingManager().getSettings().getSubSettings("service").getSubSettings(settingName), this);
+			T t = construct.newInstance(environment, environment.settingManager().getServerSettings().getSubSettings("service").getSubSettings(settingName), this);
 			serviceMap.put(serviceClass, t);
 			return t;
 		} catch (Exception e) {
@@ -44,6 +45,24 @@ public class ServiceManager {
 	
 	public <T extends AbstractService> T getService(Class<T> serviceClass) {
 		return (T) serviceMap.get(serviceClass);
+	}
+	
+	public <T extends AbstractService> boolean stopService(Class<T> serviceClass) throws FastcatSearchException {
+		T service = (T) serviceMap.get(serviceClass);
+		if(service != null){
+			return service.stop();
+		}else{
+			return false;
+		}
+	}
+	
+	public <T extends AbstractService> boolean closeService(Class<T> serviceClass) throws FastcatSearchException {
+		T service = (T) serviceMap.get(serviceClass);
+		if(service != null){
+			return service.close();
+		}else{
+			return false;
+		}
 	}
 
 }

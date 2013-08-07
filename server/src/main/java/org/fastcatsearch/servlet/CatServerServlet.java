@@ -59,7 +59,11 @@ public class CatServerServlet extends HttpServlet {
 		
 		logger = LoggerFactory.getLogger(CatServerServlet.class);
 		
-		Environment environment = new Environment(serverHome).init();
+		try {
+			Environment environment = new Environment(serverHome).init();
+		} catch (FastcatSearchException e1) {
+			e1.printStackTrace();
+		}
 		dbHandler = DBService.getInstance();
 		keywordService = KeywordService.getInstance();
 		jobController = JobService.getInstance();

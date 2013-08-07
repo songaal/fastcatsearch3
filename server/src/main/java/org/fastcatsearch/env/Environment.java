@@ -2,6 +2,7 @@ package org.fastcatsearch.env;
 
 import java.io.File;
 
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +20,8 @@ public class Environment {
 	
 	private SettingManager settingManager;
 	
+	private String myNodeId;
+	private String masterNodeId;
 	private boolean isMasterNode;
 	
 	public Environment(String homeDirPath){
@@ -39,14 +42,19 @@ public class Environment {
 		logger.info("logback.configurationFile = {}", new File(new File(homeFile, "conf"), "logback.xml").getAbsolutePath());
 	}
 	
-	public Environment init(){
+	public Environment init() throws FastcatSearchException {
 		settingManager = new SettingManager(this);
 		
-		String myNodeName = settingManager.getSettings().getString("me","me");
-		String masterNodeName = settingManager.getSettings().getString("master", "master");
-		if(myNodeName.equals(masterNodeName)){
+		myNodeId = settingManager.getIdSettings().getString("me");
+		masterNodeId = settingManager.getIdSettings().getString("master");
+		if(myNodeId == null || masterNodeId == null){
+			throw new FastcatSearchException("ID 셋팅이 잘못되었습니다. me="+myNodeId+", master="+masterNodeId);
+		}
+		if(myNodeId.equals(masterNodeId)){
 			isMasterNode = true;
 		}
+		
+		logger.info("[ID] me[{}] master[{}]", myNodeId, masterNodeId);
 		return this;
 	}
 	
@@ -65,6 +73,12 @@ public class Environment {
 		return new Path(homeFile);
 	}
 
+	public String myNodeId(){
+		return myNodeId;
+	}
+	public String masterNodeId(){
+		return masterNodeId;
+	}
 	public boolean isMasterNode(){
 		return isMasterNode;
 	}
