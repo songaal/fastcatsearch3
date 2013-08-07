@@ -2,12 +2,10 @@ package org.fastcatsearch.ir.search;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
-import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.common.SettingException;
@@ -31,11 +29,11 @@ import org.fastcatsearch.ir.io.FixedMinHeap;
 import org.fastcatsearch.ir.query.ClauseException;
 import org.fastcatsearch.ir.query.Groups;
 import org.fastcatsearch.ir.query.HighlightInfo;
+import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
-import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Sorts;
 import org.fastcatsearch.ir.query.View;
 import org.fastcatsearch.ir.settings.FieldSetting;
@@ -64,20 +62,16 @@ public class CollectionSearcher {
 			logger.warn("Collection {} is not indexed!", collectionHandler.collectionId());
 		}
 
-		Metadata meta = q.getMeta();
-		String collectionId = meta.collectionId();
-
 		Groups groups = q.getGroups();
 
 		if (groups == null) {
-			new GroupResults(0);
+			return null;
 		}
 
 		if (segmentSize == 1) {
 			// 머징필요없음.
 			try {
-				GroupHit groupHit = collectionHandler.segmentSearcher(0).doGrouping(q);
-				// GroupHit groupHit = segmentSearcherList[0].doGrouping(q);
+				GroupHit groupHit = collectionHandler.segmentSearcher(0).searchGroupHit(q);
 				return groupHit.groupData();
 			} catch (IOException e) {
 				throw new IRException(e);
@@ -90,12 +84,10 @@ public class CollectionSearcher {
 			if (groups != null) {
 				dataMerger = new GroupDataMerger(groups, segmentSize);
 			}
-			// int searchTotalSize = 0;
+
 			try {
 				for (int i = 0; i < segmentSize; i++) {
-					// GroupHit groupHit = segmentSearcherList[i].doGrouping(q);
-					GroupHit groupHit = collectionHandler.segmentSearcher(i).doGrouping(q);
-					// searchTotalSize += groupHit.searchTotalCount();
+					GroupHit groupHit = collectionHandler.segmentSearcher(i).searchGroupHit(q);
 
 					if (dataMerger != null) {
 						dataMerger.put(groupHit.groupData());
@@ -107,10 +99,6 @@ public class CollectionSearcher {
 				throw new IRException(e);
 			}
 
-			/*
-			 * Group Result
-			 */
-
 			GroupsData groupData = null;
 			if (dataMerger != null) {
 				groupData = dataMerger.merge();
@@ -118,6 +106,48 @@ public class CollectionSearcher {
 			return groupData;
 		}
 
+	}
+
+	// id리스트에 해당하는 document자체를 읽어서 리스트로 리턴한다.
+	public List<Document> requestDocument(int[] docIdList) throws IOException {
+		// eachDocList에 해당하는 문서리스트를 리턴한다.
+		List<Document> documentList = new ArrayList<Document>(docIdList.length);
+
+		int segmentSize = collectionHandler.segmentSize();
+		for (int i = 0; i < docIdList.length; i++) {
+			int docNo = docIdList[i];
+
+			// make doc number lists to send each columns
+			for (int m = segmentSize - 1; m >= 0; m--) {
+				if (docNo >= collectionHandler.segmentReader(m).segmentInfo().getBaseNumber()) {
+					documentList.add(collectionHandler.segmentReader(m).segmentSearcher().getDocument(docNo));
+					break;
+				}
+			}
+		}
+
+		return documentList;
+	}
+
+	public Result search(Query q) throws IRException, IOException, SettingException {
+		InternalSearchResult internalSearchResult = searchInternal(q);
+		DocIdList hitList = internalSearchResult.getDocIdList();
+		
+		
+		int realSize = internalSearchResult.getCount();
+		HighlightInfo highlightInfo = internalSearchResult.getHighlightInfo();
+		DocumentResult documentResult = searchDocument(hitList, q.getViews(), q.getMeta().tags(), highlightInfo);
+		int fieldSize = q.getViews().size();
+		int totalSize = internalSearchResult.getTotalCount();
+		int start = q.getMeta().start();
+		//groups
+		Groups groups =  q.getGroups();
+		GroupResults groupResults = null; 
+		if(groups != null){
+			GroupsData groupsData = internalSearchResult.getGroupsData();
+			groupResults = groups.getGroupResultsGenerator().generate(groupsData);
+		}
+		return new Result(documentResult.rows(), groupResults, documentResult.fieldIdList(), realSize, totalSize, start);
 	}
 
 	public InternalSearchResult searchInternal(Query q) throws IRException, IOException, SettingException {
@@ -148,23 +178,22 @@ public class CollectionSearcher {
 		if (groups != null) {
 			dataMerger = new GroupDataMerger(groups, segmentSize);
 		}
-		
-		// 하이라이팅에 사용될 필드별 analyzer 들.
+
 		HighlightInfo highlightInfo = null;
-		
+
 		int totalSize = 0;
 		try {
 			for (int i = 0; i < segmentSize; i++) {
-				Hit hit = collectionHandler.segmentSearcher(i).search(q);
+				Hit hit = collectionHandler.segmentSearcher(i).searchHit(q);
 				if (highlightInfo == null) {
 					highlightInfo = hit.highlightInfo();
 				}
-				
+
 				totalSize += hit.totalCount();
 				FixedHitReader hitReader = hit.hitStack().getReader();
-				
+
 				GroupsData groupData = hit.groupData();
-				
+
 				// posting data
 				if (hitReader.next()) {
 					hitMerger.push(hitReader);
@@ -215,56 +244,16 @@ public class CollectionSearcher {
 		return new InternalSearchResult(collectionId, shardId, hitElementList, totalHit.size(), totalSize, groupData, highlightInfo);
 	}
 
-	public List<Document> requestDocument(int[] docIdList) throws IOException {
-		// eachDocList에 해당하는 문서리스트를 리턴한다.
-		List<Document> documentList = new ArrayList<Document>(docIdList.length);
-
-		int segmentSize = collectionHandler.segmentSize();
-		for (int i = 0; i < docIdList.length; i++) {
-			int docNo = docIdList[i];
-
-			// make doc number lists to send each columns
-			for (int m = segmentSize - 1; m >= 0; m--) {
-				if (docNo >= collectionHandler.segmentReader(m).segmentInfo().getBaseNumber()) {
-					documentList.add(collectionHandler.segmentReader(m).segmentSearcher().getDocument(docNo));
-					break;
-				}
-			}
-		}
-
-		return documentList;
-	}
-	
-	public Result search(Query q) throws IRException, IOException, SettingException {
-		InternalSearchResult internalSearchResult = searchInternal(q);
-		DocIdList hitList = internalSearchResult.getDocIdList();
-		int realSize = internalSearchResult.getCount();
-		HighlightInfo highlightInfo = internalSearchResult.getHighlightInfo();
-		DocumentResult documentResult = searchDocument(hitList, q.getViews(), q.getMeta().tags(), highlightInfo);
-		int fieldSize = q.getViews().size();
-		int totalSize = internalSearchResult.getTotalCount();
-		int start = q.getMeta().start();
-		return new Result(documentResult.rows(), fieldSize, documentResult.fieldIdList(), realSize, totalSize, start);
-	}
-	
-//	public DocumentResult searchDocument(HitElement[] list, int realSize, List<View> views, String[] tags, HighlightInfo highlightInfo) throws IOException {
-//		DocIdList docIdList = new DocIdList(realSize);
-//		for (int i = 0; i < realSize; i++) {
-//			HitElement el = list[i];
-//			docIdList.add(el.segmentSequence(), el.docNo());
-//		}
-//		return searchDocument(docIdList, views, tags, highlightInfo);
-//	}
 	public DocumentResult searchDocument(DocIdList list, List<View> views, String[] tags, HighlightInfo highlightInfo) throws IOException {
 
 		int realSize = list.size();
 		Row[] row = new Row[realSize];
-		
+
 		int fieldSize = collectionHandler.schema().getFieldSize();
 		int viewSize = views.size();
 		int[] fieldSequenceList = new int[viewSize];
 		String[] fieldIdList = new String[viewSize];
-		boolean[] fieldSelectOption = new boolean[fieldSize]; //true인 index의 필드값만 채워진다.
+		boolean[] fieldSelectOption = new boolean[fieldSize]; // true인 index의 필드값만 채워진다.
 		for (int i = 0; i < views.size(); i++) {
 			View v = views.get(i);
 			String fieldId = v.fieldId();
@@ -276,20 +265,22 @@ public class CollectionSearcher {
 				sequence = DocNoField.fieldNumber;
 			} else {
 				sequence = collectionHandler.schema().getFieldSequence(fieldId);
-				fieldSelectOption[sequence] = true;
+				if(sequence != -1){
+					fieldSelectOption[sequence] = true;
+				}
 			}
 
 			fieldSequenceList[i] = sequence;
 		}
-		
+
 		Document[] eachDocList = new Document[realSize];
 
 		int idx = 0;
-		for(int i=0;i < list.size(); i++){
-			
+		for (int i = 0; i < list.size(); i++) {
+
 			int segmentSequence = list.segmentSequence(i);
 			int docNo = list.docNo(i);
-			//문서번호는 segmentSequence+docNo 에 유일하며, docNo만으로는 세그먼트끼리는 중복된다.
+			// 문서번호는 segmentSequence+docNo 에 유일하며, docNo만으로는 세그먼트끼리는 중복된다.
 			logger.debug("FOUND [seq#{}] {}:{}", segmentSequence, docNo);
 
 			Document doc = collectionHandler.segmentReader(segmentSequence).segmentSearcher().getDocument(docNo, fieldSelectOption);
@@ -302,7 +293,7 @@ public class CollectionSearcher {
 			logger.debug("document#{}---------------", i);
 			for (int j = 0; j < viewSize; j++) {
 				View view = views.get(j);
-				
+
 				int fieldSequence = fieldSequenceList[j];
 				if (fieldSequence == ScoreField.fieldNumber) {
 					float score = document.getScore();
@@ -315,7 +306,7 @@ public class CollectionSearcher {
 					Field field = document.get(fieldSequence);
 					logger.debug("field#{} >> {}", j, field);
 					String text = null;
-					if(field != null){
+					if (field != null) {
 						text = field.toString();
 					}
 
@@ -328,9 +319,9 @@ public class CollectionSearcher {
 						}
 					}
 
-					if(text != null){
+					if (text != null) {
 						row[i].put(j, text.toCharArray());
-					}else{
+					} else {
 						row[i].put(j, null);
 					}
 
@@ -338,12 +329,10 @@ public class CollectionSearcher {
 			}
 		}
 
-		return new DocumentResult(row ,fieldIdList);
+		return new DocumentResult(row, fieldIdList);
 	}
-	
 
-
-	private String getHighlightedSnippet(String text, String analyzerId, String queryString, String[] tags, View view) throws IOException{
+	private String getHighlightedSnippet(String text, String analyzerId, String queryString, String[] tags, View view) throws IOException {
 		AnalyzerPool analyzerPool = collectionHandler.schema().getAnalyzerPool(analyzerId);
 		if (analyzerPool != null) {
 			Analyzer analyzer = analyzerPool.getFromPool();
@@ -357,6 +346,7 @@ public class CollectionSearcher {
 		}
 		return text;
 	}
+
 	// 원문조회기능.
 	public Result listDocument(String collectionId, int start, int rows) throws IRException, IOException, SettingException {
 		if (collectionHandler.segmentSize() == 0) {
@@ -397,14 +387,9 @@ public class CollectionSearcher {
 			logger.error("There is no indexed data.");
 			throw new IRException("색인된 데이터가 없습니다.");
 		}
-		// File lastSegDir = lastSegInfo.getSegmentDir();
-		// int lastSegRevision = lastSegInfo.getLastRevision();
-
 		// 총문서갯수와 시작번호에 근거해서 이 시작번호가 어느 세그먼트에 속하고 이 세그먼트의 어느 위치에서 시작되는지를 구한다.
 		// [세스머튼번호,시작번호,끝번호][2] = matchSegment(int[][], 조회시작변수);
 		int[][] matchSeg = matchSegment(segEndNums, start, rows);
-		// logger.debug("start: "+start+", rows "+rows+", result "+matchSeg.length);
-		// targetsegInfo = this.getSegmentInfo(우에서 얻은 세그먼트번호);
 		// 해당 세그먼트의 deleteSet객체를 얻는다.
 		for (int i = 0; i < matchSeg.length; i++) {
 			int segNo = matchSeg[i][0];
@@ -419,13 +404,6 @@ public class CollectionSearcher {
 			DocumentReader reader = new DocumentReader(collectionHandler.schema(), segmentReader.segmentDir());
 			BitSet deleteSet = null;
 			deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentId));
-			// 마지막 세그먼트(현재세그먼트)이면 숫자 suffix없이 삭제문서파일을 읽는다.
-//			if (segNo == segmentSize - 1) {
-//				deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.docDeleteSet);
-//			} else {
-//				deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet,
-//						Integer.toString(segNo)));
-//			}
 
 			for (int j = startNo; j <= endNo; j++) {
 				Document document = reader.readDocument(j);
@@ -451,7 +429,7 @@ public class CollectionSearcher {
 
 		// //////////////////////////////////////
 
-		result = new Result(row, fieldSize, fieldNameList, row.length, row.length, start);
+		result = new Result(row, null, fieldNameList, row.length, row.length, start);
 		result.setSegmentCount(segmentSize);
 		result.setDeletedDocCount(deletedDocCount);
 		result.setDocCount(totalSize);
@@ -499,18 +477,18 @@ public class CollectionSearcher {
 			SegmentReader segmentReader = collectionHandler.segmentReader(i);
 			// File targetDir = segmentReader.getSegmentDir();
 			// int lastRevision = segmentReader.getLastRevision();
-			
+
 			String segmentId = segmentReader.segmentInfo().getId();
 			int revision = segmentReader.segmentInfo().getRevision();
-			//DocumentReader reader = new DocumentReader(collectionHandler.schema(), segmentReader.segmentDir());
+			// DocumentReader reader = new DocumentReader(collectionHandler.schema(), segmentReader.segmentDir());
 			BitSet deleteSet = null;
 			deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentId));
-//			if (i < segmentSize - 1) {
-//				deleteSet = new BitSet(segmentReader.revisionDir(),
-//						IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, Integer.toString(i)));
-//			} else {
-//				deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.docDeleteSet);
-//			}
+			// if (i < segmentSize - 1) {
+			// deleteSet = new BitSet(segmentReader.revisionDir(),
+			// IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, Integer.toString(i)));
+			// } else {
+			// deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.docDeleteSet);
+			// }
 			logger.debug("DELETE-{} {} >> {}", new Object[] { i, deleteSet, deleteSet.getEntry() });
 
 			BytesDataOutput pkOutput = new BytesDataOutput();
@@ -532,13 +510,13 @@ public class CollectionSearcher {
 				field.writeTo(pkOutput);
 			}
 
-			//FIXME segmentReader내부의 PrimaryKeyIndexReader를 사용해야한다. 
+			// FIXME segmentReader내부의 PrimaryKeyIndexReader를 사용해야한다.
 			PrimaryKeyIndexReader pkReader = new PrimaryKeyIndexReader(segmentReader.revisionDir(), IndexFileNames.primaryKeyMap);
 			docNo = pkReader.get(pkOutput.array(), 0, (int) pkOutput.position());
 			pkReader.close();
 
 			if (docNo != -1) {
-				
+
 				Document document = segmentReader.newDocumentReader().readDocument(docNo);
 				Row row = new Row(fieldSize);
 				row.setRowTag(i + "-" + revision + "-" + docNo);
@@ -564,7 +542,7 @@ public class CollectionSearcher {
 
 		// //////////////////////////////////////
 
-		result = new Result(row, fieldSize, fieldNameList, row.length, row.length, 1);
+		result = new Result(row, null, fieldNameList, row.length, row.length, 1);
 		result.setSegmentCount(segmentSize);
 		result.setDeletedDocCount(deletedDocCount);
 		result.setDocCount(totalSize);

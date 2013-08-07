@@ -52,12 +52,11 @@ public class SearchResultWriterTest {
 		field2 = "사랑합니다2";
 		data[1] = new Row(new char[][]{field1.toCharArray(), field2.toCharArray()});
 		
-		int fieldCount = 2;
 		String[] fieldNameList = new String[]{"title", "body"};
 		int count = 2;
 		int totalCount = 100;
 		Metadata meta = new Metadata(1, count);
-		result = new Result(data, fieldCount, fieldNameList, count, totalCount, 0);
+		result = new Result(data, null, fieldNameList, count, totalCount, 0);
 		result.setGroupResult(groupResults);
 		
 		

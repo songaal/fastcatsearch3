@@ -138,7 +138,7 @@ public class CollectionContext {
 	}
 
 	public void clearDataInfoAndStatus() {
-		dataInfo.getSegmentInfoList().clear();
+		dataInfo = new DataInfo();
 		collectionStatus.clear();
 	}
 }

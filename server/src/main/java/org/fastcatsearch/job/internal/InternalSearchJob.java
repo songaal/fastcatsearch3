@@ -15,7 +15,7 @@ import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.transport.vo.StreamableShardSearchResult;
+import org.fastcatsearch.transport.vo.StreamableInternalSearchResult;
 
 public class InternalSearchJob extends StreamableJob {
 	private String query;
@@ -66,7 +66,7 @@ public class InternalSearchJob extends StreamableJob {
 
 			//shard에서는 keyword 통계를 내지않는다.
 			logger.debug(">>result : {}", result);
-			return new JobResult(new StreamableShardSearchResult(result));
+			return new JobResult(new StreamableInternalSearchResult(result));
 			
 		} catch (FastcatSearchException e){
 			throw e;

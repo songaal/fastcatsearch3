@@ -44,7 +44,7 @@ import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableDocumentList;
 import org.fastcatsearch.transport.vo.StreamableDocumentResult;
-import org.fastcatsearch.transport.vo.StreamableShardSearchResult;
+import org.fastcatsearch.transport.vo.StreamableInternalSearchResult;
 
 public class ClusterSearchJob extends Job {
 
@@ -124,7 +124,7 @@ public class ClusterSearchJob extends Job {
 				}
 			}
 			
-			StreamableShardSearchResult obj2 = (StreamableShardSearchResult) obj;
+			StreamableInternalSearchResult obj2 = (StreamableInternalSearchResult) obj;
 			InternalSearchResult internalSearchResult = obj2.getInternalSearchResult();
 			resultList.add(internalSearchResult);
 			
@@ -232,7 +232,7 @@ public class ClusterSearchJob extends Job {
 		GroupsData groupsData = aggregatedSearchResult.getGroupsData();
 		GroupResults groupResults = null;
 		if(aggregatedSearchResult.getGroupsData() != null){
-			groupResults = groups.getGroupsResultGenerator().generate(groupsData);
+			groupResults = groups.getGroupResultsGenerator().generate(groupsData);
 		}
 		
 		Result searchResult = new Result(rows, groupResults, fieldIdList, realSize, totalSize, meta.start());

@@ -35,9 +35,9 @@ public class Result {
 	private int segmentCount;
 	
 	public Result(){}
-	public Result(Row[] data, int fieldCount, String[] fieldNameList, int count, int totalCount, int start){
-		this(data, null, fieldNameList, count, totalCount, start);
-	}
+//	public Result(Row[] data, GroupResults groupResults, String[] fieldNameList, int count, int totalCount, int start){
+//		this(data, groupResults, fieldNameList, count, totalCount, start);
+//	}
 	public Result(Row[] data, GroupResults groupResults, String[] fieldNameList, int count, int totalCount, int start){
 		this.rows = data;
 		this.groupResults = groupResults;

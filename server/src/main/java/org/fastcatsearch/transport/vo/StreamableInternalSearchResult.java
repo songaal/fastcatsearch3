@@ -9,17 +9,17 @@ import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.InternalSearchResult;
 
-public class StreamableShardSearchResult implements Streamable {
-	private InternalSearchResult shardSearchResult;
+public class StreamableInternalSearchResult implements Streamable {
+	private InternalSearchResult internalSearchResult;
 
-	public StreamableShardSearchResult(){ } 
+	public StreamableInternalSearchResult(){ } 
 
-	public StreamableShardSearchResult(InternalSearchResult shardSearchResult) {
-		this.shardSearchResult = shardSearchResult;
+	public StreamableInternalSearchResult(InternalSearchResult internalSearchResult) {
+		this.internalSearchResult = internalSearchResult;
 	}
 
 	public InternalSearchResult getInternalSearchResult() {
-		return shardSearchResult;
+		return internalSearchResult;
 	}
 	
 	@Override
@@ -42,33 +42,33 @@ public class StreamableShardSearchResult implements Streamable {
 		if(input.readBoolean()){
 			highlightInfo = new HighlightInfo((Map<String, String>) input.readGenericValue(), (Map<String, String>) input.readGenericValue());
 		}
-		this.shardSearchResult = new InternalSearchResult(collectionId, shardId, sHitElement.getHitElementList(), count, totalCount,
+		this.internalSearchResult = new InternalSearchResult(collectionId, shardId, sHitElement.getHitElementList(), count, totalCount,
 				sGroupData.groupData(), highlightInfo);
 
 	}
 
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
-		String collectionId = shardSearchResult.collectionId();
+		String collectionId = internalSearchResult.collectionId();
 		if (collectionId == null) {
 			output.writeBoolean(false);
 		} else {
 			output.writeBoolean(true);
 			output.writeString(collectionId);
 		}
-		output.writeInt(shardSearchResult.shardId());
-		output.writeInt(shardSearchResult.getTotalCount());
-		new StreamableHitElement(shardSearchResult.getHitElementList(), shardSearchResult.getCount()).writeTo(output);
-		if(shardSearchResult.getGroupsData() != null){
+		output.writeInt(internalSearchResult.shardId());
+		output.writeInt(internalSearchResult.getTotalCount());
+		new StreamableHitElement(internalSearchResult.getHitElementList(), internalSearchResult.getCount()).writeTo(output);
+		if(internalSearchResult.getGroupsData() != null){
 			output.writeBoolean(true);
-			new StreamableGroupsData(shardSearchResult.getGroupsData()).writeTo(output);
+			new StreamableGroupsData(internalSearchResult.getGroupsData()).writeTo(output);
 		}else{
 			output.writeBoolean(false);
 		}
-		if(shardSearchResult.getHighlightInfo() != null){
+		if(internalSearchResult.getHighlightInfo() != null){
 			output.writeBoolean(true);
-			output.writeGenericValue(shardSearchResult.getHighlightInfo().fieldAnalyzerMap());
-			output.writeGenericValue(shardSearchResult.getHighlightInfo().fieldQueryMap());
+			output.writeGenericValue(internalSearchResult.getHighlightInfo().fieldAnalyzerMap());
+			output.writeGenericValue(internalSearchResult.getHighlightInfo().fieldQueryMap());
 		}else{
 			output.writeBoolean(false);
 		}

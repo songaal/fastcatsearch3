@@ -133,7 +133,7 @@ public class CopyOfIncIndexJob extends IndexingJob {
 			if(forceAppend || (isAppend && !forceSeparate)){
 				String segmentNumber = currentSegmentInfo.getId();
 				//새로운 리비전으로 증가한다.
-				int revision = workingHandler.getLastSegmentReader().segmentInfo().getNextRevision();
+				int revision = -1;//workingHandler.getLastSegmentReader().segmentInfo().getNextRevision();
 				
 				segmentDir = collectionFilePaths.segmentFile(dataSequence, segmentNumber);
 //				segmentDir = new File(IRSettings.getCollectionSegmentPath(collectionId, dataSequence, segmentNumber));

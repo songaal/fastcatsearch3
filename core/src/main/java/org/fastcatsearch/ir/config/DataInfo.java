@@ -64,7 +64,7 @@ public class DataInfo {
 	public void addSegmentInfo(SegmentInfo segmentInfo) {
 		segmentInfoList.add(segmentInfo);
 		RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
-		addUpdate(revisionInfo.getDocumentCount(), revisionInfo.getUpdateCount(), revisionInfo.getDeleteCount());
+		addUpdate(revisionInfo.getInsertCount(), revisionInfo.getUpdateCount(), revisionInfo.getDeleteCount());
 	}
 	
 	public void updateSegmentInfo(SegmentInfo segmentInfo) {
@@ -241,7 +241,7 @@ public class DataInfo {
 			return Integer.toString(Integer.parseInt(id) + 1);
 		}
 		
-		public int getNextRevision(){
+		public int nextRevision(){
 			if(revisionInfo != null){
 				return revision + 1;
 			}else{

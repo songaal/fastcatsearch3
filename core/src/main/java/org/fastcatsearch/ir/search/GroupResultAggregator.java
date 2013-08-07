@@ -31,6 +31,6 @@ public class GroupResultAggregator {
 		}else{
 			groupData = list.get(0);
 		}
-		return groups.getGroupsResultGenerator().generate(groupData);
+		return groups.getGroupResultsGenerator().generate(groupData);
 	}
 }

@@ -213,12 +213,14 @@ public class CollectionHandler {
 		// TODO segmentInfo null일경우, 즉 추가문서없이 deleteSet만 요청된 경우 처리가 필요하다.
 		String segmentId = segmentInfo.getId();
 		SegmentReader lastSegmentReader = getSegmentReader(segmentId);
-		if (lastSegmentReader == null) {
+		
+		if (lastSegmentReader == null || !lastSegmentReader.segmentInfo().getId().equals(segmentInfo.getId())) {
+			//1. 이전 세그먼트가 없는경우 : 전체색인
+			//2. 이전 세그먼트가 있으나 segmentId가 다를경우 : 증분색인시 segment추가.
 			/*
 			 * 색인시 세그먼트 하나가 추가된 경우. 
 			 */
 			// 전체색인시는 세그먼트 0번부터 생성. 증분색인시는 세그먼트내 문서갯수가 많아서 새로운 세그먼트를 만들어야 할 경우.
-			// full index : segmentNumber = 0 add index : segmentNumber > 0
 			logger.debug("Add segment {}", segmentInfo);
 			applyDeleteSet(segmentInfo, segmentDir, segmentReaderList, IndexFileNames.primaryKeyMap, deleteSet);
 			// 새로생성된 세그먼트는 로딩하여 리스트에 추가해준다.

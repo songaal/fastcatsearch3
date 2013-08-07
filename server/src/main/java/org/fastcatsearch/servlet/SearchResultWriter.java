@@ -13,7 +13,7 @@ import org.fastcatsearch.util.StringifyException;
 public class SearchResultWriter extends AbstractSearchResultWriter {
 	
 	private boolean isAdmin;
-	private String[] fieldNames = null;
+	private String[] fieldNames;
 	
 	public SearchResultWriter(Writer writer, boolean isAdmin) {
 		super(writer);

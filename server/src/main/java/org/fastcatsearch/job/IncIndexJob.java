@@ -74,11 +74,14 @@ public class IncIndexJob extends IndexingJob {
 			//////////////////////////////////////////////////////////////////////////////////////////
 			
 			collectionContext.updateCollectionStatus(IndexingType.ADD, revisionInfo, indexingStartTime(), System.currentTimeMillis());
-			CollectionContextUtil.saveAfterIndexing(collectionContext);
 			
 			File segmentDir = collectionContext.collectionFilePaths().segmentFile(collectionContext.getDataSequence(), segmentInfo.getId());
 			DeleteIdSet deleteIdSet = collectionIndexer.deleteIdSet();
 			collectionHandler.updateCollection(collectionContext, segmentInfo, segmentDir, deleteIdSet);
+			
+			//저장.
+			CollectionContextUtil.saveAfterIndexing(collectionContext);
+			
 			
 			int duration = (int) (System.currentTimeMillis() - indexingStartTime());
 			

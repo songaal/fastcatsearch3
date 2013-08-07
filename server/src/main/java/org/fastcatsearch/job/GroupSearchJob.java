@@ -70,7 +70,7 @@ public class GroupSearchJob extends Job {
 				
 				GroupsData groupData = collectionHandler.searcher().doGrouping(q);
 				Groups groups =q.getGroups();
-				groupResults = groups.getGroupsResultGenerator().generate(groupData);
+				groupResults = groups.getGroupResultsGenerator().generate(groupData);
 				if(groupResults != null){
 					irService.groupingCache().put(queryString, groupResults);
 					logger.debug("CACHE_PUT result>>{}, qr >>{}", groupResults, queryString);

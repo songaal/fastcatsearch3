@@ -63,7 +63,7 @@ public class Groups {
 	public GroupDataGenerator getGroupDataGenerator(Schema schema, GroupIndexesReader groupIndexesReader, FieldIndexesReader fieldIndexesReader) throws IOException{
 		return new GroupDataGenerator(groupList, schema, groupIndexesReader, fieldIndexesReader);
 	}
-	public GroupsResultGenerator getGroupsResultGenerator() {
+	public GroupsResultGenerator getGroupResultsGenerator() {
 		return new GroupsResultGenerator(this);
 	}
 	public Clause getGroupClause(){

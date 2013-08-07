@@ -67,15 +67,17 @@ public class SegmentSearcher {
 		if (documentReader == null) {
 			documentReader = segmentReader.newDocumentReader();
 		}
-		return documentReader.readDocument(docNo, fieldSelectOption);
+		Document document = documentReader.readDocument(docNo, fieldSelectOption);
+		document.setDocId(docNo + segmentReader.segmentInfo().getBaseNumber());
+		return document;
 	}
 
-	public Hit search(Query query) throws ClauseException, IOException, IRException {
+	public Hit searchHit(Query query) throws ClauseException, IOException, IRException {
 		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), query.getGroupFilters(), query.getSorts());
 		return new Hit(rankHitList(), makeGroupData(), totalCount, highlightInfo);
 	}
 
-	public GroupHit doGrouping(Query query) throws ClauseException, IOException, IRException {
+	public GroupHit searchGroupHit(Query query) throws ClauseException, IOException, IRException {
 		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), null, null);
 		return new GroupHit(makeGroupData(), totalCount);
 	}
