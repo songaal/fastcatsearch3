@@ -43,6 +43,7 @@ public abstract class IndexingJob extends Job {
 	}
 	
 	protected void updateIndexingStatusStart(){
+		indexingLogger.info("[{}] Cluster {} Indexing Start!", collectionId, indexingType.name());
 		indexingStartTime = System.currentTimeMillis();
 		processLoggerService.log(IndexingProcessLogger.class, new IndexingStartProcessLog(collectionId,
 				indexingType, jobStartTime(), isScheduled()));
@@ -58,5 +59,6 @@ public abstract class IndexingJob extends Job {
 
 		notificationService.notify(new IndexingFinishNotification(collectionId, indexingType, isSuccess,
 				indexingStartTime, endTime, streamableResult));
+		indexingLogger.info("[{}] Cluster {} Indexing Finish!", collectionId, indexingType.name());
 	}
 }

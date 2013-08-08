@@ -209,7 +209,8 @@
 		<%
 		}
 		%>
-		<td><a href="javascript:Indexing('<%=collection%>','1');" class="btn_s">실행</a></td>
+		<td><a href="javascript:Indexing('<%=collection%>','1');" class="btn_s">실행</a>
+		<a href="javascript:Indexing('<%=collection%>','3');" class="btn_s">분산실행</a></td>
 	</tr>
 <%
 	

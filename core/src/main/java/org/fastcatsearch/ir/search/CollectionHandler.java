@@ -454,6 +454,8 @@ public class CollectionHandler {
 			}
 
 		}
+		
+		currentPkReader.close();
 
 		return deleteDocumentSize;
 	}

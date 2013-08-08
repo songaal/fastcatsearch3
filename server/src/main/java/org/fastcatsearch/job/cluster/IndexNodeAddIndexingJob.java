@@ -9,7 +9,7 @@
  *     swsong - initial API and implementation
  */
 
-package org.fastcatsearch.job;
+package org.fastcatsearch.job.cluster;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,6 +46,12 @@ import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
+import org.fastcatsearch.job.CacheServiceRestartJob;
+import org.fastcatsearch.job.Job;
+import org.fastcatsearch.job.NodeCollectionReloadJob;
+import org.fastcatsearch.job.NodeDirectoryCleanJob;
+import org.fastcatsearch.job.StreamableJob;
+import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.ServiceManager;
@@ -64,17 +70,17 @@ import org.slf4j.LoggerFactory;
  * 해당하는 data node에 색인파일을 복사한다.
  * 
  * */
-public class IndexNodeFullIndexingJob extends StreamableJob {
+public class IndexNodeAddIndexingJob extends StreamableJob {
 	private static final long serialVersionUID = -4686760271693082945L;
 
 	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 
 	private String collectionId;
 
-	public IndexNodeFullIndexingJob() {
+	public IndexNodeAddIndexingJob() {
 	}
 
-	public IndexNodeFullIndexingJob(String collectionId) {
+	public IndexNodeAddIndexingJob(String collectionId) {
 		this.collectionId = collectionId;
 	}
 

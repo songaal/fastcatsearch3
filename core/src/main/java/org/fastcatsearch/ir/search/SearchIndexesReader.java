@@ -142,5 +142,6 @@ public class SearchIndexesReader implements Cloneable {
 				}
 			}
 		}
+		primaryKeyIndexesReader.close();
 	}
 }

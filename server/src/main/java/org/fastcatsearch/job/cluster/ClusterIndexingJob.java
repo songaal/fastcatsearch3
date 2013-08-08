@@ -1,4 +1,4 @@
-package org.fastcatsearch.job.action;
+package org.fastcatsearch.job.cluster;
 
 import java.util.List;
 
@@ -10,21 +10,24 @@ import org.fastcatsearch.data.DataService;
 import org.fastcatsearch.data.DataStrategy;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.common.IndexingType;
-import org.fastcatsearch.job.IndexNodeFullIndexingJob;
 import org.fastcatsearch.job.IndexingJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
 
-public class ClusterFullIndexingJob extends IndexingJob {
+public class ClusterIndexingJob extends IndexingJob {
 
 	private static final long serialVersionUID = 5314187715835186514L;
 
+	private IndexingType indexingType;
+	
+	public ClusterIndexingJob(IndexingType indexingType){
+		this.indexingType = indexingType;
+	}
+	
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
-		prepare(IndexingType.FULL);
-		
-		indexingLogger.info("[{}] Cluster Full Indexing Start!", collectionId);
+		prepare(indexingType);
 		
 		updateIndexingStatusStart();
 		

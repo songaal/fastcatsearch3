@@ -140,10 +140,9 @@ public class PrimaryKeyIndexesWriter {
 	}
 
 	public void close() throws IOException {
-		if(hasPrimaryKey){
+		if(indexWriter != null){
 			indexWriter.write();
 			indexWriter.close();
-	
 		}
 		
 		// save delete list
