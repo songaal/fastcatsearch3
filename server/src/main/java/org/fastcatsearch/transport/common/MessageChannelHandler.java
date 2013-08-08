@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.control.JobExecutor;
 import org.fastcatsearch.control.ResultFuture;
+import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.StreamableJob;
@@ -29,14 +30,16 @@ import org.slf4j.LoggerFactory;
 public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
 	
 	private static Logger logger = LoggerFactory.getLogger(MessageChannelHandler.class);
+	private Environment environment;
 	private TransportModule transport;
 	private JobExecutor jobExecutor;
 	
-	public MessageChannelHandler(TransportModule transport, JobExecutor jobExecutor){
+	public MessageChannelHandler(Environment environment, TransportModule transport, JobExecutor jobExecutor) {
+		this.environment = environment;
 		this.transport = transport;
 		this.jobExecutor = jobExecutor;
 	}
-	
+
 	@Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
             throws Exception {
@@ -130,6 +133,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         	Job requestJob = DynamicClassLoader.loadObject(jobName, Job.class);
         	if(requestJob instanceof StreamableJob){
         		StreamableJob streamableJob = (StreamableJob) requestJob;
+        		streamableJob.setEnvironment(environment);
         		streamableJob.readFrom(input);
         	}
         	

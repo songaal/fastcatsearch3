@@ -68,7 +68,7 @@ public class BufferedFileOutput extends IndexOutput {
 			long fp = raf.length();
 			raf.seek(fp);
 		}
-		logger.debug("File open {}", f.getAbsolutePath());
+//		logger.debug("File open {}", f.getAbsolutePath());
 	}
 	
 	public String toString(){
@@ -96,7 +96,7 @@ public class BufferedFileOutput extends IndexOutput {
 	public void close() throws IOException {
 		flush();
 		raf.close();
-		logger.debug("File close {}", f.getAbsolutePath());
+//		logger.debug("File close {}", f.getAbsolutePath());
 	}
 
 	public long position() throws IOException {

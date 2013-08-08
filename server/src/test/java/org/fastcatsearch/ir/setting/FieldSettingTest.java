@@ -14,7 +14,7 @@ import javax.xml.bind.Unmarshaller;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.junit.Test;
 
-public class JAXBFieldSettingTest {
+public class FieldSettingTest {
 
 	@Test
 	public void testSettingMarshall() throws JAXBException {

@@ -8,48 +8,36 @@ import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.data.DataService;
 import org.fastcatsearch.data.DataStrategy;
-import org.fastcatsearch.db.dao.IndexingResult;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.ir.common.IndexingType;
+import org.fastcatsearch.job.IndexNodeFullIndexingJob;
 import org.fastcatsearch.job.IndexingJob;
-import org.fastcatsearch.job.NodeFullIndexJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
-import org.fastcatsearch.notification.NotificationService;
-import org.fastcatsearch.notification.message.IndexingFinishNotification;
-import org.fastcatsearch.notification.message.IndexingStartNotification;
-import org.fastcatsearch.processlogger.IndexingProcessLogger;
-import org.fastcatsearch.processlogger.ProcessLoggerService;
-import org.fastcatsearch.processlogger.log.IndexingFinishProcessLog;
-import org.fastcatsearch.processlogger.log.IndexingStartProcessLog;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
 
-public class FullIndexRequest extends IndexingJob {
+public class ClusterFullIndexingJob extends IndexingJob {
 
 	private static final long serialVersionUID = 5314187715835186514L;
 
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
-		ServiceManager serviceManager = null;
-		ProcessLoggerService processLoggerService = null;
-		NotificationService notificationService = null;
+		prepare(IndexingType.FULL);
+		
+		indexingLogger.info("[{}] Cluster Full Indexing Start!", collectionId);
+		
+		updateIndexingStatusStart();
+		
 		boolean isSuccess = false;
 		Object result = null;
 
 		String collectionId = null;
 		Throwable throwable = null;
-
+		ServiceManager serviceManager = ServiceManager.getInstance();
 		try {
 			String[] args = getStringArrayArgs();
 			collectionId = (String) args[0];
 
-			serviceManager = ServiceManager.getInstance();
-			processLoggerService = serviceManager.getService(ProcessLoggerService.class);
-			notificationService = serviceManager.getService(NotificationService.class);
-
-//			processLoggerService.log(IndexingProcessLogger.class, new IndexingStartProcessLog(collectionId,
-//					IndexingResult.TYPE_FULL_INDEXING, jobStartTime(), isScheduled()));
-//			notificationService.notify(new IndexingStartNotification(collectionId, IndexingResult.TYPE_FULL_INDEXING,
-//					jobStartTime(), isScheduled()));
 
 			DataService dataService = serviceManager.getService(DataService.class);
 			DataStrategy dataStrategy = dataService.getCollectionDataStrategy(collectionId);
@@ -65,7 +53,7 @@ public class FullIndexRequest extends IndexingJob {
 
 			// 선택된 노드로 색인 메시지를 전송한다.
 			Node node = nodeList.get(0);
-			NodeFullIndexJob job = new NodeFullIndexJob(collectionId);
+			IndexNodeFullIndexingJob job = new IndexNodeFullIndexingJob(collectionId);
 			ResultFuture resultFuture = nodeService.sendRequest(node, job);
 			result = resultFuture.take();
 			isSuccess = resultFuture.isSuccess();
@@ -76,16 +64,17 @@ public class FullIndexRequest extends IndexingJob {
 				}
 			}
 
-			IndexingJobResult indexingJobResult = (IndexingJobResult) result;
-
-			return new JobResult(indexingJobResult);
+			result = (IndexingJobResult) result;
+			isSuccess = true;
+			
+			return new JobResult(result);
 
 		} catch (Throwable e) {
 			throwable = e;
 			throw new FastcatSearchException(throwable); // 전체색인실패.
 
 		} finally {
-			long endTime = System.currentTimeMillis();
+			
 			Streamable streamableResult = null;
 			if (throwable != null) {
 				streamableResult = new StreamableThrowable(throwable);
@@ -93,11 +82,9 @@ public class FullIndexRequest extends IndexingJob {
 				streamableResult = (IndexingJobResult) result;
 			}
 
-//			processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId,
-//					IndexingResult.TYPE_FULL_INDEXING, isSuccess, jobStartTime(), endTime, isScheduled(), streamableResult));
-//
-//			notificationService.notify(new IndexingFinishNotification(collectionId, IndexingResult.TYPE_FULL_INDEXING, isSuccess,
-//					jobStartTime(), endTime, streamableResult));
+
+			updateIndexingStatusFinish(isSuccess, streamableResult);
+			
 		}
 	}
 }

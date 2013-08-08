@@ -79,7 +79,7 @@ public class CollectionConfigTest {
 	
 	
 	@Test
-	public void testWrite() {
+	public void testWrite() throws JAXBException {
 		
 		CollectionConfig collectionConfig = new CollectionConfig();
 		collectionConfig.setName("샘플");

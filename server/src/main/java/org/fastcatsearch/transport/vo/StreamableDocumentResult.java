@@ -36,6 +36,8 @@ public class StreamableDocumentResult implements Streamable {
 		for (int i = 0; i < fieldIdList.length; i++) {
 			fieldIdList[i] = input.readString();
 		}
+		
+		documentResult = new DocumentResult(rows, fieldIdList);
 	}
 
 	@Override

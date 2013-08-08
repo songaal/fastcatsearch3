@@ -163,9 +163,11 @@ public class NodeService extends AbstractService {
 	}
 
 	/*
-	 * 파일만 전송가능. 디렉토리는 전송불가. 동일노드로는 전송불가.
+	 * 파일만 전송가능. 디렉토리는 전송불가. 
+	 * 동일노드로는 전송불가.
 	 */
 	public SendFileResultFuture sendFile(final Node node, File sourcefile, File targetFile) {
+		//노드가 같고, file도 같다면 전송하지 않는다.
 		if (node.equals(myNode)) {
 			return null;
 		}
@@ -180,5 +182,6 @@ public class NodeService extends AbstractService {
 		return null;
 
 	}
+	
 
 }

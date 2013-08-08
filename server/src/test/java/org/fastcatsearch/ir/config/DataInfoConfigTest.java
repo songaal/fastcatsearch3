@@ -1,5 +1,7 @@
 package org.fastcatsearch.ir.config;
 
+import static org.junit.Assert.*;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -10,9 +12,12 @@ import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
+import org.fastcatsearch.common.io.BytesStreamInput;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
+import org.fastcatsearch.ir.io.BytesDataInput;
+import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.util.Formatter;
 import org.junit.Test;
 
@@ -29,7 +34,7 @@ public class DataInfoConfigTest {
 	}
 	
 	@Test
-	public void testDataInfoWrite() {
+	public void testDataInfoWrite() throws JAXBException {
 		
 		DataInfo dataInfo = new DataInfo();
 		dataInfo.setSegmentInfoList(new ArrayList<SegmentInfo>());
@@ -47,9 +52,32 @@ public class DataInfoConfigTest {
 		
 	}
 
+	@Test
+	public void testWriteAndRead() throws IOException, JAXBException {
+		
+		DataInfo dataInfo = new DataInfo();
+		
+		ByteArrayOutputStream output2 = new ByteArrayOutputStream();
+		JAXBConfigs.writeConfig(output2, dataInfo, DataInfo.class);
+		byte[] arr = output2.toByteArray();
+		System.out.println("arr.len = "+arr.length);
+		ByteArrayInputStream input2 = new ByteArrayInputStream(arr);
+		DataInfo dataInfo22 = JAXBConfigs.readConfig(input2, DataInfo.class);
+		
+		BytesDataOutput output = new BytesDataOutput();
+		JAXBConfigs.writeConfig(output, dataInfo, DataInfo.class);
+		byte[] arr2 = output.array();
+		for(int i =0;i<arr.length; i++){
+			assertTrue(arr[i] == arr2[i]);
+		}
+		
+		System.out.println("arr2.len = "+output.position());
+		BytesStreamInput input = new BytesStreamInput(arr2, 0, (int) output.position(), true);
+		DataInfo dataInfo2 = JAXBConfigs.readConfig(input, DataInfo.class);
+	}
 	
 	@Test
-	public void testSegmentInfoWrite() {
+	public void testSegmentInfoWrite() throws JAXBException {
 		
 		SegmentInfo segmentInfo = new SegmentInfo("5", 200);
 		

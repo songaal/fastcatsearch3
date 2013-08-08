@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.xml.bind.JAXBException;
+
 import org.fastcatsearch.common.QueryCacheModule;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
@@ -71,7 +73,11 @@ public class IRService extends AbstractService {
 		// collections 셋팅을 읽어온다.
 		collectionsRoot = environment.filePaths().getCollectionsRoot().file();
 
-		collectionsConfig = JAXBConfigs.readConfig(new File(collectionsRoot, SettingFileNames.collections), CollectionsConfig.class);
+		try {
+			collectionsConfig = JAXBConfigs.readConfig(new File(collectionsRoot, SettingFileNames.collections), CollectionsConfig.class);
+		} catch (JAXBException e) {
+			logger.error("[ERROR] 컬렉션리스트 로딩실패. " + e.getMessage(), e);
+		}
 
 		for (Collection collection : collectionsConfig.getCollectionList()) {
 			try {
@@ -148,20 +154,25 @@ public class IRService extends AbstractService {
 			logger.error("이미 해당컬렉션이 존재함.");
 			return null;
 		}
-		CollectionFilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
-		collectionFilePaths.file().mkdirs();
-		CollectionContext collectionContext = new CollectionContext(collectionId, collectionFilePaths);
-		File file = environment.filePaths().configPath().file(SettingFileNames.defaultCollectionConfig);
-		CollectionConfig collectionConfig = JAXBConfigs.readConfig(file, CollectionConfig.class);
-		Schema schema = new Schema(new SchemaSetting());
-		collectionContext.init(schema, null, collectionConfig, new DataSourceConfig(), new CollectionStatus(), new DataInfo());
-		CollectionContextUtil.write(collectionContext);
 		
-		collectionsConfig.addCollection(collectionId, false);
-		JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.collections), collectionsConfig, CollectionsConfig.class);
-		CollectionHandler collectionHandler = new CollectionHandler(collectionContext);
-		collectionHandlerMap.put(collectionId, collectionHandler);
-		return collectionHandler;
+		try{
+			CollectionFilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
+			collectionFilePaths.file().mkdirs();
+			CollectionContext collectionContext = new CollectionContext(collectionId, collectionFilePaths);
+			File file = environment.filePaths().configPath().file(SettingFileNames.defaultCollectionConfig);
+			CollectionConfig collectionConfig = JAXBConfigs.readConfig(file, CollectionConfig.class);
+			Schema schema = new Schema(new SchemaSetting());
+			collectionContext.init(schema, null, collectionConfig, new DataSourceConfig(), new CollectionStatus(), new DataInfo());
+			CollectionContextUtil.write(collectionContext);
+			
+			collectionsConfig.addCollection(collectionId, false);
+			JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.collections), collectionsConfig, CollectionsConfig.class);
+			CollectionHandler collectionHandler = new CollectionHandler(collectionContext);
+			collectionHandlerMap.put(collectionId, collectionHandler);
+			return collectionHandler;
+		}catch(JAXBException e){
+			throw new SettingException(e);
+		}
 	}
 
 	
@@ -190,7 +201,7 @@ public class IRService extends AbstractService {
 	}
 
 	// 전체색인시작할때.
-	public CollectionHandler initCollectionHandler(String collectionId, int newDataSequence) throws IRException, SettingException {
+	public CollectionHandler initCollectionHandler(String collectionId, Integer newDataSequence) throws IRException, SettingException {
 		CollectionContext collectionContext = loadCollectionContext(collectionId, newDataSequence);
 
 		return new CollectionHandler(collectionContext);
@@ -200,7 +211,10 @@ public class IRService extends AbstractService {
 		return new CollectionHandler(collectionContext).load();
 	}
 
-	public CollectionHandler loadCollectionHandler(String collectionId, int newDataSequence) throws IRException, SettingException {
+	public CollectionHandler loadCollectionHandler(String collectionId) throws IRException, SettingException {
+		return loadCollectionHandler(collectionId, null);
+	}
+	public CollectionHandler loadCollectionHandler(String collectionId, Integer newDataSequence) throws IRException, SettingException {
 		CollectionContext collectionContext = loadCollectionContext(collectionId, newDataSequence);
 
 		return new CollectionHandler(collectionContext).load();

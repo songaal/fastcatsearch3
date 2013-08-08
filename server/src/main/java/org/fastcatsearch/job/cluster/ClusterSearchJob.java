@@ -187,8 +187,7 @@ public class ClusterSearchJob extends Job {
 			logger.debug("collection [{}] search at {}", cId, dataNode);
 			String queryStr = queryString.replace("cn="+collectionId, "cn="+cId);
 			logger.debug("query-{} >> {}", i, queryStr);
-//			InternalDocumentSearchJob job = new InternalDocumentSearchJob(cId, docIdList[i], length[i]);
-			InternalDocumentSearchJob job = new InternalDocumentSearchJob(collectionId, docIdList[i], views, tags, highlightInfo);
+			InternalDocumentSearchJob job = new InternalDocumentSearchJob(cId, docIdList[i], views, tags, highlightInfo);
 			resultFutureList[i] = nodeService.sendRequest(dataNode, job);
 		}
 		

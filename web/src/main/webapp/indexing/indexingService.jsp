@@ -5,9 +5,9 @@
 
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%@page import="java.net.URLEncoder"%>
-<%@page import="org.fastcatsearch.job.IncIndexJob"%>
-<%@page import="org.fastcatsearch.job.FullIndexJob"%>
-<%@page import="org.fastcatsearch.job.action.FullIndexRequest"%>
+<%@page import="org.fastcatsearch.job.AddIndexingJob"%>
+<%@page import="org.fastcatsearch.job.FullIndexingJob"%>
+<%@page import="org.fastcatsearch.job.action.ClusterFullIndexingJob"%>
 <%@page import="org.fastcatsearch.control.JobService"%>
 <%@page import="org.fastcatsearch.service.*"%>
 
@@ -21,7 +21,7 @@ switch(cmd){
 	//start full indexing 
 	case 0:
 	{
-		FullIndexJob job = new FullIndexJob();
+		FullIndexingJob job = new FullIndexingJob();
 		job.setArgs(new String[]{collection});
 		jobService.offer(job);
 		//response.sendRedirect("result.jsp?message="+URLEncoder.encode(URLEncoder.encode("컬렉션 "+collection+"의 전체색인 작업을 등록하였습니다.", "utf-8"),"utf-8"));
@@ -30,7 +30,7 @@ switch(cmd){
 	//start incremental indexing 
 	case 1:
 	{
-		IncIndexJob job = new IncIndexJob();
+		AddIndexingJob job = new AddIndexingJob();
 		job.setArgs(new String[]{collection});
 		jobService.offer(job);
 		//response.sendRedirect("result.jsp?message="+URLEncoder.encode(URLEncoder.encode("컬렉션 "+collection+"의 증분색인 작업을 등록하였습니다.", "utf-8"),"utf-8"));
@@ -38,7 +38,7 @@ switch(cmd){
 	}
 	case 2://분산전체색인
 	{
-		FullIndexRequest job = new FullIndexRequest();
+		ClusterFullIndexingJob job = new ClusterFullIndexingJob();
 		job.setArgs(new String[]{collection});
 		jobService.offer(job);
 		//response.sendRedirect("result.jsp?message="+URLEncoder.encode(URLEncoder.encode("컬렉션 "+collection+"의 전체색인 작업을 등록하였습니다.", "utf-8"),"utf-8"));

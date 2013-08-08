@@ -84,6 +84,12 @@ public class Path {
 		return new Path(null, path);
 	}
 
+	public File relativise(File file){
+		String relativePath = root.toURI().relativize(file.toURI()).getPath();
+		return new File(relativePath);
+	}
+	
+	
 	public File file() {
 		return root;
 	}
@@ -101,4 +107,5 @@ public class Path {
 	public CollectionFilePaths collectionFilePaths(String collectionId) {
 		return new CollectionFilePaths(getCollectionsRoot().file(), collectionId);
 	}
+
 }

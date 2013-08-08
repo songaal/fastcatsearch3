@@ -16,23 +16,24 @@
 
 package org.fastcatsearch.ir.io;
 
+import java.io.EOFException;
 import java.io.IOException;
 
 public class BytesDataInput extends DataInput {
 	public byte[] array;
-	public int start;
-	public int end;
+	public int offset;
+	public int limit;
 	public int pos;
 	
-	public BytesDataInput(byte[] array, int start, int end){
+	public BytesDataInput(byte[] array, int offset, int length){
 		this.array = array;
-		this.start = start;
-		this.end = end;
+		this.offset = offset;
+		this.limit = Math.min(offset + length, array.length);
 	}
 	
 	@Override
 	public long position() {
-		return pos;
+		return pos - offset;
 	}
 	
 	@Override
@@ -41,33 +42,43 @@ public class BytesDataInput extends DataInput {
 	}
 	
 	public void reset() throws IOException {
-		pos = start;
+		pos = offset;
 	}
 
 	@Override
+    public int read() throws IOException {
+        return (pos < limit) ? (array[pos++] & 0xff) : -1;
+    }
+	
+	@Override
 	public byte readByte() throws IOException {
-		if(pos > end || pos < start)
-			throw new ArrayIndexOutOfBoundsException("current pos = "+pos+", start="+start+", end="+end);
+		if(pos >= limit){
+			throw new EOFException("current pos = "+pos+", offset="+offset+", limit="+limit);
+		}
 		return array[pos++];
 	}
 
 	@Override
 	public void readBytes(BytesBuffer dst) throws IOException {
 		int len = dst.remaining();
-		if((end - pos) < len )
-			throw new IOException("not enough buffer data. data length = "+(end - pos)+", read request = "+len);
+		if((limit - pos) < len )
+			throw new IOException("not enough buffer data. data limit = "+(limit - pos)+", read request = "+len);
 		dst.write(array, pos, len);
 		pos += len;
 	}
 
 	@Override
 	public void readBytes(byte[] b, int offset, int len) throws IOException {
+		if((limit - pos) < len )
+			throw new IOException("not enough buffer data. data limit = "+(limit - pos)+", read request = "+len);
+		
 		System.arraycopy(array, pos, b, offset, len);
+		pos += len;
 	}
 
 	@Override
 	public long length() throws IOException {
-		return end - start;
+		return limit - offset;
 	}
 
 

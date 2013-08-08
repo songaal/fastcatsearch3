@@ -42,7 +42,7 @@ public abstract class IndexingJob extends Job {
 		
 	}
 	
-	protected void updateStatusStart(){
+	protected void updateIndexingStatusStart(){
 		indexingStartTime = System.currentTimeMillis();
 		processLoggerService.log(IndexingProcessLogger.class, new IndexingStartProcessLog(collectionId,
 				indexingType, jobStartTime(), isScheduled()));
@@ -50,7 +50,7 @@ public abstract class IndexingJob extends Job {
 				jobStartTime(), isScheduled()));
 	}
 	
-	protected void updateStatusFinish(boolean isSuccess, Streamable streamableResult){
+	protected void updateIndexingStatusFinish(boolean isSuccess, Streamable streamableResult){
 		long endTime = System.currentTimeMillis();
 		
 		processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId,

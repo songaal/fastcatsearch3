@@ -34,7 +34,7 @@ public class CollectionsConfigTest {
 	}
 	
 	@Test
-	public void testWrite() {
+	public void testWrite() throws JAXBException {
 		
 		CollectionsConfig collectionsConfig = new CollectionsConfig();
 		collectionsConfig.addCollection("test", true);

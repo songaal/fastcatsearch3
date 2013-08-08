@@ -111,8 +111,8 @@ public class CollectionHandler {
 
 		// 색인기록이 있다면 세그먼트를 로딩한다.
 		List<SegmentInfo> segmentInfoList = collectionContext.dataInfo().getSegmentInfoList();
-		if (segmentInfoList != null) {
-			int segmentSize = segmentInfoList.size();
+		int segmentSize = segmentInfoList.size();
+		if (segmentSize > 0) {
 			//FIXME 반드시 0,1,2...차례대로 list에 존재해야한다. deleteset을 적용해야하기때문에..
 			SegmentInfo lastSegmentInfo = segmentInfoList.get(segmentSize - 1);
 			File lastRevisionDir = collectionFilePaths.revisionFile(dataSequence, lastSegmentInfo.getId(), lastSegmentInfo.getRevision());

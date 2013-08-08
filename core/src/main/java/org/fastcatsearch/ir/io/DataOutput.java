@@ -306,6 +306,9 @@ public abstract class DataOutput extends OutputStream {
 	}
 
 	public void writeAChars(char[] v, int start, int length, boolean upperCase) throws IOException {
+		if(length == 0){
+			return;
+		}
 		if (start >= v.length) {
 			throw new IOException("start position exceeds array length. start=" + start + ", array.length=" + v.length);
 		}
@@ -328,6 +331,9 @@ public abstract class DataOutput extends OutputStream {
 	}
 
 	public void writeUChars(char[] v, int start, int length, boolean upperCase) throws IOException {
+		if(length == 0){
+			return;
+		}
 		if (start >= v.length) {
 			throw new IOException("start position exceeds array length. start=" + start + ", array.length=" + v.length);
 		}

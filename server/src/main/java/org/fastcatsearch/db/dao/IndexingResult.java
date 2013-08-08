@@ -79,7 +79,7 @@ public class IndexingResult extends DAOBase {
 		String checkSQL = "select count(collection) from " + tableName + " where collection=? and type=?";
 
 		try {
-			int count = selectInteger(checkSQL, collection, type);
+			int count = selectInteger(checkSQL, collection, type.name());
 			
 			if (count > 0) {
 				return update(collection, type, status, docSize, updateSize, deleteSize, isScheduled, startTime, endTime,

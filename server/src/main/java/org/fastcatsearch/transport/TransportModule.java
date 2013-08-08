@@ -139,7 +139,7 @@ public class TransportModule extends AbstractModule {
 				return Channels.pipeline(byteCounter, 
 						readableDecoder,
 						messageCounter, 
-						new MessageChannelHandler(TransportModule.this, jobExecutor));
+						new MessageChannelHandler(environment, TransportModule.this, jobExecutor));
 			}
 		});
 		clientBootstrap.setOption("connectTimeoutMillis", connectTimeout);
@@ -171,7 +171,7 @@ public class TransportModule extends AbstractModule {
 				return Channels.pipeline(byteCounter, 
 						readableDecoder,
 						messageCounter,
-						new MessageChannelHandler(TransportModule.this, jobExecutor),
+						new MessageChannelHandler(environment, TransportModule.this, jobExecutor),
 						new FileChannelHandler(TransportModule.this, fileTransportHandler)
 						);
 			}
@@ -461,7 +461,7 @@ public class TransportModule extends AbstractModule {
 		byte type = 0;
 		type = TransportOption.setTypeFile(type);
 		byte status = 0;
-		logger.debug("sendFileRequest type={}, {} >> {}", new Object[]{type, sourcefile.getAbsolutePath(), targetFile.getAbsolutePath()});
+		logger.debug("sendFileRequest type={}, {} >> {}", new Object[]{type, sourcefile.getAbsolutePath(), targetFile.getPath()});
         FileChunkEnumeration enumeration = null;
         try{
         	if(!sourcefile.exists()){
@@ -472,7 +472,7 @@ public class TransportModule extends AbstractModule {
 	        long fileSize = sourcefile.length();
 	        long writeSize = 0;
 	        String sourceFilePath = sourcefile.getAbsolutePath();
-	        String targetFilePath = targetFile.getPath();
+	        String targetFilePath = targetFile.getPath(); //원래 path를 그대로 이용해서 상대경로전송이 가능하도록 한다.
 	        String hashedFilePath = getHashedFilePath(sourceFilePath);
 	        logger.debug("Send filesize ={}, crc={}, file={}", new Object[]{fileSize, checksumCRC32, sourceFilePath});	        
 	        

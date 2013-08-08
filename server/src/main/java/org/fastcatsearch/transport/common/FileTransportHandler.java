@@ -32,7 +32,7 @@ public class FileTransportHandler {
 		if(seq == 0){
 			//새로 생성.
 			if(fileHandle == null){
-				File file = path.path(filePath).file();
+				File file = path.makePath(filePath).file();
 				logger.debug("## {} >> {}", filePath, file);
 				try {
 //					File file = new File(absolutePath);
@@ -49,7 +49,7 @@ public class FileTransportHandler {
 				}
 			}else{
 				//발생하면 안되는 경우.
-				logger.error("seq가 0인데 map에 동일 파일전송이 남아있습니다.seq={}, filePath={}", seq, filePath);
+				logger.error("seq가 0인데 map에 동일 파일수신이 남아있습니다.seq={}, filePath={}", seq, filePath);
 			}
 		}
 		
@@ -113,7 +113,7 @@ public class FileTransportHandler {
 		public boolean isDone() {
 //			logger.debug("isDone wrote = {}/ {}", wroteBytes, fileSize);
 			if(wroteBytes == fileSize){
-				logger.info("파일전송완료. time={}, file={}", Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - startTime), filePath);
+				logger.info("파일수신완료. time={}, file={}", Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - startTime), filePath);
 			}else if(wroteBytes > fileSize) {
 				logger.error("파일 사이즈가 더 큽니다. actual={}, expected={}, file={}", new Object[]{wroteBytes, fileSize, filePath});
 			}

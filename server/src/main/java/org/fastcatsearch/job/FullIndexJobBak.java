@@ -211,9 +211,9 @@ public class FullIndexJobBak extends IndexingJob {
 			int duration = (int) (endTime - startTime);
 			
 			//최종 세그먼트 상태를 저장한다.
-			CollectionContextUtil.saveDataInfo(collectionContext);
+//			CollectionContextUtil.saveDataInfo(collectionContext);
 //			collectionContext.updateCollectionStatus(IndexingType.FULL_INDEXING, count, updateDocumentCount, deleteDocumentCount, startTime , endTime);
-			CollectionContextUtil.saveCollectionStatus(collectionContext);
+//			CollectionContextUtil.saveCollectionStatus(collectionContext);
 			
 			indexingLogger.info("[{}] Full Indexing Finished! docs = {}, update = {}, delete = {}, time = {}"
 					, collectionId, count, updateDocumentCount, deleteDocumentCount, duration);

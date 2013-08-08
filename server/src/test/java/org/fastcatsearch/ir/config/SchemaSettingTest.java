@@ -1,4 +1,4 @@
-package org.fastcatsearch.ir.setting;
+package org.fastcatsearch.ir.config;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -25,7 +25,7 @@ import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.junit.Test;
 
-public class JAXBSchemaSettingTest {
+public class SchemaSettingTest {
 
 	@Test
 	public void testSettingMarshall() throws JAXBException {

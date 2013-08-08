@@ -26,7 +26,7 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
 import org.fastcatsearch.util.CollectionContextUtil;
 
-public class FullIndexJob extends IndexingJob {
+public class FullIndexingJob extends IndexingJob {
 
 	private static final long serialVersionUID = 7898036370433248984L;
 
@@ -36,7 +36,7 @@ public class FullIndexJob extends IndexingJob {
 
 		indexingLogger.info("[{}] Full Indexing Start!", collectionId);
 
-		updateStatusStart();
+		updateIndexingStatusStart();
 
 		boolean isSuccess = false;
 		Object result = null;
@@ -61,15 +61,14 @@ public class FullIndexJob extends IndexingJob {
 			collectionContext.updateCollectionStatus(IndexingType.FULL, revisionInfo, indexingStartTime(), System.currentTimeMillis());
 			CollectionContextUtil.saveAfterIndexing(collectionContext);
 			
-			// apply schema setting
-			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
 			
 			/*
 			 * 컬렉션 리로드
 			 */
+			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
 			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
 			if (oldCollectionHandler != null) {
-				logger.info("## Close Previous Collection Handler");
+				logger.info("## [{}] Close Previous Collection Handler", collectionId);
 				oldCollectionHandler.close();
 			}
 			DataInfo dataInfo = collectionHandler.collectionContext().dataInfo();
@@ -105,7 +104,7 @@ public class FullIndexJob extends IndexingJob {
 				streamableResult = (IndexingJobResult) result;
 			}
 
-			updateStatusFinish(isSuccess, streamableResult);
+			updateIndexingStatusFinish(isSuccess, streamableResult);
 		}
 
 	}

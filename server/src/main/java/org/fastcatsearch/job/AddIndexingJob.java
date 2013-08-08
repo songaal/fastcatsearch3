@@ -31,7 +31,7 @@ import org.fastcatsearch.transport.vo.StreamableThrowable;
 import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.CollectionFilePaths;
 
-public class IncIndexJob extends IndexingJob {
+public class AddIndexingJob extends IndexingJob {
 
 	private static final long serialVersionUID = -2307892463724479369L;
 	
@@ -41,7 +41,7 @@ public class IncIndexJob extends IndexingJob {
 		
 		indexingLogger.info("[{}] Add Indexing Start!", collectionId);
 
-		updateStatusStart();
+		updateIndexingStatusStart();
 		
 		boolean isSuccess = false;
 		Object result = null;
@@ -110,7 +110,7 @@ public class IncIndexJob extends IndexingJob {
 				streamableResult = (IndexingJobResult) result;
 			}
 			
-			updateStatusFinish(isSuccess, streamableResult);
+			updateIndexingStatusFinish(isSuccess, streamableResult);
 		}
 		
 		
