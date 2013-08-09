@@ -209,7 +209,7 @@ public final class IOUtil {
 		return true;
 	}
 
-	public static void transferFrom(OutputStream out, File inFile, long offset, long length, byte[] buffer) throws IOException {
+	public static void transferFrom(DataOutput output, File inFile, long offset, long length, byte[] buffer) throws IOException {
 		RandomAccessFile rin = null;
 		try {
 			rin = new RandomAccessFile(inFile, "r");
@@ -217,13 +217,21 @@ public final class IOUtil {
 			int size = Math.min((int) length, buffer.length);// 대부분 buffer사이즈가 되며, length가 작을 경우에만, length가 된다.
 			while (length > 0) {
 				int nread = rin.read(buffer, 0, size);
-				out.write(buffer, 0, nread);
+				output.writeBytes(buffer, 0, nread);
 				length -= nread;
 			}
 		} finally {
 			if (rin != null) {
 				rin.close();
 			}
+		}
+	}
+
+	public static void transferFrom(DataOutput output, DataInput input, long length, byte[] buffer) throws IOException {
+		while (length > 0) {
+			int size = Math.min((int) length, buffer.length);
+			input.readBytes(buffer, 0, size);
+			length -= size;
 		}
 	}
 

@@ -5,6 +5,8 @@ import java.io.IOException;
 
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.MirrorSynchronizer;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
@@ -39,13 +41,22 @@ public class NodeSegmentUpdateJob extends StreamableJob {
 	public JobResult doRun() throws FastcatSearchException {
 
 		try {
-			CollectionContextUtil.saveAfterIndexing(collectionContext);
+			logger.debug("증분업데이트 실행!");
+			
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			String collectionId = collectionContext.collectionId();
-			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
-			
 			SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
+			
 			File segmentDir = collectionContext.collectionFilePaths().segmentFile(collectionContext.getDataSequence(), segmentInfo.getId());
+			int revision = segmentInfo.getRevision();
+			File revisionDir = new File(segmentDir, Integer.toString(revision));
+
+			// sync파일을 append해준다.
+			File mirrorSyncFile = new File(revisionDir, IndexFileNames.mirrorSync);
+			new MirrorSynchronizer().applyMirrorSyncFile(mirrorSyncFile, revisionDir);
+			
+			CollectionContextUtil.saveAfterIndexing(collectionContext);
+			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
 			collectionHandler.updateSegmentApplyCollection(segmentInfo, segmentDir);
 			
 			/*

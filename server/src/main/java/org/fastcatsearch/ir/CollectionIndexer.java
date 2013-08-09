@@ -234,36 +234,5 @@ public class CollectionIndexer {
 
 	}
 
-	public File createMirrorSyncFile(File segmentDir, File revisionDir) {
-		File file = new File(revisionDir, IndexFileNames.mirrorSync);
-		IndexOutput output = null;
-		try {
-			byte[] buffer = new byte[4096];
-			output = new BufferedFileOutput(file);
-			for (IndexWriteInfo indexWriteInfo : indexWriteInfoList) {
-				String filename = indexWriteInfo.filename();
-				File sourceFile = new File(segmentDir, indexWriteInfo.filename());
-				long offset = indexWriteInfo.offset();
-				long limit = indexWriteInfo.limit();
-				long count = limit - offset;
-				output.writeString(filename);
-				output.writeVLong(count);
-				IOUtil.transferFrom(output, sourceFile, offset, count, buffer);
-			}
-			
-			logger.info("동기화 파일 {} 생성완료!", file.getAbsolutePath());
-		} catch (IOException e) {
-			logger.error("", e);
-		} finally {
-			try {
-				if (output != null) {
-					output.close();
-				}
-			} catch (IOException ignore) {
-			}
-		}
-
-		return file;
-	}
 
 }

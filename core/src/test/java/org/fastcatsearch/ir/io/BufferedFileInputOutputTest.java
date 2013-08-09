@@ -16,12 +16,18 @@
 
 package org.fastcatsearch.ir.io;
 
+import static org.junit.Assert.*;
+
 import java.io.IOException;
 import java.util.Random;
 
+import org.junit.Test;
+
 import junit.framework.TestCase;
 
-public class BufferedFileInputOutputTest extends TestCase{
+public class BufferedFileInputOutputTest {
+	
+	@Test
 	public void _testInOut() throws IOException{
 		String filename = "test.inout";
 		int TRY = 1000;
@@ -41,7 +47,7 @@ public class BufferedFileInputOutputTest extends TestCase{
 		bfo.close();
 		
 		
-		byte[] readBuf2 = new byte[ DATA_SIZE];
+		byte[] readBuf2 = new byte[DATA_SIZE];
 		BytesBuffer readBuffer = new BytesBuffer(readBuf2);
 		
 		
@@ -49,17 +55,19 @@ public class BufferedFileInputOutputTest extends TestCase{
 		
 		
 		for(int i=0;i<TRY;i++){
+			long start = bfi.position();
+//			bfi.seek(writePos[i]);
+//			bfi.readBytes(readBuffer);
+			IOUtil.transferFrom(null, bfi, 128, readBuf2);
+//			System.out.println(writePos[i]+ " : "+readBuf2.length);
 			
-			bfi.seek(writePos[i]);
-			bfi.readBytes(readBuffer);
-			System.out.println(writePos[i]+ " : "+readBuf2.length);
-			
-			for(int k=0;k< DATA_SIZE;k++){
-				assertEquals(writeBuf[k] , readBuf2[k]);
-//				if(writeBuf[k] != readBuf2[k]){
-//					throw new IOException(k+") Diff "+writeBuf[k]+" : "+readBuf2[k]);
-//				}
-			}
+//			for(int k=0;k< DATA_SIZE;k++){
+//				assertEquals(writeBuf[k] , readBuf2[k]);
+////				if(writeBuf[k] != readBuf2[k]){
+////					throw new IOException(k+") Diff "+writeBuf[k]+" : "+readBuf2[k]);
+////				}
+//			}
+			System.out.println("start="+start+", end="+bfi.position()+", len="+(bfi.position() - start));
 			readBuffer.clear();
 			
 		}

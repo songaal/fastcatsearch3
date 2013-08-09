@@ -24,6 +24,7 @@ import org.fastcatsearch.data.DataStrategy;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.CollectionIndexer;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.MirrorSynchronizer;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
@@ -123,7 +124,7 @@ public class IndexNodeAddIndexingJob extends StreamableJob {
 			 */
 			File mirrorSyncFile = null;
 //			if(revisionAppended){
-				mirrorSyncFile = collectionIndexer.createMirrorSyncFile(segmentDir, revisionDir);
+				mirrorSyncFile = new MirrorSynchronizer().createMirrorSyncFile(indexWriteInfoList, revisionDir);
 //			}
 			
 			logger.debug("동기화 파일 생성 >> {}", mirrorSyncFile.getAbsolutePath());

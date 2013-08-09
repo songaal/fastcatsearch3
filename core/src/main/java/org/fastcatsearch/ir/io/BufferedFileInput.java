@@ -198,6 +198,7 @@ public class BufferedFileInput extends IndexInput implements Cloneable {
 		bufferLength = newLength;
 		bufferStart = start;
 		bufferPosition = 0;
+//		logger.debug("refill len={}, stat={}, pos={}", bufferLength, bufferStart, position());
 	}
 
 	protected void newBuffer(byte[] newBuffer) {

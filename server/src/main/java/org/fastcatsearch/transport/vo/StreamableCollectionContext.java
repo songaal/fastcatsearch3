@@ -43,18 +43,9 @@ public class StreamableCollectionContext implements Streamable {
 	public void readFrom(DataInput input) throws IOException {
 		try {
 			String collectionId = input.readString();
-			logger.debug("1 {}",collectionId);
-			
-//			int b = -1;
-//			while(( b = input.read()) != -1){
-//				logger.debug("{} :{}", (char)b, b);
-//			}
 			SchemaSetting schemaSetting = JAXBConfigs.readFrom(input, SchemaSetting.class);
-			logger.debug("2");
 			Schema schema = new Schema(schemaSetting);
-			logger.debug("3");
 			CollectionConfig collectionConfig = JAXBConfigs.readFrom(input, CollectionConfig.class);
-			logger.debug("4");
 			DataSourceConfig dataSourceConfig = JAXBConfigs.readFrom(input, DataSourceConfig.class);
 			CollectionStatus collectionStatus = JAXBConfigs.readFrom(input, CollectionStatus.class);
 			DataInfo dataInfo = JAXBConfigs.readFrom(input, DataInfo.class);

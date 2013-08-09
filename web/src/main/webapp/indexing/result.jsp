@@ -64,7 +64,17 @@
 				async : false,
 					success:function(data) {
 					data=data.replace(/^\s\s*/,"");
-					alert(collection + " " + (cmd == "0" ? "전체" : "증분")+ " 색인을 수행 합니다.");
+					cmdDisp = ""
+ 					if(cmd == "0"){
+ 						cmdDisp = "전체";
+					}else if(cmd == "1"){
+						cmdDisp = "증분";
+					}else if(cmd == "2"){
+						cmdDisp = "분산전체";
+					}else if(cmd == "3"){
+						cmdDisp = "분산증분";
+					}
+					alert(collection + " " + cmdDisp+ " 색인을 수행 합니다.");
 					$("#"+collection+"_"+cmd+"_status").html("색인중");
 					$("#"+collection+"_"+cmd+"_docSize").html("");
 					$("#"+collection+"_"+cmd+"_Auto").html("수동");
