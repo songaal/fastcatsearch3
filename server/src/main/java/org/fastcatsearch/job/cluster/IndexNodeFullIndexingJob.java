@@ -131,7 +131,7 @@ public class IndexNodeFullIndexingJob extends StreamableJob {
 			
 			// 색인된 Segment 파일전송.
 			IndexFileTransfer indexFileTransfer = new IndexFileTransfer(environment);
-			indexFileTransfer.tranferSegment(collectionDataDir, segmentDir, nodeService, nodeList);
+			indexFileTransfer.tranferDirectory(collectionDataDir, segmentDir, nodeService, nodeList);
 			
 			/*
 			 * 데이터노드에 컬렉션 리로드 요청.

@@ -273,7 +273,36 @@ public class CollectionHandler {
 			oldSegmentReader.close();
 		}
 	}
-
+	
+	//색인되어있는 세그먼트를 단순히 추가만한다. delete.set파일은 이미 수정되어있다고 가정한다. 
+	public void addSegmentApplyCollection(SegmentInfo segmentInfo, File segmentDir) throws IOException, IRException{
+		File lastRevisionDir = new File(segmentDir, Integer.toString(segmentInfo.getRevision()));
+		//삭제문서는 마지막 세그먼트의 마지막 리비전에 최신 업데이트 파일이 있으므로, 그것을 로딩한다.
+		for (int i = 0; i < segmentReaderList.size(); i++) {
+			BitSet deleteSet = new BitSet(lastRevisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
+			segmentReaderList.get(i).setDeleteSet(deleteSet);
+		}
+		addSegmentReader(new SegmentReader(segmentInfo, collectionContext.schema(), segmentDir));
+	}
+	//단순 update. delete.set파일은 이미 수정되어있다고 가정한다. 
+	public void updateSegmentApplyCollection(SegmentInfo segmentInfo, File segmentDir) throws IOException, IRException{
+		if(segmentReaderList.size() == 0){
+			return;
+		}
+		File lastRevisionDir = new File(segmentDir, Integer.toString(segmentInfo.getRevision()));
+		String segmentId = segmentInfo.getId();
+		SegmentReader oldSegmentReader = getSegmentReader(segmentId);
+		
+		List<SegmentReader> prevSegmentReaderList = segmentReaderList.subList(0, segmentReaderList.size() - 1);
+		for (int i = 0; i < prevSegmentReaderList.size(); i++) {
+			BitSet deleteSet = new BitSet(lastRevisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
+			prevSegmentReaderList.get(i).setDeleteSet(deleteSet);
+		}
+		// 새 revison을 읽는 segmentReader를 만들어서 기존것과 바꾼다.
+		updateSegmentReader(new SegmentReader(segmentInfo, collectionContext.schema(), segmentDir), oldSegmentReader);
+		// 기존 reader는 닫는다.
+		oldSegmentReader.close();
+	}
 	// 이전 세그먼트가 존재하면 delete.set을 업데이트하여 segment reader 에 적용시켜준다.
 	// 최근 색인작업으로 추가된 newSegmentInfo 세그먼트의 문서는 최신이므로 delete.set을 따로 적용할 필요가없다.
 	private BitSet[] makeDeleteSetWithSegments(SegmentInfo segmentInfo, File segmentDir, List<SegmentReader> prevSegmentReaderList, String pkFilename, DeleteIdSet deleteSet)

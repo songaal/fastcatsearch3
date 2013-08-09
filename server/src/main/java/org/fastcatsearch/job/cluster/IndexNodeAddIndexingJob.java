@@ -111,6 +111,9 @@ public class IndexNodeAddIndexingJob extends StreamableJob {
 			//먼저 업데이트를 해놔야 파일이 수정되서, 전송할수 있다. 
 			collectionHandler.updateCollection(collectionContext, segmentInfo, segmentDir, deleteIdSet);
 			
+			
+			logger.debug("updateCollection 완료!");
+			
 			File revisionDir = collectionFilePaths.revisionFile(dataSequence, segmentId, revision);
 			
 			
@@ -119,10 +122,11 @@ public class IndexNodeAddIndexingJob extends StreamableJob {
 			 * 여기서는 1. segment/ 파일들에 덧붙일 정보들이 준비되어있어야한다. revision은 그대로 복사하므로 준비필요없음.
 			 */
 			File mirrorSyncFile = null;
-			if(revisionAppended){
+//			if(revisionAppended){
 				mirrorSyncFile = collectionIndexer.createMirrorSyncFile(segmentDir, revisionDir);
-			}
+//			}
 			
+			logger.debug("동기화 파일 생성 >> {}", mirrorSyncFile.getAbsolutePath());
 			
 			/*
 			 * 색인파일 원격복사.
@@ -153,11 +157,11 @@ public class IndexNodeAddIndexingJob extends StreamableJob {
 			IndexFileTransfer indexFileTransfer = new IndexFileTransfer(environment);
 			//case 1. segment-append 파일과 revision/ 파일들을 전송한다.
 			//case 2. 만약 segment가 생성된 경우라면 그대로 전송하면된다. 
+			File directory = segmentDir;
 			if(revisionAppended){
-				indexFileTransfer.tranferRevision(collectionDataDir, segmentDir, revisionDir, nodeService, nodeList);
-			}else{
-				indexFileTransfer.tranferSegment(collectionDataDir, segmentDir, nodeService, nodeList);
+				directory = revisionDir;
 			}
+			indexFileTransfer.tranferDirectory(collectionDataDir, directory, nodeService, nodeList);
 			
 			/*
 			 * 데이터노드에 컬렉션 리로드 요청.

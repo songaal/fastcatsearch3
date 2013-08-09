@@ -15,6 +15,7 @@ import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableCollectionContext;
+import org.fastcatsearch.util.CollectionContextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,7 @@ public class NodeCollectionReloadJob extends StreamableJob {
 	public JobResult doRun() throws FastcatSearchException {
 
 		try {
+			CollectionContextUtil.saveAfterIndexing(collectionContext);
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			String collectionId = collectionContext.collectionId();
 			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);

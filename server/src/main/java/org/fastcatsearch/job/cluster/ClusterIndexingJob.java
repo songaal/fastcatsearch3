@@ -11,6 +11,7 @@ import org.fastcatsearch.data.DataStrategy;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.job.IndexingJob;
+import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
@@ -56,8 +57,13 @@ public class ClusterIndexingJob extends IndexingJob {
 
 			// 선택된 노드로 색인 메시지를 전송한다.
 			Node node = nodeList.get(0);
-			IndexNodeFullIndexingJob job = new IndexNodeFullIndexingJob(collectionId);
-			ResultFuture resultFuture = nodeService.sendRequest(node, job);
+			StreamableJob indexingJob = null;
+			if(indexingType == IndexingType.FULL){
+				indexingJob = new IndexNodeFullIndexingJob(collectionId);
+			}else if(indexingType == IndexingType.ADD){
+				indexingJob = new IndexNodeAddIndexingJob(collectionId);
+			}
+			ResultFuture resultFuture = nodeService.sendRequest(node, indexingJob);
 			result = resultFuture.take();
 			isSuccess = resultFuture.isSuccess();
 

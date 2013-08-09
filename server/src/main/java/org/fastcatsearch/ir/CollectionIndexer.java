@@ -24,6 +24,9 @@ import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.index.IndexWriteInfo;
 import org.fastcatsearch.ir.index.SegmentWriter;
 import org.fastcatsearch.ir.io.BufferedFileInput;
+import org.fastcatsearch.ir.io.BufferedFileOutput;
+import org.fastcatsearch.ir.io.DataOutput;
+import org.fastcatsearch.ir.io.IOUtil;
 import org.fastcatsearch.ir.io.IndexInput;
 import org.fastcatsearch.ir.io.IndexOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
@@ -42,28 +45,29 @@ public class CollectionIndexer {
 
 	private DeleteIdSet deleteIdSet;
 	private List<IndexWriteInfo> indexWriteInfoList;
+
 	public CollectionIndexer(CollectionContext collectionContext) {
 		this.collectionContext = collectionContext;
 	}
 
-	public DeleteIdSet deleteIdSet(){
+	public DeleteIdSet deleteIdSet() {
 		return deleteIdSet;
 	}
-	
-	public List<IndexWriteInfo> indexWriteInfoList(){
+
+	public List<IndexWriteInfo> indexWriteInfoList() {
 		return indexWriteInfoList;
 	}
-	
+
 	public SegmentInfo fullIndexing() throws IOException, IRException, FastcatSearchException {
 		// data 디렉토리를 변경한다.
 		int newDataSequence = collectionContext.nextDataSequence();
-		
-		//디렉토리 초기화.
+
+		// 디렉토리 초기화.
 		File collectionDataDir = collectionContext.collectionFilePaths().dataFile(newDataSequence);
 		FileUtils.deleteDirectory(collectionDataDir);
-		
+
 		collectionContext.clearDataInfoAndStatus();
-		
+
 		Schema schema = collectionContext.workSchema();
 		if (schema == null) {
 			schema = collectionContext.schema();
@@ -73,15 +77,14 @@ public class CollectionIndexer {
 			logger.error("[{}] Full Indexing Canceled. Schema field is empty. time = {}", collectionContext.collectionId());
 			throw new FastcatSearchException("[" + collectionContext.collectionId() + "] Full Indexing Canceled. Schema field is empty.");
 		}
-		
+
 		SegmentInfo segmentInfo = new SegmentInfo();
-		
+
 		DataSourceReader sourceReader = getSourceReader(schema, true);
 		RevisionInfo revisionInfo = doIndexing(sourceReader, segmentInfo, schema);
-		
-		
+
 		int insertCount = revisionInfo.getInsertCount();
-		
+
 		if (insertCount > 0) {
 			segmentInfo.updateRevision(revisionInfo);
 			collectionContext.addSegmentInfo(segmentInfo);
@@ -91,18 +94,18 @@ public class CollectionIndexer {
 
 		return segmentInfo;
 	}
-	
+
 	public SegmentInfo addIndexing(CollectionHandler collectionHandler) throws IOException, IRException, FastcatSearchException {
 		DataPlanConfig dataPlanConfig = collectionContext.collectionConfig().getDataPlanConfig();
 		// 증분색인이면 기존스키마그대로 사용.
 		Schema schema = collectionContext.schema();
-		
-		//logger.debug("workingHandler={}, dataSequence={}", collectionHandler, dataSequence);
+
+		// logger.debug("workingHandler={}, dataSequence={}", collectionHandler, dataSequence);
 
 		SegmentInfo workingSegmentInfo = null;
 
 		SegmentReader lastSegmentReader = collectionHandler.getLastSegmentReader();
-		
+
 		if (lastSegmentReader != null) {
 			SegmentInfo segmentInfo = lastSegmentReader.segmentInfo();
 			int docCount = segmentInfo.getRevisionInfo().getDocumentCount();
@@ -113,7 +116,7 @@ public class CollectionIndexer {
 			} else {
 				// 기존 segment에 append되는 증분색인.
 				workingSegmentInfo = segmentInfo.copy();
-				//리비전을 증가시킨다.
+				// 리비전을 증가시킨다.
 				workingSegmentInfo.nextRevision();
 			}
 		} else {
@@ -124,14 +127,14 @@ public class CollectionIndexer {
 		}
 
 		logger.debug("증분색인용 SegmentInfo={}", workingSegmentInfo);
-//		String segmentId = workingSegmentInfo.getId();
-//		File segmentDir = collectionContext.collectionFilePaths().segmentFile(dataSequence, segmentId);
+		// String segmentId = workingSegmentInfo.getId();
+		// File segmentDir = collectionContext.collectionFilePaths().segmentFile(dataSequence, segmentId);
 		DataSourceReader sourceReader = getSourceReader(schema, false);
 		RevisionInfo revisionInfo = doIndexing(sourceReader, workingSegmentInfo, schema);
-		
+
 		int insertCount = revisionInfo.getInsertCount();
 		int deleteCount = revisionInfo.getDeleteCount();
-		
+
 		if (insertCount > 0) {
 			workingSegmentInfo.updateRevision(revisionInfo);
 		} else {
@@ -150,37 +153,37 @@ public class CollectionIndexer {
 
 	}
 
-	protected DataSourceReader getSourceReader(Schema schema, boolean isFullIndexing) throws FastcatSearchException{
+	protected DataSourceReader getSourceReader(Schema schema, boolean isFullIndexing) throws FastcatSearchException {
 		CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
 		String lastIndexTime = collectionContext.getLastIndexTime();
 		DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
 		DataSourceReader sourceReader = null;
-		try{
-			sourceReader = DataSourceReaderFactory.createSourceReader(collectionFilePaths.file(), schema, dataSourceConfig,
-					lastIndexTime, isFullIndexing);
-		}catch(IRException e){
+		try {
+			sourceReader = DataSourceReaderFactory.createSourceReader(collectionFilePaths.file(), schema, dataSourceConfig, lastIndexTime,
+					isFullIndexing);
+		} catch (IRException e) {
 			throw new FastcatSearchException("데이터 수집기 생성중 에러발생. sourceType = " + dataSourceConfig);
 		}
 		return sourceReader;
 	}
-	
+
 	/*
-	 * 주어진 SegmentInfo를 바탕으로 색인을 수행한다.
-	 * 색인데이터는 sourceReader로 부터 받는다.
-	 * */
-	protected RevisionInfo doIndexing(DataSourceReader sourceReader, SegmentInfo segmentInfo, Schema schema) throws IRException, FastcatSearchException {
+	 * 주어진 SegmentInfo를 바탕으로 색인을 수행한다. 색인데이터는 sourceReader로 부터 받는다.
+	 */
+	protected RevisionInfo doIndexing(DataSourceReader sourceReader, SegmentInfo segmentInfo, Schema schema) throws IRException,
+			FastcatSearchException {
 		indexWriteInfoList = new ArrayList<IndexWriteInfo>();
-		
+
 		CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
 		int dataSequence = collectionContext.getDataSequence();
-		
+
 		IndexConfig indexConfig = collectionContext.collectionConfig().getIndexConfig();
 		int count = 0;
 		logger.debug("WorkingSegmentInfo = {}", segmentInfo);
 		RevisionInfo revisionInfo = null;
 		String segmentId = segmentInfo.getId();
 		int revision = segmentInfo.getRevision();
-		
+
 		File segmentDir = collectionFilePaths.segmentFile(dataSequence, segmentId);
 		logger.info("Segment Dir = {}", segmentDir.getAbsolutePath());
 
@@ -213,7 +216,7 @@ public class CollectionIndexer {
 			if (segmentWriter != null) {
 				try {
 					revisionInfo = segmentWriter.close();
-					
+
 					segmentWriter.getIndexWriteInfo(indexWriteInfoList);
 					logger.debug("segmentWriter close revisionInfo={}", revisionInfo);
 				} catch (IOException e) {
@@ -222,34 +225,45 @@ public class CollectionIndexer {
 			}
 			sourceReader.close();
 		}
-		
+
 		deleteIdSet = sourceReader.getDeleteList();
 		int deleteCount = deleteIdSet.size();
 		revisionInfo.setDeleteCount(deleteCount);
-		
+
 		return revisionInfo;
-		
+
 	}
 
 	public File createMirrorSyncFile(File segmentDir, File revisionDir) {
 		File file = new File(revisionDir, IndexFileNames.mirrorSync);
-		try{
-			FileChannel outputChannel = new FileOutputStream(file).getChannel();
+		IndexOutput output = null;
+		try {
+			byte[] buffer = new byte[4096];
+			output = new BufferedFileOutput(file);
 			for (IndexWriteInfo indexWriteInfo : indexWriteInfoList) {
+				String filename = indexWriteInfo.filename();
 				File sourceFile = new File(segmentDir, indexWriteInfo.filename());
 				long offset = indexWriteInfo.offset();
 				long limit = indexWriteInfo.limit();
 				long count = limit - offset;
-				
-				FileChannel inputChannel = new FileInputStream(sourceFile).getChannel();
-				outputChannel.transferFrom(inputChannel, offset, count);
+				output.writeString(filename);
+				output.writeVLong(count);
+				IOUtil.transferFrom(output, sourceFile, offset, count, buffer);
 			}
-		}catch(IOException e){
+			
+			logger.info("동기화 파일 {} 생성완료!", file.getAbsolutePath());
+		} catch (IOException e) {
 			logger.error("", e);
+		} finally {
+			try {
+				if (output != null) {
+					output.close();
+				}
+			} catch (IOException ignore) {
+			}
 		}
-		
+
 		return file;
 	}
 
-	
 }

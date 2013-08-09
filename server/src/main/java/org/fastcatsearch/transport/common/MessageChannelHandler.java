@@ -71,7 +71,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         long requestId = wrappedStream.readLong();
 		byte status = wrappedStream.readByte();
 		logger.debug("message status[{}]", status);
-		logger.debug("## readIndex={}, writerIndex={}", buffer.readerIndex(), buffer.writerIndex());
+//		logger.debug("## readIndex={}, writerIndex={}", buffer.readerIndex(), buffer.writerIndex());
 		//logger.debug("## readString={}", wrappedStream.readString());
         if (TransportOption.isRequest(status)) {
 //        	int readTo = wrappedStream.available();
@@ -89,15 +89,15 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
                 buffer.readerIndex(expectedIndexReader);
             }
         } else {
-        	logger.debug("# status = {}", status);
+//        	logger.debug("# status = {}", status);
             if (TransportOption.isError(status)) {
             	logger.debug("# status isError");
                 handlerErrorResponse(wrappedStream, requestId);
             }else if (TransportOption.isResponseObject(status)) {
-            	logger.debug("# status isResponseObject");
+//            	logger.debug("# status isResponseObject");
             	handleObjectResponse(wrappedStream, requestId);
             } else {
-            	logger.debug("# status isResponse streamable");
+//            	logger.debug("# status isResponse streamable");
                 handleStreamableResponse(wrappedStream, requestId);
             }
             

@@ -37,8 +37,6 @@ public class FullIndexingJob extends IndexingJob {
 	public JobResult doRun() throws FastcatSearchException {
 		prepare(IndexingType.FULL);
 
-		indexingLogger.info("[{}] Full Indexing Start!", collectionId);
-
 		updateIndexingStatusStart();
 
 		boolean isSuccess = false;
@@ -57,12 +55,7 @@ public class FullIndexingJob extends IndexingJob {
 			CollectionIndexer collectionIndexer = new CollectionIndexer(collectionContext);
 			SegmentInfo segmentInfo = collectionIndexer.fullIndexing();
 			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
-			List<IndexWriteInfo> indexWriteInfoList = collectionIndexer.indexWriteInfoList();
 			//////////////////////////////////////////////////////////////////////////////////////////
-			//TODO jaxb파일로 떨군다.
-			for (IndexWriteInfo indexWriteInfo : indexWriteInfoList) {
-				logger.debug(">> {}", indexWriteInfo);
-			}
 			
 			//status를 바꾸고 context를 저장한다.
 			collectionContext.updateCollectionStatus(IndexingType.FULL, revisionInfo, indexingStartTime(), System.currentTimeMillis());
