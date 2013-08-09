@@ -18,6 +18,7 @@ package org.fastcatsearch.ir.index;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import org.fastcatsearch.ir.common.IRException;
@@ -39,7 +40,7 @@ import org.slf4j.LoggerFactory;
  * @author sangwook.song
  * 
  */
-public class FieldIndexWriter {
+public class FieldIndexWriter implements WriteInfoLoggable {
 	private static Logger logger = LoggerFactory.getLogger(FieldIndexWriter.class);
 	private String indexId;
 	private IndexOutput fieldIndexOutput;
@@ -126,6 +127,14 @@ public class FieldIndexWriter {
 
 		if (isMultiValue) {
 			multiValueOutput.close();
+		}
+	}
+
+	@Override
+	public void getIndexWriteInfo(List<IndexWriteInfo> writeInfoList) {
+		writeInfoList.add(fieldIndexOutput.getWriteInfo());
+		if (isMultiValue) {
+			writeInfoList.add(multiValueOutput.getWriteInfo());
 		}
 	}
 }

@@ -18,6 +18,8 @@ package org.fastcatsearch.ir.index;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.ir.common.IRException;
@@ -33,7 +35,7 @@ import org.fastcatsearch.ir.util.Formatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SegmentWriter {
+public class SegmentWriter implements WriteInfoLoggable {
 
 	private static Logger logger = LoggerFactory.getLogger(SegmentWriter.class);
 
@@ -51,8 +53,7 @@ public class SegmentWriter {
 	private String segmentId;
 	private File targetDir;
 	private int revision;
-	// usually this constructor is used, except for certain segment rebuild
-	// for Full indexing
+
 	public SegmentWriter(Schema schema, File targetDir, IndexConfig indexConfig) throws IRException {
 		this(schema, targetDir, 0, indexConfig);
 	}
@@ -74,8 +75,6 @@ public class SegmentWriter {
 			if (revision > 0) {
 				isAppend = true;
 			}
-
-//			segmentInfo = new SegmentInfo(segmentId, baseDocNo);
 
 			documentWriter = new DocumentWriter(schema, targetDir, revision, indexConfig);
 			primaryKeyIndexesWriter = new PrimaryKeyIndexesWriter(schema, targetDir, revision, indexConfig);
@@ -190,16 +189,12 @@ public class SegmentWriter {
 			FileUtils.deleteDirectory(revisionDir);
 			throw new IRException(e);
 		}
-		//
-		// 문서가 0건일 경우 새로생성한 리비전 디렉토리를 삭제하고
-		// SegmentInfo를 업데이트 하지 않는다.
-		//
-		// if(lastDocNo == 0){
-		// File revisionDir = IRFileName.getRevisionDir(targetDir, REVISION);
-		// FileUtils.deleteDirectory(revisionDir);
-		// return;
-		// }
 
 	}
 
+	public void getIndexWriteInfo(List<IndexWriteInfo> list) {
+		documentWriter.getIndexWriteInfo(list);
+		fieldIndexesWriter.getIndexWriteInfo(list);
+		groupIndexesWriter.getIndexWriteInfo(list);
+	}
 }

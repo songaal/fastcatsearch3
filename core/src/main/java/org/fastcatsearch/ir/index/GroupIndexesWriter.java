@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 /**
  * 그룹인덱스에 대한 색인클래스.
  * */
-public class GroupIndexesWriter {
+public class GroupIndexesWriter implements WriteInfoLoggable {
 	private static Logger logger = LoggerFactory.getLogger(GroupIndexesWriter.class);
 	private GroupIndexWriter[] groupIndexWriterList;
 	private int indexSize;
@@ -48,6 +48,13 @@ public class GroupIndexesWriter {
 	public void close() throws IOException{
 		for (int i = 0; i < indexSize; i++) {
 			groupIndexWriterList[i].close();
+		}
+	}
+
+	@Override
+	public void getIndexWriteInfo(List<IndexWriteInfo> writeInfoList) {
+		for (int i = 0; i < indexSize; i++) {
+			groupIndexWriterList[i].getIndexWriteInfo(writeInfoList);
 		}
 	}
 }

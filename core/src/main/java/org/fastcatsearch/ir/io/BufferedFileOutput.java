@@ -20,132 +20,138 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+import org.fastcatsearch.ir.index.IndexWriteInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
- * position 변경없이 오직 append 쓰기를 지원한다.
+ * 
  * @author sangwook
- *
+ * 
  */
 public class BufferedFileOutput extends IndexOutput {
 
 	private static Logger logger = LoggerFactory.getLogger(BufferedFileOutput.class);
-	
+
 	private File f;
 	protected RandomAccessFile raf;
-	
+
 	protected byte buf[];
 	protected int count;
+
+	protected IndexWriteInfo writeInfo;
 	
-	public BufferedFileOutput(String filename) throws IOException{
+	public BufferedFileOutput(String filename) throws IOException {
 		this(new File("."), filename, false);
 	}
-	public BufferedFileOutput(File file) throws IOException{
+
+	public BufferedFileOutput(File file) throws IOException {
 		this(file, false);
 	}
-	
-	public BufferedFileOutput(File dir, String filename) throws IOException{
+
+	public BufferedFileOutput(File dir, String filename) throws IOException {
 		this(dir, filename, false);
 	}
-	public BufferedFileOutput(File dir, String filename, boolean append) throws IOException{
+
+	public BufferedFileOutput(File dir, String filename, boolean append) throws IOException {
 		this(new File(dir, filename), append);
 	}
-	public BufferedFileOutput(File file, boolean append) throws IOException{
+
+	public BufferedFileOutput(File file, boolean append) throws IOException {
 		f = file;
-		
+
 		File pf = f.getParentFile();
-		if(pf != null)
+		if (pf != null)
 			pf.mkdirs();
-		
-		if(!append){
+
+		if (!append) {
 			f.delete();
 		}
 		buf = new byte[IOUtil.PAGESIZE];
 		raf = new RandomAccessFile(f, "rw");
-		if(append){
+		if (append) {
 			long fp = raf.length();
 			raf.seek(fp);
 		}
-//		logger.debug("File open {}", f.getAbsolutePath());
+		writeInfo = new IndexWriteInfo(f);
 	}
-	
-	public String toString(){
+
+	public String toString() {
 		return "BufferedFileOutput path=" + f.getAbsolutePath();
 	}
-	
+
 	public void flush() throws IOException {
-//	logger.debug("current Buf use Size : {} ", count);
-        if (count > 0) {
-//        	logger.debug("Output File write Size :{}/{}", count, raf.length());
-        	raf.write(buf, 0, count);
-        	count = 0;
-        }
-    }
-	
+		if (count > 0) {
+			raf.write(buf, 0, count);
+			count = 0;
+		}
+	}
+
 	@Override
 	public long length() throws IOException {
-		return raf.length() + (long)count;
+		return raf.length() + (long) count;
 	}
-	
-	public File getFile(){
+
+	public File getFile() {
 		return f;
 	}
-	
+
 	public void close() throws IOException {
 		flush();
+		writeInfo.close(raf.length());
 		raf.close();
-//		logger.debug("File close {}", f.getAbsolutePath());
 	}
 
 	public long position() throws IOException {
 		return raf.getFilePointer() + count;
 	}
-	
+
 	public void seek(long p) throws IOException {
 		flush();
 		raf.seek(p);
 	}
-	
-//	public synchronized void writeBytes(byte b[], int off, int len) throws IOException {
+
 	public void writeBytes(byte b[], int off, int len) throws IOException {
 		if (len >= buf.length) {
-		    flush();
-		    raf.write(b, off, len);
-		    return;
+			flush();
+			raf.write(b, off, len);
+			return;
 		}
 		if (len > buf.length - count) {
-		    flush();
+			flush();
 		}
-		try{
+		try {
 			System.arraycopy(b, off, buf, count, len);
-		}catch(ArrayIndexOutOfBoundsException e){
-			logger.error("len = "+len+" , count="+count+" off="+off+", buf.length="+buf.length,e);
+		} catch (ArrayIndexOutOfBoundsException e) {
+			logger.error("len = " + len + " , count=" + count + " off=" + off + ", buf.length=" + buf.length, e);
 			throw e;
 		}
 		count += len;
 	}
-	
+
 	public void writeBytes(BytesBuffer dst) throws IOException {
 		writeBytes(dst.bytes, dst.pos(), dst.remaining());
 	}
-	
+
 	public void setLength(long newLength) throws IOException {
 		flush();
 		raf.setLength(newLength);
 	}
-	
+
 	public void writeByte(byte b) throws IOException {
 		if (count >= buf.length) {
-		    flush();
+			flush();
 		}
-		buf[count++] = (byte)b;
+		buf[count++] = (byte) b;
 	}
+
 	@Override
 	public void reset() throws IOException {
-		// TODO Auto-generated method stub
-		
+		//do nothing
 	}
-	
+
+	@Override
+	public IndexWriteInfo getWriteInfo() {
+		return writeInfo;
+	}
 }

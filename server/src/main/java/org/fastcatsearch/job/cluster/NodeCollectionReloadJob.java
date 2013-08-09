@@ -1,4 +1,4 @@
-package org.fastcatsearch.job;
+package org.fastcatsearch.job.cluster;
 
 import java.io.IOException;
 
@@ -9,6 +9,10 @@ import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.job.CacheServiceRestartJob;
+import org.fastcatsearch.job.Job;
+import org.fastcatsearch.job.StreamableJob;
+import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableCollectionContext;
 import org.slf4j.Logger;

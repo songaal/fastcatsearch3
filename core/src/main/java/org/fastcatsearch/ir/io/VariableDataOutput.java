@@ -2,10 +2,12 @@ package org.fastcatsearch.ir.io;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.fastcatsearch.ir.common.IndexFileNames;
+import org.fastcatsearch.ir.index.IndexWriteInfo;
 
-public class VariableDataOutput implements SequencialDataOutput {
+public class VariableDataOutput extends SequencialDataOutput {
 	private IndexOutput dataOutput;
 	private IndexOutput positionOutput;
 	
@@ -21,14 +23,14 @@ public class VariableDataOutput implements SequencialDataOutput {
 	}
 	
 	@Override
-	public void write(byte[] buffer, int offset, int length) throws IOException{
+	public void writeBytes(byte[] buffer, int offset, int length) throws IOException{
 		positionOutput.writeLong(dataOutput.position());
 		dataOutput.writeVInt(length);
 		dataOutput.writeBytes(buffer, offset, length);
 	}
 	
 	@Override
-	public void write(BytesBuffer bytesBuffer) throws IOException{
+	public void writeBytes(BytesBuffer bytesBuffer) throws IOException{
 		positionOutput.writeLong(dataOutput.position());
 		dataOutput.writeVInt(bytesBuffer.length);
 		dataOutput.writeBytes(bytesBuffer.bytes, bytesBuffer.offset, bytesBuffer.length);
@@ -39,4 +41,25 @@ public class VariableDataOutput implements SequencialDataOutput {
 		dataOutput.close();
 		positionOutput.close();
 	}
+	@Override
+	public void getWriteInfo(List<IndexWriteInfo> writeInfoList) {
+		writeInfoList.add(dataOutput.getWriteInfo());
+		writeInfoList.add(positionOutput.getWriteInfo());
+	}
+	
+	@Override
+	public void flush() throws IOException {
+		dataOutput.flush();
+		positionOutput.flush();
+	}
+	
+	@Override
+	public long position() throws IOException {
+		throw new UnsupportedOperationException();
+	}
+	@Override
+	public long length() throws IOException {
+		throw new UnsupportedOperationException();
+	}
+	
 }

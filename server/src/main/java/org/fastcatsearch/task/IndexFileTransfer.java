@@ -26,14 +26,14 @@ public class IndexFileTransfer {
 	}
 	
 	//세그먼트를 전송한다. info.xml도 함께 전송.
-	public void tranferSegmentDir(File collectionDataDir, File segmentDir, NodeService nodeService, List<Node> nodeList) throws FastcatSearchException{
+	public void tranferSegment(File collectionDataDir, File segmentDir, NodeService nodeService, List<Node> nodeList) throws FastcatSearchException{
 		Collection<File> files = FileUtils.listFiles(segmentDir, null, true);
 		//info.xml 파일추가.
 		File collectionInfoFile = new File(collectionDataDir, SettingFileNames.dataInfo);
 		files.add(collectionInfoFile);
 		int totalFileCount = files.size();
 
-		//TODO 순차적전송이라서 여러노드전송시 속도가 느림.해결요망.  
+		//TODO 순차적전송을 개선하여 더 빠른 방법을 찾아보자.
 		for (int i = 0; i < nodeList.size(); i++) {
 			Node node = nodeList.get(i);
 			if(nodeService.isMyNode(node)){
@@ -46,8 +46,6 @@ public class IndexFileTransfer {
 			while (fileIterator.hasNext()) {
 				File sourceFile = fileIterator.next();
 				File relativeFile = environment.filePaths().relativise(sourceFile);
-//				logger.debug("sourceFile >> {}", sourceFile.getAbsolutePath());
-//				logger.debug("targetFile >> {}", relativeFile.getPath());
 				logger.info("[{} / {}]파일 {} 전송시작! ", new Object[] { fileCount, totalFileCount, sourceFile.getPath() });
 				
 				SendFileResultFuture sendFileResultFuture = nodeService.sendFile(node, sourceFile, relativeFile);
@@ -68,5 +66,10 @@ public class IndexFileTransfer {
 			}
 
 		}
+	}
+
+	public void tranferRevision(File collectionDataDir, File segmentDir, File revisionDir, NodeService nodeService, List<Node> nodeList) {
+		// TODO Auto-generated method stub
+		
 	}
 }

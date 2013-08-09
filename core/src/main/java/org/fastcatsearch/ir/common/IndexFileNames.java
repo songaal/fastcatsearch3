@@ -27,6 +27,8 @@ public class IndexFileNames {
 	
 	public static final String tempFile = "temp";
 	
+	public static final String mirrorSync = "mirror.sync";
+	
 	public static String getTempFileName(String name){
 		return name + "." + tempFile;
 	}

@@ -18,6 +18,7 @@ package org.fastcatsearch.ir.index;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.lucene.util.BytesRef;
@@ -48,7 +49,7 @@ import org.slf4j.LoggerFactory;
  * @author sangwook.song
  * 
  */
-public class GroupIndexWriter {
+public class GroupIndexWriter implements WriteInfoLoggable {
 	private static Logger logger = LoggerFactory.getLogger(GroupIndexWriter.class);
 
 	private String indexId;
@@ -186,13 +187,7 @@ public class GroupIndexWriter {
 			groupNo = groupNumber++;
 			// write key index
 			memoryKeyIndex.put(keyBuffer, groupNo);
-			keyOutput.write(keyBuffer);
-
-//			String str = "";
-//			for (int i = 0; i < keyBuffer.position(); i++) {
-//				str += ((char)keyBuffer.array()[i] + ",");
-//			}
-//			logger.debug("write group key field [{}] size[{}] >> gr[{}]", str, keyBuffer.position(), groupNo);
+			keyOutput.writeBytes(keyBuffer);
 		}
 		return groupNo;
 	}
@@ -240,9 +235,6 @@ public class GroupIndexWriter {
 			groupPkIndexOutput = new BufferedFileOutput(pkIndexFile);
 		}
 
-		// int keyCount = memoryKeyIndex.count();
-		// 별도 저장필요없음.나중에 pk에서 키 갯수읽으면 됨.
-		
 		memoryKeyIndex.setDestination(groupPkOutput, groupPkIndexOutput);
 		memoryKeyIndex.write();
 		groupPkOutput.close();
@@ -270,5 +262,18 @@ public class GroupIndexWriter {
 
 		}
 
+	}
+
+	@Override
+	public void getIndexWriteInfo(List<IndexWriteInfo> writeInfoList) {
+		//index
+		writeInfoList.add(groupIndexOutput.getWriteInfo());
+		//index.mv
+		if (isMultiValue) {
+			writeInfoList.add(multiValueOutput.getWriteInfo());
+		}
+		//key, key.positoin
+		keyOutput.getWriteInfo(writeInfoList);
+		
 	}
 }

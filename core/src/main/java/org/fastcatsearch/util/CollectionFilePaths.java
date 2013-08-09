@@ -49,12 +49,12 @@ public class CollectionFilePaths {
 		return file(dataPath(dataSequence));
 	}
 
-	public File segmentFile(Object dataSequence, Object segmentNumber) {
-		return file(dataPath(dataSequence), segmentNumber.toString());
+	public File segmentFile(Object dataSequence, Object segmentId) {
+		return file(dataPath(dataSequence), segmentId.toString());
 	}
 	
-	public File revisionFile(Object dataSequence, Object segmentNumber, Object revisionNumber) {
-		return file(dataPath(dataSequence), segmentNumber.toString(), revisionNumber.toString());
+	public File revisionFile(Object dataSequence, Object segmentId, Object revisionNumber) {
+		return file(dataPath(dataSequence), segmentId.toString(), revisionNumber.toString());
 	}
 	
 }

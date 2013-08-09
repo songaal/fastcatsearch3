@@ -1,4 +1,4 @@
-package org.fastcatsearch.job;
+package org.fastcatsearch.job.cluster;
 
 import java.io.File;
 import java.io.IOException;
@@ -6,6 +6,9 @@ import java.io.IOException;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
+import org.fastcatsearch.job.Job;
+import org.fastcatsearch.job.StreamableJob;
+import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.util.FileUtils;
 
 /**

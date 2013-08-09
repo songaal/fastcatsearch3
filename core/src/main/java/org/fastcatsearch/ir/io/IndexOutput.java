@@ -21,6 +21,7 @@ import java.io.Closeable;
 import java.io.IOException;
 
 import org.apache.lucene.store.Directory;
+import org.fastcatsearch.ir.index.IndexWriteInfo;
 
 /** Abstract base class for output to a file in a Directory.  A random-access
  * output stream.  Used for all Lucene index output operations.
@@ -72,4 +73,7 @@ public abstract class IndexOutput extends DataOutput implements Closeable {
    */
   public void setLength(long length) throws IOException {}
 
+  public IndexWriteInfo getWriteInfo(){
+	  throw new UnsupportedOperationException("getWriteInfo");
+  }
 }

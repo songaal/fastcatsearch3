@@ -11,6 +11,8 @@
 
 package org.fastcatsearch.job;
 
+import java.util.List;
+
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.CollectionIndexer;
@@ -20,6 +22,7 @@ import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
+import org.fastcatsearch.ir.index.IndexWriteInfo;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceManager;
@@ -54,8 +57,12 @@ public class FullIndexingJob extends IndexingJob {
 			CollectionIndexer collectionIndexer = new CollectionIndexer(collectionContext);
 			SegmentInfo segmentInfo = collectionIndexer.fullIndexing();
 			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
+			List<IndexWriteInfo> indexWriteInfoList = collectionIndexer.indexWriteInfoList();
 			//////////////////////////////////////////////////////////////////////////////////////////
-			
+			//TODO jaxb파일로 떨군다.
+			for (IndexWriteInfo indexWriteInfo : indexWriteInfoList) {
+				logger.debug(">> {}", indexWriteInfo);
+			}
 			
 			//status를 바꾸고 context를 저장한다.
 			collectionContext.updateCollectionStatus(IndexingType.FULL, revisionInfo, indexingStartTime(), System.currentTimeMillis());

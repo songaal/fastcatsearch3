@@ -13,61 +13,39 @@ package org.fastcatsearch.job.cluster;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
-import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.data.DataService;
 import org.fastcatsearch.data.DataStrategy;
-import org.fastcatsearch.datasource.reader.DataSourceReader;
-import org.fastcatsearch.datasource.reader.DataSourceReaderFactory;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.CollectionIndexer;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
-import org.fastcatsearch.ir.config.DataPlanConfig;
-import org.fastcatsearch.ir.config.DataSourceConfig;
-import org.fastcatsearch.ir.config.SingleSourceConfig;
-import org.fastcatsearch.ir.config.IndexConfig;
-import org.fastcatsearch.ir.index.SegmentWriter;
+import org.fastcatsearch.ir.index.DeleteIdSet;
+import org.fastcatsearch.ir.index.IndexWriteInfo;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.ir.settings.Schema;
-import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.NodeCollectionReloadJob;
-import org.fastcatsearch.job.NodeDirectoryCleanJob;
 import org.fastcatsearch.job.StreamableJob;
-import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.task.IndexFileTransfer;
-import org.fastcatsearch.task.MakeIndexFileTask;
-import org.fastcatsearch.transport.common.SendFileResultFuture;
 import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.CollectionFilePaths;
-import org.fastcatsearch.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /*
- * 전체색인을 수행하여 색인파일을 생성하고,
- * 해당하는 data node에 색인파일을 복사한다.
  * 
  * */
 public class IndexNodeAddIndexingJob extends StreamableJob {
@@ -92,19 +70,59 @@ public class IndexNodeAddIndexingJob extends StreamableJob {
 			long startTime = System.currentTimeMillis();
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			
+			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
+			if(collectionHandler == null){
+				indexingLogger.error("[{}] CollectionHandler is not running!", collectionId);
+				EventDBLogger.error(EventDBLogger.CATE_INDEX, "컬렉션 "+collectionId+"가 서비스중이 아님.");
+				throw new FastcatSearchException("## ["+collectionId+"] CollectionHandler is not running...");
+			}
+			
+			SegmentInfo currentSegmentInfo = collectionHandler.getLastSegmentReader().segmentInfo();
+			if(currentSegmentInfo == null){
+				indexingLogger.error("[{}] has no segment!  Do full-indexing first!!", collectionId);
+				return null;
+			}
+			
 			/*
-			 * 색인파일 생성.
+			 * Do indexing!!
 			 */
 			//////////////////////////////////////////////////////////////////////////////////////////
 			CollectionContext collectionContext = irService.collectionContext(collectionId).copy();
 			CollectionIndexer collectionIndexer = new CollectionIndexer(collectionContext);
-			SegmentInfo segmentInfo = collectionIndexer.fullIndexing();
+			SegmentInfo segmentInfo = collectionIndexer.addIndexing(collectionHandler);
 			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
+			List<IndexWriteInfo> indexWriteInfoList = collectionIndexer.indexWriteInfoList();
 			//////////////////////////////////////////////////////////////////////////////////////////
 			
+			//0보다 크면 revision이 증가된것이다.
+			boolean revisionAppended = revisionInfo.getRevision() > 0;
+			
+			
 			//status를 바꾸고 context를 저장한다.
-			collectionContext.updateCollectionStatus(IndexingType.FULL, revisionInfo, startTime, System.currentTimeMillis());
-			CollectionContextUtil.saveAfterIndexing(collectionContext);
+			collectionContext.updateCollectionStatus(IndexingType.ADD, revisionInfo, startTime, System.currentTimeMillis());
+			
+			CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
+			int dataSequence = collectionContext.getDataSequence();
+			String segmentId = segmentInfo.getId();
+			int revision = revisionInfo.getRevision();
+			File collectionDataDir = collectionFilePaths.dataFile(dataSequence);
+			File segmentDir = collectionContext.collectionFilePaths().segmentFile(dataSequence, segmentId);
+			DeleteIdSet deleteIdSet = collectionIndexer.deleteIdSet();
+			//먼저 업데이트를 해놔야 파일이 수정되서, 전송할수 있다. 
+			collectionHandler.updateCollection(collectionContext, segmentInfo, segmentDir, deleteIdSet);
+			
+			File revisionDir = collectionFilePaths.revisionFile(dataSequence, segmentId, revision);
+			
+			
+			/*
+			 * 동기화 파일 생성. 
+			 * 여기서는 1. segment/ 파일들에 덧붙일 정보들이 준비되어있어야한다. revision은 그대로 복사하므로 준비필요없음.
+			 */
+			File mirrorSyncFile = null;
+			if(revisionAppended){
+				mirrorSyncFile = collectionIndexer.createMirrorSyncFile(segmentDir, revisionDir);
+			}
+			
 			
 			/*
 			 * 색인파일 원격복사.
@@ -116,15 +134,15 @@ public class IndexNodeAddIndexingJob extends StreamableJob {
 				throw new FastcatSearchException("색인파일을 복사할 노드가 정의되어있지 않습니다.");
 			}
 
-			String segmentId = segmentInfo.getId();
+//			String segmentId = segmentInfo.getId();
 			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
-			CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
-			int dataSequence = collectionContext.getDataSequence();
-			File collectionDataDir = collectionFilePaths.dataFile(dataSequence);
-			File segmentDir = collectionFilePaths.segmentFile(dataSequence, segmentId);
+//			CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
+//			int dataSequence = collectionContext.getDataSequence();
+//			File collectionDataDir = collectionFilePaths.dataFile(dataSequence);
+//			File segmentDir = collectionFilePaths.segmentFile(dataSequence, segmentId);
 
 			// 색인전송할디렉토리를 먼저 비우도록 요청.segmentDir
-			File relativeDataDir = environment.filePaths().relativise(collectionDataDir);
+			File relativeDataDir = environment.filePaths().relativise(revisionDir);
 			NodeDirectoryCleanJob cleanJob = new NodeDirectoryCleanJob(relativeDataDir);
 			boolean nodeResult = sendJobToNodeList(cleanJob, nodeService, nodeList);
 			if(!nodeResult){
@@ -133,29 +151,24 @@ public class IndexNodeAddIndexingJob extends StreamableJob {
 			
 			// 색인된 Segment 파일전송.
 			IndexFileTransfer indexFileTransfer = new IndexFileTransfer(environment);
-			indexFileTransfer.tranferSegmentDir(collectionDataDir, segmentDir, nodeService, nodeList);
+			//case 1. segment-append 파일과 revision/ 파일들을 전송한다.
+			//case 2. 만약 segment가 생성된 경우라면 그대로 전송하면된다. 
+			if(revisionAppended){
+				indexFileTransfer.tranferRevision(collectionDataDir, segmentDir, revisionDir, nodeService, nodeList);
+			}else{
+				indexFileTransfer.tranferSegment(collectionDataDir, segmentDir, nodeService, nodeList);
+			}
 			
 			/*
 			 * 데이터노드에 컬렉션 리로드 요청.
-			 * 
-			 * TODO 일반 노드에도 리로드필요. search노드일수가 있다.
-			 * 
 			 */
-			NodeCollectionReloadJob reloadJob = new NodeCollectionReloadJob(collectionContext);
-			nodeResult = sendJobToNodeList(reloadJob, nodeService, nodeList);
+			NodeSegmentUpdateJob updateJob = new NodeSegmentUpdateJob(collectionContext);
+			nodeResult = sendJobToNodeList(updateJob, nodeService, nodeList);
 			if(!nodeResult){
 				throw new FastcatSearchException("Node Collection Reload Failed!");
 			}
 			
-			/*
-			 * 데이터노드가 리로드 완료되었으면 인덱스노드도 리로드 시작.
-			 * */
-			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
-			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
-			if (oldCollectionHandler != null) {
-				logger.info("## [{}] Close Previous Collection Handler", collectionContext.collectionId());
-				oldCollectionHandler.close();
-			}
+			
 			
 			int duration = (int) (System.currentTimeMillis() - startTime);
 			

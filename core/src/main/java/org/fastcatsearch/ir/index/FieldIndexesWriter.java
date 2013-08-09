@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 /**
  * 여러 필드인덱스에 대한 색인클래스.
  * */
-public class FieldIndexesWriter {
+public class FieldIndexesWriter implements WriteInfoLoggable {
 	private static Logger logger = LoggerFactory.getLogger(FieldIndexesWriter.class);
 	private FieldIndexWriter[] fieldIndexWriterList;
 	private int indexSize;
@@ -46,6 +46,13 @@ public class FieldIndexesWriter {
 	public void close() throws IOException{
 		for (int i = 0; i < indexSize; i++) {
 			fieldIndexWriterList[i].close();
+		}
+	}
+
+	@Override
+	public void getIndexWriteInfo(List<IndexWriteInfo> writeInfoList) {
+		for (int i = 0; i < indexSize; i++) {
+			fieldIndexWriterList[i].getIndexWriteInfo(writeInfoList);
 		}
 	}
 }

@@ -25,6 +25,8 @@ import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.field.Field;
+import org.fastcatsearch.ir.index.WriteInfoLoggable;
+import org.fastcatsearch.ir.index.IndexWriteInfo;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.BytesDataOutput;
@@ -48,7 +50,7 @@ import org.slf4j.LoggerFactory;
  * @author sangwook.song
  * 
  */
-public class DocumentWriter {
+public class DocumentWriter implements WriteInfoLoggable {
 	private static Logger logger = LoggerFactory.getLogger(DocumentWriter.class);
 
 	private List<FieldSetting> fields;
@@ -138,7 +140,15 @@ public class DocumentWriter {
 		docOutput.close();
 		
 		positionOutput.close();
-
 	}
 
+	@Override
+	public void getIndexWriteInfo(List<IndexWriteInfo> writeInfoList) {
+		IndexWriteInfo docOutputWriteInfo = docOutput.getWriteInfo();
+		docOutputWriteInfo.put("count", localDocNo);
+		writeInfoList.add(docOutputWriteInfo);
+		
+		writeInfoList.add(positionOutput.getWriteInfo());
+		
+	}
 }

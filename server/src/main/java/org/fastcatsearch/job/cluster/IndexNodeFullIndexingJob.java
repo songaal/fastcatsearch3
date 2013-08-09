@@ -48,8 +48,6 @@ import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.NodeCollectionReloadJob;
-import org.fastcatsearch.job.NodeDirectoryCleanJob;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.job.result.IndexingJobResult;
@@ -133,7 +131,7 @@ public class IndexNodeFullIndexingJob extends StreamableJob {
 			
 			// 색인된 Segment 파일전송.
 			IndexFileTransfer indexFileTransfer = new IndexFileTransfer(environment);
-			indexFileTransfer.tranferSegmentDir(collectionDataDir, segmentDir, nodeService, nodeList);
+			indexFileTransfer.tranferSegment(collectionDataDir, segmentDir, nodeService, nodeList);
 			
 			/*
 			 * 데이터노드에 컬렉션 리로드 요청.
