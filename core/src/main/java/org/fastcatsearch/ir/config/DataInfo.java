@@ -68,7 +68,6 @@ public class DataInfo {
 	
 	public void addSegmentInfo(SegmentInfo segmentInfo) {
 		logger.debug("#### addSegmentInfo >> {}", segmentInfo);
-		Thread.dumpStack();
 		segmentInfoList.add(segmentInfo);
 		RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 		addUpdate(revisionInfo.getInsertCount(), revisionInfo.getUpdateCount(), revisionInfo.getDeleteCount());

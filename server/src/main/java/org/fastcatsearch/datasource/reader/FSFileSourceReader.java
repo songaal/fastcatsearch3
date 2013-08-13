@@ -27,124 +27,117 @@ import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.env.Path;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.config.FileSourceConfig;
-import org.fastcatsearch.ir.document.Document;
-import org.fastcatsearch.ir.index.DeleteIdSet;
+import org.fastcatsearch.ir.config.SingleSourceConfig;
+import org.fastcatsearch.ir.index.PrimaryKeys;
 import org.fastcatsearch.ir.io.DirBufferedReader;
-import org.fastcatsearch.ir.settings.FieldSetting;
-import org.fastcatsearch.ir.settings.Schema;
-import org.fastcatsearch.util.HTMLTagRemover;
 
+public class FSFileSourceReader extends SingleSourceReader {
 
-public class FastcatSearchCollectFileParser extends SingleSourceReader {
-	
 	private DirBufferedReader br;
 	private Map<String, Object> dataMap;
-	
-	
-	private static String DOC_START ="<doc>";
-	private static String DOC_END ="</doc>";
-	
-	
+
+	private static String DOC_START = "<doc>";
+	private static String DOC_END = "</doc>";
+
 	private static String OPEN_PATTERN = "^<([\\w]+[^>]*)>$";
 	private static String CLOSE_PATTERN = "^<\\/([\\w]+[^>]*)>$";
 	private Pattern OPAT;
 	private Pattern CPAT;
 
-	public FastcatSearchCollectFileParser(File filePath, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime, boolean isFull) throws IRException {
+	public FSFileSourceReader(File filePath, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime,
+			boolean isFull) throws IRException {
 		super(filePath, singleSourceConfig, sourceModifier, lastIndexTime, isFull);
 	}
-	
+
 	@Override
 	public void init() throws IRException {
 		FileSourceConfig config = (FileSourceConfig) singleSourceConfig;
 		String fileEncoding = config.getFileEncoding();
-		if(fileEncoding == null){
+		if (fileEncoding == null) {
 			fileEncoding = Charset.defaultCharset().toString();
 		}
 		try {
 			File file = null;
-			if(isFull){
+			if (isFull) {
 				file = new Path(filePath).makePath(config.getFullFilePath()).file();
 				br = new DirBufferedReader(file, fileEncoding);
-			}else{
+			} else {
 				file = new Path(filePath).makePath(config.getIncFilePath()).file();
 				br = new DirBufferedReader(file, fileEncoding);
 			}
 			logger.info("Collect file = {}, {}", file.getAbsolutePath(), fileEncoding);
 		} catch (UnsupportedEncodingException e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 			throw new IRException(e);
 		} catch (FileNotFoundException e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 			throw new IRException(e);
 		} catch (IOException e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 			throw new IRException(e);
 		}
 		dataMap = null;
-		
+
 		OPAT = Pattern.compile(OPEN_PATTERN);
 		CPAT = Pattern.compile(CLOSE_PATTERN);
 	}
-	
+
 	@Override
-	public boolean hasNext() throws IRException{
+	public boolean hasNext() throws IRException {
 		String line = null;
 		dataMap = new HashMap<String, Object>();
-		
+
 		String oneDoc = readOneDoc();
-		if(oneDoc == null){
+		if (oneDoc == null) {
 			return false;
 		}
-		
-//		logger.debug("ONE DOC = {}", oneDoc);
-		
+
+		// logger.debug("ONE DOC = {}", oneDoc);
+
 		BufferedReader reader = new BufferedReader(new StringReader(oneDoc));
-		
+
 		StringBuffer sb = new StringBuffer();
-		
+
 		String openTag = "";
 		boolean isOpened = false;
-		
-		while(true){
+
+		while (true) {
 			try {
 				line = reader.readLine();
-				
-				if(line == null){
-					
+
+				if (line == null) {
+
 					break;
 				}
-				
-				if(line.length() == 0){
+
+				if (line.length() == 0) {
 					continue;
 				}
-				
+
 				line = line.trim();
-				
-				
-				if(line.length() > 1 && line.charAt(0) == '<' && line.charAt(1) != '/'){
+
+				if (line.length() > 1 && line.charAt(0) == '<' && line.charAt(1) != '/') {
 					Matcher m = OPAT.matcher(line);
-					if(m.matches()){
+					if (m.matches()) {
 						String tag = m.group(1);
 						openTag = tag;
 						isOpened = true;
-						if(logger.isTraceEnabled()){
+						if (logger.isTraceEnabled()) {
 							logger.trace("OpenTag [{}]", tag);
 						}
 						continue;
 					}
 				}
-				
-				if(isOpened && line.startsWith("</")){
+
+				if (isOpened && line.startsWith("</")) {
 					Matcher m = CPAT.matcher(line);
-					if(m.matches()){
+					if (m.matches()) {
 						String closeTag = m.group(1);
-						if(openTag.equals(closeTag)){
+						if (openTag.equals(closeTag)) {
 							isOpened = false;
 							String targetStr = sb.toString();
-							if(logger.isTraceEnabled()){
+							if (logger.isTraceEnabled()) {
 								logger.trace("CloseTag [{}]", closeTag);
 								logger.trace("Data [{}]", targetStr);
 							}
@@ -154,58 +147,98 @@ public class FastcatSearchCollectFileParser extends SingleSourceReader {
 						}
 					}
 				}
-				
-				
-				if(sb.length() > 0){
+
+				if (sb.length() > 0) {
 					sb.append(Environment.LINE_SEPARATOR);
 				}
-				
+
 				sb.append(line);
-			
-//				logger.debug(sb.toString());
-			
+
+				// logger.debug(sb.toString());
+
 			} catch (IOException e) {
-				logger.error(e.getMessage(),e);
+				logger.error(e.getMessage(), e);
 				throw new IRException(e);
 			}
 		}
-//		logger.debug("doc = "+document);
-		if(dataMap == null)
+		// logger.debug("doc = "+document);
+		if (dataMap == null)
 			return false;
-		
+
 		return true;
+
+	}
+
+	private String checkDeleteDocs(String line) throws IOException {
+		while (line.equals("<_delete>")) {
+			line = nextLine();
+			int keySize = deleteIdList.keySize();
+			PrimaryKeys pk = new PrimaryKeys(keySize);
+			int i = 0;
+			while(!line.equals("</_delete>")) {
+				pk.set(i++, line);
+				line = nextLine();
+			}
+			logger.debug("Delete >> {}", pk);
+			deleteIdList.add(pk);
+			line = nextLine();
+		}
 		
+		return line;
 	}
 	
-	
-	private String readOneDoc() throws IRException {
-		try{
-			StringBuffer sb = new StringBuffer();
-			
-			String line = br.readLine();
-			
-			if(line == null)
+
+	private String nextLine() throws IOException {
+		String line = br.readLine();
+
+		if (line == null) {
+			return null;
+		}
+
+		line = line.trim();
+
+		while (line.length() == 0) {
+			line = nextLine();
+			if (line == null) {
 				return null;
-			
-			int lineNumber = 0;
-			
-			while(!line.equals(DOC_START)){
-				//doc opened
-				line = br.readLine();
-				if(line == null)
-					return null;
 			}
-			
-			line = br.readLine();
-			
-			//doc started
-			while(!line.equals(DOC_END)){
-				//doc ended
-				if(lineNumber >= 1){
+			line = line.trim();
+		}
+		return line;
+	}
+
+	private String readOneDoc() throws IRException {
+		try {
+			StringBuffer sb = new StringBuffer();
+
+			String line = nextLine();
+
+			if (line == null) {
+				return null;
+			}
+
+			line = checkDeleteDocs(line);
+
+			int lineNumber = 0;
+
+			while (!line.equals(DOC_START)) {
+				// doc opened
+				line = nextLine();
+				if (line == null) {
+					return null;
+				}
+			}
+
+			line = nextLine();
+
+			// doc started
+			while (!line.equals(DOC_END)) {
+				// doc ended
+				if (lineNumber >= 1) {
 					sb.append(Environment.LINE_SEPARATOR);
 				}
 				sb.append(line);
-				line = br.readLine();
+				line = nextLine();
 				lineNumber++;
 			}
 			return sb.toString();
@@ -215,14 +248,14 @@ public class FastcatSearchCollectFileParser extends SingleSourceReader {
 	}
 
 	@Override
-	public Map<String, Object> next() throws IRException{
+	public Map<String, Object> next() throws IRException {
 		return dataMap;
 	}
-	
+
 	@Override
-	public void close() throws IRException{
+	public void close() throws IRException {
 		try {
-			if(br != null){
+			if (br != null) {
 				br.close();
 			}
 		} catch (IOException e) {
@@ -230,6 +263,4 @@ public class FastcatSearchCollectFileParser extends SingleSourceReader {
 		}
 	}
 
-	
-	
 }

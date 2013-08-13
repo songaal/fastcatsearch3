@@ -2,7 +2,9 @@ package org.fastcatsearch.ir.index;
 
 public class PrimaryKeys {
 	private String[] keys;
-
+	public PrimaryKeys(int size){
+		keys = new String[size];
+	}
 	public PrimaryKeys(String... keys) {
 		this.keys = keys;
 	}
@@ -15,6 +17,24 @@ public class PrimaryKeys {
 		return keys.length;
 	}
 
+	public void set(int i, String key){
+		keys[i] = key;
+	}
+	
+	public boolean equals(Object obj){
+		PrimaryKeys o = (PrimaryKeys) obj;
+		if(keys == null || o.keys == null){
+			return false;
+		}
+		if(keys.length == o.keys.length){
+			for (int i = 0; i < keys.length; i++) {
+				if(!(keys[i].equals(o.keys[i]))){
+					return false;
+				}
+			}
+		}
+		return false;
+	}
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
