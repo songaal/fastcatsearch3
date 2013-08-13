@@ -16,11 +16,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fastcatsearch.cluster.ClusterStrategy;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.ResultFuture;
-import org.fastcatsearch.data.DataService;
-import org.fastcatsearch.data.DataStrategy;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.CollectionIndexer;
 import org.fastcatsearch.ir.IRService;
@@ -30,7 +29,7 @@ import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.index.DeleteIdSet;
-import org.fastcatsearch.ir.index.IndexWriteInfo;
+import org.fastcatsearch.ir.index.IndexWriteInfoList;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
@@ -49,7 +48,7 @@ import org.slf4j.LoggerFactory;
 /*
  * 
  * */
-public class IndexNodeAddIndexingJob extends StreamableJob {
+public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 	private static final long serialVersionUID = -4686760271693082945L;
 
 	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
@@ -92,15 +91,18 @@ public class IndexNodeAddIndexingJob extends StreamableJob {
 			CollectionIndexer collectionIndexer = new CollectionIndexer(collectionContext);
 			SegmentInfo segmentInfo = collectionIndexer.addIndexing(collectionHandler);
 			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
-			List<IndexWriteInfo> indexWriteInfoList = collectionIndexer.indexWriteInfoList();
+			IndexWriteInfoList indexWriteInfoList = collectionIndexer.indexWriteInfoList();
 			//////////////////////////////////////////////////////////////////////////////////////////
 			
+			logger.debug("색인후 segmentInfo >> {}", segmentInfo);
+			logger.debug("색인후 revisionInfo >> {}", revisionInfo);
 			//0보다 크면 revision이 증가된것이다.
 			boolean revisionAppended = revisionInfo.getRevision() > 0;
 			
 			
 			//status를 바꾸고 context를 저장한다.
 			collectionContext.updateCollectionStatus(IndexingType.ADD, revisionInfo, startTime, System.currentTimeMillis());
+			CollectionContextUtil.saveAfterIndexing(collectionContext);
 			
 			CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
 			int dataSequence = collectionContext.getDataSequence();
@@ -114,42 +116,41 @@ public class IndexNodeAddIndexingJob extends StreamableJob {
 			
 			
 			logger.debug("updateCollection 완료!");
+			File transferDir = null;
 			
 			File revisionDir = collectionFilePaths.revisionFile(dataSequence, segmentId, revision);
-			
 			
 			/*
 			 * 동기화 파일 생성. 
 			 * 여기서는 1. segment/ 파일들에 덧붙일 정보들이 준비되어있어야한다. revision은 그대로 복사하므로 준비필요없음.
 			 */
 			File mirrorSyncFile = null;
-//			if(revisionAppended){
+			if(revisionAppended){
 				mirrorSyncFile = new MirrorSynchronizer().createMirrorSyncFile(indexWriteInfoList, revisionDir);
-//			}
+				logger.debug("동기화 파일 생성 >> {}", mirrorSyncFile.getAbsolutePath());
+				transferDir = revisionDir;
+			}else{
+				//세그먼트 전체전송.
+				transferDir = segmentDir;
+				logger.debug("세그먼트 생성되어 segment dir 전송필요");
+			}
 			
-			logger.debug("동기화 파일 생성 >> {}", mirrorSyncFile.getAbsolutePath());
 			
 			/*
 			 * 색인파일 원격복사.
 			 */
-			DataService dataService = ServiceManager.getInstance().getService(DataService.class);
-			DataStrategy dataStrategy = dataService.getCollectionDataStrategy(collectionId);
-			List<Node> nodeList = dataStrategy.dataNodes();
+			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
+			ClusterStrategy dataStrategy = irService.getCollectionClusterStrategy(collectionId);
+			List<String> nodeIdList = dataStrategy.dataNodes();
+			List<Node> nodeList = nodeService.getNodeById(nodeIdList);
 			if (nodeList == null || nodeList.size() == 0) {
 				throw new FastcatSearchException("색인파일을 복사할 노드가 정의되어있지 않습니다.");
 			}
 
-//			String segmentId = segmentInfo.getId();
-			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
-//			CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
-//			int dataSequence = collectionContext.getDataSequence();
-//			File collectionDataDir = collectionFilePaths.dataFile(dataSequence);
-//			File segmentDir = collectionFilePaths.segmentFile(dataSequence, segmentId);
-
 			// 색인전송할디렉토리를 먼저 비우도록 요청.segmentDir
-			File relativeDataDir = environment.filePaths().relativise(revisionDir);
+			File relativeDataDir = environment.filePaths().relativise(transferDir);
 			NodeDirectoryCleanJob cleanJob = new NodeDirectoryCleanJob(relativeDataDir);
-			boolean nodeResult = sendJobToNodeList(cleanJob, nodeService, nodeList);
+			boolean nodeResult = sendJobToNodeList(cleanJob, nodeService, nodeList, false);
 			if(!nodeResult){
 				throw new FastcatSearchException("Node Index Directory Clean Failed! Dir=[{}]", segmentDir.getPath());
 			}
@@ -157,18 +158,14 @@ public class IndexNodeAddIndexingJob extends StreamableJob {
 			// 색인된 Segment 파일전송.
 			IndexFileTransfer indexFileTransfer = new IndexFileTransfer(environment);
 			//case 1. segment-append 파일과 revision/ 파일들을 전송한다.
-			//case 2. 만약 segment가 생성된 경우라면 그대로 전송하면된다. 
-			File directory = segmentDir;
-			if(revisionAppended){
-				directory = revisionDir;
-			}
-			indexFileTransfer.tranferDirectory(collectionDataDir, directory, nodeService, nodeList);
+			//case 2. 만약 segment가 생성 or 수정된 경우라면 그대로 전송하면된다. 
+			indexFileTransfer.transferDirectory(transferDir, nodeService, nodeList);
 			
 			/*
 			 * 데이터노드에 컬렉션 리로드 요청.
 			 */
 			NodeSegmentUpdateJob updateJob = new NodeSegmentUpdateJob(collectionContext);
-			nodeResult = sendJobToNodeList(updateJob, nodeService, nodeList);
+			nodeResult = sendJobToNodeList(updateJob, nodeService, nodeList, false);
 			if(!nodeResult){
 				throw new FastcatSearchException("Node Collection Reload Failed!");
 			}
@@ -189,26 +186,6 @@ public class IndexNodeAddIndexingJob extends StreamableJob {
 			throw new FastcatSearchException("ERR-00500", e, collectionId);
 		}
 
-	}
-	
-	private boolean sendJobToNodeList(Job job, NodeService nodeService, List<Node> nodeList) throws FastcatSearchException{
-		List<ResultFuture> resultFutureList = new ArrayList<ResultFuture>(nodeList.size());
-		for (int i = 0; i < nodeList.size(); i++) {
-			Node node = nodeList.get(i);
-			ResultFuture resultFuture = nodeService.sendRequest(node, job);
-			resultFutureList.add(resultFuture);
-		}
-		for (int i = 0; i < resultFutureList.size(); i++) {
-			Node node = nodeList.get(i);
-			ResultFuture resultFuture = resultFutureList.get(i);
-			Object obj = resultFuture.take();
-			if(!resultFuture.isSuccess()){
-				logger.debug("[{}] job 결과 : {}", node, obj);
-//				throw new FastcatSearchException("작업실패 collection="+collectionId+", "+node);
-				return false;
-			}
-		}
-		return true;
 	}
 
 	@Override

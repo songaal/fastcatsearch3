@@ -8,6 +8,9 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
 <data-info documents="7500" updates="15" deletes="60">
 	<segment id="0" base="0" revision="0">
@@ -25,6 +28,8 @@ import javax.xml.bind.annotation.XmlType;
 @XmlRootElement(name = "data-info")
 @XmlType(propOrder = { "segmentInfoList", "deletes", "updates", "documents" })
 public class DataInfo {
+	private static Logger logger = LoggerFactory.getLogger(DataInfo.class);
+	
 	private int documents;
 	private int updates;
 	private int deletes;
@@ -62,6 +67,8 @@ public class DataInfo {
 	}
 	
 	public void addSegmentInfo(SegmentInfo segmentInfo) {
+		logger.debug("#### addSegmentInfo >> {}", segmentInfo);
+		Thread.dumpStack();
 		segmentInfoList.add(segmentInfo);
 		RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 		addUpdate(revisionInfo.getInsertCount(), revisionInfo.getUpdateCount(), revisionInfo.getDeleteCount());
@@ -73,11 +80,12 @@ public class DataInfo {
 			SegmentInfo prevSegmentInfo = segmentInfoList.get(index);
 			RevisionInfo prevRevisionInfo = prevSegmentInfo.getRevisionInfo();
 			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
-			
-			revisionInfo.updateCount += prevRevisionInfo.updateCount;
-			revisionInfo.deleteCount += prevRevisionInfo.deleteCount;
-			
-			prevSegmentInfo.update(segmentInfo);
+			//리비전이 다르면 추가된 리비전이므로 갯수를 더한다.
+			if(revisionInfo.getRevision() > prevRevisionInfo.getRevision()){
+				revisionInfo.updateCount += prevRevisionInfo.updateCount;
+				revisionInfo.deleteCount += prevRevisionInfo.deleteCount;
+				prevSegmentInfo.update(segmentInfo);
+			}
 		}else{
 			addSegmentInfo(segmentInfo);
 		}
@@ -243,7 +251,8 @@ public class DataInfo {
 		
 		public int nextRevision(){
 			if(revisionInfo != null){
-				return revision + 1;
+				revision++;
+				return revision;
 			}else{
 				return 0;
 			}

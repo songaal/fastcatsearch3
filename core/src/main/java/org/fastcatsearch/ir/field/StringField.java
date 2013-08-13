@@ -32,9 +32,9 @@ public abstract class StringField extends Field {
 
 		if (size > 0) {
 			if (data.length() > size) {
-				logger.debug("Parse data1 {} >> {}", id, data);
+//				logger.debug("Parse data1 {} >> {}", id, data);
 				data = data.substring(0, size);
-				logger.debug("Parse data2 {} >> {}, {}", id, size, data);
+//				logger.debug("Parse data2 {} >> {}, {}", id, size, data);
 			}
 		}
 		return new CharVector(data);

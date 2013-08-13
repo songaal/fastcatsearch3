@@ -17,7 +17,6 @@ import java.util.concurrent.CountDownLatch;
 import org.fastcatsearch.alert.ClusterAlertService;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.JobService;
-import org.fastcatsearch.data.DataService;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
@@ -154,7 +153,6 @@ public class CatServer {
 		StatisticsInfoService statisticsInfoService = serviceManager.createService("statistics_info", StatisticsInfoService.class);
 		ManagementInfoService managementInfoService = serviceManager.createService("management_info", ManagementInfoService.class);
 		NodeService nodeService = serviceManager.createService("node", NodeService.class);
-		DataService dataService = serviceManager.createService("data", DataService.class);
 
 		WebService webService = null;
 		if(environment.isMasterNode()){
@@ -183,7 +181,6 @@ public class CatServer {
 			irService.start();
 			statisticsInfoService.start();
 //			keywordService.start();
-			dataService.start();
 			
 			
 			
@@ -254,7 +251,6 @@ public class CatServer {
 		serviceManager.stopService(IRService.class);
 		serviceManager.stopService(WebService.class);
 		serviceManager.stopService(JobService.class);
-		serviceManager.stopService(DataService.class);
 		serviceManager.stopService(DBService.class);
 
 		logger.info("CatServer shutdown!");
@@ -277,7 +273,6 @@ public class CatServer {
 		serviceManager.closeService(WebService.class);
 		serviceManager.closeService(JobService.class);
 		serviceManager.closeService(DBService.class);
-		serviceManager.closeService(DataService.class);
 	}
 
 	protected class ServerShutdownHook extends Thread {

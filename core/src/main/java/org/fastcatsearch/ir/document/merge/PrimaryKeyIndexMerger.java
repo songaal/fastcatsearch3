@@ -141,66 +141,10 @@ public class PrimaryKeyIndexMerger {
 
 		r1.close();
 		r2.close();
-		w.close();
+		w.done();
 		return inSegmentDocUpdateCount;
 	}
 
-	/*
-	 * For Group key map
-	 */
-	public boolean merge2(File file1, File file2, IndexOutput pkmapOutput, IndexOutput pkmapIndexOutput, int indexInterval) throws IOException {
-		PrimaryKeyIndexBulkReader r1 = new PrimaryKeyIndexBulkReader(file1);
-		PrimaryKeyIndexBulkReader r2 = new PrimaryKeyIndexBulkReader(file2);
-		w = new PrimaryKeyIndexBulkWriter(pkmapOutput, pkmapIndexOutput, indexInterval);
-
-		BytesBuffer buf1 = new BytesBuffer(KEY_MAX_SIZE);
-		BytesBuffer buf2 = new BytesBuffer(KEY_MAX_SIZE);
-
-		int docNo1 = r1.next(buf1);
-		int docNo2 = r2.next(buf2);
-
-		// merge in ascending order
-		while (docNo1 >= 0 && docNo2 >= 0) {
-
-			int ret = BytesBuffer.compareBuffer(buf1, buf2);
-
-			if (ret == 0) {
-				// must write doc2 number because doc1 was replaced with doc2.
-
-				w.write(buf1, docNo2);
-				buf1.clear();
-				docNo1 = r1.next(buf1);
-				buf2.clear();
-				docNo2 = r2.next(buf2);
-			} else if (ret < 0) {
-				w.write(buf1, docNo1);
-				buf1.clear();
-				docNo1 = r1.next(buf1);
-			} else {
-				w.write(buf2, docNo2);
-				buf2.clear();
-				docNo2 = r2.next(buf2);
-			}
-		}
-
-		while (docNo1 >= 0) {
-			w.write(buf1, docNo1);
-			buf1.clear();
-			docNo1 = r1.next(buf1);
-		}
-
-		while (docNo2 >= 0) {
-			w.write(buf2, docNo2);
-			buf2.clear();
-			docNo2 = r2.next(buf2);
-		}
-
-		r1.close();
-		r2.close();
-		w.close();
-
-		return true;
-	}
 
 	public int getKeyCount() {
 		return w.getKeyCount();

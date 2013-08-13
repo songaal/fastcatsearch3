@@ -172,7 +172,7 @@ public class CollectionContextUtil {
 						lastSegmentInfo.getRevision());
 				RevisionInfo revisionInfo = lastSegmentInfo.getRevisionInfo();
 				if (revisionInfo != null) {
-					logger.debug("Save RevisionInfo >> {}", revisionInfo);
+					logger.debug("Save RevisionInfo >> {}, {}", revisionDir.getAbsolutePath(), revisionInfo);
 					JAXBConfigs.writeConfig(new File(revisionDir, SettingFileNames.revisionInfo), revisionInfo, RevisionInfo.class);
 				}
 			}

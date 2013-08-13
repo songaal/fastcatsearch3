@@ -127,7 +127,7 @@ public class PrimaryKeyIndexesWriter {
 				} else {
 					f.writeFixedDataTo(pkbaos);
 				}
-				logger.debug("PK >> {}", f);
+//				logger.debug("PK >> {}", f);
 			}
 			
 			int preDocNo = indexWriter.put(pkbaos.array(), 0, (int) pkbaos.position(), localDocNo);

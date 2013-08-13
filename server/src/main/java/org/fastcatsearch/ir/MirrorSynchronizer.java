@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.index.IndexWriteInfo;
+import org.fastcatsearch.ir.index.IndexWriteInfoList;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.IOUtil;
@@ -18,13 +19,14 @@ public class MirrorSynchronizer {
 
 	protected static final Logger logger = LoggerFactory.getLogger(MirrorSynchronizer.class);
 
-	public File createMirrorSyncFile(List<IndexWriteInfo> indexWriteInfoList, File revisionDir) {
+	public File createMirrorSyncFile(IndexWriteInfoList indexWriteInfoList, File revisionDir) {
 		File segmentDir = revisionDir.getParentFile();
 		File file = new File(revisionDir, IndexFileNames.mirrorSync);
 		IndexOutput output = null;
 		try {
 			byte[] buffer = new byte[4096];
 			output = new BufferedFileOutput(file);
+			output.writeInt(indexWriteInfoList.getDocumentSize());
 			output.writeInt(indexWriteInfoList.size());
 			for (IndexWriteInfo indexWriteInfo : indexWriteInfoList) {
 				String filename = indexWriteInfo.filename();
@@ -58,7 +60,9 @@ public class MirrorSynchronizer {
 		IndexInput input = null;
 		try {
 			input = new BufferedFileInput(mirrorSyncFile);
+			int documentSize = input.readInt();
 			int size = input.readInt();
+			logger.debug("apply mirror sync file count[{}] documents[{}]", size, documentSize);
 			byte[] buffer = new byte[4096];
 			for (int i = 0; i < size; i++) {
 				String filename = input.readString();
@@ -69,6 +73,14 @@ public class MirrorSynchronizer {
 				try {
 					output = new BufferedFileOutput(targetFile, true);
 					IOUtil.transferFrom(output, input, length, buffer);
+					
+					if(filename.equalsIgnoreCase(IndexFileNames.docStored)){
+						//document는 맨앞에 count를 다시기록해주어야한다! 
+						if(documentSize > 0){
+							output.seek(0);
+							output.writeInt(documentSize);
+						}
+					}
 				} finally {
 					if (output != null) {
 						try {

@@ -231,6 +231,7 @@ public final class IOUtil {
 		while (length > 0) {
 			int size = Math.min((int) length, buffer.length);
 			input.readBytes(buffer, 0, size);
+			output.writeBytes(buffer, 0, size);
 			length -= size;
 		}
 	}

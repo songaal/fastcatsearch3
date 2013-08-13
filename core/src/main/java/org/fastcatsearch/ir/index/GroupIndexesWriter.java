@@ -52,7 +52,7 @@ public class GroupIndexesWriter implements WriteInfoLoggable {
 	}
 
 	@Override
-	public void getIndexWriteInfo(List<IndexWriteInfo> writeInfoList) {
+	public void getIndexWriteInfo(IndexWriteInfoList writeInfoList) {
 		for (int i = 0; i < indexSize; i++) {
 			groupIndexWriterList[i].getIndexWriteInfo(writeInfoList);
 		}

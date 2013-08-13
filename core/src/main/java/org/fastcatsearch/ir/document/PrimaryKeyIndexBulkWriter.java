@@ -16,11 +16,8 @@
 
 package org.fastcatsearch.ir.document;
 
-import java.io.File;
 import java.io.IOException;
 
-import org.fastcatsearch.ir.common.IndexFileNames;
-import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.io.IndexOutput;
 import org.slf4j.Logger;
@@ -40,15 +37,6 @@ public class PrimaryKeyIndexBulkWriter {
 	private int indexInterval;
 	private int keyCount;
 	private int keyIndexCount;
-	
-//	public PrimaryKeyIndexBulkWriter(File f, int indexInterval) throws IOException{
-//		this.indexInterval = indexInterval;
-//		output = new BufferedFileOutput(f);
-//		indexOutput = new BufferedFileOutput(f.getParentFile(), IndexFileNames.getIndexFileName(f.getName()));
-//		
-//		output.writeInt(0);
-//		indexOutput.writeInt(0);
-//	}
 
 	public PrimaryKeyIndexBulkWriter(IndexOutput output, IndexOutput indexOutput, int indexInterval) throws IOException{
 		this.output = output;
@@ -59,16 +47,16 @@ public class PrimaryKeyIndexBulkWriter {
 	}
 	
 	
-	public void close() throws IOException{
+	public void done() throws IOException{
 		long t = output.position();
 		output.seek(0);
 		output.writeInt(keyCount);
-		output.close();
+//		output.close();
 		
 		t = indexOutput.position();
 		indexOutput.seek(0);
 		indexOutput.writeInt(keyIndexCount);
-		indexOutput.close();
+//		indexOutput.close();
 		
 		
 	}

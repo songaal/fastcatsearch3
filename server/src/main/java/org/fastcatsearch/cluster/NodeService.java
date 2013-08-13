@@ -2,7 +2,9 @@ package org.fastcatsearch.cluster;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
@@ -22,6 +24,7 @@ public class NodeService extends AbstractService {
 	private Node myNode;
 	private Node masterNode;
 	private List<Node> nodeList;
+	private Map<String, Node> nodeMap;
 
 	public NodeService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
@@ -35,6 +38,7 @@ public class NodeService extends AbstractService {
 		String masterNodeId = environment.masterNodeId();
 
 		nodeList = new ArrayList<Node>();
+		nodeMap = new HashMap<String, Node>();
 		List<Settings> nodeSettingList = settings.getSettingList("node_list");
 		for (int i = 0; i < nodeSettingList.size(); i++) {
 			Settings nodeSetting = nodeSettingList.get(i);
@@ -45,7 +49,8 @@ public class NodeService extends AbstractService {
 
 			Node node = new Node(id, address, port);
 			nodeList.add(node);
-
+			nodeMap.put(id, node);
+			
 			if (isEnabled) {
 				node.setEnabled();
 			} else {
@@ -110,13 +115,15 @@ public class NodeService extends AbstractService {
 	}
 
 	public Node getNodeById(String id) {
-		for (Node node : nodeList) {
-			// logger.debug("find node >> {}:{}", node.id(), id);
-			if (node.id().equals(id)) {
-				return node;
-			}
+		return nodeMap.get(id);
+	}
+	
+	public List<Node> getNodeById(List<String> nodeIdList) {
+		List<Node> result = new ArrayList<Node>(nodeIdList.size());
+		for (String nodeId : nodeIdList) {
+			result.add(nodeMap.get(nodeId));
 		}
-		return null;
+		return result;
 	}
 
 	public Node getMyNode() {
@@ -182,6 +189,5 @@ public class NodeService extends AbstractService {
 		return null;
 
 	}
-	
 
 }

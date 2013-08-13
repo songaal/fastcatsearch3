@@ -25,12 +25,10 @@ public class IndexFileTransfer {
 		this.environment = environment;
 	}
 	
-	//세그먼트를 전송한다. info.xml도 함께 전송.
-	public void tranferDirectory(File collectionDataDir, File directory, NodeService nodeService, List<Node> nodeList) throws FastcatSearchException{
+	//세그먼트를 전송한다. 
+	public void transferDirectory(File directory, NodeService nodeService, List<Node> nodeList) throws FastcatSearchException{
+		logger.debug("tranferDirectory >> {}", directory.getAbsolutePath());
 		Collection<File> files = FileUtils.listFiles(directory, null, true);
-		//info.xml 파일추가.
-//		File collectionInfoFile = new File(collectionDataDir, SettingFileNames.dataInfo);
-//		files.add(collectionInfoFile);
 		int totalFileCount = files.size();
 
 		//TODO 순차적전송을 개선하여 더 빠른 방법을 찾아보자.

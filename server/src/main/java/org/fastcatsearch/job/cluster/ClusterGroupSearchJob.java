@@ -3,16 +3,15 @@ package org.fastcatsearch.job.cluster;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fastcatsearch.cluster.ClusterStrategy;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.Strings;
-
 import org.fastcatsearch.control.ResultFuture;
-import org.fastcatsearch.data.DataService;
-import org.fastcatsearch.data.DataStrategy;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.group.GroupResults;
+import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.query.Groups;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.search.GroupResultAggregator;
@@ -20,7 +19,6 @@ import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.internal.InternalGroupSearchJob;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
-import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableGroupsData;
 
@@ -58,7 +56,6 @@ public class ClusterGroupSearchJob extends Job {
 			}
 		}
 		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
-		DataService dataService = ServiceManager.getInstance().getService(DataService.class);
 		
 		String collectionId = q.getMeta().collectionId();
 		Groups groups = q.getGroups();
@@ -69,12 +66,13 @@ public class ClusterGroupSearchJob extends Job {
 		for (int i = 0; i < collectionIdList.length; i++) {
 			String cId = collectionIdList[i];
 			
-			DataStrategy dataStrategy = dataService.getCollectionDataStrategy(cId);
-			List<Node> nodeList = dataStrategy.dataNodes();
+			ClusterStrategy dataStrategy = irService.getCollectionClusterStrategy(cId);
+			List<String> nodeIdList = dataStrategy.dataNodes();
 			//TODO shard 갯수를 확인하고 각 shard에 해당하는 노드들을 가져온다.
 			//TODO 여러개의 replaica로 분산되어있을 경우, 적합한 노드를 찾아서 리턴한다.
 			
-			Node dataNode = nodeList.get(0);
+			String dataNodeId = nodeIdList.get(0);
+			Node dataNode = nodeService.getNodeById(dataNodeId);
 			logger.debug("collection [{}] search at {}", cId, dataNode);
 			String queryStr = queryString.replace("cn="+collectionId, "cn="+cId);
 			logger.debug("query-{} >> {}", i, queryStr);

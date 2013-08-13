@@ -21,7 +21,7 @@ public class ClusterConfig {
 	private String indexNode;
 	private List<String> dataNodeList;
 	private int shardSize;
-	private String replicaSize;
+	private int replicaSize;
 	
 	@XmlElement(name="index-node")
 	public String getIndexNode() {
@@ -47,10 +47,10 @@ public class ClusterConfig {
 		this.shardSize = shardSize;
 	}
 	@XmlElement(name="replica-size")
-	public String getReplicaSize() {
+	public int getReplicaSize() {
 		return replicaSize;
 	}
-	public void setReplicaSize(String replicaSize) {
+	public void setReplicaSize(int replicaSize) {
 		this.replicaSize = replicaSize;
 	}
 	

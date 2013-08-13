@@ -99,7 +99,7 @@ public class FastcatSearchCollectFileParser extends SingleSourceReader {
 			return false;
 		}
 		
-		logger.debug("ONE DOC = {}", oneDoc);
+//		logger.debug("ONE DOC = {}", oneDoc);
 		
 		BufferedReader reader = new BufferedReader(new StringReader(oneDoc));
 		

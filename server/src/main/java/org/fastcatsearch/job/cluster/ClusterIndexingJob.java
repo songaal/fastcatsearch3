@@ -1,14 +1,12 @@
 package org.fastcatsearch.job.cluster;
 
-import java.util.List;
-
+import org.fastcatsearch.cluster.ClusterStrategy;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.control.ResultFuture;
-import org.fastcatsearch.data.DataService;
-import org.fastcatsearch.data.DataStrategy;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.job.IndexingJob;
 import org.fastcatsearch.job.StreamableJob;
@@ -37,33 +35,35 @@ public class ClusterIndexingJob extends IndexingJob {
 
 		String collectionId = null;
 		Throwable throwable = null;
-		ServiceManager serviceManager = ServiceManager.getInstance();
+		
 		try {
 			String[] args = getStringArrayArgs();
 			collectionId = (String) args[0];
 
-
-			DataService dataService = serviceManager.getService(DataService.class);
-			DataStrategy dataStrategy = dataService.getCollectionDataStrategy(collectionId);
-			List<Node> nodeList = dataStrategy.indexNodes();
-			if (nodeList == null || nodeList.size() == 0) {
+			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+//			DataService dataService = serviceManager.getService(DataService.class);
+			ClusterStrategy dataStrategy = irService.getCollectionClusterStrategy(collectionId);
+			String indexingNodeId = dataStrategy.indexingNode();
+			Node indexingNode = nodeService.getNodeById(indexingNodeId);
+					
+			if (indexingNodeId == null) {
 				throw new FastcatSearchException("색인할 노드가 정의되어있지 않습니다.");
 			}
 
 			//
 			// TODO 어느 노드로 색인할지 고른다.
 			// 현 버전에서는 일단 첫번째 노드로 색인.
-			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
+			
 
 			// 선택된 노드로 색인 메시지를 전송한다.
-			Node node = nodeList.get(0);
 			StreamableJob indexingJob = null;
 			if(indexingType == IndexingType.FULL){
 				indexingJob = new IndexNodeFullIndexingJob(collectionId);
 			}else if(indexingType == IndexingType.ADD){
 				indexingJob = new IndexNodeAddIndexingJob(collectionId);
 			}
-			ResultFuture resultFuture = nodeService.sendRequest(node, indexingJob);
+			ResultFuture resultFuture = nodeService.sendRequest(indexingNode, indexingJob);
 			result = resultFuture.take();
 			isSuccess = resultFuture.isSuccess();
 

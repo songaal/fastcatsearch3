@@ -265,7 +265,7 @@ public class GroupIndexWriter implements WriteInfoLoggable {
 	}
 
 	@Override
-	public void getIndexWriteInfo(List<IndexWriteInfo> writeInfoList) {
+	public void getIndexWriteInfo(IndexWriteInfoList writeInfoList) {
 		//index
 		writeInfoList.add(groupIndexOutput.getWriteInfo());
 		//index.mv

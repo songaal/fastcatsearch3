@@ -113,12 +113,6 @@ public class SegmentWriter implements WriteInfoLoggable {
 		return docNo;
 	}
 
-	// 색인중에 문서번호가 같은 데이터가 존재할 경우 내부적으로 삭제처리된다.
-	// 이 갯수를 색인결과의 삭제문서 갯수에 더해줘야 전체적인 문서수가 일치하게 된다.
-//	public int getDuplicateDocCount() {
-//		return primaryKeyIndexesWriter.getUpdateDocCount();
-//	}
-
 	private void closeWriter() throws Exception {
 		boolean errorOccured = false;
 		Exception exception = null;
@@ -192,7 +186,7 @@ public class SegmentWriter implements WriteInfoLoggable {
 
 	}
 
-	public void getIndexWriteInfo(List<IndexWriteInfo> list) {
+	public void getIndexWriteInfo(IndexWriteInfoList list) {
 		documentWriter.getIndexWriteInfo(list);
 		fieldIndexesWriter.getIndexWriteInfo(list);
 		groupIndexesWriter.getIndexWriteInfo(list);

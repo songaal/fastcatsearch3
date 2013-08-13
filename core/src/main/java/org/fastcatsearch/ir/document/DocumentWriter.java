@@ -25,8 +25,8 @@ import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.field.Field;
+import org.fastcatsearch.ir.index.IndexWriteInfoList;
 import org.fastcatsearch.ir.index.WriteInfoLoggable;
-import org.fastcatsearch.ir.index.IndexWriteInfo;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.BytesDataOutput;
@@ -143,11 +143,9 @@ public class DocumentWriter implements WriteInfoLoggable {
 	}
 
 	@Override
-	public void getIndexWriteInfo(List<IndexWriteInfo> writeInfoList) {
-		IndexWriteInfo docOutputWriteInfo = docOutput.getWriteInfo();
-		docOutputWriteInfo.put("count", localDocNo);
-		writeInfoList.add(docOutputWriteInfo);
-		
+	public void getIndexWriteInfo(IndexWriteInfoList writeInfoList) {
+		writeInfoList.setDocumentSize(localDocNo); //누적문서갯수.
+		writeInfoList.add(docOutput.getWriteInfo());
 		writeInfoList.add(positionOutput.getWriteInfo());
 		
 	}

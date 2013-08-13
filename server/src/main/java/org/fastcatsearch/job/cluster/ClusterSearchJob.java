@@ -2,33 +2,26 @@ package org.fastcatsearch.job.cluster;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.fastcatsearch.cluster.ClusterStrategy;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.control.ResultFuture;
-import org.fastcatsearch.data.DataService;
-import org.fastcatsearch.data.DataStrategy;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.document.Document;
-import org.fastcatsearch.ir.field.DocNoField;
-import org.fastcatsearch.ir.field.Field;
-import org.fastcatsearch.ir.field.ScoreField;
-import org.fastcatsearch.ir.field.UnknownField;
-import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.group.GroupResults;
+import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.FixedHitReader;
 import org.fastcatsearch.ir.query.Groups;
 import org.fastcatsearch.ir.query.HighlightInfo;
+import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
-import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.View;
 import org.fastcatsearch.ir.search.DocIdList;
 import org.fastcatsearch.ir.search.DocumentResult;
@@ -36,13 +29,11 @@ import org.fastcatsearch.ir.search.HitElement;
 import org.fastcatsearch.ir.search.SearchResultAggregator;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.internal.InternalDocumentRequestJob;
 import org.fastcatsearch.job.internal.InternalDocumentSearchJob;
 import org.fastcatsearch.job.internal.InternalSearchJob;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.transport.vo.StreamableDocumentList;
 import org.fastcatsearch.transport.vo.StreamableDocumentResult;
 import org.fastcatsearch.transport.vo.StreamableInternalSearchResult;
 
@@ -80,7 +71,6 @@ public class ClusterSearchJob extends Job {
 		}
 		
 		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
-		DataService dataService = ServiceManager.getInstance().getService(DataService.class);
 		
 		Metadata meta = q.getMeta();
 		String collectionId = q.getMeta().collectionId();
@@ -94,13 +84,15 @@ public class ClusterSearchJob extends Job {
 			String cId = collectionIdList[i];
 			collectionNumberMap.put(cId, i);
 			
-			DataStrategy dataStrategy = dataService.getCollectionDataStrategy(cId);
-			List<Node> nodeList = dataStrategy.dataNodes();
+			ClusterStrategy dataStrategy = irService.getCollectionClusterStrategy(cId);
+			List<String> nodeIdList = dataStrategy.dataNodes();
 			//TODO shard 갯수를 확인하고 각 shard에 해당하는 노드들을 가져온다.
 			//TODO 여러개의 replaica로 분산되어있을 경우, 적합한 노드를 찾아서 리턴한다.
 			
-			Node dataNode = nodeList.get(0);
-			logger.debug("collection [{}] search at {}", cId, dataNode);
+			String dataNodeId = nodeIdList.get(0);
+			Node dataNode = nodeService.getNodeById(dataNodeId);
+			
+			logger.debug("collection [{}] search at {}", cId, dataNodeId);
 			String queryStr = queryString.replace("cn="+collectionId, "cn="+cId);
 			logger.debug("query-{} >> {}", i, queryStr);
 			InternalSearchJob job = new InternalSearchJob(queryStr);
@@ -178,12 +170,13 @@ public class ClusterSearchJob extends Job {
 		String[] tags = q.getMeta().tags();
 		for (int i = 0; i < collectionIdList.length; i++) {
 			String cId = collectionIdList[i];
-			DataStrategy dataStrategy = dataService.getCollectionDataStrategy(cId);
-			List<Node> nodeList = dataStrategy.dataNodes();
+			ClusterStrategy dataStrategy = irService.getCollectionClusterStrategy(cId);
+			List<String> nodeIdList = dataStrategy.dataNodes();
 			//TODO shard 갯수를 확인하고 각 shard에 해당하는 노드들을 가져온다.
 			//TODO 여러개의 replaica로 분산되어있을 경우, 적합한 노드를 찾아서 리턴한다.
 			
-			Node dataNode = nodeList.get(0);
+			String dataNodeId = nodeIdList.get(0);
+			Node dataNode = nodeService.getNodeById(dataNodeId);
 			logger.debug("collection [{}] search at {}", cId, dataNode);
 			String queryStr = queryString.replace("cn="+collectionId, "cn="+cId);
 			logger.debug("query-{} >> {}", i, queryStr);

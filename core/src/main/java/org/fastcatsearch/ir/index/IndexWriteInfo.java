@@ -1,8 +1,6 @@
 package org.fastcatsearch.ir.index;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 /*
  * 색인시 append되는 파일의 길이정보등을 저장한다.
@@ -13,7 +11,6 @@ public class IndexWriteInfo {
 	private String filename;
 	private long offset;
 	private long limit;
-	private Map<String, Object> info;
 	
 	public IndexWriteInfo(File f){
 		filename = f.getName();
@@ -27,7 +24,7 @@ public class IndexWriteInfo {
 	
 	@Override
 	public String toString(){
-		return "["+getClass().getSimpleName()+"]filename["+filename+"] offset["+offset+"] length["+limit+"] info="+info;
+		return "["+getClass().getSimpleName()+"]filename["+filename+"] offset["+offset+"] length["+limit+"]";
 	}
 	
 	public void close(long limit){
@@ -45,22 +42,5 @@ public class IndexWriteInfo {
 	public long limit(){
 		return limit;
 	}
-	
-	public Object get(String key){
-		if(info == null){
-			return null;
-		}
-		
-		return info.get(key);
-	}
-	
-	public void put(String key, Object value){
-		if(info == null){
-			info = new HashMap<String, Object>(2);
-		}
-		info.put(key, value);
-		
-	}
-	
 	
 }

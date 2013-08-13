@@ -93,7 +93,7 @@ public class FieldIndexWriter implements WriteInfoLoggable {
 //			logger.debug("field index write IGNORECASE1 {}", field.getDataString());
 ////			field.toUpperCase();
 //		}
-		logger.debug("field index write IGNORECASE2 {} >> {}", indexId, field.getDataString());
+//		logger.debug("field index write IGNORECASE2 {} >> {}", indexId, field.getDataString());
 
 		if (isMultiValue) {
 			long ptr = multiValueOutput.position();
@@ -131,7 +131,7 @@ public class FieldIndexWriter implements WriteInfoLoggable {
 	}
 
 	@Override
-	public void getIndexWriteInfo(List<IndexWriteInfo> writeInfoList) {
+	public void getIndexWriteInfo(IndexWriteInfoList writeInfoList) {
 		writeInfoList.add(fieldIndexOutput.getWriteInfo());
 		if (isMultiValue) {
 			writeInfoList.add(multiValueOutput.getWriteInfo());

@@ -184,11 +184,13 @@ public class CollectionHandler {
 		return collectionContext.schema();
 	}
 
-	//segment reader 추가. collectionContext에도 자동으로 segmentInfo추가됨.
+	//segment reader 추가. 
+	//collectionContext에는 segmentInfo를 추가하지 않는다.
+	//색인이 끝나면서 이미 context에 segmentinfo가 추가되어있는 상태이다. 
 	private void addSegmentReader(SegmentReader segmentReader) {
 		segmentReaderList.add(segmentReader);
 		// info.xml 파일업데이트용.
-		collectionContext.addSegmentInfo(segmentReader.segmentInfo());
+		collectionContext.updateSegmentInfo(segmentReader.segmentInfo());
 	}
 
 	//segment reader 교체.
@@ -292,7 +294,7 @@ public class CollectionHandler {
 		File lastRevisionDir = new File(segmentDir, Integer.toString(segmentInfo.getRevision()));
 		String segmentId = segmentInfo.getId();
 		SegmentReader oldSegmentReader = getSegmentReader(segmentId);
-		
+		logger.debug("updateSegmentApplyCollection segId={}, reader={}, size={}", segmentId, oldSegmentReader, segmentReaderList.size());
 		List<SegmentReader> prevSegmentReaderList = segmentReaderList.subList(0, segmentReaderList.size() - 1);
 		for (int i = 0; i < prevSegmentReaderList.size(); i++) {
 			BitSet deleteSet = new BitSet(lastRevisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
@@ -352,7 +354,7 @@ public class CollectionHandler {
 
 		// 2. applyDeleteIdSetToPrevSegments
 		// 업데이트된 deleteSet와 색인시 수집된 deleteIdSet을 
-		int deleteDocumentCount = applyDeleteIdSetToPrevSegments(segmentId, targetRevisionDir, deleteIdSet, prevPkReaderList, prevDeleteSetList);
+		int deleteDocumentCount = applyDeleteIdSetToAllSegments(segmentId, targetRevisionDir, pkFilename, deleteIdSet, prevPkReaderList, prevDeleteSetList);
 
 		for (int i = 0; i < prevSegmentSize; i++) {
 			prevPkReaderList[i].close();
@@ -448,7 +450,7 @@ public class CollectionHandler {
 	 * 색인시 수집된 삭제문서리스트 deleteIdSet를 각 deleteSet에 적용한다.
 	 * pk파일에 들어있다면 문서가 존재하는 것이므로 deleteSet에 업데이트해준다.
 	 */
-	private int applyDeleteIdSetToPrevSegments(String segmentId, File targetRevisionDir, DeleteIdSet deleteIdSet,
+	private int applyDeleteIdSetToAllSegments(String segmentId, File targetRevisionDir, String pkFilename, DeleteIdSet deleteIdSet,
 			PrimaryKeyIndexReader[] prevPkReaderList, BitSet[] prevDeleteSetList) throws IOException {
 
 		int deleteDocumentSize = 0;
@@ -460,7 +462,7 @@ public class CollectionHandler {
 		/*
 		 * apply delete set. 이번 색인작업을 통해 삭제가 요청된 문서들을 삭제처리한다.
 		 */
-		PrimaryKeyIndexReader currentPkReader = new PrimaryKeyIndexReader(targetRevisionDir, IndexFileNames.primaryKeyMap);
+		PrimaryKeyIndexReader currentPkReader = new PrimaryKeyIndexReader(targetRevisionDir, pkFilename);
 		BitSet currentDeleteSet = new BitSet(targetRevisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentId));
 		Iterator<PrimaryKeys> iterator = deleteIdSet.iterator();
 		while (iterator.hasNext()) {

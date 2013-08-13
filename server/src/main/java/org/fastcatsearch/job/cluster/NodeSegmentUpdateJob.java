@@ -8,25 +8,18 @@ import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.MirrorSynchronizer;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
-import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.CacheServiceRestartJob;
-import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.StreamableJob;
-import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableCollectionContext;
 import org.fastcatsearch.util.CollectionContextUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class NodeSegmentUpdateJob extends StreamableJob {
 	private static final long serialVersionUID = 7222232821891387399L;
-	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 
 	private CollectionContext collectionContext;
 
@@ -41,9 +34,7 @@ public class NodeSegmentUpdateJob extends StreamableJob {
 	public JobResult doRun() throws FastcatSearchException {
 
 		try {
-			logger.debug("증분업데이트 실행!");
 			
-			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			String collectionId = collectionContext.collectionId();
 			SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
 			
@@ -51,13 +42,27 @@ public class NodeSegmentUpdateJob extends StreamableJob {
 			int revision = segmentInfo.getRevision();
 			File revisionDir = new File(segmentDir, Integer.toString(revision));
 
+			boolean revisionAppended = revision > 0;
+			logger.debug("증분업데이트 실행! revision={}", revision);
+			
 			// sync파일을 append해준다.
-			File mirrorSyncFile = new File(revisionDir, IndexFileNames.mirrorSync);
-			new MirrorSynchronizer().applyMirrorSyncFile(mirrorSyncFile, revisionDir);
+			if(revisionAppended){
+				logger.debug("revision이 추가되어, mirror file 적용!");
+				File mirrorSyncFile = new File(revisionDir, IndexFileNames.mirrorSync);
+				new MirrorSynchronizer().applyMirrorSyncFile(mirrorSyncFile, revisionDir);
+			}
 			
 			CollectionContextUtil.saveAfterIndexing(collectionContext);
+			
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
-			collectionHandler.updateSegmentApplyCollection(segmentInfo, segmentDir);
+			if(revisionAppended){
+				logger.debug("revision이 추가되어, 세그먼트를 업데이트합니다.{}", segmentInfo);
+				collectionHandler.updateSegmentApplyCollection(segmentInfo, segmentDir);
+			}else{
+				logger.debug("segment가 추가되어, 추가 및 적용합니다.{}", segmentInfo);
+				collectionHandler.addSegmentApplyCollection(segmentInfo, segmentDir);
+			}
 			
 			/*
 			 * 캐시 클리어.

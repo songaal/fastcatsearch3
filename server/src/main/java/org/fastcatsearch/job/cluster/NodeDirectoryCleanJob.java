@@ -6,9 +6,7 @@ import java.io.IOException;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
-import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.StreamableJob;
-import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.util.FileUtils;
 
 /**
@@ -34,7 +32,10 @@ public class NodeDirectoryCleanJob extends StreamableJob {
 			
 			File directoryFile = environment.filePaths().makePath(directory.getPath()).file();
 			
-			FileUtils.deleteDirectory(directoryFile);
+//			FileUtils.deleteDirectory(directoryFile);
+			//연이은 디렉토리도 함께 제거. 1이면 2,3,4,도 만약존재시 제거.
+			logger.info("Delete Directory >> {}", directoryFile.getAbsolutePath());
+			FileUtils.removeDirectoryCascade(directoryFile);
 			
 			return new JobResult(true);
 
