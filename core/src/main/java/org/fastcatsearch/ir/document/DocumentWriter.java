@@ -24,6 +24,7 @@ import java.util.zip.Deflater;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.IndexConfig;
+import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.index.IndexWriteInfoList;
 import org.fastcatsearch.ir.index.WriteInfoLoggable;
@@ -62,13 +63,13 @@ public class DocumentWriter implements WriteInfoLoggable {
 	private Deflater compressor;
 	private int count;
 	
-	public DocumentWriter(Schema schema, File dir, IndexConfig indexConfig) throws IOException, IRException {
-		this(schema, dir, 0, indexConfig);
-	}
+//	public DocumentWriter(Schema schema, File dir, IndexConfig indexConfig) throws IOException, IRException {
+//		this(schema, dir, null, indexConfig);
+//	}
 
-	public DocumentWriter(Schema schema, File dir, int revision, IndexConfig indexConfig) throws IOException, IRException {
+	public DocumentWriter(Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig) throws IOException, IRException {
 		
-		boolean isAppend = revision > 0;
+		boolean isAppend = revisionInfo.isAppend();
 		
 		compressor = new Deflater(Deflater.BEST_SPEED);
 		fields = schema.schemaSetting().getFieldSettingList();
@@ -135,8 +136,10 @@ public class DocumentWriter implements WriteInfoLoggable {
 		logger.debug("DocumentWriter close() count={}", count);
 
 		// write header
-		docOutput.seek(0);
-		docOutput.writeInt(localDocNo);
+		if(count > 0){
+			docOutput.seek(0);
+			docOutput.writeInt(localDocNo);
+		}
 		docOutput.close();
 		
 		positionOutput.close();

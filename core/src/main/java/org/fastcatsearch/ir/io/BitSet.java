@@ -49,6 +49,7 @@ public class BitSet {
 	}
 	public BitSet(File file, boolean create) throws IOException{
 		this.file = file;
+		logger.debug("Load deleteSet >> {}", file.getAbsolutePath());
 		if(!create && file.exists()){
 			BufferedFileInput in = new BufferedFileInput(file);
 			int size = (int) (in.length() / IOUtil.SIZE_OF_LONG);

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.settings.FieldIndexSetting;
 import org.fastcatsearch.ir.settings.Schema;
@@ -19,10 +20,11 @@ public class FieldIndexesWriter implements WriteInfoLoggable {
 	private FieldIndexWriter[] fieldIndexWriterList;
 	private int indexSize;
 	
-	public FieldIndexesWriter(Schema schema, File dir, boolean isAppend) throws IOException, IRException {
+	public FieldIndexesWriter(Schema schema, File dir, RevisionInfo revisionInfo) throws IOException, IRException {
 		List<FieldIndexSetting> fieldIndexSettingList = schema.schemaSetting().getFieldIndexSettingList();
 		indexSize = fieldIndexSettingList.size();
 		fieldIndexWriterList = new FieldIndexWriter[indexSize];
+		boolean isAppend = revisionInfo.isAppend();
 		int i = 0;
 		for(FieldIndexSetting fieldIndexSetting : fieldIndexSettingList){
 			fieldIndexWriterList[i++] = new FieldIndexWriter(fieldIndexSetting, schema.fieldSettingMap(), schema.fieldSequenceMap(), dir, isAppend);

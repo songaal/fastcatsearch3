@@ -88,16 +88,17 @@ public class SegmentReader {
 		this.schema = schema;
 		this.segmentDir = segmentDir;
 		this.segmentInfo = segmentInfo;
-		int revision = segmentInfo.getRevision();
+		int revision = segmentInfo.getRevisionInfo().getId();
+		int ref = segmentInfo.getRevisionInfo().getRef();
 		
 		// reader들은 thread-safe하지 않다. clone해서 사용됨.
-		this.searchIndexesReader = new SearchIndexesReader(schema, segmentDir, revision);
+		this.searchIndexesReader = new SearchIndexesReader(schema, segmentDir, ref);
 		
 		//field index
 		this.fieldIndexesReader = new FieldIndexesReader(schema, segmentDir);
 		
 //		// group index
-		this.groupIndexesReader = new GroupIndexesReader(schema, segmentDir, revision);
+		this.groupIndexesReader = new GroupIndexesReader(schema, segmentDir, ref);
 
 		this.documentReader = new DocumentReader(schema, segmentDir, segmentInfo.getBaseNumber());
 		
@@ -134,11 +135,11 @@ public class SegmentReader {
 	}
 	
 	protected int docCount(){
-		return segmentInfo.getRevisionInfo().getDocumentCount();
+		return documentReader.getDocumentCount();
 	}
 	
 	protected int baseDocNumber(){
-		return segmentInfo.getBaseNumber();
+		return documentReader.getBaseNumber();
 	}
 	
 	protected BitSet deleteSet(){

@@ -170,8 +170,11 @@ public class FSFileSourceReader extends SingleSourceReader {
 	}
 
 	private String checkDeleteDocs(String line) throws IOException {
-		while (line.equals("<_delete>")) {
+		while ("<_delete>".equals(line)) {
 			line = nextLine();
+			if (line == null) {
+				return null;
+			}
 			int keySize = deleteIdList.keySize();
 			PrimaryKeys pk = new PrimaryKeys(keySize);
 			int i = 0;
@@ -179,7 +182,7 @@ public class FSFileSourceReader extends SingleSourceReader {
 				pk.set(i++, line);
 				line = nextLine();
 			}
-			logger.debug("Delete >> {}", pk);
+			logger.debug("Delete request>> {}", pk);
 			deleteIdList.add(pk);
 			line = nextLine();
 		}
@@ -218,7 +221,10 @@ public class FSFileSourceReader extends SingleSourceReader {
 			}
 
 			line = checkDeleteDocs(line);
-
+			if (line == null) {
+				return null;
+			}
+			
 			int lineNumber = 0;
 
 			while (!line.equals(DOC_START)) {

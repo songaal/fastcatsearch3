@@ -7,6 +7,7 @@ import org.fastcatsearch.datasource.reader.DataSourceReader;
 import org.fastcatsearch.datasource.reader.DataSourceReaderFactory;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
@@ -99,7 +100,12 @@ public class CollectionIndexer {
 			SegmentInfo segmentInfo = lastSegmentReader.segmentInfo();
 			int docCount = segmentInfo.getRevisionInfo().getDocumentCount();
 			int segmentDocumentLimit = dataPlanConfig.getSegmentDocumentLimit();
+			
 			if (docCount >= segmentDocumentLimit) {
+				//TODO 기존색인문서수가 limit을 넘으면서 삭제문서만 색인될 경우 세그먼트가 바뀌는 현상이 나타날수 있다. 방지필요.
+				//차후 색인후 문서가 0건이고 delete문서가 존재하면 이전 세그먼트의 다음 리비전으로 변경해주는 작업필요.
+				
+				
 				// segment가 생성되는 증분색인.
 				workingSegmentInfo = segmentInfo.getNextSegmentInfo();
 				File segmentDir = collectionContext.collectionFilePaths().segmentFile(dataSequence, workingSegmentInfo.getId());
@@ -109,6 +115,7 @@ public class CollectionIndexer {
 				// 기존 segment에 append되는 증분색인.
 				workingSegmentInfo = segmentInfo.copy();
 				// 리비전을 증가시킨다.
+				logger.debug("#old seginfo {}", workingSegmentInfo);
 				int revision = workingSegmentInfo.nextRevision();
 				File segmentDir = collectionContext.collectionFilePaths().segmentFile(dataSequence, workingSegmentInfo.getId());
 				File revisionDir = new File(segmentDir, Integer.toString(revision));
@@ -129,23 +136,30 @@ public class CollectionIndexer {
 		
 		DataSourceReader sourceReader = getSourceReader(schema, false);
 		RevisionInfo revisionInfo = doIndexing(sourceReader, workingSegmentInfo, schema);
-
+		
 		int insertCount = revisionInfo.getInsertCount();
 		int deleteCount = revisionInfo.getDeleteCount();
 
-		if (insertCount > 0) {
+		if (insertCount > 0 || deleteCount > 0) {
+			if (insertCount == 0) {
+				// count가 0이고 삭제문서만 존재할 경우
+				logger.debug("추가문서없이 삭제문서만 존재합니다.!!");
+				//디렉토리에는 delete.set만 존재.
+			}else{
+				revisionInfo.setRefWithRevision();
+			}
+			//FIXME revisionInfo가 두번 업데이트되는 버그수정필요.
 			workingSegmentInfo.updateRevision(revisionInfo);
 			collectionContext.updateSegmentInfo(workingSegmentInfo);
 		} else {
-			if (deleteCount == 0) {
-				logger.info("[{}] Indexing Canceled due to no documents.", collectionContext.collectionId());
-				return null;
-			} else {
-				// count가 0이고 삭제문서만 존재할 경우 리비전은 증가하지 않은 상태.
-				// FIXME
-				logger.debug("추가문서없이 삭제문서만 존재합니다.!!");
-				// TODO 처리필요.
-			}
+			logger.info("[{}] Indexing Canceled due to no documents.", collectionContext.collectionId());
+			
+			//리비전 디렉토리 삭제.
+			File segmentDir = collectionContext.collectionFilePaths().segmentFile(dataSequence, workingSegmentInfo.getId());
+			File revisionDir = IndexFileNames.getRevisionDir(segmentDir, revisionInfo.getId());
+			FileUtils.deleteDirectory(revisionDir);
+			
+			return null;
 		}
 
 		return workingSegmentInfo;
@@ -179,16 +193,15 @@ public class CollectionIndexer {
 		IndexConfig indexConfig = collectionContext.collectionConfig().getIndexConfig();
 		int count = 0;
 		logger.debug("WorkingSegmentInfo = {}", segmentInfo);
-		RevisionInfo revisionInfo = null;
 		String segmentId = segmentInfo.getId();
-		int revision = segmentInfo.getRevision();
+		RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 
 		File segmentDir = collectionFilePaths.segmentFile(dataSequence, segmentId);
 		logger.info("Segment Dir = {}", segmentDir.getAbsolutePath());
 
 		SegmentWriter segmentWriter = null;
 		try {
-			segmentWriter = new SegmentWriter(schema, segmentDir, revision, indexConfig);
+			segmentWriter = new SegmentWriter(schema, segmentDir, revisionInfo, indexConfig);
 			long startTime = System.currentTimeMillis();
 			long lapTime = startTime;
 			while (sourceReader.hasNext()) {
@@ -212,9 +225,10 @@ public class CollectionIndexer {
 			logger.error("SegmentWriter Index Exception! " + e.getMessage(), e);
 			throw new IRException(e);
 		} finally {
+			logger.info("Total {} document indexed!", count);
 			if (segmentWriter != null) {
 				try {
-					revisionInfo = segmentWriter.close();
+					segmentWriter.close();
 
 					segmentWriter.getIndexWriteInfo(indexWriteInfoList);
 					logger.debug("segmentWriter close revisionInfo={}", revisionInfo);

@@ -27,6 +27,7 @@ import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
+import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.field.AStringField;
 import org.fastcatsearch.ir.field.AStringMvField;
@@ -58,7 +59,7 @@ public class DocumentWriteReadTest extends TestCase{
 		
 		Schema schema = createSchema();
 		IndexConfig indexConfig = createIndexConfig();
-		DocumentWriter dw = new DocumentWriter(schema, targetDir, indexConfig);
+		DocumentWriter dw = new DocumentWriter(schema, targetDir, new RevisionInfo(), indexConfig);
 		
 		Document document = new Document(6);
 		document.add(new LongField("id", "100"));
@@ -84,7 +85,7 @@ public class DocumentWriteReadTest extends TestCase{
 		Schema schema = createSchema();
 //		schema.getFieldSettingList().get(2).setStore(false); //field-2는 저장하지 않음.
 		IndexConfig indexConfig = createIndexConfig();
-		DocumentWriter dw = new DocumentWriter(schema, targetDir, indexConfig);
+		DocumentWriter dw = new DocumentWriter(schema, targetDir, new RevisionInfo(), indexConfig);
 		
 		Document document = new Document(6);
 		document.add(new LongField("id", "100"));
@@ -137,7 +138,7 @@ public class DocumentWriteReadTest extends TestCase{
 		schema.schemaSetting().getFieldSettingList().get(4).setMultiValue(true);
 		
 		IndexConfig indexConfig = createIndexConfig();
-		DocumentWriter dw = new DocumentWriter(schema, targetDir, indexConfig);
+		DocumentWriter dw = new DocumentWriter(schema, targetDir, new RevisionInfo(), indexConfig);
 		
 		Document document = new Document(6);
 		document.add(new LongField("id", "100"));
@@ -187,7 +188,7 @@ public class DocumentWriteReadTest extends TestCase{
 		schema.schemaSetting().getFieldSettingList().get(4).setMultiValue(true);
 		
 		IndexConfig indexConfig = createIndexConfig();
-		DocumentWriter dw = new DocumentWriter(schema, targetDir, indexConfig);
+		DocumentWriter dw = new DocumentWriter(schema, targetDir, new RevisionInfo(), indexConfig);
 		
 		int count = 300;
 		for (int i = 0; i < count; i++) {

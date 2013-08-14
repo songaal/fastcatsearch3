@@ -97,7 +97,7 @@ public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 			logger.debug("색인후 segmentInfo >> {}", segmentInfo);
 			logger.debug("색인후 revisionInfo >> {}", revisionInfo);
 			//0보다 크면 revision이 증가된것이다.
-			boolean revisionAppended = revisionInfo.getRevision() > 0;
+			boolean revisionAppended = revisionInfo.getId() > 0;
 			
 			
 			//status를 바꾸고 context를 저장한다.
@@ -107,7 +107,7 @@ public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 			CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
 			int dataSequence = collectionContext.getDataSequence();
 			String segmentId = segmentInfo.getId();
-			int revision = revisionInfo.getRevision();
+			int revision = revisionInfo.getId();
 			File collectionDataDir = collectionFilePaths.dataFile(dataSequence);
 			File segmentDir = collectionContext.collectionFilePaths().segmentFile(dataSequence, segmentId);
 			DeleteIdSet deleteIdSet = collectionIndexer.deleteIdSet();

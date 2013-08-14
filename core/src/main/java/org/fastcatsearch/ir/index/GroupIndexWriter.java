@@ -18,12 +18,12 @@ package org.fastcatsearch.ir.index;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
+import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexReader;
@@ -61,10 +61,8 @@ public class GroupIndexWriter implements WriteInfoLoggable {
 	private int groupNumber;
 	private SequencialDataOutput keyOutput;
 
-	private int revision;
 	private boolean isAppend;
 	private File baseDir;
-	private File revisionDir;
 	private PrimaryKeyIndexReader prevPkReader; // 이전 pk reader 리스트. 증분색인시에 사용됨.
 	private int indexInterval;
 	private int count;
@@ -74,20 +72,13 @@ public class GroupIndexWriter implements WriteInfoLoggable {
 	private BytesDataOutput keyBuffer;
 
 	private int fieldSequence;
-
+	private RevisionInfo revisionInfo;
+	
 	public GroupIndexWriter(GroupIndexSetting groupIndexSetting, Map<String, FieldSetting> fieldSettingMap, Map<String, Integer> fieldSequenceMap,
-			File dir, IndexConfig indexConfig) throws IOException, IRException {
-		this(groupIndexSetting, fieldSettingMap, fieldSequenceMap, dir, 0, indexConfig);
-	}
-
-	public GroupIndexWriter(GroupIndexSetting groupIndexSetting, Map<String, FieldSetting> fieldSettingMap, Map<String, Integer> fieldSequenceMap,
-			File dir, int revision, IndexConfig indexConfig) throws IOException, IRException {
-		this.revision = revision;
-		if (revision > 0) {
-			this.isAppend = true;
-		}
+			File dir, RevisionInfo revisionInfo, IndexConfig indexConfig) throws IOException, IRException {
+		this.revisionInfo = revisionInfo;
+		this.isAppend = revisionInfo.isAppend();
 		this.baseDir = dir;
-		this.revisionDir = IndexFileNames.getRevisionDir(dir, revision);
 
 		String id = groupIndexSetting.getId();
 		this.indexId = id;
@@ -118,7 +109,7 @@ public class GroupIndexWriter implements WriteInfoLoggable {
 		
 		if (isAppend) {
 			// read previous pkmap
-			File prevDir = IndexFileNames.getRevisionDir(dir, revision - 1);
+			File prevDir = IndexFileNames.getRevisionDir(dir, revisionInfo.getRef());
 			prevPkReader = new PrimaryKeyIndexReader(prevDir, IndexFileNames.getGroupKeyMapFileName(id));
 			groupNumber = prevPkReader.count();
 		}
@@ -217,6 +208,7 @@ public class GroupIndexWriter implements WriteInfoLoggable {
 		String pkFilename = IndexFileNames.getGroupKeyMapFileName(indexId);
 		String pkIndexFilename = IndexFileNames.getIndexFileName(pkFilename);
 
+		File revisionDir = IndexFileNames.getRevisionDir(baseDir, revisionInfo.getId());
 		File tempPkFile = new File(revisionDir, IndexFileNames.getTempFileName(pkFilename));
 		File tempPkIndexFile = new File(revisionDir, IndexFileNames.getTempFileName(pkIndexFilename));
 
@@ -246,7 +238,7 @@ public class GroupIndexWriter implements WriteInfoLoggable {
 			prevPkReader.close();
 
 			// pkindex merge
-			File prevDir = IndexFileNames.getRevisionDir(baseDir, revision - 1);
+			File prevDir = IndexFileNames.getRevisionDir(baseDir, revisionInfo.getRef());
 			File prevPkFile = new File(prevDir, pkFilename);
 
 			IndexOutput output = new BufferedFileOutput(pkFile);

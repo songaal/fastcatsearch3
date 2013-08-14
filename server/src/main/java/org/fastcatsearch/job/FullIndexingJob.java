@@ -81,7 +81,7 @@ public class FullIndexingJob extends IndexingJob {
 			 */
 			getJobExecutor().offer(new CacheServiceRestartJob());
 
-			indexingLogger.info("[{}] Full Indexing Finished! {} time = {}", revisionInfo, duration);
+			indexingLogger.info("[{}] Full Indexing Finished! {} time = {}", collectionId, revisionInfo, duration);
 			logger.info("== SegmentStatus ==");
 			collectionHandler.printSegmentStatus();
 			logger.info("===================");

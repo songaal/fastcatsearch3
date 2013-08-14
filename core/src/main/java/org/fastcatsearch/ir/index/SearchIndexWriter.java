@@ -32,6 +32,7 @@ import org.apache.lucene.util.CharsRef;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
+import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.field.Field;
@@ -66,23 +67,16 @@ public class SearchIndexWriter {
 	private long[] flushPosition; // each flush file position
 	private int flushCount;
 	private int count;
-	private boolean isAppend;
-	private int revision;
 	private int[] indexFieldSequence; // index내에 색인할 필드가 여러개일 경우 필드 번호.
 	private int positionIncrementGapList;
 
-	public SearchIndexWriter(IndexSetting indexSetting, Schema schema, File dir, IndexConfig indexConfig) throws IOException, IRException {
-		this(indexSetting, schema, dir, 0, indexConfig);
-	}
-
-	public SearchIndexWriter(IndexSetting indexSetting, Schema schema, File dir, int revision, IndexConfig indexConfig) throws IOException,
+	private RevisionInfo revisionInfo;
+	
+	public SearchIndexWriter(IndexSetting indexSetting, Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig) throws IOException,
 			IRException {
 		this.indexId = indexSetting.getId();
 		this.baseDir = dir;
-		this.revision = revision;
-		if (revision > 0) {
-			isAppend = true;
-		}
+		this.revisionInfo = revisionInfo;
 		this.indexConfig = indexConfig;
 		
 		ignoreCase = indexSetting.isIgnoreCase();
@@ -253,9 +247,9 @@ public class SearchIndexWriter {
 			if (count > 0) {
 				logger.debug("Close, flushCount={}", flushCount);
 
-				if (isAppend) {
-					File prevAppendDir = IndexFileNames.getRevisionDir(baseDir, revision - 1);
-					File revisionDir = IndexFileNames.getRevisionDir(baseDir, revision);
+				if (revisionInfo.isAppend()) {
+					File prevAppendDir = IndexFileNames.getRevisionDir(baseDir, revisionInfo.getRef());
+					File revisionDir = IndexFileNames.getRevisionDir(baseDir, revisionInfo.getId());
 
 					TempSearchFieldAppender appender = new TempSearchFieldAppender(indexId, flushCount, flushPosition, tempFile);
 					try {

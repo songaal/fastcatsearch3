@@ -17,15 +17,15 @@
 package org.fastcatsearch.ir.common;
 
 
-public class IRException extends Exception{
+public class IRException extends Exception {
 	public IRException(String msg){
 		super(msg);
 	}
-	public IRException(Exception e){
+	public IRException(Throwable e){
 		super(e);
 	}
 	
-	public IRException(String msg, Exception e){
+	public IRException(String msg, Throwable e){
 		super(msg, e);
 	}
 }

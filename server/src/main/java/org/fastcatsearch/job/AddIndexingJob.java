@@ -73,6 +73,9 @@ public class AddIndexingJob extends IndexingJob {
 			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 			//////////////////////////////////////////////////////////////////////////////////////////
 			
+			logger.debug("색인후 segmentInfo >> {}", segmentInfo);
+			logger.debug("색인후 revisionInfo >> {}", revisionInfo);
+			
 			collectionContext.updateCollectionStatus(IndexingType.ADD, revisionInfo, indexingStartTime(), System.currentTimeMillis());
 			
 			File segmentDir = collectionContext.collectionFilePaths().segmentFile(collectionContext.getDataSequence(), segmentInfo.getId());

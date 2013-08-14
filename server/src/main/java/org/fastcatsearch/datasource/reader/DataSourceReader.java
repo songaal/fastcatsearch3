@@ -113,7 +113,7 @@ public class DataSourceReader {
 			}
 		} catch (Throwable e) {
 			close();
-			throw new IRException(e.getMessage());
+			throw new IRException(e);
 		}
 	}
 

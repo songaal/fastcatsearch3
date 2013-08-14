@@ -79,6 +79,10 @@ public class DocumentReader implements Cloneable {
 		return documentCount;
 	}
 
+	public int getBaseNumber() {
+		return baseDocNo;
+	}
+	
 	// 내부 문서번호로 호출한다.
 	public Document readDocument(int docNo) throws IOException {
 		return readDocument(docNo, null);

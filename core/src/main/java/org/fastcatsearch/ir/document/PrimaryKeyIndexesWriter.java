@@ -24,6 +24,7 @@ import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.IndexConfig;
+import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.io.BufferedFileInput;
@@ -52,14 +53,10 @@ public class PrimaryKeyIndexesWriter {
 	private PrimaryKeySetting primaryKeySetting;
 	private int[] primaryKeyFieldIdList;
 
-	public PrimaryKeyIndexesWriter(Schema schema, File dir, IndexConfig indexConfig) throws IOException, IRException {
-		this(schema, dir, 0, indexConfig);
-	}
-
-	public PrimaryKeyIndexesWriter(Schema schema, File dir, int revision, IndexConfig indexConfig) throws IOException, IRException {
+	public PrimaryKeyIndexesWriter(Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig) throws IOException, IRException {
 		String segmentId = dir.getName();
-		boolean isAppend = revision > 0;
-		File revisionDir = IndexFileNames.getRevisionDir(dir, revision);
+		boolean isAppend = revisionInfo.isAppend();
+		File revisionDir = IndexFileNames.getRevisionDir(dir, revisionInfo.getId());
 		
 		primaryKeySetting = schema.schemaSetting().getPrimaryKeySetting();
 		
@@ -97,12 +94,10 @@ public class PrimaryKeyIndexesWriter {
 		
 		String docDeleteSetName = IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentId);
 		if (isAppend) {
-			File prevRevisionDir = IndexFileNames.getRevisionDir(dir, revision - 1);
+			File prevRevisionDir = IndexFileNames.getRevisionDir(dir, revisionInfo.getRef());
 			// copy prev revision's delete.set
 			// 증분색인의 append일 경우에는 이전 revision의 deleteSet을 가져와서 사용한다.
-			// DocumentWriter.close()시 이전 rev와 새 rev의 중복되는 문서를
-			// delete처리해준다.
-//			File prevDelete = new File(IRFileName.getRevisionDir(dir, revision - 1), IRFileName.docDeleteSet);
+			// DocumentWriter.close()시 이전 rev와 새 rev의 중복되는 문서를 delete처리해준다.
 			File prevDelete = new File(prevRevisionDir, docDeleteSetName);
 			//이전 리비전의 delete.set을 현재 리비전 dir로 가져와서 이어쓰도록 한다.
 			FileUtils.copyFileToDirectory(prevDelete, revisionDir);

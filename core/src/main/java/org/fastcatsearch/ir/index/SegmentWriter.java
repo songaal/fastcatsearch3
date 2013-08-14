@@ -52,35 +52,32 @@ public class SegmentWriter implements WriteInfoLoggable {
 
 	private String segmentId;
 	private File targetDir;
-	private int revision;
+	private RevisionInfo revisionInfo;
 
 	public SegmentWriter(Schema schema, File targetDir, IndexConfig indexConfig) throws IRException {
-		this(schema, targetDir, 0, indexConfig);
+		this(schema, targetDir, new RevisionInfo(), indexConfig);
 	}
 
 	// for Add indexing
-	public SegmentWriter(Schema schema, File targetDir, int revision, IndexConfig indexConfig) throws IRException {
-		init(schema, targetDir, revision, indexConfig);
+	public SegmentWriter(Schema schema, File targetDir, RevisionInfo revisionInfo, IndexConfig indexConfig) throws IRException {
+		init(schema, targetDir, revisionInfo, indexConfig);
 	}
 
-	public void init(Schema schema, File targetDir, int revision, IndexConfig indexConfig) throws IRException {
+	public void init(Schema schema, File targetDir, RevisionInfo revisionInfo, IndexConfig indexConfig) throws IRException {
 		try {
+			lastDocNo = -1;
 			this.segmentId = targetDir.getName();
 			this.targetDir = targetDir;
-			this.revision = revision;
+			this.revisionInfo = revisionInfo;
 			
 			// make a default 0 revision directory
-			IndexFileNames.getRevisionDir(targetDir, revision).mkdirs();
-			boolean isAppend = false;
-			if (revision > 0) {
-				isAppend = true;
-			}
+			IndexFileNames.getRevisionDir(targetDir, revisionInfo.getId()).mkdirs();
 
-			documentWriter = new DocumentWriter(schema, targetDir, revision, indexConfig);
-			primaryKeyIndexesWriter = new PrimaryKeyIndexesWriter(schema, targetDir, revision, indexConfig);
-			searchIndexesWriter = new SearchIndexesWriter(schema, targetDir, revision, indexConfig);
-			fieldIndexesWriter = new FieldIndexesWriter(schema, targetDir, isAppend);
-			groupIndexesWriter = new GroupIndexesWriter(schema, targetDir, revision, indexConfig);
+			documentWriter = new DocumentWriter(schema, targetDir, revisionInfo, indexConfig);
+			primaryKeyIndexesWriter = new PrimaryKeyIndexesWriter(schema, targetDir, revisionInfo, indexConfig);
+			searchIndexesWriter = new SearchIndexesWriter(schema, targetDir, revisionInfo, indexConfig);
+			fieldIndexesWriter = new FieldIndexesWriter(schema, targetDir, revisionInfo);
+			groupIndexesWriter = new GroupIndexesWriter(schema, targetDir, revisionInfo, indexConfig);
 		} catch (IOException e) {
 			// writer생성시 에러가 발생하면(ex 토크나이저 발견못함) writer들이 안 닫힌채로 색인이 끝나서 다음번 색인시 파일들을 삭제못하게 되므로 close해준다.
 			try {
@@ -96,12 +93,12 @@ public class SegmentWriter implements WriteInfoLoggable {
 	public int getDocumentCount() {
 		return count;
 	}
-	
+
 	/**
-	 * 색인후 내부 문서번호를 리턴한다. 
+	 * 색인후 내부 문서번호를 리턴한다.
 	 */
 	public int addDocument(Document document) throws IRException, IOException {
-//		logger.debug("doc >> {}", document);
+		// logger.debug("doc >> {}", document);
 		int docNo = documentWriter.write(document);
 		primaryKeyIndexesWriter.write(document, docNo);
 		searchIndexesWriter.write(document);
@@ -157,29 +154,23 @@ public class SegmentWriter implements WriteInfoLoggable {
 		}
 	}
 
-	public RevisionInfo close() throws IOException, IRException {
+	public void close() throws IOException, IRException {
 		try {
 			closeWriter();
+
+			// 여기서는 동일 수집문서내 pk중복만 처리하고 삭제문서갯수는 알수 없다.
+			// 삭제문서는 DataSourceReader에서 알수 있으므로, 이 writer를 호출하는 class에서 처리한다.
+			revisionInfo.setDocumentCount(lastDocNo + 1);// 문서갯수는 번호 + 1이다.
+			revisionInfo.setInsertCount(count);
+			revisionInfo.setUpdateCount(primaryKeyIndexesWriter.getUpdateDocCount());
+			revisionInfo.setCreateTime(Formatter.formatDate());
 			
-			if(count == 0){
-				//리비전디렉토리 지우고, reurn null
-				File revisionDir = IndexFileNames.getRevisionDir(targetDir, revision);
-				FileUtils.deleteDirectory(revisionDir);
-				return null;
-			}else{
-				//여기서는 동일 수집문서내 pk중복만 처리하고 삭제문서갯수는 알수 없다.
-				//삭제문서는 DataSourceReader에서 알수 있으므로, 이 writer를 호출하는 class에서처 처리한다.
-				int documentSize = lastDocNo + 1; //문서갯수는 번호 + 1이다.
-				RevisionInfo revisionInfo = new RevisionInfo(revision, documentSize, count, primaryKeyIndexesWriter.getUpdateDocCount(), 0, Formatter.formatDate());
-				logger.info(
-						"Segment [{}] Total {} documents indexed, elapsed = {}, mem = {}",
-						new Object[] { segmentId, documentSize, Formatter.getFormatTime(System.currentTimeMillis() - startTime),
-								Formatter.getFormatSize(Runtime.getRuntime().totalMemory()) });
-	
-				return revisionInfo;
-			}
+			logger.info("Segment [{}] Indexed, elapsed = {}, mem = {}, {}", segmentId,
+					Formatter.getFormatTime(System.currentTimeMillis() - startTime), Formatter.getFormatSize(Runtime.getRuntime().totalMemory()),
+					revisionInfo);
+
 		} catch (Exception e) {
-			File revisionDir = IndexFileNames.getRevisionDir(targetDir, revision);
+			File revisionDir = IndexFileNames.getRevisionDir(targetDir, revisionInfo.getId());
 			FileUtils.deleteDirectory(revisionDir);
 			throw new IRException(e);
 		}
