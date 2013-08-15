@@ -36,6 +36,7 @@ import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.StreamableJob;
+import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.ServiceManager;
@@ -73,14 +74,7 @@ public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
 			if(collectionHandler == null){
 				indexingLogger.error("[{}] CollectionHandler is not running!", collectionId);
-				EventDBLogger.error(EventDBLogger.CATE_INDEX, "컬렉션 "+collectionId+"가 서비스중이 아님.");
 				throw new FastcatSearchException("## ["+collectionId+"] CollectionHandler is not running...");
-			}
-			
-			SegmentInfo currentSegmentInfo = collectionHandler.getLastSegmentReader().segmentInfo();
-			if(currentSegmentInfo == null){
-				indexingLogger.error("[{}] has no segment!  Do full-indexing first!!", collectionId);
-				return null;
 			}
 			
 			/*
@@ -95,10 +89,15 @@ public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 			//////////////////////////////////////////////////////////////////////////////////////////
 			
 			logger.debug("색인후 segmentInfo >> {}", segmentInfo);
-			logger.debug("색인후 revisionInfo >> {}", revisionInfo);
+			
+			if(revisionInfo.getInsertCount() == 0 && revisionInfo.getDeleteCount() == 0){
+				int duration = (int) (System.currentTimeMillis() - startTime);
+				return new JobResult(new IndexingJobResult(collectionId, revisionInfo, duration));
+			}
+			
 			//0보다 크면 revision이 증가된것이다.
 			boolean revisionAppended = revisionInfo.getId() > 0;
-			
+			boolean revisionHasInserts = revisionInfo.getInsertCount() > 0;
 			
 			//status를 바꾸고 context를 저장한다.
 			collectionContext.updateCollectionStatus(IndexingType.ADD, revisionInfo, startTime, System.currentTimeMillis());
@@ -126,8 +125,11 @@ public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 			 */
 			File mirrorSyncFile = null;
 			if(revisionAppended){
-				mirrorSyncFile = new MirrorSynchronizer().createMirrorSyncFile(indexWriteInfoList, revisionDir);
-				logger.debug("동기화 파일 생성 >> {}", mirrorSyncFile.getAbsolutePath());
+				if(revisionHasInserts){
+					mirrorSyncFile = new MirrorSynchronizer().createMirrorSyncFile(indexWriteInfoList, revisionDir);
+					logger.debug("동기화 파일 생성 >> {}", mirrorSyncFile.getAbsolutePath());
+				}
+				
 				transferDir = revisionDir;
 			}else{
 				//세그먼트 전체전송.
@@ -162,15 +164,13 @@ public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 			indexFileTransfer.transferDirectory(transferDir, nodeService, nodeList);
 			
 			/*
-			 * 데이터노드에 컬렉션 리로드 요청.
+			 * 데이터노드에 세그먼트 리로드 요청.
 			 */
 			NodeSegmentUpdateJob updateJob = new NodeSegmentUpdateJob(collectionContext);
 			nodeResult = sendJobToNodeList(updateJob, nodeService, nodeList, false);
 			if(!nodeResult){
 				throw new FastcatSearchException("Node Collection Reload Failed!");
 			}
-			
-			
 			
 			int duration = (int) (System.currentTimeMillis() - startTime);
 			

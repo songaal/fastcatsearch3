@@ -128,7 +128,8 @@ public class CollectionIndexer {
 			logger.debug("#이전 세그먼트가 없어서 색인시 세그먼트를 생성합니다. {}", workingSegmentInfo);
 			FileUtils.removeDirectoryCascade(segmentDir);
 		}
-
+		
+		workingSegmentInfo.resetRevisionInfo();
 		logger.debug("증분색인용 SegmentInfo={}", workingSegmentInfo);
 		
 		DataSourceReader sourceReader = getSourceReader(schema, false);

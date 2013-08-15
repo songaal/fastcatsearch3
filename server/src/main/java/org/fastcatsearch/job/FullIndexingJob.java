@@ -58,7 +58,7 @@ public class FullIndexingJob extends IndexingJob {
 			//////////////////////////////////////////////////////////////////////////////////////////
 			if(revisionInfo.getInsertCount() == 0){
 				int duration = (int) (System.currentTimeMillis() - indexingStartTime());
-				result = new IndexingJobResult(collectionId, revisionInfo, duration);
+				result = new IndexingJobResult(collectionId, revisionInfo, duration, false);
 				isSuccess = false;
 
 				return new JobResult(result);

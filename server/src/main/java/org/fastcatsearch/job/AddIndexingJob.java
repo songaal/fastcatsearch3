@@ -75,7 +75,7 @@ public class AddIndexingJob extends IndexingJob {
 			if(revisionInfo.getInsertCount() == 0 && revisionInfo.getDeleteCount() == 0){
 				int duration = (int) (System.currentTimeMillis() - indexingStartTime());
 				result = new IndexingJobResult(collectionId, revisionInfo, duration);
-				isSuccess = false;
+				isSuccess = true;
 
 				return new JobResult(result);
 			}

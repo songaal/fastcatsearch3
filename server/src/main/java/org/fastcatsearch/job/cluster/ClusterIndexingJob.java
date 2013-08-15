@@ -73,8 +73,7 @@ public class ClusterIndexingJob extends IndexingJob {
 				}
 			}
 
-			result = (IndexingJobResult) result;
-			isSuccess = true;
+			isSuccess = ((IndexingJobResult) result).isSuccess;
 			
 			return new JobResult(result);
 

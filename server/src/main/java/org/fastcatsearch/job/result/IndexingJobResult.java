@@ -22,18 +22,21 @@ public class IndexingJobResult implements Streamable {
 	public String collection;
 	public RevisionInfo  revisionInfo;
 	public int duration;
-	
+	public boolean isSuccess;
 	public IndexingJobResult(){ }
 	
 	public IndexingJobResult(String collection, RevisionInfo  revisionInfo, int duration) {
+		this(collection, revisionInfo, duration, true);
+	}
+	public IndexingJobResult(String collection, RevisionInfo  revisionInfo, int duration, boolean isSuccess) {
 		this.collection = collection;
 		this.revisionInfo = revisionInfo;
 		this.duration = duration;
-		
+		this.isSuccess = isSuccess;
 	}
 
 	public String toString(){
-		return "[IndexingResult] collection = "+collection+", revisionInfo = " + revisionInfo + " duration = "+duration;
+		return "[IndexingResult] success["+isSuccess+"] collection = "+collection+", revisionInfo = " + revisionInfo + " duration = "+duration;
 	}
 
 	@Override
@@ -41,6 +44,7 @@ public class IndexingJobResult implements Streamable {
 		collection = input.readString();
 		revisionInfo = new RevisionInfo(input.readInt(), input.readInt(), input.readInt(), input.readInt(), input.readInt(), input.readString());
 		duration = input.readInt();
+		isSuccess = input.readBoolean();
 	}
 
 	@Override
@@ -52,5 +56,6 @@ public class IndexingJobResult implements Streamable {
 		output.writeInt(revisionInfo.getDeleteCount());
 		output.writeString(revisionInfo.getCreateTime());
 		output.writeInt(duration);
+		output.writeBoolean(isSuccess);
 	}
 }

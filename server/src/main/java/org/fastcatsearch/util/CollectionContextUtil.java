@@ -149,6 +149,12 @@ public class CollectionContextUtil {
 
 	}
 
+	/**
+	 * status.xml 저장.
+	 * data#//info.xml 저장.
+	 * data#/{revision}/revision.xml 저장.
+	 * 
+	 * */
 	public static void saveAfterIndexing(CollectionContext collectionContext) throws SettingException {
 		CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
 

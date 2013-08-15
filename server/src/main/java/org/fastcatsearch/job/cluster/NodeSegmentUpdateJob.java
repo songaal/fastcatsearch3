@@ -8,6 +8,7 @@ import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.MirrorSynchronizer;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
@@ -42,14 +43,18 @@ public class NodeSegmentUpdateJob extends StreamableJob {
 			int revision = segmentInfo.getRevision();
 			File revisionDir = new File(segmentDir, Integer.toString(revision));
 
-			boolean revisionAppended = revision > 0;
-			logger.debug("증분업데이트 실행! revision={}", revision);
+			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
+			boolean revisionAppended = revisionInfo.getId() > 0;
+			boolean revisionHasInserts = revisionInfo.getInsertCount() > 0;
+			logger.debug("증분업데이트 실행! revision={}, append={}, hasInserts={}", revision, revisionAppended, revisionHasInserts);
 			
 			// sync파일을 append해준다.
 			if(revisionAppended){
-				logger.debug("revision이 추가되어, mirror file 적용!");
-				File mirrorSyncFile = new File(revisionDir, IndexFileNames.mirrorSync);
-				new MirrorSynchronizer().applyMirrorSyncFile(mirrorSyncFile, revisionDir);
+				if(revisionHasInserts){
+					logger.debug("revision이 추가되어, mirror file 적용!");
+					File mirrorSyncFile = new File(revisionDir, IndexFileNames.mirrorSync);
+					new MirrorSynchronizer().applyMirrorSyncFile(mirrorSyncFile, revisionDir);
+				}
 			}
 			
 			CollectionContextUtil.saveAfterIndexing(collectionContext);

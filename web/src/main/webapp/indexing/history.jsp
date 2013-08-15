@@ -71,7 +71,7 @@
 		<th>컬렉션명</th>
 		<th>색인타입</th>
 		<th>성공여부</th>
-		<th>총문서수</th>
+		<th>추가문서수</th>
 		<th>업데이트수</th>
 		<th>삭제문서수</th>
 		<th>스케쥴링</th>
@@ -95,9 +95,10 @@
 		<td class="first"><%=indexingHistoryVO.id%></td>
 		<td><strong class="small tb"><%=indexingHistoryVO.collection%></strong></td>
 		<td><%
-			if(indexingHistoryVO.type.equals("F")){
+
+			if(indexingHistoryVO.type.equals("FULL")){
 				out.println("전체색인");
-			}else if(indexingHistoryVO.type.equals("I")){
+			}else if(indexingHistoryVO.type.trim().equals("ADD")){
 				out.println("증분색인");
 			}
 			%></td>

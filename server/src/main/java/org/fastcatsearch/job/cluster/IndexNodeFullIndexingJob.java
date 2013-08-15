@@ -33,6 +33,7 @@ import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.StreamableJob;
+import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.task.IndexFileTransfer;
@@ -77,6 +78,11 @@ public class IndexNodeFullIndexingJob extends StreamableClusterJob {
 			SegmentInfo segmentInfo = collectionIndexer.fullIndexing();
 			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 			//////////////////////////////////////////////////////////////////////////////////////////
+			
+			if(revisionInfo.getInsertCount() == 0){
+				int duration = (int) (System.currentTimeMillis() - startTime);
+				return new JobResult(new IndexingJobResult(collectionId, revisionInfo, duration, false));
+			}
 			
 			//status를 바꾸고 context를 저장한다.
 			collectionContext.updateCollectionStatus(IndexingType.FULL, revisionInfo, startTime, System.currentTimeMillis());

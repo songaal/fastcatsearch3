@@ -261,8 +261,8 @@ public class CollectionHandler {
 			// 1. [revision] pk & current delete.set
 			// 이전 리비전과의 pk를 먼저 머징해야 이전 리비전의 문서를 지울수가 있다.
 			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
-			File prevRevisionDir = new File(segmentDir, Integer.toString(oldSegmentReader.segmentInfo().getRevision()));
-			File targetRevisionDir = new File(segmentDir, Integer.toString(segmentInfo.getRevision()));
+			File prevRevisionDir = new File(segmentDir, oldSegmentReader.segmentInfo().getRevisionName());
+			File targetRevisionDir = new File(segmentDir, segmentInfo.getRevisionName());
 			if (revisionInfo.getInsertCount() == 0 && revisionInfo.getDeleteCount() > 0) {
 				// 추가문서없이 삭제문서만 존재시 이전 rev에서 pk를 복사해온다.
 				copyPrimaryKeyAndDeleteTemp(prevRevisionDir, targetRevisionDir);
@@ -291,7 +291,7 @@ public class CollectionHandler {
 
 	// 색인되어있는 세그먼트를 단순히 추가만한다. delete.set파일은 이미 수정되어있다고 가정한다.
 	public void addSegmentApplyCollection(SegmentInfo segmentInfo, File segmentDir) throws IOException, IRException {
-		File lastRevisionDir = new File(segmentDir, Integer.toString(segmentInfo.getRevision()));
+		File lastRevisionDir = new File(segmentDir, segmentInfo.getRevisionName());
 		// 삭제문서는 마지막 세그먼트의 마지막 리비전에 최신 업데이트 파일이 있으므로, 그것을 로딩한다.
 		for (int i = 0; i < segmentReaderList.size(); i++) {
 			BitSet deleteSet = new BitSet(lastRevisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
@@ -305,7 +305,7 @@ public class CollectionHandler {
 		if (segmentReaderList.size() == 0) {
 			return;
 		}
-		File lastRevisionDir = new File(segmentDir, Integer.toString(segmentInfo.getRevision()));
+		File lastRevisionDir = new File(segmentDir, segmentInfo.getRevisionName());
 		String segmentId = segmentInfo.getId();
 		SegmentReader oldSegmentReader = getSegmentReader(segmentId);
 		logger.debug("updateSegmentApplyCollection segId={}, reader={}, size={}", segmentId, oldSegmentReader, segmentReaderList.size());
@@ -327,7 +327,7 @@ public class CollectionHandler {
 		String segmentId = segmentInfo.getId();
 		int prevSegmentSize = prevSegmentReaderList.size();
 
-		File targetRevisionDir = new File(segmentDir, Integer.toString(segmentInfo.getRevision()));
+		File targetRevisionDir = new File(segmentDir, segmentInfo.getRevisionName());
 
 		if (prevSegmentSize > 0) {
 

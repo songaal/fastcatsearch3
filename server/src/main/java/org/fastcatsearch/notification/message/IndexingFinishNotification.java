@@ -74,7 +74,9 @@ public class IndexingFinishNotification extends Notification {
 		
 		if(isSuccess){
 			IndexingJobResult result2 = (IndexingJobResult) result;
-			params[5] = "문서수["+Integer.toString(result2.revisionInfo.getDocumentCount())+"]";
+			params[5] = "추가문서수["+Integer.toString(result2.revisionInfo.getInsertCount())+"] " +
+					"업데이트문서수["+Integer.toString(result2.revisionInfo.getUpdateCount())+"]" +
+					"삭제문서수["+Integer.toString(result2.revisionInfo.getDeleteCount())+"]";
 		}else{
 			if(result instanceof StreamableThrowable){
 				StreamableThrowable throwable = (StreamableThrowable) result;
