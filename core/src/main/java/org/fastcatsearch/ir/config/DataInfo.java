@@ -70,14 +70,16 @@ public class DataInfo {
 		if (segmentInfoList.contains(segmentInfo)) {
 			int index = segmentInfoList.indexOf(segmentInfo);
 			SegmentInfo prevSegmentInfo = segmentInfoList.get(index);
-			RevisionInfo prevRevisionInfo = prevSegmentInfo.getRevisionInfo();
-			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
+			prevSegmentInfo.update(segmentInfo);
+			//TODO datainfo에 통계치 더해주기.
+//			RevisionInfo prevRevisionInfo = prevSegmentInfo.getRevisionInfo();
+//			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 			// 리비전이 다르면 추가된 리비전이므로 갯수를 더한다.
-			if (revisionInfo.getId() > prevRevisionInfo.getId()) {
-				revisionInfo.updateCount += prevRevisionInfo.updateCount;
-				revisionInfo.deleteCount += prevRevisionInfo.deleteCount;
-				prevSegmentInfo.update(segmentInfo);
-			}
+//			if (revisionInfo.getId() > prevRevisionInfo.getId()) {
+//				revisionInfo.updateCount += prevRevisionInfo.updateCount;
+//				revisionInfo.deleteCount += prevRevisionInfo.deleteCount;
+//				prevSegmentInfo.update(segmentInfo);
+//			}
 		} else {
 			addSegmentInfo(segmentInfo);
 		}
@@ -175,6 +177,12 @@ public class DataInfo {
 			segmentInfo.revisionInfo = revisionInfo.copy();
 			return segmentInfo;
 		}
+		
+		public void resetRevisionInfo(){
+			revisionInfo.setInsertCount(0);
+			revisionInfo.setUpdateCount(0);
+			revisionInfo.setDeleteCount(0);
+		}
 
 		public String toString() {
 			return "[SegmentInfo] id[" + id + "] base[" + baseNumber + "] " + revisionInfo;
@@ -183,7 +191,6 @@ public class DataInfo {
 		public void update(SegmentInfo segmentInfo) {
 			this.id = segmentInfo.id;
 			this.baseNumber = segmentInfo.baseNumber;
-			// this.revision = segmentInfo.revision;
 			this.revisionInfo = segmentInfo.revisionInfo;
 		}
 

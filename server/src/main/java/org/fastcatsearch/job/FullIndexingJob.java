@@ -56,8 +56,15 @@ public class FullIndexingJob extends IndexingJob {
 			SegmentInfo segmentInfo = collectionIndexer.fullIndexing();
 			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 			//////////////////////////////////////////////////////////////////////////////////////////
-			
+			if(revisionInfo.getInsertCount() == 0){
+				int duration = (int) (System.currentTimeMillis() - indexingStartTime());
+				result = new IndexingJobResult(collectionId, revisionInfo, duration);
+				isSuccess = false;
+
+				return new JobResult(result);
+			}
 			//status를 바꾸고 context를 저장한다.
+				
 			collectionContext.updateCollectionStatus(IndexingType.FULL, revisionInfo, indexingStartTime(), System.currentTimeMillis());
 			CollectionContextUtil.saveAfterIndexing(collectionContext);
 			

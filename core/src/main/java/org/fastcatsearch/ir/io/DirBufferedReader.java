@@ -56,7 +56,10 @@ public class DirBufferedReader {
 	
 	public DirBufferedReader(File f, String encoding) throws IOException{
 		this.encoding = encoding;
-		if(f.isDirectory()){
+		if(!f.exists()){
+			fileCount = 0;
+			fileList = new File[fileCount];
+		}else if(f.isDirectory()){
 			File[] fl = f.listFiles();
 			for (int i = 0; i < fl.length; i++) {
 				if(fl[i].isFile()){
@@ -95,7 +98,7 @@ public class DirBufferedReader {
 		
 		if(fileCount == 0){
 			logger.warn("There's no source file in directory "+f.getAbsolutePath());
-			throw new IOException("There's no source file in directory "+f.getAbsolutePath());
+//			throw new IOException("There's no source file in directory "+f.getAbsolutePath());
 		}
 			
 		
@@ -115,6 +118,10 @@ public class DirBufferedReader {
 	}
 	
 	public String readLine() throws IOException{
+		if(reader == null){
+			return null;
+		}
+		
 		String line = reader.readLine();
 		
 		if(line == null){
@@ -154,6 +161,8 @@ public class DirBufferedReader {
 	}
 	
 	public void close() throws IOException{
-		reader.close();
+		if(reader != null){
+			reader.close();
+		}
 	}
 }

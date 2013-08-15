@@ -266,7 +266,7 @@ public class CollectionHandler {
 			if (revisionInfo.getInsertCount() == 0 && revisionInfo.getDeleteCount() > 0) {
 				// 추가문서없이 삭제문서만 존재시 이전 rev에서 pk를 복사해온다.
 				copyPrimaryKeyAndDeleteTemp(prevRevisionDir, targetRevisionDir);
-			} else {
+			} else if (revisionInfo.getInsertCount() > 0){
 				mergePrimaryKeyWithPrevRevision(segmentId, prevRevisionDir, targetRevisionDir);
 			}
 

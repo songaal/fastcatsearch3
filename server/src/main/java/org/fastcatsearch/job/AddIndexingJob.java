@@ -23,7 +23,9 @@ import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.search.SegmentReader;
 import org.fastcatsearch.ir.util.Formatter;
+import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.ServiceManager;
@@ -57,12 +59,6 @@ public class AddIndexingJob extends IndexingJob {
 				throw new FastcatSearchException("## ["+collectionId+"] CollectionHandler is not running...");
 			}
 			
-			SegmentInfo currentSegmentInfo = collectionHandler.getLastSegmentReader().segmentInfo();
-			if(currentSegmentInfo == null){
-				indexingLogger.error("[{}] has no segment!  Do full-indexing first!!", collectionId);
-				return null;
-			}
-			
 			/*
 			 * Do indexing!!
 			 */
@@ -75,6 +71,15 @@ public class AddIndexingJob extends IndexingJob {
 			
 			logger.debug("색인후 segmentInfo >> {}", segmentInfo);
 			logger.debug("색인후 revisionInfo >> {}", revisionInfo);
+			
+			if(revisionInfo.getInsertCount() == 0 && revisionInfo.getDeleteCount() == 0){
+				int duration = (int) (System.currentTimeMillis() - indexingStartTime());
+				result = new IndexingJobResult(collectionId, revisionInfo, duration);
+				isSuccess = false;
+
+				return new JobResult(result);
+			}
+			
 			
 			collectionContext.updateCollectionStatus(IndexingType.ADD, revisionInfo, indexingStartTime(), System.currentTimeMillis());
 			

@@ -59,14 +59,10 @@ public class DocumentWriter implements WriteInfoLoggable {
 	private BufferedFileOutput positionOutput;
 	private byte[] workingBuffer;
 	private BytesDataOutput fbaos;
-	private int localDocNo;
+	private int totalCount;  //누적문서갯수.
 	private Deflater compressor;
-	private int count;
+	private int count; //현 색인시 추가문서갯수.
 	
-//	public DocumentWriter(Schema schema, File dir, IndexConfig indexConfig) throws IOException, IRException {
-//		this(schema, dir, null, indexConfig);
-//	}
-
 	public DocumentWriter(Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig) throws IOException, IRException {
 		
 		boolean isAppend = revisionInfo.isAppend();
@@ -82,7 +78,7 @@ public class DocumentWriter implements WriteInfoLoggable {
 
 		if (isAppend) {
 			IndexInput docInput = new BufferedFileInput(dir, IndexFileNames.docStored);
-			localDocNo = docInput.readInt();
+			totalCount = docInput.readInt();
 			docInput.close();
 		} else {
 			docOutput.writeInt(0); // document count
@@ -129,16 +125,20 @@ public class DocumentWriter implements WriteInfoLoggable {
 		docOutput.seek(lastPos);
 		
 		count++;
-		return localDocNo++;
+		return totalCount++;
 	}
 
+	public int totalCount(){
+		return totalCount;
+	}
+	
 	public void close() throws IOException {
 		logger.debug("DocumentWriter close() count={}", count);
 
 		// write header
 		if(count > 0){
 			docOutput.seek(0);
-			docOutput.writeInt(localDocNo);
+			docOutput.writeInt(totalCount);
 		}
 		docOutput.close();
 		
@@ -147,7 +147,7 @@ public class DocumentWriter implements WriteInfoLoggable {
 
 	@Override
 	public void getIndexWriteInfo(IndexWriteInfoList writeInfoList) {
-		writeInfoList.setDocumentSize(localDocNo); //누적문서갯수.
+		writeInfoList.setDocumentSize(totalCount);
 		writeInfoList.add(docOutput.getWriteInfo());
 		writeInfoList.add(positionOutput.getWriteInfo());
 		

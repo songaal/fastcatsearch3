@@ -76,7 +76,6 @@ public class CollectionIndexer {
 		int insertCount = revisionInfo.getInsertCount();
 
 		if (insertCount > 0) {
-			segmentInfo.updateRevision(revisionInfo);
 			collectionContext.addSegmentInfo(segmentInfo);
 		} else {
 			logger.info("[{}] Indexing Canceled due to no documents.", collectionContext.collectionId());
@@ -90,22 +89,18 @@ public class CollectionIndexer {
 		// 증분색인이면 기존스키마그대로 사용.
 		Schema schema = collectionContext.schema();
 		int dataSequence = collectionContext.getDataSequence();
-		// logger.debug("workingHandler={}, dataSequence={}", collectionHandler, dataSequence);
 
 		SegmentInfo workingSegmentInfo = null;
 
 		SegmentReader lastSegmentReader = collectionHandler.getLastSegmentReader();
-
+		SegmentInfo segmentInfo = null;
+		
 		if (lastSegmentReader != null) {
-			SegmentInfo segmentInfo = lastSegmentReader.segmentInfo();
+			segmentInfo = lastSegmentReader.segmentInfo();
 			int docCount = segmentInfo.getRevisionInfo().getDocumentCount();
 			int segmentDocumentLimit = dataPlanConfig.getSegmentDocumentLimit();
 			
 			if (docCount >= segmentDocumentLimit) {
-				//TODO 기존색인문서수가 limit을 넘으면서 삭제문서만 색인될 경우 세그먼트가 바뀌는 현상이 나타날수 있다. 방지필요.
-				//차후 색인후 문서가 0건이고 delete문서가 존재하면 이전 세그먼트의 다음 리비전으로 변경해주는 작업필요.
-				
-				
 				// segment가 생성되는 증분색인.
 				workingSegmentInfo = segmentInfo.getNextSegmentInfo();
 				File segmentDir = collectionContext.collectionFilePaths().segmentFile(dataSequence, workingSegmentInfo.getId());
@@ -123,6 +118,8 @@ public class CollectionIndexer {
 				logger.debug("#색인시 리비전을 증가합니다. {}", workingSegmentInfo);
 			}
 		} else {
+			//TODO 전체색인이 없는데 증분색인이 가능하도록 해야하나?
+			
 			// 로딩된 세그먼트가 없음.
 			// 이전 색인정보가 없다. 즉 전체색인이 수행되지 않은 컬렉션.
 			// segment가 생성되는 증분색인.
@@ -141,25 +138,56 @@ public class CollectionIndexer {
 		int deleteCount = revisionInfo.getDeleteCount();
 
 		if (insertCount > 0 || deleteCount > 0) {
-			if (insertCount == 0) {
-				// count가 0이고 삭제문서만 존재할 경우
-				logger.debug("추가문서없이 삭제문서만 존재합니다.!!");
-				//디렉토리에는 delete.set만 존재.
-			}else{
+			if (insertCount > 0) {
 				revisionInfo.setRefWithRevision();
+			}else{
+				// 추가문서가 없고 삭제문서만 존재할 경우
+				logger.debug("추가문서없이 삭제문서만 존재합니다.!!");
+				if(segmentInfo != null && !segmentInfo.equals(workingSegmentInfo)){
+					//기존색인문서수가 limit을 넘으면서 삭제문서만 색인될 경우 세그먼트가 바뀌는 현상이 나타날수 있다.
+					//색인후 문서가 0건이고 delete문서가 존재하면 이전 세그먼트의 다음 리비전으로 변경해주는 작업필요.
+					//세그먼트가 다르면, 즉 증가했으면 다시 원래의 세그먼트로 돌리고, rev를 증가시킨다.
+					File segmentDir = collectionContext.collectionFilePaths().segmentFile(dataSequence, workingSegmentInfo.getId());
+					FileUtils.deleteDirectory(segmentDir);
+					
+					logger.debug("# 추가문서가 없으므로, segment를 삭제합니다. {}", segmentDir.getAbsolutePath());
+					workingSegmentInfo = segmentInfo.copy();
+					int revision = workingSegmentInfo.nextRevision();
+					workingSegmentInfo.getRevisionInfo().setInsertCount(0);
+					workingSegmentInfo.getRevisionInfo().setUpdateCount(0);
+					workingSegmentInfo.getRevisionInfo().setDeleteCount(deleteCount);
+					
+					//이전 리비전의 delete.set.#을 현 리비전으로 복사해온다. 
+					//원래 primarykeyindexeswriter에서 append일 경우 복사를 하나, 여기서는 추가문서가 0이므로 
+					String segmentId = workingSegmentInfo.getId();
+					segmentDir = collectionContext.collectionFilePaths().segmentFile(dataSequence, segmentId);
+					File revisionDir = IndexFileNames.getRevisionDir(segmentDir, revision);
+					File prevRevisionDir = IndexFileNames.getRevisionDir(segmentDir, revision - 1);
+					String deleteFileName = IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentId);
+					FileUtils.copyFile(new File(prevRevisionDir, deleteFileName), new File(revisionDir, deleteFileName));
+				}
 			}
-			//FIXME revisionInfo가 두번 업데이트되는 버그수정필요.
-			workingSegmentInfo.updateRevision(revisionInfo);
+			/*
+			 * else 세그먼트가 증가하지 않고 리비전이 증가한 경우.
+			 */
+			
 			collectionContext.updateSegmentInfo(workingSegmentInfo);
 		} else {
+			//추가,삭제 문서 모두 없을때.
 			logger.info("[{}] Indexing Canceled due to no documents.", collectionContext.collectionId());
 			
 			//리비전 디렉토리 삭제.
 			File segmentDir = collectionContext.collectionFilePaths().segmentFile(dataSequence, workingSegmentInfo.getId());
 			File revisionDir = IndexFileNames.getRevisionDir(segmentDir, revisionInfo.getId());
-			FileUtils.deleteDirectory(revisionDir);
-			
-			return null;
+			if(segmentInfo != null && !segmentInfo.equals(workingSegmentInfo)){
+				//세그먼트 증가시 segment디렉토리 삭제.
+				FileUtils.deleteDirectory(segmentDir);
+				logger.info("delete segment dir ={}", segmentDir.getAbsolutePath());
+			}else{
+				//리비전 증가시 revision디렉토리 삭제.
+				FileUtils.deleteDirectory(revisionDir);
+				logger.info("delete revision dir ={}", revisionDir.getAbsolutePath());
+			}
 		}
 
 		return workingSegmentInfo;
@@ -231,7 +259,7 @@ public class CollectionIndexer {
 					segmentWriter.close();
 
 					segmentWriter.getIndexWriteInfo(indexWriteInfoList);
-					logger.debug("segmentWriter close revisionInfo={}", revisionInfo);
+					logger.debug("segmentWriter close {}", revisionInfo);
 				} catch (IOException e) {
 					throw new IRException(e);
 				}
