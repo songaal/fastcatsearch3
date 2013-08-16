@@ -17,7 +17,7 @@ public abstract class NumericField extends Field {
 
 	@Override
 	protected Number parseData(String data) throws FieldDataParseException {
-		if(data == null){
+		if(data == null || data.trim().length() == 0){
 			return null;
 		}
 		

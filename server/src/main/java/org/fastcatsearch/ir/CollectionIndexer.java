@@ -236,6 +236,7 @@ public class CollectionIndexer {
 			while (sourceReader.hasNext()) {
 
 				Document doc = sourceReader.nextDocument();
+//				logger.debug(">> {}", doc.get(0));
 				segmentWriter.addDocument(doc);
 				count++;
 				if (count % 10000 == 0) {

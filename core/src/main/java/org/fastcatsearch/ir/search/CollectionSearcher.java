@@ -290,7 +290,7 @@ public class CollectionSearcher {
 		for (int i = 0; i < realSize; i++) {
 			Document document = eachDocList[i];
 			row[i] = new Row(viewSize);
-			logger.debug("document#{}---------------", i);
+//			logger.debug("document#{}---------------", i);
 			for (int j = 0; j < viewSize; j++) {
 				View view = views.get(j);
 
@@ -304,7 +304,7 @@ public class CollectionSearcher {
 					row[i].put(j, UnknownField.value().toCharArray());
 				} else {
 					Field field = document.get(fieldSequence);
-					logger.debug("field#{} >> {}", j, field);
+//					logger.debug("field#{} >> {}", j, field);
 					String text = null;
 					if (field != null) {
 						text = field.toString();

@@ -216,7 +216,7 @@ public class TempSearchFieldMerger {
 					} else {
 						int firstNo = IOUtil.readVInt(buf);
 						int newDocNo = firstNo - prevDocNo - 1;
-						logger.debug("newDocNo={}, firstNo={}, prevDocNo={}", newDocNo, firstNo, prevDocNo);
+//						logger.debug("newDocNo={}, firstNo={}, prevDocNo={}", newDocNo, firstNo, prevDocNo);
 
 						IOUtil.writeVInt(tempPostingOutput, newDocNo);
 						tempPostingOutput.writeBytes(buf.array(), buf.pos(), buf.remaining());

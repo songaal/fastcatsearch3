@@ -84,6 +84,8 @@ public class Schema {
 		analyzerPoolManager = new AnalyzerPoolManager();
 		
 		List<AnalyzerSetting> analyzerSettingSettingList = schemaSetting.getAnalyzerSettingList();
+		logger.debug("AnalyzerSetting size ={}", analyzerSettingSettingList.size());
+		
 		for(AnalyzerSetting analyzerSetting : analyzerSettingSettingList){
 			String analyzerClassName = analyzerSetting.getAnalyzer();
 			String analyzerId = analyzerSetting.getId();

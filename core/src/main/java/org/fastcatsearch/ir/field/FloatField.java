@@ -7,20 +7,20 @@ import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.io.IOUtil;
 
 public class FloatField extends NumericField {
-	
-	public FloatField(String id){
+
+	public FloatField(String id) {
 		super(id, IOUtil.SIZE_OF_INT);
 	}
-	
+
 	public FloatField(String id, String data) {
 		super(id, data, IOUtil.SIZE_OF_INT);
 	}
-	
+
 	@Override
-	protected Float parseNumber(String data){
+	protected Float parseNumber(String data) {
 		return Float.valueOf(data);
 	}
-	
+
 	@Override
 	public void readFrom(DataInput input) throws IOException {
 		fieldsData = Float.intBitsToFloat(input.readInt());
@@ -28,7 +28,11 @@ public class FloatField extends NumericField {
 
 	@Override
 	public void writeFixedDataTo(DataOutput output, int indexSize, boolean upperCase) throws IOException {
-		output.writeInt(Float.floatToIntBits((Float)fieldsData));
+		if (fieldsData != null) {
+			output.writeInt(Float.floatToIntBits((Float) fieldsData));
+		} else {
+			output.writeInt(Integer.MIN_VALUE);
+		}
 	}
 
 	@Override

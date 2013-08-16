@@ -50,7 +50,7 @@ public class MatchFilter extends FilterFunction {
 				BytesRef patternBuf = patternList[j];
 				int plen = patternBuf.length;
 				
-				logger.debug("Match Filter patternSize[{}] dataSize[{}] data[{}]", plen, bytesRef.length(), new String(bytesRef.toUCharArray()));
+//				logger.debug("Match Filter patternSize[{}] dataSize[{}] data[{}]", plen, bytesRef.length(), new String(bytesRef.toUCharArray()));
 				//Match에서는 패턴이 데이터보다 크면 match확인필요없음. 다음으로 진행.
 				if(plen > bytesRef.length()) {
 					continue;

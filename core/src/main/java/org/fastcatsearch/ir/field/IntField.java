@@ -28,7 +28,11 @@ public class IntField extends NumericField {
 	
 	@Override
 	public void writeFixedDataTo(DataOutput output, int indexSize, boolean upperCase) throws IOException {
-		output.writeInt(((Integer)fieldsData).intValue());
+		if(fieldsData != null){
+			output.writeInt(((Integer)fieldsData).intValue());
+		}else{
+			output.writeInt(Integer.MIN_VALUE);
+		}
 	}
 
 	@Override

@@ -7,29 +7,32 @@ import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.io.IOUtil;
 
 public class DoubleField extends NumericField {
-	
-	public DoubleField(String id){
+
+	public DoubleField(String id) {
 		super(id, IOUtil.SIZE_OF_LONG);
 	}
-	
+
 	public DoubleField(String id, String data) {
 		super(id, data, IOUtil.SIZE_OF_LONG);
 	}
-	
+
 	@Override
-	protected Double parseNumber(String data){
+	protected Double parseNumber(String data) {
 		return Double.valueOf(data);
 	}
-	
+
 	@Override
 	public void readFrom(DataInput input) throws IOException {
 		fieldsData = Double.longBitsToDouble(input.readLong());
 	}
-	
 
 	@Override
 	public void writeFixedDataTo(DataOutput output, int indexSize, boolean upperCase) throws IOException {
-		output.writeLong(Double.doubleToLongBits((Double)fieldsData));
+		if (fieldsData != null) {
+			output.writeLong(Double.doubleToLongBits((Double) fieldsData));
+		} else {
+			output.writeLong(Long.MIN_VALUE);
+		}
 	}
 
 	@Override

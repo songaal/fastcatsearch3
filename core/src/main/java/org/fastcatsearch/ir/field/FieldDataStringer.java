@@ -8,6 +8,7 @@ import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.util.Formatter;
 
 public class FieldDataStringer {
+	public static final String NULL_STRING = "NULL";
 	
 	public static String parse(FieldSetting.Type type, BytesRef byteRef){
 		if(type == FieldSetting.Type.INT){
@@ -30,23 +31,43 @@ public class FieldDataStringer {
 	}
 	
 	private static String parseIntType(byte[] bytes, int offset){
-		return Integer.toString(IOUtil.readInt(bytes, offset));
+		int value = IOUtil.readInt(bytes, offset);
+		if(value == Integer.MIN_VALUE){
+			return NULL_STRING;
+		}
+		return Integer.toString(value);
 	}
 	
 	private static String parseLongType(byte[] bytes, int offset){
-		return Long.toString(IOUtil.readLong(bytes, offset));
+		long value = IOUtil.readLong(bytes, offset);
+		if(value == Long.MIN_VALUE){
+			return NULL_STRING;
+		}
+		return Long.toString(value);
 	}
 	
 	private static String parseFloatType(byte[] bytes, int offset){
-		return Float.toString(Float.intBitsToFloat(IOUtil.readInt(bytes, offset)));
+		int value = IOUtil.readInt(bytes, offset);
+		if(value == Integer.MIN_VALUE){
+			return NULL_STRING;
+		}
+		return Float.toString(Float.intBitsToFloat(value));
 	}
 	
 	private static String parseDoubleType(byte[] bytes, int offset){
-		return Double.toString(Double.longBitsToDouble(IOUtil.readLong(bytes, offset)));
+		long value = IOUtil.readLong(bytes, offset);
+		if(value == Long.MIN_VALUE){
+			return NULL_STRING;
+		}
+		return Double.toString(Double.longBitsToDouble(value));
 	}
 	
 	private static String parseDateTimeType(byte[] bytes, int offset){
-		return Formatter.formatDate(new Date(IOUtil.readLong(bytes, offset)));
+		long value = IOUtil.readLong(bytes, offset);
+		if(value == Long.MIN_VALUE){
+			return NULL_STRING;
+		}
+		return Formatter.formatDate(new Date(value));
 	}
 	
 	private static String parseUStringType(byte[] bytes, int offset, int length){

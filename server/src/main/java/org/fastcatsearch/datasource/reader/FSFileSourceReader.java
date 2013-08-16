@@ -60,10 +60,10 @@ public class FSFileSourceReader extends SingleSourceReader {
 		try {
 			File file = null;
 			if (isFull) {
-				file = new Path(filePath).makePath(config.getFullFilePath()).file();
+				file = filePath.makePath(config.getFullFilePath()).file();
 				br = new DirBufferedReader(file, fileEncoding);
 			} else {
-				file = new Path(filePath).makePath(config.getIncFilePath()).file();
+				file = filePath.makePath(config.getIncFilePath()).file();
 				br = new DirBufferedReader(file, fileEncoding);
 			}
 			logger.info("Collect file = {}, {}", file.getAbsolutePath(), fileEncoding);

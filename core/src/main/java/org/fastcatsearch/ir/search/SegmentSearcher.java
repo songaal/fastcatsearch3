@@ -165,13 +165,13 @@ public class SegmentSearcher {
 				if (!localDeleteSet.isSet(rankInfo.docNo())) {
 					rankInfoList[count] = rankInfo;
 					count++;
-					logger.debug("ok docNo = {}", rankInfo.docNo());
+//					logger.debug("ok docNo = {}", rankInfo.docNo());
 				} else {
 					logger.debug("deleted docNo = {}", rankInfo.docNo());
 				}
 
 			}
-			logger.debug("check delete docs {} => {}", nread, count);
+//			logger.debug("check delete docs {} => {}", nread, count);
 			nread = count;
 
 			// group

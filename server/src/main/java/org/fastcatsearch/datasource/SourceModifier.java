@@ -27,7 +27,7 @@ public abstract class SourceModifier {
 	
 	protected static Logger logger = LoggerFactory.getLogger(SourceModifier.class);
 			
-	public abstract String modify(String fieldName, Map<String, Object> keyValueMap) throws IRException;
+	public abstract void modify(Map<String, Object> keyValueMap) throws IRException;
 	
 	public abstract void init(Object obj);
 }

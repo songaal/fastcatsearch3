@@ -24,7 +24,7 @@ public class DatetimeField extends Field {
 
 	@Override
 	protected Date parseData(String data) {
-		if (rawString == null) {
+		if (data == null) {
 			return null;
 		}
 		
@@ -51,7 +51,11 @@ public class DatetimeField extends Field {
 
 	@Override
 	public void writeFixedDataTo(DataOutput output, int indexSize, boolean upperCase) throws IOException {
-		output.writeLong(((Date) fieldsData).getTime());
+		if(fieldsData != null){
+			output.writeLong(((Date) fieldsData).getTime());
+		}else{
+			output.writeLong(Long.MIN_VALUE);
+		}
 	}
 
 	@Override

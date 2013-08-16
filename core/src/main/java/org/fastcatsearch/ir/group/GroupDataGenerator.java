@@ -219,7 +219,7 @@ public class GroupDataGenerator {
 								groupFunction.addValue(groupNo, value);
 							}
 						}else{
-							logger.debug("add group value groupNo={} val={}", groupNo, value);
+//							logger.debug("add group value groupNo={} val={}", groupNo, value);
 							groupFunction.addValue(groupNo, value);
 						}
 					}

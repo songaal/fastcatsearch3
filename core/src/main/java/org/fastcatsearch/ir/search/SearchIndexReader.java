@@ -427,7 +427,7 @@ public class SearchIndexReader implements Cloneable {
 				}
 
 			}
-			logger.debug("getTermDocs {} >> {} : {} / {}", singleTerm, docId, tf, positions);
+//			logger.debug("getTermDocs {} >> {} : {} / {}", singleTerm, docId, tf, positions);
 
 			termDocList[i] = new PostingDoc(docId, tf, positions);
 			prevId = docId;

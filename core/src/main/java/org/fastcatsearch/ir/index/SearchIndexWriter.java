@@ -157,6 +157,10 @@ public class SearchIndexWriter {
 	}
 
 	private void indexValue(int docNo, Object value, boolean upperCase, int positionIncrementGap) throws IOException, IRException {
+		if(value == null){
+			return;
+		}
+		
 		char[] fieldValue = value.toString().toCharArray();
 		TokenStream tokenStream = analyzer.tokenStream(indexId, new CharArrayReader(fieldValue));
 		tokenStream.reset();

@@ -111,7 +111,7 @@ public class DBReader extends SingleSourceReader {
 
 				useBackup = (config.getFullBackupPath() != null && config.getFullBackupPath().length() > 0);
 				if (useBackup) {
-					backupWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(filePath, config.getFullBackupPath())),
+					backupWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath.makePath(config.getFullBackupPath()).file()),
 							config.getBackupFileEncoding()));
 					deleteFileName = config.getFullBackupPath() + ".delete";
 				}
@@ -146,7 +146,7 @@ public class DBReader extends SingleSourceReader {
 				pstmt = con.prepareStatement(q(config.getIncQuery()));
 				useBackup = (config.getIncBackupPath() != null && config.getIncBackupPath().length() > 0);
 				if (useBackup) {
-					backupWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(filePath, config.getIncBackupPath())),
+					backupWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath.makePath(config.getIncBackupPath()).file()),
 							config.getBackupFileEncoding()));
 					deleteFileName = config.getIncBackupPath() + ".delete";
 				}
@@ -249,7 +249,7 @@ public class DBReader extends SingleSourceReader {
 		if (useBackup) {
 			try {
 				BufferedWriter deleteBackupWriter = new BufferedWriter(new OutputStreamWriter(
-						new FileOutputStream(new File(filePath, deleteFileName)), config.getBackupFileEncoding()));
+						new FileOutputStream(filePath.makePath(deleteFileName).file()), config.getBackupFileEncoding()));
 				Iterator<PrimaryKeys> iter = deleteIdList.iterator();
 
 				while (iter.hasNext()) {
