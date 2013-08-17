@@ -1,17 +1,33 @@
 package org.fastcatsearch.service.action;
 
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.Writer;
 
+import org.fastcatsearch.ir.io.ByteRefArrayOutputStream;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
 public class ActionResponse {
 	private Object contentType;
-	private byte[] content;
-	private int offset;
-	private int length;
-
+//	private byte[] content;
+//	private int offset;
+//	private int length;
+	private HttpResponseStatus status;
+	private PrintWriter writer;
+	ByteRefArrayOutputStream baos;
+	
+	public ActionResponse(){
+		baos = new ByteRefArrayOutputStream();
+		writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(baos)));
+	}
+	
 	public void setContentType(String contentType){
 		this.contentType = contentType;
+	}
+	
+	public void setStatus(HttpResponseStatus status){
+		this.status = status;
 	}
 	
 	public boolean contentThreadSafe(){
@@ -19,32 +35,33 @@ public class ActionResponse {
 	}
 	
 	public HttpResponseStatus status() {
-		return null;
+		return status;
 	}
 
 	public Writer getWriter(){
-		//TODO 
-		//쉽게 쓸수있는 String Writer를 넘겨준다.
-		//
-		
-		return null;
+		return writer;
 		
 	}
-	public void setContent(byte[] content, int offset, int length){
-		this.content = content;
-		this.offset = offset;
-		this.length = length;
+//	public void setContent(byte[] content, int offset, int length){
+//		this.content = content;
+//		this.offset = offset;
+//		this.length = length;
+//	}
+	
+	public void flush(){
+		writer.flush();
 	}
+	
 	public byte[] content() {
-		return content;
+		return baos.array();
 	}
 
 	public int contentOffset() {
-		return offset;
+		return 0;
 	}
 
 	public int contentLength() {
-		return length;
+		return baos.length();
 	}
 
 	public Object contentType() {

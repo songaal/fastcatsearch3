@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -144,26 +145,55 @@ public class SettingManager {
 			if(obj != null){
 				return (Settings) obj;
 			}
-			File configFile = environment.filePaths().configPath().path(yamlSettingName).file();
-	        InputStream input = null;
-	        try{
-	        	Yaml yaml = new Yaml();
-	        	input = new FileInputStream(configFile);
-	        	Map<String, Object> data = (Map<String, Object>) yaml.load(input);
-	        	serverSettings = new Settings(data);
-	        	putToCache(serverSettings, yamlSettingName);
-	        } catch (FileNotFoundException e) {
-	        	logger.error("설정파일을 찾을수 없습니다. file = {}", configFile.getAbsolutePath());
-			} finally {
-	        	if(input != null){
-	        		try {
-						input.close();
-					} catch (IOException ignore) {
-					}
-	        	}
-	        }
+			
+			
+			serverSettings = loadSetting(yamlSettingName);
+			putToCache(serverSettings, yamlSettingName);
 		}
 		
 		return serverSettings;
+	}
+
+	private void loadAndMerge(String string, Settings targetSettings) {
+		Settings settings = loadSetting(string);
+		targetSettings.overrideSettings(settings);
+		
+	}
+
+	private Settings loadSetting(String yamlSettingName) {
+		Settings serverSettings = null;
+		File configFile = environment.filePaths().configPath().path(yamlSettingName).file();
+        InputStream input = null;
+        try{
+        	Yaml yaml = new Yaml();
+        	input = new FileInputStream(configFile);
+        	Map<String, Object> data = (Map<String, Object>) yaml.load(input);
+        	serverSettings = new Settings(data);
+        	
+        	Object includeObj = data.get("include");
+        	if(includeObj != null){
+        		if(includeObj instanceof List){
+        			List<String> settingNameList = (List<String>) includeObj;
+        			for (int i = 0; i < settingNameList.size(); i++) {
+        				loadAndMerge(settingNameList.get(i), serverSettings);
+					}
+        		}else{
+        			String settingName = (String) includeObj;
+        			loadAndMerge(settingName, serverSettings);
+        		}
+        	}
+        	putToCache(serverSettings, yamlSettingName);
+        } catch (FileNotFoundException e) {
+        	logger.error("설정파일을 찾을수 없습니다. file = {}", configFile.getAbsolutePath());
+		} finally {
+        	if(input != null){
+        		try {
+					input.close();
+				} catch (IOException ignore) {
+				}
+        	}
+        }
+        
+        return serverSettings;
 	}
 }

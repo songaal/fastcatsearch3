@@ -7,13 +7,15 @@ public abstract class HttpAction implements Runnable {
 	
 	HttpRequest request;
 	HttpChannel httpChannel;
+	ActionResponse response;
 	
-	public HttpAction(HttpRequest request, HttpChannel httpChannel){
+	public HttpAction(){
+	}
+	
+	public void setRequest(HttpRequest request, HttpChannel httpChannel){
 		this.request = request;
 		this.httpChannel = httpChannel;
 	}
-	
-	
 	
 	abstract public void doAction(HttpRequest request, ActionResponse response) throws ActionException;
 		

@@ -37,7 +37,7 @@ public class ServiceManager {
 			serviceMap.put(serviceClass, t);
 			return t;
 		} catch (Exception e) {
-			logger.error("can not make instance of class <{}>, {}", serviceClass.getName(), e);
+			logger.error("can not make instance of class <"+serviceClass.getName()+">, {}", e);
 		}
 		return null;
 	}

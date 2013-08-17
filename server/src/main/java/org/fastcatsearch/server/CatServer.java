@@ -20,6 +20,7 @@ import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.http.HttpRequestService;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.management.ManagementInfoService;
 import org.fastcatsearch.notification.NotificationService;
@@ -162,6 +163,7 @@ public class CatServer {
 			}
 		}
 		
+		HttpRequestService httpRequestService = serviceManager.createService("http", HttpRequestService.class);
 		NotificationService notificationService = serviceManager.createService("notification", NotificationService.class);
 		ClusterAlertService clusterAlertService = serviceManager.createService("alert", ClusterAlertService.class);
 		clusterAlertService.asSingleton();
@@ -186,6 +188,8 @@ public class CatServer {
 			
 			if (webService != null)
 				webService.start();
+			
+			httpRequestService.start();
 			
 			notificationService.start();
 			clusterAlertService.start();
@@ -242,6 +246,8 @@ public class CatServer {
 		serviceManager.stopService(NotificationService.class);
 		serviceManager.stopService(ClusterAlertService.class);
 		serviceManager.stopService(ProcessLoggerService.class);
+
+		serviceManager.stopService(HttpRequestService.class);
 		
 		serviceManager.stopService(PluginService.class);
 		serviceManager.stopService(NodeService.class);
@@ -263,6 +269,8 @@ public class CatServer {
 		serviceManager.closeService(NotificationService.class);
 		serviceManager.closeService(ClusterAlertService.class);
 		serviceManager.closeService(ProcessLoggerService.class);
+		
+		serviceManager.closeService(HttpRequestService.class);
 		
 		serviceManager.closeService(PluginService.class);
 		serviceManager.closeService(NodeService.class);

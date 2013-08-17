@@ -7,8 +7,7 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 
 public class SearchHttpAction extends HttpAction {
 
-	public SearchHttpAction(HttpRequest request, HttpChannel httpChannel) {
-		super(request, httpChannel);
+	public SearchHttpAction() {
 	}
 
 	@Override
@@ -21,7 +20,7 @@ public class SearchHttpAction extends HttpAction {
 			e.printStackTrace();
 		}
 		response.setContentType("");
-		response.setContent(buffer, 0, buffer.length);
+//		response.setContent(buffer, 0, buffer.length);
 	}
 
 }

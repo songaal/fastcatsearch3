@@ -29,10 +29,10 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 @ChannelHandler.Sharable
 public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 
-    private final HttpTransportModule serverTransport;
+    private final HttpTransportModule httpTransportModule;
 
     public HttpRequestHandler(HttpTransportModule serverTransport) {
-        this.serverTransport = serverTransport;
+        this.httpTransportModule = serverTransport;
     }
 
     @Override
@@ -40,12 +40,12 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         HttpRequest request = (HttpRequest) e.getMessage();
         // the netty HTTP handling always copy over the buffer to its own buffer, either in NioWorker internally
         // when reading, or using a cumalation buffer
-        serverTransport.dispatchRequest(request, new NettyHttpChannel(e.getChannel(), request));
+        httpTransportModule.dispatchRequest(request, new NettyHttpChannel(e.getChannel(), request));
         super.messageReceived(ctx, e);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
-        serverTransport.exceptionCaught(ctx, e);
+        httpTransportModule.exceptionCaught(ctx, e);
     }
 }

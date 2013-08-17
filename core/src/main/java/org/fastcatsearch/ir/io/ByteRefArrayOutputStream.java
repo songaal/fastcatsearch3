@@ -18,4 +18,12 @@ public class ByteRefArrayOutputStream extends ByteArrayOutputStream {
 	public BytesRef getBytesRef(){
 		return new BytesRef(buf, 0, count);
 	}
+	
+	public byte[] array(){
+		return buf;
+	}
+	
+	public int length(){
+		return count;
+	}
 }
