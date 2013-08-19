@@ -1,4 +1,4 @@
-package org.fastcatsearch.service.action;
+package org.fastcatsearch.http.service.action;
 
 public class ActionException extends Exception {
 

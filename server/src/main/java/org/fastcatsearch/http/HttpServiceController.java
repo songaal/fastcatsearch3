@@ -1,15 +1,9 @@
 package org.fastcatsearch.http;
 
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
-import org.fastcatsearch.service.action.ActionResponse;
-import org.fastcatsearch.service.action.HttpAction;
-import org.fastcatsearch.util.DynamicClassLoader;
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.fastcatsearch.http.service.action.HttpAction;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
@@ -20,60 +14,50 @@ public class HttpServiceController {
 
 	private ExecutorService executorService;
 	Map<String, Class<HttpAction>> actionMap;
-	
+
 	public HttpServiceController(ExecutorService executorService) {
 		this.executorService = executorService;
 	}
 
 	public void dispatchRequest(HttpRequest request, HttpChannel httpChannel) {
 		// request에서 uri를 보고 외부요청을 확인하여 channel에 최종 결과를 write한다.
-
-		String uri = getAction(request);
-		if (uri != null) {
-			Class clazz = actionMap.get(uri);
-			HttpAction action;
+		HttpAction action = createAction(request, httpChannel);
+		if (action != null) {
 			try {
-				action = (HttpAction) clazz.newInstance();
-				action.setRequest(request, httpChannel);
 				executorService.execute(action);
-				
 			} catch (Exception e) {
-				e.printStackTrace();
+				logger.error("Action job allocation error!", e);
 			}
 		}else{
-			ActionResponse response = new ActionResponse();
-//			response.setContentType("json");
-//			String contentStr = "<result><title>맛있는 미식가</title><price>1200</price></result>";
-			
-			response.setContentType("html");
-			response.setStatus(HttpResponseStatus.OK);
-			
-			String contentStr = "<html><body><h1>제목</h1><h3>sub title</h3></body></html>";
-			try {
-				response.getWriter().write(contentStr);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			httpChannel.sendResponse(response);
+			httpChannel.sendError(HttpResponseStatus.NOT_FOUND, null);
 		}
 	}
 
-	private String getAction(HttpRequest request) {
+	private HttpAction createAction(HttpRequest request, HttpChannel httpChannel) {
 		String uri = request.getUri();
 		logger.debug("URI : {}, method={}, version={}", uri, request.getMethod(), request.getProtocolVersion());
-		logger.debug("headers : {}", request.getHeaderNames());
-		long len = HttpHeaders.getContentLength(request);
-		ChannelBuffer buffer =  request.getContent();
-		String str = new String(buffer.array(), 0, (int) len);
-		logger.debug(">> {} : content : {}",len, str);
-
-		//
-		// TODO
-		//
+		// uri의 파라미터 제거
+		int pos = uri.indexOf("?");
+		if (pos > 0) {
+			uri = uri.substring(0, pos);
+		}
+		Class<HttpAction> clazz = actionMap.get(uri);
+		ActionRequest actionRequest = null;
+		if(clazz == null) {
+			return null;
+		}else{
+			actionRequest = new ActionRequest(uri, request);
+		}
 		
-		
-		
-		return null;
+		HttpAction action = null;
+		try {
+			action = clazz.newInstance();
+		} catch (Exception e) {
+			logger.error("Action class instance error!", e);
+			return null;
+		}
+		action.setRequest(actionRequest, httpChannel);
+		return action;
 	}
 
 	public void setActionMap(Map<String, Class<HttpAction>> actionMap) {

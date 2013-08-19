@@ -19,7 +19,11 @@
 
 package org.fastcatsearch.http;
 
-import org.fastcatsearch.service.action.ActionResponse;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.charset.Charset;
+
+import org.fastcatsearch.http.service.action.ActionResponse;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -47,7 +51,6 @@ public class NettyHttpChannel implements HttpChannel {
 	}
 
 	public void sendResponse(ActionResponse response) {
-		response.flush();
 
 		// Decide whether to close the connection or not.
 		boolean http10 = request.getProtocolVersion().equals(HttpVersion.HTTP_1_0);
@@ -66,18 +69,19 @@ public class NettyHttpChannel implements HttpChannel {
 			resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1, status);
 		}
 
-		ChannelBuffer buf = null;
-		if (response.contentThreadSafe()) {
-			buf = ChannelBuffers.wrappedBuffer(response.content(), response.contentOffset(), response.contentLength());
-		} else {
-			buf = ChannelBuffers.copiedBuffer(response.content(), response.contentOffset(), response.contentLength());
+		if (!response.isEmpty()) {
+			ChannelBuffer buf = null;
+			if (response.contentThreadSafe()) {
+				buf = ChannelBuffers.wrappedBuffer(response.content(), response.contentOffset(), response.contentLength());
+			} else {
+				buf = ChannelBuffers.copiedBuffer(response.content(), response.contentOffset(), response.contentLength());
+			}
+			//
+			resp.setContent(buf);
+			resp.setHeader(HttpHeaders.Names.CONTENT_TYPE, response.contentType());
+
+			resp.setHeader(HttpHeaders.Names.CONTENT_LENGTH, String.valueOf(buf.readableBytes()));
 		}
-		//
-		resp.setContent(buf);
-		resp.setHeader(HttpHeaders.Names.CONTENT_TYPE, response.contentType());
-
-		resp.setHeader(HttpHeaders.Names.CONTENT_LENGTH, String.valueOf(buf.readableBytes()));
-
 		// Write the response.
 		ChannelFuture future = channel.write(resp);
 
@@ -85,6 +89,62 @@ public class NettyHttpChannel implements HttpChannel {
 		if (close) {
 			future.addListener(ChannelFutureListener.CLOSE);
 		}
+	}
+
+	public void sendError(HttpResponseStatus status, Throwable throwable) {
+		// Decide whether to close the connection or not.
+		boolean http10 = request.getProtocolVersion().equals(HttpVersion.HTTP_1_0);
+		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.CONNECTION))
+				|| (http10 && !HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.CONNECTION)));
+
+		// Build the response object.
+		org.jboss.netty.handler.codec.http.HttpResponse resp;
+		if (http10) {
+			resp = new DefaultHttpResponse(HttpVersion.HTTP_1_0, status);
+			if (!close) {
+				resp.addHeader(HttpHeaders.Names.CONNECTION, "Keep-Alive");
+			}
+		} else {
+			resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1, status);
+		}
+
+		String cause = getErrorHtml(status, throwable);
+		byte[] errorMessage = cause.getBytes(Charset.forName("UTF-8"));
+		ChannelBuffer buf = ChannelBuffers.wrappedBuffer(errorMessage);
+		resp.setContent(buf);
+		resp.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/html");
+		resp.setHeader(HttpHeaders.Names.CONTENT_ENCODING, "UTF-8");
+		resp.setHeader(HttpHeaders.Names.CONTENT_LENGTH, buf.readableBytes());
+		// Write the response.
+		ChannelFuture future = channel.write(resp);
+
+		// Close the connection after the write operation is done if necessary.
+		if (close) {
+			future.addListener(ChannelFutureListener.CLOSE);
+		}
+	}
+
+	private String getErrorHtml(HttpResponseStatus status, Throwable throwable) {
+		String stackTrace = null;
+		if(throwable != null){
+			StringWriter sw = new StringWriter();
+			PrintWriter s = new PrintWriter(sw);
+			throwable.printStackTrace(s);
+			stackTrace = sw.toString();
+		}
+		return "<html>\n" + 
+				"<head>\n" + 
+				"<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"/>\n" + 
+				"<title>Error "+status.toString()+"</title>\n" + 
+				"</head>\n" + 
+				"<body>\n" + 
+				"<h2>HTTP ERROR: "+status.getCode()+"</h2>\n" + 
+				"<p>Problem accessing /asklfljasf. Reason:\n" + 
+				"<pre>    "+status.getReasonPhrase() +
+				(stackTrace != null ? "\n\n"+stackTrace : "")+"</pre></p>\n" + 
+				"<hr /><i><small>Powered by FastcatSearch</small></i>\n" + 
+				"</body>\n" + 
+				"</html>";
 	}
 
 }

@@ -1,4 +1,4 @@
-package org.fastcatsearch.service.action;
+package org.fastcatsearch.http.service.action;
 
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
@@ -9,51 +9,60 @@ import org.fastcatsearch.ir.io.ByteRefArrayOutputStream;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
 public class ActionResponse {
+
 	private Object contentType;
-//	private byte[] content;
-//	private int offset;
-//	private int length;
+	// private byte[] content;
+	// private int offset;
+	// private int length;
 	private HttpResponseStatus status;
 	private PrintWriter writer;
 	ByteRefArrayOutputStream baos;
-	
-	public ActionResponse(){
+	boolean isEmpty;
+
+	public ActionResponse() {
 		baos = new ByteRefArrayOutputStream();
 		writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(baos)));
 	}
-	
-	public void setContentType(String contentType){
+
+	public ActionResponse(HttpResponseStatus status) {
+		setStatus(status);
+		contentType = "text/html";
+		isEmpty = true;
+	}
+
+	public void setContentType(String contentType) {
 		this.contentType = contentType;
 	}
-	
-	public void setStatus(HttpResponseStatus status){
+
+	public void setStatus(HttpResponseStatus status) {
 		this.status = status;
 	}
-	
-	public boolean contentThreadSafe(){
+
+	public boolean contentThreadSafe() {
 		return false;
 	}
-	
+
 	public HttpResponseStatus status() {
 		return status;
 	}
 
-	public Writer getWriter(){
+	public PrintWriter getWriter() {
 		return writer;
-		
+
 	}
-//	public void setContent(byte[] content, int offset, int length){
-//		this.content = content;
-//		this.offset = offset;
-//		this.length = length;
-//	}
-	
-	public void flush(){
-		writer.flush();
+
+	public void close() {
+		if (!isEmpty) {
+			writer.close();
+		}
 	}
-	
+
 	public byte[] content() {
-		return baos.array();
+		if (!isEmpty) {
+			return baos.array();
+		} else {
+			return null;
+		}
 	}
 
 	public int contentOffset() {
@@ -61,10 +70,18 @@ public class ActionResponse {
 	}
 
 	public int contentLength() {
-		return baos.length();
+		if (!isEmpty) {
+			return baos.length();
+		} else {
+			return 0;
+		}
 	}
 
 	public Object contentType() {
 		return contentType;
+	}
+
+	public boolean isEmpty() {
+		return false;
 	}
 }

@@ -8,9 +8,9 @@ import java.util.concurrent.ExecutorService;
 import org.fastcatsearch.common.ThreadPoolFactory;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.http.service.action.HttpAction;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.service.action.HttpAction;
 import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.util.DynamicClassLoader;
 import org.jboss.netty.handler.codec.http.HttpRequest;
@@ -37,6 +37,9 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 			String uri = action.getString("uri");
 			String actionClassName = action.getString("action");
 			Class<HttpAction> actionObj = (Class<HttpAction>) DynamicClassLoader.loadClass(actionClassName);
+			
+			
+			logger.debug("uri:{}, action:{}", uri, actionObj);
 			actionMap.put(uri,  actionObj);
 		}
 		serviceController.setActionMap(actionMap);
