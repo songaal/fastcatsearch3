@@ -13,7 +13,7 @@ import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.util.JSONResultWriter;
 import org.fastcatsearch.util.ResultWriter;
-import org.fastcatsearch.util.StringifyException;
+import org.fastcatsearch.util.ResultWriterException;
 import org.fastcatsearch.util.XMLResultWriter;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,7 +64,7 @@ public class SearchResultWriterTest {
 	}
 	
 	@Test
-	public void testJson() throws StringifyException, IOException {
+	public void testJson() throws ResultWriterException, IOException {
 		StringWriter writer = new StringWriter();
 		ResultWriter stringer = new JSONResultWriter(writer);
 		SearchResultWriter resultWriter = new SearchResultWriter(stringer);
@@ -76,7 +76,7 @@ public class SearchResultWriterTest {
 	}
 	
 	@Test
-	public void testXML() throws StringifyException, IOException {
+	public void testXML() throws ResultWriterException, IOException {
 		StringWriter writer = new StringWriter();
 		XMLResultWriter stringer = new XMLResultWriter(writer, "fastcatsearch", true);
 		SearchResultWriter resultWriter = new SearchResultWriter(stringer);

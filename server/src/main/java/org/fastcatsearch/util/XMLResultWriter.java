@@ -52,7 +52,7 @@ public class XMLResultWriter implements ResultWriter {
 	}
 	
 	@Override
-	public ResultWriter object() throws StringifyException {
+	public ResultWriter object() throws ResultWriterException {
 		if(types.size()>0 && types.get(types.size()-1)==NODE_TYPE.ARRAY) {
 			types.add(NODE_TYPE.OBJECT);
 			currentElement = currentElement.addElement(arrayName.get(arrayName.size()-1));
@@ -61,7 +61,7 @@ public class XMLResultWriter implements ResultWriter {
 	}
 
 	@Override
-	public ResultWriter endObject() throws StringifyException {
+	public ResultWriter endObject() throws ResultWriterException {
 		if(types.size()>1 && types.get(types.size()-2)==NODE_TYPE.ARRAY) {
 			types.remove(types.size()-1);
 			currentElement = currentElement.getParent();
@@ -70,7 +70,7 @@ public class XMLResultWriter implements ResultWriter {
 	}
 
 	@Override
-	public ResultWriter array(String arrayName) throws StringifyException {
+	public ResultWriter array(String arrayName) throws ResultWriterException {
 		if(types.size()>0 && types.get(types.size()-1)==NODE_TYPE.ARRAY) {
 			currentElement = currentElement.addElement(this.arrayName.get(
 					this.arrayName.size()-1));
@@ -81,7 +81,7 @@ public class XMLResultWriter implements ResultWriter {
 	}
 
 	@Override
-	public ResultWriter endArray() throws StringifyException {
+	public ResultWriter endArray() throws ResultWriterException {
 		currentElement = currentElement.getParent();
 		types.remove(types.size()-1);
 		this.arrayName.remove(arrayName.size()-1);
@@ -89,13 +89,13 @@ public class XMLResultWriter implements ResultWriter {
 	}
 
 	@Override
-	public ResultWriter key(String key) throws StringifyException {
+	public ResultWriter key(String key) throws ResultWriterException {
 		currentElement = currentElement.addElement(key);
 		return this;
 	}
 
 	@Override
-	public ResultWriter value(Object obj) throws StringifyException {
+	public ResultWriter value(Object obj) throws ResultWriterException {
 		
 		if(types.size()!=0 && types.get(types.size()-1)==NODE_TYPE.ARRAY) {
 			currentElement = currentElement.addElement(arrayName.get(arrayName.size()-1));

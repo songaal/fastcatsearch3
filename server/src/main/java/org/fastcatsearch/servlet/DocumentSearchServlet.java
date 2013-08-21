@@ -31,7 +31,7 @@ import org.fastcatsearch.job.DocumentSearchJob;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.util.ResultWriter;
-import org.fastcatsearch.util.StringifyException;
+import org.fastcatsearch.util.ResultWriterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +66,7 @@ public class DocumentSearchServlet extends AbstractDocumentSearchServlet {
 		
 		try {
 			resultWriter.writeResult(result, rStringer, searchTime, resultFuture.isSuccess());
-		} catch (StringifyException e) {
+		} catch (ResultWriterException e) {
 			logger.error("",e);
 		}
 		

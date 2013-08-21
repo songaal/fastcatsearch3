@@ -1,11 +1,11 @@
 package org.fastcatsearch.util;
 
 public interface ResultWriter {
-	public ResultWriter object() throws StringifyException;
-	public ResultWriter endObject() throws StringifyException;
-	public ResultWriter array(String arrayName) throws StringifyException;
-	public ResultWriter endArray() throws StringifyException;
-	public ResultWriter key (String key) throws StringifyException;
-	public ResultWriter value (Object obj) throws StringifyException;
+	public ResultWriter object() throws ResultWriterException;
+	public ResultWriter endObject() throws ResultWriterException;
+	public ResultWriter array(String arrayName) throws ResultWriterException;
+	public ResultWriter endArray() throws ResultWriterException;
+	public ResultWriter key (String key) throws ResultWriterException;
+	public ResultWriter value (Object obj) throws ResultWriterException;
 	public void done();
 }

@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.util.ResultWriter;
-import org.fastcatsearch.util.StringifyException;
+import org.fastcatsearch.util.ResultWriterException;
 
 
 public class PopularKeywordServlet extends WebServiceHttpServlet {
@@ -62,7 +62,7 @@ public class PopularKeywordServlet extends WebServiceHttpServlet {
     			writer.close();
     			return;
     			
-    		} catch (StringifyException e) {
+    		} catch (ResultWriterException e) {
 	    		logger.error("exception",e);
 	    		throw new IOException(e.toString());
     		}

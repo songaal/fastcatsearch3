@@ -11,7 +11,7 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 public abstract class ServiceAction extends HttpAction {
 	
 	public static final String DEFAULT_CHARSET = "utf-8";
-	public static enum Type { json, xml, jsonp };
+	public static enum Type { json, xml, jsonp, html };
 	protected Type resultType;
 	
 	public ServiceAction(String type){
@@ -25,6 +25,8 @@ public abstract class ServiceAction extends HttpAction {
 				return Type.xml;
 			}else if(typeStr.equalsIgnoreCase(Type.jsonp.name())){
 				return Type.jsonp;
+			}else if(typeStr.equalsIgnoreCase(Type.html.name())){
+				return Type.html;
 			}
 		}
 		return Type.json;
@@ -41,19 +43,23 @@ public abstract class ServiceAction extends HttpAction {
 			response.setContentType("application/json; charset=" + responseCharset);
 		} else if (resultType == Type.xml) {
 			response.setContentType("text/xml; charset=" + responseCharset);
+		} else if (resultType == Type.html) {
+			response.setContentType("text/html; charset=" + responseCharset);
+		} else {
+			response.setContentType("application/json; charset=" + responseCharset);
 		}
 	}
 	
 	protected ResultWriter getResultWriter(Writer writer, String rootElement, boolean isBeautify, String jsonCallback) {
-		ResultWriter rStringer = null;
+		ResultWriter resultWriter = null;
 		if (resultType == Type.json) {
-			rStringer = new JSONResultWriter(writer, isBeautify);
+			resultWriter = new JSONResultWriter(writer, isBeautify);
 		} else if (resultType == Type.jsonp) {
-			rStringer = new JSONPResultWriter(writer, jsonCallback, isBeautify);
+			resultWriter = new JSONPResultWriter(writer, jsonCallback, isBeautify);
 		} else if (resultType == Type.xml) {
-			rStringer = new XMLResultWriter(writer, rootElement, isBeautify);
+			resultWriter = new XMLResultWriter(writer, rootElement, isBeautify);
 		}
-		return rStringer;
+		return resultWriter;
 	}
 
 }

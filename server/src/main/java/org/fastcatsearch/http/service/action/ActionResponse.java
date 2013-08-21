@@ -3,7 +3,6 @@ package org.fastcatsearch.http.service.action;
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.io.Writer;
 
 import org.fastcatsearch.ir.io.ByteRefArrayOutputStream;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
@@ -11,9 +10,6 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 public class ActionResponse {
 
 	private Object contentType;
-	// private byte[] content;
-	// private int offset;
-	// private int length;
 	private HttpResponseStatus status;
 	private PrintWriter writer;
 	ByteRefArrayOutputStream baos;

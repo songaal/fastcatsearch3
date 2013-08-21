@@ -27,62 +27,62 @@ public class JSONResultWriter implements ResultWriter {
 	}
 
 	@Override
-	public ResultWriter object() throws StringifyException {
+	public ResultWriter object() throws ResultWriterException {
 		try {
 			writer.object();
 			return this;
 		} catch (JSONException e) {
-			throw new StringifyException(e);
+			throw new ResultWriterException(e);
 		}
 	}
 
 	@Override
-	public ResultWriter endObject() throws StringifyException {
+	public ResultWriter endObject() throws ResultWriterException {
 		try {
 			writer.endObject();
 			return this;
 		} catch (JSONException e) {
-			throw new StringifyException(e);
+			throw new ResultWriterException(e);
 		}
 	}
 
 	@Override
-	public ResultWriter array(String arrayName) throws StringifyException {
+	public ResultWriter array(String arrayName) throws ResultWriterException {
 		try {
 			writer.array();
 			return this;
 		} catch (JSONException e) {
-			throw new StringifyException(e);
+			throw new ResultWriterException(e);
 		}
 	}
 
 	@Override
-	public ResultWriter endArray() throws StringifyException {
+	public ResultWriter endArray() throws ResultWriterException {
 		try {
 			writer.endArray();
 			return this;
 		} catch (JSONException e) {
-			throw new StringifyException(e);
+			throw new ResultWriterException(e);
 		}
 	}
 
 	@Override
-	public ResultWriter key(String key) throws StringifyException {
+	public ResultWriter key(String key) throws ResultWriterException {
 		try {
 			writer.key(key);
 			return this;
 		} catch (JSONException e) {
-			throw new StringifyException(e);
+			throw new ResultWriterException(e);
 		}
 	}
 
 	@Override
-	public ResultWriter value(Object obj) throws StringifyException {
+	public ResultWriter value(Object obj) throws ResultWriterException {
 		try {
 			writer.value(obj);
 			return this;
 		} catch (JSONException e) {
-			throw new StringifyException(e);
+			throw new ResultWriterException(e);
 		}
 	}
 

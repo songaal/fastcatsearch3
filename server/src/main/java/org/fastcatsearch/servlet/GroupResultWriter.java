@@ -8,7 +8,7 @@ import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.util.ResultWriter;
-import org.fastcatsearch.util.StringifyException;
+import org.fastcatsearch.util.ResultWriterException;
 
 public class GroupResultWriter extends AbstractSearchResultWriter {
 	
@@ -17,7 +17,7 @@ public class GroupResultWriter extends AbstractSearchResultWriter {
 	}
 	
 	@Override
-	public void writeResult(Object result, long searchTime, boolean isSuccess) throws StringifyException, IOException{
+	public void writeResult(Object result, long searchTime, boolean isSuccess) throws ResultWriterException, IOException{
 		
 		resultWriter.object();
 		
@@ -49,7 +49,7 @@ public class GroupResultWriter extends AbstractSearchResultWriter {
 		resultWriter.done();
 	}
 	
-	public void writeBody(GroupResults groupResults, ResultWriter resultStringer) throws StringifyException {
+	public void writeBody(GroupResults groupResults, ResultWriter resultStringer) throws ResultWriterException {
 		
 		if(groupResults == null){
     		resultStringer.key("group_result").array("group_list").endArray();

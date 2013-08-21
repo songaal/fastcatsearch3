@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.Writer;
 
 import org.fastcatsearch.util.ResultWriter;
-import org.fastcatsearch.util.StringifyException;
+import org.fastcatsearch.util.ResultWriterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 /**
@@ -17,5 +17,5 @@ public abstract class AbstractDocumentSearchResultWriter  {
 	public AbstractDocumentSearchResultWriter(Writer writer){
 		this.writer = writer;
 	}
-	public abstract void writeResult(Object obj, ResultWriter rStringer, long searchTime, boolean isSuccess) throws StringifyException, IOException;
+	public abstract void writeResult(Object obj, ResultWriter rStringer, long searchTime, boolean isSuccess) throws ResultWriterException, IOException;
 }

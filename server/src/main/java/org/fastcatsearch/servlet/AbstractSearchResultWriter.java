@@ -3,7 +3,7 @@ package org.fastcatsearch.servlet;
 import java.io.IOException;
 
 import org.fastcatsearch.util.ResultWriter;
-import org.fastcatsearch.util.StringifyException;
+import org.fastcatsearch.util.ResultWriterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 /**
@@ -16,5 +16,5 @@ public abstract class AbstractSearchResultWriter {
 	public AbstractSearchResultWriter(ResultWriter resultStringer){
 		this.resultWriter = resultStringer;
 	}
-	public abstract void writeResult(Object obj, long searchTime, boolean isSuccess) throws StringifyException, IOException;
+	public abstract void writeResult(Object obj, long searchTime, boolean isSuccess) throws ResultWriterException, IOException;
 }

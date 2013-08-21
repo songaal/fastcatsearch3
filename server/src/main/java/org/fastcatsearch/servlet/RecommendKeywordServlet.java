@@ -25,7 +25,7 @@ import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.dao.SetDictionary;
 import org.fastcatsearch.db.vo.SetDictionaryVO;
 import org.fastcatsearch.util.ResultWriter;
-import org.fastcatsearch.util.StringifyException;
+import org.fastcatsearch.util.ResultWriterException;
 
 public class RecommendKeywordServlet extends WebServiceHttpServlet {
 	
@@ -84,7 +84,7 @@ public class RecommendKeywordServlet extends WebServiceHttpServlet {
 		    	rStringer.endArray();
 	    	}
 	    	rStringer.endObject();
-		} catch (StringifyException e) {
+		} catch (ResultWriterException e) {
     		logger.error("exception",e);
     		throw new IOException(e.toString());
 		}

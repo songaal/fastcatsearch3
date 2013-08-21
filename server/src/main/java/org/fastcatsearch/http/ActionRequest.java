@@ -86,6 +86,15 @@ public class ActionRequest {
 			return null;
 		}
 	}
+	
+	public boolean getBooleanParameter(String key, boolean defaultValue) {
+		String value = getParameter(key);
+		if (value != null) {
+			return "true".equalsIgnoreCase(value);
+		} else {
+			return defaultValue;
+		}
+	}
 
 	public String getParameterString() {
 		return queryString;
@@ -127,4 +136,6 @@ public class ActionRequest {
 		
 		logger.debug("parameterMap >> {}", parameterMap);
 	}
+
+	
 }

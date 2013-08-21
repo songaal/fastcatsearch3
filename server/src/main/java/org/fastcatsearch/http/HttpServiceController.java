@@ -42,9 +42,7 @@ public class HttpServiceController {
 			uri = uri.substring(0, pos);
 		}
 		
-//		logger.debug("actionMap>>{}", actionMap);
 		HttpAction actionObj = actionMap.get(uri);
-//		logger.debug("action > {}", actionObj);
 		if(actionObj == null) {
 			return null;
 		}

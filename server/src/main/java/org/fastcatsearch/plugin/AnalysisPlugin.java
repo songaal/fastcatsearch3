@@ -1,7 +1,6 @@
 package org.fastcatsearch.plugin;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -13,7 +12,6 @@ import org.fastcatsearch.db.vo.SetDictionaryVO;
 import org.fastcatsearch.ir.dic.Dictionary;
 import org.fastcatsearch.ir.dictionary.HashSetDictionary;
 import org.fastcatsearch.ir.dictionary.ListMapDictionary;
-import org.fastcatsearch.job.Job.JobResult;
 
 public abstract class AnalysisPlugin extends Plugin {
 
@@ -60,7 +58,7 @@ public abstract class AnalysisPlugin extends Plugin {
 				}
 			}
 		}
-		logger.debug("SetToSetDictionary write to {}", dictFile.getAbsolutePath());
+		logger.debug("SetToSetDictionary {} entry write to {}", result.size(), dictFile.getAbsolutePath());
 	}
 
 	// DAO : SetDictionary
@@ -86,6 +84,6 @@ public abstract class AnalysisPlugin extends Plugin {
 				}
 			}
 		}
-		logger.debug("SetToMapDictionary write to {}", dictFile.getAbsolutePath());
+		logger.debug("SetToMapDictionary {} entry write to {}", result.size(), dictFile.getAbsolutePath());
 	}
 }

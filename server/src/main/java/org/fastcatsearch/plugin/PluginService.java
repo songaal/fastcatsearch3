@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,7 +37,6 @@ public class PluginService extends AbstractService {
 	public PluginService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
 		internalDBModule = new InternalDBModule("plugin", environment, settings, serviceManager);
-		internalDBModule.load();
 	}
 
 	public InternalDBModule db() {
@@ -44,6 +45,7 @@ public class PluginService extends AbstractService {
 
 	@Override
 	protected boolean doStart() throws FastcatSearchException {
+		internalDBModule.load();
 		pluginMap = new HashMap<String, Plugin>();
 		// 플러그인을 검색하여
 		// 무작위로 시작한다.
@@ -61,7 +63,8 @@ public class PluginService extends AbstractService {
 		for (File dir : pluginDirList) {
 			File[] jarFiles = findFiles(dir, "jar");
 			logger.debug("FOUND plugin {}, jar={}", dir.getAbsolutePath(), jarFiles);
-			if (dir.getAbsolutePath().contains("/plugin/analysis/")) {
+			//analysis 라이브러리는 모두 묶어서 한번에 로딩한다. 서로 dependency가 존재할수 있기때문에..
+			if (dir.getAbsolutePath().contains("analysis")) {
 				// analysis
 				logger.debug("analysis >> {}", dir.getAbsolutePath());
 				for (File f : jarFiles) {
@@ -81,17 +84,27 @@ public class PluginService extends AbstractService {
 		}
 
 		try {
-			JAXBContext jc = JAXBContext.newInstance(PluginSetting.class);
+			JAXBContext jc = JAXBContext.newInstance(DefaultPluginSetting.class);
+			JAXBContext analysisJc = JAXBContext.newInstance(AnalysisPluginSetting.class);
 			Unmarshaller unmarshaller = jc.createUnmarshaller();
+			Unmarshaller analysisUnmarshaller = analysisJc.createUnmarshaller();
 			for (File dir : pluginDirList) {
-
+				boolean isAnalysis = dir.getAbsolutePath().contains("analysis");
 				File pluginConfigFile = new File(dir, "plugin.xml");
 				/*
 				 * 1. Plugin 객체생성.
 				 */
 				PluginSetting setting = null;
 				try {
-					setting = (PluginSetting) unmarshaller.unmarshal(new FileInputStream(pluginConfigFile));
+					InputStream is = new FileInputStream(pluginConfigFile);
+					if(isAnalysis){
+						setting = (PluginSetting) analysisUnmarshaller.unmarshal(is);
+					}else{
+						setting = (PluginSetting) unmarshaller.unmarshal(is);
+						
+					}
+					is.close();
+					logger.debug("PluginSetting >>> {}, {}", setting, pluginConfigFile.getAbsolutePath());
 					String className = setting.getClassName();
 					Plugin plugin = null;
 					if (className != null && className.length() > 0) {
@@ -109,6 +122,8 @@ public class PluginService extends AbstractService {
 					ClusterAlertService.getInstance().alert(new FastcatSearchException());
 				} catch (JAXBException e) {
 					logger.error("plugin 설정파일을 읽는중 에러. {}", e);
+				} catch (IOException e) {
+					logger.error("{}", e);
 				}
 
 				/*
@@ -119,7 +134,7 @@ public class PluginService extends AbstractService {
 						AnalysisPluginSetting analysisPluginSetting = (AnalysisPluginSetting) setting;
 						List<Dictionary> dictionaryList = analysisPluginSetting.getDictionaryList();
 						for (Dictionary dictionary : dictionaryList) {
-							String tableName = setting.getKey(dictionary.getName());
+							String tableName = setting.getKey(dictionary.getId());
 							String daoClassName = dictionary.getDaoClass();
 							if (daoClassName != null && daoClassName.length() > 0) {
 								DAOBase daoBase = DynamicClassLoader.loadObject(daoClassName, DAOBase.class, new Class<?>[] { String.class,

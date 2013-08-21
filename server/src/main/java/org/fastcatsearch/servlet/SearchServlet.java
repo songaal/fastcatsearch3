@@ -22,7 +22,7 @@ import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.SingleSearchJob;
 import org.fastcatsearch.util.ResultWriter;
-import org.fastcatsearch.util.StringifyException;
+import org.fastcatsearch.util.ResultWriterException;
 
 public class SearchServlet extends AbstractSearchServlet {
 	

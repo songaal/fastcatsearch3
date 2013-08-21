@@ -11,7 +11,7 @@ public class ResultStringerTest {
 	@Test
 	public void test() throws Exception {
 		StringWriter writer = new StringWriter();
-		ResultWriter rs = new XMLResultWriter(writer, "fastcat",true);
+		ResultWriter rs = new XMLResultWriter(writer, "fastcatsearch",true);
 		
 		//rs = new JSONResultStringer();
 		
@@ -63,7 +63,7 @@ public class ResultStringerTest {
 	@Test
 	public void test2() throws Exception {
 		StringWriter writer = new StringWriter();
-		ResultWriter rs = new XMLResultWriter(writer, "fastcat",true);
+		ResultWriter rs = new XMLResultWriter(writer, "fastcatsearch",true);
 		
 		//rs = new JSONResultStringer();
 		
@@ -106,4 +106,28 @@ public class ResultStringerTest {
 		//fail("Not yet implemented");
 	}
 
+	
+	@Test
+	public void test3() throws Exception {
+		StringWriter writer = new StringWriter();
+		ResultWriter rs = new XMLResultWriter(writer, "fastcatsearch",true);
+		//ResultWriter rs = new JSONResultWriter(writer,true);
+		
+		rs.object()
+		.key("status").value(0)
+		.key("result")
+			.object()
+				.key("title").value("가나다")
+				.key("title2").value("가나다2")
+			.endObject()
+		.endObject();
+		
+		rs.done();
+		
+		System.out.println(writer.toString());
+		
+		
+	}
+	
+	
 }

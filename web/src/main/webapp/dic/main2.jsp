@@ -25,22 +25,25 @@
 <%@include file="../common.jsp" %>
 
 <%
-	String category = WebUtils.getString(request.getParameter("category"), "");
+	String pluginId = WebUtils.getString(request.getParameter("pluginId"), "");
 	
-	String synonymDictionaryId = category + "SynonymDictionary";
-	String userDictionaryId = category + "UserDictionary";
-	String stopDictionaryId = category + "StopDictionary";
+	/* String synonymDictionaryId = pluginId + "SynonymDictionary";
+	String userDictionaryId = pluginId + "UserDictionary";
+	String stopDictionaryId = pluginId + "StopDictionary";
 
 	DBService dbService = ServiceManager.getInstance().getService(DBService.class);
 	SetDictionary synonymDictionary = dbService.getDAO(synonymDictionaryId);
 	SetDictionary userDictionary = dbService.getDAO(userDictionaryId);
 	SetDictionary stopDictionary = dbService.getDAO(stopDictionaryId);
-	Dictionary<?> systemDictionary = null;
+	Dictionary<?> systemDictionary = null; */
 	
 	PluginService pluginService = ServiceManager.getInstance().getService(PluginService.class);
-	Plugin plugin = pluginService.getPlugin(category);
+	AnalysisPlugin plugin = (AnalysisPlugin) pluginService.getPlugin(pluginId);
+	AnalysisPluginSetting pluginSetting = (AnalysisPluginSetting) plugin.getPluginSetting();
+	List<AnalysisPluginSetting.Dictionary> dictionaryList = pluginSetting.getDictionaryList();
 	
-	File synonymDictFile = null;
+	
+	/* File synonymDictFile = null;
 	File userDictFile = null;
 	File stopDictFile = null;
 	File systemDictFile = null;
@@ -58,7 +61,7 @@
 		userDictFile = new File(pluginDir, userDictPath);
 		stopDictFile = new File(pluginDir, stopDictPath);
 		systemDictFile = new File(pluginDir, systemDictPath);
-	}
+	} */
 	
 %>
 
@@ -79,7 +82,7 @@
 	<script type="text/javascript">
 	function doneSuccessApply(){
 		alert("사전적용이 끝났습니다.");
-		submitPost('main.jsp', {category: '<%=category%>'});
+		submitPost('main.jsp', {pluginId: '<%=pluginId%>'});
 	}
 	
 	function doneFailApply(errorThrown){
@@ -92,10 +95,10 @@
 
 <div id="container">
 <!-- header -->
-<%@include file="../header.jsp" %>
+<%-- <%@include file="../header.jsp" %> --%>
 
 <div id="sidebar">
-	<%@include file="submenu.jspf" %>
+	<%-- <%@include file="submenu.jspf" %> --%>
 	<div class="sidebox">
 		<h3>도움말</h3>
 			<ul class="latest">
@@ -111,6 +114,19 @@
 <div id="mainContent">
 	<h2>사전정보</h2>
 	<div class="fbox">
+	<table summary="사전정보" class="tbl02">
+	<%
+		for(AnalysisPluginSetting.Dictionary dictionary : dictionaryList){
+	%>
+		<tr><td><%=dictionary.getName() %></td></tr>
+		
+	<%
+		}
+	%>
+	</table>
+	</div>
+	
+	<%-- <div class="fbox">
 	<table summary="사전정보" class="tbl02">
 	<colgroup><col width="10%" /><col width="30%" /><col width="20%" /><col width="30%" /><col width="10%" /></colgroup>
 	<thead>
@@ -128,37 +144,37 @@
 	%>
 	<tr>
 		<td class="first"><%=type %></td>
-		<td><a href="javascript:void(0)" onclick="gotoDict('synonymDic.jsp', '<%=category%>')"><strong class="small tb">유사어사전</strong></a></td>
+		<td><a href="javascript:void(0)" onclick="gotoDict('synonymDic.jsp', '<%=pluginId%>')"><strong class="small tb">유사어사전</strong></a></td>
 		<td><%=synonymDictionary.selectCount() %></td>
 		<td><%=synonymDictFile != null ? new Timestamp(synonymDictFile.lastModified()) : "-" %></td>
-		<td><a href="javascript:compileAndApplyDic('<%=category%>', 'synonymDict')" class="btn_s">사전적용</a></td>
+		<td><a href="javascript:compileAndApplyDic('<%=pluginId%>', 'synonymDict')" class="btn_s">사전적용</a></td>
 	</tr>
 	<%
 		type = 2;
 	%>
 	<tr>
 		<td class="first"><%=type %></td>
-		<td><a href="javascript:void(0)" onclick="gotoDict('userDic.jsp', '<%=category%>')"><strong class="small tb">사용자사전</strong></a></td>
+		<td><a href="javascript:void(0)" onclick="gotoDict('userDic.jsp', '<%=pluginId%>')"><strong class="small tb">사용자사전</strong></a></td>
 		<td><%=userDictionary.selectCount() %></td>
 		<td><%=userDictFile != null ? new Timestamp(userDictFile.lastModified()) : "-" %></td>
-		<td><a href="javascript:compileAndApplyDic('<%=category%>', 'userDict')" class="btn_s">사전적용</a></td>
+		<td><a href="javascript:compileAndApplyDic('<%=pluginId%>', 'userDict')" class="btn_s">사전적용</a></td>
 	</tr>
 	<%
 		type = 3;
 	%>
 	<tr>
 		<td class="first"><%=type %></td>
-		<td><a href="javascript:void(0)" onclick="gotoDict('stopDic.jsp', '<%=category%>')"><strong class="small tb">금지어사전</strong></a></td>
+		<td><a href="javascript:void(0)" onclick="gotoDict('stopDic.jsp', '<%=pluginId%>')"><strong class="small tb">금지어사전</strong></a></td>
 		<td><%=stopDictionary.selectCount() %></td>
 		<td><%=stopDictFile != null ? new Timestamp(stopDictFile.lastModified()) : "-" %></td>
-		<td><a href="javascript:compileAndApplyDic('<%=category%>', 'stopDict')" class="btn_s">사전적용</a></td>
+		<td><a href="javascript:compileAndApplyDic('<%=pluginId%>', 'stopDict')" class="btn_s">사전적용</a></td>
 	</tr>
 	<%
 		type = 4;
 	%>
 	<tr>
 		<td class="first"><%=type %></td>
-		<td><a href="javascript:void(0)" onclick="gotoDict('systemDic.jsp', '<%=category%>')"><strong class="small tb">기본사전</strong></a></td>
+		<td><a href="javascript:void(0)" onclick="gotoDict('systemDic.jsp', '<%=pluginId%>')"><strong class="small tb">기본사전</strong></a></td>
 		<td> <%=systemDictionary != null ? systemDictionary.size() : "-" %> </td>
 		<td> - </td>
 		<td> - </td>
@@ -167,9 +183,9 @@
 	
 	</tbody>
 	</table>
-	</div>
+	</div> --%>
 	
-	<div style="float:right"><a href="javascript:compileAndApplyDic('<%=category%>', '')" class="btn_s">모든사전적용</a></div>
+	<div style="float:right"><a href="javascript:compileAndApplyDic('<%=pluginId%>', '')" class="btn_s">모든사전적용</a></div>
 	<!-- E : #mainContent --></div>
 
 <!-- footer -->

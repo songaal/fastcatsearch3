@@ -7,7 +7,7 @@ import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.util.ResultWriter;
-import org.fastcatsearch.util.StringifyException;
+import org.fastcatsearch.util.ResultWriterException;
 
 public class SearchResultWriter extends AbstractSearchResultWriter {
 	
@@ -18,7 +18,7 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 	}
 
 	@Override
-	public void writeResult(Object obj, long searchTime, boolean isSuccess) throws StringifyException, IOException {
+	public void writeResult(Object obj, long searchTime, boolean isSuccess) throws ResultWriterException, IOException {
 		if(!isSuccess){
 			String errorMsg = null;
 			if(obj == null){
@@ -61,7 +61,7 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 		
 	}
 	
-	public void writeBody(Result result, ResultWriter resultWriter, long searchTime) throws StringifyException {
+	public void writeBody(Result result, ResultWriter resultWriter, long searchTime) throws ResultWriterException {
 		resultWriter.key("result");
 		//data
 		Row[] rows = result.getData();

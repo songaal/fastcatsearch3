@@ -2,8 +2,6 @@ package org.fastcatsearch.plugin;
 
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -12,7 +10,7 @@ import javax.xml.bind.Unmarshaller;
 
 import org.junit.Test;
 
-public class PluginSettingTest {
+public abstract class PluginSettingTest {
 
 	@Test
 	public void testProperty() throws JAXBException {

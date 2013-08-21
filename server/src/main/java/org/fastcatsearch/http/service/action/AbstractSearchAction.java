@@ -13,7 +13,7 @@ import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.servlet.AbstractSearchResultWriter;
 import org.fastcatsearch.servlet.SearchResultWriter;
 import org.fastcatsearch.util.ResultWriter;
-import org.fastcatsearch.util.StringifyException;
+import org.fastcatsearch.util.ResultWriterException;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +54,7 @@ public abstract class AbstractSearchAction extends ServiceAction {
 
 		try {
 			resultWriter.writeResult(obj, searchTime, jobResult.isSuccess());
-		} catch (StringifyException e) {
+		} catch (ResultWriterException e) {
 			logger.error("", e);
 		}
 

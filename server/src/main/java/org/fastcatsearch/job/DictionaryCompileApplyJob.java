@@ -11,13 +11,10 @@
 
 package org.fastcatsearch.job;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.util.List;
+import java.util.Map;
 
 import org.fastcatsearch.db.dao.DAOBase;
-import org.fastcatsearch.db.vo.SetDictionaryVO;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.plugin.AnalysisPlugin;
 import org.fastcatsearch.plugin.AnalysisPluginSetting;
@@ -30,16 +27,23 @@ public class DictionaryCompileApplyJob extends Job {
 
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
-		String[] args = getStringArrayArgs();
-		String category = args[0];
-		String dictListStr = args[1];
+		Map<String, String> args = getMapArgs();
+		String pluginId = args.get("pluginId");
+		String dictListStr = args.get("dictionary");
 		String[] dictList = null;
 		if (dictListStr != null && dictListStr.length() > 0) {
 			dictList = dictListStr.split(",");
+		}else{
+			return new JobResult("dictionary가 전달되지 않았습니다. >> "+dictListStr);
 		}
 
 		PluginService pluginService = ServiceManager.getInstance().getService(PluginService.class);
-		AnalysisPlugin analysisPlugin = (AnalysisPlugin) pluginService.getPlugin(category);
+		AnalysisPlugin analysisPlugin = (AnalysisPlugin) pluginService.getPlugin(pluginId);
+		if(analysisPlugin == null){
+			logger.error("Plugin을 찾을수 없습니다. >> {}", pluginId);
+			return new JobResult("Plugin을 찾을수 없습니다. >> "+pluginId);
+		}
+		
 		AnalysisPluginSetting setting = (AnalysisPluginSetting) analysisPlugin.getPluginSetting();
 
 		try {
@@ -52,31 +56,31 @@ public class DictionaryCompileApplyJob extends Job {
 			throw new FastcatSearchException("", e);
 		}
 
-		logger.debug("사전컴파일후 플러그인 {}를 재로딩합니다.", category);
+		logger.debug("사전컴파일후 플러그인 {}를 재로딩합니다.", pluginId);
 		analysisPlugin.reload();
 
-		return new JobResult(0);
+		return new JobResult(true);
 	}
 
-	private void compileSetDictionary(List<SetDictionaryVO> result, String filePath) throws Exception {
-		org.fastcatsearch.ir.dictionary.HashSetDictionary dictionary = new org.fastcatsearch.ir.dictionary.HashSetDictionary();
-		for (int i = 0; i < result.size(); i++) {
-			SetDictionaryVO vo = result.get(i);
-			dictionary.addEntry(vo.keyword);
-		}
-		OutputStream out = null;
-		try {
-			out = new FileOutputStream(filePath);
-			dictionary.writeTo(out);
-		} finally {
-			if (out != null) {
-				try {
-					out.close();
-				} catch (IOException ignore) {
-				}
-			}
-		}
-
-	}
+//	private void compileSetDictionary(List<SetDictionaryVO> result, String filePath) throws Exception {
+//		org.fastcatsearch.ir.dictionary.HashSetDictionary dictionary = new org.fastcatsearch.ir.dictionary.HashSetDictionary();
+//		for (int i = 0; i < result.size(); i++) {
+//			SetDictionaryVO vo = result.get(i);
+//			dictionary.addEntry(vo.keyword);
+//		}
+//		OutputStream out = null;
+//		try {
+//			out = new FileOutputStream(filePath);
+//			dictionary.writeTo(out);
+//		} finally {
+//			if (out != null) {
+//				try {
+//					out.close();
+//				} catch (IOException ignore) {
+//				}
+//			}
+//		}
+//
+//	}
 
 }

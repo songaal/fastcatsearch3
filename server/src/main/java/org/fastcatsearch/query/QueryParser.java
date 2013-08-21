@@ -92,7 +92,7 @@ public class QueryParser {
 			while (iterator.hasNext()) {
 				Entry<String, String> entry = iterator.next();
 				String key = entry.getKey();
-				String value = entry.getValue();
+				String value = entry.getValue().trim();
 				if (value != null) {
 					fillQuery(query, key, value);
 				}
@@ -115,7 +115,7 @@ public class QueryParser {
 
 	private void fillQuery(Query query, String key, String value) throws QueryParseException {
 		Query.EL el = detectElement(key);
-		if (el == null) {
+		if (el == null || value.length() == 0) {
 			return;
 		}
 		logger.debug("fill {} >> {}", key, value);
