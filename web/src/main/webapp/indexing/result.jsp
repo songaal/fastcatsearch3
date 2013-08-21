@@ -145,7 +145,7 @@
 		}
 		String collection = col.getId();
 		
-		IndexingResult indexingResult = dbHandler.getDAO("IndexingResult");
+		IndexingResult indexingResult = dbHandler.db().getDAO("IndexingResult");
 		IndexingResultVO fullIndexingResult = indexingResult.select(collection, "FULL");
 		IndexingResultVO incIndexingResult = indexingResult.select(collection, "ADD");
 		

@@ -22,8 +22,6 @@
 <%
 	IRService irService = ServiceManager.getInstance().getService(IRService.class);
 	List<Collection> collectionList = irService.getCollectionList();
-	/* String collectinListStr = irService.
-	String[] colletionList = collectinListStr.split(","); */
 	String collection = "";
 %>
 
@@ -41,8 +39,6 @@
 <![endif]-->
 <script type="text/javascript" src="<%=FASTCAT_MANAGE_ROOT%>js/common.js"></script>
 	<script type="text/javascript" src="<%=FASTCAT_MANAGE_ROOT%>js/jquery-1.4.4.min.js"></script>
-	<script type="text/javascript" src="<%=FASTCAT_MANAGE_ROOT%>js/grid.locale-en.js"></script> 
-	<script type="text/javascript" src="<%=FASTCAT_MANAGE_ROOT%>js/jquery.jqGrid.min.js"></script>
 	<script src="<%=FASTCAT_MANAGE_ROOT%>js/help.js" type="text/javascript"></script>
 	<script type="text/javascript">
 		var utf8_decode = function(utftext) 
@@ -114,13 +110,19 @@
 	<colgroup><col width="25%" /><col width="" /></colgroup>
 	<tbody>
 	<tr>
+	<th>서버<span class="req_opt">*</span></th>
+	<td style="text-align:left;">
+	<input id="searchIP" type="text" value="localhost" class='inp02'/>:<input id="searchPort" value="8090" type="text" class='inp02'/>
+	</td>
+	</tr>
+	<tr>
 	<th>검색Context<span class="req_opt">*</span></th>
 	<td style="text-align:left;">
 		<select id="searchContext" style="width:200px">
-			<option value="search/json">일반검색 (search/json)</option>
-			<option value="cluster/search/json">분산검색 (cluster/search/json)</option>
-			<option value="group/json">일반그룹핑검색 (group/json)</option>
-			<option value="cluster/group/json">분산그룹핑검색 (cluster/group/json)</option>
+			<option value="/search/json">일반검색 (/search/json)</option>
+			<option value="/cluster/search/json">분산검색 (/cluster/search/json)</option>
+			<option value="/group/json">일반그룹핑검색 (/group/json)</option>
+			<option value="/cluster/group/json">분산그룹핑검색 (/cluster/group/json)</option>
 		</select>
 	</td>
 	</tr>
@@ -141,6 +143,7 @@
 		<option value="<%=col %>" <%=col.equals(collection) ? "selected" : "" %> ><%=col %></option>
 	<% } %>
 	</select>
+	
 	</td>
 	</tr>
 	<tr>
@@ -261,9 +264,9 @@
 	}).trigger('resize');
 	
 	function createQueryUrl() {
-			var uri = "<%=FASTCAT_SEARCH_ROOT%>" + $('#searchContext').val();
-			uri = uri.replace(/[\/][\/]/g,"\/");
-			var queryStr = location.protocol+"//"+location.host+uri+
+			var uri = "http://"+$('#searchIP').val() + ":" + $('#searchPort').val() + $('#searchContext').val();
+			//uri = uri.replace(/[\/][\/]/g,"\/");
+			var queryStr = uri+
 					"?cn="+$('#cn').val() +
 					"&ht="+$('#ht').val()+
 					"&sn="+$('#sn').val()+
@@ -359,10 +362,11 @@
 		$("#SearchResultSummary").show();
 		var nkeyword = $("#se").val().replace(",","\\\\,");
 		$.ajax({
-			  url: "<%=FASTCAT_SEARCH_ROOT%>" + $('#searchContext').val(),
+			  url: "searchProxy.jsp",
 			  data: {
 				admin: true,
 				timeout: 5,
+				_searchHost: "http://"+$('#searchIP').val() + ":" + $('#searchPort').val() + $('#searchContext').val(),
 				cn: $('#cn').val(),
 				ht: $('#ht').val(),
 				sn: $('#sn').val(),
@@ -417,75 +421,64 @@
 			  	}
 				$("#s_4").text("");
 		
-			  	$("#resultWrapper").append($("<table id='searchResult'></table>"));
-				$("#resultWrapper").append($("<div id='pSearchResult'></div>"));
+			  	$("#resultWrapper").append($("<table id='searchResult' class='tbl02'></table>"));
+				$("#resultWrapper").append($("<table id='groupResult' class='tbl02'></table>"));
 
-			  	//make fieldname_list
-			  	fieldname_list = new Array();
-
-			  	if(data_obj.hasOwnProperty("fieldname_list")){
-					$.each(data_obj.fieldname_list, function(i, row){
-						fieldname_list[i] = row.name
-					});
-			  	}
-			  	
 				if(data_obj.hasOwnProperty("result")){
-				  	$("#searchResult").jqGrid({
-						data: data_obj.result,
-						datatype: "local",
-						height: 'auto',
-						mtype: 'POST',
-						rowNum: 20,
-						rowList: [10,20,30,40,50],
-					   	colNames: fieldname_list,
-					   	colModel: data_obj.colmodel_list,
-					   	pager: "#pSearchResult",
-					   	viewrecords: false,
-					   	caption: "검색결과" + " " + data_obj.result.length+"개",
-					   	width: 740
-					});
+					
+					var tr = $('<tr/>');
+					
+					var thead = $('<thead/>');
+					$('#searchResult').append(thead);
+					for (var i = 0; i < data_obj.fieldname_list.length; i++) {
+			            tr.append("<th>" + data_obj.fieldname_list[i] + "</th>");
+			            thead.append(tr);
+					}
+			        
+			       	for (var i = 0; i < data_obj.result.length; i++) {
+			            tr = $('<tr/>');
+			            var row = data_obj.result[i];
+			            for(var key in row){
+			            	var val = row[key];
+			            	tr.append("<td>" + val + "</td>");
+			            }
+			            $('#searchResult').append(tr);
+			        }
 				}
 			 	//for loop
-			 	if(data_obj.group_result != null){
-				 	if( data_obj.group_result != "null"){
-						for(i = 0;i < data_obj.group_result.length; i++){
-							
-							$("#groupResultWrapper").append($("<table id='groupResult"+i+"'></table>"));
-							$("#groupResultWrapper").append($("<div id='pGroupResult"+i+"'></div>"));
-							$("#groupResultWrapper").append($("<p>"));
+			 	if(data_obj.hasOwnProperty("group_result")){
+					for(i = 0;i < data_obj.group_result.length; i++){
+						var groupRow = data_obj.group_result[i];
+						var groupKey = "groupResult"+i;
+						
+						console.log("groupKey", groupKey);
+						$("#groupResultWrapper").append($("<span><b>["+groupRow.label+"]</b></span>"))
+						$("#groupResultWrapper").append($("<table id='"+groupKey+"' class='tbl02'></table>"));
+						$("#groupResultWrapper").append($("<br/>"));
 
-							var colNames = ["_NO", "_KEY", "VALUE"];
-							
-							var colModel = [
-							   		{"name": "_NO", "index": "_NO", "width": "50", "sorttype": "int", "align": "center"},
-									{"name": "_KEY", "index": "_KEY", "width": "200", "sorttype": "text"},
-									{"name": "COUNT", "index": "COUNT", "width": "100", "sorttype": "int", "align": "center"}
-							   	];							
-
-							/* if( data_obj.group_result[i][0]["sum"] ) {
-								colModel[colModel.length] = {"name": "sum"};//, "index": "sum", "width": "100", "sorttype": "int", "align": "center"};
-								colNames[colNames.length] = "sum";
-							}
-							if(data_obj.group_result[i][0]["max"] ) {
-								colModel[colModel.length] = {"name": "max"};//, "index": "max", "width": "100", "sorttype": "int", "align": "center"};
-								colNames[colNames.length] = "max";
-							} */
-
-							$("#groupResult"+i).jqGrid({
-								data: data_obj.group_result[i].result,
-								datatype: "local",
-								height: 'auto',
-								mtype: 'POST',
-								rowNum: 10,
-								rowList: [10,20,30,40,50],
-							   	colNames: colNames,
-							   	colModel: colModel,
-							   	pager: "#pGroupResult"+i,
-							   	viewrecords: false,
-							   	caption: "그룹결과"+(i+1) + " - " + data_obj.group_result[i].label + " - 총 " + data_obj.group_result[i].result.length+"개"
-							});											 	
-						}
-				 	}//if
+						var groupTable = $('#'+groupKey);
+						console.log("groupTable", groupTable);
+						var thead = $('<thead/>');
+						groupTable.append(thead);
+						var theadTr = $('<tr/>');
+						thead.append(theadTr);
+						
+						
+						var tr;
+						for (var k = 0; k < groupRow.result.length; k++) {
+				            tr = $('<tr/>');
+			            	var subRow = groupRow.result[k];
+			            	for(var key in subRow){
+								if( k == 0){
+									theadTr.append($("<th>"+key+"</th>"));
+								}
+			            		var val = subRow[key];
+			            		console.log("append", key, val);
+			            		tr.append("<td>" + val + "</td>");
+			            	}
+			            	groupTable.append(tr);
+				        }									 	
+					}
 				}//if
 			 	
 			  }
@@ -494,9 +487,9 @@
 	</script>
 	<p>
 	
-	<div id="resultWrapper"></div>
+	<div id="resultWrapper" class="fbox"></div>
 	<p>
-	<div id="groupResultWrapper"></div>
+	<div id="groupResultWrapper" class="fbox"></div>
 	
 	
 	

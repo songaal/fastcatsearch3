@@ -11,10 +11,17 @@ public class CollectionFilePaths {
 	
 	private File root;
 	private String collectionId;
+	private String shardId;
+	private static String shardDataRoot = "data";
 	
 	public CollectionFilePaths(File collectionRoot, String collectionId) {
+		this(collectionRoot, collectionId, collectionId);
+	}
+	
+	public CollectionFilePaths(File collectionRoot, String collectionId, String shardId) {
 		this.root = new File(collectionRoot, collectionId);
 		this.collectionId = collectionId;
+		this.shardId = shardId;
 	}
 
 	public File file() {
@@ -23,6 +30,10 @@ public class CollectionFilePaths {
 
 	public String collectionId(){
 		return collectionId;
+	}
+	
+	public String shardId(){
+		return shardId;
 	}
 
 	public File file(String... dirs) {
@@ -33,28 +44,28 @@ public class CollectionFilePaths {
 		return file;
 	}
 	
-	public String dataPath() {
+	private String dataPath() {
 		return dataPath(0);
 	}
 
-	public String dataPath(Object dataSequence) {
+	private String dataPath(Object dataSequence) {
 		return "data" + dataSequence.toString();
 	}
 	
-	public File dataFile() {
+	private File dataFile() {
 		return dataFile(0);
 	}
 	
 	public File dataFile(Object dataSequence) {
-		return file(dataPath(dataSequence));
+		return file(shardDataRoot, shardId, dataPath(dataSequence));
 	}
 
 	public File segmentFile(Object dataSequence, Object segmentId) {
-		return file(dataPath(dataSequence), segmentId.toString());
+		return file(shardDataRoot, shardId, dataPath(dataSequence), segmentId.toString());
 	}
 	
 	public File revisionFile(Object dataSequence, Object segmentId, Object revisionNumber) {
-		return file(dataPath(dataSequence), segmentId.toString(), revisionNumber.toString());
+		return file(shardDataRoot, shardId, dataPath(dataSequence), segmentId.toString(), revisionNumber.toString());
 	}
 	
 }
