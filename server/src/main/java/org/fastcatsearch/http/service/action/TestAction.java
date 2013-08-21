@@ -1,19 +1,21 @@
 package org.fastcatsearch.http.service.action;
 
-import java.io.IOException;
-
 import org.fastcatsearch.http.ActionRequest;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
-public class TestAction extends HttpAction {
+public class TestAction extends ServiceAction {
 
-	public TestAction() {
+	public String name;
+	
+	public TestAction(String type) {
+		super(type);
+		name = "test";
 	}
 
 	@Override
 	public void doAction(ActionRequest request, ActionResponse response) throws Exception {
 		
-		response.setContentType("html");
+		writeHeader(response);
 		
 		String contentStr = "<html><body><h1>제목</h1><h3>sub title</h3></body></html>";
 		try {

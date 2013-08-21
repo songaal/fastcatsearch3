@@ -17,11 +17,7 @@ public class PluginSettingTest {
 	@Test
 	public void testProperty() throws JAXBException {
 
-		Map<String, String> properties = new HashMap<String, String>();
-		properties.put("aaa", "1111");
-		properties.put("bbb", "2222");
 		PluginSetting setting = new PluginSetting();
-		setting.setProperties(properties);
 
 		JAXBContext jc = JAXBContext.newInstance(PluginSetting.class);
 		StringWriter writer = new StringWriter();
@@ -71,9 +67,7 @@ public class PluginSettingTest {
 
 		PluginSetting setting = (PluginSetting) unmarshaller.unmarshal(new StringReader(xml));
 
-		System.out.println(setting.getWeb().getUser().getServlet().getPath());
-		System.out.println("getDAOList >> "+setting.getDB().getDAOList().size());
-		System.out.println("getAnalyzerList >> "+setting.getAnalyzerList().size());
+		System.out.println("getAnalyzerList >> "+setting.getActionList().size());
 
 		StringWriter writer = new StringWriter();
 		Marshaller marshaller = jc.createMarshaller();

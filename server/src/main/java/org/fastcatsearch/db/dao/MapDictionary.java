@@ -25,8 +25,7 @@ import org.fastcatsearch.db.vo.MapDictionaryVO;
 public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictionaryVO> {
 
 	public MapDictionary(String tableName, ConnectionManager connectionManager) {
-		super(connectionManager);
-		this.tableName = tableName;
+		super(tableName, connectionManager);
 	}
 
 	@Override

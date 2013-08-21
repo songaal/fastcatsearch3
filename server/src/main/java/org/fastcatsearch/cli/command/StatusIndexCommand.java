@@ -84,7 +84,7 @@ public class StatusIndexCommand extends Command {
 			collectionId = cmd[2];
 			type = cmd[3];
 		}
-		IndexingResult indexingResult = dbHandler.getDAO("IndexingResult");
+		IndexingResult indexingResult = dbHandler.db().getDAO("IndexingResult");
 		
 		if(listAll) {
 			for(Collection collection : collectionList) {

@@ -1,63 +1,57 @@
 package org.fastcatsearch.http.service.action;
 
-import org.fastcatsearch.util.JSONPResultStringer;
-import org.fastcatsearch.util.JSONResultStringer;
-import org.fastcatsearch.util.ResultStringer;
-import org.fastcatsearch.util.XMLResultStringer;
+import java.io.Writer;
+
+import org.fastcatsearch.util.JSONPResultWriter;
+import org.fastcatsearch.util.JSONResultWriter;
+import org.fastcatsearch.util.ResultWriter;
+import org.fastcatsearch.util.XMLResultWriter;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
 public abstract class ServiceAction extends HttpAction {
-
-	public static final int JSON_TYPE = 0;
-	public static final int XML_TYPE = 1;
-	public static final int JSONP_TYPE = 2;
 	
-	protected String responseCharset;
-	protected int resultType;
-	
-	public ServiceAction(){
-	}
+	public static final String DEFAULT_CHARSET = "utf-8";
+	public static enum Type { json, xml, jsonp };
+	protected Type resultType;
 	
 	public ServiceAction(String type){
-		int resultType = detectType(type);
-		if (resultType != -1) {
-			this.resultType = resultType;
-		}else{
-			this.resultType = JSON_TYPE;
-		}
+		this.resultType = detectType(type);
 	}
-	protected int detectType(String typeStr) {
+	protected Type detectType(String typeStr) {
 		if(typeStr != null){
-			if(typeStr.equalsIgnoreCase("json")){
-				return JSON_TYPE;
-			}else if(typeStr.equalsIgnoreCase("xml")){
-				return XML_TYPE;
-			}else if(typeStr.equalsIgnoreCase("jsonp")){
-				return JSONP_TYPE;
+			if(typeStr.equalsIgnoreCase(Type.json.name())){
+				return Type.json;
+			}else if(typeStr.equalsIgnoreCase(Type.xml.name())){
+				return Type.xml;
+			}else if(typeStr.equalsIgnoreCase(Type.jsonp.name())){
+				return Type.jsonp;
 			}
 		}
-		return -1;
+		return Type.json;
 	}
 	
+	protected void writeHeader(ActionResponse response) {
+		writeHeader(response, DEFAULT_CHARSET);
+	}
 	protected void writeHeader(ActionResponse response, String responseCharset) {
 		response.setStatus(HttpResponseStatus.OK);
-		if (resultType == JSON_TYPE) {
+		if (resultType == Type.json) {
 			response.setContentType("application/json; charset=" + responseCharset);
-		} else if (resultType == JSONP_TYPE) {
+		} else if (resultType == Type.jsonp) {
 			response.setContentType("application/json; charset=" + responseCharset);
-		} else if (resultType == XML_TYPE) {
+		} else if (resultType == Type.xml) {
 			response.setContentType("text/xml; charset=" + responseCharset);
 		}
 	}
 	
-	protected ResultStringer getResultStringer(String rootElement, boolean isBeautify, String jsonCallback) {
-		ResultStringer rStringer = null;
-		if (resultType == JSON_TYPE) {
-			rStringer = new JSONResultStringer(isBeautify);
-		} else if (resultType == JSONP_TYPE) {
-			rStringer = new JSONPResultStringer(jsonCallback,isBeautify);
-		} else if (resultType == XML_TYPE) {
-			rStringer = new XMLResultStringer(rootElement, isBeautify);
+	protected ResultWriter getResultWriter(Writer writer, String rootElement, boolean isBeautify, String jsonCallback) {
+		ResultWriter rStringer = null;
+		if (resultType == Type.json) {
+			rStringer = new JSONResultWriter(writer, isBeautify);
+		} else if (resultType == Type.jsonp) {
+			rStringer = new JSONPResultWriter(writer, jsonCallback, isBeautify);
+		} else if (resultType == Type.xml) {
+			rStringer = new XMLResultWriter(writer, rootElement, isBeautify);
 		}
 		return rStringer;
 	}

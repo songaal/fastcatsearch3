@@ -31,7 +31,7 @@ public class IndexingStartNotificationbak extends StreamableJob {
 		DBService dbService = ServiceManager.getInstance().getService(DBService.class);
 		if (dbService != null) {
 
-			IndexingResult indexingResult = dbService.getDAO("IndexingResult", IndexingResult.class);
+			IndexingResult indexingResult = dbService.db().getDAO("IndexingResult", IndexingResult.class);
 //			if (indexingType == IndexingResult.TYPE_FULL_INDEXING) {
 //				// 전체색인시는 증분색인 정보를 클리어해준다.
 //				indexingResult.delete(collection, IndexingResult.TYPE_INC_INDEXING);

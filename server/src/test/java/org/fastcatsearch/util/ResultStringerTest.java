@@ -2,13 +2,16 @@ package org.fastcatsearch.util;
 
 import static org.junit.Assert.*;
 
+import java.io.StringWriter;
+
 import org.junit.Test;
 
 public class ResultStringerTest {
 
 	@Test
 	public void test() throws Exception {
-		ResultStringer rs = new XMLResultStringer("fastcat",true);
+		StringWriter writer = new StringWriter();
+		ResultWriter rs = new XMLResultWriter(writer, "fastcat",true);
 		
 		//rs = new JSONResultStringer();
 		
@@ -51,14 +54,16 @@ public class ResultStringerTest {
 			.endArray()
 		.endObject();
 		
-		System.out.println(rs.toString());
+		rs.done();
+		System.out.println(writer.toString());
 		
 		//fail("Not yet implemented");
 	}
 
 	@Test
 	public void test2() throws Exception {
-		ResultStringer rs = new XMLResultStringer("fastcat",true);
+		StringWriter writer = new StringWriter();
+		ResultWriter rs = new XMLResultWriter(writer, "fastcat",true);
 		
 		//rs = new JSONResultStringer();
 		
@@ -94,7 +99,9 @@ public class ResultStringerTest {
 		.endArray()
 		.endObject();
 		
-		System.out.println(rs.toString());
+		rs.done();
+		
+		System.out.println(writer.toString());
 		
 		//fail("Not yet implemented");
 	}

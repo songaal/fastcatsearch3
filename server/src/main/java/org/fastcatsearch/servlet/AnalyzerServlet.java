@@ -18,7 +18,7 @@ import org.fastcatsearch.ir.analysis.AnalyzerFactory;
 import org.fastcatsearch.ir.analysis.DefaultAnalyzerFactory;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.util.DynamicClassLoader;
-import org.fastcatsearch.util.ResultStringer;
+import org.fastcatsearch.util.ResultWriter;
 
 public class AnalyzerServlet extends WebServiceHttpServlet {
 	
@@ -82,7 +82,7 @@ public class AnalyzerServlet extends WebServiceHttpServlet {
 			
 			String keyword = request.getParameter("keyword");
 			
-			ResultStringer rStringer = super.getResultStringer("analyze-result", true, jsonCallback);
+			ResultWriter rStringer = super.getResultStringer("analyze-result", true, jsonCallback);
 			
 			
 			if(errorMessage != null) {

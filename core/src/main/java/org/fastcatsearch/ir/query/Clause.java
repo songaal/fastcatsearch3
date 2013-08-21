@@ -141,23 +141,5 @@ public class Clause {
 		throw new ClauseException("Unknown operator =" + operator);
 	}
 
-	public void forceHighlight() {
-		if (operand1 != null) {
-			if (operand1 instanceof Term) {
-				((Term) operand1).addOption(Term.HIGHLIGHT);
-			} else {
-				((Clause) operand1).forceHighlight();
-			}
-		}
-
-		if (operand2 != null) {
-			if (operand2 instanceof Term) {
-				((Term) operand2).addOption(Term.HIGHLIGHT);
-			} else {
-				((Clause) operand2).forceHighlight();
-			}
-		}
-
-	}
 
 }

@@ -13,7 +13,7 @@ public class HttpServiceController {
 	private static final Logger logger = LoggerFactory.getLogger(HttpServiceController.class);
 
 	private ExecutorService executorService;
-	Map<String, Class<HttpAction>> actionMap;
+	Map<String, HttpAction> actionMap;
 
 	public HttpServiceController(ExecutorService executorService) {
 		this.executorService = executorService;
@@ -41,26 +41,20 @@ public class HttpServiceController {
 		if (pos > 0) {
 			uri = uri.substring(0, pos);
 		}
-		Class<HttpAction> clazz = actionMap.get(uri);
-		ActionRequest actionRequest = null;
-		if(clazz == null) {
+		
+//		logger.debug("actionMap>>{}", actionMap);
+		HttpAction actionObj = actionMap.get(uri);
+//		logger.debug("action > {}", actionObj);
+		if(actionObj == null) {
 			return null;
-		}else{
-			actionRequest = new ActionRequest(uri, request);
 		}
 		
-		HttpAction action = null;
-		try {
-			action = clazz.newInstance();
-		} catch (Exception e) {
-			logger.error("Action class instance error!", e);
-			return null;
-		}
-		action.setRequest(actionRequest, httpChannel);
+		HttpAction action = actionObj.clone();
+		action.setRequest(new ActionRequest(uri, request), httpChannel);
 		return action;
 	}
 
-	public void setActionMap(Map<String, Class<HttpAction>> actionMap) {
+	public void setActionMap(Map<String, HttpAction> actionMap) {
 		this.actionMap = actionMap;
 	}
 }

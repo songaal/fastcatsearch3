@@ -6,7 +6,7 @@ import java.io.Writer;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.util.Formatter;
-import org.fastcatsearch.util.ResultStringer;
+import org.fastcatsearch.util.ResultWriter;
 import org.fastcatsearch.util.StringifyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +26,7 @@ public  class DocumentSearchResultWriter extends AbstractDocumentSearchResultWri
 	}
 
 	@Override
-	public void writeResult(Object obj, ResultStringer rStringer, long searchTime, boolean isSuccess) throws StringifyException, IOException {
+	public void writeResult(Object obj, ResultWriter rStringer, long searchTime, boolean isSuccess) throws StringifyException, IOException {
 		Result result = null;
 		if (!isSuccess) {
 			String errorMsg = null;
@@ -60,7 +60,7 @@ public  class DocumentSearchResultWriter extends AbstractDocumentSearchResultWri
 		writer.write(rStringer.toString());
 	}
 
-	public void writeBody(Result result, ResultStringer rStringer, long searchTime) throws StringifyException {
+	public void writeBody(Result result, ResultWriter rStringer, long searchTime) throws StringifyException {
 		
 		rStringer.key("result");
 		// data

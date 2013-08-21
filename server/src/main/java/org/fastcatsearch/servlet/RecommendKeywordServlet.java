@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.dao.SetDictionary;
 import org.fastcatsearch.db.vo.SetDictionaryVO;
-import org.fastcatsearch.util.ResultStringer;
+import org.fastcatsearch.util.ResultWriter;
 import org.fastcatsearch.util.StringifyException;
 
 public class RecommendKeywordServlet extends WebServiceHttpServlet {
@@ -46,7 +46,7 @@ public class RecommendKeywordServlet extends WebServiceHttpServlet {
     	}
     	keyword = URLDecoder.decode(keyword, "utf-8");
     	DBService dbHandler = DBService.getInstance();
-    	List<SetDictionaryVO> recommendList = dbHandler.getDAO("RecommendKeyword", SetDictionary.class).selectWithExactKeyword(keyword.trim());
+    	List<SetDictionaryVO> recommendList = dbHandler.db().getDAO("RecommendKeyword", SetDictionary.class).selectWithExactKeyword(keyword.trim());
     	List<String> termList = null;
     	String mainWord = "";
     	if(recommendList != null && recommendList.size() > 0){
@@ -70,7 +70,7 @@ public class RecommendKeywordServlet extends WebServiceHttpServlet {
 		String responseCharset = getParameter(request, "responseCharset", "UTF-8");
     	String jsonCallback = request.getParameter("jsoncallback");
 		
-    	ResultStringer rStringer = super.getResultStringer("recommend-keyword", true, jsonCallback);
+    	ResultWriter rStringer = super.getResultStringer("recommend-keyword", true, jsonCallback);
     	
     	try {
 			rStringer.object()

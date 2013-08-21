@@ -14,7 +14,6 @@ package org.fastcatsearch.service;
 import org.fastcatsearch.common.Lifecycle;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.settings.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +60,6 @@ public abstract class AbstractService {
 		if(lifecycle.canMoveToStarted()){
 			if(doStart()){
 				logger.info(getClass().getSimpleName()+" 시작!");
-				EventDBLogger.info(EventDBLogger.CATE_MANAGEMENT, getClass().getSimpleName()+"가 시작했습니다.", "");
 				lifecycle.moveToStarted();
 				return true;
 			}else{
@@ -78,7 +76,6 @@ public abstract class AbstractService {
 		if(lifecycle.canMoveToStopped()){
 			if(doStop()){
 				logger.info(getClass().getSimpleName()+" 정지!");
-				EventDBLogger.info(EventDBLogger.CATE_MANAGEMENT, getClass().getSimpleName()+"가 정지했습니다.", "");
 				lifecycle.moveToStopped();
 				return true;
 			}else{
@@ -103,7 +100,6 @@ public abstract class AbstractService {
 		if(lifecycle.canMoveToClosed()){
 			if(doClose()){
 				logger.info(getClass().getSimpleName()+" 정지!");
-				EventDBLogger.info(EventDBLogger.CATE_MANAGEMENT, getClass().getSimpleName()+"가 정지했습니다.", "");
 				lifecycle.moveToClosed();
 				return true;
 			}else{

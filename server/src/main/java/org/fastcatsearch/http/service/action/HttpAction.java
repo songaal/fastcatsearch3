@@ -6,16 +6,29 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class HttpAction implements Runnable {
+public abstract class HttpAction implements Runnable, Cloneable {
 	protected static final Logger logger = LoggerFactory.getLogger(HttpAction.class);
 	
-	private ActionRequest request;
+	public ActionRequest request;
 	private HttpChannel httpChannel;
 	private ActionResponse response;
 	
 	public HttpAction(){
 	}
 	
+	public HttpAction clone(){
+		HttpAction action;
+		try {
+			action = (HttpAction) super.clone();
+			action.request = null;
+			action.httpChannel = null;
+			action.response = null;
+			return action;
+		} catch (CloneNotSupportedException e) {
+			logger.error("Clone error", e);
+		}
+		return null;
+	}
 	public void setRequest(ActionRequest request, HttpChannel httpChannel){
 		this.request = request;
 		this.httpChannel = httpChannel;

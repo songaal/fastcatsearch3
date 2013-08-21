@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.util.ResultStringer;
+import org.fastcatsearch.util.ResultWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -131,11 +131,11 @@ public abstract class AbstractSearchServlet extends WebServiceHttpServlet {
 		return "";
 	}
 
-	public void writeHeader(HttpServletResponse response, ResultStringer stringer) {
+	public void writeHeader(HttpServletResponse response, ResultWriter stringer) {
 		writeHeader(response, stringer, responseCharset);
 	}
 
-	public ResultStringer getResultStringer() {
+	public ResultWriter getResultStringer() {
 		return getResultStringer("fastcatsearch", isAdmin, jsonCallback);
 	}
 

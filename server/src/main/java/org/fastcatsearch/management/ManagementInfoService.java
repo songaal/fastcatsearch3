@@ -122,7 +122,7 @@ public class ManagementInfoService extends AbstractService{
 			
 			//DB에 저장하기.
 			Timestamp when = new Timestamp(System.currentTimeMillis());
-			DBService.getInstance().getDAO("SystemMonitoringInfoMinute", SystemMonitoringInfoMinute.class).insert(cpuInfo.jvmCpuUse, memoryInfo.usedHeapMemory + memoryInfo.usedNonHeapMemory, cpuInfo.systemLoadAverage, when);
+			DBService.getInstance().db().getDAO("SystemMonitoringInfoMinute", SystemMonitoringInfoMinute.class).insert(cpuInfo.jvmCpuUse, memoryInfo.usedHeapMemory + memoryInfo.usedNonHeapMemory, cpuInfo.systemLoadAverage, when);
 //			DBHandler.getInstance().commitMon();
 			
 			jvmCpuInfoPerHour.add(cpuInfo);
@@ -150,7 +150,7 @@ public class ManagementInfoService extends AbstractService{
 			
 			//DB에 저장하기.
 			Timestamp when = new Timestamp(System.currentTimeMillis());
-			DBService.getInstance().getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).insert(cpuInfo.jvmCpuUse, memoryInfo.usedHeapMemory + memoryInfo.usedNonHeapMemory, cpuInfo.systemLoadAverage, when, "h");
+			DBService.getInstance().db().getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).insert(cpuInfo.jvmCpuUse, memoryInfo.usedHeapMemory + memoryInfo.usedNonHeapMemory, cpuInfo.systemLoadAverage, when, "h");
 //			DBHandler.getInstance().commitMon();
 			
 			jvmCpuInfoPerDay.add(cpuInfo);
@@ -179,7 +179,7 @@ public class ManagementInfoService extends AbstractService{
 			
 			//DB에 저장하기.
 			Timestamp when = new Timestamp(System.currentTimeMillis());
-			DBService.getInstance().getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).insert(cpuInfo.jvmCpuUse, memoryInfo.usedHeapMemory + memoryInfo.usedNonHeapMemory, cpuInfo.systemLoadAverage, when, "d");
+			DBService.getInstance().db().getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).insert(cpuInfo.jvmCpuUse, memoryInfo.usedHeapMemory + memoryInfo.usedNonHeapMemory, cpuInfo.systemLoadAverage, when, "d");
 			
 			// 매월 1일 전달 통계저장하기.
 			Calendar calendar = Calendar.getInstance();
@@ -194,7 +194,7 @@ public class ManagementInfoService extends AbstractService{
 				
 				//DB에 저장하기.
 				Timestamp when_m = new Timestamp(System.currentTimeMillis());
-				DBService.getInstance().getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).insert(cpuInfo_m.jvmCpuUse, memoryInfo_m.usedHeapMemory + memoryInfo_m.usedNonHeapMemory, cpuInfo_m.systemLoadAverage, when_m, "m");
+				DBService.getInstance().db().getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).insert(cpuInfo_m.jvmCpuUse, memoryInfo_m.usedHeapMemory + memoryInfo_m.usedNonHeapMemory, cpuInfo_m.systemLoadAverage, when_m, "m");
 				
 			} 
 			
@@ -205,7 +205,7 @@ public class ManagementInfoService extends AbstractService{
 			/*
 			 * 2. 이전 데이터 지워주기.
 			 * */
-			DBService.getInstance().getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).deleteOld(1);//1달 이전은 삭제 
+			DBService.getInstance().db().getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).deleteOld(1);//1달 이전은 삭제 
 			
 //			DBHandler.getInstance().commitMon();
 		}

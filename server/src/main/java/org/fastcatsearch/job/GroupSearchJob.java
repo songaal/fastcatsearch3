@@ -13,20 +13,18 @@ package org.fastcatsearch.job;
 
 import java.util.Map;
 
-
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.group.GroupResults;
+import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.query.Groups;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.KeywordService;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.exception.FastcatSearchException;
 
 
 public class GroupSearchJob extends Job {

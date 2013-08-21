@@ -66,7 +66,7 @@ public class EventDBAppender extends AppenderBase<LoggingEvent> {
 			}
 			
 			
-			DBService.getInstance().getDAO("SearchEvent", SearchEvent.class).insert(when, type, cateType, message, stacktrace, status);
+			DBService.getInstance().db().getDAO("SearchEvent", SearchEvent.class).insert(when, type, cateType, message, stacktrace, status);
 //			DBHandler.getInstance().commit();
 		}
 	}

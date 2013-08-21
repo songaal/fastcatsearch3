@@ -15,7 +15,7 @@ import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
-import org.fastcatsearch.job.SearchJob;
+import org.fastcatsearch.job.SingleSearchJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +64,7 @@ public class SearchActionCommand extends Command {
 		
 		logger.debug("query : {}", queryBuffer);
 		
-		SearchJob job = new SearchJob();
+		SingleSearchJob job = new SingleSearchJob();
 		job.setArgs(new String[] { queryBuffer.toString() });
 		Result result = null;
 		ResultFuture jobResult = JobService.getInstance().offer(job);

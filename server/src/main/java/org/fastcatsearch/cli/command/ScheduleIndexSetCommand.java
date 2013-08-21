@@ -86,7 +86,7 @@ public class ScheduleIndexSetCommand extends CollectionExtractCommand {
 			iMinute = 0;
 		}
 
-		IndexingSchedule is = DBService.getInstance().getDAO("IndexingSchedule");
+		IndexingSchedule is = DBService.getInstance().db().getDAO("IndexingSchedule");
 		is.deleteByType(collection, indexType);
 
 		int iPeriod = iDay * 60 * 60 * 24 + iHour * 60 * 60 + iMinute * 60;

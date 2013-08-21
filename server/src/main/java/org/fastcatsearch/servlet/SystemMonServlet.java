@@ -215,7 +215,7 @@ public class SystemMonServlet extends WebServiceHttpServlet {
 		
 		Timestamp start = Timestamp.valueOf(startStr);
 		Timestamp end = Timestamp.valueOf(endStr);
-		List<SystemMonitoringInfoVO> list =  handler.getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).select(start, end, "h");
+		List<SystemMonitoringInfoVO> list =  handler.db().getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).select(start, end, "h");
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(start);
 		
@@ -294,7 +294,7 @@ public class SystemMonServlet extends WebServiceHttpServlet {
 		
 		Timestamp start = Timestamp.valueOf(startStr);
 		Timestamp end = Timestamp.valueOf(endStr);
-		List<SystemMonitoringInfoVO> list =  handler.getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).select(start, end, "d");
+		List<SystemMonitoringInfoVO> list =  handler.db().getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).select(start, end, "d");
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(start);
 		int year = calendar.get(Calendar.YEAR);
@@ -374,7 +374,7 @@ public class SystemMonServlet extends WebServiceHttpServlet {
 		
 		Timestamp start = Timestamp.valueOf(startStr);
 		Timestamp end = Timestamp.valueOf(endStr);
-		List<SystemMonitoringInfoVO> list =  handler.getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).select(start, end, "d");
+		List<SystemMonitoringInfoVO> list =  handler.db().getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).select(start, end, "d");
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(start);
 		int year = calendar.get(Calendar.YEAR);
@@ -456,7 +456,7 @@ public class SystemMonServlet extends WebServiceHttpServlet {
 		
 		Timestamp start = Timestamp.valueOf(startStr);
 		Timestamp end = Timestamp.valueOf(endStr);
-		List<SystemMonitoringInfoVO> list =  handler.getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).select(start, end, "d");
+		List<SystemMonitoringInfoVO> list =  handler.db().getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).select(start, end, "d");
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(start);
 		int year = calendar.get(Calendar.YEAR);
@@ -538,7 +538,7 @@ public class SystemMonServlet extends WebServiceHttpServlet {
 		
 		Timestamp start = Timestamp.valueOf(startStr);
 		Timestamp end = Timestamp.valueOf(endStr);
-		List<SystemMonitoringInfoVO> list =  handler.getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).select(start, end, "m");
+		List<SystemMonitoringInfoVO> list =  handler.db().getDAO("SystemMonitoringInfo", SystemMonitoringInfo.class).select(start, end, "m");
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(start);
 		int year = calendar.get(Calendar.YEAR);

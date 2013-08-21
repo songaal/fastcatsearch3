@@ -25,6 +25,6 @@ public class ClusterGroupSearchServlet extends SearchServlet {
 
 	@Override
 	protected AbstractSearchResultWriter createSearchResultWriter(Writer writer) {
-		return new GroupResultWriter(writer);
+		return null;//new GroupResultWriter(writer);
 	}
 }

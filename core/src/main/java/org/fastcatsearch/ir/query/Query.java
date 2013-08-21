@@ -16,8 +16,6 @@
 
 package org.fastcatsearch.ir.query;
 
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
 
 /**
@@ -35,7 +33,10 @@ import java.util.List;
 */
 public class Query {
 	public static int SEARCH_OPT_NOCACHE = 1 << 0;
-	public static int SEARCH_OPT_HIGHLIGHT = 1 << 1;
+	
+	public static enum EL {
+		cn, ht, sn, ln, so, ud, fl, se, ft, gr, gf, ra
+	};
 	
 	private Clause clause;
 	private List<View> views;
@@ -46,7 +47,9 @@ public class Query {
 	private Sorts sorts;
 	private Metadata meta;
 	
-	public Query(){ }
+	public Query(){ 
+		meta = new Metadata();
+	}
 	
 	public String toString(){
 		StringBuilder sb = new StringBuilder("\n[Metadata]").append(meta);
@@ -64,13 +67,6 @@ public class Query {
 			}
 		}		
 		return sb.toString();
-	}
-	public void writeTo(OutputStream out){
-		
-	}
-	
-	public void readFrom(InputStream in){
-		
 	}
 	
 	public void setClause(Clause clause){

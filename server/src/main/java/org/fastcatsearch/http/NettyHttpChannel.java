@@ -31,6 +31,7 @@ import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.slf4j.Logger;
@@ -139,7 +140,7 @@ public class NettyHttpChannel implements HttpChannel {
 				"</head>\n" + 
 				"<body>\n" + 
 				"<h2>HTTP ERROR: "+status.getCode()+"</h2>\n" + 
-				"<p>Problem accessing /asklfljasf. Reason:\n" + 
+				"<p>Problem accessing ["+request.getMethod()+"]"+request.getUri()+". Reason:\n" + 
 				"<pre>    "+status.getReasonPhrase() +
 				(stackTrace != null ? "\n\n"+stackTrace : "")+"</pre></p>\n" + 
 				"<hr /><i><small>Powered by FastcatSearch</small></i>\n" + 

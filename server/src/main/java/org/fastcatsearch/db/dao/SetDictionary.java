@@ -25,8 +25,7 @@ import org.fastcatsearch.db.vo.SetDictionaryVO;
 public class SetDictionary extends DAOBase implements ResultVOMapper<SetDictionaryVO> {
 
 	public SetDictionary(String tableName, ConnectionManager connectionManager) {
-		super(connectionManager);
-		this.tableName = tableName;
+		super(tableName, connectionManager);
 	}
 
 	@Override

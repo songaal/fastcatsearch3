@@ -7,19 +7,19 @@ import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;
-import org.fastcatsearch.util.ResultStringer;
+import org.fastcatsearch.util.ResultWriter;
 import org.fastcatsearch.util.StringifyException;
 
 public class GroupResultWriter extends AbstractSearchResultWriter {
 	
-	public GroupResultWriter(Writer writer) {
-		super(writer);
+	public GroupResultWriter(ResultWriter resultWriter) {
+		super(resultWriter);
 	}
 	
 	@Override
-	public void writeResult(Object result, ResultStringer stringer, long searchTime, boolean isSuccess) throws StringifyException, IOException{
+	public void writeResult(Object result, long searchTime, boolean isSuccess) throws StringifyException, IOException{
 		
-		stringer.object();
+		resultWriter.object();
 		
 		if(!isSuccess){
 			String errorMsg = null;
@@ -28,7 +28,7 @@ public class GroupResultWriter extends AbstractSearchResultWriter {
 			}else{
 				errorMsg = result.toString();
 			}
-			stringer.key("status").value(1)
+			resultWriter.key("status").value(1)
 			.key("time").value(Strings.getHumanReadableTimeInterval(searchTime))
 			.key("total_count").value(0)
 			.key("count").value(0)
@@ -37,29 +37,28 @@ public class GroupResultWriter extends AbstractSearchResultWriter {
 		}else{
 			
 			GroupResults groupResults = (GroupResults) result;
-			stringer.key("status").value(0)
+			resultWriter.key("status").value(0)
 			.key("time").value(Strings.getHumanReadableTimeInterval(searchTime))
 			.key("total_count").value(groupResults.totalSearchCount())
 			.key("count").value(groupResults.totalSearchCount());
 			
-			writeBody(groupResults, stringer);
+			writeBody(groupResults, resultWriter);
 		}
 		
-		stringer.endObject();
-			
-		writer.write(stringer.toString());
+		resultWriter.endObject();
+		resultWriter.done();
 	}
 	
-	public void writeBody(GroupResults groupResults, ResultStringer stringer) throws StringifyException {
+	public void writeBody(GroupResults groupResults, ResultWriter resultStringer) throws StringifyException {
 		
 		if(groupResults == null){
-    		stringer.key("group_result").array("group_list").endArray();
+    		resultStringer.key("group_result").array("group_list").endArray();
 		} else {
 			GroupResult[] groupResultList = groupResults.groupResultList();
-    		stringer.key("group_result").array("group_list");
+    		resultStringer.key("group_result").array("group_list");
     		for (int i = 0; i < groupResultList.length; i++) {
     			GroupResult groupResult = groupResultList[i];
-    			stringer.object()
+    			resultStringer.object()
     			.key("label").value(groupResult.fieldId())
     			.key("result").array("group_item");
 				int size = groupResult == null ? 0 : groupResult.size();
@@ -68,20 +67,20 @@ public class GroupResultWriter extends AbstractSearchResultWriter {
 					String keyData = e.key;
 					String[] functionName = groupResult.headerNameList();
 					
-					stringer.object()
+					resultStringer.object()
 						.key("_NO").value(k+1)
 						.key("_KEY").value(keyData);
 					
 					for (int j = 0; j < functionName.length; j++) {
-						stringer.key(functionName[j]).value(e.groupingValue(j));
+						resultStringer.key(functionName[j]).value(e.groupingValue(j));
 					}
 					
-					stringer.endObject();
+					resultStringer.endObject();
 				}//for
-				stringer.endArray();//group_item
-				stringer.endObject();
+				resultStringer.endArray();//group_item
+				resultStringer.endObject();
     		}//for
-    		stringer.endArray();
+    		resultStringer.endArray();
 		}//if else
 	}
 }

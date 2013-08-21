@@ -21,7 +21,7 @@ import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.plugin.PluginSetting;
-import org.fastcatsearch.plugin.PluginSetting.Servlet;
+import org.fastcatsearch.plugin.PluginSetting.Action;
 import org.fastcatsearch.servlet.AnalyzerServlet;
 import org.fastcatsearch.servlet.CSVMakeServlet;
 import org.fastcatsearch.servlet.DocumentListServlet;
@@ -32,7 +32,6 @@ import org.fastcatsearch.servlet.ManagementInfoServlet;
 import org.fastcatsearch.servlet.PopularKeywordServlet;
 import org.fastcatsearch.servlet.RecommendKeywordServlet;
 import org.fastcatsearch.servlet.RegisterJobServlet;
-import org.fastcatsearch.servlet.SearchEventListServlet;
 import org.fastcatsearch.servlet.SearchKeywordListServlet;
 import org.fastcatsearch.servlet.SearchMonServlet;
 import org.fastcatsearch.servlet.SearchServlet;
@@ -130,58 +129,29 @@ public class WebService extends AbstractService{
 		}
 		
 		
-		final Context contextPlugin = new Context(server, PLUGIN_CONTEXT, Context.SESSIONS);
-		contextPlugin.setMaxFormContentSize(10 * 1024 * 1024); //파라미터전송 10MB까지 가능.
-		
-		PluginService pluginService = serviceManager.getService(PluginService.class);
-		for (Plugin plugin : pluginService.getPlugins()) {
-			PluginSetting pluginSetting = plugin.getPluginSetting();
-			Servlet servletType = pluginSetting.getWeb().getUser().getServlet();
-			//플러그인 서블릿이 있다면 추가.
-			if(servletType != null){
-				String path = servletType.getPath();
-				String servletClass = servletType.getValue();
-				logger.debug("servlet path={}, class={}", path, servletClass);
-				if(servletClass != null && path != null){
-					WebServiceHttpServlet servlet = DynamicClassLoader.loadObject(servletClass, WebServiceHttpServlet.class, new Class<?>[]{int.class}, new Object[]{WebServiceHttpServlet.JSON_TYPE});
-					contextPlugin.addServlet(new ServletHolder(servlet), path+"/json");
-					logger.debug("register plugin servlet >> {} : {}", PLUGIN_CONTEXT+path+"/json", servlet.getClass().getName());
-					servlet = DynamicClassLoader.loadObject(servletClass, WebServiceHttpServlet.class, new Class<?>[]{int.class}, new Object[]{WebServiceHttpServlet.XML_TYPE});
-					contextPlugin.addServlet(new ServletHolder(servlet), path+"/xml");
-					logger.debug("register plugin servlet >> {} : {}", PLUGIN_CONTEXT+path+"/xml", servlet.getClass().getName());
-				}
-			}
-		}
-		handlerList.addHandler(contextPlugin);
-		
-		// Cluster search ServletContextHandler
-		final Context contextCluster = new Context(server, CLUSTER_CONTEXT, Context.SESSIONS);
-		contextCluster.setMaxFormContentSize(10 * 1024 * 1024); //파라미터전송 10MB까지 가능.
-		contextCluster.addServlet(new ServletHolder(new ClusterGroupSearchServlet(WebServiceHttpServlet.JSON_TYPE)),"/group/json");
-		contextCluster.addServlet(new ServletHolder(new ClusterGroupSearchServlet(WebServiceHttpServlet.XML_TYPE)),"/group/xml");
-		contextCluster.addServlet(new ServletHolder(new ClusterSearchServlet(WebServiceHttpServlet.JSON_TYPE)),"/search/json");
-		contextCluster.addServlet(new ServletHolder(new ClusterSearchServlet(WebServiceHttpServlet.XML_TYPE)),"/search/xml");
-		handlerList.addHandler(contextCluster);
-				
-		// Search ServletContextHandler
-		final Context contextSearch = new Context(server, SEARCH_CONTEXT, Context.SESSIONS);
-		contextSearch.setMaxFormContentSize(10 * 1024 * 1024); //파라미터전송 10MB까지 가능.
-		contextSearch.addServlet(new ServletHolder(new SearchServlet(WebServiceHttpServlet.JSON_TYPE)),"/json");
-		contextSearch.addServlet(new ServletHolder(new SearchServlet(WebServiceHttpServlet.JSONP_TYPE)),"/jsonp");
-		contextSearch.addServlet(new ServletHolder(new SearchServlet(WebServiceHttpServlet.XML_TYPE)),"/xml");
-		contextSearch.addServlet(new ServletHolder(new SearchServlet(SearchServlet.IS_ALIVE)),"/isAlive");
-		handlerList.addHandler(contextSearch);
-		
-		/*
-		 * 그룹핑 전용검색.
-		 * */
-		final Context contextGroup = new Context(server, GROUP_CONTEXT, Context.SESSIONS);
-		contextGroup.setMaxFormContentSize(10 * 1024 * 1024); //파라미터전송 10MB까지 가능.
-		contextGroup.addServlet(new ServletHolder(new GroupSearchServlet(WebServiceHttpServlet.JSON_TYPE)),"/json");
-		contextGroup.addServlet(new ServletHolder(new GroupSearchServlet(WebServiceHttpServlet.JSONP_TYPE)),"/jsonp");
-		contextGroup.addServlet(new ServletHolder(new GroupSearchServlet(WebServiceHttpServlet.XML_TYPE)),"/xml");
-		handlerList.addHandler(contextGroup);
-		
+//		final Context contextPlugin = new Context(server, PLUGIN_CONTEXT, Context.SESSIONS);
+//		contextPlugin.setMaxFormContentSize(10 * 1024 * 1024); //파라미터전송 10MB까지 가능.
+//		
+//		PluginService pluginService = serviceManager.getService(PluginService.class);
+//		for (Plugin plugin : pluginService.getPlugins()) {
+//			PluginSetting pluginSetting = plugin.getPluginSetting();
+//			Servlet servletType = pluginSetting.getWeb().getUser().getServlet();
+//			//플러그인 서블릿이 있다면 추가.
+//			if(servletType != null){
+//				String path = servletType.getPath();
+//				String servletClass = servletType.getValue();
+//				logger.debug("servlet path={}, class={}", path, servletClass);
+//				if(servletClass != null && path != null){
+//					WebServiceHttpServlet servlet = DynamicClassLoader.loadObject(servletClass, WebServiceHttpServlet.class, new Class<?>[]{int.class}, new Object[]{WebServiceHttpServlet.JSON_TYPE});
+//					contextPlugin.addServlet(new ServletHolder(servlet), path+"/json");
+//					logger.debug("register plugin servlet >> {} : {}", PLUGIN_CONTEXT+path+"/json", servlet.getClass().getName());
+//					servlet = DynamicClassLoader.loadObject(servletClass, WebServiceHttpServlet.class, new Class<?>[]{int.class}, new Object[]{WebServiceHttpServlet.XML_TYPE});
+//					contextPlugin.addServlet(new ServletHolder(servlet), path+"/xml");
+//					logger.debug("register plugin servlet >> {} : {}", PLUGIN_CONTEXT+path+"/xml", servlet.getClass().getName());
+//				}
+//			}
+//		}
+//		handlerList.addHandler(contextPlugin);
 		
 		final Context contextExecute = new Context(server, EXECUTE_CONTEXT, Context.SESSIONS);
 		contextExecute.addServlet(new ServletHolder(new RegisterJobServlet(WebServiceHttpServlet.JSON_TYPE)),"/");
@@ -219,11 +189,6 @@ public class WebService extends AbstractService{
 		contextDocumentSearch.addServlet(new ServletHolder(new DocumentSearchServlet(WebServiceHttpServlet.XML_TYPE)),"/xml");
 		handlerList.addHandler(contextDocumentSearch);
 		
-//		final Context contextDocumentIndexSearch = new Context(server, DOCUMENT_INDEX_CONTEXT, Context.SESSIONS);
-//		contextDocumentIndexSearch.addServlet(new ServletHolder(new DocumentIndexServlet(WebServiceHttpServlet.JSON_TYPE)),"/json");
-//		contextDocumentIndexSearch.addServlet(new ServletHolder(new DocumentIndexServlet(WebServiceHttpServlet.XML_TYPE)),"/xml");
-//		handlerList.addHandler(contextDocumentIndexSearch);
-		
 		
 		//7. 모니터링 MONITORING_CONTEXT
 		final Context contextMonitoring = new Context(server, MONITORING_CONTEXT, Context.SESSIONS);
@@ -247,8 +212,6 @@ public class WebService extends AbstractService{
 		//실시간 검색키워드 SearchKeywordListServlet
 		contextMonitoring.addServlet(new ServletHolder(new SearchKeywordListServlet(WebServiceHttpServlet.JSON_TYPE)),"/keywordList");
 		contextMonitoring.addServlet(new ServletHolder(new SearchKeywordListServlet(WebServiceHttpServlet.JSONP_TYPE)),"/keywordList/jsonp");
-		//이벤트 내역
-		contextMonitoring.addServlet(new ServletHolder(new SearchEventListServlet()),"/eventList");
 		//csv파일
 		contextMonitoring.addServlet(new ServletHolder(new CSVMakeServlet()),"/csv");
 		handlerList.addHandler(contextMonitoring);

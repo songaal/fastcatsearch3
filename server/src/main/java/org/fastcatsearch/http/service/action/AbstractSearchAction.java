@@ -1,22 +1,18 @@
 package org.fastcatsearch.http.service.action;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.http.ActionRequest;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.SearchJob;
+import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.servlet.AbstractSearchResultWriter;
-import org.fastcatsearch.util.ResultStringer;
+import org.fastcatsearch.servlet.SearchResultWriter;
+import org.fastcatsearch.util.ResultWriter;
 import org.fastcatsearch.util.StringifyException;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
@@ -24,50 +20,77 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractSearchAction extends ServiceAction {
 
-	protected static AtomicLong taskSeq = new AtomicLong();
+	private static AtomicLong taskSeq = new AtomicLong();
 	protected static Logger searchLogger = LoggerFactory.getLogger("SEARCH_LOG");
 
 	public static final int DEFAULT_TIMEOUT = 5; // 5초.
-	
-	public AbstractSearchAction() {
-	}
-	
+
 	public AbstractSearchAction(String type) {
 		super(type);
 	}
+	
+	
+	
+	protected abstract Job createSearchJob(QueryMap queryMap);
+	
+	
+	
+	protected AbstractSearchResultWriter createSearchResultWriter(Writer writer) {
+		return new SearchResultWriter(getSearchResultWriter(writer));
+	}
 
-	protected abstract void doSearch(long requestId, String queryString, int timeout, PrintWriter response) throws Exception;
+	public void doSearch(long requestId, QueryMap queryMap, int timeout, Writer writer) throws Exception {
 
-	protected abstract Job createSearchJob(String queryString);
+		long searchTime = 0;
+		long st = System.nanoTime();
+		Job searchJob = createSearchJob(queryMap);
 
-	protected abstract AbstractSearchResultWriter createSearchResultWriter(Writer writer);
+		ResultFuture jobResult = JobService.getInstance().offer(searchJob);
+		Object obj = jobResult.poll(timeout);
+		searchTime = (System.nanoTime() - st) / 1000000;
+		writeSearchLog(requestId, obj, searchTime);
+
+		AbstractSearchResultWriter resultWriter = createSearchResultWriter(writer);
+
+		try {
+			resultWriter.writeResult(obj, searchTime, jobResult.isSuccess());
+		} catch (StringifyException e) {
+			logger.error("", e);
+		}
+
+		writer.close();
+
+	}
+	
+	protected long getRequestId() {
+		return taskSeq.getAndIncrement();
+	}
 
 	@Override
 	public void doAction(ActionRequest request, ActionResponse response) throws Exception {
 
-		//TODO type별로.
-		response.setContentType("json");
-		
-		String queryString = request.getQueryString();
-		int timeout = request.getIntParameter("timeout");
-		writeHeader(response);
-		long requestId = taskSeq.incrementAndGet();
+		QueryMap queryMap = new QueryMap(request.getParameterMap());
+		logger.debug("queryMap tostring>> {}", queryMap);
+		Integer timeout = request.getIntParameter("timeout");
+		String responseCharset = request.getParameter("responseCharset", DEFAULT_CHARSET);
+		writeHeader(response, responseCharset);
+		long requestId = getRequestId();
 
-		logger.debug("queryString = {}", queryString);
+		logger.debug("queryMap = {}", queryMap);
 		logger.debug("timeout = {} s", timeout);
-
+		if (timeout == null) {
+			timeout = DEFAULT_TIMEOUT;
+		}
 		PrintWriter writer = response.getWriter();
 		response.setStatus(HttpResponseStatus.OK);
-		try{
-			doSearch(requestId, queryString, timeout, writer);
-		}finally {
+		try {
+			doSearch(requestId, queryMap, timeout, writer);
+		} finally {
 			writer.close();
 		}
 
 	}
-	public void writeHeader(ActionResponse response) {
-		writeHeader(response, responseCharset);
-	}
+
 	protected void writeSearchLog(long requestId, Object obj, long searchTime) {
 		if (obj instanceof Result) {
 			Result result = (Result) obj;
@@ -75,8 +98,12 @@ public abstract class AbstractSearchAction extends ServiceAction {
 			searchLogger.info(logStr);
 		}
 	}
-	
-	protected ResultStringer getSearchResultStringer(){
-		return getResultStringer("fastcatsearch", true, "");
+
+	protected ResultWriter getSearchResultWriter(Writer writer) {
+		return getSearchResultWriter(writer, "_search_callback");
+	}
+
+	protected ResultWriter getSearchResultWriter(Writer writer, String jsonCallback) {
+		return getResultWriter(writer, "fastcatsearch", true, jsonCallback);
 	}
 }

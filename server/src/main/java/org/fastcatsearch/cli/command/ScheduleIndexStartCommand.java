@@ -58,7 +58,7 @@ public class ScheduleIndexStartCommand extends CollectionExtractCommand {
 					CommandResult.Status.SUCCESS);
 
 		DBService dbHandler = DBService.getInstance();
-		IndexingSchedule indexSchedule = dbHandler.getDAO("IndexingSchedule");
+		IndexingSchedule indexSchedule = dbHandler.db().getDAO("IndexingSchedule");
 		int affectCount = indexSchedule.updateStatus(collection, indexType, true);
 		if (affectCount == 0)
 			return new CommandResult("There is no Schedule [" + collection + "," + indexType + "] ",

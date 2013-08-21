@@ -58,7 +58,7 @@ public class ScheduleIndexStopCommand extends CollectionExtractCommand {
 					CommandResult.Status.SUCCESS);
 
 		DBService dbHandler = DBService.getInstance();
-		IndexingSchedule indexSchedule = dbHandler.getDAO("IndexingSchedule");
+		IndexingSchedule indexSchedule = dbHandler.db().getDAO("IndexingSchedule");
 
 		int affectCount = indexSchedule.updateStatus(collection, indexType, false);
 		if (affectCount == 0)

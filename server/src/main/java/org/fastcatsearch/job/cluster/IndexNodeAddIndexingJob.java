@@ -13,13 +13,11 @@ package org.fastcatsearch.job.cluster;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.fastcatsearch.cluster.ClusterStrategy;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
-import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.CollectionIndexer;
 import org.fastcatsearch.ir.IRService;
@@ -34,11 +32,7 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.CacheServiceRestartJob;
-import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.StreamableJob;
-import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.job.result.IndexingJobResult;
-import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.task.IndexFileTransfer;
 import org.fastcatsearch.util.CollectionContextUtil;

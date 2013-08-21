@@ -45,6 +45,10 @@ public abstract class DAOBase {
 		return connectionManager.getConnection();
 	}
 
+	public void setConnectionManager(ConnectionManager connectionManager){
+		this.connectionManager = connectionManager;
+	}
+	
 	public void releaseResource(Object... objList) {
 		if (objList == null) {
 			return;
@@ -80,7 +84,7 @@ public abstract class DAOBase {
 		connectionManager.releaseConnection(conn);
 	}
 
-	public boolean testAndCreate() throws SQLException {
+	public boolean prepare() throws SQLException {
 		if (testTable()) {
 			return true;
 		}

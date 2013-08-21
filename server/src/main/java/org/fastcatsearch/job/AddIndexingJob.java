@@ -23,15 +23,11 @@ import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.ir.search.SegmentReader;
 import org.fastcatsearch.ir.util.Formatter;
-import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.job.result.IndexingJobResult;
-import org.fastcatsearch.log.EventDBLogger;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
 import org.fastcatsearch.util.CollectionContextUtil;
-import org.fastcatsearch.util.CollectionFilePaths;
 
 public class AddIndexingJob extends IndexingJob {
 
@@ -55,7 +51,6 @@ public class AddIndexingJob extends IndexingJob {
 			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
 			if(collectionHandler == null){
 				indexingLogger.error("[{}] CollectionHandler is not running!", collectionId);
-				EventDBLogger.error(EventDBLogger.CATE_INDEX, "컬렉션 "+collectionId+"가 서비스중이 아님.");
 				throw new FastcatSearchException("## ["+collectionId+"] CollectionHandler is not running...");
 			}
 			

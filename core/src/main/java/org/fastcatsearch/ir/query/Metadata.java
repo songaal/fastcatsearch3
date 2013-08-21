@@ -20,6 +20,9 @@ import java.util.Map;
 import java.util.Set;
 
 public class Metadata {
+	public static int SEARCH_OPT_NOCACHE = 1 << 0;
+	
+	
 	private int version = 1;
 	private int start;
 	private int rows;
@@ -91,8 +94,13 @@ public class Metadata {
 	public int option(){
 		return option;
 	}
-	public void setOptions(int option){
-		this.option = option;
+	public void setSearchOptions(String value){
+		if (value.contains("nocache")){
+			option |= SEARCH_OPT_NOCACHE;
+		}
+	}
+	public boolean isSearchOption(int value){
+		return (option & value) > 0;
 	}
 	public Map<String, String> userData(){
 		return userData;

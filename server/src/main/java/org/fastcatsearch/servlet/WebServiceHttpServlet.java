@@ -6,10 +6,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.fastcatsearch.util.JSONPResultStringer;
-import org.fastcatsearch.util.JSONResultStringer;
-import org.fastcatsearch.util.ResultStringer;
-import org.fastcatsearch.util.XMLResultStringer;
+import org.fastcatsearch.util.JSONPResultWriter;
+import org.fastcatsearch.util.JSONResultWriter;
+import org.fastcatsearch.util.ResultWriter;
+import org.fastcatsearch.util.XMLResultWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,26 +76,26 @@ public class WebServiceHttpServlet extends HttpServlet {
 		return defaultValue;
 	}
 	
-	protected ResultStringer getResultStringer(String rootElement, boolean isBeautify, String jsonCallback) {
-		ResultStringer rStringer = null;
-		if (resultType == JSON_TYPE) {
-			rStringer = new JSONResultStringer(isBeautify);
-		} else if (resultType == JSONP_TYPE) {
-			rStringer = new JSONPResultStringer(jsonCallback,isBeautify);
-		} else if (resultType == XML_TYPE) {
-			rStringer = new XMLResultStringer(rootElement, isBeautify);
-		}
+	protected ResultWriter getResultStringer(String rootElement, boolean isBeautify, String jsonCallback) {
+		ResultWriter rStringer = null;
+//		if (resultType == JSON_TYPE) {
+//			rStringer = new JSONResultWriter(isBeautify);
+//		} else if (resultType == JSONP_TYPE) {
+//			rStringer = new JSONPResultWriter(jsonCallback,isBeautify);
+//		} else if (resultType == XML_TYPE) {
+//			rStringer = new XMLResultWriter(rootElement, isBeautify);
+//		}
 		return rStringer;
 	}
 	
-	protected void writeHeader(HttpServletResponse response, ResultStringer stringer, String responseCharset) {
+	protected void writeHeader(HttpServletResponse response, ResultWriter stringer, String responseCharset) {
 		response.reset();
 		response.setStatus(HttpServletResponse.SC_OK);
-		if (stringer instanceof JSONResultStringer) {
+		if (stringer instanceof JSONResultWriter) {
 			response.setContentType("application/json; charset=" + responseCharset);
-		} else if (stringer instanceof JSONPResultStringer) {
+		} else if (stringer instanceof JSONPResultWriter) {
 			response.setContentType("application/json; charset=" + responseCharset);
-		} else if (stringer instanceof XMLResultStringer) {
+		} else if (stringer instanceof XMLResultWriter) {
 			response.setContentType("text/xml; charset=" + responseCharset);
 		}
 	}

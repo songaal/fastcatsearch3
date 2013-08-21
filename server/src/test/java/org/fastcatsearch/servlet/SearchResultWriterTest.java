@@ -11,10 +11,10 @@ import org.fastcatsearch.ir.group.value.IntGroupingValue;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
-import org.fastcatsearch.util.JSONResultStringer;
-import org.fastcatsearch.util.ResultStringer;
+import org.fastcatsearch.util.JSONResultWriter;
+import org.fastcatsearch.util.ResultWriter;
 import org.fastcatsearch.util.StringifyException;
-import org.fastcatsearch.util.XMLResultStringer;
+import org.fastcatsearch.util.XMLResultWriter;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -66,11 +66,11 @@ public class SearchResultWriterTest {
 	@Test
 	public void testJson() throws StringifyException, IOException {
 		StringWriter writer = new StringWriter();
-		SearchResultWriter resultWriter = new SearchResultWriter(writer, true);
-		ResultStringer stringer = new JSONResultStringer();
+		ResultWriter stringer = new JSONResultWriter(writer);
+		SearchResultWriter resultWriter = new SearchResultWriter(stringer);
 		long searchTime = 1234;
 		boolean isSuccess = true;
-		resultWriter.writeResult(result, stringer, searchTime, isSuccess);
+		resultWriter.writeResult(result, searchTime, isSuccess);
 		
 		System.out.println(writer.toString());
 	}
@@ -78,11 +78,11 @@ public class SearchResultWriterTest {
 	@Test
 	public void testXML() throws StringifyException, IOException {
 		StringWriter writer = new StringWriter();
-		SearchResultWriter resultWriter = new SearchResultWriter(writer, true);
-		XMLResultStringer stringer = new XMLResultStringer("fastcatsearch", true);
+		XMLResultWriter stringer = new XMLResultWriter(writer, "fastcatsearch", true);
+		SearchResultWriter resultWriter = new SearchResultWriter(stringer);
 		long searchTime = 1234;
 		boolean isSuccess = true;
-		resultWriter.writeResult(result, stringer, searchTime, isSuccess);
+		resultWriter.writeResult(result, searchTime, isSuccess);
 		
 		System.out.println(writer.toString());
 	}

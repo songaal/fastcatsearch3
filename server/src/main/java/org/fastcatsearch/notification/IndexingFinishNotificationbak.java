@@ -47,8 +47,8 @@ public class IndexingFinishNotificationbak extends StreamableJob {
 		
 		DBService dbService = ServiceManager.getInstance().getService(DBService.class);
 		if (dbService != null) {
-			IndexingResult indexingResult = dbService.getDAO("IndexingResult", IndexingResult.class);
-			IndexingHistory indexingHistory = dbService.getDAO("IndexingHistory", IndexingHistory.class);
+			IndexingResult indexingResult = dbService.db().getDAO("IndexingResult", IndexingResult.class);
+			IndexingHistory indexingHistory = dbService.db().getDAO("IndexingHistory", IndexingHistory.class);
 			if (isSuccess) {
 				IndexingJobResult indexingJobResult = (IndexingJobResult) result;
 //				indexingResult.updateResult(collection, indexingType, IndexingResult.STATUS_SUCCESS, indexingJobResult.docSize,

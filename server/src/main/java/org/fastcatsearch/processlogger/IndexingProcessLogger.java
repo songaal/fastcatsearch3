@@ -22,7 +22,7 @@ public class IndexingProcessLogger implements ProcessLogger {
 			DBService dbService = ServiceManager.getInstance().getService(DBService.class);
 			if (dbService != null) {
 
-				IndexingResult indexingResult = dbService.getDAO("IndexingResult", IndexingResult.class);
+				IndexingResult indexingResult = dbService.db().getDAO("IndexingResult", IndexingResult.class);
 				if (log.getIndexingType() == IndexingType.FULL) {
 					// 전체색인시는 증분색인 정보를 클리어해준다.
 					indexingResult.delete(log.getCollection(), IndexingType.FULL);
@@ -40,8 +40,8 @@ public class IndexingProcessLogger implements ProcessLogger {
 
 			DBService dbService = ServiceManager.getInstance().getService(DBService.class);
 			if (dbService != null) {
-				IndexingResult indexingResult = dbService.getDAO("IndexingResult", IndexingResult.class);
-				IndexingHistory indexingHistory = dbService.getDAO("IndexingHistory", IndexingHistory.class);
+				IndexingResult indexingResult = dbService.db().getDAO("IndexingResult", IndexingResult.class);
+				IndexingHistory indexingHistory = dbService.db().getDAO("IndexingHistory", IndexingHistory.class);
 				if (log.isSuccess()) {
 					//
 					// 색인 성공

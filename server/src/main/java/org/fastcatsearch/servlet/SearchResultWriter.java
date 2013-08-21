@@ -1,27 +1,24 @@
 package org.fastcatsearch.servlet;
 
 import java.io.IOException;
-import java.io.Writer;
 
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.util.Formatter;
-import org.fastcatsearch.util.ResultStringer;
+import org.fastcatsearch.util.ResultWriter;
 import org.fastcatsearch.util.StringifyException;
 
 public class SearchResultWriter extends AbstractSearchResultWriter {
 	
-	private boolean isAdmin;
 	private String[] fieldNames;
-	
-	public SearchResultWriter(Writer writer, boolean isAdmin) {
-		super(writer);
-		this.isAdmin = isAdmin;
+	 
+	public SearchResultWriter(ResultWriter resultStringer) {
+		super(resultStringer);
 	}
 
 	@Override
-	public void writeResult(Object obj, ResultStringer rStringer, long searchTime, boolean isSuccess) throws StringifyException, IOException {
+	public void writeResult(Object obj, long searchTime, boolean isSuccess) throws StringifyException, IOException {
 		if(!isSuccess){
 			String errorMsg = null;
 			if(obj == null){
@@ -29,7 +26,7 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 			}else{
 				errorMsg = obj.toString();
 			}
-			rStringer.object()
+			resultWriter.object()
 				.key("status").value(1)
 				.key("time").value(Formatter.getFormatTime(searchTime))
 				.key("total_count").value(0)
@@ -38,7 +35,7 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 			Result result = (Result)obj;
 			
 			fieldNames = result.getFieldNameList();
-			rStringer.object()
+			resultWriter.object()
 			.key("status").value(0)
 			.key("time").value(Formatter.getFormatTime(searchTime))
 			.key("total_count").value(result.getTotalCount())
@@ -48,83 +45,52 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 			.array("name");
 
 			if(result.getCount() == 0){
-				rStringer.value("_no_");
+				resultWriter.value("_no_");
 			}else{
-				rStringer.value("_no_");
+				resultWriter.value("_no_");
 				for (int i = 0; i < fieldNames.length; i++) {
-					rStringer.value(fieldNames[i]);
+					resultWriter.value(fieldNames[i]);
 				}
 			}
-			rStringer.endArray();
-			writeBody(result,rStringer, searchTime);
-			rStringer.endObject();
+			resultWriter.endArray();
+			writeBody(result,resultWriter, searchTime);
+			resultWriter.endObject();
+			
+			resultWriter.done();
 		}
 		
-		writer.write(rStringer.toString());
 	}
 	
-	public void writeBody(Result result, ResultStringer rStringer, long searchTime) throws StringifyException {
-		if(isAdmin){
-			if(result.getCount() == 0){
-				rStringer.key("colmodel_list").array("colmodel")
-				.object()
-				.key("name").value("_no_")
-				.key("index").value("_no_")
-				.key("width").value("100%")
-				.key("sorttype").value("int")
-				.key("align").value("center")
-				.endObject()
-				.endArray();
-			}else{
-				rStringer.key("colmodel_list").array("colmodel");
-				//write _no_
-				if(fieldNames.length > 0){
-					rStringer.object()
-					.key("name").value("_no_")
-					.key("index").value("_no_")
-					.key("width").value("20")
-					.key("sorttype").value("int")
-					.key("align").value("center")
-					.endObject();
-				}
-				for (int i = 0; i < fieldNames.length; i++) {
-					rStringer.object()
-					.key("name").value(fieldNames[i])
-					.endObject();
-				}
-				rStringer.endArray();
-			}
-		}
-
-		rStringer.key("result");
+	public void writeBody(Result result, ResultWriter resultWriter, long searchTime) throws StringifyException {
+		resultWriter.key("result");
 		//data
 		Row[] rows = result.getData();
 		int start = result.getStart();
 
 		if(rows.length == 0){
-			rStringer.array("item").object()
+			resultWriter.array("item").object()
 			.key("_no_").value("No result found!")
 			.endObject().endArray();
 		}else{
-			rStringer.array("item");
+			resultWriter.array("item");
 			for (int i = 0; i < rows.length; i++) {
 				Row row = rows[i];
 
-				rStringer.object()
+				resultWriter.object()
 				.key("_no_").value(start+i);
 
 				for(int k = 0; k < fieldNames.length; k++) {
 					char[] f = row.get(k);
 					String fdata = new String(f).trim();
-					rStringer.key(fieldNames[k]).value(fdata);
+					resultWriter.key(fieldNames[k]).value(fdata);
 				}
-				rStringer.endObject();
+				resultWriter.endObject();
 			}
-			rStringer.endArray();
+			resultWriter.endArray();
 			
 			GroupResults groupResult = result.getGroupResult();
 			
-			new GroupResultWriter(null).writeBody(groupResult, rStringer);
+			new GroupResultWriter(null).writeBody(groupResult, resultWriter);
 		}
 	}
 }

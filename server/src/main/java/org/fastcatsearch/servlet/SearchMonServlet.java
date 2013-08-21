@@ -219,7 +219,7 @@ public class SearchMonServlet extends WebServiceHttpServlet {
 		
 		Timestamp start = Timestamp.valueOf(startStr);
 		Timestamp end = Timestamp.valueOf(endStr);
-		List<SearchMonitoringInfoMinuteVO> list =  handler.getDAO("SearchMonInfoMinute", SearchMonitoringInfoMinute.class).select(start, end, collection);
+		List<SearchMonitoringInfoMinuteVO> list =  handler.db().getDAO("SearchMonInfoMinute", SearchMonitoringInfoMinute.class).select(start, end, collection);
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(start);
 		
@@ -312,7 +312,7 @@ public class SearchMonServlet extends WebServiceHttpServlet {
 		
 		Timestamp start = Timestamp.valueOf(startStr);
 		Timestamp end = Timestamp.valueOf(endStr);
-		List<SearchMonitoringInfoVO> list =  handler.getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).select(start, end, collection, "h");
+		List<SearchMonitoringInfoVO> list =  handler.db().getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).select(start, end, collection, "h");
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(start);
 		int year = calendar.get(Calendar.YEAR);
@@ -394,7 +394,7 @@ public class SearchMonServlet extends WebServiceHttpServlet {
 		
 		Timestamp start = Timestamp.valueOf(startStr);
 		Timestamp end = Timestamp.valueOf(endStr);
-		List<SearchMonitoringInfoVO> list =  handler.getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).select(start, end, collection, "d");
+		List<SearchMonitoringInfoVO> list =  handler.db().getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).select(start, end, collection, "d");
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(start);
 		int year = calendar.get(Calendar.YEAR);
@@ -491,7 +491,7 @@ public class SearchMonServlet extends WebServiceHttpServlet {
 		
 		Timestamp start = Timestamp.valueOf(startStr);
 		Timestamp end = Timestamp.valueOf(endStr);
-		List<SearchMonitoringInfoVO> list =  handler.getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).select(start, end, collection, "d");
+		List<SearchMonitoringInfoVO> list =  handler.db().getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).select(start, end, collection, "d");
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(start);
 		int year = calendar.get(Calendar.YEAR);
@@ -588,7 +588,7 @@ public class SearchMonServlet extends WebServiceHttpServlet {
 		
 		Timestamp start = Timestamp.valueOf(startStr);
 		Timestamp end = Timestamp.valueOf(endStr);
-		List<SearchMonitoringInfoVO> list =  handler.getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).select(start, end, collection, "m");
+		List<SearchMonitoringInfoVO> list =  handler.db().getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).select(start, end, collection, "m");
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(start);
 		int year = calendar.get(Calendar.YEAR);

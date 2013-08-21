@@ -31,6 +31,7 @@ import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.internal.InternalDocumentSearchJob;
 import org.fastcatsearch.job.internal.InternalSearchJob;
+import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
@@ -43,14 +44,13 @@ public class ClusterSearchJob extends Job {
 	public JobResult doRun() throws FastcatSearchException {
 		
 		long st = System.currentTimeMillis();
-		String[] args = getStringArrayArgs();
-		String queryString = args[0];
+		QueryMap queryMap = (QueryMap) getArgs();
 		boolean noCache = false;
 		
 		
 		Query q = null;
 		try {
-			q = QueryParser.getInstance().parseQuery(queryString);
+			q = QueryParser.getInstance().parseQuery(queryMap);
 		} catch (QueryParseException e) {
 			throw new FastcatSearchException("[Query Parsing Error] "+e.getMessage());
 		}
@@ -62,8 +62,8 @@ public class ClusterSearchJob extends Job {
 		
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		if(!noCache){
-			Result result = irService.searchCache().get(queryString);
-			logger.debug("CACHE_GET result>>{}, qr >>{}", result, queryString);
+			Result result = irService.searchCache().get(queryMap.queryString());
+			logger.debug("CACHE_GET result>>{}, qr >>{}", result, queryMap.queryString());
 			if(result != null){
 				logger.debug("Cached Result!");
 				return new JobResult(result);
@@ -92,10 +92,12 @@ public class ClusterSearchJob extends Job {
 			String dataNodeId = nodeIdList.get(0);
 			Node dataNode = nodeService.getNodeById(dataNodeId);
 			
+			String value = queryMap.get(Query.EL.cn.name());
+			queryMap.put(Query.EL.cn.name(), cId);
 			logger.debug("collection [{}] search at {}", cId, dataNodeId);
-			String queryStr = queryString.replace("cn="+collectionId, "cn="+cId);
-			logger.debug("query-{} >> {}", i, queryStr);
-			InternalSearchJob job = new InternalSearchJob(queryStr);
+//			String queryStr = queryString.replace("cn="+collectionId, "cn="+cId);
+			logger.debug("query-{} >> {}", i, queryMap);
+			InternalSearchJob job = new InternalSearchJob(queryMap);
 			resultFutureList[i] = nodeService.sendRequest(dataNode, job);
 		}
 		
@@ -178,8 +180,11 @@ public class ClusterSearchJob extends Job {
 			String dataNodeId = nodeIdList.get(0);
 			Node dataNode = nodeService.getNodeById(dataNodeId);
 			logger.debug("collection [{}] search at {}", cId, dataNode);
-			String queryStr = queryString.replace("cn="+collectionId, "cn="+cId);
-			logger.debug("query-{} >> {}", i, queryStr);
+			
+//			String value = queryMap.get(Query.EL.cn.name());
+//			queryMap.put(Query.EL.cn.name(), cId);
+//			String queryStr = queryString.replace("cn="+collectionId, "cn="+cId);
+//			logger.debug("query-{} >> {}", i, queryMap);
 			InternalDocumentSearchJob job = new InternalDocumentSearchJob(cId, docIdList[i], views, tags, highlightInfo);
 			resultFutureList[i] = nodeService.sendRequest(dataNode, job);
 		}
@@ -229,8 +234,8 @@ public class ClusterSearchJob extends Job {
 		
 		Result searchResult = new Result(rows, groupResults, fieldIdList, realSize, totalSize, meta.start());
 		
-		irService.searchCache().put(queryString, searchResult);
-		logger.debug("CACHE_PUT result>>{}, qr >>{}", searchResult, queryString);
+		irService.searchCache().put(queryMap.queryString(), searchResult);
+		logger.debug("CACHE_PUT result>>{}, qr >>{}", searchResult, queryMap.queryString());
 		
 		logger.debug("ClusterSearchJob 수행시간 : {}", Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
 		return new JobResult(searchResult);

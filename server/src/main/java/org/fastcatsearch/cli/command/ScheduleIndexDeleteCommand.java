@@ -43,7 +43,7 @@ public class ScheduleIndexDeleteCommand extends CollectionExtractCommand {
 			return new CommandResult("collection " + collection + " is not exists", CommandResult.Status.SUCCESS);
 		}
 
-		int affectCount = DBService.getInstance().getDAO("IndexingSchedule", IndexingSchedule.class).delete(collection);
+		int affectCount = DBService.getInstance().db().getDAO("IndexingSchedule", IndexingSchedule.class).delete(collection);
 		if (affectCount > 0)
 			return new CommandResult("Schedule [" + collection + "] deleted ", CommandResult.Status.SUCCESS);
 		else

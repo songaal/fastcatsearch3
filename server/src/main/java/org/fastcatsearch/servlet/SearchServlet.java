@@ -20,8 +20,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.SearchJob;
-import org.fastcatsearch.util.ResultStringer;
+import org.fastcatsearch.job.SingleSearchJob;
+import org.fastcatsearch.util.ResultWriter;
 import org.fastcatsearch.util.StringifyException;
 
 public class SearchServlet extends AbstractSearchServlet {
@@ -33,12 +33,12 @@ public class SearchServlet extends AbstractSearchServlet {
     }
     
     protected Job createSearchJob(String queryString){
-    	SearchJob job = new SearchJob();
+    	SingleSearchJob job = new SingleSearchJob();
     	job.setArgs(new String[]{queryString});
     	return job;
     }
     protected AbstractSearchResultWriter createSearchResultWriter(Writer writer){
-    	return new SearchResultWriter(writer, isAdmin);
+    	return null;//new SearchResultWriter(writer, isAdmin);
     }
     
     @Override
@@ -53,16 +53,16 @@ public class SearchServlet extends AbstractSearchServlet {
 		searchTime = (System.currentTimeMillis() - st);
 		writeSearchLog(requestId, obj, searchTime);
 		
-		ResultStringer rStringer = getResultStringer();
+		ResultWriter rStringer = getResultStringer();
 		writeHeader(response, rStringer);
 		
 		AbstractSearchResultWriter resultWriter = createSearchResultWriter(response.getWriter());
 		
-		try {
-			resultWriter.writeResult(obj, rStringer, searchTime, jobResult.isSuccess());
-		} catch (StringifyException e) {
-			logger.error("",e);
-		}
+//		try {
+//			resultWriter.writeResult(obj, rStringer, searchTime, jobResult.isSuccess());
+//		} catch (StringifyException e) {
+//			logger.error("",e);
+//		}
 		
 		response.getWriter().close();
 		

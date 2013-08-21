@@ -34,6 +34,6 @@ public class ClusterSearchServlet extends SearchServlet {
 	}
 
 	protected AbstractSearchResultWriter createSearchResultWriter(Writer writer) {
-		return new SearchResultWriter(writer, isAdmin);
+		return null;//new SearchResultWriter(writer);
 	}
 }

@@ -2,7 +2,11 @@ package org.fastcatsearch.plugin;
 
 import java.io.File;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Plugin {
+	protected static final Logger logger = LoggerFactory.getLogger(Plugin.class);
 	
 	protected File pluginDir;
 	

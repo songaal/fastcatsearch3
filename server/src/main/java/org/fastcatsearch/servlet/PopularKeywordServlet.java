@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.util.ResultStringer;
+import org.fastcatsearch.util.ResultWriter;
 import org.fastcatsearch.util.StringifyException;
 
 
@@ -46,7 +46,7 @@ public class PopularKeywordServlet extends WebServiceHttpServlet {
 		String responseCharset = getParameter(request, "responseCharset", "UTF-8");
     	String jsonCallback = request.getParameter("jsoncallback");
 		
-    	ResultStringer rStringer = super.getResultStringer("popular-keywords", true, jsonCallback);
+    	ResultWriter rStringer = super.getResultStringer("popular-keywords", true, jsonCallback);
     	
     	PrintWriter writer = null;
     	

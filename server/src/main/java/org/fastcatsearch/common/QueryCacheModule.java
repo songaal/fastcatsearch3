@@ -55,7 +55,7 @@ public class QueryCacheModule<T> extends AbstractModule {
 		LRUCache.put(queryString, result);
 	}
 
-	public synchronized  T get(String queryString) {
+	public synchronized T get(String queryString) {
 		return LRUCache.get(queryString);
 	}
 

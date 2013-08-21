@@ -6,32 +6,31 @@ import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
+import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
-import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.StreamableJob;
-import org.fastcatsearch.log.EventDBLogger;
+import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableInternalSearchResult;
 
 public class InternalSearchJob extends StreamableJob {
-	private String query;
+	private QueryMap queryMap;
 	
 	public InternalSearchJob(){}
-	public InternalSearchJob(String query){
-		this.query = query;
+	public InternalSearchJob(QueryMap queryMap){
+		this.queryMap = queryMap;
 	}
 	
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
-		String queryString = query;
 		
 		Query q = null;
 		try {
-			q = QueryParser.getInstance().parseQuery(queryString);
+			q = QueryParser.getInstance().parseQuery(queryMap);
 		} catch (QueryParseException e) {
 			throw new FastcatSearchException("ERR-01000", e.getMessage());
 		}
@@ -50,7 +49,7 @@ public class InternalSearchJob extends StreamableJob {
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			
 			if(!noCache){
-				result = irService.shardSearchCache().get(queryString);
+				result = irService.shardSearchCache().get(queryMap.queryString());
 			}
 			//Not Exist in Cache
 			if(result == null){
@@ -61,7 +60,7 @@ public class InternalSearchJob extends StreamableJob {
 				}
 				
 				result = collectionHandler.searcher().searchInternal(q);
-				irService.shardSearchCache().put(queryString, result);
+				irService.shardSearchCache().put(queryMap.queryString(), result);
 			}
 
 			//shard에서는 keyword 통계를 내지않는다.
@@ -72,17 +71,17 @@ public class InternalSearchJob extends StreamableJob {
 			throw e;
 		} catch(Exception e){
 			logger.error("", e);
-			EventDBLogger.error(EventDBLogger.CATE_SEARCH, "검색에러..", EventDBLogger.getStackTrace(e));
 			throw new FastcatSearchException("ERR-00552", e, collection);
 		}
 		
 	}
 	@Override
 	public void readFrom(DataInput input) throws IOException {
-		query = input.readString();
+		this.queryMap = new QueryMap();
+		queryMap.readFrom(input);
 	}
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
-		output.writeString(query);
+		queryMap.writeTo(output);
 	}
 }

@@ -51,7 +51,7 @@ public class JobScheduler {
 	private void load() throws SettingException{
 		timer = new Timer(true);
 		//Indexing Schedule
-		List<IndexingScheduleVO> schedules = DBService.getInstance().getDAO("IndexingSchedule", IndexingSchedule.class).selectAll();
+		List<IndexingScheduleVO> schedules = DBService.getInstance().db().getDAO("IndexingSchedule", IndexingSchedule.class).selectAll();
 		int schedulesSize = schedules.size(); 
 		for (int i = 0; i < schedulesSize; i++) {
 			IndexingScheduleVO schedule = schedules.get(i);
@@ -116,7 +116,7 @@ public class JobScheduler {
 	
 	public boolean reloadIndexingSchedule(String collection, String type, boolean isActive){
 		if(isActive){
-			IndexingScheduleVO schedules = DBService.getInstance().getDAO("IndexingSchedule", IndexingSchedule.class).select(collection, type);
+			IndexingScheduleVO schedules = DBService.getInstance().db().getDAO("IndexingSchedule", IndexingSchedule.class).select(collection, type);
 			setIndexSchedule(schedules.collection, schedules.type, schedules.startTime, schedules.period, schedules.isActive);
 		}else{
 			String key = getKey(collection, type);

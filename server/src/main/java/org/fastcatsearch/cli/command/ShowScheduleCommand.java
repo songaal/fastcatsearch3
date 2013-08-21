@@ -42,7 +42,7 @@ public class ShowScheduleCommand extends CollectionExtractCommand {
 			return new CommandResult("invald command", CommandResult.Status.SUCCESS);
 
 		DBService dbHandler = DBService.getInstance();
-		IndexingSchedule indexingSchedule = dbHandler.getDAO("IndexingSchedule");
+		IndexingSchedule indexingSchedule = dbHandler.db().getDAO("IndexingSchedule");
 		IndexingScheduleVO fullIndexSchedule = indexingSchedule.select(collection, "F");
 		IndexingScheduleVO incIndexSchedule = indexingSchedule.select(collection, "I");
 

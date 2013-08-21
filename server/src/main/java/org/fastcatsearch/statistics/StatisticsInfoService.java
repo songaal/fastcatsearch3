@@ -313,14 +313,14 @@ public class StatisticsInfoService extends AbstractService {
 			RealTimeCollectionStatistics stat = globalCollectionStatisticsPerMinute.getAverage(countPerMinute);
 			stat.print();
 			//DB에 입력한다.
-			DBService.getInstance().getDAO("SearchMonitoringInfoMinute", SearchMonitoringInfoMinute.class).insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when);
+			DBService.getInstance().db().getDAO("SearchMonitoringInfoMinute", SearchMonitoringInfoMinute.class).insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when);
 			//컬렉션별 정보입력
 			for (int i = 0; i < isCollectionLive.length; i++) {
 				if(isCollectionLive[i]){
 					stat = collectionStatisticsListPerMinute[i].getAverage(countPerMinute);
 					stat.print();
 					//DB에 입력한다.
-					DBService.getInstance().getDAO("SearchMonitoringInfoMinute", SearchMonitoringInfoMinute.class).insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when);
+					DBService.getInstance().db().getDAO("SearchMonitoringInfoMinute", SearchMonitoringInfoMinute.class).insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when);
 					collectionStatisticsListPerHour[i].add(stat);
 				}
 			}
@@ -350,7 +350,7 @@ public class StatisticsInfoService extends AbstractService {
 			RealTimeCollectionStatistics stat = globalCollectionStatisticsPerHour.getAverage(countPerHour);
 			stat.print();
 			//DB에 입력한다.
-			DBService.getInstance().getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when, "h");
+			DBService.getInstance().db().getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when, "h");
 			
 			globalCollectionStatisticsPerDay.add(stat);
 			countPerDay++;
@@ -361,7 +361,7 @@ public class StatisticsInfoService extends AbstractService {
 					stat = collectionStatisticsListPerHour[i].getAverage(countPerHour);
 					stat.print();
 					//DB에 입력한다.
-					DBService.getInstance().getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when, "h");
+					DBService.getInstance().db().getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when, "h");
 					collectionStatisticsListPerDay[i].add(stat);
 				}
 			}
@@ -388,7 +388,7 @@ public class StatisticsInfoService extends AbstractService {
 			RealTimeCollectionStatistics stat = globalCollectionStatisticsPerDay.getAverage(countPerDay);
 			stat.print();
 			//DB에 입력한다.
-			DBService.getInstance().getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when, "d");
+			DBService.getInstance().db().getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when, "d");
 			
 			// 매월 1일 전달 통계저장하기.
 			Calendar calendar = Calendar.getInstance();
@@ -398,7 +398,7 @@ public class StatisticsInfoService extends AbstractService {
 				RealTimeCollectionStatistics stat_m = globalCollectionStatisticsPerMonth.getAverage(countPerMonth);
 				stat_m.print();
 				//DB에 입력한다.
-				DBService.getInstance().getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).insert(stat_m.getCollectionName(), stat_m.getHitPerUnitTime(), stat_m.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat_m.getMeanResponseTime(), stat_m.getMaxResponseTime(), when, "m");
+				DBService.getInstance().db().getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).insert(stat_m.getCollectionName(), stat_m.getHitPerUnitTime(), stat_m.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat_m.getMeanResponseTime(), stat_m.getMaxResponseTime(), when, "m");
 			}
 			globalCollectionStatisticsPerMonth.add(stat);
 			countPerMonth++;
@@ -409,12 +409,12 @@ public class StatisticsInfoService extends AbstractService {
 					stat = collectionStatisticsListPerDay[i].getAverage(countPerDay);
 					stat.print();
 					//DB에 입력한다.
-					DBService.getInstance().getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when, "d");
+					DBService.getInstance().db().getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).insert(stat.getCollectionName(), stat.getHitPerUnitTime(), stat.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat.getMeanResponseTime(), stat.getMaxResponseTime(), when, "d");
 					if (day == 1) {
 						RealTimeCollectionStatistics stat_m = collectionStatisticsListPerMonth[i].getAverage(countPerMonth);
 						stat_m.print();
 						//DB에 입력한다.
-						DBService.getInstance().getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).insert(stat_m.getCollectionName(), stat_m.getHitPerUnitTime(), stat_m.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat_m.getMeanResponseTime(), stat_m.getMaxResponseTime(), when, "m");
+						DBService.getInstance().db().getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).insert(stat_m.getCollectionName(), stat_m.getHitPerUnitTime(), stat_m.getFailHitPerUnitTime(), stat.getAccumulatedHit(), stat.getAccumulatedFailHit(), stat_m.getMeanResponseTime(), stat_m.getMaxResponseTime(), when, "m");
 					}
 					collectionStatisticsListPerMonth[i].add(stat);
 				}
@@ -425,7 +425,7 @@ public class StatisticsInfoService extends AbstractService {
 			/*
 			 * 2. 이전 데이터 지워주기.
 			 * */
-			DBService.getInstance().getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).deleteOld(1);//1달 이전은 삭제 
+			DBService.getInstance().db().getDAO("SearchMonitoringInfo", SearchMonitoringInfo.class).deleteOld(1);//1달 이전은 삭제 
 			
 			
 //			DBHandler.getInstance().commitMon();
@@ -437,7 +437,7 @@ public class StatisticsInfoService extends AbstractService {
 		@Override
 		public void run() {
 	    	DBService dbHandler = DBService.getInstance();
-	    	IndexingResult indexingResult = dbHandler.getDAO("IndexingResult", IndexingResult.class);
+	    	IndexingResult indexingResult = dbHandler.db().getDAO("IndexingResult", IndexingResult.class);
 			//색인시간이 업데이트 되었는가?
 	    	Timestamp updateTime = indexingResult.isUpdated(lastUpdatedIndexingTime);
 
@@ -508,7 +508,7 @@ public class StatisticsInfoService extends AbstractService {
 		public void run() {
 //			DBService dbHandler = DBService.getInstance();
 //			//업데이트 되었는가?
-//	    	Timestamp updateTime = dbHandler.getDAO("KeywordHit", KeywordHit.class).isPoluarKeywordUpdated(lastUpdatedPopularKeywordTime);
+//	    	Timestamp updateTime = dbHandler.db().getDAO("KeywordHit", KeywordHit.class).isPoluarKeywordUpdated(lastUpdatedPopularKeywordTime);
 //
 //			//만약 업데이트 되었다면 시간을 갱신한다.
 //			if(updateTime != null){
@@ -526,7 +526,7 @@ public class StatisticsInfoService extends AbstractService {
 		public void run() {
 			DBService dbHandler = DBService.getInstance();
 			//업데이트 되었는가?
-	    	Timestamp updateTime = dbHandler.getDAO("SearchEvent", SearchEvent.class).isUpdated(lastUpdatedEventTime);
+	    	Timestamp updateTime = dbHandler.db().getDAO("SearchEvent", SearchEvent.class).isUpdated(lastUpdatedEventTime);
 			//만약 업데이트 되었다면 시간을 갱신한다.
 			if(updateTime != null){
 				logger.debug("이벤트 리스트가 업데이트됨..UPDATE_TIME={}", updateTime);
