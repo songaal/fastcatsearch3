@@ -21,7 +21,7 @@ import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.ir.CollectionIndexer;
+import org.fastcatsearch.ir.ShardIndexer;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
@@ -29,7 +29,7 @@ import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
-import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.StreamableJob;
@@ -38,7 +38,7 @@ import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.task.IndexFileTransfer;
 import org.fastcatsearch.util.CollectionContextUtil;
-import org.fastcatsearch.util.CollectionFilePaths;
+import org.fastcatsearch.util.IndexFilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +74,7 @@ public class IndexNodeFullIndexingJob extends StreamableClusterJob {
 			 */
 			//////////////////////////////////////////////////////////////////////////////////////////
 			CollectionContext collectionContext = irService.collectionContext(collectionId).copy();
-			CollectionIndexer collectionIndexer = new CollectionIndexer(collectionContext);
+			ShardIndexer collectionIndexer = new ShardIndexer(collectionContext);
 			SegmentInfo segmentInfo = collectionIndexer.fullIndexing();
 			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 			//////////////////////////////////////////////////////////////////////////////////////////
@@ -101,9 +101,9 @@ public class IndexNodeFullIndexingJob extends StreamableClusterJob {
 
 			String segmentId = segmentInfo.getId();
 			
-			CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
+			IndexFilePaths collectionFilePaths = collectionContext.indexFilePaths();
 			int dataSequence = collectionContext.getDataSequence();
-			File collectionDataDir = collectionFilePaths.dataFile(dataSequence);
+			File collectionDataDir = collectionFilePaths.indexDirFile(dataSequence);
 			File segmentDir = collectionFilePaths.segmentFile(dataSequence, segmentId);
 
 			// 색인전송할디렉토리를 먼저 비우도록 요청.segmentDir
@@ -133,8 +133,8 @@ public class IndexNodeFullIndexingJob extends StreamableClusterJob {
 			/*
 			 * 데이터노드가 리로드 완료되었으면 인덱스노드도 리로드 시작.
 			 * */
-			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
-			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
+			ShardHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
+			ShardHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
 			if (oldCollectionHandler != null) {
 				logger.info("## [{}] Close Previous Collection Handler", collectionContext.collectionId());
 				oldCollectionHandler.close();

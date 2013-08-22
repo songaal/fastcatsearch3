@@ -1,7 +1,6 @@
 package org.fastcatsearch.job;
 
 import org.fastcatsearch.common.io.Streamable;
-import org.fastcatsearch.db.dao.IndexingResult;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.notification.NotificationService;
 import org.fastcatsearch.notification.message.IndexingFinishNotification;
@@ -21,6 +20,7 @@ public abstract class IndexingJob extends Job {
 	private static final long serialVersionUID = -3449580683698711296L;
 	
 	protected String collectionId;
+	protected String shardId;
 	protected IndexingType indexingType;
 	
 	private ProcessLoggerService processLoggerService;
@@ -34,6 +34,7 @@ public abstract class IndexingJob extends Job {
 	public void prepare(IndexingType indexingType){
 		String[] args = getStringArrayArgs();
 		collectionId = args[0];
+		shardId = args[1];
 		this.indexingType = indexingType;
 		
 		ServiceManager serviceManager = ServiceManager.getInstance();
@@ -43,22 +44,22 @@ public abstract class IndexingJob extends Job {
 	}
 	
 	protected void updateIndexingStatusStart(){
-		indexingLogger.info("[{}] {} Indexing Start! {}", collectionId, indexingType.name(), getClass().getSimpleName());
+		indexingLogger.info("[{} / {}] {} Indexing Start! {}", collectionId, shardId, indexingType.name(), getClass().getSimpleName());
 		indexingStartTime = System.currentTimeMillis();
-		processLoggerService.log(IndexingProcessLogger.class, new IndexingStartProcessLog(collectionId,
+		processLoggerService.log(IndexingProcessLogger.class, new IndexingStartProcessLog(collectionId, shardId, 
 				indexingType, jobStartTime(), isScheduled()));
-		notificationService.notify(new IndexingStartNotification(collectionId, indexingType,
+		notificationService.notify(new IndexingStartNotification(collectionId, shardId, indexingType,
 				jobStartTime(), isScheduled()));
 	}
 	
 	protected void updateIndexingStatusFinish(boolean isSuccess, Streamable streamableResult){
 		long endTime = System.currentTimeMillis();
 		
-		processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId,
+		processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId, shardId, 
 				indexingType, isSuccess, indexingStartTime, endTime, isScheduled(), streamableResult));
 
-		notificationService.notify(new IndexingFinishNotification(collectionId, indexingType, isSuccess,
+		notificationService.notify(new IndexingFinishNotification(collectionId, shardId, indexingType, isSuccess,
 				indexingStartTime, endTime, streamableResult));
-		indexingLogger.info("[{}] {} Indexing Finish!", collectionId, indexingType.name());
+		indexingLogger.info("[{} / {}] {} Indexing Finish!", collectionId, shardId, indexingType.name());
 	}
 }

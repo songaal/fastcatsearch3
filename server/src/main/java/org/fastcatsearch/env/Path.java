@@ -2,7 +2,7 @@ package org.fastcatsearch.env;
 
 import java.io.File;
 
-import org.fastcatsearch.util.CollectionFilePaths;
+import org.fastcatsearch.util.IndexFilePaths;
 
 public class Path {
 
@@ -104,8 +104,8 @@ public class Path {
 		return makeRelativePath("collections");
 	}
 
-	public CollectionFilePaths collectionFilePaths(String collectionId) {
-		return new CollectionFilePaths(getCollectionsRoot().file(), collectionId);
+	public IndexFilePaths collectionFilePaths(String collectionId) {
+		return new IndexFilePaths(getCollectionsRoot().file(), collectionId);
 	}
 
 }

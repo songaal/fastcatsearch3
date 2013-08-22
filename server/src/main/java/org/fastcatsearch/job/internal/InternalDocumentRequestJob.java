@@ -8,7 +8,7 @@ import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
-import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableDocumentList;
@@ -36,7 +36,7 @@ public class InternalDocumentRequestJob extends StreamableJob {
 		
 		try {
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
+			ShardHandler collectionHandler = irService.collectionHandler(collectionId);
 			
 			if(collectionHandler == null){
 				throw new FastcatSearchException("ERR-00520", collectionId);

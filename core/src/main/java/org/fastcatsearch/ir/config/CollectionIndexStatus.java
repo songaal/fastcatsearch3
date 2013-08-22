@@ -5,30 +5,23 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-/**
- * <collection-status sequence="2"> <index-full documents="50" updates ="1" deletes="20" start="2013-05-20 13:03:32"
- * end="2013-05-20 13:03:32" duration="365ms" /> <index-add documents="5" updates ="1" deletes="20" start="2013-05-20 13:03:32"
- * end="2013-05-20 13:03:32" duration="365ms" /> </collection-status>
- * */
-@XmlRootElement(name = "collection-status")
-@XmlType(propOrder = { "sequence", "addIndexStatus", "fullIndexStatus" })
-public class CollectionStatus {
-	private int sequence;
-	private IndexStatus fullIndexStatus;
-	private IndexStatus addIndexStatus;
-
-	public CollectionStatus copy() {
-		CollectionStatus collectionStatus = new CollectionStatus();
-		collectionStatus.sequence = sequence;
+@XmlRootElement(name = "collection-index-status")
+@XmlType(propOrder = { "addIndexStatus", "fullIndexStatus" })
+public class CollectionIndexStatus {
+	protected IndexStatus fullIndexStatus;
+	protected IndexStatus addIndexStatus;
+	
+	public CollectionIndexStatus copy() {
+		CollectionIndexStatus collectionIndexStatus = new CollectionIndexStatus();
 		if (fullIndexStatus != null) {
-			collectionStatus.fullIndexStatus = fullIndexStatus.copy();
+			collectionIndexStatus.fullIndexStatus = fullIndexStatus.copy();
 		}
 		if (addIndexStatus != null) {
-			collectionStatus.addIndexStatus = addIndexStatus.copy();
+			collectionIndexStatus.addIndexStatus = addIndexStatus.copy();
 		}
-		return collectionStatus;
+		return collectionIndexStatus;
 	}
-
+	
 	public boolean isEmpty() {
 		return fullIndexStatus == null && addIndexStatus == null;
 	}
@@ -37,51 +30,30 @@ public class CollectionStatus {
 		fullIndexStatus = null;
 		addIndexStatus = null;
 	}
-
+	
 	@Override
 	public String toString() {
-		return "[CollectionStatus] seq[" + sequence + "] last-full=[" + fullIndexStatus + "] last-add=[" + addIndexStatus + "]";
+		return "["+getClass().getSimpleName()+"] last-full=[" + fullIndexStatus + "] last-add=[" + addIndexStatus + "]";
 	}
-
-	@XmlAttribute
-	public int getSequence() {
-		return sequence;
-	}
-
-	public void setSequence(int sequence) {
-		this.sequence = sequence;
-	}
-
-	public String getPathName() {
-		return "data" + sequence;
-	}
-
-	public String getPathName(int seq) {
-		if (seq != -1) {
-			return "data" + seq;
-		} else {
-			return getPathName();
-		}
-	}
-
+	
 	@XmlElement(name = "last-indexing-full")
 	public IndexStatus getFullIndexStatus() {
 		return fullIndexStatus;
 	}
 
+	public void setFullIndexStatus(IndexStatus fullIndexStatus) {
+		this.fullIndexStatus = fullIndexStatus;
+	}
+	
 	@XmlElement(name = "last-indexing-add")
 	public IndexStatus getAddIndexStatus() {
 		return addIndexStatus;
 	}
 
-	public void setFullIndexStatus(IndexStatus fullIndexStatus) {
-		this.fullIndexStatus = fullIndexStatus;
-	}
-
 	public void setAddIndexStatus(IndexStatus addIndexStatus) {
 		this.addIndexStatus = addIndexStatus;
 	}
-
+	
 	@XmlType(propOrder = { "duration", "endTime", "startTime", "deleteCount", "updateCount", "insertCount", "documentCount" })
 	public static class IndexStatus {
 		private int documentCount;
@@ -174,5 +146,4 @@ public class CollectionStatus {
 		}
 
 	}
-
 }

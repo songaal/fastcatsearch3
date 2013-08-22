@@ -2,39 +2,36 @@ package org.fastcatsearch.cluster;
 
 import java.util.List;
 
-public class ClusterStrategy {
-	private String collectionId;
-	private String indexingNode;
-	private List<String> dataNodes;
-	private int shardCount;
-	private int replicaCount;
+import org.fastcatsearch.ir.config.ClusterConfig.ShardClusterConfig;
 
-	public ClusterStrategy(String collectionId, String indexingNode, List<String> dataNodes, int shardCount, int replicaCount) {
-		this.collectionId = collectionId;
-		this.indexingNode = indexingNode;
-		this.dataNodes = dataNodes;
-		this.shardCount = shardCount;
-		this.replicaCount = replicaCount;
-	}
+public class ClusterStrategy {
+	private String shardId;
+	private List<ShardClusterConfig> shardList;
+
 	
+	public ClusterStrategy(String shardId, List<ShardClusterConfig> shardList) {
+		this.shardId = shardId;
+		this.shardList = shardList;
+	}
+
 	@Override
 	public String toString(){
-		return getClass().getSimpleName()+"]"+collectionId+", indexing="+indexingNode+":datas="+dataNodes.size()+", shards="+shardCount+", replicas="+replicaCount;
+		return getClass().getSimpleName()+"]"+shardId;
 	}
-	public String collectionId(){
-		return collectionId;
+	public String shardId(){
+		return shardId;
 	}
 	
 	public String indexingNode(){
-		return indexingNode;
+		return null;//indexingNode;
 	}
 	public List<String> dataNodes(){
-		return dataNodes;
+		return null;//dataNodes;
 	}
 	public int shardCount(){
-		return shardCount;
+		return 0;//shardCount;
 	}
 	public int replicaCount(){
-		return replicaCount;
+		return 0;//replicaCount;
 	}
 }

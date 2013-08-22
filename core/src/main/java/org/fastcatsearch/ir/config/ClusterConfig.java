@@ -2,56 +2,73 @@ package org.fastcatsearch.ir.config;
 
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
-<cluster>
-	<index-node>node1</index-node>
-	<data-node>
-		<node>node2</node>
-		<node>node3</node>
-	</data-node>
-	<shard-size>1</shard-size>
-	<replica-size>*</replica-size>
-</cluster>
-	
- * */
+<cluster-config>
+	<shard id="vol1">
+		<index-node>node1</index-node>
+		<data-node>
+			<node>node1</node>
+			<node>node2</node>
+		</data-node>
+	</shard>
+
+	<shard id="vol2">
+		<index-node>node1</index-node>
+		<data-node>
+			<node>node1</node>
+			<node>node2</node>
+		</data-node>
+	</shard>
+</cluster-config>
+*/
+
+@XmlRootElement(name = "cluster-config")
 public class ClusterConfig {
-	private String indexNode;
-	private List<String> dataNodeList;
-	private int shardSize;
-	private int replicaSize;
+	private List<ShardClusterConfig> shardList;
 	
-	@XmlElement(name="index-node")
-	public String getIndexNode() {
-		return indexNode;
+	@XmlElement(name="shard")
+	public List<ShardClusterConfig> getShardList() {
+		return shardList;
 	}
-	public void setIndexNode(String indexNode) {
-		this.indexNode = indexNode;
+
+	public void setShardList(List<ShardClusterConfig> shardList) {
+		this.shardList = shardList;
 	}
-	
-	@XmlElementWrapper(name="data-node")
-	@XmlElement(name="node")
-	public List<String> getDataNodeList() {
-		return dataNodeList;
+
+	public static class ShardClusterConfig {
+		private String id;
+		private String indexNode;
+		private List<String> dataNodeList;
+		
+		@XmlAttribute
+		public String getId() {
+			return id;
+		}
+		public void setId(String id) {
+			this.id = id;
+		}
+		@XmlElement(name="index-node")
+		public String getIndexNode() {
+			return indexNode;
+		}
+		public void setIndexNode(String indexNode) {
+			this.indexNode = indexNode;
+		}
+		
+		@XmlElementWrapper(name="data-node")
+		@XmlElement(name="node")
+		public List<String> getDataNodeList() {
+			return dataNodeList;
+		}
+		public void setDataNodeList(List<String> dataNodeList) {
+			this.dataNodeList = dataNodeList;
+		}
+		
+		
 	}
-	public void setDataNodeList(List<String> dataNodeList) {
-		this.dataNodeList = dataNodeList;
-	}
-	@XmlElement(name="shard-size")
-	public int getShardSize() {
-		return shardSize;
-	}
-	public void setShardSize(int shardSize) {
-		this.shardSize = shardSize;
-	}
-	@XmlElement(name="replica-size")
-	public int getReplicaSize() {
-		return replicaSize;
-	}
-	public void setReplicaSize(int replicaSize) {
-		this.replicaSize = replicaSize;
-	}
-	
 }

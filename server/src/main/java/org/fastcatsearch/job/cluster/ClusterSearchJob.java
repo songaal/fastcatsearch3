@@ -12,6 +12,9 @@ import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.config.ClusterConfig;
+import org.fastcatsearch.ir.config.ClusterConfig.ShardClusterConfig;
+import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.FixedHitReader;
@@ -39,6 +42,8 @@ import org.fastcatsearch.transport.vo.StreamableDocumentResult;
 import org.fastcatsearch.transport.vo.StreamableInternalSearchResult;
 
 public class ClusterSearchJob extends Job {
+
+	private static final long serialVersionUID = 2375551165135599911L;
 
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
@@ -77,6 +82,10 @@ public class ClusterSearchJob extends Job {
 		Groups groups = q.getGroups();
 		
 		String[] collectionIdList = collectionId.split(",");
+		//TODO 동일 collection의 shard끼리만 병합검색이 가능토록 한다.
+		// 컬렉션 명으로 검색시 하위 shard를 모두 검색해준다.
+		
+		
 		ResultFuture[] resultFutureList = new ResultFuture[collectionIdList.length];
 		Map<String, Integer> collectionNumberMap = new HashMap<String, Integer>();
 		
@@ -85,6 +94,25 @@ public class ClusterSearchJob extends Job {
 			collectionNumberMap.put(cId, i);
 			
 			ClusterStrategy dataStrategy = irService.getCollectionClusterStrategy(cId);
+			CollectionContext collectionContext = irService.collectionContext(cId);
+			
+			if(collectionContext == null){
+				//TODO shard로 다시 찾아본다.
+				
+			}
+			
+			//TODO shard가 한개이면 1. shard명으로 찾은경우. OR 2.collection이 single일 경우.
+			// shard가 여러개이면 모두 검색해서 하나로 합친다.
+			
+			
+			ClusterConfig clusterConfig = collectionContext.clusterConfig();
+			List<ShardClusterConfig> shardList = clusterConfig.getShardList();
+			//TODO shard명으로 찾은경우는 list 길이가 1 이여야한다.
+			for (ShardClusterConfig shard : shardList) {
+				List<String> nodeIdList = shard.getDataNodeList();
+				
+			}
+			
 			List<String> nodeIdList = dataStrategy.dataNodes();
 			//TODO shard 갯수를 확인하고 각 shard에 해당하는 노드들을 가져온다.
 			//TODO 여러개의 replaica로 분산되어있을 경우, 적합한 노드를 찾아서 리턴한다.

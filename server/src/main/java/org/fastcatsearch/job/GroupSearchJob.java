@@ -21,6 +21,7 @@ import org.fastcatsearch.ir.query.Groups;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.KeywordService;
@@ -66,7 +67,10 @@ public class GroupSearchJob extends Job {
 					throw new FastcatSearchException("ERR-00520", collection);
 				}
 				
-				GroupsData groupData = collectionHandler.searcher().doGrouping(q);
+				
+				
+				//FIXME
+				GroupsData groupData = null;//collectionHandler.searcher().doGrouping(q);
 				Groups groups =q.getGroups();
 				groupResults = groups.getGroupResultsGenerator().generate(groupData);
 				if(groupResults != null){

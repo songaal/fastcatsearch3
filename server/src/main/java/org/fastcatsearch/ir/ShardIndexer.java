@@ -8,35 +8,35 @@ import org.fastcatsearch.datasource.reader.DataSourceReaderFactory;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
-import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.DataPlanConfig;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.IndexConfig;
+import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.index.IndexWriteInfoList;
 import org.fastcatsearch.ir.index.SegmentWriter;
-import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentReader;
+import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
-import org.fastcatsearch.util.CollectionFilePaths;
 import org.fastcatsearch.util.FileUtils;
+import org.fastcatsearch.util.IndexFilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CollectionIndexer {
-	protected static final Logger logger = LoggerFactory.getLogger(CollectionIndexer.class);
+public class ShardIndexer {
+	protected static final Logger logger = LoggerFactory.getLogger(ShardIndexer.class);
 
-	private CollectionContext collectionContext;
+	private ShardContext shardContext;
 
 	private DeleteIdSet deleteIdSet;
 	private IndexWriteInfoList indexWriteInfoList;
 
-	public CollectionIndexer(CollectionContext collectionContext) {
-		this.collectionContext = collectionContext;
+	public ShardIndexer(ShardContext shardContext) {
+		this.shardContext = shardContext;
 	}
 
 	public DeleteIdSet deleteIdSet() {
@@ -49,23 +49,21 @@ public class CollectionIndexer {
 
 	public SegmentInfo fullIndexing() throws IOException, IRException, FastcatSearchException {
 		// data 디렉토리를 변경한다.
-		int newDataSequence = collectionContext.nextDataSequence();
+		int newDataSequence = shardContext.nextDataSequence();
 
 		// 디렉토리 초기화.
-		File collectionDataDir = collectionContext.collectionFilePaths().dataFile(newDataSequence);
-		FileUtils.deleteDirectory(collectionDataDir);
+		File indexDataDir = shardContext.indexFilePaths().indexDirFile(newDataSequence);
+		FileUtils.deleteDirectory(indexDataDir);
 
-		collectionContext.clearDataInfoAndStatus();
-		collectionDataDir.mkdirs();
+		shardContext.clearDataInfoAndStatus();
+		indexDataDir.mkdirs();
 		
-		Schema schema = collectionContext.workSchema();
-		if (schema == null) {
-			schema = collectionContext.schema();
-		}
+		// workschema는 shard indexer에서는 보지않는다.
+		Schema schema = shardContext.schema();
 
 		if (schema.getFieldSize() == 0) {
-			logger.error("[{}] Full Indexing Canceled. Schema field is empty. time = {}", collectionContext.collectionId());
-			throw new FastcatSearchException("[" + collectionContext.collectionId() + "] Full Indexing Canceled. Schema field is empty.");
+			logger.error("[{}] Full Indexing Canceled. Schema field is empty. time = {}", shardContext.shardId());
+			throw new FastcatSearchException("[" + shardContext.shardId() + "] Full Indexing Canceled. Schema field is empty.");
 		}
 
 		SegmentInfo segmentInfo = new SegmentInfo();
@@ -76,23 +74,23 @@ public class CollectionIndexer {
 		int insertCount = revisionInfo.getInsertCount();
 
 		if (insertCount > 0) {
-			collectionContext.addSegmentInfo(segmentInfo);
+			shardContext.addSegmentInfo(segmentInfo);
 		} else {
-			logger.info("[{}] Indexing Canceled due to no documents.", collectionContext.collectionId());
+			logger.info("[{}] Indexing Canceled due to no documents.", shardContext.shardId());
 		}
 
 		return segmentInfo;
 	}
 
-	public SegmentInfo addIndexing(CollectionHandler collectionHandler) throws IOException, IRException, FastcatSearchException {
-		DataPlanConfig dataPlanConfig = collectionContext.collectionConfig().getDataPlanConfig();
+	public SegmentInfo addIndexing(ShardHandler shardHandler) throws IOException, IRException, FastcatSearchException {
+		DataPlanConfig dataPlanConfig = shardContext.dataPlanConfig();
 		// 증분색인이면 기존스키마그대로 사용.
-		Schema schema = collectionContext.schema();
-		int dataSequence = collectionContext.getDataSequence();
+		Schema schema = shardContext.schema();
+		int dataSequence = shardContext.getDataSequence();
 
 		SegmentInfo workingSegmentInfo = null;
 
-		SegmentReader lastSegmentReader = collectionHandler.getLastSegmentReader();
+		SegmentReader lastSegmentReader = shardHandler.getLastSegmentReader();
 		SegmentInfo segmentInfo = null;
 		
 		if (lastSegmentReader != null) {
@@ -103,7 +101,7 @@ public class CollectionIndexer {
 			if (docCount >= segmentDocumentLimit) {
 				// segment가 생성되는 증분색인.
 				workingSegmentInfo = segmentInfo.getNextSegmentInfo();
-				File segmentDir = collectionContext.collectionFilePaths().segmentFile(dataSequence, workingSegmentInfo.getId());
+				File segmentDir = shardContext.indexFilePaths().segmentFile(dataSequence, workingSegmentInfo.getId());
 				logger.debug("#색인시 세그먼트를 생성합니다. {}", workingSegmentInfo);
 				FileUtils.removeDirectoryCascade(segmentDir);
 			} else {
@@ -112,7 +110,7 @@ public class CollectionIndexer {
 				// 리비전을 증가시킨다.
 				logger.debug("#old seginfo {}", workingSegmentInfo);
 				int revision = workingSegmentInfo.nextRevision();
-				File segmentDir = collectionContext.collectionFilePaths().segmentFile(dataSequence, workingSegmentInfo.getId());
+				File segmentDir = shardContext.indexFilePaths().segmentFile(dataSequence, workingSegmentInfo.getId());
 				File revisionDir = new File(segmentDir, Integer.toString(revision));
 				FileUtils.removeDirectoryCascade(revisionDir);
 				logger.debug("#색인시 리비전을 증가합니다. {}", workingSegmentInfo);
@@ -124,7 +122,7 @@ public class CollectionIndexer {
 			// 이전 색인정보가 없다. 즉 전체색인이 수행되지 않은 컬렉션.
 			// segment가 생성되는 증분색인.
 			workingSegmentInfo = new SegmentInfo();
-			File segmentDir = collectionContext.collectionFilePaths().segmentFile(dataSequence, workingSegmentInfo.getId());
+			File segmentDir = shardContext.indexFilePaths().segmentFile(dataSequence, workingSegmentInfo.getId());
 			logger.debug("#이전 세그먼트가 없어서 색인시 세그먼트를 생성합니다. {}", workingSegmentInfo);
 			FileUtils.removeDirectoryCascade(segmentDir);
 		}
@@ -148,7 +146,7 @@ public class CollectionIndexer {
 					//기존색인문서수가 limit을 넘으면서 삭제문서만 색인될 경우 세그먼트가 바뀌는 현상이 나타날수 있다.
 					//색인후 문서가 0건이고 delete문서가 존재하면 이전 세그먼트의 다음 리비전으로 변경해주는 작업필요.
 					//세그먼트가 다르면, 즉 증가했으면 다시 원래의 세그먼트로 돌리고, rev를 증가시킨다.
-					File segmentDir = collectionContext.collectionFilePaths().segmentFile(dataSequence, workingSegmentInfo.getId());
+					File segmentDir = shardContext.indexFilePaths().segmentFile(dataSequence, workingSegmentInfo.getId());
 					FileUtils.deleteDirectory(segmentDir);
 					
 					logger.debug("# 추가문서가 없으므로, segment를 삭제합니다. {}", segmentDir.getAbsolutePath());
@@ -161,7 +159,7 @@ public class CollectionIndexer {
 					//이전 리비전의 delete.set.#을 현 리비전으로 복사해온다. 
 					//원래 primarykeyindexeswriter에서 append일 경우 복사를 하나, 여기서는 추가문서가 0이므로 
 					String segmentId = workingSegmentInfo.getId();
-					segmentDir = collectionContext.collectionFilePaths().segmentFile(dataSequence, segmentId);
+					segmentDir = shardContext.indexFilePaths().segmentFile(dataSequence, segmentId);
 					File revisionDir = IndexFileNames.getRevisionDir(segmentDir, revision);
 					File prevRevisionDir = IndexFileNames.getRevisionDir(segmentDir, revision - 1);
 					String deleteFileName = IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentId);
@@ -172,13 +170,13 @@ public class CollectionIndexer {
 			 * else 세그먼트가 증가하지 않고 리비전이 증가한 경우.
 			 */
 			
-			collectionContext.updateSegmentInfo(workingSegmentInfo);
+			shardContext.updateSegmentInfo(workingSegmentInfo);
 		} else {
 			//추가,삭제 문서 모두 없을때.
-			logger.info("[{}] Indexing Canceled due to no documents.", collectionContext.collectionId());
+			logger.info("[{}] Indexing Canceled due to no documents.", shardContext.shardId());
 			
 			//리비전 디렉토리 삭제.
-			File segmentDir = collectionContext.collectionFilePaths().segmentFile(dataSequence, workingSegmentInfo.getId());
+			File segmentDir = shardContext.indexFilePaths().segmentFile(dataSequence, workingSegmentInfo.getId());
 			File revisionDir = IndexFileNames.getRevisionDir(segmentDir, revisionInfo.getId());
 			if(segmentInfo != null && !segmentInfo.equals(workingSegmentInfo)){
 				//세그먼트 증가시 segment디렉토리 삭제.
@@ -196,12 +194,12 @@ public class CollectionIndexer {
 	}
 
 	protected DataSourceReader getSourceReader(Schema schema, boolean isFullIndexing) throws FastcatSearchException {
-		CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
-		String lastIndexTime = collectionContext.getLastIndexTime();
-		DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
+		IndexFilePaths indexFilePaths = shardContext.indexFilePaths();
+		String lastIndexTime = shardContext.getLastIndexTime();
+		DataSourceConfig dataSourceConfig = shardContext.dataSourceConfig();
 		DataSourceReader sourceReader = null;
 		try {
-			sourceReader = DataSourceReaderFactory.createSourceReader(collectionFilePaths.file(), schema, dataSourceConfig, lastIndexTime,
+			sourceReader = DataSourceReaderFactory.createSourceReader(indexFilePaths.file(), schema, dataSourceConfig, lastIndexTime,
 					isFullIndexing);
 		} catch (IRException e) {
 			throw new FastcatSearchException("데이터 수집기 생성중 에러발생. sourceType = " + dataSourceConfig);
@@ -216,16 +214,16 @@ public class CollectionIndexer {
 			FastcatSearchException {
 		indexWriteInfoList = new IndexWriteInfoList();
 
-		CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
-		int dataSequence = collectionContext.getDataSequence();
+		IndexFilePaths indexFilePaths = shardContext.indexFilePaths();
+		int dataSequence = shardContext.getDataSequence();
 
-		IndexConfig indexConfig = collectionContext.collectionConfig().getIndexConfig();
+		IndexConfig indexConfig = shardContext.indexConfig();
 		int count = 0;
 		logger.debug("WorkingSegmentInfo = {}", segmentInfo);
 		String segmentId = segmentInfo.getId();
 		RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 
-		File segmentDir = collectionFilePaths.segmentFile(dataSequence, segmentId);
+		File segmentDir = indexFilePaths.segmentFile(dataSequence, segmentId);
 		logger.info("Segment Dir = {}", segmentDir.getAbsolutePath());
 
 		SegmentWriter segmentWriter = null;

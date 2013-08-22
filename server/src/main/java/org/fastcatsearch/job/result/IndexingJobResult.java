@@ -19,29 +19,36 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 
 public class IndexingJobResult implements Streamable {
-	public String collection;
-	public RevisionInfo  revisionInfo;
+	public String collectionId;
+	public String shardId;
+	public RevisionInfo revisionInfo;
 	public int duration;
 	public boolean isSuccess;
-	public IndexingJobResult(){ }
-	
-	public IndexingJobResult(String collection, RevisionInfo  revisionInfo, int duration) {
-		this(collection, revisionInfo, duration, true);
+
+	public IndexingJobResult() {
 	}
-	public IndexingJobResult(String collection, RevisionInfo  revisionInfo, int duration, boolean isSuccess) {
-		this.collection = collection;
+
+	public IndexingJobResult(String collectionId, String shardId, RevisionInfo revisionInfo, int duration) {
+		this(collectionId, shardId, revisionInfo, duration, true);
+	}
+
+	public IndexingJobResult(String collectionId, String shardId, RevisionInfo revisionInfo, int duration, boolean isSuccess) {
+		this.collectionId = collectionId;
+		this.shardId = shardId;
 		this.revisionInfo = revisionInfo;
 		this.duration = duration;
 		this.isSuccess = isSuccess;
 	}
 
-	public String toString(){
-		return "[IndexingResult] success["+isSuccess+"] collection = "+collection+", revisionInfo = " + revisionInfo + " duration = "+duration;
+	public String toString() {
+		return "[IndexingResult] success[" + isSuccess + "] collectionId = " + collectionId + ", shardId = " + shardId + ", revisionInfo = " + revisionInfo + " duration = "
+				+ duration;
 	}
 
 	@Override
 	public void readFrom(DataInput input) throws IOException {
-		collection = input.readString();
+		collectionId = input.readString();
+		shardId = input.readString();
 		revisionInfo = new RevisionInfo(input.readInt(), input.readInt(), input.readInt(), input.readInt(), input.readInt(), input.readString());
 		duration = input.readInt();
 		isSuccess = input.readBoolean();
@@ -49,7 +56,8 @@ public class IndexingJobResult implements Streamable {
 
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
-		output.writeString(collection);
+		output.writeString(collectionId);
+		output.writeString(shardId);
 		output.writeInt(revisionInfo.getDocumentCount());
 		output.writeInt(revisionInfo.getInsertCount());
 		output.writeInt(revisionInfo.getUpdateCount());

@@ -47,20 +47,20 @@ public class IndexingProcessLogger implements ProcessLogger {
 					// 색인 성공
 					//
 					IndexingJobResult indexingJobResult = (IndexingJobResult) log.getResult();
-					indexingResult.updateResult(log.getCollection(), log.getIndexingType(), IndexingResult.STATUS_SUCCESS,
+					indexingResult.updateResult(log.getCollectionId(), log.getIndexingType(), IndexingResult.STATUS_SUCCESS,
 							indexingJobResult.revisionInfo.getInsertCount(), indexingJobResult.revisionInfo.getUpdateCount(),
 							indexingJobResult.revisionInfo.getDeleteCount(), new Timestamp(log.getEndTime()), (int) log.getDurationTime());
-					indexingHistory.insert(log.getCollection(), log.getIndexingType(), true, indexingJobResult.revisionInfo.getInsertCount(),
+					indexingHistory.insert(log.getCollectionId(), log.getIndexingType(), true, indexingJobResult.revisionInfo.getInsertCount(),
 							indexingJobResult.revisionInfo.getUpdateCount(), indexingJobResult.revisionInfo.getDeleteCount(), log.isScheduled(),
 							new Timestamp(log.getStartTime()), new Timestamp(log.getEndTime()), (int) log.getDurationTime());
 				} else {
 					//
 					// 색인 실패
 					//
-					indexingResult.updateResult(log.getCollection(), log.getIndexingType(), IndexingResult.STATUS_FAIL, 0, 0, 0,
+					indexingResult.updateResult(log.getCollectionId(), log.getIndexingType(), IndexingResult.STATUS_FAIL, 0, 0, 0,
 							new Timestamp(log.getEndTime()), (int) log.getDurationTime());
 
-					indexingHistory.insert(log.getCollection(), log.getIndexingType(), false, 0, 0, 0, log.isScheduled(),
+					indexingHistory.insert(log.getCollectionId(), log.getIndexingType(), false, 0, 0, 0, log.isScheduled(),
 							new Timestamp(log.getStartTime()), new Timestamp(log.getEndTime()), (int) log.getDurationTime());
 				}
 

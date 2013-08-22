@@ -4,14 +4,16 @@ import java.io.File;
 
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.junit.Test;
 
 public class CollectionContextUtilTest {
 
 	@Test
 	public void test() throws SettingException {
-		CollectionFilePaths paths = new CollectionFilePaths(new File("/Users/swsong/TEST_HOME/fastcatsearch2.13.7/collections/"), "sample");
-		CollectionContext collectionContext = CollectionContextUtil.load(paths, 0);
+		IndexFilePaths paths = new IndexFilePaths(new File("/Users/swsong/TEST_HOME/fastcatsearch2.13.7/collections/"), "sample");
+		Collection collection = new Collection("sample", true);
+		CollectionContext collectionContext = CollectionContextUtil.load(collection, paths, 0);
 		System.out.println(collectionContext.schema().getFieldSetting("id"));
 	}
 

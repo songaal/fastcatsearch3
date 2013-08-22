@@ -19,7 +19,7 @@ import org.fastcatsearch.cluster.ClusterStrategy;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.ir.CollectionIndexer;
+import org.fastcatsearch.ir.ShardIndexer;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.MirrorSynchronizer;
 import org.fastcatsearch.ir.common.IndexingType;
@@ -30,13 +30,13 @@ import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.index.IndexWriteInfoList;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
-import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.task.IndexFileTransfer;
 import org.fastcatsearch.util.CollectionContextUtil;
-import org.fastcatsearch.util.CollectionFilePaths;
+import org.fastcatsearch.util.IndexFilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,13 +48,13 @@ public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 
 	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 
-	private String collectionId;
+	private String shardId;
 
 	public IndexNodeAddIndexingJob() {
 	}
 
-	public IndexNodeAddIndexingJob(String collectionId) {
-		this.collectionId = collectionId;
+	public IndexNodeAddIndexingJob(String shardId) {
+		this.shardId = shardId;
 	}
 
 	@Override
@@ -65,18 +65,18 @@ public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 			long startTime = System.currentTimeMillis();
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			
-			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
+			ShardHandler collectionHandler = irService.collectionHandler(shardId);
 			if(collectionHandler == null){
-				indexingLogger.error("[{}] CollectionHandler is not running!", collectionId);
-				throw new FastcatSearchException("## ["+collectionId+"] CollectionHandler is not running...");
+				indexingLogger.error("[{}] CollectionHandler is not running!", shardId);
+				throw new FastcatSearchException("## ["+shardId+"] CollectionHandler is not running...");
 			}
 			
 			/*
 			 * Do indexing!!
 			 */
 			//////////////////////////////////////////////////////////////////////////////////////////
-			CollectionContext collectionContext = irService.collectionContext(collectionId).copy();
-			CollectionIndexer collectionIndexer = new CollectionIndexer(collectionContext);
+			CollectionContext collectionContext = irService.collectionContext(shardId).copy();
+			ShardIndexer collectionIndexer = new ShardIndexer(collectionContext);
 			SegmentInfo segmentInfo = collectionIndexer.addIndexing(collectionHandler);
 			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 			IndexWriteInfoList indexWriteInfoList = collectionIndexer.indexWriteInfoList();
@@ -86,7 +86,7 @@ public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 			
 			if(revisionInfo.getInsertCount() == 0 && revisionInfo.getDeleteCount() == 0){
 				int duration = (int) (System.currentTimeMillis() - startTime);
-				return new JobResult(new IndexingJobResult(collectionId, revisionInfo, duration));
+				return new JobResult(new IndexingJobResult(shardId, revisionInfo, duration));
 			}
 			
 			//0보다 크면 revision이 증가된것이다.
@@ -97,15 +97,15 @@ public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 			collectionContext.updateCollectionStatus(IndexingType.ADD, revisionInfo, startTime, System.currentTimeMillis());
 			CollectionContextUtil.saveAfterIndexing(collectionContext);
 			
-			CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();
+			IndexFilePaths collectionFilePaths = collectionContext.indexFilePaths();
 			int dataSequence = collectionContext.getDataSequence();
 			String segmentId = segmentInfo.getId();
 			int revision = revisionInfo.getId();
-			File collectionDataDir = collectionFilePaths.dataFile(dataSequence);
-			File segmentDir = collectionContext.collectionFilePaths().segmentFile(dataSequence, segmentId);
+			File collectionDataDir = collectionFilePaths.indexDirFile(dataSequence);
+			File segmentDir = collectionContext.indexFilePaths().segmentFile(dataSequence, segmentId);
 			DeleteIdSet deleteIdSet = collectionIndexer.deleteIdSet();
 			//먼저 업데이트를 해놔야 파일이 수정되서, 전송할수 있다. 
-			collectionHandler.updateCollection(collectionContext, segmentInfo, segmentDir, deleteIdSet);
+			collectionHandler.updateShard(collectionContext, segmentInfo, segmentDir, deleteIdSet);
 			
 			
 			logger.debug("updateCollection 완료!");
@@ -136,7 +136,7 @@ public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 			 * 색인파일 원격복사.
 			 */
 			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
-			ClusterStrategy dataStrategy = irService.getCollectionClusterStrategy(collectionId);
+			ClusterStrategy dataStrategy = irService.getCollectionClusterStrategy(shardId);
 			List<String> nodeIdList = dataStrategy.dataNodes();
 			List<Node> nodeList = nodeService.getNodeById(nodeIdList);
 			if (nodeList == null || nodeList.size() == 0) {
@@ -173,23 +173,23 @@ public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 			 */
 			getJobExecutor().offer(new CacheServiceRestartJob());
 			
-			return new JobResult(new IndexingJobResult(collectionId, revisionInfo, duration));
+			return new JobResult(new IndexingJobResult(shardId, revisionInfo, duration));
 			
 		} catch (Exception e) {
-			indexingLogger.error("[" + collectionId + "] Indexing error = " + e.getMessage(), e);
-			throw new FastcatSearchException("ERR-00500", e, collectionId);
+			indexingLogger.error("[" + shardId + "] Indexing error = " + e.getMessage(), e);
+			throw new FastcatSearchException("ERR-00500", e, shardId);
 		}
 
 	}
 
 	@Override
 	public void readFrom(DataInput input) throws IOException {
-		collectionId = input.readString();
+		shardId = input.readString();
 	}
 
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
-		output.writeString(collectionId);
+		output.writeString(shardId);
 	}
 
 }

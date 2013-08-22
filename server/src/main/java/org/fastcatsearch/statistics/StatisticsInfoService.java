@@ -31,6 +31,7 @@ import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.io.AsciiCharTrie;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
@@ -458,10 +459,15 @@ public class StatisticsInfoService extends AbstractService {
 			    			int docCount = 0;
 			    			if(collectionHandler != null){
 			    				docCount = 0;
-				    			int segmentSize = collectionHandler.segmentSize();
+			    				
+			    				
+			    				
+			    				//FIXME
+			    				
+				    			int segmentSize = 0;//collectionHandler.segmentSize();
 				    			for (int j = 0; j < segmentSize; j++) {
-				    				SegmentInfo seginfo = collectionHandler.segmentReader(j).segmentInfo();
-				    				docCount += seginfo.getRevisionInfo().getDocumentCount();
+//				    				SegmentInfo seginfo = collectionHandler.segmentReader(j).segmentInfo();
+//				    				docCount += seginfo.getRevisionInfo().getDocumentCount();
 								}
 			    			}
 			    			indexingInfoList[i].reset();

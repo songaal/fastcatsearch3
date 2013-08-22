@@ -9,7 +9,7 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
-import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
@@ -54,7 +54,7 @@ public class InternalGroupSearchJob extends StreamableJob {
 			
 			//Not Exist in Cache
 			if(result == null){
-				CollectionHandler collectionHandler = irService.collectionHandler(collection);
+				ShardHandler collectionHandler = irService.collectionHandler(collection);
 				
 				if(collectionHandler == null){
 					throw new FastcatSearchException("ERR-00520", collection);

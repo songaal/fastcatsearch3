@@ -11,7 +11,8 @@ import org.fastcatsearch.transport.vo.StreamableThrowable;
 
 public class IndexingFinishProcessLog implements ProcessLog {
 
-	private String collection;
+	private String collectionId;
+	private String shardId;
 	private IndexingType indexingType;
 	private boolean isSuccess;
 	private long startTime;
@@ -21,9 +22,10 @@ public class IndexingFinishProcessLog implements ProcessLog {
 
 	public IndexingFinishProcessLog() { }
 	
-	public IndexingFinishProcessLog(String collection, IndexingType indexingType, boolean isSuccess, long startTime, long endTime,
+	public IndexingFinishProcessLog(String collectionId, String shardId, IndexingType indexingType, boolean isSuccess, long startTime, long endTime,
 			boolean isScheduled, Streamable result) {
-		this.collection = collection;
+		this.collectionId = collectionId;
+		this.shardId = shardId;
 		this.indexingType = indexingType;
 		this.isSuccess = isSuccess;
 		this.startTime = startTime;
@@ -32,10 +34,14 @@ public class IndexingFinishProcessLog implements ProcessLog {
 		this.result = result;
 	}
 
-	public String getCollection() {
-		return collection;
+	public String getCollectionId() {
+		return collectionId;
 	}
 
+	public String getShardId() {
+		return shardId;
+	}
+	
 	public IndexingType getIndexingType() {
 		return indexingType;
 	}
@@ -66,7 +72,7 @@ public class IndexingFinishProcessLog implements ProcessLog {
 	
 	@Override
 	public void readFrom(DataInput input) throws IOException {
-		collection = input.readString();
+		collectionId = input.readString();
 		indexingType = IndexingType.valueOf(input.readString());
 		isSuccess = input.readBoolean();
 		startTime = input.readLong();
@@ -84,7 +90,7 @@ public class IndexingFinishProcessLog implements ProcessLog {
 
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
-		output.writeString(collection);
+		output.writeString(collectionId);
 		output.writeString(indexingType.name());
 		output.writeBoolean(isSuccess);
 		output.writeLong(startTime);

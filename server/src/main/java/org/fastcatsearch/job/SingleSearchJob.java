@@ -18,7 +18,7 @@ import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.Result;
-import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
@@ -81,7 +81,7 @@ public class SingleSearchJob extends Job {
 			
 			//Not Exist in Cache
 			if(result == null){
-				CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
+				ShardHandler collectionHandler = irService.collectionHandler(collectionId);
 				
 				if(collectionHandler == null){
 					throw new FastcatSearchException("ERR-00520", collectionId);

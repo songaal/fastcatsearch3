@@ -8,7 +8,7 @@ import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
-import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.StreamableJob;
@@ -39,13 +39,13 @@ public class NodeCollectionReloadJob extends StreamableJob {
 			CollectionContextUtil.saveAfterIndexing(collectionContext);
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			String collectionId = collectionContext.collectionId();
-			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
-			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
+			ShardHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
+			ShardHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
 			if (oldCollectionHandler != null) {
 				logger.info("## [{}] Close Previous Collection Handler", collectionId);
 				oldCollectionHandler.close();
 			}
-			DataInfo dataInfo = collectionHandler.collectionContext().dataInfo();
+			DataInfo dataInfo = collectionHandler.shardContext().dataInfo();
 			indexingLogger.info(dataInfo.toString());
 
 			/*

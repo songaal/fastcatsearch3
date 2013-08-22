@@ -23,8 +23,8 @@ import junit.framework.TestCase;
 
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
-import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.IndexConfig;
+import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.SegmentWriter;
 import org.fastcatsearch.ir.query.Clause;
@@ -36,84 +36,82 @@ import org.fastcatsearch.ir.query.Sorts;
 import org.fastcatsearch.ir.query.Term;
 import org.fastcatsearch.ir.settings.Schema;
 
+public class CollectionHandlerTest extends TestCase {
 
-public class CollectionHandlerTest extends TestCase{
-	
 	String homePath = "testHome/";
-	String collection ="test3";
+	String collection = "test3";
 	int dataSequence = 0;
-	CollectionContext collectionContext;
-	public void testLoad() throws IRException, SettingException, IOException{
+	ShardContext shardContext;
+
+	public void testLoad() throws IRException, SettingException, IOException {
 		IndexConfig indexConfig = null;
 		File collectionDir = null;
 		Schema schema = new Schema(null);
-		CollectionHandler h = new CollectionHandler(collectionContext);
+		ShardHandler h = new ShardHandler(shardContext);
 	}
-	
-	public void testSearch() throws IRException, SettingException, IOException{
-		////////
+
+	public void testSearch() throws IRException, SettingException, IOException {
+		// //////
 		Query q = new Query();
-		Clause c = new Clause(new Term("title","티셔츠"), Clause.Operator.OR, new Term("title","반팔"));
-		c = new Clause(c, Clause.Operator.OR, new Term("seller","michael"));
+		Clause c = new Clause(new Term("title", "티셔츠"), Clause.Operator.OR, new Term("title", "반팔"));
+		c = new Clause(c, Clause.Operator.OR, new Term("seller", "michael"));
 		q.setClause(c);
-		q.setMeta(new Metadata(0,100,0,null));
-		
+		q.setMeta(new Metadata(0, 100, 0, null));
+
 		Sorts sorts = new Sorts();
 		sorts.add(new Sort("_score_", false));
 		q.setSorts(sorts);
-		///////
-		
+		// /////
+
 		IndexConfig indexConfig = null;
 		File collectionDir = null;
 		Schema schema = new Schema(null);
-		CollectionHandler h = new CollectionHandler(collectionContext);
+		ShardHandler h = new ShardHandler(shardContext);
 		h.printSegmentStatus();
 		Result result = h.searcher().search(q);
-		
+
 	}
-	
-	public void testFullIndexing() throws IRException, SettingException, IOException{
-		
-		
+
+	public void testFullIndexing() throws IRException, SettingException, IOException {
+
 		IndexConfig indexConfig = null;
 		File collectionDir = null;
 		Schema schema = new Schema(null);
-		CollectionHandler h = new CollectionHandler(collectionContext);
+		ShardHandler h = new ShardHandler(shardContext);
 		int segmentNumber = 0;
-		System.out.println("segmentNumber = "+segmentNumber);
+		System.out.println("segmentNumber = " + segmentNumber);
 		{
-			String source = homePath+"dbData/db.data.0";
+			String source = homePath + "dbData/db.data.0";
 			File sourceFile = new File(source);
-			File indexDir = new File("");//IRSettings.getSegmentPath(collection, dataSequence, segmentNumber));
+			File indexDir = new File("");// IRSettings.getSegmentPath(collection, dataSequence, segmentNumber));
 			SegmentWriter writer = new SegmentWriter(schema, indexDir, indexConfig);
 			Document doc = null;
 			writer.addDocument(doc);
 			writer.close();
-//			h.addSegment(segmentNumber, indexDir, null);
+			// h.addSegment(segmentNumber, indexDir, null);
 		}
-		
+
 		h.printSegmentStatus();
 	}
-	
-	public void testIncrementalIndexing() throws IOException, IRException, SettingException{
+
+	public void testIncrementalIndexing() throws IOException, IRException, SettingException {
 		Schema schema = new Schema(null);
 		IndexConfig indexConfig = null;
 		File collectionDir = null;
-		CollectionHandler h = new CollectionHandler(collectionContext);
-//		int segmentNumber = h.getNextSegmentNumber();
-//		System.out.println("segmentNumber = "+segment?Number);
-		
-		String source = homePath+"dbData/db.data.2";
+		ShardHandler h = new ShardHandler(shardContext);
+		// int segmentNumber = h.getNextSegmentNumber();
+		// System.out.println("segmentNumber = "+segment?Number);
+
+		String source = homePath + "dbData/db.data.2";
 		File sourceFile = new File(source);
-		File indexDir = new File("");//IRSettings.getSegmentPath(collection, dataSequence, segmentNumber));
+		File indexDir = new File("");// IRSettings.getSegmentPath(collection, dataSequence, segmentNumber));
 		SegmentWriter writer = new SegmentWriter(schema, indexDir, indexConfig);
 		Document doc = null;
 		writer.addDocument(doc);
 		writer.close();
 
-		
-//		h.addSegment(segmentNumber, indexDir, null);
-		
+		// h.addSegment(segmentNumber, indexDir, null);
+
 		h.printSegmentStatus();
 	}
 }

@@ -13,33 +13,36 @@ import org.fastcatsearch.transport.vo.StreamableThrowable;
 
 public class IndexingFinishNotification extends Notification {
 
-	private String collection;
+	private String collectionId;
+	private String shardId;
 	private IndexingType indexingType;
 	private boolean isSuccess;
 	private long startTime;
-	private long endTime;
+	private long finishTime;
 	private Streamable result;
 
 	public IndexingFinishNotification() { }
 	
-	public IndexingFinishNotification(String collection, IndexingType indexingType, boolean isSuccess, long startTime, long endTime,
+	public IndexingFinishNotification(String collection, String shardId, IndexingType indexingType, boolean isSuccess, long startTime, long finishTime,
 			Streamable result) {
 		super("MSG-01001");
-		this.collection = collection;
+		this.collectionId = collection;
+		this.shardId = shardId;
 		this.indexingType = indexingType;
 		this.isSuccess = isSuccess;
 		this.startTime = startTime;
-		this.endTime = endTime;
+		this.finishTime = finishTime;
 		this.result = result;
 	}
 
 	@Override
 	public void readFrom(DataInput input) throws IOException {
-		collection = input.readString();
+		collectionId = input.readString();
+		shardId = input.readString();
 		indexingType = IndexingType.valueOf(input.readString());
 		isSuccess = input.readBoolean();
 		startTime = input.readLong();
-		endTime = input.readLong();
+		finishTime = input.readLong();
 		if(isSuccess){
 			result = new IndexingJobResult();
 		}else{
@@ -50,27 +53,28 @@ public class IndexingFinishNotification extends Notification {
 
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
-		output.writeString(collection);
+		output.writeString(collectionId);
+		output.writeString(shardId);
 		output.writeString(indexingType.name());
 		output.writeBoolean(isSuccess);
 		output.writeLong(startTime);
-		output.writeLong(endTime);
+		output.writeLong(finishTime);
 		result.writeTo(output);
 	}
 
 	@Override
 	public String toString() {
-		return "색인시작됨 : 성공["+isSuccess+"] collection["+collection+"] type[" + indexingType+ "] 시작["+startTime+"] 종료["+startTime+"]";
+		return "Indexing Started! : isSuccess["+isSuccess+"] collectionId["+collectionId+"] shardId["+shardId+"] type[" + indexingType+ "] start["+startTime+"] finish["+finishTime+"]";
 	}
 
 	@Override
 	public String toMessageString() {
 		Object[] params = new Object[6];
-		params[0] = collection;
+		params[0] = collectionId;
 		params[1] = (indexingType == IndexingType.FULL)?"전체":"증분";
 		params[2] = isSuccess?"성공":"실패";
 		params[3] = new Timestamp(startTime).toString();
-		params[4] = new Timestamp(endTime).toString();
+		params[4] = new Timestamp(finishTime).toString();
 		
 		if(isSuccess){
 			IndexingJobResult result2 = (IndexingJobResult) result;

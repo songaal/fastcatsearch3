@@ -327,10 +327,6 @@ public class DataInfo {
 			return id;
 		}
 
-//		public void setRefPreviousRevision() {
-//			ref--;
-//		}
-
 		//ref와 revision을 동일하게 맞춘다.
 		public void setRefWithRevision(){
 			ref = id;
@@ -401,6 +397,13 @@ public class DataInfo {
 
 		public void setCreateTime(String createTime) {
 			this.createTime = createTime;
+		}
+		
+		public void add(RevisionInfo revisionInfo){
+			this.documentCount += revisionInfo.documentCount;
+			this.insertCount += revisionInfo.insertCount;
+			this.updateCount += revisionInfo.updateCount;
+			this.deleteCount += revisionInfo.deleteCount;
 		}
 	}
 

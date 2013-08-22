@@ -17,7 +17,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.fastcatsearch.job.FullIndexingJob;
+import org.fastcatsearch.job.CollectionFullIndexingJob;
 import org.fastcatsearch.job.AddIndexingJob;
 import org.fastcatsearch.job.Job;
 
@@ -46,7 +46,7 @@ public class IndexingMutex {
 	}
 
 	public synchronized void access(long myJobId, Job job) {
-		if(job instanceof FullIndexingJob || job instanceof AddIndexingJob){// || job instanceof RebuildIndexJob){
+		if(job instanceof CollectionFullIndexingJob || job instanceof AddIndexingJob){// || job instanceof RebuildIndexJob){
 			String collection = job.getStringArgs(0);
 			if(monitors.contains(collection)){
 				return;
@@ -58,7 +58,7 @@ public class IndexingMutex {
 		
 		String collection = job.getStringArgs(0);
 		String type = null;
-		if(job instanceof FullIndexingJob){
+		if(job instanceof CollectionFullIndexingJob){
 			type = "full";
 		}else if(job instanceof AddIndexingJob){
 			type = "add";
@@ -73,7 +73,7 @@ public class IndexingMutex {
 	}
 
 	public synchronized boolean isLocked(Job job) {
-		if(job instanceof FullIndexingJob || job instanceof AddIndexingJob){// || job instanceof RebuildIndexJob){
+		if(job instanceof CollectionFullIndexingJob || job instanceof AddIndexingJob){// || job instanceof RebuildIndexJob){
 			String collection = job.getStringArgs(0);
 			if(monitors.contains(collection)){
 				return true;

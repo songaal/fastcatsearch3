@@ -17,6 +17,7 @@ import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
@@ -83,7 +84,8 @@ public class DocumentSearchJob extends Job {
 					throw new FastcatSearchException("ERR-00520", collection);
 				}
 				
-				result = collectionHandler.searcher().findDocument(collectionName, idStr);
+				//FIXME
+//				result = collectionHandler.searcher().findDocument(collectionName, idStr);
 				
 				if(!noCache){
 					irService.documentCache().put(cacheKey, result);

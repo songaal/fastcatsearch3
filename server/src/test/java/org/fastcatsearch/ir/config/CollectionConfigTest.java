@@ -65,16 +65,6 @@ public class CollectionConfigTest {
 		assertEquals(2, dataPlanConfig.getSegmentRevisionBackupSize());
 //		assertEquals(true, dataPlanConfig.isSeparateIncIndexing());
 		
-		
-		ClusterConfig clusterConfig = collectionConfig.getClusterConfig();
-		assertEquals("node1", clusterConfig.getIndexNode());
-		List<String> dataNodeList = clusterConfig.getDataNodeList();
-		assertEquals("node2", dataNodeList.get(0));
-		assertEquals("node3", dataNodeList.get(1));
-		
-		assertEquals(1, clusterConfig.getShardSize());
-		assertEquals("*", clusterConfig.getReplicaSize());
-		
 	}
 	
 	
@@ -85,7 +75,6 @@ public class CollectionConfigTest {
 		collectionConfig.setName("샘플");
 		collectionConfig.setIndexConfig(new IndexConfig());
 		collectionConfig.setDataPlanConfig(new DataPlanConfig());
-		collectionConfig.setClusterConfig(new ClusterConfig());
 		
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		JAXBConfigs.writeConfig(os, collectionConfig, CollectionConfig.class);

@@ -7,9 +7,10 @@ import javax.xml.bind.JAXBException;
 
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.ir.config.ClusterConfig;
 import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.CollectionStatus;
+import org.fastcatsearch.ir.config.ShardIndexStatus;
 import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.JAXBConfigs;
@@ -18,7 +19,7 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
-import org.fastcatsearch.util.CollectionFilePaths;
+import org.fastcatsearch.util.IndexFilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,13 +47,14 @@ public class StreamableCollectionContext implements Streamable {
 			SchemaSetting schemaSetting = JAXBConfigs.readFrom(input, SchemaSetting.class);
 			Schema schema = new Schema(schemaSetting);
 			CollectionConfig collectionConfig = JAXBConfigs.readFrom(input, CollectionConfig.class);
+			ClusterConfig clusterConfig = JAXBConfigs.readFrom(input, ClusterConfig.class);
 			DataSourceConfig dataSourceConfig = JAXBConfigs.readFrom(input, DataSourceConfig.class);
-			CollectionStatus collectionStatus = JAXBConfigs.readFrom(input, CollectionStatus.class);
-			DataInfo dataInfo = JAXBConfigs.readFrom(input, DataInfo.class);
+			ShardIndexStatus collectionStatus = JAXBConfigs.readFrom(input, ShardIndexStatus.class);
+//			DataInfo dataInfo = JAXBConfigs.readFrom(input, DataInfo.class);
 			//collectionFilePaths는 현 node에 적합하도록 새로 생성한다. 
-			CollectionFilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
+			IndexFilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
 			this.collectionContext = new CollectionContext(collectionId, collectionFilePaths);
-			collectionContext.init(schema, null, collectionConfig, dataSourceConfig, collectionStatus, dataInfo);
+			collectionContext.init(schema, null, collectionConfig, clusterConfig, dataSourceConfig, collectionStatus);
 		} catch (JAXBException e) {
 			throw new IOException(e);
 		}
@@ -65,9 +67,10 @@ public class StreamableCollectionContext implements Streamable {
 		try{
 			JAXBConfigs.writeTo(output, collectionContext.schema().schemaSetting(), SchemaSetting.class);
 			JAXBConfigs.writeTo(output, collectionContext.collectionConfig(), CollectionConfig.class);
+			JAXBConfigs.writeTo(output, collectionContext.clusterConfig(), ClusterConfig.class);
 			JAXBConfigs.writeTo(output, collectionContext.dataSourceConfig(), DataSourceConfig.class);
-			JAXBConfigs.writeTo(output, collectionContext.collectionStatus(), CollectionStatus.class);
-			JAXBConfigs.writeTo(output, collectionContext.dataInfo(), DataInfo.class);
+			JAXBConfigs.writeTo(output, collectionContext.collectionStatus(), ShardIndexStatus.class);
+//			JAXBConfigs.writeTo(output, collectionContext.dataInfo(), DataInfo.class);
 			
 		} catch (JAXBException e) {
 			throw new IOException(e);

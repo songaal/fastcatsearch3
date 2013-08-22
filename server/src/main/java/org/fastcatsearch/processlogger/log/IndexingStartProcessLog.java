@@ -8,22 +8,28 @@ import org.fastcatsearch.ir.io.DataOutput;
 
 public class IndexingStartProcessLog implements ProcessLog {
 
-	private String collection;
+	private String collectionId;
+	private String shardId;
 	private IndexingType indexingType;
 	private long startTime;
 	private boolean isScheduled;
 
 	public IndexingStartProcessLog(){ }
 	
-	public IndexingStartProcessLog(String collection, IndexingType indexingType, long startTime, boolean isScheduled) {
-		this.collection = collection;
+	public IndexingStartProcessLog(String collection, String shardId, IndexingType indexingType, long startTime, boolean isScheduled) {
+		this.collectionId = collection;
+		this.shardId = shardId;
 		this.indexingType = indexingType;
 		this.startTime = startTime;
 		this.isScheduled = isScheduled;
 	}
 
 	public String getCollection() {
-		return collection;
+		return collectionId;
+	}
+
+	public String getShardId() {
+		return shardId;
 	}
 
 	public IndexingType getIndexingType() {
@@ -40,7 +46,8 @@ public class IndexingStartProcessLog implements ProcessLog {
 
 	@Override
 	public void readFrom(DataInput input) throws IOException {
-		collection = input.readString();
+		collectionId = input.readString();
+		shardId = input.readString();
 		indexingType = IndexingType.valueOf(input.readString());
 		startTime = input.readLong();
 		isScheduled = input.readBoolean();
@@ -48,7 +55,8 @@ public class IndexingStartProcessLog implements ProcessLog {
 
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
-		output.writeString(collection);
+		output.writeString(collectionId);
+		output.writeString(shardId);
 		output.writeString(indexingType.name());
 		output.writeLong(startTime);
 		output.writeBoolean(isScheduled);

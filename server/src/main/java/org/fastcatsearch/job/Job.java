@@ -55,7 +55,6 @@ public abstract class Job implements Runnable, Serializable {
 	public String toString() {
 		return "[Job] jobId = " + jobId + ", " + getClass().getSimpleName() + ", args = " + args + ", isScheduled=" + isScheduled + ", noResult="
 				+ noResult;
-		// return "[Job] jobId = "+jobId+", args = "+args+", isScheduled="+isScheduled;
 	}
 
 	public void setId(long jobId) {

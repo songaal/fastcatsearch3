@@ -12,7 +12,7 @@ import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
-import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.service.ServiceManager;
@@ -39,7 +39,7 @@ public class NodeSegmentUpdateJob extends StreamableJob {
 			String collectionId = collectionContext.collectionId();
 			SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
 			
-			File segmentDir = collectionContext.collectionFilePaths().segmentFile(collectionContext.getDataSequence(), segmentInfo.getId());
+			File segmentDir = collectionContext.indexFilePaths().segmentFile(collectionContext.getDataSequence(), segmentInfo.getId());
 			int revision = segmentInfo.getRevision();
 			File revisionDir = new File(segmentDir, Integer.toString(revision));
 
@@ -60,13 +60,13 @@ public class NodeSegmentUpdateJob extends StreamableJob {
 			CollectionContextUtil.saveAfterIndexing(collectionContext);
 			
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
+			ShardHandler collectionHandler = irService.collectionHandler(collectionId);
 			if(revisionAppended){
 				logger.debug("revision이 추가되어, 세그먼트를 업데이트합니다.{}", segmentInfo);
-				collectionHandler.updateSegmentApplyCollection(segmentInfo, segmentDir);
+				collectionHandler.updateSegmentApplyShard(segmentInfo, segmentDir);
 			}else{
 				logger.debug("segment가 추가되어, 추가 및 적용합니다.{}", segmentInfo);
-				collectionHandler.addSegmentApplyCollection(segmentInfo, segmentDir);
+				collectionHandler.addSegmentApplyShard(segmentInfo, segmentDir);
 			}
 			
 			/*

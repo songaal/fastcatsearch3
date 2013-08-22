@@ -11,91 +11,91 @@
 
 package org.fastcatsearch.job;
 
-import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.control.JobService;
+import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.ir.ShardIndexer;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IndexingType;
+import org.fastcatsearch.ir.config.CollectionConfig.Shard;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
-import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
-import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.ir.search.ShardHandler;
-import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
 import org.fastcatsearch.util.CollectionContextUtil;
 
-public class AddIndexingJob extends IndexingJob {
+public class CollectionFullIndexingJob extends IndexingJob {
 
-	private static final long serialVersionUID = -2307892463724479369L;
-	
+	private static final long serialVersionUID = 7898036370433248984L;
+
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
-		prepare(IndexingType.ADD);
-		
-		indexingLogger.info("[{}] Add Indexing Start!", collectionId);
+		prepare(IndexingType.FULL);
 
 		updateIndexingStatusStart();
-		
+
 		boolean isSuccess = false;
 		Object result = null;
+
 		Throwable throwable = null;
-		
+
 		try {
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-			
-			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
-			if(collectionHandler == null){
-				indexingLogger.error("[{}] CollectionHandler is not running!", collectionId);
-				throw new FastcatSearchException("## ["+collectionId+"] CollectionHandler is not running...");
-			}
 			
 			/*
 			 * Do indexing!!
 			 */
 			//////////////////////////////////////////////////////////////////////////////////////////
 			CollectionContext collectionContext = irService.collectionContext(collectionId).copy();
-			ShardIndexer collectionIndexer = new ShardIndexer(null);
-			SegmentInfo segmentInfo = collectionIndexer.addIndexing(collectionHandler);
-			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
-			//////////////////////////////////////////////////////////////////////////////////////////
+			List<Shard> shardList = collectionContext.collectionConfig().getShardConfigList();
+			List<ResultFuture> resultFutureList = new ArrayList<ResultFuture>(shardList.size());
 			
-			logger.debug("색인후 segmentInfo >> {}", segmentInfo);
-			logger.debug("색인후 revisionInfo >> {}", revisionInfo);
-			
-			if(revisionInfo.getInsertCount() == 0 && revisionInfo.getDeleteCount() == 0){
-				int duration = (int) (System.currentTimeMillis() - indexingStartTime());
-				result = new IndexingJobResult(collectionId, shardId, revisionInfo, duration);
-				isSuccess = true;
+			RevisionInfo revisionInfo = new RevisionInfo();
+			for (Shard shard : shardList) {
+				String shardId = shard.getId();
+				ShardFullIndexingJob job = new ShardFullIndexingJob();
+				job.setArgs(new String[] { collectionId, shardId });
 
-				return new JobResult(result);
+				ResultFuture resultFuture = JobService.getInstance().offer(job);
+				resultFutureList.add(resultFuture);
+			}
+
+			
+			for (ResultFuture resultFuture : resultFutureList) {
+				Object obj = resultFuture.take();
+				if(resultFuture.isSuccess()){
+					IndexingJobResult indexingJobResult = (IndexingJobResult) obj;
+					revisionInfo.add(indexingJobResult.revisionInfo);
+				}
 			}
 			
-			
-			collectionContext.updateCollectionStatus(IndexingType.ADD, revisionInfo, indexingStartTime(), System.currentTimeMillis());
-			
-			
-			//FIXME
-			
-//			File segmentDir = collectionContext.indexFilePaths().segmentFile(collectionContext.getDataSequence(), segmentInfo.getId());
-//			DeleteIdSet deleteIdSet = collectionIndexer.deleteIdSet();
-//			collectionHandler.updateShard(collectionContext, segmentInfo, segmentDir, deleteIdSet);
-			
-			//저장.
+			//status를 바꾸고 context를 저장한다.
+			collectionContext.updateCollectionStatus(IndexingType.FULL, revisionInfo, indexingStartTime(), System.currentTimeMillis());
 			CollectionContextUtil.saveAfterIndexing(collectionContext);
 			
-			
+			/*
+			 * 컬렉션 리로드
+			 */
+			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
+			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
+			if (oldCollectionHandler != null) {
+				logger.info("## [{}] Close Previous Collection Handler", collectionId);
+				oldCollectionHandler.close();
+			}
+
 			int duration = (int) (System.currentTimeMillis() - indexingStartTime());
-			
-			//캐시 클리어.
+
+			/*
+			 * 캐시 클리어.
+			 */
 			getJobExecutor().offer(new CacheServiceRestartJob());
-			
-			indexingLogger.info("[{}] Incremental Indexing Finished! revisionInfo={}, time = {}", collectionId, revisionInfo, Formatter.getFormatTime(duration));
+
+			indexingLogger.info("[{}] Collection Full Indexing Finished! {} time = {}", collectionId, revisionInfo, duration);
 			logger.info("== SegmentStatus ==");
 			collectionHandler.printSegmentStatus();
 			logger.info("===================");
@@ -104,24 +104,23 @@ public class AddIndexingJob extends IndexingJob {
 			isSuccess = true;
 
 			return new JobResult(result);
-			
+
 		} catch (Throwable e) {
 			indexingLogger.error("[" + collectionId + "] Indexing", e);
 			throwable = e;
-			throw new FastcatSearchException("ERR-00501", throwable, collectionId);
+			throw new FastcatSearchException("ERR-00500", throwable, collectionId); // 전체색인실패.
 		} finally {
+
 			Streamable streamableResult = null;
 			if (throwable != null) {
 				streamableResult = new StreamableThrowable(throwable);
 			} else if (result instanceof IndexingJobResult) {
 				streamableResult = (IndexingJobResult) result;
 			}
-			
+
 			updateIndexingStatusFinish(isSuccess, streamableResult);
 		}
-		
-		
-		
+
 	}
 
 }

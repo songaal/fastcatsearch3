@@ -11,25 +11,28 @@
 
 package org.fastcatsearch.job;
 
-import java.util.List;
-
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.ir.CollectionIndexer;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.ShardIndexer;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
-import org.fastcatsearch.ir.index.IndexWriteInfo;
-import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
-import org.fastcatsearch.util.CollectionContextUtil;
-
-public class FullIndexingJob extends IndexingJob {
+import org.fastcatsearch.util.ShardContextUtil;
+/**
+ * 특정 shard만 전체색인을 수행한다.
+ * schema가 변경될수도 있고, 그대로 일수 있으나
+ * 이 job에서 schema를 적용하지는 않는다.
+ * 상위의 CollectionFullIndexingJob에서 스키마 적용을 해야 모든 shard가 동일한 schema를 가질수 있다.
+ * TODO 컬렉션 전체색인 job이 이 job을 호출할때 shardcontext에 미리 색인에 사용될 schema를 셋팅해놓으면 
+ * shard는 그 schema만 보고 색인하도록한다. 즉, work schema를 모르고 그냥 색인만 하도록. 
+ * */
+public class ShardFullIndexingJob extends IndexingJob {
 
 	private static final long serialVersionUID = 7898036370433248984L;
 
@@ -41,7 +44,6 @@ public class FullIndexingJob extends IndexingJob {
 
 		boolean isSuccess = false;
 		Object result = null;
-
 		Throwable throwable = null;
 
 		try {
@@ -52,48 +54,29 @@ public class FullIndexingJob extends IndexingJob {
 			 */
 			//////////////////////////////////////////////////////////////////////////////////////////
 			CollectionContext collectionContext = irService.collectionContext(collectionId).copy();
-			CollectionIndexer collectionIndexer = new CollectionIndexer(collectionContext);
-			SegmentInfo segmentInfo = collectionIndexer.fullIndexing();
+			ShardContext shardContext = collectionContext.getShardContext(shardId);
+			
+			ShardIndexer shardIndexer = new ShardIndexer(shardContext);
+			SegmentInfo segmentInfo = shardIndexer.fullIndexing();
 			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 			//////////////////////////////////////////////////////////////////////////////////////////
 			if(revisionInfo.getInsertCount() == 0){
 				int duration = (int) (System.currentTimeMillis() - indexingStartTime());
-				result = new IndexingJobResult(collectionId, revisionInfo, duration, false);
+				result = new IndexingJobResult(collectionId, shardId, revisionInfo, duration, false);
 				isSuccess = false;
 
 				return new JobResult(result);
 			}
 			//status를 바꾸고 context를 저장한다.
-				
-			collectionContext.updateCollectionStatus(IndexingType.FULL, revisionInfo, indexingStartTime(), System.currentTimeMillis());
-			CollectionContextUtil.saveAfterIndexing(collectionContext);
-			
-			
-			/*
-			 * 컬렉션 리로드
-			 */
-			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
-			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
-			if (oldCollectionHandler != null) {
-				logger.info("## [{}] Close Previous Collection Handler", collectionId);
-				oldCollectionHandler.close();
-			}
-			DataInfo dataInfo = collectionHandler.collectionContext().dataInfo();
-			indexingLogger.info(dataInfo.toString());
 
+			shardContext.updateIndexingStatus(IndexingType.FULL, revisionInfo, indexingStartTime(), System.currentTimeMillis());
+			ShardContextUtil.saveAfterIndexing(shardContext);
+			
 			int duration = (int) (System.currentTimeMillis() - indexingStartTime());
 
-			/*
-			 * 캐시 클리어.
-			 */
-			getJobExecutor().offer(new CacheServiceRestartJob());
-
-			indexingLogger.info("[{}] Full Indexing Finished! {} time = {}", collectionId, revisionInfo, duration);
-			logger.info("== SegmentStatus ==");
-			collectionHandler.printSegmentStatus();
-			logger.info("===================");
+			indexingLogger.info("[{} / {}] Shard Full Indexing Finished! {} time = {}", collectionId, shardId, revisionInfo, duration);
 			
-			result = new IndexingJobResult(collectionId, revisionInfo, duration);
+			result = new IndexingJobResult(collectionId, shardId, revisionInfo, duration);
 			isSuccess = true;
 
 			return new JobResult(result);

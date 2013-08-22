@@ -29,9 +29,11 @@ import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.ClusterConfig;
+import org.fastcatsearch.ir.config.ClusterConfig.ShardClusterConfig;
 import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.CollectionStatus;
+import org.fastcatsearch.ir.config.ShardContext;
+import org.fastcatsearch.ir.config.ShardIndexStatus;
 import org.fastcatsearch.ir.config.CollectionsConfig;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.ir.config.DataInfo;
@@ -42,6 +44,7 @@ import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.module.ModuleException;
@@ -50,12 +53,12 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.util.CollectionContextUtil;
-import org.fastcatsearch.util.CollectionFilePaths;
+import org.fastcatsearch.util.IndexFilePaths;
 
 public class IRService extends AbstractService {
 
-	private Map<String, CollectionHandler> collectionHandlerMap = new HashMap<String, CollectionHandler>();
-	private Map<String, ClusterStrategy> clusterStrategyMap;
+	private Map<String, CollectionHandler> collectionHandlerMap;
+//	private Map<String, ClusterStrategy> clusterStrategyMap;
 
 	// TODO 캐시방식을 변경하자.
 
@@ -72,8 +75,7 @@ public class IRService extends AbstractService {
 	}
 
 	protected boolean doStart() throws FastcatSearchException {
-
-		// collectionConfigMap = new HashMap<String, CollectionConfig>();
+		collectionHandlerMap = new HashMap<String, CollectionHandler>();
 		// collections 셋팅을 읽어온다.
 		collectionsRoot = environment.filePaths().getCollectionsRoot().file();
 
@@ -82,7 +84,6 @@ public class IRService extends AbstractService {
 		} catch (JAXBException e) {
 			logger.error("[ERROR] 컬렉션리스트 로딩실패. " + e.getMessage(), e);
 		}
-		clusterStrategyMap = new ConcurrentHashMap<String, ClusterStrategy>();
 
 		for (Collection collection : collectionsConfig.getCollectionList()) {
 			try {
@@ -92,9 +93,9 @@ public class IRService extends AbstractService {
 
 				logger.info("Load Collection [{}]", collectionId);
 				try {
-					collectionContext = loadCollectionContext(collectionId);
+					collectionContext = loadCollectionContext(collection);
 				} catch (SettingException e) {
-					logger.error("컬렉션 로드실패", e);
+					logger.error("컬렉션context 로드실패 "+collectionId, e);
 					continue;
 				}
 				if (collectionContext == null) {
@@ -108,18 +109,6 @@ public class IRService extends AbstractService {
 					collectionHandler = new CollectionHandler(collectionContext);
 				}
 
-				if (collectionContext.collectionConfig() != null) {
-					ClusterConfig clusterConfig = collectionContext.collectionConfig().getClusterConfig();
-					String indexNode = clusterConfig.getIndexNode();
-					List<String> dataNodeList = clusterConfig.getDataNodeList();
-					int shardSize = clusterConfig.getShardSize();
-					int replicaSize = clusterConfig.getReplicaSize();
-
-					ClusterStrategy clusterStrategy = new ClusterStrategy(collectionId, indexNode, dataNodeList, shardSize, replicaSize);
-					logger.debug("> {}", clusterStrategy);
-					clusterStrategyMap.put(collectionId, clusterStrategy);
-
-				}
 				collectionHandlerMap.put(collectionId, collectionHandler);
 
 				// active하지 않은 컬렉션은 map에 설정만 넣어두고 로드하지 않는다.
@@ -173,13 +162,13 @@ public class IRService extends AbstractService {
 		}
 
 		try {
-			CollectionFilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
+			IndexFilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
 			collectionFilePaths.file().mkdirs();
 			CollectionContext collectionContext = new CollectionContext(collectionId, collectionFilePaths);
 			File file = environment.filePaths().configPath().file(SettingFileNames.defaultCollectionConfig);
 			CollectionConfig collectionConfig = JAXBConfigs.readConfig(file, CollectionConfig.class);
 			Schema schema = new Schema(new SchemaSetting());
-			collectionContext.init(schema, null, collectionConfig, new DataSourceConfig(), new CollectionStatus(), new DataInfo());
+			collectionContext.init(schema, null, collectionConfig, new ClusterConfig(), new DataSourceConfig(), new ShardIndexStatus());
 			CollectionContextUtil.write(collectionContext);
 
 			collectionsConfig.addCollection(collectionId, false);
@@ -194,18 +183,18 @@ public class IRService extends AbstractService {
 
 	// TODO 전체색인후 로드할때는 work schema를 읽어야한다.
 	// schema와 sequence가 동시에 바뀔수 있음.
-	public CollectionContext loadCollectionContext(String collectionId) throws SettingException {
-		return loadCollectionContext(collectionId, null);
+	public CollectionContext loadCollectionContext(Collection collection) throws SettingException {
+		return loadCollectionContext(collection, null);
 	}
 
-	public CollectionContext loadCollectionContext(String collectionId, Integer dataSequence) throws SettingException {
-		CollectionFilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
+	public CollectionContext loadCollectionContext(Collection collection, Integer dataSequence) throws SettingException {
+		IndexFilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collection.getId());
 		if (!collectionFilePaths.file().exists()) {
 			// 디렉토리가 존재하지 않으면.
-			logger.error("[{}]컬렉션 디렉토리가 존재하지 않습니다.", collectionId);
+			logger.error("[{}]컬렉션 디렉토리가 존재하지 않습니다.", collection);
 			return null;
 		}
-		return CollectionContextUtil.load(collectionFilePaths, dataSequence);
+		return CollectionContextUtil.load(collection, collectionFilePaths, dataSequence);
 	}
 
 	public CollectionHandler removeCollectionHandler(String collectionId) {
@@ -217,8 +206,8 @@ public class IRService extends AbstractService {
 	}
 
 	// 전체색인시작할때.
-	public CollectionHandler initCollectionHandler(String collectionId, Integer newDataSequence) throws IRException, SettingException {
-		CollectionContext collectionContext = loadCollectionContext(collectionId, newDataSequence);
+	public CollectionHandler initCollectionHandler(Collection collection, Integer newDataSequence) throws IRException, SettingException {
+		CollectionContext collectionContext = loadCollectionContext(collection, newDataSequence);
 
 		return new CollectionHandler(collectionContext);
 	}
@@ -227,20 +216,15 @@ public class IRService extends AbstractService {
 		return new CollectionHandler(collectionContext).load();
 	}
 
-	public CollectionHandler loadCollectionHandler(String collectionId) throws IRException, SettingException {
-		return loadCollectionHandler(collectionId, null);
+	public CollectionHandler loadCollectionHandler(Collection collection) throws IRException, SettingException {
+		return loadCollectionHandler(collection, null);
 	}
-
-	public CollectionHandler loadCollectionHandler(String collectionId, Integer newDataSequence) throws IRException, SettingException {
-		CollectionContext collectionContext = loadCollectionContext(collectionId, newDataSequence);
+	public CollectionHandler loadCollectionHandler(Collection collection, Integer newDataSequence) throws IRException, SettingException {
+		CollectionContext collectionContext = loadCollectionContext(collection, newDataSequence);
 
 		return new CollectionHandler(collectionContext).load();
 	}
-
-	public ClusterStrategy getCollectionClusterStrategy(String collectionId) {
-		return clusterStrategyMap.get(collectionId);
-	}
-
+	
 	protected boolean doStop() throws FastcatSearchException {
 		Iterator<Entry<String, CollectionHandler>> iter = collectionHandlerMap.entrySet().iterator();
 		while (iter.hasNext()) {
@@ -258,11 +242,14 @@ public class IRService extends AbstractService {
 		groupingCache.unload();
 		groupingDataCache.unload();
 		documentCache.unload();
+		
+		collectionHandlerMap.clear();
 		return true;
 	}
 
 	@Override
 	protected boolean doClose() throws FastcatSearchException {
+		collectionHandlerMap = null;
 		return true;
 	}
 
