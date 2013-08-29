@@ -1,4 +1,4 @@
-package org.fastcatsearch.http.service.action;
+package org.fastcatsearch.http.action;
 
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
@@ -12,20 +12,19 @@ public class ActionResponse {
 	private Object contentType;
 	private HttpResponseStatus status;
 	private PrintWriter writer;
-	ByteRefArrayOutputStream baos;
-	boolean isEmpty;
+	private ByteRefArrayOutputStream baos;
+	private boolean isEmpty;
 
+	private String responseCookie;
+	private String responseSetCookie;
+	
 	public ActionResponse() {
+	}
+
+	public void init(){
 		baos = new ByteRefArrayOutputStream();
 		writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(baos)));
 	}
-
-	public ActionResponse(HttpResponseStatus status) {
-		setStatus(status);
-		contentType = "text/html";
-		isEmpty = true;
-	}
-
 	public void setContentType(String contentType) {
 		this.contentType = contentType;
 	}
@@ -33,7 +32,24 @@ public class ActionResponse {
 	public void setStatus(HttpResponseStatus status) {
 		this.status = status;
 	}
+	
+	public void setResponseCookie(String responseCookie) {
+		this.responseCookie = responseCookie;
+	}
+	
+	public void setResponseSetCookie(String responseSetCookie) {
+		this.responseSetCookie = responseSetCookie;		
+	}
 
+	public String responseCookie(){
+		return responseCookie;
+	}
+	
+	public String responseSetCookie(){
+		return responseSetCookie;
+	}
+	
+	
 	public boolean contentThreadSafe() {
 		return false;
 	}
@@ -80,4 +96,6 @@ public class ActionResponse {
 	public boolean isEmpty() {
 		return false;
 	}
+
+
 }

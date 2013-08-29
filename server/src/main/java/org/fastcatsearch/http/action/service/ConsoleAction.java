@@ -1,6 +1,8 @@
-package org.fastcatsearch.http.service.action;
+package org.fastcatsearch.http.action.service;
 
-import org.fastcatsearch.http.ActionRequest;
+import org.fastcatsearch.http.action.ActionRequest;
+import org.fastcatsearch.http.action.ActionResponse;
+import org.fastcatsearch.http.action.HttpAction;
 
 /**
  * cli용 action

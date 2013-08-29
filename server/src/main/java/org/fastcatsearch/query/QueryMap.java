@@ -11,6 +11,8 @@ import org.fastcatsearch.ir.io.DataOutput;
 public class QueryMap extends HashMap<String, String> implements Streamable {
 
 	private static final long serialVersionUID = 6450718773572982562L;
+	private String collectionId;
+	private String shardId;
 	private String queryString;
 	
 	public QueryMap(){
@@ -20,6 +22,20 @@ public class QueryMap extends HashMap<String, String> implements Streamable {
 		super(map);
 	}
 
+	public String collectionId(){
+		return collectionId;
+	}
+	
+	public String shardId(){
+		return shardId;
+	}
+	
+	public void setId(String collectionId, String shardId) {
+		this.collectionId = collectionId;
+		this.shardId = shardId;
+	}
+	
+	
 	public String queryString(){
 		if(queryString == null){
 			queryString = "";
@@ -36,6 +52,14 @@ public class QueryMap extends HashMap<String, String> implements Streamable {
 	}
 
 	@Override
+	public QueryMap clone(){
+		QueryMap queryMap = (QueryMap) super.clone();
+		queryMap.collectionId = this.collectionId;
+		queryMap.shardId = this.shardId;
+		return queryMap;
+	}
+	
+	@Override
 	public void readFrom(DataInput input) throws IOException {
 		putAll((Map<String, String>) input.readGenericValue());
 	}
@@ -44,5 +68,7 @@ public class QueryMap extends HashMap<String, String> implements Streamable {
 	public void writeTo(DataOutput output) throws IOException {
 		output.writeGenericValue(this);
 	}
+
+	
 
 }

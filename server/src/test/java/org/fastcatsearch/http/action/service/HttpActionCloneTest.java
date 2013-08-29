@@ -1,10 +1,11 @@
-package org.fastcatsearch.http.service.action;
+package org.fastcatsearch.http.action.service;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import org.apache.http.impl.DefaultHttpRequestFactory;
-import org.fastcatsearch.http.ActionRequest;
+import org.fastcatsearch.http.action.ActionRequest;
+import org.fastcatsearch.http.action.service.TestAction;
 import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpVersion;
@@ -39,7 +40,7 @@ public class HttpActionCloneTest {
 		long st = System.nanoTime();
 		TestAction action = new TestAction(type);
 		ActionRequest r = new ActionRequest("", new DefaultHttpRequest(HttpVersion.HTTP_1_0, HttpMethod.POST, "aaa"));
-		action.setRequest(r, null);
+		action.init(r, null, null, null);
 		for (int i = 0; i < count; i++) {
 			TestAction a2= (TestAction) action.clone();
 		}

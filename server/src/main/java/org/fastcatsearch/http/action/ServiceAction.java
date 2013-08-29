@@ -1,4 +1,4 @@
-package org.fastcatsearch.http.service.action;
+package org.fastcatsearch.http.action;
 
 import java.io.Writer;
 
@@ -9,7 +9,7 @@ import org.fastcatsearch.util.XMLResultWriter;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
 public abstract class ServiceAction extends HttpAction {
-	
+	private static final String DEFAULT_ROOT_ELEMENT = "fastcatsearch";
 	public static final String DEFAULT_CHARSET = "utf-8";
 	public static enum Type { json, xml, jsonp, html };
 	protected Type resultType;
@@ -49,7 +49,9 @@ public abstract class ServiceAction extends HttpAction {
 			response.setContentType("application/json; charset=" + responseCharset);
 		}
 	}
-	
+	protected ResultWriter getDefaultResultWriter(Writer writer){
+		return getResultWriter(writer, DEFAULT_ROOT_ELEMENT, true, null);
+	}
 	protected ResultWriter getResultWriter(Writer writer, String rootElement, boolean isBeautify, String jsonCallback) {
 		ResultWriter resultWriter = null;
 		if (resultType == Type.json) {

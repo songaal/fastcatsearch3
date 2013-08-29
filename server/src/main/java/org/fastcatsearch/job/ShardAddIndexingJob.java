@@ -30,7 +30,6 @@ import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
 import org.fastcatsearch.util.CollectionContextUtil;
-import org.fastcatsearch.util.ShardContextUtil;
 
 public class ShardAddIndexingJob extends IndexingJob {
 
@@ -64,7 +63,7 @@ public class ShardAddIndexingJob extends IndexingJob {
 			 */
 			//////////////////////////////////////////////////////////////////////////////////////////
 			CollectionContext collectionContext = irService.collectionContext(collectionId).copy();
-			ShardContext shardContext = collectionContext.getShardContext(shardId);
+			ShardContext shardContext = collectionContext.getShardContext(shardId).copy();
 			
 			ShardIndexer shardIndexer = new ShardIndexer(shardContext);
 			SegmentInfo segmentInfo = shardIndexer.addIndexing(shardHandler);
@@ -83,14 +82,14 @@ public class ShardAddIndexingJob extends IndexingJob {
 			}
 			
 			
-			collectionContext.updateCollectionStatus(IndexingType.ADD, revisionInfo, indexingStartTime(), System.currentTimeMillis());
+			shardContext.updateIndexingStatus(IndexingType.ADD, revisionInfo, indexingStartTime(), System.currentTimeMillis());
 			
-			File segmentDir = collectionContext.indexFilePaths().segmentFile(shardContext.getDataSequence(), segmentInfo.getId());
+			File segmentDir = shardContext.indexFilePaths().segmentFile(shardContext.getIndexSequence(), segmentInfo.getId());
 			DeleteIdSet deleteIdSet = shardIndexer.deleteIdSet();
 			shardHandler.updateShard(shardContext, segmentInfo, segmentDir, deleteIdSet);
 			
 			//저장.
-			ShardContextUtil.saveAfterIndexing(shardContext);
+			CollectionContextUtil.saveShardAfterIndexing(shardContext);
 			
 			
 			int duration = (int) (System.currentTimeMillis() - indexingStartTime());

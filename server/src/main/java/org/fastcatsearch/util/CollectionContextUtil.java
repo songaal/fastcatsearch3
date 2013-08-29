@@ -7,17 +7,20 @@ import javax.xml.bind.JAXBException;
 import org.fastcatsearch.env.Path;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.ClusterConfig;
+import org.fastcatsearch.ir.config.ClusterConfig.ShardClusterConfig;
 import org.fastcatsearch.ir.config.CollectionConfig;
+import org.fastcatsearch.ir.config.CollectionConfig.Shard;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionIndexStatus;
-import org.fastcatsearch.ir.config.ShardIndexStatus;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.DataSourceConfig;
-import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.config.JAXBConfigs;
+import org.fastcatsearch.ir.config.ShardContext;
+import org.fastcatsearch.ir.config.ShardIndexStatus;
+import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.settings.SettingFileNames;
@@ -27,9 +30,9 @@ import org.slf4j.LoggerFactory;
 public class CollectionContextUtil {
 	private static final Logger logger = LoggerFactory.getLogger(CollectionContextUtil.class);
 
-	public static CollectionContext init(IndexFilePaths collectionFilePaths) throws SettingException {
+	public static CollectionContext init(IndexFilePaths indexFilePaths) throws SettingException {
 		try {
-			Path collectionDir = new Path(collectionFilePaths.file());
+			Path collectionDir = new Path(indexFilePaths.file());
 			SchemaSetting schemaSetting = new SchemaSetting();
 			JAXBConfigs.writeConfig(collectionDir.file(SettingFileNames.schema), schemaSetting, SchemaSetting.class);
 			CollectionConfig collectionConfig = new CollectionConfig();
@@ -39,11 +42,11 @@ public class CollectionContextUtil {
 			DataSourceConfig dataSourceConfig = new DataSourceConfig();
 			JAXBConfigs.writeConfig(collectionDir.file(SettingFileNames.datasourceConfig), dataSourceConfig, SingleSourceConfig.class);
 			ShardIndexStatus collectionStatus = new ShardIndexStatus();
-			JAXBConfigs.writeConfig(collectionDir.file(SettingFileNames.collectionStatus), collectionStatus, ShardIndexStatus.class);
+			JAXBConfigs.writeConfig(collectionDir.file(SettingFileNames.indexStatus), collectionStatus, ShardIndexStatus.class);
 //			DataInfo dataInfo = new DataInfo();
 //			JAXBConfigs.writeConfig(new File(collectionFilePaths.dataFile(0), SettingFileNames.dataInfo), dataInfo, DataInfo.class);
 			Schema schema = new Schema(schemaSetting);
-			CollectionContext collectionContext = new CollectionContext(collectionFilePaths.getId(), collectionFilePaths);
+			CollectionContext collectionContext = new CollectionContext(indexFilePaths.getId(), indexFilePaths);
 			collectionContext.init(schema, null, collectionConfig, clusterConfig, dataSourceConfig, collectionStatus);
 			return collectionContext;
 		} catch (Exception e) {
@@ -51,8 +54,9 @@ public class CollectionContextUtil {
 		}
 	}
 
-	public static CollectionContext load(Collection collection, IndexFilePaths indexFilePaths, Integer dataSequence) throws SettingException {
+	public static CollectionContext load(Collection collection, IndexFilePaths indexFilePaths) throws SettingException {
 		try {
+			String collectionId = collection.getId();
 			Path collectionDir = new Path(indexFilePaths.file());
 			File schemaFile = collectionDir.file(SettingFileNames.schema);
 			SchemaSetting schemaSetting = JAXBConfigs.readConfig(schemaFile, SchemaSetting.class);
@@ -68,35 +72,20 @@ public class CollectionContextUtil {
 				dataSourceConfig = new DataSourceConfig();
 			}
 
-			File collectionStatusFile = collectionDir.file(SettingFileNames.collectionStatus);
-			CollectionIndexStatus collectionStatus = JAXBConfigs.readConfig(collectionStatusFile, CollectionIndexStatus.class);
-
-//			if (dataSequence == null) {
-//				// dataSequence가 없으므로 indexedSequence로 선택하여 로딩한다.
-//				int indexedSequence = collectionStatus.getSequence();
-//				dataSequence = indexedSequence;
-//			}
-
+			File indexStatusFile = collectionDir.file(SettingFileNames.indexStatus);
+			CollectionIndexStatus collectionStatus = JAXBConfigs.readConfig(indexStatusFile, CollectionIndexStatus.class);
+			
 			// dataSequence가 null아 아니면 원하는 sequence의 정보를 읽어온다.
 			File dataDir = indexFilePaths.dataFile();
 			if (!dataDir.exists()) {
 				dataDir.mkdirs();
 			}
-//			File infoFile = new File(dataDir, SettingFileNames.dataInfo);
-//			DataInfo dataInfo = null;
-//			if (infoFile.exists()) {
-//				dataInfo = JAXBConfigs.readConfig(infoFile, DataInfo.class);
-//			} else {
-//				logger.info("File not found : {}", infoFile);
-//				dataInfo = new DataInfo();
-//				JAXBConfigs.writeConfig(infoFile, dataInfo, DataInfo.class);
-//			}
-//
+
 //			logger.debug("dataInfo.getSegmentInfoList() >> {}", dataInfo.getSegmentInfoList().size());
 			if (!collectionStatus.isEmpty()) {
 				// SegmentInfoList가 없다면 data디렉토리를 지웠거나 색인이 안된상태이므로, 확인차 status초기화해준다.
 				collectionStatus.clear();
-				JAXBConfigs.writeConfig(collectionStatusFile, collectionStatus, ShardIndexStatus.class);
+				JAXBConfigs.writeConfig(indexStatusFile, collectionStatus, ShardIndexStatus.class);
 			}
 
 			Schema schema = new Schema(schemaSetting);
@@ -106,6 +95,45 @@ public class CollectionContextUtil {
 			}
 			CollectionContext collectionContext = new CollectionContext(indexFilePaths.getId(), indexFilePaths);
 			collectionContext.init(schema, workSchema, collectionConfig, clusterConfig, dataSourceConfig, collectionStatus);
+			
+			
+			/*
+			 * Load shard context
+			 * */
+			for(Shard shardConfig : collectionConfig.getShardConfigList()){
+				String shardId = shardConfig.getId();
+				IndexFilePaths shardIndexFilePaths = indexFilePaths.shard(shardId);
+//				Path shardDir = new Path(shardIndexFilePaths.file());
+				ShardContext shardContext = new ShardContext(collectionId, shardId, shardIndexFilePaths);
+				ShardClusterConfig shardClusterConfig = null;
+				for(ShardClusterConfig shardClusterConfig2 : clusterConfig.getShardClusterConfigList()){
+					if(shardClusterConfig2.getId().equals(shardId)){
+						shardClusterConfig = shardClusterConfig2;
+					}
+				}
+				File shardIndexStatusFile = collectionDir.file(SettingFileNames.indexStatus);
+				ShardIndexStatus shardIndexStatus = JAXBConfigs.readConfig(shardIndexStatusFile, ShardIndexStatus.class);
+				
+				File indexDir = shardIndexFilePaths.indexDirFile(shardIndexStatus.getSequence());
+				if (!indexDir.exists()) {
+					indexDir.mkdirs();
+				}
+				File infoFile = new File(indexDir, SettingFileNames.dataInfo);
+				DataInfo dataInfo = null;
+				if (infoFile.exists()) {
+					dataInfo = JAXBConfigs.readConfig(infoFile, DataInfo.class);
+				} else {
+					logger.info("File not found : {}", infoFile);
+					dataInfo = new DataInfo();
+					JAXBConfigs.writeConfig(infoFile, dataInfo, DataInfo.class);
+				}
+				
+				shardContext.init(schema, collectionConfig.getIndexConfig(), collectionConfig.getDataPlanConfig(), shardClusterConfig, dataSourceConfig, shardIndexStatus, dataInfo);
+				
+				collectionContext.shardContextMap().put(shardId, shardContext);
+			}
+			
+			
 			return collectionContext;
 		} catch (Exception e) {
 			throw new SettingException("CollectionContext 로드중 에러발생", e);
@@ -119,7 +147,7 @@ public class CollectionContextUtil {
 			Schema schema = collectionContext.schema();
 			Schema workSchema = collectionContext.workSchema();
 			CollectionConfig collectionConfig = collectionContext.collectionConfig();
-			CollectionIndexStatus collectionStatus = collectionContext.collectionStatus();
+			CollectionIndexStatus collectionStatus = collectionContext.indexStatus();
 //			DataInfo dataInfo = collectionContext.dataInfo();
 			DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
 
@@ -137,7 +165,7 @@ public class CollectionContextUtil {
 				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.collectionConfig), collectionConfig, CollectionConfig.class);
 			}
 			if (collectionStatus != null) {
-				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.collectionStatus), collectionStatus, ShardIndexStatus.class);
+				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.indexStatus), collectionStatus, ShardIndexStatus.class);
 			}
 //			if (dataInfo != null) {
 //				File dataDir = collectionFilePaths.dataFile(collectionStatus.getSequence());
@@ -160,17 +188,17 @@ public class CollectionContextUtil {
 	 * data#/{revision}/revision.xml 저장.
 	 * 
 	 * */
-	public static void saveAfterIndexing(CollectionContext collectionContext) throws SettingException {
+	public static void saveCollectionAfterIndexing(CollectionContext collectionContext) throws SettingException {
 		IndexFilePaths collectionFilePaths = collectionContext.indexFilePaths();
 
-		CollectionIndexStatus collectionStatus = collectionContext.collectionStatus();
+		CollectionIndexStatus collectionStatus = collectionContext.indexStatus();
 //		DataInfo dataInfo = collectionContext.dataInfo();
 
 		File collectionDir = collectionFilePaths.file();
 
 		try {
 			if (collectionStatus != null) {
-				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.collectionStatus), collectionStatus, ShardIndexStatus.class);
+				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.indexStatus), collectionStatus, ShardIndexStatus.class);
 			}
 //			if (dataInfo != null) {
 //				File dataDir = collectionFilePaths.dataFile(collectionStatus.getSequence());
@@ -187,6 +215,36 @@ public class CollectionContextUtil {
 //					JAXBConfigs.writeConfig(new File(revisionDir, SettingFileNames.revisionInfo), revisionInfo, RevisionInfo.class);
 //				}
 //			}
+		} catch (JAXBException e) {
+			throw new SettingException("색인후 CollectionContext 저장중 에러발생", e);
+		}
+	}
+	
+	public static void saveShardAfterIndexing(ShardContext shardContext) throws SettingException {
+		IndexFilePaths indexFilePaths = shardContext.indexFilePaths();
+
+		ShardIndexStatus shardIndexStatus = shardContext.indexStatus();
+		DataInfo dataInfo = shardContext.dataInfo();
+
+		try {
+			if (shardIndexStatus != null) {
+				JAXBConfigs.writeConfig(indexFilePaths.file(SettingFileNames.indexStatus), shardIndexStatus, ShardIndexStatus.class);
+			}
+			if (dataInfo != null) {
+				File indexDir = indexFilePaths.indexDirFile(shardContext.getIndexSequence());
+				indexDir.mkdirs();
+				logger.debug("Save DataInfo >> {}", dataInfo);
+				JAXBConfigs.writeConfig(indexFilePaths.file(SettingFileNames.dataInfo), dataInfo, DataInfo.class);
+
+				SegmentInfo lastSegmentInfo = dataInfo.getLastSegmentInfo();
+				File revisionDir = indexFilePaths.revisionFile(shardContext.getIndexSequence(), lastSegmentInfo.getId(),
+						lastSegmentInfo.getRevision());
+				RevisionInfo revisionInfo = lastSegmentInfo.getRevisionInfo();
+				if (revisionInfo != null) {
+					logger.debug("Save RevisionInfo >> {}, {}", revisionDir.getAbsolutePath(), revisionInfo);
+					JAXBConfigs.writeConfig(new File(revisionDir, SettingFileNames.revisionInfo), revisionInfo, RevisionInfo.class);
+				}
+			}
 		} catch (JAXBException e) {
 			throw new SettingException("색인후 CollectionContext 저장중 에러발생", e);
 		}

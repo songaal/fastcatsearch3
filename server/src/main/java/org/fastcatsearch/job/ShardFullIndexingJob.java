@@ -23,7 +23,7 @@ import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
-import org.fastcatsearch.util.ShardContextUtil;
+import org.fastcatsearch.util.CollectionContextUtil;
 /**
  * 특정 shard만 전체색인을 수행한다.
  * schema가 변경될수도 있고, 그대로 일수 있으나
@@ -53,8 +53,8 @@ public class ShardFullIndexingJob extends IndexingJob {
 			 * Do indexing!!
 			 */
 			//////////////////////////////////////////////////////////////////////////////////////////
-			CollectionContext collectionContext = irService.collectionContext(collectionId).copy();
-			ShardContext shardContext = collectionContext.getShardContext(shardId);
+			CollectionContext collectionContext = irService.collectionContext(collectionId);
+			ShardContext shardContext = collectionContext.getShardContext(shardId).copy();
 			
 			ShardIndexer shardIndexer = new ShardIndexer(shardContext);
 			SegmentInfo segmentInfo = shardIndexer.fullIndexing();
@@ -70,7 +70,7 @@ public class ShardFullIndexingJob extends IndexingJob {
 			//status를 바꾸고 context를 저장한다.
 
 			shardContext.updateIndexingStatus(IndexingType.FULL, revisionInfo, indexingStartTime(), System.currentTimeMillis());
-			ShardContextUtil.saveAfterIndexing(shardContext);
+			CollectionContextUtil.saveShardAfterIndexing(shardContext);
 			
 			int duration = (int) (System.currentTimeMillis() - indexingStartTime());
 

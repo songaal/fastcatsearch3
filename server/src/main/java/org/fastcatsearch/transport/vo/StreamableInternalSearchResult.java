@@ -26,9 +26,13 @@ public class StreamableInternalSearchResult implements Streamable {
 	public void readFrom(DataInput input) throws IOException {
 		String collectionId = null;
 		if (input.readBoolean()) {
-			collectionId = input.readString().intern();
+			collectionId = input.readString();
 		}
-		int shardId = input.readInt();
+		String shardId = null;
+		if (input.readBoolean()) {
+			shardId = input.readString();
+		}
+		
 		int totalCount = input.readInt();
 		StreamableHitElement sHitElement = new StreamableHitElement();
 		sHitElement.readFrom(input);
@@ -56,7 +60,13 @@ public class StreamableInternalSearchResult implements Streamable {
 			output.writeBoolean(true);
 			output.writeString(collectionId);
 		}
-		output.writeInt(internalSearchResult.shardId());
+		String shardId = internalSearchResult.shardId();
+		if (shardId == null) {
+			output.writeBoolean(false);
+		} else {
+			output.writeBoolean(true);
+			output.writeString(shardId);
+		}
 		output.writeInt(internalSearchResult.getTotalCount());
 		new StreamableHitElement(internalSearchResult.getHitElementList(), internalSearchResult.getCount()).writeTo(output);
 		if(internalSearchResult.getGroupsData() != null){

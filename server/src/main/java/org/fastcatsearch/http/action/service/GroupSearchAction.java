@@ -1,4 +1,4 @@
-package org.fastcatsearch.http.service.action;
+package org.fastcatsearch.http.action.service;
 
 import org.fastcatsearch.job.GroupSearchJob;
 import org.fastcatsearch.job.Job;

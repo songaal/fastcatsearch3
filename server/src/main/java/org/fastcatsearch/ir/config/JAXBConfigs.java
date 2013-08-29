@@ -30,11 +30,12 @@ public class JAXBConfigs {
 		InputStream is = null;
 		try{
 			is = new FileInputStream(file);
+			logger.debug("read config file={}, {}", file.getName(), is);
 			T config = readConfig(is, jaxbConfigClass);
-			logger.debug("read config {}, {}", config, file.getName());
+//			logger.debug("read config {}, {}", config, file.getName());
 			return config;
-		}catch(IOException e){
-			logger.error("JAXBConfig file io error "+file.getAbsolutePath(), e);
+		}catch(Exception e){
+			logger.error("JAXBConfig file error "+file.getAbsolutePath(), e);
 			throw new JAXBException(e);
 		}finally{
 			if(is != null){

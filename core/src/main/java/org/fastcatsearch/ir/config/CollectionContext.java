@@ -1,7 +1,10 @@
 package org.fastcatsearch.ir.config;
 
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.ClusterConfig.ShardClusterConfig;
@@ -24,9 +27,8 @@ public class CollectionContext {
 	private CollectionConfig collectionConfig;
 	private ClusterConfig clusterConfig;
 	private DataSourceConfig dataSourceConfig;
-	private CollectionIndexStatus collectionStatus;
-	//TODO MAP???
-	private List<ShardContext> shardContextList;
+	private CollectionIndexStatus collectionIndexStatus;
+	private Map<String, ShardContext> shardContextMap;
 	
 	public CollectionContext(String collectionId, IndexFilePaths indexFilePaths) {
 		this.id = collectionId;
@@ -40,13 +42,14 @@ public class CollectionContext {
 		this.collectionConfig = collectionConfig;
 		this.clusterConfig = clusterConfig;
 		this.dataSourceConfig = dataSourceConfig;
-		this.collectionStatus = collectionStatus;
+		this.collectionIndexStatus = collectionStatus;
+		this.shardContextMap = new HashMap<String, ShardContext>();
 	}
 	
 	
 	public CollectionContext copy(){
 		CollectionContext collectionContext = new CollectionContext(id, indexFilePaths);
-		collectionContext.init(schema, workSchema, collectionConfig, clusterConfig, dataSourceConfig, collectionStatus.copy());
+		collectionContext.init(schema, workSchema, collectionConfig, clusterConfig, dataSourceConfig, collectionIndexStatus.copy());
 		return collectionContext;
 	}
 	
@@ -82,25 +85,25 @@ public class CollectionContext {
 		return dataSourceConfig;
 	}
 	
-	public CollectionIndexStatus collectionStatus(){
-		return collectionStatus;
+	public CollectionIndexStatus indexStatus(){
+		return collectionIndexStatus;
 	}
 
 	public void updateCollectionStatus(IndexingType indexingType, RevisionInfo revisionInfo, long startTime, long endTime){
 		IndexStatus indexStatus = null;
 		if(indexingType == IndexingType.FULL){
-			indexStatus = collectionStatus.getFullIndexStatus();
+			indexStatus = collectionIndexStatus.getFullIndexStatus();
 			if(indexStatus == null){
 				indexStatus = new IndexStatus();
-				collectionStatus.setFullIndexStatus(indexStatus);
+				collectionIndexStatus.setFullIndexStatus(indexStatus);
 			}
 			//전체색인시 증분색인 status는 지워준다.
-			collectionStatus.setAddIndexStatus(null);
+			collectionIndexStatus.setAddIndexStatus(null);
 		}else{
-			indexStatus = collectionStatus.getAddIndexStatus();
+			indexStatus = collectionIndexStatus.getAddIndexStatus();
 			if(indexStatus == null){
 				indexStatus = new IndexStatus();
-				collectionStatus.setAddIndexStatus(indexStatus);
+				collectionIndexStatus.setAddIndexStatus(indexStatus);
 			}
 		}
 		indexStatus.setDocumentCount(revisionInfo.getDocumentCount());
@@ -112,10 +115,15 @@ public class CollectionContext {
 		indexStatus.setDuration(Formatter.getFormatTime(endTime - startTime));
 	}
 
-	
+	public Collection<ShardContext> getShardContextList(){
+		return shardContextMap.values();
+	}
 
 	public ShardContext getShardContext(String shardId) {
-		// TODO Auto-generated method stub
-		return null;
+		return shardContextMap.get(shardId);
+	}
+	
+	public Map<String, ShardContext> shardContextMap() {
+		return shardContextMap;
 	}
 }

@@ -146,6 +146,14 @@
 	
 	</td>
 	</tr>
+	
+	<tr>
+	<th>샤드이름(sd) <span class="req_opt">*</span></th>
+	<td style="text-align:left;">
+		<input type="text" id="sd" name="sd" size="20" class='inp02'/>
+	</td>
+	</tr>
+	
 	<tr>
 	<th>선택필드(fl)<span class="req_opt">*</span></th>
 	<td style="text-align:left;"><input type="text" id="fl" name="fl" size="80" value="title,body:50,_score_" class='inp02 help'/></td>
@@ -268,6 +276,7 @@
 			//uri = uri.replace(/[\/][\/]/g,"\/");
 			var queryStr = uri+
 					"?cn="+$('#cn').val() +
+					"&sd="+$('#sd').val()+
 					"&ht="+$('#ht').val()+
 					"&sn="+$('#sn').val()+
 					"&ln="+$('#ln').val()+
@@ -315,6 +324,7 @@
 	function restoreParametersFromCookie(){
 		$('#searchContext').val(getCookie("searchContext"));
 		$('#cn').val(getCookie("cn"));
+		$('#sd').val(getCookie("sd"));
 		$('#ht').val(getCookie("ht"));
 		$('#sn').val(getCookie("sn"));
 		$('#ln').val(getCookie("ln"));
@@ -331,6 +341,7 @@
 	function saveParametersToCookie(){
 		setCookie("searchContext", $('#searchContext').val());
 		setCookie("cn", $('#cn').val());
+		setCookie("sd", $('#sd').val());
 		setCookie("ht", $('#ht').val());
 		setCookie("sn", $('#sn').val());
 		setCookie("ln", $('#ln').val());
@@ -368,6 +379,7 @@
 				timeout: 5,
 				_searchHost: "http://"+$('#searchIP').val() + ":" + $('#searchPort').val() + $('#searchContext').val(),
 				cn: $('#cn').val(),
+				sd: $('#sd').val(),
 				ht: $('#ht').val(),
 				sn: $('#sn').val(),
 				ln: $('#ln').val(),

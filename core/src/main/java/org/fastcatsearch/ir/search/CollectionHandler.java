@@ -42,15 +42,20 @@ public class CollectionHandler {
 	}
 
 	private void loadShards() throws IRException {
-		List<Shard> shardList = collectionContext.collectionConfig().getShardConfigList();
-		for (Shard shard : shardList) {
-			String shardId = shard.getId();
-			ShardContext shardContext = collectionContext.getShardContext(shardId);
-
+		for(ShardContext shardContext : collectionContext.getShardContextList()){
 			ShardHandler shardHandler = new ShardHandler(shardContext);
 			shardHandler.load();
-			shardHandlerMap.put(shardId, shardHandler);
+			shardHandlerMap.put(shardHandler.shardId(), shardHandler);
 		}
+//		List<Shard> shardList = collectionContext.collectionConfig().getShardConfigList();
+//		for (Shard shard : shardList) {
+//			String shardId = shard.getId();
+//			ShardContext shardContext = collectionContext.getShardContext(shardId);
+//
+//			ShardHandler shardHandler = new ShardHandler(shardContext);
+//			shardHandler.load();
+//			shardHandlerMap.put(shardId, shardHandler);
+//		}
 	}
 
 	public Map<String, ShardHandler> shardHandlerMap() {

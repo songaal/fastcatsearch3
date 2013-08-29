@@ -29,12 +29,13 @@ public class Metadata {
 	private int option;
 	private Map<String, String> userData;
 	private String[] highlightTags;
-	private String collectionName;
+	private String collectionId;
+	private String shardId;
 	
 	public Metadata(){ }
 			
 	public String toString(){
-		String str = version+";"+start+";"+rows+";"+option+";"+collectionName;
+		String str = version+";"+start+";"+rows+";"+option+";"+collectionId;
 		if(highlightTags!= null){
 			if(highlightTags[0] == null)
 				highlightTags[0] ="";
@@ -117,9 +118,28 @@ public class Metadata {
 		}
 	}
 	public String collectionId(){
-		return collectionName;
+		return collectionId;
 	}
-	public void setCollectionName(String collectionName){
-		this.collectionName = collectionName;
+	public void setCollectionId(String collectionId){
+		this.collectionId = collectionId;
+	}
+
+	public String shardId(){
+		return shardId;
+	}
+	public void setShardId(String shardId) {
+		this.shardId = shardId;
+	}
+	
+	public String[] getSharIdList(){
+		String[] list = null;
+		if(shardId != null){
+			String[] tmp = shardId.split(",");
+			list = new String[tmp.length];
+			for (int i = 0; i < tmp.length; i++) {
+				list[i] = tmp[i].trim();
+			}
+		}
+		return list;
 	}
 }

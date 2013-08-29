@@ -32,7 +32,7 @@ public class FixedHitReader implements Comparable<FixedHitReader>{
 	protected static Logger logger = LoggerFactory.getLogger(FixedHitReader.class);
 	
 	private String collection;
-	private int shardId;
+	private String shardId;
 	
 	private HitElement[] list;
 	private int head;
@@ -40,10 +40,10 @@ public class FixedHitReader implements Comparable<FixedHitReader>{
 	
 	
 	public FixedHitReader(HitElement[] list, int head, int tail){
-		this(null, -1, list, head, tail);
+		this(null, null, list, head, tail);
 	}
 	
-	public FixedHitReader(String collection, int shardId, HitElement[] list, int head, int tail){
+	public FixedHitReader(String collection, String shardId, HitElement[] list, int head, int tail){
 		this.collection = collection;
 		this.shardId = shardId;
 		this.list = list;
@@ -55,7 +55,7 @@ public class FixedHitReader implements Comparable<FixedHitReader>{
 		return collection;
 	}
 	
-	public int shardId(){
+	public String shardId(){
 		return shardId;
 	}
 	
@@ -70,8 +70,8 @@ public class FixedHitReader implements Comparable<FixedHitReader>{
 	
 	public HitElement read(){
 		if(collection != null){
-			list[head].collection(collection);
-			list[head].shardId(shardId);
+			list[head].setCollectionId(collection);
+			list[head].setShardId(shardId);
 		}
 		return list[head];
 	}

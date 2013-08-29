@@ -32,6 +32,7 @@ import org.fastcatsearch.ir.config.ClusterConfig;
 import org.fastcatsearch.ir.config.ClusterConfig.ShardClusterConfig;
 import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.config.CollectionIndexStatus;
 import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.ir.config.ShardIndexStatus;
 import org.fastcatsearch.ir.config.CollectionsConfig;
@@ -168,7 +169,7 @@ public class IRService extends AbstractService {
 			File file = environment.filePaths().configPath().file(SettingFileNames.defaultCollectionConfig);
 			CollectionConfig collectionConfig = JAXBConfigs.readConfig(file, CollectionConfig.class);
 			Schema schema = new Schema(new SchemaSetting());
-			collectionContext.init(schema, null, collectionConfig, new ClusterConfig(), new DataSourceConfig(), new ShardIndexStatus());
+			collectionContext.init(schema, null, collectionConfig, new ClusterConfig(), new DataSourceConfig(), new CollectionIndexStatus());
 			CollectionContextUtil.write(collectionContext);
 
 			collectionsConfig.addCollection(collectionId, false);
@@ -181,20 +182,14 @@ public class IRService extends AbstractService {
 		}
 	}
 
-	// TODO 전체색인후 로드할때는 work schema를 읽어야한다.
-	// schema와 sequence가 동시에 바뀔수 있음.
-	public CollectionContext loadCollectionContext(Collection collection) throws SettingException {
-		return loadCollectionContext(collection, null);
-	}
-
-	public CollectionContext loadCollectionContext(Collection collection, Integer dataSequence) throws SettingException {
-		IndexFilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collection.getId());
+	public CollectionContext loadCollectionContext(Collection collectionId) throws SettingException {
+		IndexFilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId.getId());
 		if (!collectionFilePaths.file().exists()) {
 			// 디렉토리가 존재하지 않으면.
-			logger.error("[{}]컬렉션 디렉토리가 존재하지 않습니다.", collection);
+			logger.error("[{}]컬렉션 디렉토리가 존재하지 않습니다.", collectionId);
 			return null;
 		}
-		return CollectionContextUtil.load(collection, collectionFilePaths, dataSequence);
+		return CollectionContextUtil.load(collectionId, collectionFilePaths);
 	}
 
 	public CollectionHandler removeCollectionHandler(String collectionId) {
@@ -205,26 +200,22 @@ public class IRService extends AbstractService {
 		return collectionHandlerMap.put(collectionId, collectionHandler);
 	}
 
-	// 전체색인시작할때.
-	public CollectionHandler initCollectionHandler(Collection collection, Integer newDataSequence) throws IRException, SettingException {
-		CollectionContext collectionContext = loadCollectionContext(collection, newDataSequence);
 
-		return new CollectionHandler(collectionContext);
+//	public CollectionHandler initCollectionHandler(Collection collection, Integer newDataSequence) throws IRException, SettingException {
+//		CollectionContext collectionContext = loadCollectionContext(collection, newDataSequence);
+//
+//		return new CollectionHandler(collectionContext);
+//	}
+
+	public CollectionHandler loadCollectionHandler(Collection collectionId) throws IRException, SettingException {
+		CollectionContext collectionContext = loadCollectionContext(collectionId);
+		return loadCollectionHandler(collectionContext);
 	}
-
+	
 	public CollectionHandler loadCollectionHandler(CollectionContext collectionContext) throws IRException, SettingException {
 		return new CollectionHandler(collectionContext).load();
 	}
 
-	public CollectionHandler loadCollectionHandler(Collection collection) throws IRException, SettingException {
-		return loadCollectionHandler(collection, null);
-	}
-	public CollectionHandler loadCollectionHandler(Collection collection, Integer newDataSequence) throws IRException, SettingException {
-		CollectionContext collectionContext = loadCollectionContext(collection, newDataSequence);
-
-		return new CollectionHandler(collectionContext).load();
-	}
-	
 	protected boolean doStop() throws FastcatSearchException {
 		Iterator<Entry<String, CollectionHandler>> iter = collectionHandlerMap.entrySet().iterator();
 		while (iter.hasNext()) {

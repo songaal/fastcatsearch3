@@ -24,13 +24,13 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 
 
 /**
- *
+ * single thread 동작.
  */
 @ChannelHandler.Sharable
 public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 
     private final HttpTransportModule httpTransportModule;
-
+    
     public HttpRequestHandler(HttpTransportModule serverTransport) {
         this.httpTransportModule = serverTransport;
     }

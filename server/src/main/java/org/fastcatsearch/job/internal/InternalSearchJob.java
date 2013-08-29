@@ -9,6 +9,7 @@ import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
+import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.query.QueryMap;
@@ -21,6 +22,7 @@ public class InternalSearchJob extends StreamableJob {
 	private QueryMap queryMap;
 	
 	public InternalSearchJob(){}
+	
 	public InternalSearchJob(QueryMap queryMap){
 		this.queryMap = queryMap;
 	}
@@ -35,9 +37,10 @@ public class InternalSearchJob extends StreamableJob {
 			throw new FastcatSearchException("ERR-01000", e.getMessage());
 		}
 		
-		Metadata meta = q.getMeta();
-		String collection = meta.collectionId();
-
+//		Metadata meta = q.getMeta();
+		String collectionId = queryMap.collectionId();
+		String shardId = queryMap.shardId();
+		
 		try {
 			InternalSearchResult result = null;
 			boolean noCache = false;
@@ -53,13 +56,16 @@ public class InternalSearchJob extends StreamableJob {
 			}
 			//Not Exist in Cache
 			if(result == null){
-				ShardHandler collectionHandler = irService.collectionHandler(collection);
-				
+				CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
 				if(collectionHandler == null){
-					throw new FastcatSearchException("ERR-00520", collection);
+					throw new FastcatSearchException("ERR-00520", collectionId);
+				}
+				ShardHandler shardHandler = collectionHandler.getShardHandler(shardId);
+				if(shardHandler == null){
+					throw new FastcatSearchException("ERR-00521", shardId);
 				}
 				
-				result = collectionHandler.searcher().searchInternal(q);
+				result = shardHandler.searcher().searchInternal(q);
 				irService.shardSearchCache().put(queryMap.queryString(), result);
 			}
 
@@ -71,7 +77,7 @@ public class InternalSearchJob extends StreamableJob {
 			throw e;
 		} catch(Exception e){
 			logger.error("", e);
-			throw new FastcatSearchException("ERR-00552", e, collection);
+			throw new FastcatSearchException("ERR-00552", e, collectionId);
 		}
 		
 	}

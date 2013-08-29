@@ -59,9 +59,10 @@ public class AddIndexingJob extends IndexingJob {
 			 * Do indexing!!
 			 */
 			//////////////////////////////////////////////////////////////////////////////////////////
+			ShardHandler shardHandler = collectionHandler.getShardHandler(shardId);
 			CollectionContext collectionContext = irService.collectionContext(collectionId).copy();
 			ShardIndexer collectionIndexer = new ShardIndexer(null);
-			SegmentInfo segmentInfo = collectionIndexer.addIndexing(collectionHandler);
+			SegmentInfo segmentInfo = collectionIndexer.addIndexing(shardHandler);
 			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 			//////////////////////////////////////////////////////////////////////////////////////////
 			
@@ -87,7 +88,7 @@ public class AddIndexingJob extends IndexingJob {
 //			collectionHandler.updateShard(collectionContext, segmentInfo, segmentDir, deleteIdSet);
 			
 			//저장.
-			CollectionContextUtil.saveAfterIndexing(collectionContext);
+			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
 			
 			
 			int duration = (int) (System.currentTimeMillis() - indexingStartTime());

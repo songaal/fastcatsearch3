@@ -13,6 +13,7 @@ import org.fastcatsearch.cli.command.exception.CollectionNotDefinedException;
 import org.fastcatsearch.cli.command.exception.CollectionNotFoundException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
@@ -73,7 +74,7 @@ public class InfoCollectionCommand extends CollectionExtractCommand {
 		CollectionContext collectionContext = irService.collectionContext(collectionId);
 		Schema schema = collectionContext.schema();
 		String sourceReaderType = "";//collectionContext.dataSourceConfig().getReaderType();
-		ShardHandler ch = irService.collectionHandler(collectionId);
+		CollectionHandler ch = irService.collectionHandler(collectionId);
 		boolean isRunning = (ch == null ? false : true);
 		String durationStr = "";
 		String strStartTime = "";

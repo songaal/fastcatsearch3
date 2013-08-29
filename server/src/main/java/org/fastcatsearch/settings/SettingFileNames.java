@@ -12,7 +12,7 @@ public class SettingFileNames {
 	public static final String defaultCollectionConfig = "config.xml.default";
 	public static final String schema = "schema.xml";
 	public static final String workSchema = "schema.work.xml";
-	public static final String collectionStatus = "status.xml";
+	public static final String indexStatus = "status.xml";
 	public static final String datasourceConfig = "datasource.xml";
 	public static final String dataInfo = "info.xml";
 	public static final String revisionInfo = "revision.xml";

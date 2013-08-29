@@ -1,6 +1,6 @@
 package org.fastcatsearch.ir.dictionary;
 
-import org.fastcatsearch.http.service.action.CallableAction;
+import org.fastcatsearch.http.action.service.CallableAction;
 import org.fastcatsearch.job.DictionaryCompileApplyJob;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.util.ResultWriter;

@@ -12,6 +12,7 @@
 	String urlString = request.getParameter("_searchHost");
 
 	String cn = request.getParameter("cn");
+	String sd = request.getParameter("sd");
 	String sn = request.getParameter("sn");
 	String ln = request.getParameter("ln");
 	String fl = request.getParameter("fl");
@@ -27,6 +28,7 @@
 	
 	String paramString =  
 			"cn=" + cn
+			+ "&sd=" + sd
 			+ "&sn=" + sn
 			+ "&ln=" + ln
 			+ "&fl=" + fl

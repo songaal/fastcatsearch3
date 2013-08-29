@@ -28,8 +28,8 @@ import org.slf4j.LoggerFactory;
 public class HitElement implements Comparable<HitElement> {
 	protected static Logger logger = LoggerFactory.getLogger(HitElement.class);
 	
-	private String collection; //transient. ShardSearchResult에서 정보를 가지고 있음. 
-	private int shardId = -1; //transient. ShardSearchResult에서 정보를 가지고 있음.
+	private String collectionId; //transient. ShardSearchResult에서 정보를 가지고 있음. 
+	private String shardId; //transient. ShardSearchResult에서 정보를 가지고 있음.
 	
 	private int segmentSequence;
 	private int docNo;
@@ -47,20 +47,17 @@ public class HitElement implements Comparable<HitElement> {
 		this.score = score;
 		this.rankData = dataList;
 	}
-	public String collection(){
-		return collection;
+	public String collectionId(){
+		return collectionId;
 	}
-	public void collection(String collection){
-		this.collection = collection;
+	public void setCollectionId(String collectionId){
+		this.collectionId = collectionId;
 	}
-	public int shardId(){
+	public String shardId(){
 		return shardId;
 	}
-	public void shardId(int shardId){
+	public void setShardId(String shardId){
 		this.shardId = shardId;
-	}
-	public int shardid() {
-		return shardId;
 	}
 	public int segmentSequence(){
 		return segmentSequence;
@@ -68,7 +65,7 @@ public class HitElement implements Comparable<HitElement> {
 	public int docNo(){
 		return docNo;
 	}
-	public void docNo(int segmentSequence, int docNo){
+	public void setDocNo(int segmentSequence, int docNo){
 		this.segmentSequence = segmentSequence;
 		this.docNo = docNo;
 	}

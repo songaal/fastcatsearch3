@@ -157,8 +157,6 @@ public class ShardSearcher {
 		}
 
 		Schema schema = shardHandler.schema();
-		// TODO shardId를 처리하도록 한다.
-		int shardId = 0;
 
 		Metadata meta = q.getMeta();
 		int start = meta.start();
@@ -241,7 +239,7 @@ public class ShardSearcher {
 			groupData = dataMerger.merge();
 		}
 		HitElement[] hitElementList = totalHit.getHitElementList();
-		return new InternalSearchResult(collectionId, shardId, hitElementList, totalHit.size(), totalSize, groupData, highlightInfo);
+		return new InternalSearchResult(collectionId, shardHandler.shardId(), hitElementList, totalHit.size(), totalSize, groupData, highlightInfo);
 	}
 
 	public DocumentResult searchDocument(DocIdList list, List<View> views, String[] tags, HighlightInfo highlightInfo) throws IOException {

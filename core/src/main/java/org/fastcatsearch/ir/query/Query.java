@@ -35,7 +35,7 @@ public class Query {
 	public static int SEARCH_OPT_NOCACHE = 1 << 0;
 	
 	public static enum EL {
-		cn, ht, sn, ln, so, ud, fl, se, ft, gr, gf, ra
+		cn, sd, ht, sn, ln, so, ud, fl, se, ft, gr, gf, ra
 	};
 	
 	private Clause clause;

@@ -95,10 +95,10 @@ public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 			
 			//status를 바꾸고 context를 저장한다.
 			collectionContext.updateCollectionStatus(IndexingType.ADD, revisionInfo, startTime, System.currentTimeMillis());
-			CollectionContextUtil.saveAfterIndexing(collectionContext);
+			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
 			
 			IndexFilePaths collectionFilePaths = collectionContext.indexFilePaths();
-			int dataSequence = collectionContext.getDataSequence();
+			int dataSequence = collectionContext.getIndexSequence();
 			String segmentId = segmentInfo.getId();
 			int revision = revisionInfo.getId();
 			File collectionDataDir = collectionFilePaths.indexDirFile(dataSequence);

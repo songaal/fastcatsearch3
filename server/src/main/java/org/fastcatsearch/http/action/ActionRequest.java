@@ -1,4 +1,4 @@
-package org.fastcatsearch.http;
+package org.fastcatsearch.http.action;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -52,6 +52,13 @@ public class ActionRequest {
 		}
 	}
 
+	public boolean isMethodGet(){
+		return request.getMethod() == HttpMethod.GET;
+	}
+	public boolean isMethodPost(){
+		return request.getMethod() == HttpMethod.POST;
+	}
+	
 	public HttpRequest request() {
 		return request;
 	}

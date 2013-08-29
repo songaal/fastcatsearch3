@@ -12,6 +12,7 @@ import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.util.IndexFilePaths;
 
 public class ShardContext {
+	private String collectionId;
 	private String shardId;
 	private IndexFilePaths indexFilePaths;
 	private Schema schema;
@@ -22,7 +23,7 @@ public class ShardContext {
 	private ShardIndexStatus shardIndexStatus;
 	private DataInfo dataInfo;
 	
-	public ShardContext(String shardId, IndexFilePaths indexFilePaths){
+	public ShardContext(String collectionId, String shardId, IndexFilePaths indexFilePaths){
 		this.shardId = shardId;
 		this.indexFilePaths = indexFilePaths;
 	}
@@ -40,6 +41,10 @@ public class ShardContext {
 	
 	public IndexFilePaths indexFilePaths(){
 		return indexFilePaths;
+	}
+	
+	public String collectionId(){
+		return collectionId;
 	}
 	
 	public String shardId(){
@@ -108,7 +113,7 @@ public class ShardContext {
 		return nextDataSequence;
 	}
 	
-	public int getDataSequence(){
+	public int getIndexSequence(){
 		return shardIndexStatus.getSequence();
 	}
 	public String getLastIndexTime(){
@@ -132,5 +137,10 @@ public class ShardContext {
 	public void clearDataInfoAndStatus() {
 		dataInfo = new DataInfo();
 		shardIndexStatus.clear();
+	}
+
+	public ShardContext copy() {
+		// FIXME 구현필요.
+		return this;
 	}
 }

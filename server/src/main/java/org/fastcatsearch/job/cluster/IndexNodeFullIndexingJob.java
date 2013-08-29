@@ -86,7 +86,7 @@ public class IndexNodeFullIndexingJob extends StreamableClusterJob {
 			
 			//status를 바꾸고 context를 저장한다.
 			collectionContext.updateCollectionStatus(IndexingType.FULL, revisionInfo, startTime, System.currentTimeMillis());
-			CollectionContextUtil.saveAfterIndexing(collectionContext);
+			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
 			
 			/*
 			 * 색인파일 원격복사.
@@ -102,7 +102,7 @@ public class IndexNodeFullIndexingJob extends StreamableClusterJob {
 			String segmentId = segmentInfo.getId();
 			
 			IndexFilePaths collectionFilePaths = collectionContext.indexFilePaths();
-			int dataSequence = collectionContext.getDataSequence();
+			int dataSequence = collectionContext.getIndexSequence();
 			File collectionDataDir = collectionFilePaths.indexDirFile(dataSequence);
 			File segmentDir = collectionFilePaths.segmentFile(dataSequence, segmentId);
 

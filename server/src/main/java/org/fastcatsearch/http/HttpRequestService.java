@@ -11,7 +11,7 @@ import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.common.ThreadPoolFactory;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.http.service.action.HttpAction;
+import org.fastcatsearch.http.action.HttpAction;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.plugin.PluginSetting;
@@ -41,7 +41,9 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 		transportModule = new HttpTransportModule(environment, settings);
 		transportModule.httpServerAdapter(this);
 		ExecutorService executorService = ThreadPoolFactory.newUnlimitedCachedDaemonThreadPool("http-execute-pool");
-		serviceController = new HttpServiceController(executorService);
+		HttpSessionManager httpSessionManager = new HttpSessionManager();
+		httpSessionManager.setExpireTimeInHour(settings.getInt("session_expire_hour", 24)); //24시간.
+		serviceController = new HttpServiceController(executorService, httpSessionManager);
 		if (!transportModule.load()) {
 			throw new FastcatSearchException("can not load transport module!");
 		}

@@ -29,15 +29,15 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "cluster-config")
 public class ClusterConfig {
-	private List<ShardClusterConfig> shardList;
+	private List<ShardClusterConfig> shardClusterConfigList;
 	
 	@XmlElement(name="shard")
-	public List<ShardClusterConfig> getShardList() {
-		return shardList;
+	public List<ShardClusterConfig> getShardClusterConfigList() {
+		return shardClusterConfigList;
 	}
 
-	public void setShardList(List<ShardClusterConfig> shardList) {
-		this.shardList = shardList;
+	public void setShardClusterConfigList(List<ShardClusterConfig> shardClusterConfigList) {
+		this.shardClusterConfigList = shardClusterConfigList;
 	}
 
 	public static class ShardClusterConfig {

@@ -24,7 +24,7 @@ import org.fastcatsearch.ir.search.HitElement;
 public class InternalSearchResult {
 
 	private String collectionId;
-	private int shardId;
+	private String shardId;
 	
 	private int count;
 	private int totalCount;
@@ -33,12 +33,12 @@ public class InternalSearchResult {
 	private HighlightInfo highlightInfo;
 	
 	public InternalSearchResult(HitElement[] rows, int count, int totalCount, GroupsData groupData){
-		this(null, -1, rows, count, totalCount, groupData, null);
+		this(null, null, rows, count, totalCount, groupData, null);
 	}
-	public InternalSearchResult(int shardId, HitElement[] rows, int count, int totalCount, GroupsData groupData){
+	public InternalSearchResult(String shardId, HitElement[] rows, int count, int totalCount, GroupsData groupData){
 		this(null, shardId, rows, count, totalCount, groupData, null);
 	}
-	public InternalSearchResult(String collectionId, int shardId, HitElement[] rows, int count, int totalCount, GroupsData groupData, HighlightInfo highlightInfo){
+	public InternalSearchResult(String collectionId, String shardId, HitElement[] rows, int count, int totalCount, GroupsData groupData, HighlightInfo highlightInfo){
 		this.collectionId = collectionId;
 		this.shardId = shardId;
 		this.rows = rows;
@@ -52,7 +52,7 @@ public class InternalSearchResult {
 		return collectionId;
 	}
 	
-	public int shardId(){
+	public String shardId(){
 		return shardId;
 	}
 	

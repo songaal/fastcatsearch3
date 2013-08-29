@@ -1,8 +1,10 @@
-package org.fastcatsearch.http.service.action;
+package org.fastcatsearch.http.action.service;
 
 import java.io.PrintWriter;
 
-import org.fastcatsearch.http.ActionRequest;
+import org.fastcatsearch.http.action.ActionRequest;
+import org.fastcatsearch.http.action.ActionResponse;
+import org.fastcatsearch.http.action.ServiceAction;
 import org.fastcatsearch.util.ResultWriter;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 

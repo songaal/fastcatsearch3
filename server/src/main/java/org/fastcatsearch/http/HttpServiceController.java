@@ -3,7 +3,9 @@ package org.fastcatsearch.http;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
-import org.fastcatsearch.http.service.action.HttpAction;
+import org.fastcatsearch.http.action.ActionRequest;
+import org.fastcatsearch.http.action.ActionResponse;
+import org.fastcatsearch.http.action.HttpAction;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
@@ -13,10 +15,12 @@ public class HttpServiceController {
 	private static final Logger logger = LoggerFactory.getLogger(HttpServiceController.class);
 
 	private ExecutorService executorService;
-	Map<String, HttpAction> actionMap;
-
-	public HttpServiceController(ExecutorService executorService) {
+	private Map<String, HttpAction> actionMap;
+	private HttpSessionManager httpSessionManager;
+	
+	public HttpServiceController(ExecutorService executorService, HttpSessionManager httpSessionManager) {
 		this.executorService = executorService;
+		this.httpSessionManager = httpSessionManager;
 	}
 
 	public void dispatchRequest(HttpRequest request, HttpChannel httpChannel) {
@@ -47,8 +51,11 @@ public class HttpServiceController {
 			return null;
 		}
 		
+		ActionResponse actionResponse = new ActionResponse();
+		HttpSession httpSession = httpSessionManager.handleCookie(request, actionResponse);
+		
 		HttpAction action = actionObj.clone();
-		action.setRequest(new ActionRequest(uri, request), httpChannel);
+		action.init(new ActionRequest(uri, request), actionResponse, httpSession, httpChannel);
 		return action;
 	}
 

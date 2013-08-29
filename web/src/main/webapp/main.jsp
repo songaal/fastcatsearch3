@@ -11,7 +11,6 @@
 <%@page import="java.io.*"%>
 <%@page import="org.fastcatsearch.db.dao.JobHistory"%>
 <%@page import="org.fastcatsearch.db.DBService"%>
-<%@page import="org.fastcatsearch.log.EventDBLogger"%>
 <%@page import="org.fastcatsearch.ir.search.CollectionHandler"%>
 <%@page import="org.fastcatsearch.ir.IRService"%>
 <%@page import="org.fastcatsearch.service.*"%>
@@ -315,7 +314,7 @@ if(Dic.stopword.file != null && Dic.stopword.file.exists()){
 					String time = searchEvent.when.toString();
 					time = time.substring(0, 19);
 					//String type = searchEvent.type;
-					String category = EventDBLogger.getCateName(searchEvent.category);
+					String category = "";//EventDBLogger.getCateName(searchEvent.category);
 					String summary = searchEvent.summary;
 					//String status = searchEvent.status;
 					//String stacktrace = searchEvent.stacktrace;

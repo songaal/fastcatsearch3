@@ -15,9 +15,11 @@ import java.util.Map;
 
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.Result;
+import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.query.QueryParseException;
@@ -59,10 +61,12 @@ public class SingleSearchJob extends Job {
 			keyword = userData.get("keyword");
 		
 		String collectionId = meta.collectionId();
+		String[] shardIdList = meta.getSharIdList();
 		if(statisticsInfoService.isEnabled()){
 			statisticsInfoService.addSearchHit();
 			statisticsInfoService.addSearchHit(collectionId);
 		}
+		
 //		logger.debug("collection = "+collection);
 		try {
 			Result result = null;
@@ -81,13 +85,21 @@ public class SingleSearchJob extends Job {
 			
 			//Not Exist in Cache
 			if(result == null){
-				ShardHandler collectionHandler = irService.collectionHandler(collectionId);
+				CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
 				
 				if(collectionHandler == null){
 					throw new FastcatSearchException("ERR-00520", collectionId);
 				}
-				
-				result = collectionHandler.searcher().search(q);
+				for (int i = 0; i < shardIdList.length; i++) {
+					String shardId = shardIdList[i];
+					ShardHandler shardHandler =  collectionHandler.getShardHandler(shardId);
+					if(shardHandler == null){
+						//FIXME code value
+						throw new FastcatSearchException("ERR-00520", shardId);
+					}
+					InternalSearchResult internalSearchResult = shardHandler.searcher().searchInternal(q);
+					
+				}
 				
 				irService.searchCache().put(queryMap.queryString(), result);
 			}

@@ -76,7 +76,7 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			
 			//status를 바꾸고 context를 저장한다.
 			collectionContext.updateCollectionStatus(IndexingType.FULL, revisionInfo, indexingStartTime(), System.currentTimeMillis());
-			CollectionContextUtil.saveAfterIndexing(collectionContext);
+			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
 			
 			/*
 			 * 컬렉션 리로드

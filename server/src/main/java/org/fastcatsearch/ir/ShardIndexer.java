@@ -86,7 +86,7 @@ public class ShardIndexer {
 		DataPlanConfig dataPlanConfig = shardContext.dataPlanConfig();
 		// 증분색인이면 기존스키마그대로 사용.
 		Schema schema = shardContext.schema();
-		int dataSequence = shardContext.getDataSequence();
+		int dataSequence = shardContext.getIndexSequence();
 
 		SegmentInfo workingSegmentInfo = null;
 
@@ -215,7 +215,7 @@ public class ShardIndexer {
 		indexWriteInfoList = new IndexWriteInfoList();
 
 		IndexFilePaths indexFilePaths = shardContext.indexFilePaths();
-		int dataSequence = shardContext.getDataSequence();
+		int dataSequence = shardContext.getIndexSequence();
 
 		IndexConfig indexConfig = shardContext.indexConfig();
 		int count = 0;

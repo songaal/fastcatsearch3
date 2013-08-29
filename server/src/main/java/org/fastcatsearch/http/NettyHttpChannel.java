@@ -23,7 +23,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 
-import org.fastcatsearch.http.service.action.ActionResponse;
+import org.fastcatsearch.http.action.ActionResponse;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -70,6 +70,13 @@ public class NettyHttpChannel implements HttpChannel {
 			resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1, status);
 		}
 
+		if(response.responseCookie() != null){
+			resp.addHeader(HttpHeaders.Names.COOKIE, response.responseCookie());
+		}
+		if(response.responseSetCookie() != null){
+			resp.addHeader(HttpHeaders.Names.SET_COOKIE, response.responseSetCookie());
+		}
+		
 		if (!response.isEmpty()) {
 			ChannelBuffer buf = null;
 			if (response.contentThreadSafe()) {

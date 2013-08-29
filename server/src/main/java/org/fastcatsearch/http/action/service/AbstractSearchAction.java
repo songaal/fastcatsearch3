@@ -1,4 +1,4 @@
-package org.fastcatsearch.http.service.action;
+package org.fastcatsearch.http.action.service;
 
 import java.io.PrintWriter;
 import java.io.Writer;
@@ -6,7 +6,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
-import org.fastcatsearch.http.ActionRequest;
+import org.fastcatsearch.http.action.ActionRequest;
+import org.fastcatsearch.http.action.ActionResponse;
+import org.fastcatsearch.http.action.ServiceAction;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.query.QueryMap;
@@ -28,8 +30,6 @@ public abstract class AbstractSearchAction extends ServiceAction {
 	public AbstractSearchAction(String type) {
 		super(type);
 	}
-	
-	
 	
 	protected abstract Job createSearchJob(QueryMap queryMap);
 	
