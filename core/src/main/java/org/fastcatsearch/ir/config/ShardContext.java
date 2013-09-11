@@ -24,6 +24,7 @@ public class ShardContext {
 	private DataInfo dataInfo;
 	
 	public ShardContext(String collectionId, String shardId, IndexFilePaths indexFilePaths){
+		this.collectionId = collectionId;
 		this.shardId = shardId;
 		this.indexFilePaths = indexFilePaths;
 	}

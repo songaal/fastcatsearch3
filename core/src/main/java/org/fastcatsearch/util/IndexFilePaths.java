@@ -27,8 +27,8 @@ public class IndexFilePaths {
 		return id;
 	}
 	
-	public IndexFilePaths shard(String newId){
-		return new IndexFilePaths(file(dataRoot), newId);
+	public IndexFilePaths shard(String shardId){
+		return new IndexFilePaths(file(dataRoot), shardId);
 	}
 	public File file(String... dirs) {
 		File file = root;
