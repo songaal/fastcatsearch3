@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Writer;
 
 public class JSONPResultWriter extends JSONResultWriter {
+	public final static String DEFAULT_CALLBACK = "__callback";
 	public String callback;
 	private Writer w;
 
@@ -14,6 +15,9 @@ public class JSONPResultWriter extends JSONResultWriter {
 	public JSONPResultWriter(Writer w, String callback, boolean beautify) {
 		super(w, beautify);
 		this.w = w;
+		if(callback == null){
+			callback = DEFAULT_CALLBACK;
+		}
 		this.callback = callback;
 		try {
 			w.write(callback);
@@ -35,5 +39,7 @@ public class JSONPResultWriter extends JSONResultWriter {
 		} catch (IOException e) {
 			logger.error("", e);
 		}
+		
+		super.done();
 	}
 }

@@ -27,10 +27,6 @@ public abstract class AbstractSearchAction extends ServiceAction {
 
 	public static final int DEFAULT_TIMEOUT = 5; // 5초.
 
-	public AbstractSearchAction(String type) {
-		super(type);
-	}
-	
 	protected abstract Job createSearchJob(QueryMap queryMap);
 	
 	
@@ -104,6 +100,6 @@ public abstract class AbstractSearchAction extends ServiceAction {
 	}
 
 	protected ResultWriter getSearchResultWriter(Writer writer, String jsonCallback) {
-		return getResultWriter(writer, "fastcatsearch", true, jsonCallback);
+		return getResultWriter(writer, ServiceAction.DEFAULT_ROOT_ELEMENT, true, jsonCallback);
 	}
 }

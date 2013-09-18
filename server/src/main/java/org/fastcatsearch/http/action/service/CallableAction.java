@@ -14,10 +14,6 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
 public abstract class CallableAction extends ServiceAction {
 
-	public CallableAction(String type) {
-		super(type);
-	}
-
 	@Override
 	public void doAction(ActionRequest request, ActionResponse response) throws Exception {
 		PrintWriter writer = response.getWriter();
@@ -26,7 +22,7 @@ public abstract class CallableAction extends ServiceAction {
 		response.setStatus(HttpResponseStatus.OK);
 		String jsonCallback = request.getParameter("_jsonCallback");
 		boolean isJoin = request.getBooleanParameter("_wait", true);
-		ResultWriter resultWriter = getResultWriter(writer, "fastcatsearch", true, jsonCallback);
+		ResultWriter resultWriter = getResultWriter(writer, ServiceAction.DEFAULT_ROOT_ELEMENT, true, jsonCallback);
 		
 		
 		Job job = createJob();

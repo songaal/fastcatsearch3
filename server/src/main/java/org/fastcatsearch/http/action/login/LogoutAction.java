@@ -10,10 +10,6 @@ import org.fastcatsearch.util.ResultWriter;
 
 public class LogoutAction extends ServiceAction {
 
-	public LogoutAction(String type) {
-		super(type);
-	}
-
 	@Override
 	public void doAction(ActionRequest request, ActionResponse response) throws Exception {
 		writeHeader(response);

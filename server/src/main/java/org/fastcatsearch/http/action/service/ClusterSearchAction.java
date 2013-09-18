@@ -6,10 +6,6 @@ import org.fastcatsearch.query.QueryMap;
 
 public class ClusterSearchAction extends AbstractSearchAction {
 
-	public ClusterSearchAction(String type) {
-		super(type);
-	}
-
 	@Override
 	protected Job createSearchJob(QueryMap queryMap) {
 		ClusterSearchJob job = new ClusterSearchJob();

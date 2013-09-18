@@ -133,10 +133,18 @@ public class XMLResultWriter implements ResultWriter {
 
 	@Override
 	public void done() {
-		try {
-			w.write(toString());
-		} catch (IOException e) {
-			logger.error("", e);
+		if(w != null){
+			try {
+				w.write(toString());
+			} catch (IOException e) {
+				logger.error("write error", e);
+			}
+		
+			try {
+				w.close();
+			} catch (IOException e) {
+				logger.error("close error", e);
+			}
 		}
 	}
 }

@@ -2,6 +2,7 @@ package org.fastcatsearch.http.action;
 
 import org.fastcatsearch.http.HttpChannel;
 import org.fastcatsearch.http.HttpSession;
+import org.fastcatsearch.http.action.ServiceAction.Type;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ public abstract class HttpAction implements Runnable, Cloneable {
 	private HttpChannel httpChannel;
 	private ActionResponse response;
 	protected HttpSession session;
+	protected Type resultType;
 	
 	public HttpAction(){
 	}
@@ -31,7 +33,8 @@ public abstract class HttpAction implements Runnable, Cloneable {
 		return null;
 	}
 	
-	public void init(ActionRequest request, ActionResponse response, HttpSession session, HttpChannel httpChannel){
+	public void init(Type resultType, ActionRequest request, ActionResponse response, HttpSession session, HttpChannel httpChannel){
+		this.resultType = resultType;
 		this.request = request;
 		this.response = response;
 		this.session = session;

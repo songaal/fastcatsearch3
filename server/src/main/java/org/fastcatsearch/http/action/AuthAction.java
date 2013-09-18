@@ -3,15 +3,10 @@ package org.fastcatsearch.http.action;
 import java.io.Writer;
 
 import org.fastcatsearch.util.ResultWriter;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
 public abstract class AuthAction extends ServiceAction {
 
 	public final static String AUTH_KEY = "__auth";
-
-	public AuthAction(String type) {
-		super(type);
-	}
 
 	abstract public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception;
 

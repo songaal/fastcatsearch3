@@ -6,6 +6,8 @@ import java.util.concurrent.ExecutorService;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.HttpAction;
+import org.fastcatsearch.http.action.ServiceAction;
+import org.fastcatsearch.http.action.ServiceAction.Type;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
@@ -13,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 public class HttpServiceController {
 	private static final Logger logger = LoggerFactory.getLogger(HttpServiceController.class);
-
 	private ExecutorService executorService;
 	private Map<String, HttpAction> actionMap;
 	private HttpSessionManager httpSessionManager;
@@ -45,8 +46,26 @@ public class HttpServiceController {
 		if (pos > 0) {
 			uri = uri.substring(0, pos);
 		}
+		String standardURI = null; //.json등의 접미사가 없는 uri
+		ServiceAction.Type contenType = null;
+		if(uri.endsWith(".json")){
+			standardURI = uri.substring(0, uri.length() - 5);
+			contenType = Type.json;
+		}else if(uri.endsWith(".xml")){ 
+			standardURI = uri.substring(0, uri.length() - 4);
+			contenType = Type.xml;
+		}else if(uri.endsWith(".jsonp")){ 
+			standardURI = uri.substring(0, uri.length() - 6);
+			contenType = Type.jsonp;
+		}else if(uri.endsWith(".html")){ 
+			standardURI = uri.substring(0, uri.length() - 5);
+			contenType = Type.html;
+		}else{
+			standardURI = uri;
+			contenType = Type.json;
+		}
 		
-		HttpAction actionObj = actionMap.get(uri);
+		HttpAction actionObj = actionMap.get(standardURI);
 		if(actionObj == null) {
 			return null;
 		}
@@ -55,7 +74,7 @@ public class HttpServiceController {
 		HttpSession httpSession = httpSessionManager.handleCookie(request, actionResponse);
 		
 		HttpAction action = actionObj.clone();
-		action.init(new ActionRequest(uri, request), actionResponse, httpSession, httpChannel);
+		action.init(contenType, new ActionRequest(uri, request), actionResponse, httpSession, httpChannel);
 		return action;
 	}
 

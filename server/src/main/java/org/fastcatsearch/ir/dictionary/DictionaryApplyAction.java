@@ -7,10 +7,6 @@ import org.fastcatsearch.util.ResultWriter;
 
 public class DictionaryApplyAction extends CallableAction {
 
-	public DictionaryApplyAction(String type) {
-		super(type);
-	}
-
 	@Override
 	protected Job createJob() {
 		return new DictionaryCompileApplyJob();

@@ -13,10 +13,6 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
 public class JobExecuteAction extends ServiceAction {
 
-	public JobExecuteAction(String type) {
-		super(type);
-	}
-
 	@Override
 	public void doAction(ActionRequest request, ActionResponse response) throws Exception {
 		PrintWriter writer = response.getWriter();

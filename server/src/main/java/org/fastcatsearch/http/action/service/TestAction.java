@@ -9,8 +9,7 @@ public class TestAction extends ServiceAction {
 
 	public String name;
 	
-	public TestAction(String type) {
-		super(type);
+	public TestAction() {
 		name = "test";
 	}
 

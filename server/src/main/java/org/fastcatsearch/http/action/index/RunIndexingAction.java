@@ -11,11 +11,7 @@ import org.fastcatsearch.job.ShardFullIndexingJob;
 import org.fastcatsearch.util.ResultWriter;
 
 public class RunIndexingAction extends AuthAction {
-
-	public RunIndexingAction(String type) {
-		super(type);
-	}
-
+	
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
 		

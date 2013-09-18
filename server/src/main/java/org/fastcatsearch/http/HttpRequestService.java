@@ -53,8 +53,7 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 		for (Settings action : actionList) {
 			String path = action.getString("path");
 			String actionClassName = action.getString("action");
-			String contentType = action.getString("content_type");
-			addtoMap(actionMap, path, actionClassName, contentType);
+			addtoMap(actionMap, path, actionClassName);
 		}
 		
 		////// plugin action
@@ -62,7 +61,7 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 		for (Plugin plugin : pluginService.getPlugins()) {
 			PluginSetting pluginSetting = plugin.getPluginSetting();
 			for(Action action : pluginSetting.getActionList()){
-				addtoMap(actionMap, action.getPath(), action.getClassName(), action.getContentType());
+				addtoMap(actionMap, action.getPath(), action.getClassName());
 			}
 		}
 		
@@ -71,9 +70,8 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 		return true;
 	}
 
-	private void addtoMap(Map<String, HttpAction> actionMap, String path, String actionClassName, String contentType){
-		HttpAction actionObj = DynamicClassLoader.loadObject(actionClassName, HttpAction.class, new Class<?>[] { String.class },
-				new Object[] { contentType });
+	private void addtoMap(Map<String, HttpAction> actionMap, String path, String actionClassName){
+		HttpAction actionObj = DynamicClassLoader.loadObject(actionClassName, HttpAction.class);
 
 		try {
 			logger.debug("ACTION path={}, action={}", path, actionObj);

@@ -1,5 +1,6 @@
 package org.fastcatsearch.util;
 
+import java.io.IOException;
 import java.io.Writer;
 
 import org.json.JSONException;
@@ -9,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 public class JSONResultWriter implements ResultWriter {
 	protected static Logger logger = LoggerFactory.getLogger(JSONResultWriter.class);
-	
+	protected Writer w;
 	protected JSONWriter writer;
 	protected boolean beautify;
 	
@@ -18,6 +19,7 @@ public class JSONResultWriter implements ResultWriter {
 	}
 	
 	public JSONResultWriter(Writer w, boolean beautify) {
+		this.w = w;
 		writer = new JSONWriter(w);
 		this.beautify = beautify;
 	}
@@ -88,7 +90,13 @@ public class JSONResultWriter implements ResultWriter {
 
 	@Override
 	public void done() {
-		
+		if(w != null){
+			try {
+				w.close();
+			} catch (IOException e) {
+				logger.error("close error", e);
+			}
+		}
 	}
 	
 //	public String toString() {
