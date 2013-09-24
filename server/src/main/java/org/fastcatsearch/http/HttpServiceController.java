@@ -40,6 +40,7 @@ public class HttpServiceController {
 
 	private HttpAction createAction(HttpRequest request, HttpChannel httpChannel) {
 		String uri = request.getUri();
+		
 		logger.debug("URI : {}, method={}, version={}", uri, request.getMethod(), request.getProtocolVersion());
 		// uri의 파라미터 제거
 		int pos = uri.indexOf("?");
@@ -69,7 +70,12 @@ public class HttpServiceController {
 		if(actionObj == null) {
 			return null;
 		}
-		
+		String method = request.getMethod().getName().toUpperCase();
+		ActionMethod actionMethod = ActionMethod.valueOf(method);
+		if(!actionObj.isMethod(actionMethod)){
+			//허용 method가 아니면 null
+			return null;
+		}
 		ActionResponse actionResponse = new ActionResponse();
 		HttpSession httpSession = httpSessionManager.handleCookie(request, actionResponse);
 		

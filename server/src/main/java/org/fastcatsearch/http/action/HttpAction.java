@@ -1,5 +1,6 @@
 package org.fastcatsearch.http.action;
 
+import org.fastcatsearch.http.ActionMethod;
 import org.fastcatsearch.http.HttpChannel;
 import org.fastcatsearch.http.HttpSession;
 import org.fastcatsearch.http.action.ServiceAction.Type;
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class HttpAction implements Runnable, Cloneable {
 	protected static final Logger logger = LoggerFactory.getLogger(HttpAction.class);
+	private ActionMethod[] method; //허용 http 메소드.
 	
 	private ActionRequest request;
 	private HttpChannel httpChannel;
@@ -56,6 +58,19 @@ public abstract class HttpAction implements Runnable, Cloneable {
 			httpChannel.sendError(HttpResponseStatus.INTERNAL_SERVER_ERROR, e);
 		}
 		
+	}
+
+	public boolean isMethod(ActionMethod actionMethod){
+		for(ActionMethod m : this.method){
+			if(m == actionMethod){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public void setMethod(ActionMethod[] method) {
+		this.method = method;
 	}
 	
 }

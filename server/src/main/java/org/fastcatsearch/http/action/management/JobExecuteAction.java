@@ -1,9 +1,10 @@
-package org.fastcatsearch.http.action.service;
+package org.fastcatsearch.http.action.management;
 
 import java.io.PrintWriter;
 
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
+import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.ServiceAction;
@@ -11,6 +12,7 @@ import org.fastcatsearch.job.Job;
 import org.fastcatsearch.util.DynamicClassLoader;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
+@ActionMapping("/management/execute/job")
 public class JobExecuteAction extends ServiceAction {
 
 	@Override

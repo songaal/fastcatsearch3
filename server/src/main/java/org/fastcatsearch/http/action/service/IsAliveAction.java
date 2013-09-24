@@ -1,11 +1,13 @@
 package org.fastcatsearch.http.action.service;
 
+import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.ServiceAction;
 import org.fastcatsearch.util.ResultWriter;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
+@ActionMapping("/service/isAlive")
 public class IsAliveAction extends ServiceAction {
 
 	@Override

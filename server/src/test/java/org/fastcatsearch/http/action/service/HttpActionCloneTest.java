@@ -5,6 +5,8 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.apache.http.impl.DefaultHttpRequestFactory;
 import org.fastcatsearch.http.action.ActionRequest;
+import org.fastcatsearch.http.action.ActionResponse;
+import org.fastcatsearch.http.action.ServiceAction.Type;
 import org.fastcatsearch.http.action.service.TestAction;
 import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
 import org.jboss.netty.handler.codec.http.HttpMethod;
@@ -20,7 +22,7 @@ public class HttpActionCloneTest {
 	public void testNew() {
 		long st = System.nanoTime();
 		for (int i = 0; i < count; i++) {
-			TestAction action = new TestAction(type);
+			TestAction action = new TestAction();
 		}
 		printTime("Test New", st);
 	}
@@ -38,9 +40,10 @@ public class HttpActionCloneTest {
 	@Test
 	public void testClone() throws CloneNotSupportedException {
 		long st = System.nanoTime();
-		TestAction action = new TestAction(type);
-		ActionRequest r = new ActionRequest("", new DefaultHttpRequest(HttpVersion.HTTP_1_0, HttpMethod.POST, "aaa"));
-		action.init(r, null, null, null);
+		TestAction action = new TestAction();
+		ActionRequest req = new ActionRequest("", new DefaultHttpRequest(HttpVersion.HTTP_1_0, HttpMethod.POST, "aaa"));
+		ActionResponse res = new ActionResponse();
+		action.init(Type.xml, req, res, null, null);
 		for (int i = 0; i < count; i++) {
 			TestAction a2= (TestAction) action.clone();
 		}

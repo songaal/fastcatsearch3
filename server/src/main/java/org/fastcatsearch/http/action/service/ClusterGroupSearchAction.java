@@ -1,9 +1,11 @@
 package org.fastcatsearch.http.action.service;
 
+import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.cluster.ClusterGroupSearchJob;
 import org.fastcatsearch.query.QueryMap;
 
+@ActionMapping("/service/search/group")
 public class ClusterGroupSearchAction extends AbstractSearchAction {
 
 	@Override

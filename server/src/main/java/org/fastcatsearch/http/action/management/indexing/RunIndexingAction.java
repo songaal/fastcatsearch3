@@ -1,15 +1,17 @@
-package org.fastcatsearch.http.action.index;
+package org.fastcatsearch.http.action.management.indexing;
 
 import java.io.Writer;
 
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
+import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.job.ShardFullIndexingJob;
 import org.fastcatsearch.util.ResultWriter;
 
+@ActionMapping("/indexing/run")
 public class RunIndexingAction extends AuthAction {
 	
 	@Override

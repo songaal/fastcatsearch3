@@ -17,32 +17,43 @@
 package org.fastcatsearch.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DynamicClassLoader {
 	private static Logger logger = LoggerFactory.getLogger(DynamicClassLoader.class);
+	private static final ReadWriteLock lock = new ReentrantReadWriteLock();
 	
 	private static Map<String, URLClassLoader> classLoaderList = new HashMap<String, URLClassLoader>();
 	
 	public static boolean remove(String tag) {
-		synchronized(classLoaderList){
+		try{
+			lock.writeLock().lock();
 			classLoaderList.remove(tag);
+		}finally{
+			lock.writeLock().unlock();
 		}
 		return true;
 	}
 	public static boolean removeAll() {
-		synchronized(classLoaderList){
+		try{
+			lock.writeLock().lock();
 			classLoaderList.clear();
+		}finally{
+			lock.writeLock().unlock();
 		}
 		return true;
 	}
@@ -63,9 +74,12 @@ public class DynamicClassLoader {
 		}
 		
 		URLClassLoader l = new URLClassLoader(jarUrls, Thread.currentThread().getContextClassLoader());
-		synchronized(classLoaderList){
+		try{
+			lock.writeLock().lock();
 			logger.debug("Add Classpath {}:{}", tag, sb.toString());
 			classLoaderList.put(tag, l);
+		}finally{
+			lock.writeLock().unlock();
 		}
 		return true;
 	}
@@ -81,8 +95,11 @@ public class DynamicClassLoader {
 		}
 		
 		URLClassLoader l = new URLClassLoader(jarUrls);
-		synchronized(classLoaderList){
+		try{
+			lock.writeLock().lock();
 			classLoaderList.put(tag, l);
+		}finally{
+			lock.writeLock().unlock();
 		}
 		return true;
 	}
@@ -140,7 +157,8 @@ public class DynamicClassLoader {
 			
 		}
 		
-		synchronized(classLoaderList){
+		try{
+			lock.readLock().lock();
 			Iterator<URLClassLoader> iter = classLoaderList.values().iterator();
 			while(iter.hasNext()){
 				URLClassLoader l = (URLClassLoader)iter.next();
@@ -154,10 +172,35 @@ public class DynamicClassLoader {
 					return clazz;
 				}
 			}
+		}finally{
+			lock.readLock().unlock();
 		}
 		
 //		logger.warn("Classloader cannot find {}", className);
 		return null;
+	}
+	
+	public static Enumeration<URL> getResources(String name){
+		CompoundEnumeration<URL> compoundEnumeration = new CompoundEnumeration<URL>();
+		try{
+			lock.readLock().lock();
+			Iterator<URLClassLoader> iter = classLoaderList.values().iterator();
+			while(iter.hasNext()){
+				URLClassLoader l = (URLClassLoader)iter.next();
+				Enumeration<URL> e = l.getResources(name);
+				
+//				logger.debug("getResources {} >> {}, {}", l, e, e.hasMoreElements());
+				if(e != null && e.hasMoreElements()){
+					compoundEnumeration.add(e);
+				}
+			}
+			
+		} catch (IOException e) {
+			logger.error("", e);
+		}finally{
+			lock.readLock().unlock();
+		}
+		return compoundEnumeration;
 	}
 	
 }

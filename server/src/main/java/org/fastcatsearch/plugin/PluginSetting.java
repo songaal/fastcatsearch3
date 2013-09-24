@@ -88,17 +88,7 @@ public class PluginSetting {
 
 	public static class Action {
 
-		private String path;
 		private String className;
-
-		@XmlAttribute
-		public String getPath() {
-			return path;
-		}
-
-		public void setPath(String path) {
-			this.path = path;
-		}
 
 		@XmlAttribute(name = "class")
 		public String getClassName() {
@@ -108,6 +98,7 @@ public class PluginSetting {
 		public void setClassName(String className) {
 			this.className = className;
 		}
+		
 	}
 
 }
