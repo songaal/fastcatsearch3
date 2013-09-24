@@ -27,8 +27,7 @@ public class SettingManager {
 	private final Logger logger = LoggerFactory.getLogger(SettingManager.class);
 	private Environment environment;
 	private static Map<String, Object> settingCache = new HashMap<String, Object>();
-	
-	
+
 	public SettingManager(Environment environment) {
 		this.environment = environment;
 	}
@@ -92,7 +91,6 @@ public class SettingManager {
 		return null;
 	}
 
-
 	private Properties getXmlProperties(String collection, String filename) {
 		String configFile = getKey(collection, filename);
 		logger.debug("Read properties = {}", configFile);
@@ -132,68 +130,69 @@ public class SettingManager {
 	public Settings getIdSettings() {
 		return getSettings(SettingFileNames.idConfig);
 	}
-	
+
 	public Settings getServerSettings() {
 		return getSettings(SettingFileNames.serverConfig);
 	}
-	
+
 	public Settings getSettings(String yamlSettingName) {
-		//load config file
+		// load config file
 		Settings serverSettings = null;
-		synchronized(yamlSettingName){
+		synchronized (yamlSettingName) {
 			Object obj = getFromCache(yamlSettingName);
-			if(obj != null){
+			if (obj != null) {
 				return (Settings) obj;
 			}
-			
-			
+
 			serverSettings = loadSetting(yamlSettingName);
 			putToCache(serverSettings, yamlSettingName);
 		}
-		
+
 		return serverSettings;
 	}
 
 	private void loadAndMerge(String string, Settings targetSettings) {
 		Settings settings = loadSetting(string);
-		targetSettings.overrideSettings(settings);
-		
+		if (settings != null) {
+			targetSettings.overrideSettings(settings);
+		}
+
 	}
 
 	private Settings loadSetting(String yamlSettingName) {
 		Settings serverSettings = null;
 		File configFile = environment.filePaths().configPath().path(yamlSettingName).file();
-        InputStream input = null;
-        try{
-        	Yaml yaml = new Yaml();
-        	input = new FileInputStream(configFile);
-        	Map<String, Object> data = (Map<String, Object>) yaml.load(input);
-        	serverSettings = new Settings(data);
-        	
-        	Object includeObj = data.get("include");
-        	if(includeObj != null){
-        		if(includeObj instanceof List){
-        			List<String> settingNameList = (List<String>) includeObj;
-        			for (int i = 0; i < settingNameList.size(); i++) {
-        				loadAndMerge(settingNameList.get(i), serverSettings);
+		InputStream input = null;
+		try {
+			Yaml yaml = new Yaml();
+			input = new FileInputStream(configFile);
+			Map<String, Object> data = (Map<String, Object>) yaml.load(input);
+			serverSettings = new Settings(data);
+
+			Object includeObj = data.get("include");
+			if (includeObj != null) {
+				if (includeObj instanceof List) {
+					List<String> settingNameList = (List<String>) includeObj;
+					for (int i = 0; i < settingNameList.size(); i++) {
+						loadAndMerge(settingNameList.get(i), serverSettings);
 					}
-        		}else{
-        			String settingName = (String) includeObj;
-        			loadAndMerge(settingName, serverSettings);
-        		}
-        	}
-        	putToCache(serverSettings, yamlSettingName);
-        } catch (FileNotFoundException e) {
-        	logger.error("설정파일을 찾을수 없습니다. file = {}", configFile.getAbsolutePath());
+				} else {
+					String settingName = (String) includeObj;
+					loadAndMerge(settingName, serverSettings);
+				}
+			}
+			putToCache(serverSettings, yamlSettingName);
+		} catch (FileNotFoundException e) {
+			logger.error("설정파일을 찾을수 없습니다. file = {}", configFile.getAbsolutePath());
 		} finally {
-        	if(input != null){
-        		try {
+			if (input != null) {
+				try {
 					input.close();
 				} catch (IOException ignore) {
 				}
-        	}
-        }
-        
-        return serverSettings;
+			}
+		}
+
+		return serverSettings;
 	}
 }
