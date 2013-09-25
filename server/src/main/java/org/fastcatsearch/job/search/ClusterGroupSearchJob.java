@@ -1,4 +1,4 @@
-package org.fastcatsearch.job.cluster;
+package org.fastcatsearch.job.search;
 
 import java.util.ArrayList;
 import java.util.List;

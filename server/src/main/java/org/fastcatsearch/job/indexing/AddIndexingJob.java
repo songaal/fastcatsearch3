@@ -9,7 +9,7 @@
  *     swsong - initial API and implementation
  */
 
-package org.fastcatsearch.job;
+package org.fastcatsearch.job.indexing;
 
 import java.io.File;
 
@@ -19,19 +19,21 @@ import org.fastcatsearch.ir.ShardIndexer;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.ir.util.Formatter;
+import org.fastcatsearch.job.CacheServiceRestartJob;
+import org.fastcatsearch.job.Job;
+import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
 import org.fastcatsearch.util.CollectionContextUtil;
 
-public class ShardAddIndexingJob extends IndexingJob {
+public class AddIndexingJob extends IndexingJob {
 
 	private static final long serialVersionUID = -2307892463724479369L;
 	
@@ -39,6 +41,8 @@ public class ShardAddIndexingJob extends IndexingJob {
 	public JobResult doRun() throws FastcatSearchException {
 		prepare(IndexingType.ADD);
 		
+		indexingLogger.info("[{}] Add Indexing Start!", collectionId);
+
 		updateIndexingStatusStart();
 		
 		boolean isSuccess = false;
@@ -53,20 +57,15 @@ public class ShardAddIndexingJob extends IndexingJob {
 				indexingLogger.error("[{}] CollectionHandler is not running!", collectionId);
 				throw new FastcatSearchException("## ["+collectionId+"] CollectionHandler is not running...");
 			}
-			ShardHandler shardHandler = collectionHandler.getShardHandler(shardId);
-			if(shardHandler == null){
-				indexingLogger.error("[{}] ShardHandler is not running!", shardId);
-				throw new FastcatSearchException("## ["+shardId+"] ShardHandler is not running...");
-			}
+			
 			/*
 			 * Do indexing!!
 			 */
 			//////////////////////////////////////////////////////////////////////////////////////////
+			ShardHandler shardHandler = collectionHandler.getShardHandler(shardId);
 			CollectionContext collectionContext = irService.collectionContext(collectionId).copy();
-			ShardContext shardContext = collectionContext.getShardContext(shardId).copy();
-			
-			ShardIndexer shardIndexer = new ShardIndexer(shardContext);
-			SegmentInfo segmentInfo = shardIndexer.addIndexing(shardHandler);
+			ShardIndexer collectionIndexer = new ShardIndexer(null);
+			SegmentInfo segmentInfo = collectionIndexer.addIndexing(shardHandler);
 			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 			//////////////////////////////////////////////////////////////////////////////////////////
 			
@@ -82,14 +81,17 @@ public class ShardAddIndexingJob extends IndexingJob {
 			}
 			
 			
-			shardContext.updateIndexingStatus(IndexingType.ADD, revisionInfo, indexingStartTime(), System.currentTimeMillis());
+			collectionContext.updateCollectionStatus(IndexingType.ADD, revisionInfo, indexingStartTime(), System.currentTimeMillis());
 			
-			File segmentDir = shardContext.indexFilePaths().segmentFile(shardContext.getIndexSequence(), segmentInfo.getId());
-			DeleteIdSet deleteIdSet = shardIndexer.deleteIdSet();
-			shardHandler.updateShard(shardContext, segmentInfo, segmentDir, deleteIdSet);
+			
+			//FIXME
+			
+//			File segmentDir = collectionContext.indexFilePaths().segmentFile(collectionContext.getDataSequence(), segmentInfo.getId());
+//			DeleteIdSet deleteIdSet = collectionIndexer.deleteIdSet();
+//			collectionHandler.updateShard(collectionContext, segmentInfo, segmentDir, deleteIdSet);
 			
 			//저장.
-			CollectionContextUtil.saveShardAfterIndexing(shardContext);
+			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
 			
 			
 			int duration = (int) (System.currentTimeMillis() - indexingStartTime());
@@ -99,7 +101,7 @@ public class ShardAddIndexingJob extends IndexingJob {
 			
 			indexingLogger.info("[{}] Incremental Indexing Finished! revisionInfo={}, time = {}", collectionId, revisionInfo, Formatter.getFormatTime(duration));
 			logger.info("== SegmentStatus ==");
-			shardHandler.printSegmentStatus();
+			collectionHandler.printSegmentStatus();
 			logger.info("===================");
 			
 			result = new IndexingJobResult(collectionId, shardId, revisionInfo, duration);

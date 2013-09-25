@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.SingleSearchJob;
+import org.fastcatsearch.job.search.SingleSearchJob;
 import org.fastcatsearch.util.ResultWriter;
 import org.fastcatsearch.util.ResultWriterException;
 

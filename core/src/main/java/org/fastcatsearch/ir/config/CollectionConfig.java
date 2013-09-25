@@ -71,7 +71,7 @@ public class CollectionConfig {
 		this.dataPlanConfig = dataPlanConfig;
 	}
 	
-	@XmlElement
+	@XmlElement(name="shard")
 	@XmlElementWrapper(name="shard-list")
 	public List<Shard> getShardConfigList() {
 		return shardConfigList;
@@ -81,8 +81,8 @@ public class CollectionConfig {
 	}
 
 	public static class Shard {
-		String id;
-		String name;
+		private String id;
+		private String name;
 		
 		@XmlAttribute
 		public String getId() {

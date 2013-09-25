@@ -1,7 +1,8 @@
-package org.fastcatsearch.job;
+package org.fastcatsearch.job.indexing;
 
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.ir.common.IndexingType;
+import org.fastcatsearch.job.Job;
 import org.fastcatsearch.notification.NotificationService;
 import org.fastcatsearch.notification.message.IndexingFinishNotification;
 import org.fastcatsearch.notification.message.IndexingStartNotification;

@@ -9,7 +9,7 @@
  *     swsong - initial API and implementation
  */
 
-package org.fastcatsearch.job.cluster;
+package org.fastcatsearch.job.indexing;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +34,9 @@ import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.job.Job.JobResult;
+import org.fastcatsearch.job.cluster.NodeCollectionReloadJob;
+import org.fastcatsearch.job.cluster.NodeDirectoryCleanJob;
+import org.fastcatsearch.job.cluster.StreamableClusterJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.task.IndexFileTransfer;

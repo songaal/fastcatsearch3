@@ -13,8 +13,8 @@ package org.fastcatsearch.servlet;
 
 import java.io.Writer;
 
-import org.fastcatsearch.job.GroupSearchJob;
 import org.fastcatsearch.job.Job;
+import org.fastcatsearch.job.search.GroupSearchJob;
 
 public class GroupSearchServlet extends SearchServlet {
 	

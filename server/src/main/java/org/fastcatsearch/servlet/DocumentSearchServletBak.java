@@ -28,7 +28,7 @@ import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.util.Formatter;
-import org.fastcatsearch.job.DocumentSearchJob;
+import org.fastcatsearch.job.search.DocumentSearchJob;
 
 public class DocumentSearchServletBak extends WebServiceHttpServlet {
 	

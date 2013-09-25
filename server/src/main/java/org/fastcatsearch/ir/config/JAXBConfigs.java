@@ -23,6 +23,8 @@ public class JAXBConfigs {
 	private static final Logger logger = LoggerFactory.getLogger(JAXBConfigs.class);
 	
 	public static <T> T readConfig(File file, Class<T> jaxbConfigClass) throws JAXBException {
+		logger.debug("readConfig file >> {}, {}", file.getAbsolutePath(), file.exists());
+		
 		if(!file.exists()){
 			return null;
 		}

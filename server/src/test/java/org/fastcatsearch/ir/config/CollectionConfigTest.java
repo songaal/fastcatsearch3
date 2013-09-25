@@ -10,39 +10,30 @@ import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
+import org.fastcatsearch.ir.config.CollectionConfig.Shard;
 import org.junit.Test;
 
 public class CollectionConfigTest {
 
-	String configXml = "<collection-config>\n" + 
-			"	<name>샘플</name>\n" + 
-			"	<index>\n" + 
-			"		<pk-term-interval>64</pk-term-interval>\n" + 
-			"		<pk-bucket-size>65536</pk-bucket-size>\n" + 
-			"		<term-interval>64</term-interval>\n" + 
-			"		<bucket-size>65536</bucket-size>\n" + 
-			"		<work-memory-size>134217728</work-memory-size>\n" + 
-			"		<work-bucket-size>256</work-bucket-size>\n" + 
-			"		<read-buffer-size>3072</read-buffer-size>\n" + 
-			"		<write-buffer-size>3072</write-buffer-size>\n" + 
-			"		<block-size>8</block-size>\n" + 
-			"		<compression-type>fast</compression-type>\n" + 
-			"	</index>\n" + 
+	String configXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
+			"<collection-config>\n" + 
+			"	<shard-list>\n" + 
+			"		<shard id=\"sample1\" />\n" + 
+			"		<shard id=\"sample2\" />\n" + 
+			"	</shard-list>\n" + 
 			"	<data-plan>\n" + 
 			"		<data-sequence-cycle>2</data-sequence-cycle>\n" + 
-			"		<separate-inc-indexing>true</separate-inc-indexing>\n" + 
 			"		<segment-document-limit>2000000</segment-document-limit>\n" + 
 			"		<segment-revision-backup-size>2</segment-revision-backup-size>\n" + 
 			"	</data-plan>\n" + 
-			"	<cluster>\n" + 
-			"		<index-node>node1</index-node>\n" + 
-			"		<data-node>\n" + 
-			"			<node>node2</node>\n" + 
-			"			<node>node3</node>\n" + 
-			"		</data-node>\n" + 
-			"		<shard-size>1</shard-size>\n" + 
-			"		<replica-size>*</replica-size>\n" + 
-			"	</cluster>\n" + 
+			"	<index>\n" + 
+			"		<term-interval>64</term-interval>\n" + 
+			"		<work-bucket-size>256</work-bucket-size>\n" + 
+			"		<work-memory-size>134217728</work-memory-size>\n" + 
+			"		<pk-bucket-size>65536</pk-bucket-size>\n" + 
+			"		<pk-term-interval>64</pk-term-interval>\n" + 
+			"	</index>\n" + 
+			"	<name>샘플</name>\n" + 
 			"</collection-config>";
 	@Test
 	public void testRead() throws IOException, JAXBException {
@@ -50,6 +41,9 @@ public class CollectionConfigTest {
 		InputStream is = new ByteArrayInputStream(configXml.getBytes());
 		CollectionConfig collectionConfig = JAXBConfigs.readConfig(is, CollectionConfig.class);
 		assertEquals("샘플", collectionConfig.getName());
+		
+		List<Shard> shardList = collectionConfig.getShardConfigList();
+		assertEquals(2, shardList.size());
 		
 		IndexConfig indexConfig = collectionConfig.getIndexConfig();
 		assertEquals(64, indexConfig.getIndexTermInterval());
@@ -63,7 +57,6 @@ public class CollectionConfigTest {
 		assertEquals(2, dataPlanConfig.getDataSequenceCycle());
 		assertEquals(2000000, dataPlanConfig.getSegmentDocumentLimit());
 		assertEquals(2, dataPlanConfig.getSegmentRevisionBackupSize());
-//		assertEquals(true, dataPlanConfig.isSeparateIncIndexing());
 		
 	}
 	

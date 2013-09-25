@@ -1,64 +1,41 @@
 package org.fastcatsearch.ir.config;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "datasource")
 public class DataSourceConfig {
-	private List<DBSourceConfig> dbSourceConfigList;
-	private List<FileSourceConfig> fileSourceConfigList;
-
-	@XmlElement(name = "db")
-	public List<DBSourceConfig> getDBSourceConfigList() {
-		return dbSourceConfigList;
+	
+	private IndexingSourceConfig fullIndexingSourceConfig;
+	private IndexingSourceConfig addIndexingSourceConfig;
+	private List<JDBCSourceInfo> jdbcSourceInfoList; 
+	
+	@XmlElement(name="full-indexing")
+	public IndexingSourceConfig getFullIndexingSourceConfig() {
+		return fullIndexingSourceConfig;
 	}
-
-	public void setDBSourceConfigList(List<DBSourceConfig> dbSourceConfigList) {
-		this.dbSourceConfigList = dbSourceConfigList;
+	public void setFullIndexingSourceConfig(IndexingSourceConfig fullIndexingSourceConfig) {
+		this.fullIndexingSourceConfig = fullIndexingSourceConfig;
 	}
-
-	@XmlElement(name = "file")
-	public List<FileSourceConfig> getFileSourceConfigList() {
-		return fileSourceConfigList;
+	
+	@XmlElement(name="add-indexing")
+	public IndexingSourceConfig getAddIndexingSourceConfig() {
+		return addIndexingSourceConfig;
 	}
-
-	public void setFileSourceConfigList(List<FileSourceConfig> fileSourceConfigList) {
-		this.fileSourceConfigList = fileSourceConfigList;
+	public void setAddIndexingSourceConfig(IndexingSourceConfig addIndexingSourceConfig) {
+		this.addIndexingSourceConfig = addIndexingSourceConfig;
 	}
-
-	public List<SingleSourceConfig> getSourceConfigList() {
-		List<SingleSourceConfig> list = new ArrayList<SingleSourceConfig>();
-		if (dbSourceConfigList != null) {
-			list.addAll(dbSourceConfigList);
-		}
-		if (fileSourceConfigList != null) {
-			list.addAll(fileSourceConfigList);
-		}
-		return list;
+	
+	@XmlElementWrapper(name="jdbc-sources")
+	@XmlElement(name="jdbc-source")
+	public List<JDBCSourceInfo> getJdbcSourceInfoList() {
+		return jdbcSourceInfoList;
 	}
-
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		if (dbSourceConfigList != null) {
-			for (DBSourceConfig sourceConfig : dbSourceConfigList) {
-				if (sb.length() > 0) {
-					sb.append(",");
-				}
-				sb.append(sourceConfig.getClass());
-			}
-		}
-		if (fileSourceConfigList != null) {
-			for (FileSourceConfig sourceConfig : fileSourceConfigList) {
-				if (sb.length() > 0) {
-					sb.append(",");
-				}
-				sb.append(sourceConfig.getClass());
-			}
-		}
-		return sb.toString();
+	public void setJdbcSourceInfoList(List<JDBCSourceInfo> jdbcSourceInfoList) {
+		this.jdbcSourceInfoList = jdbcSourceInfoList;
 	}
+	
 }

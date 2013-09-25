@@ -155,13 +155,13 @@ public class CatServer {
 		ManagementInfoService managementInfoService = serviceManager.createService("management_info", ManagementInfoService.class);
 		NodeService nodeService = serviceManager.createService("node", NodeService.class);
 
-		WebService webService = null;
-		if(environment.isMasterNode()){
-			webService = serviceManager.createService("web", WebService.class);
-			if (webService == null) {
-				throw new FastcatSearchException("웹서비스를 초기화하지 못했습니다.");
-			}
-		}
+//		WebService webService = null;
+//		if(environment.isMasterNode()){
+//			webService = serviceManager.createService("web", WebService.class);
+//			if (webService == null) {
+//				throw new FastcatSearchException("웹서비스를 초기화하지 못했습니다.");
+//			}
+//		}
 		
 		HttpRequestService httpRequestService = serviceManager.createService("http", HttpRequestService.class);
 		NotificationService notificationService = serviceManager.createService("notification", NotificationService.class);
@@ -186,8 +186,8 @@ public class CatServer {
 			
 			
 			
-			if (webService != null)
-				webService.start();
+//			if (webService != null)
+//				webService.start();
 			
 			httpRequestService.start();
 			

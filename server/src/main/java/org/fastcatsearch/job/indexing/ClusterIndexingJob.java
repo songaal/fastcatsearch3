@@ -1,4 +1,4 @@
-package org.fastcatsearch.job.cluster;
+package org.fastcatsearch.job.indexing;
 
 import org.fastcatsearch.cluster.ClusterStrategy;
 import org.fastcatsearch.cluster.Node;
@@ -8,7 +8,6 @@ import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IndexingType;
-import org.fastcatsearch.job.IndexingJob;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceManager;

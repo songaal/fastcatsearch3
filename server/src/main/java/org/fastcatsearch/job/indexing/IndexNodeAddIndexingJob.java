@@ -9,29 +9,34 @@
  *     swsong - initial API and implementation
  */
 
-package org.fastcatsearch.job.cluster;
+package org.fastcatsearch.job.indexing;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.fastcatsearch.cluster.ClusterStrategy;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.ir.ShardIndexer;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.MirrorSynchronizer;
+import org.fastcatsearch.ir.ShardIndexer;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
+import org.fastcatsearch.ir.config.ShardConfig;
+import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.index.IndexWriteInfoList;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
+import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.job.CacheServiceRestartJob;
+import org.fastcatsearch.job.cluster.NodeDirectoryCleanJob;
+import org.fastcatsearch.job.cluster.NodeSegmentUpdateJob;
+import org.fastcatsearch.job.cluster.StreamableClusterJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.task.IndexFileTransfer;
@@ -48,12 +53,14 @@ public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 
 	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 
+	private String collectionId;
 	private String shardId;
 
 	public IndexNodeAddIndexingJob() {
 	}
 
-	public IndexNodeAddIndexingJob(String shardId) {
+	public IndexNodeAddIndexingJob(String collectionId, String shardId) {
+		this.collectionId = collectionId;
 		this.shardId = shardId;
 	}
 
@@ -65,28 +72,30 @@ public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 			long startTime = System.currentTimeMillis();
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			
-			ShardHandler collectionHandler = irService.collectionHandler(shardId);
+			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
 			if(collectionHandler == null){
-				indexingLogger.error("[{}] CollectionHandler is not running!", shardId);
-				throw new FastcatSearchException("## ["+shardId+"] CollectionHandler is not running...");
+				indexingLogger.error("[{}] CollectionHandler is not running!", collectionId);
+				throw new FastcatSearchException("## ["+collectionId+"] CollectionHandler is not running...");
 			}
 			
+			ShardHandler shardHandler = collectionHandler.getShardHandler(shardId);
 			/*
 			 * Do indexing!!
 			 */
 			//////////////////////////////////////////////////////////////////////////////////////////
-			CollectionContext collectionContext = irService.collectionContext(shardId).copy();
-			ShardIndexer collectionIndexer = new ShardIndexer(collectionContext);
-			SegmentInfo segmentInfo = collectionIndexer.addIndexing(collectionHandler);
+			CollectionContext collectionContext = irService.collectionContext(collectionId).copy();
+			ShardContext shardContext = collectionContext.getShardContext(shardId);
+			ShardIndexer shardIndexer = new ShardIndexer(shardContext);
+			SegmentInfo segmentInfo = shardIndexer.addIndexing(shardHandler);
 			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
-			IndexWriteInfoList indexWriteInfoList = collectionIndexer.indexWriteInfoList();
+			IndexWriteInfoList indexWriteInfoList = shardIndexer.indexWriteInfoList();
 			//////////////////////////////////////////////////////////////////////////////////////////
 			
 			logger.debug("색인후 segmentInfo >> {}", segmentInfo);
 			
 			if(revisionInfo.getInsertCount() == 0 && revisionInfo.getDeleteCount() == 0){
 				int duration = (int) (System.currentTimeMillis() - startTime);
-				return new JobResult(new IndexingJobResult(shardId, revisionInfo, duration));
+				return new JobResult(new IndexingJobResult(collectionId, shardId, revisionInfo, duration));
 			}
 			
 			//0보다 크면 revision이 증가된것이다.
@@ -97,21 +106,21 @@ public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 			collectionContext.updateCollectionStatus(IndexingType.ADD, revisionInfo, startTime, System.currentTimeMillis());
 			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
 			
-			IndexFilePaths collectionFilePaths = collectionContext.indexFilePaths();
-			int dataSequence = collectionContext.getIndexSequence();
+			IndexFilePaths shardFilePaths = shardContext.indexFilePaths();
+			int dataSequence = shardContext.getIndexSequence();
 			String segmentId = segmentInfo.getId();
 			int revision = revisionInfo.getId();
-			File collectionDataDir = collectionFilePaths.indexDirFile(dataSequence);
-			File segmentDir = collectionContext.indexFilePaths().segmentFile(dataSequence, segmentId);
-			DeleteIdSet deleteIdSet = collectionIndexer.deleteIdSet();
+			File shardDataDir = shardFilePaths.indexDirFile(dataSequence);
+			File segmentDir = shardFilePaths.segmentFile(dataSequence, segmentId);
+			DeleteIdSet deleteIdSet = shardIndexer.deleteIdSet();
 			//먼저 업데이트를 해놔야 파일이 수정되서, 전송할수 있다. 
-			collectionHandler.updateShard(collectionContext, segmentInfo, segmentDir, deleteIdSet);
+			shardHandler.updateShard(shardContext, segmentInfo, segmentDir, deleteIdSet);
 			
 			
 			logger.debug("updateCollection 완료!");
 			File transferDir = null;
 			
-			File revisionDir = collectionFilePaths.revisionFile(dataSequence, segmentId, revision);
+			File revisionDir = shardFilePaths.revisionFile(dataSequence, segmentId, revision);
 			
 			/*
 			 * 동기화 파일 생성. 
@@ -136,8 +145,8 @@ public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 			 * 색인파일 원격복사.
 			 */
 			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
-			ClusterStrategy dataStrategy = irService.getCollectionClusterStrategy(shardId);
-			List<String> nodeIdList = dataStrategy.dataNodes();
+			ShardConfig shardConfig = shardContext.shardConfig();
+			List<String> nodeIdList = shardConfig.getDataNodeList();
 			List<Node> nodeList = nodeService.getNodeById(nodeIdList);
 			if (nodeList == null || nodeList.size() == 0) {
 				throw new FastcatSearchException("색인파일을 복사할 노드가 정의되어있지 않습니다.");
@@ -160,7 +169,7 @@ public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 			/*
 			 * 데이터노드에 세그먼트 리로드 요청.
 			 */
-			NodeSegmentUpdateJob updateJob = new NodeSegmentUpdateJob(collectionContext);
+			NodeSegmentUpdateJob updateJob = new NodeSegmentUpdateJob(shardContext);
 			nodeResult = sendJobToNodeList(updateJob, nodeService, nodeList, false);
 			if(!nodeResult){
 				throw new FastcatSearchException("Node Collection Reload Failed!");
@@ -173,7 +182,7 @@ public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 			 */
 			getJobExecutor().offer(new CacheServiceRestartJob());
 			
-			return new JobResult(new IndexingJobResult(shardId, revisionInfo, duration));
+			return new JobResult(new IndexingJobResult(collectionId, shardId, revisionInfo, duration));
 			
 		} catch (Exception e) {
 			indexingLogger.error("[" + shardId + "] Indexing error = " + e.getMessage(), e);

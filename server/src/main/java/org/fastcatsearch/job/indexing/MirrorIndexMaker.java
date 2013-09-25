@@ -9,7 +9,7 @@
  *     swsong - initial API and implementation
  */
 
-package org.fastcatsearch.job;
+package org.fastcatsearch.job.indexing;
 
 import java.io.File;
 import java.io.IOException;

@@ -14,7 +14,7 @@ package org.fastcatsearch.servlet.cluster;
 import java.io.Writer;
 
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.cluster.ClusterSearchJob;
+import org.fastcatsearch.job.search.ClusterSearchJob;
 import org.fastcatsearch.servlet.AbstractSearchResultWriter;
 import org.fastcatsearch.servlet.SearchResultWriter;
 import org.fastcatsearch.servlet.SearchServlet;

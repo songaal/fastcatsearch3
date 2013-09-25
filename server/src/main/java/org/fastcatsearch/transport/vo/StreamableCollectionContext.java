@@ -47,14 +47,14 @@ public class StreamableCollectionContext implements Streamable {
 			SchemaSetting schemaSetting = JAXBConfigs.readFrom(input, SchemaSetting.class);
 			Schema schema = new Schema(schemaSetting);
 			CollectionConfig collectionConfig = JAXBConfigs.readFrom(input, CollectionConfig.class);
-			ClusterConfig clusterConfig = JAXBConfigs.readFrom(input, ClusterConfig.class);
+//			ClusterConfig clusterConfig = JAXBConfigs.readFrom(input, ClusterConfig.class);
 			DataSourceConfig dataSourceConfig = JAXBConfigs.readFrom(input, DataSourceConfig.class);
 			ShardIndexStatus collectionStatus = JAXBConfigs.readFrom(input, ShardIndexStatus.class);
 //			DataInfo dataInfo = JAXBConfigs.readFrom(input, DataInfo.class);
 			//collectionFilePaths는 현 node에 적합하도록 새로 생성한다. 
 			IndexFilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
 			this.collectionContext = new CollectionContext(collectionId, collectionFilePaths);
-			collectionContext.init(schema, null, collectionConfig, clusterConfig, dataSourceConfig, collectionStatus);
+			collectionContext.init(schema, null, collectionConfig, /*clusterConfig,*/ dataSourceConfig, collectionStatus);
 		} catch (JAXBException e) {
 			throw new IOException(e);
 		}
@@ -67,7 +67,7 @@ public class StreamableCollectionContext implements Streamable {
 		try{
 			JAXBConfigs.writeTo(output, collectionContext.schema().schemaSetting(), SchemaSetting.class);
 			JAXBConfigs.writeTo(output, collectionContext.collectionConfig(), CollectionConfig.class);
-			JAXBConfigs.writeTo(output, collectionContext.clusterConfig(), ClusterConfig.class);
+//			JAXBConfigs.writeTo(output, collectionContext.clusterConfig(), ClusterConfig.class);
 			JAXBConfigs.writeTo(output, collectionContext.dataSourceConfig(), DataSourceConfig.class);
 			JAXBConfigs.writeTo(output, collectionContext.indexStatus(), ShardIndexStatus.class);
 //			JAXBConfigs.writeTo(output, collectionContext.dataInfo(), DataInfo.class);

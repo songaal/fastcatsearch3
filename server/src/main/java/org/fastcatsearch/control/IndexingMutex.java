@@ -17,9 +17,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.fastcatsearch.job.CollectionFullIndexingJob;
-import org.fastcatsearch.job.AddIndexingJob;
 import org.fastcatsearch.job.Job;
+import org.fastcatsearch.job.indexing.AddIndexingJob;
+import org.fastcatsearch.job.indexing.CollectionFullIndexingJob;
 
 
 public class IndexingMutex {

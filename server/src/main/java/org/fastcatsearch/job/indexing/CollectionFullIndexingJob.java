@@ -9,7 +9,7 @@
  *     swsong - initial API and implementation
  */
 
-package org.fastcatsearch.job;
+package org.fastcatsearch.job.indexing;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +24,9 @@ import org.fastcatsearch.ir.config.CollectionConfig.Shard;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.job.CacheServiceRestartJob;
+import org.fastcatsearch.job.Job;
+import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;

@@ -1,3 +1,4 @@
+package org.fastcatsearch.job.indexing;
 ///*
 // * Copyright (c) 2013 Websquared, Inc.
 // * All rights reserved. This program and the accompanying materials

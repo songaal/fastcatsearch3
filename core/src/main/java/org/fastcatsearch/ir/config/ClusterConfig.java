@@ -27,6 +27,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 </cluster-config>
 */
 
+@Deprecated
 @XmlRootElement(name = "cluster-config")
 public class ClusterConfig {
 	private List<ShardClusterConfig> shardClusterConfigList;
@@ -40,6 +41,7 @@ public class ClusterConfig {
 		this.shardClusterConfigList = shardClusterConfigList;
 	}
 
+	@Deprecated
 	public static class ShardClusterConfig {
 		private String id;
 		private String indexNode;

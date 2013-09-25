@@ -15,7 +15,7 @@ import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
-import org.fastcatsearch.job.SingleSearchJob;
+import org.fastcatsearch.job.search.SingleSearchJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -8,7 +8,7 @@ import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
-import org.fastcatsearch.job.ShardFullIndexingJob;
+import org.fastcatsearch.job.indexing.ShardFullIndexingJob;
 import org.fastcatsearch.util.ResultWriter;
 
 @ActionMapping("/indexing/run")
@@ -30,8 +30,8 @@ public class RunIndexingAction extends AuthAction {
 		ResultWriter resultWriter = getDefaultResultWriter(writer);
 		resultWriter
 		.object()
-		.key("collectionId").value("sample")
-		.key("shardId").value("sample1");
+		.key("collectionId").value(collectionId)
+		.key("shardId").value(shardId);
 		
 		if(jobResult != null){
 			resultWriter.key("status").value("0");

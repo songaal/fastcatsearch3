@@ -26,7 +26,7 @@ public class ActionRequest {
 		this.request = request;
 
 		if (request.getMethod() == HttpMethod.GET) {
-			logger.debug("URI:{} , {}, {}", request.getUri(), request.getUri().length(), uri.length());
+//			logger.debug("URI:{} , {}, {}", request.getUri(), request.getUri().length(), uri.length());
 			if (request.getUri().length() > uri.length()) {
 				queryString = request.getUri().substring(uri.length() + 1); // 맨앞의 ?를 제거하기 위해 +1
 			}
@@ -41,7 +41,7 @@ public class ActionRequest {
 		try {
 			if(queryString != null){
 				queryString = URLDecoder.decode(queryString, DEFAULT_CHARSET);
-				logger.debug(">> {}", queryString);
+//				logger.debug(">> {}", queryString);
 			}
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();

@@ -18,34 +18,26 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.bind.JAXBException;
 
-import org.fastcatsearch.cluster.ClusterStrategy;
 import org.fastcatsearch.common.QueryCacheModule;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
-import org.fastcatsearch.ir.config.ClusterConfig;
-import org.fastcatsearch.ir.config.ClusterConfig.ShardClusterConfig;
 import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionIndexStatus;
-import org.fastcatsearch.ir.config.ShardContext;
-import org.fastcatsearch.ir.config.ShardIndexStatus;
 import org.fastcatsearch.ir.config.CollectionsConfig;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
-import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.JAXBConfigs;
-import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.group.GroupResults;
-import org.fastcatsearch.ir.query.Result;
+import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.query.InternalSearchResult;
+import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.module.ModuleException;
@@ -59,7 +51,6 @@ import org.fastcatsearch.util.IndexFilePaths;
 public class IRService extends AbstractService {
 
 	private Map<String, CollectionHandler> collectionHandlerMap;
-//	private Map<String, ClusterStrategy> clusterStrategyMap;
 
 	// TODO 캐시방식을 변경하자.
 
@@ -169,7 +160,7 @@ public class IRService extends AbstractService {
 			File file = environment.filePaths().configPath().file(SettingFileNames.defaultCollectionConfig);
 			CollectionConfig collectionConfig = JAXBConfigs.readConfig(file, CollectionConfig.class);
 			Schema schema = new Schema(new SchemaSetting());
-			collectionContext.init(schema, null, collectionConfig, new ClusterConfig(), new DataSourceConfig(), new CollectionIndexStatus());
+			collectionContext.init(schema, null, collectionConfig, new DataSourceConfig(), new CollectionIndexStatus());
 			CollectionContextUtil.write(collectionContext);
 
 			collectionsConfig.addCollection(collectionId, false);

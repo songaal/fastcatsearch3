@@ -1,20 +1,19 @@
-package org.fastcatsearch.job.cluster;
+package org.fastcatsearch.job.search;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.fastcatsearch.cluster.ClusterStrategy;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.config.ClusterConfig;
-import org.fastcatsearch.ir.config.ClusterConfig.ShardClusterConfig;
 import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.config.ShardConfig;
+import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.FixedHitReader;
@@ -41,7 +40,7 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableDocumentResult;
 import org.fastcatsearch.transport.vo.StreamableInternalSearchResult;
 
-public class MultiCollectionClusterSearchJobBak extends Job {
+public class ClusterSearchJob extends Job {
 
 	private static final long serialVersionUID = 2375551165135599911L;
 
@@ -87,45 +86,35 @@ public class MultiCollectionClusterSearchJobBak extends Job {
 		
 		
 		ResultFuture[] resultFutureList = new ResultFuture[shardIdList.length];
-		Map<String, Integer> collectionNumberMap = new HashMap<String, Integer>();
+		Map<String, Integer> shardNumberMap = new HashMap<String, Integer>();
+		Node[] selectedNodeList = new Node[shardIdList.length];
+		
+		CollectionContext collectionContext = irService.collectionContext(collectionId);
 		
 		for (int i = 0; i < shardIdList.length; i++) {
-			String cId = shardIdList[i];
-			collectionNumberMap.put(cId, i);
+			String shardId = shardIdList[i];
+			shardNumberMap.put(shardId, i);
 			
-			ClusterStrategy dataStrategy = null;//irService.getCollectionClusterStrategy(cId);
-			CollectionContext collectionContext = irService.collectionContext(cId);
-			
-			if(collectionContext == null){
-				//TODO shard로 다시 찾아본다.
-				
-			}
-			
-			//TODO shard가 한개이면 1. shard명으로 찾은경우. OR 2.collection이 single일 경우.
-			// shard가 여러개이면 모두 검색해서 하나로 합친다.
+			ShardContext shardContext = collectionContext.getShardContext(shardId);
 			
 			
-			ClusterConfig clusterConfig = collectionContext.clusterConfig();
-			List<ShardClusterConfig> shardList = clusterConfig.getShardClusterConfigList();
-			//TODO shard명으로 찾은경우는 list 길이가 1 이여야한다.
-			for (ShardClusterConfig shard : shardList) {
-				List<String> nodeIdList = shard.getDataNodeList();
-				
-			}
+			ShardConfig shardConfig = shardContext.shardConfig();
 			
-			List<String> nodeIdList = dataStrategy.dataNodes();
+			//TODO shard가 여러개이면 모두 검색해서 하나로 합친다.
+			
+			List<String> dataNodeIdList = shardConfig.getDataNodeList();
+			
 			//TODO shard 갯수를 확인하고 각 shard에 해당하는 노드들을 가져온다.
 			//TODO 여러개의 replaica로 분산되어있을 경우, 적합한 노드를 찾아서 리턴한다.
 			
-			String dataNodeId = nodeIdList.get(0);
+			String dataNodeId = dataNodeIdList.get(0);
 			Node dataNode = nodeService.getNodeById(dataNodeId);
+			selectedNodeList[i] = dataNode;
 			
-			String value = queryMap.get(Query.EL.cn.name());
-			queryMap.put(Query.EL.cn.name(), cId);
-			logger.debug("collection [{}] search at {}", cId, dataNodeId);
-//			String queryStr = queryString.replace("cn="+collectionId, "cn="+cId);
-			logger.debug("query-{} >> {}", i, queryMap);
-			InternalSearchJob job = new InternalSearchJob(queryMap);
+			QueryMap newQueryMap = queryMap.clone();
+			newQueryMap.setId(collectionId, shardId);
+			logger.debug("query-{} >> {}", i, newQueryMap);
+			InternalSearchJob job = new InternalSearchJob(newQueryMap);
 			resultFutureList[i] = nodeService.sendRequest(dataNode, job);
 		}
 		
@@ -159,7 +148,7 @@ public class MultiCollectionClusterSearchJobBak extends Job {
 		//collectionIdList 내의 스키마는 동일하다는 가정하에 진행한다. collectionIdList[0] 의 스키마를 가져온다.
 		//
 		
-		Schema schema = irService.collectionContext(shardIdList[0]).schema();
+		Schema schema = collectionContext.schema();
 		SearchResultAggregator aggregator = new SearchResultAggregator(q, schema);
 		InternalSearchResult aggregatedSearchResult = aggregator.aggregate(resultList);
 		int totalSize = aggregatedSearchResult.getTotalCount();
@@ -172,8 +161,7 @@ public class MultiCollectionClusterSearchJobBak extends Job {
 		//internalSearchResult의 결과를 보면서 컬렉션 별로 분류한다.
 		int realSize = aggregatedSearchResult.getCount();
 		DocIdList[] docIdList = new DocIdList[shardIdList.length];
-//		int[] length = new int[collectionIdList.length];
-		int[] collectionTags = new int[realSize]; //해당 문서가 어느컬렉션에 속하는지 알려주는 항목.
+		int[] shardTags = new int[realSize]; //해당 문서가 어느 shard에 속하는지 알려주는 항목.
 		int[] eachDocIds = new int[realSize];
 		float[] eachScores = new float[realSize];
 		
@@ -186,9 +174,9 @@ public class MultiCollectionClusterSearchJobBak extends Job {
 		FixedHitReader hitReader = aggregatedSearchResult.getFixedHitReader();
 		while(hitReader.next()){
 			HitElement el = hitReader.read();
-			int collectionNo = collectionNumberMap.get(el.collectionId());
-			docIdList[collectionNo].add(el.segmentSequence(), el.docNo());
-			collectionTags[idx] = collectionNo;
+			int shardNo = shardNumberMap.get(el.shardId());
+			docIdList[shardNo].add(el.segmentSequence(), el.docNo());
+			shardTags[idx] = shardNo;
 			eachDocIds[idx] = el.docNo();
 			eachScores[idx] = el.score();
 			idx++;
@@ -199,21 +187,12 @@ public class MultiCollectionClusterSearchJobBak extends Job {
 		List<View> views = q.getViews(); 
 		String[] tags = q.getMeta().tags();
 		for (int i = 0; i < shardIdList.length; i++) {
-			String cId = shardIdList[i];
-			ClusterStrategy dataStrategy = null;//irService.getCollectionClusterStrategy(cId);
-			List<String> nodeIdList = dataStrategy.dataNodes();
-			//TODO shard 갯수를 확인하고 각 shard에 해당하는 노드들을 가져온다.
-			//TODO 여러개의 replaica로 분산되어있을 경우, 적합한 노드를 찾아서 리턴한다.
+			String shardId = shardIdList[i];
+			Node dataNode = selectedNodeList[i];
 			
-			String dataNodeId = nodeIdList.get(0);
-			Node dataNode = nodeService.getNodeById(dataNodeId);
-			logger.debug("collection [{}] search at {}", cId, dataNode);
+			logger.debug("shard [{}] search at {}", shardId, dataNode);
 			
-//			String value = queryMap.get(Query.EL.cn.name());
-//			queryMap.put(Query.EL.cn.name(), cId);
-//			String queryStr = queryString.replace("cn="+collectionId, "cn="+cId);
-//			logger.debug("query-{} >> {}", i, queryMap);
-			InternalDocumentSearchJob job = new InternalDocumentSearchJob(cId, docIdList[i], views, tags, highlightInfo);
+			InternalDocumentSearchJob job = new InternalDocumentSearchJob(shardId, docIdList[i], views, tags, highlightInfo);
 			resultFutureList[i] = nodeService.sendRequest(dataNode, job);
 		}
 		
@@ -221,11 +200,12 @@ public class MultiCollectionClusterSearchJobBak extends Job {
 		DocumentResult[] docResultList = new DocumentResult[shardIdList.length];
 		
 		for (int i = 0; i < shardIdList.length; i++) {
-			String cId = shardIdList[i];
-			//TODO 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
+			String shardId = shardIdList[i];
+			// 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
 			if(resultFutureList[i] == null){
 				throw new FastcatSearchException("요청메시지 전송불가에러.");
 			}
+			
 			Object obj = resultFutureList[i].take();
 			if(!resultFutureList[i].isSuccess()){
 				if(obj instanceof Throwable){
@@ -240,14 +220,14 @@ public class MultiCollectionClusterSearchJobBak extends Job {
 			if(documentResult != null){
 				docResultList[i] = documentResult;
 			}else{
-				logger.warn("{}의 documentList가 null입니다.", cId);
+				logger.warn("{}의 documentList가 null입니다.", shardId);
 			}
 		}
 		String[] fieldIdList = docResultList[0].fieldIdList();
 		Row[] rows = new Row[realSize];
 		for (int i = 0; i < realSize; i++) {
-			int collectionNumber = collectionTags[i];
-			DocumentResult documentResult = docResultList[collectionNumber];
+			int shardNo = shardTags[i];
+			DocumentResult documentResult = docResultList[shardNo];
 			rows[i] = documentResult.next();
 		}
 		
