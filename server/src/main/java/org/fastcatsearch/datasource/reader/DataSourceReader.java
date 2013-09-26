@@ -16,7 +16,6 @@
 
 package org.fastcatsearch.datasource.reader;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,13 +41,9 @@ public class DataSourceReader {
 
 	protected static Logger logger = LoggerFactory.getLogger(DataSourceReader.class);
 
-	protected File filePath;
 	protected List<FieldSetting> fieldSettingList;
-	protected int idFieldIndex;
 
 	protected SourceModifier sourceModifier;
-	protected Schema schema;
-	protected int primaryKeySize;
 
 	private DeleteIdSet deleteIdList;
 
@@ -57,10 +52,7 @@ public class DataSourceReader {
 	private SingleSourceReader currentReader;
 
 	// DataSourceConfig안에는 SingleSourceConfig가 여러개 들어있다.
-	public DataSourceReader(File filePath, Schema schema) throws IRException {
-		this.filePath = filePath;
-		this.schema = schema;
-
+	public DataSourceReader(Schema schema) throws IRException {
 		fieldSettingList = schema.schemaSetting().getFieldSettingList();
 
 		PrimaryKeySetting primaryKeySetting = schema.schemaSetting().getPrimaryKeySetting();
@@ -69,7 +61,7 @@ public class DataSourceReader {
 			deleteIdList = new DeleteIdSet(pkFieldSize);
 		}
 
-		primaryKeySize = schema.schemaSetting().getPrimaryKeySetting().getFieldList().size();
+		int primaryKeySize = schema.schemaSetting().getPrimaryKeySetting().getFieldList().size();
 
 		deleteIdList = new DeleteIdSet(primaryKeySize);
 		singleSourceReaderList = new ArrayList<SingleSourceReader>();

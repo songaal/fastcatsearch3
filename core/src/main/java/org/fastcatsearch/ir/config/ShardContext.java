@@ -18,7 +18,7 @@ public class ShardContext {
 	private IndexConfig indexConfig;
 	private DataPlanConfig dataPlanConfig;
 	private ShardConfig shardConfig;
-	private DataSourceConfig dataSourceConfig;
+//	private DataSourceConfig dataSourceConfig;
 	private ShardIndexStatus shardIndexStatus;
 	private DataInfo dataInfo;
 	
@@ -28,13 +28,13 @@ public class ShardContext {
 		this.indexFilePaths = indexFilePaths;
 	}
 	
-	public void init(Schema schema, IndexConfig indexConfig, DataPlanConfig dataPlanConfig, ShardConfig shardConfig, DataSourceConfig dataSourceConfig
+	public void init(Schema schema, IndexConfig indexConfig, DataPlanConfig dataPlanConfig, ShardConfig shardConfig
 			, ShardIndexStatus shardIndexStatus, DataInfo dataInfo){
 		this.schema = schema;
 		this.indexConfig = indexConfig;
 		this.dataPlanConfig = dataPlanConfig;
 		this.shardConfig = shardConfig;
-		this.dataSourceConfig = dataSourceConfig;
+//		this.dataSourceConfig = dataSourceConfig;
 		this.shardIndexStatus = shardIndexStatus;
 		this.dataInfo = dataInfo;
 	}
@@ -67,9 +67,9 @@ public class ShardContext {
 		return shardConfig;
 	}
 	
-	public DataSourceConfig dataSourceConfig(){
-		return dataSourceConfig;
-	}
+//	public DataSourceConfig dataSourceConfig(){
+//		return dataSourceConfig;
+//	}
 	
 	public ShardIndexStatus indexStatus(){
 		return shardIndexStatus;

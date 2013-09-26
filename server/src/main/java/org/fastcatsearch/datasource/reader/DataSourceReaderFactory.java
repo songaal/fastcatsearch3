@@ -16,6 +16,7 @@ import java.io.File;
 import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.DataSourceConfig;
+import org.fastcatsearch.ir.config.IndexingSourceConfig;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.util.DynamicClassLoader;
@@ -28,14 +29,21 @@ public class DataSourceReaderFactory {
 	public static DataSourceReader createSourceReader(File filePath, Schema schema, DataSourceConfig dataSourceConfig, String lastIndexTime,
 			boolean isFullIndexing) throws IRException {
 
-		DataSourceReader dataSourceReader = new DataSourceReader(filePath, schema);
+		DataSourceReader dataSourceReader = new DataSourceReader(schema);
 		logger.debug("dataSourceConfig > {}", dataSourceConfig);
 		if (dataSourceConfig != null) {
-			for (SingleSourceConfig singleSourceConfig : dataSourceConfig.getSourceConfigList()) {
+			IndexingSourceConfig indexingSourceConfig = null;
+			if(isFullIndexing){
+				indexingSourceConfig = dataSourceConfig.getFullIndexingSourceConfig();
+			}else{
+				indexingSourceConfig = dataSourceConfig.getAddIndexingSourceConfig();
+			}
+			
+			for (SingleSourceConfig singleSourceConfig : indexingSourceConfig.getSourceConfigList()) {
 				if(!singleSourceConfig.isActive()){
 					continue;
 				}
-				SingleSourceReader sourceReader = createSingleSourceReader(filePath, singleSourceConfig, lastIndexTime, isFullIndexing);
+				SingleSourceReader sourceReader = createSingleSourceReader(filePath, dataSourceConfig, singleSourceConfig, lastIndexTime);
 				sourceReader.init();
 				dataSourceReader.addSourceReader(sourceReader);
 			}
@@ -46,8 +54,7 @@ public class DataSourceReaderFactory {
 		return dataSourceReader;
 	}
 
-	private static SingleSourceReader createSingleSourceReader(File filePath, SingleSourceConfig singleSourceConfig, String lastIndexTime,
-			boolean isFullIndexing) throws IRException {
+	private static SingleSourceReader createSingleSourceReader(File filePath, DataSourceConfig dataSourceConfig, SingleSourceConfig singleSourceConfig, String lastIndexTime) throws IRException {
 		String sourceReaderType = singleSourceConfig.getSourceReader();
 		String sourceModifierType = singleSourceConfig.getSourceModifier();
 		SourceModifier sourceModifier = null;
@@ -56,8 +63,8 @@ public class DataSourceReaderFactory {
 		}
 
 		SingleSourceReader sourceReader = DynamicClassLoader.loadObject(sourceReaderType, SingleSourceReader.class, new Class[] { File.class,
-				SingleSourceConfig.class, SourceModifier.class, String.class, boolean.class }, new Object[] { filePath,
-				singleSourceConfig, sourceModifier, lastIndexTime, isFullIndexing });
+			DataSourceConfig.class, SingleSourceConfig.class, SourceModifier.class, String.class }, new Object[] { filePath, dataSourceConfig, 
+				singleSourceConfig, sourceModifier, lastIndexTime });
 		logger.debug("Loading sourceReader : {} >> {}, modifier:{}", sourceReaderType, sourceReader, sourceModifier);
 		// dataSourceReader가 null일 수 있다.
 		if (sourceReader == null) {

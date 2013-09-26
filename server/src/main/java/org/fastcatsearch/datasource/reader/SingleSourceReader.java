@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.env.Path;
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.slf4j.Logger;
@@ -18,9 +19,9 @@ public abstract class SingleSourceReader {
 	protected static Logger logger = LoggerFactory.getLogger(SingleSourceReader.class);
 	
 	protected Path filePath;
+	protected DataSourceConfig dataSourceConfig;
 	protected SingleSourceConfig singleSourceConfig;
 	protected String lastIndexTime; //마지막 수집시작.(시작시각)
-	protected boolean isFull; //전체색인용 수집인지.
 	
 	protected SourceModifier sourceModifier;
 	protected DeleteIdSet deleteIdList;
@@ -30,11 +31,11 @@ public abstract class SingleSourceReader {
 	protected abstract Map<String, Object> next() throws IRException;
 	public abstract void close() throws IRException;
 	
-	public SingleSourceReader(File filePath, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime, boolean isFull) {
+	public SingleSourceReader(File filePath, DataSourceConfig dataSourceConfig, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime) {
 		this.filePath = new Path(filePath);
+		this.dataSourceConfig = dataSourceConfig;
 		this.singleSourceConfig = singleSourceConfig;
 		this.lastIndexTime = lastIndexTime;
-		this.isFull = isFull;
 		this.sourceModifier = sourceModifier;
 	}
 	

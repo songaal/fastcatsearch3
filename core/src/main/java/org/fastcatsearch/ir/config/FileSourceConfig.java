@@ -6,22 +6,16 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "file")
 public class FileSourceConfig extends SingleSourceConfig {
 
-	private String fullFilePath;
-	private String incFilePath;
+	private String filePath;
 	private String fileEncoding;
 	private String fileDocParser;
 	
-	@XmlElement
-	public String getIncFilePath() {
-		return incFilePath;
+	@XmlElement(name="filepath")
+	public String getFilePath() {
+		return filePath;
 	}
 
-	@XmlElement
-	public String getFullFilePath() {
-		return fullFilePath;
-	}
-
-	@XmlElement
+	@XmlElement(name="file-encoding")
 	public String getFileEncoding() {
 		return fileEncoding;
 	}
@@ -31,12 +25,8 @@ public class FileSourceConfig extends SingleSourceConfig {
 		return fileDocParser;
 	}
 	
-	public void setIncFilePath(String incFilePath) {
-		this.incFilePath = incFilePath;
-	}
-
-	public void setFullFilePath(String fullFilePath) {
-		this.fullFilePath = fullFilePath;
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
 	}
 
 	public void setFileEncoding(String fileEncoding) {

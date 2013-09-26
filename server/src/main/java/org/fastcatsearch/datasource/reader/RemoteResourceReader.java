@@ -5,8 +5,8 @@ import java.util.Map;
 
 import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
-import org.fastcatsearch.ir.document.Document;
 
 /**
  * nsf 와 ftp등을 이용할수 없는 원격파일등에 대해서 
@@ -18,8 +18,8 @@ import org.fastcatsearch.ir.document.Document;
 public class RemoteResourceReader extends SingleSourceReader {
 
 	
-	public RemoteResourceReader(File filePath, SingleSourceConfig sourceConfig, SourceModifier sourceModifier, String lastIndexTime, boolean isFull){
-		super(filePath, sourceConfig, sourceModifier, lastIndexTime, isFull);
+	public RemoteResourceReader(File filePath, DataSourceConfig dataSourceConfig, SingleSourceConfig sourceConfig, SourceModifier sourceModifier, String lastIndexTime){
+		super(filePath, dataSourceConfig, sourceConfig, sourceModifier, lastIndexTime);
 		//TODO
 		// 1. 외부 리소스 저장소에 연결.
 		// 2. 디렉토리 또는 파일요청 (셋팅파일에 정의)

@@ -14,6 +14,8 @@ package org.fastcatsearch.job.indexing;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fastcatsearch.cluster.Node;
+import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
@@ -25,8 +27,6 @@ import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.CacheServiceRestartJob;
-import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
@@ -55,26 +55,17 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			 */
 			//////////////////////////////////////////////////////////////////////////////////////////
 			CollectionContext collectionContext = irService.collectionContext(collectionId).copy();
-			List<Shard> shardList = collectionContext.collectionConfig().getShardConfigList();
-			List<ResultFuture> resultFutureList = new ArrayList<ResultFuture>(shardList.size());
+			String indexNodeId = collectionContext.collectionConfig().getIndexNode();
+			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
+			Node indexNode = nodeService.getNodeById(indexNodeId);
 			
-			RevisionInfo revisionInfo = new RevisionInfo();
-			for (Shard shard : shardList) {
-				String shardId = shard.getId();
-				ShardFullIndexingJob job = new ShardFullIndexingJob();
-				job.setArgs(new String[] { collectionId, shardId });
-
-				ResultFuture resultFuture = JobService.getInstance().offer(job);
-				resultFutureList.add(resultFuture);
-			}
-
+			//해당 노드에 IndexNodeFullIndexingJob를 보내 색인을 수행한다.
+			IndexNodeFullIndexingJob indexingJob = new IndexNodeFullIndexingJob();
+			ResultFuture resultFuture = nodeService.sendRequest(indexNode, indexingJob);
 			
-			for (ResultFuture resultFuture : resultFutureList) {
-				Object obj = resultFuture.take();
-				if(resultFuture.isSuccess()){
-					IndexingJobResult indexingJobResult = (IndexingJobResult) obj;
-					revisionInfo.add(indexingJobResult.revisionInfo);
-				}
+			Object obj = resultFuture.take();
+			if(resultFuture.isSuccess()){
+				IndexingJobResult indexingJobResult = (IndexingJobResult) obj;
 			}
 			
 			//status를 바꾸고 context를 저장한다.

@@ -28,15 +28,15 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
 import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.DBSourceConfig;
+import org.fastcatsearch.ir.config.DataSourceConfig;
+import org.fastcatsearch.ir.config.JDBCSourceInfo;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
-import org.fastcatsearch.ir.index.PrimaryKeys;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.util.DynamicClassLoader;
 import org.slf4j.Logger;
@@ -56,17 +56,13 @@ public class DBReader extends SingleSourceReader {
 
 	private int bulkCount;
 	private int readCount;
-	private boolean isFull;
 
-	boolean useBackup;
-	private BufferedWriter backupWriter;
-	private String deleteFileName;
 	private DBSourceConfig config;
 	private String lastIndexTime;
 
-	public DBReader(File filePath, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime, boolean isFull)
+	public DBReader(File filePath, DataSourceConfig dataSourceConfig, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime)
 			throws IRException {
-		super(filePath, singleSourceConfig, sourceModifier, lastIndexTime, isFull);
+		super(filePath, dataSourceConfig, singleSourceConfig, sourceModifier, lastIndexTime);
 	}
 
 	@Override
@@ -75,19 +71,27 @@ public class DBReader extends SingleSourceReader {
 		this.BULK_SIZE = config.getBulkSize();
 
 		dataSet = new Map[BULK_SIZE];
-
+		String jdbcSourceId = config.getJdbcSourceId();
+		JDBCSourceInfo jdbcSourceInfo = null;
+		for(JDBCSourceInfo info : dataSourceConfig.getJdbcSourceInfoList()){
+			if(info.getId().equals(jdbcSourceId)){
+				jdbcSourceInfo = info;
+				break;
+			}
+		}
+		
 		try {
-			if (config.getJdbcDriver() != null && config.getJdbcDriver().length() > 0) {
-				Object object = DynamicClassLoader.loadObject(config.getJdbcDriver());
+			if (jdbcSourceInfo.getDriver() != null && jdbcSourceInfo.getDriver().length() > 0) {
+				Object object = DynamicClassLoader.loadObject(jdbcSourceInfo.getDriver());
 				if (object == null) {
-					throw new IRException("Cannot find sql driver = " + config.getJdbcDriver());
+					throw new IRException("Cannot find sql driver = " + jdbcSourceInfo.getDriver());
 				} else {
 					Driver driver = (Driver) object;
 					DriverManager.registerDriver(driver);
 					Properties info = new Properties();
-					info.put("user", config.getJdbcUser());
-					info.put("password", config.getJdbcPassword());
-					con = driver.connect(config.getJdbcUrl(), info);
+					info.put("user", jdbcSourceInfo.getUser());
+					info.put("password", jdbcSourceInfo.getPassword());
+					con = driver.connect(jdbcSourceInfo.getUrl(), info);
 					con.setAutoCommit(true);
 				}
 			} else {
@@ -98,69 +102,46 @@ public class DBReader extends SingleSourceReader {
 			}
 			doBeforeQuery();
 
-			if (isFull) {
-				logger.debug("Full query = " + q(config.getFullQuery()));
-				if (config.getFullQuery() == null || config.getFullQuery().length() == 0) {
-					throw new IRException("Full query sql is empty!");
-				}
-
-				if (config.getFetchSize() <= 0)
-					pstmt = con.prepareStatement(q(config.getFullQuery()), ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-				else
-					pstmt = con.prepareStatement(q(config.getFullQuery()));
-
-				useBackup = (config.getFullBackupPath() != null && config.getFullBackupPath().length() > 0);
-				if (useBackup) {
-					backupWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath.makePath(config.getFullBackupPath()).file()),
-							config.getBackupFileEncoding()));
-					deleteFileName = config.getFullBackupPath() + ".delete";
-				}
-			} else {
-				if (config.getDeleteIdQuery() != null && config.getDeleteIdQuery().length() > 0) {
-					PreparedStatement idPstmt = null;
-					ResultSet rs = null;
-					try {
-						idPstmt = con.prepareStatement(q(config.getDeleteIdQuery()));
-						rs = idPstmt.executeQuery();
-						while (rs.next()) {
-							String ID = rs.getString(1);
-							deleteIdList.add(ID);
-						}
-					} finally {
-						if(idPstmt != null){
-							try{
-								idPstmt.close();
-							} catch (Exception e) { }
-						}
-						if(rs != null){
-							try{
-								rs.close();
-							} catch (Exception e) { }
-						}
+				
+			if (config.getDeleteIdSQL() != null && config.getDeleteIdSQL().length() > 0) {
+				PreparedStatement idPstmt = null;
+				ResultSet rs = null;
+				try {
+					idPstmt = con.prepareStatement(q(config.getDeleteIdSQL()));
+					rs = idPstmt.executeQuery();
+					while (rs.next()) {
+						String ID = rs.getString(1);
+						deleteIdList.add(ID);
+					}
+				} finally {
+					if(idPstmt != null){
+						try{
+							idPstmt.close();
+						} catch (Exception e) { }
+					}
+					if(rs != null){
+						try{
+							rs.close();
+						} catch (Exception e) { }
 					}
 				}
-				logger.debug("Add query = " + q(config.getIncQuery()));
-				if (config.getIncQuery() == null || config.getIncQuery().length() == 0) {
-					throw new IRException("Incremental query sql is empty!");
-				}
-				pstmt = con.prepareStatement(q(config.getIncQuery()));
-				useBackup = (config.getIncBackupPath() != null && config.getIncBackupPath().length() > 0);
-				if (useBackup) {
-					backupWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath.makePath(config.getIncBackupPath()).file()),
-							config.getBackupFileEncoding()));
-					deleteFileName = config.getIncBackupPath() + ".delete";
-				}
+			}
+			logger.debug("Data query = " + q(config.getDataSQL()));
+			if (config.getDataSQL() == null || config.getDataSQL().length() == 0) {
+				throw new IRException("Data query sql is empty!");
 			}
 
 			if (config.isResultBuffering()) {
 				pstmt = new BufferedStatement(pstmt);
+			} else if (config.getFetchSize() <= 0){
+				//in mysql, fetch data row by row 
+				pstmt = con.prepareStatement(q(config.getDataSQL()), ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				pstmt.setFetchSize(Integer.MIN_VALUE);
+			} else {
+				pstmt = con.prepareStatement(q(config.getDataSQL()));
+				pstmt.setFetchSize(config.getFetchSize());
 			}
 
-			if (config.getFetchSize() > 0) {
-				pstmt.setFetchSize(config.getFetchSize());
-			} else if (config.getFetchSize() <= 0) {
-				pstmt.setFetchSize(Integer.MIN_VALUE);
-			}
 			r = pstmt.executeQuery();
 
 			ResultSetMetaData rsMetadata = r.getMetaData();
@@ -188,12 +169,6 @@ public class DBReader extends SingleSourceReader {
 				if (con != null && !con.isClosed())
 					con.close();
 			} catch (SQLException e1) {
-			}
-
-			try {
-				if (backupWriter != null)
-					backupWriter.close();
-			} catch (IOException e1) {
 			}
 
 			throw new IRException(e);
@@ -239,28 +214,6 @@ public class DBReader extends SingleSourceReader {
 				con.close();
 		} catch (SQLException e) {
 		}
-		try {
-			if (backupWriter != null)
-				backupWriter.close();
-		} catch (IOException e) {
-		}
-
-		// write delete doc list
-		if (useBackup) {
-			try {
-				BufferedWriter deleteBackupWriter = new BufferedWriter(new OutputStreamWriter(
-						new FileOutputStream(filePath.makePath(deleteFileName).file()), config.getBackupFileEncoding()));
-				Iterator<PrimaryKeys> iter = deleteIdList.iterator();
-
-				while (iter.hasNext()) {
-					deleteBackupWriter.write(iter.next().toString());
-					deleteBackupWriter.newLine();
-				}
-
-				deleteBackupWriter.close();
-			} catch (IOException e) {
-			}
-		}
 
 	}
 
@@ -275,25 +228,19 @@ public class DBReader extends SingleSourceReader {
 	}
 
 	private void doBeforeQuery() throws SQLException {
-		int count = -1;
-		if (isFull)
-			count = executeUpdateQuery(q(config.getBeforeFullQuery()));
-		else
-			count = executeUpdateQuery(q(config.getBeforeIncQuery()));
+		int count = executeUpdateQuery(q(config.getBeforeSQL()));
 
-		if (count != -1)
-			logger.info("Before query updated " + count + " rows.");
+		if (count != -1){
+			logger.info("Before query updated {} rows.", count);
+		}
 	}
 
 	private void doAfterQuery() throws SQLException {
-		int count = -1;
-		if (isFull)
-			count = executeUpdateQuery(q(config.getAfterFullQuery()));
-		else
-			count = executeUpdateQuery(q(config.getAfterIncQuery()));
+		int count = executeUpdateQuery(q(config.getAfterSQL()));
 
-		if (count != -1)
-			logger.info("After query updated " + count + " rows.");
+		if (count != -1){
+			logger.info("After query updated {} rows.", count);
+		}
 	}
 
 	@Override
@@ -341,15 +288,6 @@ public class DBReader extends SingleSourceReader {
 			while (r.next()) {
 				boolean hasLob = false;
 				
-				if (useBackup) {
-					try {
-						backupWriter.write("<doc>");
-						backupWriter.newLine();
-					} catch (IOException e) {
-						logger.error("Backup writer error ", e);
-					}
-				}
-				 
 				for (int i = 0; i < columnCount; i++) {
 					int columnIdx = i + 1;
 					int type = rsMeta.getColumnType(columnIdx);
@@ -501,35 +439,9 @@ public class DBReader extends SingleSourceReader {
 						keyValueMap.put(columnName[i], str.trim());
 					}
 					
-					
-					if (useBackup) {
-						try {
-							backupWriter.write("<");
-							backupWriter.write(columnName[i]);
-							backupWriter.write(">");
-							backupWriter.newLine();
-							backupWriter.write(str.trim());
-							backupWriter.newLine();
-							backupWriter.write("</");
-							backupWriter.write(columnName[i]);
-							backupWriter.write(">");
-							backupWriter.newLine();
-						} catch (IOException e) {
-						}
-					}
-					
 				}
 
 				dataSet[bulkCount] = keyValueMap;
-
-				if (useBackup) {
-					try {
-						backupWriter.write("</doc>");
-						backupWriter.newLine();
-						backupWriter.newLine();
-					} catch (IOException e) {
-					}
-				}
 
 				bulkCount++;
 				totalCnt++;
@@ -557,11 +469,6 @@ public class DBReader extends SingleSourceReader {
 				if (con != null && !con.isClosed())
 					con.close();
 			} catch (SQLException e1) {
-			}
-			try {
-				if (backupWriter != null)
-					backupWriter.close();
-			} catch (IOException e1) {
 			}
 
 			throw new IRException(e);

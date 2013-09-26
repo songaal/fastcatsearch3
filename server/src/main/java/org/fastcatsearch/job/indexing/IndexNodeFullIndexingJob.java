@@ -21,15 +21,20 @@ import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.ir.ShardFullIndexer;
 import org.fastcatsearch.ir.ShardIndexer;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.config.CollectionConfig.Shard;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
+import org.fastcatsearch.ir.config.ShardConfig;
+import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.ShardHandler;
+import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.StreamableJob;
@@ -72,12 +77,44 @@ public class IndexNodeFullIndexingJob extends StreamableClusterJob {
 			long startTime = System.currentTimeMillis();
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			
-			/*
-			 * 색인파일 생성.
-			 */
+			
+			//source reader로 데이터를 읽는다.
+			
+			
+			
+
+			//shard 의 filter를 보면서 해당 shard indexer에 데이터를 add 한다.
+			
+
+			//shard 정보 저장.
+			//collection 색인 마무리.
+			
+			//cache 리로드.
+			
+			
+			
 			//////////////////////////////////////////////////////////////////////////////////////////
 			CollectionContext collectionContext = irService.collectionContext(collectionId).copy();
-			ShardIndexer collectionIndexer = new ShardIndexer(collectionContext);
+			List<Shard> shardList = collectionContext.collectionConfig().getShardConfigList();
+			int shardSize = shardList.size();
+			
+			for(ShardContext shardContext : collectionContext.getShardContextList()){
+				ShardConfig shardConfig =  shardContext.shardConfig();
+				String filter = shardConfig.getFilter();
+				
+				ShardFilter shardFilter = new ShardFilter(filter, shardFullIndexer);
+			}
+			
+			
+			// workschema는 shard indexer에서는 보지않는다.
+			Schema schema = shardContext.schema();
+
+			if (schema.getFieldSize() == 0) {
+				logger.error("[{}] Indexing Canceled. Schema field is empty. time = {}", shardContext.shardId());
+				throw new FastcatSearchException("[" + shardContext.shardId() + "] Indexing Canceled. Schema field is empty.");
+			}
+			
+			ShardFullIndexer collectionIndexer = new ShardFullIndexer(collectionContext);
 			SegmentInfo segmentInfo = collectionIndexer.fullIndexing();
 			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 			//////////////////////////////////////////////////////////////////////////////////////////

@@ -131,7 +131,7 @@ public class CollectionContextUtil {
 					JAXBConfigs.writeConfig(infoFile, dataInfo, DataInfo.class);
 				}
 				
-				shardContext.init(schema, collectionConfig.getIndexConfig(), collectionConfig.getDataPlanConfig(), shardConfig, dataSourceConfig, shardIndexStatus, dataInfo);
+				shardContext.init(schema, collectionConfig.getIndexConfig(), collectionConfig.getDataPlanConfig(), shardConfig, shardIndexStatus, dataInfo);
 				logger.debug("shard : {} >> {}", shardId, shardContext);
 				collectionContext.shardContextMap().put(shardId, shardContext);
 			}

@@ -25,8 +25,8 @@ import java.util.regex.Pattern;
 
 import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.env.Environment;
-import org.fastcatsearch.env.Path;
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.FileSourceConfig;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.index.PrimaryKeys;
@@ -45,9 +45,8 @@ public class FSFileSourceReader extends SingleSourceReader {
 	private Pattern OPAT;
 	private Pattern CPAT;
 
-	public FSFileSourceReader(File filePath, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime,
-			boolean isFull) throws IRException {
-		super(filePath, singleSourceConfig, sourceModifier, lastIndexTime, isFull);
+	public FSFileSourceReader(File filePath, DataSourceConfig dataSourceConfig, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime) throws IRException {
+		super(filePath, dataSourceConfig, singleSourceConfig, sourceModifier, lastIndexTime);
 	}
 
 	@Override
@@ -58,14 +57,8 @@ public class FSFileSourceReader extends SingleSourceReader {
 			fileEncoding = Charset.defaultCharset().toString();
 		}
 		try {
-			File file = null;
-			if (isFull) {
-				file = filePath.makePath(config.getFullFilePath()).file();
-				br = new DirBufferedReader(file, fileEncoding);
-			} else {
-				file = filePath.makePath(config.getIncFilePath()).file();
-				br = new DirBufferedReader(file, fileEncoding);
-			}
+			File file = filePath.makePath(config.getFilePath()).file();
+			br = new DirBufferedReader(file, fileEncoding);
 			logger.info("Collect file = {}, {}", file.getAbsolutePath(), fileEncoding);
 		} catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage(), e);
@@ -92,8 +85,6 @@ public class FSFileSourceReader extends SingleSourceReader {
 		if (oneDoc == null) {
 			return false;
 		}
-
-		// logger.debug("ONE DOC = {}", oneDoc);
 
 		BufferedReader reader = new BufferedReader(new StringReader(oneDoc));
 
@@ -170,7 +161,7 @@ public class FSFileSourceReader extends SingleSourceReader {
 	}
 
 	private String checkDeleteDocs(String line) throws IOException {
-		while ("<_delete>".equals(line)) {
+		while ("<delete_doc>".equals(line)) {
 			line = nextLine();
 			if (line == null) {
 				return null;
@@ -178,7 +169,7 @@ public class FSFileSourceReader extends SingleSourceReader {
 			int keySize = deleteIdList.keySize();
 			PrimaryKeys pk = new PrimaryKeys(keySize);
 			int i = 0;
-			while(!line.equals("</_delete>")) {
+			while(!line.equals("</delete_doc>")) {
 				pk.set(i++, line);
 				line = nextLine();
 			}

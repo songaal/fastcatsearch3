@@ -14,6 +14,7 @@ import javax.xml.bind.annotation.XmlType;
  * 
  <collection-config>
 	<name>샘플</name>
+	<index-node>node1</index-node>
 	<shard-list>
 		<shard id="vol1" name="" />
 		<shard id="vol2" name="" />
@@ -36,11 +37,11 @@ import javax.xml.bind.annotation.XmlType;
  * */
 
 @XmlRootElement(name = "collection-config")
-@XmlType(propOrder = { "name", "shardConfigList", "indexConfig", "dataPlanConfig" })
+@XmlType(propOrder = { "shardConfigList", "indexConfig", "dataPlanConfig", "indexNode", "name" })
 public class CollectionConfig {
 
 	private String name;
-	
+	private String indexNode;
 	private IndexConfig indexConfig;
 	private DataPlanConfig dataPlanConfig;
 	private List<Shard> shardConfigList;
@@ -51,6 +52,14 @@ public class CollectionConfig {
 	}
 	public void setName(String name) {
 		this.name = name;
+	}
+	
+	@XmlElement(name="index-node")
+	public String getIndexNode() {
+		return indexNode;
+	}
+	public void setIndexNode(String indexNode) {
+		this.indexNode = indexNode;
 	}
 	
 	@XmlElement(name = "index")

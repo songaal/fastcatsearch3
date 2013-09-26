@@ -18,12 +18,12 @@ public class SingleSourceConfig {
 		this.active = active;
 	}
 	
-	@XmlElement(required=true)
+	@XmlElement(name="source-reader", required=true)
 	public String getSourceReader(){
 		return sourceReader;
 	}
 	
-	@XmlElement
+	@XmlElement(name="source-modifier")
 	public String getSourceModifier(){
 		return sourceModifier;
 	}
