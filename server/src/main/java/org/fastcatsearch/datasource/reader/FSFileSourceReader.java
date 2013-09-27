@@ -114,9 +114,9 @@ public class FSFileSourceReader extends SingleSourceReader {
 						String tag = m.group(1);
 						openTag = tag;
 						isOpened = true;
-						if (logger.isTraceEnabled()) {
-							logger.trace("OpenTag [{}]", tag);
-						}
+//						if (logger.isTraceEnabled()) {
+//							logger.trace("OpenTag [{}]", tag);
+//						}
 						continue;
 					}
 				}
@@ -128,10 +128,10 @@ public class FSFileSourceReader extends SingleSourceReader {
 						if (openTag.equals(closeTag)) {
 							isOpened = false;
 							String targetStr = sb.toString();
-							if (logger.isTraceEnabled()) {
-								logger.trace("CloseTag [{}]", closeTag);
-								logger.trace("Data [{}]", targetStr);
-							}
+//							if (logger.isTraceEnabled()) {
+//								logger.trace("CloseTag [{}]", closeTag);
+//								logger.trace("Data [{}]", targetStr);
+//							}
 							dataMap.put(openTag, targetStr);
 							sb = new StringBuffer();
 							continue;

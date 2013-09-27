@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 public class CollectionContextUtil {
 	private static final Logger logger = LoggerFactory.getLogger(CollectionContextUtil.class);
 
-	public static CollectionContext init(IndexFilePaths indexFilePaths) throws SettingException {
+	public static CollectionContext init(FilePaths indexFilePaths) throws SettingException {
 		try {
 			Path collectionDir = new Path(indexFilePaths.file());
 			SchemaSetting schemaSetting = new SchemaSetting();
@@ -55,7 +55,7 @@ public class CollectionContextUtil {
 		}
 	}
 
-	public static CollectionContext load(Collection collection, IndexFilePaths indexFilePaths) throws SettingException {
+	public static CollectionContext load(Collection collection, FilePaths indexFilePaths) throws SettingException {
 		try {
 			String collectionId = collection.getId();
 			Path collectionDir = new Path(indexFilePaths.file());
@@ -105,7 +105,7 @@ public class CollectionContextUtil {
 			
 			for(Shard shard : collectionConfig.getShardConfigList()){
 				String shardId = shard.getId();
-				IndexFilePaths shardIndexFilePaths = indexFilePaths.shard(shardId);
+				FilePaths shardIndexFilePaths = indexFilePaths.shard(shardId);
 //				Path shardDir = new Path(shardIndexFilePaths.file());
 				ShardContext shardContext = new ShardContext(collectionId, shardId, shardIndexFilePaths);
 				//1. load ShardConfig
@@ -131,7 +131,7 @@ public class CollectionContextUtil {
 					JAXBConfigs.writeConfig(infoFile, dataInfo, DataInfo.class);
 				}
 				
-				shardContext.init(schema, collectionConfig.getIndexConfig(), collectionConfig.getDataPlanConfig(), shardConfig, shardIndexStatus, dataInfo);
+				shardContext.init(collectionConfig.getIndexConfig(), collectionConfig.getDataPlanConfig(), shardConfig, shardIndexStatus, dataInfo);
 				logger.debug("shard : {} >> {}", shardId, shardContext);
 				collectionContext.shardContextMap().put(shardId, shardContext);
 			}
@@ -145,7 +145,7 @@ public class CollectionContextUtil {
 
 	public static void write(CollectionContext collectionContext) throws SettingException {
 		try {
-			IndexFilePaths collectionFilePaths = collectionContext.indexFilePaths();
+			FilePaths collectionFilePaths = collectionContext.indexFilePaths();
 
 			Schema schema = collectionContext.schema();
 			Schema workSchema = collectionContext.workSchema();
@@ -192,7 +192,7 @@ public class CollectionContextUtil {
 	 * 
 	 * */
 	public static void saveCollectionAfterIndexing(CollectionContext collectionContext) throws SettingException {
-		IndexFilePaths collectionFilePaths = collectionContext.indexFilePaths();
+		FilePaths collectionFilePaths = collectionContext.indexFilePaths();
 
 		CollectionIndexStatus collectionStatus = collectionContext.indexStatus();
 //		DataInfo dataInfo = collectionContext.dataInfo();
@@ -218,13 +218,17 @@ public class CollectionContextUtil {
 //					JAXBConfigs.writeConfig(new File(revisionDir, SettingFileNames.revisionInfo), revisionInfo, RevisionInfo.class);
 //				}
 //			}
+			
+			for(ShardContext shardContext : collectionContext.getShardContextList()){
+				saveShardAfterIndexing(shardContext);
+			}
 		} catch (JAXBException e) {
 			throw new SettingException("색인후 CollectionContext 저장중 에러발생", e);
 		}
 	}
 	
 	public static void saveShardAfterIndexing(ShardContext shardContext) throws SettingException {
-		IndexFilePaths indexFilePaths = shardContext.indexFilePaths();
+		FilePaths indexFilePaths = shardContext.filePaths();
 
 		ShardIndexStatus shardIndexStatus = shardContext.indexStatus();
 		DataInfo dataInfo = shardContext.dataInfo();
@@ -237,7 +241,7 @@ public class CollectionContextUtil {
 				File indexDir = indexFilePaths.indexDirFile(shardContext.getIndexSequence());
 				indexDir.mkdirs();
 				logger.debug("Save DataInfo >> {}", dataInfo);
-				JAXBConfigs.writeConfig(indexFilePaths.file(SettingFileNames.dataInfo), dataInfo, DataInfo.class);
+				JAXBConfigs.writeConfig(new File(indexDir, SettingFileNames.dataInfo), dataInfo, DataInfo.class);
 
 				SegmentInfo lastSegmentInfo = dataInfo.getLastSegmentInfo();
 				File revisionDir = indexFilePaths.revisionFile(shardContext.getIndexSequence(), lastSegmentInfo.getId(),
@@ -296,7 +300,7 @@ public class CollectionContextUtil {
 	// workschema파일이 존재한다면 workschema를 schema로 대치하고
 	// schema파일을 저장하고, workschema파일을 지운다.
 	public static void applyWorkSchema(CollectionContext collectionContext) throws SettingException {
-		IndexFilePaths collectionFilePaths = collectionContext.indexFilePaths();
+		FilePaths collectionFilePaths = collectionContext.indexFilePaths();
 		Schema schema = collectionContext.schema();
 		Schema workSchema = collectionContext.workSchema();
 		File collectionDir = collectionFilePaths.file();

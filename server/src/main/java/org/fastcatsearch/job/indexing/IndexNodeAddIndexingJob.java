@@ -41,7 +41,7 @@ import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.task.IndexFileTransfer;
 import org.fastcatsearch.util.CollectionContextUtil;
-import org.fastcatsearch.util.IndexFilePaths;
+import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,7 +106,7 @@ public class IndexNodeAddIndexingJob extends StreamableClusterJob {
 			collectionContext.updateCollectionStatus(IndexingType.ADD, revisionInfo, startTime, System.currentTimeMillis());
 			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
 			
-			IndexFilePaths shardFilePaths = shardContext.indexFilePaths();
+			FilePaths shardFilePaths = shardContext.filePaths();
 			int dataSequence = shardContext.getIndexSequence();
 			String segmentId = segmentInfo.getId();
 			int revision = revisionInfo.getId();

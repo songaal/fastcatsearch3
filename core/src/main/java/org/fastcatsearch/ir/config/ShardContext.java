@@ -6,53 +6,46 @@ import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
-import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
-import org.fastcatsearch.util.IndexFilePaths;
+import org.fastcatsearch.util.FilePaths;
 
 public class ShardContext {
 	private String collectionId;
 	private String shardId;
-	private IndexFilePaths indexFilePaths;
-	private Schema schema;
+	private FilePaths filePaths;
 	private IndexConfig indexConfig;
 	private DataPlanConfig dataPlanConfig;
 	private ShardConfig shardConfig;
-//	private DataSourceConfig dataSourceConfig;
 	private ShardIndexStatus shardIndexStatus;
 	private DataInfo dataInfo;
 	
-	public ShardContext(String collectionId, String shardId, IndexFilePaths indexFilePaths){
+	public ShardContext(String collectionId, String shardId, FilePaths indexFilePaths){
 		this.collectionId = collectionId;
 		this.shardId = shardId;
-		this.indexFilePaths = indexFilePaths;
+		this.filePaths = indexFilePaths;
 	}
 	
-	public void init(Schema schema, IndexConfig indexConfig, DataPlanConfig dataPlanConfig, ShardConfig shardConfig
+	public void init(IndexConfig indexConfig, DataPlanConfig dataPlanConfig, ShardConfig shardConfig
 			, ShardIndexStatus shardIndexStatus, DataInfo dataInfo){
-		this.schema = schema;
 		this.indexConfig = indexConfig;
 		this.dataPlanConfig = dataPlanConfig;
 		this.shardConfig = shardConfig;
-//		this.dataSourceConfig = dataSourceConfig;
 		this.shardIndexStatus = shardIndexStatus;
 		this.dataInfo = dataInfo;
 	}
 	
-	public IndexFilePaths indexFilePaths(){
-		return indexFilePaths;
+	public FilePaths filePaths(){
+		return filePaths;
 	}
-	
+	public FilePaths indexFilePaths(){
+		return new FilePaths(filePaths.indexDirFile(shardIndexStatus.getSequence()));
+	}
 	public String collectionId(){
 		return collectionId;
 	}
 	
 	public String shardId(){
 		return shardId;
-	}
-	
-	public Schema schema(){
-		return schema;
 	}
 	
 	public IndexConfig indexConfig(){
@@ -66,10 +59,6 @@ public class ShardContext {
 	public ShardConfig shardConfig(){
 		return shardConfig;
 	}
-	
-//	public DataSourceConfig dataSourceConfig(){
-//		return dataSourceConfig;
-//	}
 	
 	public ShardIndexStatus indexStatus(){
 		return shardIndexStatus;
@@ -116,16 +105,6 @@ public class ShardContext {
 	public int getIndexSequence(){
 		return shardIndexStatus.getSequence();
 	}
-	public String getLastIndexTime(){
-		if(shardIndexStatus.getAddIndexStatus() != null){
-			return shardIndexStatus.getAddIndexStatus().getStartTime();
-		}else{
-			if(shardIndexStatus.getFullIndexStatus() != null){
-				return shardIndexStatus.getFullIndexStatus().getStartTime();	
-			}
-		}
-		return null;
-	}
 	
 	public void updateSegmentInfo(SegmentInfo segmentInfo) {
 		dataInfo.updateSegmentInfo(segmentInfo);
@@ -139,8 +118,5 @@ public class ShardContext {
 		shardIndexStatus.clear();
 	}
 
-	public ShardContext copy() {
-		// FIXME 구현필요.
-		return this;
-	}
+
 }

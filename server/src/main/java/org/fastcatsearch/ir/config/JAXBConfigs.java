@@ -87,6 +87,11 @@ public class JAXBConfigs {
 	public static <T> void writeConfig(File file, Object jaxbConfig, Class<T> jaxbConfigClass) throws JAXBException {
 		OutputStream os = null;
 		try{
+			if (!file.exists()) {
+				logger.debug("create {}", file.getAbsolutePath());
+				file.createNewFile();
+			}
+			
 			os = new FileOutputStream(file);
 			writeConfig(os, jaxbConfig, jaxbConfigClass);
 		}catch(IOException e){

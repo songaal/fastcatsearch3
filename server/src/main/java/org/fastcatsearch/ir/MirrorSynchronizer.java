@@ -2,7 +2,6 @@ package org.fastcatsearch.ir;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.index.IndexWriteInfo;

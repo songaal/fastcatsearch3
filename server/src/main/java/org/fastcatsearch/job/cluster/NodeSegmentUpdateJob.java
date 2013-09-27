@@ -42,7 +42,7 @@ public class NodeSegmentUpdateJob extends StreamableJob {
 			String shardId = shardContext.shardId();
 			SegmentInfo segmentInfo = shardContext.dataInfo().getLastSegmentInfo();
 			
-			File segmentDir = shardContext.indexFilePaths().segmentFile(shardContext.getIndexSequence(), segmentInfo.getId());
+			File segmentDir = shardContext.filePaths().segmentFile(shardContext.getIndexSequence(), segmentInfo.getId());
 			int revision = segmentInfo.getRevision();
 			File revisionDir = new File(segmentDir, Integer.toString(revision));
 

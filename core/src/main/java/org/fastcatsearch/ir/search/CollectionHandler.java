@@ -11,7 +11,7 @@ import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionConfig.Shard;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.ShardContext;
-import org.fastcatsearch.util.IndexFilePaths;
+import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +23,7 @@ public class CollectionHandler {
 
 	private long startedTime;
 	private boolean isLoaded;
-	private IndexFilePaths indexFilePaths;
+	private FilePaths indexFilePaths;
 
 	public CollectionHandler(CollectionContext collectionContext) throws IRException, SettingException {
 		this.collectionContext = collectionContext;
@@ -43,7 +43,7 @@ public class CollectionHandler {
 
 	private void loadShards() throws IRException {
 		for(ShardContext shardContext : collectionContext.getShardContextList()){
-			ShardHandler shardHandler = new ShardHandler(shardContext);
+			ShardHandler shardHandler = new ShardHandler(collectionContext.schema(), shardContext);
 			shardHandler.load();
 			shardHandlerMap.put(shardHandler.shardId(), shardHandler);
 		}
@@ -67,7 +67,7 @@ public class CollectionHandler {
 	}
 
 	public void changeShardHandler(ShardContext shardContext) throws IRException {
-		ShardHandler shardHandler = new ShardHandler(shardContext).load();
+		ShardHandler shardHandler = new ShardHandler(collectionContext.schema(), shardContext).load();
 		ShardHandler oldShardHandler = shardHandlerMap.put(shardHandler.shardId(), shardHandler);
 		try {
 			if (oldShardHandler != null) {

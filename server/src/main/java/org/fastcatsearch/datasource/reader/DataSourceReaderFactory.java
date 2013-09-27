@@ -12,12 +12,16 @@
 package org.fastcatsearch.datasource.reader;
 
 import java.io.File;
+import java.util.List;
 
 import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.IndexingSourceConfig;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
+import org.fastcatsearch.ir.index.DeleteIdSet;
+import org.fastcatsearch.ir.settings.FieldSetting;
+import org.fastcatsearch.ir.settings.PrimaryKeySetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.util.DynamicClassLoader;
 import org.slf4j.Logger;
@@ -26,18 +30,34 @@ import org.slf4j.LoggerFactory;
 public class DataSourceReaderFactory {
 	private static Logger logger = LoggerFactory.getLogger(DataSourceReaderFactory.class);
 
-	public static DataSourceReader createSourceReader(File filePath, Schema schema, DataSourceConfig dataSourceConfig, String lastIndexTime,
-			boolean isFullIndexing) throws IRException {
+	public static DataSourceReader createFullIndexingSourceReader(File filePath, Schema schema, DataSourceConfig dataSourceConfig) throws IRException {
 
 		DataSourceReader dataSourceReader = new DataSourceReader(schema);
 		logger.debug("dataSourceConfig > {}", dataSourceConfig);
 		if (dataSourceConfig != null) {
-			IndexingSourceConfig indexingSourceConfig = null;
-			if(isFullIndexing){
-				indexingSourceConfig = dataSourceConfig.getFullIndexingSourceConfig();
-			}else{
-				indexingSourceConfig = dataSourceConfig.getAddIndexingSourceConfig();
+			IndexingSourceConfig indexingSourceConfig = dataSourceConfig.getFullIndexingSourceConfig();
+			
+			for (SingleSourceConfig singleSourceConfig : indexingSourceConfig.getSourceConfigList()) {
+				if(!singleSourceConfig.isActive()){
+					continue;
+				}
+				SingleSourceReader sourceReader = createSingleSourceReader(filePath, dataSourceConfig, singleSourceConfig, null);
+				sourceReader.init();
+				dataSourceReader.addSourceReader(sourceReader);
 			}
+		} else {
+			logger.error("설정된 datasource가 없습니다.");
+		}
+		dataSourceReader.init();
+		return dataSourceReader;
+	}
+	
+	public static DataSourceReader createAddIndexingSourceReader(File filePath, Schema schema, DataSourceConfig dataSourceConfig, String lastIndexTime) throws IRException {
+
+		DataSourceReader dataSourceReader = new DataSourceReader(schema);
+		logger.debug("dataSourceConfig > {}", dataSourceConfig);
+		if (dataSourceConfig != null) {
+			IndexingSourceConfig indexingSourceConfig = dataSourceConfig.getAddIndexingSourceConfig();
 			
 			for (SingleSourceConfig singleSourceConfig : indexingSourceConfig.getSourceConfigList()) {
 				if(!singleSourceConfig.isActive()){

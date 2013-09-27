@@ -46,7 +46,7 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.util.CollectionContextUtil;
-import org.fastcatsearch.util.IndexFilePaths;
+import org.fastcatsearch.util.FilePaths;
 
 public class IRService extends AbstractService {
 
@@ -154,7 +154,7 @@ public class IRService extends AbstractService {
 		}
 
 		try {
-			IndexFilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
+			FilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
 			collectionFilePaths.file().mkdirs();
 			CollectionContext collectionContext = new CollectionContext(collectionId, collectionFilePaths);
 			File file = environment.filePaths().configPath().file(SettingFileNames.defaultCollectionConfig);
@@ -174,7 +174,7 @@ public class IRService extends AbstractService {
 	}
 
 	public CollectionContext loadCollectionContext(Collection collectionId) throws SettingException {
-		IndexFilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId.getId());
+		FilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId.getId());
 		if (!collectionFilePaths.file().exists()) {
 			// 디렉토리가 존재하지 않으면.
 			logger.error("[{}]컬렉션 디렉토리가 존재하지 않습니다.", collectionId);

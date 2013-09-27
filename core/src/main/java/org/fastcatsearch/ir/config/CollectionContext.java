@@ -3,17 +3,14 @@ package org.fastcatsearch.ir.config;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.fastcatsearch.ir.common.IndexingType;
-import org.fastcatsearch.ir.config.ClusterConfig.ShardClusterConfig;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
-import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
-import org.fastcatsearch.util.IndexFilePaths;
+import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,16 +18,15 @@ public class CollectionContext {
 	protected static Logger logger = LoggerFactory.getLogger(CollectionContext.class);
 	
 	private String id;
-	private IndexFilePaths indexFilePaths;
+	private FilePaths indexFilePaths;
 	private Schema schema;
 	private Schema workSchema;
 	private CollectionConfig collectionConfig;
-//	private ClusterConfig clusterConfig;
 	private DataSourceConfig dataSourceConfig;
 	private CollectionIndexStatus collectionIndexStatus;
 	private Map<String, ShardContext> shardContextMap;
 	
-	public CollectionContext(String collectionId, IndexFilePaths indexFilePaths) {
+	public CollectionContext(String collectionId, FilePaths indexFilePaths) {
 		this.id = collectionId;
 		this.indexFilePaths = indexFilePaths;
 	}
@@ -56,7 +52,7 @@ public class CollectionContext {
 		return id;
 	}
 	
-	public IndexFilePaths indexFilePaths(){
+	public FilePaths indexFilePaths(){
 		return indexFilePaths;
 	}
 	
@@ -84,6 +80,17 @@ public class CollectionContext {
 		return collectionIndexStatus;
 	}
 
+	public String getLastIndexTime() {
+		if (collectionIndexStatus.getAddIndexStatus() != null) {
+			return collectionIndexStatus.getAddIndexStatus().getStartTime();
+		} else {
+			if (collectionIndexStatus.getFullIndexStatus() != null) {
+				return collectionIndexStatus.getFullIndexStatus().getStartTime();
+			}
+		}
+		return null;
+	}
+	
 	public void updateCollectionStatus(IndexingType indexingType, RevisionInfo revisionInfo, long startTime, long endTime){
 		IndexStatus indexStatus = null;
 		if(indexingType == IndexingType.FULL){

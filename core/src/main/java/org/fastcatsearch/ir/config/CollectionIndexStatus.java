@@ -63,7 +63,20 @@ public class CollectionIndexStatus {
 		private String startTime;
 		private String endTime;
 		private String duration;
-
+		
+		public IndexStatus(){
+		}
+		
+		public IndexStatus(int documentCount, int insertCount, int updateCount, int deleteCount, String startTime, String endTime, String duration){
+			this.documentCount = documentCount;
+			this.insertCount = insertCount;
+			this.updateCount = updateCount;
+			this.deleteCount = deleteCount;
+			this.startTime = startTime;
+			this.endTime = endTime;
+			this.duration = duration;
+		}
+		
 		public IndexStatus copy() {
 			IndexStatus indexStatus = new IndexStatus();
 			indexStatus.documentCount = documentCount;

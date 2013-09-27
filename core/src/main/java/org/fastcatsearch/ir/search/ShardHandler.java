@@ -38,7 +38,7 @@ import org.fastcatsearch.ir.index.PrimaryKeys;
 import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.settings.Schema;
-import org.fastcatsearch.util.IndexFilePaths;
+import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,18 +47,20 @@ public class ShardHandler {
 	private static Logger logger = LoggerFactory.getLogger(ShardHandler.class);
 	private List<SegmentReader> segmentReaderList;
 	private String shardId;
+	private Schema schema;
 	private ShardContext shardContext;
 
 	private long startedTime;
 	private boolean isLoaded;
 
 	private ShardSearcher shardSearcher;
-	private IndexFilePaths indexFilePaths;
+	private FilePaths indexFilePaths;
 
-	public ShardHandler(ShardContext shardContext) {
+	public ShardHandler(Schema schema, ShardContext shardContext) {
+		this.schema = schema;
 		this.shardContext = shardContext;
 		this.shardId = shardContext.shardId();
-		this.indexFilePaths = shardContext.indexFilePaths();
+		this.indexFilePaths = shardContext.filePaths();
 		segmentReaderList = new ArrayList<SegmentReader>();
 	}
 
@@ -75,7 +77,7 @@ public class ShardHandler {
 		return startedTime;
 	}
 
-	public IndexFilePaths indexFilePaths() {
+	public FilePaths indexFilePaths() {
 		return indexFilePaths;
 	}
 
@@ -115,7 +117,7 @@ public class ShardHandler {
 					File segmentDir = indexFilePaths.segmentFile(dataSequence, segmentInfo.getId());
 					// 삭제문서는 마지막 세그먼트의 마지막 리비전에 최신 업데이트 파일이 있으므로, 그것을 로딩한다.
 					BitSet deleteSet = new BitSet(lastRevisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
-					segmentReaderList.add(new SegmentReader(segmentInfo, shardContext.schema(), segmentDir, deleteSet));
+					segmentReaderList.add(new SegmentReader(segmentInfo, schema, segmentDir, deleteSet));
 					logger.debug("{}", segmentInfo);
 				}
 			} catch (IOException e) {
@@ -175,9 +177,9 @@ public class ShardHandler {
 		return segmentReaderList.get(segmentNumber).segmentSearcher();
 	}
 
-	public Schema schema() {
-		return shardContext.schema();
-	}
+//	public Schema schema() {
+//		return shardContext.schema();
+//	}
 
 	// segment reader 추가.
 	// collectionContext에는 segmentInfo를 추가하지 않는다.
@@ -239,7 +241,7 @@ public class ShardHandler {
 				segmentReaderList.get(i).setDeleteSet(deleteSetList[i]);
 			}
 			// 새로생성된 세그먼트는 로딩하여 리스트에 추가해준다.
-			addSegmentReader(new SegmentReader(segmentInfo, shardContext.schema(), segmentDir));
+			addSegmentReader(new SegmentReader(segmentInfo, schema, segmentDir));
 		} else {
 			/*
 			 * 리비전이 증가한경우.
@@ -277,7 +279,7 @@ public class ShardHandler {
 				prevSegmentReaderList.get(i).setDeleteSet(deleteSetList[i]);
 			}
 			// 새 revison을 읽는 segmentReader를 만들어서 기존것과 바꾼다.
-			updateSegmentReader(new SegmentReader(segmentInfo, shardContext.schema(), segmentDir), oldSegmentReader);
+			updateSegmentReader(new SegmentReader(segmentInfo, schema, segmentDir), oldSegmentReader);
 			// 기존 reader는 닫는다.
 			oldSegmentReader.close();
 		}
@@ -291,7 +293,7 @@ public class ShardHandler {
 			BitSet deleteSet = new BitSet(lastRevisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
 			segmentReaderList.get(i).setDeleteSet(deleteSet);
 		}
-		addSegmentReader(new SegmentReader(segmentInfo, shardContext.schema(), segmentDir));
+		addSegmentReader(new SegmentReader(segmentInfo, schema, segmentDir));
 	}
 
 	// 단순 update. delete.set파일은 이미 수정되어있다고 가정한다.
@@ -309,7 +311,7 @@ public class ShardHandler {
 			prevSegmentReaderList.get(i).setDeleteSet(deleteSet);
 		}
 		// 새 revison을 읽는 segmentReader를 만들어서 기존것과 바꾼다.
-		updateSegmentReader(new SegmentReader(segmentInfo, shardContext.schema(), segmentDir), oldSegmentReader);
+		updateSegmentReader(new SegmentReader(segmentInfo, schema, segmentDir), oldSegmentReader);
 		// 기존 reader는 닫는다.
 		oldSegmentReader.close();
 	}
@@ -482,7 +484,7 @@ public class ShardHandler {
 		if (deleteIdSet == null) {
 			return deleteDocumentSize;
 		}
-		PrimaryKeysToBytesRef primaryKeysToBytesRef = new PrimaryKeysToBytesRef(shardContext.schema());
+		PrimaryKeysToBytesRef primaryKeysToBytesRef = new PrimaryKeysToBytesRef(schema);
 		/*
 		 * apply delete set. 이번 색인작업을 통해 삭제가 요청된 문서들을 삭제처리한다.
 		 */

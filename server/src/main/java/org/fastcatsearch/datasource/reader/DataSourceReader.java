@@ -61,9 +61,6 @@ public class DataSourceReader {
 			deleteIdList = new DeleteIdSet(pkFieldSize);
 		}
 
-		int primaryKeySize = schema.schemaSetting().getPrimaryKeySetting().getFieldList().size();
-
-		deleteIdList = new DeleteIdSet(primaryKeySize);
 		singleSourceReaderList = new ArrayList<SingleSourceReader>();
 	}
 

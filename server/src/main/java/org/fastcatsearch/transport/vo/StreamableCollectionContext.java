@@ -19,7 +19,7 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
-import org.fastcatsearch.util.IndexFilePaths;
+import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +52,7 @@ public class StreamableCollectionContext implements Streamable {
 			ShardIndexStatus collectionStatus = JAXBConfigs.readFrom(input, ShardIndexStatus.class);
 //			DataInfo dataInfo = JAXBConfigs.readFrom(input, DataInfo.class);
 			//collectionFilePaths는 현 node에 적합하도록 새로 생성한다. 
-			IndexFilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
+			FilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
 			this.collectionContext = new CollectionContext(collectionId, collectionFilePaths);
 			collectionContext.init(schema, null, collectionConfig, /*clusterConfig,*/ dataSourceConfig, collectionStatus);
 		} catch (JAXBException e) {

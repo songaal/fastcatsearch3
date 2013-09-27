@@ -87,7 +87,7 @@ public class ShardAddIndexingJob extends IndexingJob {
 			
 			shardContext.updateIndexingStatus(IndexingType.ADD, revisionInfo, indexingStartTime(), System.currentTimeMillis());
 			
-			File segmentDir = shardContext.indexFilePaths().segmentFile(shardContext.getIndexSequence(), segmentInfo.getId());
+			File segmentDir = shardContext.filePaths().segmentFile(shardContext.getIndexSequence(), segmentInfo.getId());
 			DeleteIdSet deleteIdSet = shardIndexer.deleteIdSet();
 			shardHandler.updateShard(shardContext, segmentInfo, segmentDir, deleteIdSet);
 			

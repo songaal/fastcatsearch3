@@ -11,56 +11,61 @@ import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
-import org.fastcatsearch.util.IndexFilePaths;
+import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class ShardIndexer {
 	protected static final Logger logger = LoggerFactory.getLogger(ShardIndexer.class);
-
+	
 	protected ShardContext shardContext;
-
-	private DeleteIdSet deleteIdSet;
+	protected DeleteIdSet deleteIdSet; //삭제문서리스트. 외부에서 source reader를 통해 셋팅된다.
+	
 	private IndexWriteInfoList indexWriteInfoList;
 	
 	private SegmentWriter segmentWriter;
-	protected SegmentInfo segmentInfo;
-	int count;
-	long lapTime;
-	long startTime;
+	protected SegmentInfo workingSegmentInfo;
+	protected int count;
+	protected long lapTime;
+	protected long startTime;
 	
 	public ShardIndexer(ShardContext shardContext) throws IRException {
 		this.shardContext = shardContext;
+	}
+	
+	public void init(Schema schema) throws IRException {
 		
 		prepare();
 		
-		segmentInfo = new SegmentInfo();
-		indexWriteInfoList = new IndexWriteInfoList();
-
-		IndexFilePaths indexFilePaths = shardContext.indexFilePaths();
+		FilePaths indexFilePaths = shardContext.filePaths();
 		int dataSequence = shardContext.getIndexSequence();
 
 		IndexConfig indexConfig = shardContext.indexConfig();
 		
-		logger.debug("WorkingSegmentInfo = {}", segmentInfo);
-		String segmentId = segmentInfo.getId();
-		RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
+		logger.debug("WorkingSegmentInfo = {}", workingSegmentInfo);
+		String segmentId = workingSegmentInfo.getId();
+		RevisionInfo revisionInfo = workingSegmentInfo.getRevisionInfo();
 
 		File segmentDir = indexFilePaths.segmentFile(dataSequence, segmentId);
 		logger.info("Segment Dir = {}", segmentDir.getAbsolutePath());
-		Schema schema = shardContext.schema();
 		
-		try {
-			segmentWriter = new SegmentWriter(schema, segmentDir, revisionInfo, indexConfig);
-		} catch (IRException e) {
-			logger.error("", e);
-		}
+		segmentWriter = new SegmentWriter(schema, segmentDir, revisionInfo, indexConfig);
+		
+		indexWriteInfoList = new IndexWriteInfoList();
 		
 		startTime = System.currentTimeMillis();
 	}
 	
 	protected abstract void prepare() throws IRException;
 	protected abstract void done() throws IRException;
+	
+	public void setDeleteIdSet(DeleteIdSet deleteIdSet){
+		this.deleteIdSet = deleteIdSet;
+	}
+	
+	public ShardContext shardContext(){
+		return shardContext;
+	}
 	
 	public void addDocument(Document document) throws IRException, IOException{
 		segmentWriter.addDocument(document);
@@ -75,11 +80,9 @@ public abstract class ShardIndexer {
 		}
 	}
 	
-	public SegmentInfo close() throws IRException{
+	public RevisionInfo close() throws IRException{
 		
-		done();
-		
-		RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
+		RevisionInfo revisionInfo = workingSegmentInfo.getRevisionInfo();
 		if (segmentWriter != null) {
 			try {
 				segmentWriter.close();
@@ -90,22 +93,18 @@ public abstract class ShardIndexer {
 				throw new IRException(e);
 			}
 		}
+
+		done();
 		
 		int insertCount = revisionInfo.getInsertCount();
 
-		if (insertCount > 0) {
-			shardContext.addSegmentInfo(segmentInfo);
-		} else {
+		if (insertCount == 0) {
 			logger.info("[{}] Indexing Canceled due to no documents.", shardContext.shardId());
 		}
 
-		return segmentInfo;
+		return revisionInfo;
 	}
 	
-	public DeleteIdSet deleteIdSet() {
-		return deleteIdSet;
-	}
-
 	public IndexWriteInfoList indexWriteInfoList() {
 		return indexWriteInfoList;
 	}

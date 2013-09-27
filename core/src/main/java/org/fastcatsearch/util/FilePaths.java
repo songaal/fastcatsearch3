@@ -6,15 +6,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class IndexFilePaths {
-	private static final Logger logger = LoggerFactory.getLogger(IndexFilePaths.class);
+public class FilePaths {
+	private static final Logger logger = LoggerFactory.getLogger(FilePaths.class);
 	
 	private File root;
 	private String id;
 	private static String dataRoot = "data";
 	private static String indexPrefix = "index";
 	
-	public IndexFilePaths(File root, String id) {
+	public FilePaths(File root){
+		this.root = root;
+		this.id = root.getName();
+	}
+	public FilePaths(File root, String id) {
 		this.root = new File(root, id);
 		this.id = id;
 	}
@@ -27,8 +31,8 @@ public class IndexFilePaths {
 		return id;
 	}
 	
-	public IndexFilePaths shard(String shardId){
-		return new IndexFilePaths(file(dataRoot), shardId);
+	public FilePaths shard(String shardId){
+		return new FilePaths(file(dataRoot), shardId);
 	}
 	public File file(String... dirs) {
 		File file = root;
