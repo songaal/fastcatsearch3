@@ -54,7 +54,9 @@ public class StreamableCollectionContext implements Streamable {
 			//collectionFilePaths는 현 node에 적합하도록 새로 생성한다. 
 			FilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
 			this.collectionContext = new CollectionContext(collectionId, collectionFilePaths);
-			collectionContext.init(schema, null, collectionConfig, /*clusterConfig,*/ dataSourceConfig, collectionStatus);
+			collectionContext.init(schema, null, collectionConfig, dataSourceConfig, collectionStatus);
+			
+			//TODO shardContextMap 고려!!
 		} catch (JAXBException e) {
 			throw new IOException(e);
 		}

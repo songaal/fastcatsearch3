@@ -10,7 +10,6 @@ import org.fastcatsearch.ir.io.DataOutput;
 public class IndexingStartNotification extends Notification {
 
 	private String collectionId;
-	private String shardId;
 	private IndexingType indexingType;
 	private long startTime;
 	private boolean isScheduled;
@@ -18,10 +17,9 @@ public class IndexingStartNotification extends Notification {
 	public IndexingStartNotification() {
 	}
 
-	public IndexingStartNotification(String collectionId, String shardId, IndexingType indexingType, long startTime, boolean isScheduled) {
+	public IndexingStartNotification(String collectionId, IndexingType indexingType, long startTime, boolean isScheduled) {
 		super("MSG-01000");
 		this.collectionId = collectionId;
-		this.shardId = shardId;
 		this.indexingType = indexingType;
 		this.startTime = startTime;
 		this.isScheduled = isScheduled;
@@ -30,7 +28,6 @@ public class IndexingStartNotification extends Notification {
 	@Override
 	public void readFrom(DataInput input) throws IOException {
 		collectionId = input.readString();
-		shardId = input.readString();
 		indexingType = IndexingType.valueOf(input.readString());
 		startTime = input.readLong();
 		isScheduled = input.readBoolean();
@@ -39,7 +36,6 @@ public class IndexingStartNotification extends Notification {
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
 		output.writeString(collectionId);
-		output.writeString(shardId);
 		output.writeString(indexingType.name());
 		output.writeLong(startTime);
 		output.writeBoolean(isScheduled);
@@ -47,7 +43,7 @@ public class IndexingStartNotification extends Notification {
 
 	@Override
 	public String toString() {
-		return "Indexing Started : collectionId[" + collectionId + "] shardId[" + shardId + "] type[" + indexingType + "] isScheduled[" + isScheduled
+		return "Indexing Started : collectionId[" + collectionId + "] type[" + indexingType + "] isScheduled[" + isScheduled
 				+ "]";
 	}
 

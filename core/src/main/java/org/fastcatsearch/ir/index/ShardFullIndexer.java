@@ -50,7 +50,7 @@ public class ShardFullIndexer extends ShardIndexer {
 			//update status.xml file
 			shardContext.updateIndexingStatus(IndexingType.FULL, revisionInfo, startTime, System.currentTimeMillis());
 		}
-
+		
 	}
 
 }

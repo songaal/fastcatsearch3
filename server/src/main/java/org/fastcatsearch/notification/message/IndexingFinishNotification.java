@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.sql.Timestamp;
 
 import org.fastcatsearch.common.io.Streamable;
-import org.fastcatsearch.db.dao.IndexingResult;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
@@ -14,7 +13,6 @@ import org.fastcatsearch.transport.vo.StreamableThrowable;
 public class IndexingFinishNotification extends Notification {
 
 	private String collectionId;
-	private String shardId;
 	private IndexingType indexingType;
 	private boolean isSuccess;
 	private long startTime;
@@ -23,11 +21,10 @@ public class IndexingFinishNotification extends Notification {
 
 	public IndexingFinishNotification() { }
 	
-	public IndexingFinishNotification(String collection, String shardId, IndexingType indexingType, boolean isSuccess, long startTime, long finishTime,
+	public IndexingFinishNotification(String collection,IndexingType indexingType, boolean isSuccess, long startTime, long finishTime,
 			Streamable result) {
 		super("MSG-01001");
 		this.collectionId = collection;
-		this.shardId = shardId;
 		this.indexingType = indexingType;
 		this.isSuccess = isSuccess;
 		this.startTime = startTime;
@@ -38,7 +35,6 @@ public class IndexingFinishNotification extends Notification {
 	@Override
 	public void readFrom(DataInput input) throws IOException {
 		collectionId = input.readString();
-		shardId = input.readString();
 		indexingType = IndexingType.valueOf(input.readString());
 		isSuccess = input.readBoolean();
 		startTime = input.readLong();
@@ -54,7 +50,6 @@ public class IndexingFinishNotification extends Notification {
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
 		output.writeString(collectionId);
-		output.writeString(shardId);
 		output.writeString(indexingType.name());
 		output.writeBoolean(isSuccess);
 		output.writeLong(startTime);
@@ -64,7 +59,7 @@ public class IndexingFinishNotification extends Notification {
 
 	@Override
 	public String toString() {
-		return "Indexing Started! : isSuccess["+isSuccess+"] collectionId["+collectionId+"] shardId["+shardId+"] type[" + indexingType+ "] start["+startTime+"] finish["+finishTime+"]";
+		return "Indexing Started! : isSuccess["+isSuccess+"] collectionId["+collectionId+"] type[" + indexingType+ "] start["+startTime+"] finish["+finishTime+"]";
 	}
 
 	@Override
@@ -78,9 +73,9 @@ public class IndexingFinishNotification extends Notification {
 		
 		if(isSuccess){
 			IndexingJobResult result2 = (IndexingJobResult) result;
-			params[5] = "추가문서수["+Integer.toString(result2.revisionInfo.getInsertCount())+"] " +
-					"업데이트문서수["+Integer.toString(result2.revisionInfo.getUpdateCount())+"]" +
-					"삭제문서수["+Integer.toString(result2.revisionInfo.getDeleteCount())+"]";
+			params[5] = "추가문서수["+Integer.toString(result2.indexStatus.getInsertCount())+"] " +
+					"업데이트문서수["+Integer.toString(result2.indexStatus.getUpdateCount())+"]" +
+					"삭제문서수["+Integer.toString(result2.indexStatus.getDeleteCount())+"]";
 		}else{
 			if(result instanceof StreamableThrowable){
 				StreamableThrowable throwable = (StreamableThrowable) result;

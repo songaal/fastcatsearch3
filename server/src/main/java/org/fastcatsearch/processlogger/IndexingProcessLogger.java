@@ -48,10 +48,10 @@ public class IndexingProcessLogger implements ProcessLogger {
 					//
 					IndexingJobResult indexingJobResult = (IndexingJobResult) log.getResult();
 					indexingResult.updateResult(log.getCollectionId(), log.getIndexingType(), IndexingResult.STATUS_SUCCESS,
-							indexingJobResult.revisionInfo.getInsertCount(), indexingJobResult.revisionInfo.getUpdateCount(),
-							indexingJobResult.revisionInfo.getDeleteCount(), new Timestamp(log.getEndTime()), (int) log.getDurationTime());
-					indexingHistory.insert(log.getCollectionId(), log.getIndexingType(), true, indexingJobResult.revisionInfo.getInsertCount(),
-							indexingJobResult.revisionInfo.getUpdateCount(), indexingJobResult.revisionInfo.getDeleteCount(), log.isScheduled(),
+							indexingJobResult.indexStatus.getInsertCount(), indexingJobResult.indexStatus.getUpdateCount(),
+							indexingJobResult.indexStatus.getDeleteCount(), new Timestamp(log.getEndTime()), (int) log.getDurationTime());
+					indexingHistory.insert(log.getCollectionId(), log.getIndexingType(), true, indexingJobResult.indexStatus.getInsertCount(),
+							indexingJobResult.indexStatus.getUpdateCount(), indexingJobResult.indexStatus.getDeleteCount(), log.isScheduled(),
 							new Timestamp(log.getStartTime()), new Timestamp(log.getEndTime()), (int) log.getDurationTime());
 				} else {
 					//

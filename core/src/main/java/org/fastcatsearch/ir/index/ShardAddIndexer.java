@@ -139,7 +139,7 @@ public class ShardAddIndexer extends ShardIndexer {
 					logger.info("delete revision dir ={}", revisionDir.getAbsolutePath());
 				}
 			}
-
+			
 		} catch (IOException e) {
 			throw new IRException(e);
 		}

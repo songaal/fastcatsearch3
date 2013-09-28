@@ -1,20 +1,19 @@
-package org.fastcatsearch.job.cluster;
+package org.fastcatsearch.cluster;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.fastcatsearch.cluster.Node;
-import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.StreamableJob;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public abstract class StreamableClusterJob extends StreamableJob {
-
-	private static final long serialVersionUID = 2080251241965769963L;
+public class ClusterUtils {
 	
-	protected boolean sendJobToNodeList(Job job, NodeService nodeService, List<Node> nodeList, boolean includeMyNode) throws FastcatSearchException{
+	private static Logger logger = LoggerFactory.getLogger(ClusterUtils.class);
+	
+	public static boolean sendJobToNodeList(Job job, NodeService nodeService, List<Node> nodeList, boolean includeMyNode) {
 		List<ResultFuture> resultFutureList = new ArrayList<ResultFuture>(nodeList.size());
 		for (int i = 0; i < nodeList.size(); i++) {
 			Node node = nodeList.get(i);
@@ -31,7 +30,6 @@ public abstract class StreamableClusterJob extends StreamableJob {
 			Object obj = resultFuture.take();
 			if(!resultFuture.isSuccess()){
 				logger.debug("[{}] job 결과 : {}", node, obj);
-//				throw new FastcatSearchException("작업실패 collection="+collectionId+", "+node);
 				return false;
 			}
 		}

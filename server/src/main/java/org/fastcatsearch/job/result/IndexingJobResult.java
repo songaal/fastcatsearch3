@@ -14,42 +14,40 @@ package org.fastcatsearch.job.result;
 import java.io.IOException;
 
 import org.fastcatsearch.common.io.Streamable;
-import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
+import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 
 public class IndexingJobResult implements Streamable {
 	public String collectionId;
-	public String shardId;
-	public RevisionInfo revisionInfo;
+//	public String shardId;
+	public IndexStatus indexStatus;
 	public int duration;
 	public boolean isSuccess;
 
 	public IndexingJobResult() {
 	}
 
-	public IndexingJobResult(String collectionId, String shardId, RevisionInfo revisionInfo, int duration) {
-		this(collectionId, shardId, revisionInfo, duration, true);
+	public IndexingJobResult(String collectionId, IndexStatus indexStatus, int duration) {
+		this(collectionId, indexStatus, duration, true);
 	}
 
-	public IndexingJobResult(String collectionId, String shardId, RevisionInfo revisionInfo, int duration, boolean isSuccess) {
+	public IndexingJobResult(String collectionId, IndexStatus indexStatus, int duration, boolean isSuccess) {
 		this.collectionId = collectionId;
-		this.shardId = shardId;
-		this.revisionInfo = revisionInfo;
+		this.indexStatus = indexStatus;
 		this.duration = duration;
 		this.isSuccess = isSuccess;
 	}
 
 	public String toString() {
-		return "[IndexingResult] success[" + isSuccess + "] collectionId = " + collectionId + ", shardId = " + shardId + ", revisionInfo = " + revisionInfo + " duration = "
+		return "[IndexingResult] success[" + isSuccess + "] collectionId = " + collectionId + ", indexStatus = " + indexStatus + " duration = "
 				+ duration;
 	}
 
 	@Override
 	public void readFrom(DataInput input) throws IOException {
 		collectionId = input.readString();
-		shardId = input.readString();
-		revisionInfo = new RevisionInfo(input.readInt(), input.readInt(), input.readInt(), input.readInt(), input.readInt(), input.readString());
+		indexStatus = new IndexStatus(input.readInt(), input.readInt(), input.readInt(), input.readInt(), "", input.readString(), "");
 		duration = input.readInt();
 		isSuccess = input.readBoolean();
 	}
@@ -57,12 +55,11 @@ public class IndexingJobResult implements Streamable {
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
 		output.writeString(collectionId);
-		output.writeString(shardId);
-		output.writeInt(revisionInfo.getDocumentCount());
-		output.writeInt(revisionInfo.getInsertCount());
-		output.writeInt(revisionInfo.getUpdateCount());
-		output.writeInt(revisionInfo.getDeleteCount());
-		output.writeString(revisionInfo.getCreateTime());
+		output.writeInt(indexStatus.getDocumentCount());
+		output.writeInt(indexStatus.getInsertCount());
+		output.writeInt(indexStatus.getUpdateCount());
+		output.writeInt(indexStatus.getDeleteCount());
+		output.writeString(indexStatus.getEndTime());
 		output.writeInt(duration);
 		output.writeBoolean(isSuccess);
 	}

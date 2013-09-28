@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
@@ -44,7 +45,16 @@ public class CollectionContext {
 	
 	public CollectionContext copy(){
 		CollectionContext collectionContext = new CollectionContext(id, indexFilePaths);
-		collectionContext.init(schema, workSchema, collectionConfig, /*clusterConfig, */dataSourceConfig, collectionIndexStatus.copy());
+		collectionContext.schema = schema;
+		collectionContext.workSchema = workSchema;
+		collectionContext.collectionConfig = collectionConfig;
+		collectionContext.dataSourceConfig = dataSourceConfig;
+		collectionContext.collectionIndexStatus = collectionIndexStatus.copy();
+		collectionContext.shardContextMap = new HashMap<String, ShardContext>();
+		for(Entry<String, ShardContext> entry : shardContextMap.entrySet()){
+			collectionContext.shardContextMap.put(entry.getKey(), entry.getValue().copy());
+		}
+		
 		return collectionContext;
 	}
 	

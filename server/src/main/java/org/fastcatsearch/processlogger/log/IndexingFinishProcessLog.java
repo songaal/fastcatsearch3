@@ -12,7 +12,6 @@ import org.fastcatsearch.transport.vo.StreamableThrowable;
 public class IndexingFinishProcessLog implements ProcessLog {
 
 	private String collectionId;
-	private String shardId;
 	private IndexingType indexingType;
 	private boolean isSuccess;
 	private long startTime;
@@ -22,10 +21,9 @@ public class IndexingFinishProcessLog implements ProcessLog {
 
 	public IndexingFinishProcessLog() { }
 	
-	public IndexingFinishProcessLog(String collectionId, String shardId, IndexingType indexingType, boolean isSuccess, long startTime, long endTime,
+	public IndexingFinishProcessLog(String collectionId, IndexingType indexingType, boolean isSuccess, long startTime, long endTime,
 			boolean isScheduled, Streamable result) {
 		this.collectionId = collectionId;
-		this.shardId = shardId;
 		this.indexingType = indexingType;
 		this.isSuccess = isSuccess;
 		this.startTime = startTime;
@@ -38,10 +36,6 @@ public class IndexingFinishProcessLog implements ProcessLog {
 		return collectionId;
 	}
 
-	public String getShardId() {
-		return shardId;
-	}
-	
 	public IndexingType getIndexingType() {
 		return indexingType;
 	}

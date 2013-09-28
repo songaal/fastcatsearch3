@@ -14,7 +14,11 @@ public abstract class AuthAction extends ServiceAction {
 	public void doAction(ActionRequest request, ActionResponse response) throws Exception {
 		writeHeader(response);
 		
+		if(session == null){
+			return;
+		}
 		Object obj = session.getAttribute(AUTH_KEY);
+		
 		try {
 			
 			//FIXME 일단 테스트시에는 auth없이..

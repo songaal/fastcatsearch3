@@ -19,10 +19,10 @@ public class ShardContext {
 	private ShardIndexStatus shardIndexStatus;
 	private DataInfo dataInfo;
 	
-	public ShardContext(String collectionId, String shardId, FilePaths indexFilePaths){
+	public ShardContext(String collectionId, String shardId, FilePaths filePaths){
 		this.collectionId = collectionId;
 		this.shardId = shardId;
-		this.filePaths = indexFilePaths;
+		this.filePaths = filePaths;
 	}
 	
 	public void init(IndexConfig indexConfig, DataPlanConfig dataPlanConfig, ShardConfig shardConfig
@@ -116,6 +116,16 @@ public class ShardContext {
 	public void clearDataInfoAndStatus() {
 		dataInfo = new DataInfo();
 		shardIndexStatus.clear();
+	}
+
+	public ShardContext copy() {
+		ShardContext newShardContext = new ShardContext(collectionId, shardId, filePaths);
+		newShardContext.indexConfig = indexConfig;
+		newShardContext.dataPlanConfig = dataPlanConfig;
+		newShardContext.shardConfig = shardConfig;
+		newShardContext.shardIndexStatus = shardIndexStatus.copy();
+		newShardContext.dataInfo = dataInfo;
+		return newShardContext;
 	}
 
 

@@ -50,8 +50,8 @@ public class CollectionFullIndexer {
 
 		shardIndexMapper = new ShardIndexMapper();
 		for (ShardContext shardContext : collectionContext.getShardContextList()) {
-
 			String filter = shardContext.shardConfig().getFilter();
+			logger.debug("#shard filter {} : {}", shardContext.shardId(), filter);
 			ShardFilter shardFilter = new ShardFilter(workingSchema.fieldSequenceMap(), filter);
 			ShardIndexer shardIndexer = new ShardFullIndexer(workingSchema, shardContext);
 			if (shardIndexer != null) {
@@ -85,6 +85,8 @@ public class CollectionFullIndexer {
 		RevisionInfo info = shardIndexMapper.close();
 
 		dataSourceReader.close();
+		
+		logger.debug("##Indexer close {}", info);
 
 		deleteIdSet = dataSourceReader.getDeleteList();
 		int deleteCount = deleteIdSet.size();

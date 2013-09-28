@@ -2,7 +2,6 @@ package org.fastcatsearch.ir.config;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 
 /**
  * <index-status sequence="2"> <index-full documents="50" updates ="1" deletes="20" start="2013-05-20 13:03:32"
