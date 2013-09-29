@@ -69,7 +69,7 @@ public class GroupIndexReader extends ReferencableIndexReader {
 		PrimaryKeyIndexReader pkReader = new PrimaryKeyIndexReader(revisionDir, IndexFileNames.getGroupKeyMapFileName(id));
 		groupKeySize = pkReader.count();
 		pkReader.close();
-		logger.debug("Group {} >> keysize:{}", id, groupKeySize);
+//		logger.debug("Group {} >> keysize:{}", id, groupKeySize);
 
 	}
 	

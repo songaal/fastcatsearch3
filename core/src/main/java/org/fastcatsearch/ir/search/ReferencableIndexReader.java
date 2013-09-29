@@ -37,7 +37,7 @@ public abstract class ReferencableIndexReader implements Cloneable {
     	}else{
     		dataRef = new DataRef(dataSize);
     	}
-    	logger.debug("index reader init {}, {}, {}", indexId, dataSize, isMultiValue);
+//    	logger.debug("index reader init {}, {}, {}", indexId, dataSize, isMultiValue);
 	}
 	
 	public DataRef getRef() throws IOException{

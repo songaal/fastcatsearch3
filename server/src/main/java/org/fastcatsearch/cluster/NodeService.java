@@ -18,8 +18,10 @@ import org.fastcatsearch.transport.TransportException;
 import org.fastcatsearch.transport.TransportModule;
 import org.fastcatsearch.transport.common.SendFileResultFuture;
 
-public class NodeService extends AbstractService {
-
+public class NodeService extends AbstractService implements NodeLoadBalancable {
+	
+	private static NodeLoadBalancer loadBalancer;
+	
 	private TransportModule transportModule;
 	private Node myNode;
 	private Node masterNode;
@@ -97,6 +99,8 @@ public class NodeService extends AbstractService {
 			}
 		}
 
+		loadBalancer = new NodeLoadBalancer();
+		
 		return true;
 	}
 
@@ -188,6 +192,19 @@ public class NodeService extends AbstractService {
 		}
 		return null;
 
+	}
+
+	@Override
+	public void updateLoadBalance(String shardId, List<String> dataNodeIdList) {
+		List<Node> list = getNodeById(dataNodeIdList);
+		loadBalancer.update(shardId, list);
+	}
+	
+	@Override
+	public Node getBalancedNode(String shardId){
+		Node node = loadBalancer.getBalancedNode(shardId);
+		logger.debug("#Balanced node [{}] >> {}", shardId, node);
+		return node;
 	}
 
 }

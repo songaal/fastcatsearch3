@@ -10,6 +10,7 @@ import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.util.FilePaths;
 
 public class ShardContext {
+	
 	private String collectionId;
 	private String shardId;
 	private FilePaths filePaths;

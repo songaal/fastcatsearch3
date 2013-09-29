@@ -11,6 +11,7 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.View;
+import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.ir.search.DocIdList;
 import org.fastcatsearch.ir.search.DocumentResult;
@@ -19,7 +20,7 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableDocumentResult;
 
 /*
- * 문서의 모든 필드를 통째로 가져오는 job.
+ * 요청된 문서의 특정필드만 포함된 문서리스트를 가져오는 job.
  *
  * */
 public class InternalDocumentSearchJob extends StreamableJob {
@@ -27,6 +28,7 @@ public class InternalDocumentSearchJob extends StreamableJob {
 	private static final long serialVersionUID = -5716557532305983540L;
 
 	private String collectionId;
+	private String shardId;
 	private DocIdList docIdList;
 	private List<View> views;
 	private String[] tags;
@@ -35,8 +37,9 @@ public class InternalDocumentSearchJob extends StreamableJob {
 	public InternalDocumentSearchJob() {
 	}
 
-	public InternalDocumentSearchJob(String collectionId, DocIdList docIdList, List<View> views, String[] tags, HighlightInfo highlightInfo) {
+	public InternalDocumentSearchJob(String collectionId, String shardId, DocIdList docIdList, List<View> views, String[] tags, HighlightInfo highlightInfo) {
 		this.collectionId = collectionId;
+		this.shardId = shardId;
 		this.docIdList = docIdList;
 		this.views = views;
 		this.tags = tags;
@@ -48,13 +51,13 @@ public class InternalDocumentSearchJob extends StreamableJob {
 
 		try {
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-			ShardHandler collectionHandler = irService.collectionHandler(collectionId);
+			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
 
 			if (collectionHandler == null) {
 				throw new FastcatSearchException("ERR-00520", collectionId);
 			}
-
-			DocumentResult documentResult = collectionHandler.searcher().searchDocument(docIdList, views, tags, highlightInfo);
+			ShardHandler shardHandler = collectionHandler.getShardHandler(shardId);
+			DocumentResult documentResult = shardHandler.searcher().searchDocument(docIdList, views, tags, highlightInfo);
 
 			return new JobResult(new StreamableDocumentResult(documentResult));
 		} catch (FastcatSearchException e) {

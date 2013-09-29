@@ -83,7 +83,7 @@ public class SearchIndexReader implements Cloneable {
 		String id = indexSetting.getId();
 		this.indexId = id;
 		
-		logger.debug("seg reader dir = {}", dir.getAbsolutePath());
+		logger.debug("Search Index [{}] Dir = {}", indexId, dir.getAbsolutePath());
 		try {
 			postingInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, revision) , IndexFileNames.getSearchPostingFileName(id));
 			lexiconInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, revision) , IndexFileNames.getSearchLexiconFileName(id));
@@ -147,6 +147,7 @@ public class SearchIndexReader implements Cloneable {
 	public SearchIndexReader clone() {
 		
 		SearchIndexReader reader = new SearchIndexReader();
+		reader.indexId = indexId;
 		reader.schema = schema;
 		reader.postingInput = postingInput.clone();
 		reader.lexiconInput = lexiconInput.clone();
@@ -369,7 +370,7 @@ public class SearchIndexReader implements Cloneable {
 				if (cmp == 0) {
 					pos = lexiconInput.readLong();
 					if (logger.isDebugEnabled()) {
-						logger.debug("search success = {} at field-{}", new String(singleTerm.array, singleTerm.start, singleTerm.length));
+						logger.debug("search success = {} at field-{}", singleTerm, indexId);
 					}
 					break;
 				} else if (cmp > 0) {
@@ -377,7 +378,7 @@ public class SearchIndexReader implements Cloneable {
 					// word.
 					// search fail
 					if (logger.isDebugEnabled()) {
-						logger.debug("search fail = {} at field-{}", new String(singleTerm.array, singleTerm.start, singleTerm.length));
+						logger.debug("search fail = {} at field[{}]", singleTerm, indexId);
 					}
 					break;
 				} else {

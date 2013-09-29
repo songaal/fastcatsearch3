@@ -8,6 +8,7 @@ import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
+import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.service.ServiceManager;
@@ -20,12 +21,13 @@ import org.fastcatsearch.transport.vo.StreamableDocumentList;
 public class InternalDocumentRequestJob extends StreamableJob {
 	
 	private String collectionId;
+	private String shardId;
 	private int[] docIdList;
 	private int length;
 	
 	public InternalDocumentRequestJob(){}
 	
-	public InternalDocumentRequestJob(String collectionId, int[] docIdList, int length) {
+	public InternalDocumentRequestJob(String collectionId, String shardId, int[] docIdList, int length) {
 		this.collectionId = collectionId;
 		this.docIdList = docIdList;
 		this.length = length;
@@ -36,13 +38,14 @@ public class InternalDocumentRequestJob extends StreamableJob {
 		
 		try {
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-			ShardHandler collectionHandler = irService.collectionHandler(collectionId);
+			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
 			
 			if(collectionHandler == null){
 				throw new FastcatSearchException("ERR-00520", collectionId);
 			}
 			
-			List<Document> documentList = collectionHandler.searcher().requestDocument(docIdList);
+			ShardHandler shardHandler = collectionHandler.getShardHandler(shardId);
+			List<Document> documentList = shardHandler.searcher().requestDocument(docIdList);
 			
 			return new JobResult(new StreamableDocumentList(documentList));
 		} catch (FastcatSearchException e){

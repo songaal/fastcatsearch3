@@ -113,7 +113,7 @@ public class SearchResultAggregator {
 			if(dataMerger != null){
 				groupData = dataMerger.merge();
 			}
-			
+			//TODO collectionId, shardId 셋팅..
 			return new InternalSearchResult(totalHit.getHitElementList(), count, totalCount, groupData);
 		}
 		

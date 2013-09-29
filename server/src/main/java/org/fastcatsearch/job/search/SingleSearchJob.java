@@ -11,18 +11,22 @@
 
 package org.fastcatsearch.job.search;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.search.SearchResultAggregator;
 import org.fastcatsearch.ir.search.ShardHandler;
+import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
@@ -92,6 +96,8 @@ public class SingleSearchJob extends Job {
 				if(collectionHandler == null){
 					throw new FastcatSearchException("ERR-00520", collectionId);
 				}
+				
+				List<InternalSearchResult> resultList = new ArrayList<InternalSearchResult>(shardIdList.length);
 				for (int i = 0; i < shardIdList.length; i++) {
 					String shardId = shardIdList[i];
 					ShardHandler shardHandler =  collectionHandler.getShardHandler(shardId);
@@ -100,9 +106,19 @@ public class SingleSearchJob extends Job {
 						throw new FastcatSearchException("ERR-00520", shardId);
 					}
 					InternalSearchResult internalSearchResult = shardHandler.searcher().searchInternal(q);
+					logger.debug("# internalSearchResult > {}", internalSearchResult);
+					resultList.add(internalSearchResult);
 					
 				}
+				CollectionContext collectionContext = collectionHandler.collectionContext();
 				
+				Schema schema = collectionContext.schema();
+				SearchResultAggregator aggregator = new SearchResultAggregator(q, schema);
+				InternalSearchResult aggregatedSearchResult = aggregator.aggregate(resultList);
+				int totalSize = aggregatedSearchResult.getTotalCount();
+				logger.debug("search result : {}", aggregatedSearchResult);
+				
+				result = new Result();
 				irService.searchCache().put(queryMap.queryString(), result);
 			}
 //			long st = System.currentTimeMillis();

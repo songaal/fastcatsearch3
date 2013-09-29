@@ -95,22 +95,24 @@ public class ClusterSearchJob extends Job {
 			String shardId = shardIdList[i];
 			shardNumberMap.put(shardId, i);
 			
-			ShardContext shardContext = collectionContext.getShardContext(shardId);
+//			ShardContext shardContext = collectionContext.getShardContext(shardId);
 			
 			
-			ShardConfig shardConfig = shardContext.shardConfig();
+//			ShardConfig shardConfig = shardContext.shardConfig();
 			
 			//TODO shard가 여러개이면 모두 검색해서 하나로 합친다.
 			
-			List<String> dataNodeIdList = shardConfig.getDataNodeList();
+//			List<String> dataNodeIdList = shardConfig.getDataNodeList();
 			
 			//TODO shard 갯수를 확인하고 각 shard에 해당하는 노드들을 가져온다.
 			//TODO 여러개의 replaica로 분산되어있을 경우, 적합한 노드를 찾아서 리턴한다.
+//			nodeService.requestLoadBalance(shardId, dataNodeIdList);
 			
-			String dataNodeId = dataNodeIdList.get(0);
-			Node dataNode = nodeService.getNodeById(dataNodeId);
+			Node dataNode = nodeService.getBalancedNode(shardId);
+//			String dataNodeId = dataNodeIdList.get(0);
+//			Node dataNode = nodeService.getNodeById(dataNodeId);
 			selectedNodeList[i] = dataNode;
-			
+
 			QueryMap newQueryMap = queryMap.clone();
 			newQueryMap.setId(collectionId, shardId);
 			logger.debug("query-{} >> {}", i, newQueryMap);
@@ -192,7 +194,7 @@ public class ClusterSearchJob extends Job {
 			
 			logger.debug("shard [{}] search at {}", shardId, dataNode);
 			
-			InternalDocumentSearchJob job = new InternalDocumentSearchJob(shardId, docIdList[i], views, tags, highlightInfo);
+			InternalDocumentSearchJob job = new InternalDocumentSearchJob(collectionId, shardId, docIdList[i], views, tags, highlightInfo);
 			resultFutureList[i] = nodeService.sendRequest(dataNode, job);
 		}
 		

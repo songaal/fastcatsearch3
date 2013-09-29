@@ -200,6 +200,9 @@ public class CatServer {
 			stop();
 		}
 
+		irService.registerLoadBanlancer(nodeService);
+		
+		
 		if (shutdownHook == null) {
 			shutdownHook = new ServerShutdownHook();
 		}

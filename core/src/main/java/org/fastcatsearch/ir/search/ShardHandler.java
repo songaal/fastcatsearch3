@@ -64,6 +64,9 @@ public class ShardHandler {
 		segmentReaderList = new ArrayList<SegmentReader>();
 	}
 
+	public Schema schema(){
+		return schema;
+	}
 	public ShardHandler load() throws IRException {
 		loadSearcherAndReader();
 		this.shardSearcher = new ShardSearcher(this);

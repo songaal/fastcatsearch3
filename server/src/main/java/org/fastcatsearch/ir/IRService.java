@@ -21,6 +21,8 @@ import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBException;
 
+import org.fastcatsearch.cluster.NodeLoadBalancable;
+import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.QueryCacheModule;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
@@ -30,6 +32,7 @@ import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionIndexStatus;
 import org.fastcatsearch.ir.config.CollectionsConfig;
+import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.JAXBConfigs;
@@ -253,5 +256,22 @@ public class IRService extends AbstractService {
 
 	public QueryCacheModule<Result> documentCache() {
 		return documentCache;
+	}
+
+	public void registerLoadBanlancer(NodeLoadBalancable nodeLoadBalancable) {
+		//차후 검색시 로드밸런싱에 대비하여 먼저 shardId로 node들을 등록해놓는다.
+		for(Collection collection : getCollectionList()){
+			String collectionId = collection.getId();
+			if(collection.isActive()){
+				CollectionHandler collectionHandler = collectionHandlerMap.get(collectionId);
+				for(Entry<String, ShardContext> entry : collectionHandler.collectionContext().shardContextMap().entrySet()){
+					String shardId = entry.getKey();
+					List<String> dataNodeIdList = entry.getValue().shardConfig().getDataNodeList();
+					nodeLoadBalancable.updateLoadBalance(shardId, dataNodeIdList);
+				}
+			}
+			
+		}
+		
 	}
 }
