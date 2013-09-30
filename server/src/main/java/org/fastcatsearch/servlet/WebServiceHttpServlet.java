@@ -6,10 +6,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.fastcatsearch.util.JSONPResultWriter;
-import org.fastcatsearch.util.JSONResultWriter;
-import org.fastcatsearch.util.ResultWriter;
-import org.fastcatsearch.util.XMLResultWriter;
+import org.fastcatsearch.util.JSONPResponseWriter;
+import org.fastcatsearch.util.JSONResponseWriter;
+import org.fastcatsearch.util.ResponseWriter;
+import org.fastcatsearch.util.XMLResponseWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,8 +76,8 @@ public class WebServiceHttpServlet extends HttpServlet {
 		return defaultValue;
 	}
 	
-	protected ResultWriter getResultStringer(String rootElement, boolean isBeautify, String jsonCallback) {
-		ResultWriter rStringer = null;
+	protected ResponseWriter getResultStringer(String rootElement, boolean isBeautify, String jsonCallback) {
+		ResponseWriter rStringer = null;
 //		if (resultType == JSON_TYPE) {
 //			rStringer = new JSONResultWriter(isBeautify);
 //		} else if (resultType == JSONP_TYPE) {
@@ -88,14 +88,14 @@ public class WebServiceHttpServlet extends HttpServlet {
 		return rStringer;
 	}
 	
-	protected void writeHeader(HttpServletResponse response, ResultWriter stringer, String responseCharset) {
+	protected void writeHeader(HttpServletResponse response, ResponseWriter stringer, String responseCharset) {
 		response.reset();
 		response.setStatus(HttpServletResponse.SC_OK);
-		if (stringer instanceof JSONResultWriter) {
+		if (stringer instanceof JSONResponseWriter) {
 			response.setContentType("application/json; charset=" + responseCharset);
-		} else if (stringer instanceof JSONPResultWriter) {
+		} else if (stringer instanceof JSONPResponseWriter) {
 			response.setContentType("application/json; charset=" + responseCharset);
-		} else if (stringer instanceof XMLResultWriter) {
+		} else if (stringer instanceof XMLResponseWriter) {
 			response.setContentType("text/xml; charset=" + responseCharset);
 		}
 	}

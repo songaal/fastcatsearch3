@@ -18,7 +18,6 @@ import org.fastcatsearch.cli.CommandResult;
 import org.fastcatsearch.cli.ConsoleSessionContext;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.indexing.AddIndexingJob;
 import org.fastcatsearch.job.indexing.CollectionFullIndexingJob;
 
 /**
@@ -57,7 +56,7 @@ public class StartIndexCommandIndex extends Command {
 		Job job = null; 
 		
 		if(isIncremental) {
-			job = new AddIndexingJob();
+			job = null;//new AddIndexingJob();
 			msg = "Increametal Indexing Job ["+collection+"] Executed..";
 		} else {
 			job = new CollectionFullIndexingJob();

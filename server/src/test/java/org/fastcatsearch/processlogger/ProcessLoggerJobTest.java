@@ -26,7 +26,7 @@ public class ProcessLoggerJobTest {
 	@Test
 	public void test() throws IOException {
 
-		IndexingStartProcessLog log = new IndexingStartProcessLog("test", "test1", IndexingType.FULL, 11111111111111L, false);
+		IndexingStartProcessLog log = new IndexingStartProcessLog("test", IndexingType.FULL, 11111111111111L, false);
 
 		ProcessLoggerJob job = new ProcessLoggerJob(IndexingProcessLogger.class, log);
 

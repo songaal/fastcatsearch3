@@ -10,6 +10,8 @@ import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.config.CollectionConfig.Shard;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.query.Groups;
@@ -17,6 +19,7 @@ import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.search.GroupResultAggregator;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.internal.InternalGroupSearchJob;
+import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
@@ -28,15 +31,14 @@ public class ClusterGroupSearchJob extends Job {
 	public JobResult doRun() throws FastcatSearchException {
 		
 		long st = System.currentTimeMillis();
-		String[] args = getStringArrayArgs();
-		String queryString = args[0];
+		QueryMap queryMap = (QueryMap) getArgs();
 		GroupResults groupResults = null;
 		boolean noCache = false;
 		
 		
 		Query q = null;
 		try {
-			q = QueryParser.getInstance().parseQuery(queryString);
+			q = QueryParser.getInstance().parseQuery(queryMap);
 		} catch (QueryParseException e) {
 			throw new FastcatSearchException("[Query Parsing Error] "+e.getMessage());
 		}
@@ -48,8 +50,8 @@ public class ClusterGroupSearchJob extends Job {
 		
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		if(!noCache){
-			groupResults = irService.groupingCache().get(queryString);
-			logger.debug("CACHE_GET result>>{}, qr >>{}", groupResults, queryString);
+			groupResults = irService.groupingCache().get(queryMap.queryString());
+			logger.debug("CACHE_GET result>>{}, qr >>{}", groupResults, queryMap.queryString());
 			if(groupResults != null){
 				logger.debug("Cached Result!");
 				return new JobResult(groupResults);
@@ -60,29 +62,37 @@ public class ClusterGroupSearchJob extends Job {
 		String collectionId = q.getMeta().collectionId();
 		Groups groups = q.getGroups();
 		
-		String[] collectionIdList = collectionId.split(",");
-		ResultFuture[] resultFutureList = new ResultFuture[collectionIdList.length];
+		CollectionContext collectionContext = irService.collectionContext(collectionId);
 		
-		for (int i = 0; i < collectionIdList.length; i++) {
-			String cId = collectionIdList[i];
+		
+		String[] shardIdList = q.getMeta().getSharIdList();
+		// 컬렉션 명으로만 검색시 하위 shard를 모두 검색해준다.
+		//null이면 하위 모든 shard를 검색.
+		if(shardIdList == null){
+			List<Shard> shardList = collectionContext.collectionConfig().getShardConfigList();
+			shardIdList = new String[shardList.size()];
+			for(int i =0 ;i< shardList.size(); i++){
+				shardIdList[i] = shardList.get(i).getId();
+			}
+		}
+		
+//		String[] collectionIdList = collectionId.split(",");
+		ResultFuture[] resultFutureList = new ResultFuture[shardIdList.length];
+		
+		for (int i = 0; i < shardIdList.length; i++) {
+			String shardId = shardIdList[i];
 			
-			ClusterStrategy dataStrategy = irService.getCollectionClusterStrategy(cId);
-			List<String> nodeIdList = dataStrategy.dataNodes();
-			//TODO shard 갯수를 확인하고 각 shard에 해당하는 노드들을 가져온다.
-			//TODO 여러개의 replaica로 분산되어있을 경우, 적합한 노드를 찾아서 리턴한다.
-			
-			String dataNodeId = nodeIdList.get(0);
-			Node dataNode = nodeService.getNodeById(dataNodeId);
-			logger.debug("collection [{}] search at {}", cId, dataNode);
-			String queryStr = queryString.replace("cn="+collectionId, "cn="+cId);
-			logger.debug("query-{} >> {}", i, queryStr);
-			InternalGroupSearchJob job = new InternalGroupSearchJob(queryStr);
+			Node dataNode = nodeService.getBalancedNode(shardId);
+			logger.debug("shard [{}] search at {}", shardId, dataNode);
+			QueryMap newQueryMap = queryMap.clone();
+//			String queryStr = queryString.replace("cn="+collectionId, "cn="+shardId);
+			InternalGroupSearchJob job = new InternalGroupSearchJob(newQueryMap);
 			resultFutureList[i] = nodeService.sendRequest(dataNode, job);
 		}
 		
-		List<GroupsData> resultList = new ArrayList<GroupsData>(collectionIdList.length);
+		List<GroupsData> resultList = new ArrayList<GroupsData>(shardIdList.length);
 		
-		for (int i = 0; i < collectionIdList.length; i++) {
+		for (int i = 0; i < shardIdList.length; i++) {
 			//TODO 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
 			if(resultFutureList[i] == null){
 				throw new FastcatSearchException("요청메시지 전송불가에러.");
@@ -106,8 +116,8 @@ public class ClusterGroupSearchJob extends Job {
 		groupResults = aggregator.aggregate(resultList);
 		
 		if(groupResults != null){
-			irService.groupingCache().put(queryString, groupResults);
-			logger.debug("CACHE_PUT result>>{}, qr >>{}", groupResults, queryString);
+			irService.groupingCache().put(queryMap.queryString(), groupResults);
+			logger.debug("CACHE_PUT result>>{}, qr >>{}", groupResults, queryMap.queryString());
 		}
 		
 		logger.debug("ClusterGroupSearchJob 수행시간 : {}", Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));

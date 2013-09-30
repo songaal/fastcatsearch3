@@ -8,7 +8,7 @@ import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.ServiceAction;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.util.ResultWriter;
+import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
@@ -22,7 +22,7 @@ public abstract class CallableAction extends ServiceAction {
 		response.setStatus(HttpResponseStatus.OK);
 		String jsonCallback = request.getParameter("_jsonCallback");
 		boolean isJoin = request.getBooleanParameter("_wait", true);
-		ResultWriter resultWriter = getResultWriter(writer, ServiceAction.DEFAULT_ROOT_ELEMENT, true, jsonCallback);
+		ResponseWriter resultWriter = getResponseWriter(writer, ServiceAction.DEFAULT_ROOT_ELEMENT, true, jsonCallback);
 		
 		
 		Job job = createJob();
@@ -62,9 +62,9 @@ public abstract class CallableAction extends ServiceAction {
 	
 	protected abstract Job createJob();
 		
-	protected abstract void writeResult(ResultWriter resultWriter, Object result) throws Exception;
+	protected abstract void writeResult(ResponseWriter resultWriter, Object result) throws Exception;
 	
-	protected void writeError(ResultWriter resultWriter, Object e) throws ResultWriterException {
+	protected void writeError(ResponseWriter resultWriter, Object e) throws ResultWriterException {
 		logger.error(">> error > {}", e.toString());
 		resultWriter.value(e.toString());
 	}

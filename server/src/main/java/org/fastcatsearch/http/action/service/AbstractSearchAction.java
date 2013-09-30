@@ -14,7 +14,7 @@ import org.fastcatsearch.job.Job;
 import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.servlet.AbstractSearchResultWriter;
 import org.fastcatsearch.servlet.SearchResultWriter;
-import org.fastcatsearch.util.ResultWriter;
+import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
@@ -95,11 +95,11 @@ public abstract class AbstractSearchAction extends ServiceAction {
 		}
 	}
 
-	protected ResultWriter getSearchResultWriter(Writer writer) {
+	protected ResponseWriter getSearchResultWriter(Writer writer) {
 		return getSearchResultWriter(writer, "_search_callback");
 	}
 
-	protected ResultWriter getSearchResultWriter(Writer writer, String jsonCallback) {
-		return getResultWriter(writer, ServiceAction.DEFAULT_ROOT_ELEMENT, true, jsonCallback);
+	protected ResponseWriter getSearchResultWriter(Writer writer, String jsonCallback) {
+		return getResponseWriter(writer, ServiceAction.DEFAULT_ROOT_ELEMENT, true, jsonCallback);
 	}
 }

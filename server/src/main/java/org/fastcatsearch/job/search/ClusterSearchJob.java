@@ -11,6 +11,7 @@ import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.config.CollectionConfig.Shard;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.ShardConfig;
 import org.fastcatsearch.ir.config.ShardContext;
@@ -80,37 +81,33 @@ public class ClusterSearchJob extends Job {
 		String collectionId = q.getMeta().collectionId();
 		Groups groups = q.getGroups();
 		
+		CollectionContext collectionContext = irService.collectionContext(collectionId);
+		
+		
 		String[] shardIdList = q.getMeta().getSharIdList();
+		// 컬렉션 명으로만 검색시 하위 shard를 모두 검색해준다.
+		//null이면 하위 모든 shard를 검색.
+		if(shardIdList == null){
+			List<Shard> shardList = collectionContext.collectionConfig().getShardConfigList();
+			shardIdList = new String[shardList.size()];
+			for(int i =0 ;i< shardList.size(); i++){
+				shardIdList[i] = shardList.get(i).getId();
+			}
+		}
+		
 		//TODO 동일 collection의 shard끼리만 병합검색이 가능토록 한다.
-		// 컬렉션 명으로 검색시 하위 shard를 모두 검색해준다.
 		
 		
 		ResultFuture[] resultFutureList = new ResultFuture[shardIdList.length];
 		Map<String, Integer> shardNumberMap = new HashMap<String, Integer>();
 		Node[] selectedNodeList = new Node[shardIdList.length];
 		
-		CollectionContext collectionContext = irService.collectionContext(collectionId);
 		
 		for (int i = 0; i < shardIdList.length; i++) {
 			String shardId = shardIdList[i];
 			shardNumberMap.put(shardId, i);
 			
-//			ShardContext shardContext = collectionContext.getShardContext(shardId);
-			
-			
-//			ShardConfig shardConfig = shardContext.shardConfig();
-			
-			//TODO shard가 여러개이면 모두 검색해서 하나로 합친다.
-			
-//			List<String> dataNodeIdList = shardConfig.getDataNodeList();
-			
-			//TODO shard 갯수를 확인하고 각 shard에 해당하는 노드들을 가져온다.
-			//TODO 여러개의 replaica로 분산되어있을 경우, 적합한 노드를 찾아서 리턴한다.
-//			nodeService.requestLoadBalance(shardId, dataNodeIdList);
-			
 			Node dataNode = nodeService.getBalancedNode(shardId);
-//			String dataNodeId = dataNodeIdList.get(0);
-//			Node dataNode = nodeService.getNodeById(dataNodeId);
 			selectedNodeList[i] = dataNode;
 
 			QueryMap newQueryMap = queryMap.clone();

@@ -7,9 +7,9 @@ import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.http.action.ServiceAction;
-import org.fastcatsearch.util.ResultWriter;
+import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/login")
+@ActionMapping("/management/login")
 public class LoginAction extends ServiceAction {
 
 	@Override
@@ -17,7 +17,7 @@ public class LoginAction extends ServiceAction {
 		
 		writeHeader(response);
 		Writer writer = response.getWriter();
-		ResultWriter resultWriter = getDefaultResultWriter(writer);
+		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		resultWriter
 		.object()
 		.key("status").value("0")

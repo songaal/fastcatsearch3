@@ -3,12 +3,14 @@ package org.fastcatsearch.http.action;
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 
 import org.fastcatsearch.ir.io.ByteRefArrayOutputStream;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
 public class ActionResponse {
 
+	private final static Charset charset = Charset.forName("UTF-8");
 	private Object contentType;
 	private HttpResponseStatus status;
 	private PrintWriter writer;
@@ -23,7 +25,7 @@ public class ActionResponse {
 
 	public void init(){
 		baos = new ByteRefArrayOutputStream();
-		writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(baos)));
+		writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(baos, charset)));
 	}
 	public void setContentType(String contentType) {
 		this.contentType = contentType;

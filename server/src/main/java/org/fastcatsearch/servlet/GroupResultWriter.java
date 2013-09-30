@@ -7,12 +7,12 @@ import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;
-import org.fastcatsearch.util.ResultWriter;
+import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
 
 public class GroupResultWriter extends AbstractSearchResultWriter {
 	
-	public GroupResultWriter(ResultWriter resultWriter) {
+	public GroupResultWriter(ResponseWriter resultWriter) {
 		super(resultWriter);
 	}
 	
@@ -49,7 +49,7 @@ public class GroupResultWriter extends AbstractSearchResultWriter {
 		resultWriter.done();
 	}
 	
-	public void writeBody(GroupResults groupResults, ResultWriter resultStringer) throws ResultWriterException {
+	public void writeBody(GroupResults groupResults, ResponseWriter resultStringer) throws ResultWriterException {
 		
 		if(groupResults == null){
     		resultStringer.key("group_result").array("group_list").endArray();

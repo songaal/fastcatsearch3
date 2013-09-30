@@ -47,7 +47,7 @@ public class CollectionHandlerTest extends TestCase {
 		IndexConfig indexConfig = null;
 		File collectionDir = null;
 		Schema schema = new Schema(null);
-		ShardHandler h = new ShardHandler(shardContext);
+		ShardHandler h = new ShardHandler(schema, shardContext);
 	}
 
 	public void testSearch() throws IRException, SettingException, IOException {
@@ -66,7 +66,7 @@ public class CollectionHandlerTest extends TestCase {
 		IndexConfig indexConfig = null;
 		File collectionDir = null;
 		Schema schema = new Schema(null);
-		ShardHandler h = new ShardHandler(shardContext);
+		ShardHandler h = new ShardHandler(schema, shardContext);
 		h.printSegmentStatus();
 		Result result = h.searcher().search(q);
 
@@ -77,7 +77,7 @@ public class CollectionHandlerTest extends TestCase {
 		IndexConfig indexConfig = null;
 		File collectionDir = null;
 		Schema schema = new Schema(null);
-		ShardHandler h = new ShardHandler(shardContext);
+		ShardHandler h = new ShardHandler(schema, shardContext);
 		int segmentNumber = 0;
 		System.out.println("segmentNumber = " + segmentNumber);
 		{
@@ -98,7 +98,7 @@ public class CollectionHandlerTest extends TestCase {
 		Schema schema = new Schema(null);
 		IndexConfig indexConfig = null;
 		File collectionDir = null;
-		ShardHandler h = new ShardHandler(shardContext);
+		ShardHandler h = new ShardHandler(schema, shardContext);
 		// int segmentNumber = h.getNextSegmentNumber();
 		// System.out.println("segmentNumber = "+segment?Number);
 

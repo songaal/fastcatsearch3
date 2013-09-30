@@ -2,7 +2,7 @@ package org.fastcatsearch.http.action;
 
 import java.io.Writer;
 
-import org.fastcatsearch.util.ResultWriter;
+import org.fastcatsearch.util.ResponseWriter;
 
 public abstract class AuthAction extends ServiceAction {
 
@@ -38,7 +38,7 @@ public abstract class AuthAction extends ServiceAction {
 
 	private void doNotAuthenticatedResult(ActionRequest request, ActionResponse response) throws Exception {
 		Writer writer = response.getWriter();
-		ResultWriter resultWriter = getDefaultResultWriter(writer);
+		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		resultWriter.object().key("error").value("Not Authenticated.").endObject();
 		resultWriter.done();
 	}

@@ -6,12 +6,12 @@ import java.io.StringWriter;
 
 import org.junit.Test;
 
-public class ResultStringerTest {
+public class ResponseWriterTest {
 
 	@Test
-	public void test() throws Exception {
+	public void testArrayObject() throws Exception {
 		StringWriter writer = new StringWriter();
-		ResultWriter rs = new XMLResultWriter(writer, "fastcatsearch",true);
+		ResponseWriter rs = new XMLResponseWriter(writer, "response", true);
 		
 		//rs = new JSONResultStringer();
 		
@@ -61,9 +61,9 @@ public class ResultStringerTest {
 	}
 
 	@Test
-	public void test2() throws Exception {
+	public void testArrayValues() throws Exception {
 		StringWriter writer = new StringWriter();
-		ResultWriter rs = new XMLResultWriter(writer, "fastcatsearch",true);
+		ResponseWriter rs = new XMLResponseWriter(writer, "response",true);
 		
 		//rs = new JSONResultStringer();
 		
@@ -110,7 +110,7 @@ public class ResultStringerTest {
 	@Test
 	public void test3() throws Exception {
 		StringWriter writer = new StringWriter();
-		ResultWriter rs = new XMLResultWriter(writer, "fastcatsearch",true);
+		ResponseWriter rs = new XMLResponseWriter(writer, "fastcatsearch",true);
 		//ResultWriter rs = new JSONResultWriter(writer,true);
 		
 		rs.object()

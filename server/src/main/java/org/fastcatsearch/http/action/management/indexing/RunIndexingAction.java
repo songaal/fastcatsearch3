@@ -9,9 +9,9 @@ import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.job.indexing.CollectionFullIndexingJob;
-import org.fastcatsearch.util.ResultWriter;
+import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/indexing/run")
+@ActionMapping("/indexing/full/run")
 public class RunIndexingAction extends AuthAction {
 	
 	@Override
@@ -26,7 +26,7 @@ public class RunIndexingAction extends AuthAction {
 		ResultFuture jobResult = JobService.getInstance().offer(collectionFullIndexingJob);
 		
 		Writer writer = response.getWriter();
-		ResultWriter resultWriter = getDefaultResultWriter(writer);
+		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		resultWriter
 		.object()
 		.key("collectionId").value(collectionId);

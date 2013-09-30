@@ -2,7 +2,7 @@ package org.fastcatsearch.servlet;
 
 import java.io.IOException;
 
-import org.fastcatsearch.util.ResultWriter;
+import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,9 +11,9 @@ import org.slf4j.LoggerFactory;
  * */
 public abstract class AbstractSearchResultWriter {
 	protected static Logger logger = LoggerFactory.getLogger(AbstractSearchResultWriter.class);
-	protected ResultWriter resultWriter;
+	protected ResponseWriter resultWriter;
 	
-	public AbstractSearchResultWriter(ResultWriter resultStringer){
+	public AbstractSearchResultWriter(ResponseWriter resultStringer){
 		this.resultWriter = resultStringer;
 	}
 	public abstract void writeResult(Object obj, long searchTime, boolean isSuccess) throws ResultWriterException, IOException;

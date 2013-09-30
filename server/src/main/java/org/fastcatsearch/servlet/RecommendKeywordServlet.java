@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.dao.SetDictionary;
 import org.fastcatsearch.db.vo.SetDictionaryVO;
-import org.fastcatsearch.util.ResultWriter;
+import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
 
 public class RecommendKeywordServlet extends WebServiceHttpServlet {
@@ -70,7 +70,7 @@ public class RecommendKeywordServlet extends WebServiceHttpServlet {
 		String responseCharset = getParameter(request, "responseCharset", "UTF-8");
     	String jsonCallback = request.getParameter("jsoncallback");
 		
-    	ResultWriter rStringer = super.getResultStringer("recommend-keyword", true, jsonCallback);
+    	ResponseWriter rStringer = super.getResultStringer("recommend-keyword", true, jsonCallback);
     	
     	try {
 			rStringer.object()

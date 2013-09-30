@@ -8,10 +8,10 @@ import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.value.IntGroupingValue;
-import org.fastcatsearch.util.JSONResultWriter;
-import org.fastcatsearch.util.ResultWriter;
+import org.fastcatsearch.util.JSONResponseWriter;
+import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
-import org.fastcatsearch.util.XMLResultWriter;
+import org.fastcatsearch.util.XMLResponseWriter;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -48,7 +48,7 @@ public class GroupResultWriterTest {
 	@Test
 	public void testJson() throws ResultWriterException, IOException {
 		StringWriter writer = new StringWriter();
-		ResultWriter resultWriter = new JSONResultWriter(writer, true);
+		ResponseWriter resultWriter = new JSONResponseWriter(writer, true);
 		GroupResultWriter groupResultWriter = new GroupResultWriter(resultWriter);
 		long searchTime = 1234;
 		boolean isSuccess = true;
@@ -61,7 +61,7 @@ public class GroupResultWriterTest {
 	@Test
 	public void testXML() throws ResultWriterException, IOException {
 		StringWriter writer = new StringWriter();
-		XMLResultWriter stringer = new XMLResultWriter(writer, "fastcatsearch", true);
+		XMLResponseWriter stringer = new XMLResponseWriter(writer, "fastcatsearch", true);
 		GroupResultWriter groupResultWriter = new GroupResultWriter(stringer);
 		long searchTime = 1234;
 		boolean isSuccess = true;

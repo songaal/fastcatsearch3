@@ -29,7 +29,7 @@ import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.job.DocumentListJob;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.util.ResultWriter;
+import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +58,7 @@ public class DocumentListServlet extends AbstractDocumentListServlet {
 		if (resultFuture.isSuccess())
 			result = (Result) obj;
 
-		ResultWriter rStringer = getResultStringer();
+		ResponseWriter rStringer = getResultStringer();
 		writeHeader(response, rStringer);
 
 		AbstractDocumentListResultWriter resultWriter = createSearchResultWriter(response.getWriter());

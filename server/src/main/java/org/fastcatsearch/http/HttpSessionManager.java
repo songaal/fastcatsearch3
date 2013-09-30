@@ -47,13 +47,23 @@ public class HttpSessionManager {
 			for (int i = 0; i < cookieArray.length; i++) {
 				String cookie = cookieArray[i].trim();
 				String[] kv = cookie.split("=");
-				if (kv[i].equalsIgnoreCase(DefaultSessionCookie)) {
+				String key = null;
+				String value = null;
+				
+				if(kv.length > 0){
+					key = kv[0];
+				}
+				if(kv.length > 1){
+					value = kv[1];
+				}
+				
+				if (DefaultSessionCookie.equalsIgnoreCase(key) && value != null && value.length() > 0) {
 					// 세션쿠키 발견.
 					hasSessionCookie = true;
-					sessionObj = sessionObjMap.get(kv[i]);
+					sessionObj = sessionObjMap.get(value);
 					if (sessionObj == null) {
-						sessionObj = new HttpSession(kv[i]);
-						sessionObjMap.put(kv[i], sessionObj);
+						sessionObj = new HttpSession(value);
+						sessionObjMap.put(value, sessionObj);
 					}else{
 						logger.debug("세션객체 찾음. {} >> {}", kv[i], sessionObj.map());
 					}
@@ -73,7 +83,11 @@ public class HttpSessionManager {
 		if (!hasSessionCookie) {
 			// cookie가 없거나, 쿠키내에 JSESSIONID가 없다면 생성해서 Set-Cookie로 돌려준다.JSESSIONID=1bqe4dww377gy1c3pwqjzxbedj;Path=/admin
 			//TODO expireTimeInHour를 날짜로 바꿔서 추가. ; Expires=Wed, 09 Jun 2021 10:18:14 GMT
-			actionResponse.setResponseSetCookie(DefaultSessionCookie + "=" + newSessionId() +";Path=/"); //경로구분없이 모두 동일한 session을 타도록 함.
+			String newSessionId = newSessionId();
+			sessionObj = new HttpSession(newSessionId);
+			sessionObjMap.put(newSessionId, sessionObj);
+			logger.debug("New Session Created! {} >> {}", newSessionId, sessionObj);
+			actionResponse.setResponseSetCookie(DefaultSessionCookie + "=" + newSessionId +";Path=/"); //경로구분없이 모두 동일한 session을 타도록 함.
 		}
 
 		return sessionObj;

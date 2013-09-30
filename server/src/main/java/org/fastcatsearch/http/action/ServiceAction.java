@@ -2,10 +2,10 @@ package org.fastcatsearch.http.action;
 
 import java.io.Writer;
 
-import org.fastcatsearch.util.JSONPResultWriter;
-import org.fastcatsearch.util.JSONResultWriter;
-import org.fastcatsearch.util.ResultWriter;
-import org.fastcatsearch.util.XMLResultWriter;
+import org.fastcatsearch.util.JSONPResponseWriter;
+import org.fastcatsearch.util.JSONResponseWriter;
+import org.fastcatsearch.util.ResponseWriter;
+import org.fastcatsearch.util.XMLResponseWriter;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
 public abstract class ServiceAction extends HttpAction {
@@ -34,18 +34,18 @@ public abstract class ServiceAction extends HttpAction {
 			response.setContentType("application/json; charset=" + responseCharset);
 		}
 	}
-	protected ResultWriter getDefaultResultWriter(Writer writer){
-		return getResultWriter(writer, DEFAULT_ROOT_ELEMENT, true, null);
+	protected ResponseWriter getDefaultResponseWriter(Writer writer){
+		return getResponseWriter(writer, DEFAULT_ROOT_ELEMENT, true, null);
 	}
 	
-	protected ResultWriter getResultWriter(Writer writer, String rootElement, boolean isBeautify, String jsonCallback) {
-		ResultWriter resultWriter = null;
+	protected ResponseWriter getResponseWriter(Writer writer, String rootElement, boolean isBeautify, String jsonCallback) {
+		ResponseWriter resultWriter = null;
 		if (resultType == Type.json) {
-			resultWriter = new JSONResultWriter(writer, isBeautify);
+			resultWriter = new JSONResponseWriter(writer, isBeautify);
 		} else if (resultType == Type.jsonp) {
-			resultWriter = new JSONPResultWriter(writer, jsonCallback, isBeautify);
+			resultWriter = new JSONPResponseWriter(writer, jsonCallback, isBeautify);
 		} else if (resultType == Type.xml) {
-			resultWriter = new XMLResultWriter(writer, rootElement, isBeautify);
+			resultWriter = new XMLResponseWriter(writer, rootElement, isBeautify);
 		}
 		return resultWriter;
 	}

@@ -264,7 +264,9 @@ public class QueryParser {
 		}
 	}
 
-	@Deprecated
+	/**
+	 * @Deprecated 대신 parseQuery(QueryMap queryMap) 를 사용하기 바람.
+	 * */
 	public Query parseQuery(String queryString) throws QueryParseException {
 		try {
 			String[] groups = queryString.split(SECTION_SEPARATOR);

@@ -3,16 +3,16 @@ package org.fastcatsearch.util;
 import java.io.IOException;
 import java.io.Writer;
 
-public class JSONPResultWriter extends JSONResultWriter {
+public class JSONPResponseWriter extends JSONResponseWriter {
 	public final static String DEFAULT_CALLBACK = "__callback";
 	public String callback;
 	private Writer w;
 
-	public JSONPResultWriter(Writer w, String callback) {
+	public JSONPResponseWriter(Writer w, String callback) {
 		this(w, callback, false);
 	}
 
-	public JSONPResultWriter(Writer w, String callback, boolean beautify) {
+	public JSONPResponseWriter(Writer w, String callback, boolean beautify) {
 		super(w, beautify);
 		this.w = w;
 		if(callback == null){

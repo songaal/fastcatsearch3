@@ -25,8 +25,9 @@ import org.slf4j.LoggerFactory;
  * @author lupfeliz
  *
  */
-public class XMLResultWriter implements ResultWriter {
-	protected static Logger logger = LoggerFactory.getLogger(XMLResultWriter.class);
+public class XMLResponseWriter implements ResponseWriter {
+	protected static Logger logger = LoggerFactory.getLogger(XMLResponseWriter.class);
+	private static final String ARRAY_DEFAULT_ITEM_NAME = "item";
 	
 	enum NODE_TYPE { OBJECT, ARRAY };
 	Document document;
@@ -37,11 +38,11 @@ public class XMLResultWriter implements ResultWriter {
 	boolean beautify;
 	Writer w;
 	
-	public XMLResultWriter(Writer w, String rootName) {
+	public XMLResponseWriter(Writer w, String rootName) {
 		this(w, rootName, false);
 	}
 	
-	public XMLResultWriter(Writer w, String rootName, boolean beautify) {
+	public XMLResponseWriter(Writer w, String rootName, boolean beautify) {
 		this.w = w;
 		document = DocumentHelper.createDocument();
 		root = document.addElement(rootName);
@@ -52,7 +53,7 @@ public class XMLResultWriter implements ResultWriter {
 	}
 	
 	@Override
-	public ResultWriter object() throws ResultWriterException {
+	public ResponseWriter object() throws ResultWriterException {
 		if(types.size()>0 && types.get(types.size()-1)==NODE_TYPE.ARRAY) {
 			types.add(NODE_TYPE.OBJECT);
 			currentElement = currentElement.addElement(arrayName.get(arrayName.size()-1));
@@ -61,7 +62,7 @@ public class XMLResultWriter implements ResultWriter {
 	}
 
 	@Override
-	public ResultWriter endObject() throws ResultWriterException {
+	public ResponseWriter endObject() throws ResultWriterException {
 		if(types.size()>1 && types.get(types.size()-2)==NODE_TYPE.ARRAY) {
 			types.remove(types.size()-1);
 			currentElement = currentElement.getParent();
@@ -70,7 +71,12 @@ public class XMLResultWriter implements ResultWriter {
 	}
 
 	@Override
-	public ResultWriter array(String arrayName) throws ResultWriterException {
+	public ResponseWriter array() throws ResultWriterException {
+		return array(ARRAY_DEFAULT_ITEM_NAME);
+	}
+	
+	@Override
+	public ResponseWriter array(String arrayName) throws ResultWriterException {
 		if(types.size()>0 && types.get(types.size()-1)==NODE_TYPE.ARRAY) {
 			currentElement = currentElement.addElement(this.arrayName.get(
 					this.arrayName.size()-1));
@@ -81,7 +87,7 @@ public class XMLResultWriter implements ResultWriter {
 	}
 
 	@Override
-	public ResultWriter endArray() throws ResultWriterException {
+	public ResponseWriter endArray() throws ResultWriterException {
 		currentElement = currentElement.getParent();
 		types.remove(types.size()-1);
 		this.arrayName.remove(arrayName.size()-1);
@@ -89,20 +95,24 @@ public class XMLResultWriter implements ResultWriter {
 	}
 
 	@Override
-	public ResultWriter key(String key) throws ResultWriterException {
+	public ResponseWriter key(String key) throws ResultWriterException {
 		currentElement = currentElement.addElement(key);
 		return this;
 	}
 
 	@Override
-	public ResultWriter value(Object obj) throws ResultWriterException {
+	public ResponseWriter value(Object obj) throws ResultWriterException {
 		
 		if(types.size()!=0 && types.get(types.size()-1)==NODE_TYPE.ARRAY) {
 			currentElement = currentElement.addElement(arrayName.get(arrayName.size()-1));
 		} else {
 			
 		}
-		currentElement = currentElement.addText(obj.toString());
+		if(obj == null){
+			currentElement = currentElement.addText("");
+		}else{
+			currentElement = currentElement.addText(obj.toString());
+		}
 		currentElement = currentElement.getParent();
 		return this;
 	}

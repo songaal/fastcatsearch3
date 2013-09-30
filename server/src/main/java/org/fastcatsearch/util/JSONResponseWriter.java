@@ -8,17 +8,17 @@ import org.json.JSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class JSONResultWriter implements ResultWriter {
-	protected static Logger logger = LoggerFactory.getLogger(JSONResultWriter.class);
+public class JSONResponseWriter implements ResponseWriter {
+	protected static Logger logger = LoggerFactory.getLogger(JSONResponseWriter.class);
 	protected Writer w;
 	protected JSONWriter writer;
 	protected boolean beautify;
 	
-	public JSONResultWriter(Writer w) {
+	public JSONResponseWriter(Writer w) {
 		this(w, false);
 	}
 	
-	public JSONResultWriter(Writer w, boolean beautify) {
+	public JSONResponseWriter(Writer w, boolean beautify) {
 		this.w = w;
 		writer = new JSONWriter(w);
 		this.beautify = beautify;
@@ -29,7 +29,7 @@ public class JSONResultWriter implements ResultWriter {
 	}
 
 	@Override
-	public ResultWriter object() throws ResultWriterException {
+	public ResponseWriter object() throws ResultWriterException {
 		try {
 			writer.object();
 			return this;
@@ -39,7 +39,7 @@ public class JSONResultWriter implements ResultWriter {
 	}
 
 	@Override
-	public ResultWriter endObject() throws ResultWriterException {
+	public ResponseWriter endObject() throws ResultWriterException {
 		try {
 			writer.endObject();
 			return this;
@@ -49,7 +49,12 @@ public class JSONResultWriter implements ResultWriter {
 	}
 
 	@Override
-	public ResultWriter array(String arrayName) throws ResultWriterException {
+	public ResponseWriter array() throws ResultWriterException {
+		return array(null);
+	}
+	
+	@Override
+	public ResponseWriter array(String arrayName) throws ResultWriterException {
 		try {
 			writer.array();
 			return this;
@@ -59,7 +64,7 @@ public class JSONResultWriter implements ResultWriter {
 	}
 
 	@Override
-	public ResultWriter endArray() throws ResultWriterException {
+	public ResponseWriter endArray() throws ResultWriterException {
 		try {
 			writer.endArray();
 			return this;
@@ -69,7 +74,7 @@ public class JSONResultWriter implements ResultWriter {
 	}
 
 	@Override
-	public ResultWriter key(String key) throws ResultWriterException {
+	public ResponseWriter key(String key) throws ResultWriterException {
 		try {
 			writer.key(key);
 			return this;
@@ -79,9 +84,13 @@ public class JSONResultWriter implements ResultWriter {
 	}
 
 	@Override
-	public ResultWriter value(Object obj) throws ResultWriterException {
+	public ResponseWriter value(Object obj) throws ResultWriterException {
 		try {
-			writer.value(obj);
+			if(obj == null){
+				writer.value("");
+			}else{
+				writer.value(obj);
+			}
 			return this;
 		} catch (JSONException e) {
 			throw new ResultWriterException(e);

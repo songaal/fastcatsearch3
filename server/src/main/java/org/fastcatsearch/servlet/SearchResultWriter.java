@@ -6,14 +6,14 @@ import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.util.Formatter;
-import org.fastcatsearch.util.ResultWriter;
+import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
 
 public class SearchResultWriter extends AbstractSearchResultWriter {
 	
 	private String[] fieldNames;
 	 
-	public SearchResultWriter(ResultWriter resultStringer) {
+	public SearchResultWriter(ResponseWriter resultStringer) {
 		super(resultStringer);
 	}
 
@@ -61,7 +61,7 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 		
 	}
 	
-	public void writeBody(Result result, ResultWriter resultWriter, long searchTime) throws ResultWriterException {
+	public void writeBody(Result result, ResponseWriter resultWriter, long searchTime) throws ResultWriterException {
 		resultWriter.key("result");
 		//data
 		Row[] rows = result.getData();

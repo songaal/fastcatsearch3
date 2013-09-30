@@ -21,7 +21,7 @@ import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.search.SingleSearchJob;
-import org.fastcatsearch.util.ResultWriter;
+import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
 
 public class SearchServlet extends AbstractSearchServlet {
@@ -53,7 +53,7 @@ public class SearchServlet extends AbstractSearchServlet {
 		searchTime = (System.currentTimeMillis() - st);
 		writeSearchLog(requestId, obj, searchTime);
 		
-		ResultWriter rStringer = getResultStringer();
+		ResponseWriter rStringer = getResultStringer();
 		writeHeader(response, rStringer);
 		
 		AbstractSearchResultWriter resultWriter = createSearchResultWriter(response.getWriter());
