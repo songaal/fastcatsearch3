@@ -31,6 +31,7 @@ import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.cluster.NodeCollectionReloadJob;
 import org.fastcatsearch.job.cluster.NodeDirectoryCleanJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
+import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.task.IndexFileTransfer;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
@@ -83,13 +84,19 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			//////////////////////////////////////////////////////////////////////////////////////////
 			
 			CollectionFullIndexer collectionFullIndexer = new CollectionFullIndexer(collectionContext);
+			collectionFullIndexer.setState(indexingTaskState);
 			collectionFullIndexer.doIndexing();
 			collectionFullIndexer.close();
 			
 			/*
 			 * shard별 색인파일 원격복사.
 			 */
-			
+			indexingTaskState.setState(IndexingTaskState.STATE_FILECOPY);
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 			for(ShardContext shardContext : collectionContext.getShardContextList()){
 				String shardId = shardContext.shardId();
 				SegmentInfo segmentInfo = shardContext.dataInfo().getLastSegmentInfo();
@@ -128,6 +135,12 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			/*
 			 * 데이터노드가 리로드 완료되었으면 인덱스노드도 리로드 시작.
 			 * */
+			indexingTaskState.setState(IndexingTaskState.STATE_FINALIZE);
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
 			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
 			if (oldCollectionHandler != null) {
@@ -158,7 +171,6 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			throwable = e;
 			throw new FastcatSearchException("ERR-00500", throwable, collectionId); // 전체색인실패.
 		} finally {
-
 			Streamable streamableResult = null;
 			if (throwable != null) {
 				streamableResult = new StreamableThrowable(throwable);

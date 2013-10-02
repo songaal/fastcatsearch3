@@ -22,6 +22,7 @@ import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.http.HttpRequestService;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.job.state.TaskStateService;
 import org.fastcatsearch.management.ManagementInfoService;
 import org.fastcatsearch.notification.NotificationService;
 import org.fastcatsearch.plugin.PluginService;
@@ -168,6 +169,7 @@ public class CatServer {
 		ClusterAlertService clusterAlertService = serviceManager.createService("alert", ClusterAlertService.class);
 		clusterAlertService.asSingleton();
 		ProcessLoggerService processLoggerService = serviceManager.createService("processlogger", ProcessLoggerService.class);
+		TaskStateService taskStateService = serviceManager.createService("taskstate", TaskStateService.class);
 		
 		logger = LoggerFactory.getLogger(CatServer.class);
 		logger.info("ServerHome = {}", serverHome);
@@ -194,7 +196,7 @@ public class CatServer {
 			notificationService.start();
 			clusterAlertService.start();
 			processLoggerService.start();
-			
+			taskStateService.start();
 		} catch (FastcatSearchException e) {
 			logger.error("CatServer 시작에 실패했습니다.", e);
 			stop();
@@ -246,6 +248,7 @@ public class CatServer {
 	public void stop() throws FastcatSearchException {
 
 		// FIXME 뜨는 도중 에러 발생시 NullPointerException 발생가능성.
+		serviceManager.stopService(TaskStateService.class);
 		serviceManager.stopService(NotificationService.class);
 		serviceManager.stopService(ClusterAlertService.class);
 		serviceManager.stopService(ProcessLoggerService.class);
@@ -269,6 +272,7 @@ public class CatServer {
 	}
 
 	public void close() throws FastcatSearchException {
+		serviceManager.closeService(TaskStateService.class);
 		serviceManager.closeService(NotificationService.class);
 		serviceManager.closeService(ClusterAlertService.class);
 		serviceManager.closeService(ProcessLoggerService.class);

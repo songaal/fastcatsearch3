@@ -3,6 +3,9 @@ package org.fastcatsearch.job.indexing;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.job.Job;
+import org.fastcatsearch.job.state.IndexingTaskKey;
+import org.fastcatsearch.job.state.IndexingTaskState;
+import org.fastcatsearch.job.state.TaskStateService;
 import org.fastcatsearch.notification.NotificationService;
 import org.fastcatsearch.notification.message.IndexingFinishNotification;
 import org.fastcatsearch.notification.message.IndexingStartNotification;
@@ -25,6 +28,10 @@ public abstract class IndexingJob extends Job {
 	
 	private ProcessLoggerService processLoggerService;
 	private NotificationService notificationService;
+	
+	private TaskStateService taskStateService;
+	
+	protected IndexingTaskState indexingTaskState;
 	private long indexingStartTime;
 	
 	public long indexingStartTime(){
@@ -39,7 +46,7 @@ public abstract class IndexingJob extends Job {
 		ServiceManager serviceManager = ServiceManager.getInstance();
 		processLoggerService = serviceManager.getService(ProcessLoggerService.class);
 		notificationService = serviceManager.getService(NotificationService.class);
-		
+		taskStateService = serviceManager.getService(TaskStateService.class);
 	}
 	
 	protected void updateIndexingStatusStart(){
@@ -49,6 +56,14 @@ public abstract class IndexingJob extends Job {
 				indexingType, jobStartTime(), isScheduled()));
 		notificationService.notify(new IndexingStartNotification(collectionId, indexingType,
 				jobStartTime(), isScheduled()));
+		IndexingTaskKey indexingTaskKey = new IndexingTaskKey(collectionId, indexingType, isScheduled);
+		indexingTaskState = (IndexingTaskState) taskStateService.register(indexingTaskKey);
+		indexingTaskState.start();
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	protected void updateIndexingStatusFinish(boolean isSuccess, Streamable streamableResult){
@@ -59,6 +74,8 @@ public abstract class IndexingJob extends Job {
 
 		notificationService.notify(new IndexingFinishNotification(collectionId, indexingType, isSuccess,
 				indexingStartTime, endTime, streamableResult));
+		
+		indexingTaskState.finish();
 		indexingLogger.info("[{}] {} Indexing Finish!", collectionId, indexingType.name());
 	}
 }

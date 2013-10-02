@@ -23,6 +23,7 @@ import org.fastcatsearch.ir.index.ShardIndexMapper;
 import org.fastcatsearch.ir.index.ShardIndexer;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
+import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.util.CollectionContextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,8 @@ public class CollectionFullIndexer {
 	private DeleteIdSet deleteIdSet;
 	private long startTime;
 
+	private IndexingTaskState indexingTaskState;
+	
 	public CollectionFullIndexer(CollectionContext collectionContext) throws IRException {
 		this.collectionContext = collectionContext;
 
@@ -79,6 +82,14 @@ public class CollectionFullIndexer {
 
 	public void addDocument(Document document) throws IRException, IOException {
 		shardIndexMapper.addDocument(document);
+		if(indexingTaskState != null){
+			indexingTaskState.incrementDocumentCount();
+		}
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void close() throws IRException, SettingException {
@@ -106,5 +117,9 @@ public class CollectionFullIndexer {
 	// 변경파일정보를 받아서 타 노드 전송에 사용하도록 한다.
 	public Map<String, IndexWriteInfoList> getIndexWriteInfoListMap() {
 		return shardIndexMapper.getIndexWriteInfoListMap();
+	}
+
+	public void setState(IndexingTaskState indexingTaskState) {
+		this.indexingTaskState = indexingTaskState;
 	}
 }

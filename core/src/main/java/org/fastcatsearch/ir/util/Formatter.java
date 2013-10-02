@@ -30,7 +30,7 @@ public class Formatter {
 	/** 파싱을 위한 날자포맷.**/
 	public static final SimpleDateFormat DATEFORMAT_DEFAULT_PARSE = new SimpleDateFormat("yyyyMMddHHmmssS");
 	/** 포맷팅을 위한 날자포맷. **/
-	public static final SimpleDateFormat DATEFORMAT_DEFAULT_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+	public static final SimpleDateFormat DATEFORMAT_DEFAULT_FORMAT = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
 	/** 날자 중의 특수기호들을 삭제하기 위한 패턴 **/
 	public static final Pattern PTN_STRIP_DATE = Pattern.compile("[-\t :.,/]");
 //	public static final Pattern PTN_PARSE_DATE = Pattern.compile("[0-9]{4}+[-\t :.,/][0-9]{1-2}+[-\t :.,/][0-9]{1-2}+[-\t :.,/][0-9]{1-2}");
