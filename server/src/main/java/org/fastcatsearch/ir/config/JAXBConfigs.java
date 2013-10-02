@@ -93,7 +93,7 @@ public class JAXBConfigs {
 			}
 			
 			os = new FileOutputStream(file);
-			writeConfig(os, jaxbConfig, jaxbConfigClass);
+			writeRawConfig(os, jaxbConfig, jaxbConfigClass);
 		}catch(IOException e){
 			throw new JAXBException(e);
 		}finally{
@@ -106,7 +106,7 @@ public class JAXBConfigs {
 		}
 		
 	}
-	protected static <T> void writeConfig(OutputStream os, Object jaxbConfig, Class<T> jaxbConfigClass) throws JAXBException {
+	public static <T> void writeRawConfig(OutputStream os, Object jaxbConfig, Class<T> jaxbConfigClass) throws JAXBException {
 		JAXBContext context = JAXBContext.newInstance(jaxbConfigClass);
 		Marshaller marshaller = context.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
@@ -117,7 +117,7 @@ public class JAXBConfigs {
 	public static <T> void writeTo(DataOutput os, Object jaxbConfig, Class<T> jaxbConfigClass) throws JAXBException {
 		try{
 			BytesDataOutput bytesOutput = new BytesDataOutput();
-			writeConfig(bytesOutput, jaxbConfig, jaxbConfigClass);
+			writeRawConfig(bytesOutput, jaxbConfig, jaxbConfigClass);
 			int byteSize = (int) bytesOutput.position();
 			os.writeVInt(byteSize);
 			os.writeBytes(bytesOutput.array(), 0, byteSize);

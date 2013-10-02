@@ -70,7 +70,7 @@ public class CollectionConfigTest {
 		collectionConfig.setDataPlanConfig(new DataPlanConfig());
 		
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		JAXBConfigs.writeConfig(os, collectionConfig, CollectionConfig.class);
+		JAXBConfigs.writeRawConfig(os, collectionConfig, CollectionConfig.class);
 		System.out.println(os.toString());
 		
 		

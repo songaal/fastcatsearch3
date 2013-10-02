@@ -46,7 +46,7 @@ public class DataInfoConfigTest {
 		dataInfo.getSegmentInfoList().add(segmentInfo);
 		
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		JAXBConfigs.writeConfig(os, dataInfo, DataInfo.class);
+		JAXBConfigs.writeRawConfig(os, dataInfo, DataInfo.class);
 		System.out.println(os.toString());
 		
 		
@@ -58,14 +58,14 @@ public class DataInfoConfigTest {
 		DataInfo dataInfo = new DataInfo();
 		
 		ByteArrayOutputStream output2 = new ByteArrayOutputStream();
-		JAXBConfigs.writeConfig(output2, dataInfo, DataInfo.class);
+		JAXBConfigs.writeRawConfig(output2, dataInfo, DataInfo.class);
 		byte[] arr = output2.toByteArray();
 		System.out.println("arr.len = "+arr.length);
 		ByteArrayInputStream input2 = new ByteArrayInputStream(arr);
 		DataInfo dataInfo22 = JAXBConfigs.readConfig(input2, DataInfo.class);
 		
 		BytesDataOutput output = new BytesDataOutput();
-		JAXBConfigs.writeConfig(output, dataInfo, DataInfo.class);
+		JAXBConfigs.writeRawConfig(output, dataInfo, DataInfo.class);
 		byte[] arr2 = output.array();
 		for(int i =0;i<arr.length; i++){
 			assertTrue(arr[i] == arr2[i]);
@@ -82,7 +82,7 @@ public class DataInfoConfigTest {
 		SegmentInfo segmentInfo = new SegmentInfo("5", 200);
 		
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		JAXBConfigs.writeConfig(os, segmentInfo, SegmentInfo.class);
+		JAXBConfigs.writeRawConfig(os, segmentInfo, SegmentInfo.class);
 		System.out.println(os.toString());
 		
 		

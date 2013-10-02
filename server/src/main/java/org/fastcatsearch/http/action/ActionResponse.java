@@ -1,8 +1,9 @@
 package org.fastcatsearch.http.action;
 
 import java.io.BufferedWriter;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.Writer;
 import java.nio.charset.Charset;
 
 import org.fastcatsearch.ir.io.ByteRefArrayOutputStream;
@@ -13,20 +14,19 @@ public class ActionResponse {
 	private final static Charset charset = Charset.forName("UTF-8");
 	private Object contentType;
 	private HttpResponseStatus status;
-	private PrintWriter writer;
 	private ByteRefArrayOutputStream baos;
 	private boolean isEmpty;
 
 	private String responseCookie;
 	private String responseSetCookie;
-	
+
 	public ActionResponse() {
 	}
 
-	public void init(){
+	public void init() {
 		baos = new ByteRefArrayOutputStream();
-		writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(baos, charset)));
 	}
+
 	public void setContentType(String contentType) {
 		this.contentType = contentType;
 	}
@@ -34,24 +34,23 @@ public class ActionResponse {
 	public void setStatus(HttpResponseStatus status) {
 		this.status = status;
 	}
-	
+
 	public void setResponseCookie(String responseCookie) {
 		this.responseCookie = responseCookie;
 	}
-	
+
 	public void setResponseSetCookie(String responseSetCookie) {
-		this.responseSetCookie = responseSetCookie;		
+		this.responseSetCookie = responseSetCookie;
 	}
 
-	public String responseCookie(){
+	public String responseCookie() {
 		return responseCookie;
 	}
-	
-	public String responseSetCookie(){
+
+	public String responseSetCookie() {
 		return responseSetCookie;
 	}
-	
-	
+
 	public boolean contentThreadSafe() {
 		return false;
 	}
@@ -60,15 +59,13 @@ public class ActionResponse {
 		return status;
 	}
 
-	public PrintWriter getWriter() {
-		return writer;
-
+	public OutputStream getOutputStream() {
+		return baos;
 	}
 
-	public void close() {
-		if (!isEmpty) {
-			writer.close();
-		}
+	public Writer getWriter() {
+		return new BufferedWriter(new OutputStreamWriter(baos, charset));
+
 	}
 
 	public byte[] content() {
@@ -98,6 +95,5 @@ public class ActionResponse {
 	public boolean isEmpty() {
 		return false;
 	}
-
 
 }

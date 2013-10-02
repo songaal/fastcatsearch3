@@ -42,7 +42,7 @@ public class CollectionsConfigTest {
 		collectionsConfig.addCollection("sample2", false);
 		
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		JAXBConfigs.writeConfig(os, collectionsConfig, CollectionsConfig.class);
+		JAXBConfigs.writeRawConfig(os, collectionsConfig, CollectionsConfig.class);
 		System.out.println(os.toString());
 		
 		
