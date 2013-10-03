@@ -1,6 +1,5 @@
 package org.fastcatsearch.http.action.service;
 
-import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -77,7 +76,7 @@ public abstract class AbstractSearchAction extends ServiceAction {
 		if (timeout == null) {
 			timeout = DEFAULT_TIMEOUT;
 		}
-		PrintWriter writer = response.getWriter();
+		Writer writer = response.getWriter();
 		response.setStatus(HttpResponseStatus.OK);
 		try {
 			doSearch(requestId, queryMap, timeout, writer);

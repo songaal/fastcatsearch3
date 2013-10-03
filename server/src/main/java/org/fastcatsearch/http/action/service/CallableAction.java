@@ -1,6 +1,6 @@
 package org.fastcatsearch.http.action.service;
 
-import java.io.PrintWriter;
+import java.io.Writer;
 
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
@@ -16,7 +16,7 @@ public abstract class CallableAction extends ServiceAction {
 
 	@Override
 	public void doAction(ActionRequest request, ActionResponse response) throws Exception {
-		PrintWriter writer = response.getWriter();
+		Writer writer = response.getWriter();
 		writeHeader(response);
 		
 		response.setStatus(HttpResponseStatus.OK);

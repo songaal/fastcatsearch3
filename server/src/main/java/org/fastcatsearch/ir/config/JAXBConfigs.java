@@ -107,10 +107,18 @@ public class JAXBConfigs {
 		
 	}
 	public static <T> void writeRawConfig(OutputStream os, Object jaxbConfig, Class<T> jaxbConfigClass) throws JAXBException {
+		writeRawConfig(os, jaxbConfig, jaxbConfigClass, false);
+	}
+	public static <T> void writeRawConfig(OutputStream os, Object jaxbConfig, Class<T> jaxbConfigClass, boolean removeXmlDeclaration) throws JAXBException {
 		JAXBContext context = JAXBContext.newInstance(jaxbConfigClass);
 		Marshaller marshaller = context.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+		logger.debug("removeXmlDeclaration!! {}", removeXmlDeclaration);
+		if(removeXmlDeclaration){
+			marshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
+//			marshaller.setProperty("com.sun.xml.bind.xmlDeclaration", Boolean.FALSE);
+		}
 		marshaller.marshal(jaxbConfig, os);
 	}
 	
