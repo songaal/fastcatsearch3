@@ -9,7 +9,7 @@ import javax.xml.bind.annotation.XmlElement;
 public class PrimaryKeySetting {
 	
 	private String id;
-	private List<PkRefSetting> fieldList;
+	private List<RefSetting> fieldList;
 
 	public PrimaryKeySetting() {}
 	
@@ -27,11 +27,11 @@ public class PrimaryKeySetting {
 	}
 	
 	@XmlElement(name="field")
-	public List<PkRefSetting> getFieldList() {
+	public List<RefSetting> getFieldList() {
 		return fieldList;
 	}
 
-	public void setFieldList(List<PkRefSetting> fieldList) {
+	public void setFieldList(List<RefSetting> fieldList) {
 		this.fieldList = fieldList;
 	}
 	

@@ -24,19 +24,19 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-@XmlType(propOrder = { "ignoreCase", "positionIncrementGap", "queryAnalyzer", "indexAnalyzer", "fieldList", "id"} )
+@XmlType(propOrder = { "positionIncrementGap", "storePosition", "ignoreCase", "queryAnalyzer", "indexAnalyzer", "fieldList", "name", "id"} )
 @XmlRootElement(name = "index")
 public class IndexSetting {
 
 	private String id;
+	private String name;
 	//index필드는 여러개의 필드를 받을 수 있다.
-	
 	private List<RefSetting> fieldList;
 	private String indexAnalyzer;
 	private String queryAnalyzer;
-	private int positionIncrementGap;
 	private boolean ignoreCase;
 	private boolean storePosition;
+	private int positionIncrementGap;
 	
 	public IndexSetting() { }
 	
@@ -51,7 +51,7 @@ public class IndexSetting {
 	}
 	
 	public String toString(){
-		return "[index="+id+":"+fieldList+":"+indexAnalyzer+":"+queryAnalyzer+":"+ignoreCase+":"+storePosition+"]";
+		return "[index="+id+":"+name+":"+fieldList+":"+indexAnalyzer+":"+queryAnalyzer+":"+ignoreCase+":"+storePosition+"]";
 	}
 
 	@XmlAttribute(required = true)
@@ -61,6 +61,15 @@ public class IndexSetting {
 
 	public void setId(String id) {
 		this.id = id;
+	}
+	
+	@XmlAttribute
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	@XmlElement(name="field")

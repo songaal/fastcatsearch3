@@ -31,8 +31,8 @@ import org.fastcatsearch.ir.query.OperatedClause;
 import org.fastcatsearch.ir.query.Term;
 import org.fastcatsearch.ir.query.TermOperatedClause;
 import org.fastcatsearch.ir.settings.FieldSetting;
-import org.fastcatsearch.ir.settings.PkRefSetting;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
+import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +55,7 @@ public class PrimaryKeyIndexesReader implements Cloneable {
 
 	public PrimaryKeyIndexesReader(Schema schema, File dir, int revision) throws IOException, IRException {
 		PrimaryKeySetting primaryKeySetting = schema.schemaSetting().getPrimaryKeySetting();
-		List<PkRefSetting> pkRefSettingList = primaryKeySetting.getFieldList();
+		List<RefSetting> pkRefSettingList = primaryKeySetting.getFieldList();
 		pkFieldSettingList = new FieldSetting[pkRefSettingList.size()];
 
 		for (int i = 0; i < pkRefSettingList.size(); i++) {

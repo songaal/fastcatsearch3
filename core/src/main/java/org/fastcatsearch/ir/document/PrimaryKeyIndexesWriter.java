@@ -23,15 +23,13 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
-import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
+import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.io.BitSet;
-import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BytesDataOutput;
-import org.fastcatsearch.ir.io.IndexInput;
-import org.fastcatsearch.ir.settings.PkRefSetting;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
+import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,13 +59,13 @@ public class PrimaryKeyIndexesWriter {
 		primaryKeySetting = schema.schemaSetting().getPrimaryKeySetting();
 		
 		if (primaryKeySetting != null &&  primaryKeySetting.getFieldList() != null) {
-			List<PkRefSetting> refList = primaryKeySetting.getFieldList();
+			List<RefSetting> refList = primaryKeySetting.getFieldList();
 			
 			if(refList != null && refList.size() > 0){
 				primaryKeyFieldIdList = new int[refList.size()];
 				
 				int sequence = 0;
-				for (PkRefSetting refSetting : refList) {
+				for (RefSetting refSetting : refList) {
 					String fieldId = refSetting.getRef();
 					primaryKeyFieldIdList[sequence] = schema.getFieldSequence(fieldId);
 					logger.debug("pk field [{}]{} >> {}", sequence, fieldId, primaryKeyFieldIdList[sequence]);

@@ -37,7 +37,7 @@ import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.query.Sorts;
 import org.fastcatsearch.ir.query.View;
 import org.fastcatsearch.ir.settings.FieldSetting;
-import org.fastcatsearch.ir.settings.PkRefSetting;
+import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.summary.BasicHighlightAndSummary;
 import org.slf4j.Logger;
@@ -457,7 +457,7 @@ public class ShardSearcher {
 
 		List<FieldSetting> pkFieldSettingList = new ArrayList<FieldSetting>(3);
 
-		for (PkRefSetting pkRefSetting : shardHandler.schema().schemaSetting().getPrimaryKeySetting().getFieldList()) {
+		for (RefSetting pkRefSetting : shardHandler.schema().schemaSetting().getPrimaryKeySetting().getFieldList()) {
 			pkFieldSettingList.add(shardHandler.schema().getFieldSetting(pkRefSetting.getRef()));
 		}
 		// /////////////////////////////////////

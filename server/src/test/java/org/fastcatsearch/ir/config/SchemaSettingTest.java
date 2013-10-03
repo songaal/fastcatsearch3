@@ -12,13 +12,11 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
-import org.fastcatsearch.ir.config.JAXBConfigs;
 import org.fastcatsearch.ir.settings.AnalyzerSetting;
 import org.fastcatsearch.ir.settings.FieldIndexSetting;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.GroupIndexSetting;
 import org.fastcatsearch.ir.settings.IndexSetting;
-import org.fastcatsearch.ir.settings.PkRefSetting;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
 import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.Schema;
@@ -40,9 +38,9 @@ public class SchemaSettingTest {
 		
 		
 		PrimaryKeySetting primaryKeySetting = new PrimaryKeySetting("id");
-		primaryKeySetting.setFieldList(new ArrayList<PkRefSetting>());
-		primaryKeySetting.getFieldList().add(new PkRefSetting("id"));
-		primaryKeySetting.getFieldList().add(new PkRefSetting("price"));
+		primaryKeySetting.setFieldList(new ArrayList<RefSetting>());
+		primaryKeySetting.getFieldList().add(new RefSetting("id"));
+		primaryKeySetting.getFieldList().add(new RefSetting("price"));
 		setting.setPrimaryKeySetting(primaryKeySetting);
 		
 		List<RefSetting> indexFieldSettingList = new ArrayList<RefSetting>();

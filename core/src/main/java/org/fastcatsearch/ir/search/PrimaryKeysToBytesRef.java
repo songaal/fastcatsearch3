@@ -9,8 +9,8 @@ import org.fastcatsearch.ir.field.FieldDataParseException;
 import org.fastcatsearch.ir.index.PrimaryKeys;
 import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.settings.FieldSetting;
-import org.fastcatsearch.ir.settings.PkRefSetting;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
+import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +25,7 @@ public class PrimaryKeysToBytesRef {
 	public PrimaryKeysToBytesRef(Schema schma) {
 		PrimaryKeySetting primaryKeySetting = schma.schemaSetting().getPrimaryKeySetting();
 		List<FieldSetting> fieldSettingList = schma.schemaSetting().getFieldSettingList();
-		List<PkRefSetting> pkRefSettingList = primaryKeySetting.getFieldList();
+		List<RefSetting> pkRefSettingList = primaryKeySetting.getFieldList();
 		pkSize = pkRefSettingList.size();
 		pkFieldSettingList = new FieldSetting[pkSize];
 
