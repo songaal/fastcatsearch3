@@ -33,7 +33,6 @@ import java.util.Properties;
 
 import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.config.DBSourceConfig;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.JDBCSourceInfo;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
@@ -57,7 +56,6 @@ public class DBReader extends SingleSourceReader {
 	private int bulkCount;
 	private int readCount;
 
-	private DBSourceConfig config;
 	private String lastIndexTime;
 
 	public DBReader(File filePath, DataSourceConfig dataSourceConfig, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime)
@@ -67,11 +65,10 @@ public class DBReader extends SingleSourceReader {
 
 	@Override
 	public void init() throws IRException {
-		this.config = (DBSourceConfig) singleSourceConfig;
-		this.BULK_SIZE = config.getBulkSize();
+		this.BULK_SIZE = getConfigInt("bulkSize");
 
 		dataSet = new Map[BULK_SIZE];
-		String jdbcSourceId = config.getJdbcSourceId();
+		String jdbcSourceId = getConfigString("jdbcSourceId");
 		JDBCSourceInfo jdbcSourceInfo = null;
 		for(JDBCSourceInfo info : dataSourceConfig.getJdbcSourceInfoList()){
 			if(info.getId().equals(jdbcSourceId)){
@@ -102,12 +99,12 @@ public class DBReader extends SingleSourceReader {
 			}
 			doBeforeQuery();
 
-				
-			if (config.getDeleteIdSQL() != null && config.getDeleteIdSQL().length() > 0) {
+			String deleteIdSQL = getConfigString("deleteIdSQL");
+			if (deleteIdSQL != null && deleteIdSQL.length() > 0) {
 				PreparedStatement idPstmt = null;
 				ResultSet rs = null;
 				try {
-					idPstmt = con.prepareStatement(q(config.getDeleteIdSQL()));
+					idPstmt = con.prepareStatement(q(deleteIdSQL));
 					rs = idPstmt.executeQuery();
 					while (rs.next()) {
 						String ID = rs.getString(1);
@@ -126,20 +123,22 @@ public class DBReader extends SingleSourceReader {
 					}
 				}
 			}
-			logger.debug("Data query = " + q(config.getDataSQL()));
-			if (config.getDataSQL() == null || config.getDataSQL().length() == 0) {
+			
+			String dataSQL = getConfigString("dataSQL");
+			if (dataSQL == null || dataSQL.length() == 0) {
 				throw new IRException("Data query sql is empty!");
 			}
 
-			if (config.isResultBuffering()) {
+			logger.debug("Data query = {}", dataSQL);
+			if (getConfigBoolean("resultBuffering")) {
 				pstmt = new BufferedStatement(pstmt);
-			} else if (config.getFetchSize() <= 0){
+			} else if (getConfigInt("fetchSize") <= 0){
 				//in mysql, fetch data row by row 
-				pstmt = con.prepareStatement(q(config.getDataSQL()), ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				pstmt = con.prepareStatement(q(dataSQL), ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				pstmt.setFetchSize(Integer.MIN_VALUE);
 			} else {
-				pstmt = con.prepareStatement(q(config.getDataSQL()));
-				pstmt.setFetchSize(config.getFetchSize());
+				pstmt = con.prepareStatement(q(dataSQL));
+				pstmt.setFetchSize(getConfigInt("fetchSize"));
 			}
 
 			r = pstmt.executeQuery();
@@ -228,7 +227,7 @@ public class DBReader extends SingleSourceReader {
 	}
 
 	private void doBeforeQuery() throws SQLException {
-		int count = executeUpdateQuery(q(config.getBeforeSQL()));
+		int count = executeUpdateQuery(q(getConfigString("beforeSQL")));
 
 		if (count != -1){
 			logger.info("Before query updated {} rows.", count);
@@ -236,7 +235,7 @@ public class DBReader extends SingleSourceReader {
 	}
 
 	private void doAfterQuery() throws SQLException {
-		int count = executeUpdateQuery(q(config.getAfterSQL()));
+		int count = executeUpdateQuery(q(getConfigString("afterSQL")));
 
 		if (count != -1){
 			logger.info("After query updated {} rows.", count);

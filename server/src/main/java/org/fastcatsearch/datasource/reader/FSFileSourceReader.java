@@ -27,7 +27,6 @@ import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.DataSourceConfig;
-import org.fastcatsearch.ir.config.FileSourceConfig;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.index.PrimaryKeys;
 import org.fastcatsearch.ir.io.DirBufferedReader;
@@ -51,13 +50,12 @@ public class FSFileSourceReader extends SingleSourceReader {
 
 	@Override
 	public void init() throws IRException {
-		FileSourceConfig config = (FileSourceConfig) singleSourceConfig;
-		String fileEncoding = config.getFileEncoding();
+		String fileEncoding = getConfigString("encoding");
 		if (fileEncoding == null) {
 			fileEncoding = Charset.defaultCharset().toString();
 		}
 		try {
-			File file = filePath.makePath(config.getFilePath()).file();
+			File file = filePath.makePath(getConfigString("filepath")).file();
 			br = new DirBufferedReader(file, fileEncoding);
 			logger.info("Collect file = {}, {}", file.getAbsolutePath(), fileEncoding);
 		} catch (UnsupportedEncodingException e) {

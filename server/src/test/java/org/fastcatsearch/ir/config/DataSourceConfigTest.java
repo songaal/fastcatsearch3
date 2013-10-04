@@ -1,115 +1,59 @@
 package org.fastcatsearch.ir.config;
 
-import static org.junit.Assert.*;
-
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
-import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.junit.Test;
 
 public class DataSourceConfigTest {
 
 	String datasourceConfigXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
 			"<datasource>\n" + 
-			"	\n" + 
-			"	<full-indexing>\n" + 
-			"		<db id=\"db1\" name=\"db first\" active=\"false\">\n" + 
-			"			<sourceModifier></sourceModifier>\n" + 
-			"	        <sourceReader>org.fastcatsearch.datasource.reader.DBReader</sourceReader>\n" + 
-			"	        <bulkSize>0</bulkSize>\n" + 
-			"	        <fetchSize>0</fetchSize>\n" + 
-			"	        <resultBuffering>false</resultBuffering>\n" + 
-			"	        <shard-sources>\n" + 
-			"	        	<shard id=\"sample\">\n" + 
-			"	        		<dataSql>select * from table_sample</dataSql>\n" + 
-			"	        	</shard>\n" + 
-			"	        	<shard id=\"sample1\">\n" + 
-			"	        		<dataSql>select * from table_sample</dataSql>\n" + 
-			"	        	</shard>\n" + 
-			"	        	<shard id=\"sample2\">\n" + 
-			"	        		<dataSql>select * from table_sample</dataSql>\n" + 
-			"	        	</shard>\n" + 
-			"	        </shard-sources>\n" + 
-			"		</db>\n" + 
-			"		\n" + 
-			"		<file active=\"true\">\n" + 
-			"	        <sourceModifier></sourceModifier>\n" + 
-			"	        <sourceReader>org.fastcatsearch.datasource.reader.FSFileSourceReader</sourceReader>\n" + 
-			"	        \n" + 
-			"	        <shard-sources>\n" + 
-			"	        	<shard id=\"sample\">\n" + 
-			"	        		<fileEncoding>utf-8</fileEncoding>\n" + 
-			"			        <filePath>testData/full1</filePath>\n" + 
-			"	        	</shard>\n" + 
-			"	        	<shard id=\"sample1\">\n" + 
-			"	        		<fileEncoding>utf-8</fileEncoding>\n" + 
-			"			        <filePath>testData/full1</filePath>\n" + 
-			"	        	</shard>\n" + 
-			"	        	<shard id=\"sample2\">\n" + 
-			"	        		<fileEncoding>utf-8</fileEncoding>\n" + 
-			"			        <filePath>testData/full1</filePath>\n" + 
-			"	        	</shard>\n" + 
-			"	        </shard-sources>\n" + 
-			"	    </file>\n" + 
-			"	</full-indexing>\n" + 
-			"			\n" + 
-			"	<add-indexing>\n" + 
-			"		<db id=\"db1\" name=\"db first\" active=\"false\">\n" + 
-			"			<sourceModifier></sourceModifier>\n" + 
-			"	        <sourceReader>org.fastcatsearch.datasource.reader.DBReader</sourceReader>\n" + 
-			"	        <bulkSize>0</bulkSize>\n" + 
-			"	        <fetchSize>0</fetchSize>\n" + 
-			"	        <resultBuffering>false</resultBuffering>\n" + 
-			"	        <shard-sources>\n" + 
-			"	        	<shard id=\"sample\">\n" + 
-			"	        		<dataSql>select * from table_sample</dataSql>\n" + 
-			"	        		<deleteSql>select id from table_sample where status=1</deleteSql>\n" + 
-			"	        		<beforeSql>select id from table_sample where status=1</beforeSql>\n" + 
-			"	        		<afterSql>select id from table_sample where status=1</afterSql>\n" + 
-			"	        	</shard>\n" + 
-			"	        	<shard id=\"sample1\">\n" + 
-			"	        		<dataSql>select * from table_sample</dataSql>\n" + 
-			"	        		<deleteSql>select id from table_sample where status=1</deleteSql>\n" + 
-			"	        		<beforeSql>select id from table_sample where status=1</beforeSql>\n" + 
-			"	        		<afterSql>select id from table_sample where status=1</afterSql>\n" + 
-			"	        	</shard>\n" + 
-			"	        	<shard id=\"sample2\">\n" + 
-			"	        		<dataSql>select * from table_sample</dataSql>\n" + 
-			"	        		<deleteSql>select id from table_sample where status=1</deleteSql>\n" + 
-			"	        		<beforeSql>select id from table_sample where status=1</beforeSql>\n" + 
-			"	        		<afterSql>select id from table_sample where status=1</afterSql>\n" + 
-			"	        	</shard>\n" + 
-			"	        </shard-sources>\n" + 
-			"		</db>\n" + 
-			"		\n" + 
-			"		<file active=\"true\">\n" + 
-			"	        <sourceModifier></sourceModifier>\n" + 
-			"	        <sourceReader>org.fastcatsearch.datasource.reader.FSFileSourceReader</sourceReader>\n" + 
-			"	        \n" + 
-			"	        <shard-sources>\n" + 
-			"	        	<shard id=\"sample\">\n" + 
-			"	        		<fileEncoding>utf-8</fileEncoding>\n" + 
-			"			        <filePath>testData/full1</filePath>\n" + 
-			"	        	</shard>\n" + 
-			"	        	<shard id=\"sample1\">\n" + 
-			"	        		<fileEncoding>utf-8</fileEncoding>\n" + 
-			"			        <filePath>testData/full1</filePath>\n" + 
-			"	        	</shard>\n" + 
-			"	        	<shard id=\"sample2\">\n" + 
-			"	        		<fileEncoding>utf-8</fileEncoding>\n" + 
-			"			        <filePath>testData/full1</filePath>\n" + 
-			"	        	</shard>\n" + 
-			"	        </shard-sources>\n" + 
-			"	    </file>\n" + 
-			"	</add-indexing>\n" + 
+			"    <add-indexing>\n" + 
+			"        <source id=\"db1\" active=\"false\">\n" + 
+			"            <properties>\n" + 
+			"                <property key=\"encoding\">utf-8</property>\n" + 
+			"                <property key=\"jdbc-driver\">com.mysql.driver.Driver</property>\n" + 
+			"            </properties>\n" + 
+			"            <modifier>modifier</modifier>\n" + 
+			"            <reader>com.abc.Reader</reader>\n" + 
+			"        </source>\n" + 
+			"        <source id=\"file1\" active=\"false\">\n" + 
+			"            <properties>\n" + 
+			"                <property key=\"encoding\">utf-8</property>\n" + 
+			"            </properties>\n" + 
+			"            <modifier>modifier2</modifier>\n" + 
+			"            <reader>com.abc.Reader</reader>\n" + 
+			"        </source>\n" + 
+			"    </add-indexing>\n" + 
+			"    <full-indexing>\n" + 
+			"        <source id=\"db1\" active=\"false\">\n" + 
+			"            <properties>\n" + 
+			"                <property key=\"encoding\">utf-8</property>\n" + 
+			"                <property key=\"jdbc-driver\">com.mysql.driver.Driver</property>\n" + 
+			"            </properties>\n" + 
+			"            <modifier>modifier</modifier>\n" + 
+			"            <reader>com.abc.Reader</reader>\n" + 
+			"        </source>\n" + 
+			"        <source id=\"file1\" active=\"false\">\n" + 
+			"            <properties>\n" + 
+			"                <property key=\"encoding\">utf-8</property>\n" + 
+			"            </properties>\n" + 
+			"            <modifier>modifier2</modifier>\n" + 
+			"            <reader>com.abc.Reader</reader>\n" + 
+			"        </source>\n" + 
+			"    </full-indexing>\n" + 
 			"    <jdbc-sources>\n" + 
-			"    	<jdbc-source id=\"db1\" name=\"디비1\" driver=\"mysql.Driver\" url=\"jdbc:mysql:127.0.0.1/test\" user=\"james\" password=\"1111\" />\n" + 
-			"    	<jdbc-source id=\"db2\" name=\"디비2\" driver=\"oracle.Driver\" url=\"jdbc:oracle:127.0.0.1/test\" user=\"scott\" password=\"1234\" />\n" + 
+			"        <jdbc-source user=\"admin\" url=\"jdbc://localhost/test\" password=\"1234567\" name=\"name1\" id=\"id1\" driver=\"com.mysql.Driver\"/>\n" + 
+			"        <jdbc-source user=\"sa\" url=\"jdbc://localhost/test\" password=\"sa1234567\" name=\"name2\" id=\"id2\" driver=\"com.oracle.Driver\"/>\n" + 
 			"    </jdbc-sources>\n" + 
 			"</datasource>\n" + 
 			"";
@@ -117,25 +61,14 @@ public class DataSourceConfigTest {
 	public void testRead() throws IOException, JAXBException {
 		InputStream is = new ByteArrayInputStream(datasourceConfigXml.getBytes());
 		DataSourceConfig dataSourceConfig = JAXBConfigs.readConfig(is, DataSourceConfig.class);
-		List<DBSourceConfig> sourceList = dataSourceConfig.getFullIndexingSourceConfig().getDBSourceConfigList();
-		for(DBSourceConfig config : sourceList){
-			System.out.println(config);
-			System.out.println(config.isActive());
-		}
-		List<FileSourceConfig> fileSourceList = dataSourceConfig.getFullIndexingSourceConfig().getFileSourceConfigList();
-		for(FileSourceConfig config : fileSourceList){
+		List<SingleSourceConfig> sourceList = dataSourceConfig.getFullIndexingSourceConfig();
+		for(SingleSourceConfig config : sourceList){
 			System.out.println(config);
 			System.out.println(config.isActive());
 		}
 		
-		
-		List<DBSourceConfig> sourceList2 = dataSourceConfig.getAddIndexingSourceConfig().getDBSourceConfigList();
-		for(DBSourceConfig config : sourceList2){
-			System.out.println(config);
-			System.out.println(config.isActive());
-		}
-		List<FileSourceConfig> fileSourceList2 = dataSourceConfig.getAddIndexingSourceConfig().getFileSourceConfigList();
-		for(FileSourceConfig config : fileSourceList2){
+		List<SingleSourceConfig> sourceList2 = dataSourceConfig.getAddIndexingSourceConfig();
+		for(SingleSourceConfig config : sourceList2){
 			System.out.println(config);
 			System.out.println(config.isActive());
 		}
@@ -151,4 +84,84 @@ public class DataSourceConfigTest {
 		}
 	}
 
+	
+	@Test
+	public void testSingleSourceConfigWrite() throws IOException, JAXBException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		SingleSourceConfig config = new SingleSourceConfig();
+		config.setId("db1");
+		config.setSourceModifier("modifier");
+		config.setSourceReader("com.abc.Reader");
+		Map<String, String> properties = new HashMap<String, String>();
+		properties.put("encoding", "utf-8");
+		config.setProperties(properties);
+		
+		JAXBConfigs.writeRawConfig(baos, config, SingleSourceConfig.class);
+		
+		System.out.println(new String(baos.toByteArray()));
+		
+	}
+	
+	@Test
+	public void testDataSourceConfigWrite() throws IOException, JAXBException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		
+		DataSourceConfig dataSourceConfig = new DataSourceConfig();
+		
+		List<SingleSourceConfig> fullSourceConfigList = new ArrayList<SingleSourceConfig>();
+		dataSourceConfig.setFullIndexingSourceConfig(fullSourceConfigList);
+		List<SingleSourceConfig> addSourceConfigList = new ArrayList<SingleSourceConfig>();
+		dataSourceConfig.setAddIndexingSourceConfig(addSourceConfigList);
+		{
+			SingleSourceConfig config = new SingleSourceConfig();
+			config.setId("db1");
+			config.setSourceModifier("modifier");
+			config.setSourceReader("com.abc.Reader");
+			Map<String, String> properties = new HashMap<String, String>();
+			properties.put("encoding", "utf-8");
+			properties.put("jdbc-driver", "com.mysql.driver.Driver");
+			config.setProperties(properties);
+			
+			fullSourceConfigList.add(config);
+			addSourceConfigList.add(config);
+		}
+		{
+			SingleSourceConfig config2 = new SingleSourceConfig();
+			config2.setId("file1");
+			config2.setSourceModifier("modifier2");
+			config2.setSourceReader("com.abc.Reader");
+			Map<String, String> properties = new HashMap<String, String>();
+			properties.put("encoding", "utf-8");
+			config2.setProperties(properties);
+			
+			fullSourceConfigList.add(config2);
+			addSourceConfigList.add(config2);
+		}
+		{
+			List<JDBCSourceInfo> jdbcSourceInfoList = new ArrayList<JDBCSourceInfo>();
+			JDBCSourceInfo jdbc1 = new JDBCSourceInfo();
+			jdbc1.setId("id1");
+			jdbc1.setName("name1");
+			jdbc1.setDriver("com.mysql.Driver");
+			jdbc1.setUrl("jdbc://localhost/test");
+			jdbc1.setUser("admin");
+			jdbc1.setPassword("1234567");
+			jdbcSourceInfoList.add(jdbc1);
+			jdbc1 = new JDBCSourceInfo();
+			jdbc1.setId("id2");
+			jdbc1.setName("name2");
+			jdbc1.setDriver("com.oracle.Driver");
+			jdbc1.setUrl("jdbc://localhost/test");
+			jdbc1.setUser("sa");
+			jdbc1.setPassword("sa1234567");
+			jdbcSourceInfoList.add(jdbc1);
+			dataSourceConfig.setJdbcSourceInfoList(jdbcSourceInfoList);
+		}
+		
+		
+		JAXBConfigs.writeRawConfig(baos, dataSourceConfig, DataSourceConfig.class);
+		
+		System.out.println(new String(baos.toByteArray()));
+		
+	}
 }

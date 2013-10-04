@@ -1,13 +1,44 @@
 package org.fastcatsearch.ir.config;
 
+import java.util.Map;
+
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import org.fastcatsearch.ir.settings.KeyValueMapAdapter;
+
+@XmlRootElement(name="source")
 public class SingleSourceConfig {
 	
+	private String id;
+	private String name;
 	private boolean active;
 	private String sourceReader;
 	private String sourceModifier;
+	private Map<String, String> properties;
+	
+	public SingleSourceConfig(){
+	}
+	
+	@XmlAttribute(required = true)
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+	
+	@XmlAttribute
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
 	
 	@XmlAttribute
 	public boolean isActive() {
@@ -18,12 +49,12 @@ public class SingleSourceConfig {
 		this.active = active;
 	}
 	
-	@XmlElement(name="source-reader", required=true)
+	@XmlElement(name="reader", required=true)
 	public String getSourceReader(){
 		return sourceReader;
 	}
 	
-	@XmlElement(name="source-modifier")
+	@XmlElement(name="modifier")
 	public String getSourceModifier(){
 		return sourceModifier;
 	}
@@ -34,6 +65,16 @@ public class SingleSourceConfig {
 	
 	public void setSourceModifier(String sourceModifier){
 		this.sourceModifier = sourceModifier;
+	}
+	
+	@XmlElement
+	@XmlJavaTypeAdapter(KeyValueMapAdapter.class)
+	public Map<String, String> getProperties() {
+		return properties;
+	}
+
+	public void setProperties(Map<String, String> properties) {
+		this.properties = properties;
 	}
 
 	

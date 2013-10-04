@@ -12,16 +12,11 @@
 package org.fastcatsearch.datasource.reader;
 
 import java.io.File;
-import java.util.List;
 
 import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.DataSourceConfig;
-import org.fastcatsearch.ir.config.IndexingSourceConfig;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
-import org.fastcatsearch.ir.index.DeleteIdSet;
-import org.fastcatsearch.ir.settings.FieldSetting;
-import org.fastcatsearch.ir.settings.PrimaryKeySetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.util.DynamicClassLoader;
 import org.slf4j.Logger;
@@ -34,10 +29,9 @@ public class DataSourceReaderFactory {
 
 		DataSourceReader dataSourceReader = new DataSourceReader(schema);
 		logger.debug("dataSourceConfig > {}", dataSourceConfig);
-		if (dataSourceConfig != null) {
-			IndexingSourceConfig indexingSourceConfig = dataSourceConfig.getFullIndexingSourceConfig();
+		if (dataSourceConfig != null && dataSourceConfig.getFullIndexingSourceConfig() != null) {
 			
-			for (SingleSourceConfig singleSourceConfig : indexingSourceConfig.getSourceConfigList()) {
+			for (SingleSourceConfig singleSourceConfig : dataSourceConfig.getFullIndexingSourceConfig()) {
 				if(!singleSourceConfig.isActive()){
 					continue;
 				}
@@ -56,10 +50,9 @@ public class DataSourceReaderFactory {
 
 		DataSourceReader dataSourceReader = new DataSourceReader(schema);
 		logger.debug("dataSourceConfig > {}", dataSourceConfig);
-		if (dataSourceConfig != null) {
-			IndexingSourceConfig indexingSourceConfig = dataSourceConfig.getAddIndexingSourceConfig();
+		if (dataSourceConfig != null && dataSourceConfig.getAddIndexingSourceConfig() != null) {
 			
-			for (SingleSourceConfig singleSourceConfig : indexingSourceConfig.getSourceConfigList()) {
+			for (SingleSourceConfig singleSourceConfig : dataSourceConfig.getAddIndexingSourceConfig()) {
 				if(!singleSourceConfig.isActive()){
 					continue;
 				}

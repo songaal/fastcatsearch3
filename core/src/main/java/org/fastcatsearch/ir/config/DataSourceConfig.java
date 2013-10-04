@@ -9,23 +9,25 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "datasource")
 public class DataSourceConfig {
 	
-	private IndexingSourceConfig fullIndexingSourceConfig;
-	private IndexingSourceConfig addIndexingSourceConfig;
+	private List<SingleSourceConfig> fullIndexingSourceConfig;
+	private List<SingleSourceConfig> addIndexingSourceConfig;
 	private List<JDBCSourceInfo> jdbcSourceInfoList; 
 	
-	@XmlElement(name="full-indexing")
-	public IndexingSourceConfig getFullIndexingSourceConfig() {
+	@XmlElementWrapper(name="full-indexing")
+	@XmlElement(name="source")
+	public List<SingleSourceConfig> getFullIndexingSourceConfig() {
 		return fullIndexingSourceConfig;
 	}
-	public void setFullIndexingSourceConfig(IndexingSourceConfig fullIndexingSourceConfig) {
+	public void setFullIndexingSourceConfig(List<SingleSourceConfig> fullIndexingSourceConfig) {
 		this.fullIndexingSourceConfig = fullIndexingSourceConfig;
 	}
 	
-	@XmlElement(name="add-indexing")
-	public IndexingSourceConfig getAddIndexingSourceConfig() {
+	@XmlElementWrapper(name="add-indexing")
+	@XmlElement(name="source")
+	public List<SingleSourceConfig> getAddIndexingSourceConfig() {
 		return addIndexingSourceConfig;
 	}
-	public void setAddIndexingSourceConfig(IndexingSourceConfig addIndexingSourceConfig) {
+	public void setAddIndexingSourceConfig(List<SingleSourceConfig> addIndexingSourceConfig) {
 		this.addIndexingSourceConfig = addIndexingSourceConfig;
 	}
 	
