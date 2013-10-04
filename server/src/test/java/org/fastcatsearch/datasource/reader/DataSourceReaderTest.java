@@ -1,14 +1,12 @@
 package org.fastcatsearch.datasource.reader;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
 
 import org.fastcatsearch.datasource.SourceModifier;
-import org.fastcatsearch.ir.config.FileSourceConfig;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
-import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.util.DynamicClassLoader;
 import org.junit.Test;
 

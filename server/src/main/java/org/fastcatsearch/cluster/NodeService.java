@@ -45,11 +45,12 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 		for (int i = 0; i < nodeSettingList.size(); i++) {
 			Settings nodeSetting = nodeSettingList.get(i);
 			String id = nodeSetting.getString("id");
+			String name = nodeSetting.getString("name");
 			String address = nodeSetting.getString("address");
 			int port = nodeSetting.getInt("port");
 			boolean isEnabled = !nodeSetting.getBoolean("disabled");
 
-			Node node = new Node(id, address, port);
+			Node node = new Node(id, name, address, port, isEnabled);
 			nodeList.add(node);
 			nodeMap.put(id, node);
 			

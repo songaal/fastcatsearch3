@@ -1,4 +1,4 @@
-package org.fastcatsearch.http.action.management;
+package org.fastcatsearch.http.action.management.analysis;
 
 import java.io.Writer;
 import java.util.Collection;

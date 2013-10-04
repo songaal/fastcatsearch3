@@ -9,10 +9,11 @@ import org.fastcatsearch.ir.io.DataOutput;
 
 public class Node implements Streamable{
 	private String nodeId;
+	private String name;
 	private InetSocketAddress socketAddress;
 	
-	public enum NodeStatus { ENABLED, DISABLED, ACTIVE, INACTIVE };
-	private transient NodeStatus nodeStatus;
+	private transient boolean isEnabled;
+	private transient boolean isActive;
 	
 	public Node(){
 	}
@@ -22,39 +23,54 @@ public class Node implements Streamable{
         this.socketAddress = socketAddress;
     }
 	
-	public Node(String nodeId, String address, int port) {
-		this.nodeId = nodeId;
-		socketAddress = new InetSocketAddress(address, port);
+	public Node(String nodeId,  String name, String address, int port) {
+		this(nodeId, name, address, port, false);
 	}
 	
+	public Node(String nodeId, String name, String address, int port, boolean isEnabled) {
+		this.nodeId = nodeId;
+		this.name = name;
+		this.isEnabled = isEnabled;
+		socketAddress = new InetSocketAddress(address, port);
+	}
+
 	public String toString(){
 		return nodeId+"/"+socketAddress.getHostName()+"/"+socketAddress.getPort();
 	}
 	
 	public String status(){
-		return nodeStatus.name();
+		if(isEnabled){
+			return "Enabled / " + (isActive ? "Active" : "Inactive");
+		}else{
+			return "Disabled";
+		}
 	}
 	
 	public void setDisabled(){
-		nodeStatus = NodeStatus.DISABLED;
+		isEnabled = false;
 	}
 	public void setEnabled(){
-		nodeStatus = NodeStatus.ENABLED;
+		isEnabled = true;
 	}
 	public void setActive(){
-		nodeStatus = NodeStatus.ACTIVE;
+		isActive = true;
 	}
 	public void setInactive(){
-		nodeStatus = NodeStatus.INACTIVE;
+		isActive = false;
 	}
 	public boolean isEnabled(){
-		return nodeStatus == NodeStatus.ENABLED;
+		return isEnabled;
+	}
+	public boolean isActive(){
+		return isActive;
 	}
 	
 	public String id() {
 		return nodeId;
 	}
-	
+	public String name() {
+		return name;
+	}
 	public InetSocketAddress address() {
 		return socketAddress;
 	}

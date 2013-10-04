@@ -17,7 +17,7 @@ public class AlertServiceTest {
 		alertService.start();
 		
 		int COUNT = 1000;
-		Node node = new Node("maser", "192.168.0.30", 8080);
+		Node node = new Node("maser", "", "192.168.0.30", 8080);
 		FastcatSearchException e = new FastcatSearchException("에러발생.", new IOException("io에러"));
 		for (int i = 0; i < COUNT; i++) {
 			alertService.handleException(node, e);
