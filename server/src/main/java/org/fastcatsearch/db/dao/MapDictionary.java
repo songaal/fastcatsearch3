@@ -258,18 +258,18 @@ public class MapDictionary extends DAOBase implements ResultVOMapper<MapDictiona
 		return false;
 	}
 
-	public int insertBatch(String line, BatchContext batchContext) {
-		if (line.trim().length() == 0)
-			return 0;
+	public int insertBatch(String key, String value, BatchContext batchContext) {
+//		if (line.trim().length() == 0)
+//			return 0;
 
 		PreparedStatement pstmt = batchContext.getPreparedStatement();
 		try {
-			String[] kv = line.split(":");
+//			String[] kv = line.split(":");
 
 			pstmt.clearParameters();
 			int parameterIndex = 1;
-			pstmt.setString(parameterIndex++, kv[0]);
-			pstmt.setString(parameterIndex++, kv[1]);
+			pstmt.setString(parameterIndex++, key);
+			pstmt.setString(parameterIndex++, value);
 
 			pstmt.addBatch();
 

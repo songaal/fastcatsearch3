@@ -26,7 +26,7 @@ public class BatchContext {
 		return batchCount;
 	}
 	
-	public int incrementBatchCountAndGet(){
+	protected int incrementBatchCountAndGet(){
 		return ++batchCount;
 	}
 

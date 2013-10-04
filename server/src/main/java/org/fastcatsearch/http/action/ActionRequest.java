@@ -85,13 +85,15 @@ public class ActionRequest {
 		}
 	}
 
-	public Integer getIntParameter(String key) {
+	public int getIntParameter(String key) {
 		String value = getParameter(key);
 		if (value != null) {
-			return Integer.parseInt(value);
-		} else {
-			return null;
+			try{
+				return Integer.parseInt(value);
+			}catch(NumberFormatException e){
+			}
 		}
+		return 0;
 	}
 	
 	public boolean getBooleanParameter(String key, boolean defaultValue) {
