@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
-import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.dao.DAOBase;
 import org.fastcatsearch.db.dao.SetDictionary;
 import org.fastcatsearch.db.vo.SetDictionaryVO;
@@ -28,6 +27,11 @@ public abstract class AnalysisPlugin extends Plugin {
 		super(pluginDir, pluginSetting);
 	}
 
+	@Override
+	protected void doLoad(){
+		loadDictionary();
+	}
+	
 	protected abstract void loadDictionary();
 
 	public abstract Dictionary<?> getDictionary();

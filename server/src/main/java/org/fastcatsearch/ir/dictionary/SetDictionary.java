@@ -20,20 +20,20 @@ import org.fastcatsearch.ir.io.DataOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class HashSetDictionary extends SourceDictionary implements ReadableDictionary {
-	private static Logger logger = LoggerFactory.getLogger(HashSetDictionary.class);
+public class SetDictionary extends SourceDictionary implements ReadableDictionary {
+	private static Logger logger = LoggerFactory.getLogger(SetDictionary.class);
 	
 	private Set<CharVector> set;
 
-	public HashSetDictionary() {
+	public SetDictionary() {
 		set = new HashSet<CharVector>();
 	}
 
-	public HashSetDictionary(Set<CharVector> set) {
+	public SetDictionary(Set<CharVector> set) {
 		this.set = set;
 	}
 
-	public HashSetDictionary(File file) {
+	public SetDictionary(File file) {
 		if(!file.exists()){
 			set = new HashSet<CharVector>();
 			logger.error("사전파일이 존재하지 않습니다. file={}", file.getAbsolutePath());
@@ -49,7 +49,7 @@ public class HashSetDictionary extends SourceDictionary implements ReadableDicti
 		}
 	}
 
-	public HashSetDictionary(InputStream is){
+	public SetDictionary(InputStream is){
 		try {
 			readFrom(is);
 		} catch (IOException e) {

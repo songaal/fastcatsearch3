@@ -22,26 +22,30 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-public class ListMapDictionary extends SourceDictionary implements ReadableDictionary {
-	private static Logger logger = LoggerFactory.getLogger(ListMapDictionary.class);
+/*
+ * FIXME 유사어 전용인가. map 범용인가?
+ * 
+ * 
+ * */
+public class MapDictionary extends SourceDictionary implements ReadableDictionary {
+	private static Logger logger = LoggerFactory.getLogger(MapDictionary.class);
 
 	private Map<CharVector, CharVector[]> map;
-	private Set<CharVector> synonymSet;
+	private Set<CharVector> wordSet;
 
-	public ListMapDictionary() {
+	public MapDictionary() {
 		map = new HashMap<CharVector, CharVector[]>();
-		synonymSet = new HashSet<CharVector>();
+		wordSet = new HashSet<CharVector>();
 	}
 
-	public ListMapDictionary(Map<CharVector, CharVector[]> map) {
+	public MapDictionary(Map<CharVector, CharVector[]> map) {
 		this.map = map;
 	}
 
-	public ListMapDictionary(File file) {
+	public MapDictionary(File file) {
 		if(!file.exists()){
 			map = new HashMap<CharVector, CharVector[]>();
-			synonymSet = new HashSet<CharVector>();
+			wordSet = new HashSet<CharVector>();
 			logger.error("사전파일이 존재하지 않습니다. file={}", file.getAbsolutePath());
 			return;
 		}
@@ -55,7 +59,7 @@ public class ListMapDictionary extends SourceDictionary implements ReadableDicti
 		}
 	}
 
-	public ListMapDictionary(InputStream is) {
+	public MapDictionary(InputStream is) {
 		try {
 			readFrom(is);
 		} catch (IOException e) {
@@ -77,11 +81,11 @@ public class ListMapDictionary extends SourceDictionary implements ReadableDicti
 				if (synonym.length() > 0) {
 					if (synonym.startsWith("@")) {
 						mainWord = new CharVector(synonym.substring(1));
-						synonymSet.add(mainWord);
+						wordSet.add(mainWord);
 					} else {
 						CharVector word = new CharVector(synonym);
 						list.add(word);
-						synonymSet.add(word);
+						wordSet.add(word);
 					}
 				}
 			}
@@ -123,7 +127,7 @@ public class ListMapDictionary extends SourceDictionary implements ReadableDicti
 	}
 
 	public Set<CharVector> getWordSet() {
-		return Collections.unmodifiableSet(synonymSet);
+		return Collections.unmodifiableSet(wordSet);
 	}
 
 	@Override
@@ -148,10 +152,10 @@ public class ListMapDictionary extends SourceDictionary implements ReadableDicti
 		}
 		
 		//write size of synonyms 
-		output.writeInt(synonymSet.size());
+		output.writeInt(wordSet.size());
 		
 		//write synonyms
-		Iterator<CharVector> synonymIter = synonymSet.iterator();
+		Iterator<CharVector> synonymIter = wordSet.iterator();
 		for(;synonymIter.hasNext();) {
 			CharVector value = synonymIter.next();
 			output.writeString(value.toString());
@@ -165,7 +169,7 @@ public class ListMapDictionary extends SourceDictionary implements ReadableDicti
 		DataInput input = new InputStreamDataInput(in);
 		
 		map = new HashMap<CharVector, CharVector[]>();
-		synonymSet = new HashSet<CharVector>();
+		wordSet = new HashSet<CharVector>();
 		int size = input.readInt();
 
 		for(int entryInx=0;entryInx < size; entryInx++) {
@@ -183,7 +187,7 @@ public class ListMapDictionary extends SourceDictionary implements ReadableDicti
 		
 		size = input.readInt();
 		for(int entryInx=0;entryInx < size; entryInx++) {
-			synonymSet.add(new CharVector(input.readString()));
+			wordSet.add(new CharVector(input.readString()));
 		}
 	}
 

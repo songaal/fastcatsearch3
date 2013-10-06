@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.fastcatsearch.db.TestMapper">
+  <select id="selectWord" parameterType="int" resultType="map">
+    select * from Analysis_Korean_user where id = #{id}
+  </select>
+  
+  <select id="selectList" parameterType="map" resultType="map">
+   SELECT id, keyword FROM ( SELECT ROW_NUMBER() OVER() AS rownum, Analysis_Korean_user.* FROM Analysis_Korean_user
+    <if test="search != null">where keyword like  #{search}</if>
+    ) AS tmp WHERE rownum &gt; #{start} and rownum &lt;= #{end} 
+  </select>
+</mapper>

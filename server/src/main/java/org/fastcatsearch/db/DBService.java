@@ -11,18 +11,10 @@
 
 package org.fastcatsearch.db;
 
-import java.sql.SQLException;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.fastcatsearch.db.dao.IndexingHistory;
-import org.fastcatsearch.db.dao.IndexingResult;
-import org.fastcatsearch.db.dao.IndexingSchedule;
-import org.fastcatsearch.db.dao.JobHistory;
-import org.fastcatsearch.db.dao.SearchEvent;
-import org.fastcatsearch.db.dao.SearchMonitoringInfo;
-import org.fastcatsearch.db.dao.SearchMonitoringInfoMinute;
-import org.fastcatsearch.db.dao.SetDictionary;
-import org.fastcatsearch.db.dao.SystemMonitoringInfo;
-import org.fastcatsearch.db.dao.SystemMonitoringInfoMinute;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.module.ModuleException;
@@ -46,7 +38,10 @@ public class DBService extends AbstractService {
 	
 	public DBService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
-		internalDBModule = new InternalDBModule("system", environment, settings, serviceManager);
+		String dbPath = environment.filePaths().file("db/system").getAbsolutePath();
+		//TODO system관련 mapper설정.JobHistory, IndexingResult, SystemMonitoringInfo 등..
+		List<File> mapperFileList = new ArrayList<File>();
+		internalDBModule = new InternalDBModule(dbPath, mapperFileList, environment, settings, serviceManager);
 		
 	}
 
@@ -54,21 +49,21 @@ public class DBService extends AbstractService {
 		return internalDBModule;
 	}
 	protected boolean doStart() throws FastcatSearchException {
-		try {
+//		try {
 			internalDBModule.load();
-			internalDBModule.addDAO("IndexingResult", new IndexingResult(null));
-			internalDBModule.addDAO("IndexingSchedule", new IndexingSchedule(null));
-			internalDBModule.addDAO("IndexingHistory", new IndexingHistory(null));
-			internalDBModule.addDAO("JobHistory", new JobHistory(null));
-			internalDBModule.addDAO("SearchEvent", new SearchEvent(null));
-			internalDBModule.addDAO("SearchMonitoringInfoMinute", new SearchMonitoringInfoMinute(null));
-			internalDBModule.addDAO("SearchMonitoringInfo", new SearchMonitoringInfo(null));
-			internalDBModule.addDAO("SystemMonitoringInfoMinute", new SystemMonitoringInfoMinute(null));
-			internalDBModule.addDAO("SystemMonitoringInfo", new SystemMonitoringInfo(null));
-			internalDBModule.addDAO("RecommendKeyword", new SetDictionary("RecommendKeyword", null));
-		} catch (SQLException e) {
-			throw new FastcatSearchException("", e);
-		}
+//			internalDBModule.addDAO("IndexingResult", new IndexingResult(null));
+//			internalDBModule.addDAO("IndexingSchedule", new IndexingSchedule(null));
+//			internalDBModule.addDAO("IndexingHistory", new IndexingHistory(null));
+//			internalDBModule.addDAO("JobHistory", new JobHistory(null));
+//			internalDBModule.addDAO("SearchEvent", new SearchEvent(null));
+//			internalDBModule.addDAO("SearchMonitoringInfoMinute", new SearchMonitoringInfoMinute(null));
+//			internalDBModule.addDAO("SearchMonitoringInfo", new SearchMonitoringInfo(null));
+//			internalDBModule.addDAO("SystemMonitoringInfoMinute", new SystemMonitoringInfoMinute(null));
+//			internalDBModule.addDAO("SystemMonitoringInfo", new SystemMonitoringInfo(null));
+//			internalDBModule.addDAO("RecommendKeyword", new SetDictionary("RecommendKeyword", null));
+//		} catch (SQLException e) {
+//			throw new FastcatSearchException("", e);
+//		}
 		
 		logger.info("DBService started!");
 		return true;

@@ -3,8 +3,8 @@ package org.fastcatsearch.http.action.management.dictionary;
 import java.io.Writer;
 
 import org.fastcatsearch.db.dao.BatchContext;
-import org.fastcatsearch.db.dao.MapDictionary;
-import org.fastcatsearch.db.dao.SetDictionary;
+import org.fastcatsearch.db.dao.MapDictionaryDAO;
+import org.fastcatsearch.db.dao.SetDictionaryDAO;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -38,8 +38,8 @@ public class DictionaryWordInsertAction extends AuthAction {
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		resultWriter.object().key(dictionaryId).array();
 		
-		if(dao instanceof SetDictionary){
-			SetDictionary setDictionary = (SetDictionary) dao;
+		if(dao instanceof SetDictionaryDAO){
+			SetDictionaryDAO setDictionary = (SetDictionaryDAO) dao;
 			if(wordList.length() == 0){
 				//ignore
 			}else if(wordList.length() > 1){
@@ -56,8 +56,8 @@ public class DictionaryWordInsertAction extends AuthAction {
 			}else{
 				setDictionary.insert(wordList.getString(0));
 			}
-		}else if(dao instanceof MapDictionary) {
-			MapDictionary mapDictionary = (MapDictionary) dao;
+		}else if(dao instanceof MapDictionaryDAO) {
+			MapDictionaryDAO mapDictionary = (MapDictionaryDAO) dao;
 			if(wordList.length() == 0){
 				//ignore
 			}else if(wordList.length() > 1){

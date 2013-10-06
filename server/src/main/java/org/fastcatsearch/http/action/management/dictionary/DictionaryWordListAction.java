@@ -3,8 +3,8 @@ package org.fastcatsearch.http.action.management.dictionary;
 import java.io.Writer;
 import java.util.List;
 
-import org.fastcatsearch.db.dao.MapDictionary;
-import org.fastcatsearch.db.dao.SetDictionary;
+import org.fastcatsearch.db.dao.MapDictionaryDAO;
+import org.fastcatsearch.db.dao.SetDictionaryDAO;
 import org.fastcatsearch.db.vo.MapDictionaryVO;
 import org.fastcatsearch.db.vo.SetDictionaryVO;
 import org.fastcatsearch.http.ActionMapping;
@@ -40,8 +40,8 @@ public class DictionaryWordListAction extends AuthAction {
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		resultWriter.object().key(dictionaryId).array();
-		if(dao instanceof SetDictionary){
-			SetDictionary setDictionary = (SetDictionary) dao;
+		if(dao instanceof SetDictionaryDAO){
+			SetDictionaryDAO setDictionary = (SetDictionaryDAO) dao;
 			totalSize = setDictionary.selectCount();
 			List<SetDictionaryVO> list = null;
 			logger.debug("keyword >> {}", keyword);
@@ -55,8 +55,8 @@ public class DictionaryWordListAction extends AuthAction {
 			for(SetDictionaryVO vo : list){
 				resultWriter.object().key("id").value(vo.id).key("word").value(vo.keyword).endObject();
 			}
-		}else if(dao instanceof MapDictionary) {
-			MapDictionary mapDictionary = (MapDictionary) dao;
+		}else if(dao instanceof MapDictionaryDAO) {
+			MapDictionaryDAO mapDictionary = (MapDictionaryDAO) dao;
 			totalSize = mapDictionary.selectCount();
 			List<MapDictionaryVO> list = null;
 			if(keyword != null){

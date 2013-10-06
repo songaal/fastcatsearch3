@@ -5,7 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class ListMapDictionaryCompiler {
+public class MapDictionaryCompiler {
 	
 	public static void main(String[] args) throws IOException {
 
@@ -14,7 +14,7 @@ public class ListMapDictionaryCompiler {
 		File sourceFile = new File(sourceFilePath);
 		File binaryFile = new File(binaryFilePath);
 		
-		ListMapDictionary dictionary = new ListMapDictionary();
+		MapDictionary dictionary = new MapDictionary();
 		dictionary.loadSource(sourceFile);
 		
 		OutputStream out = new FileOutputStream(binaryFile); 

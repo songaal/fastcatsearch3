@@ -19,9 +19,13 @@ public class PluginSetting {
 	protected List<Action> actionList;
 
 	public String getKey(String name) {
-		return namespace + "_" + id + "_" + name;
+		return namespace + "/" + id + "/" + name;
 	}
-
+	
+	public String getDBPath() {
+		return "/plugin/" + namespace + "/" + id;
+	}
+	
 	@XmlAttribute
 	public String getId() {
 		return id;
