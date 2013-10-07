@@ -3,13 +3,12 @@ package org.fastcatsearch.http.action.management.dictionary;
 import java.io.Writer;
 import java.util.List;
 
+import org.fastcatsearch.db.dao.AbstractDictionaryDAO;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
-import org.fastcatsearch.job.state.TaskKey;
-import org.fastcatsearch.job.state.TaskState;
-import org.fastcatsearch.job.state.TaskStateService;
+import org.fastcatsearch.plugin.AnalysisPlugin;
 import org.fastcatsearch.plugin.AnalysisPluginSetting;
 import org.fastcatsearch.plugin.AnalysisPluginSetting.DictionarySetting;
 import org.fastcatsearch.plugin.Plugin;
@@ -29,31 +28,24 @@ public class GetDictionaryOverviewAction extends AuthAction {
 		String pluginId = request.getParameter("pluginId");
 		PluginService pluginService = ServiceManager.getInstance().getService(PluginService.class);
 		Plugin plugin = pluginService.getPlugin(pluginId);
+		AnalysisPlugin analysisPlugin = (AnalysisPlugin) plugin;
+		
 		AnalysisPluginSetting analysisPluginSetting = (AnalysisPluginSetting) plugin.getPluginSetting();
 		List<DictionarySetting> dictionaryList = analysisPluginSetting.getDictionarySettingList();
 		
-		for(DictionarySetting dictionary : dictionaryList){
-			String dictionaryId = dictionary.getId();
-			String daoId = analysisPluginSetting.getKey(dictionaryId);
-//			pluginService.db().getDAO(daoId, clazz);
-			
-		}
-		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
-		resultWriter.object().key("dictionaryOverview").array();
+		resultWriter.object().key("overview").array();
 		
-		if(taskStateList != null){
-			for(TaskState taskState : taskStateList){
-				TaskKey taskKey = taskState.taskKey();
-				resultWriter.object()
-				.key("isScheduled").value(taskKey.isScheduled())
-				.key("summary").value(taskState.getSummary())
-				.key("progress").value(taskState.getProgressRate())
-				.key("startTime").value(taskState.getStartTime())
-				.key("elapsed").value(taskState.getElapsedTime())
-				.endObject();
-			}
+		for(DictionarySetting dictionary : dictionaryList){
+			String dictionaryId = dictionary.getId();
+			AbstractDictionaryDAO dictionaryDAO = analysisPlugin.getDictionaryDAO(dictionaryId);
+			int entrySize = dictionaryDAO.getCount(null, false);
+			resultWriter.object()
+			.key("name").value(dictionaryId)
+			.key("size").value(entrySize)
+			//TODO status, sync time
+			.endObject();
 		}
 		resultWriter.endArray().endObject();
 		

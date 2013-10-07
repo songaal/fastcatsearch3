@@ -13,7 +13,7 @@ public class DAOSourceDictionaryCompiler {
 	
 	public static void compile(File targetFile, AbstractDictionaryDAO dictionaryDAO, SourceDictionary dictionaryType) throws Exception{
 		
-		List<Map<String,Object>> result = dictionaryDAO.getEntryList(-1, -1, null);
+		List<Map<String,Object>> result = dictionaryDAO.getEntryList(-1, -1, null, false);
 		for (int i = 0; i < result.size(); i++) {
 			Map<String,Object> vo = result.get(i);
 			dictionaryType.addMapEntry(vo);

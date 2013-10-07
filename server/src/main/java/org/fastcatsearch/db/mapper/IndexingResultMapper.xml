@@ -3,14 +3,14 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!-- default field : id, keyword -->
-<mapper namespace="org.fastcatsearch.db.mapper.IndexingHistoryMapper">
-
+<mapper namespace="org.fastcatsearch.db.mapper.IndexingResultMapper">
 	<insert id="creatTable" parameterType="map">
-		create table IndexingHistory (
+		create table
+		IndexingResult (
 		id int GENERATED ALWAYS AS IDENTITY
 		collectionId varchar(20),
 		type char(4),
-		isSuccess smallint,
+		status varchar(10),
 		docSize int,
 		insertSize int,
 		updateSize int,
@@ -25,17 +25,17 @@
 
 	<select id="validateTable" parameterType="map" resultType="map">
 		select id, collectionId
-		from IndexingHistory
+		from IndexingResult
 		fetch first 1 rows only
 	</select>
 
 	<update id="dropTable" parameterType="map">
-		drop table IndexingHistory
+		drop table IndexingResult
 	</update>
 
 	<select id="getEntry" parameterType="int" resultType="map">
 		select *
-		from IndexingHistory where id = #{id}
+		from IndexingResult where id = #{id}
 	</select>
 
 	<select id="getEntryList" parameterType="map" resultType="map">
@@ -43,26 +43,32 @@
 		<if test="start >= 0 and end >= 0">
 			select *
 			from (
-			select row_number() over() as rownum, IndexingHistory.* from
-			IndexingHistory
+			select row_number() over() as rownum,
+			IndexingResult.* from
+			IndexingResult
 			where collectionId = #{collectionId}
-			) as tmp where rownum &gt; #{start} and rownum &lt;= #{end}
+			) as tmp where rownum &gt;
+			#{start} and rownum &lt;= #{end}
 		</if>
 	</select>
 
 	<select id="getCount" parameterType="map" resultType="int">
-		select count(*)
-		from IndexingHistory
+		select
+		count(*)
+		from IndexingResult
 		where collectionId = #{collectionId}
 	</select>
 
 	<insert id="putEntry" parameterType="map" useGeneratedKeys="true">
-		insert into IndexingHistory ( 
-		collectionId, type, isSuccess, docSize, insertSize, updateSize, deleteSize, isScheduled,
-		startTime, endTime, duration) 
+		insert into IndexingResult (
+		collectionId, type, status, docSize, insertSize, updateSize, deleteSize,
+		isScheduled,
+		startTime, endTime, duration)
 		values (
-		#{collectionId}, #{type}, #{isSuccess}, #{docSize}, #{insertSize}
-		, #{updateSize}, #{deleteSize}, #{isScheduled}, #{startTime}, #{endTime}, #{duration}
+		#{collectionId}, #{type}, #{status}, #{docSize}, #{insertSize}
+		,
+		#{updateSize}, #{deleteSize}, #{isScheduled}, #{startTime},
+		#{endTime}, #{duration}
 		)
 	</insert>
 

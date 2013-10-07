@@ -19,25 +19,8 @@ public class JvmCpuInfo {
 	public int jvmCpuUse;
 	public int systemCpuUse;
 	public double systemLoadAverage;
+	
 	public void print() {
-		logger.trace("jvmCpuUse = {}, systemCpuUse={}, systemLoadAverage={}", new Object[]{jvmCpuUse, systemCpuUse, systemLoadAverage});
+		logger.info("jvmCpuUse = {}, systemCpuUse={}, systemLoadAverage={}", jvmCpuUse, systemCpuUse, systemLoadAverage);
 	}
-	
-	public void add(JvmCpuInfo jvmCpuInfoPerSecond) {
-		this.jvmCpuUse += jvmCpuInfoPerSecond.jvmCpuUse;
-		this.systemCpuUse += jvmCpuInfoPerSecond.systemCpuUse;
-		this.systemLoadAverage += jvmCpuInfoPerSecond.systemLoadAverage;
-	}
-	
-	public JvmCpuInfo getAverage(int count){
-		JvmCpuInfo cpuInfo = new JvmCpuInfo();
-		cpuInfo.jvmCpuUse = jvmCpuUse / count;
-		cpuInfo.systemCpuUse = systemCpuUse / count;
-		cpuInfo.systemLoadAverage = systemLoadAverage / count;
-		jvmCpuUse = 0;
-		systemCpuUse = 0;
-		systemLoadAverage = 0;
-		return cpuInfo;
-	}
-	
 }

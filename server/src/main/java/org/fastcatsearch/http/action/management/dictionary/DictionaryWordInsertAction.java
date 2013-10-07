@@ -5,7 +5,6 @@ import java.io.Writer;
 import org.fastcatsearch.db.dao.AbstractDictionaryDAO;
 import org.fastcatsearch.db.dao.BatchContext;
 import org.fastcatsearch.db.dao.MapDictionaryDAO;
-import org.fastcatsearch.db.dao.SetDictionaryDAObak;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -27,70 +26,33 @@ public class DictionaryWordInsertAction extends AuthAction {
 		
 		String pluginId = request.getParameter("pluginId");
 		String dictionaryId = request.getParameter("dictionaryId");
-		String words = request.getParameter("wordList");
-		JSONArray wordList = new JSONArray(words);
+		String keyword = request.getParameter("keyword");
+		
 		PluginService pluginService = ServiceManager.getInstance().getService(PluginService.class);
 		Plugin plugin = pluginService.getPlugin(pluginId);
 		AnalysisPlugin analysisPlugin = (AnalysisPlugin) plugin;
 		
-		AnalysisPluginSetting analysisPluginSetting = analysisPlugin.getPluginSetting();
+		AbstractDictionaryDAO dictionaryDAO = analysisPlugin.getDictionaryDAO(dictionaryId);
 		
-		AbstractDictionaryDAO dao = analysisPlugin.getDictionaryDAO(dictionaryId);
+		if(dictionaryDAO.valueFieldList() != null && dictionaryDAO.valueFieldList().length > 0){
+			if(dictionaryDAO.valueFieldList().length == 1){
+				for(String valueFieldName : dictionaryDAO.valueFieldList()){
+					String value = request.getParameter(valueFieldName);
+					dictionaryDAO.putEntry(keyword, value);
+				}
+			}else{
+				String[] values = new String[dictionaryDAO.valueFieldList().length];
+				for(int i = 0 ;i < dictionaryDAO.valueFieldList().length; i++){
+					values[i] = request.getParameter(dictionaryDAO.valueFieldList()[i]);
+				}
+				dictionaryDAO.putEntry(keyword, values);
+			}
+		}
 		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
-		resultWriter.object().key(dictionaryId).array();
-		
-		if(dao instanceof SetDictionaryDAObak){
-			if(wordList.length() == 0){
-				//ignore
-			}else if(wordList.length() > 1){
-				dao.in
-				BatchContext batchContext = setDictionary.startInsertBatch();
-				for(int i=0; i<wordList.length(); i++){
-					int count = setDictionary.insertBatch(wordList.getString(i), batchContext);
-					if(count == -1){
-						break;
-					}
-				}
-				
-				setDictionary.endInsertBatch(batchContext);
-				batchContext.close();
-			}else{
-				setDictionary.insert(wordList.getString(0));
-			}
-		}else if(dao instanceof MapDictionaryDAO) {
-			MapDictionaryDAO mapDictionary = (MapDictionaryDAO) dao;
-			if(wordList.length() == 0){
-				//ignore
-			}else if(wordList.length() > 1){
-				BatchContext batchContext = mapDictionary.startInsertBatch();
-				for(int i=0; i<wordList.length(); i++){
-					JSONObject obj = wordList.getJSONObject(i);
-					int count = mapDictionary.insertBatch(obj.getString("key"), obj.getString("value"), batchContext);
-					if(count == -1){
-						break;
-					}
-				}
-				
-				mapDictionary.endInsertBatch(batchContext);
-				batchContext.close();
-			}else{
-				JSONObject obj = wordList.getJSONObject(0);
-				mapDictionary.insert(obj.getString("key"), obj.getString("value"));
-			}
-		}
-		resultWriter.endArray().endObject();
-		
+		resultWriter.object().key("success").value("true").endObject();
 		resultWriter.done();
-			
-		
-		
-		
-		
-				
-		
-		
 		
 	}
 

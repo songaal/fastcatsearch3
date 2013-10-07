@@ -38,10 +38,14 @@ public class AbstractDictionaryDAO {
 		this.internalDBModule = internalDBModule;
 	}
 
+	public String[] valueFieldList(){
+		return valueFieldList;
+	}
+	
 	protected SessionAndMapper<DictionaryMapper> openMapper() {
 		SqlSession session = internalDBModule.openSession();
 		if (session != null) {
-			return new SessionAndMapper<DictionaryMapper>(session, DictionaryMapper.class);
+			return new SessionAndMapper<DictionaryMapper>(session, session.getMapper(DictionaryMapper.class));
 		}
 		return null;
 	}
@@ -102,20 +106,22 @@ public class AbstractDictionaryDAO {
 			mapperContext.closeSession();
 		}
 	}
-
-	public List<Map<String, Object>> getEntryList(int start, int end, String search) throws Exception {
+	
+	//searchAll : value필드까지 검색하는지 여부.
+	public List<Map<String, Object>> getEntryList(int start, int end, String search, boolean searchAll) throws Exception {
 		SessionAndMapper<DictionaryMapper> mapperContext = openMapper();
 		try {
-			return mapperContext.getMapper().getEntryList(tableName, start, end, search, valueFieldList);
+			return mapperContext.getMapper().getEntryList(tableName, start, end, search, searchAll ? valueFieldList : null);
 		} finally {
 			mapperContext.closeSession();
 		}
 	}
 
-	public int getCount(String search) throws Exception {
+	//searchAll : value필드까지 검색하는지 여부.
+	public int getCount(String search, boolean searchAll) throws Exception {
 		SessionAndMapper<DictionaryMapper> mapperContext = openMapper();
 		try {
-			return mapperContext.getMapper().getCount(tableName, search, valueFieldList);
+			return mapperContext.getMapper().getCount(tableName, search, searchAll ? valueFieldList : null);
 		} finally {
 			mapperContext.closeSession();
 		}

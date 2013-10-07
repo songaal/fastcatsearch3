@@ -26,6 +26,7 @@ public class CollectionContext {
 	private DataSourceConfig dataSourceConfig;
 	private CollectionIndexStatus collectionIndexStatus;
 	private Map<String, ShardContext> shardContextMap;
+	private IndexingScheduleConfig indexingScheduleConfig;
 	
 	public CollectionContext(String collectionId, FilePaths indexFilePaths) {
 		this.id = collectionId;
@@ -33,13 +34,14 @@ public class CollectionContext {
 	}
 
 	public void init(Schema schema, Schema workSchema, CollectionConfig collectionConfig, DataSourceConfig dataSourceConfig
-			, CollectionIndexStatus collectionStatus){
+			, CollectionIndexStatus collectionStatus, IndexingScheduleConfig indexingScheduleConfig){
 		this.schema = schema;
 		this.workSchema = workSchema;
 		this.collectionConfig = collectionConfig;
 		this.dataSourceConfig = dataSourceConfig;
 		this.collectionIndexStatus = collectionStatus;
 		this.shardContextMap = new HashMap<String, ShardContext>();
+		this.indexingScheduleConfig = indexingScheduleConfig;
 	}
 	
 	
@@ -54,7 +56,7 @@ public class CollectionContext {
 		for(Entry<String, ShardContext> entry : shardContextMap.entrySet()){
 			collectionContext.shardContextMap.put(entry.getKey(), entry.getValue().copy());
 		}
-		
+		collectionContext.indexingScheduleConfig = indexingScheduleConfig;
 		return collectionContext;
 	}
 	
@@ -137,5 +139,9 @@ public class CollectionContext {
 	
 	public Map<String, ShardContext> shardContextMap() {
 		return shardContextMap;
+	}
+	
+	public IndexingScheduleConfig indexingScheduleConfig(){
+		return indexingScheduleConfig;
 	}
 }

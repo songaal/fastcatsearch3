@@ -12,6 +12,10 @@ import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
 
+/**
+ * 작업의 시작과 끝에 반복적으로 히스토리기록관련 할일이 있는 경우 여기에 넣어서 기록할수 있도록 해준다.
+ * 중복코드를 없애기 위한 서비스.. 차후 없애도 될것같음...  
+ * */
 public class ProcessLoggerService extends AbstractService {
 
 	private NodeService nodeService;

@@ -85,7 +85,7 @@ public class JobService extends AbstractService implements JobExecutor {
 		sequencialJobQueue = new LinkedBlockingQueue<Job>();
 		indexingMutex = new IndexingMutex();
 
-		File scheduleFile = environment.filePaths().file("db", "xml", SettingFileNames.scheduleSetting);
+		File scheduleFile = environment.filePaths().file("db", "xml", SettingFileNames.scheduleConfig);
 		jobScheduler = new JobScheduler(scheduleFile);
 
 		executorMaxPoolSize = settings.getInt("pool.max");

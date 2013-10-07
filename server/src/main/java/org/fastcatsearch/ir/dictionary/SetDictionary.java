@@ -59,6 +59,9 @@ public class SetDictionary extends SourceDictionary implements ReadableDictionar
 		}
 	}
 	
+	public void addEntry(String keyword){
+		addEntry(keyword);
+	}
 	@Override
 	public void addEntry(String keyword, String[] ingnore) {
 		keyword = keyword.trim();

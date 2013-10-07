@@ -129,15 +129,15 @@ public class InternalDBModule extends AbstractModule {
 	
 	public static class SessionAndMapper<T> {
 		SqlSession session;
-		Class<T> mapper;
+		T mapper;
 		
-		public SessionAndMapper(SqlSession session, Class<T> mapper){
+		public SessionAndMapper(SqlSession session, T mapper){
 			this.session = session;
 			this.mapper = mapper;
 		}
 		
 		public T getMapper(){
-			return session.getMapper(mapper);
+			return mapper;
 		}
 		
 		public void closeSession(){

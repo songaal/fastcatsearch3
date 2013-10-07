@@ -2,22 +2,17 @@ package org.fastcatsearch.db;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.datasource.pooled.PooledDataSource;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.mapping.Environment;
-import org.apache.ibatis.parsing.XNode;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
-import org.fastcatsearch.db.vo.SetDictionaryVO;
 import org.junit.Test;
 /**
  * table명까지 파라미터로 전달하여 mapper를 여러 table에서 범용적으로 사용할수 있는지 확인.

@@ -2,13 +2,13 @@ package org.fastcatsearch.db.vo;
 
 import java.sql.Timestamp;
 
-public class IndexingResultVO {
-	public String collection;
-	public String type;
-	public int status;
-	public int docSize;
-	public int updateSize;
-	public int deleteSize;
+public class TaskHistoryVO {
+	public long id;
+	public long jobId;
+	public String jobClassName;
+	public String args;
+	public boolean isSuccess;
+	public String resultStr;
 	public boolean isScheduled;
 	public Timestamp startTime;
 	public Timestamp endTime;

@@ -49,7 +49,7 @@ public class JAXBConfigs {
 		}
 	}
 	
-	protected static <T> T readConfig(InputStream is, Class<T> jaxbConfigClass) throws JAXBException {
+	public static <T> T readConfig(InputStream is, Class<T> jaxbConfigClass) throws JAXBException {
 		if(is == null){
 			return null;
 		}

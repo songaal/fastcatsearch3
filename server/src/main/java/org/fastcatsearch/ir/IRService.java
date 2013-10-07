@@ -22,26 +22,20 @@ import java.util.Map.Entry;
 import javax.xml.bind.JAXBException;
 
 import org.fastcatsearch.cluster.NodeLoadBalancable;
-import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.QueryCacheModule;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
-import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.CollectionIndexStatus;
 import org.fastcatsearch.ir.config.CollectionsConfig;
-import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
-import org.fastcatsearch.ir.config.DataSourceConfig;
+import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.ir.settings.Schema;
-import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.module.ModuleException;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
@@ -65,11 +59,16 @@ public class IRService extends AbstractService {
 	private CollectionsConfig collectionsConfig;
 	private File collectionsRoot;
 
+	private RealtimeQueryStatisticsModule realtimeQueryStatisticsModule;
+	
 	public IRService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
+		realtimeQueryStatisticsModule = new RealtimeQueryStatisticsModule(environment, settings);
 	}
 
 	protected boolean doStart() throws FastcatSearchException {
+		realtimeQueryStatisticsModule.load();
+		
 		collectionHandlerMap = new HashMap<String, CollectionHandler>();
 		// collections 셋팅을 읽어온다.
 		collectionsRoot = environment.filePaths().getCollectionsRoot().file();
@@ -85,7 +84,9 @@ public class IRService extends AbstractService {
 				String collectionId = collection.getId();
 				CollectionContext collectionContext = null;
 				CollectionHandler collectionHandler = null;
-
+				if(collection.isActive()){
+					realtimeQueryStatisticsModule.registerQueryCount(collectionId);
+				}
 				logger.info("Load Collection [{}]", collectionId);
 				try {
 					collectionContext = loadCollectionContext(collection);
@@ -134,6 +135,9 @@ public class IRService extends AbstractService {
 		} catch (ModuleException e) {
 			throw new FastcatSearchException("ERR-00320");
 		}
+		
+		
+		
 		return true;
 	}
 
@@ -161,15 +165,17 @@ public class IRService extends AbstractService {
 			collectionFilePaths.file().mkdirs();
 			CollectionContext collectionContext = new CollectionContext(collectionId, collectionFilePaths);
 			File file = environment.filePaths().configPath().file(SettingFileNames.defaultCollectionConfig);
-			CollectionConfig collectionConfig = JAXBConfigs.readConfig(file, CollectionConfig.class);
-			Schema schema = new Schema(new SchemaSetting());
-			collectionContext.init(schema, null, collectionConfig, new DataSourceConfig(), new CollectionIndexStatus());
-			CollectionContextUtil.write(collectionContext);
+//			CollectionConfig collectionConfig = JAXBConfigs.readConfig(file, CollectionConfig.class);
+//			Schema schema = new Schema(new SchemaSetting());
+//			collectionContext.init(schema, null, collectionConfig, new DataSourceConfig(), new CollectionIndexStatus(), new IndexingScheduleConfig());
+			CollectionContextUtil.init(file, collectionFilePaths);
 
 			collectionsConfig.addCollection(collectionId, false);
 			JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.collections), collectionsConfig, CollectionsConfig.class);
 			CollectionHandler collectionHandler = new CollectionHandler(collectionContext);
 			collectionHandlerMap.put(collectionId, collectionHandler);
+			
+			realtimeQueryStatisticsModule.registerQueryCount(collectionId);
 			return collectionHandler;
 		} catch (JAXBException e) {
 			throw new SettingException(e);
@@ -187,6 +193,7 @@ public class IRService extends AbstractService {
 	}
 
 	public CollectionHandler removeCollectionHandler(String collectionId) {
+		realtimeQueryStatisticsModule.registerQueryCount(collectionId);
 		return collectionHandlerMap.remove(collectionId);
 	}
 
@@ -211,6 +218,8 @@ public class IRService extends AbstractService {
 	}
 
 	protected boolean doStop() throws FastcatSearchException {
+		realtimeQueryStatisticsModule.unload();
+		
 		Iterator<Entry<String, CollectionHandler>> iter = collectionHandlerMap.entrySet().iterator();
 		while (iter.hasNext()) {
 			Entry<String, CollectionHandler> entry = iter.next();
@@ -235,6 +244,7 @@ public class IRService extends AbstractService {
 	@Override
 	protected boolean doClose() throws FastcatSearchException {
 		collectionHandlerMap = null;
+		realtimeQueryStatisticsModule = null;
 		return true;
 	}
 
@@ -272,6 +282,11 @@ public class IRService extends AbstractService {
 			}
 			
 		}
-		
 	}
+	
+	
+	public RealtimeQueryStatisticsModule queryStatistics() {
+		return realtimeQueryStatisticsModule;
+	}
+	
 }

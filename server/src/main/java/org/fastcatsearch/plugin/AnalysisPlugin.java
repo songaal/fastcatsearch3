@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.ibatis.io.Resources;
 import org.fastcatsearch.db.dao.AbstractDictionaryDAO;
@@ -93,6 +95,9 @@ public abstract class AnalysisPlugin extends Plugin {
 
 	public AbstractDictionaryDAO getDictionaryDAO(String dictionaryId) {
 		return daoMap.get(dictionaryId);  
+	}
+	public Set<Entry<String, AbstractDictionaryDAO>> getDictionaryEntrySet(){
+		return daoMap.entrySet();
 	}
 	
 	public String getDictionaryTableName(String dictionaryId){

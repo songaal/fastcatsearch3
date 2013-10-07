@@ -10,8 +10,6 @@ import javax.xml.bind.annotation.XmlType;
 public class CollectionIndexStatus {
 	protected IndexStatus fullIndexStatus;
 	protected IndexStatus addIndexStatus;
-	protected IndexStatus failedFullIndexStatus;
-	protected IndexStatus failedAddIndexStatus;
 	
 	public CollectionIndexStatus copy() {
 		CollectionIndexStatus collectionIndexStatus = new CollectionIndexStatus();
@@ -47,15 +45,6 @@ public class CollectionIndexStatus {
 		this.fullIndexStatus = fullIndexStatus;
 	}
 	
-	@XmlElement(name = "failed-full-indexing")
-	public IndexStatus getFailedFullIndexStatus() {
-		return failedFullIndexStatus;
-	}
-
-	public void setFailedFullIndexStatus(IndexStatus failedFullIndexStatus) {
-		this.failedFullIndexStatus = failedFullIndexStatus;
-	}
-	
 	@XmlElement(name = "last-add-indexing")
 	public IndexStatus getAddIndexStatus() {
 		return addIndexStatus;
@@ -63,15 +52,6 @@ public class CollectionIndexStatus {
 
 	public void setAddIndexStatus(IndexStatus addIndexStatus) {
 		this.addIndexStatus = addIndexStatus;
-	}
-	
-	@XmlElement(name = "failed-add-indexing")
-	public IndexStatus getFailedAddIndexStatus() {
-		return failedAddIndexStatus;
-	}
-
-	public void setFailedAddIndexStatus(IndexStatus failedAddIndexStatus) {
-		this.failedAddIndexStatus = failedAddIndexStatus;
 	}
 	
 	@XmlType(propOrder = { "duration", "endTime", "startTime", "deleteCount", "updateCount", "insertCount", "documentCount" })

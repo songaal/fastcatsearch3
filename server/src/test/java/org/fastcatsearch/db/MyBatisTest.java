@@ -3,7 +3,6 @@ package org.fastcatsearch.db;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -11,33 +10,15 @@ import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.datasource.pooled.PooledDataSource;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.mapping.Environment;
-import org.apache.ibatis.parsing.XNode;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
-import org.fastcatsearch.db.vo.SetDictionaryVO;
 import org.junit.Test;
 
 public class MyBatisTest {
 
-	@Test
-	public void testStartWithConfXML() throws InterruptedException, IOException {
-		String resource = "org/fastcatsearch/db/testdb-mybatis-config.xml";
-		InputStream inputStream = Resources.getResourceAsStream(resource);
-		SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
-		Configuration configuration = sqlSessionFactory.getConfiguration();
-		addSqlMappings(configuration, "org/fastcatsearch/db/TestMapper.xml");
-		
-		SqlSession session = sqlSessionFactory.openSession();
-		for(int i= 0;i < 20; i++){
-			SetDictionaryVO vo = (SetDictionaryVO) session.selectOne("org.fastcatsearch.db.SetDictionaryMapper.selectWord", i);
-			if(vo != null){
-				System.out.println(vo.id + ", " + vo.keyword);
-			}
-		}
-	}
 	
 	@Test
 	public void testStartProgramatically() throws InterruptedException, IOException {

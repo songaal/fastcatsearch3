@@ -2,16 +2,14 @@ package org.fastcatsearch.http.action.management.dictionary;
 
 import java.io.Writer;
 import java.util.List;
+import java.util.Map;
 
-import org.fastcatsearch.db.dao.MapDictionaryDAO;
-import org.fastcatsearch.db.dao.SetDictionaryDAObak;
-import org.fastcatsearch.db.vo.MapDictionaryVO;
-import org.fastcatsearch.db.vo.SetDictionaryVO;
+import org.fastcatsearch.db.dao.AbstractDictionaryDAO;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
-import org.fastcatsearch.plugin.AnalysisPluginSetting;
+import org.fastcatsearch.plugin.AnalysisPlugin;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.service.ServiceManager;
@@ -25,69 +23,46 @@ public class DictionaryWordListAction extends AuthAction {
 		
 		String pluginId = request.getParameter("pluginId");
 		String dictionaryId = request.getParameter("dictionaryId");
-		String keyword = request.getParameter("keyword");
+		String search = request.getParameter("search");
 		int start = request.getIntParameter("start");
 		int length = request.getIntParameter("length");
+		boolean searchAll = request.getBooleanParameter("searchAll", true);
 		
 		PluginService pluginService = ServiceManager.getInstance().getService(PluginService.class);
 		Plugin plugin = pluginService.getPlugin(pluginId);
-		AnalysisPluginSetting analysisPluginSetting = (AnalysisPluginSetting) plugin.getPluginSetting();
+		AnalysisPlugin analysisPlugin = (AnalysisPlugin) plugin;
 		
-		String daoId = analysisPluginSetting.getKey(dictionaryId);
-		Object dao = pluginService.db().getDAO(daoId);
-		int totalSize = 0;
-		int filteredSize = 0;
+		AbstractDictionaryDAO dictionaryDAO = analysisPlugin.getDictionaryDAO(dictionaryId);
+		
+		int totalSize = dictionaryDAO.getCount(null, searchAll);
+		int filteredSize = dictionaryDAO.getCount(search, searchAll);
+		
+		List<Map<String, Object>> list = dictionaryDAO.getEntryList(start, start + length, search, searchAll);
+		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		resultWriter.object().key(dictionaryId).array();
-		if(dao instanceof SetDictionaryDAObak){
-			SetDictionaryDAObak setDictionary = (SetDictionaryDAObak) dao;
-			totalSize = setDictionary.selectCount();
-			List<SetDictionaryVO> list = null;
-			logger.debug("keyword >> {}", keyword);
-			if(keyword != null){
-				filteredSize = setDictionary.selectCountWithKeyword(keyword);
-				list = setDictionary.selectPageWithKeyword(keyword, start, length);
-			}else{
-				filteredSize = totalSize;
-				list = setDictionary.selectPage(start, length);
+		
+		for(Map<String, Object> vo : list){
+			resultWriter.object()
+				.key("id").value(vo.get("id")).key("keyword").value(vo.get("keyword"));
+			if(dictionaryDAO.valueFieldList() != null && dictionaryDAO.valueFieldList().length > 0){
+				for(int i = 0 ;i < dictionaryDAO.valueFieldList().length; i++){
+					String field = dictionaryDAO.valueFieldList()[i];
+					resultWriter.key(field).value(vo.get(field));
+				}
 			}
-			for(SetDictionaryVO vo : list){
-				resultWriter.object().key("id").value(vo.id).key("word").value(vo.keyword).endObject();
-			}
-		}else if(dao instanceof MapDictionaryDAO) {
-			MapDictionaryDAO mapDictionary = (MapDictionaryDAO) dao;
-			totalSize = mapDictionary.selectCount();
-			List<MapDictionaryVO> list = null;
-			if(keyword != null){
-				filteredSize = mapDictionary.selectCountWithKeyword(keyword);
-				list = mapDictionary.selectPageWithKeyword(keyword, start, length);
-			}else{
-				filteredSize = totalSize;
-				list = mapDictionary.selectPage(start, length);
-			}
-			for(MapDictionaryVO vo : list){
-				resultWriter.object().key(vo.keyword).value(vo.value).endObject();
-				resultWriter.object().key("id").value(vo.id).key("key").value(vo.keyword).key("word").value(vo.value).endObject();
-			}
+				
+			resultWriter.endObject();
 		}
 		
 		resultWriter.endArray();
-		
 		
 		resultWriter.key("totalSize").value(totalSize).key("filteredSize").value(filteredSize)
 		.endObject();
 		
 		resultWriter.done();
 			
-		
-		
-		
-		
-				
-		
-		
-		
 	}
 
 }

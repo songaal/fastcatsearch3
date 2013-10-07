@@ -1,19 +1,16 @@
 package org.fastcatsearch.transport.vo;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import javax.xml.bind.JAXBException;
 
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.env.Environment;
-import org.fastcatsearch.ir.config.ClusterConfig;
 import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.ShardIndexStatus;
-import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.DataSourceConfig;
-import org.fastcatsearch.ir.io.BytesDataOutput;
+import org.fastcatsearch.ir.config.IndexingScheduleConfig;
+import org.fastcatsearch.ir.config.ShardIndexStatus;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.settings.Schema;
@@ -47,14 +44,13 @@ public class StreamableCollectionContext implements Streamable {
 			SchemaSetting schemaSetting = JAXBConfigs.readFrom(input, SchemaSetting.class);
 			Schema schema = new Schema(schemaSetting);
 			CollectionConfig collectionConfig = JAXBConfigs.readFrom(input, CollectionConfig.class);
-//			ClusterConfig clusterConfig = JAXBConfigs.readFrom(input, ClusterConfig.class);
 			DataSourceConfig dataSourceConfig = JAXBConfigs.readFrom(input, DataSourceConfig.class);
 			ShardIndexStatus collectionStatus = JAXBConfigs.readFrom(input, ShardIndexStatus.class);
-//			DataInfo dataInfo = JAXBConfigs.readFrom(input, DataInfo.class);
+			IndexingScheduleConfig indexingScheduleConfig = JAXBConfigs.readFrom(input, IndexingScheduleConfig.class);
 			//collectionFilePaths는 현 node에 적합하도록 새로 생성한다. 
 			FilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
 			this.collectionContext = new CollectionContext(collectionId, collectionFilePaths);
-			collectionContext.init(schema, null, collectionConfig, dataSourceConfig, collectionStatus);
+			collectionContext.init(schema, null, collectionConfig, dataSourceConfig, collectionStatus, indexingScheduleConfig);
 			
 			//TODO shardContextMap 고려!!
 		} catch (JAXBException e) {
@@ -69,10 +65,9 @@ public class StreamableCollectionContext implements Streamable {
 		try{
 			JAXBConfigs.writeTo(output, collectionContext.schema().schemaSetting(), SchemaSetting.class);
 			JAXBConfigs.writeTo(output, collectionContext.collectionConfig(), CollectionConfig.class);
-//			JAXBConfigs.writeTo(output, collectionContext.clusterConfig(), ClusterConfig.class);
 			JAXBConfigs.writeTo(output, collectionContext.dataSourceConfig(), DataSourceConfig.class);
 			JAXBConfigs.writeTo(output, collectionContext.indexStatus(), ShardIndexStatus.class);
-//			JAXBConfigs.writeTo(output, collectionContext.dataInfo(), DataInfo.class);
+			JAXBConfigs.writeTo(output, collectionContext.indexingScheduleConfig(), IndexingScheduleConfig.class);
 			
 		} catch (JAXBException e) {
 			throw new IOException(e);

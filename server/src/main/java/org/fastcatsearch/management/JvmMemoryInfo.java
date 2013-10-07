@@ -35,44 +35,9 @@ public class JvmMemoryInfo {
 	}
 
 	public void print() {
-		logger.trace("maxHeapMemory = {}, committedHeapMemory = {}, usedHeapMemory = {}, maxNonHeapMemory = {}, committedNonHeapMemory = {}" +
-				", usedNonHeapMemory = {}", new Object[]{maxHeapMemory, committedHeapMemory, usedHeapMemory, maxNonHeapMemory, committedNonHeapMemory, usedNonHeapMemory});
+		logger.info("maxHeapMemory = {}, committedHeapMemory = {}, usedHeapMemory = {}, maxNonHeapMemory = {}, committedNonHeapMemory = {}" +
+				", usedNonHeapMemory = {}", maxHeapMemory, committedHeapMemory, usedHeapMemory, maxNonHeapMemory, committedNonHeapMemory, usedNonHeapMemory);
 	
 	}
 
-	public void add(JvmMemoryInfo jvmMemoryInfoPerSecond) {
-		
-		if(jvmMemoryInfoPerSecond.maxHeapMemory > maxHeapMemory)
-			maxHeapMemory = jvmMemoryInfoPerSecond.maxHeapMemory;
-		
-		committedHeapMemory += jvmMemoryInfoPerSecond.committedHeapMemory;
-		usedHeapMemory += jvmMemoryInfoPerSecond.usedHeapMemory;
-		
-		if(jvmMemoryInfoPerSecond.maxNonHeapMemory > maxNonHeapMemory)
-			maxNonHeapMemory = jvmMemoryInfoPerSecond.maxNonHeapMemory;
-		
-		committedNonHeapMemory += jvmMemoryInfoPerSecond.committedNonHeapMemory;
-		usedNonHeapMemory += jvmMemoryInfoPerSecond.usedNonHeapMemory;
-	}
-
-	public JvmMemoryInfo getAverage(int countPerMinute) {
-		JvmMemoryInfo memoryInfo = new JvmMemoryInfo();
-		
-		memoryInfo.maxHeapMemory = maxHeapMemory;
-		memoryInfo.committedHeapMemory = committedHeapMemory / countPerMinute;
-		memoryInfo.usedHeapMemory = usedHeapMemory / countPerMinute;
-		
-		memoryInfo.maxNonHeapMemory = maxNonHeapMemory;
-		memoryInfo.committedNonHeapMemory = committedNonHeapMemory / countPerMinute;
-		memoryInfo.usedNonHeapMemory = usedNonHeapMemory / countPerMinute;
-		
-		maxHeapMemory = 0;
-		committedHeapMemory = 0;
-		usedHeapMemory = 0;
-		maxNonHeapMemory = 0;
-		committedNonHeapMemory = 0;
-		usedNonHeapMemory = 0;
-		return memoryInfo;
-	}
-	
 }
