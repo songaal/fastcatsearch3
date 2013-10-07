@@ -12,6 +12,7 @@ import org.fastcatsearch.common.io.BytesStreamInput;
 import org.fastcatsearch.common.io.BytesStreamOutput;
 import org.fastcatsearch.ir.io.BytesDataInput;
 import org.fastcatsearch.ir.io.BytesDataOutput;
+import org.fastcatsearch.util.JAXBConfigs;
 import org.junit.Test;
 
 public class ConfigFileTransferTest {

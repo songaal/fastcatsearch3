@@ -6,10 +6,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "collection-index-status")
-@XmlType(propOrder = { "addIndexStatus", "fullIndexStatus" })
+@XmlType(propOrder = { "fullIndexStatus" ,"failedFullIndexStatus", "addIndexStatus", "failedAddIndexStatus"})
 public class CollectionIndexStatus {
 	protected IndexStatus fullIndexStatus;
 	protected IndexStatus addIndexStatus;
+	protected IndexStatus failedFullIndexStatus;
+	protected IndexStatus failedAddIndexStatus;
 	
 	public CollectionIndexStatus copy() {
 		CollectionIndexStatus collectionIndexStatus = new CollectionIndexStatus();
@@ -36,7 +38,7 @@ public class CollectionIndexStatus {
 		return "["+getClass().getSimpleName()+"] last-full=[" + fullIndexStatus + "] last-add=[" + addIndexStatus + "]";
 	}
 	
-	@XmlElement(name = "last-indexing-full")
+	@XmlElement(name = "last-full-indexing")
 	public IndexStatus getFullIndexStatus() {
 		return fullIndexStatus;
 	}
@@ -45,13 +47,31 @@ public class CollectionIndexStatus {
 		this.fullIndexStatus = fullIndexStatus;
 	}
 	
-	@XmlElement(name = "last-indexing-add")
+	@XmlElement(name = "failed-full-indexing")
+	public IndexStatus getFailedFullIndexStatus() {
+		return failedFullIndexStatus;
+	}
+
+	public void setFailedFullIndexStatus(IndexStatus failedFullIndexStatus) {
+		this.failedFullIndexStatus = failedFullIndexStatus;
+	}
+	
+	@XmlElement(name = "last-add-indexing")
 	public IndexStatus getAddIndexStatus() {
 		return addIndexStatus;
 	}
 
 	public void setAddIndexStatus(IndexStatus addIndexStatus) {
 		this.addIndexStatus = addIndexStatus;
+	}
+	
+	@XmlElement(name = "failed-add-indexing")
+	public IndexStatus getFailedAddIndexStatus() {
+		return failedAddIndexStatus;
+	}
+
+	public void setFailedAddIndexStatus(IndexStatus failedAddIndexStatus) {
+		this.failedAddIndexStatus = failedAddIndexStatus;
 	}
 	
 	@XmlType(propOrder = { "duration", "endTime", "startTime", "deleteCount", "updateCount", "insertCount", "documentCount" })

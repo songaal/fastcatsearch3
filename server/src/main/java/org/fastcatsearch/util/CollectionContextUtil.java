@@ -17,7 +17,6 @@ import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.DataSourceConfig;
-import org.fastcatsearch.ir.config.JAXBConfigs;
 import org.fastcatsearch.ir.config.ShardConfig;
 import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.ir.config.ShardIndexStatus;

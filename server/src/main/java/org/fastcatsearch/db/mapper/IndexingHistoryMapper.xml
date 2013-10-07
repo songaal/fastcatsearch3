@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- default field : id, keyword -->
+<mapper namespace="org.fastcatsearch.db.mapper.IndexingHistoryMapper">
+
+	<insert id="creatTable" parameterType="map">
+		create table IndexingHistory (
+		id int GENERATED ALWAYS AS IDENTITY
+		collectionId varchar(20),
+		type char(4),
+		isSuccess smallint,
+		docSize int,
+		insertSize int,
+		updateSize int,
+		deleteSize int,
+		isScheduled smallint,
+		startTime timestamp,
+		endTime timestamp,
+		duration int,
+		primary key (id)
+		)
+	</insert>
+
+	<select id="validateTable" parameterType="map" resultType="map">
+		select id, collectionId
+		from IndexingHistory
+		fetch first 1 rows only
+	</select>
+
+	<update id="dropTable" parameterType="map">
+		drop table IndexingHistory
+	</update>
+
+	<select id="getEntry" parameterType="int" resultType="map">
+		select *
+		from IndexingHistory where id = #{id}
+	</select>
+
+	<select id="getEntryList" parameterType="map" resultType="map">
+
+		<if test="start >= 0 and end >= 0">
+			select *
+			from (
+			select row_number() over() as rownum, IndexingHistory.* from
+			IndexingHistory
+			) as tmp where rownum &gt; #{start} and rownum &lt;= #{end}
+		</if>
+	</select>
+
+	<select id="getCount" parameterType="map" resultType="int">
+		select count(*)
+		from IndexingHistory
+	</select>
+
+	<insert id="putEntry" parameterType="map" useGeneratedKeys="true">
+		insert into IndexingHistory ( 
+		collectionId, type, isSuccess, docSize, insertSize, updateSize, deleteSize, isScheduled,
+		startTime, endTime, duration) 
+		values (
+		#{collectionId}, #{type}, #{isSuccess}, #{docSize}, #{insertSize}
+		, #{updateSize}, #{deleteSize}, #{isScheduled}, #{startTime}, #{endTime}, #{duration}
+		)
+	</insert>
+
+</mapper>

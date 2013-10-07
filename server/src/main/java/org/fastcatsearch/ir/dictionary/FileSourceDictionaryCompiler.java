@@ -5,16 +5,30 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class SetDictionaryCompiler {
+public class FileSourceDictionaryCompiler {
 	
 	public static void main(String[] args) throws IOException {
 
 		String sourceFilePath = args[0];
 		String binaryFilePath = args[1];
+		String type = args[2];
+		boolean caseSensitive = true;
+		if(args.length > 3){
+			caseSensitive = args[3].trim().equalsIgnoreCase("true");
+		}
 		File sourceFile = new File(sourceFilePath);
 		File binaryFile = new File(binaryFilePath);
 		
-		SetDictionary dictionary = new SetDictionary();
+		SourceDictionary dictionary = null;
+		if(type.equals("set")){
+			dictionary = new SetDictionary(caseSensitive);
+		}else if(type.equals("map")){
+			dictionary = new MapDictionary(caseSensitive);
+		}else if(type.equals("synonym")){
+			dictionary = new SynonymDictionary(caseSensitive);
+		}else if(type.equals("custom")){
+			dictionary = new CustomDictionary(caseSensitive);
+		}
 		dictionary.loadSource(sourceFile);
 		
 		OutputStream out = new FileOutputStream(binaryFile); 

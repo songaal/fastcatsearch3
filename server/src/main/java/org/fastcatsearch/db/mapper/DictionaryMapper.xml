@@ -35,30 +35,55 @@ default field : id, keyword
 		drop table ${table}
 	</update>
 
-	<select id="selectEntry" parameterType="int" resultType="map">
+	<select id="getEntry" parameterType="int" resultType="map">
 		select *
 		from ${table} where id = #{id}
 	</select>
 
-	<select id="selectEntryList" parameterType="map" resultType="map">
-		select *
-		from (
-		select row_number() over() as rownum, ${table}.* from ${table}
-		<if test="search != null">where keyword like #{search}</if>
-		) as tmp where rownum &gt; #{start} and rownum &lt;= #{end}
+	<select id="getEntryList" parameterType="map" resultType="map">
+	
+		<if test="start >= 0 and end >= 0">
+			select *
+			from (
+			select row_number() over() as rownum, ${table}.* from ${table}
+			<if test="search != null">
+				where keyword like #{search}
+				<if test="fieldList != null">
+					<foreach item="field" index="index" collection="fieldList">
+					or ${"field"} like #{search}
+					</foreach>
+				</if>
+			</if>
+			) as tmp where rownum &gt; #{start} and rownum &lt;= #{end}
+		</if>
+		<if test="start < 0 or end < 0">
+			select * from ${table}
+			<if test="search != null">
+				where keyword like #{search}
+				<if test="fieldList != null">
+					<foreach item="field" index="index" collection="fieldList">
+					or ${"field"} like #{search}
+					</foreach>
+				</if>
+			</if>
+		</if>
+		
 	</select>
 	
-	<select id="selectCount" parameterType="map" resultType="int">
+	<select id="getCount" parameterType="map" resultType="int">
 		select count(*)
 		from ${table}
-		<if test="search != null">where keyword like #{search}
-			<foreach item="field" index="index" collection="fieldList">
-			or #{"field"} like #{search}
-			</foreach>
+		<if test="search != null">
+			where keyword like #{search}
+			<if test="fieldList != null">
+				<foreach item="field" index="index" collection="fieldList">
+				or ${"field"} like #{search}
+				</foreach>
+			</if>
 		</if>
 	</select>
 	
-	<insert id="insertEntry" parameterType="map" useGeneratedKeys="true" >
+	<insert id="putEntry" parameterType="map" useGeneratedKeys="true" >
 		insert into ${table} (
 			<if test="keyword != null">keyword</if>
 			<if test="keyValueList != null">

@@ -44,23 +44,23 @@ public class DictionaryMapperTest {
 				dictionaryMapper.creatTable(dictionaryName, 1000, fieldList);
 				session.commit();
 			}
-			dictionaryMapper.insertEntry(dictionaryName, Long.toString(System.currentTimeMillis())
+			dictionaryMapper.putEntry(dictionaryName, Long.toString(System.currentTimeMillis())
 					, new KeyValue[]{new KeyValue("value1", "def"), new KeyValue("value2", "한글")});
-			dictionaryMapper.insertEntry(dictionaryName, Long.toString(System.currentTimeMillis())
+			dictionaryMapper.putEntry(dictionaryName, Long.toString(System.currentTimeMillis())
 					, new KeyValue[]{new KeyValue("value1", "def1"), new KeyValue("value2", "한글1")});
-			dictionaryMapper.insertEntry(dictionaryName, Long.toString(System.currentTimeMillis())
+			dictionaryMapper.putEntry(dictionaryName, Long.toString(System.currentTimeMillis())
 					, new KeyValue[]{new KeyValue("value1", "def2")});
 			session.commit();
-			int id = dictionaryMapper.selectCount(dictionaryName, null);
+			int id = dictionaryMapper.getCount(dictionaryName, null);
 			session.commit();
 			System.out.println("count = "+id);
 			
-			Map<String, Object> vo = dictionaryMapper.selectEntry(dictionaryName, id);
+			Map<String, Object> vo = dictionaryMapper.getEntry(dictionaryName, id);
 			printVO(vo);
 			
 			dictionaryMapper.updateEntry(dictionaryName, id, Long.toString(System.currentTimeMillis()), new KeyValue[]{new KeyValue("value1", "def_U"), new KeyValue("value2", "한글_U")});
 			session.commit();
-			vo = dictionaryMapper.selectEntry(dictionaryName, id);
+			vo = dictionaryMapper.getEntry(dictionaryName, id);
 			printVO(vo);
 			
 			

@@ -13,13 +13,13 @@ import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.ShardIndexStatus;
 import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.DataSourceConfig;
-import org.fastcatsearch.ir.config.JAXBConfigs;
 import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.util.FilePaths;
+import org.fastcatsearch.util.JAXBConfigs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -16,4 +16,7 @@ public class SettingFileNames {
 	public static final String datasourceConfig = "datasource.xml";
 	public static final String dataInfo = "info.xml";
 	public static final String revisionInfo = "revision.xml";
+	
+	
+	public static final String scheduleSetting = "schedule.xml";
 }

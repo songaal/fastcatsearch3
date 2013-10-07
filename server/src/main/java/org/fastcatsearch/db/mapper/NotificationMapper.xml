@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- default field : id, keyword -->
+<mapper namespace="org.fastcatsearch.db.mapper.TaskHistoryMapper">
+
+	<insert id="creatTable" parameterType="map">
+		create table Notification (
+		id int GENERATED ALWAYS AS IDENTITY
+		node varchar(50),
+		messageCode varchar(50),
+		message varchar(3000),
+		regtime timestamp,
+		primary key (id)
+		)
+	</insert>
+
+	<select id="validateTable" parameterType="map" resultType="map">
+		select id, node, messageCode, message, regtime
+		from Notification
+		fetch first 1 rows only
+	</select>
+
+	<update id="dropTable" parameterType="map">
+		drop table Notification
+	</update>
+
+	<select id="getEntry" parameterType="int" resultType="map">
+		select *
+		from Notification where id = #{id}
+	</select>
+
+	<select id="getEntryList" parameterType="map" resultType="map">
+
+		<if test="start >= 0 and end >= 0">
+			select *
+			from (
+			select row_number() over() as rownum, Notification.* from
+			Notification
+			) as tmp where rownum &gt; #{start} and rownum &lt;= #{end}
+		</if>
+	</select>
+
+	<select id="getCount" parameterType="map" resultType="int">
+		select count(*)
+		from Notification
+	</select>
+
+	<insert id="putEntry" parameterType="map" useGeneratedKeys="true">
+		insert into Notification ( 
+		node, messageCode, message, regtime
+		)
+		values (
+		#{node}, #{messageCode}, #{message}, #{regtime}
+		)
+	</insert>
+
+</mapper>

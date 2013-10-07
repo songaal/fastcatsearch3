@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.lucene.store.InputStreamDataInput;
@@ -17,23 +18,23 @@ import org.apache.lucene.store.OutputStreamDataOutput;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SetDictionary extends SourceDictionary implements ReadableDictionary {
-	private static Logger logger = LoggerFactory.getLogger(SetDictionary.class);
 	
 	private Set<CharVector> set;
 
-	public SetDictionary() {
+	public SetDictionary(boolean ignoreCase) {
+		super(ignoreCase);
 		set = new HashSet<CharVector>();
 	}
 
-	public SetDictionary(Set<CharVector> set) {
+	public SetDictionary(Set<CharVector> set, boolean ignoreCase) {
+		super(ignoreCase);
 		this.set = set;
 	}
 
 	public SetDictionary(File file) {
+		super(true);
 		if(!file.exists()){
 			set = new HashSet<CharVector>();
 			logger.error("사전파일이 존재하지 않습니다. file={}", file.getAbsolutePath());
@@ -49,7 +50,8 @@ public class SetDictionary extends SourceDictionary implements ReadableDictionar
 		}
 	}
 
-	public SetDictionary(InputStream is){
+	public SetDictionary(InputStream is, boolean ignoreCase){
+		super(ignoreCase);
 		try {
 			readFrom(is);
 		} catch (IOException e) {
@@ -58,13 +60,13 @@ public class SetDictionary extends SourceDictionary implements ReadableDictionar
 	}
 	
 	@Override
-	public void addEntry(String line, boolean caseSensitive) {
-		line = line.trim();
-		if(!caseSensitive){
-			line = line.toUpperCase();
-		}
-		if (line.length() > 0) {
-			set.add(new CharVector(line));
+	public void addEntry(String keyword, String[] ingnore) {
+		keyword = keyword.trim();
+		if (keyword.length() > 0) {
+			if(ignoreCase){
+				keyword = keyword.toUpperCase();
+			}
+			set.add(new CharVector(keyword));
 		}
 	}
 
@@ -75,7 +77,6 @@ public class SetDictionary extends SourceDictionary implements ReadableDictionar
 	@Override
 	public void writeTo(OutputStream out) throws IOException {
 		
-		@SuppressWarnings("resource")
 		DataOutput output = new OutputStreamDataOutput(out);
 		Iterator<CharVector> valueIter = set.iterator();
 		//write size of set
@@ -91,7 +92,6 @@ public class SetDictionary extends SourceDictionary implements ReadableDictionar
 	@Override
 	public void readFrom(InputStream in) throws IOException {
 		
-		@SuppressWarnings("resource")
 		DataInput input = new InputStreamDataInput(in);
 		set = new HashSet<CharVector>();
 		int size = input.readInt();
@@ -112,5 +112,15 @@ public class SetDictionary extends SourceDictionary implements ReadableDictionar
 	@Override
 	public int size() {
 		return set.size();
+	}
+
+	@Override
+	public void addSourceLineEntry(String line) {
+		addEntry(line, null);
+	}
+
+	@Override
+	public void addMapEntry(Map<String, Object> vo) {
+		addEntry((String) vo.get("keyword"), null);
 	}
 }

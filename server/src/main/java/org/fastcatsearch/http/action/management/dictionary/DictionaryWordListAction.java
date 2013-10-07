@@ -4,7 +4,7 @@ import java.io.Writer;
 import java.util.List;
 
 import org.fastcatsearch.db.dao.MapDictionaryDAO;
-import org.fastcatsearch.db.dao.SetDictionaryDAO;
+import org.fastcatsearch.db.dao.SetDictionaryDAObak;
 import org.fastcatsearch.db.vo.MapDictionaryVO;
 import org.fastcatsearch.db.vo.SetDictionaryVO;
 import org.fastcatsearch.http.ActionMapping;
@@ -40,8 +40,8 @@ public class DictionaryWordListAction extends AuthAction {
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		resultWriter.object().key(dictionaryId).array();
-		if(dao instanceof SetDictionaryDAO){
-			SetDictionaryDAO setDictionary = (SetDictionaryDAO) dao;
+		if(dao instanceof SetDictionaryDAObak){
+			SetDictionaryDAObak setDictionary = (SetDictionaryDAObak) dao;
 			totalSize = setDictionary.selectCount();
 			List<SetDictionaryVO> list = null;
 			logger.debug("keyword >> {}", keyword);

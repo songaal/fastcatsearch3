@@ -9,16 +9,16 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "plugin")
 public class AnalysisPluginSetting extends PluginSetting {
-	private List<Dictionary> dictionaryList;
+	private List<DictionarySetting> dictionaryList;
 	private List<Analyzer> analyzerList;
 	
 	@XmlElementWrapper(name = "dictionary-list")
 	@XmlElement(name="dictionary")
-	public List<Dictionary> getDictionaryList() {
+	public List<DictionarySetting> getDictionarySettingList() {
 		return dictionaryList;
 	}
 
-	public void setDictionaryList(List<Dictionary> dictionaryList) {
+	public void setDictionaryList(List<DictionarySetting> dictionaryList) {
 		this.dictionaryList = dictionaryList;
 	}
 
@@ -60,13 +60,14 @@ public class AnalysisPluginSetting extends PluginSetting {
 		}
 	}
 	
-	public static class Dictionary {
+	public static class DictionarySetting {
 		String id;
 		String name;
-		boolean unmodifiable;
-		String daoClass;
+		String type;
+		String valueColumnList;
+		boolean ignoreCase;
 		
-		@XmlAttribute
+		@XmlAttribute(required = true)
 		public String getId() {
 			return id;
 		}
@@ -82,22 +83,30 @@ public class AnalysisPluginSetting extends PluginSetting {
 			this.name = name;
 		}
 		
-		@XmlAttribute
-		public boolean isUnmodifiable() {
-			return unmodifiable;
+		@XmlAttribute(required = true)
+		public String getType() {
+			return name;
 		}
-		public void setUnmodifiable(boolean unmodifiable) {
-			this.unmodifiable = unmodifiable;
-		}
-		
-		@XmlAttribute
-		public String getDaoClass() {
-			return daoClass;
-		}
-		public void setDaoClass(String daoClass) {
-			this.daoClass = daoClass;
+		public void setType(String type) {
+			this.type = type;
 		}
 		
+		@XmlAttribute
+		public String getValueColumnList() {
+			return valueColumnList;
+		}
+		public void setValueColumnList(String valueColumnList) {
+			this.valueColumnList = valueColumnList;
+		}
+		
+		@XmlAttribute(required = true)
+		public boolean isIgnoreCase() {
+			return ignoreCase;
+		}
+		
+		public void setIgnoreCase(boolean ignoreCase) {
+			this.ignoreCase = ignoreCase;
+		}
 		
 	}
 }

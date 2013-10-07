@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Map;
 
 import org.fastcatsearch.ir.dic.Dictionary;
 import org.slf4j.Logger;
@@ -15,6 +16,12 @@ import org.slf4j.LoggerFactory;
 public abstract class SourceDictionary extends Dictionary implements WritableDictionary {
 	protected static Logger logger = LoggerFactory.getLogger(SourceDictionary.class);
 
+	protected boolean ignoreCase;
+	
+	public SourceDictionary(boolean ignoreCase){
+		this.ignoreCase = ignoreCase;
+	}
+	
 	public void loadSource(File file) {
 		InputStream is = null;
 		try {
@@ -33,19 +40,20 @@ public abstract class SourceDictionary extends Dictionary implements WritableDic
 
 	}
 
-	public void addEntry(String line) {
-		addEntry(line, false);
-	}
-	
 	public void loadSource(InputStream is) {
 		try {
 			BufferedReader br = new BufferedReader(new InputStreamReader(is, "utf-8"));
 			String line = null;
 			while ((line = br.readLine()) != null) {
-				addEntry(line);
+				addSourceLineEntry(line);
 			}
 		} catch (IOException e) {
 			logger.error("", e);
 		}
 	}
+	
+	public abstract void addSourceLineEntry(String line);
+	
+	public abstract void addMapEntry(Map<String, Object> vo);
+	
 }

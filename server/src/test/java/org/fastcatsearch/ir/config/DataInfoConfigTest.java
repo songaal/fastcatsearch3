@@ -19,6 +19,7 @@ import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.io.BytesDataInput;
 import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.util.Formatter;
+import org.fastcatsearch.util.JAXBConfigs;
 import org.junit.Test;
 
 public class DataInfoConfigTest {

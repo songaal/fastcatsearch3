@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.dao.SetDictionaryDAO;
+import org.fastcatsearch.db.dao.SetDictionaryDAObak;
 import org.fastcatsearch.db.vo.SetDictionaryVO;
 import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
@@ -46,7 +46,7 @@ public class RecommendKeywordServlet extends WebServiceHttpServlet {
     	}
     	keyword = URLDecoder.decode(keyword, "utf-8");
     	DBService dbHandler = DBService.getInstance();
-    	List<SetDictionaryVO> recommendList = dbHandler.db().getDAO("RecommendKeyword", SetDictionaryDAO.class).selectWithExactKeyword(keyword.trim());
+    	List<SetDictionaryVO> recommendList = dbHandler.db().getDAO("RecommendKeyword", SetDictionaryDAObak.class).selectWithExactKeyword(keyword.trim());
     	List<String> termList = null;
     	String mainWord = "";
     	if(recommendList != null && recommendList.size() > 0){

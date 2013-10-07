@@ -28,6 +28,7 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
+import org.fastcatsearch.db.mapper.DictionaryMapper;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.module.AbstractModule;
 import org.fastcatsearch.module.ModuleException;
@@ -122,6 +123,27 @@ public class InternalDBModule extends AbstractModule {
 					is.close();
 				} catch (IOException e) {
 				}
+			}
+		}
+	}
+	
+	public static class SessionAndMapper<T> {
+		SqlSession session;
+		Class<T> mapper;
+		
+		public SessionAndMapper(SqlSession session, Class<T> mapper){
+			this.session = session;
+			this.mapper = mapper;
+		}
+		
+		public T getMapper(){
+			return session.getMapper(mapper);
+		}
+		
+		public void closeSession(){
+			if(session != null){
+				session.commit();
+				session.close();
 			}
 		}
 	}

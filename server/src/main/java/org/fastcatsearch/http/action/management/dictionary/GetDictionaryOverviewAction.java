@@ -11,7 +11,7 @@ import org.fastcatsearch.job.state.TaskKey;
 import org.fastcatsearch.job.state.TaskState;
 import org.fastcatsearch.job.state.TaskStateService;
 import org.fastcatsearch.plugin.AnalysisPluginSetting;
-import org.fastcatsearch.plugin.AnalysisPluginSetting.Dictionary;
+import org.fastcatsearch.plugin.AnalysisPluginSetting.DictionarySetting;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.service.ServiceManager;
@@ -30,9 +30,9 @@ public class GetDictionaryOverviewAction extends AuthAction {
 		PluginService pluginService = ServiceManager.getInstance().getService(PluginService.class);
 		Plugin plugin = pluginService.getPlugin(pluginId);
 		AnalysisPluginSetting analysisPluginSetting = (AnalysisPluginSetting) plugin.getPluginSetting();
-		List<Dictionary> dictionaryList = analysisPluginSetting.getDictionaryList();
+		List<DictionarySetting> dictionaryList = analysisPluginSetting.getDictionarySettingList();
 		
-		for(Dictionary dictionary : dictionaryList){
+		for(DictionarySetting dictionary : dictionaryList){
 			String dictionaryId = dictionary.getId();
 			String daoId = analysisPluginSetting.getKey(dictionaryId);
 //			pluginService.db().getDAO(daoId, clazz);

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- default field : id, keyword -->
+<mapper namespace="org.fastcatsearch.db.mapper.TaskHistoryMapper">
+
+	<insert id="creatTable" parameterType="map">
+		create table TaskHistory (
+		id int GENERATED ALWAYS AS IDENTITY
+		taskId bigint,
+		exec varchar(200),
+		args varchar(3000),
+		isSuccess smallint,
+		resultStr varchar(3000),
+		isScheduled smallint,
+		startTime timestamp,
+		endTime timestamp,
+		duration int,
+		primary key (id)
+		)
+	</insert>
+
+	<select id="validateTable" parameterType="map" resultType="map">
+		select id, collectionId
+		from TaskHistory
+		fetch first 1 rows only
+	</select>
+
+	<update id="dropTable" parameterType="map">
+		drop table TaskHistory
+	</update>
+
+	<select id="getEntry" parameterType="int" resultType="map">
+		select *
+		from TaskHistory where id = #{id}
+	</select>
+
+	<select id="getEntryList" parameterType="map" resultType="map">
+
+		<if test="start >= 0 and end >= 0">
+			select *
+			from (
+			select row_number() over() as rownum, TaskHistory.* from
+			TaskHistory
+			) as tmp where rownum &gt; #{start} and rownum &lt;= #{end}
+		</if>
+	</select>
+
+	<select id="getCount" parameterType="map" resultType="int">
+		select count(*)
+		from TaskHistory
+	</select>
+
+	<insert id="putEntry" parameterType="map" useGeneratedKeys="true">
+		insert into TaskHistory ( 
+		jobId, jobClassName, args, isSuccess, resultStr, isScheduled, startTime, endTime, duration
+		)
+		values (
+		#{jobId}, #{jobClassName}, #{args}, #{isSuccess}, #{resultStr}, #{isScheduled}, #{startTime}, #{endTime}, #{duration}
+		)
+	</insert>
+
+</mapper>

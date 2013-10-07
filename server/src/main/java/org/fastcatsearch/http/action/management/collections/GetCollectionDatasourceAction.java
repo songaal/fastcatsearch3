@@ -9,8 +9,8 @@ import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataSourceConfig;
-import org.fastcatsearch.ir.config.JAXBConfigs;
 import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.util.JAXBConfigs;
 
 @ActionMapping("/management/collections/datasource")
 public class GetCollectionDatasourceAction extends AuthAction {

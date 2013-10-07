@@ -1,4 +1,4 @@
-package org.fastcatsearch.ir.config;
+package org.fastcatsearch.util;
 
 import java.io.File;
 import java.io.FileInputStream;

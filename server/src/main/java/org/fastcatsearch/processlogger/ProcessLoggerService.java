@@ -66,7 +66,7 @@ public class ProcessLoggerService extends AbstractService {
 		ProcessLoggerJob processLoggerJob = new ProcessLoggerJob(processLoggerClasss, processLog);
 		if(isMasterNode){
 			//master면 바로 실행.
-			ServiceManager.getInstance().getService(JobService.class).execute(processLoggerJob);
+			ServiceManager.getInstance().getService(JobService.class).offerSequential(processLoggerJob);
 		}else{
 			//slave라면 master에게 보낸다.
 			nodeService.sendRequestToMaster(processLoggerJob);

@@ -35,7 +35,6 @@ import org.fastcatsearch.ir.config.CollectionsConfig;
 import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.ir.config.DataSourceConfig;
-import org.fastcatsearch.ir.config.JAXBConfigs;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.query.InternalSearchResult;
@@ -50,6 +49,7 @@ import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.FilePaths;
+import org.fastcatsearch.util.JAXBConfigs;
 
 public class IRService extends AbstractService {
 

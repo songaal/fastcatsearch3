@@ -2,13 +2,15 @@ package org.fastcatsearch.http.action.management.dictionary;
 
 import java.io.Writer;
 
+import org.fastcatsearch.db.dao.AbstractDictionaryDAO;
 import org.fastcatsearch.db.dao.BatchContext;
 import org.fastcatsearch.db.dao.MapDictionaryDAO;
-import org.fastcatsearch.db.dao.SetDictionaryDAO;
+import org.fastcatsearch.db.dao.SetDictionaryDAObak;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
+import org.fastcatsearch.plugin.AnalysisPlugin;
 import org.fastcatsearch.plugin.AnalysisPluginSetting;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
@@ -29,20 +31,21 @@ public class DictionaryWordInsertAction extends AuthAction {
 		JSONArray wordList = new JSONArray(words);
 		PluginService pluginService = ServiceManager.getInstance().getService(PluginService.class);
 		Plugin plugin = pluginService.getPlugin(pluginId);
-		AnalysisPluginSetting analysisPluginSetting = (AnalysisPluginSetting) plugin.getPluginSetting();
+		AnalysisPlugin analysisPlugin = (AnalysisPlugin) plugin;
 		
-		String daoId = analysisPluginSetting.getKey(dictionaryId);
-		Object dao = pluginService.db().getDAO(daoId);
+		AnalysisPluginSetting analysisPluginSetting = analysisPlugin.getPluginSetting();
+		
+		AbstractDictionaryDAO dao = analysisPlugin.getDictionaryDAO(dictionaryId);
 		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		resultWriter.object().key(dictionaryId).array();
 		
-		if(dao instanceof SetDictionaryDAO){
-			SetDictionaryDAO setDictionary = (SetDictionaryDAO) dao;
+		if(dao instanceof SetDictionaryDAObak){
 			if(wordList.length() == 0){
 				//ignore
 			}else if(wordList.length() > 1){
+				dao.in
 				BatchContext batchContext = setDictionary.startInsertBatch();
 				for(int i=0; i<wordList.length(); i++){
 					int count = setDictionary.insertBatch(wordList.getString(i), batchContext);

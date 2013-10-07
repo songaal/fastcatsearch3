@@ -8,10 +8,10 @@ import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.JAXBConfigs;
 import org.fastcatsearch.ir.config.ShardConfig;
 import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.util.JAXBConfigs;
 
 @ActionMapping("/management/collections/shardList")
 public class GetCollectionShardConfigListAction extends AuthAction {

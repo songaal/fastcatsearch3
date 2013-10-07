@@ -11,6 +11,7 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
+import org.fastcatsearch.util.JAXBConfigs;
 import org.junit.Test;
 
 public class DataSourceConfigTest {

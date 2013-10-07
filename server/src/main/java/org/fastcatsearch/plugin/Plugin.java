@@ -1,8 +1,10 @@
 package org.fastcatsearch.plugin;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.ibatis.io.Resources;
 import org.fastcatsearch.db.InternalDBModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,17 +22,21 @@ public abstract class Plugin {
 		this.pluginSetting = pluginSetting;
 	}
 	
-	public void load(){
-		loadDB();
+	public final void load(){
+		if(pluginSetting.isUseDB()){
+			loadDB();
+		}
 		doLoad();
 	}
 	
-	public void unload(){
+	public final void unload(){
 		doUnload();
-		unloadDB();
+		if(pluginSetting.isUseDB()){
+			unloadDB();
+		}
 	}
 	
-	public void reload(){
+	public final void reload(){
 		unload();
 		load();
 	}
@@ -39,22 +45,34 @@ public abstract class Plugin {
 	
 	protected abstract void doUnload();
 	
-	private void loadDB() {
-		String dbPath = pluginSetting.getDBPath();
-		
-		List<File> mapperFileList =  null;
+	private final void loadDB() {
+		String dbPath = getPluginDBDataDir().getAbsolutePath();
+		List<File> mapperFileList = new ArrayList<File>();
+		addMapperFile(mapperFileList);
 		internalDBModule = new InternalDBModule(dbPath, mapperFileList, null, null, null);
 		internalDBModule.load();
 	}
 
+	protected abstract void addMapperFile(List<File> mapperFileList);
 	
 	private void unloadDB() {
-		internalDBModule.unload();
+		if(internalDBModule != null){
+			internalDBModule.unload();
+		}
 	}
 	
 	
 	public File getPluginDir(){
 		return pluginDir;
+	}
+	protected File getPluginDBDir(){
+		return new File(pluginDir, "db");
+	}
+	protected File getPluginDBDataDir(){
+		return new File(getPluginDBDir(), "data");
+	}
+	protected File getPluginDBConfigDir(){
+		return new File(getPluginDBDir(), "config");
 	}
 	public PluginSetting getPluginSetting(){
 		return pluginSetting;
