@@ -7,7 +7,7 @@ default field : id, keyword
  -->
 <mapper namespace="org.fastcatsearch.db.mapper.DictionaryMapper">
 
-	<insert id="creatTable" parameterType="map" >
+	<update id="createTable" parameterType="map" >
 		create table ${table} (
 			id bigint not null generated always as identity,
 			keyword varchar(${size}) not null unique,
@@ -18,7 +18,11 @@ default field : id, keyword
 			</if>
 			primary key (id)
 		)
-	</insert>
+	</update>
+	
+	<update id="createIndex" parameterType="map" >
+		create index keyword_index on ${table}(keyword)
+	</update>
 	
 	<select id="validateTable" parameterType="map" resultType="map">
 		select id, keyword 
@@ -42,7 +46,7 @@ default field : id, keyword
 
 	<select id="getEntryList" parameterType="map" resultType="map">
 	
-		<if test="start >= 0 and end >= 0">
+		<if test="start &gt;= 0 and end &gt;= 0">
 			select *
 			from (
 			select row_number() over() as rownum, ${table}.* from ${table}
@@ -56,7 +60,7 @@ default field : id, keyword
 			</if>
 			) as tmp where rownum &gt; #{start} and rownum &lt;= #{end}
 		</if>
-		<if test="start < 0 or end < 0">
+		<if test="start &lt; 0 or end &lt; 0">
 			select * from ${table}
 			<if test="search != null">
 				where keyword like #{search}

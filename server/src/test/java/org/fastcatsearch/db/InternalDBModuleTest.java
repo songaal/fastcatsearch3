@@ -28,7 +28,12 @@ public class InternalDBModuleTest {
 			SqlSession session = internalDBModule.openSession();
 			DictionaryMapper mapper= session.getMapper(DictionaryMapper.class);
 			try{
-				mapper.creatTable("a", 10);
+				mapper.createTable("a", 10);
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+			try{
+				mapper.createIndex("a");
 			}catch(Exception e){
 				e.printStackTrace();
 			}

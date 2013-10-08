@@ -1,7 +1,5 @@
 package org.fastcatsearch.db;
 
-import java.util.Map;
-
 import org.apache.ibatis.annotations.Param;
 
 /*
@@ -9,6 +7,13 @@ import org.apache.ibatis.annotations.Param;
  * */
 public interface TestMapper2 {
 	
-	public Map<String, Object> selectWord(@Param("tableName") String tableName, @Param("id") int id);
+	public void createTable();
 	
+	public void dropTable();
+	
+	public TestVO selectWord(@Param("id") int id);
+	
+	public void insertWord(TestVO vo);
+
+	public void createIndex();
 }

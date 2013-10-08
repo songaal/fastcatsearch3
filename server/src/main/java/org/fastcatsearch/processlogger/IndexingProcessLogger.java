@@ -3,10 +3,12 @@ package org.fastcatsearch.processlogger;
 import java.sql.Timestamp;
 
 import org.fastcatsearch.db.DBService;
+import org.fastcatsearch.db.InternalDBModule.SessionAndMapper;
 import org.fastcatsearch.db.dao.IndexingHistory;
 import org.fastcatsearch.db.dao.IndexingResult;
 import org.fastcatsearch.db.mapper.IndexingHistoryMapper;
 import org.fastcatsearch.db.vo.IndexingResultVO;
+import org.fastcatsearch.db.vo.IndexingStatusVO;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.processlogger.log.IndexingFinishProcessLog;
@@ -23,15 +25,25 @@ public class IndexingProcessLogger implements ProcessLogger {
 
 			DBService dbService = ServiceManager.getInstance().getService(DBService.class);
 			if (dbService != null) {
-				dbService.getSessionAndMapper(IndexingHistoryMapper.class);
-				IndexingResult indexingResult = dbService.db().getDAO("IndexingResult", IndexingResult.class);
+				SessionAndMapper<IndexingHistoryMapper> sessionAndMapper = dbService.getSessionAndMapper(IndexingHistoryMapper.class);
+				
+				
+				SessionAndMapper<IndexingHistoryMapper> sessionAndMapper2 = dbService.getSessionAndMapper(IndexingHistoryMapper.class);
+				
+				IndexingHistoryMapper mapper = sessionAndMapper.getMapper();
+				
 				if (log.getIndexingType() == IndexingType.FULL) {
 					// 전체색인시는 증분색인 정보를 클리어해준다.
-					indexingResult.delete(log.getCollection(), IndexingType.FULL);
+					//TODO 
+					
+					
+//					indexingResult.delete(log.getCollection(), IndexingType.FULL);
 				}
-				int result = indexingResult.updateOrInsert(log.getCollection(), log.getIndexingType(), IndexingResult.STATUS_RUNNING, 0, 0, 0,
-						log.isScheduled(), new Timestamp(log.getStartTime()), null, 0);
-
+//				int result = indexingResult.updateOrInsert(log.getCollection(), log.getIndexingType(), IndexingResult.STATUS_RUNNING, 0, 0, 0,
+//						log.isScheduled(), new Timestamp(log.getStartTime()), null, 0);
+				
+				IndexingStatusVO vo = new IndexingStatusVO();
+				mapper.updateEntry(vo);
 			}
 
 		} else if (processLog instanceof IndexingFinishProcessLog) {

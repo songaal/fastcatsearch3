@@ -13,6 +13,7 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
+import org.fastcatsearch.db.TestVO.Type;
 import org.junit.Test;
 /**
  * table명까지 파라미터로 전달하여 mapper를 여러 table에서 범용적으로 사용할수 있는지 확인.
@@ -24,10 +25,8 @@ public class MyBatisTest2 {
 	
 	@Test
 	public void testStartProgramatically() throws InterruptedException, IOException {
-		String tableName = "Analysis_Korean_user";
 		
-		
-		String url = "jdbc:derby:/Users/swsong/TEST_HOME/fastcatsearch2_shard/node1/db/plugin";
+		String url = "jdbc:derby:/tmp/testdb;create=true";
 		PooledDataSource dataSource = new PooledDataSource("org.apache.derby.jdbc.EmbeddedDriver", url, "", "");
 		Environment environment = new Environment("ID", new JdbcTransactionFactory(), dataSource);
 		Configuration configuration = new Configuration(environment);
@@ -36,21 +35,35 @@ public class MyBatisTest2 {
 		SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);
 		
 		SqlSession session = sqlSessionFactory.openSession();
-		TestMapper2 setDictionaryMapper = session.getMapper(TestMapper2.class);
+		TestMapper2 testMapper = session.getMapper(TestMapper2.class);
 		
-		for(int i= 0;i < 10; i++){
-			
-			Map<String, Object> vo = setDictionaryMapper.selectWord(tableName, i);
-			if(vo != null){
-				
-				for(Map.Entry<String, Object> entry : vo.entrySet()){
-				System.out.println(entry.getKey() + "= " + entry.getValue());
-				}
-			}
+		try{
+			testMapper.dropTable();
+		}catch(Exception e){
+			System.out.println(e.getMessage());
 		}
 		
+		try{
+			testMapper.createTable();
+			testMapper.createIndex();
+		}catch(Exception e){
+//			System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
 		
-			
+		for(int i= 0;i < 10; i++){
+			TestVO vo = new TestVO();
+			vo.word = "word-"+i;
+			vo.type = i % 2  == 0 ? Type.NOUN : Type.VERB;
+			testMapper.insertWord(vo);
+		}
+		session.commit();
+		
+		for(int i= 1;i < 10; i++){
+			TestVO vo = testMapper.selectWord(i);
+			System.out.println(vo.id + ":"+vo.word + ":" + vo.type);
+		}
+		
 		
 		session.close();
 	}

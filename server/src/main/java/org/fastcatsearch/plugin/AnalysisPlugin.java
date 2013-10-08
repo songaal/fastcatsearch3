@@ -68,23 +68,25 @@ public abstract class AnalysisPlugin extends Plugin {
 		
 		AnalysisPluginSetting setting = (AnalysisPluginSetting) pluginSetting;
 		List<DictionarySetting> list = setting.getDictionarySettingList();
-		for(DictionarySetting dictionarySetting : list){
-			String dictionaryId = dictionarySetting.getId();
-			String type = dictionarySetting.getType();
-			String tableName = getDictionaryTableName(dictionaryId);
-			///type에 따라 set, map, custom을 확인하여 해당 DAO리턴.
-			if(type.equals("set") || type.equals("synonym")){
-				daoMap.put(dictionaryId, new SetDictionaryDAO(tableName, internalDBModule));
-			}else if(type.equals("map")){
-				daoMap.put(dictionaryId, new MapDictionaryDAO(tableName, internalDBModule));
-				
-			}else if(type.equals("custom")){
-				String valueColumnList = dictionarySetting.getValueColumnList();
-				String[] columnList = null;
-				if(valueColumnList != null) {
-					columnList = dictionarySetting.getValueColumnList().split(",");
+		if(list != null){
+			for(DictionarySetting dictionarySetting : list){
+				String dictionaryId = dictionarySetting.getId();
+				String type = dictionarySetting.getType();
+				String tableName = getDictionaryTableName(dictionaryId);
+				///type에 따라 set, map, custom을 확인하여 해당 DAO리턴.
+				if(type.equals("set") || type.equals("synonym")){
+					daoMap.put(dictionaryId, new SetDictionaryDAO(tableName, internalDBModule));
+				}else if(type.equals("map")){
+					daoMap.put(dictionaryId, new MapDictionaryDAO(tableName, internalDBModule));
+					
+				}else if(type.equals("custom")){
+					String valueColumnList = dictionarySetting.getValueColumnList();
+					String[] columnList = null;
+					if(valueColumnList != null) {
+						columnList = dictionarySetting.getValueColumnList().split(",");
+					}
+					daoMap.put(dictionaryId, new CustomDictionaryDAO(tableName, columnList, internalDBModule));
 				}
-				daoMap.put(dictionaryId, new CustomDictionaryDAO(tableName, columnList, internalDBModule));
 			}
 		}
 	}
@@ -116,37 +118,39 @@ public abstract class AnalysisPlugin extends Plugin {
 	public void compileDictionaryFromDAO(String dictionaryId) throws IOException {
 		AnalysisPluginSetting setting = (AnalysisPluginSetting) pluginSetting;
 		List<DictionarySetting> list = setting.getDictionarySettingList();
-		for(DictionarySetting dictionarySetting : list){
-			String id = dictionarySetting.getId();
-			if(id.equals(dictionaryId)){
-				String type = dictionarySetting.getType();
-				boolean ignoreCase = dictionarySetting.isIgnoreCase();
-				AbstractDictionaryDAO dictionaryDAO = daoMap.get(dictionaryId);
-				///type에 따라 set, map, synonym, custom을 확인하여 compile 작업수행.
-				File targetFile = getDictionaryFile(dictionaryId);
-				SourceDictionary dictionaryType = null;
-				if(type.equals("set")){
-					dictionaryType = new SetDictionary(ignoreCase);
-				}else if(type.equals("map")){
-					dictionaryType = new MapDictionary(ignoreCase);
-				}else if(type.equals("synonym")){
-					dictionaryType = new SynonymDictionary(ignoreCase);
-				}else if(type.equals("custom")){
-					String valueColumnList = dictionarySetting.getValueColumnList();
-					String[] columnList = null;
-					if(valueColumnList != null) {
-						columnList = dictionarySetting.getValueColumnList().split(",");
+		if (list != null) {
+			for (DictionarySetting dictionarySetting : list) {
+				String id = dictionarySetting.getId();
+				if (id.equals(dictionaryId)) {
+					String type = dictionarySetting.getType();
+					boolean ignoreCase = dictionarySetting.isIgnoreCase();
+					AbstractDictionaryDAO dictionaryDAO = daoMap.get(dictionaryId);
+					// /type에 따라 set, map, synonym, custom을 확인하여 compile 작업수행.
+					File targetFile = getDictionaryFile(dictionaryId);
+					SourceDictionary dictionaryType = null;
+					if (type.equals("set")) {
+						dictionaryType = new SetDictionary(ignoreCase);
+					} else if (type.equals("map")) {
+						dictionaryType = new MapDictionary(ignoreCase);
+					} else if (type.equals("synonym")) {
+						dictionaryType = new SynonymDictionary(ignoreCase);
+					} else if (type.equals("custom")) {
+						String valueColumnList = dictionarySetting.getValueColumnList();
+						String[] columnList = null;
+						if (valueColumnList != null) {
+							columnList = dictionarySetting.getValueColumnList().split(",");
+						}
+						dictionaryType = new CustomDictionary(ignoreCase);
 					}
-					dictionaryType = new CustomDictionary(ignoreCase);
+
+					try {
+						DAOSourceDictionaryCompiler.compile(targetFile, dictionaryDAO, dictionaryType);
+					} catch (Exception e) {
+						logger.error("dictionary compile error", e);
+					}
+
+					break;
 				}
-				
-				try {
-					DAOSourceDictionaryCompiler.compile(targetFile, dictionaryDAO, dictionaryType);
-				} catch (Exception e) {
-					logger.error("dictionary compile error", e);
-				}
-				
-				break;
 			}
 		}
 	}

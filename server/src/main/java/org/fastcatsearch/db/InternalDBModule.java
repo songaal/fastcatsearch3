@@ -75,6 +75,7 @@ public class InternalDBModule extends AbstractModule {
 		//poolPingEnabled
 		//poolPingConnectionsNotUsedFor
 		//////////////////////////////////
+		
 		PooledDataSource dataSource = new PooledDataSource(derbyEmbeddedDriver, dbPath, driverProperties);
 		org.apache.ibatis.mapping.Environment environment = new org.apache.ibatis.mapping.Environment("ID", new JdbcTransactionFactory(), dataSource);
 		Configuration configuration = new Configuration(environment);
@@ -140,6 +141,11 @@ public class InternalDBModule extends AbstractModule {
 			return mapper;
 		}
 		
+		public void commint(){
+			if(session != null){
+				session.commit();
+			}
+		}
 		public void closeSession(){
 			if(session != null){
 				session.commit();

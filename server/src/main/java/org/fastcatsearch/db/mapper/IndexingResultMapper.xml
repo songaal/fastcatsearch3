@@ -4,7 +4,7 @@
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!-- default field : id, keyword -->
 <mapper namespace="org.fastcatsearch.db.mapper.IndexingResultMapper">
-	<insert id="creatTable" parameterType="map">
+	<update id="createTable">
 		create table
 		IndexingResult (
 		id int GENERATED ALWAYS AS IDENTITY
@@ -21,8 +21,12 @@
 		duration int,
 		primary key (id)
 		)
-	</insert>
+	</update>
 
+	<update id="createIndex" >
+		create index collectionId_index on IndexingResult(collectionId);
+	</update>
+	
 	<select id="validateTable" parameterType="map" resultType="map">
 		select id, collectionId
 		from IndexingResult
@@ -33,14 +37,14 @@
 		drop table IndexingResult
 	</update>
 
-	<select id="getEntry" parameterType="int" resultType="map">
+	<select id="getEntry" parameterType="int" resultType="org.fastcatsearch.db.vo.IndexingStatusVO">
 		select *
 		from IndexingResult where id = #{id}
 	</select>
 
-	<select id="getEntryList" parameterType="map" resultType="map">
+	<select id="getEntryList" parameterType="map" resultType="org.fastcatsearch.db.vo.IndexingStatusVO">
 
-		<if test="start >= 0 and end >= 0">
+		<if test="start &gt;= 0 and end &gt;= 0">
 			select *
 			from (
 			select row_number() over() as rownum,
@@ -59,7 +63,7 @@
 		where collectionId = #{collectionId}
 	</select>
 
-	<insert id="putEntry" parameterType="map" useGeneratedKeys="true">
+	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.IndexingStatusVO" useGeneratedKeys="true">
 		insert into IndexingResult (
 		collectionId, type, status, docSize, insertSize, updateSize, deleteSize,
 		isScheduled,

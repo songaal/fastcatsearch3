@@ -46,10 +46,11 @@ public class DBService extends AbstractService {
 		//system관련 mapper설정.
 		List<File> mapperFileList = new ArrayList<File>();
 		String[] mapperFilePathList = new String[]{
-				"org/fastcatsearch/db/mapper/ExceptionMapper.xml"
-				,"org/fastcatsearch/db/mapper/NotificationMapper.xml"
+				"org/fastcatsearch/db/mapper/ExceptionHistoryMapper.xml"
+				,"org/fastcatsearch/db/mapper/NotificationHistoryMapper.xml"
 				,"org/fastcatsearch/db/mapper/TaskHistoryMapper.xml"
 				,"org/fastcatsearch/db/mapper/IndexingHistoryMapper.xml"
+				,"org/fastcatsearch/db/mapper/IndexingResultMapper.xml"
 				
 		};
 		

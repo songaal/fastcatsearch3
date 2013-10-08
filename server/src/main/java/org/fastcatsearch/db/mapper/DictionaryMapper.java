@@ -7,7 +7,9 @@ import org.apache.ibatis.annotations.Param;
 
 public interface DictionaryMapper {
 	
-	public void creatTable(@Param("table") String table, @Param("size") int size, @Param("fieldList") String... fieldList) throws Exception;
+	public void createTable(@Param("table") String table, @Param("size") int size, @Param("fieldList") String... fieldList) throws Exception;
+	
+	public void createIndex(@Param("table") String table) throws Exception;
 	
 	public void validateTable(@Param("table") String table, @Param("fieldList") String... fieldList) throws Exception;
 	

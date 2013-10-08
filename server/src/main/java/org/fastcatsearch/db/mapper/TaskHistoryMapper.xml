@@ -5,13 +5,13 @@
 <!-- default field : id, keyword -->
 <mapper namespace="org.fastcatsearch.db.mapper.TaskHistoryMapper">
 
-	<insert id="creatTable" parameterType="map">
+	<update id="createTable">
 		create table TaskHistory (
 		id int GENERATED ALWAYS AS IDENTITY
 		taskId bigint,
 		exec varchar(200),
 		args varchar(3000),
-		isSuccess smallint,
+		status varchar(10),
 		resultStr varchar(3000),
 		isScheduled smallint,
 		startTime timestamp,
@@ -19,8 +19,8 @@
 		duration int,
 		primary key (id)
 		)
-	</insert>
-
+	</update>
+	
 	<select id="validateTable" parameterType="map" resultType="map">
 		select id, collectionId
 		from TaskHistory
@@ -31,14 +31,14 @@
 		drop table TaskHistory
 	</update>
 
-	<select id="getEntry" parameterType="int" resultType="map">
+	<select id="getEntry" parameterType="int" resultType="org.fastcatsearch.db.vo.TaskHistoryVO">
 		select *
 		from TaskHistory where id = #{id}
 	</select>
 
-	<select id="getEntryList" parameterType="map" resultType="map">
+	<select id="getEntryList" parameterType="map" resultType="org.fastcatsearch.db.vo.TaskHistoryVO">
 
-		<if test="start >= 0 and end >= 0">
+		<if test="start &gt;= 0 and end &gt;= 0">
 			select *
 			from (
 			select row_number() over() as rownum, TaskHistory.* from
@@ -52,12 +52,12 @@
 		from TaskHistory
 	</select>
 
-	<insert id="putEntry" parameterType="map" useGeneratedKeys="true">
+	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.TaskHistoryVO" useGeneratedKeys="true">
 		insert into TaskHistory ( 
-		jobId, jobClassName, args, isSuccess, resultStr, isScheduled, startTime, endTime, duration
+		taskId, exec, args, status, resultStr, isScheduled, startTime, endTime, duration
 		)
 		values (
-		#{jobId}, #{jobClassName}, #{args}, #{isSuccess}, #{resultStr}, #{isScheduled}, #{startTime}, #{endTime}, #{duration}
+		#{taskId}, #{exec}, #{args}, #{status}, #{resultStr}, #{isScheduled}, #{startTime}, #{endTime}, #{duration}
 		)
 	</insert>
 

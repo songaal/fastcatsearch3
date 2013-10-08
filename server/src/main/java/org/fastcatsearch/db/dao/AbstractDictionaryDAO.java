@@ -53,7 +53,10 @@ public class AbstractDictionaryDAO {
 	public boolean creatTable(int fieldLength) {
 		SessionAndMapper<DictionaryMapper> mapperContext = openMapper();
 		try {
-			mapperContext.getMapper().creatTable(tableName, fieldLength, valueFieldList);
+			mapperContext.getMapper().createTable(tableName, fieldLength, valueFieldList);
+			mapperContext.commint();
+			mapperContext.getMapper().createIndex(tableName);
+			mapperContext.commint();
 			return true;
 		} catch (Exception e) {
 			logger.debug("create table error", e.getMessage());

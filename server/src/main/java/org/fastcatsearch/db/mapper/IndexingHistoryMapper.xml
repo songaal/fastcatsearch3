@@ -5,12 +5,12 @@
 <!-- default field : id, keyword -->
 <mapper namespace="org.fastcatsearch.db.mapper.IndexingHistoryMapper">
 
-	<insert id="creatTable" parameterType="map">
+	<update id="createTable">
 		create table IndexingHistory (
 		id int GENERATED ALWAYS AS IDENTITY
 		collectionId varchar(20),
 		type char(4),
-		isSuccess smallint,
+		status varchar(10),
 		docSize int,
 		insertSize int,
 		updateSize int,
@@ -21,7 +21,12 @@
 		duration int,
 		primary key (id)
 		)
-	</insert>
+	</update>
+	
+	<update id="createIndex" >
+		create index collectionId_index on IndexingHistory(collectionId);
+	</update>
+	
 
 	<select id="validateTable" parameterType="map" resultType="map">
 		select id, collectionId
@@ -33,14 +38,14 @@
 		drop table IndexingHistory
 	</update>
 
-	<select id="getEntry" parameterType="int" resultType="map">
+	<select id="getEntry" parameterType="int" resultType="org.fastcatsearch.db.vo.IndexingStatusVO">
 		select *
 		from IndexingHistory where id = #{id}
 	</select>
 
-	<select id="getEntryList" parameterType="map" resultType="map">
+	<select id="getEntryList" parameterType="map" resultType="org.fastcatsearch.db.vo.IndexingStatusVO">
 
-		<if test="start >= 0 and end >= 0">
+		<if test="start &gt;= 0 and end &gt;= 0">
 			select *
 			from (
 			select row_number() over() as rownum, IndexingHistory.* from
@@ -56,12 +61,12 @@
 		where collectionId = #{collectionId}
 	</select>
 
-	<insert id="putEntry" parameterType="map" useGeneratedKeys="true">
+	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.IndexingStatusVO" useGeneratedKeys="true">
 		insert into IndexingHistory ( 
 		collectionId, type, isSuccess, docSize, insertSize, updateSize, deleteSize, isScheduled,
 		startTime, endTime, duration) 
 		values (
-		#{collectionId}, #{type}, #{isSuccess}, #{docSize}, #{insertSize}
+		#{collectionId}, #{type}, #{status}, #{docSize}, #{insertSize}
 		, #{updateSize}, #{deleteSize}, #{isScheduled}, #{startTime}, #{endTime}, #{duration}
 		)
 	</insert>

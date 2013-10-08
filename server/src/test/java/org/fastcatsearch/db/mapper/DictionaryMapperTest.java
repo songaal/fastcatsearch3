@@ -41,7 +41,9 @@ public class DictionaryMapperTest {
 					//존재하지 않을수 있다.
 				}
 				
-				dictionaryMapper.creatTable(dictionaryName, 1000, fieldList);
+				dictionaryMapper.createTable(dictionaryName, 1000, fieldList);
+				session.commit();
+				dictionaryMapper.createIndex(dictionaryName);
 				session.commit();
 			}
 			dictionaryMapper.putEntry(dictionaryName, Long.toString(System.currentTimeMillis())
