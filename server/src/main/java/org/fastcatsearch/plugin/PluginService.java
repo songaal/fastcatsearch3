@@ -19,6 +19,7 @@ import javax.xml.bind.Unmarshaller;
 import org.fastcatsearch.alert.ClusterAlertService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;

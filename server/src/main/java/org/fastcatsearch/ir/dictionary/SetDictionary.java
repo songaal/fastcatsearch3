@@ -23,18 +23,15 @@ public class SetDictionary extends SourceDictionary implements ReadableDictionar
 	
 	private Set<CharVector> set;
 
-	public SetDictionary(boolean ignoreCase) {
-		super(ignoreCase);
+	public SetDictionary() {
 		set = new HashSet<CharVector>();
 	}
 
 	public SetDictionary(Set<CharVector> set, boolean ignoreCase) {
-		super(ignoreCase);
 		this.set = set;
 	}
 
 	public SetDictionary(File file) {
-		super(true);
 		if(!file.exists()){
 			set = new HashSet<CharVector>();
 			logger.error("사전파일이 존재하지 않습니다. file={}", file.getAbsolutePath());
@@ -51,7 +48,6 @@ public class SetDictionary extends SourceDictionary implements ReadableDictionar
 	}
 
 	public SetDictionary(InputStream is, boolean ignoreCase){
-		super(ignoreCase);
 		try {
 			readFrom(is);
 		} catch (IOException e) {
@@ -63,7 +59,7 @@ public class SetDictionary extends SourceDictionary implements ReadableDictionar
 		addEntry(keyword);
 	}
 	@Override
-	public void addEntry(String keyword, String[] ingnore) {
+	public void addEntry(String keyword, Object[] ignore, boolean ignoreCase, boolean[] valuesIgnoreCase) {
 		keyword = keyword.trim();
 		if (keyword.length() > 0) {
 			if(ignoreCase){
@@ -118,12 +114,8 @@ public class SetDictionary extends SourceDictionary implements ReadableDictionar
 	}
 
 	@Override
-	public void addSourceLineEntry(String line) {
-		addEntry(line, null);
+	public void addSourceLineEntry(String line, boolean ignoreCase, boolean[] valuesIgnoreCase) {
+		addEntry(line, null, ignoreCase, valuesIgnoreCase);
 	}
 
-	@Override
-	public void addMapEntry(Map<String, Object> vo) {
-		addEntry((String) vo.get("keyword"), null);
-	}
 }

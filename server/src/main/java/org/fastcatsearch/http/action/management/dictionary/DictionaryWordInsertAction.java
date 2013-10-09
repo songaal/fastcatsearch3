@@ -1,59 +1,69 @@
 package org.fastcatsearch.http.action.management.dictionary;
 
 import java.io.Writer;
+import java.util.List;
 
-import org.fastcatsearch.db.dao.AbstractDictionaryDAO;
-import org.fastcatsearch.db.dao.BatchContext;
-import org.fastcatsearch.db.dao.MapDictionaryDAO;
+import org.fastcatsearch.db.dao.DictionaryDAO;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
-import org.fastcatsearch.plugin.AnalysisPlugin;
-import org.fastcatsearch.plugin.AnalysisPluginSetting;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
+import org.fastcatsearch.plugin.analysis.AnalysisPlugin;
+import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 @ActionMapping("/management/dictionary/insert")
 public class DictionaryWordInsertAction extends AuthAction {
 
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
-		
+
 		String pluginId = request.getParameter("pluginId");
 		String dictionaryId = request.getParameter("dictionaryId");
-		String keyword = request.getParameter("keyword");
-		
+
 		PluginService pluginService = ServiceManager.getInstance().getService(PluginService.class);
 		Plugin plugin = pluginService.getPlugin(pluginId);
 		AnalysisPlugin analysisPlugin = (AnalysisPlugin) plugin;
-		
-		AbstractDictionaryDAO dictionaryDAO = analysisPlugin.getDictionaryDAO(dictionaryId);
-		
-		if(dictionaryDAO.valueFieldList() != null && dictionaryDAO.valueFieldList().length > 0){
-			if(dictionaryDAO.valueFieldList().length == 1){
-				for(String valueFieldName : dictionaryDAO.valueFieldList()){
-					String value = request.getParameter(valueFieldName);
-					dictionaryDAO.putEntry(keyword, value);
+
+		DictionaryDAO dictionaryDAO = analysisPlugin.getDictionaryDAO(dictionaryId);
+
+		List<ColumnSetting> columnSettingList = dictionaryDAO.columnSettingList();
+
+		int count = 0;
+		if (columnSettingList != null && columnSettingList.size() > 0) {
+			String[] columns = new String[columnSettingList.size()];
+			Object[] values = new Object[columnSettingList.size()];
+			for (int i = 0; i < columnSettingList.size(); i++) {
+				ColumnSetting columnSetting = columnSettingList.get(i);
+				String name = columnSetting.getName();
+				String type = columnSetting.getType();
+				columns[i] = name;
+				String value = request.getParameter(name);
+
+				if (type.startsWith("int") || type.startsWith("INT")) {
+					int intValue = 0;
+					try {
+						intValue = Integer.parseInt(value);
+					} catch (Exception ignore) {
+					}
+					values[i] = intValue;
+				} else if (type.contains("char") || type.contains("CHAR")) {
+					values[i] = value;
+				} else {
+					values[i] = value;
 				}
-			}else{
-				String[] values = new String[dictionaryDAO.valueFieldList().length];
-				for(int i = 0 ;i < dictionaryDAO.valueFieldList().length; i++){
-					values[i] = request.getParameter(dictionaryDAO.valueFieldList()[i]);
-				}
-				dictionaryDAO.putEntry(keyword, values);
 			}
+			count = dictionaryDAO.putEntry(columns, values);
 		}
-		
+
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
-		resultWriter.object().key("success").value("true").endObject();
+		resultWriter.object().key("success").value(count > 0).endObject();
 		resultWriter.done();
-		
+
 	}
 
 }

@@ -15,8 +15,8 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.plugin.AnalysisPlugin;
 import org.fastcatsearch.plugin.PluginService;
+import org.fastcatsearch.plugin.analysis.AnalysisPlugin;
 import org.fastcatsearch.service.ServiceManager;
 
 public class DictionaryCompileApplyJob extends Job {

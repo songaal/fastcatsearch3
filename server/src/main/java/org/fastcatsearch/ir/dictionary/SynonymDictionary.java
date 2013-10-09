@@ -21,8 +21,7 @@ public class SynonymDictionary extends MapDictionary {
 
 	private Set<CharVector> wordSet;
 	
-	public SynonymDictionary(boolean caseSensitive) {
-		super(caseSensitive);
+	public SynonymDictionary() {
 		wordSet = new HashSet<CharVector>();
 	}
 
@@ -31,16 +30,18 @@ public class SynonymDictionary extends MapDictionary {
 		wordSet = new HashSet<CharVector>();
 	}
 	
-	public SynonymDictionary(InputStream is, boolean caseSensitive) {
-		super(is, caseSensitive);
+	public SynonymDictionary(InputStream is) {
+		super(is);
 	}
 	
 	public Set<CharVector> getWordSet() {
 		return Collections.unmodifiableSet(wordSet);
 	}
 	
+	//key가 null일수 있다. 양방향의 경우.
 	@Override
-	public void addEntry(String keyword, String[] values) {
+	public void addEntry(String keyword, Object[] values, boolean ignoreCase, boolean[] valuesIgnoreCase) {
+		
 		ArrayList<CharVector> list = new ArrayList<CharVector>(4);
 		
 		CharVector mainWord = null;
@@ -56,10 +57,15 @@ public class SynonymDictionary extends MapDictionary {
 			}
 		}
 		
-		if(ignoreCase){
-			values[0] = values[0].toUpperCase();
+		if(values == null || values.length == 0){
+			return;
 		}
-		String[] synonyms = values[0].split(",");
+		
+		String valueString = values[0].toString();
+		if(valuesIgnoreCase[0]){
+			valueString = valueString.toUpperCase();
+		}
+		String[] synonyms = valueString.split(",");
 		
 		for (int k = 0; k < synonyms.length; k++) {
 			String synonym = synonyms[k].trim();

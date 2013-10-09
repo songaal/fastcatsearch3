@@ -13,15 +13,14 @@ import org.slf4j.LoggerFactory;
 
 public class CustomDictionary extends SourceDictionary implements ReadableDictionary {
 	
-	public CustomDictionary(boolean ignoreCase) {
-		super(ignoreCase);
+	public CustomDictionary() {
 	}
 	public CustomDictionary(File file) {
-		super(true);
+		
 	}
 	private static Logger logger = LoggerFactory.getLogger(MapDictionary.class);
 
-	private Map<CharVector, Map<String, String>> map;
+	private Map<Object, Object[]> map;
 	
 
 	@Override
@@ -49,21 +48,16 @@ public class CustomDictionary extends SourceDictionary implements ReadableDictio
 	}
 
 	@Override
-	public void addEntry(String keyword, String[] values) {
+	public void addEntry(String keyword, Object[] values, boolean ignoreCase, boolean[] valuesIgnoreCase) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void addSourceLineEntry(String line) {
+	public void addSourceLineEntry(String line, boolean ignoreCase, boolean[] valuesIgnoreCase) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
-	public void addMapEntry(Map<String, Object> vo) {
-		// TODO Auto-generated method stub
-		
-	}
 
 }

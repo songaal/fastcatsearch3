@@ -3,14 +3,14 @@ package org.fastcatsearch.http.action.management.dictionary;
 import java.io.Writer;
 import java.util.List;
 
-import org.fastcatsearch.db.dao.AbstractDictionaryDAO;
+import org.fastcatsearch.db.dao.DictionaryDAO;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
-import org.fastcatsearch.plugin.AnalysisPlugin;
-import org.fastcatsearch.plugin.AnalysisPluginSetting;
-import org.fastcatsearch.plugin.AnalysisPluginSetting.DictionarySetting;
+import org.fastcatsearch.plugin.analysis.AnalysisPlugin;
+import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting;
+import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.service.ServiceManager;
@@ -36,16 +36,17 @@ public class GetDictionaryOverviewAction extends AuthAction {
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		resultWriter.object().key("overview").array();
-		
-		for(DictionarySetting dictionary : dictionaryList){
-			String dictionaryId = dictionary.getId();
-			AbstractDictionaryDAO dictionaryDAO = analysisPlugin.getDictionaryDAO(dictionaryId);
-			int entrySize = dictionaryDAO.getCount(null, false);
-			resultWriter.object()
-			.key("name").value(dictionaryId)
-			.key("size").value(entrySize)
-			//TODO status, sync time
-			.endObject();
+		if(dictionaryList != null){
+			for(DictionarySetting dictionary : dictionaryList){
+				String dictionaryId = dictionary.getId();
+				DictionaryDAO dictionaryDAO = analysisPlugin.getDictionaryDAO(dictionaryId);
+				int entrySize = dictionaryDAO.getCount(null, null);
+				resultWriter.object()
+				.key("name").value(dictionaryId)
+				.key("size").value(entrySize)
+				//TODO status, sync time
+				.endObject();
+			}
 		}
 		resultWriter.endArray().endObject();
 		

@@ -5,15 +5,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.lucene.store.InputStreamDataInput;
 import org.apache.lucene.store.OutputStreamDataOutput;
@@ -22,7 +19,8 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 /*
  * map 범용 사전. 
- * keyword, value 의 필드를 가지고 있다.
+ * CharVector : CharVector[] pair이다.
+ * 만약 value에 Object[]를 사용하길 원한다면 custom dictionary를 사용한다.
  * 
  * 
  * */
@@ -31,19 +29,16 @@ public class MapDictionary extends SourceDictionary implements ReadableDictionar
 	protected Map<CharVector, CharVector[]> map;
 	
 
-	public MapDictionary(boolean ignoreCase) {
-		super(ignoreCase);
+	public MapDictionary() {
 		map = new HashMap<CharVector, CharVector[]>();
 		
 	}
 
 	public MapDictionary(Map<CharVector, CharVector[]> map, boolean ignoreCase) {
-		super(ignoreCase);
 		this.map = map;
 	}
 
 	public MapDictionary(File file) {
-		super(true);
 		if(!file.exists()){
 			map = new HashMap<CharVector, CharVector[]>();
 			logger.error("사전파일이 존재하지 않습니다. file={}", file.getAbsolutePath());
@@ -59,8 +54,7 @@ public class MapDictionary extends SourceDictionary implements ReadableDictionar
 		}
 	}
 
-	public MapDictionary(InputStream is, boolean ignoreCase) {
-		super(ignoreCase);
+	public MapDictionary(InputStream is) {
 		try {
 			readFrom(is);
 		} catch (IOException e) {
@@ -70,7 +64,7 @@ public class MapDictionary extends SourceDictionary implements ReadableDictionar
 
 	
 	@Override
-	public void addEntry(String keyword, String[] values) {
+	public void addEntry(String keyword, Object[] values, boolean ignoreCase, boolean[] valuesIgnoreCase) {
 		if(keyword == null || keyword.length() == 0) {
 			return;
 		}
@@ -81,8 +75,8 @@ public class MapDictionary extends SourceDictionary implements ReadableDictionar
 		
 		CharVector[] list = new CharVector[values.length];
 		for (int i = 0; i < values.length; i++) {
-			String value = values[i];
-			if(ignoreCase){
+			String value = values[i].toString();
+			if(valuesIgnoreCase[i]){
 				value = value.toUpperCase();
 			}
 			list[i] = new CharVector(value);
@@ -155,20 +149,16 @@ public class MapDictionary extends SourceDictionary implements ReadableDictionar
 	}
 
 	@Override
-	public void addSourceLineEntry(String line) {
+	public void addSourceLineEntry(String line, boolean ignoreCase, boolean[] valuesIgnoreCase) {
 		String[] kv= line.split("\t");
 		if(kv.length == 1){
 			String value = kv[0].trim();
-			addEntry(null, new String[]{ value });
+			addEntry(null, new String[]{ value}, ignoreCase, valuesIgnoreCase);
 		}else if(kv.length == 2){
 			String keyword = kv[0].trim();
 			String value = kv[1].trim();
-			addEntry(keyword, new String[]{ value });
+			addEntry(keyword, new String[]{ value }, ignoreCase, valuesIgnoreCase);
 		}
 	}
 
-	@Override
-	public void addMapEntry(Map<String, Object> vo) {
-		addEntry((String) vo.get("keyword"), new String[]{ (String) vo.get("value") });
-	}
 }

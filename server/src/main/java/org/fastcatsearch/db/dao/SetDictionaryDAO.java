@@ -11,29 +11,38 @@
 
 package org.fastcatsearch.db.dao;
 
+import java.util.List;
+
 import org.fastcatsearch.db.InternalDBModule;
 import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.db.mapper.DictionaryMapper;
+import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
 
-public class SetDictionaryDAO extends AbstractDictionaryDAO {
+public class SetDictionaryDAO extends DictionaryDAO {
 
-	public SetDictionaryDAO(String tableName, InternalDBModule internalDBModule) {
-		super(tableName, null, internalDBModule);
+	protected String[] columns;
+
+	public SetDictionaryDAO(String tableName, List<ColumnSetting> columnSettingList, InternalDBModule internalDBModule) {
+		super(tableName, columnSettingList, internalDBModule);
+		if (columnSettingList == null || columnSettingList.size() != 1) {
+			throw new RuntimeException("Set dictionary column size must be 1. current = " + columnSettingList.size());
+		}
+		columns = new String[] { columnSettingList.get(0).getName() };
 	}
 
-	public void putEntry(String keyword) throws Exception {
+	public int putEntry(Object keyword) throws Exception {
 		MapperSession<DictionaryMapper> mapperContext = openMapper();
 		try {
-			mapperContext.getMapper().putEntry(tableName, keyword);
+			return putEntry(columns, new Object[] { keyword });
 		} finally {
 			mapperContext.closeSession();
 		}
 	}
 
-	public void updateEntry(int id, String keyword) throws Exception {
+	public int updateEntry(int id, Object keyword) throws Exception {
 		MapperSession<DictionaryMapper> mapperContext = openMapper();
 		try {
-			mapperContext.getMapper().updateEntry(tableName, id, keyword);
+			return updateEntry(id, columns, new Object[] { keyword });
 		} finally {
 			mapperContext.closeSession();
 		}

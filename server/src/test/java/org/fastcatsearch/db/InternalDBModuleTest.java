@@ -8,18 +8,19 @@ import java.util.List;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.fastcatsearch.db.mapper.DictionaryMapper;
+import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
 import org.junit.Test;
 
 public class InternalDBModuleTest {
 
 	@Test
 	public void test() throws IOException {
+		List<ColumnSetting> columnSettingList = new ArrayList<ColumnSetting>();
 		String dbPath = "/tmp/idbtest;create=true";
 		String mapperFilePath = "org/fastcatsearch/db/mapper/DictionaryMapper.xml";
 		File mapperFile = Resources.getResourceAsFile(mapperFilePath);
 		List<File> mapperFileList = new ArrayList<File>();
 		mapperFileList.add(mapperFile);
-		
 		//디비를 열고 닫고 여러번가능한지.. 
 		for(int i =0;i<3; i++){
 			InternalDBModule internalDBModule = new InternalDBModule(dbPath, mapperFileList, null, null, null);
@@ -28,12 +29,12 @@ public class InternalDBModuleTest {
 			SqlSession session = internalDBModule.openSession();
 			DictionaryMapper mapper= session.getMapper(DictionaryMapper.class);
 			try{
-				mapper.createTable("a", 10);
+				mapper.createTable("a", columnSettingList);
 			}catch(Exception e){
 				e.printStackTrace();
 			}
 			try{
-				mapper.createIndex("a");
+				mapper.createIndex("a", "key");
 			}catch(Exception e){
 				e.printStackTrace();
 			}

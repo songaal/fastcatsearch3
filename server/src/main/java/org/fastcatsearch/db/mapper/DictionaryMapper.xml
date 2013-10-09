@@ -3,17 +3,16 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!-- 
-default field : id, keyword
+Derby SQL 문법에 따른다.
  -->
 <mapper namespace="org.fastcatsearch.db.mapper.DictionaryMapper">
 
 	<update id="createTable" parameterType="map" >
 		create table ${table} (
 			id bigint not null generated always as identity,
-			keyword varchar(${size}) not null unique,
-			<if test="fieldList != null">
-				<foreach item="fieldName" index="index" collection="fieldList">
-				${fieldName} varchar(${size}),
+			<if test="columnSettings != null">
+				<foreach item="column" index="index" collection="columnSettings">
+					${name} ${type},
 				</foreach>
 			</if>
 			primary key (id)
@@ -21,14 +20,14 @@ default field : id, keyword
 	</update>
 	
 	<update id="createIndex" parameterType="map" >
-		create index keyword_index on ${table}(keyword)
+		create index ${column}_index on ${table}(${column})
 	</update>
 	
 	<select id="validateTable" parameterType="map" resultType="map">
-		select id, keyword 
-		<if test="fieldList != null">
-			<foreach item="fieldName" index="index" collection="fieldList">
-			, ${fieldName}
+		select id
+		<if test="columnSettings != null">
+			<foreach item="column" index="index" collection="columnSettings">
+			${name}
 			</foreach>
 		</if>
 		from ${table} 
@@ -45,74 +44,53 @@ default field : id, keyword
 	</select>
 
 	<select id="getEntryList" parameterType="map" resultType="map">
-	
-		<if test="start &gt;= 0 and end &gt;= 0">
+		<if test="start &gt; 0">
 			select *
 			from (
 			select row_number() over() as rownum, ${table}.* from ${table}
-			<if test="search != null">
-				where keyword like #{search}
-				<if test="fieldList != null">
-					<foreach item="field" index="index" collection="fieldList">
-					or ${"field"} like #{search}
+			<if test="search != null and columns != null">
+				<where> 
+					<foreach item="column" index="index" collection="columns">
+					or ${column} like #{search}
 					</foreach>
-				</if>
+				</where>
 			</if>
-			) as tmp where rownum &gt; #{start} and rownum &lt;= #{end}
+			order by id desc
+			) as tmp where rownum &gt;= #{start} and rownum &lt;= #{end}
 		</if>
-		<if test="start &lt; 0 or end &lt; 0">
-			select * from ${table}
-			<if test="search != null">
-				where keyword like #{search}
-				<if test="fieldList != null">
-					<foreach item="field" index="index" collection="fieldList">
-					or ${"field"} like #{search}
-					</foreach>
-				</if>
-			</if>
-		</if>
-		
 	</select>
 	
 	<select id="getCount" parameterType="map" resultType="int">
 		select count(*)
 		from ${table}
-		<if test="search != null">
-			where keyword like #{search}
-			<if test="fieldList != null">
-				<foreach item="field" index="index" collection="fieldList">
-				or ${"field"} like #{search}
+		<if test="search != null and columns != null">
+			<where> 
+				<foreach item="column" index="index" collection="columns">
+				or ${column} like #{search}
 				</foreach>
-			</if>
+			</where>
 		</if>
 	</select>
 	
 	<insert id="putEntry" parameterType="map" useGeneratedKeys="true" >
-		insert into ${table} (
-			<if test="keyword != null">keyword</if>
-			<if test="keyValueList != null">
-				<if test="keyword != null">,</if>
-				<foreach item="keyValue" index="index" collection="keyValueList" separator=","> 
-				${keyValue.key}
-				</foreach>
-			</if>
-		) values (
-			<if test="keyword != null">#{keyword}</if>
-			<if test="keyValueList != null">
-				<if test="keyword != null">,</if>
-				<foreach item="keyValue" index="index" collection="keyValueList" separator=","> 
-				#{keyValue.value}
-				</foreach>
-			</if>
-		)
+		insert into ${table}
+		<if test="columns != null">
+			<foreach item="column" index="index" collection="columns" open="(" separator="," close=")" > 
+			${column}
+			</foreach>
+		</if>
+		values
+		<if test="values != null">
+			<foreach item="value" index="index" collection="values" open="(" separator="," close=")" > 
+			#{value}
+			</foreach>
+		</if>
+		
 	</insert>
 	
 	<update id="updateEntry" parameterType="map">
-		update ${table} 
-		<if test="keyword != null">set keyword = #{keyword}</if>
+		update ${table}
 		<if test="keyValueList != null">
-			<if test="keyword == null">set</if>
-			<if test="keyword != null">,</if>
 			<foreach item="keyValue" index="index" collection="keyValueList" separator=","> 
 			${keyValue.key} = #{keyValue.value}
 			</foreach>

@@ -6,7 +6,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "collection-index-status")
-@XmlType(propOrder = { "fullIndexStatus" ,"failedFullIndexStatus", "addIndexStatus", "failedAddIndexStatus"})
+@XmlType(propOrder = { "fullIndexStatus", "addIndexStatus"})
 public class CollectionIndexStatus {
 	protected IndexStatus fullIndexStatus;
 	protected IndexStatus addIndexStatus;

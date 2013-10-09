@@ -10,6 +10,7 @@ import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.fastcatsearch.db.InternalDBModule;
 import org.fastcatsearch.db.mapper.DictionaryMapper.KeyValue;
+import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
 import org.junit.Test;
 
 public class DictionaryMapperTest {
@@ -23,6 +24,8 @@ public class DictionaryMapperTest {
 		mapperFileList.add(mapperFile);
 		InternalDBModule internalDBModule = new InternalDBModule(dbPath, mapperFileList, null, null, null);
 		internalDBModule.load();
+		List<ColumnSetting> columnSettingList = new ArrayList<ColumnSetting>();
+		
 		
 		SqlSession session = internalDBModule.openBatchSession();
 		DictionaryMapper dictionaryMapper = null;
@@ -32,7 +35,7 @@ public class DictionaryMapperTest {
 			//////////////////////////////
 			dictionaryMapper = session.getMapper(DictionaryMapper.class);
 			try {
-				dictionaryMapper.validateTable(dictionaryName, fieldList);
+				dictionaryMapper.validateTable(dictionaryName, columnSettingList);
 			}catch(Exception e){
 				try {
 					dictionaryMapper.dropTable(dictionaryName);
@@ -41,26 +44,24 @@ public class DictionaryMapperTest {
 					//존재하지 않을수 있다.
 				}
 				
-				dictionaryMapper.createTable(dictionaryName, 1000, fieldList);
+				dictionaryMapper.createTable(dictionaryName, columnSettingList);
 				session.commit();
-				dictionaryMapper.createIndex(dictionaryName);
+				dictionaryMapper.createIndex(dictionaryName, "key");
 				session.commit();
 			}
-			dictionaryMapper.putEntry(dictionaryName, Long.toString(System.currentTimeMillis())
-					, new KeyValue[]{new KeyValue("value1", "def"), new KeyValue("value2", "한글")});
-			dictionaryMapper.putEntry(dictionaryName, Long.toString(System.currentTimeMillis())
-					, new KeyValue[]{new KeyValue("value1", "def1"), new KeyValue("value2", "한글1")});
-			dictionaryMapper.putEntry(dictionaryName, Long.toString(System.currentTimeMillis())
-					, new KeyValue[]{new KeyValue("value1", "def2")});
+			
+			String[] columns = new String[]{"key", "value1", "value2"};
+			dictionaryMapper.putEntry(dictionaryName, columns, new String[]{Long.toString(System.currentTimeMillis()), "def", "한글" });
+			dictionaryMapper.putEntry(dictionaryName, columns, new String[]{Long.toString(System.currentTimeMillis()), "def1", "한글1" });
+			dictionaryMapper.putEntry(dictionaryName, new String[]{"key", "value1"}, new String[]{Long.toString(System.currentTimeMillis()), "def2"});
 			session.commit();
-			int id = dictionaryMapper.getCount(dictionaryName, null);
+			int id = dictionaryMapper.getCount(dictionaryName, null, null);
 			session.commit();
 			System.out.println("count = "+id);
 			
 			Map<String, Object> vo = dictionaryMapper.getEntry(dictionaryName, id);
 			printVO(vo);
-			
-			dictionaryMapper.updateEntry(dictionaryName, id, Long.toString(System.currentTimeMillis()), new KeyValue[]{new KeyValue("value1", "def_U"), new KeyValue("value2", "한글_U")});
+			dictionaryMapper.updateEntry(dictionaryName, id, new KeyValue[]{new KeyValue("key", Long.toString(System.currentTimeMillis())),new KeyValue("value1", "def_U"), new KeyValue("value2", "한글_U")});
 			session.commit();
 			vo = dictionaryMapper.getEntry(dictionaryName, id);
 			printVO(vo);

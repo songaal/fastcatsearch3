@@ -1,0 +1,39 @@
+<plugin id="Korean" namespace="Analysis" class="org.fastcatsearch.plugin.analysis.ko.KoreanAnalysisPlugin">
+	<name>한국어분석기</name>
+	<version>1.0</version>
+	
+	<description>
+		한국어분석기 및 한국어분석사전을 제공한다.
+	</description>
+	
+	<use-db>true</use-db>
+	
+	<dictionary-list>
+		<dictionary id="system" name="기초사전" type="system"></dictionary>
+		<dictionary id="synonym" name="유사어사전" type="synonym">
+			<column name="key" type="varchar(100) not null unique" searchable="true" key="true" compilable="true" ignoreCase="true"/>
+			<column name="value" searchable="true" compilable="true" separator="," ignoreCase="true"/>
+		</dictionary>
+		<dictionary id="user" name="사용자사전" type="set">
+			<column name="key" type="varchar(100) not null unique" searchable="true" key="true" compilable="true" ignoreCase="true"/>
+		</dictionary>
+		<dictionary id="stop" name="불용어사전" type="set">
+			<column name="key" type="varchar(100) not null unique" searchable="true" key="true" compilable="true"  ignoreCase="true"/>
+		</dictionary>
+		<dictionary id="boosting" name="부스팅사전" type="custom">
+			<column name="key" type="varchar(100) not null unique" key="true" searchable="true" compilable="true"/>
+			<column name="value" type="varchar(3000)" searchable="true" compilable="true" separator=","/>
+			<column name="display" type="varchar(100)" searchable="true" />
+			<column name="url" type="varchar(250)" searchable="true" /> 
+			<column name="score" type="int" index="true" compilable="true" />
+		</dictionary>
+	</dictionary-list>
+	
+	<analyzer-list>
+		<analyzer id="KoreanAnalyzer" name="한국어분석기">org.fastcatsearch.plugin.analysis.ko.standard.StandardKoreanAnalyzer</analyzer>
+	</analyzer-list>
+	
+	<action-list>
+		<action class="org.fastcatsearch.plugin.analysis.product.action.SynonymDictionaryAction" />
+	</action-list>
+</plugin>

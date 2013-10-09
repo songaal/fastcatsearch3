@@ -12,24 +12,28 @@ public class FileSourceDictionaryCompiler {
 		String sourceFilePath = args[0];
 		String binaryFilePath = args[1];
 		String type = args[2];
-		boolean caseSensitive = true;
+		boolean ignoreCase = true;
 		if(args.length > 3){
-			caseSensitive = args[3].trim().equalsIgnoreCase("true");
+			ignoreCase = args[3].trim().equalsIgnoreCase("true");
 		}
+		
+		//FIXME
+		boolean[] valuesIgnoreCase = new boolean[1];
+		
 		File sourceFile = new File(sourceFilePath);
 		File binaryFile = new File(binaryFilePath);
 		
 		SourceDictionary dictionary = null;
 		if(type.equals("set")){
-			dictionary = new SetDictionary(caseSensitive);
+			dictionary = new SetDictionary();
 		}else if(type.equals("map")){
-			dictionary = new MapDictionary(caseSensitive);
+			dictionary = new MapDictionary();
 		}else if(type.equals("synonym")){
-			dictionary = new SynonymDictionary(caseSensitive);
+			dictionary = new SynonymDictionary();
 		}else if(type.equals("custom")){
-			dictionary = new CustomDictionary(caseSensitive);
+			dictionary = new CustomDictionary();
 		}
-		dictionary.loadSource(sourceFile);
+		dictionary.loadSource(sourceFile, ignoreCase, valuesIgnoreCase);
 		
 		OutputStream out = new FileOutputStream(binaryFile); 
 		dictionary.writeTo(out);
