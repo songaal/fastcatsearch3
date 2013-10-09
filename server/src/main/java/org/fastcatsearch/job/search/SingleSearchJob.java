@@ -30,7 +30,6 @@ import org.fastcatsearch.job.Job;
 import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
-import org.fastcatsearch.service.KeywordService;
 import org.fastcatsearch.service.ServiceManager;
 
 
@@ -112,9 +111,7 @@ public class SingleSearchJob extends Job {
 			
 			if(keyword != null){
 				if(result.getCount() > 0){
-					KeywordService.getInstance().addKeyword(keyword);
 				}else{
-					KeywordService.getInstance().addFailKeyword(keyword);
 				}
 			}
 //			if(result.getCount() > 0 && keyword != null){

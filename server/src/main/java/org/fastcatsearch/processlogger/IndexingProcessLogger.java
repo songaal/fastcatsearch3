@@ -3,11 +3,10 @@ package org.fastcatsearch.processlogger;
 import java.sql.Timestamp;
 
 import org.fastcatsearch.db.DBService;
-import org.fastcatsearch.db.InternalDBModule.SessionAndMapper;
-import org.fastcatsearch.db.dao.IndexingHistory;
-import org.fastcatsearch.db.dao.IndexingResult;
+import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.db.mapper.IndexingHistoryMapper;
-import org.fastcatsearch.db.vo.IndexingResultVO;
+import org.fastcatsearch.db.mapper.IndexingResultMapper;
+import org.fastcatsearch.db.mapper.IndexingResultMapper.ResultStatus;
 import org.fastcatsearch.db.vo.IndexingStatusVO;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.job.result.IndexingJobResult;
@@ -15,9 +14,12 @@ import org.fastcatsearch.processlogger.log.IndexingFinishProcessLog;
 import org.fastcatsearch.processlogger.log.IndexingStartProcessLog;
 import org.fastcatsearch.processlogger.log.ProcessLog;
 import org.fastcatsearch.service.ServiceManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class IndexingProcessLogger implements ProcessLogger {
-
+	private static final Logger logger = LoggerFactory.getLogger(IndexingProcessLogger.class);
+	
 	@Override
 	public void log(ProcessLog processLog) {
 		if (processLog instanceof IndexingStartProcessLog) {
@@ -25,25 +27,33 @@ public class IndexingProcessLogger implements ProcessLogger {
 
 			DBService dbService = ServiceManager.getInstance().getService(DBService.class);
 			if (dbService != null) {
-				SessionAndMapper<IndexingHistoryMapper> sessionAndMapper = dbService.getSessionAndMapper(IndexingHistoryMapper.class);
+				MapperSession<IndexingHistoryMapper> historyMapperSession = dbService.getMapperSession(IndexingHistoryMapper.class);
+				MapperSession<IndexingResultMapper> resultMapperSession = dbService.getMapperSession(IndexingResultMapper.class);
 				
+				IndexingHistoryMapper indexingHistoryMapper = historyMapperSession.getMapper();
+				IndexingResultMapper indexingResultMapper = resultMapperSession.getMapper();
 				
-				SessionAndMapper<IndexingHistoryMapper> sessionAndMapper2 = dbService.getSessionAndMapper(IndexingHistoryMapper.class);
-				
-				IndexingHistoryMapper mapper = sessionAndMapper.getMapper();
-				
+				// 전체색인시는 증분색인 정보까지 클리어해준다.
 				if (log.getIndexingType() == IndexingType.FULL) {
-					// 전체색인시는 증분색인 정보를 클리어해준다.
-					//TODO 
-					
-					
-//					indexingResult.delete(log.getCollection(), IndexingType.FULL);
+					indexingResultMapper.deleteEntry(log.getCollectionId(), IndexingType.FULL);
 				}
-//				int result = indexingResult.updateOrInsert(log.getCollection(), log.getIndexingType(), IndexingResult.STATUS_RUNNING, 0, 0, 0,
-//						log.isScheduled(), new Timestamp(log.getStartTime()), null, 0);
+				indexingResultMapper.deleteEntry(log.getCollectionId(), IndexingType.ADD);
 				
 				IndexingStatusVO vo = new IndexingStatusVO();
-				mapper.updateEntry(vo);
+				vo.collectionId = log.getCollectionId();
+				vo.type = log.getIndexingType();
+				vo.status = ResultStatus.RUNNING;
+				vo.isScheduled = log.isScheduled();
+				vo.startTime = new Timestamp(log.getStartTime()); 
+				try {
+					indexingResultMapper.putEntry(vo);
+					indexingHistoryMapper.putEntry(vo);
+				} catch (Exception e) {
+					logger.error("" , e);
+				}
+				
+				historyMapperSession.closeSession();
+				resultMapperSession.closeSession();
 			}
 
 		} else if (processLog instanceof IndexingFinishProcessLog) {
@@ -54,29 +64,58 @@ public class IndexingProcessLogger implements ProcessLogger {
 
 			DBService dbService = ServiceManager.getInstance().getService(DBService.class);
 			if (dbService != null) {
-				IndexingResult indexingResult = dbService.db().getDAO("IndexingResult", IndexingResult.class);
-				IndexingHistory indexingHistory = dbService.db().getDAO("IndexingHistory", IndexingHistory.class);
+				MapperSession<IndexingHistoryMapper> historyMapperSession = dbService.getMapperSession(IndexingHistoryMapper.class);
+				MapperSession<IndexingResultMapper> resultMapperSession = dbService.getMapperSession(IndexingResultMapper.class);
+				
+				IndexingHistoryMapper indexingHistoryMapper = historyMapperSession.getMapper();
+				IndexingResultMapper indexingResultMapper = resultMapperSession.getMapper();
+				
+				// 전체색인시는 증분색인 정보까지 클리어해준다.
+				if (log.getIndexingType() == IndexingType.FULL) {
+					indexingResultMapper.deleteEntry(log.getCollectionId(), IndexingType.FULL);
+				}
+				indexingResultMapper.deleteEntry(log.getCollectionId(), IndexingType.ADD);
+				
+				IndexingStatusVO vo = new IndexingStatusVO();
 				if (log.isSuccess()) {
 					//
 					// 색인 성공
 					//
 					IndexingJobResult indexingJobResult = (IndexingJobResult) log.getResult();
-					indexingResult.updateResult(log.getCollectionId(), log.getIndexingType(), IndexingResult.STATUS_SUCCESS,
-							indexingJobResult.indexStatus.getInsertCount(), indexingJobResult.indexStatus.getUpdateCount(),
-							indexingJobResult.indexStatus.getDeleteCount(), new Timestamp(log.getEndTime()), (int) log.getDurationTime());
-					indexingHistory.insert(log.getCollectionId(), log.getIndexingType(), true, indexingJobResult.indexStatus.getInsertCount(),
-							indexingJobResult.indexStatus.getUpdateCount(), indexingJobResult.indexStatus.getDeleteCount(), log.isScheduled(),
-							new Timestamp(log.getStartTime()), new Timestamp(log.getEndTime()), (int) log.getDurationTime());
+					vo.collectionId = log.getCollectionId();
+					vo.type = log.getIndexingType();
+					vo.status = ResultStatus.SUCCESS;
+					vo.isScheduled = log.isScheduled();
+					vo.docSize = indexingJobResult.indexStatus.getDocumentCount();
+					vo.insertSize = indexingJobResult.indexStatus.getInsertCount();
+					vo.updateSize = indexingJobResult.indexStatus.getUpdateCount();
+					vo.deleteSize = indexingJobResult.indexStatus.getDeleteCount();
+					vo.startTime = new Timestamp(log.getStartTime()); 
+					vo.endTime = new Timestamp(log.getEndTime());
+					vo.duration = log.getDurationTime();
+					
 				} else {
 					//
 					// 색인 실패
 					//
-					indexingResult.updateResult(log.getCollectionId(), log.getIndexingType(), IndexingResult.STATUS_FAIL, 0, 0, 0,
-							new Timestamp(log.getEndTime()), (int) log.getDurationTime());
-
-					indexingHistory.insert(log.getCollectionId(), log.getIndexingType(), false, 0, 0, 0, log.isScheduled(),
-							new Timestamp(log.getStartTime()), new Timestamp(log.getEndTime()), (int) log.getDurationTime());
+					vo.collectionId = log.getCollectionId();
+					vo.type = log.getIndexingType();
+					vo.status = ResultStatus.FAIL;
+					vo.isScheduled = log.isScheduled();
+					vo.startTime = new Timestamp(log.getStartTime());
+					vo.endTime = new Timestamp(log.getEndTime());
+					vo.duration = log.getDurationTime();
 				}
+				
+				try {
+					indexingResultMapper.putEntry(vo);
+					indexingHistoryMapper.putEntry(vo);
+				} catch (Exception e) {
+					logger.error("" , e);
+				}
+				
+				historyMapperSession.closeSession();
+				resultMapperSession.closeSession();
 
 			}
 		}

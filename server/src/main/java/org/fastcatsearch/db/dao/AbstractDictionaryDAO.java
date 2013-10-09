@@ -16,7 +16,7 @@ import java.util.Map;
 
 import org.apache.ibatis.session.SqlSession;
 import org.fastcatsearch.db.InternalDBModule;
-import org.fastcatsearch.db.InternalDBModule.SessionAndMapper;
+import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.db.mapper.DictionaryMapper;
 import org.fastcatsearch.db.mapper.DictionaryMapper.KeyValue;
 import org.slf4j.Logger;
@@ -42,16 +42,16 @@ public class AbstractDictionaryDAO {
 		return valueFieldList;
 	}
 	
-	protected SessionAndMapper<DictionaryMapper> openMapper() {
+	protected MapperSession<DictionaryMapper> openMapper() {
 		SqlSession session = internalDBModule.openSession();
 		if (session != null) {
-			return new SessionAndMapper<DictionaryMapper>(session, session.getMapper(DictionaryMapper.class));
+			return new MapperSession<DictionaryMapper>(session, session.getMapper(DictionaryMapper.class));
 		}
 		return null;
 	}
 
 	public boolean creatTable(int fieldLength) {
-		SessionAndMapper<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperContext = openMapper();
 		try {
 			mapperContext.getMapper().createTable(tableName, fieldLength, valueFieldList);
 			mapperContext.commint();
@@ -67,7 +67,7 @@ public class AbstractDictionaryDAO {
 	}
 
 	public boolean validateTable() {
-		SessionAndMapper<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperContext = openMapper();
 		try {
 			mapperContext.getMapper().validateTable(tableName, valueFieldList);
 			return true;
@@ -80,7 +80,7 @@ public class AbstractDictionaryDAO {
 	}
 
 	public boolean dropTable() {
-		SessionAndMapper<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperContext = openMapper();
 		try {
 			mapperContext.getMapper().dropTable(tableName);
 			return true;
@@ -93,7 +93,7 @@ public class AbstractDictionaryDAO {
 	}
 
 	public void deleteEntry(int id) throws Exception {
-		SessionAndMapper<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperContext = openMapper();
 		try {
 			mapperContext.getMapper().deleteEntry(tableName, id);
 		} finally {
@@ -102,7 +102,7 @@ public class AbstractDictionaryDAO {
 	}
 
 	public Map<String, Object> getEntry(int id) throws Exception {
-		SessionAndMapper<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperContext = openMapper();
 		try {
 			return mapperContext.getMapper().getEntry(tableName, id);
 		} finally {
@@ -112,7 +112,7 @@ public class AbstractDictionaryDAO {
 	
 	//searchAll : value필드까지 검색하는지 여부.
 	public List<Map<String, Object>> getEntryList(int start, int end, String search, boolean searchAll) throws Exception {
-		SessionAndMapper<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperContext = openMapper();
 		try {
 			return mapperContext.getMapper().getEntryList(tableName, start, end, search, searchAll ? valueFieldList : null);
 		} finally {
@@ -122,7 +122,7 @@ public class AbstractDictionaryDAO {
 
 	//searchAll : value필드까지 검색하는지 여부.
 	public int getCount(String search, boolean searchAll) throws Exception {
-		SessionAndMapper<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperContext = openMapper();
 		try {
 			return mapperContext.getMapper().getCount(tableName, search, searchAll ? valueFieldList : null);
 		} finally {
@@ -131,7 +131,7 @@ public class AbstractDictionaryDAO {
 	}
 
 	public void updateEntry(int id, String keyword, String... values) throws Exception {
-		SessionAndMapper<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperContext = openMapper();
 		try {
 			if (values.length != valueFieldList.length) {
 				throw new IllegalArgumentException("update value length is different from valueFieldList.length. " + values.length + " != "
@@ -154,7 +154,7 @@ public class AbstractDictionaryDAO {
 					+ valueFieldList.length);
 		}
 
-		SessionAndMapper<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperContext = openMapper();
 		try {
 			KeyValue[] list = new KeyValue[values.length];
 			for (int i = 0; i < list.length; i++) {

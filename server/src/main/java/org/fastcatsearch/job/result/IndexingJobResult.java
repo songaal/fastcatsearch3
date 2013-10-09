@@ -20,7 +20,6 @@ import org.fastcatsearch.ir.io.DataOutput;
 
 public class IndexingJobResult implements Streamable {
 	public String collectionId;
-//	public String shardId;
 	public IndexStatus indexStatus;
 	public int duration;
 	public boolean isSuccess;

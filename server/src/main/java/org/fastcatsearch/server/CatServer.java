@@ -27,9 +27,7 @@ import org.fastcatsearch.management.ManagementInfoService;
 import org.fastcatsearch.notification.NotificationService;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.processlogger.ProcessLoggerService;
-import org.fastcatsearch.service.KeywordService;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.service.WebService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,7 +145,6 @@ public class CatServer {
 		
 		DBService dbService = serviceManager.createService("db", DBService.class);
 		dbService.asSingleton();
-		KeywordService keywordService = serviceManager.createService("keyword", KeywordService.class);
 		JobService jobService = serviceManager.createService("job", JobService.class);
 		jobService.asSingleton();
 		IRService irService = serviceManager.createService("ir", IRService.class);
@@ -242,9 +239,7 @@ public class CatServer {
 		serviceManager.stopService(PluginService.class);
 		serviceManager.stopService(NodeService.class);
 		serviceManager.stopService(ManagementInfoService.class);
-		serviceManager.stopService(KeywordService.class);
 		serviceManager.stopService(IRService.class);
-		serviceManager.stopService(WebService.class);
 		serviceManager.stopService(JobService.class);
 		serviceManager.stopService(DBService.class);
 
@@ -265,9 +260,7 @@ public class CatServer {
 		serviceManager.closeService(PluginService.class);
 		serviceManager.closeService(NodeService.class);
 		serviceManager.closeService(ManagementInfoService.class);
-		serviceManager.closeService(KeywordService.class);
 		serviceManager.closeService(IRService.class);
-		serviceManager.closeService(WebService.class);
 		serviceManager.closeService(JobService.class);
 		serviceManager.closeService(DBService.class);
 	}

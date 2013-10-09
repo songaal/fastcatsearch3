@@ -43,7 +43,7 @@ public class ProcessLoggerJobTest {
 
 		IndexingStartProcessLog indexingStartProcessLog = (IndexingStartProcessLog) job2.getProcessLog();
 
-		assertEquals("test", indexingStartProcessLog.getCollection());
+		assertEquals("test", indexingStartProcessLog.getCollectionId());
 		assertEquals(IndexingType.FULL, indexingStartProcessLog.getIndexingType());
 		assertEquals(11111111111111L, indexingStartProcessLog.getStartTime());
 	}

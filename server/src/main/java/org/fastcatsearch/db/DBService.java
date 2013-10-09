@@ -18,7 +18,7 @@ import java.util.List;
 
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
-import org.fastcatsearch.db.InternalDBModule.SessionAndMapper;
+import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.module.ModuleException;
@@ -66,9 +66,9 @@ public class DBService extends AbstractService {
 		
 	}
 	
-	public <T> SessionAndMapper<T> getSessionAndMapper(Class<T> type){
+	public <T> MapperSession<T> getMapperSession(Class<T> type){
 		SqlSession session = internalDBModule.openSession();
-		return new SessionAndMapper<T>(session, session.getMapper(type));
+		return new MapperSession<T>(session, session.getMapper(type));
 		
 	}
 	

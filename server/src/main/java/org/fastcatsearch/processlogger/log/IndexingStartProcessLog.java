@@ -22,7 +22,7 @@ public class IndexingStartProcessLog implements ProcessLog {
 		this.isScheduled = isScheduled;
 	}
 
-	public String getCollection() {
+	public String getCollectionId() {
 		return collectionId;
 	}
 

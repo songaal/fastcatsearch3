@@ -12,7 +12,7 @@
 package org.fastcatsearch.db.dao;
 
 import org.fastcatsearch.db.InternalDBModule;
-import org.fastcatsearch.db.InternalDBModule.SessionAndMapper;
+import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.db.mapper.DictionaryMapper;
 
 public class SetDictionaryDAO extends AbstractDictionaryDAO {
@@ -22,7 +22,7 @@ public class SetDictionaryDAO extends AbstractDictionaryDAO {
 	}
 
 	public void putEntry(String keyword) throws Exception {
-		SessionAndMapper<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperContext = openMapper();
 		try {
 			mapperContext.getMapper().putEntry(tableName, keyword);
 		} finally {
@@ -31,7 +31,7 @@ public class SetDictionaryDAO extends AbstractDictionaryDAO {
 	}
 
 	public void updateEntry(int id, String keyword) throws Exception {
-		SessionAndMapper<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperContext = openMapper();
 		try {
 			mapperContext.getMapper().updateEntry(tableName, id, keyword);
 		} finally {

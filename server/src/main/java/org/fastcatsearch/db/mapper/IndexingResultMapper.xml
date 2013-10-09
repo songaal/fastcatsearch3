@@ -76,4 +76,10 @@
 		)
 	</insert>
 
+	<delete id="deleteEntry" parameterType="map" >
+		delete from IndexingResult
+		where collectionId = #{collectionId} and type = #{type}
+	</delete>
+	
+	
 </mapper>
