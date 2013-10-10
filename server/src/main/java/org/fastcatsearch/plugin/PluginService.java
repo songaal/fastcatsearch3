@@ -143,7 +143,7 @@ public class PluginService extends AbstractService {
 //				}
 			}
 
-		} catch (JAXBException e) {
+		} catch (Exception e) {
 			throw new FastcatSearchException("ERR-00200", e);
 		}
 
