@@ -19,6 +19,12 @@ import java.util.List;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.fastcatsearch.db.InternalDBModule.MapperSession;
+import org.fastcatsearch.db.mapper.ExceptionHistoryMapper;
+import org.fastcatsearch.db.mapper.IndexingHistoryMapper;
+import org.fastcatsearch.db.mapper.IndexingResultMapper;
+import org.fastcatsearch.db.mapper.ManagedMapper;
+import org.fastcatsearch.db.mapper.NotificationHistoryMapper;
+import org.fastcatsearch.db.mapper.TaskHistoryMapper;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.module.ModuleException;
@@ -32,6 +38,13 @@ public class DBService extends AbstractService {
 	protected static DBService instance;
 	private InternalDBModule internalDBModule;
 
+	private Class<?>[] mapperList = new Class<?>[]{
+			ExceptionHistoryMapper.class
+			,NotificationHistoryMapper.class
+			,TaskHistoryMapper.class
+			,IndexingHistoryMapper.class
+			,IndexingResultMapper.class
+	};
 	public static DBService getInstance() {
 		return instance;
 	}
@@ -45,17 +58,9 @@ public class DBService extends AbstractService {
 		String dbPath = environment.filePaths().file("db/system").getAbsolutePath();
 		//system관련 mapper설정.
 		List<File> mapperFileList = new ArrayList<File>();
-		String[] mapperFilePathList = new String[]{
-				"org/fastcatsearch/db/mapper/ExceptionHistoryMapper.xml"
-				,"org/fastcatsearch/db/mapper/NotificationHistoryMapper.xml"
-				,"org/fastcatsearch/db/mapper/TaskHistoryMapper.xml"
-				,"org/fastcatsearch/db/mapper/IndexingHistoryMapper.xml"
-				,"org/fastcatsearch/db/mapper/IndexingResultMapper.xml"
-				
-		};
-		
-		for(String mapperFilePath : mapperFilePathList){
+		for(Class<?> mapperDAO : mapperList){
 			try {
+				String mapperFilePath = mapperDAO.getName().replace('.', '/') +".xml";
 				File mapperFile = Resources.getResourceAsFile(mapperFilePath);
 				mapperFileList.add(mapperFile);
 			} catch (IOException e) {
@@ -74,6 +79,37 @@ public class DBService extends AbstractService {
 	
 	protected boolean doStart() throws FastcatSearchException {
 		internalDBModule.load();
+		for(Class<?> mapperDAO : mapperList){
+			Class<ManagedMapper> clazz = (Class<ManagedMapper>) mapperDAO;
+			MapperSession<ManagedMapper> mapperSession = (MapperSession<ManagedMapper>) getMapperSession(clazz);
+			ManagedMapper managedMapper = mapperSession.getMapper();
+			try{
+				logger.debug("valiadte {}", clazz.getSimpleName());
+				managedMapper.validateTable();
+			}catch(Exception e){
+				try{
+					logger.debug("drop {}", clazz.getSimpleName());
+					managedMapper.dropTable();
+					mapperSession.commint();
+				}catch(Exception e1){
+					try{
+						logger.debug("create table {}", clazz.getSimpleName());
+						managedMapper.createTable();
+						mapperSession.commint();
+						logger.debug("create index {}", clazz.getSimpleName());
+						managedMapper.createIndex();
+						mapperSession.commint();
+					}catch(Exception e2){
+						logger.error("", e2);
+					}
+				}
+			}
+			mapperSession.closeSession();
+			
+		}
+		
+		
+		
 		logger.info("DBService started!");
 		return true;
 	}

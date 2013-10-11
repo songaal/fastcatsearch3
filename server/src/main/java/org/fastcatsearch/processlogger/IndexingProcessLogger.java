@@ -44,7 +44,8 @@ public class IndexingProcessLogger implements ProcessLogger {
 				vo.type = log.getIndexingType();
 				vo.status = ResultStatus.RUNNING;
 				vo.isScheduled = log.isScheduled();
-				vo.startTime = new Timestamp(log.getStartTime()); 
+				vo.startTime = new Timestamp(log.getStartTime());
+				vo.endTime = new Timestamp(log.getStartTime());//없으면 derby 에러발생.
 				try {
 					indexingResultMapper.putEntry(vo);
 					indexingHistoryMapper.putEntry(vo);

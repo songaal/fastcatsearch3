@@ -7,7 +7,7 @@
 	<update id="createTable">
 		create table
 		IndexingResult (
-		id int GENERATED ALWAYS AS IDENTITY
+		id int GENERATED ALWAYS AS IDENTITY,
 		collectionId varchar(20),
 		type char(4),
 		status varchar(10),
@@ -15,16 +15,16 @@
 		insertSize int,
 		updateSize int,
 		deleteSize int,
-		isScheduled smallint,
+		isScheduled boolean,
 		startTime timestamp,
-		endTime timestamp,
+		endTime timestamp DEFAULT NULL,
 		duration int,
 		primary key (id)
 		)
 	</update>
 
 	<update id="createIndex" >
-		create index collectionId_index on IndexingResult(collectionId);
+		create index collectionId_IndexingResult_index on IndexingResult(collectionId)
 	</update>
 	
 	<select id="validateTable" parameterType="map" resultType="map">
@@ -66,13 +66,10 @@
 	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.IndexingStatusVO" useGeneratedKeys="true">
 		insert into IndexingResult (
 		collectionId, type, status, docSize, insertSize, updateSize, deleteSize,
-		isScheduled,
-		startTime, endTime, duration)
+		isScheduled, startTime, endTime, duration)
 		values (
-		#{collectionId}, #{type}, #{status}, #{docSize}, #{insertSize}
-		,
-		#{updateSize}, #{deleteSize}, #{isScheduled}, #{startTime},
-		#{endTime}, #{duration}
+		#{collectionId}, #{type}, #{status}, #{docSize}, #{insertSize}, #{updateSize}, #{deleteSize}, 
+		#{isScheduled}, #{startTime}, #{endTime}, #{duration}
 		)
 	</insert>
 

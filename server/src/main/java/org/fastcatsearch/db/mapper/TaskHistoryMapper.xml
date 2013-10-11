@@ -7,9 +7,9 @@
 
 	<update id="createTable">
 		create table TaskHistory (
-		id int GENERATED ALWAYS AS IDENTITY
+		id int GENERATED ALWAYS AS IDENTITY,
 		taskId bigint,
-		exec varchar(200),
+		executable varchar(200),
 		args varchar(3000),
 		status varchar(10),
 		resultStr varchar(3000),
@@ -19,6 +19,10 @@
 		duration int,
 		primary key (id)
 		)
+	</update>
+	
+	<update id="createIndex" >
+		create index status_TaskHistory_index on TaskHistory(status)
 	</update>
 	
 	<select id="validateTable" parameterType="map" resultType="map">
@@ -54,10 +58,10 @@
 
 	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.TaskHistoryVO" useGeneratedKeys="true">
 		insert into TaskHistory ( 
-		taskId, exec, args, status, resultStr, isScheduled, startTime, endTime, duration
+		taskId, executable, args, status, resultStr, isScheduled, startTime, endTime, duration
 		)
 		values (
-		#{taskId}, #{exec}, #{args}, #{status}, #{resultStr}, #{isScheduled}, #{startTime}, #{endTime}, #{duration}
+		#{taskId}, #{executable}, #{args}, #{status}, #{resultStr}, #{isScheduled}, #{startTime}, #{endTime}, #{duration}
 		)
 	</insert>
 

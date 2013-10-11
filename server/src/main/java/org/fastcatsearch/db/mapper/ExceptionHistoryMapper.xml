@@ -3,11 +3,11 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!-- default field : id, keyword -->
-<mapper namespace="org.fastcatsearch.db.mapper.ExceptionMapper">
+<mapper namespace="org.fastcatsearch.db.mapper.ExceptionHistoryMapper">
 
 	<update id="createTable">
 		create table ExceptionHistory (
-		id int GENERATED ALWAYS AS IDENTITY
+		id int GENERATED ALWAYS AS IDENTITY,
 		node varchar(50),
 		message varchar(3000),
 		regtime timestamp,
@@ -16,7 +16,7 @@
 	</update>
 	
 	<update id="createIndex" >
-		create index node_index on ExceptionHistory(node);
+		create index node_ExceptionHistory_index on ExceptionHistory(node)
 	</update>
 	
 	<select id="validateTable" parameterType="map" resultType="map">
