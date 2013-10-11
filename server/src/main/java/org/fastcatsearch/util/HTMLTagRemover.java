@@ -22,9 +22,9 @@ import org.slf4j.LoggerFactory;
 public class HTMLTagRemover {
 	
 	private static Logger logger = LoggerFactory.getLogger(HTMLTagRemover.class);
-	private static String regEx_script = "<[\\s]*script[\\s]*[^>]*>[\\s\\S]*?<[\\s]*[/][\\s]*script[\\s]*>"; //script pattern
-	private static String regEx_style = "<[\\s]*style[\\s]*[^>]*>[\\s\\S]*?<[\\s]*[/][\\s]*style[\\s]*>"; //style pattern  
-	private static String regEx_html = "<[/]?[a-z0-9]+([^>]*)*[/]?>";
+	private static String regEx_script = "<[\\s]*?script[^>]*?>[\\s\\S]*?<[\\s]*?\\/[\\s]*?script[\\s]*?>"; //script pattern
+	private static String regEx_style = "<[\\s]*?style[^>]*?>[\\s\\S]*?<[\\s]*?\\/[\\s]*?style[\\s]*?>"; //style pattern  
+	private static String regEx_html = "<[/!]?[a-zA-Z]*(\\s)*(\\s[a-zA-Z]*=[^>]*)?(\\s)*(/)?>"; //html pattern 
 	private static String regEx_add1 = "<!--[\\s\\S가-힣ㄱ-ㅎ]+?-->";
 	
 	private static Pattern p_script = Pattern.compile(regEx_script,Pattern.CASE_INSENSITIVE); 
