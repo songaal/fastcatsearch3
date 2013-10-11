@@ -27,10 +27,7 @@ import org.fastcatsearch.management.ManagementInfoService;
 import org.fastcatsearch.notification.NotificationService;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.processlogger.ProcessLoggerService;
-import org.fastcatsearch.service.KeywordService;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.service.WebService;
-import org.fastcatsearch.statistics.StatisticsInfoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -148,22 +145,12 @@ public class CatServer {
 		
 		DBService dbService = serviceManager.createService("db", DBService.class);
 		dbService.asSingleton();
-		KeywordService keywordService = serviceManager.createService("keyword", KeywordService.class);
 		JobService jobService = serviceManager.createService("job", JobService.class);
 		jobService.asSingleton();
 		IRService irService = serviceManager.createService("ir", IRService.class);
-		StatisticsInfoService statisticsInfoService = serviceManager.createService("statistics_info", StatisticsInfoService.class);
 		ManagementInfoService managementInfoService = serviceManager.createService("management_info", ManagementInfoService.class);
 		NodeService nodeService = serviceManager.createService("node", NodeService.class);
 
-//		WebService webService = null;
-//		if(environment.isMasterNode()){
-//			webService = serviceManager.createService("web", WebService.class);
-//			if (webService == null) {
-//				throw new FastcatSearchException("웹서비스를 초기화하지 못했습니다.");
-//			}
-//		}
-		
 		HttpRequestService httpRequestService = serviceManager.createService("http", HttpRequestService.class);
 		NotificationService notificationService = serviceManager.createService("notification", NotificationService.class);
 		ClusterAlertService clusterAlertService = serviceManager.createService("alert", ClusterAlertService.class);
@@ -183,13 +170,7 @@ public class CatServer {
 			nodeService.start();
 			
 			irService.start();
-			statisticsInfoService.start();
-//			keywordService.start();
-			
-			
-			
-//			if (webService != null)
-//				webService.start();
+			managementInfoService.start();
 			
 			httpRequestService.start();
 			
@@ -257,11 +238,8 @@ public class CatServer {
 		
 		serviceManager.stopService(PluginService.class);
 		serviceManager.stopService(NodeService.class);
-		serviceManager.stopService(StatisticsInfoService.class);
 		serviceManager.stopService(ManagementInfoService.class);
-		serviceManager.stopService(KeywordService.class);
 		serviceManager.stopService(IRService.class);
-		serviceManager.stopService(WebService.class);
 		serviceManager.stopService(JobService.class);
 		serviceManager.stopService(DBService.class);
 
@@ -281,11 +259,8 @@ public class CatServer {
 		
 		serviceManager.closeService(PluginService.class);
 		serviceManager.closeService(NodeService.class);
-		serviceManager.closeService(StatisticsInfoService.class);
 		serviceManager.closeService(ManagementInfoService.class);
-		serviceManager.closeService(KeywordService.class);
 		serviceManager.closeService(IRService.class);
-		serviceManager.closeService(WebService.class);
 		serviceManager.closeService(JobService.class);
 		serviceManager.closeService(DBService.class);
 	}

@@ -59,6 +59,11 @@ public abstract class IndexingJob extends Job {
 		IndexingTaskKey indexingTaskKey = new IndexingTaskKey(collectionId, indexingType, isScheduled);
 		indexingTaskState = (IndexingTaskState) taskStateService.register(indexingTaskKey);
 		indexingTaskState.start();
+		
+		
+		
+		
+		//FIX 테스트코드..
 		try {
 			Thread.sleep(5000);
 		} catch (InterruptedException e) {

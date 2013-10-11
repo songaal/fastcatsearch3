@@ -6,7 +6,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "collection-index-status")
-@XmlType(propOrder = { "addIndexStatus", "fullIndexStatus" })
+@XmlType(propOrder = { "fullIndexStatus", "addIndexStatus"})
 public class CollectionIndexStatus {
 	protected IndexStatus fullIndexStatus;
 	protected IndexStatus addIndexStatus;
@@ -36,7 +36,7 @@ public class CollectionIndexStatus {
 		return "["+getClass().getSimpleName()+"] last-full=[" + fullIndexStatus + "] last-add=[" + addIndexStatus + "]";
 	}
 	
-	@XmlElement(name = "last-indexing-full")
+	@XmlElement(name = "last-full-indexing")
 	public IndexStatus getFullIndexStatus() {
 		return fullIndexStatus;
 	}
@@ -45,7 +45,7 @@ public class CollectionIndexStatus {
 		this.fullIndexStatus = fullIndexStatus;
 	}
 	
-	@XmlElement(name = "last-indexing-add")
+	@XmlElement(name = "last-add-indexing")
 	public IndexStatus getAddIndexStatus() {
 		return addIndexStatus;
 	}

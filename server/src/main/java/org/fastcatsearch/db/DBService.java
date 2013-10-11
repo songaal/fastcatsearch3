@@ -11,18 +11,14 @@
 
 package org.fastcatsearch.db;
 
-import java.sql.SQLException;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.fastcatsearch.db.dao.IndexingHistory;
-import org.fastcatsearch.db.dao.IndexingResult;
-import org.fastcatsearch.db.dao.IndexingSchedule;
-import org.fastcatsearch.db.dao.JobHistory;
-import org.fastcatsearch.db.dao.SearchEvent;
-import org.fastcatsearch.db.dao.SearchMonitoringInfo;
-import org.fastcatsearch.db.dao.SearchMonitoringInfoMinute;
-import org.fastcatsearch.db.dao.SetDictionary;
-import org.fastcatsearch.db.dao.SystemMonitoringInfo;
-import org.fastcatsearch.db.dao.SystemMonitoringInfoMinute;
+import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.session.SqlSession;
+import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.module.ModuleException;
@@ -46,30 +42,38 @@ public class DBService extends AbstractService {
 	
 	public DBService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
-		internalDBModule = new InternalDBModule("system", environment, settings, serviceManager);
+		String dbPath = environment.filePaths().file("db/system").getAbsolutePath();
+		//system관련 mapper설정.
+		List<File> mapperFileList = new ArrayList<File>();
+		String[] mapperFilePathList = new String[]{
+				"org/fastcatsearch/db/mapper/ExceptionHistoryMapper.xml"
+				,"org/fastcatsearch/db/mapper/NotificationHistoryMapper.xml"
+				,"org/fastcatsearch/db/mapper/TaskHistoryMapper.xml"
+				,"org/fastcatsearch/db/mapper/IndexingHistoryMapper.xml"
+				,"org/fastcatsearch/db/mapper/IndexingResultMapper.xml"
+				
+		};
 		
-	}
-
-	public InternalDBModule db(){
-		return internalDBModule;
-	}
-	protected boolean doStart() throws FastcatSearchException {
-		try {
-			internalDBModule.load();
-			internalDBModule.addDAO("IndexingResult", new IndexingResult(null));
-			internalDBModule.addDAO("IndexingSchedule", new IndexingSchedule(null));
-			internalDBModule.addDAO("IndexingHistory", new IndexingHistory(null));
-			internalDBModule.addDAO("JobHistory", new JobHistory(null));
-			internalDBModule.addDAO("SearchEvent", new SearchEvent(null));
-			internalDBModule.addDAO("SearchMonitoringInfoMinute", new SearchMonitoringInfoMinute(null));
-			internalDBModule.addDAO("SearchMonitoringInfo", new SearchMonitoringInfo(null));
-			internalDBModule.addDAO("SystemMonitoringInfoMinute", new SystemMonitoringInfoMinute(null));
-			internalDBModule.addDAO("SystemMonitoringInfo", new SystemMonitoringInfo(null));
-			internalDBModule.addDAO("RecommendKeyword", new SetDictionary("RecommendKeyword", null));
-		} catch (SQLException e) {
-			throw new FastcatSearchException("", e);
+		for(String mapperFilePath : mapperFilePathList){
+			try {
+				File mapperFile = Resources.getResourceAsFile(mapperFilePath);
+				mapperFileList.add(mapperFile);
+			} catch (IOException e) {
+				logger.error("error load defaultDictionaryMapperFile", e);
+			}
 		}
+		internalDBModule = new InternalDBModule(dbPath, mapperFileList, environment, settings, serviceManager);
 		
+	}
+	
+	public <T> MapperSession<T> getMapperSession(Class<T> type){
+		SqlSession session = internalDBModule.openSession();
+		return new MapperSession<T>(session, session.getMapper(type));
+		
+	}
+	
+	protected boolean doStart() throws FastcatSearchException {
+		internalDBModule.load();
 		logger.info("DBService started!");
 		return true;
 	}

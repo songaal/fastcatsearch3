@@ -1,94 +1,69 @@
 package org.fastcatsearch.http.action.management.dictionary;
 
 import java.io.Writer;
+import java.util.List;
 
-import org.fastcatsearch.db.dao.BatchContext;
-import org.fastcatsearch.db.dao.MapDictionary;
-import org.fastcatsearch.db.dao.SetDictionary;
+import org.fastcatsearch.db.dao.DictionaryDAO;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
-import org.fastcatsearch.plugin.AnalysisPluginSetting;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
+import org.fastcatsearch.plugin.analysis.AnalysisPlugin;
+import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 @ActionMapping("/management/dictionary/insert")
 public class DictionaryWordInsertAction extends AuthAction {
 
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
-		
+
 		String pluginId = request.getParameter("pluginId");
 		String dictionaryId = request.getParameter("dictionaryId");
-		String words = request.getParameter("wordList");
-		JSONArray wordList = new JSONArray(words);
+
 		PluginService pluginService = ServiceManager.getInstance().getService(PluginService.class);
 		Plugin plugin = pluginService.getPlugin(pluginId);
-		AnalysisPluginSetting analysisPluginSetting = (AnalysisPluginSetting) plugin.getPluginSetting();
-		
-		String daoId = analysisPluginSetting.getKey(dictionaryId);
-		Object dao = pluginService.db().getDAO(daoId);
-		
+		AnalysisPlugin analysisPlugin = (AnalysisPlugin) plugin;
+
+		DictionaryDAO dictionaryDAO = analysisPlugin.getDictionaryDAO(dictionaryId);
+
+		List<ColumnSetting> columnSettingList = dictionaryDAO.columnSettingList();
+
+		int count = 0;
+		if (columnSettingList != null && columnSettingList.size() > 0) {
+			String[] columns = new String[columnSettingList.size()];
+			Object[] values = new Object[columnSettingList.size()];
+			for (int i = 0; i < columnSettingList.size(); i++) {
+				ColumnSetting columnSetting = columnSettingList.get(i);
+				String name = columnSetting.getName();
+				String type = columnSetting.getType();
+				columns[i] = name;
+				String value = request.getParameter(name);
+
+				if (type.startsWith("int") || type.startsWith("INT")) {
+					int intValue = 0;
+					try {
+						intValue = Integer.parseInt(value);
+					} catch (Exception ignore) {
+					}
+					values[i] = intValue;
+				} else if (type.contains("char") || type.contains("CHAR")) {
+					values[i] = value;
+				} else {
+					values[i] = value;
+				}
+			}
+			count = dictionaryDAO.putEntry(columns, values);
+		}
+
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
-		resultWriter.object().key(dictionaryId).array();
-		
-		if(dao instanceof SetDictionary){
-			SetDictionary setDictionary = (SetDictionary) dao;
-			if(wordList.length() == 0){
-				//ignore
-			}else if(wordList.length() > 1){
-				BatchContext batchContext = setDictionary.startInsertBatch();
-				for(int i=0; i<wordList.length(); i++){
-					int count = setDictionary.insertBatch(wordList.getString(i), batchContext);
-					if(count == -1){
-						break;
-					}
-				}
-				
-				setDictionary.endInsertBatch(batchContext);
-				batchContext.close();
-			}else{
-				setDictionary.insert(wordList.getString(0));
-			}
-		}else if(dao instanceof MapDictionary) {
-			MapDictionary mapDictionary = (MapDictionary) dao;
-			if(wordList.length() == 0){
-				//ignore
-			}else if(wordList.length() > 1){
-				BatchContext batchContext = mapDictionary.startInsertBatch();
-				for(int i=0; i<wordList.length(); i++){
-					JSONObject obj = wordList.getJSONObject(i);
-					int count = mapDictionary.insertBatch(obj.getString("key"), obj.getString("value"), batchContext);
-					if(count == -1){
-						break;
-					}
-				}
-				
-				mapDictionary.endInsertBatch(batchContext);
-				batchContext.close();
-			}else{
-				JSONObject obj = wordList.getJSONObject(0);
-				mapDictionary.insert(obj.getString("key"), obj.getString("value"));
-			}
-		}
-		resultWriter.endArray().endObject();
-		
+		resultWriter.object().key("success").value(count > 0).endObject();
 		resultWriter.done();
-			
-		
-		
-		
-		
-				
-		
-		
-		
+
 	}
 
 }

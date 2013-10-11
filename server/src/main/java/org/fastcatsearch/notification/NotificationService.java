@@ -57,7 +57,7 @@ public class NotificationService extends AbstractService {
 		
 		if(isMasterNode){
 			//master면 바로 실행.
-			ServiceManager.getInstance().getService(JobService.class).execute(notificationJob);
+			ServiceManager.getInstance().getService(JobService.class).offerSequential(notificationJob);
 		}else{
 			//slave라면 master에게 보낸다.
 			nodeService.sendRequestToMaster(notificationJob);

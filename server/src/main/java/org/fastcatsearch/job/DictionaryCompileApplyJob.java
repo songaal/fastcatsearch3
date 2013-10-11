@@ -14,11 +14,9 @@ package org.fastcatsearch.job;
 import java.io.IOException;
 import java.util.Map;
 
-import org.fastcatsearch.db.dao.DAOBase;
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.plugin.AnalysisPlugin;
-import org.fastcatsearch.plugin.AnalysisPluginSetting;
 import org.fastcatsearch.plugin.PluginService;
+import org.fastcatsearch.plugin.analysis.AnalysisPlugin;
 import org.fastcatsearch.service.ServiceManager;
 
 public class DictionaryCompileApplyJob extends Job {
@@ -44,13 +42,9 @@ public class DictionaryCompileApplyJob extends Job {
 			return new JobResult("Plugin을 찾을수 없습니다. >> "+pluginId);
 		}
 		
-		AnalysisPluginSetting setting = (AnalysisPluginSetting) analysisPlugin.getPluginSetting();
-
 		try {
 			for (String dictionaryId : dictList) {
-				String tableName = setting.getKey(dictionaryId);
-				DAOBase daoBase = pluginService.db().getDAO(tableName);
-				analysisPlugin.compileDictionaryFromDAO(dictionaryId, daoBase);
+				analysisPlugin.compileDictionaryFromDAO(dictionaryId);
 			}
 		} catch (IOException e) {
 			throw new FastcatSearchException("", e);

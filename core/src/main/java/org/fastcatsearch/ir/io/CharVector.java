@@ -34,7 +34,9 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 		start = 0;
 		length = array.length;
 	}
-
+	public CharVector(char[] array){
+		this(array, 0, array.length);
+	}
 	public CharVector(char[] array, int start, int length) {
 		this.array = array;
 		this.start = start;

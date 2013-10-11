@@ -15,11 +15,14 @@ import org.slf4j.LoggerFactory;
 public abstract class SourceDictionary extends Dictionary implements WritableDictionary {
 	protected static Logger logger = LoggerFactory.getLogger(SourceDictionary.class);
 
-	public void loadSource(File file) {
+	public SourceDictionary(){
+	}
+	
+	public void loadSource(File file, boolean ignoreCase, boolean[] valuesIgnoreCase) {
 		InputStream is = null;
 		try {
 			is = new FileInputStream(file);
-			loadSource(is);
+			loadSource(is, ignoreCase, valuesIgnoreCase);
 		} catch (FileNotFoundException e) {
 			logger.error("사전소스파일을 찾을수 없습니다.", e);
 		} finally {
@@ -33,19 +36,18 @@ public abstract class SourceDictionary extends Dictionary implements WritableDic
 
 	}
 
-	public void addEntry(String line) {
-		addEntry(line, false);
-	}
-	
-	public void loadSource(InputStream is) {
+	public void loadSource(InputStream is, boolean ignoreCase, boolean[] valuesIgnoreCase) {
 		try {
 			BufferedReader br = new BufferedReader(new InputStreamReader(is, "utf-8"));
 			String line = null;
 			while ((line = br.readLine()) != null) {
-				addEntry(line);
+				addSourceLineEntry(line, ignoreCase, valuesIgnoreCase);
 			}
 		} catch (IOException e) {
 			logger.error("", e);
 		}
 	}
+	
+	public abstract void addSourceLineEntry(String line, boolean ignoreCase, boolean[] valuesIgnoreCase);
+	
 }

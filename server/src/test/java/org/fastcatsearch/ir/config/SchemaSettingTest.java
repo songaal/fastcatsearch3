@@ -21,6 +21,7 @@ import org.fastcatsearch.ir.settings.PrimaryKeySetting;
 import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
+import org.fastcatsearch.util.JAXBConfigs;
 import org.junit.Test;
 
 public class SchemaSettingTest {

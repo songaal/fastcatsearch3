@@ -3,20 +3,18 @@ package org.fastcatsearch.ir.dictionary;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Map;
-
-import org.junit.Assert;
 
 import org.fastcatsearch.ir.io.CharVector;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class DictionaryTest {
 
 	@Test
 	public void testSynonym() throws IOException {
-		ListMapDictionary dictionary = new ListMapDictionary();
-		dictionary.addEntry("마우스,mouse,로지텍");
-		dictionary.addEntry("모니터,엘지모니터,monitor,광시야각");
+		MapDictionary dictionary = new MapDictionary();
+		dictionary.addEntry("마우스", new String[] { "mouse", "로지텍" }, true, new boolean[] { true, true });
+		dictionary.addEntry("모니터", new String[] { "엘지모니터", "monitor", "광시야각" }, true, new boolean[] { true, true, true });
 		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		dictionary.writeTo(out);
@@ -28,7 +26,7 @@ public class DictionaryTest {
 		
 		//다시 읽고.
 		ByteArrayInputStream bais = new ByteArrayInputStream(buffer);
-		ListMapDictionary dictionary2 = new ListMapDictionary(bais);
+		MapDictionary dictionary2 = new MapDictionary(bais);
 		bais.close();
 		CharVector[] result2 = dictionary2.getMap().get(new CharVector("엘지모니터"));
 		System.out.println(result2[0]+","+result2[1]);
@@ -39,7 +37,7 @@ public class DictionaryTest {
 		
 		//다시 읽고.
 		ByteArrayInputStream bais2 = new ByteArrayInputStream(buffer);
-		ListMapDictionary dictionary3 = new ListMapDictionary(bais2);
+		MapDictionary dictionary3 = new MapDictionary(bais2);
 		bais2.close();
 		CharVector[] result3 = dictionary3.getMap().get(new CharVector("엘지모니터"));
 		System.out.println(result3[0]+","+result3[1]);
@@ -60,12 +58,12 @@ public class DictionaryTest {
 	@Test
 	public void testHashSet() throws IOException {
 		
-		HashSetDictionary dictionary = new HashSetDictionary();
+		SetDictionary dictionary = new SetDictionary();
 		
 		String[] terms = new String[] { "삼성", "LG", "애플" };
 		
 		for(String term : terms) {
-			dictionary.addEntry(term);
+			dictionary.addEntry(term, null, true, null);
 		}
 		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -81,7 +79,7 @@ public class DictionaryTest {
 		
 		//다시 읽고.
 		ByteArrayInputStream bais = new ByteArrayInputStream(buffer);
-		HashSetDictionary dictionary2 = new HashSetDictionary(bais);
+		SetDictionary dictionary2 = new SetDictionary(bais, true);
 		bais.close();
 		
 		for(String term : terms) {
@@ -96,7 +94,7 @@ public class DictionaryTest {
 		
 		//다시 읽고.
 		ByteArrayInputStream bais2 = new ByteArrayInputStream(buffer);
-		HashSetDictionary dictionary3 = new HashSetDictionary(bais2);
+		SetDictionary dictionary3 = new SetDictionary(bais2, true);
 		bais2.close();
 		
 		for(String term : terms) {
@@ -120,7 +118,7 @@ public class DictionaryTest {
 	@Test
 	public void testTagProbDictionary() throws IOException {
 		
-		HashSetDictionary dictionary = new HashSetDictionary();
+		SetDictionary dictionary = new SetDictionary();
 		
 		String[] terms = new String[] { "삼성", "LG", "애플" };
 		
@@ -141,7 +139,7 @@ public class DictionaryTest {
 		
 		//다시 읽고.
 		ByteArrayInputStream bais = new ByteArrayInputStream(buffer);
-		HashSetDictionary dictionary2 = new HashSetDictionary(bais);
+		SetDictionary dictionary2 = new SetDictionary(bais, true);
 		bais.close();
 		
 		for(String term : terms) {
@@ -156,7 +154,7 @@ public class DictionaryTest {
 		
 		//다시 읽고.
 		ByteArrayInputStream bais2 = new ByteArrayInputStream(buffer);
-		HashSetDictionary dictionary3 = new HashSetDictionary(bais2);
+		SetDictionary dictionary3 = new SetDictionary(bais2, true);
 		bais2.close();
 		
 		for(String term : terms) {

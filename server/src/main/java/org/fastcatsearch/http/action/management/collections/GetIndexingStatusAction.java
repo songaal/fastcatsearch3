@@ -52,11 +52,6 @@ public class GetIndexingStatusAction extends AuthAction {
 			}
 			responseWriter.key("diskSize").value(diskSize);
 			
-//			IndexStatus fullIndexStatus = shardContext.indexStatus().getFullIndexStatus();
-//			IndexStatus addIndexStatus = shardContext.indexStatus().getAddIndexStatus();
-//			int documentSize = fullIndexStatus != null ? fullIndexStatus.getDocumentCount() : 0;
-//			documentSize += addIndexStatus != null ? addIndexStatus.getDocumentCount() : 0;
-			
 			int documentSize = shardContext.dataInfo().getDocuments();
 			totalDocumentSize += documentSize;
 			responseWriter.key("documentSize").value(documentSize);

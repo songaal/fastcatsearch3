@@ -6,7 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -18,12 +17,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import org.fastcatsearch.alert.ClusterAlertService;
-import org.fastcatsearch.db.ConnectionManager;
-import org.fastcatsearch.db.InternalDBModule;
-import org.fastcatsearch.db.dao.DAOBase;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.plugin.AnalysisPluginSetting.Dictionary;
+import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
@@ -32,20 +28,13 @@ import org.fastcatsearch.util.DynamicClassLoader;
 public class PluginService extends AbstractService {
 
 	private Map<String, Plugin> pluginMap;
-	private InternalDBModule internalDBModule;
 
 	public PluginService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
-		internalDBModule = new InternalDBModule("plugin", environment, settings, serviceManager);
-	}
-
-	public InternalDBModule db() {
-		return internalDBModule;
 	}
 
 	@Override
 	protected boolean doStart() throws FastcatSearchException {
-		internalDBModule.load();
 		pluginMap = new HashMap<String, Plugin>();
 		// 플러그인을 검색하여
 		// 무작위로 시작한다.
@@ -91,6 +80,9 @@ public class PluginService extends AbstractService {
 			for (File dir : pluginDirList) {
 				boolean isAnalysis = dir.getAbsolutePath().contains("analysis");
 				File pluginConfigFile = new File(dir, "plugin.xml");
+				if(!pluginConfigFile.exists()){
+					continue;
+				}
 				/*
 				 * 1. Plugin 객체생성.
 				 */
@@ -110,12 +102,12 @@ public class PluginService extends AbstractService {
 					if (className != null && className.length() > 0) {
 						plugin = DynamicClassLoader.loadObject(className, Plugin.class, new Class<?>[] { File.class, PluginSetting.class },
 								new Object[] { dir, setting });
-					} else {
-						plugin = new Plugin(dir, setting);
+						plugin.load();
+						logger.debug("PLUGIN {} >> {}", setting.getId(), plugin.getClass().getName());
+						pluginMap.put(setting.getId(), plugin);
+//					} else {
+//						plugin = new Plugin(dir, setting);
 					}
-					plugin.load();
-					logger.debug("PLUGIN {} >> {}", setting.getId(), plugin.getClass().getName());
-					pluginMap.put(setting.getId(), plugin);
 
 				} catch (FileNotFoundException e) {
 					logger.error("{} plugin 설정파일을 읽을수 없음.", dir.getName());
@@ -129,29 +121,29 @@ public class PluginService extends AbstractService {
 				/*
 				 * 2. Analysis db로딩.
 				 */
-				try {
-					if (setting.getNamespace().equalsIgnoreCase("Analysis")) {
-						AnalysisPluginSetting analysisPluginSetting = (AnalysisPluginSetting) setting;
-						List<Dictionary> dictionaryList = analysisPluginSetting.getDictionaryList();
-						for (Dictionary dictionary : dictionaryList) {
-							String tableName = setting.getKey(dictionary.getId());
-							String daoClassName = dictionary.getDaoClass();
-							if (daoClassName != null && daoClassName.length() > 0) {
-								DAOBase daoBase = DynamicClassLoader.loadObject(daoClassName, DAOBase.class, new Class<?>[] { String.class,
-										ConnectionManager.class }, new Object[] { tableName, null });
-								internalDBModule.addDAO(tableName, daoBase);
-							}
-
-						}
-					}else{
-						//이곳은 다른 타입의 plugin에서 필요할수도 있다.
-					}
-				} catch (SQLException e) {
-					logger.error(setting.getId() +" Plugin DAO 생성중 에러. {}", e);
-				}
+//				try {
+//					if (setting.getNamespace().equalsIgnoreCase("Analysis")) {
+//						AnalysisPluginSetting analysisPluginSetting = (AnalysisPluginSetting) setting;
+//						List<Dictionary> dictionaryList = analysisPluginSetting.getDictionaryList();
+//						for (Dictionary dictionary : dictionaryList) {
+//							String tableName = setting.getKey(dictionary.getId());
+//							String daoClassName = dictionary.getDaoClass();
+//							if (daoClassName != null && daoClassName.length() > 0) {
+//								DAOBase daoBase = DynamicClassLoader.loadObject(daoClassName, DAOBase.class, new Class<?>[] { String.class,
+//										ConnectionManager.class }, new Object[] { tableName, null });
+//								internalDBModule.addDAO(tableName, daoBase);
+//							}
+//
+//						}
+//					}else{
+//						//이곳은 다른 타입의 plugin에서 필요할수도 있다.
+//					}
+//				} catch (SQLException e) {
+//					logger.error(setting.getId() +" Plugin DAO 생성중 에러. {}", e);
+//				}
 			}
 
-		} catch (JAXBException e) {
+		} catch (Exception e) {
 			throw new FastcatSearchException("ERR-00200", e);
 		}
 

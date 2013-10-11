@@ -30,9 +30,7 @@ import org.fastcatsearch.job.Job;
 import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
-import org.fastcatsearch.service.KeywordService;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.statistics.StatisticsInfoService;
 
 
 public class SingleSearchJob extends Job {
@@ -45,18 +43,10 @@ public class SingleSearchJob extends Job {
 		QueryMap queryMap = (QueryMap) getArgs();
 		
 		
-		StatisticsInfoService statisticsInfoService = ServiceManager.getInstance().getService(StatisticsInfoService.class);
 		Query q = null;
 		try {
 			q = QueryParser.getInstance().parseQuery(queryMap);
 		} catch (QueryParseException e) {
-			if(statisticsInfoService.isEnabled()){
-				statisticsInfoService.addSearchHit();
-				long searchTime = System.currentTimeMillis() - st;
-				logger.debug("fail searchTime ={}",searchTime);
-				statisticsInfoService.addFailHit();
-				statisticsInfoService.addSearchTime(searchTime);
-			}
 			throw new FastcatSearchException("[Query Parsing Error] "+e.getMessage());
 		}
 		
@@ -68,10 +58,6 @@ public class SingleSearchJob extends Job {
 		
 		String collectionId = meta.collectionId();
 		String[] shardIdList = meta.getSharIdList();
-		if(statisticsInfoService.isEnabled()){
-			statisticsInfoService.addSearchHit();
-			statisticsInfoService.addSearchHit(collectionId);
-		}
 		
 //		logger.debug("collection = "+collection);
 		try {
@@ -125,37 +111,17 @@ public class SingleSearchJob extends Job {
 			
 			if(keyword != null){
 				if(result.getCount() > 0){
-					KeywordService.getInstance().addKeyword(keyword);
 				}else{
-					KeywordService.getInstance().addFailKeyword(keyword);
 				}
-				statisticsInfoService.addSearchKeyword(keyword);
 			}
 //			if(result.getCount() > 0 && keyword != null){
 //				KeywordService.getInstance().addKeyword(keyword);
 //			}
 
 			long searchTime = System.currentTimeMillis() - st;
-			if(statisticsInfoService.isEnabled()){
-				statisticsInfoService.addSearchTime(searchTime);
-				statisticsInfoService.addSearchTime(collectionId, searchTime);
-			}
 			return new JobResult(result);
 			
 		} catch(Exception e){
-			if(statisticsInfoService.isEnabled()){
-				long searchTime = System.currentTimeMillis() - st;
-				//통합 통계
-				statisticsInfoService.addFailHit();
-				statisticsInfoService.addSearchTime(searchTime);
-				if(keyword != null){
-					statisticsInfoService.addSearchKeyword(keyword);
-				}
-				
-				//컬렉션별 통계
-				statisticsInfoService.addFailHit(collectionId);
-				statisticsInfoService.addSearchTime(collectionId, searchTime);
-			}
 //			EventDBLogger.error(EventDBLogger.CATE_SEARCH, "검색에러..", EventDBLogger.getStackTrace(e));
 			throw new FastcatSearchException("ERR-00556", e, collectionId);
 		}

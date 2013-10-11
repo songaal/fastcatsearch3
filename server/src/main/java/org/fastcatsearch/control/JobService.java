@@ -11,25 +11,28 @@
 
 package org.fastcatsearch.control;
 
-import java.sql.Timestamp;
+import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.fastcatsearch.common.ThreadPoolFactory;
+import org.fastcatsearch.common.XMLSettingManager;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.indexing.IndexingJob;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.settings.SchedulerSetting;
+import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.settings.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,10 +54,6 @@ public class JobService extends AbstractService implements JobExecutor {
 	private AtomicLong jobIdIncrement;
 
 	private ThreadPoolExecutor jobExecutor;
-	private ThreadPoolExecutor searchJobExecutor;
-	private ThreadPoolExecutor otherJobExecutor;
-	private ScheduledThreadPoolExecutor scheduledJobExecutor;
-	private ScheduledThreadPoolExecutor otherScheduledJobExecutor;
 
 	private JobConsumer worker;
 	private SequencialJobWorker sequencialJobWorker;
@@ -64,10 +63,12 @@ public class JobService extends AbstractService implements JobExecutor {
 	private int executorMaxPoolSize;
 
 	private static JobService instance;
+	XMLSettingManager<SchedulerSetting> scheduleSettingManager;
 
 	public void asSingleton() {
 		instance = this;
 	}
+
 	public static JobService getInstance() {
 		return instance;
 	}
@@ -83,22 +84,17 @@ public class JobService extends AbstractService implements JobExecutor {
 		jobQueue = new LinkedBlockingQueue<Job>();
 		sequencialJobQueue = new LinkedBlockingQueue<Job>();
 		indexingMutex = new IndexingMutex();
-		jobScheduler = new JobScheduler();
+
+		File scheduleFile = environment.filePaths().file("db", "xml", SettingFileNames.scheduleConfig);
+		jobScheduler = new JobScheduler(scheduleFile);
 
 		executorMaxPoolSize = settings.getInt("pool.max");
 
-		int indexJobMaxSize = 100;
-		int searchJobMaxSize = 100;
-		int otherJobMaxSize = 100;
+		// int indexJobMaxSize = 100;
+		// int searchJobMaxSize = 100;
+		// int otherJobMaxSize = 100;
 
-		jobExecutor = ThreadPoolFactory.newCachedThreadPool("IndexJobExecutor", executorMaxPoolSize);
-		// searchJobExecutor =
-		// ThreadPoolFactory.newUnlimitedCachedDaemonThreadPool("SearchJobExecutor");
-		// otherJobExecutor =
-		// ThreadPoolFactory.newUnlimitedCachedDaemonThreadPool("OtherJobExecutor");
-		scheduledJobExecutor = ThreadPoolFactory.newScheduledThreadPool("ScheduledIndexJobExecutor");
-		// otherScheduledJobExecutor =
-		// ThreadPoolFactory.newScheduledThreadPool("OtherScheduledJobExecutor");
+		jobExecutor = ThreadPoolFactory.newCachedThreadPool("JobService.jobExecutor", executorMaxPoolSize);
 
 		worker = new JobConsumer();
 		worker.start();
@@ -108,8 +104,6 @@ public class JobService extends AbstractService implements JobExecutor {
 			jobScheduler.start();
 		}
 
-//		jobHandler = new JobHandler(serviceManager.getService(NodeService.class));
-		
 		return true;
 	}
 
@@ -152,15 +146,6 @@ public class JobService extends AbstractService implements JobExecutor {
 		return indexingMutex.getIndexingList();
 	}
 
-	public void setSchedule(String key, String jobClassName, String args, Timestamp startTime, int period, boolean isYN)
-			throws SettingException {
-		if (!useJobScheduler) {
-			return;
-		}
-
-		jobScheduler.setSchedule(key, jobClassName, args, startTime, period, isYN);
-	}
-
 	public boolean reloadSchedules() throws SettingException {
 		if (!useJobScheduler) {
 			return false;
@@ -169,28 +154,27 @@ public class JobService extends AbstractService implements JobExecutor {
 		return jobScheduler.reload();
 	}
 
-	public boolean toggleIndexingSchedule(String collection, String type, boolean isActive) {
+	public boolean updateIndexingScheduleActivate(String collectionId, IndexingType indexingType, boolean isActive) {
 		if (!useJobScheduler) {
 			return false;
 		}
 
-		return jobScheduler.reloadIndexingSchedule(collection, type, isActive);
+		return jobScheduler.reloadIndexingSchedule(collectionId, indexingType, isActive);
 	}
 
 	public ThreadPoolExecutor getJobExecutor() {
 		return jobExecutor;
 	}
-	
+
 	/**
-	 * 순차적인 작업을 실행할때 호출한다.
-	 * 도착한 순서대로 앞의 작업이 모두 끝나야 다음작업이 실행된다.
+	 * 순차적인 작업을 실행할때 호출한다. 도착한 순서대로 앞의 작업이 모두 끝나야 다음작업이 실행된다.
 	 * */
-	public ResultFuture execute(Job job) {
+	public ResultFuture offerSequential(Job job) {
 		job.setEnvironment(environment);
 		job.setJobExecutor(this);
 
 		if (job instanceof IndexingJob) {
-			//색인작업은 execute로 실행할수 없다.
+			// 색인작업은 execute로 실행할수 없다.
 			return null;
 		}
 		long myJobId = jobIdIncrement.getAndIncrement();
@@ -200,7 +184,7 @@ public class JobService extends AbstractService implements JobExecutor {
 		sequencialJobQueue.offer(job);
 		return resultFuture;
 	}
-	
+
 	public ResultFuture offer(Job job) {
 		job.setEnvironment(environment);
 		job.setJobExecutor(this);
@@ -218,7 +202,7 @@ public class JobService extends AbstractService implements JobExecutor {
 		if (job instanceof IndexingJob) {
 			indexingMutex.access(myJobId, job);
 		}
-		
+
 		if (job.isNoResult()) {
 			job.setId(myJobId);
 			jobQueue.offer(job);
@@ -237,10 +221,10 @@ public class JobService extends AbstractService implements JobExecutor {
 		ResultFuture resultFuture = resultFutureMap.remove(jobId);
 		runningJobList.remove(jobId);
 		if (logger.isDebugEnabled()) {
-			logger.debug("### ResultFuture = {} / map={} / job={} / result={} / success= {}", new Object[] { resultFuture,
-					resultFutureMap.size(), job.getClass().getSimpleName(), result, isSuccess });
+			logger.debug("### ResultFuture = {} / map={} / job={} / result={} / success= {}", new Object[] { resultFuture, resultFutureMap.size(),
+					job.getClass().getSimpleName(), result, isSuccess });
 		}
-		
+
 		if (job instanceof IndexingJob) {
 			indexingMutex.release(jobId);
 		}
@@ -249,8 +233,8 @@ public class JobService extends AbstractService implements JobExecutor {
 			resultFuture.put(result, isSuccess);
 		} else {
 			// 시간초과로 ResultFutuer.poll에서 미리제거된 경우.
-			//혹은 처음부터 결과가 필요없어서 map에 안넣었을 경우.
-			//logger.debug("result arrived but future object is already removed due to timeout. result={}", result);
+			// 혹은 처음부터 결과가 필요없어서 map에 안넣었을 경우.
+			// logger.debug("result arrived but future object is already removed due to timeout. result={}", result);
 		}
 
 	}
@@ -279,8 +263,7 @@ public class JobService extends AbstractService implements JobExecutor {
 					// jobExecutor rejecthandler가 abortpolicy의 경우
 					// RejectedExecutionException을 던지게 되어있다.
 					logger.error("처리허용량을 초과하여 작업이 거부되었습니다. max.pool = {}, job={}", executorMaxPoolSize, job);
-					result(job, new ExecutorMaxCapacityExceedException("처리허용량을 초과하여 작업이 거부되었습니다. max.pool ="
-							+ executorMaxPoolSize), false);
+					result(job, new ExecutorMaxCapacityExceedException("처리허용량을 초과하여 작업이 거부되었습니다. max.pool =" + executorMaxPoolSize), false);
 
 				} catch (Throwable e) {
 					logger.error("", e);
@@ -289,7 +272,7 @@ public class JobService extends AbstractService implements JobExecutor {
 
 		}
 	}
-	
+
 	/*
 	 * 이 쓰레드는 절대로 죽어서는 아니되오.
 	 */
@@ -303,7 +286,7 @@ public class JobService extends AbstractService implements JobExecutor {
 				Job job = null;
 				try {
 					job = sequencialJobQueue.take();
-					//이 쓰레드에서 바로 실행해준다. 순서보장됨.
+					// 이 쓰레드에서 바로 실행해준다. 순서보장됨.
 					job.run();
 				} catch (InterruptedException e) {
 					logger.debug(this.getClass().getName() + " is interrupted.");
@@ -314,7 +297,5 @@ public class JobService extends AbstractService implements JobExecutor {
 
 		}
 	}
-
-
 
 }

@@ -20,7 +20,6 @@ import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.service.KeywordService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +30,6 @@ public class CatServerServlet extends HttpServlet {
 	private IRService irService;
 	private JobService jobController;
 	private DBService dbHandler;
-	private KeywordService keywordService;
 	public static long startTime;
 	private static Logger logger;
 	
@@ -65,7 +63,6 @@ public class CatServerServlet extends HttpServlet {
 			e1.printStackTrace();
 		}
 		dbHandler = DBService.getInstance();
-		keywordService = KeywordService.getInstance();
 		jobController = JobService.getInstance();
 //		irService = IRService.getInstance();
 		
@@ -82,14 +79,12 @@ public class CatServerServlet extends HttpServlet {
 		jobController.start();
 		
 		irService.start();
-		keywordService.start();
 		
 		startTime = System.currentTimeMillis();
 		logger.info("CatServer started!");
 	}
 	
 	public void stop() throws FastcatSearchException{
-		keywordService.stop();
 		irService.stop();
 		jobController.stop();
 		dbHandler.stop();
@@ -101,7 +96,6 @@ public class CatServerServlet extends HttpServlet {
 		dbHandler = null;
 		irService = null;
 		jobController = null;
-		keywordService = null;
 		logger.info("CatServer destroy!");
 	}
 }

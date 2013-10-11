@@ -246,7 +246,7 @@ public abstract class DataOutput extends OutputStream {
 		}
 	}
 
-	// ascii는 1byte로 기록하고 나머지는 2byte로 기록한다.
+	// 2byte로 기록한다.
 	public void writeString(String str) throws IOException {
 		writeUString(str.toCharArray(), 0, str.length());
 	}

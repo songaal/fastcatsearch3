@@ -142,7 +142,7 @@ public class ClusterAlertService extends AbstractService {
 		//isMaster
 		if(isMasterNode){
 			//master면 바로 실행.
-			ServiceManager.getInstance().getService(JobService.class).execute(alertJob);
+			ServiceManager.getInstance().getService(JobService.class).offerSequential(alertJob);
 		}else{
 			//slave라면 master에게 보낸다.
 			nodeService.sendRequestToMaster(alertJob);

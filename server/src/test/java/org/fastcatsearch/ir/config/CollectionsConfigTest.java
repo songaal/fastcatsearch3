@@ -11,6 +11,7 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
+import org.fastcatsearch.util.JAXBConfigs;
 import org.junit.Test;
 
 public class CollectionsConfigTest {

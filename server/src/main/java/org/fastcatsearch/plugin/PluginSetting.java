@@ -15,13 +15,14 @@ public class PluginSetting {
 	protected String name;
 	protected String version;
 	protected String description;
-
+	protected boolean useDB;
+	
 	protected List<Action> actionList;
 
 	public String getKey(String name) {
-		return namespace + "_" + id + "_" + name;
+		return namespace + "/" + id + "/" + name;
 	}
-
+	
 	@XmlAttribute
 	public String getId() {
 		return id;
@@ -74,6 +75,15 @@ public class PluginSetting {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+	
+	@XmlElement(name="use-db")
+	public boolean isUseDB() {
+		return useDB;
+	}
+
+	public void setUseDB(boolean useDB) {
+		this.useDB = useDB;
 	}
 
 	@XmlElementWrapper(name = "action-list")

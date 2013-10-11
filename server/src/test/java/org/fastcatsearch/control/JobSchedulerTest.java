@@ -23,7 +23,7 @@ public class JobSchedulerTest extends TestCase{
 	public void test1() throws SettingException, FastcatSearchException{
 		JobService c = JobService.getInstance();
 		c.start();
-		c.setSchedule("addJob","org.fastcatsearch.ir.job.AddJob", "8 5", Timestamp.valueOf("2010-10-08 11:42"), 6000, true);
+//		c.setSchedule("addJob","org.fastcatsearch.ir.job.AddJob", "8 5", Timestamp.valueOf("2010-10-08 11:42"), 6000, true);
 		try {
 			Thread.sleep(1000*60);
 		} catch (InterruptedException e) {

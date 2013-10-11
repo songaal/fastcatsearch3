@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- default field : id, keyword -->
+<mapper namespace="org.fastcatsearch.db.mapper.NotificationMapper">
+
+	<update id="createTable">
+		create table NotificationHistory (
+		id int GENERATED ALWAYS AS IDENTITY
+		node varchar(50),
+		messageCode varchar(50),
+		message varchar(3000),
+		regtime timestamp,
+		primary key (id)
+		)
+	</update>
+
+	<update id="createIndex" >
+		create index node_index on NotificationHistory(node);
+	</update>
+	
+	<select id="validateTable" parameterType="map" resultType="map">
+		select id, node, messageCode, message, regtime
+		from NotificationHistory
+		fetch first 1 rows only
+	</select>
+
+	<update id="dropTable" parameterType="map">
+		drop table NotificationHistory
+	</update>
+
+	<select id="getEntry" parameterType="int" resultType="org.fastcatsearch.db.vo.NotificationVO">
+		select *
+		from NotificationHistory where id = #{id}
+	</select>
+
+	<select id="getEntryList" parameterType="map" resultType="org.fastcatsearch.db.vo.NotificationVO">
+
+		<if test="start &gt;= 0 and end &gt;= 0">
+			select *
+			from (
+			select row_number() over() as rownum, NotificationHistory.* from
+			NotificationHistory
+			) as tmp where rownum &gt; #{start} and rownum &lt;= #{end}
+		</if>
+	</select>
+
+	<select id="getCount" parameterType="map" resultType="int">
+		select count(*)
+		from NotificationHistory
+	</select>
+
+	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.NotificationVO" useGeneratedKeys="true">
+		insert into NotificationHistory ( 
+		node, messageCode, message, regtime
+		)
+		values (
+		#{node}, #{messageCode}, #{message}, #{regtime}
+		)
+	</insert>
+
+</mapper>

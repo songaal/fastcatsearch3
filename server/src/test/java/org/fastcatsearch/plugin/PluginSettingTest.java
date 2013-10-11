@@ -10,14 +10,14 @@ import javax.xml.bind.Unmarshaller;
 
 import org.junit.Test;
 
-public abstract class PluginSettingTest {
+public class PluginSettingTest {
 
 	@Test
 	public void testProperty() throws JAXBException {
 
-		PluginSetting setting = new PluginSetting();
+		DefaultPluginSetting setting = new DefaultPluginSetting();
 
-		JAXBContext jc = JAXBContext.newInstance(PluginSetting.class);
+		JAXBContext jc = JAXBContext.newInstance(DefaultPluginSetting.class);
 		StringWriter writer = new StringWriter();
 		Marshaller marshaller = jc.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
