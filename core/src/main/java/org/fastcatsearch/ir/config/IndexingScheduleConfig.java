@@ -54,7 +54,7 @@ public class IndexingScheduleConfig {
 			this.active = active;
 		}
 		
-		@XmlAttribute
+		@XmlAttribute(name="type")
 		public ScheduleType getScheduleType() {
 			return scheduleType;
 		}

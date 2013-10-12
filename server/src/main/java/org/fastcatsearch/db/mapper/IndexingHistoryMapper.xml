@@ -51,7 +51,8 @@
 			select row_number() over() as rownum, IndexingHistory.* from
 			IndexingHistory
 			where collectionId = #{collectionId}
-			) as tmp where rownum &gt; #{start} and rownum &lt;= #{end}
+			order by id desc
+			) as tmp where rownum &gt;= #{start} and rownum &lt;= #{end}
 		</if>
 	</select>
 

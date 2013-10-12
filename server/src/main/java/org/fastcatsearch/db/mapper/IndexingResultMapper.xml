@@ -43,17 +43,9 @@
 	</select>
 
 	<select id="getEntryList" parameterType="map" resultType="org.fastcatsearch.db.vo.IndexingStatusVO">
-
-		<if test="start &gt;= 0 and end &gt;= 0">
-			select *
-			from (
-			select row_number() over() as rownum,
-			IndexingResult.* from
-			IndexingResult
-			where collectionId = #{collectionId}
-			) as tmp where rownum &gt;
-			#{start} and rownum &lt;= #{end}
-		</if>
+		select * from
+		IndexingResult
+		where collectionId = #{collectionId}
 	</select>
 
 	<select id="getCount" parameterType="map" resultType="int">

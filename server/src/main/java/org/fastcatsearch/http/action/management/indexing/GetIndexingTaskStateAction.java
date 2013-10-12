@@ -13,7 +13,7 @@ import org.fastcatsearch.job.state.TaskStateService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/indexing/state")
+@ActionMapping("/indexing/task-state")
 public class GetIndexingTaskStateAction extends AuthAction {
 
 	@Override

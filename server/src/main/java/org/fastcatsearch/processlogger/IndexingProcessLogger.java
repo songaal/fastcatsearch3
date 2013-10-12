@@ -27,10 +27,8 @@ public class IndexingProcessLogger implements ProcessLogger {
 
 			DBService dbService = ServiceManager.getInstance().getService(DBService.class);
 			if (dbService != null) {
-				MapperSession<IndexingHistoryMapper> historyMapperSession = dbService.getMapperSession(IndexingHistoryMapper.class);
 				MapperSession<IndexingResultMapper> resultMapperSession = dbService.getMapperSession(IndexingResultMapper.class);
 				
-				IndexingHistoryMapper indexingHistoryMapper = historyMapperSession.getMapper();
 				IndexingResultMapper indexingResultMapper = resultMapperSession.getMapper();
 				
 				// 전체색인시는 증분색인 정보까지 클리어해준다.
@@ -48,12 +46,10 @@ public class IndexingProcessLogger implements ProcessLogger {
 				vo.endTime = new Timestamp(log.getStartTime());//없으면 derby 에러발생.
 				try {
 					indexingResultMapper.putEntry(vo);
-					indexingHistoryMapper.putEntry(vo);
 				} catch (Exception e) {
 					logger.error("" , e);
 				}
 				
-				historyMapperSession.closeSession();
 				resultMapperSession.closeSession();
 			}
 

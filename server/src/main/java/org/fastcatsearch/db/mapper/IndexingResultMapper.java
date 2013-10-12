@@ -15,7 +15,7 @@ public interface IndexingResultMapper extends ManagedMapper {
 	
 	public IndexingStatusVO getEntry(@Param("id") int id) throws Exception;
 	
-	public List<IndexingStatusVO> getEntryList(@Param("collectionId") String collectionId, @Param("start") int start, @Param("end") int end) throws Exception;
+	public List<IndexingStatusVO> getEntryList(@Param("collectionId") String collectionId) throws Exception;
 	
 	public int getCount(@Param("collectionId") String collectionId) throws Exception;
 	
