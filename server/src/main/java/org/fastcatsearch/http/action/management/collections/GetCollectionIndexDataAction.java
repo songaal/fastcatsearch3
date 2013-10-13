@@ -1,6 +1,7 @@
 package org.fastcatsearch.http.action.management.collections;
 
 import java.io.Writer;
+import java.util.ArrayList;
 
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
@@ -27,71 +28,116 @@ public class GetCollectionIndexDataAction extends AuthAction {
 		String shardId = request.getParameter("shardId");
 		int start = Integer.parseInt(request.getParameter("start", "0"));
 		int end = Integer.parseInt(request.getParameter("end", "0"));
-		int realStart = 0;
-		int realEnd = 0;
 		
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 
 		ShardHandler shardHandler = irService.collectionHandler(collectionId).getShardHandler(shardId);
 		int segmentSize = shardHandler.segmentSize();
-
-		//TODO 여러세그먼트에 걸쳐있을 경우를 고려한다.
-		
-		
-		
-		SegmentReader segmentReader = null;
-		for (int segmentNumber = segmentSize - 1; segmentNumber >= 0; segmentNumber--) {
+		//이 배열의 index번호는 세그먼트번호.
+		int[] segmentEndNumbers = new int[segmentSize];
+		for (int segmentNumber = 0; segmentNumber < segmentSize; segmentNumber++) {
 			SegmentReader reader = shardHandler.segmentReader(segmentNumber);
 			SegmentInfo segmentInfo = reader.segmentInfo();
-			int baseNumber = segmentInfo.getBaseNumber();
-			if (start >= baseNumber) {
-				logger.debug("selected {}", segmentInfo);
-				RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
-				int documentCount = revisionInfo.getDocumentCount();
-				logger.debug("documentCount {}", documentCount);
-				segmentReader = reader;
-				
-				realStart = start - baseNumber;
-				realEnd = end - baseNumber;
-				if (realEnd > documentCount) {
-					realEnd = documentCount - 1;
-				}
-				logger.debug("realStart={}, realEnd={}", realStart, realEnd);
-			}
+			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
+			segmentEndNumbers[segmentNumber] = segmentInfo.getBaseNumber() + revisionInfo.getDocumentCount() - 1;
 		}
+		
+		//여러세그먼트에 걸쳐있을 경우를 고려한다.
+		int[][] matchSegmentList = matchSegment(segmentEndNumbers, start, end - start + 1);
 
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 
 		resultWriter.object()
-		.key("shardId").value(shardId)
-		.key("indexData").array();
+		.key("shardId").value(shardId);
+		//write field list
 		
-		if (segmentReader != null) {
+		resultWriter.key("fieldList").array();
+		if(matchSegmentList.length > 0){
+			int segmentNumber = matchSegmentList[0][0];
+			int startNo = matchSegmentList[0][1];
+			SegmentReader segmentReader = shardHandler.segmentReader(segmentNumber);
 			SegmentSearcher segmentSearcher = segmentReader.segmentSearcher();
-			for (int docNo = realStart; docNo <= realEnd; docNo++) {
-				
-				resultWriter.object()
-					.key("segmentId").value(0)
-					.key("revisionId").value(0)
-					.key("row").object();
-				
-				Document document = segmentSearcher.getDocument(docNo);
-				int fieldSize = document.size();
-				for (int index = 0; index < fieldSize; index++) {
-					Field field = document.get(index);
-					resultWriter.key(field.getId()).value(field.toString());
-				}
-				resultWriter.endObject().endObject();
+			Document headerDocument = segmentSearcher.getDocument(startNo);
+			for (int index = 0; index < headerDocument.size(); index++) {
+				Field field = headerDocument.get(index);
+				resultWriter.value(field.getId());
 			}
-		} else {
-			logger.debug("segmentReader is NULL");
+		}
+		resultWriter.endArray();
+		
+		//write data
+		resultWriter.key("indexData").array();
+		for (int i = 0; i < matchSegmentList.length; i++) {
+			int segmentNumber = matchSegmentList[i][0];
+			int startNo = matchSegmentList[i][1];
+			int endNo = matchSegmentList[i][2];
+			
+			SegmentReader segmentReader = shardHandler.segmentReader(segmentNumber);
+			
+			if (segmentReader != null) {
+				SegmentInfo segmentInfo = segmentReader.segmentInfo();
+				String segmentId = segmentInfo.getId();
+				SegmentSearcher segmentSearcher = segmentReader.segmentSearcher();
+				
+				for (int docNo = startNo; docNo <= endNo; docNo++) {
+					
+					resultWriter.object()
+						.key("segmentId").value(segmentId)
+						.key("row").object();
+					
+					Document document = segmentSearcher.getDocument(docNo);
+					int fieldSize = document.size();
+					for (int index = 0; index < fieldSize; index++) {
+						Field field = document.get(index);
+						resultWriter.key(field.getId()).value(field.toString());
+					}
+					resultWriter.endObject().endObject();
+				}
+			} else {
+				logger.debug("segmentReader is NULL");
+			}
 		}
 		
 		resultWriter.endArray()
 		.endObject();
 		
 		resultWriter.done();
+	}
+	
+	private int[][] matchSegment(int[] segEndNums, int start, int rows) {
+		// [][세그먼트번호,시작번호,끝번호]
+		ArrayList<int[]> list = new ArrayList<int[]>();
+		for (int i = 0; i < segEndNums.length; i++) {
+			if (start > segEndNums[i]) {
+				start = start - segEndNums[i] - 1;
+			} else {
+				int[] res = new int[3];
+				int emptyCount = segEndNums[i] - start + 1;
+				res[0] = i;// 세그먼트번호
+				if (emptyCount < rows) {
+					res[1] = start;// 시작번호
+					res[2] = segEndNums[i];
+					start = 0;
+					rows = rows - emptyCount;
+					list.add(res);
+				} else {
+					res[1] = start;// 시작번호
+					res[2] = start + rows - 1;// 끝번호
+					list.add(res);
+					break;
+				}
+			}
+		}
+		int[][] result = new int[list.size()][3];
+		for (int i = 0; i < list.size(); i++) {
+			int[] tmp = list.get(i);
+			result[i][0] = tmp[0];
+			result[i][1] = tmp[1];
+			result[i][2] = tmp[2];
+		}
+
+		return result;
 	}
 
 }
