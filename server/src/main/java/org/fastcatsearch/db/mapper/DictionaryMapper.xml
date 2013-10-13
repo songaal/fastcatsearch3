@@ -12,7 +12,7 @@ Derby SQL 문법에 따른다.
 			id bigint not null generated always as identity,
 			<if test="columnSettings != null">
 				<foreach item="column" index="index" collection="columnSettings">
-					${name} ${type},
+					${column.name} ${column.type},
 				</foreach>
 			</if>
 			primary key (id)
@@ -27,7 +27,7 @@ Derby SQL 문법에 따른다.
 		select id
 		<if test="columnSettings != null">
 			<foreach item="column" index="index" collection="columnSettings">
-			${name}
+			${column.name}
 			</foreach>
 		</if>
 		from ${table} 
@@ -44,20 +44,25 @@ Derby SQL 문법에 따른다.
 	</select>
 
 	<select id="getEntryList" parameterType="map" resultType="map">
-		<if test="start &gt; 0">
-			select *
-			from (
-			select row_number() over() as rownum, ${table}.* from ${table}
-			<if test="search != null and columns != null">
-				<where> 
-					<foreach item="column" index="index" collection="columns">
-					or ${column} like #{search}
-					</foreach>
-				</where>
-			</if>
-			order by id desc
-			) as tmp where rownum &gt;= #{start} and rownum &lt;= #{end}
-		</if>
+		<choose>
+			<when test="start &gt; 0">
+				select *
+				from (
+				select row_number() over() as rownum, ${table}.* from ${table}
+				<if test="search != null and columns != null">
+					<where> 
+						<foreach item="column" index="index" collection="columns">
+						or ${column} like #{search}
+						</foreach>
+					</where>
+				</if>
+				order by id desc
+				) as tmp where rownum &gt;= #{start} and rownum &lt;= #{end}
+			</when>
+			<otherwise>
+				select * from ${table} where id = -1
+			</otherwise>
+		</choose>
 	</select>
 	
 	<select id="getCount" parameterType="map" resultType="int">

@@ -17,7 +17,7 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
 @ActionMapping("/management/dictionary/list")
-public class DictionaryWordListAction extends AuthAction {
+public class GetDictionaryWordListAction extends AuthAction {
 
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
@@ -50,14 +50,15 @@ public class DictionaryWordListAction extends AuthAction {
 			filteredSize = dictionaryDAO.getCount(search, searchColumnList);
 			
 			List<Map<String, Object>> list = dictionaryDAO.getEntryList(start, start + length, search, searchColumnList);
-			
+			final String ID_COLUMN = "ID";
 			List<ColumnSetting> columnSettingList = dictionaryDAO.columnSettingList();
 			for(Map<String, Object> vo : list){
-				resultWriter.object();
+				resultWriter.object().key(ID_COLUMN).value(vo.get(ID_COLUMN));
 				if(columnSettingList != null){
 					for(int i = 0 ;i < columnSettingList.size(); i++){
 						ColumnSetting columnSetting = columnSettingList.get(i);
-						String name = columnSetting.getName();
+						String name = columnSetting.getName().toUpperCase();
+						logger.debug("name > {} / {}", name, vo);
 						resultWriter.key(name).value(vo.get(name));
 					}
 				}

@@ -90,18 +90,18 @@ public class DBService extends AbstractService {
 				try{
 					logger.debug("drop {}", clazz.getSimpleName());
 					managedMapper.dropTable();
-					mapperSession.commint();
-				}catch(Exception e1){
-					try{
-						logger.debug("create table {}", clazz.getSimpleName());
-						managedMapper.createTable();
-						mapperSession.commint();
-						logger.debug("create index {}", clazz.getSimpleName());
-						managedMapper.createIndex();
-						mapperSession.commint();
-					}catch(Exception e2){
-						logger.error("", e2);
-					}
+					mapperSession.commit();
+				}catch(Exception ignore){
+				}
+				try{
+					logger.debug("create table {}", clazz.getSimpleName());
+					managedMapper.createTable();
+					mapperSession.commit();
+					logger.debug("create index {}", clazz.getSimpleName());
+					managedMapper.createIndex();
+					mapperSession.commit();
+				}catch(Exception e2){
+					logger.error("", e2);
 				}
 			}
 			mapperSession.closeSession();

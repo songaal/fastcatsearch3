@@ -33,6 +33,9 @@ public class GetAnalysisPluginList extends AuthAction {
 				responseWriter.object()
 				.key("id").value(pluginSetting.getId())
 				.key("name").value(pluginSetting.getName())
+				.key("version").value(pluginSetting.getVersion())
+				.key("description").value(pluginSetting.getDescription())
+				.key("className").value(pluginSetting.getClassName())
 				.endObject();
 			}
 		}

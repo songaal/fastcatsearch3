@@ -26,7 +26,7 @@
 	</update>
 	
 	<select id="validateTable" parameterType="map" resultType="map">
-		select id, collectionId
+		select id, taskId, executable
 		from TaskHistory
 		fetch first 1 rows only
 	</select>

@@ -1,6 +1,8 @@
 package org.fastcatsearch.http.action.management.dictionary;
 
+import java.io.File;
 import java.io.Writer;
+import java.util.Date;
 import java.util.List;
 
 import org.fastcatsearch.db.dao.DictionaryDAO;
@@ -8,6 +10,7 @@ import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
+import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.plugin.analysis.AnalysisPlugin;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting;
@@ -39,13 +42,29 @@ public class GetDictionaryOverviewAction extends AuthAction {
 		if(dictionaryList != null){
 			for(DictionarySetting dictionary : dictionaryList){
 				String dictionaryId = dictionary.getId();
-				DictionaryDAO dictionaryDAO = analysisPlugin.getDictionaryDAO(dictionaryId);
-				int entrySize = dictionaryDAO.getCount(null, null);
+				String name = dictionary.getName();
+				String type = dictionary.getType();
 				resultWriter.object()
-				.key("name").value(dictionaryId)
-				.key("size").value(entrySize)
-				//TODO status, sync time
-				.endObject();
+				.key("id").value(dictionaryId)
+				.key("name").value(name)
+				.key("type").value(type);
+				
+				DictionaryDAO dictionaryDAO = analysisPlugin.getDictionaryDAO(dictionaryId);
+				int entrySize = 0;
+				if(dictionaryDAO != null){
+					entrySize = dictionaryDAO.getCount(null, null);
+				}
+				resultWriter.key("entrySize").value(entrySize);
+				
+				
+				File file = analysisPlugin.getDictionaryFile(dictionaryId);
+				if(file.exists()){
+					String lastModified = Formatter.formatDate(new Date(file.lastModified()));
+					resultWriter.key("syncTime").value(lastModified);
+				}else{
+					resultWriter.key("syncTime").value("-");
+				}
+				resultWriter.endObject();
 			}
 		}
 		resultWriter.endArray().endObject();

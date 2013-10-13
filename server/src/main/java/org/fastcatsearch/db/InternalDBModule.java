@@ -141,7 +141,7 @@ public class InternalDBModule extends AbstractModule {
 			return mapper;
 		}
 		
-		public void commint(){
+		public void commit(){
 			if(session != null){
 				session.commit();
 			}
