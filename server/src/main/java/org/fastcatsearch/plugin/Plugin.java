@@ -47,7 +47,7 @@ public abstract class Plugin {
 	
 	private final void loadDB() {
 		String dbPath = getPluginDBDataDir().getAbsolutePath();
-		new File(dbPath).mkdirs();
+		new File(dbPath).getParentFile().mkdirs();
 		List<File> mapperFileList = new ArrayList<File>();
 		addMapperFile(mapperFileList);
 		internalDBModule = new InternalDBModule(dbPath, mapperFileList, null, null, null);

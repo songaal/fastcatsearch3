@@ -7,7 +7,7 @@
 
 	<update id="createTable">
 		create table IndexingHistory (
-		id int GENERATED ALWAYS AS IDENTITY
+		id int GENERATED ALWAYS AS IDENTITY,
 		collectionId varchar(20),
 		type char(4),
 		status varchar(10),
@@ -15,16 +15,16 @@
 		insertSize int,
 		updateSize int,
 		deleteSize int,
-		isScheduled smallint,
+		isScheduled boolean,
 		startTime timestamp,
-		endTime timestamp,
+		endTime timestamp DEFAULT NULL,
 		duration int,
 		primary key (id)
 		)
 	</update>
 	
 	<update id="createIndex" >
-		create index collectionId_index on IndexingHistory(collectionId);
+		create index collectionId_IndexingHistory_index on IndexingHistory(collectionId)
 	</update>
 	
 
@@ -51,7 +51,8 @@
 			select row_number() over() as rownum, IndexingHistory.* from
 			IndexingHistory
 			where collectionId = #{collectionId}
-			) as tmp where rownum &gt; #{start} and rownum &lt;= #{end}
+			order by id desc
+			) as tmp where rownum &gt;= #{start} and rownum &lt;= #{end}
 		</if>
 	</select>
 
@@ -63,7 +64,7 @@
 
 	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.IndexingStatusVO" useGeneratedKeys="true">
 		insert into IndexingHistory ( 
-		collectionId, type, isSuccess, docSize, insertSize, updateSize, deleteSize, isScheduled,
+		collectionId, type, status, docSize, insertSize, updateSize, deleteSize, isScheduled,
 		startTime, endTime, duration) 
 		values (
 		#{collectionId}, #{type}, #{status}, #{docSize}, #{insertSize}
