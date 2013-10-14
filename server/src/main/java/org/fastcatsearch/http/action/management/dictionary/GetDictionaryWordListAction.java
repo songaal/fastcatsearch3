@@ -58,7 +58,6 @@ public class GetDictionaryWordListAction extends AuthAction {
 					for(int i = 0 ;i < columnSettingList.size(); i++){
 						ColumnSetting columnSetting = columnSettingList.get(i);
 						String name = columnSetting.getName().toUpperCase();
-						logger.debug("name > {} / {}", name, vo);
 						resultWriter.key(name).value(vo.get(name));
 					}
 				}

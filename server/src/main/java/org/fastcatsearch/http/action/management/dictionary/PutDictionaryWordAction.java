@@ -27,7 +27,7 @@ public class PutDictionaryWordAction extends AuthAction {
 		PluginService pluginService = ServiceManager.getInstance().getService(PluginService.class);
 		Plugin plugin = pluginService.getPlugin(pluginId);
 		AnalysisPlugin analysisPlugin = (AnalysisPlugin) plugin;
-logger.debug("pluginId:{}, dictionaryId:{}, analysisPlugin:{}", pluginId, dictionaryId,analysisPlugin);
+
 		DictionaryDAO dictionaryDAO = analysisPlugin.getDictionaryDAO(dictionaryId);
 
 		List<ColumnSetting> columnSettingList = dictionaryDAO.columnSettingList();
