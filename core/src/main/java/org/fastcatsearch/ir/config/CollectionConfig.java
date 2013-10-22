@@ -37,7 +37,7 @@ import javax.xml.bind.annotation.XmlType;
  * */
 
 @XmlRootElement(name = "collection-config")
-@XmlType(propOrder = { "shardConfigList", "indexConfig", "dataPlanConfig", "indexNode", "name" })
+@XmlType(propOrder = { "name", "indexNode", "shardConfigList", "indexConfig", "dataPlanConfig" })
 public class CollectionConfig {
 
 	private String name;
