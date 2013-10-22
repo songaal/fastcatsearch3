@@ -152,6 +152,9 @@ public class DocumentReader implements Cloneable {
 				}else{
 					bai.skipVIntData();
 				}
+			}else{
+				//값이 없는 필드도 빈 필드를 추가해준다.
+				f = fs.createEmptyField();
 			}
 			
 			document.set(i, f);

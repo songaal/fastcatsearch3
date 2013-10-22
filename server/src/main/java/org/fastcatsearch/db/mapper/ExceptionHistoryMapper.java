@@ -5,15 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 import org.fastcatsearch.db.vo.ExceptionVO;
 
-public interface ExceptionHistoryMapper {
-	
-	public void createTable() throws Exception;
-	
-	public void createIndex() throws Exception;
-	
-	public void validateTable() throws Exception;
-	
-	public void dropTable() throws Exception;
+public interface ExceptionHistoryMapper extends ManagedMapper {
 
 	public ExceptionVO getEntry(@Param("id") int id) throws Exception;
 	

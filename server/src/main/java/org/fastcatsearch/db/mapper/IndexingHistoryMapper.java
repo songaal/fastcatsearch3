@@ -8,16 +8,8 @@ import org.fastcatsearch.db.vo.IndexingStatusVO;
 /*
  * IndexingResultMapper 와 테이블명만 다르고 동일하다.
  */
-public interface IndexingHistoryMapper {
+public interface IndexingHistoryMapper extends ManagedMapper {
 	
-	public void createTable() throws Exception;
-	
-	public void createIndex() throws Exception;
-	
-	public void validateTable() throws Exception;
-	
-	public void dropTable() throws Exception;
-
 	public IndexingStatusVO getEntry(@Param("id") int id) throws Exception;
 	
 	public List<IndexingStatusVO> getEntryList(@Param("collectionId") String collectionId, @Param("start") int start, @Param("end") int end) throws Exception;

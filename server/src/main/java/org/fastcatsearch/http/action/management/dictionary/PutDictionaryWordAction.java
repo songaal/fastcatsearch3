@@ -15,8 +15,8 @@ import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/management/dictionary/insert")
-public class DictionaryWordInsertAction extends AuthAction {
+@ActionMapping("/management/dictionary/put")
+public class PutDictionaryWordAction extends AuthAction {
 
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {

@@ -3,11 +3,11 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!-- default field : id, keyword -->
-<mapper namespace="org.fastcatsearch.db.mapper.NotificationMapper">
+<mapper namespace="org.fastcatsearch.db.mapper.NotificationHistoryMapper">
 
 	<update id="createTable">
 		create table NotificationHistory (
-		id int GENERATED ALWAYS AS IDENTITY
+		id int GENERATED ALWAYS AS IDENTITY,
 		node varchar(50),
 		messageCode varchar(50),
 		message varchar(3000),
@@ -17,7 +17,7 @@
 	</update>
 
 	<update id="createIndex" >
-		create index node_index on NotificationHistory(node);
+		create index node_NotificationHistory_index on NotificationHistory(node)
 	</update>
 	
 	<select id="validateTable" parameterType="map" resultType="map">

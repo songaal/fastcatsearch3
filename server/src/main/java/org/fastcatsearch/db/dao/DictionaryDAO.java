@@ -66,19 +66,21 @@ public class DictionaryDAO {
 		MapperSession<DictionaryMapper> mapperContext = openMapper();
 		try {
 			mapperContext.getMapper().createTable(tableName, columnSettingList);
-			mapperContext.commint();
+			mapperContext.commit();
 			for(ColumnSetting columnSetting : columnSettingList){
 				if(columnSetting.isIndex() || columnSetting.isSearchable()){
 					String columnName = columnSetting.getName();
 					mapperContext.getMapper().createIndex(tableName, columnName);
-					mapperContext.commint();
+					mapperContext.commit();
 				}
 			}
 			return true;
 		} catch (Exception e) {
+			e.printStackTrace();
 			logger.debug("create table error", e.getMessage());
 			return false;
 		} finally {
+			logger.debug("create dictionary table > {}", tableName);
 			mapperContext.closeSession();
 		}
 	}

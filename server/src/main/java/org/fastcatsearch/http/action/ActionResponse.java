@@ -11,7 +11,7 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
 public class ActionResponse {
 
-	private final static Charset charset = Charset.forName("UTF-8");
+	private final static Charset charset = Charset.forName("utf-8");
 	private Object contentType;
 	private HttpResponseStatus status;
 	private ByteRefArrayOutputStream baos;

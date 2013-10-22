@@ -12,17 +12,17 @@ import org.fastcatsearch.plugin.PluginSetting;
 
 @XmlRootElement(name = "plugin")
 public class AnalysisPluginSetting extends PluginSetting {
-	private List<DictionarySetting> dictionaryList;
+	private List<DictionarySetting> dictionarySettingList;
 	private List<Analyzer> analyzerList;
 	
 	@XmlElementWrapper(name = "dictionary-list")
 	@XmlElement(name="dictionary")
 	public List<DictionarySetting> getDictionarySettingList() {
-		return dictionaryList;
+		return dictionarySettingList;
 	}
 
-	public void setDictionaryList(List<DictionarySetting> dictionaryList) {
-		this.dictionaryList = dictionaryList;
+	public void setDictionarySettingList(List<DictionarySetting> dictionarySettingList) {
+		this.dictionarySettingList = dictionarySettingList;
 	}
 
 	@XmlElementWrapper(name = "analyzer-list")
@@ -99,7 +99,7 @@ public class AnalysisPluginSetting extends PluginSetting {
 		public List<ColumnSetting> getColumnSettingList() {
 			return columnSettingList;
 		}
-		public void setgetColumnSettingListList(List<ColumnSetting> columnSettingList) {
+		public void setColumnSettingList(List<ColumnSetting> columnSettingList) {
 			this.columnSettingList = columnSettingList;
 		}
 		

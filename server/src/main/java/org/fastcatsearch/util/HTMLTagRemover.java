@@ -22,31 +22,37 @@ import org.slf4j.LoggerFactory;
 public class HTMLTagRemover {
 	
 	private static Logger logger = LoggerFactory.getLogger(HTMLTagRemover.class);
-	private static String regEx_script = "<[\\s]*?script[^>]*?>[\\s\\S]*?<[\\s]*?\\/[\\s]*?script[\\s]*?>"; //script pattern
-	private static String regEx_style = "<[\\s]*?style[^>]*?>[\\s\\S]*?<[\\s]*?\\/[\\s]*?style[\\s]*?>"; //style pattern  
-	private static String regEx_html = "<[/!]?[a-zA-Z]*(\\s)*(\\s[a-zA-Z]*=[^>]*)?(\\s)*(/)?>"; //html pattern 
-	private static String regEx_add1 = "<!--[\\s\\S가-힣ㄱ-ㅎ]+?-->";
-	
-	private static Pattern p_script = Pattern.compile(regEx_script,Pattern.CASE_INSENSITIVE); 
-	private static Pattern p_style = Pattern.compile(regEx_style,Pattern.CASE_INSENSITIVE);   
-	private static Pattern p_html = Pattern.compile(regEx_html,Pattern.CASE_INSENSITIVE);   
-	private static Pattern p_add1 = Pattern.compile(regEx_add1,Pattern.CASE_INSENSITIVE);
+	private static final Pattern ptnTagScript = Pattern.compile("<[\\s]*script[\\s]*[^>]*>[\\s\\S]*?<[\\s]*[/][\\s]*script[\\s]*>",Pattern.CASE_INSENSITIVE | Pattern.MULTILINE); 
+	private static final Pattern ptnTagStyle = Pattern.compile("<[\\s]*style[\\s]*[^>]*>[\\s\\S]*?<[\\s]*[/][\\s]*style[\\s]*>",Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);   
+	private static final Pattern ptnTagTitle = Pattern.compile("<[\\s]*?title[^>]*?>[\\s\\S]*?<[\\s]*?\\/[\\s]*?title[\\s]*?>",Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);   
+	private static final Pattern ptnContentHtml = Pattern.compile("<[/]?[a-z0-9]+([^>]*)*[/]?>",Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);   
+	private static final Pattern ptnContentComment = Pattern.compile("<!--[\\s\\S가-힣ㄱ-ㅎ]+?-->",Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	private static final Pattern ptnChrSpecial = Pattern.compile("([&][a-zA-Z]{1,8}[;])",Pattern.CASE_INSENSITIVE);
+	private static final Pattern ptnChrSpecial2 = Pattern.compile("([&][#][0-9]{1,4}[;])",Pattern.CASE_INSENSITIVE);
 	
 	public static String clean(String targetString) throws IRException{
 			
 		String htmlStr = targetString.replaceAll("&lt;", "<").replaceAll("&gt;", ">");
 		try {
-			Matcher m_script = p_script.matcher(htmlStr);
-			htmlStr = m_script.replaceAll(""); // clean script
+			htmlStr = ptnTagScript.matcher(htmlStr).replaceAll(""); // clean script
 
-			Matcher m_style = p_style.matcher(htmlStr);
-			htmlStr = m_style.replaceAll(""); // clean style
-
-			Matcher m_html = p_html.matcher(htmlStr);
-			htmlStr = m_html.replaceAll(""); // clean html
+			htmlStr = ptnTagStyle.matcher(htmlStr).replaceAll(""); // clean style
 			
-			Matcher m_add1 = p_add1.matcher(htmlStr);
-			htmlStr = m_add1.replaceAll(""); // clean add1
+			htmlStr = ptnTagTitle.matcher(htmlStr).replaceAll(""); // clean style
+
+			htmlStr = ptnContentHtml.matcher(htmlStr).replaceAll(""); // clean html
+			
+			htmlStr = ptnContentComment.matcher(htmlStr).replaceAll(""); // clean add1
+			
+			htmlStr = htmlStr.replaceAll("&quot;", "\"");
+			
+			htmlStr = htmlStr.replaceAll("&#39;", "'");
+			
+			htmlStr = ptnChrSpecial.matcher(htmlStr).replaceAll(" ");
+			
+			htmlStr = ptnChrSpecial2.matcher(htmlStr).replaceAll(" ");
+			
+			htmlStr = htmlStr.trim();
 			
 			return htmlStr;
 
@@ -54,6 +60,5 @@ public class HTMLTagRemover {
 			logger.error("HTML Tag clean Error:" + e.getMessage(),e);
 			throw new IRException(e);
 		}
-	         
 	}
 }

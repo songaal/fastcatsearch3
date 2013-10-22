@@ -76,7 +76,20 @@ public abstract class AnalysisPlugin extends Plugin {
 				List<ColumnSetting> columnSettingList = dictionarySetting.getColumnSettingList();
 				if (columnSettingList != null) {
 					DictionaryDAO dao = new DictionaryDAO(tableName, columnSettingList, internalDBModule);
-					daoMap.put(dictionaryId, dao);
+					boolean isValidDAO = false;
+					if(!dao.validateTable()){
+						dao.dropTable();
+						if(dao.creatTable()){
+							isValidDAO = true;
+						}
+					}else{
+						isValidDAO = true;
+					}
+					if(isValidDAO){
+						daoMap.put(dictionaryId, dao);
+					}else{
+						logger.debug("fail to register dictionary dao > {}", dictionaryId);
+					}
 				}
 			}
 		}
@@ -98,7 +111,7 @@ public abstract class AnalysisPlugin extends Plugin {
 		return dictionaryId + dictionaryTableSuffix;
 	}
 
-	protected File getDictionaryFile(String dictionaryName) {
+	public File getDictionaryFile(String dictionaryName) {
 		return new File(new File(pluginDir, dictionaryPath), dictionaryName + dictionarySuffix);
 	}
 

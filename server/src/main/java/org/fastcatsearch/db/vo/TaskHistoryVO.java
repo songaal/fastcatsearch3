@@ -7,7 +7,7 @@ import org.fastcatsearch.db.mapper.IndexingResultMapper.ResultStatus;
 public class TaskHistoryVO {
 	public int id;
 	public long taskId;
-	public String exec;
+	public String executable;
 	public String args;
 	public ResultStatus status;
 	public String resultStr;
