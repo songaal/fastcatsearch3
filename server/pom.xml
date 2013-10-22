@@ -17,7 +17,10 @@
 		<artifactId>fastcatsearch</artifactId>
 		<version>2.13.10</version>
 	</parent>
-
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	
 	<dependencies>
 		<dependency>
 			<groupId>org.fastcatgroup.fastcatsearch</groupId>

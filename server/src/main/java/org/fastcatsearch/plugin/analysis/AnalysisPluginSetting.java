@@ -35,6 +35,7 @@ public class AnalysisPluginSetting extends PluginSetting {
 		this.analyzerList = analyzerList;
 	}
 	
+	@XmlType(propOrder={"className", "name", "id"})
 	public static class Analyzer {
 		String id;
 		String name;
@@ -63,13 +64,12 @@ public class AnalysisPluginSetting extends PluginSetting {
 		}
 	}
 	
-	@XmlType(propOrder={"columnList", "type", "name", "id"})
+	@XmlType(propOrder={"columnSettingList", "type", "name", "id"})
 	public static class DictionarySetting {
 		private String id;
 		private String name;
 		private String type;
 		private List<ColumnSetting> columnSettingList;
-//		private boolean ignoreCase;
 		
 		@XmlAttribute(required = true)
 		public String getId() {
@@ -114,7 +114,7 @@ public class AnalysisPluginSetting extends PluginSetting {
 			<column name="score" index="true" compilable="true" />
 		</dictionary>
 	 * */
-	@XmlType(propOrder={"compilable", "searchable", "separator", "index", "key", "name"})
+	@XmlType(propOrder={"ignoreCase", "compilable", "searchable", "separator", "index", "key", "type", "name"})
 	public static class ColumnSetting {
 		private String name;
 		private String type;

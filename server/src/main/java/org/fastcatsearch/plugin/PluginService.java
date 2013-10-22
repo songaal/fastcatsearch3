@@ -118,29 +118,6 @@ public class PluginService extends AbstractService {
 					logger.error("{}", e);
 				}
 
-				/*
-				 * 2. Analysis db로딩.
-				 */
-//				try {
-//					if (setting.getNamespace().equalsIgnoreCase("Analysis")) {
-//						AnalysisPluginSetting analysisPluginSetting = (AnalysisPluginSetting) setting;
-//						List<Dictionary> dictionaryList = analysisPluginSetting.getDictionaryList();
-//						for (Dictionary dictionary : dictionaryList) {
-//							String tableName = setting.getKey(dictionary.getId());
-//							String daoClassName = dictionary.getDaoClass();
-//							if (daoClassName != null && daoClassName.length() > 0) {
-//								DAOBase daoBase = DynamicClassLoader.loadObject(daoClassName, DAOBase.class, new Class<?>[] { String.class,
-//										ConnectionManager.class }, new Object[] { tableName, null });
-//								internalDBModule.addDAO(tableName, daoBase);
-//							}
-//
-//						}
-//					}else{
-//						//이곳은 다른 타입의 plugin에서 필요할수도 있다.
-//					}
-//				} catch (SQLException e) {
-//					logger.error(setting.getId() +" Plugin DAO 생성중 에러. {}", e);
-//				}
 			}
 
 		} catch (JAXBException e) {
