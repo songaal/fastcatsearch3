@@ -309,17 +309,25 @@ public abstract class DataOutput extends OutputStream {
 		if(length == 0){
 			return;
 		}
-		if (start >= v.length) {
-			throw new IOException("start position exceeds array length. start=" + start + ", array.length=" + v.length);
-		}
+		
 		int newLength = length;
-		if (start + length > v.length) {
-			newLength = v.length - start;
+		
+		if(v.length > 0) {
+			if (start >= v.length) {
+				throw new IOException("start position exceeds array length. start=" + start + ", array.length=" + v.length);
+			}
+			
+			if (start + length > v.length) {
+				newLength = v.length - start;
+			}
+			for (int i = 0; i < newLength; i++) {
+				writeAChar(v[start + i], upperCase);
+			}
+			
+		}else{
+			//기록된바 없음.
+			newLength = 0; 
 		}
-		for (int i = 0; i < newLength; i++) {
-			writeAChar(v[start + i], upperCase);
-		}
-
 		// 나머지 0으로 기록. length와 newLength 가 동일하다면 수행되지 않음.
 		for (int i = 0; i < length - newLength; i++) {
 			writeAChar(0);
@@ -334,17 +342,25 @@ public abstract class DataOutput extends OutputStream {
 		if(length == 0){
 			return;
 		}
-		if (start >= v.length) {
-			throw new IOException("start position exceeds array length. start=" + start + ", array.length=" + v.length);
-		}
+		
 		int newLength = length;
-		if (start + length > v.length) {
-			newLength = v.length - start;
-		}
-		for (int i = 0; i < newLength; i++) {
-			writeUChar(v[start + i], upperCase);
-		}
+		
+		if(v.length > 0) {
+			if (start >= v.length) {
+				throw new IOException("start position exceeds array length. start=" + start + ", array.length=" + v.length);
+			}
+			
+			if (start + length > v.length) {
+				newLength = v.length - start;
+			}
+			for (int i = 0; i < newLength; i++) {
+				writeUChar(v[start + i], upperCase);
+			}
 
+		}else{
+			//기록된바 없음.
+			newLength = 0; 
+		}
 		// 나머지 0으로 기록. length와 newLength 가 동일하다면 수행되지 않음.
 		for (int i = 0; i < length - newLength; i++) {
 			writeUChar(0);

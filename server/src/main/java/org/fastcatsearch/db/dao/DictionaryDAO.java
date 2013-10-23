@@ -119,6 +119,15 @@ public class DictionaryDAO {
 			mapperContext.closeSession();
 		}
 	}
+	
+	public int deleteEntryList(String idList) throws Exception {
+		MapperSession<DictionaryMapper> mapperContext = openMapper();
+		try {
+			return mapperContext.getMapper().deleteEntryList(tableName, idList);
+		} finally {
+			mapperContext.closeSession();
+		}
+	}
 
 	public Map<String, Object> getEntry(int id) throws Exception {
 		MapperSession<DictionaryMapper> mapperContext = openMapper();

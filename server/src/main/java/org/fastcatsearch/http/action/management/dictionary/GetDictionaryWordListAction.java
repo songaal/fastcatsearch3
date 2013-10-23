@@ -49,7 +49,7 @@ public class GetDictionaryWordListAction extends AuthAction {
 			totalSize = dictionaryDAO.getCount(null, null);
 			filteredSize = dictionaryDAO.getCount(search, searchColumnList);
 			
-			List<Map<String, Object>> list = dictionaryDAO.getEntryList(start, start + length, search, searchColumnList);
+			List<Map<String, Object>> list = dictionaryDAO.getEntryList(start, start + length - 1, search, searchColumnList);
 			final String ID_COLUMN = "ID";
 			List<ColumnSetting> columnSettingList = dictionaryDAO.columnSettingList();
 			for(Map<String, Object> vo : list){

@@ -46,18 +46,22 @@ Derby SQL 문법에 따른다.
 	<select id="getEntryList" parameterType="map" resultType="map">
 		<choose>
 			<when test="start &gt; 0">
-				select *
+				select tmp2.*
 				from (
-				select row_number() over() as rownum, ${table}.* from ${table}
-				<if test="search != null and columns != null">
-					<where> 
-						<foreach item="column" index="index" collection="columns">
-						or ${column} like #{search}
-						</foreach>
-					</where>
-				</if>
-				order by id desc
-				) as tmp where rownum &gt;= #{start} and rownum &lt;= #{end}
+					select row_number() over() as rownum, tmp.* from 
+					(
+					select * from ${table} 
+					<if test="search != null and search != '' and columns != null">
+						<where> 
+							<foreach item="column" index="index" collection="columns">
+							or ${column} like #{search}
+							</foreach>
+						</where>
+					</if>
+					order by id desc
+					) as tmp
+				) as tmp2 where rownum &gt;= #{start} and rownum &lt;= #{end}
+				
 			</when>
 			<otherwise>
 				select * from ${table} where id = -1
@@ -68,7 +72,7 @@ Derby SQL 문법에 따른다.
 	<select id="getCount" parameterType="map" resultType="int">
 		select count(*)
 		from ${table}
-		<if test="search != null and columns != null">
+		<if test="search != null and search != '' and columns != null">
 			<where> 
 				<foreach item="column" index="index" collection="columns">
 				or ${column} like #{search}
@@ -106,5 +110,10 @@ Derby SQL 문법에 따른다.
 	<delete id="deleteEntry" parameterType="map">
 		delete from ${table} 
 		where id = #{id}
+	</delete>
+	
+	<delete id="deleteEntryList" parameterType="map">
+		delete from ${table} 
+		where id in (${idList})
 	</delete>
 </mapper>

@@ -18,42 +18,65 @@ public class ShardFilter {
 	
 	private Integer index;
 	protected Set<String> dataSet;
+	private boolean hasAll;
 	
 	public ShardFilter(Map<String, Integer> fieldSequenceMap, String filter) {
+		filter = filter.trim();
 		
-		int pos = filter.indexOf('=');
-		
-		String fieldId = filter.substring(0, pos).trim();
-		String value = filter.substring(pos + 1).trim();
-		String[] values = null;
-		if(value.startsWith("(")){
-			values = value.substring(1, value.length() - 1).split(",");
+		if(filter.equals("ALL")){
+			hasAll = true;
+			return;
 		}
 		
 		dataSet = new HashSet<String>();
-		if(values != null){
-			//multi value
-			for (int i = 0; i < values.length; i++) {
-				
-				dataSet.add(stripString(values[i].trim()));
+		
+		try{
+			int pos = filter.indexOf('=');
+			
+			String fieldId = filter.substring(0, pos).trim();
+			String value = filter.substring(pos + 1).trim();
+			String[] values = null;
+			if(value.startsWith("(")){
+				values = value.substring(1, value.length() - 1).split(",");
 			}
-		}else{
-			//single value
-			dataSet.add(stripString(value));
+			
+			
+			if(values != null){
+				//multi value
+				for (int i = 0; i < values.length; i++) {
+					dataSet.add(stripString(values[i].trim()));
+				}
+			}else{
+				//single value
+				dataSet.add(stripString(value));
+			}
+	
+			index = fieldSequenceMap.get(fieldId);
+		}catch(Exception e){
+			logger.error("Filter condition has error.filter >> \"{}\"", filter);
 		}
-
-		index = fieldSequenceMap.get(fieldId);
 	}
 
 	private String stripString(String str){
-		if(str.startsWith("'")){
+		if(str.startsWith("'") && str.endsWith("'")){
 			return str.substring(1, str.length() - 1);
 		}
 		return str;
 	}
 	
 	public boolean accept(Document document) {
+		if(hasAll){
+			return true;
+		}
+		if(index == null){
+			return false;
+		}
+		
 		Field field = document.get(index);
+		if(field == null){
+			return false;
+		}
+		
 		String fieldValue = field.getDataString();
 		return dataSet.contains(fieldValue);
 	}

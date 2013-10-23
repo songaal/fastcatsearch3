@@ -231,12 +231,14 @@ public class CollectionContextUtil {
 				JAXBConfigs.writeConfig(new File(indexDir, SettingFileNames.dataInfo), dataInfo, DataInfo.class);
 
 				SegmentInfo lastSegmentInfo = dataInfo.getLastSegmentInfo();
-				File revisionDir = indexFilePaths.revisionFile(shardContext.getIndexSequence(), lastSegmentInfo.getId(),
-						lastSegmentInfo.getRevision());
-				RevisionInfo revisionInfo = lastSegmentInfo.getRevisionInfo();
-				if (revisionInfo != null) {
-					logger.debug("Save RevisionInfo >> {}, {}", revisionDir.getAbsolutePath(), revisionInfo);
-					JAXBConfigs.writeConfig(new File(revisionDir, SettingFileNames.revisionInfo), revisionInfo, RevisionInfo.class);
+				if(lastSegmentInfo != null) {
+					File revisionDir = indexFilePaths.revisionFile(shardContext.getIndexSequence(), lastSegmentInfo.getId(),
+							lastSegmentInfo.getRevision());
+					RevisionInfo revisionInfo = lastSegmentInfo.getRevisionInfo();
+					if (revisionInfo != null) {
+						logger.debug("Save RevisionInfo >> {}, {}", revisionDir.getAbsolutePath(), revisionInfo);
+						JAXBConfigs.writeConfig(new File(revisionDir, SettingFileNames.revisionInfo), revisionInfo, RevisionInfo.class);
+					}
 				}
 			}
 		} catch (JAXBException e) {

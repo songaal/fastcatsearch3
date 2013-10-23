@@ -133,7 +133,7 @@ public class DynamicClassLoader {
 			Class<?> clazz = loadClass(className);
 			if(clazz != null){
 				try{
-				Constructor<?> constructor = clazz.getConstructor(paramTypes);
+					Constructor<?> constructor = clazz.getConstructor(paramTypes);
 					return (T) constructor.newInstance(initargs);
 				}catch(NoSuchMethodException e){
 					logger.trace("해당 생성자가 없습니다. {} >> {} {} {} {} {} {} {}", className, paramTypes);
@@ -156,7 +156,7 @@ public class DynamicClassLoader {
 		}catch(ClassNotFoundException ignore){
 			
 		}
-		
+		logger.debug("basic cl {}",clazz);
 		try{
 			lock.readLock().lock();
 			Iterator<URLClassLoader> iter = classLoaderList.values().iterator();
@@ -164,7 +164,9 @@ public class DynamicClassLoader {
 				URLClassLoader l = (URLClassLoader)iter.next();
 				try {
 					clazz = Class.forName(className, true, l);
+					logger.debug("{} cl {}", l, clazz);
 				} catch (ClassNotFoundException e) {
+					logger.debug("{} cl {}", l, clazz);
 					continue;
 				}
 				

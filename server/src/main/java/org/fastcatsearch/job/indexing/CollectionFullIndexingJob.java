@@ -92,14 +92,13 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			 * shard별 색인파일 원격복사.
 			 */
 			indexingTaskState.setState(IndexingTaskState.STATE_FILECOPY);
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			
 			for(ShardContext shardContext : collectionContext.getShardContextList()){
 				String shardId = shardContext.shardId();
 				SegmentInfo segmentInfo = shardContext.dataInfo().getLastSegmentInfo();
+				if(segmentInfo == null) {
+					continue;
+				}
 				String segmentId = segmentInfo.getId();
 				logger.debug("Transfer index data shard[{}] >> {}", shardId, segmentInfo);
 				

@@ -122,8 +122,7 @@ public class FieldSetting {
 		this.size = size;
 	}
 
-	@XmlAttribute(required = true)
-	@XmlJavaTypeAdapter(OptionalBooleanTrueAdapter.class)
+	@XmlJavaTypeAdapter(OptionalBooleanFalseAdapter.class)
 	public Boolean isStore() {
 		return store;
 	}

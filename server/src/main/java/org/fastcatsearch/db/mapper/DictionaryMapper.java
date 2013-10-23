@@ -28,6 +28,8 @@ public interface DictionaryMapper {
 	
 	public int deleteEntry(@Param("table") String table, @Param("id") int id) throws Exception;
 	
+	public int deleteEntryList(@Param("table") String table, @Param("idList") String idList) throws Exception;
+	
 	public static class KeyValue {
 		private String key;
 		private Object value;
