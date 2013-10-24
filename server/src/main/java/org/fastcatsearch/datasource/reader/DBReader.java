@@ -130,9 +130,7 @@ public class DBReader extends SingleSourceReader {
 			}
 
 			logger.debug("Data query = {}", dataSQL);
-			if (getConfigBoolean("resultBuffering")) {
-				pstmt = new BufferedStatement(pstmt);
-			} else if (getConfigInt("fetchSize") <= 0){
+			if (getConfigInt("fetchSize") <= 0){
 				//in mysql, fetch data row by row 
 				pstmt = con.prepareStatement(q(dataSQL), ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				pstmt.setFetchSize(Integer.MIN_VALUE);
