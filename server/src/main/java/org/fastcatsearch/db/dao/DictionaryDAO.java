@@ -203,4 +203,13 @@ public class DictionaryDAO {
 			mapperContext.closeSession();
 		}
 	}
+	
+	public int truncate() throws Exception {
+		MapperSession<DictionaryMapper> mapperContext = openMapper();
+		try {
+			return mapperContext.getMapper().truncate(tableName);
+		} finally {
+			mapperContext.closeSession();
+		}
+	}
 }

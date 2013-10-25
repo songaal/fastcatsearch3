@@ -13,6 +13,7 @@ import org.fastcatsearch.db.dao.DictionaryDAO;
 import org.fastcatsearch.db.dao.CustomDictionaryDAO;
 import org.fastcatsearch.db.dao.MapDictionaryDAO;
 import org.fastcatsearch.db.dao.SetDictionaryDAO;
+import org.fastcatsearch.db.dao.SynonymDictionaryDAO;
 import org.fastcatsearch.ir.dic.Dictionary;
 import org.fastcatsearch.ir.dictionary.CustomDictionary;
 import org.fastcatsearch.ir.dictionary.DAOSourceDictionaryCompiler;
@@ -75,7 +76,12 @@ public abstract class AnalysisPlugin extends Plugin {
 
 				List<ColumnSetting> columnSettingList = dictionarySetting.getColumnSettingList();
 				if (columnSettingList != null) {
-					DictionaryDAO dao = new DictionaryDAO(tableName, columnSettingList, internalDBModule);
+					DictionaryDAO dao = null;
+					if(type.equals("synonym")){
+						dao = new SynonymDictionaryDAO(tableName, columnSettingList, internalDBModule);
+					}else{
+						dao = new DictionaryDAO(tableName, columnSettingList, internalDBModule);
+					}
 					boolean isValidDAO = false;
 					if(!dao.validateTable()){
 						dao.dropTable();

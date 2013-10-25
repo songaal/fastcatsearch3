@@ -114,7 +114,7 @@ public class AnalysisPluginSetting extends PluginSetting {
 			<column name="score" index="true" compilable="true" />
 		</dictionary>
 	 * */
-	@XmlType(propOrder={"ignoreCase", "compilable", "searchable", "separator", "index", "key", "type", "name"})
+	@XmlType(propOrder={"nullableUnique", "ignoreCase", "compilable", "searchable", "separator", "index", "key", "type", "name"})
 	public static class ColumnSetting {
 		private String name;
 		private String type;
@@ -124,6 +124,7 @@ public class AnalysisPluginSetting extends PluginSetting {
 		private boolean searchable;
 		private boolean compilable;
 		private boolean ignoreCase;
+		private boolean nullableUnique; //null을 허용하지만 값이 존재할때에는 unique해야하는 컬럼. 유사어의 key컬럼용도. table생성시에는 관여하지 않는다.
 		
 		@XmlAttribute(required = true)
 		public String getName() {
@@ -176,7 +177,7 @@ public class AnalysisPluginSetting extends PluginSetting {
 		public void setSeparator(String separator) {
 			this.separator = separator;
 		}
-		
+
 		@XmlAttribute
 		public boolean isIgnoreCase() {
 			return ignoreCase;
@@ -184,6 +185,15 @@ public class AnalysisPluginSetting extends PluginSetting {
 		
 		public void setIgnoreCase(boolean ignoreCase) {
 			this.ignoreCase = ignoreCase;
+		}
+		
+		@XmlAttribute
+		public boolean isNullableUnique() {
+			return nullableUnique;
+		}
+		
+		public void setNullableUnique(boolean nullableUnique) {
+			this.nullableUnique = nullableUnique;
 		}
 		
 	}

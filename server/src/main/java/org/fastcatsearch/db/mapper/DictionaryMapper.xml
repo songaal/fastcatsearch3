@@ -69,6 +69,11 @@ Derby SQL 문법에 따른다.
 		</choose>
 	</select>
 	
+	<select id="hasEntry" parameterType="map" resultType="int">
+		select count(*) from ${table} 
+		where ${column} = #{search}
+	</select>
+	
 	<select id="getCount" parameterType="map" resultType="int">
 		select count(*)
 		from ${table}
@@ -115,5 +120,9 @@ Derby SQL 문법에 따른다.
 	<delete id="deleteEntryList" parameterType="map">
 		delete from ${table} 
 		where id in (${idList})
+	</delete>
+	
+	<delete id="truncate" parameterType="map">
+		truncate table ${table} 
 	</delete>
 </mapper>

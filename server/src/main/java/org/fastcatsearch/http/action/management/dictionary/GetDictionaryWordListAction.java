@@ -1,6 +1,7 @@
 package org.fastcatsearch.http.action.management.dictionary;
 
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -12,7 +13,9 @@ import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.plugin.analysis.AnalysisPlugin;
+import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
+import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
@@ -33,6 +36,25 @@ public class GetDictionaryWordListAction extends AuthAction {
 		Plugin plugin = pluginService.getPlugin(pluginId);
 		AnalysisPlugin analysisPlugin = (AnalysisPlugin) plugin;
 		
+		AnalysisPluginSetting analysisPluginSetting = (AnalysisPluginSetting) plugin.getPluginSetting();
+		List<DictionarySetting> dictionaryList = analysisPluginSetting.getDictionarySettingList();
+		
+		List<String> searchableColumnList = new ArrayList<String>(); 
+		if(dictionaryList != null){
+			for(DictionarySetting dictionary : dictionaryList){
+				if(dictionary.getId().equals(dictionaryId)){
+					List<ColumnSetting> columnSettingList = dictionary.getColumnSettingList();
+					for(int i=0;i<columnSettingList.size(); i++){
+						ColumnSetting columnSetting = columnSettingList.get(i);
+						if(columnSetting.isSearchable()){
+							searchableColumnList.add(columnSetting.getName());
+						}
+					}
+				}
+			}
+		}
+		
+		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		
@@ -42,9 +64,11 @@ public class GetDictionaryWordListAction extends AuthAction {
 		resultWriter.object().key(dictionaryId).array();
 		
 		String[] searchColumnList = null;
-		if(searchColumns != null){
+		if(searchColumns != null && searchColumns.trim().length() > 0){
 			searchColumnList = searchColumns.split(",");
 		}
+		
+		logger.debug("searchColumns > {}, {}", searchColumns, searchColumnList);
 		if(dictionaryDAO != null){
 			totalSize = dictionaryDAO.getCount(null, null);
 			filteredSize = dictionaryDAO.getCount(search, searchColumnList);
@@ -69,8 +93,15 @@ public class GetDictionaryWordListAction extends AuthAction {
 		
 		resultWriter.endArray();
 		
-		resultWriter.key("totalSize").value(totalSize).key("filteredSize").value(filteredSize)
-		.endObject();
+		resultWriter.key("totalSize").value(totalSize).key("filteredSize").value(filteredSize);
+		
+		resultWriter.key("searchableColumnList").array();
+		for(String columnName : searchableColumnList){
+			resultWriter.value(columnName.toUpperCase());
+		}
+		resultWriter.endArray();
+		
+		resultWriter.endObject();
 		resultWriter.done();
 			
 	}

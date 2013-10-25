@@ -20,6 +20,8 @@ public interface DictionaryMapper {
 	
 	public List<Map<String, Object>> getEntryList(@Param("table") String table, @Param("start") int start, @Param("end") int end, @Param("search") String search, @Param("columns") String[] columns) throws Exception;
 	
+	public int hasEntry(@Param("table") String table, @Param("search") String search, @Param("column") String column) throws Exception;
+	
 	public int getCount(@Param("table") String table, @Param("search") String search, @Param("columns") String[] columns) throws Exception;
 	
 	public int putEntry(@Param("table") String table, @Param("columns") String[] columns, @Param("values") Object[] values) throws Exception;
@@ -29,6 +31,8 @@ public interface DictionaryMapper {
 	public int deleteEntry(@Param("table") String table, @Param("id") int id) throws Exception;
 	
 	public int deleteEntryList(@Param("table") String table, @Param("idList") String idList) throws Exception;
+	
+	public int truncate(@Param("table") String table) throws Exception;
 	
 	public static class KeyValue {
 		private String key;

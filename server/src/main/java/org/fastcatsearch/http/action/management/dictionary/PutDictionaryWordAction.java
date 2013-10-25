@@ -1,6 +1,7 @@
 package org.fastcatsearch.http.action.management.dictionary;
 
 import java.io.Writer;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.List;
 
 import org.fastcatsearch.db.dao.DictionaryDAO;
@@ -33,6 +34,7 @@ public class PutDictionaryWordAction extends AuthAction {
 		List<ColumnSetting> columnSettingList = dictionaryDAO.columnSettingList();
 
 		int count = 0;
+		String errorMessage = null;
 		if (columnSettingList != null && columnSettingList.size() > 0) {
 			String[] columns = new String[columnSettingList.size()];
 			Object[] values = new Object[columnSettingList.size()];
@@ -56,12 +58,24 @@ public class PutDictionaryWordAction extends AuthAction {
 					values[i] = value;
 				}
 			}
-			count = dictionaryDAO.putEntry(columns, values);
+			try{
+				count = dictionaryDAO.putEntry(columns, values);
+			}catch(Exception e){
+				if(e.getCause() instanceof SQLIntegrityConstraintViolationException){
+					errorMessage = "Duplicate word exist.";
+				}else{
+					errorMessage = e.getCause().toString();
+				}
+			}
 		}
 
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
-		resultWriter.object().key("success").value(count > 0).endObject();
+		resultWriter.object().key("success").value(count > 0);
+		if(errorMessage != null){
+			resultWriter.key("errorMessage").value(errorMessage);
+		}
+		resultWriter.endObject();
 		resultWriter.done();
 
 	}
