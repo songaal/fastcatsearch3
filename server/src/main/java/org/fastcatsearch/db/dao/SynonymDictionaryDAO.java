@@ -66,33 +66,10 @@ public class SynonymDictionaryDAO extends DictionaryDAO {
 	}
 	
 	@Override
-	public int updateEntry(int id, String[] columns, Object[] values) throws Exception {
+	public int updateEntry(Object id, String[] columns, Object[] values) throws Exception {
 		if (columns.length != values.length) {
 			throw new IllegalArgumentException("update value length is different from columns.length. " + columns.length + " != "
 					+ values.length);
-		}
-		
-		boolean isExists = false;
-		if(nullableUniqueColumnName != null){
-			for(int i = 0; i < columns.length; i++){
-				String column = columns[i];
-				if(nullableUniqueColumnName.equalsIgnoreCase(column)){
-					String value = values[i].toString();
-					MapperSession<DictionaryMapper> mapperContext = openMapper();
-					try {
-						isExists = (mapperContext.getMapper().hasEntry(tableName, value, column) > 0);
-					} finally {
-						mapperContext.closeSession();
-					}
-					
-					break;
-				}
-			}
-		
-		}
-		if(isExists){
-			//존재하면 입력하지 않는다.
-			return 0;
 		}
 		
 		KeyValue[] keyValueList = new KeyValue[columns.length];

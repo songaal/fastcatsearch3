@@ -111,7 +111,7 @@ public class DictionaryDAO {
 		}
 	}
 
-	public int deleteEntry(int id) throws Exception {
+	public int deleteEntry(Object id) throws Exception {
 		MapperSession<DictionaryMapper> mapperContext = openMapper();
 		try {
 			return mapperContext.getMapper().deleteEntry(tableName, id);
@@ -129,7 +129,7 @@ public class DictionaryDAO {
 		}
 	}
 
-	public Map<String, Object> getEntry(int id) throws Exception {
+	public Map<String, Object> getEntry(Object id) throws Exception {
 		MapperSession<DictionaryMapper> mapperContext = openMapper();
 		try {
 			return mapperContext.getMapper().getEntry(tableName, id);
@@ -170,7 +170,7 @@ public class DictionaryDAO {
 		}
 	}
 
-	public int updateEntry(int id, String[] columns, Object[] values) throws Exception {
+	public int updateEntry(Object id, String[] columns, Object[] values) throws Exception {
 		if (columns.length != values.length) {
 			throw new IllegalArgumentException("update value length is different from columns.length. " + columns.length + " != "
 					+ values.length);

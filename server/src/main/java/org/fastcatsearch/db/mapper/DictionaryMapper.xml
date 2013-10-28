@@ -24,9 +24,9 @@ Derby SQL 문법에 따른다.
 	</update>
 	
 	<select id="validateTable" parameterType="map" resultType="map">
-		select id
+		select id, 
 		<if test="columnSettings != null">
-			<foreach item="column" index="index" collection="columnSettings">
+			<foreach item="column" index="index" collection="columnSettings" separator=",">
 			${column.name}
 			</foreach>
 		</if>
@@ -103,7 +103,7 @@ Derby SQL 문법에 따른다.
 	</insert>
 	
 	<update id="updateEntry" parameterType="map">
-		update ${table}
+		update ${table} set
 		<if test="keyValueList != null">
 			<foreach item="keyValue" index="index" collection="keyValueList" separator=","> 
 			${keyValue.key} = #{keyValue.value}

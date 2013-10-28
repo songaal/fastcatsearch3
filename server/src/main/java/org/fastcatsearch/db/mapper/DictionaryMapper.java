@@ -16,7 +16,7 @@ public interface DictionaryMapper {
 	
 	public void dropTable(@Param("table") String table) throws Exception;
 
-	public Map<String, Object> getEntry(@Param("table") String table, @Param("id") int id) throws Exception;
+	public Map<String, Object> getEntry(@Param("table") String table, @Param("id") Object id) throws Exception;
 	
 	public List<Map<String, Object>> getEntryList(@Param("table") String table, @Param("start") int start, @Param("end") int end, @Param("search") String search, @Param("columns") String[] columns) throws Exception;
 	
@@ -26,9 +26,9 @@ public interface DictionaryMapper {
 	
 	public int putEntry(@Param("table") String table, @Param("columns") String[] columns, @Param("values") Object[] values) throws Exception;
 	
-	public int updateEntry(@Param("table") String table, @Param("id") int id, @Param("keyValueList") KeyValue[] keyValueList) throws Exception;
+	public int updateEntry(@Param("table") String table, @Param("id") Object id, @Param("keyValueList") KeyValue[] keyValueList) throws Exception;
 	
-	public int deleteEntry(@Param("table") String table, @Param("id") int id) throws Exception;
+	public int deleteEntry(@Param("table") String table, @Param("id") Object id) throws Exception;
 	
 	public int deleteEntryList(@Param("table") String table, @Param("idList") String idList) throws Exception;
 	

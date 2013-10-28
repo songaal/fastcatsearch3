@@ -39,6 +39,7 @@ public class GetDictionaryWordListAction extends AuthAction {
 		AnalysisPluginSetting analysisPluginSetting = (AnalysisPluginSetting) plugin.getPluginSetting();
 		List<DictionarySetting> dictionaryList = analysisPluginSetting.getDictionarySettingList();
 		
+		List<String> columnNameList = new ArrayList<String>();
 		List<String> searchableColumnList = new ArrayList<String>(); 
 		if(dictionaryList != null){
 			for(DictionarySetting dictionary : dictionaryList){
@@ -49,6 +50,7 @@ public class GetDictionaryWordListAction extends AuthAction {
 						if(columnSetting.isSearchable()){
 							searchableColumnList.add(columnSetting.getName());
 						}
+						columnNameList.add(columnSetting.getName());
 					}
 				}
 			}
@@ -68,7 +70,7 @@ public class GetDictionaryWordListAction extends AuthAction {
 			searchColumnList = searchColumns.split(",");
 		}
 		
-		logger.debug("searchColumns > {}, {}", searchColumns, searchColumnList);
+		//logger.debug("searchColumns > {}, {}", searchColumns, searchColumnList);
 		if(dictionaryDAO != null){
 			totalSize = dictionaryDAO.getCount(null, null);
 			filteredSize = dictionaryDAO.getCount(search, searchColumnList);
@@ -97,6 +99,12 @@ public class GetDictionaryWordListAction extends AuthAction {
 		
 		resultWriter.key("searchableColumnList").array();
 		for(String columnName : searchableColumnList){
+			resultWriter.value(columnName.toUpperCase());
+		}
+		resultWriter.endArray();
+		
+		resultWriter.key("columnList").array();
+		for(String columnName : columnNameList){
 			resultWriter.value(columnName.toUpperCase());
 		}
 		resultWriter.endArray();
