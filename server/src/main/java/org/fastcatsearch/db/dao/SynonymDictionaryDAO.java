@@ -79,10 +79,19 @@ public class SynonymDictionaryDAO extends DictionaryDAO {
 		
 		MapperSession<DictionaryMapper> mapperContext = openMapper();
 		try {
-			return mapperContext.getMapper().updateEntry(tableName, id, keyValueList);
+			int count = mapperContext.getMapper().updateEntry(tableName, id, keyValueList);
+			
+			//업데이트된것이 2개이상이면 중복이 있으므로 롤백한다.
+			if(count > 1){
+				mapperContext.rollback();
+				return 0;
+			}
+			
+			return count;
 		} finally {
 			mapperContext.closeSession();
 		}
 
 	}
+	
 }

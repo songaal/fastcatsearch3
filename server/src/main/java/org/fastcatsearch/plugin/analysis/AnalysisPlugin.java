@@ -10,9 +10,6 @@ import java.util.Set;
 
 import org.apache.ibatis.io.Resources;
 import org.fastcatsearch.db.dao.DictionaryDAO;
-import org.fastcatsearch.db.dao.CustomDictionaryDAO;
-import org.fastcatsearch.db.dao.MapDictionaryDAO;
-import org.fastcatsearch.db.dao.SetDictionaryDAO;
 import org.fastcatsearch.db.dao.SynonymDictionaryDAO;
 import org.fastcatsearch.ir.dic.Dictionary;
 import org.fastcatsearch.ir.dictionary.CustomDictionary;

@@ -146,6 +146,12 @@ public class InternalDBModule extends AbstractModule {
 				session.commit();
 			}
 		}
+		
+		public void rollback(){
+			if(session != null){
+				session.rollback();
+			}
+		}
 		public void closeSession(){
 			if(session != null){
 				session.commit();
