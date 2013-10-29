@@ -58,7 +58,9 @@ Derby SQL 문법에 따른다.
 							</foreach>
 						</where>
 					</if>
+					<if test="sortAsc == false">
 					order by id desc
+					</if>
 					) as tmp
 				) as tmp2 where rownum &gt;= #{start} and rownum &lt;= #{end}
 				

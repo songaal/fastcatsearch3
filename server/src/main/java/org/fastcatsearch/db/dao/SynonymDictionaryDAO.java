@@ -39,7 +39,7 @@ public class SynonymDictionaryDAO extends DictionaryDAO {
 					if(value == null || value.length() == 0){
 						break;
 					}
-					MapperSession<DictionaryMapper> mapperContext = openMapper();
+					MapperSession<DictionaryMapper> mapperContext = openMapperSession();
 					try {
 						int recordCount = mapperContext.getMapper().hasEntry(tableName, value, column);
 						isExists = (recordCount > 0);
@@ -57,7 +57,7 @@ public class SynonymDictionaryDAO extends DictionaryDAO {
 			return 0;
 		}
 		
-		MapperSession<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperContext = openMapperSession();
 		try {
 			return mapperContext.getMapper().putEntry(tableName, columns, values);
 		} finally {
@@ -77,7 +77,7 @@ public class SynonymDictionaryDAO extends DictionaryDAO {
 			keyValueList[i] = new KeyValue(columns[i], values[i]);
 		}
 		
-		MapperSession<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperContext = openMapperSession();
 		try {
 			int count = mapperContext.getMapper().updateEntry(tableName, id, keyValueList);
 			

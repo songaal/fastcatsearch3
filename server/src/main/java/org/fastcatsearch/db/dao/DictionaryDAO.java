@@ -54,24 +54,24 @@ public class DictionaryDAO {
 		return columnSettingList;
 	}
 	
-	protected MapperSession<DictionaryMapper> openMapper() {
+	public MapperSession<DictionaryMapper> openMapperSession() {
 		SqlSession session = internalDBModule.openSession();
 		if (session != null) {
 			return new MapperSession<DictionaryMapper>(session, session.getMapper(DictionaryMapper.class));
 		}
 		return null;
 	}
-
+	
 	public boolean creatTable() {
-		MapperSession<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperSession = openMapperSession();
 		try {
-			mapperContext.getMapper().createTable(tableName, columnSettingList);
-			mapperContext.commit();
+			mapperSession.getMapper().createTable(tableName, columnSettingList);
+			mapperSession.commit();
 			for(ColumnSetting columnSetting : columnSettingList){
 				if(columnSetting.isIndex() || columnSetting.isSearchable()){
 					String columnName = columnSetting.getName();
-					mapperContext.getMapper().createIndex(tableName, columnName);
-					mapperContext.commit();
+					mapperSession.getMapper().createIndex(tableName, columnName);
+					mapperSession.commit();
 				}
 			}
 			return true;
@@ -81,76 +81,76 @@ public class DictionaryDAO {
 			return false;
 		} finally {
 			logger.debug("create dictionary table > {}", tableName);
-			mapperContext.closeSession();
+			mapperSession.closeSession();
 		}
 	}
 
 	public boolean validateTable() {
-		MapperSession<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperSession = openMapperSession();
 		try {
-			mapperContext.getMapper().validateTable(tableName, columnSettingList);
+			mapperSession.getMapper().validateTable(tableName, columnSettingList);
 			return true;
 		} catch (Exception e) {
 			logger.debug("validate table error", e.getMessage());
 			return false;
 		} finally {
-			mapperContext.closeSession();
+			mapperSession.closeSession();
 		}
 	}
 
 	public boolean dropTable() {
-		MapperSession<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperSession = openMapperSession();
 		try {
-			mapperContext.getMapper().dropTable(tableName);
+			mapperSession.getMapper().dropTable(tableName);
 			return true;
 		} catch (Exception e) {
 			logger.debug("dropTable table error", e.getMessage());
 			return false;
 		} finally {
-			mapperContext.closeSession();
+			mapperSession.closeSession();
 		}
 	}
 
 	public int deleteEntry(Object id) throws Exception {
-		MapperSession<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperSession = openMapperSession();
 		try {
-			return mapperContext.getMapper().deleteEntry(tableName, id);
+			return mapperSession.getMapper().deleteEntry(tableName, id);
 		} finally {
-			mapperContext.closeSession();
+			mapperSession.closeSession();
 		}
 	}
 	
 	public int deleteEntryList(String idList) throws Exception {
-		MapperSession<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperSession = openMapperSession();
 		try {
-			return mapperContext.getMapper().deleteEntryList(tableName, idList);
+			return mapperSession.getMapper().deleteEntryList(tableName, idList);
 		} finally {
-			mapperContext.closeSession();
+			mapperSession.closeSession();
 		}
 	}
 
 	public Map<String, Object> getEntry(Object id) throws Exception {
-		MapperSession<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperSession = openMapperSession();
 		try {
-			return mapperContext.getMapper().getEntry(tableName, id);
+			return mapperSession.getMapper().getEntry(tableName, id);
 		} finally {
-			mapperContext.closeSession();
+			mapperSession.closeSession();
 		}
 	}
 	
-	public List<Map<String, Object>> getEntryList(int start, int end, String search) throws Exception {
-		return getEntryList(start, end, search, searchColumns);
+	public List<Map<String, Object>> getEntryList(int start, int end, String search, Boolean sortAsc) throws Exception {
+		return getEntryList(start, end, search, searchColumns, sortAsc);
 	}
 	
-	public List<Map<String, Object>> getEntryList(int start, int end, String search, String[] columns) throws Exception {
+	public List<Map<String, Object>> getEntryList(int start, int end, String search, String[] columns, Boolean sortAsc) throws Exception {
 		if(columns == null){
 			columns = searchColumns;
 		}
-		MapperSession<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperSession = openMapperSession();
 		try {
-			return mapperContext.getMapper().getEntryList(tableName, start, end, search, columns);
+			return mapperSession.getMapper().getEntryList(tableName, start, end, search, columns, sortAsc);
 		} finally {
-			mapperContext.closeSession();
+			mapperSession.closeSession();
 		}
 	}
 
@@ -162,11 +162,11 @@ public class DictionaryDAO {
 		if(columns == null){
 			columns = searchColumns;
 		}
-		MapperSession<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperSession = openMapperSession();
 		try {
-			return mapperContext.getMapper().getCount(tableName, search, columns);
+			return mapperSession.getMapper().getCount(tableName, search, columns);
 		} finally {
-			mapperContext.closeSession();
+			mapperSession.closeSession();
 		}
 	}
 
@@ -181,11 +181,11 @@ public class DictionaryDAO {
 			keyValueList[i] = new KeyValue(columns[i], values[i]);
 		}
 		
-		MapperSession<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperSession = openMapperSession();
 		try {
-			return mapperContext.getMapper().updateEntry(tableName, id, keyValueList);
+			return mapperSession.getMapper().updateEntry(tableName, id, keyValueList);
 		} finally {
-			mapperContext.closeSession();
+			mapperSession.closeSession();
 		}
 
 	}
@@ -196,20 +196,29 @@ public class DictionaryDAO {
 					+ values.length);
 		}
 
-		MapperSession<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperSession = openMapperSession();
 		try {
-			return mapperContext.getMapper().putEntry(tableName, columns, values);
+			return mapperSession.getMapper().putEntry(tableName, columns, values);
 		} finally {
-			mapperContext.closeSession();
+			mapperSession.closeSession();
 		}
 	}
 	
+	public int putRawEntry(MapperSession<DictionaryMapper> mapperSession, String[] columns, Object[] values) throws Exception {
+		if (columns.length != values.length) {
+			throw new IllegalArgumentException("put values length is different from columns.length. " + columns.length + " != "
+					+ values.length);
+		}
+
+		return mapperSession.getMapper().putEntry(tableName, columns, values);
+	}
+	
 	public int truncate() throws Exception {
-		MapperSession<DictionaryMapper> mapperContext = openMapper();
+		MapperSession<DictionaryMapper> mapperSession = openMapperSession();
 		try {
-			return mapperContext.getMapper().truncate(tableName);
+			return mapperSession.getMapper().truncate(tableName);
 		} finally {
-			mapperContext.closeSession();
+			mapperSession.closeSession();
 		}
 	}
 }
