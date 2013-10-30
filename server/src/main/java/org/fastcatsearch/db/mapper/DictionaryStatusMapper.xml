@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- default field : id, keyword -->
+<mapper namespace="org.fastcatsearch.db.mapper.DictionaryStatusMapper">
+
+	<update id="createTable">
+		create table DictionaryStatus (
+		dictionaryId varchar(50),
+		updateTime timestamp,
+		applyTime timestamp,
+		applyEntrySize int,
+		primary key (dictionaryId)
+		)
+	</update>
+	
+	<update id="createIndex">
+	</update>
+	
+	<select id="validateTable" parameterType="map" resultType="map">
+		select dictionaryId, updateTime, applyTime, applyEntrySize
+		from DictionaryStatus
+		fetch first 1 rows only
+	</select>
+
+	<update id="dropTable" parameterType="map">
+		drop table DictionaryStatus
+	</update>
+
+	<select id="getEntry" parameterType="map" resultType="org.fastcatsearch.db.vo.DictionaryStatusVO">
+		select *
+		from DictionaryStatus where dictionaryId = #{dictionaryId}
+	</select>
+
+	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.DictionaryStatusVO">
+		insert into DictionaryStatus ( 
+			dictionaryId, updateTime, applyTime, applyEntrySize
+		)
+		values (
+			#{dictionaryId}, #{updateTime}, #{applyTime}, #{applyEntrySize}
+		)
+	</insert>
+	
+	<delete id="deleteEntry" parameterType="map">
+		delete from DictionaryStatus
+		where dictionaryId = #{dictionaryId}
+	</delete>
+	
+	<update id="updateUpdateTime" parameterType="map">
+		update DictionaryStatus set updateTime = CURRENT_TIMESTAMP
+		where dictionaryId = #{dictionaryId}
+	</update>
+
+	<update id="updateApplyStatus" parameterType="map">
+		update DictionaryStatus 
+		set applyTime = CURRENT_TIMESTAMP, applyEntrySize = #{applyEntrySize}
+		where dictionaryId = #{dictionaryId}
+	</update>
+	
+	<delete id="truncate">
+		truncate table DictionaryStatus
+	</delete>
+</mapper>

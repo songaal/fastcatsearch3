@@ -102,7 +102,11 @@ public class BulkPutDictionaryWordAction extends AuthAction {
 				}
 			}
 		}
-
+		
+		if(count > 0){
+			analysisPlugin.dictionaryStatusDAO().updateUpdateTime(dictionaryId);
+		}
+		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		resultWriter.object().key("success").value(isSuccess)

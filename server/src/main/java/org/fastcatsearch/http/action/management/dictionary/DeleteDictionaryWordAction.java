@@ -28,11 +28,13 @@ public class DeleteDictionaryWordAction extends AuthAction {
 		AnalysisPlugin analysisPlugin = (AnalysisPlugin) plugin;
 
 		DictionaryDAO dictionaryDAO = analysisPlugin.getDictionaryDAO(dictionaryId);
-		int result = dictionaryDAO.deleteEntryList(deleteIdList);
-
+		int count = dictionaryDAO.deleteEntryList(deleteIdList);
+		if(count > 0){
+			analysisPlugin.dictionaryStatusDAO().updateUpdateTime(dictionaryId);
+		}
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
-		resultWriter.object().key("success").value(result > 0).key("result").value(result).endObject();
+		resultWriter.object().key("success").value(count > 0).key("result").value(count).endObject();
 		resultWriter.done();
 
 	}

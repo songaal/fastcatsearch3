@@ -10,9 +10,13 @@ import java.util.Map;
 
 import org.fastcatsearch.db.dao.DictionaryDAO;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DAOSourceDictionaryCompiler {
-
+	
+	protected static final Logger logger = LoggerFactory.getLogger(DAOSourceDictionaryCompiler.class);
+	
 	private static final int BULK_SIZE = 500;
 
 	public static void compile(File targetFile, DictionaryDAO dictionaryDAO, SourceDictionary dictionaryType, List<ColumnSetting> columnList)
@@ -31,17 +35,22 @@ public class DAOSourceDictionaryCompiler {
 		for (int i = 0; i < columnList.size(); i++) {
 			ColumnSetting columnSetting = columnList.get(i);
 			if (columnSetting.isCompilable() && !columnSetting.isKey()) {
-				valueColumnNames.add(columnSetting.getName());
+				valueColumnNames.add(columnSetting.getName().toUpperCase());
 				ignoreCaseList.add(columnSetting.isIgnoreCase());
 			}
 			if (columnSetting.isKey()) {
-				keyColumnName = columnSetting.getName();
-				keyIgnoreCase =columnSetting.isIgnoreCase(); 
+				keyColumnName = columnSetting.getName().toUpperCase();
+				keyIgnoreCase = columnSetting.isIgnoreCase(); 
 			}
 		}
 		boolean[] valuesIgnoreCase = new boolean[ignoreCaseList.size()];
 		for(int i=0;i<ignoreCaseList.size(); i++){
 			valuesIgnoreCase[i] = ignoreCaseList.get(i);
+		}
+		
+		boolean isKeyNullable = dictionaryType instanceof SynonymDictionary;
+		if(!isKeyNullable && keyColumnName == null){
+			throw new Exception("Key column is not specified.");
 		}
 		
 		while (start <= count) {
@@ -50,9 +59,11 @@ public class DAOSourceDictionaryCompiler {
 			List<Map<String, Object>> result = dictionaryDAO.getEntryList(start, end, null, null);
 			for (int i = 0; i < result.size(); i++) {
 				Map<String, Object> vo = result.get(i);
-
 				Object[] values = new Object[valueColumnNames.size()];
-				String key = vo.get(keyColumnName).toString();
+				String key = null;
+				if(keyColumnName != null){
+					key = vo.get(keyColumnName).toString();
+				}
 				for (int j = 0; j < valueColumnNames.size(); j++) {
 					String columnName = valueColumnNames.get(j);
 					

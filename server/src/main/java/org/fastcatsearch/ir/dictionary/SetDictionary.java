@@ -21,9 +21,14 @@ import org.fastcatsearch.ir.io.DataOutput;
 
 public class SetDictionary extends SourceDictionary implements ReadableDictionary {
 	
+	
 	private Set<CharVector> set;
 
 	public SetDictionary() {
+		this(false);
+	}
+	
+	public SetDictionary(boolean isTokenWord) {
 		set = new HashSet<CharVector>();
 	}
 

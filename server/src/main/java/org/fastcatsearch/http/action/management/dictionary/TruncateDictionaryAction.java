@@ -33,6 +33,7 @@ public class TruncateDictionaryAction extends AuthAction {
 		try{
 			dictionaryDAO.truncate();
 			isSuccess = true;
+			analysisPlugin.dictionaryStatusDAO().updateUpdateTime(dictionaryId);
 		}catch(Exception e){
 			isSuccess = false;
 			errorMessage = e.getCause().toString();

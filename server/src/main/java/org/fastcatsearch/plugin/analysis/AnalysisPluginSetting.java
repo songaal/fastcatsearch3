@@ -64,12 +64,17 @@ public class AnalysisPluginSetting extends PluginSetting {
 		}
 	}
 	
-	@XmlType(propOrder={"columnSettingList", "type", "name", "id"})
+	@XmlType(propOrder={"columnSettingList", "tokenType", "type", "name", "id"})
 	public static class DictionarySetting {
 		private String id;
 		private String name;
-		private String type;
+		private Type type;
+		private String tokenType;
 		private List<ColumnSetting> columnSettingList;
+		
+		public static enum Type {
+			SET, MAP, SYNONYM, CUSTOM
+		}
 		
 		@XmlAttribute(required = true)
 		public String getId() {
@@ -88,11 +93,19 @@ public class AnalysisPluginSetting extends PluginSetting {
 		}
 		
 		@XmlAttribute(required = true)
-		public String getType() {
+		public Type getType() {
 			return type;
 		}
-		public void setType(String type) {
+		public void setType(Type type) {
 			this.type = type;
+		}
+		
+		@XmlAttribute
+		public String getTokenType() {
+			return tokenType;
+		}
+		public void setTokenType(String tokenType) {
+			this.tokenType = tokenType;
 		}
 		
 		@XmlElement(name="column")
