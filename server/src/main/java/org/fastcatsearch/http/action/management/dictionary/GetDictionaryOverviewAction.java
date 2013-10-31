@@ -48,7 +48,7 @@ public class GetDictionaryOverviewAction extends AuthAction {
 			for(DictionarySetting dictionary : dictionaryList){
 				String dictionaryId = dictionary.getId();
 				String name = dictionary.getName();
-				String type = dictionary.getType();
+				DictionarySetting.Type type = dictionary.getType();
 				resultWriter.object()
 				.key("id").value(dictionaryId)
 				.key("name").value(name)
@@ -58,7 +58,7 @@ public class GetDictionaryOverviewAction extends AuthAction {
 				String updateTime = null;
 				int applyEntrySize = 0;
 				String applyTime = null;
-				if(type.equalsIgnoreCase("system")){
+				if(type == DictionarySetting.Type.SYSTEM){
 					entrySize = analysisPlugin.getDictionary().size();
 				}else{
 					DictionaryDAO dictionaryDAO = analysisPlugin.getDictionaryDAO(dictionaryId);

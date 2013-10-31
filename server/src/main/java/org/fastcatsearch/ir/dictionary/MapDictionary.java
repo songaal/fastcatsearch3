@@ -88,6 +88,11 @@ public class MapDictionary extends SourceDictionary implements ReadableDictionar
 		return Collections.unmodifiableMap(map);
 	}
 	
+	public Map<CharVector, CharVector[]> map() {
+		return map;
+	}
+	
+	
 	@Override
 	public void writeTo(OutputStream out) throws IOException {
 		
@@ -135,18 +140,18 @@ public class MapDictionary extends SourceDictionary implements ReadableDictionar
 		
 	}
 
-	@Override
-	public List<CharVector> find(CharVector token) {
-		if(map.containsKey(token)) {
-			return Arrays.asList(map.get(token));
-		}
-		return null;
-	}
-
-	@Override
-	public int size() {
-		return map.size();
-	}
+//	@Override
+//	public List<CharVector> find(CharVector token) {
+//		if(map.containsKey(token)) {
+//			return Arrays.asList(map.get(token));
+//		}
+//		return null;
+//	}
+//
+//	@Override
+//	public int size() {
+//		return map.size();
+//	}
 
 	@Override
 	public void addSourceLineEntry(String line, boolean ignoreCase, boolean[] valuesIgnoreCase) {

@@ -29,17 +29,17 @@ public class CustomDictionary extends SourceDictionary implements ReadableDictio
 
 	}
 
-	@Override
-	public List find(CharVector token) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public int size() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+//	@Override
+//	public List find(CharVector token) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	@Override
+//	public int size() {
+//		// TODO Auto-generated method stub
+//		return 0;
+//	}
 
 	@Override
 	public void readFrom(InputStream in) throws IOException {

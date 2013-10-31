@@ -9,8 +9,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.ibatis.io.Resources;
-import org.apache.ibatis.session.SqlSession;
-import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.db.dao.DictionaryDAO;
 import org.fastcatsearch.db.dao.DictionaryStatusDAO;
 import org.fastcatsearch.db.dao.SynonymDictionaryDAO;
@@ -29,11 +27,13 @@ import org.fastcatsearch.plugin.PluginSetting;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting.Type;
-import org.fastcatsearch.plugin.analysis.ko.standard.dictionary.KoreanDictionary;
-import org.fastcatsearch.plugin.analysis.ko.standard.dictionary.TagProbDictionary;
 
-public abstract class AnalysisPlugin extends Plugin {
+public abstract class AnalysisPlugin<T> extends Plugin {
 
+	public static String DICT_SYNONYM = "synonym";
+	public static String DICT_STOP = "stop";
+	public static String DICT_SYSTEM = "system";
+	
 	protected static String dictionaryPath = "dict/";
 	protected static String dictionarySuffix = ".dict";
 
@@ -45,7 +45,7 @@ public abstract class AnalysisPlugin extends Plugin {
 	protected DictionaryStatusDAO dictionaryStatusDAO;
 	protected DictionaryStatusMapper dictionaryStatusMapper;
 	
-	protected CommonDictionary commonDictionary;
+	protected static CommonDictionary commonDictionary;
 	
 	public AnalysisPlugin(File pluginDir, PluginSetting pluginSetting) {
 		super(pluginDir, pluginSetting);
@@ -139,11 +139,11 @@ public abstract class AnalysisPlugin extends Plugin {
 		
 	}
 
-	protected abstract Dictionary loadSystemDictionary();
+	protected abstract Dictionary<T> loadSystemDictionary();
 		
-	@Override
 	protected void loadDictionary(){
-		Dictionary dictionary = loadSystemDictionary();
+		Dictionary<T> dictionary = loadSystemDictionary();
+		commonDictionary = new CommonDictionary<T>(dictionary);
 		
 		AnalysisPluginSetting setting = (AnalysisPluginSetting) pluginSetting;
 		List<DictionarySetting> list = setting.getDictionarySettingList();
@@ -155,50 +155,42 @@ public abstract class AnalysisPlugin extends Plugin {
 				String tokenType = dictionarySetting.getTokenType();
 				
 				File dictFile = getDictionaryFile(id);
+				SourceDictionary sourceDictionary = null;
 				
 				if(type == Type.SET){
 					SetDictionary setDictionary = new SetDictionary(dictFile);
 					if(tokenType != null){
 						dictionary.appendAdditionalNounEntry(setDictionary.getSet(), tokenType);
 					}
-					
-					if(id.equalsIgnoreCase(DICT_STOP)){
-						//유사어사전은 셋팅.
-						koreanDictionary.stopwordSet(setDictionary.getSet());
-					}
-					
+					sourceDictionary = setDictionary;
 				}else if(type == Type.MAP){
 					MapDictionary mapDictionary = new MapDictionary(dictFile);
 					if(tokenType != null){
-						tagProbDictionary.appendAdditionalNounEntry(mapDictionary.getMap().keySet(), tokenType);
+						dictionary.appendAdditionalNounEntry(mapDictionary.getMap().keySet(), tokenType);
 					}
+					sourceDictionary = mapDictionary;
 				}else if(type == Type.SYNONYM){
 					SynonymDictionary synonymDictionary = new SynonymDictionary(dictFile);
 					if(tokenType != null){
-						tagProbDictionary.appendAdditionalNounEntry(synonymDictionary.getWordSet(), tokenType);
+						dictionary.appendAdditionalNounEntry(synonymDictionary.getWordSet(), tokenType);
 					}
-					
-					if(id.equalsIgnoreCase(DICT_SYNONYM)){
-						//유사어사전은 셋팅.
-						koreanDictionary.synonymMap(synonymDictionary.getMap());
-					}
-					
+					sourceDictionary = synonymDictionary;
 				}else if(type == Type.CUSTOM){
 					
 				}
 				
+				///add dictionary
+				if(sourceDictionary != null){
+					commonDictionary.addDictionary(id, sourceDictionary);
+				}
 				
 			}
 		}
 	}
 	
-	public CommonDictionary getDictionary(){
+	public CommonDictionary<T> getDictionary(){
 		return commonDictionary;
 	}
-	
-//	public static CommonDictionary getKoreanDictionary() {
-//		return commonDictionary;
-//	}
 
 	public DictionaryDAO getDictionaryDAO(String dictionaryId) {
 		return daoMap.get(dictionaryId);

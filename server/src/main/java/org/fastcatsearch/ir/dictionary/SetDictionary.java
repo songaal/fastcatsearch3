@@ -19,7 +19,7 @@ import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 
-public class SetDictionary extends SourceDictionary implements ReadableDictionary {
+public class SetDictionary extends SourceDictionary {
 	
 	
 	private Set<CharVector> set;
@@ -78,6 +78,10 @@ public class SetDictionary extends SourceDictionary implements ReadableDictionar
 		return Collections.unmodifiableSet(set);
 	}
 	
+	public Set<CharVector> set() {
+		return set;
+	}
+	
 	@Override
 	public void writeTo(OutputStream out) throws IOException {
 		
@@ -105,18 +109,18 @@ public class SetDictionary extends SourceDictionary implements ReadableDictionar
 		}
 	}
 
-	@Override
-	public List<CharVector> find(CharVector token) {
-		if(set.contains(token)) {
-			Arrays.asList(new CharVector[] { token });
-		}
-		return null;
-	}
-
-	@Override
-	public int size() {
-		return set.size();
-	}
+//	@Override
+//	public List<CharVector> find(CharVector token) {
+//		if(set.contains(token)) {
+//			Arrays.asList(new CharVector[] { token });
+//		}
+//		return null;
+//	}
+//
+//	@Override
+//	public int size() {
+//		return set.size();
+//	}
 
 	@Override
 	public void addSourceLineEntry(String line, boolean ignoreCase, boolean[] valuesIgnoreCase) {

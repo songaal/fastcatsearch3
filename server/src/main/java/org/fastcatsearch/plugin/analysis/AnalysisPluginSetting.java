@@ -73,7 +73,7 @@ public class AnalysisPluginSetting extends PluginSetting {
 		private List<ColumnSetting> columnSettingList;
 		
 		public static enum Type {
-			SET, MAP, SYNONYM, CUSTOM
+			SYSTEM, SET, MAP, SYNONYM, CUSTOM
 		}
 		
 		@XmlAttribute(required = true)
