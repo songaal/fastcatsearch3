@@ -60,6 +60,7 @@
 	</logger>
 	
 	<root level="debug">
+		<appender-ref ref="STDOUT" />
 		<appender-ref ref="systemlog" />
 	</root>
 

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<schema name="sample" version="1.0">
-	<field name="id" primary="true" type="int" sort="true" />
-	<field name="title" type="uchar" size="-1" index="org.fastcatsearch.ir.analysis.BiGramTokenizer" sort="true" sortSize="10" />
-	<field name="category" type="int" sort="true" group="true" />
-	<field name="regdate" type="achar" size="21" sort="true" group="true" />
-	<field name="tags" type="uchar" size="-1" index="org.fastcatsearch.ir.analysis.WhitespaceTokenizer" />
-	<field name="body" type="uchar" size="-1" index="org.fastcatsearch.ir.analysis.BiGramTokenizer" tagRemove="true" />
-</schema>

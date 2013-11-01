@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema name="news_kor" version="2.0">
+
+	<field-list>
+		<field id="Code" name="코드" type="ASTRING" size="17" />
+		<field id="SectionCode" name="섹션코드" type="ASTRING" size="1" />
+		<field id="Category" name="카테고리" type="STRING" size="-1" />
+		<field id="Title" name="제목" type="STRING" size="-1" />
+		<field id="UserID" name="사용자아이디" type="STRING" size="-1" />
+		<field id="UserName" name="사용자이름" type="STRING" size="-1" />
+		<field id="Content" name="기사내용" type="STRING" size="-1"
+			removeTag="true" />
+		<field id="RegDate" name="등록일" type="DATETIME" />
+		<field id="UpdateDate" name="수정일" type="DATETIME" />
+		<field id="FileName" name="파일명" type="ASTRING" size="-1" />
+	</field-list>
+
+	<primary-key>
+		<field ref="Code" />
+	</primary-key>
+
+	<index-list>
+		<index id="Title" indexAnalyzer="korean" queryAnalyzer="korean">
+			<field ref="Title" />
+		</index>
+		<index id="Content" indexAnalyzer="korean" queryAnalyzer="korean"
+			storePosition="true" positionIncrementGap="100">
+			<field ref="Content" />
+		</index>
+		<index id="TitleContent" indexAnalyzer="korean" queryAnalyzer="korean"
+			storePosition="true" positionIncrementGap="100">
+			<field ref="Title" />
+			<field ref="Content" />
+		</index>
+	</index-list>
+
+	<analyzer-list>
+		<analyzer id="korean" corePoolSize="10" maximumPoolSize="100">org.fastcatsearch.plugin.analysis.ko.standard.StandardKoreanAnalyzer
+		</analyzer>
+		<analyzer id="keyword" corePool_size="10" maximumPoolSize="100">org.apache.lucene.analysis.core.KeywordAnalyzer
+		</analyzer>
+	</analyzer-list>
+
+	<field-index-list>
+		<field-index id="SectionCode" name="SectionCode_index"
+			ref="SectionCode" />
+		<field-index id="RegDate" name="RegDate_index" ref="RegDate" />
+		<field-index id="UpdateDate" name="UpdateDate_index" ref="UpdateDate" />
+	</field-index-list>
+
+	<group-index-list>
+		<group-index id="Category" name="Category_group" ref="Category" />
+		<group-index id="UserID" name="UserID_group" ref="UserID" />
+	</group-index-list>
+
+
+</schema>
