@@ -185,13 +185,18 @@ public class DynamicClassLoader {
 	public static Enumeration<URL> getResources(String name){
 		CompoundEnumeration<URL> compoundEnumeration = new CompoundEnumeration<URL>();
 		try{
+			
+			Enumeration<URL> e = ClassLoader.getSystemResources(name);
+			if(e != null && e.hasMoreElements()){
+				compoundEnumeration.add(e);
+			}
 			lock.readLock().lock();
 			Iterator<URLClassLoader> iter = classLoaderList.values().iterator();
 			while(iter.hasNext()){
 				URLClassLoader l = (URLClassLoader)iter.next();
-				Enumeration<URL> e = l.getResources(name);
+				e = l.getResources(name);
 				
-//				logger.debug("getResources {} >> {}, {}", l, e, e.hasMoreElements());
+				logger.debug("getResources {} >> {}, {}", l, e, e.hasMoreElements());
 				if(e != null && e.hasMoreElements()){
 					compoundEnumeration.add(e);
 				}

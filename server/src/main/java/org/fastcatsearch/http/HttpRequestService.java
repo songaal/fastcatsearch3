@@ -80,17 +80,18 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 	}
 	
 	private void scanActions(Map<String, HttpAction> actionMap, String actionBasePackage) {
-
+logger.debug("actionBasePackage > {}", actionBasePackage);
 		String path = actionBasePackage.replace(".", "/");
 		if (!path.endsWith("/")) {
 			path = path + "/";
 		}
 		try {
 			String findPath = path;// +"**/*.class";
-//			logger.debug("findPath >> {}",findPath);
 			Enumeration<URL> em = DynamicClassLoader.getResources(findPath);
+			logger.debug("findPath >> {}, {}",findPath, em);
 			while (em.hasMoreElements()) {
 				String urlstr = em.nextElement().toString();
+				logger.debug("urlstr >> {}", urlstr);
 				if (urlstr.startsWith("jar:file:")) {
 					String jpath = urlstr.substring(9);
 					int st = jpath.indexOf("!/");
@@ -103,6 +104,7 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 						registerAction(actionMap, ename, true);
 					}
 				} else if (urlstr.startsWith("file:")) {
+					logger.debug("urlstr >> {}", urlstr);
 					File file = new File(urlstr.substring(5));
 					File[] dir = file.listFiles();
 					for (int i = 0; i < dir.length; i++) {

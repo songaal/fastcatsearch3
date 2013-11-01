@@ -144,6 +144,7 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 	protected void loadDictionary(){
 		Dictionary<T> dictionary = loadSystemDictionary();
 		commonDictionary = new CommonDictionary<T>(dictionary);
+		logger.debug("loadDictionary system dictionary >> {}, commonDictionary >> {}", dictionary, commonDictionary);
 		
 		AnalysisPluginSetting setting = (AnalysisPluginSetting) pluginSetting;
 		List<DictionarySetting> list = setting.getDictionarySettingList();

@@ -12,6 +12,7 @@ import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.plugin.analysis.AnalysisPlugin;
+import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
@@ -27,6 +28,8 @@ public class ApplyDictionaryAction extends AuthAction {
 		PluginService pluginService = ServiceManager.getInstance().getService(PluginService.class);
 		Plugin plugin = pluginService.getPlugin(pluginId);
 		AnalysisPlugin analysisPlugin = (AnalysisPlugin) plugin;
+		AnalysisPluginSetting analysisPluginSetting = analysisPlugin.getPluginSetting();
+		
 		String[] dictionaryIdList = dictionaryId.split(",");
 		
 		List<String> successList = new ArrayList<String>();
@@ -45,10 +48,10 @@ public class ApplyDictionaryAction extends AuthAction {
 				//TODO 2. 타 서버 전파 
 				
 				successList.add(dictionaryIdList[i]);
-				logger.info("# Compile dictionary {} Done! {}ms", dictionaryIdList[i], (System.nanoTime() - st) / (1000 * 1000));
+				logger.info("# Compile {} dictionary {} Done! {}ms", pluginId, dictionaryIdList[i], (System.nanoTime() - st) / (1000 * 1000));
 			}catch(IOException e){
 				failList.add(dictionaryIdList[i]);
-				logger.error("# Compile dictionary {} Fail! {}ms", dictionaryIdList[i], (System.nanoTime() - st) / (1000 * 1000), e);
+				logger.error("# Compile {} dictionary {} Fail! {}ms", pluginId, dictionaryIdList[i], (System.nanoTime() - st) / (1000 * 1000), e);
 			}
 		}
 		Writer writer = response.getWriter();
