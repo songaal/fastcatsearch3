@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.ibatis.io.Resources;
 import org.fastcatsearch.db.InternalDBModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,13 +12,14 @@ public abstract class Plugin {
 	protected static final Logger logger = LoggerFactory.getLogger(Plugin.class);
 	
 	protected File pluginDir;
-	
+	protected String pluginId;
 	protected PluginSetting pluginSetting;
 	protected InternalDBModule internalDBModule;
 	
 	public Plugin(File pluginDir, PluginSetting pluginSetting){
 		this.pluginDir = pluginDir;
 		this.pluginSetting = pluginSetting;
+		this.pluginId = pluginSetting.getId();
 	}
 	
 	public final void load(){

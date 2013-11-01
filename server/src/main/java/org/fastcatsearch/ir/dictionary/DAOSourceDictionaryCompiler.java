@@ -19,7 +19,10 @@ public class DAOSourceDictionaryCompiler {
 	
 	private static final int BULK_SIZE = 500;
 
-	public static void compile(File targetFile, DictionaryDAO dictionaryDAO, SourceDictionary dictionaryType, List<ColumnSetting> columnList)
+	/*
+	 * 컴파일된 엔트리 갯수를 반환한다.
+	 * */
+	public static int compile(File targetFile, DictionaryDAO dictionaryDAO, SourceDictionary dictionaryType, List<ColumnSetting> columnList)
 			throws Exception {
 
 		int count = dictionaryDAO.getCount(null);
@@ -91,5 +94,6 @@ public class DAOSourceDictionaryCompiler {
 			}
 		}
 
+		return count;
 	}
 }

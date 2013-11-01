@@ -13,7 +13,7 @@ public interface DictionaryStatusMapper extends ManagedMapper {
 	
 	public int updateUpdateTime(@Param("dictionaryId") String dictionaryId) throws Exception;
 	
-	public int updateApplyStatus(@Param("dictionaryId") String dictionaryId, int applyEntrySize) throws Exception;
+	public int updateApplyStatus(@Param("dictionaryId") String dictionaryId, @Param("applyEntrySize") Integer applyEntrySize) throws Exception;
 
 	public int truncate() throws Exception;
 	

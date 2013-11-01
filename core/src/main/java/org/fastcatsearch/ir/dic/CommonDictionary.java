@@ -1,5 +1,6 @@
 package org.fastcatsearch.ir.dic;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 public class CommonDictionary<E> {
 	protected static final Logger logger = LoggerFactory.getLogger(CommonDictionary.class);
+	private Date createTime;
 	
 	private Dictionary<E> systemDictionary;
 	
@@ -19,6 +21,7 @@ public class CommonDictionary<E> {
 	public CommonDictionary(Dictionary<E> systemDictionary){
 		this.systemDictionary = systemDictionary;
 		dictionaryMap = new HashMap<String, Object>();
+		createTime = new Date();
 	}
 	
 	public List<E> find(CharVector token) {
@@ -43,4 +46,8 @@ public class CommonDictionary<E> {
 		systemDictionary.appendAdditionalNounEntry(keySet, tokenType);
 	}
 	
+	@Override
+	public String toString(){
+		return getClass().getSimpleName() + "] createTime=" + createTime + ", entry = " + (systemDictionary != null ? systemDictionary.size() : 0) + ", dictionaries = "+dictionaryMap.size(); 
+	}
 }

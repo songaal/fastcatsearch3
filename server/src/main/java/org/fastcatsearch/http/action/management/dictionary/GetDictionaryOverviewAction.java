@@ -49,17 +49,25 @@ public class GetDictionaryOverviewAction extends AuthAction {
 				String dictionaryId = dictionary.getId();
 				String name = dictionary.getName();
 				DictionarySetting.Type type = dictionary.getType();
+				String tokenType = dictionary.getTokenType();
+				if(tokenType == null || tokenType.length() == 0){
+					tokenType = "NONE";
+				}
 				resultWriter.object()
 				.key("id").value(dictionaryId)
 				.key("name").value(name)
-				.key("type").value(type);
-				
+				.key("type").value(type)
+				.key("tokenType").value(tokenType);
 				int entrySize = 0;
 				String updateTime = null;
 				int applyEntrySize = 0;
 				String applyTime = null;
+
 				if(type == DictionarySetting.Type.SYSTEM){
 					entrySize = analysisPlugin.getDictionary().size();
+					applyEntrySize = entrySize;
+					updateTime = "-";
+					applyTime = "-";
 				}else{
 					DictionaryDAO dictionaryDAO = analysisPlugin.getDictionaryDAO(dictionaryId);
 					if(dictionaryDAO != null){
@@ -88,9 +96,9 @@ public class GetDictionaryOverviewAction extends AuthAction {
 				File file = analysisPlugin.getDictionaryFile(dictionaryId);
 				if(file.exists()){
 					String lastModified = Formatter.formatDate(new Date(file.lastModified()));
-					resultWriter.key("syncTime").value(lastModified);
+					resultWriter.key("fileTime").value(lastModified);
 				}else{
-					resultWriter.key("syncTime").value("-");
+					resultWriter.key("fileTime").value("-");
 				}
 				resultWriter.endObject();
 			}

@@ -71,7 +71,7 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 	@Override
 	protected void doLoad() {
 		prepareDAO();
-		loadDictionary();
+		commonDictionary = loadDictionary();
 	}
 
 	@Override
@@ -141,10 +141,9 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 
 	protected abstract Dictionary<T> loadSystemDictionary();
 		
-	protected void loadDictionary(){
+	protected CommonDictionary<T> loadDictionary(){
 		Dictionary<T> dictionary = loadSystemDictionary();
-		commonDictionary = new CommonDictionary<T>(dictionary);
-		logger.debug("loadDictionary system dictionary >> {}, commonDictionary >> {}", dictionary, commonDictionary);
+		CommonDictionary<T> commonDictionary = new CommonDictionary<T>(dictionary);
 		
 		AnalysisPluginSetting setting = (AnalysisPluginSetting) pluginSetting;
 		List<DictionarySetting> list = setting.getDictionarySettingList();
@@ -154,7 +153,6 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 				String id = dictionarySetting.getId();
 				Type type = dictionarySetting.getType();
 				String tokenType = dictionarySetting.getTokenType();
-				
 				File dictFile = getDictionaryFile(id);
 				SourceDictionary sourceDictionary = null;
 				
@@ -187,6 +185,16 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 				
 			}
 		}
+		
+		return commonDictionary;
+	}
+	
+	public void reloadDictionary(){
+		long st = System.nanoTime();
+		CommonDictionary<T> oldDictionary = this.commonDictionary;
+		CommonDictionary<T> commonDictionary = loadDictionary();
+		this.commonDictionary = commonDictionary;
+		logger.debug("{} Dictionary Reload Done. {}ms", pluginId, (System.nanoTime() - st) / 1000000);
 	}
 	
 	public CommonDictionary<T> getDictionary(){
@@ -214,10 +222,11 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 		return (AnalysisPluginSetting) pluginSetting;
 	}
 
-	public void compileDictionaryFromDAO(String dictionaryId) throws IOException {
+	public int compileDictionaryFromDAO(String dictionaryId) throws IOException {
 		AnalysisPluginSetting setting = (AnalysisPluginSetting) pluginSetting;
 		List<DictionarySetting> list = setting.getDictionarySettingList();
 		boolean isSuccess = false;
+		int count = 0;
 		if (list != null) {
 			for (DictionarySetting dictionarySetting : list) {
 				String id = dictionarySetting.getId();
@@ -242,7 +251,7 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 						}
 
 						try {
-							DAOSourceDictionaryCompiler.compile(targetFile, dictionaryDAO, dictionaryType, columnSettingList);
+							count = DAOSourceDictionaryCompiler.compile(targetFile, dictionaryDAO, dictionaryType, columnSettingList);
 							isSuccess = true;
 						} catch (Exception e) {
 							logger.error("dictionary compile error", e);
@@ -258,6 +267,8 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 		if(!isSuccess){
 			throw new IOException("Dictionary not found error. name = " + dictionaryId);
 		}
+		
+		return count;
 	}
 
 }
