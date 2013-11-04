@@ -72,12 +72,12 @@ public class ActionRequest {
 	}
 
 	public String getParameter(String key) {
-		return parameterMap.get(key.toUpperCase());
+		return parameterMap.get(key);
 	}
 
 	public String getParameter(String key, String defaultValue) {
 
-		String value = parameterMap.get(key.toUpperCase());
+		String value = parameterMap.get(key);
 		if (value != null) {
 			return value;
 		} else {
@@ -128,14 +128,16 @@ public class ActionRequest {
 				int eq = pair.indexOf("=");
 				if (eq < 0) {
 					// key with no value
-					parameterMap.put(pair.toUpperCase(), "");
+//					parameterMap.put(pair.toUpperCase(), "");
+					parameterMap.put(pair, "");
 				} else {
 					// key=value
 					String key = URLDecoder.decode(pair.substring(0, eq), charset);
 					String value = URLDecoder.decode(pair.substring(eq + 1), charset);
 					// String key = pair.substring(0, eq);
 					// String value = pair.substring(eq + 1);
-					parameterMap.put(key.toUpperCase(), value);
+//					parameterMap.put(key.toUpperCase(), value);
+					parameterMap.put(key, value);
 
 				}
 			}
