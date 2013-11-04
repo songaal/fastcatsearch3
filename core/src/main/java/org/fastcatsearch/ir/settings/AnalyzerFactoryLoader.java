@@ -12,7 +12,6 @@ public class AnalyzerFactoryLoader {
 	private static Logger logger = LoggerFactory.getLogger(AnalyzerFactoryLoader.class);
 	
 	public static AnalyzerFactory load(String analyzerClassName){
-		
 		String factoryClassName = analyzerClassName+"Factory";
 		Class<?> analyzerFactoryClass = DynamicClassLoader.loadClass(factoryClassName);
 		AnalyzerFactory factory = null;

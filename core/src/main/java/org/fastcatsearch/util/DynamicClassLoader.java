@@ -156,7 +156,7 @@ public class DynamicClassLoader {
 		}catch(ClassNotFoundException ignore){
 			
 		}
-		logger.debug("basic cl {}",clazz);
+		logger.debug("basic cl {}, {}", clazz, className);
 		try{
 			lock.readLock().lock();
 			Iterator<URLClassLoader> iter = classLoaderList.values().iterator();
@@ -164,9 +164,9 @@ public class DynamicClassLoader {
 				URLClassLoader l = (URLClassLoader)iter.next();
 				try {
 					clazz = Class.forName(className, true, l);
-					logger.debug("{} cl {}", l, clazz);
+					logger.debug("{} cl {} : {}", l, clazz, className);
 				} catch (ClassNotFoundException e) {
-					logger.debug("{} cl {}", l, clazz);
+					logger.debug("{} cl {} : {}", l, clazz, className);
 					continue;
 				}
 				

@@ -87,7 +87,7 @@ public class Schema {
 		logger.debug("AnalyzerSetting size ={}", analyzerSettingSettingList.size());
 		
 		for(AnalyzerSetting analyzerSetting : analyzerSettingSettingList){
-			String analyzerClassName = analyzerSetting.getAnalyzer();
+			String analyzerClassName = analyzerSetting.getAnalyzer().trim();
 			String analyzerId = analyzerSetting.getId();
 			int corePoolSize = analyzerSetting.getCorePoolSize();
 			int maximumPoolSize = analyzerSetting.getMaximumPoolSize();

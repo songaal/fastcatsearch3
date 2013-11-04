@@ -109,7 +109,7 @@ public class DataSourceReader {
 	public Document nextDocument() throws IRException {
 		try {
 			Map<String, Object> map = currentReader.nextElement();
-			logger.debug("doc >> {}", map);
+//			logger.debug("doc >> {}", map);
 			// Schema를 기반으로 Document로 만든다.
 			Document document = new Document(fieldSettingList.size());
 			for (int i = 0; i < fieldSettingList.size(); i++) {
@@ -122,12 +122,12 @@ public class DataSourceReader {
 					key = source;
 				}
 				Object data = map.get(key);
-				logger.debug("Get {} : {}", key, data);
+//				logger.debug("Get {} : {}", key, data);
 				String multiValueDelimiter = fs.getMultiValueDelimiter();
 				
 				Field f = fs.createIndexableField(data, multiValueDelimiter);
 				document.set(i, f);
-				logger.debug("doc [{}]{}:{}", i, fs.getId(), f);
+//				logger.debug("doc [{}]{}:{}", i, fs.getId(), f);
 			}
 			return document;
 		} catch (Throwable e) {
