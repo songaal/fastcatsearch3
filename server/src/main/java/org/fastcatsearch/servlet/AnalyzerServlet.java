@@ -55,7 +55,7 @@ public class AnalyzerServlet extends WebServiceHttpServlet {
 		}
 		
 		if(resultTypeStr!=null && analyzerName!=null) {
-			
+			analyzerName = analyzerName.trim();
 			String errorMessage = null;
 			String factoryClassName = analyzerName+"Factory";
 			Class<?> analyzerFactoryClass = DynamicClassLoader.loadClass(factoryClassName);
