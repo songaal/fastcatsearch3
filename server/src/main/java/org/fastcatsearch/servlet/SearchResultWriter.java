@@ -68,16 +68,14 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 		int start = result.getStart();
 
 		if(rows.length == 0){
-			resultWriter.array("item").object()
-			.key("_no_").value("No result found!")
-			.endObject().endArray();
+			resultWriter.array("item").endArray();
 		}else{
 			resultWriter.array("item");
 			for (int i = 0; i < rows.length; i++) {
 				Row row = rows[i];
 
 				resultWriter.object()
-				.key("_no_").value(start+i);
+				.key("_no_").value(String.valueOf(start+i));
 
 				for(int k = 0; k < fieldNames.length; k++) {
 					char[] f = row.get(k);
