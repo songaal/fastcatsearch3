@@ -66,7 +66,7 @@ public abstract class AbstractSearchAction extends ServiceAction {
 
 		QueryMap queryMap = new QueryMap(request.getParameterMap());
 		logger.debug("queryMap tostring>> {}", queryMap);
-		Integer timeout = request.getIntParameter("timeout");
+		Integer timeout = request.getIntParameter("timeout", DEFAULT_TIMEOUT);
 		String responseCharset = request.getParameter("responseCharset", DEFAULT_CHARSET);
 		writeHeader(response, responseCharset);
 		long requestId = getRequestId();

@@ -72,20 +72,22 @@ public class ActionRequest {
 	}
 
 	public String getParameter(String key) {
-		return parameterMap.get(key);
+		return getParameter(key, null);
 	}
 
 	public String getParameter(String key, String defaultValue) {
-
-		String value = parameterMap.get(key);
-		if (value != null) {
-			return value;
+		if(parameterMap.containsKey(key)) {
+			return parameterMap.get(key);
 		} else {
 			return defaultValue;
 		}
 	}
 
 	public int getIntParameter(String key) {
+		return getIntParameter(key, 0);
+	}
+	
+	public int getIntParameter(String key, int defaultValue) {
 		String value = getParameter(key);
 		if (value != null) {
 			try{
@@ -93,7 +95,11 @@ public class ActionRequest {
 			}catch(NumberFormatException e){
 			}
 		}
-		return 0;
+		return defaultValue;
+	}
+	
+	public boolean getBooleanParameter(String key) {
+		return getBooleanParameter(key, false);
 	}
 	
 	public boolean getBooleanParameter(String key, boolean defaultValue) {
