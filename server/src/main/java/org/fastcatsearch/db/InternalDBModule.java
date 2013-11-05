@@ -132,6 +132,10 @@ public class InternalDBModule extends AbstractModule {
 		private SqlSession session;
 		private T mapper;
 		
+		public SqlSession getSession() {
+			return session;
+		}
+		
 		public MapperSession(SqlSession session, T mapper){
 			this.session = session;
 			this.mapper = mapper;
