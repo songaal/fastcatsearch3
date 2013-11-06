@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.fastcatsearch.db.dao.DictionaryDAO;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -18,6 +19,7 @@ import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.plugin.analysis.AnalysisPlugin;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting;
+import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting;
 import org.fastcatsearch.service.ServiceManager;
 
@@ -64,7 +66,12 @@ public class BackupDictionaryJob extends Job {
 				for(DictionarySetting dictionary : dictionaryList){
 					String dictionaryId = dictionary.getId();
 					logger.debug("backup dictionary {}.{}", new Object[] {pluginId, dictionaryId});
-					downloadFile(tmpDir, pluginId, dictionaryId);
+					
+					DictionaryDAO dictionaryDAO = analysisPlugin.getDictionaryDAO(dictionaryId);
+					
+					if(dictionaryDAO!=null) {
+						downloadFile(dictionaryDAO, tmpDir, pluginId, dictionaryId);
+					}
 				}
 			}
 			
@@ -97,7 +104,7 @@ public class BackupDictionaryJob extends Job {
 		return new JobResult(null);
 	}
 	
-	public void downloadFile(File backupDir, String pluginId, String dictionaryId) {
+	public void downloadFile(DictionaryDAO dictionaryDAO, File backupDir, String pluginId, String dictionaryId) {
 		
 		File tmpFile = null;
 		Writer writer = null;
@@ -106,40 +113,26 @@ public class BackupDictionaryJob extends Job {
 			tmpFile = new File(backupDir, dictionaryId+".txt");
 			writer = new FileWriter(tmpFile);
 			
-			final Map<String,String>parameterMap = new HashMap<String,String>();
-			parameterMap.put("pluginId", pluginId);
-			parameterMap.put("dictionaryId", dictionaryId);
-			parameterMap.put("search", null);
-			parameterMap.put("start", "1");
-			parameterMap.put("length", "-1");
-			parameterMap.put("searchColumns", null);
-			parameterMap.put("sortAsc", "true");
+			int length = dictionaryDAO.getCount(null,null);
 			
-			ActionRequest request = new ActionRequest(pluginId, null) {
-				@Override public String getParameter(String key) {
-					return parameterMap.get(key);
+			List<Map<String, Object>> list = dictionaryDAO.getEntryList(1, length, null, null, true);
+			final String ID_COLUMN = "ID";
+			List<ColumnSetting> columnSettingList = dictionaryDAO.columnSettingList();
+			if(columnSettingList != null){
+				for(Map<String, Object> vo : list){
+					for(int i = 0 ;i < columnSettingList.size(); i++){
+						ColumnSetting columnSetting = columnSettingList.get(i);
+						String name = columnSetting.getName().toUpperCase();
+						
+						writer.append(String.valueOf(vo.get(name)));
+						
+						if(i<columnSettingList.size() - 1) {
+							writer.append("\t");
+						}
+					}
+					writer.append("\n");
 				}
-			};
-			
-			ActionResponse response = new ActionResponse() {
-				private Writer writer;
-				public ActionResponse setWriter(Writer writer) {
-					this.writer = writer;
-					return this;
-				}
-				@Override public Writer getWriter() {
-					return writer;
-				}
-			}.setWriter(writer);
-			
-			GetDictionaryWordListAction action = new GetDictionaryWordListAction() {
-				public GetDictionaryWordListAction getInstance() {
-					this.resultType=Type.json;
-					return this;
-				}
-			}.getInstance();
-		
-			action.doAuthAction(request, response);
+			}
 			
 			logger.debug("done");
 			
