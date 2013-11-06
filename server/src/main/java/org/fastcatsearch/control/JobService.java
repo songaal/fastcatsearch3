@@ -237,6 +237,7 @@ public class JobService extends AbstractService implements JobExecutor {
 			if(oldScheduledJob != null){
 				oldScheduledJob.cancel();
 			}
+			offer(scheduledJob);
 		}else{
 			logger.error("{} is already scheduled", job);
 		}

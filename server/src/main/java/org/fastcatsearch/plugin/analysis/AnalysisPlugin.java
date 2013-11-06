@@ -213,7 +213,9 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 	public String getDictionaryTableName(String dictionaryId) {
 		return dictionaryId + dictionaryTableSuffix;
 	}
-
+	public File getDictionaryDirectory(){
+		return new File(pluginDir, dictionaryPath);
+	}
 	public File getDictionaryFile(String dictionaryName) {
 		return new File(new File(pluginDir, dictionaryPath), dictionaryName + dictionarySuffix);
 	}
