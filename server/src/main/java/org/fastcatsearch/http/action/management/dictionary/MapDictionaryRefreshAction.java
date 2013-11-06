@@ -50,7 +50,6 @@ public class MapDictionaryRefreshAction extends AuthAction {
 		String pluginId = request.getParameter("pluginId",""); //plugin
 		String dictionaryId = request.getParameter("dictionaryId",""); //brand, maker....
 		String dataStr = request.getParameter("values", "");
-		//String[] dataArray = dataStr.split("\n");
 		String[] dataArray = dataStr.split(",");
 		List<String> dataList = Arrays.asList(dataArray);
 		
@@ -164,6 +163,8 @@ public class MapDictionaryRefreshAction extends AuthAction {
 			//성공메시지.
 			logger.debug("MapDictionary value refresh ok");
 			
+			analysisPlugin.dictionaryStatusDAO().updateUpdateTime(dictionaryId);
+			
 			status=0;
 			
 		} catch (SQLException e) {
@@ -216,7 +217,7 @@ public class MapDictionaryRefreshAction extends AuthAction {
 		} else {
 			resultWriter.object()
 				.key("status").value(status)
-				.key("result").value("failed").endObject();
+				.key("result").value("false").endObject();
 		}
 		resultWriter.done();
 	}
