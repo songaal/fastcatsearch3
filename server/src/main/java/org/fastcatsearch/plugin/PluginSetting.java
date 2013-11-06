@@ -136,7 +136,7 @@ public class PluginSetting {
 		public void setClassName(String className) {
 			this.className = className;
 		}
-		
+		@XmlAttribute
 		public String getStartTime() {
 			return startTime;
 		}
@@ -144,7 +144,7 @@ public class PluginSetting {
 		public void setStartTime(String startTime) {
 			this.startTime = startTime;
 		}
-
+		@XmlAttribute
 		public int getPeriodInMinute() {
 			return periodInMinute;
 		}
