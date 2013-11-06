@@ -2,6 +2,7 @@ package org.fastcatsearch.db;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,8 +19,8 @@ public class InternalDBModuleTest {
 		List<ColumnSetting> columnSettingList = new ArrayList<ColumnSetting>();
 		String dbPath = "/tmp/idbtest;create=true";
 		String mapperFilePath = "org/fastcatsearch/db/mapper/DictionaryMapper.xml";
-		File mapperFile = Resources.getResourceAsFile(mapperFilePath);
-		List<File> mapperFileList = new ArrayList<File>();
+		URL mapperFile = Resources.getResourceURL(mapperFilePath);
+		List<URL> mapperFileList = new ArrayList<URL>();
 		mapperFileList.add(mapperFile);
 		//디비를 열고 닫고 여러번가능한지.. 
 		for(int i =0;i<3; i++){

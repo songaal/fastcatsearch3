@@ -13,6 +13,7 @@ package org.fastcatsearch.db;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,11 +58,11 @@ public class DBService extends AbstractService {
 		super(environment, settings, serviceManager);
 		String dbPath = environment.filePaths().file("db/system").getAbsolutePath();
 		//system관련 mapper설정.
-		List<File> mapperFileList = new ArrayList<File>();
+		List<URL> mapperFileList = new ArrayList<URL>();
 		for(Class<?> mapperDAO : mapperList){
 			try {
 				String mapperFilePath = mapperDAO.getName().replace('.', '/') +".xml";
-				File mapperFile = Resources.getResourceAsFile(mapperFilePath);
+				URL mapperFile = Resources.getResourceURL(mapperFilePath);
 				mapperFileList.add(mapperFile);
 			} catch (IOException e) {
 				logger.error("error load defaultDictionaryMapperFile", e);
