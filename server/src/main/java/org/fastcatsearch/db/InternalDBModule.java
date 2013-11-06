@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
@@ -44,7 +45,7 @@ public class InternalDBModule extends AbstractModule {
 
 	protected static InternalDBModule instance;
 
-	private List<File> mapperFileList;
+	private List<URL> mapperFileList;
 	
 	private SqlSessionFactory sqlSessionFactory;
 
@@ -56,7 +57,7 @@ public class InternalDBModule extends AbstractModule {
 		instance = this;
 	}
 
-	public InternalDBModule(String dbPath, List<File> mapperFileList, Environment environment, Settings settings, ServiceManager serviceManager) {
+	public InternalDBModule(String dbPath, List<URL> mapperFileList, Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings);
 		this.dbPath = detbyUrlPrefix + dbPath + detbyUrlSuffix;
 		this.mapperFileList = mapperFileList;
@@ -81,8 +82,8 @@ public class InternalDBModule extends AbstractModule {
 		Configuration configuration = new Configuration(environment);
 		
 		if(mapperFileList != null){
-			for(File mapperFile : mapperFileList){
-				addSqlMappings(configuration, mapperFile.getAbsolutePath());
+			for(URL mapperFile : mapperFileList){
+				addSqlMappings(configuration, mapperFile);
 			}
 		}
 		
@@ -110,11 +111,11 @@ public class InternalDBModule extends AbstractModule {
 		return true;
 	}
 
-	private void addSqlMappings(Configuration conf, String mapperFilePath) {
+	private void addSqlMappings(Configuration conf, URL mapperFilePath) {
 		InputStream is = null;
 		try {
-			is = new FileInputStream(mapperFilePath);
-			XMLMapperBuilder xmlParser = new XMLMapperBuilder(is, conf, mapperFilePath, conf.getSqlFragments());
+			is = mapperFilePath.openStream();
+			XMLMapperBuilder xmlParser = new XMLMapperBuilder(is, conf, mapperFilePath.toString(), conf.getSqlFragments());
 			xmlParser.parse();
 		} catch (IOException e) {
 			logger.error("error loading mybatis mapping config file.", e);

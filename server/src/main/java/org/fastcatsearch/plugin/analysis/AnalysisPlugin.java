@@ -2,6 +2,7 @@ package org.fastcatsearch.plugin.analysis;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,17 +53,17 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 	}
 
 	@Override
-	protected void addMapperFile(List<File> mapperFileList) {
+	protected void addMapperFile(List<URL> mapperFileList) {
 
 		try {
-			File mapperFile = Resources.getResourceAsFile(defaultDictionaryMapperFilePath);
+			URL mapperFile = Resources.getResourceURL(defaultDictionaryMapperFilePath);
 			mapperFileList.add(mapperFile);
 		} catch (IOException e) {
 			logger.error("error load defaultDictionaryMapperFile", e);
 		}
 		try {
-			File statusMapperFile = Resources.getResourceAsFile(defaultDictionaryStatusMapperFilePath);
-			mapperFileList.add(statusMapperFile);
+			URL statusMapperURL = Resources.getResourceURL(defaultDictionaryStatusMapperFilePath);
+			mapperFileList.add(statusMapperURL);
 		} catch (IOException e) {
 			logger.error("error load defaultDictionaryStatusMapperFile", e);
 		}

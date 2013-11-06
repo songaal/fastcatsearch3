@@ -1,6 +1,7 @@
 package org.fastcatsearch.plugin;
 
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,13 +49,13 @@ public abstract class Plugin {
 	private final void loadDB() {
 		String dbPath = getPluginDBDataDir().getAbsolutePath();
 		new File(dbPath).getParentFile().mkdirs();
-		List<File> mapperFileList = new ArrayList<File>();
+		List<URL> mapperFileList = new ArrayList<URL>();
 		addMapperFile(mapperFileList);
 		internalDBModule = new InternalDBModule(dbPath, mapperFileList, null, null, null);
 		internalDBModule.load();
 	}
 
-	protected abstract void addMapperFile(List<File> mapperFileList);
+	protected abstract void addMapperFile(List<URL> mapperFileList);
 	
 	private void unloadDB() {
 		if(internalDBModule != null){

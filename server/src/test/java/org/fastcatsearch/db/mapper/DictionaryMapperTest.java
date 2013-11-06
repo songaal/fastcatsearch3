@@ -2,6 +2,7 @@ package org.fastcatsearch.db.mapper;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -19,8 +20,8 @@ public class DictionaryMapperTest {
 	public void test() throws IOException {
 		String dbPath = "/tmp/dict";
 		String mapperFilePath = "org/fastcatsearch/db/mapper/DictionaryMapper.xml";
-		File mapperFile = Resources.getResourceAsFile(mapperFilePath);
-		List<File> mapperFileList = new ArrayList<File>();
+		URL mapperFile = Resources.getResourceURL(mapperFilePath);
+		List<URL> mapperFileList = new ArrayList<URL>();
 		mapperFileList.add(mapperFile);
 		InternalDBModule internalDBModule = new InternalDBModule(dbPath, mapperFileList, null, null, null);
 		internalDBModule.load();
