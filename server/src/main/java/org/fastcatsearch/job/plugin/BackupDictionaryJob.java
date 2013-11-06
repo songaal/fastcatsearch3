@@ -38,9 +38,9 @@ public class BackupDictionaryJob extends Job {
 		Plugin plugin = pluginService.getPlugin(pluginId);
 		
 		@SuppressWarnings("rawtypes")
-		AnalysisPlugin analysisPlugin = (AnalysisPlugin)plugin;
+		AnalysisPlugin analysisPlugin = (AnalysisPlugin) plugin;
 		
-		File baseDir = analysisPlugin.getPluginDir();
+		File baseDir = analysisPlugin.getDictionaryDirectory();
 		File backupDir = new File(baseDir, "backup");
 		
 		if(!backupDir.exists()) {
