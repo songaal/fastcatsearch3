@@ -178,6 +178,10 @@ public class CatServer {
 			clusterAlertService.start();
 			processLoggerService.start();
 			taskStateService.start();
+			
+			//서비스가 모두 뜬 상태에서 후속작업.
+			pluginService.loadSchedule();
+			
 		} catch (FastcatSearchException e) {
 			logger.error("CatServer 시작에 실패했습니다.", e);
 			stop();

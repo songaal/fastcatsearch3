@@ -11,8 +11,8 @@
 
 package org.fastcatsearch.control;
 
-import java.io.File;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,17 +22,13 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.fastcatsearch.common.ThreadPoolFactory;
-import org.fastcatsearch.common.XMLSettingManager;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.ir.common.IndexingType;
-import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.job.Job;
+import org.fastcatsearch.job.ScheduledJob;
 import org.fastcatsearch.job.indexing.IndexingJob;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.SchedulerSetting;
-import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.settings.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,13 +53,11 @@ public class JobService extends AbstractService implements JobExecutor {
 
 	private JobConsumer worker;
 	private SequencialJobWorker sequencialJobWorker;
-	private JobScheduler jobScheduler;
 	private IndexingMutex indexingMutex;
-	private boolean useJobScheduler;
+//	private boolean useJobScheduler;
 	private int executorMaxPoolSize;
-
 	private static JobService instance;
-	XMLSettingManager<SchedulerSetting> scheduleSettingManager;
+	private ConcurrentHashMap<String, ScheduledJob> scheduleMap; 
 
 	public void asSingleton() {
 		instance = this;
@@ -85,9 +79,6 @@ public class JobService extends AbstractService implements JobExecutor {
 		sequencialJobQueue = new LinkedBlockingQueue<Job>();
 		indexingMutex = new IndexingMutex();
 
-		File scheduleFile = environment.filePaths().file("db", "xml", SettingFileNames.scheduleConfig);
-		jobScheduler = new JobScheduler(scheduleFile);
-
 		executorMaxPoolSize = settings.getInt("pool.max");
 
 		// int indexJobMaxSize = 100;
@@ -100,15 +91,14 @@ public class JobService extends AbstractService implements JobExecutor {
 		worker.start();
 		sequencialJobWorker = new SequencialJobWorker();
 		sequencialJobWorker.start();
-		if (useJobScheduler) {
-			jobScheduler.start();
-		}
+
+		scheduleMap = new ConcurrentHashMap<String, ScheduledJob>();
 
 		return true;
 	}
 
 	protected boolean doStop() {
-		logger.debug(getClass().getName() + " stop requested.");
+		logger.debug("{} stop requested.", getClass().getName());
 		worker.interrupt();
 		sequencialJobWorker.interrupt();
 		resultFutureMap.clear();
@@ -116,9 +106,12 @@ public class JobService extends AbstractService implements JobExecutor {
 		sequencialJobQueue.clear();
 		runningJobList.clear();
 		jobExecutor.shutdownNow();
-		if (useJobScheduler) {
-			jobScheduler.stop();
+		
+		for(ScheduledJob job : scheduleMap.values()){
+			job.cancel();
 		}
+		scheduleMap.clear();
+		
 		return true;
 	}
 
@@ -134,32 +127,20 @@ public class JobService extends AbstractService implements JobExecutor {
 		return jobQueue.size();
 	}
 
-	public void setUseJobScheduler(boolean useJobScheduler) {
-		this.useJobScheduler = useJobScheduler;
-	}
+//	public void setUseJobScheduler(boolean useJobScheduler) {
+//		this.useJobScheduler = useJobScheduler;
+//	}
 
 	public Collection<Job> getRunningJobs() {
 		return runningJobList.values();
 	}
+	
+	public Collection<ScheduledJob> getScheduledJobs() {
+		return scheduleMap.values();
+	}
 
 	public Collection<String> getIndexingList() {
 		return indexingMutex.getIndexingList();
-	}
-
-	public boolean reloadSchedules() throws SettingException {
-		if (!useJobScheduler) {
-			return false;
-		}
-
-		return jobScheduler.reload();
-	}
-
-	public boolean updateIndexingScheduleActivate(String collectionId, IndexingType indexingType, boolean isActive) {
-		if (!useJobScheduler) {
-			return false;
-		}
-
-		return jobScheduler.reloadIndexingSchedule(collectionId, indexingType, isActive);
 	}
 
 	public ThreadPoolExecutor getJobExecutor() {
@@ -239,6 +220,42 @@ public class JobService extends AbstractService implements JobExecutor {
 
 	}
 
+	public void schedule(Job job, Date startTime, int periodInSecond){
+		schedule(job, startTime, periodInSecond, false);
+	}
+	
+	public void schedule(Job job, Date startTime, int periodInSecond, boolean forceUpdate){
+		if(periodInSecond <= 0){
+			logger.error("Schedule must be positive integer. periodInSecond = {}", periodInSecond);
+			return;
+		}
+		String jobKey = getJobKey(job);
+		ScheduledJob scheduledJob = scheduleMap.get(jobKey);
+		if(scheduledJob == null || forceUpdate){
+			scheduledJob = new ScheduledJob(job, startTime, periodInSecond);
+			ScheduledJob oldScheduledJob = scheduleMap.put(jobKey, scheduledJob);
+			oldScheduledJob.cancel();
+		}else{
+			logger.error("{} is already scheduled", job);
+		}
+	}
+	
+	public void cancelSchedule(Job job){
+		String jobKey = getJobKey(job);
+		ScheduledJob scheduledJob = scheduleMap.remove(jobKey);
+		scheduledJob.cancel();
+	}
+	
+	private String getJobKey(Job job){
+		if(job != null){
+			if(job.getArgs() != null){
+				return job.getClass().getName() + "\t" + job.getArgs();
+			}
+			return job.getClass().getName();
+		}
+		return null;
+	}
+	
 	/*
 	 * 이 쓰레드는 절대로 죽어서는 아니되오.
 	 */

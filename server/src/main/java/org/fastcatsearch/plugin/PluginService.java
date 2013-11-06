@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -17,8 +18,12 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import org.fastcatsearch.alert.ClusterAlertService;
+import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.ir.util.Formatter;
+import org.fastcatsearch.job.Job;
+import org.fastcatsearch.plugin.PluginSetting.PluginSchedule;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
@@ -52,7 +57,7 @@ public class PluginService extends AbstractService {
 		for (File dir : pluginDirList) {
 			File[] jarFiles = findFiles(dir, "jar");
 			logger.debug("FOUND plugin {}, jar={}", dir.getAbsolutePath(), jarFiles);
-			//analysis 라이브러리는 모두 묶어서 한번에 로딩한다. 서로 dependency가 존재할수 있기때문에..
+			// analysis 라이브러리는 모두 묶어서 한번에 로딩한다. 서로 dependency가 존재할수 있기때문에..
 			if (dir.getAbsolutePath().contains("analysis")) {
 				// analysis
 				logger.debug("analysis >> {}", dir.getAbsolutePath());
@@ -80,7 +85,7 @@ public class PluginService extends AbstractService {
 			for (File dir : pluginDirList) {
 				boolean isAnalysis = dir.getAbsolutePath().contains("analysis");
 				File pluginConfigFile = new File(dir, "plugin.xml");
-				if(!pluginConfigFile.exists()){
+				if (!pluginConfigFile.exists()) {
 					continue;
 				}
 				/*
@@ -89,24 +94,23 @@ public class PluginService extends AbstractService {
 				PluginSetting setting = null;
 				try {
 					InputStream is = new FileInputStream(pluginConfigFile);
-					if(isAnalysis){
+					if (isAnalysis) {
 						setting = (PluginSetting) analysisUnmarshaller.unmarshal(is);
-					}else{
+					} else {
 						setting = (PluginSetting) unmarshaller.unmarshal(is);
-						
+
 					}
 					is.close();
 					logger.debug("PluginSetting >>> {}, {}", setting, pluginConfigFile.getAbsolutePath());
 					String className = setting.getClassName();
 					Plugin plugin = null;
 					if (className != null && className.length() > 0) {
-						plugin = DynamicClassLoader.loadObject(className, Plugin.class, new Class<?>[] { File.class, PluginSetting.class },
-								new Object[] { dir, setting });
+						plugin = DynamicClassLoader.loadObject(className, Plugin.class, new Class<?>[] { File.class, PluginSetting.class }, new Object[] { dir, setting });
 						plugin.load();
 						logger.debug("PLUGIN {} >> {}", setting.getId(), plugin.getClass().getName());
 						pluginMap.put(setting.getId(), plugin);
-//					} else {
-//						plugin = new Plugin(dir, setting);
+						// } else {
+						// plugin = new Plugin(dir, setting);
 					}
 
 				} catch (FileNotFoundException e) {
@@ -180,6 +184,27 @@ public class PluginService extends AbstractService {
 
 	public Plugin getPlugin(String pluginId) {
 		return pluginMap.get(pluginId);
+	}
+
+	public void loadSchedule() {
+		JobService jobService = serviceManager.getService(JobService.class);
+		for (Plugin plugin : getPlugins()) {
+			List<PluginSchedule> pluginScheduleList = plugin.getPluginSetting().getScheduleList();
+			if (pluginScheduleList != null && pluginScheduleList.size() > 0) {
+				for (PluginSchedule pluginSchedule : pluginScheduleList) {
+					Job job = DynamicClassLoader.loadObject(pluginSchedule.getClassName(), Job.class);
+					if (job != null) {
+						try {
+							jobService.schedule(job, Formatter.parseDate(pluginSchedule.getStartTime()), pluginSchedule.getPeriodInMinute() * 60);
+						} catch (ParseException e) {
+							logger.error("Error parsing plugin schedule {} : {}", pluginSchedule.getStartTime(), e);
+						}
+					} else {
+						logger.error("PluginSchedule job is null >> {}", job);
+					}
+				}
+			}
+		}
 	}
 
 }

@@ -11,49 +11,46 @@
 
 package org.fastcatsearch.control;
 
-import java.io.File;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.fastcatsearch.common.XMLSettingManager;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.indexing.CollectionFullIndexingJob;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.SchedulerSetting;
-import org.fastcatsearch.settings.SchedulerSetting.IndexingSchedule;
-import org.fastcatsearch.settings.SchedulerSetting.JobSchedule;
 import org.fastcatsearch.util.DynamicClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/*
 
+@Deprecated JobService내에서 scheduledJob을 이용하여 스케쥴링수행. 
+*/
 public class JobScheduler {
 	private static Logger logger = LoggerFactory.getLogger(JobScheduler.class);
 	private Timer timer;
 	private Map<String,TimerTask> taskMap;
-	private File scheduleFile;
-	private XMLSettingManager<SchedulerSetting> scheduleSettingManager;
+//	private File scheduleFile;
+//	private XMLSettingManager<SchedulerSetting> scheduleSettingManager;
 	
 	
 	public JobScheduler() {
 	}
 	
-	public JobScheduler(File scheduleFile) {
-		this.scheduleFile = scheduleFile;
-		
-	}
-	
-	public void saveSchedule(){
-		scheduleSettingManager.save();
-	}
+//	public JobScheduler(File scheduleFile) {
+//		this.scheduleFile = scheduleFile;
+//		
+//	}
+//	
+//	public void saveSchedule(){
+//		scheduleSettingManager.save();
+//	}
 	
 	public void start(){
 		try {
@@ -65,21 +62,24 @@ public class JobScheduler {
 	}
 	
 	private void load() throws SettingException{
-		if(scheduleFile != null){
-			scheduleSettingManager = new XMLSettingManager<SchedulerSetting>(scheduleFile, SchedulerSetting.class);
-			taskMap = new HashMap<String, TimerTask>(); 
-			timer = new Timer(true);
-			
-			List<IndexingSchedule> indexingScheduleList = scheduleSettingManager.getSetting().getIndexingScheduleList();
-			for (IndexingSchedule indexingSchedule : indexingScheduleList) {
-				setIndexSchedule(indexingSchedule.getCollectionId(), indexingSchedule.getIndexingType(), indexingSchedule.getStart(), indexingSchedule.getEnd(), indexingSchedule.getPeriodInSecond(), indexingSchedule.isActive());
-				logger.debug("[IndexingSchedule register] {} / {}", indexingSchedule.getCollectionId(), indexingSchedule.getIndexingType());
-			}
-			List<JobSchedule> jobScheduleList = scheduleSettingManager.getSetting().getJobScheduleList();
-			for (JobSchedule jobSchedule : jobScheduleList) {
-				//TODO
-			}
-		}
+		timer = new Timer(true);
+		taskMap = new HashMap<String, TimerTask>();
+		
+//		if(scheduleFile != null){
+//			scheduleSettingManager = new XMLSettingManager<SchedulerSetting>(scheduleFile, SchedulerSetting.class);
+//			taskMap = new HashMap<String, TimerTask>(); 
+//			timer = new Timer(true);
+//			
+//			List<IndexingSchedule> indexingScheduleList = scheduleSettingManager.getSetting().getIndexingScheduleList();
+//			for (IndexingSchedule indexingSchedule : indexingScheduleList) {
+//				setIndexSchedule(indexingSchedule.getCollectionId(), indexingSchedule.getIndexingType(), indexingSchedule.getStart(), indexingSchedule.getEnd(), indexingSchedule.getPeriodInSecond(), indexingSchedule.isActive());
+//				logger.debug("[IndexingSchedule register] {} / {}", indexingSchedule.getCollectionId(), indexingSchedule.getIndexingType());
+//			}
+//			List<JobSchedule> jobScheduleList = scheduleSettingManager.getSetting().getJobScheduleList();
+//			for (JobSchedule jobSchedule : jobScheduleList) {
+//				//TODO
+//			}
+//		}
 	}
 	
 	private String getIndexingKey(String collection, IndexingType type){
@@ -147,20 +147,20 @@ public class JobScheduler {
 	
 	public boolean reloadIndexingSchedule(String collectionId, IndexingType indexingType, boolean isActive){
 		String indexingKey = getIndexingKey(collectionId, indexingType);
-		if(isActive){
-			List<IndexingSchedule> indexingScheduleList = scheduleSettingManager.getSetting().getIndexingScheduleList();
-			for (IndexingSchedule indexingSchedule : indexingScheduleList) {
-				if(indexingSchedule.getCollectionId().equals(collectionId)){
-					setIndexSchedule(indexingSchedule.getCollectionId(), indexingSchedule.getIndexingType(), indexingSchedule.getStart(), indexingSchedule.getEnd(), indexingSchedule.getPeriodInSecond(), indexingSchedule.isActive());
-					logger.debug("[IndexingSchedule register] {} / {}", indexingSchedule.getCollectionId(), indexingSchedule.getIndexingType());
-				}
-			}
-		}else{
-			TimerTask oldTask = taskMap.remove(indexingKey);
-			if(oldTask != null){
-				oldTask.cancel();
-			}
-		}
+//		if(isActive){
+//			List<IndexingSchedule> indexingScheduleList = scheduleSettingManager.getSetting().getIndexingScheduleList();
+//			for (IndexingSchedule indexingSchedule : indexingScheduleList) {
+//				if(indexingSchedule.getCollectionId().equals(collectionId)){
+//					setIndexSchedule(indexingSchedule.getCollectionId(), indexingSchedule.getIndexingType(), indexingSchedule.getStart(), indexingSchedule.getEnd(), indexingSchedule.getPeriodInSecond(), indexingSchedule.isActive());
+//					logger.debug("[IndexingSchedule register] {} / {}", indexingSchedule.getCollectionId(), indexingSchedule.getIndexingType());
+//				}
+//			}
+//		}else{
+//			TimerTask oldTask = taskMap.remove(indexingKey);
+//			if(oldTask != null){
+//				oldTask.cancel();
+//			}
+//		}
 		return false;
 	}
 	

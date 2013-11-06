@@ -23,6 +23,7 @@ import javax.xml.bind.JAXBException;
 
 import org.fastcatsearch.cluster.NodeLoadBalancable;
 import org.fastcatsearch.common.QueryCacheModule;
+import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.common.IRException;
@@ -30,6 +31,8 @@ import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionsConfig;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
+import org.fastcatsearch.ir.config.IndexingScheduleConfig;
+import org.fastcatsearch.ir.config.IndexingScheduleConfig.IndexingSchedule;
 import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupsData;
@@ -110,6 +113,15 @@ public class IRService extends AbstractService {
 				// active하지 않은 컬렉션은 map에 설정만 넣어두고 로드하지 않는다.
 				if (collection.isActive()) {
 					collectionHandler.load();
+					
+					IndexingScheduleConfig indexingScheduleConfig = collectionContext.indexingScheduleConfig();
+					if(indexingScheduleConfig != null){
+						IndexingSchedule fullIndexingSchedule = indexingScheduleConfig.getFullIndexingSchedule();
+						
+						IndexingSchedule addIndexingSchedule = indexingScheduleConfig.getAddIndexingSchedule();
+						//TODO 
+//						JobService.getInstance().updateIndexingScheduleActivate(collectionId, indexingType, isActive);
+					}
 				}
 
 			} catch (IRException e) {

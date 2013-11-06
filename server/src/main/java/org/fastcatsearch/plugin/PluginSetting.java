@@ -18,6 +18,7 @@ public class PluginSetting {
 	protected boolean useDB;
 	
 	protected List<Action> actionList;
+	protected List<PluginSchedule> scheduleList;
 
 	public String getKey(String name) {
 		return namespace + "/" + id + "/" + name;
@@ -95,6 +96,16 @@ public class PluginSetting {
 	public void setActionList(List<Action> actionList) {
 		this.actionList = actionList;
 	}
+	
+	@XmlElementWrapper(name = "schedule-list")
+	@XmlElement(name = "schedule")
+	public List<PluginSchedule> getScheduleList() {
+		return scheduleList;
+	}
+
+	public void setScheduleList(List<PluginSchedule> scheduleList) {
+		this.scheduleList = scheduleList;
+	}
 
 	public static class Action {
 
@@ -107,6 +118,39 @@ public class PluginSetting {
 
 		public void setClassName(String className) {
 			this.className = className;
+		}
+		
+	}
+	
+	public static class PluginSchedule {
+
+		private String className;
+		private String startTime;
+		private int periodInMinute;
+
+		@XmlAttribute(name = "class")
+		public String getClassName() {
+			return className;
+		}
+
+		public void setClassName(String className) {
+			this.className = className;
+		}
+		
+		public String getStartTime() {
+			return startTime;
+		}
+
+		public void setStartTime(String startTime) {
+			this.startTime = startTime;
+		}
+
+		public int getPeriodInMinute() {
+			return periodInMinute;
+		}
+
+		public void setPeriodInMinute(int periodInMinute) {
+			this.periodInMinute = periodInMinute;
 		}
 		
 	}
