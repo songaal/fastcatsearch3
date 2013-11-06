@@ -40,7 +40,7 @@ public class PutDictionaryWordAction extends AuthAction {
 			Object[] values = new Object[columnSettingList.size()];
 			for (int i = 0; i < columnSettingList.size(); i++) {
 				ColumnSetting columnSetting = columnSettingList.get(i);
-				String name = columnSetting.getName();
+				String name = columnSetting.getName().toUpperCase();
 				String type = columnSetting.getType();
 				columns[i] = name;
 				String value = request.getParameter(name);

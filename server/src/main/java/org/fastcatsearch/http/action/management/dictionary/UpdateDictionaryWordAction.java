@@ -42,11 +42,11 @@ public class UpdateDictionaryWordAction extends AuthAction {
 		
 		if (columnSettingList != null && columnSettingList.size() > 0) {
 			
-			String idColumnValue = request.getParameter("id");
+			String idColumnValue = request.getParameter("ID");
 			for (int i = 0; i < columnSettingList.size(); i++) {
 				ColumnSetting columnSetting = columnSettingList.get(i);
 				
-				String name = columnSetting.getName();
+				String name = columnSetting.getName().toUpperCase();
 				String type = columnSetting.getType();
 				String value = request.getParameter(name);
 
