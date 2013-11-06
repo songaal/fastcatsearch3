@@ -24,31 +24,33 @@ public class ActionRequest {
 	public ActionRequest(String uri, HttpRequest request) {
 		this.uri = uri;
 		this.request = request;
-
-		if (request.getMethod() == HttpMethod.GET) {
-//			logger.debug("URI:{} , {}, {}", request.getUri(), request.getUri().length(), uri.length());
-			if (request.getUri().length() > uri.length()) {
-				queryString = request.getUri().substring(uri.length() + 1); // 맨앞의 ?를 제거하기 위해 +1
+		
+		if(request!=null) {
+			if (request.getMethod() == HttpMethod.GET) {
+//				logger.debug("URI:{} , {}, {}", request.getUri(), request.getUri().length(), uri.length());
+				if (request.getUri().length() > uri.length()) {
+					queryString = request.getUri().substring(uri.length() + 1); // 맨앞의 ?를 제거하기 위해 +1
+				}
+			} else if (request.getMethod() == HttpMethod.POST) {
+				long len = HttpHeaders.getContentLength(request);
+				ChannelBuffer buffer = request.getContent();
+				queryString = new String(buffer.array(), 0, (int) len);
+			} else {
+	
 			}
-		} else if (request.getMethod() == HttpMethod.POST) {
-			long len = HttpHeaders.getContentLength(request);
-			ChannelBuffer buffer = request.getContent();
-			queryString = new String(buffer.array(), 0, (int) len);
-		} else {
-
-		}
-		logger.debug("action {}, {}", uri, queryString);
-		try {
-			if(queryString != null){
-				queryString = URLDecoder.decode(queryString, DEFAULT_CHARSET);
-//				logger.debug(">> {}", queryString);
+			logger.debug("action {}, {}", uri, queryString);
+			try {
+				if(queryString != null){
+					queryString = URLDecoder.decode(queryString, DEFAULT_CHARSET);
+//					logger.debug(">> {}", queryString);
+				}
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
 			}
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-		parameterMap = new HashMap<String, String>();
-		if (queryString != null) {
-			parse();
+			parameterMap = new HashMap<String, String>();
+			if (queryString != null) {
+				parse();
+			}
 		}
 	}
 

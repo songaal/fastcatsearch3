@@ -24,7 +24,6 @@ public class GetDictionaryWordListAction extends AuthAction {
 
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
-		
 		String pluginId = request.getParameter("pluginId");
 		String dictionaryId = request.getParameter("dictionaryId");
 		String search = request.getParameter("search");
@@ -46,12 +45,14 @@ public class GetDictionaryWordListAction extends AuthAction {
 			for(DictionarySetting dictionary : dictionaryList){
 				if(dictionary.getId().equals(dictionaryId)){
 					List<ColumnSetting> columnSettingList = dictionary.getColumnSettingList();
-					for(int i=0;i<columnSettingList.size(); i++){
-						ColumnSetting columnSetting = columnSettingList.get(i);
-						if(columnSetting.isSearchable()){
-							searchableColumnList.add(columnSetting.getName());
+					if(columnSettingList!=null) {
+						for(int i=0;i<columnSettingList.size(); i++){
+							ColumnSetting columnSetting = columnSettingList.get(i);
+							if(columnSetting.isSearchable()){
+								searchableColumnList.add(columnSetting.getName());
+							}
+							columnNameList.add(columnSetting.getName());
 						}
-						columnNameList.add(columnSetting.getName());
 					}
 				}
 			}
@@ -76,18 +77,22 @@ public class GetDictionaryWordListAction extends AuthAction {
 			totalSize = dictionaryDAO.getCount(null, null);
 			filteredSize = dictionaryDAO.getCount(search, searchColumnList);
 			
+			if(length==-1) {
+				length = dictionaryDAO.getCount(null,null);
+			}
+			
 			List<Map<String, Object>> list = dictionaryDAO.getEntryList(start, start + length - 1, search, searchColumnList, sortAsc);
 			final String ID_COLUMN = "ID";
 			List<ColumnSetting> columnSettingList = dictionaryDAO.columnSettingList();
 			for(Map<String, Object> vo : list){
 				resultWriter.object().key(ID_COLUMN).value(vo.get(ID_COLUMN));
-				if(columnSettingList != null){
+				//if(columnSettingList != null){
 					for(int i = 0 ;i < columnSettingList.size(); i++){
 						ColumnSetting columnSetting = columnSettingList.get(i);
 						String name = columnSetting.getName().toUpperCase();
 						resultWriter.key(name).value(vo.get(name));
 					}
-				}
+				//}
 					
 				resultWriter.endObject();
 			}
