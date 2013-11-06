@@ -193,20 +193,6 @@ public class SynchronizeMapDictionaryKeyAction extends AuthAction {
 				}
 			}
 
-			// tmp 최초데이터 삭제
-			query.setLength(0);
-			for (int inx = 0; inx < queryDrop.length; inx++) {
-				query.append(inx == 1 ? tmpTableName : queryDrop[inx]);
-			}
-			try {
-				statement = connection.prepareStatement(query.toString());
-				statement.executeUpdate();
-			} finally {
-				if (statement != null) {
-					statement.close();
-				}
-			}
-
 			logger.debug("table swap ok");
 
 			// 성공메시지.
