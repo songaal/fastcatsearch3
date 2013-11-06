@@ -234,7 +234,9 @@ public class JobService extends AbstractService implements JobExecutor {
 		if(scheduledJob == null || forceUpdate){
 			scheduledJob = new ScheduledJob(job, startTime, periodInSecond);
 			ScheduledJob oldScheduledJob = scheduleMap.put(jobKey, scheduledJob);
-			oldScheduledJob.cancel();
+			if(oldScheduledJob != null){
+				oldScheduledJob.cancel();
+			}
 		}else{
 			logger.error("{} is already scheduled", job);
 		}
