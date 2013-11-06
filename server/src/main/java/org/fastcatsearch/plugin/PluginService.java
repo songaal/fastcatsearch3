@@ -194,6 +194,7 @@ public class PluginService extends AbstractService {
 				for (PluginSchedule pluginSchedule : pluginScheduleList) {
 					Job job = DynamicClassLoader.loadObject(pluginSchedule.getClassName(), Job.class);
 					if (job != null) {
+						job.setArgs(pluginSchedule.getArgs());
 						try {
 							jobService.schedule(job, Formatter.parseDate(pluginSchedule.getStartTime()), pluginSchedule.getPeriodInMinute() * 60);
 						} catch (ParseException e) {
