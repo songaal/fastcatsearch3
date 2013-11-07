@@ -61,24 +61,20 @@ public class SynchronizeMapDictionaryKeyAction extends AuthAction {
 				columns[colInx] = columnSetting.getName().toUpperCase();
 			}
 			
+			String tableName = dictionaryDAO.getTableName();
+			
 			mapperSession = dictionaryDAO.openMapperSession();
+			
+			mapperSession.getMapper().truncate(tableName);
+			
 			for(int recordInx=0;recordInx<dataArray.length;recordInx++) {
 				String recordStr = dataArray[recordInx];
 				
 				String[] record = recordStr.split("\t");
-				Object[] values = new Object[columns.length];
-				//System.arraycopy(record, 0, values, 0, record.length);
-				if(record.length > 0) {
-					values[0] = Integer.parseInt(record[0]);
-				}
-				if(record.length > 1) {
-					values[1] = String.valueOf(record[1]);
-				}
-				if(record.length > 2) {
-					values[2] = String.valueOf(record[2]);
-				}
+				String[] values = new String[columns.length];
+				System.arraycopy(record, 0, values, 0, record.length);
 				
-				mapperSession.getMapper().putEntry(dictionaryDAO.getTableName(),columns, values);
+				mapperSession.getMapper().putEntry(tableName, columns, values);
 			}
 			
 			mapperSession.commit();
