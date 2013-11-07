@@ -33,6 +33,10 @@ public class DictionaryDAO {
 	protected List<ColumnSetting> columnSettingList;
 	protected String[] searchColumns;
 	private InternalDBModule internalDBModule;
+	
+	public String getTableName() {
+		return tableName;
+	}
 
 	public DictionaryDAO(String tableName, List<ColumnSetting> columnSettingList, InternalDBModule internalDBModule) {
 		this.tableName = tableName;
