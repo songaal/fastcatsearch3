@@ -114,6 +114,7 @@ public class SynchronizeMapDictionaryKeyAction extends AuthAction {
 								statement.setString(3, value);
 								statement.addBatch();
 								dupCheckSet.add(keyword);
+								dataArray[dataList.indexOf(keyword)]=null;//입력되었으므로 삭제
 								cnt++;
 							}
 							if (cnt > 0 && cnt % 10000 == 0) {
@@ -133,17 +134,19 @@ public class SynchronizeMapDictionaryKeyAction extends AuthAction {
 				int cnt = 0;
 				// 기존 데이터베이스에 없는 데이터만 모아서 업데이트
 				for (String keyword : dataArray) {
-					logger.trace("insert into {}.{}  keyword = {}", new Object[] { pluginId, srcTableName, keyword });
-					if (!dupCheckSet.contains(keyword)) {
-						statement.setInt(1, cnt);
-						statement.setString(2, keyword);
-						statement.setString(3, "");
-						statement.addBatch();
-						dupCheckSet.add(keyword);
-						cnt++;
-					}
-					if (cnt > 0 && cnt % 10000 == 0) {
-						statement.executeBatch();
+					if(keyword!=null) { //삭제된 데이터는 무시
+						logger.trace("insert into {}.{}  keyword = {}", new Object[] { pluginId, srcTableName, keyword });
+						if (!dupCheckSet.contains(keyword)) {
+							statement.setInt(1, cnt);
+							statement.setString(2, keyword);
+							statement.setString(3, "");
+							statement.addBatch();
+							dupCheckSet.add(keyword);
+							cnt++;
+						}
+						if (cnt > 0 && cnt % 10000 == 0) {
+							statement.executeBatch();
+						}
 					}
 				}
 				dupCheckSet.clear();
