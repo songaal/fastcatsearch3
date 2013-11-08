@@ -9,6 +9,7 @@ import java.util.List;
 import org.fastcatsearch.db.dao.DictionaryDAO;
 import org.fastcatsearch.db.dao.DictionaryStatusDAO;
 import org.fastcatsearch.db.vo.DictionaryStatusVO;
+import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -22,7 +23,7 @@ import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/management/dictionary/overview")
+@ActionMapping(value="/management/dictionary/overview", authority=ActionAuthority.Analysis_Dictionary)
 public class GetDictionaryOverviewAction extends AuthAction {
 
 	@Override

@@ -7,6 +7,8 @@ import java.util.List;
 
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.db.dao.DictionaryDAO;
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -18,7 +20,7 @@ import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/management/dictionary/apply")
+@ActionMapping(value="/management/dictionary/apply", authority=ActionAuthority.Analysis_Dictionary, authorityLevel=ActionAuthorityLevel.WRITABLE)
 public class ApplyDictionaryAction extends AuthAction {
 
 	@Override

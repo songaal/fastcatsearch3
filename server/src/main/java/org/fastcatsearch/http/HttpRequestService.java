@@ -14,6 +14,7 @@ import java.util.jar.JarFile;
 import org.fastcatsearch.common.ThreadPoolFactory;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.http.action.HttpAction;
 import org.fastcatsearch.http.action.ServiceAction;
 import org.fastcatsearch.plugin.Plugin;
@@ -51,14 +52,7 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 		List<String> actionBasePackage = settings.getList("action-base-package", String.class);
 		scanActions(actionMap, actionBasePackage);
 
-		// List<Settings> actionList = settings.getSettingList("action_list");
-		// for (Settings action : actionList) {
-		// String path = action.getString("path");
-		// String actionClassName = action.getString("action");
-		// addtoMap(actionMap, path, actionClassName);
-		// }
-
-		// //// plugin action
+		////// plugin action
 		PluginService pluginService = serviceManager.getService(PluginService.class);
 		for (Plugin plugin : pluginService.getPlugins()) {
 			PluginSetting pluginSetting = plugin.getPluginSetting();
@@ -68,17 +62,16 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 			}
 		}
 
-		// //////////
 		serviceController.setActionMap(actionMap);
 		return true;
 	}
 
 	private void scanActions(Map<String, HttpAction> actionMap, List<String> actionBasePackageList) {
-		for(String actionBasePackage : actionBasePackageList){
+		for (String actionBasePackage : actionBasePackageList) {
 			scanActions(actionMap, actionBasePackage);
 		}
 	}
-	
+
 	private void scanActions(Map<String, HttpAction> actionMap, String actionBasePackage) {
 		String path = actionBasePackage.replace(".", "/");
 		if (!path.endsWith("/")) {
@@ -87,7 +80,7 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 		try {
 			String findPath = path;// +"**/*.class";
 			Enumeration<URL> em = DynamicClassLoader.getResources(findPath);
-			logger.debug("findPath >> {}, {}",findPath, em);
+			logger.debug("findPath >> {}, {}", findPath, em);
 			while (em.hasMoreElements()) {
 				String urlstr = em.nextElement().toString();
 				logger.debug("urlstr >> {}", urlstr);
@@ -129,7 +122,7 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 
 		try {
 			Class<?> actionClass = DynamicClassLoader.loadClass(className);
-//			logger.debug("className > {} => {}",className , actionClass);
+			// logger.debug("className > {} => {}",className , actionClass);
 			// actionClass 가 serviceAction을 상속받은 경우만 등록.
 			if (actionClass != null) {
 				if (ServiceAction.class.isAssignableFrom(actionClass)) {
@@ -140,14 +133,18 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 						String path = actionMapping.value();
 						ActionMethod[] method = actionMapping.method();
 						actionObj = (HttpAction) actionClass.newInstance();
-						actionObj.setMethod(method);
-						try {
+						if (actionObj != null) {
+							actionObj.setMethod(method);
 							logger.debug("ACTION path={}, action={}, method={}", path, actionObj, method);
-							if (actionObj != null) {
-								actionMap.put(path, actionObj);
+							// 권한 필요한 액션일 경우.
+							if (actionObj instanceof AuthAction) {
+								AuthAction authAction = (AuthAction) actionObj;
+								authAction.setAuthority(actionMapping.authority(), actionMapping.authorityLevel());
+								logger.debug("ACTION path={}, authority={}, authorityLevel={}", path, actionMapping.authority(), actionMapping.authorityLevel());
 							}
-						} catch (Exception e) {
-							logger.error("", e);
+							
+							actionMap.put(path, actionObj);
+
 						}
 
 					}
@@ -160,18 +157,6 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 		}
 	}
 
-	// private void addtoMap(Map<String, HttpAction> actionMap, String path, String actionClassName){
-	// HttpAction actionObj = DynamicClassLoader.loadObject(actionClassName, HttpAction.class);
-	//
-	// try {
-	// logger.debug("ACTION path={}, action={}", path, actionObj);
-	// if (actionObj != null) {
-	// actionMap.put(path, actionObj);
-	// }
-	// } catch (Exception e) {
-	// logger.error("", e);
-	// }
-	// }
 	@Override
 	protected boolean doStop() throws FastcatSearchException {
 		transportModule.doUnload();

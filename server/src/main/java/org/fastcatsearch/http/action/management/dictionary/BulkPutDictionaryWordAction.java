@@ -9,6 +9,8 @@ import java.util.List;
 import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.db.dao.DictionaryDAO;
 import org.fastcatsearch.db.mapper.DictionaryMapper;
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -20,7 +22,7 @@ import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/management/dictionary/bulkPut")
+@ActionMapping(value="/management/dictionary/bulkPut", authority=ActionAuthority.Analysis_Dictionary, authorityLevel=ActionAuthorityLevel.WRITABLE)
 public class BulkPutDictionaryWordAction extends AuthAction {
 
 	@Override

@@ -2,12 +2,17 @@ package org.fastcatsearch.http.action;
 
 import java.io.Writer;
 
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.util.ResponseWriter;
 
 public abstract class AuthAction extends ServiceAction {
 
 	public final static String AUTH_KEY = "__auth";
-
+	
+	private ActionAuthority authority;
+	private ActionAuthorityLevel authorityLevel;
+	
 	abstract public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception;
 
 	@Override
@@ -41,5 +46,10 @@ public abstract class AuthAction extends ServiceAction {
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		resultWriter.object().key("error").value("Not Authenticated.").endObject();
 		resultWriter.done();
+	}
+
+	public void setAuthority(ActionAuthority authority, ActionAuthorityLevel authorityLevel) {
+		this.authority = authority;
+		this.authorityLevel = authorityLevel;
 	}
 }

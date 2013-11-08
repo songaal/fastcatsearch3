@@ -12,5 +12,6 @@ public @interface ActionMapping {
 	String value();
 	ActionMethod[] method() default {ActionMethod.GET, ActionMethod.POST};
 	ActionAuthority authority() default ActionAuthority.NULL;
-	ActionAuthorityLevel authorityType() default ActionAuthorityLevel.NONE;
+	//기본적으로 readable. writable은 annotation에 설정해주었을 경우만.
+	ActionAuthorityLevel authorityLevel() default ActionAuthorityLevel.READABLE; 
 }
