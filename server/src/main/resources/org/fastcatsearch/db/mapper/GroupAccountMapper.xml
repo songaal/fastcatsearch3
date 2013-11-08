@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- default field : id, keyword -->
+<mapper namespace="org.fastcatsearch.db.mapper.GroupAccountMapper">
+
+	<update id="createTable">
+		create table GroupAccount (
+		id int GENERATED ALWAYS AS IDENTITY,
+		groupName varchar(200),
+		primary key (id)
+		)
+	</update>
+	
+	<select id="validateTable" parameterType="map" resultType="map">
+		select id, groupName
+		from GroupAccount
+		fetch first 1 rows only
+	</select>
+
+	<update id="dropTable" parameterType="map">
+		drop table GroupAccount 
+	</update>
+
+	<select id="getEntry" parameterType="int" resultType="org.fastcatsearch.db.vo.GroupAccountVO">
+		select *
+		from GroupAccount where id = #{id}
+	</select>
+
+	<select id="getEntryList" parameterType="map" resultType="org.fastcatsearch.db.vo.GroupAccountVO">
+		select * GroupAccount
+	</select>
+
+	<select id="getCount" parameterType="map" resultType="int">
+		select count(*)
+		from GroupAccount
+	</select>
+
+	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.GroupAccountVO" useGeneratedKeys="true">
+		insert into GroupAccount ( 
+			id, groupName
+		)
+		values (
+		#{id}, #{groupName}
+		)
+	</insert>
+</mapper>

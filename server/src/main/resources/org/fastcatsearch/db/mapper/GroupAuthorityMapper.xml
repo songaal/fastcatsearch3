@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- default field : id, keyword -->
+<mapper namespace="org.fastcatsearch.db.mapper.GroupAuthorityMapper">
+
+	<update id="createTable">
+		create table GroupAuthority (
+		groupId int ,
+		authorityCode varchar(60),
+		authorityLevel varchar(4)
+		)
+	</update>
+	
+	<update id="createIndex" >
+		create index groupId_GroupAuthority_index on GroupAuthority(groupId)
+	</update>
+	
+	<select id="validateTable" parameterType="map" resultType="map">
+		select groupId, authorityCode, authorityLevel 
+		from GroupAuthority
+		fetch first 1 rows only
+	</select>
+
+	<update id="dropTable" parameterType="map">
+		drop table GroupAuthority
+	</update>
+
+	<select id="getEntry" parameterType="int" resultType="org.fastcatsearch.db.vo.GroupAuthorityVO">
+		select *
+		from GroupAuthority where id = #{id}
+	</select>
+
+	<select id="getEntryList" parameterType="int" resultType="org.fastcatsearch.db.vo.GroupAuthorityVO">
+		select * from GroupAuthority 
+		where groupId = #{groupId}
+	</select>
+	
+	<select id="getEntryListByAuthorityCode" parameterType="String" resultType="org.fastcatsearch.db.vo.GroupAuthorityVO">
+		select * from GroupAuthority
+		where authorityCode = #{authorityCode}
+	</select>
+
+	<select id="getCount" parameterType="String" resultType="int">
+		select count(*)
+		from GroupAuthority where groupId = #{groupId}
+	</select>
+	
+	<select id="getCountByAuthorityCode" parameterType="String" resultType="int">
+		select count(*)
+		from GroupAuthority where groupId = #{authorityCode}
+	</select>
+
+	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.GroupAuthorityVO" useGeneratedKeys="true">
+		insert into GroupAuthority ( 
+		groupId, authorityCode, authorityLevel
+		)
+		values (
+		#{groupId}, #{authorityCode}, #{authorityLevel}
+		)
+	</insert>
+</mapper>

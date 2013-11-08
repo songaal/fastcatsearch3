@@ -11,8 +11,6 @@
 
 package org.fastcatsearch.db;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -29,7 +27,6 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
-import org.fastcatsearch.db.mapper.DictionaryMapper;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.module.AbstractModule;
 import org.fastcatsearch.module.ModuleException;
