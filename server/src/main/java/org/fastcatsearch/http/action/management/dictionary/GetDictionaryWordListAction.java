@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.fastcatsearch.db.dao.DictionaryDAO;
+import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -19,7 +20,7 @@ import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/management/dictionary/list")
+@ActionMapping(value="/management/dictionary/list", authority=ActionAuthority.Analysis_Dictionary)
 public class GetDictionaryWordListAction extends AuthAction {
 
 	@Override

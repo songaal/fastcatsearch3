@@ -80,7 +80,6 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 	}
 	
 	private void scanActions(Map<String, HttpAction> actionMap, String actionBasePackage) {
-logger.debug("actionBasePackage > {}", actionBasePackage);
 		String path = actionBasePackage.replace(".", "/");
 		if (!path.endsWith("/")) {
 			path = path + "/";
