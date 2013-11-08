@@ -11,4 +11,6 @@ import java.lang.annotation.Target;
 public @interface ActionMapping {
 	String value();
 	ActionMethod[] method() default {ActionMethod.GET, ActionMethod.POST};
+	ActionAuthority authority() default ActionAuthority.NULL;
+	ActionAuthorityLevel authorityType() default ActionAuthorityLevel.NONE;
 }
