@@ -4,16 +4,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.db.dao.DictionaryDAO;
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.http.action.ActionRequest;
-import org.fastcatsearch.http.action.ActionResponse;
-import org.fastcatsearch.http.action.management.dictionary.GetDictionaryWordListAction;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
@@ -116,7 +112,6 @@ public class BackupDictionaryJob extends Job {
 			int length = dictionaryDAO.getCount(null,null);
 			
 			List<Map<String, Object>> list = dictionaryDAO.getEntryList(1, length, null, null, true);
-			final String ID_COLUMN = "ID";
 			List<ColumnSetting> columnSettingList = dictionaryDAO.columnSettingList();
 			if(columnSettingList != null){
 				for(Map<String, Object> vo : list){
