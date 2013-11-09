@@ -35,9 +35,9 @@ public class LoginAction extends ServiceAction {
 		String password = request.getParameter("password");
 		
 		UserAccountMapper userAccountMapper = (UserAccountMapper) 
-				DBService.getInstance().getMapperSession(UserAccountMapper.class);
+				DBService.getInstance().getMapperSession(UserAccountMapper.class).getMapper();
 		GroupAuthorityMapper groupAuthorityMapper = (GroupAuthorityMapper) 
-				DBService.getInstance().getMapperSession(GroupAuthorityMapper.class);
+				DBService.getInstance().getMapperSession(GroupAuthorityMapper.class).getMapper();
 		
 		//db에 id, passwd를 던져서 로그인 성공여부 확인.
 		UserAccountVO userInfo = userAccountMapper.getEntryByUserIdAndPassword(userId, password);

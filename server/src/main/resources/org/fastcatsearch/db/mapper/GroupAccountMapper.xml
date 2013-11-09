@@ -13,6 +13,9 @@
 		)
 	</update>
 	
+	<update id="createIndex">
+	</update>
+	
 	<select id="validateTable" parameterType="map" resultType="map">
 		select id, groupName
 		from GroupAccount

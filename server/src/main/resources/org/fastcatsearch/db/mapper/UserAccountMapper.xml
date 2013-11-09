@@ -13,9 +13,13 @@
 		password varchar(200),
 		email varchar(60),
 		sms varchar(60),
-		groupId int
+		groupId int,
 		primary key (id)
 		)
+	</update>
+	
+	<update id="createIndex" >
+	insert into UserAccount (name, userId, password) values ('administrator', 'admin', '1111')
 	</update>
 	
 	<select id="validateTable" parameterType="map" resultType="map">
