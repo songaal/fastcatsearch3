@@ -11,7 +11,6 @@
 
 package org.fastcatsearch.db;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -48,10 +47,9 @@ public class DBService extends AbstractService {
 			,TaskHistoryMapper.class
 			,IndexingHistoryMapper.class
 			,IndexingResultMapper.class
+			,UserAccountMapper.class
 			,GroupAccountMapper.class
 			,GroupAuthorityMapper.class
-			,UserAccountMapper.class
-			
 	};
 	public static DBService getInstance() {
 		return instance;
