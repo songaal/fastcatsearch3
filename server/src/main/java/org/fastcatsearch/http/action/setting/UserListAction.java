@@ -20,7 +20,7 @@ public class UserListAction extends AuthAction {
 			throws Exception {
 		
 		UserAccountMapper userAccountMapper = (UserAccountMapper) 
-				DBService.getInstance().getMapperSession(UserAccountMapper.class);
+				DBService.getInstance().getMapperSession(UserAccountMapper.class).getMapper();
 		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);

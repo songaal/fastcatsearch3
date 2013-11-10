@@ -21,11 +21,14 @@ import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.db.mapper.ExceptionHistoryMapper;
+import org.fastcatsearch.db.mapper.GroupAccountMapper;
+import org.fastcatsearch.db.mapper.GroupAuthorityMapper;
 import org.fastcatsearch.db.mapper.IndexingHistoryMapper;
 import org.fastcatsearch.db.mapper.IndexingResultMapper;
 import org.fastcatsearch.db.mapper.ManagedMapper;
 import org.fastcatsearch.db.mapper.NotificationHistoryMapper;
 import org.fastcatsearch.db.mapper.TaskHistoryMapper;
+import org.fastcatsearch.db.mapper.UserAccountMapper;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.module.ModuleException;
@@ -45,6 +48,10 @@ public class DBService extends AbstractService {
 			,TaskHistoryMapper.class
 			,IndexingHistoryMapper.class
 			,IndexingResultMapper.class
+			,GroupAccountMapper.class
+			,GroupAuthorityMapper.class
+			,UserAccountMapper.class
+			
 	};
 	public static DBService getInstance() {
 		return instance;

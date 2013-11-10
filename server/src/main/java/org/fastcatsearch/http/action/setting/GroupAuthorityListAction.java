@@ -21,7 +21,7 @@ public class GroupAuthorityListAction extends AuthAction {
 	public void doAuthAction(ActionRequest request, ActionResponse response)
 			throws Exception {
 		GroupAuthorityMapper groupAuthorityMapper = (GroupAuthorityMapper) 
-				DBService.getInstance().getMapperSession(GroupAuthorityMapper.class);
+				DBService.getInstance().getMapperSession(GroupAuthorityMapper.class).getMapper();
 		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);

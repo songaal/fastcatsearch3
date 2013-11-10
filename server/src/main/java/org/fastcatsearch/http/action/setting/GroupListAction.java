@@ -19,7 +19,7 @@ public class GroupListAction extends AuthAction {
 	public void doAuthAction(ActionRequest request, ActionResponse response)
 			throws Exception {
 		GroupAccountMapper groupAccountMapper = (GroupAccountMapper) 
-				DBService.getInstance().getMapperSession(GroupAccountMapper.class);
+				DBService.getInstance().getMapperSession(GroupAccountMapper.class).getMapper();
 		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
