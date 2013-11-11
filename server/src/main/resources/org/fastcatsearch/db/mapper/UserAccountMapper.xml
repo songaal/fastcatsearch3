@@ -56,14 +56,24 @@
 		select count(*)
 		from UserAccount
 	</select>
+	
+	<select id="getMaxId" resultType="int">
+		select max(id) from UserAccount
+	</select> 
 
 	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.UserAccountVO" useGeneratedKeys="true">
 		insert into UserAccount ( 
-		taskId, executable, args, status, resultStr, isScheduled, startTime, endTime, duration
+		id,name,userId,password,email,sms,groupId
 		)
 		values (
-		#{taskId}, #{executable}, #{args}, #{status}, #{resultStr}, #{isScheduled}, #{startTime}, #{endTime}, #{duration}
+		#{id},#{name},#{userId},#{password},#{email},#{sms},#{groupId}
 		)
 	</insert>
+	
+	<update id="updateEntry" parameterType="org.fastcatsearch.db.vo.UserAccountVO">
+		update UserAccount 
+		set name=#{name}, #{password}=#{password}, email=#{email}, sms=#{sms}, groupId=#{groupId}
+		where id=#{id}
+	</update>
 
 </mapper>

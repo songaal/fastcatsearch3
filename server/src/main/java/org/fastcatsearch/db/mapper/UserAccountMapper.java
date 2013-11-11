@@ -17,6 +17,9 @@ public interface UserAccountMapper extends ManagedMapper {
 	
 	public int getCount() throws Exception;
 	
+	public int getMaxId() throws Exception;
+	
 	public void putEntry (UserAccountVO vo) throws Exception;
-
+	
+	public void updateEntry (UserAccountVO vo) throws Exception;
 }

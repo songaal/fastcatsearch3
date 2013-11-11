@@ -32,11 +32,16 @@
 	</select>
 
 	<select id="getEntryList" parameterType="map" resultType="org.fastcatsearch.db.vo.GroupAccountVO">
-		select * GroupAccount
+		select * from GroupAccount
 	</select>
 
 	<select id="getCount" parameterType="map" resultType="int">
 		select count(*)
+		from GroupAccount
+	</select>
+	
+	<select id="getMaxId" resultType="int">
+		select max(id)
 		from GroupAccount
 	</select>
 
@@ -48,4 +53,10 @@
 		#{id}, #{groupName}
 		)
 	</insert>
+	
+	<update id="updateEntry" parameterType="org.fastcatsearch.db.vo.GroupAccountVO" >
+		update GroupAccount
+			set groupName = #{groupName}
+		where id=#{id}
+	</update>
 </mapper>

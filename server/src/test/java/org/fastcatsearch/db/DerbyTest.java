@@ -5,9 +5,12 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.apache.derby.impl.drda.NetworkServerControlImpl;
 import org.junit.Test;
 
 public class DerbyTest {
@@ -53,6 +56,23 @@ public class DerbyTest {
 		System.out.println("time = "+elapsed+" ms / "+COUNT+"count");
 		
 	}
-
+	
+	public void test() throws Exception {
 		
+		final NetworkServerControlImpl server = new NetworkServerControlImpl(InetAddress.getByName("localhost"),9999,"","");
+		server.start(null);
+		
+		Class.forName("org.apache.derby.jdbc.ClientDriver");
+		Connection conn = DriverManager.getConnection("jdbc:derby://localhost:9999//home/lupfeliz/fastcatsearch-1.9/db");
+		
+		PreparedStatement pst = conn.prepareStatement("SELECT * FROM JOBHISTORY");
+		
+		ResultSet res = pst.executeQuery();
+		
+		while(res.next()) {
+			
+			System.out.println(res.getString("JOBCLASSNAME")+":"+res.getString("ARGS"));
+			
+		}
+	}
 }

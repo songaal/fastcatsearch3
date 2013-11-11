@@ -10,6 +10,7 @@
 		groupId int ,
 		authorityCode varchar(60),
 		authorityLevel varchar(4)
+		primary key (groupId, authorityCode)
 		)
 	</update>
 	
@@ -37,6 +38,11 @@
 		where groupId = #{groupId}
 	</select>
 	
+	<select id="getAllEntryList" parameterType="int" resultType="org.fastcatsearch.db.vo.GroupAuthorityVO">
+		select * from GroupAuthority 
+		order by groupId, authorityCode, authorityLevel
+	</select>
+	
 	<select id="getEntryListByAuthorityCode" parameterType="String" resultType="org.fastcatsearch.db.vo.GroupAuthorityVO">
 		select * from GroupAuthority
 		where authorityCode = #{authorityCode}
@@ -60,4 +66,11 @@
 		#{groupId}, #{authorityCode}, #{authorityLevel}
 		)
 	</insert>
+	
+	<update id="updateEntry" parameterType="org.fastcatsearch.db.vo.GroupAuthorityVO">
+		update GroupAuthority 
+			set authorityLevel = #{authorityLevel}
+			where groupId = #{groupId} and
+			authorityCode = #{authorityCode}
+	</update>
 </mapper>

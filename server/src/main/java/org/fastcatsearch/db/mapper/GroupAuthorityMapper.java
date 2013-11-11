@@ -11,6 +11,8 @@ public interface GroupAuthorityMapper extends ManagedMapper {
 	
 	public List<GroupAuthorityVO> getEntryList(@Param("groupId")int groupId) throws Exception;
 	
+	public List<GroupAuthorityVO> getAllEntryList() throws Exception;
+	
 	public List<GroupAuthorityVO> getEntryListByAuthorityCode(@Param("authorityCode")String authorityCode) throws Exception;
 	
 	public int getCount(@Param("groupId")int groupId);
@@ -18,4 +20,6 @@ public interface GroupAuthorityMapper extends ManagedMapper {
 	public int getCountByAuthorityCode(@Param("authorityCode")String authorityCode);
 
 	public void putEntry(GroupAuthorityVO vo) throws Exception;
+	
+	public void updateEntry(GroupAuthorityVO vo) throws Exception;
 }

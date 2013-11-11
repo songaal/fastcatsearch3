@@ -13,5 +13,9 @@ public interface GroupAccountMapper extends ManagedMapper {
 	
 	public int getCount() throws Exception;
 	
+	public int getMaxId() throws Exception;
+	
 	public void putEntry(GroupAccountVO vo) throws Exception;
+	
+	public void updateEntry(GroupAccountVO vo) throws Exception;
 }

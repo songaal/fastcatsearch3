@@ -4,7 +4,9 @@ import java.io.Writer;
 import java.util.List;
 
 import org.fastcatsearch.db.DBService;
+import org.fastcatsearch.db.mapper.GroupAccountMapper;
 import org.fastcatsearch.db.mapper.GroupAuthorityMapper;
+import org.fastcatsearch.db.vo.GroupAccountVO;
 import org.fastcatsearch.db.vo.GroupAuthorityVO;
 import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionAuthorityLevel;
@@ -23,45 +25,71 @@ public class GroupAuthorityListAction extends AuthAction {
 		GroupAuthorityMapper groupAuthorityMapper = (GroupAuthorityMapper) 
 				DBService.getInstance().getMapperSession(GroupAuthorityMapper.class).getMapper();
 		
+		GroupAccountMapper groupAccountMapper = (GroupAccountMapper)
+				DBService.getInstance().getMapperSession(GroupAccountMapper.class).getMapper();
+		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		
 		int groupId = request.getIntParameter("groupId", -1);
 		
-		if(groupAuthorityMapper!=null && groupId!=-1) {
-			List<GroupAuthorityVO>authorityList = groupAuthorityMapper.getEntryList(groupId);
-			ActionAuthority[] authorities = ActionAuthority.values();
+		String mode = request.getParameter("mode");
+		
+		List<GroupAuthorityVO>authorityList = null;
+		ActionAuthority[] authorities = ActionAuthority.values();
+		GroupAccountVO groupAccountVO = null;
+		String groupName = "";
 
+		if(groupAuthorityMapper!=null && groupId!=-1) {
 			resultWriter.object()
 				.key("totalSize").value(authorities.length)
 				.key("groupAuthorityList").array();
-			for(ActionAuthority authority : authorities) {
-				boolean found = false;
-				GroupAuthorityVO authorityVO = null;
-				for(int inx=0;inx<authorityList.size();inx++) {
-					authorityVO = authorityList.get(inx);
-					if(authority.getName().equals(authorityVO.authorityCode)) {
-						found = true;
-						break;
+			if("all".equals(mode)) {
+				authorityList = groupAuthorityMapper.getAllEntryList();
+			} else {
+				authorityList = groupAuthorityMapper.getEntryList(groupId);
+			}
+			if(authorityList!=null) {
+				for(ActionAuthority authority : authorities) {
+					boolean found = false;
+					GroupAuthorityVO authorityVO = null;
+					for(int inx=0;inx<authorityList.size();inx++) {
+						authorityVO = authorityList.get(inx);
+						if(authority.getName().equals(authorityVO.authorityCode)) {
+							found = true;
+							break;
+						}
+					}
+					
+					groupAccountVO = groupAccountMapper.getEntry(groupId);
+					if(groupAccountVO!=null) {
+						groupName = groupAccountVO.groupName;
+					}
+					
+					if(found && authorityVO!=null) {
+						resultWriter.object()
+							.key("groupId").value(groupId)
+							.key("groupName").value(groupName)
+							.key("authorityCode").value(authority.name())
+							.key("authorityName").value(authority.getName())
+							.key("authorityLevel").value(authorityVO.authorityLevel)
+							.endObject();
+					} else {
+						resultWriter.object()
+							.key("groupId").value(groupId)
+							.key("groupName").value(groupName)
+							.key("authorityCode").value(authority.name())
+							.key("authorityName").value(authority.getName())
+							.key("authorityLevel").value("")
+							.endObject();
 					}
 				}
-				
-				if(found && authorityVO!=null) {
-					resultWriter.object()
-						.key("authorityCode").value(authority.name())
-						.key("authorityName").value(authority.getName())
-						.key("authorityLevel").value(authorityVO.authorityLevel)
-						.endObject();
-				} else {
-					resultWriter.object()
-						.key("authorityCode").value(authority.name())
-						.key("authorityName").value(authority.getName())
-						.key("authorityLevel").value("")
-						.endObject();
-				}
 			}
-			
 			resultWriter.endArray().endObject();
+		} else {
+			resultWriter.object()
+				.key("totalSize").value(0)
+				.key("groupAuthorityList").array().endArray().endObject();
 		}
 		resultWriter.done();
 

@@ -32,7 +32,7 @@ public class GroupListAction extends AuthAction {
 			
 			resultWriter.object()
 				.key("totalSize").value(totalSize)
-				.key("userList").array();
+				.key("groupList").array();
 			for(GroupAccountVO group : groupList) {
 				resultWriter.object()
 					.key("id").value(group.id)
