@@ -1,5 +1,6 @@
 package org.fastcatsearch.ir.misc.keywordSuggest;
 
+
 /**
  * 여러 리스트를 정렬 병합해서 하나같이 보여준다.
  * */
@@ -7,22 +8,23 @@ public class CompositeIdPosIterator extends IdPosIterator {
 
 	private IdPosIterator iterator;
 
-	public CompositeIdPosIterator(IdPosIterator[] list) {
-		// OrIdPos binary tree 생성.
-		if (list == null || list.length == 0) {
-			throw new IllegalArgumentException("list is empty. list = " + list);
-		}
-		if (list.length < 2) {
-			iterator = list[0];
-		} else {
-			iterator = new OrIdPosIterator(list[0], list[1]);
-			for (int i = 2; i < list.length; i++) {
-				iterator = new OrIdPosIterator(iterator, list[i]);
+	public CompositeIdPosIterator() {
+	}
+
+	public void add(IdPosIterator idPosIterator) {
+		if (idPosIterator.size() > 0) {
+			if (iterator == null) {
+				iterator = idPosIterator;
+			} else {
+				iterator = new OrIdPosIterator(iterator, idPosIterator);
 			}
 		}
 	}
 
 	public boolean next(IdPos idPos) {
+		if(iterator == null){
+			return false;
+		}
 		return iterator.next(idPos);
 	}
 
@@ -84,4 +86,5 @@ public class CompositeIdPosIterator extends IdPosIterator {
 		}
 
 	}
+
 }

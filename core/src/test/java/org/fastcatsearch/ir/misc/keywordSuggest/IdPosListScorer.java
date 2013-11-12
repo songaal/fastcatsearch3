@@ -1,6 +1,7 @@
 package org.fastcatsearch.ir.misc.keywordSuggest;
 
 
+
 /**
  * 여러 list를 받아서 id별 pos를 계산해서 score까지 리턴한다.
  * score에는 위치점수만 존재. 
@@ -8,21 +9,27 @@ package org.fastcatsearch.ir.misc.keywordSuggest;
  * */
 public class IdPosListScorer {
 	
-	private IdPosScorer iterator;
+	private IdPosScorer scorer;
 	
-	public IdPosListScorer(IdPosIterator[] list){
-		if (list == null || list.length < 2) {
-			throw new IllegalArgumentException("list size must be at least 2. list = " + list);
-		} else {
-			iterator = new AndIdPosScorer(new UnaryIdPosScorer(list[0]), list[1]);
-			for (int i = 2; i < list.length; i++) {
-				iterator = new AndIdPosScorer(iterator, list[i]);
+	public IdPosListScorer(){
+		
+	}
+	
+	public void add(IdPosIterator idPosIterator) {
+		if (idPosIterator.size() > 0) {
+			if (scorer == null) {
+				scorer = new UnaryIdPosScorer(idPosIterator);
+			} else {
+				scorer = new AndIdPosScorer(scorer, idPosIterator);
 			}
 		}
 	}
 	
 	public boolean next(IdPosScore idPosScore){
-		return iterator.next(idPosScore);
+		if(scorer == null){
+			return false;
+		}
+		return scorer.next(idPosScore);
 	}
 	
 	
@@ -135,7 +142,7 @@ public class IdPosListScorer {
 		
 		@Override
 		public String toString(){
-			return "IdPosScore]"+ id + " : " + pos + ":" + score;
+			return "[IdPosScore]"+ id + " : " + pos + ":" + score;
 		}
 	}
 }
