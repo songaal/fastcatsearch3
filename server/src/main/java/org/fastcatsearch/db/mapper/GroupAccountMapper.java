@@ -18,4 +18,6 @@ public interface GroupAccountMapper extends ManagedMapper {
 	public void putEntry(GroupAccountVO vo) throws Exception;
 	
 	public void updateEntry(GroupAccountVO vo) throws Exception;
+	
+	public void deleteEntry(@Param("groupId")int groupId);
 }

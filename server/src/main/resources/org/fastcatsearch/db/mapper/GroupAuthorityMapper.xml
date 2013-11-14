@@ -28,9 +28,9 @@
 		drop table GroupAuthority
 	</update>
 
-	<select id="getEntry" parameterType="int" resultType="org.fastcatsearch.db.vo.GroupAuthorityVO">
+	<select id="getEntry" parameterType="map" resultType="org.fastcatsearch.db.vo.GroupAuthorityVO">
 		select *
-		from GroupAuthority where id = #{id}
+		from GroupAuthority where groupId = #{groupId} and authorityCode = #{authorityCode}
 	</select>
 
 	<select id="getEntryList" parameterType="int" resultType="org.fastcatsearch.db.vo.GroupAuthorityVO">
@@ -58,7 +58,7 @@
 		from GroupAuthority where groupId = #{authorityCode}
 	</select>
 
-	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.GroupAuthorityVO" useGeneratedKeys="true">
+	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.GroupAuthorityVO">
 		insert into GroupAuthority ( 
 		groupId, authorityCode, authorityLevel
 		)
@@ -72,5 +72,9 @@
 			set authorityLevel = #{authorityLevel}
 			where groupId = #{groupId} and
 			authorityCode = #{authorityCode}
+	</update>
+	
+	<update id="deleteEntry" parameterType="int">
+		delete from GroupAuthority where groupId = #{groupId}
 	</update>
 </mapper>

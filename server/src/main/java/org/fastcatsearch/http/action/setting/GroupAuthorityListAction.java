@@ -97,7 +97,7 @@ public class GroupAuthorityListAction extends AuthAction {
 			if(authorityList!=null) {
 				for(int inx=0;inx<authorityList.size();inx++) {
 					authorityVO = authorityList.get(inx);
-					if(authority.getName().equals(authorityVO.authorityCode)) {
+					if(authority.name().equals(authorityVO.authorityCode)) {
 						found = true;
 						break;
 					}
