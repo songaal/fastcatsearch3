@@ -41,16 +41,17 @@
 	</select>
 	
 	<select id="getMaxId" resultType="int">
-		select max(id)
-		from GroupAccount
+		select max(id) from (
+		select count(1)*0 as id from GroupAccount union
+		select max(id) as id from GroupAccount ) a
 	</select>
 
-	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.GroupAccountVO" useGeneratedKeys="true">
+	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.GroupAccountVO" useGeneratedKeys="true" keyProperty="id">
 		insert into GroupAccount ( 
-			id, groupName
+			groupName
 		)
 		values (
-		#{id}, #{groupName}
+		 #{groupName}
 		)
 	</insert>
 	
@@ -58,5 +59,9 @@
 		update GroupAccount
 			set groupName = #{groupName}
 		where id=#{id}
+	</update>
+	
+	<update id="deleteEntry" parameterType="int">
+		delete from GroupAccount where id = #{groupId}
 	</update>
 </mapper>
