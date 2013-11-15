@@ -1,4 +1,4 @@
-package org.fastcatsearch.http.action.setting;
+package org.fastcatsearch.http.action.settings;
 
 import java.io.Writer;
 import java.util.List;
@@ -13,8 +13,8 @@ import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping (value="/setting/authority/group-list")
-public class GroupListAction extends AuthAction {
+@ActionMapping (value="/settings/authority/get-group-list")
+public class GetGroupListAction extends AuthAction {
 
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response)

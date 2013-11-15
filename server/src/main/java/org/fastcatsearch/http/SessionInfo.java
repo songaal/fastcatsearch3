@@ -5,6 +5,7 @@ import java.util.Map;
 public class SessionInfo {
 	
 	private String userId;
+
 	private Map<ActionAuthority, ActionAuthorityLevel> authorityMap;
 	
 	public SessionInfo(String userId, Map<ActionAuthority, ActionAuthorityLevel> authorityMap){
@@ -19,7 +20,7 @@ public class SessionInfo {
 	public void setUserId(String userId) {
 		this.userId = userId;
 	}
-
+	
 	public Map<ActionAuthority, ActionAuthorityLevel> getAuthorityMap() {
 		return authorityMap;
 	}
@@ -41,5 +42,4 @@ public class SessionInfo {
 		//if authority is not defined, it has no authority.
 		return false;
 	}
-	
 }

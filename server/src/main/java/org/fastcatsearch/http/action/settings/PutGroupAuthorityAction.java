@@ -1,4 +1,4 @@
-package org.fastcatsearch.http.action.setting;
+package org.fastcatsearch.http.action.settings;
 
 import java.io.Writer;
 
@@ -15,8 +15,8 @@ import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping (value="/setting/authority/group-authority-update")
-public class GroupAuthorityUpdateAction extends AuthAction {
+@ActionMapping (value="/settings/authority/update-group-authority")
+public class PutGroupAuthorityAction extends AuthAction {
 
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response)

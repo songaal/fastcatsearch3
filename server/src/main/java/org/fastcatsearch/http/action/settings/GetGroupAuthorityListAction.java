@@ -1,4 +1,4 @@
-package org.fastcatsearch.http.action.setting;
+package org.fastcatsearch.http.action.settings;
 
 import java.io.Writer;
 import java.util.List;
@@ -18,8 +18,8 @@ import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
 
-@ActionMapping (value="/setting/authority/group-authority-list")
-public class GroupAuthorityListAction extends AuthAction {
+@ActionMapping (value="/settings/authority/get-group-authority-list")
+public class GetGroupAuthorityListAction extends AuthAction {
 	
 	private ActionAuthority[] authorities;
 	private ActionAuthorityLevel[] authorityLevels;

@@ -1,4 +1,4 @@
-package org.fastcatsearch.http.action.setting;
+package org.fastcatsearch.http.action.settings;
 
 import java.io.Writer;
 import java.util.List;
@@ -13,8 +13,8 @@ import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping (value="/setting/authority/user-list")
-public class UserListAction extends AuthAction {
+@ActionMapping (value="/settings/authority/get-user-list")
+public class GetUserListAction extends AuthAction {
 
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response)

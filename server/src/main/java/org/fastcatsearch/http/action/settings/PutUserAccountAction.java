@@ -1,4 +1,4 @@
-package org.fastcatsearch.http.action.setting;
+package org.fastcatsearch.http.action.settings;
 
 import java.io.Writer;
 
@@ -12,8 +12,8 @@ import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping (value="/setting/authority/user-update")
-public class UserUpdateAction extends AuthAction {
+@ActionMapping (value="/settings/authority/update-user")
+public class PutUserAccountAction extends AuthAction {
 	
 	private static final int MODE_INSERT = 1;
 	private static final int MODE_UPDATE = 2;
@@ -43,7 +43,7 @@ public class UserUpdateAction extends AuthAction {
 					String userName = request.getParameter("name");
 					String userId = request.getParameter("userId");
 					String password = request.getParameter("password");
-					String passwordConfirm = request.getParameter("confirmPassword");
+					String passwordConfirm = request.getParameter("passwordConfirm");
 					String email = request.getParameter("email");
 					String sms = request.getParameter("sms");
 					int groupId = request.getIntParameter("groupId",0);
