@@ -92,6 +92,11 @@ public class GroupAuthorityListAction extends AuthAction {
 	
 	public void writeAuthority(List<GroupAuthorityVO> authorityList) throws ResultWriterException {
 		for(ActionAuthority authority : authorities) {
+			
+			if(authority == ActionAuthority.NULL) {
+				continue;
+			}
+			
 			boolean found = false;
 			GroupAuthorityVO authorityVO = null;
 			if(authorityList!=null) {

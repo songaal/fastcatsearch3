@@ -12,6 +12,7 @@ import org.fastcatsearch.db.mapper.GroupAuthorityMapper;
 import org.fastcatsearch.db.vo.GroupAccountVO;
 import org.fastcatsearch.db.vo.GroupAuthorityVO;
 import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -85,6 +86,9 @@ public class GroupAuthorityUpdateAction extends AuthAction {
 							
 							ActionAuthority[] authorities = ActionAuthority.values();
 							for(ActionAuthority authority : authorities) {
+								if(authority == ActionAuthority.NULL) {
+									continue;
+								}
 								String authorityCode = authority.name();
 								String authorityLevel = request.getParameter("authorityLevel_"+num+"_"+authorityCode);
 								if(groupId != -1 && authorityCode!=null && !"".equals(authorityCode)) {

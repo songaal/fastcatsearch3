@@ -9,7 +9,7 @@
 		create table GroupAuthority (
 		groupId int ,
 		authorityCode varchar(60),
-		authorityLevel varchar(4)
+		authorityLevel varchar(4),
 		primary key (groupId, authorityCode)
 		)
 	</update>
