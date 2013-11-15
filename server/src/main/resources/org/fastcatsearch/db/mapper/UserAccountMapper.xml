@@ -18,6 +18,9 @@
 		)
 	</update>
 	
+	<update id="createIndex" >
+		create unique index userId_UserAccount_index on UserAccount(userId)
+	</update>
 	
 	
 	<select id="validateTable" parameterType="map" resultType="map">
