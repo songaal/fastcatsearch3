@@ -49,24 +49,21 @@ public class GroupAuthorityUpdateAction extends AuthAction {
 				
 				String mode = request.getParameter("mode");
 				
-				Map<String,String> paramMap = request.getParameterMap();
-				Pattern keyPtn = Pattern.compile("groupId_([0-9]+)");
-				
 				if("update".equals(mode)) {
 				
-					for(String key : paramMap.keySet()) {
+					//for(String key : paramMap.keySet()) {
 						
-						Matcher matcher = keyPtn.matcher(key);
-						if(matcher.find()) {
-							String num = matcher.group(1);
+						//Matcher matcher = keyPtn.matcher(key);
+						//if(matcher.find()) {
+							//String num = matcher.group(1);
 							
-							int groupId = request.getIntParameter(key, 0);
+							int groupId = request.getIntParameter("groupId", 0);
 							
-							String groupName = request.getParameter("groupName_"+num);
+							String groupName = request.getParameter("groupName");
 							
-							if(groupName==null || "".equals(groupName)) {
-								continue;
-							}
+//							if(groupName==null || "".equals(groupName)) {
+//								continue;
+//							}
 							
 							GroupAccountVO groupAccountVO = null;
 							GroupAuthorityVO groupAuthorityVO = null;
@@ -90,7 +87,7 @@ public class GroupAuthorityUpdateAction extends AuthAction {
 									continue;
 								}
 								String authorityCode = authority.name();
-								String authorityLevel = request.getParameter("authorityLevel_"+num+"_"+authorityCode);
+								String authorityLevel = request.getParameter("authorityLevel_"+authorityCode);
 								if(groupId != -1 && authorityCode!=null && !"".equals(authorityCode)) {
 									groupAuthorityVO = groupAuthorityMapper.getEntry(groupId, authorityCode);
 									if(groupAuthorityVO!=null) {
@@ -107,19 +104,19 @@ public class GroupAuthorityUpdateAction extends AuthAction {
 									}
 								}
 							}
-						}
-					}
+						//}
+					//}
 				} else if("delete".equals(mode)) {
-					for(String key : paramMap.keySet()) {
-						Matcher matcher = keyPtn.matcher(key);
-						if(matcher.find()) {
-							String num = matcher.group(1);
+					//for(String key : paramMap.keySet()) {
+						//Matcher matcher = keyPtn.matcher(key);
+						//if(matcher.find()) {
+							//String num = matcher.group(1);
 							
-							int groupId = request.getIntParameter("check_group_"+num, 0);
+							int groupId = request.getIntParameter("groupId", 0);
 							groupAuthorityMapper.deleteEntry(groupId);
 							groupAccountMapper.deleteEntry(groupId);
-						}	
-					}
+						//}	
+					//}
 				}
 				resultWriter.object().key("success").value("true")
 						.key("status").value(1).endObject();
