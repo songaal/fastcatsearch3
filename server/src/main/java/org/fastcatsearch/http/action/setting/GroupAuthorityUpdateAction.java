@@ -95,10 +95,7 @@ public class GroupAuthorityUpdateAction extends AuthAction {
 										groupAuthorityMapper.updateEntry(groupAuthorityVO);
 									} else {
 										synchronized(groupAuthorityMapper) {
-											groupAuthorityVO = new GroupAuthorityVO();
-											groupAuthorityVO.groupId = groupId;
-											groupAuthorityVO.authorityCode = authorityCode;
-											groupAuthorityVO.authorityLevel = authorityLevel;
+											groupAuthorityVO = new GroupAuthorityVO(groupId, authorityCode, authorityLevel);
 											groupAuthorityMapper.putEntry(groupAuthorityVO);
 										}
 									}

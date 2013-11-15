@@ -28,8 +28,12 @@ import org.fastcatsearch.db.mapper.ManagedMapper;
 import org.fastcatsearch.db.mapper.NotificationHistoryMapper;
 import org.fastcatsearch.db.mapper.TaskHistoryMapper;
 import org.fastcatsearch.db.mapper.UserAccountMapper;
+import org.fastcatsearch.db.vo.GroupAccountVO;
+import org.fastcatsearch.db.vo.GroupAuthorityVO;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.module.ModuleException;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
@@ -106,6 +110,9 @@ public class DBService extends AbstractService {
 					logger.debug("create index {}", clazz.getSimpleName());
 					managedMapper.createIndex();
 					mapperSession.commit();
+					
+					initMapper(managedMapper);
+					
 				}catch(Exception e2){
 					logger.error("", e2);
 				}
@@ -114,12 +121,24 @@ public class DBService extends AbstractService {
 			
 		}
 		
-		
-		
 		logger.info("DBService started!");
 		return true;
 	}
 
+
+	private void initMapper(ManagedMapper managedMapper) throws Exception {
+		if(managedMapper instanceof GroupAccountMapper){
+			GroupAccountMapper mapper = (GroupAccountMapper) managedMapper;
+			mapper.putEntry(new GroupAccountVO(GroupAccountVO.ADMIN_GROUP_NAME));
+		}else if(managedMapper instanceof GroupAuthorityMapper){
+			GroupAuthorityMapper mapper = (GroupAuthorityMapper) managedMapper;
+			for(ActionAuthority authority : ActionAuthority.values()){
+				if(authority != ActionAuthority.NULL){
+					mapper.putEntry(new GroupAuthorityVO(1, authority.name(), ActionAuthorityLevel.WRITABLE.name()));
+				}
+			}
+		}
+	}
 
 	protected boolean doStop() throws FastcatSearchException {
 		try {
