@@ -22,7 +22,7 @@ import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping(value="/management/dictionary/bulkPut", authority=ActionAuthority.Analysis_Dictionary, authorityLevel=ActionAuthorityLevel.WRITABLE)
+@ActionMapping(value="/management/dictionary/bulkPut", authority=ActionAuthority.Dictionary, authorityLevel=ActionAuthorityLevel.WRITABLE)
 public class BulkPutDictionaryWordAction extends AuthAction {
 
 	@Override

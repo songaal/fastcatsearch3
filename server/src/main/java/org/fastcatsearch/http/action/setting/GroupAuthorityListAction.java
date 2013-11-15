@@ -9,6 +9,7 @@ import org.fastcatsearch.db.mapper.GroupAuthorityMapper;
 import org.fastcatsearch.db.vo.GroupAccountVO;
 import org.fastcatsearch.db.vo.GroupAuthorityVO;
 import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -20,6 +21,7 @@ import org.fastcatsearch.util.ResultWriterException;
 public class GroupAuthorityListAction extends AuthAction {
 	
 	private ActionAuthority[] authorities;
+	private ActionAuthorityLevel[] authorityLevels;
 	private List<GroupAuthorityVO>authorityList;
 	private GroupAuthorityMapper groupAuthorityMapper;
 	private GroupAccountMapper groupAccountMapper;
@@ -42,11 +44,16 @@ public class GroupAuthorityListAction extends AuthAction {
 		String mode = request.getParameter("mode");
 		
 		authorities = ActionAuthority.values();
+		authorityLevels = ActionAuthorityLevel.values();
+		
 		if(groupAuthorityMapper!=null && groupAccountMapper!=null) {
 			if(groupId == -1) {
 				GroupAccountVO groupAccountVO = new GroupAccountVO();
 				groupAccountVO.id = -1;
-				resultWriter.object()
+				resultWriter.object();
+				writeAuthorityLevel();
+				writeAuthority();
+				resultWriter
 					.key("groupCount").value(1)
 					.key("groupList").array();
 				writeGroup(groupAccountVO);
@@ -55,7 +62,10 @@ public class GroupAuthorityListAction extends AuthAction {
 			} else if("all".equals(mode)) {
 				List<GroupAccountVO> groupList = groupAccountMapper.getEntryList();
 				
-				resultWriter.object()
+				resultWriter.object();
+				writeAuthorityLevel();
+				writeAuthority();
+				resultWriter
 					.key("groupCount").value(groupList.size())
 					.key("groupList").array();
 				for(GroupAccountVO groupAccountVO : groupList) {
@@ -68,7 +78,10 @@ public class GroupAuthorityListAction extends AuthAction {
 				if(groupAccountVO!=null) {
 					count = 1;
 				}
-				resultWriter.object()
+				resultWriter.object();
+				writeAuthorityLevel();
+				writeAuthority();
+				resultWriter
 					.key("groupCount").value(count)
 					.key("groupList").array();
 				writeGroup(groupAccountVO);
@@ -79,49 +92,57 @@ public class GroupAuthorityListAction extends AuthAction {
 		resultWriter.done();
 	}
 	
+	public void writeAuthority() throws ResultWriterException {
+		resultWriter.key("groupAuthorities").array();
+		for(ActionAuthority authority : authorities) {
+			if(authority == ActionAuthority.NULL) { continue; }
+			resultWriter.object()
+				.key("authorityCode").value(authority.name())
+				.key("authorityName").value(authority.getName()).endObject();
+		}
+		resultWriter.endArray();
+	}
+	
+	public void writeAuthorityLevel() throws ResultWriterException {
+		resultWriter.key("authorityLevel").array();
+		for(ActionAuthorityLevel level : authorityLevels) {
+			resultWriter.value(level.name());
+		}
+		resultWriter.endArray();
+		
+	}
+	
 	public void writeGroup(GroupAccountVO groupAccountVO) throws Exception {
 		if(groupAccountVO!=null) {
 			authorityList = groupAuthorityMapper.getEntryList(groupAccountVO.id);
 			resultWriter.object().key("groupId").value(groupAccountVO.id)
 				.key("groupName").value(groupAccountVO.groupName)
 				.key("authorities").array();
-			writeAuthority(authorityList);
+			writeGroupAuthority(authorityList);
 			resultWriter.endArray().endObject();
 		}
 	}
 	
-	public void writeAuthority(List<GroupAuthorityVO> authorityList) throws ResultWriterException {
+	public void writeGroupAuthority(List<GroupAuthorityVO> authorityList) throws ResultWriterException {
 		for(ActionAuthority authority : authorities) {
 			
-			if(authority == ActionAuthority.NULL) {
-				continue;
-			}
+			if(authority == ActionAuthority.NULL) { continue; }
 			
-			boolean found = false;
+			ActionAuthorityLevel level = ActionAuthorityLevel.NONE;
+			
 			GroupAuthorityVO authorityVO = null;
 			if(authorityList!=null) {
 				for(int inx=0;inx<authorityList.size();inx++) {
 					authorityVO = authorityList.get(inx);
 					if(authority.name().equals(authorityVO.authorityCode)) {
-						found = true;
+						try {
+							level = ActionAuthorityLevel.valueOf(authorityVO.authorityLevel);
+						} catch (IllegalArgumentException e) { }
 						break;
 					}
 				}
 			}
-
-			if(found && authorityVO!=null) {
-				resultWriter.object()
-				.key("authorityCode").value(authority.name())
-				.key("authorityName").value(authority.getName())
-				.key("authorityLevel").value(authorityVO.authorityLevel)
-				.endObject();
-			} else {
-				resultWriter.object()
-				.key("authorityCode").value(authority.name())
-				.key("authorityName").value(authority.getName())
-				.key("authorityLevel").value("")
-				.endObject();
-			}
+			resultWriter.value(level.name());
 		}
 	}
 }
