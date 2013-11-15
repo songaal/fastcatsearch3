@@ -50,73 +50,54 @@ public class GroupAuthorityUpdateAction extends AuthAction {
 				String mode = request.getParameter("mode");
 				
 				if("update".equals(mode)) {
-				
-					//for(String key : paramMap.keySet()) {
-						
-						//Matcher matcher = keyPtn.matcher(key);
-						//if(matcher.find()) {
-							//String num = matcher.group(1);
-							
-							int groupId = request.getIntParameter("groupId", 0);
-							
-							String groupName = request.getParameter("groupName");
-							
-//							if(groupName==null || "".equals(groupName)) {
-//								continue;
-//							}
-							
-							GroupAccountVO groupAccountVO = null;
-							GroupAuthorityVO groupAuthorityVO = null;
-							
-							if(groupId != -1) {
-								groupAccountVO = groupAccountMapper.getEntry(groupId);
-								groupAccountVO.groupName = groupName;
-								groupAccountMapper.updateEntry(groupAccountVO);
+
+					int groupId = request.getIntParameter("groupId", 0);
+
+					String groupName = request.getParameter("groupName");
+
+					GroupAccountVO groupAccountVO = null;
+					GroupAuthorityVO groupAuthorityVO = null;
+
+					if(groupId != -1) {
+						groupAccountVO = groupAccountMapper.getEntry(groupId);
+						groupAccountVO.groupName = groupName;
+						groupAccountMapper.updateEntry(groupAccountVO);
+					} else {
+						synchronized(groupAccountMapper) {
+							groupAccountVO = new GroupAccountVO();
+							groupAccountVO.groupName = groupName;
+							groupAccountMapper.putEntry(groupAccountVO);
+							groupId = groupAccountVO.id;
+						}
+					}
+
+					ActionAuthority[] authorities = ActionAuthority.values();
+					for(ActionAuthority authority : authorities) {
+						if(authority == ActionAuthority.NULL) {
+							continue;
+						}
+						String authorityCode = authority.name();
+						String authorityLevel = request.getParameter("authorityLevel_"+authorityCode);
+						if(groupId != -1 && authorityCode!=null && !"".equals(authorityCode)) {
+							groupAuthorityVO = groupAuthorityMapper.getEntry(groupId, authorityCode);
+							if(groupAuthorityVO!=null) {
+								groupAuthorityVO.authorityLevel = authorityLevel;
+								groupAuthorityMapper.updateEntry(groupAuthorityVO);
 							} else {
-								synchronized(groupAccountMapper) {
-									groupAccountVO = new GroupAccountVO();
-									groupAccountVO.groupName = groupName;
-									groupAccountMapper.putEntry(groupAccountVO);
-									groupId = groupAccountVO.id;
+								synchronized(groupAuthorityMapper) {
+									groupAuthorityVO = new GroupAuthorityVO();
+									groupAuthorityVO.groupId = groupId;
+									groupAuthorityVO.authorityCode = authorityCode;
+									groupAuthorityVO.authorityLevel = authorityLevel;
+									groupAuthorityMapper.putEntry(groupAuthorityVO);
 								}
 							}
-							
-							ActionAuthority[] authorities = ActionAuthority.values();
-							for(ActionAuthority authority : authorities) {
-								if(authority == ActionAuthority.NULL) {
-									continue;
-								}
-								String authorityCode = authority.name();
-								String authorityLevel = request.getParameter("authorityLevel_"+authorityCode);
-								if(groupId != -1 && authorityCode!=null && !"".equals(authorityCode)) {
-									groupAuthorityVO = groupAuthorityMapper.getEntry(groupId, authorityCode);
-									if(groupAuthorityVO!=null) {
-										groupAuthorityVO.authorityLevel = authorityLevel;
-										groupAuthorityMapper.updateEntry(groupAuthorityVO);
-									} else {
-										synchronized(groupAuthorityMapper) {
-											groupAuthorityVO = new GroupAuthorityVO();
-											groupAuthorityVO.groupId = groupId;
-											groupAuthorityVO.authorityCode = authorityCode;
-											groupAuthorityVO.authorityLevel = authorityLevel;
-											groupAuthorityMapper.putEntry(groupAuthorityVO);
-										}
-									}
-								}
-							}
-						//}
-					//}
+						}
+					}
 				} else if("delete".equals(mode)) {
-					//for(String key : paramMap.keySet()) {
-						//Matcher matcher = keyPtn.matcher(key);
-						//if(matcher.find()) {
-							//String num = matcher.group(1);
-							
-							int groupId = request.getIntParameter("groupId", 0);
-							groupAuthorityMapper.deleteEntry(groupId);
-							groupAccountMapper.deleteEntry(groupId);
-						//}	
-					//}
+					int groupId = request.getIntParameter("groupId", 0);
+					groupAuthorityMapper.deleteEntry(groupId);
+					groupAccountMapper.deleteEntry(groupId);
 				}
 				resultWriter.object().key("success").value("true")
 						.key("status").value(1).endObject();

@@ -22,4 +22,6 @@ public interface UserAccountMapper extends ManagedMapper {
 	public void putEntry (UserAccountVO vo) throws Exception;
 	
 	public void updateEntry (UserAccountVO vo) throws Exception;
+	
+	public void deleteEntry (@Param("id") int id) throws Exception;
 }

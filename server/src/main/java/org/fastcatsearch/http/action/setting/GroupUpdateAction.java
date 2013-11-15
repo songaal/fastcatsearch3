@@ -3,6 +3,7 @@ package org.fastcatsearch.http.action.setting;
 import java.io.Writer;
 
 import org.fastcatsearch.db.DBService;
+import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.db.mapper.GroupAccountMapper;
 import org.fastcatsearch.db.vo.GroupAccountVO;
 import org.fastcatsearch.http.ActionMapping;
@@ -18,36 +19,47 @@ public class GroupUpdateAction extends AuthAction {
 	public void doAuthAction(ActionRequest request, ActionResponse response)
 			throws Exception {
 		
-		GroupAccountMapper groupAccountMapper = (GroupAccountMapper) 
-				DBService.getInstance().getMapperSession(GroupAccountMapper.class).getMapper();
-		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		
-		if(groupAccountMapper!=null) {
+		MapperSession<GroupAccountMapper> groupAccountSession = null;
+		
+		try {
+		
+			groupAccountSession = DBService.getInstance().getMapperSession(GroupAccountMapper.class);
 			
-			int groupId = request.getIntParameter("groupId",-1);
-			String groupName = request.getParameter("groupName");
+			GroupAccountMapper groupAccountMapper = (GroupAccountMapper) 
+					groupAccountSession.getMapper();
 			
-			GroupAccountVO vo = null;
-			
-			synchronized(groupAccountMapper) {
+			if(groupAccountMapper!=null) {
 				
-				if(groupId != -1) {
+				int groupId = request.getIntParameter("groupId",-1);
+				String groupName = request.getParameter("groupName");
 				
-					vo = groupAccountMapper.getEntry(groupId);
-				} else {
+				GroupAccountVO vo = null;
+				
+				synchronized(groupAccountMapper) {
 					
-					groupId = groupAccountMapper.getMaxId();
-					vo = new GroupAccountVO();
-					vo.id = groupId;
+					if(groupId != -1) {
+					
+						vo = groupAccountMapper.getEntry(groupId);
+					} else {
+						
+						groupId = groupAccountMapper.getMaxId();
+						vo = new GroupAccountVO();
+						vo.id = groupId;
+					}
+					
+					vo.groupName = groupName;
 				}
 				
-				vo.groupName = groupName;
+				resultWriter.object();
+				resultWriter.endObject();
 			}
-			
-			resultWriter.object();
-			resultWriter.endObject();
+		} finally {
+			if(groupAccountSession!=null) try {
+				groupAccountSession.closeSession();
+			} catch (Exception e) { }
 		}
 		resultWriter.done();
 	}

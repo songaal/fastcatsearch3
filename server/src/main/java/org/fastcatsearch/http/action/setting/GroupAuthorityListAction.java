@@ -4,6 +4,7 @@ import java.io.Writer;
 import java.util.List;
 
 import org.fastcatsearch.db.DBService;
+import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.db.mapper.GroupAccountMapper;
 import org.fastcatsearch.db.mapper.GroupAuthorityMapper;
 import org.fastcatsearch.db.vo.GroupAccountVO;
@@ -30,63 +31,85 @@ public class GroupAuthorityListAction extends AuthAction {
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response)
 			throws Exception {
-		groupAuthorityMapper = (GroupAuthorityMapper) 
-				DBService.getInstance().getMapperSession(GroupAuthorityMapper.class).getMapper();
-		
-		groupAccountMapper = (GroupAccountMapper)
-				DBService.getInstance().getMapperSession(GroupAccountMapper.class).getMapper();
 		
 		Writer writer = response.getWriter();
 		resultWriter = getDefaultResponseWriter(writer);
+
 		
-		int groupId = request.getIntParameter("groupId", 0);
+		MapperSession<GroupAuthorityMapper> groupAuthoritySession = null;
 		
-		String mode = request.getParameter("mode");
+		MapperSession<GroupAccountMapper> groupAccountSession = null;
 		
-		authorities = ActionAuthority.values();
-		authorityLevels = ActionAuthorityLevel.values();
+		try {
 		
-		if(groupAuthorityMapper!=null && groupAccountMapper!=null) {
-			if(groupId == -1) {
-				GroupAccountVO groupAccountVO = new GroupAccountVO();
-				groupAccountVO.id = -1;
-				resultWriter.object();
-				writeAuthorityLevel();
-				writeAuthority();
-				resultWriter
-					.key("groupCount").value(1)
-					.key("groupList").array();
-				writeGroup(groupAccountVO);
-				resultWriter.endArray().endObject();
-				
-			} else if("all".equals(mode)) {
-				List<GroupAccountVO> groupList = groupAccountMapper.getEntryList();
-				
-				resultWriter.object();
-				writeAuthorityLevel();
-				writeAuthority();
-				resultWriter
-					.key("groupCount").value(groupList.size())
-					.key("groupList").array();
-				for(GroupAccountVO groupAccountVO : groupList) {
+			groupAuthoritySession = DBService.getInstance().getMapperSession(GroupAuthorityMapper.class);
+			
+			groupAccountSession = DBService.getInstance().getMapperSession(GroupAccountMapper.class);
+			
+			groupAuthorityMapper = (GroupAuthorityMapper) 
+					groupAuthoritySession.getMapper();
+			
+			groupAccountMapper = (GroupAccountMapper)
+					groupAccountSession.getMapper();
+			
+			int groupId = request.getIntParameter("groupId", 0);
+			
+			String mode = request.getParameter("mode");
+			
+			authorities = ActionAuthority.values();
+			authorityLevels = ActionAuthorityLevel.values();
+			
+			if(groupAuthorityMapper!=null && groupAccountMapper!=null) {
+				if(groupId == -1) {
+					GroupAccountVO groupAccountVO = new GroupAccountVO();
+					groupAccountVO.id = -1;
+					resultWriter.object();
+					writeAuthorityLevel();
+					writeAuthority();
+					resultWriter
+						.key("groupCount").value(1)
+						.key("groupList").array();
 					writeGroup(groupAccountVO);
+					resultWriter.endArray().endObject();
+					
+				} else if("all".equals(mode)) {
+					List<GroupAccountVO> groupList = groupAccountMapper.getEntryList();
+					
+					resultWriter.object();
+					writeAuthorityLevel();
+					writeAuthority();
+					resultWriter
+						.key("groupCount").value(groupList.size())
+						.key("groupList").array();
+					for(GroupAccountVO groupAccountVO : groupList) {
+						writeGroup(groupAccountVO);
+					}
+					resultWriter.endArray().endObject();
+				} else {
+					GroupAccountVO groupAccountVO = groupAccountMapper.getEntry(groupId);
+					int count = 0;
+					if(groupAccountVO!=null) {
+						count = 1;
+					}
+					resultWriter.object();
+					writeAuthorityLevel();
+					writeAuthority();
+					resultWriter
+						.key("groupCount").value(count)
+						.key("groupList").array();
+					writeGroup(groupAccountVO);
+					resultWriter.endArray().endObject();
 				}
-				resultWriter.endArray().endObject();
-			} else {
-				GroupAccountVO groupAccountVO = groupAccountMapper.getEntry(groupId);
-				int count = 0;
-				if(groupAccountVO!=null) {
-					count = 1;
-				}
-				resultWriter.object();
-				writeAuthorityLevel();
-				writeAuthority();
-				resultWriter
-					.key("groupCount").value(count)
-					.key("groupList").array();
-				writeGroup(groupAccountVO);
-				resultWriter.endArray().endObject();
 			}
+		} finally {
+			
+			if(groupAccountSession!=null) try {
+				groupAccountSession.closeSession();
+			} catch (Exception e) { }
+			
+			if(groupAuthoritySession!=null) try {
+				groupAuthoritySession.closeSession();
+			} catch (Exception e) { }
 		}
 
 		resultWriter.done();

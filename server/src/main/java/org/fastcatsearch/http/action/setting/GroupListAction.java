@@ -4,6 +4,7 @@ import java.io.Writer;
 import java.util.List;
 
 import org.fastcatsearch.db.DBService;
+import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.db.mapper.GroupAccountMapper;
 import org.fastcatsearch.db.vo.GroupAccountVO;
 import org.fastcatsearch.http.ActionMapping;
@@ -18,28 +19,40 @@ public class GroupListAction extends AuthAction {
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response)
 			throws Exception {
-		GroupAccountMapper groupAccountMapper = (GroupAccountMapper) 
-				DBService.getInstance().getMapperSession(GroupAccountMapper.class).getMapper();
-		
+
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		
-		int totalSize = 0;
+		MapperSession<GroupAccountMapper> groupAccountSession = null;
 		
-		if(groupAccountMapper!=null) {
-			totalSize = groupAccountMapper.getCount();
-			List<GroupAccountVO>groupList = groupAccountMapper.getEntryList();
+		try {
+		
+			groupAccountSession = DBService.getInstance().getMapperSession(GroupAccountMapper.class);
 			
-			resultWriter.object()
-				.key("totalSize").value(totalSize)
-				.key("groupList").array();
-			for(GroupAccountVO group : groupList) {
+			GroupAccountMapper groupAccountMapper = (GroupAccountMapper) 
+					groupAccountSession.getMapper();
+			
+			int totalSize = 0;
+			
+			if(groupAccountMapper!=null) {
+				totalSize = groupAccountMapper.getCount();
+				List<GroupAccountVO>groupList = groupAccountMapper.getEntryList();
+				
 				resultWriter.object()
-					.key("id").value(group.id)
-					.key("groupName").value(group.groupName)
-					.endObject();
+					.key("totalSize").value(totalSize)
+					.key("groupList").array();
+				for(GroupAccountVO group : groupList) {
+					resultWriter.object()
+						.key("id").value(group.id)
+						.key("groupName").value(group.groupName)
+						.endObject();
+				}
+				resultWriter.endArray().endObject();
 			}
-			resultWriter.endArray().endObject();
+		} finally {
+			if(groupAccountSession!=null) try {
+				groupAccountSession.closeSession();
+			} catch (Exception e) { }
 		}
 		resultWriter.done();
 	}

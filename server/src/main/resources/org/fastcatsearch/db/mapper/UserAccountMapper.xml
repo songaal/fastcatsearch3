@@ -75,5 +75,9 @@
 		set name=#{name}, password=#{password}, email=#{email}, sms=#{sms}, groupId=#{groupId}
 		where id=#{id}
 	</update>
+	
+	<update id="deleteEntry" parameterType="int">
+		delete from UserAccount where id = #{id}
+	</update>
 
 </mapper>

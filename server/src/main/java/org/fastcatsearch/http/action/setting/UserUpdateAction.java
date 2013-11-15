@@ -32,52 +32,60 @@ public class UserUpdateAction extends AuthAction {
 			userAccountSession = DBService.getInstance().getMapperSession(UserAccountMapper.class);
 			
 			UserAccountMapper userAccountMapper = (UserAccountMapper) userAccountSession.getMapper();
+			
 		
 			if(userAccountMapper!=null) {
-				int id = request.getIntParameter("id", -1);
-				String userName = request.getParameter("name");
-				String userId = request.getParameter("userId");
-				String password = request.getParameter("password");
-				String passwordConfirm = request.getParameter("passwordConfirm");
-				String email = request.getParameter("email");
-				String sms = request.getParameter("sms");
-				int groupId = request.getIntParameter("groupId",0);
+				String mode = request.getParameter("mode");
 				
-				UserAccountVO vo = null;
+				if(("update").equals(mode)) {
 				
-				int mode = 0;
-				
-				synchronized(userAccountMapper) {
-					if(id != -1) {
-						vo = userAccountMapper.getEntry(id);
-						if(vo!=null) {
-							mode = MODE_UPDATE;
-							if(password==null || "".equals(password) || 
-								!passwordConfirm.equals(password)) {
-								password = vo.password;
+					int id = request.getIntParameter("id", -1);
+					String userName = request.getParameter("name");
+					String userId = request.getParameter("userId");
+					String password = request.getParameter("password");
+					String passwordConfirm = request.getParameter("confirmPassword");
+					String email = request.getParameter("email");
+					String sms = request.getParameter("sms");
+					int groupId = request.getIntParameter("groupId",0);
+					
+					UserAccountVO vo = null;
+					
+					int updateMode = 0;
+					
+					synchronized(userAccountMapper) {
+						if(id != -1) {
+							vo = userAccountMapper.getEntry(id);
+							if(vo!=null) {
+								updateMode = MODE_UPDATE;
+								if(password==null || "".equals(password) || 
+									!passwordConfirm.equals(password)) {
+									password = vo.password;
+								}
 							}
+						} else {
+							
+							vo = new UserAccountVO();
+							vo.id = id;
+							
+							updateMode = MODE_INSERT;
 						}
-					} else {
 						
-						id = userAccountMapper.getMaxId() + 1;
-						vo = new UserAccountVO();
-						vo.id = id;
+						vo.name=userName;
+						vo.userId=userId;
+						vo.password=password;
+						vo.email=email;
+						vo.sms=sms;
+						vo.groupId=groupId;
 						
-						mode = MODE_INSERT;
+						if(updateMode == MODE_UPDATE) {
+							userAccountMapper.updateEntry(vo);
+						} else if(updateMode == MODE_INSERT) {
+							userAccountMapper.putEntry(vo);
+						}
 					}
-					
-					vo.name=userName;
-					vo.userId=userId;
-					vo.password=password;
-					vo.email=email;
-					vo.sms=sms;
-					vo.groupId=groupId;
-					
-					if(mode == MODE_UPDATE) {
-						userAccountMapper.updateEntry(vo);
-					} else if(mode == MODE_INSERT) {
-						userAccountMapper.putEntry(vo);
-					}
+				} else if("delete".equals(mode)) {
+					int id = request.getIntParameter("id", 0);
+					userAccountMapper.deleteEntry(id);
 				}
 				
 				resultWriter.object().key("success").value("true")
