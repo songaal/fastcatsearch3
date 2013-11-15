@@ -30,6 +30,7 @@ import org.fastcatsearch.db.mapper.TaskHistoryMapper;
 import org.fastcatsearch.db.mapper.UserAccountMapper;
 import org.fastcatsearch.db.vo.GroupAccountVO;
 import org.fastcatsearch.db.vo.GroupAuthorityVO;
+import org.fastcatsearch.db.vo.UserAccountVO;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.http.ActionAuthority;
@@ -125,7 +126,6 @@ public class DBService extends AbstractService {
 		return true;
 	}
 
-
 	private void initMapper(ManagedMapper managedMapper) throws Exception {
 		if(managedMapper instanceof GroupAccountMapper){
 			GroupAccountMapper mapper = (GroupAccountMapper) managedMapper;
@@ -137,6 +137,9 @@ public class DBService extends AbstractService {
 					mapper.putEntry(new GroupAuthorityVO(1, authority.name(), ActionAuthorityLevel.WRITABLE.name()));
 				}
 			}
+		}else if(managedMapper instanceof UserAccountMapper){
+			UserAccountMapper mapper = (UserAccountMapper) managedMapper;
+			mapper.putEntry(new UserAccountVO("Administrator", "admin", "1111", "", "", 1));
 		}
 	}
 

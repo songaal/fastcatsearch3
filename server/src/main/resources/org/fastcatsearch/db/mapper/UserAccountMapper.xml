@@ -18,9 +18,7 @@
 		)
 	</update>
 	
-	<update id="createIndex" >
-	insert into UserAccount (name, userId, password) values ('administrator', 'admin', '1111')
-	</update>
+	
 	
 	<select id="validateTable" parameterType="map" resultType="map">
 		select id, name, userId, password, sms, groupId
