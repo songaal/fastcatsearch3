@@ -5,12 +5,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class SearchMemoryIndexTest {
-
-	@Test
-	public void test() throws IOException {
+	
+	SearchMemoryIndex index;
+	
+	@Before
+	public void setUp(){
 		String[] keywordList = new String[]{
 				"지마켓 할인 특가"
 				,"지마켓 마일리지 두배"
@@ -25,12 +28,30 @@ public class SearchMemoryIndexTest {
 				,"천 번을 흔들려야 어른이 된다."
 				,"ㅋㅋ  재밌다"
 		};
-		SearchMemoryIndex index = new SearchMemoryIndex();
+		index = new SearchMemoryIndex();
 		for(String keyword : keywordList){
 			index.add(keyword);
 		}
 		index.makeIndex();
+	}
+	@Test
+	public void testSuggestSearch() throws IOException {
 		
+		BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
+		String line = null;
+		System.out.print(">>");
+		while((line = console.readLine()) != null){
+//			String result = index.exactSearch(line);
+			List<String> result = index.getSuggestKeywordList(line);
+			for(String keyword : result){
+				System.out.println("> "+keyword);
+			}
+		}
+		
+	}
+	
+	@Test
+	public void testPrefixSearch() throws IOException {
 		
 		BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
 		String line = null;
@@ -38,17 +59,11 @@ public class SearchMemoryIndexTest {
 		while((line = console.readLine()) != null){
 			
 //			String result = index.exactSearch(line);
-			List<String> result = index.prefixSearch(line);
-			if(result != null && result.size() > 0){
-			System.out.println("-------------");
-			for(String r : result){
-				System.out.println("> "+r);
+			IdPosIterator iterator = index.prefixSearch(line);
+			IdPos idPos = new IdPos();
+			while(iterator.next(idPos)){
+				System.out.println("> "+idPos.toString());
 			}
-			System.out.println("-------------");
-			}else{
-				System.out.println("No result.");
-			}
-			System.out.print(">>");
 		}
 		
 	}

@@ -1,9 +1,6 @@
 package org.fastcatsearch.http.action.setting;
 
 import java.io.Writer;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.InternalDBModule.MapperSession;
@@ -12,7 +9,6 @@ import org.fastcatsearch.db.mapper.GroupAuthorityMapper;
 import org.fastcatsearch.db.vo.GroupAccountVO;
 import org.fastcatsearch.db.vo.GroupAuthorityVO;
 import org.fastcatsearch.http.ActionAuthority;
-import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -70,7 +66,7 @@ public class GroupAuthorityUpdateAction extends AuthAction {
 							groupId = groupAccountVO.id;
 						}
 					}
-
+					
 					ActionAuthority[] authorities = ActionAuthority.values();
 					for(ActionAuthority authority : authorities) {
 						if(authority == ActionAuthority.NULL) {
@@ -85,10 +81,7 @@ public class GroupAuthorityUpdateAction extends AuthAction {
 								groupAuthorityMapper.updateEntry(groupAuthorityVO);
 							} else {
 								synchronized(groupAuthorityMapper) {
-									groupAuthorityVO = new GroupAuthorityVO();
-									groupAuthorityVO.groupId = groupId;
-									groupAuthorityVO.authorityCode = authorityCode;
-									groupAuthorityVO.authorityLevel = authorityLevel;
+									groupAuthorityVO = new GroupAuthorityVO(groupId, authorityCode, authorityLevel);
 									groupAuthorityMapper.putEntry(groupAuthorityVO);
 								}
 							}

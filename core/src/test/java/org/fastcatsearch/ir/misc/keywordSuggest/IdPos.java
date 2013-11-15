@@ -1,7 +1,7 @@
 package org.fastcatsearch.ir.misc.keywordSuggest;
 
 
-public class IdPos {
+public class IdPos implements Comparable<IdPos> {
 	protected int id;
 	protected int pos;
 	
@@ -33,5 +33,13 @@ public class IdPos {
 	
 	public String toString(){
 		return id + " : " + pos;
+	}
+	@Override
+	public int compareTo(IdPos o) {
+		if(id != o.id){
+			return id - o.id;
+		}else{
+			return pos - o.pos;
+		}
 	}
 }
