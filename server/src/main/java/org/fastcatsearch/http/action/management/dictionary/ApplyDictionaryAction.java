@@ -20,7 +20,7 @@ import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping(value="/management/dictionary/apply", authority=ActionAuthority.Analysis_Dictionary, authorityLevel=ActionAuthorityLevel.WRITABLE)
+@ActionMapping(value="/management/dictionary/apply", authority=ActionAuthority.Dictionary, authorityLevel=ActionAuthorityLevel.WRITABLE)
 public class ApplyDictionaryAction extends AuthAction {
 
 	@Override

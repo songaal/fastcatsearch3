@@ -23,7 +23,7 @@ import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping(value="/management/dictionary/overview", authority=ActionAuthority.Analysis_Dictionary)
+@ActionMapping(value="/management/dictionary/overview", authority=ActionAuthority.Dictionary)
 public class GetDictionaryOverviewAction extends AuthAction {
 
 	@Override

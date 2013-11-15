@@ -61,18 +61,18 @@
 		select max(id) from UserAccount
 	</select> 
 
-	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.UserAccountVO" useGeneratedKeys="true">
+	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.UserAccountVO" useGeneratedKeys="true" keyProperty="id">
 		insert into UserAccount ( 
-		id,name,userId,password,email,sms,groupId
+		name,userId,password,email,sms,groupId
 		)
 		values (
-		#{id},#{name},#{userId},#{password},#{email},#{sms},#{groupId}
+		#{name},#{userId},#{password},#{email},#{sms},#{groupId}
 		)
 	</insert>
 	
 	<update id="updateEntry" parameterType="org.fastcatsearch.db.vo.UserAccountVO">
 		update UserAccount 
-		set name=#{name}, #{password}=#{password}, email=#{email}, sms=#{sms}, groupId=#{groupId}
+		set name=#{name}, password=#{password}, email=#{email}, sms=#{sms}, groupId=#{groupId}
 		where id=#{id}
 	</update>
 

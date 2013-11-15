@@ -20,7 +20,7 @@ import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping(value="/management/dictionary/list", authority=ActionAuthority.Analysis_Dictionary)
+@ActionMapping(value="/management/dictionary/list", authority=ActionAuthority.Dictionary)
 public class GetDictionaryWordListAction extends AuthAction {
 
 	@Override

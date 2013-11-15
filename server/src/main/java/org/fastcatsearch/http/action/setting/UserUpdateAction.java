@@ -3,6 +3,7 @@ package org.fastcatsearch.http.action.setting;
 import java.io.Writer;
 
 import org.fastcatsearch.db.DBService;
+import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.db.mapper.UserAccountMapper;
 import org.fastcatsearch.db.vo.UserAccountVO;
 import org.fastcatsearch.http.ActionMapping;
@@ -21,60 +22,77 @@ public class UserUpdateAction extends AuthAction {
 	public void doAuthAction(ActionRequest request, ActionResponse response)
 			throws Exception {
 		
-		UserAccountMapper userAccountMapper = (UserAccountMapper)
-				DBService.getInstance().getMapperSession(UserAccountMapper.class).getMapper();
-		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		
-		if(userAccountMapper!=null) {
-			int id = request.getIntParameter("userId", -1);
-			String userName = request.getParameter("userName");
-			String userId = request.getParameter("userId");
-			String password = request.getParameter("password");
-			String email = request.getParameter("email");
-			String sms = request.getParameter("sms");
-			int groupId = request.getIntParameter("groupid",-1);
+		MapperSession<UserAccountMapper> userAccountSession = null;
+		
+		try {
 			
-			UserAccountVO vo = null;
+			userAccountSession = DBService.getInstance().getMapperSession(UserAccountMapper.class);
 			
-			int mode = 0;
-			
-			synchronized(userAccountMapper) {
-				if(id != -1) {
-					vo = userAccountMapper.getEntry(id);
-					if(vo!=null) {
-						mode = MODE_UPDATE;
-						if(password==null || "".equals(password)) {
-							password = vo.password;
+			UserAccountMapper userAccountMapper = (UserAccountMapper) userAccountSession.getMapper();
+		
+			if(userAccountMapper!=null) {
+				int id = request.getIntParameter("id", -1);
+				String userName = request.getParameter("name");
+				String userId = request.getParameter("userId");
+				String password = request.getParameter("password");
+				String passwordConfirm = request.getParameter("passwordConfirm");
+				String email = request.getParameter("email");
+				String sms = request.getParameter("sms");
+				int groupId = request.getIntParameter("groupId",0);
+				
+				UserAccountVO vo = null;
+				
+				int mode = 0;
+				
+				synchronized(userAccountMapper) {
+					if(id != -1) {
+						vo = userAccountMapper.getEntry(id);
+						if(vo!=null) {
+							mode = MODE_UPDATE;
+							if(password==null || "".equals(password) || 
+								!passwordConfirm.equals(password)) {
+								password = vo.password;
+							}
 						}
+					} else {
+						
+						id = userAccountMapper.getMaxId() + 1;
+						vo = new UserAccountVO();
+						vo.id = id;
+						
+						mode = MODE_INSERT;
 					}
-				} else {
 					
-					id = userAccountMapper.getMaxId() + 1;
-					vo = new UserAccountVO();
-					vo.id = id;
+					vo.name=userName;
+					vo.userId=userId;
+					vo.password=password;
+					vo.email=email;
+					vo.sms=sms;
+					vo.groupId=groupId;
 					
-					mode = MODE_INSERT;
+					if(mode == MODE_UPDATE) {
+						userAccountMapper.updateEntry(vo);
+					} else if(mode == MODE_INSERT) {
+						userAccountMapper.putEntry(vo);
+					}
 				}
 				
-				vo.name=userName;
-				vo.userId=userId;
-				vo.password=password;
-				vo.email=email;
-				vo.sms=sms;
-				vo.groupId=groupId;
-				
-				if(mode == MODE_UPDATE) {
-					userAccountMapper.updateEntry(vo);
-				} else if(mode == MODE_INSERT) {
-					userAccountMapper.putEntry(vo);
-				}
+				resultWriter.object().key("success").value("true")
+						.key("status").value(1).endObject();
+		
 			}
-			
-			resultWriter.object();
-			resultWriter.endObject();
-	
+		} catch (Exception e) {
+			logger.error("",e);
+			resultWriter.object().key("success").value("false")
+					.key("status").value(1).endObject();
+		} finally {
+			if(userAccountSession!=null) try {
+				userAccountSession.commit();
+				userAccountSession.closeSession();
+			} catch (Exception e) { }
 		}
 		resultWriter.done();
 	}
