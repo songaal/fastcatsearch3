@@ -1,7 +1,6 @@
-package org.fastcatsearch.http.action.settings;
+package org.fastcatsearch.http.action.management.settings;
 
 import java.io.Writer;
-import java.util.List;
 
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.InternalDBModule.MapperSession;
@@ -13,13 +12,13 @@ import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping (value="/settings/authority/get-group-list")
-public class GetGroupListAction extends AuthAction {
+@ActionMapping (value="/settings/authority/update-group")
+public class PutGroupAccountAction extends AuthAction {
 
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response)
 			throws Exception {
-
+		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		
@@ -32,22 +31,30 @@ public class GetGroupListAction extends AuthAction {
 			GroupAccountMapper groupAccountMapper = (GroupAccountMapper) 
 					groupAccountSession.getMapper();
 			
-			int totalSize = 0;
-			
 			if(groupAccountMapper!=null) {
-				totalSize = groupAccountMapper.getCount();
-				List<GroupAccountVO>groupList = groupAccountMapper.getEntryList();
 				
-				resultWriter.object()
-					.key("totalSize").value(totalSize)
-					.key("groupList").array();
-				for(GroupAccountVO group : groupList) {
-					resultWriter.object()
-						.key("id").value(group.id)
-						.key("groupName").value(group.groupName)
-						.endObject();
+				int groupId = request.getIntParameter("groupId",-1);
+				String groupName = request.getParameter("groupName");
+				
+				GroupAccountVO vo = null;
+				
+				synchronized(groupAccountMapper) {
+					
+					if(groupId != -1) {
+					
+						vo = groupAccountMapper.getEntry(groupId);
+					} else {
+						
+						groupId = groupAccountMapper.getMaxId();
+						vo = new GroupAccountVO();
+						vo.id = groupId;
+					}
+					
+					vo.groupName = groupName;
 				}
-				resultWriter.endArray().endObject();
+				
+				resultWriter.object();
+				resultWriter.endObject();
 			}
 		} finally {
 			if(groupAccountSession!=null) try {

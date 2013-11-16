@@ -58,14 +58,14 @@ public class LoginAction extends ServiceAction {
 						authorityMap = new HashMap<ActionAuthority,ActionAuthorityLevel>();
 				try {
 				
-					if("admin".equals(userId)) {
-						
-						//Admin 의 경우 모든 권한...
-						ActionAuthority[] allAuthority = ActionAuthority.values();
-						for(ActionAuthority authority : allAuthority) {
-							authorityMap.put(authority, ActionAuthorityLevel.WRITABLE);
-						}
-					} else {
+//					if("admin".equals(userId)) {
+//						
+//						//Admin 의 경우 모든 권한...
+//						ActionAuthority[] allAuthority = ActionAuthority.values();
+//						for(ActionAuthority authority : allAuthority) {
+//							authorityMap.put(authority, ActionAuthorityLevel.WRITABLE);
+//						}
+//					} else {
 						//db에서 내 그룹의 권한을 가져와서 authorityMap에 채워준다.
 						int groupId = userInfo.groupId;
 						List<GroupAuthorityVO>authorityList = groupAuthorityMapper.getEntryList(groupId);
@@ -73,7 +73,7 @@ public class LoginAction extends ServiceAction {
 							authorityMap.put(ActionAuthority.valueOf(authority.authorityCode), 
 									ActionAuthorityLevel.valueOf(authority.authorityLevel) );
 						}
-					}
+//					}
 					if(authorityMap!=null && authorityMap.size()!=0) {
 						session.setAttribute(AuthAction.AUTH_KEY, new SessionInfo(userId, authorityMap));
 					}
@@ -86,12 +86,12 @@ public class LoginAction extends ServiceAction {
 			
 			if(userInfo != null){
 				resultWriter.key("status").value("0");
+				resultWriter.key("name").value(userInfo.name);
 			}else{
 				//로그인 실패.
 				resultWriter.key("status").value("1");
 			}
 		
-			resultWriter.key("id").value(userId);
 			
 			resultWriter.endObject();
 		} finally {

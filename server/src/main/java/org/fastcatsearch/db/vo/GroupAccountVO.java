@@ -2,7 +2,7 @@ package org.fastcatsearch.db.vo;
 
 public class GroupAccountVO {
 	
-	public static final String ADMIN_GROUP_NAME = "Administrator"; 
+	public static final String ADMIN_GROUP_NAME = "Administrators (Built-In)"; 
 	
 	public int id;
 	public String groupName;

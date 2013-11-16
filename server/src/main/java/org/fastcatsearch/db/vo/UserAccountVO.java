@@ -1,6 +1,8 @@
 package org.fastcatsearch.db.vo;
 
 public class UserAccountVO {
+	public static final String ADMIN_USER_NAME = "Administrator";
+	public static final String ADMIN_USER_ID = "admin";
 	
 	public int id;
 	public String name;

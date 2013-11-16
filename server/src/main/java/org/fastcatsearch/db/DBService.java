@@ -139,7 +139,7 @@ public class DBService extends AbstractService {
 			}
 		}else if(managedMapper instanceof UserAccountMapper){
 			UserAccountMapper mapper = (UserAccountMapper) managedMapper;
-			mapper.putEntry(new UserAccountVO("Administrator", "admin", "1111", "", "", 1));
+			mapper.putEntry(new UserAccountVO(UserAccountVO.ADMIN_USER_NAME, UserAccountVO.ADMIN_USER_ID, "1111", "", "", 1));
 		}
 	}
 

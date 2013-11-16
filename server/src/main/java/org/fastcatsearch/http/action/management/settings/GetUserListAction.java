@@ -1,4 +1,4 @@
-package org.fastcatsearch.http.action.settings;
+package org.fastcatsearch.http.action.management.settings;
 
 import java.io.Writer;
 import java.util.List;
@@ -68,7 +68,7 @@ public class GetUserListAction extends AuthAction {
 								.object()
 									.key("id").value(vo.id)
 									.key("name").value(vo.name)
-									.key("voId").value(vo.userId)
+									.key("userId").value(vo.userId)
 									.key("email").value(vo.email)
 									.key("sms").value(vo.sms)
 									.key("groupId").value(vo.groupId)
