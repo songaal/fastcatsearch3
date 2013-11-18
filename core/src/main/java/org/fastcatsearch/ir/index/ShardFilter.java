@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 public class ShardFilter {
 	private static Logger logger = LoggerFactory.getLogger(ShardFilter.class);
 	
+	public static String ROOT_FILTER = "ALL";
 	private Integer index;
 	protected Set<String> dataSet;
 	private boolean hasAll;
@@ -23,7 +24,7 @@ public class ShardFilter {
 	public ShardFilter(Map<String, Integer> fieldSequenceMap, String filter) {
 		filter = filter.trim();
 		
-		if(filter.equals("ALL")){
+		if(filter.equals(ROOT_FILTER)){
 			hasAll = true;
 			return;
 		}

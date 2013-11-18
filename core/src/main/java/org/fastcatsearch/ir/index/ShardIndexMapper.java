@@ -3,6 +3,7 @@ package org.fastcatsearch.ir.index;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
@@ -15,6 +16,7 @@ public class ShardIndexMapper {
 	
 	private Map<ShardFilter, ShardIndexer> shardFilterMap;
 	private Map<String, IndexWriteInfoList> shardIndexWriteInfoListMap;
+	private Set<Map.Entry<ShardFilter,ShardIndexer>> entrySet;
 	
 	public ShardIndexMapper() {
 		shardFilterMap = new HashMap<ShardFilter, ShardIndexer>();
@@ -23,10 +25,13 @@ public class ShardIndexMapper {
 
 	public void register(ShardFilter shardFilter, ShardIndexer shardIndexer) {
 		shardFilterMap.put(shardFilter, shardIndexer);
+		entrySet = shardFilterMap.entrySet();
+		logger.debug("register > {}", entrySet);
 	}
 
 	public void addDocument(Document document) throws IRException, IOException {
-		for (Map.Entry<ShardFilter,ShardIndexer> shardFilterEntry : shardFilterMap.entrySet()) {
+		logger.debug("addDocument > {}", document);
+		for (Map.Entry<ShardFilter,ShardIndexer> shardFilterEntry : entrySet) {
 			if (shardFilterEntry.getKey().accept(document)) {
 				logger.debug("accept shard {} >> {}", shardFilterEntry.getValue().shardContext().shardId(), document.get(0));
 				shardFilterEntry.getValue().addDocument(document);

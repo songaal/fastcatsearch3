@@ -19,20 +19,16 @@ import org.fastcatsearch.util.ResponseWriter;
 public class GetIndexingResultAction extends AuthAction {
 
 	@Override
-	public void doAuthAction(ActionRequest request, ActionResponse response)
-			throws Exception {
+	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
 		String collectionId = request.getParameter("collectionId");
 
 		// TODO collection의 index node인지 확인하고 해당 노드가 아니면 전달하여 받아온다.
 		// 해당노드이면 그대로 수행한다.
 
-		DBService dbService = ServiceManager.getInstance().getService(
-				DBService.class);
-		MapperSession<IndexingResultMapper> mapperSession = dbService
-				.getMapperSession(IndexingResultMapper.class);
+		DBService dbService = ServiceManager.getInstance().getService(DBService.class);
+		MapperSession<IndexingResultMapper> mapperSession = dbService.getMapperSession(IndexingResultMapper.class);
 		IndexingResultMapper indexingResultMapper = mapperSession.getMapper();
-		List<IndexingStatusVO> indexStatusList = indexingResultMapper
-				.getEntryList(collectionId);
+		List<IndexingStatusVO> indexStatusList = indexingResultMapper.getEntryList(collectionId);
 
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);

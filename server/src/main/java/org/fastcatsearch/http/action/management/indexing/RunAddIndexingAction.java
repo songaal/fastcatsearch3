@@ -8,22 +8,21 @@ import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
-import org.fastcatsearch.job.indexing.CollectionFullIndexingJob;
+import org.fastcatsearch.job.indexing.CollectionAddIndexingJob;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/indexing/full/run")
-public class RunIndexingAction extends AuthAction {
+@ActionMapping("/indexing/add/run")
+public class RunAddIndexingAction extends AuthAction {
 	
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
 		
 		String collectionId = request.getParameter("collectionId");
 		
-
-		CollectionFullIndexingJob collectionFullIndexingJob = new CollectionFullIndexingJob();
-		collectionFullIndexingJob.setArgs(new String[] { collectionId });
+		CollectionAddIndexingJob collectionIndexingJob = new CollectionAddIndexingJob();
+		collectionIndexingJob.setArgs(new String[] { collectionId });
 		
-		ResultFuture jobResult = JobService.getInstance().offer(collectionFullIndexingJob);
+		ResultFuture jobResult = JobService.getInstance().offer(collectionIndexingJob);
 		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);

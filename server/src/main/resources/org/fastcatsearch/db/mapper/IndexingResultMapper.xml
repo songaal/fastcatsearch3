@@ -9,7 +9,7 @@
 		IndexingResult (
 		id int GENERATED ALWAYS AS IDENTITY,
 		collectionId varchar(20),
-		type char(4),
+		type varchar(4),
 		status varchar(10),
 		docSize int,
 		insertSize int,
