@@ -61,6 +61,7 @@ public class TypeTokenizer extends Tokenizer {
 	public final static String ALPHA = "<ALPHA>";
 	public final static String NUMBER = "<NUMBER>";
 	public final static String HANGUL = "<HANGUL>";
+	public final static String HANGUL_JAMO = "<HANGUL_JAMO>";
 	public final static String JAPANESE = "<JAPANESE>";
 	public final static String CHINESE = "<CHINESE>";
 	public final static String OTHER_LANGUAGE = "<OTHER_LANGUAGE>";
@@ -104,8 +105,10 @@ public class TypeTokenizer extends Tokenizer {
 		case Character.OTHER_LETTER:
 			//외국어.
 			Character.UnicodeBlock unicodeBlock = Character.UnicodeBlock.of(ch);
-			if (unicodeBlock == Character.UnicodeBlock.HANGUL_SYLLABLES || unicodeBlock == Character.UnicodeBlock.HANGUL_COMPATIBILITY_JAMO) {
+			if (unicodeBlock == Character.UnicodeBlock.HANGUL_SYLLABLES){
 				return HANGUL;
+			} else if (unicodeBlock == Character.UnicodeBlock.HANGUL_COMPATIBILITY_JAMO) {
+				return HANGUL_JAMO;
 			} else if (unicodeBlock == Character.UnicodeBlock.HIRAGANA || unicodeBlock == Character.UnicodeBlock.KATAKANA) {
 				return JAPANESE;
 			} else if (unicodeBlock == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS) {
@@ -145,29 +148,33 @@ public class TypeTokenizer extends Tokenizer {
 	 */
 	protected String isSplit(int ch, String type){
 		
-		String prevType = this.prevType;
-		
-		if (ch == '.') {
-			// 영문 대문자는 약자이므로 살린다.
-			if (prevChar >= 'A' && prevChar <= 'Z') {
-				//허용.
-				return ALPHA;
-			}
-			// 소숫점 숫자는 살린다.
-			if (Character.isDigit(prevChar) && Character.isDigit(nextChar)) {
-				//허용.
-				return NUMBER;
-			}
-		}
-		
-//		logger.debug("## {} : {} <- {}", (char) ch, type, prevType);
-		if(Character.isLetterOrDigit(ch)){
-			//타입이 같으면 분리하지 않는다.
-			if(prevType == null || prevType == type){
-//				this.prevType = type;
-				return type;
-			}
-			//letter digit이라도 타입이 다르면 분리한다.
+//		String prevType = this.prevType;
+//		
+//		if (ch == '.') {
+//			// 영문 대문자는 약자이므로 살린다.
+//			if (prevChar >= 'A' && prevChar <= 'Z') {
+//				//허용.
+//				return ALPHA;
+//			}
+//			// 소숫점 숫자는 살린다.
+//			if (Character.isDigit(prevChar) && Character.isDigit(nextChar)) {
+//				//허용.
+//				return NUMBER;
+//			}
+//		}
+//		
+////		logger.debug("## {} : {} <- {}", (char) ch, type, prevType);
+//		if(Character.isLetterOrDigit(ch)){
+//			//타입이 같으면 분리하지 않는다.
+//			if(prevType == null || prevType == type){
+////				this.prevType = type;
+//				return type;
+//			}
+//			//letter digit이라도 타입이 다르면 분리한다.
+//		}
+		if(prevType == null || prevType == type){
+			prevType = type;
+			return type;
 		}
 		return null;
 	}
