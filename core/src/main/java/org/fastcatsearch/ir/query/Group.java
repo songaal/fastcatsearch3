@@ -39,7 +39,7 @@ public class Group {
 		this(groupIndexId, functionList, sortOrder, 0);
 	}
 	public Group(String groupIndexId, GroupFunction[] functionList, int sortOrder, int limit){
-		this.groupIndexId = groupIndexId;
+		this.groupIndexId = groupIndexId.toLowerCase();
 		this.functionList = functionList;
 		this.sortOrder = sortOrder;
 		this.limit = limit;

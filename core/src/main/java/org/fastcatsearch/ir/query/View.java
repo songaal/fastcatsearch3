@@ -29,7 +29,7 @@ public class View {
 		this(fieldId, snippetSize, 1, false);
 	}
 	public View(String fieldId, int snippetSize, int fragmentSize, boolean highlighted){
-		this.fieldId = fieldId;
+		this.fieldId = fieldId.toUpperCase();
 		this.snippetSize = snippetSize;
 		this.fragmentSize = fragmentSize;
 		this.highlighted = highlighted;

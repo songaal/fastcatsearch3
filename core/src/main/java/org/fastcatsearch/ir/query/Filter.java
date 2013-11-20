@@ -53,7 +53,7 @@ public class Filter {
 		this(fieldIndexId, function, pattern, null, boostScore);
 	}
 	public Filter(String fieldIndexId, int function, String pattern, String endPattern, int boostScore){
-		this.fieldIndexId = fieldIndexId;
+		this.fieldIndexId = fieldIndexId.toUpperCase();
 		this.function = function;
 		this.patternList = new String[]{pattern};
 		this.endPatternList = new String[]{endPattern};
@@ -64,7 +64,7 @@ public class Filter {
 	//LIST
 	//
 	public Filter(String fieldIndexId, int function, String[] patternList){
-		this.fieldIndexId = fieldIndexId;
+		this.fieldIndexId = fieldIndexId.toUpperCase();
 		this.function = function;
 		this.patternList = patternList;
 	}

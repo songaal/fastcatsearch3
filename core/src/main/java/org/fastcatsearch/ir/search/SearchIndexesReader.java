@@ -80,12 +80,15 @@ public class SearchIndexesReader implements Cloneable {
 		reader.schema = schema;
 		reader.indexSettingList = indexSettingList;
 		reader.readerList = new ArrayList<SearchIndexReader>(readerList.size());
+		
+		logger.debug("clone readerList.size > {}",readerList.size());
 		for (SearchIndexReader r : readerList) {
 			SearchIndexReader newReader = null;
 			if (r != null) {
 				newReader = r.clone();
 			}
 			reader.readerList.add(newReader);
+			logger.debug("clone add newReader > {}", newReader);
 		}
 		reader.primaryKeyIndexesReader = primaryKeyIndexesReader.clone();
 		
@@ -105,6 +108,7 @@ public class SearchIndexesReader implements Cloneable {
 
 			boolean isPrimaryKeyField = false;
 			int indexFieldSequence = schema.getSearchIndexSequence(indexFieldId);
+			logger.debug("getSearchIndexSequence {} > {}", indexFieldId, indexFieldSequence);
 			if (indexFieldSequence < 0) {
 				if (indexFieldId.equals(primaryKeyId)) {
 					isPrimaryKeyField = true;

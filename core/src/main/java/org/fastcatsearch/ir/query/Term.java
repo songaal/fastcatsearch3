@@ -62,6 +62,9 @@ public class Term {
 	}
 	public Term(String[] indexFieldId, String termString, int weight, Type type, Option option){
 		this.indexFieldId = indexFieldId;
+		for (int i = 0; i < indexFieldId.length; i++) {
+			indexFieldId[i] = indexFieldId[i].toUpperCase();
+		}
 		//remove escapse character '\'
 		this.termString = termString.replaceAll("\\\\","");
 		this.weight = weight;
@@ -148,6 +151,11 @@ public class Term {
 		
 		public boolean isBoolean(){
 			return (optionValue & BOOLEAN) > 0;
+		}
+		
+		@Override
+		public String toString(){
+			return "OPT-"+String.valueOf(optionValue);
 		}
 	}
 }

@@ -20,7 +20,7 @@ public class AnalyzerPoolManager {
 	}
 	
 	public AnalyzerPool getPool(String analyzerId){
-		
+		analyzerId = analyzerId.toUpperCase();
 		if(poolMap != null){
 			AnalyzerPool pool = poolMap.get(analyzerId);
 			if(pool != null){

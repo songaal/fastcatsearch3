@@ -48,14 +48,14 @@ public class Schema {
 		List<FieldSetting> fieldSettingList = schemaSetting.getFieldSettingList();
 		for (int i = 0; i < fieldSettingList.size(); i++) {
 			FieldSetting fieldSetting = fieldSettingList.get(i);
-			fieldSequenceMap.put(fieldSetting.getId(), i);
+			fieldSequenceMap.put(fieldSetting.getId().toUpperCase(), i);
 		}
 		//search index 필드명 : 번호 맵핑.
 		this.searchIndexSequenceMap = new HashMap<String, Integer>();
 		List<IndexSetting> indexSettingList = schemaSetting.getIndexSettingList();
 		for (int i = 0; i < indexSettingList.size(); i++) {
 			IndexSetting indexSetting = indexSettingList.get(i);
-			searchIndexSequenceMap.put(indexSetting.getId(), i);
+			searchIndexSequenceMap.put(indexSetting.getId().toUpperCase(), i);
 		}
 		
 		//field index 필드명 : 번호 맵핑.
@@ -63,7 +63,7 @@ public class Schema {
 		List<FieldIndexSetting> fieldIndexSettingList = schemaSetting.getFieldIndexSettingList();
 		for (int i = 0; i < fieldIndexSettingList.size(); i++) {
 			FieldIndexSetting fieldIndexSetting = fieldIndexSettingList.get(i);
-			fieldIndexSequenceMap.put(fieldIndexSetting.getId(), i);
+			fieldIndexSequenceMap.put(fieldIndexSetting.getId().toUpperCase(), i);
 		}
 		
 		//group index 필드명 : 번호 맵핑.
@@ -71,13 +71,13 @@ public class Schema {
 		List<GroupIndexSetting> groupIndexSettingList = schemaSetting.getGroupIndexSettingList();
 		for (int i = 0; i < groupIndexSettingList.size(); i++) {
 			GroupIndexSetting groupIndexSetting = groupIndexSettingList.get(i);
-			groupIndexSequenceMap.put(groupIndexSetting.getId(), i);
+			groupIndexSequenceMap.put(groupIndexSetting.getId().toUpperCase(), i);
 		}
 		
 		//필드셋팅객체
 		this.fieldSettingMap = new HashMap<String, FieldSetting>();
 		for(FieldSetting fieldSetting : schemaSetting.getFieldSettingList()){
-			fieldSettingMap.put(fieldSetting.getId(), fieldSetting);
+			fieldSettingMap.put(fieldSetting.getId().toUpperCase(), fieldSetting);
 		}
 		
 		//분석기 객체화.
@@ -95,9 +95,9 @@ public class Schema {
 			
 			if(factory != null){
 				if(corePoolSize == -1 || maximumPoolSize == -1){
-					analyzerPoolManager.registerAnalyzer(analyzerId, factory);
+					analyzerPoolManager.registerAnalyzer(analyzerId.toUpperCase(), factory);
 				}else{
-					analyzerPoolManager.registerAnalyzer(analyzerId, factory, corePoolSize, maximumPoolSize);
+					analyzerPoolManager.registerAnalyzer(analyzerId.toUpperCase(), factory, corePoolSize, maximumPoolSize);
 				}
 			}else{
 				logger.error("분석기 {}를 로드할수 없습니다.", analyzerClassName);

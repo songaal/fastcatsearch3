@@ -226,6 +226,9 @@ public class MemoryPosting {
 		add(term, docNo, 0);
 	}
 	public void add(CharVector term, int docNo, int position) throws IRException {
+		if(term == null || term.length() == 0){
+			return;
+		}
 		PostingBuffer p = get(term);
 		
 		if(p == null){
