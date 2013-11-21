@@ -130,7 +130,7 @@ public class FSFileSourceReader extends SingleSourceReader {
 //								logger.trace("CloseTag [{}]", closeTag);
 //								logger.trace("Data [{}]", targetStr);
 //							}
-							dataMap.put(openTag, targetStr);
+							dataMap.put(openTag.toUpperCase(), targetStr);
 							sb = new StringBuffer();
 							continue;
 						}

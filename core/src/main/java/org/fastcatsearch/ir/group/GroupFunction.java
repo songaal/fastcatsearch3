@@ -32,9 +32,9 @@ public abstract class GroupFunction {
 	protected GroupingValue[] valueList; //그룹번호별로 데이터를 쌓아놓을 공간확보. 
 	
 	public GroupFunction(String functionName, int sortOrder, String fieldId){
-		this.functionName = functionName;
+		this.functionName = functionName.toUpperCase();
 		this.sortOrder = sortOrder;
-		this.fieldId = fieldId;
+		this.fieldId = fieldId != null ? fieldId.toUpperCase() : null;
 	}
 	
 	public void init(GroupingValue[] valueList){

@@ -32,7 +32,7 @@ public abstract class SelectableIndexesReader<T extends ReferencableIndexReader,
 				S setting = indexSettingList.get(j);
 				String indexFieldId = setting.getId();
 				// 동일필드명을 찾는다.
-				if (indexFieldId.equals(fieldId)) {
+				if (indexFieldId.equalsIgnoreCase(fieldId)) {
 					reader = cloneReader(j);
 					break;
 				}

@@ -65,7 +65,7 @@ public class FieldSetting {
 	}
 
 	public FieldSetting(String id, String name, Type type) {
-		this.id = id;
+		this.id = id.toUpperCase();
 		this.name = name;
 		this.type = type;
 	}
@@ -81,7 +81,7 @@ public class FieldSetting {
 	}
 
 	public void setId(String id) {
-		this.id = id;
+		this.id = id.toUpperCase();
 	}
 
 	@XmlAttribute
@@ -109,7 +109,7 @@ public class FieldSetting {
 	}
 
 	public void setSource(String source) {
-		this.source = source;
+		this.source = source.toUpperCase();
 	}
 	
 	@XmlAttribute

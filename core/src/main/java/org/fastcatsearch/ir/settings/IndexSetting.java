@@ -41,11 +41,11 @@ public class IndexSetting {
 	public IndexSetting() { }
 	
 	public IndexSetting(String id){
-		this.id = id;
+		this.id = id.toUpperCase();
 	}
 	
 	public IndexSetting(String id, String indexAnalyzer, String queryAnalyzer){
-		this.id = id;
+		this.id = id.toUpperCase();
 		this.indexAnalyzer = indexAnalyzer;
 		this.queryAnalyzer = (queryAnalyzer == null) ? queryAnalyzer : indexAnalyzer;
 	}
@@ -60,7 +60,7 @@ public class IndexSetting {
 	}
 
 	public void setId(String id) {
-		this.id = id;
+		this.id = id.toUpperCase();
 	}
 	
 	@XmlAttribute

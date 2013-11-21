@@ -8,7 +8,7 @@ public class RefSetting {
 	public RefSetting() {}
 	
 	public RefSetting(String ref) {
-		this.ref = ref;
+		this.ref = ref.toUpperCase();
 	}
 	
 	@Override
@@ -23,7 +23,7 @@ public class RefSetting {
 	}
 
 	public void setRef(String ref) {
-		this.ref = ref;
+		this.ref = ref.toUpperCase();
 	}
 	
 }

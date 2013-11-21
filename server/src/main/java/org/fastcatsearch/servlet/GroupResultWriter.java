@@ -60,19 +60,25 @@ public class GroupResultWriter extends AbstractSearchResultWriter {
     			GroupResult groupResult = groupResultList[i];
     			resultStringer.object()
     			.key("label").value(groupResult.fieldId())
-    			.key("result").array("group_item");
+    			.key("functionNameList").array("function_item");
+    			
+    			String[] functionName = groupResult.headerNameList();
+    			for (int k = 0; k < functionName.length; k++) {
+    				resultStringer.value(functionName[k]);
+    			}
+    			resultStringer.endArray();
+    			
+    			resultStringer.key("result").array("group_item");
 				int size = groupResult == null ? 0 : groupResult.size();
 				for (int k = 0; k < size; k++) {
 					GroupEntry e = groupResult.getEntry(k);
 					String keyData = e.key;
-					String[] functionName = groupResult.headerNameList();
 					
 					resultStringer.object()
-						.key("_NO").value(k+1)
 						.key("_KEY").value(keyData);
 					
 					for (int j = 0; j < functionName.length; j++) {
-						resultStringer.key(functionName[j]).value(e.groupingValue(j));
+						resultStringer.key(functionName[j]).value(e.groupingValue(j).toString());
 					}
 					
 					resultStringer.endObject();

@@ -14,7 +14,7 @@ public class PrimaryKeySetting {
 	public PrimaryKeySetting() {}
 	
 	public PrimaryKeySetting(String id) {
-		this.id = id;
+		this.id = id.toUpperCase();
 	}
 	
 	@XmlAttribute(required = true)
@@ -23,7 +23,7 @@ public class PrimaryKeySetting {
 	}
 
 	public void setId(String id) {
-		this.id = id;
+		this.id = id.toUpperCase();
 	}
 	
 	@XmlElement(name="field")

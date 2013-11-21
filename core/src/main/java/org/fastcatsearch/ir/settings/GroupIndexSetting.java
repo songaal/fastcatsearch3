@@ -31,9 +31,9 @@ public class GroupIndexSetting implements ReferencableFieldSetting {
 	public GroupIndexSetting() {}
 	
 	public GroupIndexSetting(String id, String name, String ref){
-		this.id = id;
+		this.id = id.toUpperCase();
 		this.name = name;
-		this.ref = ref;
+		this.ref = ref.toUpperCase();
 	}
 	
 	public String toString(){
@@ -46,7 +46,7 @@ public class GroupIndexSetting implements ReferencableFieldSetting {
 	}
 
 	public void setId(String id) {
-		this.id = id;
+		this.id = id.toUpperCase();
 	}
 	
 	@XmlAttribute
@@ -64,7 +64,7 @@ public class GroupIndexSetting implements ReferencableFieldSetting {
 	}
 
 	public void setRef(String ref) {
-		this.ref = ref;
+		this.ref = ref.toUpperCase();
 	}
 
 	@XmlAttribute

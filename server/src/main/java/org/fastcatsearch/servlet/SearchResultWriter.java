@@ -38,19 +38,15 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 			resultWriter.object()
 			.key("status").value(0)
 			.key("time").value(Formatter.getFormatTime(searchTime))
+			.key("start").value(result.getStart())
 			.key("total_count").value(result.getTotalCount())
 			.key("count").value(result.getCount())
 			.key("field_count").value(fieldNames.length)
 			.key("fieldname_list")
 			.array("name");
 
-			if(result.getCount() == 0){
-				resultWriter.value("_no_");
-			}else{
-				resultWriter.value("_no_");
-				for (int i = 0; i < fieldNames.length; i++) {
-					resultWriter.value(fieldNames[i]);
-				}
+			for (int i = 0; i < fieldNames.length; i++) {
+				resultWriter.value(fieldNames[i]);
 			}
 			resultWriter.endArray();
 			writeBody(result,resultWriter, searchTime);
@@ -65,7 +61,7 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 		resultWriter.key("result");
 		//data
 		Row[] rows = result.getData();
-		int start = result.getStart();
+		//int start = result.getStart();
 
 		if(rows.length == 0){
 			resultWriter.array("item").endArray();
@@ -74,8 +70,8 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 			for (int i = 0; i < rows.length; i++) {
 				Row row = rows[i];
 
-				resultWriter.object()
-				.key("_no_").value(String.valueOf(start+i));
+				resultWriter.object();
+//				.key("_no_").value(String.valueOf(start+i));
 
 				for(int k = 0; k < fieldNames.length; k++) {
 					char[] f = row.get(k);

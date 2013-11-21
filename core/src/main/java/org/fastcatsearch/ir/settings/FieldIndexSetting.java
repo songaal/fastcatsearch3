@@ -34,14 +34,14 @@ public class FieldIndexSetting implements ReferencableFieldSetting {
 	public FieldIndexSetting() {}
 	
 	public FieldIndexSetting(String id, String name, String ref) {
-		this.id = id;
+		this.id = id.toUpperCase();
 		this.name = name;
 		this.ref = ref;
 	}
 	public FieldIndexSetting(String id, String name, String ref, int size, boolean ignoreCase) {
-		this.id = id;
+		this.id = id.toUpperCase();
 		this.name = name;
-		this.ref = ref;
+		this.ref = ref.toUpperCase();
 		this.size = size;
 		this.ignoreCase = ignoreCase;
 	}
@@ -75,7 +75,7 @@ public class FieldIndexSetting implements ReferencableFieldSetting {
 	}
 
 	public void setId(String id) {
-		this.id = id;
+		this.id = id.toUpperCase();
 	}
 
 	public void setName(String name) {
@@ -83,7 +83,7 @@ public class FieldIndexSetting implements ReferencableFieldSetting {
 	}
 	
 	public void setRef(String ref) {
-		this.ref = ref;
+		this.ref = ref.toUpperCase();
 	}
 	
 	public void setSize(Integer size) {

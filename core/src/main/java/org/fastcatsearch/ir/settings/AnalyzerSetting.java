@@ -19,7 +19,7 @@ public class AnalyzerSetting {
 	public AnalyzerSetting(){}
 	
 	public AnalyzerSetting(String id, String name, int corePoolSize, int maximumPoolSize, String analyzerClassName){
-		this.id = id;
+		this.id = id.toUpperCase();
 		this.name = name;
 		this.corePoolSize = corePoolSize;
 		this.maximumPoolSize = maximumPoolSize;
@@ -31,7 +31,7 @@ public class AnalyzerSetting {
 		return id;
 	}
 	public void setId(String id) {
-		this.id = id;
+		this.id = id.toUpperCase();
 	}
 	
 	@XmlAttribute
