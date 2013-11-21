@@ -54,7 +54,8 @@ public class DocumentReader implements Cloneable {
 	private int documentCount;
 	private int lastDocNo = -1;
 	private DataInput lastBai;
-
+	private long positionLimit;
+	
 	public DocumentReader() {
 	}
 
@@ -67,6 +68,7 @@ public class DocumentReader implements Cloneable {
 		fields = schema.schemaSetting().getFieldSettingList();
 		docInput = new BufferedFileInput(dir, IndexFileNames.docStored);
 		positionInput = new BufferedFileInput(dir, IndexFileNames.docPosition);
+		positionLimit = positionInput.length();
 		documentCount = docInput.readInt();
 		logger.info("DocumentCount = {}", documentCount);
 
@@ -98,7 +100,12 @@ public class DocumentReader implements Cloneable {
 		DataInput bai = null;
 
 		if (docNo != lastDocNo) {
-			positionInput.seek(docNo * IOUtil.SIZE_OF_LONG);
+			long positionOffset = docNo * IOUtil.SIZE_OF_LONG;
+			if(positionOffset >= positionLimit){
+				//없는문서.
+				return null;
+			}
+			positionInput.seek(positionOffset);
 			long pos = positionInput.readLong();
 			// find a document block
 			docInput.seek(pos);
@@ -177,6 +184,7 @@ public class DocumentReader implements Cloneable {
 		reader.inflaterOutput = new ByteRefArrayOutputStream(3 * 1024 * 1024); // 자동 증가됨.
 		reader.workingBuffer = new byte[1024];
 		reader.docReadBuffer = new byte[3 * 1024 * 1024];
+		reader.positionLimit = positionLimit;
 		return reader;
 	}
 

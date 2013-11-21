@@ -82,11 +82,18 @@ public class GetCollectionIndexDataAction extends AuthAction {
 				
 				for (int docNo = startNo; docNo <= endNo; docNo++) {
 					
+					Document document = segmentSearcher.getDocument(docNo);
+					if(document == null){
+						//문서의 끝에 다다름.
+						break;
+					}
+					
 					resultWriter.object()
 						.key("segmentId").value(segmentId)
 						.key("row").object();
 					
-					Document document = segmentSearcher.getDocument(docNo);
+					
+					
 					int fieldSize = document.size();
 //					logger.debug("document >> {}", document);
 					for (int index = 0; index < fieldSize; index++) {
