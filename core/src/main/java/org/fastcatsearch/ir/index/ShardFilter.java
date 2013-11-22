@@ -34,7 +34,7 @@ public class ShardFilter {
 		try{
 			int pos = filter.indexOf('=');
 			
-			String fieldId = filter.substring(0, pos).trim();
+			String fieldId = filter.substring(0, pos).trim().toUpperCase();
 			String value = filter.substring(pos + 1).trim();
 			String[] values = null;
 			if(value.startsWith("(")){
@@ -53,6 +53,8 @@ public class ShardFilter {
 			}
 	
 			index = fieldSequenceMap.get(fieldId);
+			
+			logger.debug("shard filter id={} index={} dataSet={}", fieldId, index, dataSet);
 		}catch(Exception e){
 			logger.error("Filter condition has error.filter >> \"{}\"", filter);
 		}

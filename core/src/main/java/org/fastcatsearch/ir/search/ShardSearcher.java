@@ -308,7 +308,7 @@ public class ShardSearcher {
 						text = field.toString();
 					}
 
-					if (has != null && text != null) {
+					if (has != null && text != null && highlightInfo != null) {
 						String fiedlName = view.fieldId();
 						String analyzerId = highlightInfo.getAnalyzer(fiedlName);
 						String queryString = highlightInfo.getQueryString(fiedlName);

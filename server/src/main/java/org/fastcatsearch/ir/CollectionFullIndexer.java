@@ -9,6 +9,7 @@ import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.config.DataSourceConfig;
+import org.fastcatsearch.ir.config.ShardConfig;
 import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.ir.index.ShardFilter;
 import org.fastcatsearch.ir.index.ShardFullIndexer;
@@ -31,11 +32,19 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 		}
 		File filePath = collectionContext.indexFilePaths().file();
 		dataSourceReader = createDataSourceReader(filePath, workingSchema);
-		shardIndexMapper = new ShardIndexMapper();
+		
+		ShardContext baseShardContext = collectionContext.getShardContext(ShardConfig.BASE_SHARD_ID);
+		ShardIndexer baseShardIndexer = new ShardFullIndexer(workingSchema, baseShardContext);
+		shardIndexMapper = new ShardIndexMapper(baseShardIndexer);
 		
 		for (ShardContext shardContext : collectionContext.getShardContextList()) {
+			String shardId = shardContext.shardId();
+			if(shardId.equalsIgnoreCase(ShardConfig.BASE_SHARD_ID)){
+				//base shard는 mapper에 추가하지 않는다.
+				continue;
+			}
 			String filter = shardContext.shardConfig().getFilter();
-			logger.debug("#shard filter {} : {}", shardContext.shardId(), filter);
+			logger.debug("#shard filter {} : {}", shardId, filter);
 			ShardFilter shardFilter = new ShardFilter(workingSchema.fieldSequenceMap(), filter);
 			ShardIndexer shardIndexer = new ShardFullIndexer(workingSchema, shardContext);
 			if (shardIndexer != null) {

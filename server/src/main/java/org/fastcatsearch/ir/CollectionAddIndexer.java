@@ -8,6 +8,7 @@ import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.config.DataSourceConfig;
+import org.fastcatsearch.ir.config.ShardConfig;
 import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.index.ShardAddIndexer;
@@ -31,15 +32,21 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
 		File filePath = collectionContext.indexFilePaths().file();
 		dataSourceReader = createDataSourceReader(filePath, schema);
 		DeleteIdSet deleteIdSet = dataSourceReader.getDeleteList();
-		shardIndexMapper = new ShardIndexMapper();
+		
+		ShardHandler baseShardHandler = collectionHandler.getShardHandler(ShardConfig.BASE_SHARD_ID);
+		ShardIndexer baseShardIndexer = new ShardAddIndexer(schema, baseShardHandler);
+		shardIndexMapper = new ShardIndexMapper(baseShardIndexer);
 		
 		for(ShardContext shardContext : collectionContext.getShardContextList()){
 			String shardId = shardContext.shardId();
-			ShardHandler shardHandler = collectionHandler.getShardHandler(shardId);
-			logger.debug("shard {} >> {}", shardId, shardHandler);
-			
+			if(shardId.equalsIgnoreCase(ShardConfig.BASE_SHARD_ID)){
+				//base shard는 mapper에 추가하지 않는다.
+				continue;
+			}
 			String filter = shardContext.shardConfig().getFilter();
+			logger.debug("shard {} >> {}", shardId, filter);
 			ShardFilter shardFilter = new ShardFilter(schema.fieldSequenceMap(), filter);
+			ShardHandler shardHandler = collectionHandler.getShardHandler(shardId);
 			ShardIndexer shardIndexer = new ShardAddIndexer(schema, shardHandler);
 			
 			if(shardIndexer != null){

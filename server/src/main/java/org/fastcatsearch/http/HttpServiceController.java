@@ -61,6 +61,9 @@ public class HttpServiceController {
 		}else if(uri.endsWith(".html")){ 
 			standardURI = uri.substring(0, uri.length() - 5);
 			contenType = Type.html;
+		}else if(uri.endsWith(".text")){ 
+			standardURI = uri.substring(0, uri.length() - 5);
+			contenType = Type.text;
 		}else{
 			standardURI = uri;
 			contenType = Type.json;

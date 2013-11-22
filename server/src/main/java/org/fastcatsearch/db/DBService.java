@@ -82,6 +82,9 @@ public class DBService extends AbstractService {
 		
 	}
 	
+	public InternalDBModule internalDBModule(){
+		return internalDBModule;
+	}
 	public <T> MapperSession<T> getMapperSession(Class<T> type){
 		SqlSession session = internalDBModule.openSession();
 		return new MapperSession<T>(session, session.getMapper(type));

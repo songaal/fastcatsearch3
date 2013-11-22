@@ -17,8 +17,10 @@ public class ShardIndexMapper {
 	private Map<ShardFilter, ShardIndexer> shardFilterMap;
 	private Map<String, IndexWriteInfoList> shardIndexWriteInfoListMap;
 	private Set<Map.Entry<ShardFilter,ShardIndexer>> entrySet;
+	ShardIndexer baseShardIndexer;
 	
-	public ShardIndexMapper() {
+	public ShardIndexMapper(ShardIndexer baseShardIndexer) {
+		this.baseShardIndexer = baseShardIndexer;
 		shardFilterMap = new HashMap<ShardFilter, ShardIndexer>();
 		shardIndexWriteInfoListMap = new HashMap<String, IndexWriteInfoList>();
 	}
@@ -31,15 +33,19 @@ public class ShardIndexMapper {
 
 	public void addDocument(Document document) throws IRException, IOException {
 		logger.debug("addDocument > {}", document);
-		for (Map.Entry<ShardFilter,ShardIndexer> shardFilterEntry : entrySet) {
-			if (shardFilterEntry.getKey().accept(document)) {
-				logger.debug("accept shard {} >> {}", shardFilterEntry.getValue().shardContext().shardId(), document.get(0));
-				shardFilterEntry.getValue().addDocument(document);
-				//shard filter는 서로 배타적이라는 가정하에 accept가 발견되면 바로 다음 문서로 이동한다.
-				//Note : 동일문서가 여러 shard에 추가되면, 통합검색시 동일문서가 출현하게 되므로, pk로 걸러주는 작업이 필요하다.
-				break;
+		if(entrySet != null){
+			for (Map.Entry<ShardFilter,ShardIndexer> shardFilterEntry : entrySet) {
+				if (shardFilterEntry.getKey().accept(document)) {
+					logger.debug("accept shard {} >> {}", shardFilterEntry.getValue().shardContext().shardId(), document.get(0));
+					shardFilterEntry.getValue().addDocument(document);
+					//shard filter는 서로 배타적이라는 가정하에 accept가 발견되면 바로 다음 문서로 이동한다.
+					//Note : 동일문서가 여러 shard에 추가되면, 통합검색시 동일문서가 출현하게 되므로, pk로 걸러주는 작업이 필요하다.
+					return;
+				}
 			}
 		}
+		//shard에 포함안된 문서는 base shard가 해결한다.
+		baseShardIndexer.addDocument(document);
 	}
 
 	public RevisionInfo close() {
@@ -57,7 +63,15 @@ public class ShardIndexMapper {
 				logger.error("close error", e);
 			}
 		}
-		
+		try {
+			RevisionInfo revisionInfo = baseShardIndexer.close();
+			totalInfo.add(revisionInfo);
+			String shardId = baseShardIndexer.shardContext().shardId();
+			IndexWriteInfoList indexWriteInfoList = baseShardIndexer.indexWriteInfoList();
+			shardIndexWriteInfoListMap.put(shardId, indexWriteInfoList);
+		} catch (IRException e) {
+			logger.error("close error", e);
+		}
 		return totalInfo;
 	}
 

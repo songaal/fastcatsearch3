@@ -11,7 +11,7 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 public abstract class ServiceAction extends HttpAction {
 	public static final String DEFAULT_ROOT_ELEMENT = "response";
 	public static final String DEFAULT_CHARSET = "utf-8";
-	public static enum Type { json, xml, jsonp, html };
+	public static enum Type { json, xml, jsonp, html, text };
 	
 	public ServiceAction(){ 
 	}
@@ -30,6 +30,8 @@ public abstract class ServiceAction extends HttpAction {
 			response.setContentType("text/xml; charset=" + responseCharset);
 		} else if (resultType == Type.html) {
 			response.setContentType("text/html; charset=" + responseCharset);
+		} else if (resultType == Type.text) {
+			response.setContentType("text/plain; charset=" + responseCharset);
 		} else {
 			response.setContentType("application/json; charset=" + responseCharset);
 		}

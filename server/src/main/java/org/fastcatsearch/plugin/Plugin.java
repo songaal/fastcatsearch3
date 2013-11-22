@@ -63,6 +63,9 @@ public abstract class Plugin {
 		}
 	}
 	
+	public InternalDBModule internalDBModule(){
+		return internalDBModule;
+	}
 	
 	public File getPluginDir(){
 		return pluginDir;

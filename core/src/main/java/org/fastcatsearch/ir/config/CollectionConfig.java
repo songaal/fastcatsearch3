@@ -92,22 +92,40 @@ public class CollectionConfig {
 	public static class Shard {
 		private String id;
 		private String name;
-		
+
+		public Shard() {
+		}
+
+		public Shard(String id) {
+			this.id = id;
+		}
+
 		@XmlAttribute
 		public String getId() {
 			return id;
 		}
+
 		public void setId(String id) {
 			this.id = id;
 		}
+
 		@XmlAttribute
 		public String getName() {
 			return name;
 		}
+
 		public void setName(String name) {
 			this.name = name;
 		}
-		
-		
+
+		@Override
+		public boolean equals(Object other) {
+			if (other != null) {
+				if (id.equalsIgnoreCase(((Shard) other).id)) {
+					return true;
+				}
+			}
+			return false;
+		}
 	}
 }

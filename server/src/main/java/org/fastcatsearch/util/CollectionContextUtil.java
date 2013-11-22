@@ -246,6 +246,72 @@ public class CollectionContextUtil {
 		}
 	}
 
+	public static void removeShard(CollectionContext collectionContext, String shardId) throws SettingException {
+		FilePaths collectionFilePaths = collectionContext.indexFilePaths();
+		File collectionDir = collectionFilePaths.file();
+		
+		CollectionConfig collectionConfig = collectionContext.collectionConfig();
+		collectionConfig.getShardConfigList().remove(new Shard(shardId));
+		try {
+			JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.collectionConfig), collectionConfig, CollectionConfig.class);
+			
+			FilePaths shardIndexFilePaths = collectionFilePaths.shard(shardId);
+			FileUtils.deleteDirectory(shardIndexFilePaths.file());
+		} catch (Exception e) {
+			throw new SettingException("CollectionContext Shard 삭제중 에러.", e);
+		}
+		
+	}
+	
+	public static ShardContext addNewShard(CollectionContext collectionContext, ShardConfig shardConfig) throws SettingException {
+		String collectionId = collectionContext.collectionId();
+		String shardId = shardConfig.getId();
+		Shard shard = new Shard();
+		shard.setId(shardConfig.getId());
+		
+		FilePaths collectionFilePaths = collectionContext.indexFilePaths();
+		File collectionDir = collectionFilePaths.file();
+		
+		CollectionConfig collectionConfig = collectionContext.collectionConfig();
+		collectionConfig.getShardConfigList().add(shard);
+		
+		try{
+			
+			
+			//save CollectionConfig file
+			JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.collectionConfig), collectionConfig, CollectionConfig.class);
+			
+			FilePaths shardIndexFilePaths = collectionFilePaths.shard(shardId);
+			shardIndexFilePaths.file().mkdirs();
+			ShardContext shardContext = new ShardContext(collectionId, shardId, shardIndexFilePaths);
+			
+			//save shardConfig file
+			JAXBConfigs.writeConfig(shardIndexFilePaths.file(SettingFileNames.shardConfig), shardConfig, ShardConfig.class);
+			
+			ShardIndexStatus shardIndexStatus = new ShardIndexStatus();
+			File shardIndexStatusFile = shardIndexFilePaths.file(SettingFileNames.indexStatus);
+			logger.debug("shardIndexStatusFile > {}, shardIndexStatus > {}", shardIndexStatusFile, shardIndexStatus);
+			JAXBConfigs.writeConfig(shardIndexStatusFile, shardIndexStatus, ShardIndexStatus.class);
+			
+			File indexDir = shardIndexFilePaths.indexDirFile(shardIndexStatus.getSequence());
+			if (!indexDir.exists()) {
+				indexDir.mkdirs();
+			}
+			File infoFile = new File(indexDir, SettingFileNames.dataInfo);
+			DataInfo dataInfo = new DataInfo();
+			logger.debug("infoFile > {}, dataInfo > {}", infoFile, dataInfo);
+			JAXBConfigs.writeConfig(infoFile, dataInfo, DataInfo.class);
+			
+			shardContext.init(collectionConfig.getIndexConfig(), collectionConfig.getDataPlanConfig(), shardConfig, shardIndexStatus, dataInfo);
+			saveShardAfterIndexing(shardContext);
+		
+			return shardContext;
+		} catch (Exception e) {
+			throw new SettingException("CollectionContext Shard 추가중 에러.", e);
+		}
+		
+	}
+	
 	// 색인이 끝나고 dataInfo 저장.
 	// public static void saveDataInfo(CollectionContext collectionContext) throws SettingException {
 	// CollectionFilePaths collectionFilePaths = collectionContext.collectionFilePaths();

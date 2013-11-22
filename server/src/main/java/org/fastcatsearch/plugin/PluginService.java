@@ -183,7 +183,7 @@ public class PluginService extends AbstractService {
 	}
 
 	public Plugin getPlugin(String pluginId) {
-		return pluginMap.get(pluginId);
+		return pluginMap.get(pluginId.toUpperCase());
 	}
 
 	public void loadSchedule() {

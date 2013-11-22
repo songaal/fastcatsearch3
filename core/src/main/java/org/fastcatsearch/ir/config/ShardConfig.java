@@ -24,6 +24,9 @@ import javax.xml.bind.annotation.XmlType;
 @XmlRootElement(name = "shard-config")
 @XmlType(propOrder={"id", "name", "filter", "dataNodeList"})
 public class ShardConfig {
+	
+	public static final String BASE_SHARD_ID = "BASE";
+	
 	private String id;
 	private String name;
 	private String filter;
