@@ -37,11 +37,15 @@
 	<select id="getEntryList" parameterType="map" resultType="org.fastcatsearch.db.vo.ExceptionVO">
 
 		<if test="start &gt;= 0 and end &gt;= 0">
-			select *
+			select tmp2.* 
 			from (
-			select row_number() over() as rownum, ExceptionHistory.* from
-			ExceptionHistory
-			) as tmp where rownum &gt; #{start} and rownum &lt;= #{end}
+				select row_number() over() as rownum, tmp.* 
+				from ( 
+					select * from ExceptionHistory
+					order by id desc 
+			    ) as tmp 
+			) tmp2
+			where rownum &gt;= #{start} and rownum &lt;= #{end}
 		</if>
 	</select>
 

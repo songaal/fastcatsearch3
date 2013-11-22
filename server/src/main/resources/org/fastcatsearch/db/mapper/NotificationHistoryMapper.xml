@@ -38,11 +38,15 @@
 	<select id="getEntryList" parameterType="map" resultType="org.fastcatsearch.db.vo.NotificationVO">
 
 		<if test="start &gt;= 0 and end &gt;= 0">
-			select *
+			select tmp2.* 
 			from (
-			select row_number() over() as rownum, NotificationHistory.* from
-			NotificationHistory
-			) as tmp where rownum &gt; #{start} and rownum &lt;= #{end}
+				select row_number() over() as rownum, tmp.* 
+				from ( 
+					select * from NotificationHistory
+					order by id desc 
+			    ) as tmp 
+			) tmp2
+			where rownum &gt;= #{start} and rownum &lt;= #{end}
 		</if>
 	</select>
 
