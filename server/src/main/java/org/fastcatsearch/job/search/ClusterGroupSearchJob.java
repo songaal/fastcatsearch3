@@ -3,7 +3,6 @@ package org.fastcatsearch.job.search;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.fastcatsearch.cluster.ClusterStrategy;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.Strings;
@@ -11,7 +10,6 @@ import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.CollectionConfig.Shard;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.query.Groups;
@@ -62,37 +60,29 @@ public class ClusterGroupSearchJob extends Job {
 		String collectionId = q.getMeta().collectionId();
 		Groups groups = q.getGroups();
 		
+		//TODO collectionId가 collectionGroup명인지 확인하여 그룹이면 여러컬렉션 검
+		String[] collectionIdList = new String[]{ collectionId };
+		
 		CollectionContext collectionContext = irService.collectionContext(collectionId);
 		
+		ResultFuture[] resultFutureList = new ResultFuture[collectionIdList.length];
 		
-		String[] shardIdList = q.getMeta().getSharIdList();
-		// 컬렉션 명으로만 검색시 하위 shard를 모두 검색해준다.
-		//null이면 하위 모든 shard를 검색.
-		if(shardIdList == null){
-			List<Shard> shardList = collectionContext.collectionConfig().getShardConfigList();
-			shardIdList = new String[shardList.size()];
-			for(int i =0 ;i< shardList.size(); i++){
-				shardIdList[i] = shardList.get(i).getId();
-			}
-		}
-		
-//		String[] collectionIdList = collectionId.split(",");
-		ResultFuture[] resultFutureList = new ResultFuture[shardIdList.length];
-		
-		for (int i = 0; i < shardIdList.length; i++) {
-			String shardId = shardIdList[i];
+		for (int i = 0; i < collectionIdList.length; i++) {
+			String id = collectionIdList[i];
 			
-			Node dataNode = nodeService.getBalancedNode(shardId);
-			logger.debug("shard [{}] search at {}", shardId, dataNode);
+			Node dataNode = nodeService.getBalancedNode(id);
+			logger.debug("shard [{}] search at {}", id, dataNode);
 			QueryMap newQueryMap = queryMap.clone();
-//			String queryStr = queryString.replace("cn="+collectionId, "cn="+shardId);
+			newQueryMap.setId(id);
+			
+			//보내는 곳마다 collectionId를 재 셋팅한다. (collection group명일수 있기때문에) 
 			InternalGroupSearchJob job = new InternalGroupSearchJob(newQueryMap);
 			resultFutureList[i] = nodeService.sendRequest(dataNode, job);
 		}
 		
-		List<GroupsData> resultList = new ArrayList<GroupsData>(shardIdList.length);
+		List<GroupsData> resultList = new ArrayList<GroupsData>(collectionIdList.length);
 		
-		for (int i = 0; i < shardIdList.length; i++) {
+		for (int i = 0; i < collectionIdList.length; i++) {
 			//TODO 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
 			if(resultFutureList[i] == null){
 				throw new FastcatSearchException("요청메시지 전송불가에러.");

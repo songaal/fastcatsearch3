@@ -6,13 +6,15 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "collection-index-status")
-@XmlType(propOrder = { "fullIndexStatus", "addIndexStatus"})
+@XmlType(propOrder = { "fullIndexStatus", "addIndexStatus", "sequence"})
 public class CollectionIndexStatus {
 	protected IndexStatus fullIndexStatus;
 	protected IndexStatus addIndexStatus;
+	private int sequence;
 	
 	public CollectionIndexStatus copy() {
 		CollectionIndexStatus collectionIndexStatus = new CollectionIndexStatus();
+		collectionIndexStatus.sequence = sequence;
 		if (fullIndexStatus != null) {
 			collectionIndexStatus.fullIndexStatus = fullIndexStatus.copy();
 		}
@@ -33,7 +35,16 @@ public class CollectionIndexStatus {
 	
 	@Override
 	public String toString() {
-		return "["+getClass().getSimpleName()+"] last-full=[" + fullIndexStatus + "] last-add=[" + addIndexStatus + "]";
+		return "["+getClass().getSimpleName()+"] sequence[" + sequence + "] last-full=[" + fullIndexStatus + "] last-add=[" + addIndexStatus + "]";
+	}
+	
+	@XmlAttribute(name="sequence")
+	public int getSequence() {
+		return sequence;
+	}
+
+	public void setSequence(int sequence) {
+		this.sequence = sequence;
 	}
 	
 	@XmlElement(name = "last-full-indexing")

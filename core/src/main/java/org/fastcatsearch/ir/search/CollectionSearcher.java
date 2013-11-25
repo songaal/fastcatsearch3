@@ -43,23 +43,23 @@ import org.fastcatsearch.ir.summary.BasicHighlightAndSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ShardSearcher {
-	private static Logger logger = LoggerFactory.getLogger(ShardSearcher.class);
+public class CollectionSearcher {
+	private static Logger logger = LoggerFactory.getLogger(CollectionSearcher.class);
 
-	private ShardHandler shardHandler;
+	private CollectionHandler collectionHandler;
 
 	private HighlightAndSummary has;
 
-	public ShardSearcher(ShardHandler shardHandler) {
-		this.shardHandler = shardHandler;
+	public CollectionSearcher(CollectionHandler collectionHandler) {
+		this.collectionHandler = collectionHandler;
 		has = new BasicHighlightAndSummary();
 	}
 
 	public GroupsData doGrouping(Query q) throws IRException, IOException, SettingException {
 
-		int segmentSize = shardHandler.segmentSize();
+		int segmentSize = collectionHandler.segmentSize();
 		if (segmentSize == 0) {
-			logger.warn("Collection {} is not indexed!", shardHandler.shardId());
+			logger.warn("Collection {} is not indexed!", collectionHandler.collectionId());
 		}
 
 		Groups groups = q.getGroups();
@@ -71,7 +71,7 @@ public class ShardSearcher {
 		if (segmentSize == 1) {
 			// 머징필요없음.
 			try {
-				GroupHit groupHit = shardHandler.segmentSearcher(0).searchGroupHit(q);
+				GroupHit groupHit = collectionHandler.segmentSearcher(0).searchGroupHit(q);
 				return groupHit.groupData();
 			} catch (IOException e) {
 				throw new IRException(e);
@@ -87,7 +87,7 @@ public class ShardSearcher {
 
 			try {
 				for (int i = 0; i < segmentSize; i++) {
-					GroupHit groupHit = shardHandler.segmentSearcher(i).searchGroupHit(q);
+					GroupHit groupHit = collectionHandler.segmentSearcher(i).searchGroupHit(q);
 
 					if (dataMerger != null) {
 						dataMerger.put(groupHit.groupData());
@@ -113,14 +113,14 @@ public class ShardSearcher {
 		// eachDocList에 해당하는 문서리스트를 리턴한다.
 		List<Document> documentList = new ArrayList<Document>(docIdList.length);
 
-		int segmentSize = shardHandler.segmentSize();
+		int segmentSize = collectionHandler.segmentSize();
 		for (int i = 0; i < docIdList.length; i++) {
 			int docNo = docIdList[i];
 
 			// make doc number lists to send each columns
 			for (int m = segmentSize - 1; m >= 0; m--) {
-				if (docNo >= shardHandler.segmentReader(m).segmentInfo().getBaseNumber()) {
-					documentList.add(shardHandler.segmentReader(m).segmentSearcher().getDocument(docNo));
+				if (docNo >= collectionHandler.segmentReader(m).segmentInfo().getBaseNumber()) {
+					documentList.add(collectionHandler.segmentReader(m).segmentSearcher().getDocument(docNo));
 					break;
 				}
 			}
@@ -151,12 +151,12 @@ public class ShardSearcher {
 	}
 
 	public InternalSearchResult searchInternal(Query q) throws IRException, IOException, SettingException {
-		int segmentSize = shardHandler.segmentSize();
+		int segmentSize = collectionHandler.segmentSize();
 		if (segmentSize == 0) {
-			logger.warn("Collection {} is not indexed!", shardHandler.shardId());
+			logger.warn("Collection {} is not indexed!", collectionHandler.collectionId());
 		}
 
-		Schema schema = shardHandler.schema();
+		Schema schema = collectionHandler.schema();
 
 		Metadata meta = q.getMeta();
 		int start = meta.start();
@@ -182,7 +182,7 @@ public class ShardSearcher {
 		int totalSize = 0;
 		try {
 			for (int i = 0; i < segmentSize; i++) {
-				Hit hit = shardHandler.segmentSearcher(i).searchHit(q);
+				Hit hit = collectionHandler.segmentSearcher(i).searchHit(q);
 				if (highlightInfo == null) {
 					highlightInfo = hit.highlightInfo();
 				}
@@ -239,7 +239,7 @@ public class ShardSearcher {
 			groupData = dataMerger.merge();
 		}
 		HitElement[] hitElementList = totalHit.getHitElementList();
-		return new InternalSearchResult(collectionId, shardHandler.shardId(), hitElementList, totalHit.size(), totalSize, groupData, highlightInfo);
+		return new InternalSearchResult(collectionId, collectionHandler.collectionId(), hitElementList, totalHit.size(), totalSize, groupData, highlightInfo);
 	}
 
 	public DocumentResult searchDocument(DocIdList list, List<View> views, String[] tags, HighlightInfo highlightInfo) throws IOException {
@@ -247,7 +247,7 @@ public class ShardSearcher {
 		int realSize = list.size();
 		Row[] row = new Row[realSize];
 
-		int fieldSize = shardHandler.schema().getFieldSize();
+		int fieldSize = collectionHandler.schema().getFieldSize();
 		int viewSize = views.size();
 		int[] fieldSequenceList = new int[viewSize];
 		String[] fieldIdList = new String[viewSize];
@@ -262,7 +262,7 @@ public class ShardSearcher {
 			} else if (fieldId.equalsIgnoreCase(DocNoField.fieldName)) {
 				sequence = DocNoField.fieldNumber;
 			} else {
-				sequence = shardHandler.schema().getFieldSequence(fieldId);
+				sequence = collectionHandler.schema().getFieldSequence(fieldId);
 				if(sequence != -1){
 					fieldSelectOption[sequence] = true;
 				}
@@ -281,7 +281,7 @@ public class ShardSearcher {
 			// 문서번호는 segmentSequence+docNo 에 유일하며, docNo만으로는 세그먼트끼리는 중복된다.
 			logger.debug("FOUND [seq#{}] {}", segmentSequence, docNo);
 
-			Document doc = shardHandler.segmentReader(segmentSequence).segmentSearcher().getDocument(docNo, fieldSelectOption);
+			Document doc = collectionHandler.segmentReader(segmentSequence).segmentSearcher().getDocument(docNo, fieldSelectOption);
 			eachDocList[idx++] = doc;
 		}
 
@@ -331,7 +331,7 @@ public class ShardSearcher {
 	}
 
 	private String getHighlightedSnippet(String text, String analyzerId, String queryString, String[] tags, View view) throws IOException {
-		AnalyzerPool analyzerPool = shardHandler.schema().getAnalyzerPool(analyzerId);
+		AnalyzerPool analyzerPool = collectionHandler.schema().getAnalyzerPool(analyzerId);
 		if (analyzerPool != null) {
 			Analyzer analyzer = analyzerPool.getFromPool();
 			if (analyzer != null) {
@@ -347,7 +347,7 @@ public class ShardSearcher {
 
 	// 원문조회기능.
 	public Result listDocument(String collectionId, int start, int rows) throws IRException, IOException, SettingException {
-		if (shardHandler.segmentSize() == 0) {
+		if (collectionHandler.segmentSize() == 0) {
 			logger.warn("Collection {} is not indexed!", collectionId);
 		}
 
@@ -356,9 +356,9 @@ public class ShardSearcher {
 		Metadata meta = new Metadata();
 		meta.setStart(start + 1);
 
-		int fieldSize = shardHandler.schema().getFieldSize();
+		int fieldSize = collectionHandler.schema().getFieldSize();
 		String[] fieldNameList = new String[fieldSize];
-		List<FieldSetting> fieldSettingList = shardHandler.schema().schemaSetting().getFieldSettingList();
+		List<FieldSetting> fieldSettingList = collectionHandler.schema().schemaSetting().getFieldSettingList();
 		int[] fieldNumList = new int[fieldSize];
 		for (int i = 0; i < fieldNumList.length; i++) {
 			fieldNumList[i] = i;
@@ -367,7 +367,7 @@ public class ShardSearcher {
 
 		// /////////////////////////////////////
 		int totalSize = 0;
-		int segmentSize = shardHandler.segmentSize();
+		int segmentSize = collectionHandler.segmentSize();
 		int pageIndex = 1;
 		int deletedDocCount = 0;
 		// 이 배열의 index번호는 세그먼트번호.
@@ -375,12 +375,12 @@ public class ShardSearcher {
 		ArrayList<Row> rowList = new ArrayList<Row>();
 
 		for (int i = 0; i < segmentSize; i++) {
-			int docCount = shardHandler.segmentReader(i).segmentInfo().getRevisionInfo().getDocumentCount();
+			int docCount = collectionHandler.segmentReader(i).segmentInfo().getRevisionInfo().getDocumentCount();
 			totalSize += docCount;
 			segEndNums[i] = totalSize - 1;
 		}
 
-		SegmentInfo lastSegInfo = shardHandler.segmentReader(segmentSize - 1).segmentInfo();
+		SegmentInfo lastSegInfo = collectionHandler.segmentReader(segmentSize - 1).segmentInfo();
 		if (lastSegInfo == null) {
 			logger.error("There is no indexed data.");
 			throw new IRException("색인된 데이터가 없습니다.");
@@ -394,12 +394,12 @@ public class ShardSearcher {
 			int startNo = matchSeg[i][1];
 			int endNo = matchSeg[i][2];
 			// logger.debug("segNo: "+segNo+"startNo "+startNo+"endNo "+endNo);
-			SegmentReader segmentReader = shardHandler.segmentReader(segNo);
+			SegmentReader segmentReader = collectionHandler.segmentReader(segNo);
 			// File targetDir = segmentReader.getSegmentDir();
 			// int lastRevision = segmentReader.getLastRevision();
 			String segmentId = segmentReader.segmentInfo().getId();
 			int revision = segmentReader.segmentInfo().getRevision();
-			DocumentReader reader = new DocumentReader(shardHandler.schema(), segmentReader.segmentDir());
+			DocumentReader reader = new DocumentReader(collectionHandler.schema(), segmentReader.segmentDir());
 			BitSet deleteSet = null;
 			deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentId));
 
@@ -437,7 +437,7 @@ public class ShardSearcher {
 
 	// 원문조회기능.
 	public Result findDocument(String collectionId, String primaryKey) throws IRException, IOException, SettingException {
-		if (shardHandler.segmentSize() == 0) {
+		if (collectionHandler.segmentSize() == 0) {
 			logger.warn("Collection {} is not indexed!", collectionId);
 		}
 
@@ -446,9 +446,9 @@ public class ShardSearcher {
 		Metadata meta = new Metadata();
 		meta.setStart(1);
 
-		int fieldSize = shardHandler.schema().getFieldSize();
+		int fieldSize = collectionHandler.schema().getFieldSize();
 		String[] fieldNameList = new String[fieldSize];
-		List<FieldSetting> fieldSettingList = shardHandler.schema().schemaSetting().getFieldSettingList();
+		List<FieldSetting> fieldSettingList = collectionHandler.schema().schemaSetting().getFieldSettingList();
 		int[] fieldNumList = new int[fieldSize];
 		for (int i = 0; i < fieldNumList.length; i++) {
 			fieldNumList[i] = i;
@@ -457,12 +457,12 @@ public class ShardSearcher {
 
 		List<FieldSetting> pkFieldSettingList = new ArrayList<FieldSetting>(3);
 
-		for (RefSetting pkRefSetting : shardHandler.schema().schemaSetting().getPrimaryKeySetting().getFieldList()) {
-			pkFieldSettingList.add(shardHandler.schema().getFieldSetting(pkRefSetting.getRef()));
+		for (RefSetting pkRefSetting : collectionHandler.schema().schemaSetting().getPrimaryKeySetting().getFieldList()) {
+			pkFieldSettingList.add(collectionHandler.schema().getFieldSetting(pkRefSetting.getRef()));
 		}
 		// /////////////////////////////////////
 		int totalSize = 0;
-		int segmentSize = shardHandler.segmentSize();
+		int segmentSize = collectionHandler.segmentSize();
 		int deletedDocCount = 0;
 		// 이 배열의 index번호는 세그먼트번호.
 		ArrayList<Row> rowList = new ArrayList<Row>();
@@ -472,7 +472,7 @@ public class ShardSearcher {
 		// int lastSegRevision = lastSegInfo.getLastRevision();
 
 		for (int i = 0; i < segmentSize; i++) {
-			SegmentReader segmentReader = shardHandler.segmentReader(i);
+			SegmentReader segmentReader = collectionHandler.segmentReader(i);
 			// File targetDir = segmentReader.getSegmentDir();
 			// int lastRevision = segmentReader.getLastRevision();
 

@@ -1,7 +1,8 @@
 package org.fastcatsearch.ir.config;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 /**
- <index>
+<index-config>
 	<pk-term-interval>64</pk-term-interval>
 	<pk-bucket-size>64K</pk-bucket-size>
 	<term-interval>64</term-interval>
@@ -9,9 +10,21 @@ import javax.xml.bind.annotation.XmlElement;
 	<work-memory-size>128M</work-memory-size>
 	<work-bucket-size>256</work-bucket-size>
 	<compression-type>fast</compression-type>
-</index>
+</index-config>
  * */
+@XmlRootElement(name = "index-config")
 public class IndexConfig {
+	
+	public static final IndexConfig defaultConfig;
+	static{
+		defaultConfig = new IndexConfig();
+		defaultConfig.pkTermInterval = 64;
+		defaultConfig.pkBucketSize = 65536;
+		defaultConfig.indexTermInterval = 64;
+		defaultConfig.indexWorkBucketSize = 256;
+		defaultConfig.indexWorkMemorySize = 134217728; //128mb
+	}
+	
 	private int pkTermInterval;
 	private int pkBucketSize;
 	private int indexTermInterval;// inmemory lexicon ratio = 1/indexTermInterval

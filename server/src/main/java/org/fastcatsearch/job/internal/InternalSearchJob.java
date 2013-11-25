@@ -7,10 +7,8 @@ import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.query.InternalSearchResult;
-import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.query.QueryParseException;
@@ -39,7 +37,6 @@ public class InternalSearchJob extends StreamableJob {
 		
 //		Metadata meta = q.getMeta();
 		String collectionId = queryMap.collectionId();
-		String shardId = queryMap.shardId();
 		
 		try {
 			InternalSearchResult result = null;
@@ -60,12 +57,8 @@ public class InternalSearchJob extends StreamableJob {
 				if(collectionHandler == null){
 					throw new FastcatSearchException("ERR-00520", collectionId);
 				}
-				ShardHandler shardHandler = collectionHandler.getShardHandler(shardId);
-				if(shardHandler == null){
-					throw new FastcatSearchException("ERR-00521", shardId);
-				}
 				
-				result = shardHandler.searcher().searchInternal(q);
+				result = collectionHandler.searcher().searchInternal(q);
 				irService.shardSearchCache().put(queryMap.queryString(), result);
 			}
 

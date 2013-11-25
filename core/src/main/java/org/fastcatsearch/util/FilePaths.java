@@ -31,8 +31,8 @@ public class FilePaths {
 		return id;
 	}
 	
-	public FilePaths shard(String shardId){
-		return new FilePaths(file(dataRoot), shardId);
+	public FilePaths dataPath(){
+		return new FilePaths(file(dataRoot));
 	}
 	public File file(String... dirs) {
 		File file = root;
@@ -42,11 +42,7 @@ public class FilePaths {
 		return file;
 	}
 	
-//	private String dataPath() {
-//		return dataPath(0);
-//	}
-
-	private String indexPath(Object dataSequence) {
+	private String indexDirPath(Object dataSequence) {
 		return indexPrefix + dataSequence.toString();
 	}
 	
@@ -55,15 +51,15 @@ public class FilePaths {
 	}
 	
 	public File indexDirFile(Object dataSequence) {
-		return file(indexPath(dataSequence));
+		return file(indexDirPath(dataSequence));
 	}
 
 	public File segmentFile(Object dataSequence, Object segmentId) {
-		return file(indexPath(dataSequence), segmentId.toString());
+		return file(indexDirPath(dataSequence), segmentId.toString());
 	}
 	
 	public File revisionFile(Object dataSequence, Object segmentId, Object revisionNumber) {
-		return file(indexPath(dataSequence), segmentId.toString(), revisionNumber.toString());
+		return file(indexDirPath(dataSequence), segmentId.toString(), revisionNumber.toString());
 	}
 	
 }

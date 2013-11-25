@@ -18,6 +18,7 @@ import org.fastcatsearch.datasource.reader.DataSourceReader;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.CollectionConfig;
+import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.SegmentWriter;
@@ -51,9 +52,9 @@ public class MakeIndexFileTask extends Task {
 		
 		try{
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-			CollectionConfig collectionConfig = irService.collectionContext(collectionId).collectionConfig();
+			CollectionContext collectionContext = irService.collectionContext(collectionId);
 			
-			writer = new SegmentWriter(workSchema, segmentDir, collectionConfig.getIndexConfig());
+			writer = new SegmentWriter(workSchema, segmentDir, collectionContext.indexConfig());
 			
 			long startTime = System.currentTimeMillis();
 			long lapTime = startTime;

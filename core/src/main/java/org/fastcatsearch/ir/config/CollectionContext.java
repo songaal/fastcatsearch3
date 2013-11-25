@@ -1,14 +1,11 @@
 package org.fastcatsearch.ir.config;
 
-import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
+import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.util.FilePaths;
@@ -19,43 +16,43 @@ public class CollectionContext {
 	protected static Logger logger = LoggerFactory.getLogger(CollectionContext.class);
 	
 	private String id;
-	private FilePaths indexFilePaths;
+	private FilePaths collectionFilePaths;
 	private Schema schema;
 	private Schema workSchema;
 	private CollectionConfig collectionConfig;
+	private IndexConfig indexConfig;
 	private DataSourceConfig dataSourceConfig;
 	private CollectionIndexStatus collectionIndexStatus;
-	private Map<String, ShardContext> shardContextMap;
+	private DataInfo dataInfo;
 	private IndexingScheduleConfig indexingScheduleConfig;
 	
-	public CollectionContext(String collectionId, FilePaths indexFilePaths) {
+	public CollectionContext(String collectionId, FilePaths collectionFilePaths) {
 		this.id = collectionId;
-		this.indexFilePaths = indexFilePaths;
+		this.collectionFilePaths = collectionFilePaths;
 	}
 
-	public void init(Schema schema, Schema workSchema, CollectionConfig collectionConfig, DataSourceConfig dataSourceConfig
-			, CollectionIndexStatus collectionStatus, IndexingScheduleConfig indexingScheduleConfig){
+	public void init(Schema schema, Schema workSchema, CollectionConfig collectionConfig, IndexConfig indexConfig, DataSourceConfig dataSourceConfig
+			, CollectionIndexStatus collectionStatus, DataInfo dataInfo, IndexingScheduleConfig indexingScheduleConfig){
 		this.schema = schema;
 		this.workSchema = workSchema;
 		this.collectionConfig = collectionConfig;
+		this.indexConfig = indexConfig;
 		this.dataSourceConfig = dataSourceConfig;
 		this.collectionIndexStatus = collectionStatus;
-		this.shardContextMap = new HashMap<String, ShardContext>();
+		this.dataInfo = dataInfo;
 		this.indexingScheduleConfig = indexingScheduleConfig;
 	}
 	
 	
 	public CollectionContext copy(){
-		CollectionContext collectionContext = new CollectionContext(id, indexFilePaths);
+		CollectionContext collectionContext = new CollectionContext(id, collectionFilePaths);
 		collectionContext.schema = schema;
 		collectionContext.workSchema = workSchema;
 		collectionContext.collectionConfig = collectionConfig;
+		collectionContext.indexConfig = indexConfig;
 		collectionContext.dataSourceConfig = dataSourceConfig;
 		collectionContext.collectionIndexStatus = collectionIndexStatus.copy();
-		collectionContext.shardContextMap = new HashMap<String, ShardContext>();
-		for(Entry<String, ShardContext> entry : shardContextMap.entrySet()){
-			collectionContext.shardContextMap.put(entry.getKey(), entry.getValue().copy());
-		}
+		collectionContext.dataInfo = dataInfo;
 		collectionContext.indexingScheduleConfig = indexingScheduleConfig;
 		return collectionContext;
 	}
@@ -64,8 +61,8 @@ public class CollectionContext {
 		return id;
 	}
 	
-	public FilePaths indexFilePaths(){
-		return indexFilePaths;
+	public FilePaths collectionFilePaths(){
+		return collectionFilePaths;
 	}
 	
 	public Schema schema(){
@@ -84,12 +81,20 @@ public class CollectionContext {
 		return collectionConfig;
 	}
 	
+	public IndexConfig indexConfig(){
+		return indexConfig;
+	}
+	
 	public DataSourceConfig dataSourceConfig(){
 		return dataSourceConfig;
 	}
 	
 	public CollectionIndexStatus indexStatus(){
 		return collectionIndexStatus;
+	}
+	
+	public DataInfo dataInfo(){
+		return dataInfo;
 	}
 
 	public String getLastIndexTime() {
@@ -129,19 +134,31 @@ public class CollectionContext {
 		indexStatus.setDuration(Formatter.getFormatTime(endTime - startTime));
 	}
 
-	public Collection<ShardContext> getShardContextList(){
-		return shardContextMap.values();
-	}
-
-	public ShardContext getShardContext(String shardId) {
-		return shardContextMap.get(shardId);
-	}
-	
-	public Map<String, ShardContext> shardContextMap() {
-		return shardContextMap;
-	}
-	
 	public IndexingScheduleConfig indexingScheduleConfig(){
 		return indexingScheduleConfig;
+	}
+	
+	public int nextDataSequence(){
+		int currentDataSequence = collectionIndexStatus.getSequence();
+		int dataSequenceCycle = collectionConfig.getDataPlanConfig().getDataSequenceCycle();
+		int nextDataSequence = (currentDataSequence + 1) % dataSequenceCycle;
+		collectionIndexStatus.setSequence(nextDataSequence);
+		return nextDataSequence;
+	}
+	
+	public int getIndexSequence(){
+		return collectionIndexStatus.getSequence();
+	}
+	
+	public void updateSegmentInfo(SegmentInfo segmentInfo) {
+		dataInfo.updateSegmentInfo(segmentInfo);
+	}
+	public void addSegmentInfo(SegmentInfo segmentInfo) {
+		dataInfo.addSegmentInfo(segmentInfo);
+	}
+	
+	public void clearDataInfoAndStatus() {
+		dataInfo = new DataInfo();
+		collectionIndexStatus.clear();
 	}
 }

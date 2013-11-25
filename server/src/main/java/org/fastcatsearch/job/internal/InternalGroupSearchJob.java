@@ -9,7 +9,6 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.query.QueryParseException;
@@ -38,7 +37,6 @@ public class InternalGroupSearchJob extends StreamableJob {
 		
 //		Metadata meta = q.getMeta();
 		String collectionId = queryMap.collectionId();
-		String shardId = queryMap.shardId();
 		
 		try {
 			GroupsData result = null;
@@ -58,12 +56,8 @@ public class InternalGroupSearchJob extends StreamableJob {
 				if(collectionHandler == null){
 					throw new FastcatSearchException("ERR-00520", collectionId);
 				}
-				ShardHandler shardHandler = collectionHandler.getShardHandler(shardId);
-				if(shardHandler == null){
-					throw new FastcatSearchException("ERR-00521", shardId);
-				}
 				
-				result = shardHandler.searcher().doGrouping(q);
+				result = collectionHandler.searcher().doGrouping(q);
 				if(!noCache){
 					irService.groupingDataCache().put(queryMap.queryString(), result);
 				}

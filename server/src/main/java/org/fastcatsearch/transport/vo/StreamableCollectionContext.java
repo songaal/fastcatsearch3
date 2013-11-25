@@ -8,9 +8,11 @@ import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.config.CollectionIndexStatus;
+import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.DataSourceConfig;
+import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.config.IndexingScheduleConfig;
-import org.fastcatsearch.ir.config.ShardIndexStatus;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.settings.Schema;
@@ -44,13 +46,15 @@ public class StreamableCollectionContext implements Streamable {
 			SchemaSetting schemaSetting = JAXBConfigs.readFrom(input, SchemaSetting.class);
 			Schema schema = new Schema(schemaSetting);
 			CollectionConfig collectionConfig = JAXBConfigs.readFrom(input, CollectionConfig.class);
+			IndexConfig indexConfig = JAXBConfigs.readFrom(input, IndexConfig.class);
 			DataSourceConfig dataSourceConfig = JAXBConfigs.readFrom(input, DataSourceConfig.class);
-			ShardIndexStatus collectionStatus = JAXBConfigs.readFrom(input, ShardIndexStatus.class);
+			CollectionIndexStatus collectionStatus = JAXBConfigs.readFrom(input, CollectionIndexStatus.class);
+			DataInfo dataInfo = JAXBConfigs.readFrom(input, DataInfo.class);
 			IndexingScheduleConfig indexingScheduleConfig = JAXBConfigs.readFrom(input, IndexingScheduleConfig.class);
 			//collectionFilePaths는 현 node에 적합하도록 새로 생성한다. 
 			FilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
 			this.collectionContext = new CollectionContext(collectionId, collectionFilePaths);
-			collectionContext.init(schema, null, collectionConfig, dataSourceConfig, collectionStatus, indexingScheduleConfig);
+			collectionContext.init(schema, null, collectionConfig, indexConfig, dataSourceConfig, collectionStatus, dataInfo, indexingScheduleConfig);
 			
 			//TODO shardContextMap 고려!!
 		} catch (JAXBException e) {
@@ -65,8 +69,10 @@ public class StreamableCollectionContext implements Streamable {
 		try{
 			JAXBConfigs.writeTo(output, collectionContext.schema().schemaSetting(), SchemaSetting.class);
 			JAXBConfigs.writeTo(output, collectionContext.collectionConfig(), CollectionConfig.class);
+			JAXBConfigs.writeTo(output, collectionContext.indexConfig(), IndexConfig.class);
 			JAXBConfigs.writeTo(output, collectionContext.dataSourceConfig(), DataSourceConfig.class);
-			JAXBConfigs.writeTo(output, collectionContext.indexStatus(), ShardIndexStatus.class);
+			JAXBConfigs.writeTo(output, collectionContext.indexStatus(), CollectionIndexStatus.class);
+			JAXBConfigs.writeTo(output, collectionContext.dataInfo(), DataInfo.class);
 			JAXBConfigs.writeTo(output, collectionContext.indexingScheduleConfig(), IndexingScheduleConfig.class);
 			
 		} catch (JAXBException e) {

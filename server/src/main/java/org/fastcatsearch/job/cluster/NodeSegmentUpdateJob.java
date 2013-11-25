@@ -10,27 +10,25 @@ import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
-import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
-import org.fastcatsearch.ir.search.ShardHandler;
+import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableCollectionContext;
-import org.fastcatsearch.transport.vo.StreamableShardContext;
 import org.fastcatsearch.util.CollectionContextUtil;
 
 public class NodeSegmentUpdateJob extends StreamableJob {
 	private static final long serialVersionUID = 7222232821891387399L;
 
-	private ShardContext shardContext;
+	private CollectionContext collectionContext;
 
 	public NodeSegmentUpdateJob() {
 	}
 
-	public NodeSegmentUpdateJob(ShardContext shardContext) {
-		this.shardContext = shardContext;
+	public NodeSegmentUpdateJob(CollectionContext shardContext) {
+		this.collectionContext = shardContext;
 	}
 
 	@Override
@@ -38,11 +36,10 @@ public class NodeSegmentUpdateJob extends StreamableJob {
 
 		try {
 			
-			String collectionId = shardContext.collectionId();
-			String shardId = shardContext.shardId();
-			SegmentInfo segmentInfo = shardContext.dataInfo().getLastSegmentInfo();
+			String collectionId = collectionContext.collectionId();
+			SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
 			
-			File segmentDir = shardContext.filePaths().segmentFile(shardContext.getIndexSequence(), segmentInfo.getId());
+			File segmentDir = collectionContext.collectionFilePaths().segmentFile(collectionContext.getIndexSequence(), segmentInfo.getId());
 			int revision = segmentInfo.getRevision();
 			File revisionDir = new File(segmentDir, Integer.toString(revision));
 
@@ -60,16 +57,16 @@ public class NodeSegmentUpdateJob extends StreamableJob {
 				}
 			}
 			
-			CollectionContextUtil.saveShardAfterIndexing(shardContext);
+			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
 			
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-			ShardHandler shardHandler = irService.collectionHandler(collectionId).getShardHandler(shardId);
+			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
 			if(revisionAppended){
 				logger.debug("revision이 추가되어, 세그먼트를 업데이트합니다.{}", segmentInfo);
-				shardHandler.updateSegmentApplyShard(segmentInfo, segmentDir);
+				collectionHandler.updateSegmentApplyCollection(segmentInfo, segmentDir);
 			}else{
 				logger.debug("segment가 추가되어, 추가 및 적용합니다.{}", segmentInfo);
-				shardHandler.addSegmentApplyShard(segmentInfo, segmentDir);
+				collectionHandler.addSegmentApplyCollection(segmentInfo, segmentDir);
 			}
 			
 			/*
@@ -87,15 +84,15 @@ public class NodeSegmentUpdateJob extends StreamableJob {
 
 	@Override
 	public void readFrom(DataInput input) throws IOException {
-		StreamableShardContext streamableShardContext = new StreamableShardContext(environment);
-		streamableShardContext.readFrom(input);
-		this.shardContext = streamableShardContext.shardContext();
+		StreamableCollectionContext streamableCollectionContext = new StreamableCollectionContext(environment);
+		streamableCollectionContext.readFrom(input);
+		this.collectionContext = streamableCollectionContext.collectionContext();
 	}
 
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
-		StreamableShardContext streamableShardContext = new StreamableShardContext(shardContext);
-		streamableShardContext.writeTo(output);
+		StreamableCollectionContext streamableCollectionContext = new StreamableCollectionContext(collectionContext);
+		streamableCollectionContext.writeTo(output);
 	}
 
 }

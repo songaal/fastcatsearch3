@@ -23,17 +23,16 @@ import javax.xml.bind.JAXBException;
 
 import org.fastcatsearch.cluster.NodeLoadBalancable;
 import org.fastcatsearch.common.QueryCacheModule;
-import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
+import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionsConfig;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.ir.config.IndexingScheduleConfig;
 import org.fastcatsearch.ir.config.IndexingScheduleConfig.IndexingSchedule;
-import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.query.InternalSearchResult;
@@ -98,11 +97,12 @@ public class IRService extends AbstractService {
 					continue;
 				}
 				if (collectionContext == null) {
-					if (collection.isActive()) {
-						// 초기화한다.
-						collectionHandler = createCollection(collectionId);
-					} else {
-					}
+//					if (collection.isActive()) {
+//						// 초기화한다.
+//						collectionHandler = createCollection(collectionId);
+//					} else {
+//					}
+					//무시한다.
 					continue;
 				} else {
 					collectionHandler = new CollectionHandler(collectionContext);
@@ -165,22 +165,25 @@ public class IRService extends AbstractService {
 		return collectionsConfig.getCollectionList();
 	}
 
-	public CollectionHandler createCollection(String collectionId) throws IRException, SettingException {
-		if (collectionsConfig.contains(collectionId)) {
+	public CollectionHandler createCollection(CollectionConfig config) throws IRException, SettingException {
+		if (collectionsConfig.contains(config.getId())) {
 			// 이미 컬렉션 존재.
 			logger.error("이미 해당컬렉션이 존재함.");
 			return null;
 		}
+		String collectionId = config.getId();
 
 		try {
 			FilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
 			collectionFilePaths.file().mkdirs();
 			CollectionContext collectionContext = new CollectionContext(collectionId, collectionFilePaths);
 			File file = environment.filePaths().configPath().file(SettingFileNames.defaultCollectionConfig);
+			
+			CollectionConfig collectionConfig = new CollectionConfig();
 //			CollectionConfig collectionConfig = JAXBConfigs.readConfig(file, CollectionConfig.class);
 //			Schema schema = new Schema(new SchemaSetting());
 //			collectionContext.init(schema, null, collectionConfig, new DataSourceConfig(), new CollectionIndexStatus(), new IndexingScheduleConfig());
-			CollectionContextUtil.init(file, collectionFilePaths);
+			CollectionContextUtil.init(config, collectionFilePaths);
 
 			collectionsConfig.addCollection(collectionId, false);
 			JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.collections), collectionsConfig, CollectionsConfig.class);
@@ -286,11 +289,13 @@ public class IRService extends AbstractService {
 			String collectionId = collection.getId();
 			if(collection.isActive()){
 				CollectionHandler collectionHandler = collectionHandlerMap.get(collectionId);
-				for(Entry<String, ShardContext> entry : collectionHandler.collectionContext().shardContextMap().entrySet()){
-					String shardId = entry.getKey();
-					List<String> dataNodeIdList = entry.getValue().shardConfig().getDataNodeList();
-					nodeLoadBalancable.updateLoadBalance(shardId, dataNodeIdList);
-				}
+				List<String> dataNodeIdList = collectionHandler.collectionContext().collectionConfig().getDataNodeList();
+				nodeLoadBalancable.updateLoadBalance(collectionId, dataNodeIdList);
+//				for(Entry<String, ShardContext> entry : collectionHandler.collectionContext().shardContextMap().entrySet()){
+//					String shardId = entry.getKey();
+//					List<String> dataNodeIdList = entry.getValue().shardConfig().getDataNodeList();
+//					nodeLoadBalancable.updateLoadBalance(shardId, dataNodeIdList);
+//				}
 			}
 			
 		}

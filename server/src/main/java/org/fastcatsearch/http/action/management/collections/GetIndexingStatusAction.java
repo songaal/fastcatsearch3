@@ -12,9 +12,7 @@ import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
-import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.util.FilePaths;
 import org.fastcatsearch.util.ResponseWriter;
 
 @ActionMapping("/management/collections/indexing-status")
@@ -31,48 +29,34 @@ public class GetIndexingStatusAction extends AuthAction {
 		Writer writer = response.getWriter();
 		ResponseWriter responseWriter = getDefaultResponseWriter(writer);
 		responseWriter.object()
-		.key("collectionId").value(collectionId)
-		.key("shardStatus").array("shard");
+		.key("collectionId").value(collectionId);
 		
-		long totalByteCount = 0L; 
-		int totalDocumentSize = 0;
-		
-		for(ShardContext shardContext : collectionContext.getShardContextList()){
-			responseWriter.object();
-			responseWriter.key("id").value(shardContext.shardId());
-			File indexDir = shardContext.indexFilePaths().file();
-			int sequence = shardContext.indexStatus().getSequence();
-			responseWriter.key("sequence").value(sequence);
-			String diskSize = "";
+		File indexDir = collectionContext.collectionFilePaths().dataFile();
+		int sequence = collectionContext.indexStatus().getSequence();
+		responseWriter.key("sequence").value(sequence);
+		String diskSize = "";
 //			logger.debug("shard index dir ={}", indexDir.getAbsolutePath());
-			if(indexDir.exists()){
-				long byteCount = FileUtils.sizeOfDirectory(indexDir);
-				totalByteCount += byteCount;
-				diskSize = FileUtils.byteCountToDisplaySize(byteCount);
-			}
-			responseWriter.key("diskSize").value(diskSize);
-			
-			int documentSize = shardContext.dataInfo().getDocuments();
-			totalDocumentSize += documentSize;
-			responseWriter.key("documentSize").value(documentSize);
-			
-			String createTime = "";
-			SegmentInfo segmentInfo = shardContext.dataInfo().getLastSegmentInfo();
-			if(segmentInfo != null){
-				RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
-				if(revisionInfo != null){
-					createTime = revisionInfo.getCreateTime();
-				}
-			}
-			responseWriter.key("createTime").value(createTime);
-			
-			responseWriter.endObject();
+		if(indexDir.exists()){
+			long byteCount = FileUtils.sizeOfDirectory(indexDir);
+			diskSize = FileUtils.byteCountToDisplaySize(byteCount);
 		}
+		responseWriter.key("totalDiskSize").value(diskSize);
 		
-		responseWriter.endArray();
-		responseWriter.key("totalDiskSize").value(FileUtils.byteCountToDisplaySize(totalByteCount))
-		.key("totalDocumentSize").value(totalDocumentSize);
+		int documentSize = collectionContext.dataInfo().getDocuments();
+		responseWriter.key("totalDocumentSize").value(documentSize);
+		
+		String createTime = "";
+		SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
+		if(segmentInfo != null){
+			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
+			if(revisionInfo != null){
+				createTime = revisionInfo.getCreateTime();
+			}
+		}
+		responseWriter.key("createTime").value(createTime);
+		
 		responseWriter.endObject();
+		
 		responseWriter.done();
 	}
 

@@ -11,10 +11,7 @@ import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.config.CollectionConfig.Shard;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.ShardConfig;
-import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.FixedHitReader;
@@ -81,46 +78,33 @@ public class ClusterSearchJob extends Job {
 		String collectionId = q.getMeta().collectionId();
 		Groups groups = q.getGroups();
 		
+		//TODO collectionId가 collectionGroup명인지 확인하여 그룹이면 여러컬렉션 검색.
+		String[] collectionIdList = new String[]{ collectionId };
+		
 		CollectionContext collectionContext = irService.collectionContext(collectionId);
 		
-		
-		String[] shardIdList = q.getMeta().getSharIdList();
-		// 컬렉션 명으로만 검색시 하위 shard를 모두 검색해준다.
-		//null이면 하위 모든 shard를 검색.
-		if(shardIdList == null){
-			List<Shard> shardList = collectionContext.collectionConfig().getShardConfigList();
-			shardIdList = new String[shardList.size()];
-			for(int i =0 ;i< shardList.size(); i++){
-				shardIdList[i] = shardList.get(i).getId();
-			}
-		}
-		
-		//TODO 동일 collection의 shard끼리만 병합검색이 가능토록 한다.
-		
-		
-		ResultFuture[] resultFutureList = new ResultFuture[shardIdList.length];
+		ResultFuture[] resultFutureList = new ResultFuture[collectionIdList.length];
 		Map<String, Integer> shardNumberMap = new HashMap<String, Integer>();
-		Node[] selectedNodeList = new Node[shardIdList.length];
+		Node[] selectedNodeList = new Node[collectionIdList.length];
 		
 		
-		for (int i = 0; i < shardIdList.length; i++) {
-			String shardId = shardIdList[i];
-			shardNumberMap.put(shardId, i);
+		for (int i = 0; i < collectionIdList.length; i++) {
+			String id = collectionIdList[i];
 			
-			Node dataNode = nodeService.getBalancedNode(shardId);
+			Node dataNode = nodeService.getBalancedNode(id);
 			selectedNodeList[i] = dataNode;
 
 			QueryMap newQueryMap = queryMap.clone();
-			newQueryMap.setId(collectionId, shardId);
+			newQueryMap.setId(id);
 			logger.debug("query-{} >> {}", i, newQueryMap);
 			InternalSearchJob job = new InternalSearchJob(newQueryMap);
 			resultFutureList[i] = nodeService.sendRequest(dataNode, job);
 		}
 		
-		List<InternalSearchResult> resultList = new ArrayList<InternalSearchResult>(shardIdList.length);
+		List<InternalSearchResult> resultList = new ArrayList<InternalSearchResult>(collectionIdList.length);
 		HighlightInfo highlightInfo = null;
 		
-		for (int i = 0; i < shardIdList.length; i++) {
+		for (int i = 0; i < collectionIdList.length; i++) {
 			//TODO 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
 			if(resultFutureList[i] == null){
 				throw new FastcatSearchException("요청메시지 전송불가에러.");
@@ -159,13 +143,13 @@ public class ClusterSearchJob extends Job {
 		
 		//internalSearchResult의 결과를 보면서 컬렉션 별로 분류한다.
 		int realSize = aggregatedSearchResult.getCount();
-		DocIdList[] docIdList = new DocIdList[shardIdList.length];
+		DocIdList[] docIdList = new DocIdList[collectionIdList.length];
 		int[] shardTags = new int[realSize]; //해당 문서가 어느 shard에 속하는지 알려주는 항목.
 		int[] eachDocIds = new int[realSize];
 		float[] eachScores = new float[realSize];
 		
 		
-		for (int i = 0; i < shardIdList.length; i++) {
+		for (int i = 0; i < collectionIdList.length; i++) {
 			docIdList[i] = new DocIdList(realSize);
 		}
 		
@@ -182,11 +166,11 @@ public class ClusterSearchJob extends Job {
 		}
 		
 		//document 요청을 보낸다.
-		resultFutureList = new ResultFuture[shardIdList.length];
+		resultFutureList = new ResultFuture[collectionIdList.length];
 		List<View> views = q.getViews(); 
 		String[] tags = q.getMeta().tags();
-		for (int i = 0; i < shardIdList.length; i++) {
-			String shardId = shardIdList[i];
+		for (int i = 0; i < collectionIdList.length; i++) {
+			String shardId = collectionIdList[i];
 			Node dataNode = selectedNodeList[i];
 			
 			logger.debug("shard [{}] search at {}", shardId, dataNode);
@@ -196,10 +180,10 @@ public class ClusterSearchJob extends Job {
 		}
 		
 		//document 결과를 받는다.
-		DocumentResult[] docResultList = new DocumentResult[shardIdList.length];
+		DocumentResult[] docResultList = new DocumentResult[collectionIdList.length];
 		
-		for (int i = 0; i < shardIdList.length; i++) {
-			String shardId = shardIdList[i];
+		for (int i = 0; i < collectionIdList.length; i++) {
+			String shardId = collectionIdList[i];
 			// 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
 			if(resultFutureList[i] == null){
 				throw new FastcatSearchException("요청메시지 전송불가에러.");

@@ -12,9 +12,9 @@ import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.field.Field;
+import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentReader;
 import org.fastcatsearch.ir.search.SegmentSearcher;
-import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
@@ -25,18 +25,17 @@ public class GetCollectionIndexDataAction extends AuthAction {
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
 
 		String collectionId = request.getParameter("collectionId");
-		String shardId = request.getParameter("shardId");
 		int start = Integer.parseInt(request.getParameter("start", "0"));
 		int end = Integer.parseInt(request.getParameter("end", "0"));
 		
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 
-		ShardHandler shardHandler = irService.collectionHandler(collectionId).getShardHandler(shardId);
-		int segmentSize = shardHandler.segmentSize();
+		CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
+		int segmentSize = collectionHandler.segmentSize();
 		//이 배열의 index번호는 세그먼트번호.
 		int[] segmentEndNumbers = new int[segmentSize];
 		for (int segmentNumber = 0; segmentNumber < segmentSize; segmentNumber++) {
-			SegmentReader reader = shardHandler.segmentReader(segmentNumber);
+			SegmentReader reader = collectionHandler.segmentReader(segmentNumber);
 			SegmentInfo segmentInfo = reader.segmentInfo();
 			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 			segmentEndNumbers[segmentNumber] = segmentInfo.getBaseNumber() + revisionInfo.getDocumentCount() - 1;
@@ -49,14 +48,14 @@ public class GetCollectionIndexDataAction extends AuthAction {
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 
 		resultWriter.object()
-		.key("shardId").value(shardId);
+		.key("collectionId").value(collectionId);
 		//write field list
 		
 		resultWriter.key("fieldList").array();
 		if(matchSegmentList.length > 0){
 			int segmentNumber = matchSegmentList[0][0];
 			int startNo = matchSegmentList[0][1];
-			SegmentReader segmentReader = shardHandler.segmentReader(segmentNumber);
+			SegmentReader segmentReader = collectionHandler.segmentReader(segmentNumber);
 			SegmentSearcher segmentSearcher = segmentReader.segmentSearcher();
 			Document headerDocument = segmentSearcher.getDocument(startNo);
 			for (int index = 0; index < headerDocument.size(); index++) {
@@ -73,7 +72,7 @@ public class GetCollectionIndexDataAction extends AuthAction {
 			int startNo = matchSegmentList[i][1];
 			int endNo = matchSegmentList[i][2];
 			
-			SegmentReader segmentReader = shardHandler.segmentReader(segmentNumber);
+			SegmentReader segmentReader = collectionHandler.segmentReader(segmentNumber);
 			
 			if (segmentReader != null) {
 				SegmentInfo segmentInfo = segmentReader.segmentInfo();

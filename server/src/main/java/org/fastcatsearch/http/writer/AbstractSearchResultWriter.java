@@ -1,4 +1,4 @@
-package org.fastcatsearch.servlet;
+package org.fastcatsearch.http.writer;
 
 import java.io.IOException;
 

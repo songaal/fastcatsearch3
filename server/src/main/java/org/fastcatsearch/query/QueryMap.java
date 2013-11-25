@@ -12,7 +12,6 @@ public class QueryMap extends HashMap<String, String> implements Streamable {
 
 	private static final long serialVersionUID = 6450718773572982562L;
 	private String collectionId;
-	private String shardId;
 	private String queryString;
 	
 	public QueryMap(){
@@ -26,14 +25,16 @@ public class QueryMap extends HashMap<String, String> implements Streamable {
 		return collectionId;
 	}
 	
-	public String shardId(){
-		return shardId;
-	}
-	
-	public void setId(String collectionId, String shardId) {
+//	public String shardId(){
+//		return shardId;
+//	}
+	public void setId(String collectionId){
 		this.collectionId = collectionId;
-		this.shardId = shardId;
 	}
+//	public void setId(String collectionId, String shardId) {
+//		this.collectionId = collectionId;
+//		this.shardId = shardId;
+//	}
 	
 	
 	public String queryString(){
@@ -55,7 +56,6 @@ public class QueryMap extends HashMap<String, String> implements Streamable {
 	public QueryMap clone(){
 		QueryMap queryMap = (QueryMap) super.clone();
 		queryMap.collectionId = this.collectionId;
-		queryMap.shardId = this.shardId;
 		return queryMap;
 	}
 	

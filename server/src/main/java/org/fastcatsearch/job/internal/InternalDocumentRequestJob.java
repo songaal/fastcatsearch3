@@ -9,7 +9,6 @@ import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.ir.search.ShardHandler;
 import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableDocumentList;
@@ -44,8 +43,7 @@ public class InternalDocumentRequestJob extends StreamableJob {
 				throw new FastcatSearchException("ERR-00520", collectionId);
 			}
 			
-			ShardHandler shardHandler = collectionHandler.getShardHandler(shardId);
-			List<Document> documentList = shardHandler.searcher().requestDocument(docIdList);
+			List<Document> documentList = collectionHandler.searcher().requestDocument(docIdList);
 			
 			return new JobResult(new StreamableDocumentList(documentList));
 		} catch (FastcatSearchException e){

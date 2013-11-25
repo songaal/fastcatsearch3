@@ -25,7 +25,6 @@ import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
-import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.cluster.NodeCollectionReloadJob;
@@ -93,44 +92,39 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			 */
 			indexingTaskState.setState(IndexingTaskState.STATE_FILECOPY);
 			
-			for(ShardContext shardContext : collectionContext.getShardContextList()){
-				String shardId = shardContext.shardId();
-				SegmentInfo segmentInfo = shardContext.dataInfo().getLastSegmentInfo();
-				if(segmentInfo == null) {
-					continue;
-				}
+			SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
+			if (segmentInfo != null) {
 				String segmentId = segmentInfo.getId();
-				logger.debug("Transfer index data shard[{}] >> {}", shardId, segmentInfo);
-				
-				FilePaths shardIndexFilePaths = shardContext.indexFilePaths();
+				logger.debug("Transfer index data collection[{}] >> {}", collectionId, segmentInfo);
+
+				FilePaths shardIndexFilePaths = collectionContext.collectionFilePaths();
 				File shardIndexDir = shardIndexFilePaths.file();
 				File segmentDir = shardIndexFilePaths.file(segmentId);
-				
-				List<Node> nodeList = nodeService.getNodeById(shardContext.shardConfig().getDataNodeList());
-				
+
+				List<Node> nodeList = nodeService.getNodeById(collectionContext.collectionConfig().getDataNodeList());
+
 				// 색인전송할디렉토리를 먼저 비우도록 요청.segmentDir
 				File relativeDataDir = environment.filePaths().relativise(shardIndexDir);
 				NodeDirectoryCleanJob cleanJob = new NodeDirectoryCleanJob(relativeDataDir);
-				
+
 				boolean nodeResult = ClusterUtils.sendJobToNodeList(cleanJob, nodeService, nodeList, false);
-				if(!nodeResult){
+				if (!nodeResult) {
 					throw new FastcatSearchException("Node Index Directory Clean Failed! Dir=[{}]", segmentDir.getPath());
 				}
-				
+
 				// 색인된 Segment 파일전송.
 				IndexFileTransfer indexFileTransfer = new IndexFileTransfer(environment);
 				indexFileTransfer.transferDirectory(segmentDir, nodeService, nodeList);
-			
+
 				/*
 				 * 데이터노드에 컬렉션 리로드 요청.
 				 */
 				NodeCollectionReloadJob reloadJob = new NodeCollectionReloadJob(collectionContext);
 				nodeResult = ClusterUtils.sendJobToNodeList(reloadJob, nodeService, nodeList, false);
-				if(!nodeResult){
+				if (!nodeResult) {
 					throw new FastcatSearchException("Node Collection Reload Failed!");
 				}
 			}
-			
 			/*
 			 * 데이터노드가 리로드 완료되었으면 인덱스노드도 리로드 시작.
 			 * */

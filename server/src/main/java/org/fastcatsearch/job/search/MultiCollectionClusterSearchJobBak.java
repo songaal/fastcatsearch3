@@ -13,7 +13,6 @@ import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.ShardConfig;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.FixedHitReader;
@@ -105,12 +104,12 @@ public class MultiCollectionClusterSearchJobBak extends Job {
 			
 			
 //			ClusterConfig clusterConfig = collectionContext.clusterConfig();
-			List<ShardConfig> shardList = null;//clusterConfig.getShardClusterConfigList();
-			//TODO shard명으로 찾은경우는 list 길이가 1 이여야한다.
-			for (ShardConfig shard : shardList) {
-				List<String> nodeIdList = shard.getDataNodeList();
-				
-			}
+//			List<ShardConfig> shardList = null;//clusterConfig.getShardClusterConfigList();
+//			//TODO shard명으로 찾은경우는 list 길이가 1 이여야한다.
+//			for (ShardConfig shard : shardList) {
+//				List<String> nodeIdList = shard.getDataNodeList();
+//				
+//			}
 			
 			List<String> nodeIdList = dataStrategy.dataNodes();
 			//TODO shard 갯수를 확인하고 각 shard에 해당하는 노드들을 가져온다.

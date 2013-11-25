@@ -4,7 +4,6 @@ import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
-import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.CollectionContextUtil;
@@ -50,9 +49,6 @@ public class CollectionFullIndexerApp {
 			Collection collection = new Collection("sample", true);
 			CollectionContext collectionContext = CollectionContextUtil.load(collection, collectionFilePaths);
 			System.out.println(collectionContext.schema().getFieldSetting("id"));
-			for (ShardContext shardContext : collectionContext.getShardContextList()) {
-				System.out.println(shardContext.shardConfig().getFilter());
-			}
 
 			CollectionFullIndexer indexer = new CollectionFullIndexer(collectionContext);
 
