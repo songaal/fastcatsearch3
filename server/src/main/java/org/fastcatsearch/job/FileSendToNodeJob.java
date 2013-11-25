@@ -7,6 +7,7 @@ import org.fastcatsearch.cluster.NodeService;
 
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.transport.TransportException;
 import org.fastcatsearch.transport.common.SendFileResultFuture;
 
 public class FileSendToNodeJob extends Job {
@@ -26,7 +27,14 @@ public class FileSendToNodeJob extends Job {
 		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 		Node node = nodeService.getNodeById(nodeId);
 		File sourceFile = environment.filePaths().file(filepath);
-		SendFileResultFuture resultFuture = nodeService.sendFile(node, sourceFile, new File(filepath));
+		SendFileResultFuture resultFuture = null;
+		try {
+			resultFuture = nodeService.sendFile(node, sourceFile, new File(filepath));
+		} catch (TransportException e) {
+			logger.error("", e);
+			throw new FastcatSearchException("ERR-00700", filepath);
+		}
+		
 		if(resultFuture == null){
 			throw new FastcatSearchException("ERR-00700", filepath);
 		}

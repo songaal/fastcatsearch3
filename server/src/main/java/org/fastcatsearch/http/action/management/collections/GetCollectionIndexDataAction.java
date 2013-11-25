@@ -31,6 +31,9 @@ public class GetCollectionIndexDataAction extends AuthAction {
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 
 		CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
+		int documentSize = collectionHandler.collectionContext().dataInfo().getDocuments();
+		
+		
 		int segmentSize = collectionHandler.segmentSize();
 		//이 배열의 index번호는 세그먼트번호.
 		int[] segmentEndNumbers = new int[segmentSize];
@@ -48,9 +51,9 @@ public class GetCollectionIndexDataAction extends AuthAction {
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 
 		resultWriter.object()
-		.key("collectionId").value(collectionId);
+		.key("collectionId").value(collectionId)
+		.key("documentSize").value(documentSize);
 		//write field list
-		
 		resultWriter.key("fieldList").array();
 		if(matchSegmentList.length > 0){
 			int segmentNumber = matchSegmentList[0][0];

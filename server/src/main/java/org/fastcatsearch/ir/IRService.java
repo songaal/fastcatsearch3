@@ -183,7 +183,7 @@ public class IRService extends AbstractService {
 //			CollectionConfig collectionConfig = JAXBConfigs.readConfig(file, CollectionConfig.class);
 //			Schema schema = new Schema(new SchemaSetting());
 //			collectionContext.init(schema, null, collectionConfig, new DataSourceConfig(), new CollectionIndexStatus(), new IndexingScheduleConfig());
-			CollectionContextUtil.init(config, collectionFilePaths);
+			CollectionContextUtil.create(config, collectionFilePaths);
 
 			collectionsConfig.addCollection(collectionId, false);
 			JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.collections), collectionsConfig, CollectionsConfig.class);

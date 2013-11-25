@@ -52,7 +52,7 @@ public abstract class AbstractCollectionIndexer {
 		
 		prepare();
 		
-		FilePaths indexFilePaths = collectionContext.collectionFilePaths();
+		FilePaths indexFilePaths = collectionContext.collectionFilePaths().dataPaths();
 		int dataSequence = collectionContext.getIndexSequence();
 
 		IndexConfig indexConfig = collectionContext.indexConfig();

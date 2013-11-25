@@ -39,7 +39,7 @@ public class NodeSegmentUpdateJob extends StreamableJob {
 			String collectionId = collectionContext.collectionId();
 			SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
 			
-			File segmentDir = collectionContext.collectionFilePaths().segmentFile(collectionContext.getIndexSequence(), segmentInfo.getId());
+			File segmentDir = collectionContext.dataFilePaths().segmentFile(collectionContext.getIndexSequence(), segmentInfo.getId());
 			int revision = segmentInfo.getRevision();
 			File revisionDir = new File(segmentDir, Integer.toString(revision));
 

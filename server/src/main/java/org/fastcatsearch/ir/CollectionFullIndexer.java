@@ -45,7 +45,7 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 		int newDataSequence = collectionContext.nextDataSequence();
 
 		// 디렉토리 초기화.
-		File indexDataDir = collectionContext.collectionFilePaths().dataPath().indexDirFile(newDataSequence);
+		File indexDataDir = collectionContext.collectionFilePaths().dataPaths().indexDirFile(newDataSequence);
 		try {
 			FileUtils.deleteDirectory(indexDataDir);
 		} catch (IOException e) {

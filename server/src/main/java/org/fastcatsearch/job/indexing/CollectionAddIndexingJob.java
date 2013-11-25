@@ -12,9 +12,7 @@
 package org.fastcatsearch.job.indexing;
 
 import java.io.File;
-import java.util.List;
 
-import org.fastcatsearch.cluster.ClusterUtils;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.io.Streamable;
@@ -27,12 +25,9 @@ import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.CacheServiceRestartJob;
-import org.fastcatsearch.job.cluster.NodeCollectionReloadJob;
-import org.fastcatsearch.job.cluster.NodeDirectoryCleanJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.task.IndexFileTransfer;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
 import org.fastcatsearch.util.FilePaths;
 
@@ -90,63 +85,37 @@ public class CollectionAddIndexingJob extends IndexingJob {
 			collectionIndexer.close();
 			
 			/*
-			 * shard별 색인파일 원격복사.
+			 * 색인파일 원격복사.
 			 */
 			indexingTaskState.setState(IndexingTaskState.STATE_FILECOPY);
 			
-			//for(ShardContext shardContext : collectionContext.getShardContextList()){
-//				String shardId = shardContext.shardId();
-				SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
-				if(segmentInfo != null) {
-					
-					String segmentId = segmentInfo.getId();
-					logger.debug("Transfer index data collection[{}] >> {}", collectionId, segmentInfo);
-					
-					FilePaths shardIndexFilePaths = collectionContext.collectionFilePaths();
-					File shardIndexDir = shardIndexFilePaths.file();
-					File segmentDir = shardIndexFilePaths.file(segmentId);
-					
-					List<Node> nodeList = nodeService.getNodeById(collectionContext.collectionConfig().getDataNodeList());
-					
-					// 색인전송할디렉토리를 먼저 비우도록 요청.segmentDir
-					File relativeDataDir = environment.filePaths().relativise(shardIndexDir);
-					NodeDirectoryCleanJob cleanJob = new NodeDirectoryCleanJob(relativeDataDir);
-					
-					boolean nodeResult = ClusterUtils.sendJobToNodeList(cleanJob, nodeService, nodeList, false);
-					if(!nodeResult){
-						throw new FastcatSearchException("Node Index Directory Clean Failed! Dir=[{}]", segmentDir.getPath());
-					}
-					
-					// 색인된 Segment 파일전송.
-					IndexFileTransfer indexFileTransfer = new IndexFileTransfer(environment);
-					indexFileTransfer.transferDirectory(segmentDir, nodeService, nodeList);
+			SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
+			if(segmentInfo != null) {
 				
-					/*
-					 * 데이터노드에 컬렉션 리로드 요청.
-					 */
-					NodeCollectionReloadJob reloadJob = new NodeCollectionReloadJob(collectionContext);
-					nodeResult = ClusterUtils.sendJobToNodeList(reloadJob, nodeService, nodeList, false);
-					if(!nodeResult){
-						throw new FastcatSearchException("Node Collection Reload Failed!");
-					}
-				}
-			//}
+				String segmentId = segmentInfo.getId();
+				logger.debug("Transfer index data collection[{}] >> {}", collectionId, segmentInfo);
+				
+				FilePaths indexFilePaths = collectionContext.indexFilePaths();
+				File indexDir = indexFilePaths.file();
+				File segmentDir = indexFilePaths.file(segmentId);
+				
+				//TODO revision 디렉토리만 전송 후 append.
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+			}
 			
 			/*
 			 * 데이터노드가 리로드 완료되었으면 인덱스노드도 리로드 시작.
 			 * */
 			indexingTaskState.setState(IndexingTaskState.STATE_FINALIZE);
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-//			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
-//			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
-//			if (oldCollectionHandler != null) {
-//				logger.info("## [{}] Close Previous Collection Handler", collectionContext.collectionId());
-//				oldCollectionHandler.close();
-//			}
 			
 			int duration = (int) (System.currentTimeMillis() - startTime);
 			
@@ -177,7 +146,7 @@ public class CollectionAddIndexingJob extends IndexingJob {
 			} else if (result instanceof IndexingJobResult) {
 				streamableResult = (IndexingJobResult) result;
 			}
-logger.debug("indexing result streamableResult >> {}", streamableResult);
+
 			updateIndexingStatusFinish(isSuccess, streamableResult);
 		}
 

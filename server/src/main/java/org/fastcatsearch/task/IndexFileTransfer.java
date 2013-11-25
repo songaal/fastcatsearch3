@@ -10,6 +10,7 @@ import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.settings.SettingFileNames;
+import org.fastcatsearch.transport.TransportException;
 import org.fastcatsearch.transport.common.SendFileResultFuture;
 import org.fastcatsearch.util.FileUtils;
 import org.slf4j.Logger;
@@ -26,12 +27,14 @@ public class IndexFileTransfer {
 	}
 
 	// 세그먼트를 전송한다.
-	public void transferDirectory(File directory, NodeService nodeService, List<Node> nodeList) throws FastcatSearchException {
+	public boolean[] transferDirectory(File directory, NodeService nodeService, List<Node> nodeList) throws FastcatSearchException {
+		boolean[] resultList = new boolean[nodeList.size()];
 		logger.debug("tranferDirectory >> {}", directory.getAbsolutePath());
 		Collection<File> files = FileUtils.listFiles(directory, null, true);
 		int totalFileCount = files.size();
 
 		// TODO 순차적전송을 개선하여 더 빠른 방법을 찾아보자.
+		OUTTER:
 		for (int i = 0; i < nodeList.size(); i++) {
 			Node node = nodeList.get(i);
 			if (nodeService.isMyNode(node)) {
@@ -46,24 +49,34 @@ public class IndexFileTransfer {
 				File relativeFile = environment.filePaths().relativise(sourceFile);
 				logger.info("[{} / {}]파일 {} 전송시작! ", new Object[] { fileCount, totalFileCount, sourceFile.getPath() });
 
-				SendFileResultFuture sendFileResultFuture = nodeService.sendFile(node, sourceFile, relativeFile);
+				SendFileResultFuture sendFileResultFuture;
+				try {
+					sendFileResultFuture = nodeService.sendFile(node, sourceFile, relativeFile);
+				} catch (TransportException e) {
+					logger.error("Transport exception sending {} to {} : {}", sourceFile.getName(), node, e);
+					continue OUTTER; //다음노드로.
+				}
 				if (sendFileResultFuture != null) {
 					Object result = sendFileResultFuture.take();
 					if (sendFileResultFuture.isSuccess()) {
 						logger.info("[{} / {}]파일 {} 전송완료!", new Object[] { fileCount, totalFileCount, relativeFile.getPath() });
 					} else {
-						throw new FastcatSearchException("파일전송에 실패했습니다.");
+						logger.error("Fail to send {} to {} : {}", sourceFile.getName(), node);
+						continue OUTTER; //다음노드로.
 					}
 				} else {
-					// null이라면 전송에러.
-					logger.warn("디렉토리는 전송할수 없습니다.");
-					break;
+					// null이라면 디렉토리 또는 동일노드..
+					logger.warn("skip file {} to {}", sourceFile.getName(), node);
+					continue; //다음파일로...
 				}
 
 				fileCount++;
 			}
 
+			resultList[i] = true;
 		}
+		
+		return resultList;
 	}
 
 	public void tranferRevision(File collectionDataDir, File segmentDir, File revisionDir, NodeService nodeService, List<Node> nodeList) {

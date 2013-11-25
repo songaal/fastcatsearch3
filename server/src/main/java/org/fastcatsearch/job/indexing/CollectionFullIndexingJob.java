@@ -12,6 +12,7 @@
 package org.fastcatsearch.job.indexing;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.fastcatsearch.cluster.ClusterUtils;
@@ -88,7 +89,7 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			collectionFullIndexer.close();
 			
 			/*
-			 * shard별 색인파일 원격복사.
+			 * 색인파일 원격복사.
 			 */
 			indexingTaskState.setState(IndexingTaskState.STATE_FILECOPY);
 			
@@ -97,33 +98,59 @@ public class CollectionFullIndexingJob extends IndexingJob {
 				String segmentId = segmentInfo.getId();
 				logger.debug("Transfer index data collection[{}] >> {}", collectionId, segmentInfo);
 
-				FilePaths shardIndexFilePaths = collectionContext.collectionFilePaths();
-				File shardIndexDir = shardIndexFilePaths.file();
-				File segmentDir = shardIndexFilePaths.file(segmentId);
+				FilePaths indexFilePaths = collectionContext.indexFilePaths();
+				File indexDir = indexFilePaths.file();
+				File segmentDir = indexFilePaths.file(segmentId);
 
 				List<Node> nodeList = nodeService.getNodeById(collectionContext.collectionConfig().getDataNodeList());
 
 				// 색인전송할디렉토리를 먼저 비우도록 요청.segmentDir
-				File relativeDataDir = environment.filePaths().relativise(shardIndexDir);
+				File relativeDataDir = environment.filePaths().relativise(indexDir);
 				NodeDirectoryCleanJob cleanJob = new NodeDirectoryCleanJob(relativeDataDir);
 
-				boolean nodeResult = ClusterUtils.sendJobToNodeList(cleanJob, nodeService, nodeList, false);
-				if (!nodeResult) {
-					throw new FastcatSearchException("Node Index Directory Clean Failed! Dir=[{}]", segmentDir.getPath());
-				}
+				boolean[] nodeResultList = ClusterUtils.sendJobToNodeList(cleanJob, nodeService, nodeList, false);
+//				if (!nodeResult) {
+//					throw new FastcatSearchException("Node Index Directory Clean Failed! Dir=[{}]", segmentDir.getPath());
+//				}
 
+				//성공한 node만 전송.
+				List<Node> nodeList2 = new ArrayList<Node>();
+				for (int i = 0; i < nodeResultList.length; i++) {
+					if (nodeResultList[i]) {
+						nodeList2.add(nodeList.get(i));
+					}else{
+						logger.warn("Do not send index file to {}", nodeList.get(i));
+					}
+				}
 				// 색인된 Segment 파일전송.
 				IndexFileTransfer indexFileTransfer = new IndexFileTransfer(environment);
-				indexFileTransfer.transferDirectory(segmentDir, nodeService, nodeList);
-
+				nodeResultList = indexFileTransfer.transferDirectory(segmentDir, nodeService, nodeList2);
+				//성공한 node만 전송.
+				List<Node> nodeList3 = new ArrayList<Node>();
+				for (int i = 0; i < nodeResultList.length; i++) {
+					if (nodeResultList[i]) {
+						nodeList3.add(nodeList2.get(i));
+					}else{
+						logger.warn("Do not reload at {}", nodeList2.get(i));
+					}
+				}
+				
 				/*
 				 * 데이터노드에 컬렉션 리로드 요청.
 				 */
 				NodeCollectionReloadJob reloadJob = new NodeCollectionReloadJob(collectionContext);
-				nodeResult = ClusterUtils.sendJobToNodeList(reloadJob, nodeService, nodeList, false);
-				if (!nodeResult) {
-					throw new FastcatSearchException("Node Collection Reload Failed!");
+				nodeResultList = ClusterUtils.sendJobToNodeList(reloadJob, nodeService, nodeList3, false);
+				for (int i = 0; i < nodeResultList.length; i++) {
+					if (nodeResultList[i]) {
+						logger.info("{} Collection reload OK.", nodeList3.get(i));
+					}else{
+						logger.warn("{} Collection reload Fail.", nodeList3.get(i));
+					}
 				}
+				
+//				if (!nodeResult) {
+//					throw new FastcatSearchException("Node Collection Reload Failed!");
+//				}
 			}
 			/*
 			 * 데이터노드가 리로드 완료되었으면 인덱스노드도 리로드 시작.

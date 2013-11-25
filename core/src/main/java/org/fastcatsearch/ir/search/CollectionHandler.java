@@ -34,12 +34,12 @@ public class CollectionHandler {
 	private Schema schema;
 	private long startedTime;
 	private boolean isLoaded;
-	private FilePaths indexFilePaths;
+	private FilePaths collectionFilePaths;
 
 	public CollectionHandler(CollectionContext collectionContext) throws IRException, SettingException {
 		this.collectionContext = collectionContext;
 		this.collectionId = collectionContext.collectionId();
-		this.indexFilePaths = collectionContext.collectionFilePaths();
+		this.collectionFilePaths = collectionContext.collectionFilePaths();
 	}
 
 	public CollectionHandler load() throws IRException {
@@ -47,7 +47,7 @@ public class CollectionHandler {
 		this.collectionSearcher = new CollectionSearcher(this);
 		startedTime = System.currentTimeMillis();
 		isLoaded = true;
-		logger.info("Collection[{}] Loaded! {}", collectionId, indexFilePaths.file().getAbsolutePath());
+		logger.info("Collection[{}] Loaded! {}", collectionId, collectionFilePaths.file().getAbsolutePath());
 		return this;
 	}
 
@@ -60,7 +60,7 @@ public class CollectionHandler {
 	}
 
 	public FilePaths indexFilePaths() {
-		return indexFilePaths;
+		return collectionFilePaths;
 	}
 	
 	public CollectionContext collectionContext() {
@@ -79,7 +79,7 @@ public class CollectionHandler {
 
 		int dataSequence = collectionContext.indexStatus().getSequence();
 
-		File dataDir = indexFilePaths.indexDirFile(dataSequence);
+		File dataDir = collectionFilePaths.dataPaths().indexDirFile(dataSequence);
 		if (!dataDir.exists()) {
 			logger.info("create shard data directory [{}]", dataDir.getAbsolutePath());
 			dataDir.mkdir();
@@ -93,10 +93,10 @@ public class CollectionHandler {
 		if (segmentSize > 0) {
 			// FIXME 반드시 0,1,2...차례대로 list에 존재해야한다. deleteset을 적용해야하기때문에..
 			SegmentInfo lastSegmentInfo = segmentInfoList.get(segmentSize - 1);
-			File lastRevisionDir = indexFilePaths.revisionFile(dataSequence, lastSegmentInfo.getId(), lastSegmentInfo.getRevision());
+			File lastRevisionDir = collectionFilePaths.revisionFile(dataSequence, lastSegmentInfo.getId(), lastSegmentInfo.getRevision());
 			try {
 				for (SegmentInfo segmentInfo : collectionContext.dataInfo().getSegmentInfoList()) {
-					File segmentDir = indexFilePaths.segmentFile(dataSequence, segmentInfo.getId());
+					File segmentDir = collectionFilePaths.segmentFile(dataSequence, segmentInfo.getId());
 					// 삭제문서는 마지막 세그먼트의 마지막 리비전에 최신 업데이트 파일이 있으므로, 그것을 로딩한다.
 					BitSet deleteSet = new BitSet(lastRevisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
 					segmentReaderList.add(new SegmentReader(segmentInfo, schema, segmentDir, deleteSet));

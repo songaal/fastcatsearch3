@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 public class CollectionContextUtil {
 	private static final Logger logger = LoggerFactory.getLogger(CollectionContextUtil.class);
 
-	public static CollectionContext init(CollectionConfig collectionConfig, FilePaths indexFilePaths) throws SettingException {
+	public static CollectionContext create(CollectionConfig collectionConfig, FilePaths indexFilePaths) throws SettingException {
 		try {
 			Path collectionDir = new Path(indexFilePaths.file());
 			//collection config.xml
@@ -58,7 +58,24 @@ public class CollectionContextUtil {
 			throw new SettingException("CollectionContext 로드중 에러발생", e);
 		}
 	}
+	
 
+	public static boolean updateConfig(Object configObject, FilePaths collectionFilePaths) {
+		Path collectionDir = new Path(collectionFilePaths.file());
+		try {
+			if (configObject instanceof CollectionConfig) {
+				CollectionConfig collectionConfig = (CollectionConfig) configObject;
+				JAXBConfigs.writeConfig(collectionDir.file(SettingFileNames.collectionConfig), collectionConfig, CollectionConfig.class);
+
+			}
+		} catch (JAXBException e) {
+			logger.error("", e);
+			return false;
+		}
+		return true;
+	}
+	
+	
 	public static CollectionContext load(Collection collection, FilePaths indexFilePaths) throws SettingException {
 		try {
 			String collectionId = collection.getId();
@@ -175,7 +192,7 @@ public class CollectionContextUtil {
 		CollectionIndexStatus collectionStatus = collectionContext.indexStatus();
 		DataInfo dataInfo = collectionContext.dataInfo();
 		
-		FilePaths dataFilePaths = collectionFilePaths.dataPath();
+		FilePaths dataFilePaths = collectionFilePaths.dataPaths();
 
 		try {
 			if (collectionStatus != null) {

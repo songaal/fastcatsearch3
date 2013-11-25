@@ -31,7 +31,7 @@ public class FilePaths {
 		return id;
 	}
 	
-	public FilePaths dataPath(){
+	public FilePaths dataPaths(){
 		return new FilePaths(file(dataRoot));
 	}
 	public File file(String... dirs) {
@@ -48,6 +48,10 @@ public class FilePaths {
 	
 	public File dataFile() {
 		return file(dataRoot);
+	}
+	
+	public FilePaths indexFilePaths(Object dataSequence) {
+		return new FilePaths(indexDirFile(dataSequence));
 	}
 	
 	public File indexDirFile(Object dataSequence) {

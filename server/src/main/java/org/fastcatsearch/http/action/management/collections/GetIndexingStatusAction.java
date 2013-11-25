@@ -25,25 +25,24 @@ public class GetIndexingStatusAction extends AuthAction {
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		CollectionContext collectionContext = irService.collectionContext(collectionId);
 		
-
 		Writer writer = response.getWriter();
 		ResponseWriter responseWriter = getDefaultResponseWriter(writer);
 		responseWriter.object()
 		.key("collectionId").value(collectionId);
 		
-		File indexDir = collectionContext.collectionFilePaths().dataFile();
 		int sequence = collectionContext.indexStatus().getSequence();
+		File indexFileDir = collectionContext.dataFilePaths().indexDirFile(sequence);
 		responseWriter.key("sequence").value(sequence);
 		String diskSize = "";
-//			logger.debug("shard index dir ={}", indexDir.getAbsolutePath());
-		if(indexDir.exists()){
-			long byteCount = FileUtils.sizeOfDirectory(indexDir);
+		
+		if(indexFileDir.exists()){
+			long byteCount = FileUtils.sizeOfDirectory(indexFileDir);
 			diskSize = FileUtils.byteCountToDisplaySize(byteCount);
 		}
-		responseWriter.key("totalDiskSize").value(diskSize);
+		responseWriter.key("diskSize").value(diskSize);
 		
 		int documentSize = collectionContext.dataInfo().getDocuments();
-		responseWriter.key("totalDocumentSize").value(documentSize);
+		responseWriter.key("documentSize").value(documentSize);
 		
 		String createTime = "";
 		SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();

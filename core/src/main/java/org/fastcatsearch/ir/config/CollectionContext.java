@@ -61,8 +61,20 @@ public class CollectionContext {
 		return id;
 	}
 	
+	//collection home 디렉토리를 리턴한다.
 	public FilePaths collectionFilePaths(){
 		return collectionFilePaths;
+	}
+	
+	// data/ 를 리턴한다.
+	public FilePaths dataFilePaths(){
+		return collectionFilePaths.dataPaths();
+	}
+	
+	// data/index# 를 리턴한다.
+	public FilePaths indexFilePaths(){
+		int currentDataSequence = collectionIndexStatus.getSequence();
+		return dataFilePaths().indexFilePaths(currentDataSequence);
 	}
 	
 	public Schema schema(){
