@@ -95,6 +95,7 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 					transportModule.connectToNode(node);
 					node.setActive();
 				} catch (TransportException e) {
+					logger.error("Cannot connect to {}", node);
 					node.setInactive();
 				}
 			}
@@ -157,7 +158,7 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 		try {
 			return transportModule.sendRequest(masterNode, job);
 		} catch (TransportException e) {
-			logger.error("sendRequest 에러", e);
+			logger.error("sendRequest 에러 : {}", e.getMessage());
 		}
 		return null;
 	}
@@ -169,7 +170,7 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 		try {
 			return transportModule.sendRequest(node, job);
 		} catch (TransportException e) {
-			logger.error("sendRequest 에러", e);
+			logger.error("sendRequest 에러 : {}", e.getMessage());
 		}
 		return null;
 	}

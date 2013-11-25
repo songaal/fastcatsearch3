@@ -2,6 +2,7 @@ package org.fastcatsearch.ir.search;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -76,10 +77,10 @@ public class CollectionHandler {
 	}
 
 	private void loadSearcherAndReader() throws IRException {
-
+		this.schema = collectionContext.schema();
 		int dataSequence = collectionContext.indexStatus().getSequence();
-
-		File dataDir = collectionFilePaths.dataPaths().indexDirFile(dataSequence);
+		FilePaths dataPaths = collectionFilePaths.dataPaths();
+		File dataDir = collectionFilePaths.indexFilePaths(dataSequence).file();
 		if (!dataDir.exists()) {
 			logger.info("create shard data directory [{}]", dataDir.getAbsolutePath());
 			dataDir.mkdir();
@@ -88,15 +89,16 @@ public class CollectionHandler {
 		logger.debug("Load ShardHandler [{}] data >> {}", collectionId, dataDir.getAbsolutePath());
 
 		// 색인기록이 있다면 세그먼트를 로딩한다.
+		segmentReaderList = new ArrayList<SegmentReader>();
 		List<SegmentInfo> segmentInfoList = collectionContext.dataInfo().getSegmentInfoList();
 		int segmentSize = segmentInfoList.size();
 		if (segmentSize > 0) {
 			// FIXME 반드시 0,1,2...차례대로 list에 존재해야한다. deleteset을 적용해야하기때문에..
 			SegmentInfo lastSegmentInfo = segmentInfoList.get(segmentSize - 1);
-			File lastRevisionDir = collectionFilePaths.revisionFile(dataSequence, lastSegmentInfo.getId(), lastSegmentInfo.getRevision());
+			File lastRevisionDir = dataPaths.revisionFile(dataSequence, lastSegmentInfo.getId(), lastSegmentInfo.getRevision());
 			try {
 				for (SegmentInfo segmentInfo : collectionContext.dataInfo().getSegmentInfoList()) {
-					File segmentDir = collectionFilePaths.segmentFile(dataSequence, segmentInfo.getId());
+					File segmentDir = dataPaths.segmentFile(dataSequence, segmentInfo.getId());
 					// 삭제문서는 마지막 세그먼트의 마지막 리비전에 최신 업데이트 파일이 있으므로, 그것을 로딩한다.
 					BitSet deleteSet = new BitSet(lastRevisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
 					segmentReaderList.add(new SegmentReader(segmentInfo, schema, segmentDir, deleteSet));

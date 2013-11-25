@@ -37,6 +37,9 @@ public class IndexFileTransfer {
 		OUTTER:
 		for (int i = 0; i < nodeList.size(); i++) {
 			Node node = nodeList.get(i);
+			if(!node.isActive()){
+				continue;
+			}
 			if (nodeService.isMyNode(node)) {
 				// 자신에게는 전송하지 않는다.
 				continue;

@@ -51,6 +51,8 @@ public class SearchIndexesReader implements Cloneable {
 
 	public SearchIndexesReader(Schema schema, File dir, int revision) throws IOException, IRException {
 		this.schema = schema;
+		logger.debug("schema > {}", schema);
+		logger.debug("schema.schemaSetting > {}", schema.schemaSetting());
 		indexSettingList = schema.schemaSetting().getIndexSettingList();
 		int indexCount = indexSettingList.size();
 
