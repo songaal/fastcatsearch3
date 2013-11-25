@@ -14,7 +14,7 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
 @ActionMapping("/management/collections/shard-list")
-public class GetShardListAction extends AuthAction {
+public class GetCollectionsShardListAction extends AuthAction {
 
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
@@ -42,7 +42,7 @@ public class GetShardListAction extends AuthAction {
 		for(Shard shard : shardList){
 			responseWriter.object()
 			.key("id").value(shard.getId())
-			.key("name").value(shard.getName())
+//			.key("name").value(shard.getName())
 			.endObject();
 		}
 		responseWriter.endArray().endObject();

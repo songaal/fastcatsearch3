@@ -135,11 +135,7 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			 * 데이터노드가 리로드 완료되었으면 인덱스노드도 리로드 시작.
 			 * */
 			indexingTaskState.setState(IndexingTaskState.STATE_FINALIZE);
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			
 			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
 			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
 			if (oldCollectionHandler != null) {

@@ -13,13 +13,14 @@ import org.fastcatsearch.ir.config.ShardContext;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.JAXBConfigs;
 
-@ActionMapping("/management/collections/shardList")
+@ActionMapping("/management/collections/shard-config")
 public class GetCollectionShardConfigListAction extends AuthAction {
 
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
 		
 		String collectionId = request.getParameter("collectionId");
+		String shardId = request.getParameter("shardId");
 		
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		
@@ -29,7 +30,10 @@ public class GetCollectionShardConfigListAction extends AuthAction {
 		String endTag = "</shard-config-list>";
 		os.write(startTag.getBytes());
 		for(ShardContext shardContext : collectionContext.getShardContextList()){
-			JAXBConfigs.writeRawConfig(os, shardContext.shardConfig(), ShardConfig.class, true);
+			//shardId가 없거나 존재한다면 일치하는 것만 리턴. 
+			if(shardId == null || shardId.length() == 0 || shardId.equalsIgnoreCase(shardContext.shardId())){
+				JAXBConfigs.writeRawConfig(os, shardContext.shardConfig(), ShardConfig.class, true);
+			}
 		}
 		os.write(endTag.getBytes());
 		

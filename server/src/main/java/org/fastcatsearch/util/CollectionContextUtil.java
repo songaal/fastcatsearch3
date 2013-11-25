@@ -247,6 +247,10 @@ public class CollectionContextUtil {
 	}
 
 	public static void removeShard(CollectionContext collectionContext, String shardId) throws SettingException {
+		
+		//memory context에서도 삭제.
+		collectionContext.shardContextMap().remove(shardId);
+		
 		FilePaths collectionFilePaths = collectionContext.indexFilePaths();
 		File collectionDir = collectionFilePaths.file();
 		
@@ -263,6 +267,11 @@ public class CollectionContextUtil {
 		
 	}
 	
+	public static <T> void saveShardConfig(CollectionContext collectionContext, String shardId, String fileName, T configObject, Class<T> configClass) throws JAXBException{
+		FilePaths collectionFilePaths = collectionContext.indexFilePaths();
+		FilePaths shardIndexFilePaths = collectionFilePaths.shard(shardId);
+		JAXBConfigs.writeConfig(shardIndexFilePaths.file(fileName), configObject, configClass);
+	}
 	public static ShardContext addNewShard(CollectionContext collectionContext, ShardConfig shardConfig) throws SettingException {
 		String collectionId = collectionContext.collectionId();
 		String shardId = shardConfig.getId();
@@ -277,9 +286,8 @@ public class CollectionContextUtil {
 		
 		try{
 			
-			
 			//save CollectionConfig file
-			JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.collectionConfig), collectionConfig, CollectionConfig.class);
+			JAXBConfigs.writeConfig(collectionFilePaths.file(SettingFileNames.collectionConfig), collectionConfig, CollectionConfig.class);
 			
 			FilePaths shardIndexFilePaths = collectionFilePaths.shard(shardId);
 			shardIndexFilePaths.file().mkdirs();
@@ -305,6 +313,8 @@ public class CollectionContextUtil {
 			shardContext.init(collectionConfig.getIndexConfig(), collectionConfig.getDataPlanConfig(), shardConfig, shardIndexStatus, dataInfo);
 			saveShardAfterIndexing(shardContext);
 		
+			//메모리 context에 추가해준다.
+			collectionContext.shardContextMap().put(shardId, shardContext);
 			return shardContext;
 		} catch (Exception e) {
 			throw new SettingException("CollectionContext Shard 추가중 에러.", e);

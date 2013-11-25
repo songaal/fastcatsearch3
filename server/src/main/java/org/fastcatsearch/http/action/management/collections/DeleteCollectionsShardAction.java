@@ -13,8 +13,8 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/management/collections/shard/remove")
-public class DeleteShardAction extends AuthAction {
+@ActionMapping("/management/collections/shard-remove")
+public class DeleteCollectionsShardAction extends AuthAction {
 
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
