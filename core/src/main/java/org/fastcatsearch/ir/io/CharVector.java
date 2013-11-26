@@ -21,6 +21,8 @@ import java.io.Reader;
 import java.io.Serializable;
 
 public class CharVector implements ElementVector, CharSequence, Comparable<CharSequence>, Serializable {
+	private static final long serialVersionUID = -7987933270331385376L;
+	
 	public char[] array;
 	public int start;
 	public int length;
@@ -99,6 +101,28 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 				while (n-- != 0) {
 					if (v1[i++] != v2[j++])
 						return false;
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean equalsIgnoreCase(Object anObject) {
+		if (anObject instanceof CharVector) {
+			CharVector anotherArray = (CharVector) anObject;
+			int n = length;
+			if (n == anotherArray.length) {
+				char v1[] = array;
+				char v2[] = anotherArray.array;
+				int i = start;
+				int j = anotherArray.start;
+				while (n-- != 0) {
+					int v1v=v1[i++];
+					int v2v=v2[j++];
+					if ( !(v1v==v2v || Math.abs(v1v-v2v)== 32) ) {
+						return false;
+					}
 				}
 				return true;
 			}
