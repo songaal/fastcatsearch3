@@ -17,7 +17,8 @@ import org.fastcatsearch.util.ResponseWriter;
 @ActionMapping(value="/management/logs/notification-history", authority=ActionAuthority.Logs)
 public class GetNotificationHistoryAction extends AuthAction {
 	
-	private static final int ROWS_IN_PAGE = 15;
+	private static final int ROW_SIZE = 15;
+	private static final int PAGE_SIZE = 10;
 
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
@@ -28,9 +29,11 @@ public class GetNotificationHistoryAction extends AuthAction {
 		
 		int pageNum = request.getIntParameter("pageNum",1);
 		
-		int rowStarts = (pageNum-1) * ROWS_IN_PAGE + 1;
+		if(pageNum < 1) { pageNum = 1; }
 		
-		int rowFinish = (rowStarts) + ROWS_IN_PAGE;
+		int rowStarts = (pageNum-1) * ROW_SIZE + 1;
+		
+		int rowFinish = (rowStarts) + ROW_SIZE - 1;
 		
 		int totalSize = 0;
 		
@@ -38,7 +41,6 @@ public class GetNotificationHistoryAction extends AuthAction {
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		
 		try {
-			
 		
 			session = dbService.getMapperSession(NotificationHistoryMapper.class);
 			
@@ -54,12 +56,13 @@ public class GetNotificationHistoryAction extends AuthAction {
 			
 			resultWriter.object().key("totalSize").value(totalSize)
 				.key("pageNum").value(pageNum)
-				.key("rowSize").value(ROWS_IN_PAGE)
+				.key("rowSize").value(ROW_SIZE)
+				.key("pageSize").value(PAGE_SIZE)
 				.key("rowStarts").value(rowStarts)
 				.key("rowFinish").value(rowFinish)
 				.key("notifications").array();
 			
-			for(int inx=0; inx < totalSize; inx++) {
+			for(int inx=0; inx < entryList.size(); inx++) {
 				
 				NotificationVO entry = entryList.get(inx);
 				
