@@ -26,9 +26,9 @@ import org.slf4j.LoggerFactory;
 public class CollectionContextUtil {
 	private static final Logger logger = LoggerFactory.getLogger(CollectionContextUtil.class);
 
-	public static CollectionContext create(CollectionConfig collectionConfig, FilePaths indexFilePaths) throws SettingException {
+	public static CollectionContext create(CollectionConfig collectionConfig, FilePaths collectionFilePaths) throws SettingException {
 		try {
-			Path collectionDir = new Path(indexFilePaths.file());
+			Path collectionDir = new Path(collectionFilePaths.file());
 			//collection config.xml
 			JAXBConfigs.writeConfig(collectionDir.file(SettingFileNames.collectionConfig), collectionConfig, CollectionConfig.class);
 			//schema.xml
@@ -44,14 +44,19 @@ public class CollectionContextUtil {
 			CollectionIndexStatus collectionStatus = new CollectionIndexStatus();
 			JAXBConfigs.writeConfig(collectionDir.file(SettingFileNames.indexStatus), collectionStatus, CollectionIndexStatus.class);
 			//info.xml
+			int dataSequence = collectionStatus.getSequence();
+			FilePaths indexFilePaths = collectionFilePaths.dataPaths().indexFilePaths(dataSequence);
+			if (!indexFilePaths.file().exists()) {
+				indexFilePaths.file().mkdirs();
+			}
 			DataInfo dataInfo = new DataInfo();
-			JAXBConfigs.writeConfig(collectionDir.file(SettingFileNames.dataInfo), dataInfo, DataInfo.class);
+			JAXBConfigs.writeConfig(indexFilePaths.file(SettingFileNames.dataInfo), dataInfo, DataInfo.class);
 			//schedule.xml
 			IndexingScheduleConfig indexingScheduleConfig = new IndexingScheduleConfig();
 			JAXBConfigs.writeConfig(collectionDir.file(SettingFileNames.scheduleConfig), indexingScheduleConfig, IndexingScheduleConfig.class);
 			
 			Schema schema = new Schema(schemaSetting);
-			CollectionContext collectionContext = new CollectionContext(indexFilePaths.getId(), indexFilePaths);
+			CollectionContext collectionContext = new CollectionContext(collectionFilePaths.getId(), collectionFilePaths);
 			collectionContext.init(schema, null, collectionConfig, indexConfig, dataSourceConfig, collectionStatus, dataInfo, indexingScheduleConfig);
 			return collectionContext;
 		} catch (Exception e) {
@@ -76,19 +81,19 @@ public class CollectionContextUtil {
 	}
 	
 	
-	public static CollectionContext load(Collection collection, FilePaths indexFilePaths) throws SettingException {
+	public static CollectionContext load(Collection collection, FilePaths collectionFilePaths) throws SettingException {
 		try {
 			String collectionId = collection.getId();
-			Path collectionDir = new Path(indexFilePaths.file());
-			File schemaFile = collectionDir.file(SettingFileNames.schema);
+			Path collectionPath = new Path(collectionFilePaths.file());
+			File schemaFile = collectionPath.file(SettingFileNames.schema);
 			SchemaSetting schemaSetting = JAXBConfigs.readConfig(schemaFile, SchemaSetting.class);
-			File workSchemaFile = collectionDir.file(SettingFileNames.workSchema);
+			File workSchemaFile = collectionPath.file(SettingFileNames.workSchema);
 			SchemaSetting workSchemaSetting = JAXBConfigs.readConfig(workSchemaFile, SchemaSetting.class);
 			
-			CollectionConfig collectionConfig = JAXBConfigs.readConfig(collectionDir.file(SettingFileNames.collectionConfig), CollectionConfig.class);
-			IndexConfig indexConfig = JAXBConfigs.readConfig(collectionDir.file(SettingFileNames.indexConfig), IndexConfig.class);
+			CollectionConfig collectionConfig = JAXBConfigs.readConfig(collectionPath.file(SettingFileNames.collectionConfig), CollectionConfig.class);
+			IndexConfig indexConfig = JAXBConfigs.readConfig(collectionPath.file(SettingFileNames.indexConfig), IndexConfig.class);
 			
-			File dataSourceConfigFile = collectionDir.file(SettingFileNames.datasourceConfig);
+			File dataSourceConfigFile = collectionPath.file(SettingFileNames.datasourceConfig);
 			DataSourceConfig dataSourceConfig = null;
 			if (dataSourceConfigFile.exists()) {
 				dataSourceConfig = JAXBConfigs.readConfig(dataSourceConfigFile, DataSourceConfig.class);
@@ -96,17 +101,17 @@ public class CollectionContextUtil {
 				dataSourceConfig = new DataSourceConfig();
 			}
 
-			File indexStatusFile = collectionDir.file(SettingFileNames.indexStatus);
+			File indexStatusFile = collectionPath.file(SettingFileNames.indexStatus);
 			
 			CollectionIndexStatus collectionStatus = JAXBConfigs.readConfig(indexStatusFile, CollectionIndexStatus.class);
 			
-			// dataSequence가 null아 아니면 원하는 sequence의 정보를 읽어온다.
-			File dataDir = indexFilePaths.dataFile();
-			if (!dataDir.exists()) {
-				dataDir.mkdirs();
+			int dataSequence = collectionStatus.getSequence();
+			FilePaths indexFilePaths = collectionFilePaths.dataPaths().indexFilePaths(dataSequence);
+			if (!indexFilePaths.file().exists()) {
+				indexFilePaths.file().mkdirs();
 			}
-			
-			File dataInfoFile = collectionDir.file(SettingFileNames.dataInfo);
+			File dataInfoFile = indexFilePaths.file(SettingFileNames.dataInfo);
+			logger.debug("load dataInfoFile > {}", dataInfoFile.getAbsolutePath());
 			DataInfo dataInfo = null;
 			if(dataInfoFile.exists()){
 				dataInfo = JAXBConfigs.readConfig(dataInfoFile, DataInfo.class);
@@ -115,7 +120,7 @@ public class CollectionContextUtil {
 				JAXBConfigs.writeConfig(dataInfoFile, dataInfo, DataInfo.class);
 			}
 			
-			File scheduleConfigFile = collectionDir.file(SettingFileNames.scheduleConfig);
+			File scheduleConfigFile = collectionPath.file(SettingFileNames.scheduleConfig);
 			IndexingScheduleConfig indexingScheduleConfig = null;
 			if (scheduleConfigFile.exists()) {
 				indexingScheduleConfig = JAXBConfigs.readConfig(scheduleConfigFile, IndexingScheduleConfig.class);
@@ -128,7 +133,7 @@ public class CollectionContextUtil {
 			if (workSchemaSetting != null) {
 				workSchema = new Schema(workSchemaSetting);
 			}
-			CollectionContext collectionContext = new CollectionContext(indexFilePaths.getId(), indexFilePaths);
+			CollectionContext collectionContext = new CollectionContext(collection.getId(), collectionFilePaths);
 			collectionContext.init(schema, workSchema, collectionConfig, indexConfig, dataSourceConfig, collectionStatus, dataInfo, indexingScheduleConfig);
 			
 			return collectionContext;
@@ -168,8 +173,13 @@ public class CollectionContextUtil {
 			if (dataSourceConfig != null) {
 				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.datasourceConfig), dataSourceConfig, DataSourceConfig.class);
 			}
+			int dataSequence = collectionStatus.getSequence();
+			FilePaths indexFilePaths = collectionFilePaths.dataPaths().indexFilePaths(dataSequence);
+			if (!indexFilePaths.file().exists()) {
+				indexFilePaths.file().mkdirs();
+			}
 			if (dataInfo != null) {
-				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.dataInfo), dataInfo, DataInfo.class);
+				JAXBConfigs.writeConfig(indexFilePaths.file(SettingFileNames.dataInfo), dataInfo, DataInfo.class);
 			}
 			if (indexingScheduleConfig != null) {
 				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.scheduleConfig), indexingScheduleConfig, IndexingScheduleConfig.class);

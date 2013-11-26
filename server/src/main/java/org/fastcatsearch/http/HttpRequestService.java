@@ -80,10 +80,10 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 		try {
 			String findPath = path;// +"**/*.class";
 			Enumeration<URL> em = DynamicClassLoader.getResources(findPath);
-			logger.debug("findPath >> {}, {}", findPath, em);
+//			logger.debug("findPath >> {}, {}", findPath, em);
 			while (em.hasMoreElements()) {
 				String urlstr = em.nextElement().toString();
-				logger.debug("urlstr >> {}", urlstr);
+//				logger.debug("urlstr >> {}", urlstr);
 				if (urlstr.startsWith("jar:file:")) {
 					String jpath = urlstr.substring(9);
 					int st = jpath.indexOf("!/");
@@ -96,7 +96,7 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 						registerAction(actionMap, ename, true);
 					}
 				} else if (urlstr.startsWith("file:")) {
-					logger.debug("urlstr >> {}", urlstr);
+//					logger.debug("urlstr >> {}", urlstr);
 					File file = new File(urlstr.substring(5));
 					File[] dir = file.listFiles();
 					for (int i = 0; i < dir.length; i++) {
@@ -135,12 +135,12 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 						actionObj = (HttpAction) actionClass.newInstance();
 						if (actionObj != null) {
 							actionObj.setMethod(method);
-							logger.debug("ACTION path={}, action={}, method={}", path, actionObj, method);
+							//logger.debug("ACTION path={}, action={}, method={}", path, actionObj, method);
 							// 권한 필요한 액션일 경우.
 							if (actionObj instanceof AuthAction) {
 								AuthAction authAction = (AuthAction) actionObj;
 								authAction.setAuthority(actionMapping.authority(), actionMapping.authorityLevel());
-								logger.debug("ACTION path={}, authority={}, authorityLevel={}", path, actionMapping.authority(), actionMapping.authorityLevel());
+								//logger.debug("ACTION path={}, authority={}, authorityLevel={}", path, actionMapping.authority(), actionMapping.authorityLevel());
 							}
 							
 							actionMap.put(path, actionObj);

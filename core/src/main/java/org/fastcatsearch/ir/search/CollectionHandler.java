@@ -86,12 +86,14 @@ public class CollectionHandler {
 			dataDir.mkdir();
 		}
 
-		logger.debug("Load ShardHandler [{}] data >> {}", collectionId, dataDir.getAbsolutePath());
+		logger.debug("Load CollectionHandler [{}] data >> {}", collectionId, dataDir.getAbsolutePath());
 
 		// 색인기록이 있다면 세그먼트를 로딩한다.
 		segmentReaderList = new ArrayList<SegmentReader>();
 		List<SegmentInfo> segmentInfoList = collectionContext.dataInfo().getSegmentInfoList();
 		int segmentSize = segmentInfoList.size();
+		
+//		logger.debug("segmentInfoList > {}, {}", segmentInfoList.size(), segmentInfoList);
 		if (segmentSize > 0) {
 			// FIXME 반드시 0,1,2...차례대로 list에 존재해야한다. deleteset을 적용해야하기때문에..
 			SegmentInfo lastSegmentInfo = segmentInfoList.get(segmentSize - 1);

@@ -23,8 +23,8 @@ public abstract class Plugin {
 		this.pluginId = pluginSetting.getId();
 	}
 	
-	public final void load(){
-		if(pluginSetting.isUseDB()){
+	public final void load(boolean isMaster){
+		if(isMaster && pluginSetting.isUseDB()){
 			loadDB();
 		}
 		doLoad();
@@ -37,9 +37,9 @@ public abstract class Plugin {
 		}
 	}
 	
-	public final void reload(){
+	public final void reload(boolean isMaster){
 		unload();
-		load();
+		load(isMaster);
 	}
 	
 	protected abstract void doLoad();

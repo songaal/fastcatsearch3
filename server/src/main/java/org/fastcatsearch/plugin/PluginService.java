@@ -106,7 +106,7 @@ public class PluginService extends AbstractService {
 					Plugin plugin = null;
 					if (className != null && className.length() > 0) {
 						plugin = DynamicClassLoader.loadObject(className, Plugin.class, new Class<?>[] { File.class, PluginSetting.class }, new Object[] { dir, setting });
-						plugin.load();
+						plugin.load(environment.isMasterNode());
 						logger.debug("PLUGIN {} >> {}", setting.getId(), plugin.getClass().getName());
 						pluginMap.put(setting.getId(), plugin);
 						// } else {
@@ -187,24 +187,28 @@ public class PluginService extends AbstractService {
 	}
 
 	public void loadSchedule() {
-		JobService jobService = serviceManager.getService(JobService.class);
-		for (Plugin plugin : getPlugins()) {
-			List<PluginSchedule> pluginScheduleList = plugin.getPluginSetting().getScheduleList();
-			if (pluginScheduleList != null && pluginScheduleList.size() > 0) {
-				for (PluginSchedule pluginSchedule : pluginScheduleList) {
-					Job job = DynamicClassLoader.loadObject(pluginSchedule.getClassName(), Job.class);
-					if (job != null) {
-						job.setArgs(pluginSchedule.getArgs());
-						try {
-							jobService.schedule(job, Formatter.parseDate(pluginSchedule.getStartTime()), pluginSchedule.getPeriodInMinute() * 60);
-						} catch (ParseException e) {
-							logger.error("Error parsing plugin schedule {} : {}", pluginSchedule.getStartTime(), e);
+		if (environment.isMasterNode()) {
+			JobService jobService = serviceManager.getService(JobService.class);
+			for (Plugin plugin : getPlugins()) {
+				List<PluginSchedule> pluginScheduleList = plugin.getPluginSetting().getScheduleList();
+				if (pluginScheduleList != null && pluginScheduleList.size() > 0) {
+					for (PluginSchedule pluginSchedule : pluginScheduleList) {
+						Job job = DynamicClassLoader.loadObject(pluginSchedule.getClassName(), Job.class);
+						if (job != null) {
+							job.setArgs(pluginSchedule.getArgs());
+							try {
+								jobService.schedule(job, Formatter.parseDate(pluginSchedule.getStartTime()), pluginSchedule.getPeriodInMinute() * 60);
+							} catch (ParseException e) {
+								logger.error("Error parsing plugin schedule {} : {}", pluginSchedule.getStartTime(), e);
+							}
+						} else {
+							logger.error("PluginSchedule job is null >> {}", job);
 						}
-					} else {
-						logger.error("PluginSchedule job is null >> {}", job);
 					}
 				}
 			}
+		} else {
+			logger.info("PluginService Schdule is not started. Because it's not master node. {}", environment.myNodeId());
 		}
 	}
 

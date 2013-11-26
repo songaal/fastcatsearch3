@@ -125,7 +125,12 @@ public abstract class Job implements Runnable, Serializable {
 		startTime = System.currentTimeMillis();
 		JobResult jobResult = null;
 		try {
-
+			if(this instanceof MasterNodeJob){
+				if(!environment.isMasterNode()){
+					//실행하면 안된다.
+					throw new RuntimeException("Cannot execute MasterNodeJob on other node : " + environment.myNodeId());
+				}
+			}
 			jobResult = doRun();
 
 			if (jobId != -1) {

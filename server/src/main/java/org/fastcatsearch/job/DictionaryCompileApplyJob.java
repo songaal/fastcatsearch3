@@ -19,7 +19,7 @@ import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.plugin.analysis.AnalysisPlugin;
 import org.fastcatsearch.service.ServiceManager;
 
-public class DictionaryCompileApplyJob extends Job {
+public class DictionaryCompileApplyJob extends MasterNodeJob {
 
 	private static final long serialVersionUID = 8615645248824825498L;
 
@@ -51,7 +51,7 @@ public class DictionaryCompileApplyJob extends Job {
 		}
 
 		logger.debug("사전컴파일후 플러그인 {}를 재로딩합니다.", pluginId);
-		analysisPlugin.reload();
+		analysisPlugin.reload(environment.isMasterNode());
 
 		return new JobResult(true);
 	}

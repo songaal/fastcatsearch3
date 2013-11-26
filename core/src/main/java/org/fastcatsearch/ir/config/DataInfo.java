@@ -2,6 +2,7 @@ package org.fastcatsearch.ir.config;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
@@ -12,11 +13,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <data-info documents="7500" updates="15" deletes="60"> <segment id="0" base="0" > <revision id="0" documents="1000"
- * inserts="990" updates="5" deletes="0" createTime="2013-06-15 15:20:00"> </segment> <segment id="1" base="1000" > <revision
- * id="2" documents="5000" inserts="990" updates="5" deletes="10" createTime="2013-06-15 16:20:00"> </segment> <segment id="2"
- * base="6000" > <revision id="1" documents="1500" inserts="990" updates="5" deletes="50" createTime="2013-06-15 16:30:00"/>
- * </segment> </data-info>
+ * <data-info documents="7500" updates="15" deletes="60"> <segment id="0"
+ * base="0" > <revision id="0" documents="1000" inserts="990" updates="5"
+ * deletes="0" createTime="2013-06-15 15:20:00"> </segment> <segment id="1"
+ * base="1000" > <revision id="2" documents="5000" inserts="990" updates="5"
+ * deletes="10" createTime="2013-06-15 16:20:00"> </segment> <segment id="2"
+ * base="6000" > <revision id="1" documents="1500" inserts="990" updates="5"
+ * deletes="50" createTime="2013-06-15 16:30:00"/> </segment> </data-info>
  * */
 
 @XmlRootElement(name = "data-info")
@@ -71,15 +74,16 @@ public class DataInfo {
 			int index = segmentInfoList.indexOf(segmentInfo);
 			SegmentInfo prevSegmentInfo = segmentInfoList.get(index);
 			prevSegmentInfo.update(segmentInfo);
-			//TODO datainfo에 통계치 더해주기.
-//			RevisionInfo prevRevisionInfo = prevSegmentInfo.getRevisionInfo();
-//			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
+			// TODO datainfo에 통계치 더해주기.
+			// RevisionInfo prevRevisionInfo =
+			// prevSegmentInfo.getRevisionInfo();
+			// RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 			// 리비전이 다르면 추가된 리비전이므로 갯수를 더한다.
-//			if (revisionInfo.getId() > prevRevisionInfo.getId()) {
-//				revisionInfo.updateCount += prevRevisionInfo.updateCount;
-//				revisionInfo.deleteCount += prevRevisionInfo.deleteCount;
-//				prevSegmentInfo.update(segmentInfo);
-//			}
+			// if (revisionInfo.getId() > prevRevisionInfo.getId()) {
+			// revisionInfo.updateCount += prevRevisionInfo.updateCount;
+			// revisionInfo.deleteCount += prevRevisionInfo.deleteCount;
+			// prevSegmentInfo.update(segmentInfo);
+			// }
 		} else {
 			addSegmentInfo(segmentInfo);
 		}
@@ -141,8 +145,8 @@ public class DataInfo {
 	}
 
 	/**
-	 * <segment id="0" base="0" revision="0"> <revision documents="1000" updates="5" deletes="0" createTime="2013-06-15 15:20:00"
-	 * /> </segment>
+	 * <segment id="0" base="0" revision="0"> <revision documents="1000"
+	 * updates="5" deletes="0" createTime="2013-06-15 15:20:00" /> </segment>
 	 * */
 	@XmlRootElement(name = "segment")
 	@XmlType(propOrder = { "revisionInfo", "baseNumber", "id" })
@@ -177,8 +181,8 @@ public class DataInfo {
 			segmentInfo.revisionInfo = revisionInfo.copy();
 			return segmentInfo;
 		}
-		
-		public void resetRevisionInfo(){
+
+		public void resetRevisionInfo() {
 			revisionInfo.setInsertCount(0);
 			revisionInfo.setUpdateCount(0);
 			revisionInfo.setDeleteCount(0);
@@ -263,7 +267,7 @@ public class DataInfo {
 				return revisionInfo.nextRevision();
 			} else {
 				revisionInfo = new RevisionInfo();
-				return 0;
+				return revisionInfo.getId();
 			}
 		}
 
@@ -280,13 +284,15 @@ public class DataInfo {
 	}
 
 	/**
-	 * <revision id="1" ref="0" documents="1000" insertCount="990" updates="10" deletes="0" createTime="2013-06-15 15:20:00">
+	 * <revision id="1" ref="0" documents="1000" insertCount="990" updates="10"
+	 * deletes="0" createTime="2013-06-15 15:20:00">
 	 * */
 	@XmlType(propOrder = { "createTime", "deleteCount", "updateCount", "insertCount", "documentCount", "ref", "id" })
 	@XmlRootElement(name = "revision")
 	public static class RevisionInfo {
 
 		private int id;
+		private String uuid;
 		private int ref;
 		private int documentCount;
 		private int insertCount;
@@ -295,10 +301,16 @@ public class DataInfo {
 		private String createTime;
 
 		public RevisionInfo() {
+			uuid = generateUUID();
 		}
 
-		public RevisionInfo(int id, int documentCount, int insertCount, int updateCount, int deleteCount, String createTime) {
+		private String generateUUID(){
+			return UUID.randomUUID().toString().replaceAll("-", "");
+		}
+		
+		public RevisionInfo(int id, String uuid, int documentCount, int insertCount, int updateCount, int deleteCount, String createTime) {
 			this.id = id;
+			this.uuid = uuid;
 			this.ref = id;
 			this.documentCount = documentCount;
 			this.insertCount = insertCount;
@@ -307,12 +319,14 @@ public class DataInfo {
 			this.createTime = createTime;
 		}
 
-		public boolean isAppend(){
+		public boolean isAppend() {
 			return id > 0;
 		}
+
 		public RevisionInfo copy() {
 			RevisionInfo revisionInfo = new RevisionInfo();
 			revisionInfo.id = id;
+			revisionInfo.uuid = uuid;
 			revisionInfo.ref = ref;
 			revisionInfo.documentCount = documentCount;
 			revisionInfo.insertCount = insertCount;
@@ -324,16 +338,18 @@ public class DataInfo {
 
 		public int nextRevision() {
 			id++;
+			uuid = generateUUID();
 			return id;
 		}
 
-		//ref와 revision을 동일하게 맞춘다.
-		public void setRefWithRevision(){
+		// ref와 revision을 동일하게 맞춘다.
+		public void setRefWithRevision() {
 			ref = id;
 		}
+
 		public String toString() {
-			return "[RevisionInfo] id[" + id + "] ref[" + ref + "] documents[" + documentCount + "] inserts[" + insertCount + "] updates["
-					+ updateCount + "] deletes[" + deleteCount + "] createTime[" + createTime + "]";
+			return "[RevisionInfo] id[" + id + "] uuid[" + uuid + "] ref[" + ref + "] documents[" + documentCount + "] inserts[" + insertCount + "] updates[" + updateCount
+					+ "] deletes[" + deleteCount + "] createTime[" + createTime + "]";
 		}
 
 		@XmlAttribute(name = "id")
@@ -343,6 +359,15 @@ public class DataInfo {
 
 		public void setId(int id) {
 			this.id = id;
+		}
+
+		@XmlAttribute(name = "uuid")
+		public String getUuid() {
+			return uuid;
+		}
+
+		public void setUuid(String uuid) {
+			this.uuid = uuid;
 		}
 
 		@XmlAttribute(name = "ref")
@@ -398,8 +423,8 @@ public class DataInfo {
 		public void setCreateTime(String createTime) {
 			this.createTime = createTime;
 		}
-		
-		public void add(RevisionInfo revisionInfo){
+
+		public void add(RevisionInfo revisionInfo) {
 			this.documentCount += revisionInfo.documentCount;
 			this.insertCount += revisionInfo.insertCount;
 			this.updateCount += revisionInfo.updateCount;

@@ -149,7 +149,7 @@ public class DocumentReader implements Cloneable {
 			FieldSetting fs = fields.get(i);
 			Field f = null;
 			boolean hasValue = bai.readBoolean();
-			logger.debug("read hasValue={}, select={}, fs={} ", hasValue, fieldSelectOption, fs);
+//			logger.debug("read hasValue={}, select={}, fs={} ", hasValue, fieldSelectOption, fs);
 			if (hasValue) {
 				//1. fieldSelectOption 옵션이 없으면 모두 읽음.
 				//2. 옵션이 존재한다면, true인 필드만을 읽는다.
@@ -159,11 +159,11 @@ public class DocumentReader implements Cloneable {
 				}else{
 					bai.skipVIntData();
 				}
-				logger.debug("fill {} >> {}", i, f);
+//				logger.debug("fill {} >> {}", i, f);
 			}else{
 				//값이 없는 필드도 빈 필드를 추가해준다.
 				f = fs.createEmptyField();
-				logger.debug("fill {} >> empty", i);
+//				logger.debug("fill {} >> empty", i);
 			}
 			
 			document.set(i, f);
