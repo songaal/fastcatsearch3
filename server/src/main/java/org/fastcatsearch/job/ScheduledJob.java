@@ -98,12 +98,13 @@ public class ScheduledJob extends Job {
 			return startTime.getTime() - System.currentTimeMillis();
 		} else {
 			long newFirstTime = startTime.getTime();
-			while (newFirstTime < System.currentTimeMillis()) {
+			long now = System.currentTimeMillis();
+			while (newFirstTime < now) {
 				newFirstTime += (periodInSecond * 1000L); // increase by period
 			}
 			// logger.debug("newFirstTime = {} period={}", new
 			// Date(newFirstTime), periodInSecond);
-			return newFirstTime - System.currentTimeMillis();
+			return newFirstTime - now;
 		}
 	}
 

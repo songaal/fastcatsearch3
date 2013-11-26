@@ -98,7 +98,7 @@ public class ClusterSearchJob extends Job {
 			Node dataNode = nodeService.getBalancedNode(id);
 			if(dataNode == null){
 				//적합한 살아있는 노드를 찾지못함.
-				
+				logger.error("Not Found Node for {}", id);
 			}
 			selectedNodeList[i] = dataNode;
 

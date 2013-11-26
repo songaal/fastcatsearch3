@@ -94,6 +94,7 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 				try {
 					transportModule.connectToNode(node);
 					node.setActive();
+					transportModule.sendRequest(node, new NodePingJob(myNode.id()));
 				} catch (TransportException e) {
 					logger.error("Cannot connect to {}", node);
 					node.setInactive();
@@ -125,6 +126,9 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 	}
 	
 	public List<Node> getNodeById(List<String> nodeIdList) {
+		if(nodeIdList == null){
+			return new ArrayList<Node>(); 
+		}
 		List<Node> result = new ArrayList<Node>(nodeIdList.size());
 		for (String nodeId : nodeIdList) {
 			result.add(nodeMap.get(nodeId));

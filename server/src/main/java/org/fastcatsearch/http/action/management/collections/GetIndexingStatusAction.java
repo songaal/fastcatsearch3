@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.Writer;
 
 import org.apache.commons.io.FileUtils;
+import org.fastcatsearch.env.Path;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -32,7 +33,9 @@ public class GetIndexingStatusAction extends AuthAction {
 		
 		int sequence = collectionContext.indexStatus().getSequence();
 		File indexFileDir = collectionContext.dataFilePaths().indexDirFile(sequence);
-		responseWriter.key("sequence").value(sequence);
+		String dataPath = new Path(collectionContext.collectionFilePaths().file()).relativise(indexFileDir).getPath();
+		responseWriter.key("sequence").value(sequence)
+			.key("dataPath").value(dataPath);
 		String diskSize = "";
 		
 		if(indexFileDir.exists()){

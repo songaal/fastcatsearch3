@@ -197,14 +197,14 @@ public class IRService extends AbstractService {
 		}
 	}
 
-	public CollectionContext loadCollectionContext(Collection collectionId) throws SettingException {
-		FilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId.getId());
+	public CollectionContext loadCollectionContext(Collection collection) throws SettingException {
+		FilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collection.getId());
 		if (!collectionFilePaths.file().exists()) {
 			// 디렉토리가 존재하지 않으면.
-			logger.error("[{}]컬렉션 디렉토리가 존재하지 않습니다.", collectionId);
+			logger.error("[{}]컬렉션 디렉토리가 존재하지 않습니다.", collection);
 			return null;
 		}
-		return CollectionContextUtil.load(collectionId, collectionFilePaths);
+		return CollectionContextUtil.load(collection, collectionFilePaths);
 	}
 
 	public CollectionHandler removeCollectionHandler(String collectionId) {

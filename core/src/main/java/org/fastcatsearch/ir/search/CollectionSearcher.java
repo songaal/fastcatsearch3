@@ -279,7 +279,7 @@ public class CollectionSearcher {
 			int segmentSequence = list.segmentSequence(i);
 			int docNo = list.docNo(i);
 			// 문서번호는 segmentSequence+docNo 에 유일하며, docNo만으로는 세그먼트끼리는 중복된다.
-			logger.debug("FOUND [seq#{}] {}", segmentSequence, docNo);
+			logger.debug("FOUND [segment seq#{}] docNo={}", segmentSequence, docNo);
 
 			Document doc = collectionHandler.segmentReader(segmentSequence).segmentSearcher().getDocument(docNo, fieldSelectOption);
 			eachDocList[idx++] = doc;

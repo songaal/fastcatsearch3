@@ -70,14 +70,18 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 	}
 
 	@Override
-	protected void doLoad() {
-		prepareDAO();
+	protected void doLoad(boolean isLoadDb) {
+		if(isLoadDb){
+			prepareDAO();
+		}
 		commonDictionary = loadDictionary();
 	}
 
 	@Override
 	protected void doUnload() {
-		daoMap.clear();
+		if(daoMap != null){
+			daoMap.clear();
+		}
 	}
 	
 	public DictionaryStatusDAO dictionaryStatusDAO(){

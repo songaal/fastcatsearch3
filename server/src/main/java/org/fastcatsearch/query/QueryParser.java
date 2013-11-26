@@ -123,9 +123,6 @@ public class QueryParser {
 		if (Query.EL.cn == el) {
 			Metadata m = query.getMeta();
 			m.setCollectionId(value);
-		} else if (Query.EL.sd == el) {
-			Metadata m = query.getMeta();
-			m.setShardId(value);
 		} else if (Query.EL.ht == el) {
 			Metadata m1 = query.getMeta();
 			String tags[] = value.split(COLON_SEPARATOR);
