@@ -43,7 +43,7 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 		this.length = length;
 		this.hash = 0;
 	}
-
+	
 	public void init(char[] array, int start, int length) {
 		this.array = array;
 		this.start = start;
@@ -191,6 +191,14 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 	public void setChar(int inx, char ch){
 		array[start+inx] = ch;
 		hash = 0;
+	}
+
+	public char[] array() {
+		return array;
+	}
+	
+	public int start() {
+		return start;
 	}
 
 	@Override
