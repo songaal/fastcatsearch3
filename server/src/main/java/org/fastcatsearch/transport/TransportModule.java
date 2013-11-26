@@ -563,6 +563,7 @@ public class TransportModule extends AbstractModule {
 					nodeChannels.close();
 				} finally {
 					logger.debug("disconnected from [{}]", node);
+					node.setInactive();
 				}
 			}
 		}

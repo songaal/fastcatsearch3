@@ -24,10 +24,11 @@ public abstract class Plugin {
 	}
 	
 	public final void load(boolean isMaster){
-		if(isMaster && pluginSetting.isUseDB()){
+		boolean isLoadDb = isMaster && pluginSetting.isUseDB();
+		if(isLoadDb){
 			loadDB();
 		}
-		doLoad();
+		doLoad(isLoadDb);
 	}
 	
 	public final void unload(){
@@ -42,7 +43,7 @@ public abstract class Plugin {
 		load(isMaster);
 	}
 	
-	protected abstract void doLoad();
+	protected abstract void doLoad(boolean isLoadDb);
 	
 	protected abstract void doUnload();
 	

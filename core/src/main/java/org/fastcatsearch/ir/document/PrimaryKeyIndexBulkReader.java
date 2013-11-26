@@ -32,23 +32,9 @@ public class PrimaryKeyIndexBulkReader {
 	private int keyCount;
 	
 	public PrimaryKeyIndexBulkReader(File file) throws IOException{
-//		this(file, 0);
-//	}
-//	public PrimaryKeyIndexBulkReader(File file, long dataBasePosition) throws IOException{
 		input  = new BufferedFileInput(file);
-//		input.seek(dataBasePosition);
 		keyCount = input.readInt();
 	}
-	
-//	public PrimaryKeyIndexBulkReader(File dir, String filename) throws IOException{
-//		this(dir, filename, 0);
-//	}
-	
-//	public PrimaryKeyIndexBulkReader(File dir, String filename, long dataBasePosition) throws IOException{
-//		input  = new BufferedFileInput(dir, filename);
-//		input.seek(dataBasePosition);
-//		keyCount = input.readInt();
-//	}
 	
 	public int next(BytesBuffer buf) throws IOException{
 		if(keyCount <= 0){

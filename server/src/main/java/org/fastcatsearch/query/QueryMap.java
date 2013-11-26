@@ -25,17 +25,9 @@ public class QueryMap extends HashMap<String, String> implements Streamable {
 		return collectionId;
 	}
 	
-//	public String shardId(){
-//		return shardId;
-//	}
 	public void setId(String collectionId){
 		this.collectionId = collectionId;
 	}
-//	public void setId(String collectionId, String shardId) {
-//		this.collectionId = collectionId;
-//		this.shardId = shardId;
-//	}
-	
 	
 	public String queryString(){
 		if(queryString == null){
@@ -61,11 +53,21 @@ public class QueryMap extends HashMap<String, String> implements Streamable {
 	
 	@Override
 	public void readFrom(DataInput input) throws IOException {
+		if(input.readBoolean()){
+			collectionId = input.readString();
+		}
+		
 		putAll((Map<String, String>) input.readGenericValue());
 	}
 
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
+		if(collectionId != null){
+			output.writeBoolean(true);
+			output.writeString(collectionId);
+		}else{
+			output.writeBoolean(false);
+		}
 		output.writeGenericValue(this);
 	}
 

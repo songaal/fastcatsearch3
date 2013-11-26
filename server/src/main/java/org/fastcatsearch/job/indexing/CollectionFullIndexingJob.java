@@ -109,6 +109,11 @@ public class CollectionFullIndexingJob extends IndexingJob {
 				NodeDirectoryCleanJob cleanJob = new NodeDirectoryCleanJob(relativeDataDir);
 
 				boolean[] nodeResultList = ClusterUtils.sendJobToNodeList(cleanJob, nodeService, nodeList, false);
+				
+				for(int i=0;i<nodeResultList.length; i++){
+					boolean r = nodeResultList[i];
+					logger.debug("node#{}1 >> {}", i, r);
+				}
 //				if (!nodeResult) {
 //					throw new FastcatSearchException("Node Index Directory Clean Failed! Dir=[{}]", segmentDir.getPath());
 //				}

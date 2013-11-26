@@ -1,6 +1,8 @@
 package org.fastcatsearch.ir.config;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -73,17 +75,11 @@ public class DataInfo {
 		if (segmentInfoList.contains(segmentInfo)) {
 			int index = segmentInfoList.indexOf(segmentInfo);
 			SegmentInfo prevSegmentInfo = segmentInfoList.get(index);
+			//마지막 세그먼트를 덮어쓴다.
 			prevSegmentInfo.update(segmentInfo);
-			// TODO datainfo에 통계치 더해주기.
-			// RevisionInfo prevRevisionInfo =
-			// prevSegmentInfo.getRevisionInfo();
-			// RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
-			// 리비전이 다르면 추가된 리비전이므로 갯수를 더한다.
-			// if (revisionInfo.getId() > prevRevisionInfo.getId()) {
-			// revisionInfo.updateCount += prevRevisionInfo.updateCount;
-			// revisionInfo.deleteCount += prevRevisionInfo.deleteCount;
-			// prevSegmentInfo.update(segmentInfo);
-			// }
+			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
+			addUpdate(revisionInfo.getInsertCount(), revisionInfo.getUpdateCount(), revisionInfo.getDeleteCount());
+			//존재할 경우 리비전만 업데이트한다.
 		} else {
 			addSegmentInfo(segmentInfo);
 		}
@@ -122,6 +118,8 @@ public class DataInfo {
 	}
 
 	public void setSegmentInfoList(List<SegmentInfo> segmentInfoList) {
+		//여기서 id가 0,1,2,순으로 정렬이 보장되야한다.
+		Collections.sort(segmentInfoList);
 		this.segmentInfoList = segmentInfoList;
 	}
 
@@ -151,7 +149,7 @@ public class DataInfo {
 	@XmlRootElement(name = "segment")
 	@XmlType(propOrder = { "revisionInfo", "baseNumber", "id" })
 	// , "revision"
-	public static class SegmentInfo {
+	public static class SegmentInfo implements Comparable<SegmentInfo>{
 		private String id;
 		private int baseNumber;
 		// private int revision;
@@ -170,14 +168,13 @@ public class DataInfo {
 		@Override
 		public boolean equals(Object other) {
 			// id가 동일하면 같은 SegmentInfo이다.
-			return this.id.equals(((SegmentInfo) other).id);
+			return other != null && this.id.equals(((SegmentInfo) other).id);
 		}
 
 		public SegmentInfo copy() {
 			SegmentInfo segmentInfo = new SegmentInfo();
 			segmentInfo.id = id;
 			segmentInfo.baseNumber = baseNumber;
-			// segmentInfo.revision = revision;
 			segmentInfo.revisionInfo = revisionInfo.copy();
 			return segmentInfo;
 		}
@@ -209,8 +206,10 @@ public class DataInfo {
 			// this.revision = revisionInfo.id;
 			if (this.revisionInfo != null) {
 				// 누적숫자로 유지한다.
-				revisionInfo.updateCount += this.revisionInfo.updateCount;
-				revisionInfo.deleteCount += this.revisionInfo.deleteCount;
+				revisionInfo.documentCount += this.revisionInfo.documentCount;
+				
+//				revisionInfo.updateCount += this.revisionInfo.updateCount;
+//				revisionInfo.deleteCount += this.revisionInfo.deleteCount;
 			}
 			this.revisionInfo = revisionInfo;
 		}
@@ -245,10 +244,6 @@ public class DataInfo {
 			return Integer.toString(revisionInfo.getId());
 		}
 
-		// public void setRevision(int revision) {
-		// this.revision = revision;
-		// }
-
 		@XmlElement(name = "revision")
 		public RevisionInfo getRevisionInfo() {
 			return revisionInfo;
@@ -281,6 +276,12 @@ public class DataInfo {
 			nextSegmentInfo.baseNumber = getNextBaseNumber();
 			return nextSegmentInfo;
 		}
+
+		@Override
+		public int compareTo(SegmentInfo o) {
+			return Integer.parseInt(id) - Integer.parseInt(o.id);
+		}
+		
 	}
 
 	/**

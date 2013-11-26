@@ -43,6 +43,9 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
 		return DataSourceReaderFactory.createAddIndexingSourceReader(filePath, schema, dataSourceConfig, lastIndexTime);
 	}
 
+	/*
+	 * workingSegmentInfo 객체를 준비한다.
+	 * */
 	@Override
 	protected void prepare() throws IRException {
 		DataPlanConfig dataPlanConfig = collectionContext.collectionConfig().getDataPlanConfig();

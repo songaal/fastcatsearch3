@@ -61,9 +61,12 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 		int insertCount = revisionInfo.getInsertCount();
 
 		if (insertCount > 0) {
-			workingSegmentInfo.updateRevision(revisionInfo);
+			//이미 동일한 revinfo이므로 재셋팅필요없다.
+			//workingSegmentInfo.updateRevision(revisionInfo);
+			
 			//update index#/info.xml file
-			collectionContext.addSegmentInfo(workingSegmentInfo);
+			//addindexing의 updateCollection대신 호출.
+			collectionContext.addSegmentInfo(workingSegmentInfo);  
 			//update status.xml file
 			collectionContext.updateCollectionStatus(IndexingType.FULL, revisionInfo, startTime, System.currentTimeMillis());
 		}else{

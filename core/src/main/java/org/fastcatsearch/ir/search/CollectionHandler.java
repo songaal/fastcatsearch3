@@ -95,7 +95,7 @@ public class CollectionHandler {
 		
 //		logger.debug("segmentInfoList > {}, {}", segmentInfoList.size(), segmentInfoList);
 		if (segmentSize > 0) {
-			// FIXME 반드시 0,1,2...차례대로 list에 존재해야한다. deleteset을 적용해야하기때문에..
+			// 0,1,2...차례대로 list에 존재해야한다. deleteset을 적용해야하기때문에..
 			SegmentInfo lastSegmentInfo = segmentInfoList.get(segmentSize - 1);
 			File lastRevisionDir = dataPaths.revisionFile(dataSequence, lastSegmentInfo.getId(), lastSegmentInfo.getRevision());
 			try {
@@ -113,7 +113,7 @@ public class CollectionHandler {
 	}
 
 	public void close() throws IOException {
-		logger.info("Close Shard handler {}", collectionId);
+		logger.info("Close Collection handler {}", collectionId);
 		for (SegmentReader segmentReader : segmentReaderList) {
 			segmentReader.close();
 		}
@@ -245,6 +245,8 @@ public class CollectionHandler {
 			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 			File prevRevisionDir = new File(segmentDir, oldSegmentReader.segmentInfo().getRevisionName());
 			File targetRevisionDir = new File(segmentDir, segmentInfo.getRevisionName());
+			logger.debug("#rev Dir : prev={}, tar={}", prevRevisionDir.getPath(), targetRevisionDir.getPath());
+			
 			if (revisionInfo.getInsertCount() == 0 && revisionInfo.getDeleteCount() > 0) {
 				// 추가문서없이 삭제문서만 존재시 이전 rev에서 pk를 복사해온다.
 				copyPrimaryKeyAndDeleteTemp(prevRevisionDir, targetRevisionDir);
