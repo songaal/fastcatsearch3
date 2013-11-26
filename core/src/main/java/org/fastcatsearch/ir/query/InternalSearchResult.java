@@ -24,7 +24,6 @@ import org.fastcatsearch.ir.search.HitElement;
 public class InternalSearchResult {
 
 	private String collectionId;
-	private String shardId;
 	
 	private int count;
 	private int totalCount;
@@ -33,14 +32,10 @@ public class InternalSearchResult {
 	private HighlightInfo highlightInfo;
 	
 	public InternalSearchResult(HitElement[] rows, int count, int totalCount, GroupsData groupData){
-		this(null, null, rows, count, totalCount, groupData, null);
+		this(null, rows, count, totalCount, groupData, null);
 	}
-	public InternalSearchResult(String shardId, HitElement[] rows, int count, int totalCount, GroupsData groupData){
-		this(null, shardId, rows, count, totalCount, groupData, null);
-	}
-	public InternalSearchResult(String collectionId, String shardId, HitElement[] rows, int count, int totalCount, GroupsData groupData, HighlightInfo highlightInfo){
+	public InternalSearchResult(String collectionId, HitElement[] rows, int count, int totalCount, GroupsData groupData, HighlightInfo highlightInfo){
 		this.collectionId = collectionId;
-		this.shardId = shardId;
 		this.rows = rows;
 		this.count = count;
 		this.totalCount = totalCount;
@@ -50,10 +45,6 @@ public class InternalSearchResult {
 	
 	public String collectionId(){
 		return collectionId;
-	}
-	
-	public String shardId(){
-		return shardId;
 	}
 	
 	public int getTotalCount(){
@@ -88,14 +79,14 @@ public class InternalSearchResult {
 		return highlightInfo;
 	}
 	public FixedHitReader getFixedHitReader(){
-		return new FixedHitReader(collectionId, shardId, rows, 0, count);
+		return new FixedHitReader(collectionId, rows, 0, count);
 	}
 	
 	public String toString(){
 		if(groupData != null){
-			return "[Result]collectionId="+collectionId+", shardId="+shardId+", count = "+count+", totalCount = "+totalCount+", groupResult.length = "+groupData.groupSize()+", highlightInfo = "+highlightInfo;
+			return "[Result]collectionId="+collectionId+", count = "+count+", totalCount = "+totalCount+", groupResult.length = "+groupData.groupSize()+", highlightInfo = "+highlightInfo;
 		}else{
-			return "[Result]collectionId="+collectionId+", shardId="+shardId+", count = "+count+", totalCount = "+totalCount+", highlightInfo = "+highlightInfo;
+			return "[Result]collectionId="+collectionId+", count = "+count+", totalCount = "+totalCount+", highlightInfo = "+highlightInfo;
 		}
 	}
 	

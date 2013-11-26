@@ -29,7 +29,6 @@ public class HitElement implements Comparable<HitElement> {
 	protected static Logger logger = LoggerFactory.getLogger(HitElement.class);
 	
 	private String collectionId; //transient. ShardSearchResult에서 정보를 가지고 있음. 
-	private String shardId; //transient. ShardSearchResult에서 정보를 가지고 있음.
 	
 	private int segmentSequence;
 	private int docNo;
@@ -52,12 +51,6 @@ public class HitElement implements Comparable<HitElement> {
 	}
 	public void setCollectionId(String collectionId){
 		this.collectionId = collectionId;
-	}
-	public String shardId(){
-		return shardId;
-	}
-	public void setShardId(String shardId){
-		this.shardId = shardId;
 	}
 	public int segmentSequence(){
 		return segmentSequence;

@@ -32,7 +32,6 @@ public class FixedHitReader implements Comparable<FixedHitReader>{
 	protected static Logger logger = LoggerFactory.getLogger(FixedHitReader.class);
 	
 	private String collection;
-	private String shardId;
 	
 	private HitElement[] list;
 	private int head;
@@ -40,12 +39,11 @@ public class FixedHitReader implements Comparable<FixedHitReader>{
 	
 	
 	public FixedHitReader(HitElement[] list, int head, int tail){
-		this(null, null, list, head, tail);
+		this(null, list, head, tail);
 	}
 	
-	public FixedHitReader(String collection, String shardId, HitElement[] list, int head, int tail){
+	public FixedHitReader(String collection, HitElement[] list, int head, int tail){
 		this.collection = collection;
-		this.shardId = shardId;
 		this.list = list;
 		this.head = head - 1;
 		this.tail = tail;
@@ -53,10 +51,6 @@ public class FixedHitReader implements Comparable<FixedHitReader>{
 	
 	public String collection(){
 		return collection;
-	}
-	
-	public String shardId(){
-		return shardId;
 	}
 	
 	public boolean next(){
@@ -71,7 +65,6 @@ public class FixedHitReader implements Comparable<FixedHitReader>{
 	public HitElement read(){
 		if(collection != null){
 			list[head].setCollectionId(collection);
-			list[head].setShardId(shardId);
 		}
 		return list[head];
 	}
@@ -82,7 +75,7 @@ public class FixedHitReader implements Comparable<FixedHitReader>{
 		HitElement two = r.read();
 		//같은 컬렉션에 같은 shard일 경우에만 비교를 하고 
 		//다를 경우는 문서번호가 의미가 없으므로 같음으로 넘긴다.
-		if(collection == r.collection && shardId == r.shardId){
+		if(collection == r.collection){ //일부러 obj 비교에 == 사용함. 
 			return one.compareTo(two);
 			
 //			if(two.docNo() == one.docNo()){

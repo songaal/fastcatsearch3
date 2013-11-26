@@ -27,7 +27,6 @@ public class InternalDocumentSearchJob extends StreamableJob {
 	private static final long serialVersionUID = -5716557532305983540L;
 
 	private String collectionId;
-	private String shardId;
 	private DocIdList docIdList;
 	private List<View> views;
 	private String[] tags;
@@ -36,9 +35,8 @@ public class InternalDocumentSearchJob extends StreamableJob {
 	public InternalDocumentSearchJob() {
 	}
 
-	public InternalDocumentSearchJob(String collectionId, String shardId, DocIdList docIdList, List<View> views, String[] tags, HighlightInfo highlightInfo) {
+	public InternalDocumentSearchJob(String collectionId, DocIdList docIdList, List<View> views, String[] tags, HighlightInfo highlightInfo) {
 		this.collectionId = collectionId;
-		this.shardId = shardId;
 		this.docIdList = docIdList;
 		this.views = views;
 		this.tags = tags;

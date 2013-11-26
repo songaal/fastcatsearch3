@@ -28,10 +28,6 @@ public class StreamableInternalSearchResult implements Streamable {
 		if (input.readBoolean()) {
 			collectionId = input.readString();
 		}
-		String shardId = null;
-		if (input.readBoolean()) {
-			shardId = input.readString();
-		}
 		
 		int totalCount = input.readInt();
 		StreamableHitElement sHitElement = new StreamableHitElement();
@@ -46,7 +42,7 @@ public class StreamableInternalSearchResult implements Streamable {
 		if(input.readBoolean()){
 			highlightInfo = new HighlightInfo((Map<String, String>) input.readGenericValue(), (Map<String, String>) input.readGenericValue());
 		}
-		this.internalSearchResult = new InternalSearchResult(collectionId, shardId, sHitElement.getHitElementList(), count, totalCount,
+		this.internalSearchResult = new InternalSearchResult(collectionId, sHitElement.getHitElementList(), count, totalCount,
 				sGroupData.groupData(), highlightInfo);
 
 	}
@@ -60,13 +56,7 @@ public class StreamableInternalSearchResult implements Streamable {
 			output.writeBoolean(true);
 			output.writeString(collectionId);
 		}
-		String shardId = internalSearchResult.shardId();
-		if (shardId == null) {
-			output.writeBoolean(false);
-		} else {
-			output.writeBoolean(true);
-			output.writeString(shardId);
-		}
+		
 		output.writeInt(internalSearchResult.getTotalCount());
 		new StreamableHitElement(internalSearchResult.getHitElementList(), internalSearchResult.getCount()).writeTo(output);
 		if(internalSearchResult.getGroupsData() != null){

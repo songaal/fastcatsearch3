@@ -38,6 +38,9 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableDocumentResult;
 import org.fastcatsearch.transport.vo.StreamableInternalSearchResult;
 
+/**
+ * 검색을 수행하여 병합까지 마치는 broker 검색작업. 
+ * */
 public class ClusterSearchJob extends Job {
 
 	private static final long serialVersionUID = 2375551165135599911L;
@@ -84,14 +87,19 @@ public class ClusterSearchJob extends Job {
 		CollectionContext collectionContext = irService.collectionContext(collectionId);
 		
 		ResultFuture[] resultFutureList = new ResultFuture[collectionIdList.length];
-		Map<String, Integer> shardNumberMap = new HashMap<String, Integer>();
+		Map<String, Integer> collectionNumberMap = new HashMap<String, Integer>();
 		Node[] selectedNodeList = new Node[collectionIdList.length];
 		
 		
 		for (int i = 0; i < collectionIdList.length; i++) {
 			String id = collectionIdList[i];
+			collectionNumberMap.put(id, i);
 			
 			Node dataNode = nodeService.getBalancedNode(id);
+			if(dataNode == null){
+				//적합한 살아있는 노드를 찾지못함.
+				
+			}
 			selectedNodeList[i] = dataNode;
 
 			QueryMap newQueryMap = queryMap.clone();
@@ -144,7 +152,7 @@ public class ClusterSearchJob extends Job {
 		//internalSearchResult의 결과를 보면서 컬렉션 별로 분류한다.
 		int realSize = aggregatedSearchResult.getCount();
 		DocIdList[] docIdList = new DocIdList[collectionIdList.length];
-		int[] shardTags = new int[realSize]; //해당 문서가 어느 shard에 속하는지 알려주는 항목.
+		int[] collectionTags = new int[realSize]; //해당 문서가 어느 collection에 속하는지 알려주는 항목.
 		int[] eachDocIds = new int[realSize];
 		float[] eachScores = new float[realSize];
 		
@@ -157,9 +165,9 @@ public class ClusterSearchJob extends Job {
 		FixedHitReader hitReader = aggregatedSearchResult.getFixedHitReader();
 		while(hitReader.next()){
 			HitElement el = hitReader.read();
-			int shardNo = shardNumberMap.get(el.shardId());
-			docIdList[shardNo].add(el.segmentSequence(), el.docNo());
-			shardTags[idx] = shardNo;
+			int collectionNo = collectionNumberMap.get(el.collectionId());
+			docIdList[collectionNo].add(el.segmentSequence(), el.docNo());
+			collectionTags[idx] = collectionNo;
 			eachDocIds[idx] = el.docNo();
 			eachScores[idx] = el.score();
 			idx++;
@@ -170,12 +178,12 @@ public class ClusterSearchJob extends Job {
 		List<View> views = q.getViews(); 
 		String[] tags = q.getMeta().tags();
 		for (int i = 0; i < collectionIdList.length; i++) {
-			String shardId = collectionIdList[i];
+			String cid = collectionIdList[i];
 			Node dataNode = selectedNodeList[i];
 			
-			logger.debug("shard [{}] search at {}", shardId, dataNode);
+			logger.debug("collection [{}] search at {}", cid, dataNode);
 			
-			InternalDocumentSearchJob job = new InternalDocumentSearchJob(collectionId, shardId, docIdList[i], views, tags, highlightInfo);
+			InternalDocumentSearchJob job = new InternalDocumentSearchJob(cid, docIdList[i], views, tags, highlightInfo);
 			resultFutureList[i] = nodeService.sendRequest(dataNode, job);
 		}
 		
@@ -209,8 +217,8 @@ public class ClusterSearchJob extends Job {
 		String[] fieldIdList = docResultList[0].fieldIdList();
 		Row[] rows = new Row[realSize];
 		for (int i = 0; i < realSize; i++) {
-			int shardNo = shardTags[i];
-			DocumentResult documentResult = docResultList[shardNo];
+			int collectionNo = collectionTags[i];
+			DocumentResult documentResult = docResultList[collectionNo];
 			rows[i] = documentResult.next();
 		}
 		

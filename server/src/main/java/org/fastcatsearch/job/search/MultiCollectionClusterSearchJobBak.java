@@ -212,7 +212,7 @@ public class MultiCollectionClusterSearchJobBak extends Job {
 //			String queryStr = queryString.replace("cn="+collectionId, "cn="+cId);
 //			logger.debug("query-{} >> {}", i, queryMap);
 			
-			InternalDocumentSearchJob job = new InternalDocumentSearchJob(cId, null, docIdList[i], views, tags, highlightInfo);
+			InternalDocumentSearchJob job = new InternalDocumentSearchJob(cId, docIdList[i], views, tags, highlightInfo);
 			resultFutureList[i] = nodeService.sendRequest(dataNode, job);
 		}
 		

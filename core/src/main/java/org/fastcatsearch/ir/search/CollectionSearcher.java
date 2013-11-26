@@ -239,7 +239,7 @@ public class CollectionSearcher {
 			groupData = dataMerger.merge();
 		}
 		HitElement[] hitElementList = totalHit.getHitElementList();
-		return new InternalSearchResult(collectionId, collectionHandler.collectionId(), hitElementList, totalHit.size(), totalSize, groupData, highlightInfo);
+		return new InternalSearchResult(collectionId, hitElementList, totalHit.size(), totalSize, groupData, highlightInfo);
 	}
 
 	public DocumentResult searchDocument(DocIdList list, List<View> views, String[] tags, HighlightInfo highlightInfo) throws IOException {

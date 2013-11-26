@@ -74,9 +74,17 @@ public class ClusterAlertService extends AbstractService {
 
 		if (count > 1) {
 			//두번째부터는 최종스택만 출력한다.
-			logger.error("[{}] [{}] {}", node, count, e.getStackTrace()[0]);
+			if(e instanceof FastcatSearchException){
+				logger.error("[{}] [{}] {}", node, count, e.getMessage());
+			}else{
+				logger.error("[{}] [{}] {}", node, count, e.getStackTrace()[0]);
+			}
 		} else {
-			logger.error("["+node+"] exception", e);
+			if(e instanceof FastcatSearchException){
+				logger.error("["+node+"] exception : {}", e.getMessage());
+			}else{
+				logger.error("["+node+"] exception", e);
+			}
 		}
 		
 		if(e instanceof OutOfMemoryError){
