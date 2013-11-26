@@ -6,6 +6,9 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 
+import org.fastcatsearch.http.ActionMapping;
+import org.fastcatsearch.http.ActionMethod;
+
 public class PluginSetting {
 
 	protected String id;
@@ -110,6 +113,7 @@ public class PluginSetting {
 	public static class Action {
 
 		private String className;
+		private ActionMapping actionMap;
 
 		@XmlAttribute(name = "class")
 		public String getClassName() {
@@ -119,7 +123,43 @@ public class PluginSetting {
 		public void setClassName(String className) {
 			this.className = className;
 		}
-
+		
+		@XmlAttribute(required=false)
+		public String getUri() {
+			return findActionMapping("uri");
+		}
+		
+		@XmlAttribute(required=false)
+		public String getMethods() {
+			return findActionMapping("method");
+		}
+		
+		private String findActionMapping(String type) {
+			if(actionMap==null) {
+				try {
+					actionMap = Class.forName(className).getAnnotation(ActionMapping.class);
+				} catch (ClassNotFoundException e) {
+				} catch (NullPointerException e) {
+				}
+			}
+			if(actionMap!=null) {
+				if("uri".equals(type)) {
+					return actionMap.value();
+				}
+				if("method".equals(type)) {
+					String ret = "";
+					ActionMethod[] methods = actionMap.method();
+					for(ActionMethod method : methods) {
+						if(!"".equals(ret)) {
+							ret+=",";
+						}
+						ret+=method.name();
+					}
+					return ret;
+				}
+			}
+			return "";
+		}
 	}
 
 	public static class PluginSchedule {
