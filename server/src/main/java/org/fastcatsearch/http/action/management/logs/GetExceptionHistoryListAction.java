@@ -5,8 +5,8 @@ import java.util.List;
 
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.InternalDBModule.MapperSession;
-import org.fastcatsearch.db.mapper.NotificationHistoryMapper;
-import org.fastcatsearch.db.vo.NotificationVO;
+import org.fastcatsearch.db.mapper.ExceptionHistoryMapper;
+import org.fastcatsearch.db.vo.ExceptionVO;
 import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
@@ -14,19 +14,15 @@ import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping(value="/management/logs/notification-history", authority=ActionAuthority.Logs)
-public class GetNotificationHistoryAction extends AuthAction {
+@ActionMapping(value="/management/logs/exception-history-list", authority=ActionAuthority.Logs)
+public class GetExceptionHistoryListAction extends AuthAction {
 	
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
 		
 		DBService dbService = DBService.getInstance();
 		
-		MapperSession<NotificationHistoryMapper> session = null;
-		
-		int pageNo = request.getIntParameter("pageNo",1);
-		
-		if(pageNo < 1) { pageNo = 1; }
+		MapperSession<ExceptionHistoryMapper> session = null;
 		
 		int start = request.getIntParameter("start",0);
 		
@@ -39,30 +35,28 @@ public class GetNotificationHistoryAction extends AuthAction {
 		
 		try {
 		
-			session = dbService.getMapperSession(NotificationHistoryMapper.class);
+			session = dbService.getMapperSession(ExceptionHistoryMapper.class);
 			
-			NotificationHistoryMapper mapper = session.getMapper();
+			ExceptionHistoryMapper mapper = session.getMapper();
 			
-			List<NotificationVO> entryList = null;
+			List<ExceptionVO> entryList = null;
 			
 			totalCount = mapper.getCount();
 			
 			entryList = mapper.getEntryList(start, end);
 			
 			resultWriter.object().key("totalCount").value(totalCount)
-				.key("pageNo").value(pageNo)
 				.key("start").value(start)
 				.key("end").value(end)
-				.key("notifications").array();
+				.key("exceptions").array();
 			
 			for(int inx=0; inx < entryList.size(); inx++) {
 				
-				NotificationVO entry = entryList.get(inx);
+				ExceptionVO entry = entryList.get(inx);
 				
 				resultWriter.object()
 					.key("id").value(entry.id)
 					.key("node").value(entry.node)
-					.key("messageCode").value(entry.messageCode)
 					.key("message").value(entry.message)
 					.key("regtime").value(entry.regtime)
 					.endObject();
