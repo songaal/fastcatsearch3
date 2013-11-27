@@ -52,7 +52,7 @@ public class CollectionContext {
 		collectionContext.indexConfig = indexConfig;
 		collectionContext.dataSourceConfig = dataSourceConfig;
 		collectionContext.collectionIndexStatus = collectionIndexStatus.copy();
-		collectionContext.dataInfo = dataInfo;
+		collectionContext.dataInfo = dataInfo.copy();
 		collectionContext.indexingScheduleConfig = indexingScheduleConfig;
 		return collectionContext;
 	}
@@ -80,7 +80,9 @@ public class CollectionContext {
 	public Schema schema(){
 		return schema;
 	}
-	
+	public void setSchema(Schema schema){
+		this.schema = schema;
+	}
 	public Schema workSchema(){
 		return workSchema;
 	}

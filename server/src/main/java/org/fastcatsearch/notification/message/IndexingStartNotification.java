@@ -27,6 +27,7 @@ public class IndexingStartNotification extends Notification {
 
 	@Override
 	public void readFrom(DataInput input) throws IOException {
+		super.readFrom(input);
 		collectionId = input.readString();
 		indexingType = IndexingType.valueOf(input.readString());
 		startTime = input.readLong();
@@ -35,6 +36,7 @@ public class IndexingStartNotification extends Notification {
 
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
+		super.writeTo(output);
 		output.writeString(collectionId);
 		output.writeString(indexingType.name());
 		output.writeLong(startTime);

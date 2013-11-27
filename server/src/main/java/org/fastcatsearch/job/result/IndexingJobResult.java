@@ -46,7 +46,9 @@ public class IndexingJobResult implements Streamable {
 	@Override
 	public void readFrom(DataInput input) throws IOException {
 		collectionId = input.readString();
-		indexStatus = new IndexStatus(input.readInt(), input.readInt(), input.readInt(), input.readInt(), "", input.readString(), "");
+		if(input.readBoolean()){
+			indexStatus = new IndexStatus(input.readInt(), input.readInt(), input.readInt(), input.readInt(), "", input.readString(), "");
+		}
 		duration = input.readInt();
 		isSuccess = input.readBoolean();
 	}
@@ -54,11 +56,16 @@ public class IndexingJobResult implements Streamable {
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
 		output.writeString(collectionId);
-		output.writeInt(indexStatus.getDocumentCount());
-		output.writeInt(indexStatus.getInsertCount());
-		output.writeInt(indexStatus.getUpdateCount());
-		output.writeInt(indexStatus.getDeleteCount());
-		output.writeString(indexStatus.getEndTime());
+		if(indexStatus != null){
+			output.writeBoolean(true);
+			output.writeInt(indexStatus.getDocumentCount());
+			output.writeInt(indexStatus.getInsertCount());
+			output.writeInt(indexStatus.getUpdateCount());
+			output.writeInt(indexStatus.getDeleteCount());
+			output.writeString(indexStatus.getEndTime());
+		}else{
+			output.writeBoolean(false);
+		}
 		output.writeInt(duration);
 		output.writeBoolean(isSuccess);
 	}

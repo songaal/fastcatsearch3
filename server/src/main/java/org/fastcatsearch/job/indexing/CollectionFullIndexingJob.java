@@ -12,6 +12,7 @@
 package org.fastcatsearch.job.indexing;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +27,8 @@ import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.cluster.NodeCollectionReloadJob;
@@ -34,7 +37,9 @@ import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.task.IndexFileTransfer;
+import org.fastcatsearch.transport.vo.StreamableCollectionContext;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
+import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.FilePaths;
 
 /**
@@ -46,6 +51,15 @@ public class CollectionFullIndexingJob extends IndexingJob {
 
 	private static final long serialVersionUID = 7898036370433248984L;
 
+	private CollectionContext collectionContext; 
+	
+	public CollectionFullIndexingJob(){
+	}
+	
+	public CollectionFullIndexingJob(CollectionContext collectionContext){
+		this.collectionContext = collectionContext;
+	}
+	
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
 		
@@ -59,14 +73,13 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			
 			//find index node
-			CollectionContext collectionContext = irService.collectionContext(collectionId);
+//			CollectionContext collectionContext = irService.collectionContext(collectionId);
 			String indexNodeId = collectionContext.collectionConfig().getIndexNode();
 			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 			Node indexNode = nodeService.getNodeById(indexNodeId);
 			
 			if(!nodeService.isMyNode(indexNode)){
 				//Pass job to index node
-//				nodeService.sendRequest(indexNode, this);
 				//작업수행하지 않음.
 				throw new RuntimeException("Invalid index node collection[" + collectionId + "] node[" + indexNodeId + "]");
 			}
@@ -77,7 +90,7 @@ public class CollectionFullIndexingJob extends IndexingJob {
 
 			updateIndexingStatusStart();
 
-			collectionContext = collectionContext.copy();
+//			collectionContext = collectionContext.copy();
 			/*
 			 * Do indexing!!
 			 */
@@ -86,7 +99,13 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			CollectionFullIndexer collectionFullIndexer = new CollectionFullIndexer(collectionContext);
 			collectionFullIndexer.setState(indexingTaskState);
 			collectionFullIndexer.doIndexing();
-			collectionFullIndexer.close();
+			boolean isIndexed = collectionFullIndexer.close();
+			if(!isIndexed){
+				//여기서 끝낸다.
+				isSuccess = true;
+				result = new IndexingJobResult(collectionId, null, (int) (System.currentTimeMillis() - startTime));
+				return new JobResult(result);
+			}
 			
 			/*
 			 * 색인파일 원격복사.
@@ -112,7 +131,7 @@ public class CollectionFullIndexingJob extends IndexingJob {
 				
 				for(int i=0;i<nodeResultList.length; i++){
 					boolean r = nodeResultList[i];
-					logger.debug("node#{}1 >> {}", i, r);
+					logger.debug("node#{} >> {}", i, r);
 				}
 //				if (!nodeResult) {
 //					throw new FastcatSearchException("Node Index Directory Clean Failed! Dir=[{}]", segmentDir.getPath());
@@ -162,6 +181,7 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			 * */
 			indexingTaskState.setState(IndexingTaskState.STATE_FINALIZE);
 			
+			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
 			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
 			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
 			if (oldCollectionHandler != null) {
@@ -195,13 +215,28 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			Streamable streamableResult = null;
 			if (throwable != null) {
 				streamableResult = new StreamableThrowable(throwable);
-			} else if (result instanceof IndexingJobResult) {
-				streamableResult = (IndexingJobResult) result;
+			} else if (result instanceof Streamable) {
+				streamableResult = (Streamable) result;
 			}
 
 			updateIndexingStatusFinish(isSuccess, streamableResult);
 		}
 
+	}
+	
+	@Override
+	public void readFrom(DataInput input) throws IOException {
+		super.readFrom(input);
+		StreamableCollectionContext streamableCollectionContext = new StreamableCollectionContext(environment);
+		streamableCollectionContext.readFrom(input);
+		this.collectionContext = streamableCollectionContext.collectionContext();
+	}
+
+	@Override
+	public void writeTo(DataOutput output) throws IOException {
+		super.writeTo(output);
+		StreamableCollectionContext streamableCollectionContext = new StreamableCollectionContext(collectionContext);
+		streamableCollectionContext.writeTo(output);
 	}
 
 }

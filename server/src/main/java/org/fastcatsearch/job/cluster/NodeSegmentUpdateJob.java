@@ -3,6 +3,7 @@ package org.fastcatsearch.job.cluster;
 import java.io.File;
 import java.io.IOException;
 
+import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.MirrorSynchronizer;
@@ -14,12 +15,12 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.CacheServiceRestartJob;
-import org.fastcatsearch.job.StreamableJob;
+import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableCollectionContext;
 import org.fastcatsearch.util.CollectionContextUtil;
 
-public class NodeSegmentUpdateJob extends StreamableJob {
+public class NodeSegmentUpdateJob extends Job implements Streamable {
 	private static final long serialVersionUID = 7222232821891387399L;
 
 	private CollectionContext collectionContext;
@@ -27,8 +28,8 @@ public class NodeSegmentUpdateJob extends StreamableJob {
 	public NodeSegmentUpdateJob() {
 	}
 
-	public NodeSegmentUpdateJob(CollectionContext shardContext) {
-		this.collectionContext = shardContext;
+	public NodeSegmentUpdateJob(CollectionContext collectionContext) {
+		this.collectionContext = collectionContext;
 	}
 
 	@Override

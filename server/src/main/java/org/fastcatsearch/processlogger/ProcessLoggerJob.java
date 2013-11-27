@@ -4,14 +4,15 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
-import org.fastcatsearch.job.StreamableJob;
+import org.fastcatsearch.job.Job;
 import org.fastcatsearch.processlogger.log.ProcessLog;
 import org.fastcatsearch.service.ServiceManager;
 
-public class ProcessLoggerJob extends StreamableJob {
+public class ProcessLoggerJob extends Job implements Streamable {
 
 	private static final long serialVersionUID = -1455315501463956117L;
 	private Class<? extends ProcessLogger> processLoggerClasss;

@@ -13,71 +13,50 @@ package org.fastcatsearch.control;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
-import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.indexing.CollectionFullIndexingJob;
+import org.fastcatsearch.job.indexing.IndexingJob;
 
 
 public class IndexingMutex {
 
 	private Map<Long, String> jobIdMap;
-	private Set<String> monitors;
-	private Map<String, String> jobTypeMap;
+	private Map<String, String> jobMonitorMap;
 	
 	public IndexingMutex(){
 		jobIdMap = new HashMap<Long, String>();
-		monitors = new HashSet<String>();
-		jobTypeMap = new HashMap<String, String>();
+		jobMonitorMap = new HashMap<String, String>();
 	}
 	
 	public Collection<String> getIndexingList(){
-		return jobTypeMap.values();
+		return jobMonitorMap.values();
 	}
 	public synchronized void release(long jobId) {
-		String collection = jobIdMap.remove(jobId);
-		if(collection != null){
-			monitors.remove(collection);
-			jobTypeMap.remove(collection);
+		String collectionId = jobIdMap.remove(jobId);
+		if(collectionId != null){
+			unlock(collectionId);
 		}
 	}
+	
+	protected void unlock(String collectionId){
+		jobMonitorMap.remove(collectionId);
+	}
 
-	public synchronized void access(long myJobId, Job job) {
-		if(job instanceof CollectionFullIndexingJob){// || job instanceof AddIndexingJob){// || job instanceof RebuildIndexJob){
-			String collection = job.getStringArgs(0);
-			if(monitors.contains(collection)){
-				return;
-			}
-		}else{
-			//not an indexing job
+	public synchronized void access(long jobId, IndexingJob job) {
+		String collectionId = job.getStringArgs();
+		if(jobMonitorMap.get(collectionId) != null){
 			return;
 		}
 		
-		String collection = job.getStringArgs(0);
-		String type = null;
-		if(job instanceof CollectionFullIndexingJob){
-			type = "full";
-//		}else if(job instanceof AddIndexingJob){
-//			type = "add";
-		}
-//		else if(job instanceof RebuildIndexJob) {
-//			type = "rebuild";
-//		}
-		
-		monitors.add(collection);
-		jobIdMap.put(myJobId, collection);
-		jobTypeMap.put(collection, collection+"."+type);
+		jobIdMap.put(jobId, collectionId);
+		jobMonitorMap.put(collectionId, job.getClass().getName());
 	}
 
-	public synchronized boolean isLocked(Job job) {
-		if(job instanceof CollectionFullIndexingJob){// || job instanceof AddIndexingJob){// || job instanceof RebuildIndexJob){
-			String collection = job.getStringArgs(0);
-			if(monitors.contains(collection)){
-				return true;
-			}
-		}		
+	public synchronized boolean isLocked(IndexingJob job) {
+		String collectionId = job.getStringArgs();
+		if(jobMonitorMap.get(collectionId) != null){
+			return true;
+		}
 		return false;
 	}
 

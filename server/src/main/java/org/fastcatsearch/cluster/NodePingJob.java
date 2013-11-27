@@ -2,13 +2,14 @@ package org.fastcatsearch.cluster;
 
 import java.io.IOException;
 
+import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
-import org.fastcatsearch.job.StreamableJob;
+import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
 
-public class NodePingJob extends StreamableJob {
+public class NodePingJob extends Job implements Streamable {
 
 	private static final long serialVersionUID = -990602244092656595L;
 	

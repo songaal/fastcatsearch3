@@ -80,9 +80,9 @@ public class CollectionHandler {
 		this.schema = collectionContext.schema();
 		int dataSequence = collectionContext.indexStatus().getSequence();
 		FilePaths dataPaths = collectionFilePaths.dataPaths();
-		File dataDir = collectionFilePaths.indexFilePaths(dataSequence).file();
+		File dataDir = dataPaths.indexFilePaths(dataSequence).file();
 		if (!dataDir.exists()) {
-			logger.info("create shard data directory [{}]", dataDir.getAbsolutePath());
+			logger.info("create collection data directory [{}]", dataDir.getAbsolutePath());
 			dataDir.mkdir();
 		}
 

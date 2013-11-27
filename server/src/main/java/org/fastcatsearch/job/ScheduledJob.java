@@ -7,14 +7,14 @@ import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.util.DynamicClassLoader;
 
 public class ScheduledJob extends Job {
-	private static final long serialVersionUID = -7810770586290536202L;
+	protected static final long serialVersionUID = -7810770586290536202L;
 
-	private Job actualJob;
-	private Date startTime;
-	private int periodInSecond; // 66년까지 표현가능.
-	private boolean isCanceled;
-	private int executeCount;
-	private Date lastExecuteTime;
+	protected Job actualJob;
+	protected Date startTime;
+	protected int periodInSecond; // 66년까지 표현가능.
+	protected boolean isCanceled;
+	protected int executeCount;
+	protected Date lastExecuteTime;
 
 	public ScheduledJob(Job job, Date startTime, int periodInSecond) {
 		this.actualJob = job;
@@ -93,7 +93,7 @@ public class ScheduledJob extends Job {
 		}
 	}
 
-	private long getTimeToWaitInMillisecond() {
+	protected long getTimeToWaitInMillisecond() {
 		if (startTime.getTime() > System.currentTimeMillis()) {
 			return startTime.getTime() - System.currentTimeMillis();
 		} else {

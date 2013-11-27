@@ -25,11 +25,11 @@ import org.fastcatsearch.common.ThreadPoolFactory;
 import org.fastcatsearch.common.io.BlockingCachedStreamOutput;
 import org.fastcatsearch.common.io.BytesStreamOutput;
 import org.fastcatsearch.common.io.CachedStreamOutput;
+import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.control.JobExecutor;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.module.AbstractModule;
 import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.transport.common.ByteCounter;
@@ -372,7 +372,7 @@ public class TransportModule extends AbstractModule {
             return resultFuture;
         } catch (final Exception e) {
             resultFutureMap.remove(requestId);
-           
+           logger.error("", e);
            throw new TransportException("메시지 전송중 에러발생.", e);
         }
     }
@@ -433,9 +433,9 @@ public class TransportModule extends AbstractModule {
         stream.skip(MessageProtocol.HEADER_SIZE);
         stream.writeString(request.getClass().getName());
         logger.debug("write class {}", request.getClass().getName());
-        if(request instanceof StreamableJob){
-        	StreamableJob streamableJob = (StreamableJob) request;
-        	streamableJob.writeTo(stream);
+        if(request instanceof Streamable){
+        	Streamable streamable = (Streamable) request;
+        	streamable.writeTo(stream);
         }
         stream.close();
         

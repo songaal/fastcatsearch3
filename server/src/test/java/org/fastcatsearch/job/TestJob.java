@@ -13,12 +13,13 @@ package org.fastcatsearch.job;
 
 import java.io.IOException;
 
+import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.transport.vo.StreamableString;
 
 
-public class TestJob extends StreamableJob{
+public class TestJob extends Job implements Streamable {
 
 	public TestJob(){ }
 	

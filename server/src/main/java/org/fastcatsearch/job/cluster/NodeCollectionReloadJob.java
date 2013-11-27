@@ -2,6 +2,7 @@ package org.fastcatsearch.job.cluster;
 
 import java.io.IOException;
 
+import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
@@ -9,14 +10,14 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.CacheServiceRestartJob;
-import org.fastcatsearch.job.StreamableJob;
+import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableCollectionContext;
 import org.fastcatsearch.util.CollectionContextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NodeCollectionReloadJob extends StreamableJob {
+public class NodeCollectionReloadJob extends Job implements Streamable {
 	private static final long serialVersionUID = 7222232821891387399L;
 	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 

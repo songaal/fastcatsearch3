@@ -5,12 +5,12 @@ import java.util.List;
 
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
+import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.StreamableJob;
 
-public abstract class StreamableClusterJob extends StreamableJob {
+public abstract class StreamableClusterJob extends Job implements Streamable {
 
 	private static final long serialVersionUID = 2080251241965769963L;
 	

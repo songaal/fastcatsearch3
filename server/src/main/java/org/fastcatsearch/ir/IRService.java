@@ -13,6 +13,8 @@ package org.fastcatsearch.ir;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -23,6 +25,7 @@ import javax.xml.bind.JAXBException;
 
 import org.fastcatsearch.cluster.NodeLoadBalancable;
 import org.fastcatsearch.common.QueryCacheModule;
+import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.common.IRException;
@@ -38,6 +41,8 @@ import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.job.indexing.MasterCollectionAddIndexingJob;
+import org.fastcatsearch.job.indexing.MasterCollectionFullIndexingJob;
 import org.fastcatsearch.module.ModuleException;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
@@ -223,10 +228,10 @@ public class IRService extends AbstractService {
 //		return new CollectionHandler(collectionContext);
 //	}
 
-	public CollectionHandler loadCollectionHandler(Collection collectionId) throws IRException, SettingException {
-		CollectionContext collectionContext = loadCollectionContext(collectionId);
-		return loadCollectionHandler(collectionContext);
-	}
+//	public CollectionHandler loadCollectionHandler(Collection collection) throws IRException, SettingException {
+//		CollectionContext collectionContext = loadCollectionContext(collection);
+//		return loadCollectionHandler(collectionContext);
+//	}
 	
 	public CollectionHandler loadCollectionHandler(CollectionContext collectionContext) throws IRException, SettingException {
 		return new CollectionHandler(collectionContext).load();
@@ -291,11 +296,6 @@ public class IRService extends AbstractService {
 				CollectionHandler collectionHandler = collectionHandlerMap.get(collectionId);
 				List<String> dataNodeIdList = collectionHandler.collectionContext().collectionConfig().getDataNodeList();
 				nodeLoadBalancable.updateLoadBalance(collectionId, dataNodeIdList);
-//				for(Entry<String, ShardContext> entry : collectionHandler.collectionContext().shardContextMap().entrySet()){
-//					String shardId = entry.getKey();
-//					List<String> dataNodeIdList = entry.getValue().shardConfig().getDataNodeList();
-//					nodeLoadBalancable.updateLoadBalance(shardId, dataNodeIdList);
-//				}
 			}
 			
 		}
@@ -304,6 +304,52 @@ public class IRService extends AbstractService {
 	
 	public RealtimeQueryStatisticsModule queryStatistics() {
 		return realtimeQueryStatisticsModule;
+	}
+	
+	
+	private SimpleDateFormat simpleDateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	
+	public boolean reloadSchedule(String collectionId) {
+		IndexingScheduleConfig indexingScheduleConfig = collectionContext(collectionId).indexingScheduleConfig();
+		IndexingSchedule fullIndexingSchedule = indexingScheduleConfig.getFullIndexingSchedule();
+		IndexingSchedule addIndexingSchedule = indexingScheduleConfig.getAddIndexingSchedule();
+		if(fullIndexingSchedule != null){
+			String startTime = fullIndexingSchedule.getStart();
+			int periodInSecond = fullIndexingSchedule.getPeriodInSecond();
+			
+			MasterCollectionFullIndexingJob job = new MasterCollectionFullIndexingJob();
+			job.setArgs(collectionId);
+			try {
+				logger.debug("Load full indexing schdule {} : {}: {}", collectionId, startTime, periodInSecond);
+				JobService.getInstance().schedule(job, simpleDateFormat.parse(startTime), periodInSecond, true);
+			} catch (ParseException e) {
+				logger.error("[{}] Full Indexing schedule time parse error : {}", collectionId, startTime);
+				return false;
+			}
+		}
+		if(addIndexingSchedule != null){
+			String startTime = addIndexingSchedule.getStart();
+			int periodInSecond = addIndexingSchedule.getPeriodInSecond();
+			
+			MasterCollectionAddIndexingJob job = new MasterCollectionAddIndexingJob();
+			job.setArgs(collectionId);
+			try {
+				logger.debug("Load add indexing schdule {} : {}: {}", collectionId, startTime, periodInSecond);
+				JobService.getInstance().schedule(job, simpleDateFormat.parse(startTime), periodInSecond, true);
+			} catch (ParseException e) {
+				logger.error("[{}] Add Indexing schedule time parse error : {}", collectionId, startTime);
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public void reloadAllSchedule() {
+		//색인 스케쥴등록.
+		for(CollectionsConfig.Collection collection : getCollectionList()){
+			String collectionId = collection.getId();
+			reloadSchedule(collectionId);
+		}
 	}
 	
 }

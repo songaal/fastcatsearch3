@@ -88,10 +88,12 @@ public class IndexingProcessLogger implements ProcessLogger {
 						vo.type = log.getIndexingType();
 						vo.status = ResultStatus.SUCCESS;
 						vo.isScheduled = log.isScheduled();
-						vo.docSize = indexingJobResult.indexStatus.getDocumentCount();
-						vo.insertSize = indexingJobResult.indexStatus.getInsertCount();
-						vo.updateSize = indexingJobResult.indexStatus.getUpdateCount();
-						vo.deleteSize = indexingJobResult.indexStatus.getDeleteCount();
+						if(indexingJobResult.indexStatus != null){
+							vo.docSize = indexingJobResult.indexStatus.getDocumentCount();
+							vo.insertSize = indexingJobResult.indexStatus.getInsertCount();
+							vo.updateSize = indexingJobResult.indexStatus.getUpdateCount();
+							vo.deleteSize = indexingJobResult.indexStatus.getDeleteCount();
+						}
 						vo.startTime = new Timestamp(log.getStartTime());
 						vo.endTime = new Timestamp(log.getEndTime());
 						vo.duration = log.getDurationTime();

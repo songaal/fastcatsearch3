@@ -31,8 +31,6 @@ import org.fastcatsearch.service.ServiceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.qos.logback.classic.Level;
-
 
 public class CatServer {
 
@@ -182,7 +180,14 @@ public class CatServer {
 			taskStateService.start();
 			
 			//서비스가 모두 뜬 상태에서 후속작업.
-			pluginService.loadSchedule();
+			if(environment.isMasterNode()){
+				pluginService.loadSchedule();
+			}
+			//색인 스케쥴등록.
+			if(environment.isMasterNode()){
+				irService.reloadAllSchedule();
+			}
+			
 			
 		} catch (FastcatSearchException e) {
 			logger.error("CatServer 시작에 실패했습니다.", e);

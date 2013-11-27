@@ -1,7 +1,11 @@
 package org.fastcatsearch.job.indexing;
 
+import java.io.IOException;
+
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.ir.common.IndexingType;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.state.IndexingTaskKey;
 import org.fastcatsearch.job.state.IndexingTaskState;
@@ -18,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public abstract class IndexingJob extends Job {
+public abstract class IndexingJob extends Job implements Streamable {
 	protected static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 	
 	private static final long serialVersionUID = -3449580683698711296L;
@@ -39,8 +43,7 @@ public abstract class IndexingJob extends Job {
 	}
 	
 	public void prepare(IndexingType indexingType){
-		String[] args = getStringArrayArgs();
-		collectionId = args[0];
+		collectionId = getStringArgs();
 		this.indexingType = indexingType;
 		
 		ServiceManager serviceManager = ServiceManager.getInstance();
@@ -72,5 +75,15 @@ public abstract class IndexingJob extends Job {
 		
 		indexingTaskState.finish();
 		indexingLogger.info("[{}] {} Indexing Finish!", collectionId, indexingType.name());
+	}
+	
+	@Override
+	public void readFrom(DataInput input) throws IOException {
+		args = input.readString();
+	}
+
+	@Override
+	public void writeTo(DataOutput output) throws IOException {
+		output.writeString((String) args);
 	}
 }

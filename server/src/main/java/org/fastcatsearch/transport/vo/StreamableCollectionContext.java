@@ -56,7 +56,6 @@ public class StreamableCollectionContext implements Streamable {
 			this.collectionContext = new CollectionContext(collectionId, collectionFilePaths);
 			collectionContext.init(schema, null, collectionConfig, indexConfig, dataSourceConfig, collectionStatus, dataInfo, indexingScheduleConfig);
 			
-			//TODO shardContextMap 고려!!
 		} catch (JAXBException e) {
 			throw new IOException(e);
 		}
