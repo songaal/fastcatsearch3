@@ -5,9 +5,7 @@ import java.util.List;
 
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.InternalDBModule.MapperSession;
-import org.fastcatsearch.db.mapper.NotificationHistoryMapper;
 import org.fastcatsearch.db.mapper.TaskHistoryMapper;
-import org.fastcatsearch.db.vo.NotificationVO;
 import org.fastcatsearch.db.vo.TaskHistoryVO;
 import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionMapping;
@@ -22,8 +20,6 @@ public class GetTaskHistoryAction extends AuthAction {
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
 		
-		PageDivider divider = new PageDivider(15,10);
-		
 		DBService dbService = DBService.getInstance();
 		
 		MapperSession<TaskHistoryMapper> session = null;
@@ -32,9 +28,11 @@ public class GetTaskHistoryAction extends AuthAction {
 		
 		if(pageNum < 1) { pageNum = 1; }
 		
-		int rowStarts = 0;
+		int start = request.getIntParameter("start",0);
 		
-		int rowFinish = 0;
+		int end = request.getIntParameter("end",start);
+		
+		int totalCount = 0;
 		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
@@ -47,41 +45,32 @@ public class GetTaskHistoryAction extends AuthAction {
 			
 			List<TaskHistoryVO> entryList = null;
 			
-			divider.setTotal(mapper.getCount());
+			totalCount = mapper.getCount();
 			
-			if(pageNum > divider.totalPage()) {
-				pageNum = divider.totalPage();
-			}
+			entryList = mapper.getEntryList(start, end);
 			
-			rowStarts = divider.rowStarts(pageNum);
-			
-			rowFinish = divider.rowFinish(pageNum);
-			
-			entryList = mapper.getEntryList(rowStarts, rowFinish);
-			
-			resultWriter.object().key("totalSize").value(divider.getTotalRecord())
+			resultWriter.object().key("totalCount").value(totalCount)
 				.key("pageNum").value(pageNum)
-				.key("rowSize").value(divider.rowSize())
-				.key("pageSize").value(divider.pageSize())
-				.key("rowStarts").value(rowStarts)
-				.key("rowFinish").value(rowFinish)
-				.key("pageStarts").value(divider.pageStarts(pageNum))
-				.key("pageFinish").value(divider.pageFinish(pageNum))
-				.key("totalPage").value(divider.totalPage())
+				.key("start").value(start)
+				.key("end").value(end)
 				.key("notifications").array();
 			
 			for(int inx=0; inx < entryList.size(); inx++) {
 				
 				TaskHistoryVO entry = entryList.get(inx);
 				
-//				resultWriter.object()
-//					.key("id").value(entry.id)
-//					.key("node").value(entry.node)
-//					.key("messageCode").value(entry.messageCode)
-//					.key("message").value(entry.message)
-//					.key("regtime").value(entry.regtime)
-//					.endObject();
-				
+				resultWriter.object()
+					.key("id").value(entry.id)
+					.key("taskId").value(entry.taskId)
+					.key("executable").value(entry.executable)
+					.key("args").value(entry.args)
+					.key("status").value(entry.status.name())
+					.key("result").value(entry.resultStr)
+					.key("isScheduled").value(entry.isScheduled)
+					.key("startTime").value(entry.startTime)
+					.key("endTime").value(entry.endTime)
+					.key("duration").value(entry.duration)
+					.endObject();
 			}
 			resultWriter.endArray().endObject();
 		
