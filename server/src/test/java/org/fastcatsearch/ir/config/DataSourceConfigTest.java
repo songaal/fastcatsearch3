@@ -90,7 +90,6 @@ public class DataSourceConfigTest {
 	public void testSingleSourceConfigWrite() throws IOException, JAXBException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		SingleSourceConfig config = new SingleSourceConfig();
-		config.setId("db1");
 		config.setSourceModifier("modifier");
 		config.setSourceReader("com.abc.Reader");
 		Map<String, String> properties = new HashMap<String, String>();
@@ -115,7 +114,6 @@ public class DataSourceConfigTest {
 		dataSourceConfig.setAddIndexingSourceConfig(addSourceConfigList);
 		{
 			SingleSourceConfig config = new SingleSourceConfig();
-			config.setId("db1");
 			config.setSourceModifier("modifier");
 			config.setSourceReader("com.abc.Reader");
 			Map<String, String> properties = new HashMap<String, String>();
@@ -128,7 +126,6 @@ public class DataSourceConfigTest {
 		}
 		{
 			SingleSourceConfig config2 = new SingleSourceConfig();
-			config2.setId("file1");
 			config2.setSourceModifier("modifier2");
 			config2.setSourceReader("com.abc.Reader");
 			Map<String, String> properties = new HashMap<String, String>();

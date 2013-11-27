@@ -12,7 +12,6 @@ import org.fastcatsearch.ir.settings.KeyValueMapAdapter;
 @XmlRootElement(name="source")
 public class SingleSourceConfig {
 	
-	private String id;
 	private String name;
 	private boolean active;
 	private String sourceReader;
@@ -20,15 +19,6 @@ public class SingleSourceConfig {
 	private Map<String, String> properties;
 	
 	public SingleSourceConfig(){
-	}
-	
-	@XmlAttribute(required = true)
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
 	}
 	
 	@XmlAttribute
