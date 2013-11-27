@@ -167,7 +167,7 @@ public class CollectionAddIndexingJob extends IndexingJob {
 				IndexFileTransfer indexFileTransfer = new IndexFileTransfer(environment);
 				//case 1. segment-append 파일과 revision/ 파일들을 전송한다.
 				//case 2. 만약 segment가 생성 or 수정된 경우라면 그대로 전송하면된다. 
-				nodeResultList = indexFileTransfer.transferDirectory(transferDir, nodeService, nodeList);
+				nodeResultList = indexFileTransfer.transferDirectory(transferDir, nodeService, nodeList2);
 				
 				//성공한 node만 전송.
 				List<Node> nodeList3 = new ArrayList<Node>();
@@ -216,7 +216,7 @@ public class CollectionAddIndexingJob extends IndexingJob {
 		} catch (Throwable e) {
 			indexingLogger.error("[" + collectionId + "] Indexing", e);
 			throwable = e;
-			throw new FastcatSearchException("ERR-00500", throwable, collectionId); // 전체색인실패.
+			throw new FastcatSearchException("ERR-00501", throwable, collectionId); // 색인실패.
 		} finally {
 			Streamable streamableResult = null;
 			if (throwable != null) {

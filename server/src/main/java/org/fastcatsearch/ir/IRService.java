@@ -228,10 +228,10 @@ public class IRService extends AbstractService {
 //		return new CollectionHandler(collectionContext);
 //	}
 
-	public CollectionHandler loadCollectionHandler(Collection collectionId) throws IRException, SettingException {
-		CollectionContext collectionContext = loadCollectionContext(collectionId);
-		return loadCollectionHandler(collectionContext);
-	}
+//	public CollectionHandler loadCollectionHandler(Collection collection) throws IRException, SettingException {
+//		CollectionContext collectionContext = loadCollectionContext(collection);
+//		return loadCollectionHandler(collectionContext);
+//	}
 	
 	public CollectionHandler loadCollectionHandler(CollectionContext collectionContext) throws IRException, SettingException {
 		return new CollectionHandler(collectionContext).load();

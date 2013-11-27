@@ -67,24 +67,26 @@ public class MirrorSynchronizer {
 				String filename = input.readString();
 				long length = input.readVLong();
 				logger.debug("apply file[{}] [{}B]", filename, length);
-				File targetFile = new File(segmentDir, filename);
-				IndexOutput output = null;
-				try {
-					output = new BufferedFileOutput(targetFile, true);
-					IOUtil.transferFrom(output, input, length, buffer);
-					
-					if(filename.equalsIgnoreCase(IndexFileNames.docStored)){
-						//document는 맨앞에 count를 다시기록해주어야한다! 
-						if(documentSize > 0){
-							output.seek(0);
-							output.writeInt(documentSize);
+				if(length > 0){
+					File targetFile = new File(segmentDir, filename);
+					IndexOutput output = null;
+					try {
+						output = new BufferedFileOutput(targetFile, true);
+						IOUtil.transferFrom(output, input, length, buffer);
+						
+						if(filename.equalsIgnoreCase(IndexFileNames.docStored)){
+							//document는 맨앞에 count를 다시기록해주어야한다! 
+							if(documentSize > 0){
+								output.seek(0);
+								output.writeInt(documentSize);
+							}
 						}
-					}
-				} finally {
-					if (output != null) {
-						try {
-							output.close();
-						} catch (IOException ignore) {
+					} finally {
+						if (output != null) {
+							try {
+								output.close();
+							} catch (IOException ignore) {
+							}
 						}
 					}
 				}

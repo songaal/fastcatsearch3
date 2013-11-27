@@ -148,6 +148,7 @@ public class CollectionContextUtil {
 
 			Schema schema = collectionContext.schema();
 			Schema workSchema = collectionContext.workSchema();
+			IndexConfig indexConfig = collectionContext.indexConfig();
 			CollectionConfig collectionConfig = collectionContext.collectionConfig();
 			CollectionIndexStatus collectionStatus = collectionContext.indexStatus();
 			DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
@@ -163,6 +164,9 @@ public class CollectionContextUtil {
 			if (workSchema != null && workSchema.schemaSetting() != null) {
 				SchemaSetting schemaSetting = workSchema.schemaSetting();
 				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.workSchema), schemaSetting, SchemaSetting.class);
+			}
+			if(indexConfig != null){
+				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.indexConfig), indexConfig, IndexConfig.class);
 			}
 			if (collectionConfig != null) {
 				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.collectionConfig), collectionConfig, CollectionConfig.class);
@@ -209,6 +213,11 @@ public class CollectionContextUtil {
 				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.schema), schemaSetting, SchemaSetting.class);
 			}
 
+			IndexConfig indexConfig = collectionContext.indexConfig();
+			if(indexConfig != null){
+				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.indexConfig), indexConfig, IndexConfig.class);
+			}
+			
 			CollectionConfig collectionConfig = collectionContext.collectionConfig();
 			if (collectionConfig != null) {
 				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.collectionConfig), collectionConfig, CollectionConfig.class);

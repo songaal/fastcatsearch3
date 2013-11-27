@@ -41,7 +41,7 @@ public class FastcatSearchAlertJob extends Job implements Streamable {
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
 		node.writeTo(output);
-		output.writeBoolean(false);
+		//output.writeBoolean(false);
 		new StreamableThrowable(e).writeTo(output);
 	}
 
