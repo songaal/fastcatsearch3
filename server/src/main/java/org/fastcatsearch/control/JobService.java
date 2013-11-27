@@ -127,10 +127,6 @@ public class JobService extends AbstractService implements JobExecutor {
 		return jobQueue.size();
 	}
 
-//	public void setUseJobScheduler(boolean useJobScheduler) {
-//		this.useJobScheduler = useJobScheduler;
-//	}
-
 	public Collection<Job> getRunningJobs() {
 		return runningJobList.values();
 	}
@@ -171,7 +167,7 @@ public class JobService extends AbstractService implements JobExecutor {
 		job.setJobExecutor(this);
 
 		if (job instanceof IndexingJob) {
-			if (indexingMutex.isLocked(job)) {
+			if (indexingMutex.isLocked((IndexingJob) job)) {
 				indexingLogger.info("The collection [" + job.getStringArgs(0) + "] has already started an indexing job.");
 				return null;
 			}
@@ -181,7 +177,7 @@ public class JobService extends AbstractService implements JobExecutor {
 		logger.debug("### OFFER Job-{}", myJobId);
 
 		if (job instanceof IndexingJob) {
-			indexingMutex.access(myJobId, job);
+			indexingMutex.access(myJobId, (IndexingJob) job);
 		}
 
 		if (job.isNoResult()) {
@@ -242,6 +238,7 @@ public class JobService extends AbstractService implements JobExecutor {
 			logger.error("{} is already scheduled", job);
 		}
 	}
+	
 	
 	public void cancelSchedule(Job job){
 		String jobKey = getJobKey(job);

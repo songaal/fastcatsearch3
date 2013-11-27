@@ -23,12 +23,14 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 	public CollectionFullIndexer(CollectionContext collectionContext) throws IRException {
 		super(collectionContext);
 
-		Schema workingSchema = collectionContext.workSchema();
-		if (workingSchema == null) {
-			workingSchema = collectionContext.schema();
-		}
+//		Schema workingSchema = collectionContext.workSchema();
+//		if (workingSchema == null) {
+//			workingSchema = collectionContext.schema();
+//		}
+//		
+//		init(workingSchema);
 		
-		init(workingSchema);
+		init(collectionContext.schema());
 	}
 
 	@Override
@@ -57,7 +59,7 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 	}
 
 	@Override
-	protected void done(RevisionInfo revisionInfo, IndexStatus indexStatus) throws IRException {
+	protected boolean done(RevisionInfo revisionInfo, IndexStatus indexStatus) throws IRException {
 		int insertCount = revisionInfo.getInsertCount();
 
 		if (insertCount > 0) {
@@ -69,11 +71,13 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 			collectionContext.addSegmentInfo(workingSegmentInfo);  
 			//update status.xml file
 			collectionContext.updateCollectionStatus(IndexingType.FULL, revisionInfo, startTime, System.currentTimeMillis());
+			collectionContext.indexStatus().setFullIndexStatus(indexStatus);
+			return true;
 		}else{
 			logger.info("[{}] Indexing Canceled due to no documents.", collectionContext.collectionId());
+			return false;
 		}
 		
-		collectionContext.indexStatus().setFullIndexStatus(indexStatus);
 	}
 }
 

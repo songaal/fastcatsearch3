@@ -8,7 +8,8 @@ import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
-import org.fastcatsearch.job.indexing.CollectionFullIndexingJob;
+import org.fastcatsearch.job.indexing.MasterCollectionFullIndexingJob;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
 @ActionMapping("/indexing/full/run")
@@ -18,12 +19,13 @@ public class RunFullIndexingAction extends AuthAction {
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
 		
 		String collectionId = request.getParameter("collectionId");
-		
 
-		CollectionFullIndexingJob collectionIndexingJob = new CollectionFullIndexingJob();
-		collectionIndexingJob.setArgs(new String[] { collectionId });
+		JobService jobService = ServiceManager.getInstance().getService(JobService.class);
 		
-		ResultFuture jobResult = JobService.getInstance().offer(collectionIndexingJob);
+		MasterCollectionFullIndexingJob masterCollectionIndexingJob = new MasterCollectionFullIndexingJob();
+		masterCollectionIndexingJob.setArgs(collectionId);
+		
+		ResultFuture jobResult = jobService.offer(masterCollectionIndexingJob);
 		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);

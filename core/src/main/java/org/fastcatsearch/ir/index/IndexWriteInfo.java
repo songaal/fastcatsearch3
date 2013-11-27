@@ -24,7 +24,7 @@ public class IndexWriteInfo {
 	
 	@Override
 	public String toString(){
-		return "["+getClass().getSimpleName()+"]filename["+filename+"] offset["+offset+"] length["+limit+"]";
+		return "["+getClass().getSimpleName()+"] filename["+filename+"] offset["+offset+"] length["+limit+"]";
 	}
 	
 	public void close(long limit){

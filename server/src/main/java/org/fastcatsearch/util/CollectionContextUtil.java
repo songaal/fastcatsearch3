@@ -161,7 +161,7 @@ public class CollectionContextUtil {
 				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.schema), schemaSetting, SchemaSetting.class);
 			}
 			if (workSchema != null && workSchema.schemaSetting() != null) {
-				SchemaSetting schemaSetting = schema.schemaSetting();
+				SchemaSetting schemaSetting = workSchema.schemaSetting();
 				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.workSchema), schemaSetting, SchemaSetting.class);
 			}
 			if (collectionConfig != null) {
@@ -198,28 +198,43 @@ public class CollectionContextUtil {
 	 * */
 	public static void saveCollectionAfterIndexing(CollectionContext collectionContext) throws SettingException {
 		FilePaths collectionFilePaths = collectionContext.collectionFilePaths();
-
-		CollectionIndexStatus collectionStatus = collectionContext.indexStatus();
-		DataInfo dataInfo = collectionContext.dataInfo();
 		
 		FilePaths dataFilePaths = collectionFilePaths.dataPaths();
-
+		File collectionDir = collectionFilePaths.file();
+		
 		try {
+			Schema schema = collectionContext.schema();
+			if (schema != null && schema.schemaSetting() != null) {
+				SchemaSetting schemaSetting = schema.schemaSetting();
+				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.schema), schemaSetting, SchemaSetting.class);
+			}
+
+			CollectionConfig collectionConfig = collectionContext.collectionConfig();
+			if (collectionConfig != null) {
+				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.collectionConfig), collectionConfig, CollectionConfig.class);
+			}
+			
+			CollectionIndexStatus collectionStatus = collectionContext.indexStatus();
 			if (collectionStatus != null) {
 				JAXBConfigs.writeConfig(collectionFilePaths.file(SettingFileNames.indexStatus), collectionStatus, CollectionIndexStatus.class);
 			}
+
+			DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
+			if (dataSourceConfig != null) {
+				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.datasourceConfig), dataSourceConfig, DataSourceConfig.class);
+			}
 			
+			DataInfo dataInfo = collectionContext.dataInfo();
 			if (dataInfo != null) {
 				File indexDir = dataFilePaths.indexDirFile(collectionContext.getIndexSequence());
 				indexDir.mkdirs();
 				logger.debug("Save DataInfo >> {}", dataInfo);
-				
 				JAXBConfigs.writeConfig(new File(indexDir, SettingFileNames.dataInfo), dataInfo, DataInfo.class);
-
+				
+				//리비전 xml을 각 리비전 디렉토리에 백업용을 남겨둔다.
 				SegmentInfo lastSegmentInfo = dataInfo.getLastSegmentInfo();
 				if(lastSegmentInfo != null) {
-					File revisionDir = dataFilePaths.revisionFile(collectionContext.getIndexSequence(), lastSegmentInfo.getId(),
-							lastSegmentInfo.getRevision());
+					File revisionDir = dataFilePaths.revisionFile(collectionContext.getIndexSequence(), lastSegmentInfo.getId(), lastSegmentInfo.getRevision());
 					RevisionInfo revisionInfo = lastSegmentInfo.getRevisionInfo();
 					if (revisionInfo != null) {
 						logger.debug("Save RevisionInfo >> {}, {}", revisionDir.getAbsolutePath(), revisionInfo);
@@ -227,34 +242,14 @@ public class CollectionContextUtil {
 					}
 				}
 			}
+			
+			File workSchemaFile = collectionFilePaths.file(SettingFileNames.workSchema);
+			if (workSchemaFile.exists()) {
+				workSchemaFile.delete();
+			}
 		} catch (JAXBException e) {
 			throw new SettingException("색인후 CollectionContext 저장중 에러발생", e);
 		}
 	}
 	
-	// workschema파일이 존재한다면 workschema를 schema로 대치하고
-	// schema파일을 저장하고, workschema파일을 지운다.
-	public static void applyWorkSchema(CollectionContext collectionContext) throws SettingException {
-		FilePaths collectionFilePaths = collectionContext.collectionFilePaths();
-		Schema schema = collectionContext.schema();
-		Schema workSchema = collectionContext.workSchema();
-		File collectionDir = collectionFilePaths.file();
-
-		try {
-			logger.debug("applyWorkSchema schema={}", schema);
-			logger.debug("applyWorkSchema workSchema={}", workSchema);
-			if (workSchema != null && !workSchema.isEmpty()) {
-				schema.update(workSchema);
-				collectionContext.setWorkSchema(null);
-				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.schema), schema, Schema.class);
-				File workSchemaFile = new File(collectionDir, SettingFileNames.workSchema);
-				if (workSchemaFile.exists()) {
-					workSchemaFile.delete();
-				}
-			}
-		} catch (JAXBException e) {
-			throw new SettingException("WorkSchema 적용중 에러발생", e);
-		}
-
-	}
 }

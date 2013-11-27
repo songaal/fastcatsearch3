@@ -34,6 +34,7 @@ public class IndexingFinishNotification extends Notification {
 
 	@Override
 	public void readFrom(DataInput input) throws IOException {
+		super.readFrom(input);
 		collectionId = input.readString();
 		indexingType = IndexingType.valueOf(input.readString());
 		isSuccess = input.readBoolean();
@@ -49,6 +50,7 @@ public class IndexingFinishNotification extends Notification {
 
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
+		super.writeTo(output);
 		output.writeString(collectionId);
 		output.writeString(indexingType.name());
 		output.writeBoolean(isSuccess);
@@ -73,9 +75,13 @@ public class IndexingFinishNotification extends Notification {
 		
 		if(isSuccess){
 			IndexingJobResult result2 = (IndexingJobResult) result;
-			params[5] = "추가문서수["+Integer.toString(result2.indexStatus.getInsertCount())+"] " +
+			if(result2.indexStatus != null){
+				params[5] = "추가문서수["+Integer.toString(result2.indexStatus.getInsertCount())+"] " +
 					"업데이트문서수["+Integer.toString(result2.indexStatus.getUpdateCount())+"]" +
 					"삭제문서수["+Integer.toString(result2.indexStatus.getDeleteCount())+"]";
+			}else{
+				params[5] = "Empty";
+			}
 		}else{
 			if(result instanceof StreamableThrowable){
 				StreamableThrowable throwable = (StreamableThrowable) result;

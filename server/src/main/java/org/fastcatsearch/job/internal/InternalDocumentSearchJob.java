@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.io.DataInput;
@@ -14,7 +15,7 @@ import org.fastcatsearch.ir.query.View;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.DocIdList;
 import org.fastcatsearch.ir.search.DocumentResult;
-import org.fastcatsearch.job.StreamableJob;
+import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableDocumentResult;
 
@@ -22,7 +23,7 @@ import org.fastcatsearch.transport.vo.StreamableDocumentResult;
  * 요청된 문서의 특정필드만 포함된 문서리스트를 가져오는 job.
  *
  * */
-public class InternalDocumentSearchJob extends StreamableJob {
+public class InternalDocumentSearchJob extends Job implements Streamable {
 
 	private static final long serialVersionUID = -5716557532305983540L;
 

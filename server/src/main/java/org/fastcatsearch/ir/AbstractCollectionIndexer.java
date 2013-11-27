@@ -19,6 +19,7 @@ import org.fastcatsearch.ir.index.SegmentWriter;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.state.IndexingTaskState;
+import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
@@ -46,13 +47,13 @@ public abstract class AbstractCollectionIndexer {
 	
 	protected abstract DataSourceReader createDataSourceReader(File filePath, Schema schema) throws IRException;
 	protected abstract void prepare() throws IRException;
-	protected abstract void done(RevisionInfo revisionInfo, IndexStatus indexStatus) throws IRException;
+	protected abstract boolean done(RevisionInfo revisionInfo, IndexStatus indexStatus) throws IRException;
 	
 	public void init(Schema schema) throws IRException {
 		
 		prepare();
 		
-		FilePaths indexFilePaths = collectionContext.collectionFilePaths().dataPaths();
+		FilePaths dataFilePaths = collectionContext.collectionFilePaths().dataPaths();
 		int dataSequence = collectionContext.getIndexSequence();
 
 		IndexConfig indexConfig = collectionContext.indexConfig();
@@ -61,7 +62,7 @@ public abstract class AbstractCollectionIndexer {
 		String segmentId = workingSegmentInfo.getId();
 		RevisionInfo revisionInfo = workingSegmentInfo.getRevisionInfo();
 
-		File segmentDir = indexFilePaths.segmentFile(dataSequence, segmentId);
+		File segmentDir = dataFilePaths.segmentFile(dataSequence, segmentId);
 		logger.info("Segment Dir = {}", segmentDir.getAbsolutePath());
 		
 		segmentWriter = new SegmentWriter(schema, segmentDir, revisionInfo, indexConfig);
@@ -91,7 +92,8 @@ public abstract class AbstractCollectionIndexer {
 		}
 	}
 	
-	public void close() throws IRException, SettingException{
+	//색인취소(0건)이면 false;
+	public boolean close() throws IRException, SettingException{
 		
 		RevisionInfo revisionInfo = workingSegmentInfo.getRevisionInfo();
 		if (segmentWriter != null) {
@@ -109,13 +111,20 @@ public abstract class AbstractCollectionIndexer {
 		deleteIdSet = dataSourceReader.getDeleteList();
 		int deleteCount = deleteIdSet.size();
 		
+		revisionInfo.setDeleteCount(deleteCount);
+		
 		long endTime = System.currentTimeMillis();
 		
 		IndexStatus indexStatus = new IndexStatus(revisionInfo.getDocumentCount(), revisionInfo.getInsertCount(), revisionInfo.getUpdateCount(), deleteCount,
 				Formatter.formatDate(new Date(startTime)), Formatter.formatDate(new Date(endTime)), Formatter.getFormatTime(endTime - startTime));
-		done(revisionInfo, indexStatus);
 		
-		CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
+		if(done(revisionInfo, indexStatus)){
+			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
+			return true;
+		}else{
+			//저장하지 않음.
+			return false;
+		}
 	}
 	
 	public IndexWriteInfoList indexWriteInfoList() {
@@ -131,31 +140,10 @@ public abstract class AbstractCollectionIndexer {
 		}
 
 	}
-
-//	protected IndexStatus finalizeIndexing() throws IRException, SettingException {
-//		RevisionInfo info = shardIndexMapper.close();
-//
-//		dataSourceReader.close();
-//		
-//		logger.debug("##Indexer close {}", info);
-//
-//		deleteIdSet = dataSourceReader.getDeleteList();
-//		int deleteCount = deleteIdSet.size();
-//
-//		long endTime = System.currentTimeMillis();
-//		
-//		return new IndexStatus(info.getDocumentCount(), info.getInsertCount(), info.getUpdateCount(), deleteCount,
-//				Formatter.formatDate(new Date(startTime)), Formatter.formatDate(new Date(endTime)), Formatter.getFormatTime(endTime - startTime));
-//	}
 	
 	public DeleteIdSet deleteIdSet() {
 		return deleteIdSet;
 	}
-
-	// 변경파일정보를 받아서 타 노드 전송에 사용하도록 한다.
-//	public Map<String, IndexWriteInfoList> getIndexWriteInfoListMap() {
-//		return shardIndexMapper.getIndexWriteInfoListMap();
-//	}
 	
 	public void setState(IndexingTaskState indexingTaskState) {
 		this.indexingTaskState = indexingTaskState;

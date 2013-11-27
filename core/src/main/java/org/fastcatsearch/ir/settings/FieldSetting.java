@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 
 @XmlRootElement(name = "field")
 // propOrder는 xml writer의 기록순서인데, attribute의 경우 next attribute를 현재 attribute의 앞에 기록하므로 proporder를 거꾸로 정의해야 올바른 순서로 보여진다.
-@XmlType(propOrder = { "multiValueDelimiter", "multiValue", "modify", "removeTag", "store", "size", "name", "source", "type", "id" })
+@XmlType(propOrder = { "multiValueDelimiter", "multiValue", "modify", "removeTag", "compress", "store", "size", "name", "source", "type", "id" })
 public class FieldSetting {
 	protected static Logger logger = LoggerFactory.getLogger(FieldSetting.class);
 	private String id;
@@ -51,6 +51,7 @@ public class FieldSetting {
 	private int size;
 	private String source;
 	private boolean store = true;
+	private boolean compress;
 	private boolean removeTag;
 	private boolean modify;
 	private boolean multiValue;
@@ -122,13 +123,25 @@ public class FieldSetting {
 		this.size = size;
 	}
 
-	@XmlJavaTypeAdapter(OptionalBooleanFalseAdapter.class)
+	@XmlAttribute
+	@XmlJavaTypeAdapter(OptionalBooleanTrueAdapter.class)
+	//기본적으로 저장 true;
 	public Boolean isStore() {
 		return store;
 	}
 
 	public void setStore(Boolean store) {
 		this.store = store;
+	}
+
+	@XmlAttribute
+	@XmlJavaTypeAdapter(OptionalBooleanFalseAdapter.class)
+	public Boolean isCompress() {
+		return compress;
+	}
+
+	public void setCompress(Boolean compress) {
+		this.compress = compress;
 	}
 
 	@XmlAttribute

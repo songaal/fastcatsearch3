@@ -3,13 +3,14 @@ package org.fastcatsearch.job.internal;
 import java.io.IOException;
 import java.util.List;
 
+import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.job.StreamableJob;
+import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableDocumentList;
 
@@ -17,7 +18,7 @@ import org.fastcatsearch.transport.vo.StreamableDocumentList;
  * 문서의 모든 필드를 통째로 가져오는 job.
  *
  * */
-public class InternalDocumentRequestJob extends StreamableJob {
+public class InternalDocumentRequestJob extends Job implements Streamable {
 	
 	private String collectionId;
 	private String shardId;

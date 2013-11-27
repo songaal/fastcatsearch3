@@ -114,7 +114,7 @@ public class JAXBConfigs {
 		Marshaller marshaller = context.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-		logger.debug("removeXmlDeclaration!! {}", removeXmlDeclaration);
+//		logger.debug("removeXmlDeclaration!! {}", removeXmlDeclaration);
 		if(removeXmlDeclaration){
 			marshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
 //			marshaller.setProperty("com.sun.xml.bind.xmlDeclaration", Boolean.FALSE);

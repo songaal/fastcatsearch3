@@ -8,7 +8,6 @@ import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.StreamableJob;
 import org.fastcatsearch.transport.ChannelBufferStreamInput;
 import org.fastcatsearch.transport.TransportChannel;
 import org.fastcatsearch.transport.TransportException;
@@ -131,10 +130,9 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         	String jobName = input.readString();
         	logger.debug("#### READ job = {}", jobName);
         	Job requestJob = DynamicClassLoader.loadObject(jobName, Job.class);
-        	if(requestJob instanceof StreamableJob){
-        		StreamableJob streamableJob = (StreamableJob) requestJob;
-        		streamableJob.setEnvironment(environment);
-        		streamableJob.readFrom(input);
+        	requestJob.setEnvironment(environment);
+        	if(requestJob instanceof Streamable){
+        		((Streamable) requestJob).readFrom(input);
         	}
         	
         	transport.execute(new RequestHandler(requestJob, transportChannel));
