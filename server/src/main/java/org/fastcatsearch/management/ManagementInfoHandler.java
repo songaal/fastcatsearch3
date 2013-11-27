@@ -229,7 +229,7 @@ public class ManagementInfoHandler {
 		} else {
 			percent = 0;
 		}
-		// logger.debug("Cpu usage: "+percent+"%"+", "+(sunCpuAfter-sunCpuBefore)+" / "+(sunNanoAfter-sunNanoBefore));
+		 logger.debug("Cpu usage: "+percent+"%"+", "+(sunCpuAfter-sunCpuBefore)+" / "+(sunNanoAfter-sunNanoBefore));
 		sunNanoBefore = System.nanoTime();
 		sunCpuBefore = sunOsMXBean.getProcessCpuTime();
 

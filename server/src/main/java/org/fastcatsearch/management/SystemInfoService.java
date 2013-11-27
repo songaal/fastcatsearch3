@@ -20,7 +20,7 @@ import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
 
-public class ManagementInfoService extends AbstractService {
+public class SystemInfoService extends AbstractService {
 
 	private static long PERIOD = 1000; // 1초마다 InfoCheckerTask를 수행한다.
 	private static long START_DELAY = 1000;
@@ -31,13 +31,13 @@ public class ManagementInfoService extends AbstractService {
 	private JvmCpuInfo jvmCpuInfoPerSecond = new JvmCpuInfo();
 	private JvmMemoryInfo jvmMemoryInfoPerSecond = new JvmMemoryInfo();
 
-	private static ManagementInfoService instance;
+	private static SystemInfoService instance;
 
-	public static ManagementInfoService getInstance() {
+	public static SystemInfoService getInstance() {
 		return instance;
 	}
 
-	public ManagementInfoService(Environment environment, Settings settings, ServiceManager serviceManager) {
+	public SystemInfoService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
 	}
 

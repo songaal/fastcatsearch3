@@ -11,6 +11,7 @@ import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.service.ServiceManager;
@@ -30,6 +31,20 @@ public class GetIndexingStatusAction extends AuthAction {
 		ResponseWriter responseWriter = getDefaultResponseWriter(writer);
 		responseWriter.object()
 		.key("collectionId").value(collectionId);
+		
+		DataInfo dataInfo = collectionContext.dataInfo();
+		
+		int segmentSize = dataInfo.getSegmentSize();
+		String revisionUUID = null;
+		SegmentInfo lastSegmentInfo = dataInfo.getLastSegmentInfo();
+		if(lastSegmentInfo != null){
+			revisionUUID = lastSegmentInfo.getRevisionInfo().getUuid();
+		}else{
+			revisionUUID = "";
+		}
+		
+		responseWriter.key("segmentSize").value(segmentSize)
+		.key("revisionUUID").value(revisionUUID);
 		
 		int sequence = collectionContext.indexStatus().getSequence();
 		File indexFileDir = collectionContext.dataFilePaths().indexDirFile(sequence);

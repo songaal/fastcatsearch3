@@ -8,7 +8,7 @@ import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.management.JvmCpuInfo;
 import org.fastcatsearch.management.JvmMemoryInfo;
-import org.fastcatsearch.management.ManagementInfoService;
+import org.fastcatsearch.management.SystemInfoService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
@@ -18,7 +18,7 @@ public class GetSystemUsageAction extends AuthAction {
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
 		
-		ManagementInfoService managementInfoService = ServiceManager.getInstance().getService(ManagementInfoService.class);
+		SystemInfoService managementInfoService = ServiceManager.getInstance().getService(SystemInfoService.class);
 		
 		JvmCpuInfo jvmCpuInfo = managementInfoService.getJvmCpuInfo();
 		
