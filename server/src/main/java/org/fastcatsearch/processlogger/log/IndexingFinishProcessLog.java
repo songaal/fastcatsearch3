@@ -3,6 +3,7 @@ package org.fastcatsearch.processlogger.log;
 import java.io.IOException;
 
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.db.mapper.IndexingResultMapper.ResultStatus;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
@@ -13,7 +14,7 @@ public class IndexingFinishProcessLog implements ProcessLog {
 
 	private String collectionId;
 	private IndexingType indexingType;
-	private boolean isSuccess;
+	private ResultStatus resultStatus;
 	private long startTime;
 	private long endTime;
 	private boolean isScheduled;
@@ -21,11 +22,11 @@ public class IndexingFinishProcessLog implements ProcessLog {
 
 	public IndexingFinishProcessLog() { }
 	
-	public IndexingFinishProcessLog(String collectionId, IndexingType indexingType, boolean isSuccess, long startTime, long endTime,
+	public IndexingFinishProcessLog(String collectionId, IndexingType indexingType, ResultStatus resultStatus, long startTime, long endTime,
 			boolean isScheduled, Streamable result) {
 		this.collectionId = collectionId;
 		this.indexingType = indexingType;
-		this.isSuccess = isSuccess;
+		this.resultStatus = resultStatus;
 		this.startTime = startTime;
 		this.endTime = endTime;
 		this.isScheduled = isScheduled;
@@ -40,8 +41,20 @@ public class IndexingFinishProcessLog implements ProcessLog {
 		return indexingType;
 	}
 
+	public ResultStatus getResultStatus() {
+		return resultStatus;
+	}
+	
 	public boolean isSuccess() {
-		return isSuccess;
+		return resultStatus == ResultStatus.SUCCESS;
+	}
+	
+	public boolean isCanceled() {
+		return resultStatus == ResultStatus.CANCEL;
+	}
+	
+	public boolean isFail() {
+		return resultStatus == ResultStatus.FAIL;
 	}
 
 	public long getStartTime() {
@@ -68,12 +81,12 @@ public class IndexingFinishProcessLog implements ProcessLog {
 	public void readFrom(DataInput input) throws IOException {
 		collectionId = input.readString();
 		indexingType = IndexingType.valueOf(input.readString());
-		isSuccess = input.readBoolean();
+		resultStatus = ResultStatus.valueOf(input.readString());
 		startTime = input.readLong();
 		endTime = input.readLong();
 		isScheduled = input.readBoolean();
 		if(input.readBoolean()){
-			if (isSuccess) {
+			if (!isFail()) {
 				result = new IndexingJobResult();
 			} else {
 				result = new StreamableThrowable();
@@ -86,7 +99,7 @@ public class IndexingFinishProcessLog implements ProcessLog {
 	public void writeTo(DataOutput output) throws IOException {
 		output.writeString(collectionId);
 		output.writeString(indexingType.name());
-		output.writeBoolean(isSuccess);
+		output.writeString(resultStatus.name());
 		output.writeLong(startTime);
 		output.writeLong(endTime);
 		output.writeBoolean(isScheduled);

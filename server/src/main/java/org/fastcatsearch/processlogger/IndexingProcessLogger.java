@@ -79,14 +79,14 @@ public class IndexingProcessLogger implements ProcessLogger {
 					indexingResultMapper.deleteEntry(log.getCollectionId(), IndexingType.ADD);
 
 					IndexingStatusVO vo = new IndexingStatusVO();
-					if (log.isSuccess()) {
+					if (!log.isFail()) {
 						//
 						// 색인 성공
 						//
 						IndexingJobResult indexingJobResult = (IndexingJobResult) log.getResult();
 						vo.collectionId = log.getCollectionId();
 						vo.type = log.getIndexingType();
-						vo.status = ResultStatus.SUCCESS;
+						vo.status = log.getResultStatus();
 						vo.isScheduled = log.isScheduled();
 						if(indexingJobResult.indexStatus != null){
 							vo.docSize = indexingJobResult.indexStatus.getDocumentCount();
@@ -104,7 +104,7 @@ public class IndexingProcessLogger implements ProcessLogger {
 						//
 						vo.collectionId = log.getCollectionId();
 						vo.type = log.getIndexingType();
-						vo.status = ResultStatus.FAIL;
+						vo.status = log.getResultStatus();
 						vo.isScheduled = log.isScheduled();
 						vo.startTime = new Timestamp(log.getStartTime());
 						vo.endTime = new Timestamp(log.getEndTime());

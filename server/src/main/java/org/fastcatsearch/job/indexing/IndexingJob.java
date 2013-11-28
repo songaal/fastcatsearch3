@@ -3,6 +3,7 @@ package org.fastcatsearch.job.indexing;
 import java.io.IOException;
 
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.db.mapper.IndexingResultMapper.ResultStatus;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
@@ -64,13 +65,13 @@ public abstract class IndexingJob extends Job implements Streamable {
 		indexingTaskState.start();
 	}
 	
-	protected void updateIndexingStatusFinish(boolean isSuccess, Streamable streamableResult){
+	protected void updateIndexingStatusFinish(ResultStatus resultStatus, Streamable streamableResult){
 		long endTime = System.currentTimeMillis();
 		
 		processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId, 
-				indexingType, isSuccess, indexingStartTime, endTime, isScheduled(), streamableResult));
+				indexingType, resultStatus, indexingStartTime, endTime, isScheduled(), streamableResult));
 
-		notificationService.notify(new IndexingFinishNotification(collectionId, indexingType, isSuccess,
+		notificationService.notify(new IndexingFinishNotification(collectionId, indexingType, resultStatus,
 				indexingStartTime, endTime, streamableResult));
 		
 		indexingTaskState.finish();

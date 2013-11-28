@@ -19,6 +19,7 @@ import org.fastcatsearch.cluster.ClusterUtils;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.db.mapper.IndexingResultMapper.ResultStatus;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.CollectionAddIndexer;
 import org.fastcatsearch.ir.IRService;
@@ -54,7 +55,7 @@ public class CollectionAddIndexingJob extends IndexingJob {
 		prepare(IndexingType.ADD);
 		
 		Throwable throwable = null;
-		boolean isSuccess = false;
+		ResultStatus resultStatus = ResultStatus.RUNNING;
 		Object result = null;
 		
 		try {
@@ -92,7 +93,7 @@ public class CollectionAddIndexingJob extends IndexingJob {
 			boolean isIndexed = collectionIndexer.close();
 			if(!isIndexed){
 				//여기서 끝낸다.
-				isSuccess = true;
+				resultStatus = ResultStatus.CANCEL;
 				result = new IndexingJobResult(collectionId, null, (int) (System.currentTimeMillis() - startTime));
 				return new JobResult(result);
 			}
@@ -209,13 +210,14 @@ public class CollectionAddIndexingJob extends IndexingJob {
 			logger.info("===================");
 			
 			result = new IndexingJobResult(collectionId, indexStatus, duration);
-			isSuccess = true;
+			resultStatus = ResultStatus.SUCCESS;
 
 			return new JobResult(result);
 
 		} catch (Throwable e) {
 			indexingLogger.error("[" + collectionId + "] Indexing", e);
 			throwable = e;
+			resultStatus = ResultStatus.FAIL;
 			throw new FastcatSearchException("ERR-00501", throwable, collectionId); // 색인실패.
 		} finally {
 			Streamable streamableResult = null;
@@ -225,7 +227,7 @@ public class CollectionAddIndexingJob extends IndexingJob {
 				streamableResult = (Streamable) result;
 			}
 
-			updateIndexingStatusFinish(isSuccess, streamableResult);
+			updateIndexingStatusFinish(resultStatus, streamableResult);
 		}
 
 	}
