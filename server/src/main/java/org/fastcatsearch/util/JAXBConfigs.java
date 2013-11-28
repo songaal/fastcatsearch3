@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -49,6 +51,18 @@ public class JAXBConfigs {
 		}
 	}
 	
+	public static <T> T readConfig(Reader reader, Class<T> jaxbConfigClass) throws JAXBException {
+		if(reader == null){
+			return null;
+		}
+		JAXBContext context = JAXBContext.newInstance(jaxbConfigClass);
+		
+		Unmarshaller unmarshaller = context.createUnmarshaller();
+		
+		T config = (T) unmarshaller.unmarshal(reader);
+		return config;
+	}
+	
 	public static <T> T readConfig(InputStream is, Class<T> jaxbConfigClass) throws JAXBException {
 		if(is == null){
 			return null;
@@ -56,7 +70,7 @@ public class JAXBConfigs {
 		JAXBContext context = JAXBContext.newInstance(jaxbConfigClass);
 		
 		Unmarshaller unmarshaller = context.createUnmarshaller();
-
+		
 		T config = (T) unmarshaller.unmarshal(is);
 		return config;
 	}
@@ -120,6 +134,22 @@ public class JAXBConfigs {
 //			marshaller.setProperty("com.sun.xml.bind.xmlDeclaration", Boolean.FALSE);
 		}
 		marshaller.marshal(jaxbConfig, os);
+	}
+	
+	public static <T> void writeRawConfig(Writer writer, Object jaxbConfig, Class<T> jaxbConfigClass) throws JAXBException {
+		writeRawConfig(writer, jaxbConfig, jaxbConfigClass, false);
+	}
+	public static <T> void writeRawConfig(Writer writer, Object jaxbConfig, Class<T> jaxbConfigClass, boolean removeXmlDeclaration) throws JAXBException {
+		JAXBContext context = JAXBContext.newInstance(jaxbConfigClass);
+		Marshaller marshaller = context.createMarshaller();
+		marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
+		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+//		logger.debug("removeXmlDeclaration!! {}", removeXmlDeclaration);
+		if(removeXmlDeclaration){
+			marshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
+//			marshaller.setProperty("com.sun.xml.bind.xmlDeclaration", Boolean.FALSE);
+		}
+		marshaller.marshal(jaxbConfig, writer);
 	}
 	
 	public static <T> void writeTo(DataOutput os, Object jaxbConfig, Class<T> jaxbConfigClass) throws JAXBException {

@@ -72,7 +72,7 @@ public class ActionRequest {
 	public Map<String, String> getParameterMap() {
 		return parameterMap;
 	}
-
+	
 	public String getParameter(String key) {
 		return getParameter(key, null);
 	}
