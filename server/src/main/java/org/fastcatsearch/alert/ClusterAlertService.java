@@ -1,17 +1,29 @@
 package org.fastcatsearch.alert;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.management.Notification;
+
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.JobService;
+import org.fastcatsearch.db.DBService;
+import org.fastcatsearch.db.InternalDBModule.MapperSession;
+import org.fastcatsearch.db.mapper.ExceptionHistoryMapper;
+import org.fastcatsearch.db.vo.ExceptionVO;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.notification.NotificationService;
+import org.fastcatsearch.notification.message.OutOfMemoryNotification;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
@@ -25,8 +37,9 @@ public class ClusterAlertService extends AbstractService {
 	private NodeService nodeService;
 	private boolean isMasterNode;
 	private static ClusterAlertService instance;
-	
-	private Map<NodeErrorKey, AtomicInteger> exceptionCountMap;
+
+	private Map<NodeExceptionInfo, NodeExceptionInfo> exceptionMap;
+	private List<NodeExceptionInfo> exceptionList;
 
 	private Timer alertServiceTimer;
 
@@ -34,32 +47,37 @@ public class ClusterAlertService extends AbstractService {
 		super(environment, settings, serviceManager);
 	}
 
-	public static ClusterAlertService getInstance(){
+	public static ClusterAlertService getInstance() {
 		return instance;
 	}
-	
-	public void asSingleton(){
+
+	public void asSingleton() {
 		instance = this;
 	}
-	
+
 	@Override
 	protected boolean doStart() throws FastcatSearchException {
-		
+
 		nodeService = serviceManager.getService(NodeService.class);
 		isMasterNode = nodeService.isMaster();
-		
-		exceptionCountMap = new HashMap<NodeErrorKey, AtomicInteger>();
 
-		// 1초이내에 들어오는 중복에러는 모아서 처리한다.
-		alertServiceTimer = new Timer("AlertServiceCountMapClear", true);
-		alertServiceTimer.schedule(new CountMapClearTimerTask(), 1000, 1000);
+		if(isMasterNode){
+			exceptionMap = new HashMap<NodeExceptionInfo, NodeExceptionInfo>();
+			exceptionList = new ArrayList<NodeExceptionInfo>();
+			
+			// 1초이내에 들어오는 중복에러는 모아서 처리한다.
+			alertServiceTimer = new Timer("AlertServiceCountMapClear", true);
+			alertServiceTimer.schedule(new CountMapClearTimerTask(), 1000, 1000);
+		}
 		return true;
 	}
 
 	@Override
 	protected boolean doStop() throws FastcatSearchException {
-		alertServiceTimer.cancel();
-		exceptionCountMap.clear();
+		if(isMasterNode){
+			alertServiceTimer.cancel();
+			exceptionMap.clear();
+		}
 		return true;
 	}
 
@@ -67,95 +85,174 @@ public class ClusterAlertService extends AbstractService {
 	protected boolean doClose() throws FastcatSearchException {
 		return true;
 	}
-	
+
 	// 여러번의 동일한 exception이 들어올수도 있으므로 쌓아두면서 일괄 처리한다.
 	protected void handleException(Node node, Throwable e) {
-		int count = getThrowableCount(node, e);
+		//master가 아니면 무시.
+		if(!isMasterNode){
+			return;
+		}
+		
+		NodeExceptionInfo key = new NodeExceptionInfo(node, e);
+		NodeExceptionInfo value = exceptionMap.get(key);
+		int count = 0;
+		if (value != null) {
+			// 이미 발생한 에러면.
+			count = value.incrementCount();
+			logger.debug("handleException1 > {} : {}", count, e.getMessage());
+		} else {
+			exceptionMap.put(key, key);
+			key.setTime();
+			count = key.getCount();
+			//새로추가.
+			exceptionList.add(key);
+			logger.debug("handleException2 > {} : {}", count, e.getMessage());
+		}
 
 		if (count > 1) {
-			//두번째부터는 최종스택만 출력한다.
-			if(e instanceof FastcatSearchException){
+			// 두번째부터는 최종스택만 출력한다.
+			if (e instanceof FastcatSearchException) {
 				logger.error("[{}] [{}] {}", node, count, e.getMessage());
-			}else{
+			} else {
 				logger.error("[{}] [{}] {}", node, count, e.getStackTrace()[0]);
 			}
 		} else {
-			if(e instanceof FastcatSearchException){
-				logger.error("["+node+"] exception : {}", e.getMessage());
-			}else{
-				logger.error("["+node+"] exception", e);
+			if (e instanceof FastcatSearchException) {
+				logger.error("[" + node + "] exception : {}", e.getMessage());
+			} else {
+				logger.error("[" + node + "] exception", e);
 			}
 		}
-		
-		if(e instanceof OutOfMemoryError){
-			NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
-//			notificationService.notify(e);
-		}
-		
-	}
 
-	private int getThrowableCount(Node node, Throwable e) {
-		// 발생 원인은 0에
-		StackTraceElement errorSpot = e.getStackTrace()[0];
-		NodeErrorKey key = new NodeErrorKey(node, errorSpot);
-		AtomicInteger count = exceptionCountMap.get(key);
-		if (count != null) {
-			// 이미 발생한 에러면.
-			return count.incrementAndGet();
-		} else {
-			count = new AtomicInteger(1);
-			exceptionCountMap.put(key, count);
-			return count.intValue();
+		if (e instanceof OutOfMemoryError) {
+			NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
+			
+			notificationService.sendNotification(new OutOfMemoryNotification(e));
 		}
+
 	}
 
 	class CountMapClearTimerTask extends TimerTask {
 
 		@Override
 		public void run() {
-			if (exceptionCountMap.size() > 0) {
+			if (exceptionList.size() > 0) {
+				List<NodeExceptionInfo> oldList = exceptionList;
+				exceptionList = new ArrayList<NodeExceptionInfo>();
+				exceptionMap = new HashMap<NodeExceptionInfo, NodeExceptionInfo>();
+				
 				// 지워준다.
-				exceptionCountMap = new HashMap<NodeErrorKey, AtomicInteger>();
+				MapperSession<ExceptionHistoryMapper> mapperSession = DBService.getInstance().getMapperSession(ExceptionHistoryMapper.class);
+				try {
+					ExceptionHistoryMapper mapper = mapperSession.getMapper();
+					for (NodeExceptionInfo nodeExceptionInfo : oldList) {
+						Node node = nodeExceptionInfo.getNode();
+						long time = nodeExceptionInfo.getTime();
+						Throwable e = nodeExceptionInfo.getThrowable();
+						StringWriter sw = new StringWriter();
+						PrintWriter writer = new PrintWriter(sw);
+						e.printStackTrace(writer);
+						int count = nodeExceptionInfo.getCount();
+						
+						ExceptionVO vo = new ExceptionVO();
+						vo.node = node.toString();
+						vo.regtime = new Timestamp(time);
+						if (count > 1) {
+							vo.message = "[" + count + "] " + e.getMessage();
+						} else {
+							vo.message = e.getMessage();
+						}
+						vo.trace = sw.toString();
+						try {
+							mapper.putEntry(vo);
+						} catch (Exception e1) {
+							logger.error("", e1);
+						}
+					}
+				} finally {
+					if (mapperSession != null) {
+						mapperSession.closeSession();
+					}
+				}
+				
 			}
 
 		}
 
 	}
-	
-	class NodeErrorKey {
+
+	class NodeExceptionInfo {
+		private int hash;
 		private Node node;
+		private Throwable e;
 		private StackTraceElement el;
-		NodeErrorKey(Node node, StackTraceElement el){
+		private long time;
+		private AtomicInteger count;
+		
+		public NodeExceptionInfo(Node node, Throwable e) {
 			this.node = node;
-			this.el = el;
+			this.e = e;
+			this.el = e.getStackTrace()[0];
+			count = new AtomicInteger(1);
+		}
+
+		public Node getNode() {
+			return node;
+		}
+
+		public Throwable getThrowable() {
+			return e;
+		}
+
+		public void setTime() {
+			time = System.currentTimeMillis();
+		}
+
+		public long getTime() {
+			return time;
+		}
+
+		public int incrementCount(){
+			return count.incrementAndGet();
+		}
+		public int getCount(){
+			return count.intValue();
 		}
 		
 		@Override
-		public boolean equals(Object obj){
-			if(obj instanceof NodeErrorKey){
-				NodeErrorKey key = (NodeErrorKey) obj;
+		public int hashCode(){
+			int h = hash;
+			if(h == 0){
+				h = node.toString().hashCode() * 31 + el.hashCode();
+				hash = h;
+			}
+			return hash;
+		}
+		@Override
+		public boolean equals(Object obj) {
+			if (obj instanceof NodeExceptionInfo) {
+				NodeExceptionInfo key = (NodeExceptionInfo) obj;
 				return this.node.equals(key.node) && this.el.equals(key.el);
 			}
 			return false;
 		}
-		
+
 	}
 
 	/**
 	 * 해당 노드에서 발생한 에러를 마스터 노드에 알린다.
 	 * */
 	public void alert(Throwable e) {
-		
+
 		FastcatSearchAlertJob alertJob = new FastcatSearchAlertJob(nodeService.getMyNode(), e);
-		//isMaster
-		if(isMasterNode){
-			//master면 바로 실행.
+		// isMaster
+		if (isMasterNode) {
+			// master면 바로 실행.
 			ServiceManager.getInstance().getService(JobService.class).offerSequential(alertJob);
-		}else{
-			//slave라면 master에게 보낸다.
+		} else {
+			// slave라면 master에게 보낸다.
 			nodeService.sendRequestToMaster(alertJob);
 		}
-		
-		
+
 	}
 }

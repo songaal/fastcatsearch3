@@ -24,12 +24,24 @@ public abstract class Notification implements Streamable {
 	protected Node origin;
 	//리소스 파일에 정의된 알림코드.
 	protected String messageCode;
+	protected long time;
 	
 	public Notification(){ }
 	
 	public Notification(String messageCode) {
 		this.messageCode = messageCode;
 		this.origin = ServiceManager.getInstance().getService(NodeService.class).getMyNode();
+		this.time = System.currentTimeMillis();
+	}
+	
+	public Node origin(){
+		return origin;
+	}
+	public String messageCode(){
+		return messageCode;
+	}
+	public long time(){
+		return time;
 	}
 	
 	public abstract String toMessageString();
@@ -52,6 +64,7 @@ public abstract class Notification implements Streamable {
 		origin = new Node();
 		origin.readFrom(input);
 		messageCode = input.readString();
+		time = input.readLong();
 		logger.debug("read Notification messageCode = {}, origin={}", messageCode, origin);
 	}
 
@@ -60,5 +73,6 @@ public abstract class Notification implements Streamable {
 		origin.writeTo(output);
 		logger.debug("write Notification messageCode = {}, origin={}", messageCode, origin);
 		output.writeString(messageCode);
+		output.writeLong(time);
 	}
 }

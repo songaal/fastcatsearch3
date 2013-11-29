@@ -58,6 +58,7 @@ public class GetExceptionHistoryListAction extends AuthAction {
 					.key("id").value(entry.id)
 					.key("node").value(entry.node)
 					.key("message").value(entry.message)
+					.key("trace").value(entry.trace)
 					.key("regtime").value(entry.regtime)
 					.endObject();
 				

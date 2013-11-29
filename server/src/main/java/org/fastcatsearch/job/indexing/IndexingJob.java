@@ -58,7 +58,7 @@ public abstract class IndexingJob extends Job implements Streamable {
 		indexingStartTime = System.currentTimeMillis();
 		processLoggerService.log(IndexingProcessLogger.class, new IndexingStartProcessLog(collectionId, 
 				indexingType, jobStartTime(), isScheduled()));
-		notificationService.notify(new IndexingStartNotification(collectionId, indexingType,
+		notificationService.sendNotification(new IndexingStartNotification(collectionId, indexingType,
 				jobStartTime(), isScheduled()));
 		IndexingTaskKey indexingTaskKey = new IndexingTaskKey(collectionId, indexingType, isScheduled);
 		indexingTaskState = (IndexingTaskState) taskStateService.register(indexingTaskKey);
@@ -71,7 +71,7 @@ public abstract class IndexingJob extends Job implements Streamable {
 		processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId, 
 				indexingType, resultStatus, indexingStartTime, endTime, isScheduled(), streamableResult));
 
-		notificationService.notify(new IndexingFinishNotification(collectionId, indexingType, resultStatus,
+		notificationService.sendNotification(new IndexingFinishNotification(collectionId, indexingType, resultStatus,
 				indexingStartTime, endTime, streamableResult));
 		
 		indexingTaskState.finish();

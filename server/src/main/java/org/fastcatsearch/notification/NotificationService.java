@@ -1,7 +1,13 @@
 package org.fastcatsearch.notification;
 
+import java.sql.Timestamp;
+
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.JobService;
+import org.fastcatsearch.db.DBService;
+import org.fastcatsearch.db.InternalDBModule.MapperSession;
+import org.fastcatsearch.db.mapper.NotificationHistoryMapper;
+import org.fastcatsearch.db.vo.NotificationVO;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.notification.message.Notification;
@@ -51,7 +57,7 @@ public class NotificationService extends AbstractService {
 	/**
 	 *  해당 notification의 통지설정에 따라서 관리자에게 통지서비스를 하고, db에 기록한다.
 	 * */
-	public void notify(Notification notification){
+	public void sendNotification(Notification notification){
 		
 		NotificationJob notificationJob = new NotificationJob(notification);
 		
@@ -66,18 +72,33 @@ public class NotificationService extends AbstractService {
 
 	
 	protected void handleNotification(Notification notification){
+		if(!isMasterNode){
+			return;
+		}
+		String message = notification.toMessageString();
+		logger.debug("Notification 통지 >> {}", message);
 		
-		logger.debug("Notification 통지 >> {}", notification.toMessageString());
-//		if(notification instanceof IndexingStartNotification){
-//			//
-//			
-//			
-//		}else if(notification instanceof IndexingFinishNotification){
-//			//
-//			
-//			
-//			
-//		}
+		MapperSession<NotificationHistoryMapper> mapperSession = DBService.getInstance().getMapperSession(NotificationHistoryMapper.class);
+		try{
+			NotificationHistoryMapper mapper = mapperSession.getMapper();
+			
+			NotificationVO vo = new NotificationVO();
+			vo.message = message;
+			vo.messageCode = notification.messageCode();
+			vo.node = notification.origin().toString();
+			vo.regtime = new Timestamp(notification.time());
+			try{
+				mapper.putEntry(vo);
+			} catch (Exception e1) {
+				logger.error("", e1);
+			}
+			
+		}finally{
+			if(mapperSession != null){
+				mapperSession.closeSession();
+			}
+		}
+
 	}
 	
 

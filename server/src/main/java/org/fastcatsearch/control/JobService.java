@@ -175,7 +175,7 @@ public class JobService extends AbstractService implements JobExecutor {
 		}
 
 		long myJobId = jobIdIncrement.getAndIncrement();
-		logger.debug("### OFFER Job-{}", myJobId);
+		logger.debug("### OFFER Job-{} : {}", myJobId, job.getClass().getSimpleName());
 
 		if (job instanceof IndexingJob) {
 			indexingMutex.access(myJobId, (IndexingJob) job);

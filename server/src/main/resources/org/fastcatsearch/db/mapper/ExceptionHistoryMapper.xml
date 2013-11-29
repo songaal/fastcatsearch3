@@ -10,6 +10,7 @@
 		id int GENERATED ALWAYS AS IDENTITY,
 		node varchar(50),
 		message varchar(3000),
+		trace varchar(30000),
 		regtime timestamp,
 		primary key (id)
 		)
@@ -20,7 +21,7 @@
 	</update>
 	
 	<select id="validateTable" parameterType="map" resultType="map">
-		select id, node, message, regtime
+		select id, node, message, trace, regtime
 		from ExceptionHistory
 		fetch first 1 rows only
 	</select>
@@ -56,10 +57,10 @@
 
 	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.ExceptionVO" useGeneratedKeys="true">
 		insert into ExceptionHistory ( 
-		node, message, regtime
+		node, message, trace, regtime
 		)
 		values (
-		#{node}, #{message}, #{regtime}
+		#{node}, #{message}, #{trace}, #{regtime}
 		)
 	</insert>
 

@@ -35,7 +35,7 @@ public class Node implements Streamable{
 	}
 
 	public String toString(){
-		return nodeId+"/"+socketAddress.getHostName()+"/"+socketAddress.getPort();
+		return name + " (" + nodeId+"/"+socketAddress.getHostName()+"/"+socketAddress.getPort() +")";
 	}
 	
 	public String status(){
