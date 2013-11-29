@@ -27,6 +27,7 @@ public class GetIndexingStatusAction extends AuthAction {
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		CollectionContext collectionContext = irService.collectionContext(collectionId);
 		
+		
 		Writer writer = response.getWriter();
 		ResponseWriter responseWriter = getDefaultResponseWriter(writer);
 		responseWriter.object()

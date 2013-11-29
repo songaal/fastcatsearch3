@@ -165,6 +165,12 @@ public class PluginService extends AbstractService {
 	@Override
 	protected boolean doStop() throws FastcatSearchException {
 		if (pluginMap != null) {
+			for(Plugin plugin : pluginMap.values()){
+				try{
+					plugin.unload();
+				}catch(Exception ignore){
+				}
+			}
 			pluginMap.clear();
 			pluginMap = null;
 		}
