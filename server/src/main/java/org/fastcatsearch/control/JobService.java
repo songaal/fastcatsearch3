@@ -232,6 +232,7 @@ public class JobService extends AbstractService implements JobExecutor {
 			scheduledJob = new ScheduledJob(job, startTime, periodInSecond);
 			ScheduledJob oldScheduledJob = scheduleMap.put(jobKey, scheduledJob);
 			if(oldScheduledJob != null){
+				logger.info("Cancel old schdule {}", oldScheduledJob);
 				oldScheduledJob.cancel();
 			}
 			offer(scheduledJob);

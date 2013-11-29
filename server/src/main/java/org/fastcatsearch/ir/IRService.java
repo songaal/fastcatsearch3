@@ -313,7 +313,7 @@ public class IRService extends AbstractService {
 		IndexingScheduleConfig indexingScheduleConfig = collectionContext(collectionId).indexingScheduleConfig();
 		IndexingSchedule fullIndexingSchedule = indexingScheduleConfig.getFullIndexingSchedule();
 		IndexingSchedule addIndexingSchedule = indexingScheduleConfig.getAddIndexingSchedule();
-		if(fullIndexingSchedule != null){
+		if(fullIndexingSchedule != null && fullIndexingSchedule.isActive()){
 			String startTime = fullIndexingSchedule.getStart();
 			int periodInSecond = fullIndexingSchedule.getPeriodInSecond();
 			
@@ -327,7 +327,7 @@ public class IRService extends AbstractService {
 				return false;
 			}
 		}
-		if(addIndexingSchedule != null){
+		if(addIndexingSchedule != null && addIndexingSchedule.isActive()){
 			String startTime = addIndexingSchedule.getStart();
 			int periodInSecond = addIndexingSchedule.getPeriodInSecond();
 			
