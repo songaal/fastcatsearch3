@@ -30,6 +30,11 @@ public class ScheduledJob extends Job {
 		actualJob.setScheduled(true); // scheduled job.
 	}
 
+	@Override
+	public String toString(){
+		return actualJob.getClass().getName() +" job["+actualJob.getArgs()+"] startTime[" + startTime + "] period["+periodInSecond+"] executeCount["+executeCount+"] lastExecuteTime["+lastExecuteTime+"]";
+				
+	}
 	public void cancel() {
 		isCanceled = true;
 		Thread.currentThread().interrupt();
