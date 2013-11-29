@@ -1,5 +1,6 @@
 package org.fastcatsearch.http.action;
 
+import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.http.ActionMethod;
 import org.fastcatsearch.http.HttpChannel;
 import org.fastcatsearch.http.HttpSession;
@@ -15,6 +16,7 @@ public abstract class HttpAction implements Runnable, Cloneable {
 	private ActionRequest request;
 	private HttpChannel httpChannel;
 	private ActionResponse response;
+	protected Environment environment;
 	protected HttpSession session;
 	protected Type resultType;
 	
@@ -73,4 +75,7 @@ public abstract class HttpAction implements Runnable, Cloneable {
 		this.method = method;
 	}
 	
+	public void setEnvironement(Environment environment) {
+		this.environment = environment;
+	}
 }

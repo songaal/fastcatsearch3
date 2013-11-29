@@ -173,6 +173,7 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 						actionObj = (HttpAction) actionClass.newInstance();
 						if (actionObj != null) {
 							actionObj.setMethod(method);
+							actionObj.setEnvironement(environment);
 							
 							// 권한 필요한 액션일 경우.
 							if (actionObj instanceof AuthAction) {
