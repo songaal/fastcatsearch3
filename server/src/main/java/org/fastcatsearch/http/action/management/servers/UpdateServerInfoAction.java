@@ -2,11 +2,16 @@ package org.fastcatsearch.http.action.management.servers;
 
 import java.util.List;
 
+import org.fastcatsearch.cluster.Node;
+import org.fastcatsearch.cluster.NodeService;
+import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.SettingManager;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
+import org.fastcatsearch.job.cluster.NodeListUpdateJob;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.NodeListSettings;
 import org.fastcatsearch.settings.NodeListSettings.NodeSettings;
 import org.fastcatsearch.util.ResponseWriter;
@@ -32,7 +37,7 @@ public class UpdateServerInfoAction extends AuthAction {
 			
 			SettingManager settingManager = environment.settingManager();
 			NodeListSettings nodeListSettings = settingManager.getNodeListSettings();
-			List<NodeSettings> nodeList = nodeListSettings.getNodeList();
+			List<NodeSettings> nodeSettingList = nodeListSettings.getNodeList();
 			
 			NodeSettings settings =  new NodeSettings();
 			settings.setId(nodeId);
@@ -42,16 +47,20 @@ public class UpdateServerInfoAction extends AuthAction {
 			settings.setEnabled(enable);
 			
 			if(serverIndex==-1) {
-				nodeList.add(settings);
+				nodeSettingList.add(settings);
 			} else {
-				nodeList.set(serverIndex,settings);
+				nodeSettingList.set(serverIndex,settings);
 			}
 			
 			if("delete".equals(mode)) {
-				nodeList.remove(serverIndex);
+				nodeSettingList.remove(serverIndex);
 			}
 			
-			settingManager.storeNodeListSettings(nodeListSettings);
+			JobService jobService = JobService.getInstance();
+			
+			NodeListUpdateJob job = new NodeListUpdateJob();
+			job.setArgs(nodeListSettings);
+			jobService.offer(job).take();
 			
 			isSuccess = true;
 			

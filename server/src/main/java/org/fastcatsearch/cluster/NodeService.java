@@ -11,6 +11,7 @@ import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.job.Job;
+import org.fastcatsearch.job.cluster.NodeListUpdateJob;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.NodeListSettings;
@@ -208,5 +209,32 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 		logger.debug("#Balanced node [{}] >> {}", shardId, node);
 		return node;
 	}
+	
+	public void updateNode(NodeListSettings nodeListSettings) {
+		
+		List<NodeSettings> nodeSettingList = nodeListSettings.getNodeList();
 
+		for(int inx=0;inx< nodeSettingList.size();inx++) {
+			NodeSettings setting = nodeSettingList.get(inx);
+
+			String nodeId = setting.getId();
+			String name = setting.getName();
+			String address = setting.getAddress();
+			int port = setting.getPort();
+			boolean enabled = setting.isEnabled();
+
+			Node node = null;
+
+			if(nodeMap.containsKey(nodeId)) {
+				node = nodeMap.get(nodeId);
+			} else {
+				//신규노드
+				node = new Node(nodeId, name, address, port, enabled);
+				nodeMap.put(nodeId, node);
+				nodeList.add(node);
+			}
+		}
+		
+		//settingManager.storeNodeListSettings(nodeListSettings);
+	}
 }
