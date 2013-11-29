@@ -13,6 +13,8 @@ import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.settings.NodeListSettings;
+import org.fastcatsearch.settings.NodeListSettings.NodeSettings;
 import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.transport.TransportException;
 import org.fastcatsearch.transport.TransportModule;
@@ -41,33 +43,33 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 
 		nodeList = new ArrayList<Node>();
 		nodeMap = new HashMap<String, Node>();
-		List<Settings> nodeSettingList = settings.getSettingList("node_list");
-		for (int i = 0; i < nodeSettingList.size(); i++) {
-			Settings nodeSetting = nodeSettingList.get(i);
-			String id = nodeSetting.getString("id");
-			String name = nodeSetting.getString("name");
-			String address = nodeSetting.getString("address");
-			int port = nodeSetting.getInt("port");
-			boolean isEnabled = !nodeSetting.getBoolean("disabled");
+		NodeListSettings nodeListSettings = environment.settingManager().getNodeListSettings();
+		if(nodeListSettings != null){
+			for(NodeSettings nodeSetting : nodeListSettings.getNodeList()){
+				String id = nodeSetting.getId();
+				String name = nodeSetting.getName();
+				String address = nodeSetting.getAddress();
+				int port = nodeSetting.getPort();
+				boolean isEnabled = nodeSetting.isEnabled();
 
-			Node node = new Node(id, name, address, port, isEnabled);
-			nodeList.add(node);
-			nodeMap.put(id, node);
-			
-			if (isEnabled) {
-				node.setEnabled();
-			} else {
-				node.setDisabled();
+				Node node = new Node(id, name, address, port, isEnabled);
+				nodeList.add(node);
+				nodeMap.put(id, node);
+				
+				if (isEnabled) {
+					node.setEnabled();
+				} else {
+					node.setDisabled();
+				}
+
+				if(myNodeId.equals(id)){
+					myNode = node;
+				}
+
+				if (masterNodeId.equals(id)) {
+					masterNode = node;
+				}
 			}
-
-			if(myNodeId.equals(id)){
-				myNode = node;
-			}
-
-			if (masterNodeId.equals(id)) {
-				masterNode = node;
-			}
-
 		}
 
 		if (myNode == null) {
@@ -80,10 +82,10 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 		//자기자신은 active하다.
 		myNode.setActive();
 		
-		transportModule = new TransportModule(environment, settings.getSubSettings("transport"), jobService);
-		if (myNode.port() > 0) {
-			transportModule.settings().put("node_port", myNode.port());
-		}
+		transportModule = new TransportModule(environment, settings.getSubSettings("transport"), myNode.port(), jobService);
+//		if (myNode.port() > 0) {
+//			transportModule.settings().put("node_port", myNode.port());
+//		}
 
 		if (!transportModule.load()) {
 			throw new FastcatSearchException("ERR-00305");

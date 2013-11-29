@@ -79,13 +79,14 @@ public class JobService extends AbstractService implements JobExecutor {
 		sequencialJobQueue = new LinkedBlockingQueue<Job>();
 		indexingMutex = new IndexingMutex();
 
-		executorMaxPoolSize = settings.getInt("pool.max");
+//		executorMaxPoolSize = settings.getInt("pool.max");
 
 		// int indexJobMaxSize = 100;
 		// int searchJobMaxSize = 100;
 		// int otherJobMaxSize = 100;
 
-		jobExecutor = ThreadPoolFactory.newCachedThreadPool("JobService.jobExecutor", executorMaxPoolSize);
+//		jobExecutor = ThreadPoolFactory.newCachedThreadPool("JobService.jobExecutor", executorMaxPoolSize);
+		jobExecutor = ThreadPoolFactory.newUnlimitedCachedThreadPool("JobService.jobExecutor");
 
 		worker = new JobConsumer();
 		worker.start();

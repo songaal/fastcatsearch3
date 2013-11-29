@@ -6,23 +6,26 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.xml.bind.JAXBException;
+
+import org.fastcatsearch.settings.NodeListSettings;
 import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.settings.Settings;
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.input.SAXBuilder;
+import org.fastcatsearch.util.JAXBConfigs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
 
+/**
+ * 엔진내 conf/하위 셋팅들을 가지고 있다.
+ * system.properties : 시스템 설정. 각 엔진마다 커스터마이징할 수 있고, 고급설정이므로 관리도구에서는 편집기능을 제공하지 않는다.
+ * id.properties : 엔진이 시작시 사용되는 설정 값들. 각 서버마다 수정을 한뒤 엔진을 시작해야한다. 
+ * node-list.xml : 분산노드들의 정보를 가지고 있다. admin노드에서 관리가 되며, 타 노드들은 start시에 설정파일을 사용하며, 차후 admin으로 부터 최신 node-list를 전달받게된다.
+ * */
 public class SettingManager {
 	private final Logger logger = LoggerFactory.getLogger(SettingManager.class);
 	private Environment environment;
@@ -32,167 +35,118 @@ public class SettingManager {
 		this.environment = environment;
 	}
 
-	public String getSimpleDatetime() {
-		return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-	}
-
-	private Object getFromCache(String settingName) {
-		String key = environment.filePaths().configPath().path(settingName).toString();
-		return settingCache.get(key);
-	}
-
-	private Object getFromCache(String collection, String settingName) {
-		String key = getKey(collection, settingName);
-		return settingCache.get(key);
-	}
-
-	private Object putToCache(Object setting, String settingName) {
-		String key = environment.filePaths().configPath().path(settingName).toString();
-		settingCache.put(key, setting);
-		return setting;
-	}
-
-	private Object putToCache(String collection, Object setting, String settingName) {
-		String key = getKey(collection, settingName);
-		settingCache.put(key, setting);
-		return setting;
-	}
-
-	public String getKey(String collection, String filename) {
-		return environment.filePaths().path("collection", collection, filename).toString();
-	}
-
-	public String getKey(String filename) {
+	public String getConfigFilepath(String filename) {
 		return environment.filePaths().configPath().path(filename).toString();
 	}
 
-	public Element getXml(String collection, String filename) {
-		String configFile = getKey(collection, filename);
-		logger.debug("Read xml = {}", configFile);
-		Document doc = null;
-		try {
-			File f = new File(configFile);
-			if (!f.exists()) {
-				return null;
-			}
 
-			SAXBuilder builder = new SAXBuilder();
-			doc = builder.build(f);
-			Element e = doc.getRootElement();
-			putToCache(collection, e, filename);
-			return e;
-		} catch (JDOMException e) {
-			logger.error(e.getMessage(), e);
-		} catch (NullPointerException e) {
-			logger.error(e.getMessage(), e);
-		} catch (IOException e) {
-			logger.error(e.getMessage(), e);
-		}
-		return null;
-	}
-
-	private Properties getXmlProperties(String collection, String filename) {
-		String configFile = getKey(collection, filename);
-		logger.debug("Read properties = {}", configFile);
+	private Properties getProperties(String configFilepath) {
+		
+		logger.debug("Read properties = {}", configFilepath);
 		Properties result = new Properties();
+		InputStream is = null;
 		try {
-			result.loadFromXML(new FileInputStream(configFile));
-			putToCache(collection, result, filename);
+			is = new FileInputStream(configFilepath);
+			result.load(is);
 			return result;
 		} catch (FileNotFoundException e) {
 			logger.error(e.getMessage(), e);
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
+		} finally {
+			try {
+				if(is != null){
+					is.close();
+				}
+			} catch (IOException ignore) {
+			}
 		}
 		return null;
 	}
 
-	private void storeXmlProperties(String collection, Properties props, String filename) {
-		String configFile = getKey(collection, filename);
-		logger.debug("Store properties = {}", configFile);
-		FileOutputStream writer = null;
+	private boolean storeProperties(Properties properties, String filename) {
+		String configFilepath = getConfigFilepath(filename);
+		logger.debug("Store properties = {}", configFilepath);
+		
+		FileOutputStream os = null;
 		try {
-			writer = new FileOutputStream(configFile);
-			props.storeToXML(writer, new Date().toString());
-			putToCache(collection, props, filename);
+			os = new FileOutputStream(configFilepath);
+			properties.store(os, new Date().toString());
+			settingCache.put(configFilepath, properties);
+			return true;
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 		} finally {
 			try {
-				writer.close();
-			} catch (IOException e) {
-				// ignore
+				if(os != null){
+					os.close();
+				}
+			} catch (IOException ignore) {
 			}
 
 		}
+		
+		return false;
 	}
-
+	
 	public Settings getIdSettings() {
-		return getSettings(SettingFileNames.idConfig);
+		return getSettings(SettingFileNames.idProperties);
+	}
+	public Settings getSystemSettings() {
+		return getSettings(SettingFileNames.systemProperties);
+	}
+	public boolean storeIdSettings(Settings settings) {
+		return storeProperties(settings.properties(), SettingFileNames.idProperties);
+	}
+	public boolean storeSystemSettings(Settings settings) {
+		return storeProperties(settings.properties(), SettingFileNames.systemProperties);
+	}
+	
+	private Settings getSettings(String configFilename) {
+		String configFilepath = getConfigFilepath(configFilename);
+		Object obj = settingCache.get(configFilepath);
+		if(obj != null){
+			return (Settings) obj;
+		}
+		
+		Properties properties = getProperties(configFilepath);
+		Settings settings = new Settings(properties);
+		settingCache.put(configFilepath, settings);
+		return settings;
 	}
 
-	public Settings getServerSettings() {
-		return getSettings(SettingFileNames.serverConfig);
-	}
-
-	public Settings getSettings(String yamlSettingName) {
-		// load config file
-		Settings serverSettings = null;
-		synchronized (yamlSettingName) {
-			Object obj = getFromCache(yamlSettingName);
-			if (obj != null) {
-				return (Settings) obj;
+	public NodeListSettings getNodeListSettings() {
+		String configFilepath = getConfigFilepath(SettingFileNames.nodeListSettings);
+		Object obj = settingCache.get(configFilepath);
+		if(obj != null){
+			return (NodeListSettings) obj;
+		}
+		
+		File file = new File(configFilepath);
+		if(file.exists()){
+			NodeListSettings settings = null;
+			try {
+				settings = JAXBConfigs.readConfig(file, NodeListSettings.class);
+				settingCache.put(configFilepath, settings);
+				return settings;
+			} catch (JAXBException e) {
+				logger.error("", e);
 			}
-
-			serverSettings = loadSetting(yamlSettingName);
-			putToCache(serverSettings, yamlSettingName);
 		}
-
-		return serverSettings;
+		
+		return null;
 	}
 
-	private void loadAndMerge(String string, Settings targetSettings) {
-		Settings settings = loadSetting(string);
-		if (settings != null) {
-			targetSettings.overrideSettings(settings);
-		}
-
-	}
-
-	private Settings loadSetting(String yamlSettingName) {
-		Settings serverSettings = null;
-		File configFile = environment.filePaths().configPath().path(yamlSettingName).file();
-		InputStream input = null;
+	public boolean storeNodeListSettings(NodeListSettings nodeListSettings) {
+		String configFilepath = getConfigFilepath(SettingFileNames.nodeListSettings);
+		File file = new File(configFilepath);
 		try {
-			Yaml yaml = new Yaml();
-			input = new FileInputStream(configFile);
-			Map<String, Object> data = (Map<String, Object>) yaml.load(input);
-			serverSettings = new Settings(data);
-
-			Object includeObj = data.get("include");
-			if (includeObj != null) {
-				if (includeObj instanceof List) {
-					List<String> settingNameList = (List<String>) includeObj;
-					for (int i = 0; i < settingNameList.size(); i++) {
-						loadAndMerge(settingNameList.get(i), serverSettings);
-					}
-				} else {
-					String settingName = (String) includeObj;
-					loadAndMerge(settingName, serverSettings);
-				}
-			}
-			putToCache(serverSettings, yamlSettingName);
-		} catch (FileNotFoundException e) {
-			logger.error("설정파일을 찾을수 없습니다. file = {}", configFile.getAbsolutePath());
-		} finally {
-			if (input != null) {
-				try {
-					input.close();
-				} catch (IOException ignore) {
-				}
-			}
+			JAXBConfigs.writeConfig(file, nodeListSettings, NodeListSettings.class);
+			settingCache.put(configFilepath, nodeListSettings);
+			return true;
+		} catch (JAXBException e) {
+			logger.error("", e);
+			return false;
 		}
-
-		return serverSettings;
 	}
 }

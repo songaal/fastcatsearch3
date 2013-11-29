@@ -89,15 +89,17 @@ public class BackupDictionaryJob extends Job {
 				}
 			}
 			
-			return new JobResult("OK");
+			return new JobResult(true);
 		} catch (Exception e) {
 			logger.error("",e);
 			if(tmpDir!=null) try {
 				FileUtils.forceDelete(tmpDir);
 			} catch (IOException e2) { }
+			
+			return new JobResult(e);
 		}
 		
-		return new JobResult(null);
+		
 	}
 	
 	public void downloadFile(DictionaryDAO dictionaryDAO, File backupDir, String pluginId, String dictionaryId) {

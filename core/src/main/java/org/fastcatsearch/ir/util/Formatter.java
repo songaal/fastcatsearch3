@@ -126,40 +126,5 @@ public class Formatter {
 	public static String removeControlChars(String value){
 		return value.replaceAll(CONTROL_CHAR_REGEXP, " ");
 	}
-	/*
-	 * 아래에 Json을 excape하는데 참고할 만한 좋은 글이 있다.
-	 * 이대로 구현함.
-	 * Why using HTML characters code instead of JavaScript escape solution?
-	 * 	In JavaScript to escape a ‘ you should write \’
-	 * to escape a ” you should write \”
-	 * to escape a  you should write \\
-	 * If you are working in a Domino view you will have to write something like \\\\, it’s not very readable.
-	 * With the HTML character code you don’t have to worry anymore about how many \ you have to add.
-	 * &#39; or &quot; replace ‘
-	 * &#92; replace \
-	 * &#34; replace ”
-	 * With &#39; you save one more character compare to its equivalent &quot;
-	 * In a JSON with a lot of data it’s always good to optimize the size.
-	 * */
-	//CONTROL_CHAR_REGEXP에는 tab(9), cr(10), LF(13) 제외
-
-	public static String escapeJSon(String jsonString){
-		return jsonString.replaceAll(CONTROL_CHAR_REGEXP, " ")
-			.replaceAll("\t","&#09;")
-			.replaceAll("\r\n","&#13;&#10;")
-			.replaceAll("\r","&#13;&#10;")
-			.replaceAll("\n","&#13;&#10;")
-			.replaceAll("\\\\","&#92;")
-			.replaceAll("\"","&#34;")
-			.replaceAll("\'","&#39;");
-	}
 	
-	public static String escapeXml(String xmlString){
-		return xmlString.replaceAll(CONTROL_CHAR_REGEXP, " ")
-			.replaceAll("&", "&amp;")
-			.replaceAll("\'", "&apos;")
-			.replaceAll("\"", "&quot;")
-			.replaceAll("<", "&lt;")
-			.replaceAll(">", "&gt;");
-	}
 }

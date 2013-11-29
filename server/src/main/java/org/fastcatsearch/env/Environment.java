@@ -3,6 +3,7 @@ package org.fastcatsearch.env;
 import java.io.File;
 
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.settings.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,16 +46,21 @@ public class Environment {
 	public Environment init() throws FastcatSearchException {
 		settingManager = new SettingManager(this);
 		
-		myNodeId = settingManager.getIdSettings().getString("me");
-		masterNodeId = settingManager.getIdSettings().getString("master");
-		if(myNodeId == null || masterNodeId == null){
-			throw new FastcatSearchException("ID 셋팅이 잘못되었습니다. me="+myNodeId+", master="+masterNodeId);
+		Settings idSettings = settingManager.getIdSettings();
+		
+		myNodeId = idSettings.getString("me");
+		masterNodeId = idSettings.getString("master");
+		int servicePort = idSettings.getInt("servicePort");
+		
+		
+		if(myNodeId == null || myNodeId.length() == 0 || masterNodeId == null || masterNodeId.length() == 0 || servicePort == -1){
+			throw new FastcatSearchException("ID 셋팅이 잘못되었습니다. me="+myNodeId+", master="+masterNodeId+", servicePort="+servicePort);
 		}
 		if(myNodeId.equals(masterNodeId)){
 			isMasterNode = true;
 		}
 		
-		logger.info("[ID] me[{}] master[{}]", myNodeId, masterNodeId);
+		logger.info("[ID] me[{}] master[{}] servicePort[{}]", myNodeId, masterNodeId, servicePort);
 		return this;
 	}
 	

@@ -148,7 +148,7 @@ public class CatServer {
 		JobService jobService = serviceManager.createService("job", JobService.class);
 		jobService.asSingleton();
 		IRService irService = serviceManager.createService("ir", IRService.class);
-		SystemInfoService managementInfoService = serviceManager.createService("system_info", SystemInfoService.class);
+		SystemInfoService systemInfoService = serviceManager.createService("system_info", SystemInfoService.class);
 		NodeService nodeService = serviceManager.createService("node", NodeService.class);
 
 		HttpRequestService httpRequestService = serviceManager.createService("http", HttpRequestService.class);
@@ -170,7 +170,7 @@ public class CatServer {
 			nodeService.start();
 			
 			irService.start();
-			managementInfoService.start();
+			systemInfoService.start();
 			
 			httpRequestService.start();
 			

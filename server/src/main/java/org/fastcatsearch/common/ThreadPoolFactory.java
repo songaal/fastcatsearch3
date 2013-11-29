@@ -15,17 +15,17 @@ public class ThreadPoolFactory {
                 60L, TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>(), new DefaultThreadFactory(poolName, false), new ThreadPoolExecutor.AbortPolicy());
 	}
-	public static ExecutorService newCachedDaemonThreadPool(String poolName, int max){
+	public static ThreadPoolExecutor newCachedDaemonThreadPool(String poolName, int max){
 		return new ThreadPoolExecutor(0, max,
                 60L, TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>(), new DefaultThreadFactory(poolName, true), new ThreadPoolExecutor.AbortPolicy());
 	}
-	public static ExecutorService newUnlimitedCachedThreadPool(String poolName){
+	public static ThreadPoolExecutor newUnlimitedCachedThreadPool(String poolName){
 		return new ThreadPoolExecutor(0, Integer.MAX_VALUE,
                 60L, TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>(), new DefaultThreadFactory(poolName, false));
 	}
-	public static ExecutorService newUnlimitedCachedDaemonThreadPool(String poolName){
+	public static ThreadPoolExecutor newUnlimitedCachedDaemonThreadPool(String poolName){
 		return new ThreadPoolExecutor(0, Integer.MAX_VALUE,
                 60L, TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>(), new DefaultThreadFactory(poolName, true));

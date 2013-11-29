@@ -33,7 +33,7 @@ public class ServiceManager {
 	public <T extends AbstractService> T createService(String settingName, Class<T> serviceClass){
 		try {
 			Constructor<T> construct = serviceClass.getConstructor(Environment.class, Settings.class, ServiceManager.class);
-			T t = construct.newInstance(environment, environment.settingManager().getServerSettings().getSubSettings("service").getSubSettings(settingName), this);
+			T t = construct.newInstance(environment, environment.settingManager().getSystemSettings().getSubSettings(settingName), this);
 			serviceMap.put(serviceClass, t);
 			return t;
 		} catch (Exception e) {

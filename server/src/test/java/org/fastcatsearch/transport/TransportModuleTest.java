@@ -54,12 +54,10 @@ public class TransportModuleTest {
 	
 	public void testSendMessage(Environment environment) throws FastcatSearchException, TransportException {
 		Settings settings = new Settings();
-		settings.put("node_port", 9100);
 		Settings settings2 = new Settings();
-		settings2.put("node_port", 9200);
 		
-		TransportModule transportService1 = new TransportModule(environment, settings, executor);
-		TransportModule transportService2 = new TransportModule(environment, settings2, executor);
+		TransportModule transportService1 = new TransportModule(environment, settings, 9100, executor);
+		TransportModule transportService2 = new TransportModule(environment, settings2, 9200, executor);
 		transportService1.load();
 		transportService2.load();
 		
@@ -83,13 +81,10 @@ public class TransportModuleTest {
 	
 	public void testSendFile(Environment environment) throws FastcatSearchException, TransportException {
 		Settings settings = new Settings();
-		settings.put("node_port", 9100);
 		Settings settings2 = new Settings();
-		settings2.put("node_port", 9200);
 		
-		
-		TransportModule transportService1 = new TransportModule(environment, settings, executor);
-		TransportModule transportService2 = new TransportModule(environment, settings2, executor);
+		TransportModule transportService1 = new TransportModule(environment, settings, 9100, executor);
+		TransportModule transportService2 = new TransportModule(environment, settings2, 9200, executor);
 		transportService1.load();
 		transportService2.load();
 		

@@ -1,103 +1,47 @@
 package org.fastcatsearch.settings;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
+import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.Yaml;
 
-public class Settings implements Cloneable {
+public class Settings {
 	private static Logger logger = LoggerFactory.getLogger(Settings.class);
 
 	private static final int K = 1024;
 	private static final int M = K * K;
 	private static final int G = K * K * K;
-
-	Map<String, Object> map;
+	
+	private String prefix;
+	private Properties properties;
 
 	public Settings() {
-		map = new HashMap<String, Object>();
+		properties = new Properties();
 	}
-
-	public Settings(Map<String, Object> map) {
-		this.map = map;
+	public Settings(Properties properties) {
+		this.properties = properties;
 	}
-
-	public Settings overrideSettings(Settings settings) {
-		return overrideMap(this.map, settings.map);
+	
+	private Settings(String prefix, Properties properties) {
+		this.prefix = prefix;
+		this.properties = properties;
 	}
+	
+	public Properties properties(){
+		return properties;
+	}
+	public Settings getSubSettings(String prefix) {
 
-	/**
-	 * sourceMap으로 targetMap의 데이터를 overriding 한다.<br>
-	 * map의 value 항목이 primitive type과 Map 데이터인 경우에만 override 된다.<br>
-	 * 
-	 * @param sourceMap
-	 *            override하려는 대상 Map
-	 * @param targetMap
-	 *            복사하려는 Map
-	 * @return Settings 파일.
-	 * @Author coreawin
-	 * @since 2013.03-23
-	 */
-	private Settings overrideMap(Map<String, Object> sourceMap, Map<String, Object> targetMap) {
-		Set<Map.Entry<String, Object>> entrySet = targetMap.entrySet();
-		for (Entry<String, Object> e : entrySet) {
-			String key = e.getKey();
-			Object v = e.getValue();
-			if (v instanceof Map) {
-				if (sourceMap.containsKey(key)) {
-					Object sv = sourceMap.get(key);
-					Map<String, Object> osv = null;
-					if ((sv instanceof Map) == false) {
-						osv = new HashMap<String, Object>();
-					} else {
-						osv = (Map<String, Object>) sv;
-					}
-					return overrideMap(osv, (Map<String, Object>) v);
-				} else {
-					sourceMap.put(key, v);
-				}
-			} else {
-				sourceMap.put(key, v);
+		if(this.prefix != null){
+			if(prefix != null){
+				//이어붙인다.
+				prefix = this.prefix + "." + prefix;
+			}else{
+				//그대로 상속.
+				prefix = this.prefix;
 			}
 		}
-		return this;
-	}
-
-	public Settings getSubSettings(String key) {
-		return getSubSettings(key, false);
-	}
-
-	public Settings getCopiedSubSettings(String key) {
-		return getSubSettings(key, true);
-	}
-
-	public synchronized Settings getSubSettings(String key, boolean deepCopy) {
-		String[] keys = key.split("\\.");
-		Map<String, Object> workMap = map;
-		for (int i = 0; i < keys.length; i++) {
-			Object value = workMap.get(keys[i]);
-			if (value == null) {
-				// 하위 요소가 없으면 빈 객체를 넘겨준다.
-				return new Settings();
-			}
-			if (value instanceof Map) {
-				workMap = (Map<String, Object>) value;
-			} else {
-				return null;
-			}
-		}
-		if (deepCopy) {
-			return new Settings(workMap);
-		} else {
-			return new Settings(new HashMap<String, Object>(workMap));
-		}
+		return new Settings(prefix, properties);
 	}
 
 	public int getInt(String key) {
@@ -125,7 +69,7 @@ public class Settings implements Cloneable {
 	}
 
 	public int getInt(String key, int defaultValue) {
-		String value = getString(key);
+		String value = getValue(key);
 		if (value == null) {
 			return defaultValue;
 		} else {
@@ -138,7 +82,7 @@ public class Settings implements Cloneable {
 	}
 
 	public long getLong(String key, long defaultValue) {
-		String value = getString(key);
+		String value = getValue(key);
 		if (value == null) {
 			return defaultValue;
 		} else {
@@ -151,7 +95,7 @@ public class Settings implements Cloneable {
 	}
 
 	public float getFloat(String key, float defaultValue) {
-		String value = getString(key);
+		String value = getValue(key);
 		if (value == null) {
 			return defaultValue;
 		} else {
@@ -164,7 +108,7 @@ public class Settings implements Cloneable {
 	}
 
 	public double getDouble(String key, double defaultValue) {
-		String value = getString(key);
+		String value = getValue(key);
 		if (value == null) {
 			return defaultValue;
 		} else {
@@ -177,100 +121,52 @@ public class Settings implements Cloneable {
 	}
 
 	public boolean getBoolean(String key, boolean defaultValue) {
-		String value = getString(key);
+		String value = getValue(key);
 		if (value == null) {
 			return defaultValue;
 		} else {
-			return Boolean.parseBoolean(value);
+			try{
+				return Boolean.parseBoolean(value);
+			}catch(Exception e){
+				return defaultValue;
+			}
 		}
 	}
 
 	public String getString(String key, String defaultValue) {
-		Object value = getValue(key);
+		String value = getValue(key);
 		if (value != null) {
 			return value.toString();
 		} else {
 			return defaultValue;
 		}
 	}
-
-	public List<Object> getList(String key) {
-		Object value = getValue(key);
-		if (value instanceof List) {
-			return (List<Object>) value;
+	
+	public String[] getStringArray(String key, String delimiter) {
+		String value = getValue(key);
+		if (value != null) {
+			
+			return value.split(delimiter);
 		} else {
 			return null;
 		}
 	}
 
-	public <T> List<T> getList(String key, Class<T> t) {
-		Object value = getValue(key);
-		if (value instanceof List) {
 
-			List<Object> list = (List<Object>) value;
-
-			List<T> result = new ArrayList<T>();
-			for (int i = 0; i < list.size(); i++) {
-				result.add((T) list.get(i));
-			}
-			return result;
-		} else {
-			return null;
-		}
-	}
-
-	public List<Settings> getSettingList(String key) {
-		Object value = getValue(key);
-		if (value instanceof List) {
-
-			List<Object> list = (List<Object>) value;
-
-			List<Settings> result = new ArrayList<Settings>();
-			for (int i = 0; i < list.size(); i++) {
-				Object maybeMap = list.get(i);
-				if (maybeMap instanceof Map) {
-					result.add(new Settings((Map<String, Object>) maybeMap));
-				} else {
-					return null;
-				}
-			}
-			return result;
-		} else {
-			return null;
-		}
-	}
-
-	public synchronized Object getValue(String key) {
-		String[] keys = key.split("\\.");
-		Map<String, Object> workMap = this.map;
-		for (int i = 0; i < keys.length; i++) {
-			Object value = workMap.get(keys[i]);
-			if (value == null) {
-				return null;
-			}
-			if (value instanceof Map) {
-				workMap = (Map<String, Object>) value;
-			} else {
-				return value;
+	public String getValue(String key) {
+		//prefix가 존재하면 prefix가 붙은 설정값이 우선한다.
+		if(prefix != null){
+			String value = properties.getProperty(prefix + "." + key);
+			if(value != null){
+				return value.trim();
 			}
 		}
-
+		//없으면 prefix없는 설정값사용.
+		String value = properties.getProperty(key);
+		if(value != null){
+			return value.trim();
+		}
 		return null;
-	}
-
-	public synchronized String toString() {
-		DumperOptions options = new DumperOptions();
-		options.setWidth(50);
-		options.setIndent(4);
-		options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-		Yaml yaml = new Yaml(options);
-
-		return yaml.dump(map);
-	}
-
-	public synchronized String getString() {
-		Yaml yaml = new Yaml();
-		return yaml.dump(map);
 	}
 
 	public long getByteSize(String key, long defaultValue) {
@@ -303,28 +199,5 @@ public class Settings implements Cloneable {
 		}
 	}
 
-	public synchronized void put(String key, Object newValue) {
-		String[] keys = key.split("\\.");
-		Map<String, Object> workMap = this.map;
-
-		for (int i = 0; i < keys.length; i++) {
-			boolean isLeaf = (i == keys.length - 1);
-			String nodeKey = keys[i];
-			if (isLeaf) {
-				workMap.put(nodeKey, newValue);
-				return;
-			}
-
-			Object value = workMap.get(nodeKey);
-			if (value == null || !(value instanceof Map)) {
-				// 키가 없다면 하위맵을 만들어준다.
-				Map<String, Object> newWorkMap = new HashMap<String, Object>();
-				workMap.put(nodeKey, newWorkMap);
-				workMap = newWorkMap;
-			} else {
-				workMap = (Map<String, Object>) value;
-			}
-		}
-	}
 
 }

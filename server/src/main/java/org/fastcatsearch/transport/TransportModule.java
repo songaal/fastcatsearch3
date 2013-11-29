@@ -93,8 +93,9 @@ public class TransportModule extends AbstractModule {
     private FileTransportHandler fileTransportHandler;
     private BlockingCachedStreamOutput fileStreamOutputCache;
     
-	public TransportModule(Environment environment, Settings settings, JobExecutor jobExecutor){
+	public TransportModule(Environment environment, Settings settings, int port, JobExecutor jobExecutor){
 		super(environment, settings);
+		this.port = port;
 		this.jobExecutor = jobExecutor;
 		this.connectMutex = new Object[500];
         for (int i = 0; i < connectMutex.length; i++) {
@@ -107,7 +108,6 @@ public class TransportModule extends AbstractModule {
 	public boolean doLoad(){
 		
 		this.workerCount = settings.getInt("worker_count", Runtime.getRuntime().availableProcessors() * 2);
-        this.port = settings.getInt("node_port");
         this.connectTimeout = settings.getInt("connect_timeout", 1000);
         this.bossCount = settings.getInt("boss_count", 1);
         this.tcpNoDelay = settings.getBoolean("tcp_no_delay", true);

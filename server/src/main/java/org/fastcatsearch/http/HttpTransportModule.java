@@ -86,9 +86,9 @@ public class HttpTransportModule extends AbstractModule {
 
 	private volatile HttpServerAdapter httpServerAdapter;
 
-	public HttpTransportModule(Environment environment, Settings settings) {
+	public HttpTransportModule(Environment environment, Settings settings, int port) {
 		super(environment, settings);
-
+		this.port = port;
 		maxContentLength = settings.getInt("max_content_length", settings.getInt("http.max_content_length", 100 * 1024 * 1024));
 		this.maxChunkSize = settings.getInt("max_chunk_size", settings.getInt("http.max_chunk_size", 8 * 1024));
 		this.maxHeaderSize = settings.getInt("max_header_size", settings.getInt("http.max_header_size", 8 * 1024));
@@ -99,7 +99,7 @@ public class HttpTransportModule extends AbstractModule {
 		this.maxCumulationBufferCapacity = settings.getInt("max_cumulation_buffer_capacity", 0);
 		this.maxCompositeBufferComponents = settings.getInt("max_composite_buffer_components", -1);
 		this.workerCount = settings.getInt("worker_count", Runtime.getRuntime().availableProcessors() * 2);
-		this.port = settings.getInt("port");
+		
 		this.bindHost = settings.getString("bind_host", settings.getString("http.bind_host", settings.getString("http.host")));
 		this.publishHost = settings.getString("publish_host", settings.getString("http.publish_host", settings.getString("http.host")));
 		this.tcpNoDelay = settings.getBoolean("tcp_no_delay", true);

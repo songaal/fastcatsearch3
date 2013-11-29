@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -38,7 +40,8 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 
 	@Override
 	protected boolean doStart() throws FastcatSearchException {
-		transportModule = new HttpTransportModule(environment, settings);
+		int servicePort = environment.settingManager().getIdSettings().getInt("servicePort");
+		transportModule = new HttpTransportModule(environment, settings, servicePort);
 		transportModule.httpServerAdapter(this);
 		ExecutorService executorService = ThreadPoolFactory.newUnlimitedCachedDaemonThreadPool("http-execute-pool");
 		HttpSessionManager httpSessionManager = new HttpSessionManager();
@@ -49,10 +52,20 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 		}
 
 		Map<String, HttpAction> actionMap = new HashMap<String, HttpAction>();
-		List<String> actionBasePackage = settings.getList("action-base-package", String.class);
-		scanActions(actionMap, actionBasePackage);
 
-		////// plugin action
+		if (environment.isMasterNode()) {
+			// master노드에서만 실행되는 액션들 등록..
+			String[] actionBasePackageList = settings.getStringArray("master-action-base-package", ",");
+			if (actionBasePackageList != null) {
+				scanActions(actionMap, actionBasePackageList);
+			}
+		}
+		String[] actionBasePackageList = settings.getStringArray("action-base-package", ",");
+		if (actionBasePackageList != null) {
+			scanActions(actionMap, actionBasePackageList);
+		}
+
+		// //// plugin action
 		PluginService pluginService = serviceManager.getService(PluginService.class);
 		for (Plugin plugin : pluginService.getPlugins()) {
 			PluginSetting pluginSetting = plugin.getPluginSetting();
@@ -66,12 +79,24 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 		return true;
 	}
 
-	private void scanActions(Map<String, HttpAction> actionMap, List<String> actionBasePackageList) {
+	private void scanActions(Map<String, HttpAction> actionMap, String[] actionBasePackageList) {
 		for (String actionBasePackage : actionBasePackageList) {
 			scanActions(actionMap, actionBasePackage);
 		}
 	}
 
+	private void addDirectory(Set<File> set, File d){
+		File[] files = d.listFiles();
+		for (int i = 0; i < files.length; i++) {
+			if(files[i].isDirectory()){
+				addDirectory(set, files[i]);
+			}else{
+				set.add(files[i]);
+			}
+		}
+	}
+	
+	// 하위패키지까지 모두 포함되도록 한다.
 	private void scanActions(Map<String, HttpAction> actionMap, String actionBasePackage) {
 		String path = actionBasePackage.replace(".", "/");
 		if (!path.endsWith("/")) {
@@ -80,27 +105,40 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 		try {
 			String findPath = path;// +"**/*.class";
 			Enumeration<URL> em = DynamicClassLoader.getResources(findPath);
-//			logger.debug("findPath >> {}, {}", findPath, em);
+			// logger.debug("findPath >> {}, {}", findPath, em);
 			while (em.hasMoreElements()) {
 				String urlstr = em.nextElement().toString();
-//				logger.debug("urlstr >> {}", urlstr);
+				// logger.debug("urlstr >> {}", urlstr);
 				if (urlstr.startsWith("jar:file:")) {
 					String jpath = urlstr.substring(9);
 					int st = jpath.indexOf("!/");
-					jpath = jpath.substring(0, st);
-					JarFile jf = new JarFile(jpath);
+					String jarPath = jpath.substring(0, st);
+					String entryPath = jpath.substring(st + 2);
+					JarFile jf = new JarFile(jarPath);
 					Enumeration<JarEntry> jee = jf.entries();
 					while (jee.hasMoreElements()) {
 						JarEntry je = jee.nextElement();
 						String ename = je.getName();
-						registerAction(actionMap, ename, true);
+						if(ename.startsWith(entryPath)){
+							registerAction(actionMap, ename, true);
+						}
 					}
 				} else if (urlstr.startsWith("file:")) {
-//					logger.debug("urlstr >> {}", urlstr);
-					File file = new File(urlstr.substring(5));
-					File[] dir = file.listFiles();
-					for (int i = 0; i < dir.length; i++) {
-						registerAction(actionMap, path + dir[i].getName(), true);
+					// logger.debug("urlstr >> {}", urlstr);
+					String rootPath = urlstr.substring(5);
+					int prefixLength = rootPath.indexOf(path);
+					File file = new File(rootPath);
+					
+					Set<File> actionFileSet = new HashSet<File>();
+					if(file.isDirectory()){
+						addDirectory(actionFileSet, file);
+					}else{
+						actionFileSet.add(file);
+					}
+					for(File f : actionFileSet){
+						String classPath = f.getAbsolutePath().substring(prefixLength);
+//						logger.debug("file >> {}", classPath);
+						registerAction(actionMap, classPath, true);
 					}
 				}
 			}
@@ -135,14 +173,17 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 						actionObj = (HttpAction) actionClass.newInstance();
 						if (actionObj != null) {
 							actionObj.setMethod(method);
-							//logger.debug("ACTION path={}, action={}, method={}", path, actionObj, method);
+							
 							// 권한 필요한 액션일 경우.
 							if (actionObj instanceof AuthAction) {
 								AuthAction authAction = (AuthAction) actionObj;
 								authAction.setAuthority(actionMapping.authority(), actionMapping.authorityLevel());
-								//logger.debug("ACTION path={}, authority={}, authorityLevel={}", path, actionMapping.authority(), actionMapping.authorityLevel());
+								 logger.debug("ACTION path={}, authority={}, authorityLevel={}", path, actionMapping.authority(),
+										 actionMapping.authorityLevel());
+							}else{
+								 logger.debug("ACTION path={}, action={}, method={}",path, actionObj, method);	
 							}
-							
+
 							actionMap.put(path, actionObj);
 
 						}
