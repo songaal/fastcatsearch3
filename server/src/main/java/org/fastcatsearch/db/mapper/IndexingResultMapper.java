@@ -11,7 +11,7 @@ import org.fastcatsearch.ir.common.IndexingType;
  * */
 public interface IndexingResultMapper extends ManagedMapper {
 	
-	public static enum ResultStatus { SUCCESS, FAIL, CANCEL, RUNNING };
+	public static enum ResultStatus { SUCCESS, FAIL, CANCEL, RUNNING, STOP };
 	
 	public IndexingStatusVO getEntry(@Param("id") int id) throws Exception;
 	

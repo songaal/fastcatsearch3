@@ -19,7 +19,6 @@ import org.fastcatsearch.ir.index.SegmentWriter;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.state.IndexingTaskState;
-import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
@@ -40,6 +39,8 @@ public abstract class AbstractCollectionIndexer {
 	protected SegmentInfo workingSegmentInfo;
 	protected int count;
 	protected long lapTime;
+	
+	protected boolean stopRequested;
 	
 	public AbstractCollectionIndexer(CollectionContext collectionContext) {
 		this.collectionContext = collectionContext;
@@ -92,6 +93,12 @@ public abstract class AbstractCollectionIndexer {
 		}
 	}
 	
+	public void requestStop(){
+		logger.info("Collection [{}] Indexer Stop Requested! ", collectionContext.collectionId());
+		
+		stopRequested = true;
+	}
+	
 	//색인취소(0건)이면 false;
 	public boolean close() throws IRException, SettingException{
 		
@@ -134,6 +141,9 @@ public abstract class AbstractCollectionIndexer {
 	public void doIndexing() throws IRException, IOException {
 		
 		while (dataSourceReader.hasNext()) {
+			if(stopRequested){
+				break;
+			}
 			Document document = dataSourceReader.nextDocument();
 			logger.debug("doc >> {}", document);
 			addDocument(document);

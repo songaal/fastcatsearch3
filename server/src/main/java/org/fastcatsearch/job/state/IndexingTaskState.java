@@ -6,6 +6,7 @@ public class IndexingTaskState extends TaskState {
 	public static final String STATE_INDEXING = "INDEXING";
 	public static final String STATE_FILECOPY = "COPY FILE TO REMOTE NODE";
 	public static final String STATE_FINALIZE = "FINALIZE";
+	public static final String STATE_STOP_REQUESTED = "STOP REQUESTED";
 	
 	public IndexingTaskState(TaskKey taskKey, TaskStateService taskStateService) {
 		super(taskKey, taskStateService);

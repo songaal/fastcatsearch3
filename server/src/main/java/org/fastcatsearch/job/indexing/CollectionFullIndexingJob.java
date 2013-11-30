@@ -18,8 +18,11 @@ import java.util.List;
 
 import org.fastcatsearch.cluster.ClusterUtils;
 import org.fastcatsearch.cluster.Node;
+import org.fastcatsearch.cluster.NodeJobResult;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.control.JobService;
+import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.db.mapper.IndexingResultMapper.ResultStatus;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.CollectionFullIndexer;
@@ -37,7 +40,6 @@ import org.fastcatsearch.job.cluster.NodeDirectoryCleanJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.task.IndexFileTransfer;
 import org.fastcatsearch.transport.vo.StreamableCollectionContext;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
 import org.fastcatsearch.util.CollectionContextUtil;
@@ -69,7 +71,7 @@ public class CollectionFullIndexingJob extends IndexingJob {
 		Throwable throwable = null;
 		ResultStatus resultStatus = ResultStatus.RUNNING;
 		Object result = null;
-		
+		long startTime = System.currentTimeMillis();
 		try {
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			
@@ -84,10 +86,6 @@ public class CollectionFullIndexingJob extends IndexingJob {
 				//작업수행하지 않음.
 				throw new RuntimeException("Invalid index node collection[" + collectionId + "] node[" + indexNodeId + "]");
 			}
-			
-			long startTime = System.currentTimeMillis();
-			
-			
 
 			updateIndexingStatusStart();
 
@@ -98,14 +96,13 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			//////////////////////////////////////////////////////////////////////////////////////////
 			
 			CollectionFullIndexer collectionFullIndexer = new CollectionFullIndexer(collectionContext);
+			indexer = collectionFullIndexer;
 			collectionFullIndexer.setState(indexingTaskState);
 			collectionFullIndexer.doIndexing();
 			boolean isIndexed = collectionFullIndexer.close();
-			if(!isIndexed){
+			if(!isIndexed && stopRequested){
 				//여기서 끝낸다.
-				resultStatus = ResultStatus.CANCEL;
-				result = new IndexingJobResult(collectionId, null, (int) (System.currentTimeMillis() - startTime));
-				return new JobResult(result);
+				throw new IndexingStopException();
 			}
 			
 			/*
@@ -122,54 +119,67 @@ public class CollectionFullIndexingJob extends IndexingJob {
 				File indexDir = indexFilePaths.file();
 				File segmentDir = indexFilePaths.file(segmentId);
 
-				List<Node> nodeList = nodeService.getNodeById(collectionContext.collectionConfig().getDataNodeList());
-
+				List<Node> nodeList = new ArrayList<Node>(nodeService.getNodeById(collectionContext.collectionConfig().getDataNodeList()));
+				//색인노드가 data node에 추가되어있다면 제거한다.
+				nodeList.remove(nodeService.getMyNode());
+				
 				// 색인전송할디렉토리를 먼저 비우도록 요청.segmentDir
 				File relativeDataDir = environment.filePaths().relativise(indexDir);
 				NodeDirectoryCleanJob cleanJob = new NodeDirectoryCleanJob(relativeDataDir);
 
-				boolean[] nodeResultList = ClusterUtils.sendJobToNodeList(cleanJob, nodeService, nodeList, false);
+				NodeJobResult[] nodeResultList = null;
+				nodeResultList = ClusterUtils.sendJobToNodeList(cleanJob, nodeService, nodeList, false);
 				
-				for(int i=0;i<nodeResultList.length; i++){
-					boolean r = nodeResultList[i];
-					logger.debug("node#{} >> {}", i, r);
-				}
-//				if (!nodeResult) {
-//					throw new FastcatSearchException("Node Index Directory Clean Failed! Dir=[{}]", segmentDir.getPath());
-//				}
-
 				//성공한 node만 전송.
-				List<Node> nodeList2 = new ArrayList<Node>();
+				nodeList = new ArrayList<Node>();
 				for (int i = 0; i < nodeResultList.length; i++) {
-					if (nodeResultList[i]) {
-						nodeList2.add(nodeList.get(i));
+					NodeJobResult r = nodeResultList[i];
+					logger.debug("node#{} >> {}", i, r);
+					if (r.isSuccess()) {
+						nodeList.add(r.node());
 					}else{
-						logger.warn("Do not send index file to {}", nodeList.get(i));
+						logger.warn("Do not send index file to {}", r.node());
 					}
 				}
 				// 색인된 Segment 파일전송.
-				IndexFileTransfer indexFileTransfer = new IndexFileTransfer(environment);
-				nodeResultList = indexFileTransfer.transferDirectory(segmentDir, nodeService, nodeList2);
+				TransferIndexFileMultiNodeJob transferJob = new TransferIndexFileMultiNodeJob(segmentDir, nodeList);
+				ResultFuture resultFuture = JobService.getInstance().offer(transferJob);
+				Object obj = resultFuture.take();
+				if(resultFuture.isSuccess() && obj != null){
+					nodeResultList = (NodeJobResult[]) obj;
+				}else{
+					
+				}
+				
 				//성공한 node만 전송.
-				List<Node> nodeList3 = new ArrayList<Node>();
+				nodeList = new ArrayList<Node>();
 				for (int i = 0; i < nodeResultList.length; i++) {
-					if (nodeResultList[i]) {
-						nodeList3.add(nodeList2.get(i));
+					NodeJobResult r = nodeResultList[i];
+					logger.debug("node#{} >> {}", i, r);
+					if (r.isSuccess()) {
+						nodeList.add(r.node());
 					}else{
-						logger.warn("Do not reload at {}", nodeList2.get(i));
+						logger.warn("Do not send index file to {}", r.node());
 					}
+				}
+				
+				
+				if(stopRequested){
+					throw new IndexingStopException();
 				}
 				
 				/*
 				 * 데이터노드에 컬렉션 리로드 요청.
 				 */
 				NodeCollectionReloadJob reloadJob = new NodeCollectionReloadJob(collectionContext);
-				nodeResultList = ClusterUtils.sendJobToNodeList(reloadJob, nodeService, nodeList3, false);
+				nodeResultList = ClusterUtils.sendJobToNodeList(reloadJob, nodeService, nodeList, false);
 				for (int i = 0; i < nodeResultList.length; i++) {
-					if (nodeResultList[i]) {
-						logger.info("{} Collection reload OK.", nodeList3.get(i));
+					NodeJobResult r = nodeResultList[i];
+					logger.debug("node#{} >> {}", i, r);
+					if (r.isSuccess()) {
+						logger.info("{} Collection reload OK.", r.node());
 					}else{
-						logger.warn("{} Collection reload Fail.", nodeList3.get(i));
+						logger.warn("{} Collection reload Fail.", r.node());
 					}
 				}
 				
@@ -208,6 +218,14 @@ public class CollectionFullIndexingJob extends IndexingJob {
 
 			return new JobResult(result);
 
+		} catch (IndexingStopException e){
+			if(stopRequested){
+				resultStatus = ResultStatus.STOP;
+			}else{
+				resultStatus = ResultStatus.CANCEL;
+			}
+			result = new IndexingJobResult(collectionId, null, (int) (System.currentTimeMillis() - startTime));
+			return new JobResult(result);
 		} catch (Throwable e) {
 			indexingLogger.error("[" + collectionId + "] Indexing", e);
 			throwable = e;

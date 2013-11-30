@@ -62,7 +62,7 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 	protected boolean done(RevisionInfo revisionInfo, IndexStatus indexStatus) throws IRException {
 		int insertCount = revisionInfo.getInsertCount();
 
-		if (insertCount > 0) {
+		if (insertCount > 0 && !stopRequested) {
 			//이미 동일한 revinfo이므로 재셋팅필요없다.
 			//workingSegmentInfo.updateRevision(revisionInfo);
 			
@@ -74,7 +74,11 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 			collectionContext.indexStatus().setFullIndexStatus(indexStatus);
 			return true;
 		}else{
-			logger.info("[{}] Indexing Canceled due to no documents.", collectionContext.collectionId());
+			if(!stopRequested){
+				logger.info("[{}] Indexing Canceled due to no documents.", collectionContext.collectionId());
+			}else{
+				logger.info("[{}] Indexing Canceled due to Stop Requested!", collectionContext.collectionId());
+			}
 			return false;
 		}
 		

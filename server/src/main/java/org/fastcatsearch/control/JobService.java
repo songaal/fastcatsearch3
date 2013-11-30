@@ -132,6 +132,16 @@ public class JobService extends AbstractService implements JobExecutor {
 		return runningJobList.values();
 	}
 	
+	public Job findRunningJob(Job findJob){
+		String findJobKey = getJobKey(findJob);
+		for(Job job : runningJobList.values()){
+			if(getJobKey(job).equals(findJobKey)){
+				return job;
+			}
+		}
+		return null;
+	}
+	
 	public Collection<ScheduledJob> getScheduledJobs() {
 		return scheduleMap.values();
 	}
@@ -245,7 +255,9 @@ public class JobService extends AbstractService implements JobExecutor {
 	public void cancelSchedule(Job job){
 		String jobKey = getJobKey(job);
 		ScheduledJob scheduledJob = scheduleMap.remove(jobKey);
-		scheduledJob.cancel();
+		if(scheduledJob != null){
+			scheduledJob.cancel();
+		}
 	}
 	
 	private String getJobKey(Job job){

@@ -67,7 +67,7 @@ public class IRService extends AbstractService {
 	private File collectionsRoot;
 
 	private RealtimeQueryStatisticsModule realtimeQueryStatisticsModule;
-	
+
 	public IRService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
 		realtimeQueryStatisticsModule = new RealtimeQueryStatisticsModule(environment, settings);
@@ -75,7 +75,7 @@ public class IRService extends AbstractService {
 
 	protected boolean doStart() throws FastcatSearchException {
 		realtimeQueryStatisticsModule.load();
-		
+
 		collectionHandlerMap = new HashMap<String, CollectionHandler>();
 		// collections 셋팅을 읽어온다.
 		collectionsRoot = environment.filePaths().getCollectionsRoot().file();
@@ -91,23 +91,23 @@ public class IRService extends AbstractService {
 				String collectionId = collection.getId();
 				CollectionContext collectionContext = null;
 				CollectionHandler collectionHandler = null;
-				if(collection.isActive()){
+				if (collection.isActive()) {
 					realtimeQueryStatisticsModule.registerQueryCount(collectionId);
 				}
 				logger.info("Load Collection [{}]", collectionId);
 				try {
 					collectionContext = loadCollectionContext(collection);
 				} catch (SettingException e) {
-					logger.error("컬렉션context 로드실패 "+collectionId, e);
+					logger.error("컬렉션context 로드실패 " + collectionId, e);
 					continue;
 				}
 				if (collectionContext == null) {
-//					if (collection.isActive()) {
-//						// 초기화한다.
-//						collectionHandler = createCollection(collectionId);
-//					} else {
-//					}
-					//무시한다.
+					// if (collection.isActive()) {
+					// // 초기화한다.
+					// collectionHandler = createCollection(collectionId);
+					// } else {
+					// }
+					// 무시한다.
 					continue;
 				} else {
 					collectionHandler = new CollectionHandler(collectionContext);
@@ -118,14 +118,15 @@ public class IRService extends AbstractService {
 				// active하지 않은 컬렉션은 map에 설정만 넣어두고 로드하지 않는다.
 				if (collection.isActive()) {
 					collectionHandler.load();
-					
+
 					IndexingScheduleConfig indexingScheduleConfig = collectionContext.indexingScheduleConfig();
-					if(indexingScheduleConfig != null){
+					if (indexingScheduleConfig != null) {
 						IndexingSchedule fullIndexingSchedule = indexingScheduleConfig.getFullIndexingSchedule();
-						
+
 						IndexingSchedule addIndexingSchedule = indexingScheduleConfig.getAddIndexingSchedule();
-						//TODO 
-//						JobService.getInstance().updateIndexingScheduleActivate(collectionId, indexingType, isActive);
+						// TODO
+						// JobService.getInstance().updateIndexingScheduleActivate(collectionId,
+						// indexingType, isActive);
 					}
 				}
 
@@ -152,9 +153,7 @@ public class IRService extends AbstractService {
 		} catch (ModuleException e) {
 			throw new FastcatSearchException("ERR-00320");
 		}
-		
-		
-		
+
 		return true;
 	}
 
@@ -183,18 +182,21 @@ public class IRService extends AbstractService {
 			collectionFilePaths.file().mkdirs();
 			CollectionContext collectionContext = new CollectionContext(collectionId, collectionFilePaths);
 			File file = environment.filePaths().configPath().file(SettingFileNames.defaultCollectionConfig);
-			
+
 			CollectionConfig collectionConfig = new CollectionConfig();
-//			CollectionConfig collectionConfig = JAXBConfigs.readConfig(file, CollectionConfig.class);
-//			Schema schema = new Schema(new SchemaSetting());
-//			collectionContext.init(schema, null, collectionConfig, new DataSourceConfig(), new CollectionIndexStatus(), new IndexingScheduleConfig());
+			// CollectionConfig collectionConfig = JAXBConfigs.readConfig(file,
+			// CollectionConfig.class);
+			// Schema schema = new Schema(new SchemaSetting());
+			// collectionContext.init(schema, null, collectionConfig, new
+			// DataSourceConfig(), new CollectionIndexStatus(), new
+			// IndexingScheduleConfig());
 			CollectionContextUtil.create(config, collectionFilePaths);
 
 			collectionsConfig.addCollection(collectionId, false);
 			JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.collections), collectionsConfig, CollectionsConfig.class);
 			CollectionHandler collectionHandler = new CollectionHandler(collectionContext);
 			collectionHandlerMap.put(collectionId, collectionHandler);
-			
+
 			realtimeQueryStatisticsModule.registerQueryCount(collectionId);
 			return collectionHandler;
 		} catch (JAXBException e) {
@@ -221,25 +223,27 @@ public class IRService extends AbstractService {
 		return collectionHandlerMap.put(collectionId, collectionHandler);
 	}
 
+	// public CollectionHandler initCollectionHandler(Collection collection,
+	// Integer newDataSequence) throws IRException, SettingException {
+	// CollectionContext collectionContext = loadCollectionContext(collection,
+	// newDataSequence);
+	//
+	// return new CollectionHandler(collectionContext);
+	// }
 
-//	public CollectionHandler initCollectionHandler(Collection collection, Integer newDataSequence) throws IRException, SettingException {
-//		CollectionContext collectionContext = loadCollectionContext(collection, newDataSequence);
-//
-//		return new CollectionHandler(collectionContext);
-//	}
+	// public CollectionHandler loadCollectionHandler(Collection collection)
+	// throws IRException, SettingException {
+	// CollectionContext collectionContext = loadCollectionContext(collection);
+	// return loadCollectionHandler(collectionContext);
+	// }
 
-//	public CollectionHandler loadCollectionHandler(Collection collection) throws IRException, SettingException {
-//		CollectionContext collectionContext = loadCollectionContext(collection);
-//		return loadCollectionHandler(collectionContext);
-//	}
-	
 	public CollectionHandler loadCollectionHandler(CollectionContext collectionContext) throws IRException, SettingException {
 		return new CollectionHandler(collectionContext).load();
 	}
 
 	protected boolean doStop() throws FastcatSearchException {
 		realtimeQueryStatisticsModule.unload();
-		
+
 		Iterator<Entry<String, CollectionHandler>> iter = collectionHandlerMap.entrySet().iterator();
 		while (iter.hasNext()) {
 			Entry<String, CollectionHandler> entry = iter.next();
@@ -256,7 +260,7 @@ public class IRService extends AbstractService {
 		groupingCache.unload();
 		groupingDataCache.unload();
 		documentCache.unload();
-		
+
 		collectionHandlerMap.clear();
 		return true;
 	}
@@ -289,67 +293,76 @@ public class IRService extends AbstractService {
 	}
 
 	public void registerLoadBanlancer(NodeLoadBalancable nodeLoadBalancable) {
-		//차후 검색시 로드밸런싱에 대비하여 먼저 shardId로 node들을 등록해놓는다.
-		for(Collection collection : getCollectionList()){
+		// 차후 검색시 로드밸런싱에 대비하여 먼저 shardId로 node들을 등록해놓는다.
+		for (Collection collection : getCollectionList()) {
 			String collectionId = collection.getId();
-			if(collection.isActive()){
+			if (collection.isActive()) {
 				CollectionHandler collectionHandler = collectionHandlerMap.get(collectionId);
 				List<String> dataNodeIdList = collectionHandler.collectionContext().collectionConfig().getDataNodeList();
 				nodeLoadBalancable.updateLoadBalance(collectionId, dataNodeIdList);
 			}
-			
+
 		}
 	}
-	
-	
+
 	public RealtimeQueryStatisticsModule queryStatistics() {
 		return realtimeQueryStatisticsModule;
 	}
-	
-	
+
 	private SimpleDateFormat simpleDateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-	
+
 	public boolean reloadSchedule(String collectionId) {
 		IndexingScheduleConfig indexingScheduleConfig = collectionContext(collectionId).indexingScheduleConfig();
 		IndexingSchedule fullIndexingSchedule = indexingScheduleConfig.getFullIndexingSchedule();
 		IndexingSchedule addIndexingSchedule = indexingScheduleConfig.getAddIndexingSchedule();
-		if(fullIndexingSchedule != null && fullIndexingSchedule.isActive()){
-			String startTime = fullIndexingSchedule.getStart();
-			int periodInSecond = fullIndexingSchedule.getPeriodInSecond();
-			
+		if (fullIndexingSchedule != null) {
 			MasterCollectionFullIndexingJob job = new MasterCollectionFullIndexingJob();
 			job.setArgs(collectionId);
-			try {
-				logger.debug("Load full indexing schdule {} : {}: {}", collectionId, startTime, periodInSecond);
-				JobService.getInstance().schedule(job, simpleDateFormat.parse(startTime), periodInSecond, true);
-			} catch (ParseException e) {
-				logger.error("[{}] Full Indexing schedule time parse error : {}", collectionId, startTime);
-				return false;
+
+			if (fullIndexingSchedule.isActive()) {
+				String startTime = fullIndexingSchedule.getStart();
+				int periodInSecond = fullIndexingSchedule.getPeriodInSecond();
+
+				try {
+					logger.debug("Load full indexing schdule {} : {}: {}", collectionId, startTime, periodInSecond);
+					JobService.getInstance().schedule(job, simpleDateFormat.parse(startTime), periodInSecond, true);
+				} catch (ParseException e) {
+					logger.error("[{}] Full Indexing schedule time parse error : {}", collectionId, startTime);
+					return false;
+				}
+			} else {
+				JobService.getInstance().cancelSchedule(job);
 			}
 		}
-		if(addIndexingSchedule != null && addIndexingSchedule.isActive()){
-			String startTime = addIndexingSchedule.getStart();
-			int periodInSecond = addIndexingSchedule.getPeriodInSecond();
-			
+		if (addIndexingSchedule != null) {
 			MasterCollectionAddIndexingJob job = new MasterCollectionAddIndexingJob();
 			job.setArgs(collectionId);
-			try {
-				logger.debug("Load add indexing schdule {} : {}: {}", collectionId, startTime, periodInSecond);
-				JobService.getInstance().schedule(job, simpleDateFormat.parse(startTime), periodInSecond, true);
-			} catch (ParseException e) {
-				logger.error("[{}] Add Indexing schedule time parse error : {}", collectionId, startTime);
-				return false;
+			
+			if (addIndexingSchedule.isActive()) {
+				String startTime = addIndexingSchedule.getStart();
+				int periodInSecond = addIndexingSchedule.getPeriodInSecond();
+
+				try {
+					logger.debug("Load add indexing schdule {} : {}: {}", collectionId, startTime, periodInSecond);
+					JobService.getInstance().schedule(job, simpleDateFormat.parse(startTime), periodInSecond, true);
+				} catch (ParseException e) {
+					logger.error("[{}] Add Indexing schedule time parse error : {}", collectionId, startTime);
+					return false;
+				}
+
+			} else {
+				JobService.getInstance().cancelSchedule(job);
 			}
 		}
 		return true;
 	}
 
 	public void reloadAllSchedule() {
-		//색인 스케쥴등록.
-		for(CollectionsConfig.Collection collection : getCollectionList()){
+		// 색인 스케쥴등록.
+		for (CollectionsConfig.Collection collection : getCollectionList()) {
 			String collectionId = collection.getId();
 			reloadSchedule(collectionId);
 		}
 	}
-	
+
 }

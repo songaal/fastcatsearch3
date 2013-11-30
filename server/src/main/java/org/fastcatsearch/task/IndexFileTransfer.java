@@ -2,6 +2,7 @@ package org.fastcatsearch.task;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -9,7 +10,6 @@ import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.transport.TransportException;
 import org.fastcatsearch.transport.common.SendFileResultFuture;
 import org.fastcatsearch.util.FileUtils;
@@ -82,8 +82,49 @@ public class IndexFileTransfer {
 		return resultList;
 	}
 
-	public void tranferRevision(File collectionDataDir, File segmentDir, File revisionDir, NodeService nodeService, List<Node> nodeList) {
-		// TODO Auto-generated method stub
+	
+	public void transferFile(File file, NodeService nodeService, Node node) throws TransportException {
+		Collection<File> files = null;
+		if(!file.exists()){
+			//not exists.
+			throw new TransportException("File is not exist. "+file.getAbsolutePath());
+		}else if(file.isDirectory()){
+			files = FileUtils.listFiles(file, null, true);
+		}else{
+			files = new HashSet<File>();
+			files.add(file);
+		}
+		int totalFileCount = files.size();
+		Iterator<File> fileIterator = files.iterator();
+		int fileCount = 1;
+		
+		while (fileIterator.hasNext()) {
+			File sourceFile = fileIterator.next();
+			File relativeFile = environment.filePaths().relativise(sourceFile);
+			logger.info("[{} / {}]파일 {} 전송시작! ", new Object[] { fileCount, totalFileCount, sourceFile.getPath() });
 
+			SendFileResultFuture sendFileResultFuture;
+			try {
+				sendFileResultFuture = nodeService.sendFile(node, sourceFile, relativeFile);
+			} catch (TransportException e) {
+				logger.error("Transport exception sending {} to {} : {}", sourceFile.getName(), node, e);
+				throw e;
+			}
+			if (sendFileResultFuture != null) {
+				Object result = sendFileResultFuture.take();
+				if (sendFileResultFuture.isSuccess()) {
+					logger.info("[{} / {}]파일 {} 전송완료!", new Object[] { fileCount, totalFileCount, relativeFile.getPath() });
+				} else {
+					logger.error("Fail to send {} to {} : {}", sourceFile.getName(), node);
+					throw new TransportException("Fail to send file "+sourceFile.getName());
+				}
+			} else {
+				// null이라면 디렉토리 또는 동일노드..
+				logger.warn("skip file {} to {}", sourceFile.getName(), node);
+				continue; //다음파일로...
+			}
+
+			fileCount++;
+		}
 	}
 }

@@ -59,6 +59,14 @@ public abstract class TaskState {
 	public void setState(String state){
 		this.state = state;
 	}
+	
+	public void addState(String state){
+		if(this.state != null){
+			this.state += (" > " +state); 
+		}else{
+			this.state = state;
+		}
+	}
 
 	public int getProgressRate(){
 		return progressRate;

@@ -364,7 +364,7 @@ public class TransportModule extends AbstractModule {
     		throw new TransportException("node is null");
     	}
     	if(!node.isActive()){
-    		throw new TransportException("node is not active");
+    		throw new TransportException("node is not active : "+node.toString());
     	}
         final long requestId = newRequestId();
         try {
@@ -385,7 +385,7 @@ public class TransportModule extends AbstractModule {
     		throw new TransportException("node is null");
     	}
     	if(!node.isActive()){
-    		throw new TransportException("node is not active");
+    		throw new TransportException("node is not active : "+node.toString());
     	}
     	final long requestId = newRequestId();
     	try {

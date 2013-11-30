@@ -103,7 +103,7 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
 		int deleteCount = revisionInfo.getDeleteCount();
 		FilePaths indexFilePaths = collectionContext.indexFilePaths();
 		try {
-			if (insertCount > 0 || deleteCount > 0) {
+			if ((insertCount > 0 || deleteCount > 0) && !stopRequested) {
 				if (insertCount > 0) {
 					revisionInfo.setRefWithRevision();
 				} else {
@@ -148,7 +148,11 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
 				return true;
 			} else {
 				// 추가,삭제 문서 모두 없을때.
-				logger.info("[{}] Indexing Canceled due to no documents.", collectionContext.collectionId());
+				if(!stopRequested){
+					logger.info("[{}] Indexing Canceled due to no documents.", collectionContext.collectionId());
+				}else{
+					logger.info("[{}] Indexing Canceled due to Stop Requested!", collectionContext.collectionId());
+				}
 
 				// 리비전 디렉토리 삭제.
 				File segmentDir = indexFilePaths.file(workingSegmentInfo.getId());

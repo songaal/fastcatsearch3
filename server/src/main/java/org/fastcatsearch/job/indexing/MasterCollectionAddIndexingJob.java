@@ -25,18 +25,6 @@ public class MasterCollectionAddIndexingJob extends MasterNodeJob {
 		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 		Node indexNode = nodeService.getNodeById(indexNodeId);
 		
-		//master가 index 노드인지.
-//		if(!nodeService.isMyNode(indexNode)){
-//			BeforeFullIndexingNodeUpdateJob beforeJob = new BeforeFullIndexingNodeUpdateJob(collectionContext);
-//			ResultFuture jobResult = nodeService.sendRequest(indexNode, beforeJob);
-//			if(jobResult != null){
-//				Object obj = jobResult.take();
-//			}else{
-//				throw new FastcatSearchException("Cannot update index node config.");
-//			}
-//		}
-		
-		
 		CollectionAddIndexingJob collectionIndexingJob = new CollectionAddIndexingJob();
 		collectionIndexingJob.setArgs(collectionId);
 		

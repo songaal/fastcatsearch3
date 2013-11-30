@@ -45,6 +45,8 @@ public class GetAllNodeIndexingStatusAction extends AuthAction {
 			job.setArgs(collectionId);
 			ResultFuture resultFuture1 = nodeService.sendRequest(indexNode, job);
 			resultFutureList.add(resultFuture1);
+		}else{
+			resultFutureList.add(null);
 		}
 		
 		for (Node dataNode : dataNodeList) {
@@ -53,6 +55,8 @@ public class GetAllNodeIndexingStatusAction extends AuthAction {
 			if(dataNode != null && dataNode.isActive()){
 				ResultFuture resultFuture = nodeService.sendRequest(dataNode, job);
 				resultFutureList.add(resultFuture);
+			}else{
+				resultFutureList.add(null);
 			}
 		}
 		
@@ -99,11 +103,12 @@ public class GetAllNodeIndexingStatusAction extends AuthAction {
 	private void writeIndexingDataInfo(Node node, ResponseWriter responseWriter, IndexingDataInfo indexingDataInfo) throws ResultWriterException {
 		
 		responseWriter.object();
+		responseWriter
+		.key("nodeId").value(node.id())
+		.key("nodeName").value(node.name());
 		
 		if(indexingDataInfo != null){
 			responseWriter
-			.key("nodeId").value(node.id())
-			.key("nodeName").value(node.name())
 			.key("segmentSize").value(indexingDataInfo.segmentSize)
 			.key("revisionUUID").value(indexingDataInfo.revisionUUID)
 			.key("sequence").value(indexingDataInfo.sequence)

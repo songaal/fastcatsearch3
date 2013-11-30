@@ -25,38 +25,39 @@ public class IndexingProcessLogger implements ProcessLogger {
 		if (processLog instanceof IndexingStartProcessLog) {
 			IndexingStartProcessLog log = (IndexingStartProcessLog) processLog;
 
-			DBService dbService = ServiceManager.getInstance().getService(DBService.class);
-			if (dbService != null) {
-				MapperSession<IndexingResultMapper> resultMapperSession = dbService.getMapperSession(IndexingResultMapper.class);
-
-				try {
-					IndexingResultMapper indexingResultMapper = resultMapperSession.getMapper();
-
-					// 전체색인시는 증분색인 정보까지 클리어해준다.
-					if (log.getIndexingType() == IndexingType.FULL) {
-						indexingResultMapper.deleteEntry(log.getCollectionId(), IndexingType.FULL);
-					}
-					indexingResultMapper.deleteEntry(log.getCollectionId(), IndexingType.ADD);
-
-					IndexingStatusVO vo = new IndexingStatusVO();
-					vo.collectionId = log.getCollectionId();
-					vo.type = log.getIndexingType();
-					vo.status = ResultStatus.RUNNING;
-					vo.isScheduled = log.isScheduled();
-					vo.startTime = new Timestamp(log.getStartTime());
-					vo.endTime = new Timestamp(log.getStartTime());// 없으면 derby
-																	// 에러발생.
-					try {
-						indexingResultMapper.putEntry(vo);
-					} catch (Exception e) {
-						logger.error("", e);
-					}
-				} finally {
-					if (resultMapperSession != null) {
-						resultMapperSession.closeSession();
-					}
-				}
-			}
+			//색인시작시는 indexing result를 변경하지 않는다. 차후 실패나, 정지를 할수 있으므로..
+//			DBService dbService = ServiceManager.getInstance().getService(DBService.class);
+//			if (dbService != null) {
+//				MapperSession<IndexingResultMapper> resultMapperSession = dbService.getMapperSession(IndexingResultMapper.class);
+//
+//				try {
+//					IndexingResultMapper indexingResultMapper = resultMapperSession.getMapper();
+//
+//					// 전체색인시는 증분색인 정보까지 클리어해준다.
+//					if (log.getIndexingType() == IndexingType.FULL) {
+//						indexingResultMapper.deleteEntry(log.getCollectionId(), IndexingType.FULL);
+//					}
+//					indexingResultMapper.deleteEntry(log.getCollectionId(), IndexingType.ADD);
+//
+//					IndexingStatusVO vo = new IndexingStatusVO();
+//					vo.collectionId = log.getCollectionId();
+//					vo.type = log.getIndexingType();
+//					vo.status = ResultStatus.RUNNING;
+//					vo.isScheduled = log.isScheduled();
+//					vo.startTime = new Timestamp(log.getStartTime());
+//					vo.endTime = new Timestamp(log.getStartTime());// 없으면 derby
+//																	// 에러발생.
+//					try {
+//						indexingResultMapper.putEntry(vo);
+//					} catch (Exception e) {
+//						logger.error("", e);
+//					}
+//				} finally {
+//					if (resultMapperSession != null) {
+//						resultMapperSession.closeSession();
+//					}
+//				}
+//			}
 
 		} else if (processLog instanceof IndexingFinishProcessLog) {
 			//
@@ -73,10 +74,10 @@ public class IndexingProcessLogger implements ProcessLogger {
 					IndexingResultMapper indexingResultMapper = resultMapperSession.getMapper();
 
 					// 전체색인시는 증분색인 정보까지 클리어해준다.
-					if (log.getIndexingType() == IndexingType.FULL) {
-						indexingResultMapper.deleteEntry(log.getCollectionId(), IndexingType.FULL);
-					}
-					indexingResultMapper.deleteEntry(log.getCollectionId(), IndexingType.ADD);
+//					if (log.getIndexingType() == IndexingType.FULL) {
+//						indexingResultMapper.deleteEntry(log.getCollectionId(), IndexingType.FULL);
+//					}
+//					indexingResultMapper.deleteEntry(log.getCollectionId(), IndexingType.ADD);
 
 					IndexingStatusVO vo = new IndexingStatusVO();
 					if (!log.isFail()) {
@@ -112,7 +113,16 @@ public class IndexingProcessLogger implements ProcessLogger {
 					}
 
 					try {
-						indexingResultMapper.putEntry(vo);
+						//색인결과는 취소와 정지가 아닐경우에만 업데이트한다. 실패는 색인파일에 영향을 줄수 있으므로 표기한다.  
+						if(vo.status != ResultStatus.CANCEL && vo.status != ResultStatus.STOP){
+							if (log.getIndexingType() == IndexingType.FULL) {
+								indexingResultMapper.deleteEntry(log.getCollectionId(), IndexingType.FULL);
+								indexingResultMapper.deleteEntry(log.getCollectionId(), IndexingType.ADD);
+							}else if(log.getIndexingType() == IndexingType.ADD){
+								indexingResultMapper.deleteEntry(log.getCollectionId(), IndexingType.ADD);
+							}
+							indexingResultMapper.putEntry(vo);
+						}
 						indexingHistoryMapper.putEntry(vo);
 					} catch (Exception e) {
 						logger.error("", e);

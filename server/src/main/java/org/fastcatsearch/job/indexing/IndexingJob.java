@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.db.mapper.IndexingResultMapper.ResultStatus;
+import org.fastcatsearch.ir.AbstractCollectionIndexer;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
@@ -38,9 +39,26 @@ public abstract class IndexingJob extends Job implements Streamable {
 	
 	protected IndexingTaskState indexingTaskState;
 	private long indexingStartTime;
+	protected boolean stopRequested; //색인중단요청..
+	
+	protected AbstractCollectionIndexer indexer;
+	
 	
 	public long indexingStartTime(){
 		return indexingStartTime;
+	}
+	
+	public AbstractCollectionIndexer indexer(){
+		return indexer;
+	}
+	
+	public void requestStop(){
+		logger.info("Collection [{}] Indexing Job Stop Requested! ", collectionId);
+		stopRequested = true;
+		if(indexer != null){
+			indexer.requestStop();
+		}
+		indexingTaskState.addState(IndexingTaskState.STATE_STOP_REQUESTED);
 	}
 	
 	public void prepare(IndexingType indexingType){
