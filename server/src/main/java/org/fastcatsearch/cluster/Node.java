@@ -102,7 +102,7 @@ public class Node implements Streamable{
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Node))
+    	if (obj == null || !(obj instanceof Node))
             return false;
 
         Node other = (Node) obj;

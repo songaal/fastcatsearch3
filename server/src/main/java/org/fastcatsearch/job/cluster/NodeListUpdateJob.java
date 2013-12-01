@@ -5,26 +5,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.MirrorSynchronizer;
-import org.fastcatsearch.ir.common.IndexFileNames;
-import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
-import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
-import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.NodeListSettings;
 import org.fastcatsearch.settings.NodeListSettings.NodeSettings;
-import org.fastcatsearch.transport.vo.StreamableCollectionContext;
-import org.fastcatsearch.util.CollectionContextUtil;
 
 public class NodeListUpdateJob extends Job implements Streamable {
 
@@ -37,6 +26,7 @@ public class NodeListUpdateJob extends Job implements Streamable {
 	public JobResult doRun() throws FastcatSearchException {
 
 		try {
+			logger.debug("run node update job..");
 			NodeListSettings nodeListSettings = (NodeListSettings)args; 
 			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 			nodeService.updateNode(nodeListSettings);

@@ -11,7 +11,6 @@ import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.cluster.NodeListUpdateJob;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.NodeListSettings;
@@ -93,7 +92,7 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 		}
 
 		for (Node node : nodeList) {
-			if (node.isEnabled() && !node.equals(myNode)) {
+			if (node!=null && node.isEnabled() && !node.equals(myNode)) {
 				try {
 					transportModule.connectToNode(node);
 					node.setActive();
@@ -213,7 +212,9 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 	public void updateNode(NodeListSettings nodeListSettings) {
 		
 		List<NodeSettings> nodeSettingList = nodeListSettings.getNodeList();
-
+		
+		logger.trace("updating node..");
+		
 		for(int inx=0;inx< nodeSettingList.size();inx++) {
 			NodeSettings setting = nodeSettingList.get(inx);
 
@@ -227,14 +228,26 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 
 			if(nodeMap.containsKey(nodeId)) {
 				node = nodeMap.get(nodeId);
+				//주소 및 포트가 변경 되었다면
+				if( !( address!=null && address.equals(node.address()) &&
+					port == node.port()) ) {
+					//기존 노드의 정지 후 새 노드를 시작함.
+					if(node.isEnabled() && node.isActive()) {
+						//TODO:노드 정지 및 삭제
+						logger.trace("updating (stop)node {}..", new Object[] { inx });
+					}
+					node = new Node(nodeId, name, address, port, enabled);
+					nodeList.set(inx, node);
+				}
 			} else {
 				//신규노드
+				logger.trace("add new node..");
 				node = new Node(nodeId, name, address, port, enabled);
 				nodeMap.put(nodeId, node);
 				nodeList.add(node);
 			}
 		}
 		
-		//settingManager.storeNodeListSettings(nodeListSettings);
+		environment.settingManager().storeNodeListSettings(nodeListSettings);
 	}
 }
