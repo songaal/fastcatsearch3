@@ -7,6 +7,7 @@ import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.settings.Schema;
+import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
@@ -18,7 +19,7 @@ public class CollectionContext {
 	private String id;
 	private FilePaths collectionFilePaths;
 	private Schema schema;
-	private Schema workSchema;
+	private SchemaSetting workSchemaSetting;
 	private CollectionConfig collectionConfig;
 	private IndexConfig indexConfig;
 	private DataSourceConfig dataSourceConfig;
@@ -31,10 +32,10 @@ public class CollectionContext {
 		this.collectionFilePaths = collectionFilePaths;
 	}
 
-	public void init(Schema schema, Schema workSchema, CollectionConfig collectionConfig, IndexConfig indexConfig, DataSourceConfig dataSourceConfig
+	public void init(Schema schema, SchemaSetting workSchemaSetting, CollectionConfig collectionConfig, IndexConfig indexConfig, DataSourceConfig dataSourceConfig
 			, CollectionIndexStatus collectionStatus, DataInfo dataInfo, IndexingScheduleConfig indexingScheduleConfig){
 		this.schema = schema;
-		this.workSchema = workSchema;
+		this.workSchemaSetting = workSchemaSetting;
 		this.collectionConfig = collectionConfig;
 		this.indexConfig = indexConfig;
 		this.dataSourceConfig = dataSourceConfig;
@@ -47,7 +48,7 @@ public class CollectionContext {
 	public CollectionContext copy(){
 		CollectionContext collectionContext = new CollectionContext(id, collectionFilePaths);
 		collectionContext.schema = schema;
-		collectionContext.workSchema = workSchema;
+		collectionContext.workSchemaSetting = workSchemaSetting;
 		collectionContext.collectionConfig = collectionConfig;
 		collectionContext.indexConfig = indexConfig;
 		collectionContext.dataSourceConfig = dataSourceConfig;
@@ -83,12 +84,12 @@ public class CollectionContext {
 	public void setSchema(Schema schema){
 		this.schema = schema;
 	}
-	public Schema workSchema(){
-		return workSchema;
+	public SchemaSetting workSchemaSetting(){
+		return workSchemaSetting;
 	}
 	
-	public void setWorkSchema(Schema schema){
-		workSchema = schema;
+	public void setWorkSchemaSetting(SchemaSetting schemaSetting){
+		workSchemaSetting = schemaSetting;
 	}
 	
 	public CollectionConfig collectionConfig(){

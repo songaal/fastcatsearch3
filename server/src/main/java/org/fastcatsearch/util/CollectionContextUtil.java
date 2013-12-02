@@ -129,12 +129,8 @@ public class CollectionContextUtil {
 			}
 			
 			Schema schema = new Schema(schemaSetting);
-			Schema workSchema = null;
-			if (workSchemaSetting != null) {
-				workSchema = new Schema(workSchemaSetting);
-			}
 			CollectionContext collectionContext = new CollectionContext(collection.getId(), collectionFilePaths);
-			collectionContext.init(schema, workSchema, collectionConfig, indexConfig, dataSourceConfig, collectionStatus, dataInfo, indexingScheduleConfig);
+			collectionContext.init(schema, workSchemaSetting, collectionConfig, indexConfig, dataSourceConfig, collectionStatus, dataInfo, indexingScheduleConfig);
 			
 			return collectionContext;
 		} catch (Exception e) {
@@ -147,7 +143,7 @@ public class CollectionContextUtil {
 			FilePaths collectionFilePaths = collectionContext.collectionFilePaths();
 
 			Schema schema = collectionContext.schema();
-			Schema workSchema = collectionContext.workSchema();
+			SchemaSetting workSchemaSetting = collectionContext.workSchemaSetting();
 			IndexConfig indexConfig = collectionContext.indexConfig();
 			CollectionConfig collectionConfig = collectionContext.collectionConfig();
 			CollectionIndexStatus collectionStatus = collectionContext.indexStatus();
@@ -161,9 +157,8 @@ public class CollectionContextUtil {
 				SchemaSetting schemaSetting = schema.schemaSetting();
 				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.schema), schemaSetting, SchemaSetting.class);
 			}
-			if (workSchema != null && workSchema.schemaSetting() != null) {
-				SchemaSetting schemaSetting = workSchema.schemaSetting();
-				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.workSchema), schemaSetting, SchemaSetting.class);
+			if (workSchemaSetting != null) {
+				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.workSchema), workSchemaSetting, SchemaSetting.class);
 			}
 			if(indexConfig != null){
 				JAXBConfigs.writeConfig(new File(collectionDir, SettingFileNames.indexConfig), indexConfig, IndexConfig.class);

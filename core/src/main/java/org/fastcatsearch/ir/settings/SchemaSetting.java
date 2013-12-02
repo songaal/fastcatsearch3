@@ -2,16 +2,11 @@ package org.fastcatsearch.ir.settings;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
-
-import org.fastcatsearch.ir.io.AsciiCharTrie;
 
 
 @XmlRootElement(name = "schema")
@@ -92,4 +87,22 @@ public class SchemaSetting {
 		this.primaryKeySetting = primaryKeySetting;
 	}
 	
+	
+	public void isValid() throws SchemaInvalidateException {
+		//TODO validation 체크.
+		
+		//TODO validation은 아래와 같은 내용을 수행한다.
+
+		//field-list : 1. field type이 올바른지 확인. 2. 옵션이 올바른지 확인.
+		
+		//primary-key : 1. ref가 field list에 존재하는지 확인. 2. field type이 고정길이가 맞는지 확인. 
+		
+		//analyzer-list : 1. 값이 올바른지 확인.
+		
+		//index-list : 1.ref 가 field list에 존재하는지. 2. indexAnalyzer가 analyzer-list 에 존재하는지.
+		
+		//field-index-list : 1. ref가 field list에 존재하는지
+		
+		// group-index-list : 1. ref가 field list에 존재하는지
+	}
 }

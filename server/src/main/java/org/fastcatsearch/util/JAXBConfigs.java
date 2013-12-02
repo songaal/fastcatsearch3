@@ -6,7 +6,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 
 import javax.xml.bind.JAXBContext;
@@ -23,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 public class JAXBConfigs {
 	private static final Logger logger = LoggerFactory.getLogger(JAXBConfigs.class);
-	
+	private static final String DEFAULT_CHARSET = "UTF-8";
 	public static <T> T readConfig(File file, Class<T> jaxbConfigClass) throws JAXBException {
 		logger.debug("readConfig file >> {}, {}", file.getAbsolutePath(), file.exists());
 		
@@ -99,21 +101,21 @@ public class JAXBConfigs {
 	
 	
 	public static <T> void writeConfig(File file, Object jaxbConfig, Class<T> jaxbConfigClass) throws JAXBException {
-		OutputStream os = null;
+		Writer writer = null;
 		try{
 			if (!file.exists()) {
 				logger.debug("create {}", file.getAbsolutePath());
 				file.createNewFile();
 			}
 			
-			os = new FileOutputStream(file);
-			writeRawConfig(os, jaxbConfig, jaxbConfigClass);
+			writer = new OutputStreamWriter(new FileOutputStream(file), DEFAULT_CHARSET);
+			writeRawConfig(writer, jaxbConfig, jaxbConfigClass);
 		}catch(IOException e){
 			throw new JAXBException(e);
 		}finally{
-			if(os != null){
+			if(writer != null){
 				try {
-					os.close();
+					writer.close();
 				} catch (IOException ignore) {
 				}
 			}
@@ -126,14 +128,21 @@ public class JAXBConfigs {
 	public static <T> void writeRawConfig(OutputStream os, Object jaxbConfig, Class<T> jaxbConfigClass, boolean removeXmlDeclaration) throws JAXBException {
 		JAXBContext context = JAXBContext.newInstance(jaxbConfigClass);
 		Marshaller marshaller = context.createMarshaller();
-		marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
+		marshaller.setProperty(Marshaller.JAXB_ENCODING, DEFAULT_CHARSET);
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 //		logger.debug("removeXmlDeclaration!! {}", removeXmlDeclaration);
 		if(removeXmlDeclaration){
 			marshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
 //			marshaller.setProperty("com.sun.xml.bind.xmlDeclaration", Boolean.FALSE);
 		}
-		marshaller.marshal(jaxbConfig, os);
+		
+		Writer writer = null;
+		try {
+			writer = new OutputStreamWriter(os, DEFAULT_CHARSET);
+			marshaller.marshal(jaxbConfig, writer);
+		} catch (UnsupportedEncodingException e) {
+			throw new JAXBException(e);
+		}
 	}
 	
 	public static <T> void writeRawConfig(Writer writer, Object jaxbConfig, Class<T> jaxbConfigClass) throws JAXBException {
@@ -142,7 +151,7 @@ public class JAXBConfigs {
 	public static <T> void writeRawConfig(Writer writer, Object jaxbConfig, Class<T> jaxbConfigClass, boolean removeXmlDeclaration) throws JAXBException {
 		JAXBContext context = JAXBContext.newInstance(jaxbConfigClass);
 		Marshaller marshaller = context.createMarshaller();
-		marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
+		marshaller.setProperty(Marshaller.JAXB_ENCODING, DEFAULT_CHARSET);
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 //		logger.debug("removeXmlDeclaration!! {}", removeXmlDeclaration);
 		if(removeXmlDeclaration){

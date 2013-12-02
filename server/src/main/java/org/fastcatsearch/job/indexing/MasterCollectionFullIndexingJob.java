@@ -7,6 +7,7 @@ import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.job.MasterNodeJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.CollectionContextUtil;
@@ -40,8 +41,8 @@ public class MasterCollectionFullIndexingJob extends MasterNodeJob {
 		
 		//전체색인용 context를 준비한다.
 		CollectionContext newCollectionContext = collectionContext.copy();
-		if(newCollectionContext.workSchema() != null){
-			newCollectionContext.setSchema(newCollectionContext.workSchema());
+		if(newCollectionContext.workSchemaSetting() != null){
+			newCollectionContext.setSchema(new Schema(newCollectionContext.workSchemaSetting()));
 		}
 		
 		CollectionFullIndexingJob collectionIndexingJob = new CollectionFullIndexingJob(newCollectionContext);

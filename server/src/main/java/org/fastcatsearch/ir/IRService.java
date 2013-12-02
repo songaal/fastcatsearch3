@@ -162,7 +162,12 @@ public class IRService extends AbstractService {
 	}
 
 	public CollectionContext collectionContext(String collectionId) {
-		return collectionHandler(collectionId).collectionContext();
+		CollectionHandler h = collectionHandler(collectionId);
+		if(h != null){
+			return h.collectionContext();
+		}else{
+			return null;
+		}
 	}
 
 	public List<Collection> getCollectionList() {

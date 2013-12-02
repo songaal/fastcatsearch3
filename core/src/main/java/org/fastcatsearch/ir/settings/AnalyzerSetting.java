@@ -3,27 +3,26 @@ package org.fastcatsearch.ir.settings;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.XmlValue;
 
-//<analyzer id="korean_index" corePoolSize="10" maximumPoolSize="100">com.fastcatsearch.plugin.analysis.korean.StandardKoreanAnalyzer</analyzer>
+//<analyzer id="korean_index" corePoolSize="10" maximumPoolSize="100" className="com.fastcatsearch.plugin.analysis.korean.StandardKoreanAnalyzer" />
 
 @XmlRootElement(name = "analyzer-list")
-@XmlType(propOrder = { "analyzer", "maximumPoolSize", "corePoolSize", "name", "id"})
+@XmlType(propOrder = { "className", "maximumPoolSize", "corePoolSize", "name", "id"})
 public class AnalyzerSetting {
 	private String id;
 	private String name;
 	private int corePoolSize;
 	private int maximumPoolSize;
-	private String analyzerClassName;
+	private String className;
 	
 	public AnalyzerSetting(){}
 	
-	public AnalyzerSetting(String id, String name, int corePoolSize, int maximumPoolSize, String analyzerClassName){
+	public AnalyzerSetting(String id, String name, int corePoolSize, int maximumPoolSize, String className){
 		this.id = id.toUpperCase();
 		this.name = name;
 		this.corePoolSize = corePoolSize;
 		this.maximumPoolSize = maximumPoolSize;
-		this.analyzerClassName = analyzerClassName;
+		this.className = className;
 	}
 	
 	@XmlAttribute(name="id", required=true)
@@ -57,11 +56,11 @@ public class AnalyzerSetting {
 		this.maximumPoolSize = maximumPoolSize;
 	}
 	
-	@XmlValue
-	public String getAnalyzer() {
-		return analyzerClassName;
+	@XmlAttribute(name="className", required=true)
+	public String getClassName() {
+		return className;
 	}
-	public void setAnalyzer(String analyzerClassName) {
-		this.analyzerClassName = analyzerClassName;
+	public void setClassName(String analyzerClassName) {
+		this.className = analyzerClassName;
 	}
 }
