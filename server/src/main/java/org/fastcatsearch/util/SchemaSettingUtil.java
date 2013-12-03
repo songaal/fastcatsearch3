@@ -1,7 +1,6 @@
 package org.fastcatsearch.util;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.fastcatsearch.ir.settings.AnalyzerSetting;
@@ -11,6 +10,7 @@ import org.fastcatsearch.ir.settings.GroupIndexSetting;
 import org.fastcatsearch.ir.settings.IndexSetting;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
 import org.fastcatsearch.ir.settings.RefSetting;
+import org.fastcatsearch.ir.settings.SchemaInvalidateException;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.ir.settings.FieldSetting.Type;
 import org.json.JSONArray;
@@ -45,14 +45,15 @@ import org.json.JSONObject;
  * */
 public class SchemaSettingUtil {
 	
-	public static SchemaSetting convertSchemaSetting(JSONObject object){
+	public static SchemaSetting convertSchemaSetting(
+			JSONObject object) throws SchemaInvalidateException {
 		
 		SchemaSetting schemaSetting = new SchemaSetting();
 		
 		schemaSetting.setFieldSettingList(parseFieldSettingList(object.optJSONArray("field-list")));
 		schemaSetting.setPrimaryKeySetting(parsePrimaryKeySetting(object.optJSONArray("primary-key")));
 		schemaSetting.setAnalyzerSettingList(parseAnalyzerSettingList(object.optJSONArray("analyzer-list")));
-		schemaSetting.setIndexSettingList(parseIndexSettingList(object.optJSONArray("indx-list")));
+		schemaSetting.setIndexSettingList(parseIndexSettingList(object.optJSONArray("index-list")));
 		schemaSetting.setFieldIndexSettingList(parseFieldIndexSettingList(object.optJSONArray("field-index-list")));
 		schemaSetting.setGroupIndexSettingList(parseGroupSettingList(object.optJSONArray("group-index-list")));
 		
@@ -60,7 +61,7 @@ public class SchemaSettingUtil {
 	}
 	
 	private static List <FieldSetting> parseFieldSettingList(
-			JSONArray array) {
+			JSONArray array) throws SchemaInvalidateException {
 		List<FieldSetting> fieldSettingList = new ArrayList<FieldSetting>();
 		
 		for(int inx=0;inx<array.length(); inx++) {
@@ -68,28 +69,38 @@ public class SchemaSettingUtil {
 			JSONObject data = array.optJSONObject(inx);
 			
 			setting.setId(data.optString("id"));
-			setting.setStore(data.optBoolean("store"));
 			setting.setName(data.optString("name"));
 			setting.setType(Type.valueOf(data.optString("type")));
 			setting.setSize(data.optInt("size"));
+			setting.setStore("true".equals(data.optString("store")));
+			setting.setRemoveTag("true".equals(data.optString("removeTag")));
+			setting.setMultiValue("true".equals(data.optString("multiValue")));
+			setting.setMultiValueDelimiter(data.optString("multiValueDelimeter"));
 			fieldSettingList.add(setting);
 		}
 		return fieldSettingList;
 	}
 	
 	private static PrimaryKeySetting parsePrimaryKeySetting(
-			JSONArray array) {
+			JSONArray array) throws SchemaInvalidateException {
 		PrimaryKeySetting setting = new PrimaryKeySetting();
+		
+		//setting.setId("");
+		List<RefSetting> fieldList = new ArrayList<RefSetting>();
 		
 		for(int inx=0;inx<array.length();inx++) {
 			JSONObject data = array.optJSONObject(inx);
+			RefSetting ref = new RefSetting();
+			ref.setRef(data.optString("ref"));
+			fieldList.add(ref);
 		}
+		setting.setFieldList(fieldList);
 		
 		return setting;
 	}
 	
 	private static List<AnalyzerSetting> parseAnalyzerSettingList(
-			JSONArray array) {
+			JSONArray array) throws SchemaInvalidateException {
 		List<AnalyzerSetting> analyzerSettingList = new ArrayList<AnalyzerSetting>();
 		
 		
@@ -107,7 +118,7 @@ public class SchemaSettingUtil {
 	}
 	
 	private static List<IndexSetting> parseIndexSettingList(
-			JSONArray array) {
+			JSONArray array) throws SchemaInvalidateException {
 		List<IndexSetting> indexSettingList = new ArrayList<IndexSetting>();
 		
 		for(int inx=0;inx<array.length();inx++) {
@@ -119,9 +130,9 @@ public class SchemaSettingUtil {
 			setting.setName(data.optString("name"));
 			setting.setQueryAnalyzer(data.optString("query_analyzer"));
 			
-			//setting.setStorePosition(data.optBoolean("store-position"));
-			//setting.setPositionIncrementGap(data.optInt("pig"));
-			//setting.setIgnoreCase(data.optBoolean("ignore-case"));
+			setting.setStorePosition("true".equals(data.optString("storePosition")));
+			setting.setIgnoreCase("true".equals(data.optString("ignore-case")));
+			setting.setPositionIncrementGap(data.optInt("pig"));
 			
 			
 			List<RefSetting> fieldList = new ArrayList<RefSetting>();
@@ -140,7 +151,7 @@ public class SchemaSettingUtil {
 	}
 	
 	private static List<FieldIndexSetting> parseFieldIndexSettingList(
-			JSONArray array) {
+			JSONArray array) throws SchemaInvalidateException {
 		List<FieldIndexSetting> fieldIndexSettingList = new ArrayList<FieldIndexSetting>();
 		
 		for(int inx=0;inx<array.length();inx++) {
@@ -148,9 +159,9 @@ public class SchemaSettingUtil {
 			JSONObject data = array.optJSONObject(inx);
 			setting.setId(data.optString("id"));
 			setting.setName(data.optString("name"));
-			setting.setRef(data.optString("ref"));
-			//setting.setSize(data.optInt("size"));
-			//setting.setIgnoreCase(data.optBoolean("ignore_case"));
+			setting.setRef(data.optString("field"));
+			setting.setSize(data.optInt("size"));
+			setting.setIgnoreCase("true".equals(data.optString("ignoreCase")));
 			fieldIndexSettingList.add(setting);
 		}
 		
@@ -158,7 +169,7 @@ public class SchemaSettingUtil {
 	}
 
 	private static List<GroupIndexSetting> parseGroupSettingList(
-			JSONArray array) {
+			JSONArray array) throws SchemaInvalidateException {
 		List<GroupIndexSetting> groupIndexesSettingList = new ArrayList<GroupIndexSetting>();
 		
 		for(int inx=0;inx<array.length();inx++) {
@@ -167,7 +178,7 @@ public class SchemaSettingUtil {
 			setting.setId(data.optString("id"));
 			setting.setName(data.optString("name"));
 			setting.setRef(data.optString("ref"));
-			//setting.setIgnoreCase(data.optBoolean("ignore-case"));
+			setting.setIgnoreCase("true".equals(data.optString("ignoreCase")));
 			groupIndexesSettingList.add(setting);
 		}
 		

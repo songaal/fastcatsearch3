@@ -1,7 +1,6 @@
 package org.fastcatsearch.http.action.management.collections;
 
 import java.io.File;
-import java.util.List;
 
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
@@ -9,7 +8,6 @@ import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaInvalidateException;
 import org.fastcatsearch.ir.settings.SchemaSetting;
@@ -71,9 +69,11 @@ public class UpdateCollectionSchemaAction extends AuthAction {
 			}
 			
 		}catch(SchemaInvalidateException e){
+			logger.error("",e);
 			isSuccess = false;
 			errorMessage = e.getMessage();
 		}catch(Exception e){
+			logger.error("",e);
 			isSuccess = false;
 			errorMessage = e.getMessage();
 		}
