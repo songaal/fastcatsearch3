@@ -11,8 +11,8 @@ import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
-import org.fastcatsearch.job.management.GetServerSystemInfoJob;
-import org.fastcatsearch.job.management.GetServerSystemInfoJob.ServerSystemInfo;
+import org.fastcatsearch.job.management.GetServerSystemHealthJob;
+import org.fastcatsearch.job.management.GetServerSystemHealthJob.SystemHealthInfo;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
@@ -44,15 +44,15 @@ public class GetServerSystemHealthAction extends AuthAction {
 		}
 		
 		responseWriter.object();
-		GetServerSystemInfoJob job = new GetServerSystemInfoJob();
+		GetServerSystemHealthJob job = new GetServerSystemHealthJob();
 		NodeJobResult[] nodeJobResult = ClusterUtils.sendJobToNodeList(job, nodeService, nodeList, true);
 		for(NodeJobResult jobResult : nodeJobResult) {
 			if(jobResult.isSuccess()){
 				Node node = jobResult.node();
 				Object result = jobResult.result();
 				if(result != null){
-					ServerSystemInfo info = (ServerSystemInfo) result;
-					writeSystemInfo(info, node, responseWriter);
+					SystemHealthInfo info = (SystemHealthInfo) result;
+					writeSystemHealthInfo(info, node, responseWriter);
 				}
 				
 			}
@@ -61,19 +61,19 @@ public class GetServerSystemHealthAction extends AuthAction {
 		responseWriter.done();
 	}
 
-	private void writeSystemInfo(ServerSystemInfo info, Node node, ResponseWriter responseWriter) throws ResultWriterException{
+	private void writeSystemHealthInfo(SystemHealthInfo info, Node node, ResponseWriter responseWriter) throws ResultWriterException{
 		responseWriter.key(node.id()).object()
-		.key(node.id()).object()
 		.key("nodeName").value(node.name())
-		.key("osName").value(info.osName)
-		.key("osArch").value(info.osArch)
-		.key("userName").value(info.userName)
-		.key("fileEncoding").value(info.fileEncoding)
-		.key("javaHome").value(info.javaHome)
-		.key("javaVendor").value(info.javaVendor)
-		.key("javaVersion").value(info.javaVersion)
-		.key("javaClasspath").value(info.javaClasspath)
-		.key("homePath").value(info.homePath)
+		.key("jvmCpuUse").value(info.jvmCpuUse)
+		.key("systemCpuUse").value(info.systemCpuUse)
+		.key("systemLoadAverage").value(info.systemLoadAverage)
+		.key("maxMemory").value(info.maxMemory)
+		.key("committedMemory").value(info.committedMemory)
+		.key("totalMemory").value(info.totalMemory)
+		.key("usedMemory").value(info.usedMemory)
+		.key("totalDiskSize").value(info.totalDiskSize)
+		.key("usedDiskSize").value(info.usedDiskSize)
+		.key("freeDiskSize").value(info.freeDiskSize)
 		.endObject();
 	}
 }

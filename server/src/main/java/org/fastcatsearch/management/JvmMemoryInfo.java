@@ -24,19 +24,22 @@ public class JvmMemoryInfo {
 	public int maxNonHeapMemory;
 	public int committedNonHeapMemory;
 	public int usedNonHeapMemory;
+	public int totalPhysicalMemorySize;
 	
-	public void init(int maxHeapMemory, int committedHeapMemory, int usedHeapMemory, int maxNonHeapMemory, int committedNonHeapMemory, int usedNonHeapMemory){
+	public void init(int maxHeapMemory, int committedHeapMemory, int usedHeapMemory, int maxNonHeapMemory, int committedNonHeapMemory
+			, int usedNonHeapMemory, int totalPhysicalMemorySize){
 		this.maxHeapMemory = maxHeapMemory;
 		this.committedHeapMemory = committedHeapMemory;
 		this.usedHeapMemory = usedHeapMemory;
 		this.maxNonHeapMemory = maxNonHeapMemory;
 		this.committedNonHeapMemory = committedNonHeapMemory;
 		this.usedNonHeapMemory = usedNonHeapMemory;
+		this.totalPhysicalMemorySize = totalPhysicalMemorySize;
 	}
 
 	public void print() {
 		logger.info("maxHeapMemory = {}, committedHeapMemory = {}, usedHeapMemory = {}, maxNonHeapMemory = {}, committedNonHeapMemory = {}" +
-				", usedNonHeapMemory = {}", maxHeapMemory, committedHeapMemory, usedHeapMemory, maxNonHeapMemory, committedNonHeapMemory, usedNonHeapMemory);
+				", usedNonHeapMemory = {}, totalPhysicalMemorySize = {}", maxHeapMemory, committedHeapMemory, usedHeapMemory, maxNonHeapMemory, committedNonHeapMemory, usedNonHeapMemory, totalPhysicalMemorySize);
 	
 	}
 

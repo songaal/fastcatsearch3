@@ -63,7 +63,6 @@ public class GetServerSystemInfoAction extends AuthAction {
 
 	private void writeSystemInfo(ServerSystemInfo info, Node node, ResponseWriter responseWriter) throws ResultWriterException{
 		responseWriter.key(node.id()).object()
-		.key(node.id()).object()
 		.key("nodeName").value(node.name())
 		.key("osName").value(info.osName)
 		.key("osArch").value(info.osArch)
