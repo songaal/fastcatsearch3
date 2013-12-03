@@ -20,7 +20,7 @@ public class GetServerInfoListAction extends AuthAction {
 		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 		
 		ResponseWriter responseWriter = getDefaultResponseWriter(response.getWriter());
-		List<Node> nodeList = nodeService.getNodeList();
+		List<Node> nodeList = nodeService.getNodeArrayList();
 		
 		responseWriter.object().key("nodeList").array("node");
 		for (int i = 0; i < nodeList.size(); i++) {

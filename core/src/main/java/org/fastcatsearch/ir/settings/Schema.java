@@ -87,8 +87,11 @@ public class Schema {
 		logger.debug("AnalyzerSetting size ={}", analyzerSettingSettingList.size());
 		
 		for(AnalyzerSetting analyzerSetting : analyzerSettingSettingList){
-			String analyzerClassName = analyzerSetting.getClassName().trim();
+			String analyzerClassName = analyzerSetting.getClassName();
 			String analyzerId = analyzerSetting.getId();
+			if(analyzerClassName == null || analyzerId == null){
+				continue;
+			}
 			int corePoolSize = analyzerSetting.getCorePoolSize();
 			int maximumPoolSize = analyzerSetting.getMaximumPoolSize();
 			AnalyzerFactory factory = AnalyzerFactoryLoader.load(analyzerClassName);
