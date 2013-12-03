@@ -2,14 +2,17 @@ package org.fastcatsearch.http.action.management.servers;
 
 import java.util.List;
 
+import org.fastcatsearch.cluster.ClusterUtils;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.SettingManager;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
+import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.cluster.NodeListUpdateJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.NodeListSettings;
@@ -46,6 +49,12 @@ public class UpdateServerInfoAction extends AuthAction {
 			settings.setPort(port);
 			settings.setEnabled(enable);
 			
+			if(serverIndex!=-1) {
+				//런타임상황의 노드번호와 세팅의노드번호가 다름.
+				//따라서 노드들을 모두 순회 하면서 아이디매칭이 필요.
+				serverIndex = nodeListSettings.findNodeById(nodeId);
+			}
+			
 			if(serverIndex==-1) {
 				nodeSettingList.add(settings);
 			} else {
@@ -61,6 +70,11 @@ public class UpdateServerInfoAction extends AuthAction {
 			NodeListUpdateJob job = new NodeListUpdateJob();
 			job.setArgs(nodeListSettings);
 			jobService.offer(job).take();
+			
+			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
+			List<Node> nodeList = nodeService.getNodeArrayList();
+			
+			ClusterUtils.sendJobToNodeList(job, nodeService, nodeList, false);
 			
 			isSuccess = true;
 			

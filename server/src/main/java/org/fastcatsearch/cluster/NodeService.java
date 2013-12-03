@@ -211,40 +211,57 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 		return node;
 	}
 	
+	/**
+	 * FIXME:노드 정지 및 삭제에 대한 기능이 들어있지 않음.
+	 * @param nodeListSettings
+	 */
 	public void updateNode(NodeListSettings nodeListSettings) {
 		
 		List<NodeSettings> nodeSettingList = nodeListSettings.getNodeList();
 		
 		logger.trace("updating node..");
 		
-		for(int inx=0;inx< nodeSettingList.size();inx++) {
-			NodeSettings setting = nodeSettingList.get(inx);
-
-			String nodeId = setting.getId();
-			String name = setting.getName();
-			String address = setting.getAddress();
-			int port = setting.getPort();
-			boolean enabled = setting.isEnabled();
-
-			Node node = null;
-
-			if(nodeMap.containsKey(nodeId)) {
-				node = nodeMap.get(nodeId);
-				//주소 및 포트가 변경 되었다면
-				if( !( address!=null && address.equals(node.address()) &&
-					port == node.port()) ) {
-					//기존 노드의 정지 후 새 노드를 시작함.
-					if(node.isEnabled() && node.isActive()) {
-						//TODO:노드 정지 및 삭제
-						logger.trace("updating (stop)node {}..", new Object[] { inx });
-					}
-					node = new Node(nodeId, name, address, port, enabled);
+		if(nodeSettingList.size() < nodeMap.size()) {
+			//삭제된 경우.
+			for(String key : nodeMap.keySet()) {
+				if(nodeListSettings.findNodeById(key)==-1) {
+					//TODO:노드 정지 및 삭제
+					nodeMap.remove(key);
+					break;
 				}
-			} else {
-				//신규노드
-				node = new Node(nodeId, name, address, port, enabled);
-				logger.trace("add new node.. {}", node);
-				nodeMap.put(nodeId, node);
+			}
+			
+		} else {
+		
+			for(int inx=0;inx< nodeSettingList.size();inx++) {
+				NodeSettings setting = nodeSettingList.get(inx);
+	
+				String nodeId = setting.getId();
+				String name = setting.getName();
+				String address = setting.getAddress();
+				int port = setting.getPort();
+				boolean enabled = setting.isEnabled();
+	
+				Node node = null;
+	
+				if(nodeMap.containsKey(nodeId)) {
+					node = nodeMap.get(nodeId);
+					//주소 및 포트가 변경 되었다면
+					if( !( address!=null && address.equals(node.address()) &&
+						port == node.port()) ) {
+						//기존 노드의 정지 후 새 노드를 시작함.
+						if(node.isEnabled() && node.isActive()) {
+							//TODO:노드 정지 및 삭제
+							logger.trace("updating (stop)node {}..", new Object[] { inx });
+						}
+						node = new Node(nodeId, name, address, port, enabled);
+					}
+				} else {
+					//신규노드
+					node = new Node(nodeId, name, address, port, enabled);
+					logger.trace("add new node.. {}", node);
+					nodeMap.put(nodeId, node);
+				}
 			}
 		}
 		

@@ -19,6 +19,18 @@ public class NodeListSettings {
 	public void setNodeList(List<NodeSettings> nodeList) {
 		this.nodeList = nodeList;
 	}
+	
+	public int findNodeById(String id) {
+		int ret = -1;
+		for(int inx=0; inx < nodeList.size(); inx++) {
+			NodeSettings node = nodeList.get(inx);
+			if(id!=null && id.equals(node.id)) {
+				ret = inx;
+				break;
+			}
+		}
+		return ret;
+	}
 
 	public static class NodeSettings {
 		private String id;
