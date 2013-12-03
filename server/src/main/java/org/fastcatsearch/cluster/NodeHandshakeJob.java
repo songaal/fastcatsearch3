@@ -9,16 +9,21 @@ import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
 
-public class NodePingJob extends Job implements Streamable {
+public class NodeHandshakeJob extends Job implements Streamable {
 
 	private static final long serialVersionUID = -990602244092656595L;
 	
 	private String nodeId;
+	private boolean isRequest;
 	
-	public NodePingJob(){
+	public NodeHandshakeJob(){
 	}
-	public NodePingJob(String nodeId) {
+	public NodeHandshakeJob(String nodeId) {
+		this(nodeId, true);
+	}
+	private NodeHandshakeJob(String nodeId, boolean isRequest) {
 		this.nodeId = nodeId;
+		this.isRequest = isRequest;
 	}
 
 	@Override
@@ -27,9 +32,15 @@ public class NodePingJob extends Job implements Streamable {
 		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 		Node node = nodeService.getNodeById(nodeId);
 		if(node != null){
-			if(!node.isActive()){
-				logger.info("Node {} is set Active!", node);
-				node.setActive();
+			if(node.isEnabled()){
+				if(isRequest){
+					//make connection if not exist.
+					logger.info("Node {} is set Active!", node);
+					node.setActive();
+					nodeService.sendRequest(node, new NodeHandshakeJob(nodeId, false));
+				}
+			}else{
+				logger.info("Node {} is disabled! Cannot accept node request.", node);
 			}
 		}
 		
@@ -38,10 +49,13 @@ public class NodePingJob extends Job implements Streamable {
 	@Override
 	public void readFrom(DataInput input) throws IOException {
 		nodeId = input.readString();
+		isRequest = input.readBoolean();
 	}
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
 		output.writeString(nodeId);
+		output.writeBoolean(isRequest);
 	}
 
+	
 }

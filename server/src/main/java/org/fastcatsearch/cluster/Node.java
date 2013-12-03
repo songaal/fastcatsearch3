@@ -6,8 +6,13 @@ import java.net.InetSocketAddress;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Node implements Streamable{
+	
+	private static final Logger logger = LoggerFactory.getLogger(Node.class);
+	
 	private String nodeId;
 	private String name;
 	private InetSocketAddress socketAddress;
@@ -47,22 +52,31 @@ public class Node implements Streamable{
 	}
 	
 	public void setDisabled(){
+		logger.debug("node {} state change to DISABLED", this);
 		isEnabled = false;
 	}
 	public void setEnabled(){
+		logger.debug("node {} state change to ENABLED", this);
 		isEnabled = true;
 	}
 	public void setActive(){
+		logger.debug("node {} state change to Active", this);
 		isActive = true;
 	}
 	public void setInactive(){
+		logger.debug("node {} state change to Inactive", this);
 		isActive = false;
+//		for(StackTraceElement e : Thread.currentThread().getStackTrace()){
+//			logger.debug("stack trace >> {}", e);
+//			
+//		}
 	}
 	public boolean isEnabled(){
 		return isEnabled;
 	}
+	//enabled해야 active하다.
 	public boolean isActive(){
-		return isActive;
+		return isActive && isEnabled;
 	}
 	
 	public String id() {

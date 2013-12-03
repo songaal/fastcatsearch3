@@ -139,7 +139,7 @@ public class TransportModule extends AbstractModule {
 				return Channels.pipeline(byteCounter, 
 						readableDecoder,
 						messageCounter, 
-						new MessageChannelHandler(environment, TransportModule.this, jobExecutor));
+						new MessageChannelHandler("ClientMessageChannelHandler", environment, TransportModule.this, jobExecutor));
 			}
 		});
 		clientBootstrap.setOption("connectTimeoutMillis", connectTimeout);
@@ -171,7 +171,7 @@ public class TransportModule extends AbstractModule {
 				return Channels.pipeline(byteCounter, 
 						readableDecoder,
 						messageCounter,
-						new MessageChannelHandler(environment, TransportModule.this, jobExecutor),
+						new MessageChannelHandler("ServerMessageChannelHandler", environment, TransportModule.this, jobExecutor),
 						new FileChannelHandler(TransportModule.this, fileTransportHandler)
 						);
 			}
@@ -348,14 +348,25 @@ public class TransportModule extends AbstractModule {
 	}
 	
 	private NodeChannels getNodeChannels(Node node) throws TransportException {
-		NodeChannels channels = connectedNodes.get(node);
-		if(channels == null){
-			//연결시도.
-			connectToNode(node);
-			channels = connectedNodes.get(node);
-//			throw new TransportException(node, "연결할수 없습니다.");
+		if(!node.isEnabled()){
+			throw new TransportException("node "+node.id() + " is disabled.");
 		}
-		
+		NodeChannels channels = null;
+		try {
+			channels = connectedNodes.get(node);
+			if (channels == null) {
+				// 연결시도.
+				connectToNode(node);
+				channels = connectedNodes.get(node);
+				// throw new TransportException(node, "연결할수 없습니다.");
+			}
+		} catch (TransportException e) {
+			node.setInactive();
+			throw e;
+		}
+		if(channels != null){
+			node.setActive();
+		}
 		return channels;
 	}
 
@@ -562,6 +573,7 @@ public class TransportModule extends AbstractModule {
 	}
 	
 	public void disconnectFromNode(Node node) {
+		logger.debug("disconnectFromNode > {}", node);
 		synchronized (connectLock(node.id())) {
 			NodeChannels nodeChannels = connectedNodes.remove(node);
 			if (nodeChannels != null) {

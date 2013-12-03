@@ -94,7 +94,7 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 				try {
 					transportModule.connectToNode(node);
 					node.setActive();
-					transportModule.sendRequest(node, new NodePingJob(myNode.id()));
+					transportModule.sendRequest(node, new NodeHandshakeJob(myNode.id()));
 				} catch (TransportException e) {
 					logger.error("Cannot connect to {}", node);
 					node.setInactive();

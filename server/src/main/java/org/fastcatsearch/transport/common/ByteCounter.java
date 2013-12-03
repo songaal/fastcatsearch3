@@ -46,7 +46,7 @@ public class ByteCounter extends SimpleChannelUpstreamHandler {
     public void channelConnected(
             ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
         ctx.sendUpstream(e);
-//        logger.debug("Connected! {} {}", id, ctx.getChannel());
+        logger.debug("Connected! {} {}", id, ctx.getChannel());
     }
     public void channelOpen(
             ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
