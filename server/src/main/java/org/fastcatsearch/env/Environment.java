@@ -38,7 +38,7 @@ public class Environment {
 		System.setProperty("log.path", new File(homeFile, "logs").getAbsolutePath());
 		
 		logger = LoggerFactory.getLogger(Environment.class);
-		 
+		logger.info("JAVA >> {} {}", System.getProperty("java.vendor"), System.getProperty("java.version"));
 		logger.info("Setting Home = {}", home);
 		logger.info("logback.configurationFile = {}", new File(new File(homeFile, "conf"), "logback.xml").getAbsolutePath());
 	}

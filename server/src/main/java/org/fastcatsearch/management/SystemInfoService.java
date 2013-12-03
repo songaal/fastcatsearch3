@@ -25,12 +25,13 @@ public class SystemInfoService extends AbstractService {
 	private static long PERIOD = 1000; // 1초마다 InfoCheckerTask를 수행한다.
 	private static long START_DELAY = 1000;
 
-	private ManagementInfoHandler handler;
+	private SystemInfoHandler handler;
 	private Timer timer;
 
 	private JvmCpuInfo jvmCpuInfoPerSecond = new JvmCpuInfo();
 	private JvmMemoryInfo jvmMemoryInfoPerSecond = new JvmMemoryInfo();
-
+	private SystemDiskInfo systemDiskInfo = new SystemDiskInfo();
+	
 	private static SystemInfoService instance;
 
 	public static SystemInfoService getInstance() {
@@ -64,6 +65,10 @@ public class SystemInfoService extends AbstractService {
 	public JvmMemoryInfo getJvmMemoryInfo() {
 		return jvmMemoryInfoPerSecond;
 	}
+	
+	public SystemDiskInfo getSystemDiskInfo() {
+		return systemDiskInfo;
+	}
 
 	class SystemInfoCheckTask extends TimerTask {
 
@@ -71,13 +76,14 @@ public class SystemInfoService extends AbstractService {
 		public void run() {
 			handler.checkJvmCpuInfo(jvmCpuInfoPerSecond);
 			handler.checkJvmMemoryInfo(jvmMemoryInfoPerSecond);
+			handler.checkSystemDiskInfo(systemDiskInfo);
 		}
 	}
 
 	@Override
 	protected boolean doStart() throws FastcatSearchException {
 
-		handler = ManagementInfoHandler.getInstance();
+		handler = SystemInfoHandler.getInstance();
 		logger.info("isCpuInfoSupported = {}", isJvmCpuInfoSupported() || isSystemCpuInfoSupported());
 		logger.info("isLoadAvgInfoSupported = {}", isLoadAvgInfoSupported());
 
