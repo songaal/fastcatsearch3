@@ -63,15 +63,15 @@ public class UpdateCollectionSchemaAction extends AuthAction {
 		
 			//
 			if ("workSchema".equalsIgnoreCase(type)) {
-				collectionContext.setSchema(new Schema(schemaSetting));
-			}else{
 				collectionContext.setWorkSchemaSetting(schemaSetting);
+			}else{
+				collectionContext.setSchema(new Schema(schemaSetting));
 			}
 			
 		}catch(SchemaInvalidateException e){
-			logger.error("",e);
 			isSuccess = false;
 			errorMessage = e.getMessage();
+			logger.error("{}", errorMessage);
 		}catch(Exception e){
 			logger.error("",e);
 			isSuccess = false;
