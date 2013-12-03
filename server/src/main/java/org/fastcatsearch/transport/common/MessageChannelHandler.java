@@ -32,8 +32,10 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
 	private Environment environment;
 	private TransportModule transport;
 	private JobExecutor jobExecutor;
+	private String id;
 	
-	public MessageChannelHandler(Environment environment, TransportModule transport, JobExecutor jobExecutor) {
+	public MessageChannelHandler(String id, Environment environment, TransportModule transport, JobExecutor jobExecutor) {
+		this.id = id;
 		this.environment = environment;
 		this.transport = transport;
 		this.jobExecutor = jobExecutor;
@@ -117,6 +119,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
         super.channelClosed(ctx, e);
+        logger.debug("CLOSED! {} {}", id, ctx.getChannel(), ctx.getChannel());
     }
     
     @Override
