@@ -2,6 +2,7 @@ package org.fastcatsearch.cluster;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +28,6 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 	private TransportModule transportModule;
 	private Node myNode;
 	private Node masterNode;
-	private List<Node> nodeList;
 	private Map<String, Node> nodeMap;
 
 	public NodeService(Environment environment, Settings settings, ServiceManager serviceManager) {
@@ -41,7 +41,6 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 		String myNodeId = environment.myNodeId();
 		String masterNodeId = environment.masterNodeId();
 
-		nodeList = new ArrayList<Node>();
 		nodeMap = new HashMap<String, Node>();
 		NodeListSettings nodeListSettings = environment.settingManager().getNodeListSettings();
 		if(nodeListSettings != null){
@@ -53,7 +52,6 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 				boolean isEnabled = nodeSetting.isEnabled();
 
 				Node node = new Node(id, name, address, port, isEnabled);
-				nodeList.add(node);
 				nodeMap.put(id, node);
 				
 				if (isEnabled) {
@@ -91,7 +89,7 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 			throw new FastcatSearchException("ERR-00305");
 		}
 
-		for (Node node : nodeList) {
+		for (Node node : nodeMap.values()) {
 			if (node!=null && node.isEnabled() && !node.equals(myNode)) {
 				try {
 					transportModule.connectToNode(node);
@@ -119,8 +117,12 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 		return false;
 	}
 
-	public List<Node> getNodeList() {
-		return nodeList;
+	public Collection<Node> getNodeList() {
+		return nodeMap.values();
+	}
+	
+	public List<Node> getNodeArrayList() {
+		return new ArrayList<Node>(nodeMap.values());
 	}
 
 	public Node getNodeById(String id) {
@@ -237,14 +239,12 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 						logger.trace("updating (stop)node {}..", new Object[] { inx });
 					}
 					node = new Node(nodeId, name, address, port, enabled);
-					nodeList.set(inx, node);
 				}
 			} else {
 				//신규노드
-				logger.trace("add new node..");
 				node = new Node(nodeId, name, address, port, enabled);
+				logger.trace("add new node.. {}", node);
 				nodeMap.put(nodeId, node);
-				nodeList.add(node);
 			}
 		}
 		
