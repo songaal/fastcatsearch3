@@ -136,8 +136,9 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 						actionFileSet.add(file);
 					}
 					for(File f : actionFileSet){
-						String classPath = f.getAbsolutePath().substring(prefixLength);
-//						logger.debug("file >> {}", classPath);
+						String classPath = f.toURI().toURL().toString().substring(5)
+								.substring(prefixLength);
+						//logger.debug("file >> {}", classPath);
 						registerAction(actionMap, classPath, true);
 					}
 				}
