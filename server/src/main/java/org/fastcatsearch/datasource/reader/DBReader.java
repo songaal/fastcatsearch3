@@ -145,7 +145,7 @@ public class DBReader extends SingleSourceReader {
 			columnCount = rsMetadata.getColumnCount();
 			columnName = new String[columnCount];
 			for (int i = 0; i < columnCount; i++) {
-				columnName[i] = rsMetadata.getColumnName(i + 1).toLowerCase();
+				columnName[i] = rsMetadata.getColumnName(i + 1).toUpperCase();
 				String typeName = rsMetadata.getColumnTypeName(i + 1);
 				logger.info("Column-{} [{}]:[{}]", new Object[] { i + 1, columnName[i], typeName });
 			}
@@ -242,6 +242,7 @@ public class DBReader extends SingleSourceReader {
 
 	@Override
 	public boolean hasNext() throws IRException {
+logger.debug("readCount:{} / bulkCount:{}", new Object[] { readCount, bulkCount});
 		if (readCount >= bulkCount) {
 			fill();
 
@@ -281,8 +282,8 @@ public class DBReader extends SingleSourceReader {
 			} catch (SQLException e) {
 				return;
 			}
-
 			while (r.next()) {
+
 				boolean hasLob = false;
 				
 				for (int i = 0; i < columnCount; i++) {
@@ -448,7 +449,9 @@ public class DBReader extends SingleSourceReader {
 				}
 			}
 
-		} catch (SQLException e) {
+		} catch (Exception e) {
+			
+			logger.debug("",e);
 
 			try {
 				if (r != null)
