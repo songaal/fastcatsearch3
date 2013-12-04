@@ -10,6 +10,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import org.fastcatsearch.util.DynamicClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -267,7 +268,11 @@ public class SchemaSetting {
 					message = NULL_OR_BLANK;
 					break;
 				} else {
-					Class.forName(value);
+					// core 
+					if(DynamicClassLoader.loadClass(value) == null){
+						throw new ClassNotFoundException("cannot find class " + value);
+					}
+//					Class.forName(value);
 				}
 				
 				fieldName = "maximumPoolSize";
@@ -481,12 +486,6 @@ public class SchemaSetting {
 				if(value==null || "".equals(value)) {
 					message=NULL_OR_BLANK;
 					break;
-				}
-				
-				fieldName="ref";
-				value=setting.getRef();
-				if(value==null || "".equals(value)) {
-					message=NULL_OR_BLANK;
 				} else {
 					boolean found=false;
 					for(int inx2=0;inx2<fieldSettingList.size();inx2++) {
@@ -509,6 +508,6 @@ public class SchemaSetting {
 			}
 		}
 		
-		logger.debug("Schema All OK");
+		logger.debug("Schema is valid!");
 	}
 }
