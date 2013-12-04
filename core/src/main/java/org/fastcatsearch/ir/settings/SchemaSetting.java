@@ -10,10 +10,15 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 @XmlRootElement(name = "schema")
 @XmlType(propOrder = { "fieldSettingList", "primaryKeySetting", "indexSettingList", "analyzerSettingList", "fieldIndexSettingList", "groupIndexSettingList" })
 public class SchemaSetting {
+	
+	private static final Logger logger = LoggerFactory.getLogger(SchemaSetting.class);
 	
 	private static final Integer MAXIMUM_PRIMARY_SIZE = 255;
 	
@@ -145,11 +150,11 @@ public class SchemaSetting {
 				
 				//type은 parse에서 미리 체크됨.
 				
-				//size 는 null 이 아닌 경우에만 체크. (null 은 제한없음)
-				if(setting.getSize() != null) {
+				//size 는 null 이 아닌 경우에만 체크. (null, 0 은 제한없음)
+				if(setting.getSize() != null && setting.getSize()!=0) {
 					fieldName="size";
 					value=String.valueOf(setting.getSize());
-					if(setting.getSize() < 1) {
+					if(setting.getSize()!=0 && setting.getSize() < 1) {
 						message = UNDERFLOW;
 					} 
 				}
@@ -194,7 +199,7 @@ public class SchemaSetting {
 					boolean found = false;
 					for(int inx2=0;inx2<fieldSettingList.size();inx2++) {
 						FieldSetting setting = fieldSettingList.get(inx2);
-						if(setting.getName().equals(value)) {
+						if(setting.getId().equals(refSetting.getRef())) {
 							if(setting.getSize()!=null && setting.getSize() > 0) {
 								if(setting.getSize() > MAXIMUM_PRIMARY_SIZE) {
 									message = OVERFLOW;
@@ -258,7 +263,8 @@ public class SchemaSetting {
 				fieldName = "maximumPoolSize";
 				value = String.valueOf(setting.getMaximumPoolSize());
 				
-				if(setting.getMaximumPoolSize()<1) {
+				if(setting.getMaximumPoolSize()!=0 && 
+						setting.getMaximumPoolSize()<1) {
 					message = UNDERFLOW;
 					break;
 				}
@@ -266,7 +272,8 @@ public class SchemaSetting {
 				fieldName = "corePoolSize";
 				value = String.valueOf(setting.getCorePoolSize());
 				
-				if(setting.getCorePoolSize()<0) {
+				if(setting.getCorePoolSize()!=0 && 
+						setting.getCorePoolSize()<1) {
 					message = UNDERFLOW;
 					break;
 				} else if(setting.getCorePoolSize() > setting.getMaximumPoolSize()) {
@@ -320,7 +327,7 @@ public class SchemaSetting {
 				boolean found = false;
 				for(int inx2=0;inx2<analyzerSettingList.size();inx2++) {
 					AnalyzerSetting analyzer = analyzerSettingList.get(inx2);
-					if(analyzer.getName().equals(value)) {
+					if(analyzer!=null && value.equalsIgnoreCase(analyzer.getId())) {
 						found = true;
 						break;
 					}
@@ -335,7 +342,7 @@ public class SchemaSetting {
 				found = false;
 				for(int inx2=0;inx2<analyzerSettingList.size();inx2++) {
 					AnalyzerSetting analyzer = analyzerSettingList.get(inx2);
-					if(analyzer.getName().equals(value)) {
+					if(analyzer!=null && value.equalsIgnoreCase(analyzer.getId())) {
 						found = true;
 						break;
 					}
@@ -348,7 +355,9 @@ public class SchemaSetting {
 				fieldName="positionIncrementGap";
 				value=String.valueOf(setting.getPositionIncrementGap());
 				
-				if(setting.getPositionIncrementGap()!=null && setting.getPositionIncrementGap() < 1) {
+				if(setting.getPositionIncrementGap()!=null 
+						&& setting.getPositionIncrementGap()!=0 
+						&& setting.getPositionIncrementGap() < 1) {
 					message = UNDERFLOW;
 					break;
 				}
@@ -396,7 +405,7 @@ public class SchemaSetting {
 					message=NULL_OR_BLANK;
 				} else {
 					boolean found=false;
-					for(int inx2=0;inx2<fieldSettingList.size();inx++) {
+					for(int inx2=0;inx2<fieldSettingList.size();inx2++) {
 						if(value.equals(fieldSettingList.get(inx2).getId())) {
 							found = true;
 							break;
@@ -410,7 +419,9 @@ public class SchemaSetting {
 				
 				fieldName="size";
 				value=String.valueOf(setting.getSize());
-				if(setting.getSize()!=null && setting.getSize() < 1) {
+				if(setting.getSize()!=null 
+						&& setting.getSize()!=0
+						&& setting.getSize() < 1) {
 					message=UNDERFLOW;
 					break;
 				}
@@ -468,7 +479,7 @@ public class SchemaSetting {
 					message=NULL_OR_BLANK;
 				} else {
 					boolean found=false;
-					for(int inx2=0;inx2<fieldSettingList.size();inx++) {
+					for(int inx2=0;inx2<fieldSettingList.size();inx2++) {
 						if(value.equals(fieldSettingList.get(inx2).getId())) {
 							found = true;
 							break;
@@ -487,5 +498,7 @@ public class SchemaSetting {
 				throw new SchemaInvalidateException(section,fieldName+"_"+inx,value,message);
 			}
 		}
+		
+		logger.debug("Schema All OK");
 	}
 }

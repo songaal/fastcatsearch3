@@ -191,7 +191,7 @@ public class SchemaSettingUtil {
 				setting.setId( value = data.optString( fieldName = "id" ));
 				setting.setName( value = data.optString( fieldName = "name" ));
 				setting.setType(Type.valueOf( value = data.optString( fieldName = "type" )));
-				setting.setSize(Integer.parseInt( value = data.optString( fieldName = "size" )));
+				setting.setSize(data.optInt( fieldName = "size",0));
 				setting.setStore("true".equals( value = data.optString( fieldName =" store")));
 				setting.setRemoveTag("true".equals( value = data.optString( fieldName =" removeTag")));
 				setting.setMultiValue("true".equals( value = data.optString( fieldName = "multiValue")));

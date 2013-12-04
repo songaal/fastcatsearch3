@@ -20,6 +20,11 @@ public class SchemaInvalidateException extends Exception {
 		this.type = type;
 	}
 	
+	@Override
+	public String getMessage() {
+		return "Schema Setting Exception at "+field+" in "+section+" / data : "+data+" / message : "+type;
+	}
+
 	public String section() { return section; }
 	public String field() { return field; }
 	public String data() { return data; }
