@@ -27,20 +27,20 @@ public class CollectionsConfigTest {
 		List<Collection> collectionList = collectionsConfig.getCollectionList();
 		Collection collection = collectionList.get(0);
 		assertEquals("sample", collection.getId());
-		assertEquals(false, collection.isActive());
+//		assertEquals(false, collection.isActive());
 		
 		collection = collectionList.get(1);
 		assertEquals("sample2", collection.getId());
-		assertEquals(true, collection.isActive());
+//		assertEquals(true, collection.isActive());
 	}
 	
 	@Test
 	public void testWrite() throws JAXBException {
 		
 		CollectionsConfig collectionsConfig = new CollectionsConfig();
-		collectionsConfig.addCollection("test", true);
+		collectionsConfig.addCollection("test");
 		collectionsConfig.addCollection("sample");
-		collectionsConfig.addCollection("sample2", false);
+		collectionsConfig.addCollection("sample2");
 		
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		JAXBConfigs.writeRawConfig(os, collectionsConfig, CollectionsConfig.class);

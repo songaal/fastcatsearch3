@@ -56,7 +56,8 @@ public class CollectionSearcher {
 	}
 
 	public GroupsData doGrouping(Query q) throws IRException, IOException, SettingException {
-
+		collectionHandler.addCollectionStatistics(q);
+		
 		int segmentSize = collectionHandler.segmentSize();
 		if (segmentSize == 0) {
 			logger.warn("Collection {} is not indexed!", collectionHandler.collectionId());
@@ -130,6 +131,8 @@ public class CollectionSearcher {
 	}
 
 	public Result search(Query q) throws IRException, IOException, SettingException {
+		collectionHandler.addCollectionStatistics(q);
+		
 		InternalSearchResult internalSearchResult = searchInternal(q);
 		DocIdList hitList = internalSearchResult.getDocIdList();
 		

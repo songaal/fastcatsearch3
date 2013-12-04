@@ -20,6 +20,18 @@ public class DataPlanConfig {
 	private int documentLimit;
 	private int segmentRevisionBackupSize;
 	
+	
+	public static final DataPlanConfig DefaultDataPlanConfig = new DataPlanConfig(2, 2000000, 0);
+	
+	public DataPlanConfig(){
+	}
+	
+	public DataPlanConfig(int dataSequenceCycle, int documentLimit, int segmentRevisionBackupSize){
+		this.dataSequenceCycle = dataSequenceCycle;
+		this.documentLimit = documentLimit;
+		this.segmentRevisionBackupSize = segmentRevisionBackupSize;
+	}
+	
 	@XmlElement(name="data-sequence-cycle")
 	public int getDataSequenceCycle() {
 		return dataSequenceCycle;

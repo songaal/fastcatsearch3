@@ -28,7 +28,6 @@ public class GetCollectionListAction extends AuthAction {
 		for(Collection collection : collectionList){
 			responseWriter.object()
 			.key("id").value(collection.getId())
-			.key("isActive").value(collection.isActive())
 			.endObject();
 		}
 		responseWriter.endArray().endObject();

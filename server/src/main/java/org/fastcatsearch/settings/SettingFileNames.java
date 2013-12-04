@@ -15,7 +15,6 @@ public class SettingFileNames {
 	public static final String collections = "collections.xml";
 	public static final String collectionConfig = "config.xml";
 	public static final String indexConfig = "index-config.xml";
-	public static final String defaultCollectionConfig = "config.xml.default";
 	public static final String schema = "schema.xml";
 	public static final String workSchema = "schema.work.xml";
 	public static final String shardConfig = "shard.xml";

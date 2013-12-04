@@ -30,7 +30,22 @@ public class GetCollectionIndexDataAction extends AuthAction {
 		
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 
+		Writer writer = response.getWriter();
+		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
+		
+		
 		CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
+		if(collectionHandler == null || !collectionHandler.isLoaded()){
+			resultWriter.object()
+			.key("collectionId").value(collectionId)
+			.key("documentSize").value(0)
+			.key("fieldList").array().endArray()
+			.key("indexData").array().endArray()
+			.endObject();
+			
+			resultWriter.done();
+			return;
+		}
 		int documentSize = collectionHandler.collectionContext().dataInfo().getDocuments();
 		
 		
@@ -47,8 +62,7 @@ public class GetCollectionIndexDataAction extends AuthAction {
 		//여러세그먼트에 걸쳐있을 경우를 고려한다.
 		int[][] matchSegmentList = matchSegment(segmentEndNumbers, start, end - start + 1);
 
-		Writer writer = response.getWriter();
-		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
+		
 
 		resultWriter.object()
 		.key("collectionId").value(collectionId)

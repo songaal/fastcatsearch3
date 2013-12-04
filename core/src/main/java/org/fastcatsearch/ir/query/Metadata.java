@@ -22,6 +22,7 @@ import java.util.Set;
 public class Metadata {
 	public static int SEARCH_OPT_NOCACHE = 1 << 0;
 	
+	public final static String UD_KEYWORD = "KEYWORD";
 	
 	private int version = 1;
 	private int start;
@@ -108,6 +109,13 @@ public class Metadata {
 	}
 	public void setUserData(Map<String, String> userData){
 		this.userData = userData;
+	}
+	public String getUserData(String key){
+		if(userData == null){
+			return null;
+		}else{
+			return userData.get(key);
+		}
 	}
 	public String[] tags(){
 		return highlightTags;

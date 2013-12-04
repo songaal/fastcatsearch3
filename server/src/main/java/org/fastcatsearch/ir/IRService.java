@@ -41,6 +41,7 @@ import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.search.CollectionStatistics;
 import org.fastcatsearch.job.indexing.MasterCollectionAddIndexingJob;
 import org.fastcatsearch.job.indexing.MasterCollectionFullIndexingJob;
 import org.fastcatsearch.module.ModuleException;
@@ -56,6 +57,7 @@ public class IRService extends AbstractService {
 
 	private Map<String, CollectionHandler> collectionHandlerMap;
 
+	private Map<String, CollectionStatistics> collectionStatisticsMap; 
 	// TODO 캐시방식을 변경하자.
 
 	private QueryCacheModule<Result> searchCache;
@@ -91,9 +93,6 @@ public class IRService extends AbstractService {
 				String collectionId = collection.getId();
 				CollectionContext collectionContext = null;
 				CollectionHandler collectionHandler = null;
-				if (collection.isActive()) {
-					realtimeQueryStatisticsModule.registerQueryCount(collectionId);
-				}
 				logger.info("Load Collection [{}]", collectionId);
 				try {
 					collectionContext = loadCollectionContext(collection);
@@ -102,33 +101,16 @@ public class IRService extends AbstractService {
 					continue;
 				}
 				if (collectionContext == null) {
-					// if (collection.isActive()) {
-					// // 초기화한다.
-					// collectionHandler = createCollection(collectionId);
-					// } else {
-					// }
-					// 무시한다.
 					continue;
 				} else {
 					collectionHandler = new CollectionHandler(collectionContext);
+					realtimeQueryStatisticsModule.registerQueryCount(collectionId);
 				}
 
 				collectionHandlerMap.put(collectionId, collectionHandler);
 
 				// active하지 않은 컬렉션은 map에 설정만 넣어두고 로드하지 않는다.
-				if (collection.isActive()) {
-					collectionHandler.load();
-
-					IndexingScheduleConfig indexingScheduleConfig = collectionContext.indexingScheduleConfig();
-					if (indexingScheduleConfig != null) {
-						IndexingSchedule fullIndexingSchedule = indexingScheduleConfig.getFullIndexingSchedule();
-
-						IndexingSchedule addIndexingSchedule = indexingScheduleConfig.getAddIndexingSchedule();
-						// TODO
-						// JobService.getInstance().updateIndexingScheduleActivate(collectionId,
-						// indexingType, isActive);
-					}
-				}
+				collectionHandler.load();
 
 			} catch (IRException e) {
 				logger.error("[ERROR] " + e.getMessage(), e);
@@ -174,37 +156,30 @@ public class IRService extends AbstractService {
 		return collectionsConfig.getCollectionList();
 	}
 
-	public CollectionHandler createCollection(CollectionConfig config) throws IRException, SettingException {
-		if (collectionsConfig.contains(config.getId())) {
+	public CollectionHandler createCollection(String collectionId, CollectionConfig collectionConfig) throws IRException, SettingException {
+		
+		if (collectionsConfig.contains(collectionId)) {
 			// 이미 컬렉션 존재.
-			logger.error("이미 해당컬렉션이 존재함.");
-			return null;
+			throw new SettingException("Collection id already exists. "+collectionId);
 		}
-		String collectionId = config.getId();
 
 		try {
 			FilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
 			collectionFilePaths.file().mkdirs();
-			CollectionContext collectionContext = new CollectionContext(collectionId, collectionFilePaths);
-			File file = environment.filePaths().configPath().file(SettingFileNames.defaultCollectionConfig);
 
-			CollectionConfig collectionConfig = new CollectionConfig();
-			// CollectionConfig collectionConfig = JAXBConfigs.readConfig(file,
-			// CollectionConfig.class);
-			// Schema schema = new Schema(new SchemaSetting());
-			// collectionContext.init(schema, null, collectionConfig, new
-			// DataSourceConfig(), new CollectionIndexStatus(), new
-			// IndexingScheduleConfig());
-			CollectionContextUtil.create(config, collectionFilePaths);
+			CollectionContext collectionContext = CollectionContextUtil.create(collectionConfig, collectionFilePaths);
 
-			collectionsConfig.addCollection(collectionId, false);
+			collectionsConfig.addCollection(collectionId);
 			JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.collections), collectionsConfig, CollectionsConfig.class);
 			CollectionHandler collectionHandler = new CollectionHandler(collectionContext);
 			collectionHandlerMap.put(collectionId, collectionHandler);
 
 			realtimeQueryStatisticsModule.registerQueryCount(collectionId);
 			return collectionHandler;
-		} catch (JAXBException e) {
+		} catch (IRException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("Error while create collection", e);
 			throw new SettingException(e);
 		}
 	}
@@ -301,11 +276,12 @@ public class IRService extends AbstractService {
 		// 차후 검색시 로드밸런싱에 대비하여 먼저 shardId로 node들을 등록해놓는다.
 		for (Collection collection : getCollectionList()) {
 			String collectionId = collection.getId();
-			if (collection.isActive()) {
-				CollectionHandler collectionHandler = collectionHandlerMap.get(collectionId);
-				List<String> dataNodeIdList = collectionHandler.collectionContext().collectionConfig().getDataNodeList();
-				nodeLoadBalancable.updateLoadBalance(collectionId, dataNodeIdList);
+			CollectionHandler collectionHandler = collectionHandlerMap.get(collectionId);
+			if(collectionHandler == null){
+				continue;
 			}
+			List<String> dataNodeIdList = collectionHandler.collectionContext().collectionConfig().getDataNodeList();
+			nodeLoadBalancable.updateLoadBalance(collectionId, dataNodeIdList);
 
 		}
 	}
@@ -317,6 +293,10 @@ public class IRService extends AbstractService {
 	private SimpleDateFormat simpleDateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	public boolean reloadSchedule(String collectionId) {
+		CollectionContext collectionContext = collectionContext(collectionId);
+		if(collectionContext == null){
+			return false;
+		}
 		IndexingScheduleConfig indexingScheduleConfig = collectionContext(collectionId).indexingScheduleConfig();
 		IndexingSchedule fullIndexingSchedule = indexingScheduleConfig.getFullIndexingSchedule();
 		IndexingSchedule addIndexingSchedule = indexingScheduleConfig.getAddIndexingSchedule();

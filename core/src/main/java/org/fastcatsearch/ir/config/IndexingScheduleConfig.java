@@ -31,6 +31,8 @@ public class IndexingScheduleConfig {
 
 	public static class IndexingSchedule {
 		
+		public static final IndexingSchedule DefaultIndexingSchedule = new IndexingSchedule(ScheduleType.REGULAR_PERIOD, "2000-01-01 00:00:00", 0, false);
+		
 		private ScheduleType scheduleType;
 		private String start;
 		private int periodInSecond;

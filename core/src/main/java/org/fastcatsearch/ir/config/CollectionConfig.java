@@ -2,7 +2,6 @@ package org.fastcatsearch.ir.config;
 
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -28,10 +27,9 @@ import javax.xml.bind.annotation.XmlType;
  * */
 
 @XmlRootElement(name = "collection-config")
-@XmlType(propOrder = { "id", "name", "indexNode", "dataNodeList", "dataPlanConfig" })
+@XmlType(propOrder = { "name", "indexNode", "dataNodeList", "dataPlanConfig" })
 public class CollectionConfig {
 
-	private String id;
 	private String name;
 	private String indexNode;
 	private List<String> dataNodeList;
@@ -40,20 +38,13 @@ public class CollectionConfig {
 	public CollectionConfig(){
 	}
 	
-	public CollectionConfig(String name, String indexNode, DataPlanConfig dataPlanConfig){
+	public CollectionConfig(String name, String indexNode, List<String> dataNodeList, DataPlanConfig dataPlanConfig){
 		this.name = name;
 		this.indexNode = indexNode;
+		this.dataNodeList = dataNodeList;
 		this.dataPlanConfig = dataPlanConfig;
 	}
 	
-	@XmlAttribute
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
 
 	@XmlElement(name="name")
 	public String getName() {

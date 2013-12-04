@@ -1,6 +1,7 @@
 package org.fastcatsearch.util;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import javax.xml.bind.JAXBException;
 
@@ -16,6 +17,8 @@ import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.config.IndexingScheduleConfig;
+import org.fastcatsearch.ir.config.IndexingScheduleConfig.IndexingSchedule;
+import org.fastcatsearch.ir.config.JDBCSourceInfo;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
@@ -39,7 +42,10 @@ public class CollectionContextUtil {
 			JAXBConfigs.writeConfig(collectionDir.file(SettingFileNames.indexConfig), IndexConfig.defaultConfig, IndexConfig.class);
 			//datasource.xml
 			DataSourceConfig dataSourceConfig = new DataSourceConfig();
-			JAXBConfigs.writeConfig(collectionDir.file(SettingFileNames.datasourceConfig), dataSourceConfig, SingleSourceConfig.class);
+			dataSourceConfig.setFullIndexingSourceConfig(new ArrayList<SingleSourceConfig>());
+			dataSourceConfig.setAddIndexingSourceConfig(new ArrayList<SingleSourceConfig>());
+			dataSourceConfig.setJdbcSourceInfoList(new ArrayList<JDBCSourceInfo>());
+			JAXBConfigs.writeConfig(collectionDir.file(SettingFileNames.datasourceConfig), dataSourceConfig, DataSourceConfig.class);
 			//status.xml
 			CollectionIndexStatus collectionStatus = new CollectionIndexStatus();
 			JAXBConfigs.writeConfig(collectionDir.file(SettingFileNames.indexStatus), collectionStatus, CollectionIndexStatus.class);
@@ -53,6 +59,8 @@ public class CollectionContextUtil {
 			JAXBConfigs.writeConfig(indexFilePaths.file(SettingFileNames.dataInfo), dataInfo, DataInfo.class);
 			//schedule.xml
 			IndexingScheduleConfig indexingScheduleConfig = new IndexingScheduleConfig();
+			indexingScheduleConfig.setFullIndexingSchedule(IndexingSchedule.DefaultIndexingSchedule);
+			indexingScheduleConfig.setAddIndexingSchedule(IndexingSchedule.DefaultIndexingSchedule);
 			JAXBConfigs.writeConfig(collectionDir.file(SettingFileNames.scheduleConfig), indexingScheduleConfig, IndexingScheduleConfig.class);
 			
 			Schema schema = new Schema(schemaSetting);

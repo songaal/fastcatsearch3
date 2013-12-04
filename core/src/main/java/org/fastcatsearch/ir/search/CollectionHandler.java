@@ -21,6 +21,7 @@ import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.index.PrimaryKeys;
 import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.io.BytesBuffer;
+import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
@@ -37,6 +38,8 @@ public class CollectionHandler {
 	private boolean isLoaded;
 	private FilePaths collectionFilePaths;
 
+	private CollectionStatistics collectionStatistics; //컬렉션별 검색통계치.
+	
 	public CollectionHandler(CollectionContext collectionContext) throws IRException, SettingException {
 		this.collectionContext = collectionContext;
 		this.collectionId = collectionContext.collectionId();
@@ -52,6 +55,19 @@ public class CollectionHandler {
 		return this;
 	}
 
+	public CollectionStatistics collectionStatistics(){
+		return collectionStatistics;
+	}
+	
+	public void setCollectionStatistics(CollectionStatistics collectionStatistics){
+		this.collectionStatistics = collectionStatistics;
+	}
+	public void addCollectionStatistics(Query q) {
+		if(collectionStatistics != null){
+			collectionStatistics.add(q);
+		}
+	}
+	
 	public Schema schema(){
 		return schema;
 	}
@@ -526,4 +542,6 @@ public class CollectionHandler {
 
 		return segmentReaderList.size();
 	}
+
+	
 }

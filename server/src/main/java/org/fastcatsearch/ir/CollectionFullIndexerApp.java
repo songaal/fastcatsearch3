@@ -46,7 +46,7 @@ public class CollectionFullIndexerApp {
 	private void doIndexing(String home, String collectionId) {
 		try {
 			FilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
-			Collection collection = new Collection("sample", true);
+			Collection collection = new Collection("sample");
 			CollectionContext collectionContext = CollectionContextUtil.load(collection, collectionFilePaths);
 			System.out.println(collectionContext.schema().getFieldSetting("id"));
 
