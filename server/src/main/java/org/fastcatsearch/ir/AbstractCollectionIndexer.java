@@ -66,13 +66,13 @@ public abstract class AbstractCollectionIndexer {
 		File segmentDir = dataFilePaths.segmentFile(dataSequence, segmentId);
 		logger.info("Segment Dir = {}", segmentDir.getAbsolutePath());
 		
-		segmentWriter = new SegmentWriter(schema, segmentDir, revisionInfo, indexConfig);
-		
-		indexWriteInfoList = new IndexWriteInfoList();
 		
 		File filePath = collectionContext.collectionFilePaths().file();
 		dataSourceReader = createDataSourceReader(filePath, schema);
-		startTime = System.currentTimeMillis();
+		
+		segmentWriter = new SegmentWriter(schema, segmentDir, revisionInfo, indexConfig);
+		
+		indexWriteInfoList = new IndexWriteInfoList();
 		
 		startTime = System.currentTimeMillis();
 	}

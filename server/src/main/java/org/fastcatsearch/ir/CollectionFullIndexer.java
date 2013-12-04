@@ -23,13 +23,6 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 	public CollectionFullIndexer(CollectionContext collectionContext) throws IRException {
 		super(collectionContext);
 
-//		Schema workingSchema = collectionContext.workSchema();
-//		if (workingSchema == null) {
-//			workingSchema = collectionContext.schema();
-//		}
-//		
-//		init(workingSchema);
-		
 		init(collectionContext.schema());
 	}
 
