@@ -2,7 +2,6 @@ package org.fastcatsearch.ir.settings;
 
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 
 
@@ -17,7 +16,6 @@ public class PrimaryKeySetting {
 		this.id = id.toUpperCase();
 	}
 	
-	@XmlAttribute(required = true)
 	public String getId() {
 		return id;
 	}

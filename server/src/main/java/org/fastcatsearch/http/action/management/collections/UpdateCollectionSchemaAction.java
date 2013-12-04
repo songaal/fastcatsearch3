@@ -69,6 +69,7 @@ public class UpdateCollectionSchemaAction extends AuthAction {
 			}
 			
 		}catch(SchemaInvalidateException e){
+			//스키마 오류의 각종 정보를 추출하여 호출자에 전달해 준다.
 			isSuccess = false;
 			errorMessage = e.getMessage();
 			logger.error("{}", errorMessage);

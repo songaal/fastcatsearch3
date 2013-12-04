@@ -6,19 +6,22 @@ public class SchemaInvalidateException extends Exception {
 	
 	private String section;
 	private String field;
+	private String data;
 	private String type;
 
 	public SchemaInvalidateException(String message){
 		super(message);
 	}
 	
-	public SchemaInvalidateException(String section, String field, String type) {
+	public SchemaInvalidateException(String section, String field, String data, String type) {
 		this.section = section;
 		this.field = field;
+		this.data = data;
 		this.type = type;
 	}
 	
 	public String section() { return section; }
 	public String field() { return field; }
+	public String data() { return data; }
 	public String type() { return type; }
 }

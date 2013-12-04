@@ -180,24 +180,33 @@ public class SchemaSettingUtil {
 			JSONArray array) throws SchemaInvalidateException {
 		List<FieldSetting> fieldSettingList = new ArrayList<FieldSetting>();
 		
-		for(int inx=0;inx<array.length(); inx++) {
-			FieldSetting setting = new FieldSetting();
-			JSONObject data = array.optJSONObject(inx);
-			
-			setting.setId(data.optString("id"));
-			setting.setName(data.optString("name"));
-			try{
-				setting.setType(Type.valueOf(data.optString("type")));
-			}catch(Exception e){
-				throw new SchemaInvalidateException("Cannot find field type : " + data.optString("type"));
+		String fieldName = "";
+		String value = "";
+		Exception ex = null;
+		int inx=0;
+		try {
+			for(inx=0;inx<array.length(); inx++) {
+				FieldSetting setting = new FieldSetting();
+				JSONObject data = array.optJSONObject(inx);
+				setting.setId( value = data.optString( fieldName = "id" ));
+				setting.setName( value = data.optString( fieldName = "name" ));
+				setting.setType(Type.valueOf( value = data.optString( fieldName = "type" )));
+				setting.setSize(Integer.parseInt( value = data.optString( fieldName = "size" )));
+				setting.setStore("true".equals( value = data.optString( fieldName =" store")));
+				setting.setRemoveTag("true".equals( value = data.optString( fieldName =" removeTag")));
+				setting.setMultiValue("true".equals( value = data.optString( fieldName = "multiValue")));
+				setting.setMultiValueDelimiter( value = data.optString( fieldName = "multiValueDelimeter"));
+				fieldSettingList.add(setting);
 			}
-			setting.setSize(data.optInt("size"));
-			setting.setStore("true".equals(data.optString("store")));
-			setting.setRemoveTag("true".equals(data.optString("removeTag")));
-			setting.setMultiValue("true".equals(data.optString("multiValue")));
-			setting.setMultiValueDelimiter(data.optString("multiValueDelimeter"));
-			fieldSettingList.add(setting);
+		} catch (NumberFormatException e) { ex = e; // Integer.parseInt
+		} catch (IllegalArgumentException e) { ex = e; // Type.valueOf
+		} catch (NullPointerException e) { ex = e; // json object null
+		} finally {
+			if(ex!=null) {
+				throw new SchemaInvalidateException("fieldSetting",fieldName+"_"+inx,value,ex.getMessage());
+			}
 		}
+		
 		return fieldSettingList;
 	}
 	
@@ -228,8 +237,8 @@ public class SchemaSettingUtil {
 			AnalyzerSetting setting = new AnalyzerSetting();
 			JSONObject data = array.optJSONObject(inx);
 			setting.setId(data.optString("id"));
-			setting.setMaximumPoolSize(data.optInt("maximumPoolSize"));
 			setting.setClassName(data.optString("class"));
+			setting.setMaximumPoolSize(data.optInt("maximumPoolSize"));
 			setting.setCorePoolSize(data.optInt("corePoolSize"));
 			analyzerSettingList.add(setting);
 		}
@@ -246,8 +255,8 @@ public class SchemaSettingUtil {
 			JSONObject data = array.optJSONObject(inx);
 			
 			setting.setId(data.optString("id"));
-			setting.setIndexAnalyzer(data.optString("indexAnalyzer"));
 			setting.setName(data.optString("name"));
+			setting.setIndexAnalyzer(data.optString("indexAnalyzer"));
 			setting.setQueryAnalyzer(data.optString("queryAnalyzer"));
 			
 			setting.setStorePosition("true".equals(data.optString("storePosition")));
