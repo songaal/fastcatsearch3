@@ -192,10 +192,12 @@ public class SchemaSettingUtil {
 				setting.setName( value = data.optString( fieldName = "name" ));
 				setting.setType(Type.valueOf( value = data.optString( fieldName = "type" )));
 				setting.setSize(data.optInt( fieldName = "size",0));
-				setting.setStore("true".equals( value = data.optString( fieldName =" store")));
-				setting.setRemoveTag("true".equals( value = data.optString( fieldName =" removeTag")));
+				setting.setStore("true".equals( value = data.optString( fieldName = "store")));
+				setting.setRemoveTag("true".equals( value = data.optString( fieldName = "removeTag")));
 				setting.setMultiValue("true".equals( value = data.optString( fieldName = "multiValue")));
-				setting.setMultiValueDelimiter( value = data.optString( fieldName = "multiValueDelimeter"));
+				setting.setMultiValueDelimiter( 
+					"".equals(value = data.optString( fieldName = "multiValueDelimeter"))?null:value
+					);
 				fieldSettingList.add(setting);
 			}
 		} catch (NumberFormatException e) { ex = e; // Integer.parseInt

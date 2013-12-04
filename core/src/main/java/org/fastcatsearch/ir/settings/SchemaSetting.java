@@ -106,7 +106,6 @@ public class SchemaSetting {
 	public static final String NO_DATA = "NO_DATA";
 	private static final String NO_SUCH_VALUE = "NO_SUCH_VALUE";
 	
-	
 	public void isValid() throws SchemaInvalidateException {
 		
 		String section = "";
@@ -189,24 +188,35 @@ public class SchemaSetting {
 			}
 			
 			for(inx=0;message==null && inx<fieldList.size();inx++) {
-				RefSetting refSetting = fieldList.get(inx);
+				RefSetting setting = fieldList.get(inx);
 				fieldName = "ref";
-				if(refSetting==null || refSetting.getRef()==null || "".equals(refSetting.getRef())) {
+				value = setting.getRef();
+				if(value==null || "".equals(value)) {
 					message=NULL_OR_BLANK;
 					break;
 				} else {
 					//check field exists..
 					boolean found = false;
 					for(int inx2=0;inx2<fieldSettingList.size();inx2++) {
-						FieldSetting setting = fieldSettingList.get(inx2);
-						if(setting.getId().equals(refSetting.getRef())) {
-							if(setting.getSize()!=null && setting.getSize() > 0) {
-								if(setting.getSize() > MAXIMUM_PRIMARY_SIZE) {
-									message = OVERFLOW;
-									break;
-								}
+						FieldSetting fieldSetting = fieldSettingList.get(inx2);
+						if(value.equals(fieldSetting.getId())) {
+							if(fieldSetting.getSize()!=null && fieldSetting.getSize() > 0
+								&&fieldSetting.getSize() < MAXIMUM_PRIMARY_SIZE) {
 								found = true;
 								break;
+							} else {
+								if(fieldSetting.getSize()!=null) {
+									if(fieldSetting.getSize() < 1) {
+										message = UNDERFLOW;
+										break;
+									} else {
+										message = OVERFLOW;
+										break;
+									}
+								} else {
+									message = UNDERFLOW;
+									break;
+								}
 							}
 						}
 					}
