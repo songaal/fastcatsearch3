@@ -195,9 +195,7 @@ public class SchemaSettingUtil {
 				setting.setStore("true".equals( value = data.optString( fieldName = "store")));
 				setting.setRemoveTag("true".equals( value = data.optString( fieldName = "removeTag")));
 				setting.setMultiValue("true".equals( value = data.optString( fieldName = "multiValue")));
-				setting.setMultiValueDelimiter( 
-					"".equals(value = data.optString( fieldName = "multiValueDelimeter"))?null:value
-					);
+				setting.setMultiValueDelimiter( value = data.optString( fieldName = "multiValueDelimeter", null));
 				fieldSettingList.add(setting);
 			}
 		} catch (NumberFormatException e) { ex = e; // Integer.parseInt
@@ -216,7 +214,6 @@ public class SchemaSettingUtil {
 			JSONArray array) throws SchemaInvalidateException {
 		PrimaryKeySetting setting = new PrimaryKeySetting();
 		
-		//setting.setId("");
 		List<RefSetting> fieldList = new ArrayList<RefSetting>();
 		
 		for(int inx=0;inx<array.length();inx++) {
@@ -285,6 +282,11 @@ public class SchemaSettingUtil {
 			JSONArray array) throws SchemaInvalidateException {
 		List<FieldIndexSetting> fieldIndexSettingList = new ArrayList<FieldIndexSetting>();
 		
+		//필드 인덱스는 필수가 아님
+		if(array.length()==1 && "".equals(array.optJSONObject(0).optString("id"))) {
+			return null;
+		}
+		
 		for(int inx=0;inx<array.length();inx++) {
 			FieldIndexSetting setting = new FieldIndexSetting();
 			JSONObject data = array.optJSONObject(inx);
@@ -302,6 +304,11 @@ public class SchemaSettingUtil {
 	private static List<GroupIndexSetting> parseGroupSettingList(
 			JSONArray array) throws SchemaInvalidateException {
 		List<GroupIndexSetting> groupIndexesSettingList = new ArrayList<GroupIndexSetting>();
+		
+		//그룹 인덱스는 필수가 아님
+		if(array.length()==1 && "".equals(array.optJSONObject(0).optString("id"))) {
+			return null;
+		}
 		
 		for(int inx=0;inx<array.length();inx++) {
 			GroupIndexSetting setting = new GroupIndexSetting();
