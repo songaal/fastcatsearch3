@@ -68,7 +68,7 @@ public class SearchIndexWriter {
 	private int flushCount;
 	private int count;
 	private int[] indexFieldSequence; // index내에 색인할 필드가 여러개일 경우 필드 번호.
-	private int positionIncrementGapList;
+	private int positionIncrementGap;
 
 	private RevisionInfo revisionInfo;
 	
@@ -108,7 +108,7 @@ public class SearchIndexWriter {
 			indexFieldSequence[cursor++] = schema.getFieldSequence(fieldId);
 		}
 
-		positionIncrementGapList = indexSetting.getPositionIncrementGap();
+		positionIncrementGap = indexSetting.getPositionIncrementGap();
 
 		collector = new HashMap<CharVector, Counter>();
 		flushPosition = new long[1024];
@@ -125,8 +125,10 @@ public class SearchIndexWriter {
 	public void write(Document doc, int docNo) throws IRException, IOException {
 
 		int[] sequenceList = indexFieldSequence;
-		int positionIncrementGap = positionIncrementGapList;
 		for (int sequence : sequenceList) {
+			if(sequence < 0){
+				continue;
+			}
 			write(count, doc.get(sequence), analyzer, ignoreCase, positionIncrementGap);
 			// positionIncrementGap은 필드가 증가할때마다 동일량으로 증가. 예) 0, 100, 200, 300...
 			positionIncrementGap += positionIncrementGap;

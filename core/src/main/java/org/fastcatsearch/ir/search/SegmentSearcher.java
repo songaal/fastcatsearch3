@@ -133,10 +133,10 @@ public class SegmentSearcher {
 		boolean exausted = false;
 		BitSet localDeleteSet = segmentReader.deleteSet();
 
-		// int searchTime = 0, sortTime = 0, filterTime = 0;
+//		int searchTime = 0, sortTime = 0, groupTime = 0, filterTime = 0;
 		while (!exausted) {
 			int nread = 0;
-
+//			long st = System.nanoTime();
 			// search
 			for (nread = 0; nread < BULK_SIZE; nread++) {
 				RankInfo rankInfo = new RankInfo();
@@ -148,11 +148,11 @@ public class SegmentSearcher {
 					break;
 				}
 			}
-
+//			searchTime += (System.nanoTime() - st);st = System.nanoTime();
 			if (filters != null && hitFilter != null) {
 				nread = hitFilter.filtering(rankInfoList, nread);
 			}
-
+//			filterTime += (System.nanoTime() - st);st = System.nanoTime();
 			if (!exausted && nread == 0) {
 				continue;
 			}
@@ -173,7 +173,7 @@ public class SegmentSearcher {
 			}
 //			logger.debug("check delete docs {} => {}", nread, count);
 			nread = count;
-
+//			st = System.nanoTime();
 			// group
 			if (groups != null) {
 				groupGenerator.insert(rankInfoList, nread);
@@ -185,6 +185,8 @@ public class SegmentSearcher {
 					nread = groupHitFilter.filtering(rankInfoList, nread);
 				}
 			}
+//			groupTime += (System.nanoTime() - st);st = System.nanoTime();
+			
 			if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
 				// if sort is not set, rankdata is null
 				for (int i = 0; i < nread; i++) {
@@ -198,10 +200,11 @@ public class SegmentSearcher {
 					ranker.push(e[i]);
 				}
 			}
+//			sortTime += (System.nanoTime() - st);
 			totalCount += nread;
 		}
 
-		// logger.debug("#### time = "+searchTime+", "+filterTime+", "+sortTime + "("+totalCount+")");
+//		 logger.debug("#### time = se:{}ms, ft:{}ms, gr:{}ms, so:{}ms", searchTime / 1000000, filterTime / 1000000, groupTime / 1000000, sortTime / 1000000);
 	}
 
 	/**

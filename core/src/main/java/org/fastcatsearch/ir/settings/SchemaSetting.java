@@ -339,7 +339,7 @@ public class SchemaSetting {
 				message = NO_DATA;
 			}
 
-			for (inx = 0; message == null && inx < indexSettingList.size(); inx++) {
+			OUTTER: for (inx = 0; message == null && inx < indexSettingList.size(); inx++) {
 				IndexSetting setting = indexSettingList.get(inx);
 
 				fieldName = "id";
@@ -361,6 +361,31 @@ public class SchemaSetting {
 					break;
 				}
 
+				fieldName = "fieldList";
+				List<RefSetting> fieldList = setting.getFieldList();
+				for (int i = 0; fieldList != null && i < fieldList.size(); i++) {
+					RefSetting refSetting = fieldList.get(i);
+					fieldName += ">ref";
+					value = refSetting.getRef();
+					if (value == null || "".equals(value)) {
+						message = NULL_OR_BLANK;
+						break;
+					}else{
+						boolean found = false;
+						for (int inx2 = 0; inx2 < fieldSettingList.size(); inx2++) {
+							FieldSetting fieldSetting = fieldSettingList.get(inx2);
+							if (value.equals(fieldSetting.getId())) {
+								found = true;
+							}
+						}
+						if (!found) {
+							message = FIELD_NOT_FOUND;
+							break OUTTER;
+						}
+					}
+				}
+					
+					
 				fieldName = "indexAnalyzer";
 				value = setting.getIndexAnalyzer();
 				boolean found = false;

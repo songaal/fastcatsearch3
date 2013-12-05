@@ -1,0 +1,5 @@
+<node-list>
+	<node id="node1" name="My node1" address="127.0.0.1" port="9090" enabled="true"/>
+	<!-- <node id="node2" name="My node2" address="127.0.0.1" port="9091" enabled="true"/> -->
+	<!-- <node id="node3" name="My node3" address="127.0.0.1" port="9092" enabled="true"/> -->
+</node-list>
