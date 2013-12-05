@@ -102,8 +102,9 @@ public class InternalDBModule extends AbstractModule {
 			logger.info(getClass().getSimpleName()+"[{}] Unloaded!, sqlSessionFactory = {}", dbPath, sqlSessionFactory);
 			DriverManager.getConnection(dbPath+";shutdown=true", "","");
 		} catch (SQLException e) {
+			//shutdown되면 SQLException을 던지므로 OK.
 			logger.error("{}", e.getMessage());
-			return false;
+			return true;
 		}
 		return true;
 	}

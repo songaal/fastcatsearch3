@@ -9,6 +9,7 @@ import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.job.MasterNodeJob;
+import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.CollectionContextUtil;
 
@@ -18,52 +19,44 @@ public class MasterCollectionFullIndexingJob extends MasterNodeJob {
 
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
-		
+
 		String collectionId = getStringArgs();
-		
+
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		CollectionContext collectionContext = irService.collectionContext(collectionId);
 		String indexNodeId = collectionContext.collectionConfig().getIndexNode();
-		
+
 		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 		Node indexNode = nodeService.getNodeById(indexNodeId);
-		
-//		//master가 index 노드인지.
-//		if(!nodeService.isMyNode(indexNode)){
-//			BeforeFullIndexingNodeUpdateJob beforeJob = new BeforeFullIndexingNodeUpdateJob(collectionContext);
-//			ResultFuture jobResult = nodeService.sendRequest(indexNode, beforeJob);
-//			if(jobResult != null){
-//				Object obj = jobResult.take();
-//			}else{
-//				throw new FastcatSearchException("Cannot update index node config.");
-//			}
-//		}
-		
-		//전체색인용 context를 준비한다.
+
+		// 전체색인용 context를 준비한다.
 		CollectionContext newCollectionContext = collectionContext.copy();
-		if(newCollectionContext.workSchemaSetting() != null){
+		if (newCollectionContext.workSchemaSetting() != null) {
 			newCollectionContext.setSchema(new Schema(newCollectionContext.workSchemaSetting()));
 		}
-		
+
 		CollectionFullIndexingJob collectionIndexingJob = new CollectionFullIndexingJob(newCollectionContext);
 		collectionIndexingJob.setArgs(collectionId);
-		
+
 		ResultFuture jobResult = nodeService.sendRequest(indexNode, collectionIndexingJob);
-		if(jobResult != null){
+		if (jobResult != null) {
 			Object obj = jobResult.take();
-			
-			try {
-				CollectionContextUtil.saveCollectionAfterIndexing(newCollectionContext);
-			} catch (SettingException e) {
-				throw new FastcatSearchException(e);
-			}		
-			
-			
-		}else{
+			logger.debug("CollectionFullIndexingJob result = {}", obj);
+			if (obj != null && obj instanceof IndexingJobResult) {
+				IndexingJobResult indexingJobResult = (IndexingJobResult) obj;
+				if (indexingJobResult.isSuccess) {
+					try {
+						CollectionContextUtil.saveCollectionAfterIndexing(newCollectionContext);
+					} catch (SettingException e) {
+						throw new FastcatSearchException(e);
+					}
+				}
+			}
+
+		} else {
 			throw new FastcatSearchException("Cannot send indexing job.");
 		}
-			
-			
+
 		return new JobResult();
 	}
 

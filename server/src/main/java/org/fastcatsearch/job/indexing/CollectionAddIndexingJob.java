@@ -271,7 +271,7 @@ public class CollectionAddIndexingJob extends IndexingJob {
 			}else{
 				resultStatus = ResultStatus.CANCEL;
 			}
-			result = new IndexingJobResult(collectionId, null, (int) (System.currentTimeMillis() - startTime));
+			result = new IndexingJobResult(collectionId, null, (int) (System.currentTimeMillis() - startTime), false);
 			return new JobResult(result);
 		} catch (Throwable e) {
 			indexingLogger.error("[" + collectionId + "] Indexing", e);

@@ -242,7 +242,6 @@ public class DBReader extends SingleSourceReader {
 
 	@Override
 	public boolean hasNext() throws IRException {
-logger.debug("readCount:{} / bulkCount:{}", new Object[] { readCount, bulkCount});
 		if (readCount >= bulkCount) {
 			fill();
 
@@ -262,7 +261,6 @@ logger.debug("readCount:{} / bulkCount:{}", new Object[] { readCount, bulkCount}
 				return null;
 			readCount = 0;
 		}
-
 		return dataSet[readCount++];
 	}
 
@@ -273,7 +271,6 @@ logger.debug("readCount:{} / bulkCount:{}", new Object[] { readCount, bulkCount}
 		bulkCount = 0;
 		try {
 
-			Map<String, Object> keyValueMap = new HashMap<String, Object>();
 
 			ResultSetMetaData rsMeta = null;
 
@@ -284,6 +281,7 @@ logger.debug("readCount:{} / bulkCount:{}", new Object[] { readCount, bulkCount}
 			}
 			while (r.next()) {
 
+				Map<String, Object> keyValueMap = new HashMap<String, Object>();
 				boolean hasLob = false;
 				
 				for (int i = 0; i < columnCount; i++) {
@@ -440,7 +438,6 @@ logger.debug("readCount:{} / bulkCount:{}", new Object[] { readCount, bulkCount}
 				}
 
 				dataSet[bulkCount] = keyValueMap;
-
 				bulkCount++;
 				totalCnt++;
 

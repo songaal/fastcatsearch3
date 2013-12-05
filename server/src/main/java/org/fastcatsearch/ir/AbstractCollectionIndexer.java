@@ -145,7 +145,7 @@ public abstract class AbstractCollectionIndexer {
 				break;
 			}
 			Document document = dataSourceReader.nextDocument();
-			logger.debug("doc >> {}", document);
+//			logger.debug("doc >> {}", document);
 			addDocument(document);
 		}
 
