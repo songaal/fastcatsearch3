@@ -55,11 +55,11 @@ public class GetExceptionHistoryListAction extends AuthAction {
 				ExceptionVO entry = entryList.get(inx);
 				
 				resultWriter.object()
-					.key("id").value(entry.id)
-					.key("node").value(entry.node)
-					.key("message").value(entry.message)
-					.key("trace").value(entry.trace)
-					.key("regtime").value(entry.regtime)
+					.key("id").value(entry.getId())
+					.key("node").value(entry.getNode())
+					.key("message").value(entry.getMessage())
+					.key("trace").value(entry.getTrace())
+					.key("regtime").value(entry.getRegtime())
 					.endObject();
 				
 			}

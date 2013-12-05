@@ -155,14 +155,14 @@ public class ClusterAlertService extends AbstractService {
 						int count = nodeExceptionInfo.getCount();
 						
 						ExceptionVO vo = new ExceptionVO();
-						vo.node = node.toString();
-						vo.regtime = new Timestamp(time);
+						vo.setNode(node.toString());
+						vo.setRegtime(new Timestamp(time));
 						if (count > 1) {
-							vo.message = "[" + count + "] " + e.getMessage();
+							vo.setMessage("[" + count + "] " + e.getMessage());
 						} else {
-							vo.message = e.getMessage();
+							vo.setMessage(e.getMessage());
 						}
-						vo.trace = sw.toString();
+						vo.setTrace(sw.toString());
 						try {
 							mapper.putEntry(vo);
 						} catch (Exception e1) {
