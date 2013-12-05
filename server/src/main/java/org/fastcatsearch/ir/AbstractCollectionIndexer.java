@@ -17,6 +17,7 @@ import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.index.IndexWriteInfoList;
 import org.fastcatsearch.ir.index.SegmentWriter;
 import org.fastcatsearch.ir.settings.Schema;
+import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.util.CollectionContextUtil;
@@ -46,7 +47,7 @@ public abstract class AbstractCollectionIndexer {
 		this.collectionContext = collectionContext;
 	}
 	
-	protected abstract DataSourceReader createDataSourceReader(File filePath, Schema schema) throws IRException;
+	protected abstract DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException;
 	protected abstract void prepare() throws IRException;
 	protected abstract boolean done(RevisionInfo revisionInfo, IndexStatus indexStatus) throws IRException;
 	
@@ -68,7 +69,7 @@ public abstract class AbstractCollectionIndexer {
 		
 		
 		File filePath = collectionContext.collectionFilePaths().file();
-		dataSourceReader = createDataSourceReader(filePath, schema);
+		dataSourceReader = createDataSourceReader(filePath, schema.schemaSetting());
 		
 		segmentWriter = new SegmentWriter(schema, segmentDir, revisionInfo, indexConfig);
 		

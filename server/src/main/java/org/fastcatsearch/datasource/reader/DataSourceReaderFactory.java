@@ -18,6 +18,7 @@ import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.settings.Schema;
+import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.util.DynamicClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +26,9 @@ import org.slf4j.LoggerFactory;
 public class DataSourceReaderFactory {
 	private static Logger logger = LoggerFactory.getLogger(DataSourceReaderFactory.class);
 
-	public static DataSourceReader createFullIndexingSourceReader(File filePath, Schema schema, DataSourceConfig dataSourceConfig) throws IRException {
+	public static DataSourceReader createFullIndexingSourceReader(File filePath, SchemaSetting schemaSetting, DataSourceConfig dataSourceConfig) throws IRException {
 
-		DataSourceReader dataSourceReader = new DataSourceReader(schema);
+		DataSourceReader dataSourceReader = new DataSourceReader(schemaSetting);
 		logger.debug("dataSourceConfig > {}", dataSourceConfig);
 		if (dataSourceConfig != null && dataSourceConfig.getFullIndexingSourceConfig() != null) {
 			
@@ -46,9 +47,9 @@ public class DataSourceReaderFactory {
 		return dataSourceReader;
 	}
 	
-	public static DataSourceReader createAddIndexingSourceReader(File filePath, Schema schema, DataSourceConfig dataSourceConfig, String lastIndexTime) throws IRException {
+	public static DataSourceReader createAddIndexingSourceReader(File filePath, SchemaSetting schemaSetting, DataSourceConfig dataSourceConfig, String lastIndexTime) throws IRException {
 
-		DataSourceReader dataSourceReader = new DataSourceReader(schema);
+		DataSourceReader dataSourceReader = new DataSourceReader(schemaSetting);
 		logger.debug("dataSourceConfig > {}", dataSourceConfig);
 		if (dataSourceConfig != null && dataSourceConfig.getAddIndexingSourceConfig() != null) {
 			

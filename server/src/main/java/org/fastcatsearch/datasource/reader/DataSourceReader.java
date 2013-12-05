@@ -28,6 +28,7 @@ import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
 import org.fastcatsearch.ir.settings.Schema;
+import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,10 +53,10 @@ public class DataSourceReader {
 	private SingleSourceReader currentReader;
 
 	// DataSourceConfig안에는 SingleSourceConfig가 여러개 들어있다.
-	public DataSourceReader(Schema schema) throws IRException {
-		fieldSettingList = schema.schemaSetting().getFieldSettingList();
+	public DataSourceReader(SchemaSetting schemaSetting) throws IRException {
+		fieldSettingList = schemaSetting.getFieldSettingList();
 
-		PrimaryKeySetting primaryKeySetting = schema.schemaSetting().getPrimaryKeySetting();
+		PrimaryKeySetting primaryKeySetting = schemaSetting.getPrimaryKeySetting();
 		if (primaryKeySetting != null && primaryKeySetting.getFieldList().size() > 0) {
 			int pkFieldSize = primaryKeySetting.getFieldList().size();
 			deleteIdList = new DeleteIdSet(pkFieldSize);

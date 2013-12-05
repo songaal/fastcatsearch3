@@ -18,6 +18,7 @@ import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentReader;
 import org.fastcatsearch.ir.settings.Schema;
+import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.CoreFileUtils;
 import org.fastcatsearch.util.FilePaths;
@@ -38,10 +39,10 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
 	}
 	
 	@Override
-	protected DataSourceReader createDataSourceReader(File filePath, Schema schema) throws IRException{
+	protected DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException{
 		DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
 		String lastIndexTime = collectionContext.getLastIndexTime();
-		return DataSourceReaderFactory.createAddIndexingSourceReader(filePath, schema, dataSourceConfig, lastIndexTime);
+		return DataSourceReaderFactory.createAddIndexingSourceReader(filePath, schemaSetting, dataSourceConfig, lastIndexTime);
 	}
 
 	/*

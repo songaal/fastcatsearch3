@@ -14,6 +14,7 @@ import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.settings.Schema;
+import org.fastcatsearch.ir.settings.SchemaSetting;
 
 /**
  * 컬렉션의 전체색인을 수행하는 indexer.
@@ -27,9 +28,9 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 	}
 
 	@Override
-	protected DataSourceReader createDataSourceReader(File filePath, Schema schema) throws IRException{
+	protected DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException{
 		DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
-		return DataSourceReaderFactory.createFullIndexingSourceReader(filePath, schema, dataSourceConfig);
+		return DataSourceReaderFactory.createFullIndexingSourceReader(filePath, schemaSetting, dataSourceConfig);
 	}
 
 	@Override

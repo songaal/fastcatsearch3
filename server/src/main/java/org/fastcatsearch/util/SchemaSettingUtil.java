@@ -190,7 +190,7 @@ public class SchemaSettingUtil {
 				JSONObject data = array.optJSONObject(inx);
 				setting.setId( value = data.optString( fieldName = "id" ));
 				setting.setName( value = data.optString( fieldName = "name" ));
-				setting.setType(Type.valueOf( value = data.optString( fieldName = "type" )));
+				setting.setType(Type.valueOf( value = data.optString( fieldName = "type" , "").toUpperCase()));
 				setting.setSize(data.optInt( fieldName = "size",0));
 				setting.setStore("true".equals( value = data.optString( fieldName = "store")));
 				setting.setRemoveTag("true".equals( value = data.optString( fieldName = "removeTag")));

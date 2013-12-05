@@ -26,7 +26,7 @@ public class FieldIndexesWriter implements WriteInfoLoggable {
 		fieldIndexWriterList = new FieldIndexWriter[indexSize];
 		boolean isAppend = revisionInfo.isAppend();
 		for (int i = 0; i < indexSize; i++) {
-			fieldIndexWriterList[i++] = new FieldIndexWriter(fieldIndexSettingList.get(i), schema.fieldSettingMap(), schema.fieldSequenceMap(), dir, isAppend);
+			fieldIndexWriterList[i] = new FieldIndexWriter(fieldIndexSettingList.get(i), schema.fieldSettingMap(), schema.fieldSequenceMap(), dir, isAppend);
 		}
 
 	}

@@ -26,7 +26,7 @@ public class GroupIndexesWriter implements WriteInfoLoggable {
 		indexSize = groupIndexSettingList == null ? 0 : groupIndexSettingList.size();
 		groupIndexWriterList = new GroupIndexWriter[indexSize];
 		for (int i = 0; i < indexSize; i++) {
-			groupIndexWriterList[i++] = new GroupIndexWriter(groupIndexSettingList.get(i), schema.fieldSettingMap(), schema.fieldSequenceMap(), dir, revisionInfo, indexConfig);
+			groupIndexWriterList[i] = new GroupIndexWriter(groupIndexSettingList.get(i), schema.fieldSettingMap(), schema.fieldSequenceMap(), dir, revisionInfo, indexConfig);
 		}
 
 	}
