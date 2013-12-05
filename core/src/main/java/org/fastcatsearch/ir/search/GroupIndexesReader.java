@@ -14,7 +14,7 @@ public class GroupIndexesReader extends SelectableIndexesReader<GroupIndexReader
 	
 	public GroupIndexesReader(Schema schema, File dir, int revision) throws IOException, IRException{
 		indexSettingList = schema.schemaSetting().getGroupIndexSettingList();
-		int indexCount = indexSettingList.size();
+		int indexCount = indexSettingList == null ? 0 : indexSettingList.size();
 		
 		//색인파일열기.
 		readerList = new ArrayList<GroupIndexReader>(indexCount);

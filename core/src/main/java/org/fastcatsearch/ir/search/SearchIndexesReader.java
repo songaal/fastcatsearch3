@@ -54,7 +54,7 @@ public class SearchIndexesReader implements Cloneable {
 		logger.debug("schema > {}", schema);
 		logger.debug("schema.schemaSetting > {}", schema.schemaSetting());
 		indexSettingList = schema.schemaSetting().getIndexSettingList();
-		int indexCount = indexSettingList.size();
+		int indexCount = indexSettingList == null ? 0 : indexSettingList.size();
 
 		// 색인파일열기.
 		readerList = new ArrayList<SearchIndexReader>(indexCount);

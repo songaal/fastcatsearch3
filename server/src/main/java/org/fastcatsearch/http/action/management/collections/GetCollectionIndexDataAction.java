@@ -111,7 +111,7 @@ public class GetCollectionIndexDataAction extends AuthAction {
 					
 					
 					int fieldSize = document.size();
-					logger.debug("document >> {}", document);
+//					logger.debug("document >> {}", document);
 					for (int index = 0; index < fieldSize; index++) {
 						Field field = document.get(index);
 						

@@ -126,7 +126,7 @@ public class PrimaryKeyIndexesWriter {
 			
 			int preDocNo = indexWriter.put(pkbaos.array(), 0, (int) pkbaos.position(), localDocNo);
 			if (preDocNo >= 0) {
-				 logger.debug("DUP delete >> {}", preDocNo);
+				 logger.debug("DUP delete >> {} : {}", preDocNo, new String(pkbaos.array(), 0, (int) pkbaos.position()));
 				deleteSet.set(preDocNo);
 				updateDocCount++;// 수집시 데이터내에 서로 중복된 문서가 발견된 경우 count증가.
 			}

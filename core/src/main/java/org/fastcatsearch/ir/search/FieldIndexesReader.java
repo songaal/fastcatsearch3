@@ -15,7 +15,7 @@ public class FieldIndexesReader extends SelectableIndexesReader<FieldIndexReader
 
 	public FieldIndexesReader(Schema schema, File dir) throws IOException, IRException {
 		indexSettingList = schema.schemaSetting().getFieldIndexSettingList();
-		int indexCount = indexSettingList.size();
+		int indexCount = indexSettingList == null ? 0 : indexSettingList.size();
 
 		// 색인파일열기.
 		readerList = new ArrayList<FieldIndexReader>(indexCount);

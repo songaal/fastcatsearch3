@@ -19,33 +19,31 @@ public class FieldIndexesWriter implements WriteInfoLoggable {
 	private static Logger logger = LoggerFactory.getLogger(FieldIndexesWriter.class);
 	private FieldIndexWriter[] fieldIndexWriterList;
 	private int indexSize;
-	
+
 	public FieldIndexesWriter(Schema schema, File dir, RevisionInfo revisionInfo) throws IOException, IRException {
 		List<FieldIndexSetting> fieldIndexSettingList = schema.schemaSetting().getFieldIndexSettingList();
-		indexSize = fieldIndexSettingList.size();
+		indexSize = fieldIndexSettingList == null ? 0 : fieldIndexSettingList.size();
 		fieldIndexWriterList = new FieldIndexWriter[indexSize];
 		boolean isAppend = revisionInfo.isAppend();
-		int i = 0;
-		for(FieldIndexSetting fieldIndexSetting : fieldIndexSettingList){
-			fieldIndexWriterList[i++] = new FieldIndexWriter(fieldIndexSetting, schema.fieldSettingMap(), schema.fieldSequenceMap(), dir, isAppend);
+		for (int i = 0; i < indexSize; i++) {
+			fieldIndexWriterList[i++] = new FieldIndexWriter(fieldIndexSettingList.get(i), schema.fieldSettingMap(), schema.fieldSequenceMap(), dir, isAppend);
 		}
-		
+
 	}
-	
-	
-	public void write(Document document) throws IOException, IRException{
+
+	public void write(Document document) throws IOException, IRException {
 		for (int i = 0; i < indexSize; i++) {
 			fieldIndexWriterList[i].write(document);
 		}
 	}
-	
-	public void flush() throws IOException{
+
+	public void flush() throws IOException {
 		for (int i = 0; i < indexSize; i++) {
 			fieldIndexWriterList[i].flush();
 		}
 	}
-	
-	public void close() throws IOException{
+
+	public void close() throws IOException {
 		for (int i = 0; i < indexSize; i++) {
 			fieldIndexWriterList[i].close();
 		}

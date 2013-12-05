@@ -98,7 +98,7 @@ public class SegmentWriter implements WriteInfoLoggable {
 	 * 색인후 내부 문서번호를 리턴한다.
 	 */
 	public int addDocument(Document document) throws IRException, IOException {
-		// logger.debug("doc >> {}", document);
+//		 logger.debug("doc >> {}", document);
 		int docNo = documentWriter.write(document);
 		primaryKeyIndexesWriter.write(document, docNo);
 		searchIndexesWriter.write(document);

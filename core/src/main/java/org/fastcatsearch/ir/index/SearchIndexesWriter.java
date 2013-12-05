@@ -45,7 +45,7 @@ public class SearchIndexesWriter {
 
 	public SearchIndexesWriter(Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig) throws IOException, IRException {
 		this.indexSettingList = schema.schemaSetting().getIndexSettingList();
-		this.indexSize = indexSettingList.size();
+		this.indexSize = indexSettingList == null ? 0 : indexSettingList.size();
 		searchIndexWriterList = new SearchIndexWriter[indexSize];
 		
 		for (int i = 0; i < indexSize; i++) {

@@ -95,11 +95,13 @@ public class DocumentWriter implements WriteInfoLoggable {
 		for (int i = 0; i < document.size(); i++) {
 			Field f = document.get(i);
 			//필드가 null이면 데이터없는 것으로 처리
-			
-			if(f == null || f.isNull() || !fields.get(i).isStore()){
+			FieldSetting fieldSetting = fields.get(i);
+			if(f == null || f.isNull() || !fieldSetting.isStore()){
 				fbaos.writeBoolean(false);
 			} else {
 				fbaos.writeBoolean(true);
+				//TODO 차후 필드별 압축으로 변경한다. 필드 데이터를 업데이트 하려면 필드별로 관리해야함.
+//				fbaos.writeBoolean(fieldSetting.isCompress());
 				f.writeRawTo(fbaos);
 			}
 		}

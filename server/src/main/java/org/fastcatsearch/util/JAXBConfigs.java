@@ -102,9 +102,9 @@ public class JAXBConfigs {
 	
 	public static <T> void writeConfig(File file, Object jaxbConfig, Class<T> jaxbConfigClass) throws JAXBException {
 		logger.debug("writeConfig >> {}, {}, {}", file.getAbsolutePath(), jaxbConfig, jaxbConfigClass);
-		for(StackTraceElement e : Thread.currentThread().getStackTrace()){
-			logger.debug("> {}", e);
-		}
+//		for(StackTraceElement e : Thread.currentThread().getStackTrace()){
+//			logger.debug("> {}", e);
+//		}
 		Writer writer = null;
 		try{
 			if (!file.exists()) {
