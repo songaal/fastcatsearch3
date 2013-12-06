@@ -21,6 +21,7 @@ public class TokenizedTermScorer implements Scorer {
 	private HashMap<String,WeightedTerm> termsToFind;
 
 	private CharTermAttribute termAtt;
+	private CharsRefTermAttribute refTermAtt;
 
 	public TokenizedTermScorer(WeightedTerm[] weightedTerms) {
 		termsToFind = new HashMap<String,WeightedTerm>();
@@ -49,6 +50,7 @@ public class TokenizedTermScorer implements Scorer {
 		//
 		//
 		termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+		refTermAtt = tokenStream.addAttribute(CharsRefTermAttribute.class);
 		return null;
 	}
 
@@ -73,7 +75,17 @@ public class TokenizedTermScorer implements Scorer {
 	 */
 	@Override
 	public float getTokenScore() {
-		String termText = termAtt.toString();
+		
+		String termText = "";
+		
+		//FIXME: 차후 외부에서 이 둘을 모두 스코어링 해 주어야 한다. (termAtt / refTermAtt)
+		//(그래야 어절로 잡힌 구간은 어절로서 하이라이팅됨
+		if(refTermAtt!=null && refTermAtt.charsRef()!=null) {
+			termText = refTermAtt.toString();
+		} else if(termAtt!=null) {
+			termText = termAtt.toString();
+		}
+		
 		WeightedTerm queryTerm = termsToFind.get(termText);
 		if (queryTerm == null) {
 			// not a query term - return

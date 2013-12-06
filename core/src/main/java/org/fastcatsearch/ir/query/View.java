@@ -22,11 +22,13 @@ public class View {
 	private int fragmentSize; //요약 블럭 갯수
 	private boolean highlighted; //일치단어 하이라이팅 여부.
 	
+	//FIXME:우선 하이라이팅 무조건 ON
+	//조아라 테스트페이지 작성 이유로 하드코딤 함.
 	public View(String fieldId){
-		this(fieldId, 0, 0, false);
+		this(fieldId, 0, 0, true);
 	}
 	public View(String fieldId, int snippetSize){
-		this(fieldId, snippetSize, 1, false);
+		this(fieldId, snippetSize, 1, true);
 	}
 	public View(String fieldId, int snippetSize, int fragmentSize, boolean highlighted){
 		this.fieldId = fieldId.toUpperCase();
