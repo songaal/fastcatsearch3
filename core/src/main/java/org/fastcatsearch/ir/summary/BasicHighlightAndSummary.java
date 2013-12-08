@@ -94,8 +94,13 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 			//
 			String termString = null;
 			if (termAttribute != null) {
+				//FIXME:termString이 공백일 수 있는지 확인 필요
 				CharsRef charRef = termAttribute.charsRef();
-				termString = charRef.toString();
+				if(charRef!=null) {
+					termString = charRef.toString();
+				} else {
+					termString = "";
+				}
 			} else {
 				termString = new String(charTermAttribute.buffer(), 0, charTermAttribute.length());
 			}
