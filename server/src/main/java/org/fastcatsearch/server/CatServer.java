@@ -12,6 +12,11 @@
 package org.fastcatsearch.server;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.concurrent.CountDownLatch;
 
 import org.fastcatsearch.alert.ClusterAlertService;
@@ -47,7 +52,9 @@ public class CatServer {
 	private String serverHome;
 	private static volatile Thread keepAliveThread;
 	private static volatile CountDownLatch keepAliveLatch;
-
+	private FileLock fileLock;
+	private File lockFile;
+	
 	public static void main(String... args) throws FastcatSearchException {
 		if (args.length < 1) {
 			usage();
@@ -137,6 +144,22 @@ public class CatServer {
 			System.exit(1);
 		}
 
+		lockFile = new File(serverHome, ".lock");
+		try {
+			FileChannel channel = new RandomAccessFile(lockFile, "rw").getChannel();
+			fileLock = channel.tryLock();
+		} catch (IOException e) {
+			System.err.println("Error! Cannot create lock file \"" + lockFile.getAbsolutePath() + "\".");
+			System.exit(1);
+		}
+		
+		if(fileLock == null){
+			System.err.println("Error! Another instance of CatServer may have already booted at home path = " + serverHome);
+			System.exit(1);
+		}else{
+			System.out.println("File lock > "+ fileLock + ", "+lockFile.getAbsolutePath());
+		}
+		
 		Environment environment = new Environment(serverHome).init();
 		this.serviceManager = new ServiceManager(environment);
 		serviceManager.asSingleton();
@@ -239,7 +262,6 @@ public class CatServer {
 
 	public void stop() throws FastcatSearchException {
 
-		// FIXME 뜨는 도중 에러 발생시 NullPointerException 발생가능성.
 		serviceManager.stopService(TaskStateService.class);
 		serviceManager.stopService(NotificationService.class);
 		serviceManager.stopService(ClusterAlertService.class);
@@ -274,6 +296,28 @@ public class CatServer {
 		serviceManager.closeService(IRService.class);
 		serviceManager.closeService(JobService.class);
 		serviceManager.closeService(DBService.class);
+		
+		if(fileLock != null){
+			try {
+				fileLock.release();
+				logger.info("CatServer Lock Release! {}", fileLock);
+			} catch (IOException e) {
+				logger.error("", e);
+			}
+			
+			try {
+				fileLock.channel().close();
+			} catch (Exception e) {
+				logger.error("", e);
+			}
+			
+			try {
+				lockFile.delete();
+				logger.info("Remove .lock file >> {}", lockFile.getAbsolutePath());
+			} catch (Exception e) {
+				logger.error("", e);
+			}
+		}
 	}
 
 	protected class ServerShutdownHook extends Thread {
@@ -283,7 +327,7 @@ public class CatServer {
 			try {
 				logger.info("Server Shutdown Requested!");
 				CatServer.this.stop();
-				// TODO shutdown 시 할일들을 적는다.
+				CatServer.this.close();
 			} catch (Throwable ex) {
 				logger.error("CatServer.shutdownHookFail", ex);
 			} finally {
