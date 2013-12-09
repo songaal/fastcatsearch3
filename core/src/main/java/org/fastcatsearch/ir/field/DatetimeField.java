@@ -20,10 +20,11 @@ public class DatetimeField extends Field {
 
 	public DatetimeField(String id, String data) throws FieldDataParseException {
 		super(id, data, IOUtil.SIZE_OF_LONG);
+		this.fieldsData = parseData(data);
 	}
 
 	@Override
-	protected Date parseData(String data) {
+	protected Object parseData(String data) {
 		if (data == null) {
 			return null;
 		}
@@ -51,10 +52,11 @@ public class DatetimeField extends Field {
 
 	@Override
 	public void writeFixedDataTo(DataOutput output, int indexSize, boolean upperCase) throws IOException {
+logger.debug("time:{}", ((Date)fieldsData));
 		if(fieldsData != null){
 			output.writeLong(((Date) fieldsData).getTime());
 		}else{
-			output.writeLong(Long.MIN_VALUE);
+			output.writeLong(new Date(0).getTime());
 		}
 	}
 
@@ -76,5 +78,4 @@ public class DatetimeField extends Field {
 			return null;
 		}
 	}
-
 }
