@@ -199,8 +199,8 @@ public class SearchIndexReader implements Cloneable {
 			
 			try {
 				CharVectorTokenizer charVectorTokenizer = new CharVectorTokenizer(fullTerm);
-
-				CharsRefTermAttribute termAttribute = null;
+				CharTermAttribute termAttribute = null;
+				CharsRefTermAttribute refTermAttribute = null;
 				PositionIncrementAttribute positionAttribute = null;
 				SynonymAttribute synonymAttribute = null;
 				StopwordAttribute stopwordAttribute = null;
@@ -232,7 +232,10 @@ public class SearchIndexReader implements Cloneable {
 					tokenStream.reset();
 
 					if (tokenStream.hasAttribute(CharsRefTermAttribute.class)) {
-						termAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
+						refTermAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
+					}
+					if (tokenStream.hasAttribute(CharTermAttribute.class)) {
+						termAttribute = tokenStream.getAttribute(CharTermAttribute.class);
 					}
 					if (tokenStream.hasAttribute(PositionIncrementAttribute.class)) {
 						positionAttribute = tokenStream.getAttribute(PositionIncrementAttribute.class);
@@ -250,11 +253,16 @@ public class SearchIndexReader implements Cloneable {
 
 					while (tokenStream.incrementToken()) {
 
-						if (termAttribute != null) {
-							CharsRef charRef = termAttribute.charsRef();
-							char[] buffer = new char[charRef.length()];
-							System.arraycopy(charRef.chars, charRef.offset, buffer, 0, charRef.length);
-							token = new CharVector(buffer, 0, buffer.length);
+						if (refTermAttribute != null) {
+							CharsRef charRef = refTermAttribute.charsRef();
+							
+							if(charRef!=null) {
+								char[] buffer = new char[charRef.length()];
+								System.arraycopy(charRef.chars, charRef.offset, buffer, 0, charRef.length);
+								token = new CharVector(buffer, 0, buffer.length);
+							} else if(termAttribute!=null && termAttribute.buffer()!=null) {
+								token = new CharVector(termAttribute.buffer());
+							}
 						} else {
 							token = new CharVector(charTermAttribute.buffer(), 0, charTermAttribute.length());
 						}

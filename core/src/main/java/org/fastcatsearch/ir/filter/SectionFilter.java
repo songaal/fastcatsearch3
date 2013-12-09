@@ -1,46 +1,57 @@
-///*
-// * Copyright 2013 Websquared, Inc.
-// * 
-// * Licensed under the Apache License, Version 2.0 (the "License");
-// * you may not use this file except in compliance with the License.
-// * You may obtain a copy of the License at
-// * 
-// *   http://www.apache.org/licenses/LICENSE-2.0
-// * 
-// * Unless required by applicable law or agreed to in writing, software
-// * distributed under the License is distributed on an "AS IS" BASIS,
-// * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// * See the License for the specific language governing permissions and
-// * limitations under the License.
-// */
-//
-//package org.fastcatsearch.ir.filter;
-//
-//import java.io.IOException;
-//
-//import org.fastcatsearch.ir.config.Field;
-//import org.fastcatsearch.ir.config.FieldSetting;
-//import org.fastcatsearch.ir.io.ByteArrayOutput;
-//import org.fastcatsearch.ir.io.DataRef;
-//import org.fastcatsearch.ir.io.FastByteBuffer;
-//import org.fastcatsearch.ir.io.IOUtil;
-//import org.fastcatsearch.ir.query.Filter;
-//import org.fastcatsearch.ir.query.RankInfo;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-//
-//
-///**
-// * 범위조건을 지정할수 있다.
-// * ~를 구분자로 시작과 끝범위를 지정하며, ;를 사용하여 여러범위를 포함할수있다.
-// * 시작패턴과 끝패턴이 함께 입력되어야 하며, 1000~ 와 같은 표현을 지원하지 않는다.
-// * @author swsong
-// *
-// */
-//public class SectionFilter extends FilterFunction {
-//
-//	@SuppressWarnings("unused")
-//	private static final Logger logger = LoggerFactory.getLogger(SectionFilter.class);
+/*
+ * Copyright 2013 Websquared, Inc.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.fastcatsearch.ir.filter;
+
+import java.io.IOException;
+
+import org.fastcatsearch.ir.io.DataRef;
+import org.fastcatsearch.ir.query.Filter;
+import org.fastcatsearch.ir.query.RankInfo;
+import org.fastcatsearch.ir.settings.FieldIndexSetting;
+import org.fastcatsearch.ir.settings.FieldSetting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+/**
+ * 범위조건을 지정할수 있다.
+ * ~를 구분자로 시작과 끝범위를 지정하며, ;를 사용하여 여러범위를 포함할수있다.
+ * 시작패턴과 끝패턴이 함께 입력되어야 하며, 1000~ 와 같은 표현을 지원하지 않는다.
+ * @author swsong
+ *
+ */
+public class SectionFilter extends FilterFunction {
+
+	private static final Logger logger = LoggerFactory.getLogger(SectionFilter.class);
+	
+	public SectionFilter(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting) throws FilterException {
+		super(filter, fieldIndexSetting, fieldSetting, false);
+	}
+	public SectionFilter(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting, boolean isBoostFunction) throws FilterException {
+		super(filter, fieldIndexSetting, fieldSetting, isBoostFunction);
+	}
+
+	@Override
+	public boolean filtering(RankInfo rankInfo, DataRef dataRef)
+			throws IOException {
+		return false;
+	}
+}
+
 //
 //	public SectionFilter(Filter filter, FieldSetting fieldSetting) throws FilterException {
 //		this(filter, fieldSetting, false);
@@ -324,4 +335,3 @@
 //		}
 //		return false;
 //	}
-//}

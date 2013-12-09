@@ -31,7 +31,7 @@ public class Sort {
 		this(fieldIndexId, true);
 	}
 	public Sort(String fieldIndexId, boolean asc){
-		this.fieldIndexId = fieldIndexId;
+		this.fieldIndexId = fieldIndexId.toUpperCase();
 		this.asc = asc;
 	}
 	

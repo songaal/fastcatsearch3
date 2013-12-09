@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  * */
 public class PrimaryWordAnalyzer extends Analyzer {
 
-	private static final Logger logger = LoggerFactory.getLogger(PrimaryWordAnalyzerTest.class);
+	private static final Logger logger = LoggerFactory.getLogger(PrimaryWordAnalyzer.class);
 
 	public PrimaryWordAnalyzer() {
 	}
