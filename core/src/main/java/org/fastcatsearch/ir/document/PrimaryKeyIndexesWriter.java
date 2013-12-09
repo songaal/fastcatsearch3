@@ -117,7 +117,7 @@ public class PrimaryKeyIndexesWriter {
 			for (int fieldId : primaryKeyFieldIdList) {
 				Field f = document.get(fieldId);
 				if(f == null || f.isNull()){
-					throw new IOException("PK field value cannot be null. fieldId="+fieldId+", field="+f);
+					throw new IOException("PK field value cannot be null. fieldId="+fieldId+", field="+f+", localDocNo="+localDocNo);
 				} else {
 					f.writeFixedDataTo(pkbaos);
 				}

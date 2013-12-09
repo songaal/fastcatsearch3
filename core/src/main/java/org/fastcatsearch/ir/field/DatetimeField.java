@@ -52,7 +52,6 @@ public class DatetimeField extends Field {
 
 	@Override
 	public void writeFixedDataTo(DataOutput output, int indexSize, boolean upperCase) throws IOException {
-logger.debug("time:{}", ((Date)fieldsData));
 		if(fieldsData != null){
 			output.writeLong(((Date) fieldsData).getTime());
 		}else{
