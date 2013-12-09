@@ -56,7 +56,7 @@ public class CollectionSearcher {
 	}
 
 	public GroupsData doGrouping(Query q) throws IRException, IOException, SettingException {
-		collectionHandler.addCollectionStatistics(q);
+		collectionHandler.addSearchStatistics(q);
 		
 		int segmentSize = collectionHandler.segmentSize();
 		if (segmentSize == 0) {
@@ -131,7 +131,7 @@ public class CollectionSearcher {
 	}
 
 	public Result search(Query q) throws IRException, IOException, SettingException {
-		collectionHandler.addCollectionStatistics(q);
+		collectionHandler.addSearchStatistics(q);
 		
 		InternalSearchResult internalSearchResult = searchInternal(q);
 		DocIdList hitList = internalSearchResult.getDocIdList();
@@ -246,7 +246,6 @@ public class CollectionSearcher {
 	}
 
 	public DocumentResult searchDocument(DocIdList list, List<View> views, String[] tags, HighlightInfo highlightInfo) throws IOException {
-
 		int realSize = list.size();
 		Row[] row = new Row[realSize];
 
@@ -287,6 +286,7 @@ public class CollectionSearcher {
 			Document doc = collectionHandler.segmentReader(segmentSequence).segmentSearcher().getDocument(docNo, fieldSelectOption);
 			eachDocList[idx++] = doc;
 		}
+long a, b = 0, c = System.nanoTime();
 
 		for (int i = 0; i < realSize; i++) {
 			Document document = eachDocList[i];
@@ -317,7 +317,9 @@ public class CollectionSearcher {
 						String analyzerId = highlightInfo.getAnalyzer(fiedlName);
 						String queryString = highlightInfo.getQueryString(fiedlName);
 						if (analyzerId != null && queryString != null) {
+							a = System.nanoTime();
 							text = getHighlightedSnippet(text, analyzerId, queryString, tags, view);
+							b += (System.nanoTime() - a);
 						}
 					}
 
@@ -330,7 +332,7 @@ public class CollectionSearcher {
 				}
 			}
 		}
-
+		logger.debug("time > {}, {}", (System.nanoTime() - c) / 1000000, b / 1000000);
 		return new DocumentResult(row, fieldIdList);
 	}
 

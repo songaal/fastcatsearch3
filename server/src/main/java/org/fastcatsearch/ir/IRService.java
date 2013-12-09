@@ -41,7 +41,7 @@ import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.ir.search.CollectionStatistics;
+import org.fastcatsearch.ir.search.SearchStatistics;
 import org.fastcatsearch.job.indexing.MasterCollectionAddIndexingJob;
 import org.fastcatsearch.job.indexing.MasterCollectionFullIndexingJob;
 import org.fastcatsearch.module.ModuleException;
@@ -49,17 +49,17 @@ import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.settings.Settings;
+import org.fastcatsearch.statistics.CategoryStatistics;
 import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.FilePaths;
 import org.fastcatsearch.util.JAXBConfigs;
 
 public class IRService extends AbstractService {
 
+	private static String keywordFileName = ".keyword.log";
 	private Map<String, CollectionHandler> collectionHandlerMap;
 
-	private Map<String, CollectionStatistics> collectionStatisticsMap; 
 	// TODO 캐시방식을 변경하자.
-
 	private QueryCacheModule<Result> searchCache;
 	private QueryCacheModule<InternalSearchResult> shardSearchCache;
 	private QueryCacheModule<GroupResults> groupingCache;
@@ -87,7 +87,7 @@ public class IRService extends AbstractService {
 		} catch (JAXBException e) {
 			logger.error("[ERROR] 컬렉션리스트 로딩실패. " + e.getMessage(), e);
 		}
-
+		int longSchedulePeriodInMinute = settings.getInt("longSchedulePeriodInMinute", 5); //기본 5분.
 		for (Collection collection : collectionsConfig.getCollectionList()) {
 			try {
 				String collectionId = collection.getId();
@@ -104,7 +104,6 @@ public class IRService extends AbstractService {
 					continue;
 				} else {
 					collectionHandler = new CollectionHandler(collectionContext);
-					realtimeQueryStatisticsModule.registerQueryCount(collectionId);
 				}
 
 				collectionHandlerMap.put(collectionId, collectionHandler);
@@ -228,7 +227,10 @@ public class IRService extends AbstractService {
 		while (iter.hasNext()) {
 			Entry<String, CollectionHandler> entry = iter.next();
 			try {
-				entry.getValue().close();
+				CollectionHandler collectionHandler = entry.getValue();
+				if(collectionHandler != null){
+					collectionHandler.close();
+				}
 				logger.info("Shutdown Collection [{}]", entry.getKey());
 			} catch (IOException e) {
 				logger.error("[ERROR] " + e.getMessage(), e);
@@ -347,6 +349,18 @@ public class IRService extends AbstractService {
 		for (CollectionsConfig.Collection collection : getCollectionList()) {
 			String collectionId = collection.getId();
 			reloadSchedule(collectionId);
+		}
+	}
+	
+	public void setSearchStatistics(SearchStatistics searchStatistics){
+		Iterator<Entry<String, CollectionHandler>> iter = collectionHandlerMap.entrySet().iterator();
+		while (iter.hasNext()) {
+			Entry<String, CollectionHandler> entry = iter.next();
+			CollectionHandler collectionHandler = entry.getValue();
+			if(collectionHandler.isLoaded()){
+				collectionHandler.setSearchStatistics(searchStatistics);
+			}
+			logger.info("Set SearchStatistics Collection [{}]", entry.getKey());
 		}
 	}
 

@@ -1,0 +1,6 @@
+<statictics>
+	<category-list>
+		<category id="total" name="통합검색" usePopularKeyword="true" useRelateKeyword="true" useRealTimePopularKeyword="true"/>
+		<category id="detail" name="상세검색" usePopularKeyword="true" useRelateKeyword="false" useRealTimePopularKeyword="false"/>
+	</category-list>
+</statictics>

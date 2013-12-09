@@ -33,6 +33,7 @@ import org.fastcatsearch.notification.NotificationService;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.processlogger.ProcessLoggerService;
 import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.statistics.SearchStatisticsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -181,6 +182,8 @@ public class CatServer {
 		ProcessLoggerService processLoggerService = serviceManager.createService("processlogger", ProcessLoggerService.class);
 		TaskStateService taskStateService = serviceManager.createService("taskstate", TaskStateService.class);
 		
+		SearchStatisticsService searchStatisticsService = serviceManager.createService("statistics", SearchStatisticsService.class);
+		
 		logger = LoggerFactory.getLogger(CatServer.class);
 		logger.info("ServerHome = {}", serverHome);
 		try {
@@ -201,6 +204,7 @@ public class CatServer {
 			clusterAlertService.start();
 			processLoggerService.start();
 			taskStateService.start();
+			searchStatisticsService.start();
 			
 			//서비스가 모두 뜬 상태에서 후속작업.
 			if(environment.isMasterNode()){
@@ -211,7 +215,7 @@ public class CatServer {
 				irService.reloadAllSchedule();
 			}
 			
-			
+			irService.setSearchStatistics(searchStatisticsService.searchStatistics());
 		} catch (FastcatSearchException e) {
 			logger.error("CatServer 시작에 실패했습니다.", e);
 			stop();
@@ -261,7 +265,7 @@ public class CatServer {
 	}
 
 	public void stop() throws FastcatSearchException {
-
+		
 		serviceManager.stopService(TaskStateService.class);
 		serviceManager.stopService(NotificationService.class);
 		serviceManager.stopService(ClusterAlertService.class);
@@ -275,7 +279,8 @@ public class CatServer {
 		serviceManager.stopService(IRService.class);
 		serviceManager.stopService(JobService.class);
 		serviceManager.stopService(DBService.class);
-
+		serviceManager.stopService(SearchStatisticsService.class);
+		
 		logger.info("CatServer shutdown!");
 		isRunning = false;
 
@@ -296,6 +301,7 @@ public class CatServer {
 		serviceManager.closeService(IRService.class);
 		serviceManager.closeService(JobService.class);
 		serviceManager.closeService(DBService.class);
+		serviceManager.closeService(SearchStatisticsService.class);
 		
 		if(fileLock != null){
 			try {
