@@ -38,7 +38,7 @@ public class CollectionHandler {
 	private boolean isLoaded;
 	private FilePaths collectionFilePaths;
 
-	private CollectionStatistics collectionStatistics; //컬렉션별 검색통계치.
+	private SearchStatistics searchStatistics; //검색통계치.
 	
 	public CollectionHandler(CollectionContext collectionContext) throws IRException, SettingException {
 		this.collectionContext = collectionContext;
@@ -55,16 +55,12 @@ public class CollectionHandler {
 		return this;
 	}
 
-	public CollectionStatistics collectionStatistics(){
-		return collectionStatistics;
+	public void setSearchStatistics(SearchStatistics searchStatistics){
+		this.searchStatistics = searchStatistics;
 	}
-	
-	public void setCollectionStatistics(CollectionStatistics collectionStatistics){
-		this.collectionStatistics = collectionStatistics;
-	}
-	public void addCollectionStatistics(Query q) {
-		if(collectionStatistics != null){
-			collectionStatistics.add(q);
+	public void addSearchStatistics(Query q) {
+		if(searchStatistics != null){
+			searchStatistics.add(q);
 		}
 	}
 	
