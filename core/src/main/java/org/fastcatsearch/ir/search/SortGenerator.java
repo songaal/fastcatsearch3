@@ -114,12 +114,16 @@ public class SortGenerator {
 			if(fieldIndex[j] == ScoreField.fieldNumber){
 				rankData[j] = new BytesRef(ScoreField.fieldSize);
 				IOUtil.writeInt(rankData[j], Float.floatToIntBits(ri.score()));
+				rankData[j].flip();
 			}else if(fieldIndex[j] == HitField.fieldNumber){
 				rankData[j] = new BytesRef(HitField.fieldSize);
 				IOUtil.writeInt(rankData[j], ri.hit());
+				rankData[j].flip();
 			}else{
-				BytesRef bytesRef = indexRef.getDataRef(j).bytesRef();
-				rankData[j] = bytesRef.duplicate();
+//				BytesRef bytesRef = indexRef.getDataRef(j).bytesRef();
+//				rankData[j] = bytesRef.duplicate();
+				
+				rankData[j] = dataList[j].duplicate();
 			}
 		}
 		

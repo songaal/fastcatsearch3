@@ -222,7 +222,7 @@ public class SegmentSearcher {
 			//여기에서 segment번호를 셋팅해준다. 
 			el.setDocNo(segmentSequence, el.docNo());
 			
-			logger.debug("rank hit seg#{} {} ", segmentSequence, el.docNo());
+//			logger.debug("rank hit seg#{} {} ", segmentSequence, el.docNo());
 			hitStack.push(el);
 
 		}

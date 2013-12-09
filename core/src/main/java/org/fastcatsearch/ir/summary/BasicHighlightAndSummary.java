@@ -104,7 +104,7 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 			} else {
 				termString = new String(charTermAttribute.buffer(), 0, charTermAttribute.length());
 			}
-			logger.debug("HL >> {}", termString);
+//			logger.debug("HL >> {}", termString);
 			terms.add(new WeightedTerm(1.0f, termString));
 		}
 		

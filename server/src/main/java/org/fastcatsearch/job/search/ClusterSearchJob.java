@@ -1,5 +1,6 @@
 package org.fastcatsearch.job.search;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -153,12 +154,13 @@ public class ClusterSearchJob extends Job {
 		int realSize = aggregatedSearchResult.getCount();
 		DocIdList[] docIdList = new DocIdList[collectionIdList.length];
 		int[] collectionTags = new int[realSize]; //해당 문서가 어느 collection에 속하는지 알려주는 항목.
-		int[] eachDocIds = new int[realSize];
-		float[] eachScores = new float[realSize];
+//		int[] eachDocIds = new int[realSize];
+		ArrayDeque<Float>[] eachScores = new ArrayDeque[collectionIdList.length];
 		
 		
 		for (int i = 0; i < collectionIdList.length; i++) {
 			docIdList[i] = new DocIdList(realSize);
+			eachScores[i] = new ArrayDeque<Float>(realSize);
 		}
 		
 		int idx = 0;
@@ -167,9 +169,9 @@ public class ClusterSearchJob extends Job {
 			HitElement el = hitReader.read();
 			int collectionNo = collectionNumberMap.get(el.collectionId());
 			docIdList[collectionNo].add(el.segmentSequence(), el.docNo());
+			eachScores[collectionNo].add(el.score());
 			collectionTags[idx] = collectionNo;
-			eachDocIds[idx] = el.docNo();
-			eachScores[idx] = el.score();
+//			eachDocIds[idx] = el.docNo();
 			idx++;
 		}
 		
@@ -220,6 +222,8 @@ public class ClusterSearchJob extends Job {
 			int collectionNo = collectionTags[i];
 			DocumentResult documentResult = docResultList[collectionNo];
 			rows[i] = documentResult.next();
+			float score = eachScores[collectionNo].pop();
+			rows[i].setScore(score);
 		}
 		
 		/*

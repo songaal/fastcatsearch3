@@ -1,7 +1,9 @@
 package org.fastcatsearch.http.writer;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 
+import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
@@ -56,7 +58,7 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 		}
 		
 	}
-	
+	DecimalFormat decimalFormat = new DecimalFormat("#0.0");
 	public void writeBody(Result result, ResponseWriter resultWriter, long searchTime) throws ResultWriterException {
 		resultWriter.key("result");
 		//data
@@ -74,8 +76,13 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 //				.key("_no_").value(String.valueOf(start+i));
 
 				for(int k = 0; k < fieldNames.length; k++) {
-					char[] f = row.get(k);
-					String fdata = new String(f).trim();
+					String fdata = null;
+					if(fieldNames[k].equalsIgnoreCase(ScoreField.fieldName)){
+						fdata = decimalFormat.format(row.getScore());
+					}else{
+						char[] f = row.get(k);
+						fdata = new String(f).trim();
+					}
 					resultWriter.key(fieldNames[k]).value(fdata);
 				}
 				resultWriter.endObject();
