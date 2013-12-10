@@ -57,10 +57,12 @@ public class ViewContainer {
 	
 	public void setHighlighted(String fieldId,
 			boolean highlighted) {
-		for(View view : map.get(fieldId)) {
-			//positive only setting
-			if(view.isHighlighted()) {
-				view.setHighlighted(highlighted);
+		if(map.containsKey(fieldId)) {
+			for(View view : map.get(fieldId)) {
+				//positive only setting
+				if(view.isHighlighted()) {
+					view.setHighlighted(highlighted);
+				}
 			}
 		}
 	}
