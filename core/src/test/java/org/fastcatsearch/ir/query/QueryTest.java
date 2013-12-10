@@ -58,7 +58,7 @@ public class QueryTest extends TestCase{
 		q.setClause(c);
 		
 		//view
-		List<View> views = new ArrayList<View>();
+		ViewContainer views = new ViewContainer();
 		views.add(new View("id"));
 		views.add(new View("title"));
 		views.add(new View("seller"));

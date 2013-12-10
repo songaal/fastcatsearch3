@@ -20,20 +20,21 @@ public class View {
 	private String fieldId;
 	private int snippetSize; //요약길이
 	private int fragmentSize; //요약 블럭 갯수
+	private boolean summarized; //요약사용여부
 	private boolean highlighted; //일치단어 하이라이팅 여부.
 	
-	//FIXME:우선 하이라이팅 무조건 ON
-	//조아라 테스트페이지 작성 이유로 하드코딤 함.
 	public View(String fieldId){
-		this(fieldId, 0, 0, true);
+		this(fieldId, 0, 0, false, false);
 	}
 	public View(String fieldId, int snippetSize){
-		this(fieldId, snippetSize, 1, true);
+		this(fieldId, snippetSize, 1, false, false);
 	}
-	public View(String fieldId, int snippetSize, int fragmentSize, boolean highlighted){
+	public View(String fieldId, int snippetSize, int fragmentSize, 
+			boolean summarized, boolean highlighted){
 		this.fieldId = fieldId.toUpperCase();
 		this.snippetSize = snippetSize;
 		this.fragmentSize = fragmentSize;
+		this.summarized = summarized;
 		this.highlighted = highlighted;
 	}
 	public String fieldId(){
@@ -42,13 +43,28 @@ public class View {
 	public int snippetSize(){
 		return snippetSize;
 	}
+	public void setSnippetSize(int snippetSize) {
+		this.snippetSize = snippetSize;
+	}
 	public int fragmentSize() {
 		return fragmentSize;
+	}
+	public void setFragmentSize(int fragmentSize) {
+		this.fragmentSize = fragmentSize;
+	}
+	public boolean isSummarized() {
+		return summarized;
+	}
+	public void setSummarized(boolean summarized) {
+		this.summarized = summarized;
 	}
 	public boolean isHighlighted(){
 		return highlighted;
 	}
+	public void setHighlighted(boolean highlighted) {
+		this.highlighted = highlighted;
+	}
 	public String toString(){
-		return fieldId+":"+snippetSize+":"+fragmentSize+":"+highlighted;
+		return fieldId+":"+snippetSize+":"+fragmentSize+":"+summarized+":"+highlighted;
 	}
 }

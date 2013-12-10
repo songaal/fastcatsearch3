@@ -57,9 +57,9 @@
 								<resource>
 									<directory>${project.parent.basedir}/core/target</directory>
 									<includes>
-										<include>${parent.artifactId}-core-${project.version}.jar</include>
-										<include>${parent.artifactId}-core-${project.version}-sources.jar</include>
-										<include>${parent.artifactId}-core-${project.version}-javadoc.jar</include>
+										<include>${project.parent.artifactId}-core-${project.version}.jar</include>
+										<include>${project.parent.artifactId}-core-${project.version}-sources.jar</include>
+										<include>${project.parent.artifactId}-core-${project.version}-javadoc.jar</include>
 									</includes>
 								</resource>
 								<resource>
@@ -68,9 +68,9 @@
 								<resource>
 									<directory>${project.parent.basedir}/server/target</directory>
 									<includes>
-										<include>${parent.artifactId}-server-${project.version}.jar</include>
-										<include>${parent.artifactId}-server-${project.version}-sources.jar</include>
-										<include>${parent.artifactId}-server-${project.version}-javadoc.jar</include>
+										<include>${project.parent.artifactId}-server-${project.version}.jar</include>
+										<include>${project.parent.artifactId}-server-${project.version}-sources.jar</include>
+										<include>${project.parent.artifactId}-server-${project.version}-javadoc.jar</include>
 									</includes>
 								</resource>
 							</resources>
@@ -89,7 +89,7 @@
 								<resource>
 									<directory>${project.parent.basedir}/web/target</directory>
 									<includes>
-										<include>${parent.artifactId}-web.war</include>
+										<include>${project.parent.artifactId}-web.war</include>
 									</includes>
 								</resource>
 							</resources>

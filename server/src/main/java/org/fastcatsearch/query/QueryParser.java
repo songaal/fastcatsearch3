@@ -16,10 +16,8 @@
 
 package org.fastcatsearch.query;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map.Entry;
 
 import org.fastcatsearch.ir.group.GroupFunction;
@@ -36,6 +34,7 @@ import org.fastcatsearch.ir.query.Sorts;
 import org.fastcatsearch.ir.query.Term;
 import org.fastcatsearch.ir.query.Term.Option;
 import org.fastcatsearch.ir.query.View;
+import org.fastcatsearch.ir.query.ViewContainer;
 import org.fastcatsearch.util.DynamicClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,12 +157,12 @@ public class QueryParser {
 			m5.setUserData(map);
 		} else if (Query.EL.fl == el) {
 			String[] list = value.split(COMMA_SEPARATOR);
-			List<View> views = new ArrayList<View>(list.length);
+			ViewContainer views = new ViewContainer(list.length);
 			for (int k = 0; k < list.length; k++) {
 				String[] str = list[k].split(COLON_SEPARATOR);
 				if (str.length > 2) {
 					//FIXME:하이라이팅 관련 무조건 ON 되도록 임시 수정
-					views.add(new View(str[0], Integer.parseInt(str[1]), Integer.parseInt(str[2]), true));
+					views.add(new View(str[0], Integer.parseInt(str[1]), Integer.parseInt(str[2]), false, false));
 				} else if (str.length > 1) {
 					views.add(new View(str[0], Integer.parseInt(str[1])));
 				} else {
@@ -174,7 +173,7 @@ public class QueryParser {
 		} else if (Query.EL.se == el) {
 
 			if (value.length() > 0) {
-				Clause clause = (Clause) makeClause(value);
+				Clause clause = (Clause) makeClause(value, query);
 				query.setClause(clause);
 			}
 		} else if (Query.EL.ft == el) {
@@ -210,7 +209,6 @@ public class QueryParser {
 				}
 
 				GroupFunction[] groupFunctions = new GroupFunction[functionList.length];
-				int idx = 0;
 				for (int j = 0; j < functionList.length; j++) {
 					String functionExpr = functionList[j];
 					String functionName = null;
@@ -350,7 +348,7 @@ public class QueryParser {
 	//
 	// TODO 괄호없이 A or B and C 형태도 가능토록, escapse 문자 '\' 적용필요.
 	//
-	protected Object makeClause(String value) throws QueryParseException {
+	protected Object makeClause(String value, Query query) throws QueryParseException {
 		logger.debug("makeClause = {}", value);
 		if (value.charAt(0) == '{') {
 			int pos = findMatchBrace(value, 1);
@@ -359,20 +357,20 @@ public class QueryParser {
 				logger.error("Cannot find match brace '}'.");
 
 			// logger.debug("pos={}, value={}",pos, value);
-			Object operand1 = makeClause(value.substring(1, pos));
+			Object operand1 = makeClause(value.substring(1, pos), query);
 			if (value.regionMatches(true, pos + 1, "OR", 0, 2)) {
 				int end = findMatchBrace(value, pos + 4);// value.indexOf('}', pos + 4);
-				Object operand2 = makeClause(value.substring(pos + 4, end));
+				Object operand2 = makeClause(value.substring(pos + 4, end),query);
 				// logger.debug("OR!");
 				return new Clause(operand1, Clause.Operator.OR, operand2);
 			} else if (value.regionMatches(true, pos + 1, "AND", 0, 3)) {
 				int end = findMatchBrace(value, pos + 5);// value.indexOf('}', pos + 5);
-				Object operand2 = makeClause(value.substring(pos + 5, end));
+				Object operand2 = makeClause(value.substring(pos + 5, end),query);
 				// logger.debug("AND!");
 				return new Clause(operand1, Clause.Operator.AND, operand2);
 			} else if (value.regionMatches(true, pos + 1, "NOT", 0, 3)) {
 				int end = findMatchBrace(value, pos + 5);// value.indexOf('}', pos + 5);
-				Object operand2 = makeClause(value.substring(pos + 5, end));
+				Object operand2 = makeClause(value.substring(pos + 5, end),query);
 				// logger.debug("NOT!");
 				return new Clause(operand1, Clause.Operator.NOT, operand2);
 			} else {
@@ -389,10 +387,19 @@ public class QueryParser {
 			 */
 			if (value.startsWith("NOT{")) {
 				int end = findMatchBrace(value, 4);
-				Object operand2 = makeClause(value.substring(4, end));
+				Object operand2 = makeClause(value.substring(4, end),query);
 				return new Clause(null, Clause.Operator.NOT, operand2);
 			} else {
-				return makeTerm(value);
+				Term term = makeTerm(value);
+				
+				for(String field : term.indexFieldId()) {
+					//FIXME:fl 구문이 se구문보다 뒤에 나올 경우의 처리가 필요함.
+					//View가 생성이 되지 않은 상태에서의 하이라이팅 처리...
+					ViewContainer views = query.getViews();
+					views.setSummarized(field, term.option().useSummary());
+					views.setHighlighted(field, term.option().useHighlight());
+				}
+				return term;
 			}
 		}
 

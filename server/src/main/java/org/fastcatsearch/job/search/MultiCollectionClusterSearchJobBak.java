@@ -24,6 +24,7 @@ import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.query.View;
+import org.fastcatsearch.ir.query.ViewContainer;
 import org.fastcatsearch.ir.search.DocIdList;
 import org.fastcatsearch.ir.search.DocumentResult;
 import org.fastcatsearch.ir.search.HitElement;
@@ -194,7 +195,7 @@ public class MultiCollectionClusterSearchJobBak extends Job {
 		
 		//document 요청을 보낸다.
 		resultFutureList = new ResultFuture[shardIdList.length];
-		List<View> views = q.getViews(); 
+		ViewContainer views = q.getViews(); 
 		String[] tags = q.getMeta().tags();
 		for (int i = 0; i < shardIdList.length; i++) {
 			String cId = shardIdList[i];

@@ -16,6 +16,8 @@
 
 package org.fastcatsearch.query;
 
+import org.fastcatsearch.ir.query.Query;
+
 import junit.framework.TestCase;
 
 public class QueryParserTest extends TestCase{
@@ -53,9 +55,10 @@ public class QueryParserTest extends TestCase{
 				"			}";*/
 //		String queryString = "{{{Title,UserName:AND(한화그룹):100:15}AND{Title:(이대준):100:15}}NOT{FirstCode:OR(010 012):100:15}}";
 //		String queryString = "{{{{Title:AND(aa):200:15}OR{Content,UserName:AND(aa2):100:15}}AND{{Title:AND(bb):200:15}OR{Content,UserName:AND(aa3):100:15}}}NOT{FirstCode:OR(010 012):100:15}}";
+		Query query = new Query();
 		String queryString = "{{{{Title:cc:200:15}AND{Title:aa:200:15}}AND{{{Title:bb:200:15}OR{Content:cc:100:15}}OR{Content2:cc:100:15}}}}";
 		QueryParser parser = QueryParser.getInstance();
-		Object obj = parser.makeClause(queryString);
+		Object obj = parser.makeClause(queryString,query);
 		System.out.println(obj);
 	}
 	

@@ -12,6 +12,7 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.View;
+import org.fastcatsearch.ir.query.ViewContainer;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.DocIdList;
 import org.fastcatsearch.ir.search.DocumentResult;
@@ -29,14 +30,14 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 
 	private String collectionId;
 	private DocIdList docIdList;
-	private List<View> views;
+	private ViewContainer views;
 	private String[] tags;
 	private HighlightInfo highlightInfo;
 
 	public InternalDocumentSearchJob() {
 	}
 
-	public InternalDocumentSearchJob(String collectionId, DocIdList docIdList, List<View> views, String[] tags, HighlightInfo highlightInfo) {
+	public InternalDocumentSearchJob(String collectionId, DocIdList docIdList, ViewContainer views, String[] tags, HighlightInfo highlightInfo) {
 		this.collectionId = collectionId;
 		this.docIdList = docIdList;
 		this.views = views;
@@ -79,9 +80,10 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 
 		// List<View>
 		int viewSize = input.readVInt();
-		views = new ArrayList<View>(viewSize);
+		//views = new ArrayList<View>(viewSize);
+		views = new ViewContainer();
 		for (int i = 0; i < viewSize; i++) {
-			views.add(new View(input.readString(), input.readVInt(), input.readVInt(), input.readBoolean()));
+			views.add(new View(input.readString(), input.readVInt(), input.readVInt(), input.readBoolean(), input.readBoolean()));
 		}
 		
 		// tags[]
@@ -113,6 +115,7 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 			output.writeString(view.fieldId());
 			output.writeVInt(view.snippetSize());
 			output.writeVInt(view.fragmentSize());
+			output.writeBoolean(view.isSummarized());
 			output.writeBoolean(view.isHighlighted());
 		}
 

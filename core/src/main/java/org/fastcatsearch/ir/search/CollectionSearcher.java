@@ -36,6 +36,7 @@ import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.query.Sorts;
 import org.fastcatsearch.ir.query.View;
+import org.fastcatsearch.ir.query.ViewContainer;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.Schema;
@@ -245,7 +246,7 @@ public class CollectionSearcher {
 		return new InternalSearchResult(collectionId, hitElementList, totalHit.size(), totalSize, groupData, highlightInfo);
 	}
 
-	public DocumentResult searchDocument(DocIdList list, List<View> views, String[] tags, HighlightInfo highlightInfo) throws IOException {
+	public DocumentResult searchDocument(DocIdList list, ViewContainer views, String[] tags, HighlightInfo highlightInfo) throws IOException {
 		int realSize = list.size();
 		Row[] row = new Row[realSize];
 

@@ -39,7 +39,7 @@ public class Query {
 	};
 	
 	private Clause clause;
-	private List<View> views;
+	private ViewContainer views;
 	private Filters filters;
 	private Groups groups;
 	private Clause groupClause;
@@ -77,11 +77,11 @@ public class Query {
 		return clause;
 	}
 
-	public List<View> getViews() {
+	public ViewContainer getViews() {
 		return views;
 	}
 
-	public void setViews(List<View> view) {
+	public void setViews(ViewContainer view) {
 		this.views = view;
 	}
 

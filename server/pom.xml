@@ -103,7 +103,7 @@
 						<phase>package</phase>
 						<configuration>
 							<classifier>bootstrap</classifier>
-							<finalName>${artifactId}</finalName>
+							<finalName>${project.artifactId}</finalName>
 							<outputDirectory>${project.build.directory}/lib</outputDirectory>
 							<includes>
 								<include>org/fastcatsearch/server/Bootstrap.class</include>
