@@ -190,6 +190,10 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 	 * 동일노드로는 전송불가.
 	 */
 	public SendFileResultFuture sendFile(final Node node, File sourcefile, File targetFile) throws TransportException {
+		if (sourcefile.isDirectory()) {
+			return null;
+		}
+		
 		//노드가 같고, file도 같다면 전송하지 않는다.
 		if (node.equals(myNode)) {
 			if(sourcefile.getAbsolutePath().equals(targetFile.getAbsolutePath())){
@@ -198,8 +202,9 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 			}else{
 				//다르다면 로컬 복사한다.
 				try {
+					targetFile = environment.filePaths().file(targetFile.getPath());
 					FileUtils.copyFile(sourcefile, targetFile);
-					logger.warn("Copy files localy. {} > {}", sourcefile, targetFile);
+					logger.warn("Copy files locally. {} > {}", sourcefile, targetFile);
 					SendFileResultFuture f = new SendFileResultFuture(0, null);
 					f.put(null, true);
 					return f;
@@ -209,9 +214,7 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 			}
 		}
 		
-		if (sourcefile.isDirectory()) {
-			return null;
-		}
+		
 		return transportModule.sendFile(node, sourcefile, targetFile);
 	}
 

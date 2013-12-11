@@ -30,13 +30,15 @@ public class SearchStatisticsService extends AbstractService {
 	
 	public SearchStatisticsService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
-		staticsticsHome = environment.filePaths().file("staticstics");
+		staticsticsHome = environment.filePaths().getStatisticsRoot().file();
 		staticsticsHome.mkdir();
 	}
 
 	public Collection<CategoryStatistics> getCategoryStatisticsList(){
 		return categoryStatisticsMap.values();
 	}
+	
+	
 	@Override
 	protected boolean doStart() throws FastcatSearchException {
 		categoryStatisticsMap = new HashMap<String, CategoryStatistics>();
@@ -57,6 +59,7 @@ public class SearchStatisticsService extends AbstractService {
 			String categoryId = category.getId();
 			CategoryStatistics categoryStatistics = new CategoryStatistics(category, staticsticsHome);
 			categoryStatisticsMap.put(categoryId, categoryStatistics);
+			logger.debug("> {}", category);
 		}
 		
 		searchStatistics = new SearchStatisticsImpl(staticsticsHome, categoryStatisticsMap);
@@ -84,10 +87,17 @@ public class SearchStatisticsService extends AbstractService {
 		return true;
 	}
 	
+	public StaticticsSettings staticticsSettings(){
+		return staticticsSettings;
+	}
+	
 	public SearchStatistics searchStatistics(){
 		return searchStatistics != null ? searchStatistics : fallBackSearchStatistics;
 	}
 	
+	public CategoryStatistics categoryStatistics(String categoryId){
+		return categoryStatisticsMap.get(categoryId);
+	}
 	
 	private static class DummySearchStatistics implements SearchStatistics {
 

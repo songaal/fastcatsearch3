@@ -30,19 +30,21 @@ public class SearchPopularKeywordRealTimeCollectJob extends Job {
 			if (category.isUseRealTimePopularKeyword()) {
 
 				File sourceFile = categoryStatistics.getRealTimeKeywordFile();
-				File rtTmpHome = environment.filePaths().getStatisticsRoot().file("rt", "tmp");
+				
+				if(sourceFile == null || !sourceFile.exists()){
+					logger.warn("Cannot find log file > {}", sourceFile);
+					continue;
+				}
+				File rtTmpHome = environment.filePaths().getStatisticsRoot().file(category.getId(), "rt", "tmp");
 
 				File targetFile = new File(rtTmpHome, nodeService.getMyNode().id() + ".log");
 				File targetFile2 = environment.filePaths().relativise(targetFile);
 
-				logger.debug("send rt file to {}", nodeService.getMaserNode());
-				logger.debug("send rt file {} > {}", sourceFile, targetFile2);
-				if (!nodeService.isMaster()) {
-					try {
-						nodeService.sendFile(nodeService.getMaserNode(), sourceFile, targetFile2);
-					} catch (TransportException e) {
-						e.printStackTrace();
-					}
+				logger.debug("send rt file to {} | {} > {}", nodeService.getMaserNode(), sourceFile, targetFile2);
+				try {
+					nodeService.sendFile(nodeService.getMaserNode(), sourceFile, targetFile2);
+				} catch (TransportException e) {
+					e.printStackTrace();
 				}
 
 			}

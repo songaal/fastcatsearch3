@@ -1,18 +1,33 @@
 package org.fastcatsearch.job.statistics;
 
 import java.io.File;
+import java.io.FilenameFilter;
+
+import org.fastcatsearch.settings.StaticticsSettings;
 
 public class RealTimePopularKeywordGenerator {
-
-	public RealTimePopularKeywordGenerator(String tmpFileHome, String targetFileHome, String string3) {
+	private File tmpDir;
+	private File targetDir;
+	private StaticticsSettings staticticsSettings;
+	
+	public RealTimePopularKeywordGenerator(File tmpDir, File targetDir, StaticticsSettings staticticsSettings) {
+		this.tmpDir = tmpDir;
+		this.targetDir = targetDir;
+		this.staticticsSettings = staticticsSettings;
 	}
 
 	public void generate() {
-		File tmpDir = null;
-		File targetDir = null; // 디렉토리 rt/
+		
+		final int MAX_FILE_COUNT = 6; //30분.
+		
 		
 		//2. 기존 파일 롤링. rt/0.log => 1.log.
-		
+		File[] fileList = targetDir.listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return false;
+			}
+		});
 		
 		//3. 메모리에 담아 키워드순으로 정렬하여 파일기록(rt/0.log)후 tmp디렉토리 삭제.
 		

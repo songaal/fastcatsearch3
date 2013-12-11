@@ -124,7 +124,9 @@ public class CategoryStatistics {
 	}
 
 	private String getKeywordLogString(Map<String, String> statisticsData){
-		return categoryId() + "\t" + statisticsData.get(SearchStatistics.PREV_KEYWORD) + "\t" + statisticsData.get(SearchStatistics.PREV_KEYWORD); 
+		String keyword = statisticsData.get(SearchStatistics.KEYWORD);
+		String prevKeyword = statisticsData.get(SearchStatistics.PREV_KEYWORD);
+		return (keyword != null ? keyword : "") + "\t" + (prevKeyword != null ? prevKeyword : ""); 
 	}
 	
 	public int getLastCount() {

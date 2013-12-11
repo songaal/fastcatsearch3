@@ -6,6 +6,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name="statictics")
 public class StaticticsSettings {
@@ -59,12 +60,24 @@ public class StaticticsSettings {
 		this.categoryList = categoryList;
 	}
 
+	@XmlType(propOrder = { "useRelateKeyword", "usePopularKeyword", "useRealTimePopularKeyword", "name", "id" })
 	public static class Category {
 		private String id;
 		private String name;
-		private boolean usePopularKeyword;
-		private boolean useRelateKeyword;
-		private boolean useRealTimePopularKeyword;
+		private Boolean useRealTimePopularKeyword;
+		private Boolean usePopularKeyword;
+		private Boolean useRelateKeyword;
+		
+		public Category(){
+		}
+		
+		public Category(String id, String name, Boolean useRealTimePopularKeyword, Boolean usePopularKeyword, Boolean useRelateKeyword){
+			this.id = id;
+			this.name = name;
+			this.useRealTimePopularKeyword = useRealTimePopularKeyword;
+			this.usePopularKeyword = usePopularKeyword;
+			this.useRelateKeyword = useRelateKeyword;
+		}
 		
 		@XmlAttribute
 		public String getId() {
@@ -84,24 +97,28 @@ public class StaticticsSettings {
 		public Boolean isUsePopularKeyword() {
 			return usePopularKeyword;
 		}
-		public void setUsePopularKeyword(boolean usePopularKeyword) {
+		public void setUsePopularKeyword(Boolean usePopularKeyword) {
 			this.usePopularKeyword = usePopularKeyword;
 		}
 		@XmlAttribute
 		public Boolean isUseRelateKeyword() {
 			return useRelateKeyword;
 		}
-		public void setUseRelateKeyword(boolean useRelateKeyword) {
+		public void setUseRelateKeyword(Boolean useRelateKeyword) {
 			this.useRelateKeyword = useRelateKeyword;
 		}
 		@XmlAttribute
 		public Boolean isUseRealTimePopularKeyword() {
 			return useRealTimePopularKeyword;
 		}
-		public void setUseRealTimePopularKeyword(boolean useRealTimePopularKeyword) {
+		public void setUseRealTimePopularKeyword(Boolean useRealTimePopularKeyword) {
 			this.useRealTimePopularKeyword = useRealTimePopularKeyword;
 		}
 		
+		@Override
+		public String toString(){
+			return "Category] " + id + " : " + name + " :  rt=" +useRealTimePopularKeyword + ", popular=" + usePopularKeyword + ", relate=" + useRelateKeyword;
+		}
 	}
 	
 	public static class RealTimePopularKeywordConfig {
