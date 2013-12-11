@@ -16,6 +16,7 @@
 
 package org.fastcatsearch.ir.query;
 
+import org.fastcatsearch.ir.search.SearchIndexReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 public class Term {
 	private static Logger logger = LoggerFactory.getLogger(Term.class);
-	public static enum Type {ALL, ANY, EXT};
+	public static enum Type {ALL, ANY, EXT, PHR};
 	public static int SYNONYM = 1 << 0;
 	public static int STOPWORD = 1 << 1;
 	public static int HIGHLIGHT = 1 << 2;
@@ -157,6 +158,20 @@ public class Term {
 		public String toString(){
 			return "OPT-"+String.valueOf(optionValue);
 		}
+	}
+
+	public OperatedClause createOperatedClause(SearchIndexReader searchIndexReader, HighlightInfo highlightInfo) {
+		
+		//TODO FIXME 현재는 모두 boolean clause로 생성.
+		if(type == Type.ALL){
+			return new BooleanClause(searchIndexReader, this, highlightInfo);
+		}else if(type == Type.ANY){
+			return new BooleanClause(searchIndexReader, this, highlightInfo);
+		}else if(type == Type.PHR){
+			return new BooleanClause(searchIndexReader, this, highlightInfo);
+		}
+		
+		return new BooleanClause(searchIndexReader, this, highlightInfo);
 	}
 }
 

@@ -136,7 +136,9 @@ public class SearchIndexReader implements Cloneable {
 		
 	}
 
-	
+	public String indexId(){
+		return indexId;
+	}
 	public void close() throws IOException {
 		lexiconInput.close();
 		postingInput.close();
@@ -351,7 +353,7 @@ public class SearchIndexReader implements Cloneable {
 	}
 
 
-	protected PostingDocs getPosting(CharVector singleTerm) throws IOException {
+	public PostingDocs getPosting(CharVector singleTerm) throws IOException {
 		if (memoryLexicon.size() == 0){
 			return null;
 		}
@@ -850,6 +852,14 @@ public class SearchIndexReader implements Cloneable {
 			}
 		}
 		return -1;
+	}
+
+	public Analyzer getQueryAnalyzerFromPool() {
+		return queryAnalyzerPool.getFromPool();
+	}
+
+	public void releaseAnalyzerToPool(Analyzer analyzer) {
+		queryAnalyzerPool.releaseToPool(analyzer);
 	}
 
 	

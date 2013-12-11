@@ -468,6 +468,10 @@ public class QueryParser {
 			term[0] = str.substring(4, str.length() - 1);
 			logger.debug("str = " + str);
 			return Term.Type.EXT;
+		} else if (str.startsWith("PHR")) {
+			term[0] = str.substring(4, str.length() - 1);
+			logger.debug("str = " + str);
+			return Term.Type.PHR;
 		}
 		// 통째로 반환. default = AND
 		term[0] = str;
