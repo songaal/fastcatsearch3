@@ -125,6 +125,8 @@ public class SearchIndexesReader implements Cloneable {
 				oneFieldClause = primaryKeyIndexesReader.getOperatedClause(term);
 			} else {
 				SearchIndexReader searchIndexReader = readerList.get(indexFieldSequence);
+				
+//				oneFieldClause = term.createOperatedClause(searchIndexReader);
 				oneFieldClause = searchIndexReader.getOperatedClause(term, highlightInfo);
 			}
 

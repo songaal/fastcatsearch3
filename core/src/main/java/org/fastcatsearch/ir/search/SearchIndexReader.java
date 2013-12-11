@@ -160,7 +160,7 @@ public class SearchIndexReader implements Cloneable {
 	}
 
 	public OperatedClause getOperatedClause(Term term, HighlightInfo highlightInfo) throws IOException, IRException {
-		String[] indexFieldIdList = term.indexFieldId();
+//		String[] indexFieldIdList = term.indexFieldId();
 
 		Term.Type type = term.type();
 		int weight = term.weight();
@@ -170,16 +170,16 @@ public class SearchIndexReader implements Cloneable {
 
 		OperatedClause totalClause = null;
 
-		for (int i = 0; i < indexFieldIdList.length; i++) {
-			String indexFieldId = indexFieldIdList[i];
-
-			logger.debug("getOperatedClause {} at {}, type={}", term.termString(), indexFieldId, type);
-
-			int indexFieldSequence = schema.getSearchIndexSequence(indexFieldId);
-			if (indexFieldSequence < 0) {
-				throw new IRException("Unknown Search Fieldname = " + indexFieldId);
-				// continue;
-			}
+//		for (int i = 0; i < indexFieldIdList.length; i++) {
+//			String indexFieldId = indexFieldIdList[i];
+//
+//			logger.debug("getOperatedClause {} at {}, type={}", term.termString(), indexFieldId, type);
+//
+//			int indexFieldSequence = schema.getSearchIndexSequence(indexFieldId);
+//			if (indexFieldSequence < 0) {
+//				throw new IRException("Unknown Search Fieldname = " + indexFieldId);
+//				// continue;
+//			}
 			
 			
 			//필드별 사용된 analyzer를 map에 넣어주어 나중에 highlight시 해당 analyzer를 사용할수 있도록 한다.
@@ -227,8 +227,8 @@ public class SearchIndexReader implements Cloneable {
 					
 					
 					
-					logger.debug("find {} [ignorecase={}] at {} by {}", eojeol,ignoreCase, indexFieldId, tokenizer);
-					TokenStream tokenStream = tokenizer.tokenStream(indexFieldId, eojeol.getReader());
+					logger.debug("find {} [ignorecase={}] at {} by {}", eojeol,ignoreCase, indexId, tokenizer);
+					TokenStream tokenStream = tokenizer.tokenStream(indexId, eojeol.getReader());
 					tokenStream.reset();
 
 					if (tokenStream.hasAttribute(CharsRefTermAttribute.class)) {
@@ -333,7 +333,7 @@ public class SearchIndexReader implements Cloneable {
 				totalClause = new OrOperatedClause(totalClause, oneFieldClause);
 			}
 
-		}// for
+//		}// for
 
 
 		return totalClause;
