@@ -42,7 +42,9 @@ public class TermOperatedClause implements OperatedClause {
 	}
 	public TermOperatedClause(PostingDocs termDocs, int weight, boolean ignoreTermFreq) throws IOException {
 		this.termDocs = termDocs;
-		termDocList = termDocs.postingDocList();
+		if(termDocs != null){
+			termDocList = termDocs.postingDocList();
+		}
 		this.weight = weight;
 		this.ignoreTermFreq = ignoreTermFreq;
 	}

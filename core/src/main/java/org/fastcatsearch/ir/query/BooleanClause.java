@@ -109,15 +109,14 @@ public class BooleanClause implements OperatedClause {
 						queryPosition = positionOffset + position; //
 						positionOffset = position + 2; // 다음 position은 +2 부터 할당한다. 공백도 1만큼 차지.
 					}
-					PostingDocs postingDocs = searchIndexReader.getPosting(token);
 					
-					if(postingDocs != null && postingDocs.count() > 0){
-						TermOperatedClause clause = new TermOperatedClause(postingDocs, weight);
-						if(operatedClause == null){
-							operatedClause = clause;
-						}else{
-							operatedClause = new AndOperatedClause(operatedClause, clause);
-						}
+					PostingDocs postingDocs = searchIndexReader.getPosting(token);
+					OperatedClause clause = new TermOperatedClause(postingDocs, weight);
+					
+					if(operatedClause == null){
+						operatedClause = clause;
+					}else{
+						operatedClause = new AndOperatedClause(operatedClause, clause);
 					}
 				}
 				
