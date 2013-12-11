@@ -18,6 +18,7 @@ package org.fastcatsearch.ir.filter;
 
 import java.io.IOException;
 
+import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.io.DataRef;
 import org.fastcatsearch.ir.query.Filter;
 import org.fastcatsearch.ir.query.RankInfo;
@@ -48,6 +49,20 @@ public class SectionFilter extends FilterFunction {
 	@Override
 	public boolean filtering(RankInfo rankInfo, DataRef dataRef)
 			throws IOException {
+		fieldSetting.isNumericField();
+		
+		while(dataRef.next()) {
+			BytesRef bytesRef = dataRef.bytesRef();
+			for (int j = 0; j < patternCount; j++) {
+				BytesRef patternBuf1 = patternList[j];
+				BytesRef patternBuf2 = endPatternList[j];
+				int plen1 = patternBuf1.length;
+				int plen2 = patternBuf2.length;
+				
+				//크기비교에서 문자열과 숫자형은 비교방식이 다르므로 다른 루틴을 사용하도록 함.
+				
+			}
+		}
 		return false;
 	}
 }

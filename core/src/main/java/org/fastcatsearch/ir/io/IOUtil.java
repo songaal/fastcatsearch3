@@ -105,7 +105,7 @@ public final class IOUtil {
 		// ((buffer[pos + 3] & 0xff) << 32)
 		// + ((buffer[pos + 4] & 0xff) << 24) + ((buffer[pos + 5] & 0xff) << 16) + ((buffer[pos + 6] & 0xff) << 8) + ((buffer[pos
 		// + 7] & 0xff) << 0);
-		return (((long) readInt(buffer, pos)) << 32) | (readInt(buffer, pos) & 0xFFFFFFFFL);
+		return (((long) readInt(buffer, pos)) << 32) | (readInt(buffer, pos+4) & 0xFFFFFFFFL);
 	}
 
 	public static int readInt(BytesBuffer buffer) {
