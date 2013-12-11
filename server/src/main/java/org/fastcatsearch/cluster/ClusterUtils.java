@@ -12,6 +12,9 @@ public class ClusterUtils {
 	
 	private static Logger logger = LoggerFactory.getLogger(ClusterUtils.class);
 	
+	public static NodeJobResult[] sendJobToNodeIdList(Job job, NodeService nodeService, List<String> nodeIdList, boolean includeMyNode) {
+		return ClusterUtils.sendJobToNodeList(job, nodeService, nodeService.getNodeById(nodeIdList), includeMyNode);
+	}
 	public static NodeJobResult[] sendJobToNodeList(Job job, NodeService nodeService, List<Node> nodeList, boolean includeMyNode) {
 		
 		NodeJobResult[] resultList = new NodeJobResult[nodeList.size()];

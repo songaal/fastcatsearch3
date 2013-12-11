@@ -19,6 +19,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.concurrent.CountDownLatch;
 
+import org.fastcatsearch.additional.AdditionalService;
 import org.fastcatsearch.alert.ClusterAlertService;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.JobService;
@@ -183,6 +184,7 @@ public class CatServer {
 		TaskStateService taskStateService = serviceManager.createService("taskstate", TaskStateService.class);
 		
 		SearchStatisticsService searchStatisticsService = serviceManager.createService("statistics", SearchStatisticsService.class);
+		AdditionalService additionalService = serviceManager.createService("additional", AdditionalService.class);
 		
 		logger = LoggerFactory.getLogger(CatServer.class);
 		logger.info("ServerHome = {}", serverHome);
@@ -205,6 +207,7 @@ public class CatServer {
 			processLoggerService.start();
 			taskStateService.start();
 			searchStatisticsService.start();
+			additionalService.start();
 			
 			//서비스가 모두 뜬 상태에서 후속작업.
 			if(environment.isMasterNode()){
@@ -280,7 +283,7 @@ public class CatServer {
 		serviceManager.stopService(JobService.class);
 		serviceManager.stopService(DBService.class);
 		serviceManager.stopService(SearchStatisticsService.class);
-		
+		serviceManager.stopService(AdditionalService.class);
 		logger.info("CatServer shutdown!");
 		isRunning = false;
 
@@ -302,6 +305,7 @@ public class CatServer {
 		serviceManager.closeService(JobService.class);
 		serviceManager.closeService(DBService.class);
 		serviceManager.closeService(SearchStatisticsService.class);
+		serviceManager.closeService(AdditionalService.class);
 		
 		if(fileLock != null){
 			try {

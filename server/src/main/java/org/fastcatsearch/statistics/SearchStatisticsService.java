@@ -16,8 +16,8 @@ import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.settings.Settings;
-import org.fastcatsearch.settings.StaticticsSetting;
-import org.fastcatsearch.settings.StaticticsSetting.Category;
+import org.fastcatsearch.settings.StaticticsSettings;
+import org.fastcatsearch.settings.StaticticsSettings.Category;
 import org.fastcatsearch.util.JAXBConfigs;
 
 public class SearchStatisticsService extends AbstractService {
@@ -25,7 +25,7 @@ public class SearchStatisticsService extends AbstractService {
 	private static final DummySearchStatistics fallBackSearchStatistics = new DummySearchStatistics();
 	private File staticsticsHome;
 	private SearchStatistics searchStatistics;
-	private List<Category> categoryList;
+	private StaticticsSettings staticticsSettings;
 	private Map<String, CategoryStatistics> categoryStatisticsMap;
 	
 	public SearchStatisticsService(Environment environment, Settings settings, ServiceManager serviceManager) {
@@ -41,19 +41,18 @@ public class SearchStatisticsService extends AbstractService {
 	protected boolean doStart() throws FastcatSearchException {
 		categoryStatisticsMap = new HashMap<String, CategoryStatistics>();
 		File staticticsSettingFile = environment.filePaths().configPath().path(SettingFileNames.statisticsConfig).file();
-		StaticticsSetting staticticsSetting = null;
 		try {
-			staticticsSetting = JAXBConfigs.readConfig(staticticsSettingFile, StaticticsSetting.class);
+			staticticsSettings = JAXBConfigs.readConfig(staticticsSettingFile, StaticticsSettings.class);
 		} catch (JAXBException e) {
 			logger.error("staticticsSetting read error.", e);
 			return false;
 		}
-		if(staticticsSetting == null){
+		if(staticticsSettings == null){
 			logger.error("Cannot load statictics setting file >> {}", staticticsSettingFile);
 			return false;
 		}
 		
-		categoryList = staticticsSetting.getCategoryList();
+		List<Category> categoryList = staticticsSettings.getCategoryList();
 		for(Category category : categoryList){
 			String categoryId = category.getId();
 			CategoryStatistics categoryStatistics = new CategoryStatistics(category, staticsticsHome);
@@ -61,6 +60,13 @@ public class SearchStatisticsService extends AbstractService {
 		}
 		
 		searchStatistics = new SearchStatisticsImpl(staticsticsHome, categoryStatisticsMap);
+		
+		
+		
+		//TODO 마스터이면, stat db를 연다.
+		
+		
+		
 		return true;
 	}
 

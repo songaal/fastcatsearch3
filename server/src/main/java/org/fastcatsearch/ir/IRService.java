@@ -15,11 +15,14 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.bind.JAXBException;
 
@@ -87,7 +90,8 @@ public class IRService extends AbstractService {
 		} catch (JAXBException e) {
 			logger.error("[ERROR] 컬렉션리스트 로딩실패. " + e.getMessage(), e);
 		}
-		int longSchedulePeriodInMinute = settings.getInt("longSchedulePeriodInMinute", 5); //기본 5분.
+		int longSchedulePeriodInMinute = settings.getInt("longSchedulePeriodInMinute", 5); // 기본
+																							// 5분.
 		for (Collection collection : collectionsConfig.getCollectionList()) {
 			try {
 				String collectionId = collection.getId();
@@ -144,9 +148,9 @@ public class IRService extends AbstractService {
 
 	public CollectionContext collectionContext(String collectionId) {
 		CollectionHandler h = collectionHandler(collectionId);
-		if(h != null){
+		if (h != null) {
 			return h.collectionContext();
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -156,10 +160,10 @@ public class IRService extends AbstractService {
 	}
 
 	public CollectionHandler createCollection(String collectionId, CollectionConfig collectionConfig) throws IRException, SettingException {
-		
+
 		if (collectionsConfig.contains(collectionId)) {
 			// 이미 컬렉션 존재.
-			throw new SettingException("Collection id already exists. "+collectionId);
+			throw new SettingException("Collection id already exists. " + collectionId);
 		}
 
 		try {
@@ -228,7 +232,7 @@ public class IRService extends AbstractService {
 			Entry<String, CollectionHandler> entry = iter.next();
 			try {
 				CollectionHandler collectionHandler = entry.getValue();
-				if(collectionHandler != null){
+				if (collectionHandler != null) {
 					collectionHandler.close();
 				}
 				logger.info("Shutdown Collection [{}]", entry.getKey());
@@ -279,7 +283,7 @@ public class IRService extends AbstractService {
 		for (Collection collection : getCollectionList()) {
 			String collectionId = collection.getId();
 			CollectionHandler collectionHandler = collectionHandlerMap.get(collectionId);
-			if(collectionHandler == null){
+			if (collectionHandler == null) {
 				continue;
 			}
 			List<String> dataNodeIdList = collectionHandler.collectionContext().collectionConfig().getDataNodeList();
@@ -296,7 +300,7 @@ public class IRService extends AbstractService {
 
 	public boolean reloadSchedule(String collectionId) {
 		CollectionContext collectionContext = collectionContext(collectionId);
-		if(collectionContext == null){
+		if (collectionContext == null) {
 			return false;
 		}
 		IndexingScheduleConfig indexingScheduleConfig = collectionContext(collectionId).indexingScheduleConfig();
@@ -324,7 +328,7 @@ public class IRService extends AbstractService {
 		if (addIndexingSchedule != null) {
 			MasterCollectionAddIndexingJob job = new MasterCollectionAddIndexingJob();
 			job.setArgs(collectionId);
-			
+
 			if (addIndexingSchedule.isActive()) {
 				String startTime = addIndexingSchedule.getStart();
 				int periodInSecond = addIndexingSchedule.getPeriodInSecond();
@@ -351,17 +355,30 @@ public class IRService extends AbstractService {
 			reloadSchedule(collectionId);
 		}
 	}
-	
-	public void setSearchStatistics(SearchStatistics searchStatistics){
+
+	public void setSearchStatistics(SearchStatistics searchStatistics) {
 		Iterator<Entry<String, CollectionHandler>> iter = collectionHandlerMap.entrySet().iterator();
 		while (iter.hasNext()) {
 			Entry<String, CollectionHandler> entry = iter.next();
 			CollectionHandler collectionHandler = entry.getValue();
-			if(collectionHandler.isLoaded()){
+			if (collectionHandler.isLoaded()) {
 				collectionHandler.setSearchStatistics(searchStatistics);
 			}
 			logger.info("Set SearchStatistics Collection [{}]", entry.getKey());
 		}
 	}
 
+	// 모든 컬렉션들의 검색노드들을 모아서 리턴한다.
+	public List<String> getSearchNodeList() {
+		Set<String> searchNodeSet = new HashSet<String>();
+		for (CollectionHandler collectionHandler : collectionHandlerMap.values()) {
+			List<String> searchNodeList = collectionHandler.collectionContext().collectionConfig().getSearchNodeList();
+			if (searchNodeList != null) {
+				for (String searchNodeId : searchNodeList) {
+					searchNodeSet.add(searchNodeId);
+				}
+			}
+		}
+		return new ArrayList<String>(searchNodeSet);
+	}
 }

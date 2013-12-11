@@ -107,5 +107,10 @@ public class Path {
 	public FilePaths collectionFilePaths(String collectionId) {
 		return new FilePaths(getCollectionsRoot().file(), collectionId);
 	}
+	
+	public Path getStatisticsRoot() {
+		return makeRelativePath("statistics");
+	}
+
 
 }

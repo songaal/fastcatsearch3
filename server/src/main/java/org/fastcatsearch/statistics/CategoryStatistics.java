@@ -10,7 +10,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.fastcatsearch.ir.search.SearchStatistics;
-import org.fastcatsearch.settings.StaticticsSetting.Category;
+import org.fastcatsearch.settings.StaticticsSettings.Category;
 import org.fastcatsearch.util.AsynchronousCounter;
 import org.fastcatsearch.util.AsynchronousFileLogger;
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ public class CategoryStatistics {
 	private static final String oneDayLogFileName = ".keyword.day.log"; //인기검색어 일,주,월 통계에 사용되는 하루주기 로그.
 	
 	public CategoryStatistics(Category category, File home) {
-		
+		this.category = category;
 		String categoryId = category.getId();
 		
 		categoryHomeFile = new File(home, categoryId);

@@ -1,6 +1,7 @@
 package org.fastcatsearch.cluster;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,6 +21,7 @@ import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.transport.TransportException;
 import org.fastcatsearch.transport.TransportModule;
 import org.fastcatsearch.transport.common.SendFileResultFuture;
+import org.fastcatsearch.util.FileUtils;
 
 public class NodeService extends AbstractService implements NodeLoadBalancable {
 	
@@ -190,8 +192,23 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 	public SendFileResultFuture sendFile(final Node node, File sourcefile, File targetFile) throws TransportException {
 		//노드가 같고, file도 같다면 전송하지 않는다.
 		if (node.equals(myNode)) {
-			return null;
+			if(sourcefile.getAbsolutePath().equals(targetFile.getAbsolutePath())){
+				logger.warn("Cannot send same file to same node. Skip! {}", sourcefile);
+				return null;
+			}else{
+				//다르다면 로컬 복사한다.
+				try {
+					FileUtils.copyFile(sourcefile, targetFile);
+					logger.warn("Copy files localy. {} > {}", sourcefile, targetFile);
+					SendFileResultFuture f = new SendFileResultFuture(0, null);
+					f.put(null, true);
+					return f;
+				} catch (IOException e) {
+					throw new TransportException("Fail to copy local file. " + sourcefile + "> " + targetFile);
+				}
+			}
 		}
+		
 		if (sourcefile.isDirectory()) {
 			return null;
 		}

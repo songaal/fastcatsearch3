@@ -14,6 +14,9 @@ import javax.xml.bind.annotation.XmlType;
  <collection-config id="sample">
 	<name>샘플</name>
 	<index-node>node1</index-node>
+	<search-node-list>
+    	<node id="node1"/>
+    </search-node-list>
 	<data-node-list>
     	<node id="node1"/>
     	<node id="node2"/>
@@ -27,11 +30,12 @@ import javax.xml.bind.annotation.XmlType;
  * */
 
 @XmlRootElement(name = "collection-config")
-@XmlType(propOrder = { "name", "indexNode", "dataNodeList", "dataPlanConfig" })
+@XmlType(propOrder = { "name", "indexNode", "searchNodeList", "dataNodeList", "dataPlanConfig" })
 public class CollectionConfig {
 
 	private String name;
 	private String indexNode;
+	private List<String> searchNodeList;
 	private List<String> dataNodeList;
 	private DataPlanConfig dataPlanConfig;
 	
@@ -60,6 +64,16 @@ public class CollectionConfig {
 	}
 	public void setIndexNode(String indexNode) {
 		this.indexNode = indexNode;
+	}
+	
+	@XmlElementWrapper(name="search-node-list")
+	@XmlElement(name="node")
+	public List<String> getSearchNodeList() {
+		return searchNodeList;
+	}
+	
+	public void setSearchNodeList(List<String> searchNodeList) {
+		this.searchNodeList = searchNodeList;
 	}
 	
 	@XmlElementWrapper(name="data-node-list")
