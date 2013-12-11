@@ -862,5 +862,9 @@ public class SearchIndexReader implements Cloneable {
 		queryAnalyzerPool.releaseToPool(analyzer);
 	}
 
+	public IndexSetting indexSetting() {
+		return indexSetting;
+	}
+
 	
 }

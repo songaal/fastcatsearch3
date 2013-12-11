@@ -15,6 +15,8 @@ import org.fastcatsearch.ir.io.CharVectorTokenizer;
 import org.fastcatsearch.ir.query.Term.Option;
 import org.fastcatsearch.ir.search.PostingDocs;
 import org.fastcatsearch.ir.search.SearchIndexReader;
+import org.fastcatsearch.ir.settings.IndexSetting;
+import org.fastcatsearch.ir.settings.RefSetting;
 
 public class BooleanClause implements OperatedClause {
 
@@ -29,7 +31,14 @@ public class BooleanClause implements OperatedClause {
 		
 		CharVector fullTerm = new CharVector(termString);
 		Analyzer analyzer = searchIndexReader.getQueryAnalyzerFromPool();
-
+		
+		IndexSetting indexSetting = searchIndexReader.indexSetting();
+		if (highlightInfo != null) {
+			String queryAnalyzerName = indexSetting.getQueryAnalyzer();
+			for (RefSetting refSetting : indexSetting.getFieldList()) {
+				highlightInfo.add(refSetting.getRef(), queryAnalyzerName, term.termString());
+			}
+		}
 		try {
 			CharVectorTokenizer charVectorTokenizer = new CharVectorTokenizer(fullTerm);
 			CharTermAttribute termAttribute = null;
