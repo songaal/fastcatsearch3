@@ -49,7 +49,7 @@ public class AnalysisPluginSetting extends PluginSetting {
 		public String getName() {
 			return name;
 		}
-		@XmlAttribute(name="class")
+		@XmlAttribute(name="className")
 		public String getClassName() {
 			return className;
 		}
