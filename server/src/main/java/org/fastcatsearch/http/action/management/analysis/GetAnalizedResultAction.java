@@ -44,8 +44,13 @@ public class GetAnalizedResultAction extends AuthAction {
 		
 		if(plugin instanceof AnalysisPlugin) {
 			
+			
 			@SuppressWarnings("rawtypes")
 			AnalysisPlugin analysisPlugin = (AnalysisPlugin)plugin;
+			
+			if(analysisPlugin.getDictionary().size()==0) {
+				plugin.load(false);
+			}
 			
 			List<org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.Analyzer> 
 				analyzerList = analysisPlugin.getPluginSetting().getAnalyzerList();
@@ -59,6 +64,8 @@ public class GetAnalizedResultAction extends AuthAction {
 						
 						});
 				AnalyzerFactory factory = AnalyzerFactoryLoader.load(analyzerList.get(inx).getClassName());
+				
+				factory.init();
 				
 				analyzer = factory.create();
 				
@@ -81,7 +88,7 @@ public class GetAnalizedResultAction extends AuthAction {
 					positionAttribute = tokenStream.getAttribute(PositionIncrementAttribute.class);
 				}
 				CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
-				
+
 				while (tokenStream.incrementToken()) {
 					CharVector key = null;
 					if (termAttribute != null) {
@@ -93,12 +100,11 @@ public class GetAnalizedResultAction extends AuthAction {
 						key = new CharVector(charTermAttribute.buffer(), 0, charTermAttribute.length());
 					}
 					key.toUpperCase();
-					
-					responseWriter.value(key);
 					int position = -1;
 					if (positionAttribute != null) {
 						position = positionAttribute.getPositionIncrement();
 					}
+					responseWriter.value(key);
 				}
 			}
 			responseWriter.endArray().endObject();
