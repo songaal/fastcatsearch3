@@ -16,6 +16,7 @@ public abstract class Plugin {
 	protected String pluginId;
 	protected PluginSetting pluginSetting;
 	protected InternalDBModule internalDBModule;
+	protected boolean isLoaded;
 	
 	public Plugin(File pluginDir, PluginSetting pluginSetting){
 		this.pluginDir = pluginDir;
@@ -29,6 +30,7 @@ public abstract class Plugin {
 			loadDB();
 		}
 		doLoad(isLoadDb);
+		isLoaded = true;
 	}
 	
 	public final void unload(){
@@ -36,6 +38,7 @@ public abstract class Plugin {
 		if(pluginSetting.isUseDB()){
 			unloadDB();
 		}
+		isLoaded = false;
 	}
 	
 	public final void reload(boolean isMaster){
@@ -46,6 +49,10 @@ public abstract class Plugin {
 	protected abstract void doLoad(boolean isLoadDb);
 	
 	protected abstract void doUnload();
+	
+	public boolean isLoaded(){
+		return isLoaded;
+	}
 	
 	private final void loadDB() {
 		String dbPath = getPluginDBDataDir().getAbsolutePath();
