@@ -207,7 +207,7 @@ public class FilterTest {
 		List<Integer> boostResult = new ArrayList<Integer>();
 		
 		fieldData = Arrays.asList(new Object[] {
-			"AAA", "ABC", "DDD", "ZZZ" 
+			"AAA", "ABC", "DDDD", "ZZZ" 
 		});
 		
 		for(int inx=0;inx<fieldData.size();inx++) {
