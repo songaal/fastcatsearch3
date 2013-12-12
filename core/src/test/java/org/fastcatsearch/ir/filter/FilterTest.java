@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -39,11 +41,11 @@ public class FilterTest {
 		
 		RankInfo rankInfo = new RankInfo();
 		
+		//creating temporary index dir
 		File dir = File.createTempFile("dir", ".tmp");
 		dir.delete();
 		dir.mkdir();
 		FieldSetting fieldSetting = new FieldSetting(fieldId,"",fieldType);
-		
 		if(fieldSize>0) {
 			fieldSetting.setSize(fieldSize);
 		}
@@ -68,8 +70,9 @@ public class FilterTest {
 			writer.write(document);
 		}
 		writer.close();
-		
-		Filter filter = new Filter(fieldId, Filter.MATCH, pattern,endPattern,boostScore);
+
+		//prepare for read.
+		Filter filter = new Filter(fieldId, filterType, pattern,endPattern,boostScore);
 		FilterFunction func = filter.createFilterFunction(fieldIndexSetting, fieldSetting);
 		
 		FieldIndexReader reader = new FieldIndexReader(fieldIndexSetting,
@@ -118,11 +121,11 @@ public class FilterTest {
 				false,false,true,false
 		});
 		
-		org.junit.Assert.assertEquals(filterResult, actual);
+		assertEquals(filterResult, actual);
 	}
 
 	@Test
-	public void testSectionFilterOnTheFly() throws IOException, IRException {
+	public void testIntSectionFilterOnTheFly() throws IOException, IRException {
 		
 		String fieldId = "CNT_READ";
 		int filterType = Filter.SECTION;
@@ -139,7 +142,7 @@ public class FilterTest {
 		});
 		
 		testSingleReadWriteAndFilterOnTheFly(fieldId, filterType, 
-			fieldType, 5, fieldData, pattern, 
+			fieldType, 0, fieldData, pattern, 
 			endPattern, boostScore, filterResult,
 			boostResult);
 		
@@ -149,6 +152,80 @@ public class FilterTest {
 				false,false,true,false
 		});
 		
-		org.junit.Assert.assertEquals(filterResult, actual);
+		assertEquals(filterResult, actual);
+	}
+	
+	@Test
+	public void testDateSectionFilterOnTheFly() throws IOException, IRException, ParseException {
+		
+		String fieldId = "REDATE";
+		int filterType = Filter.SECTION;
+		Type fieldType = Type.DATETIME;
+		List<Object> fieldData = null;
+		String pattern = "2013-12-01";
+		String endPattern = "2013-12-30";
+		int boostScore = 0;
+		List<Boolean> filterResult = new ArrayList<Boolean>();
+		List<Integer> boostResult = new ArrayList<Integer>();
+		
+		fieldData = Arrays.asList(new Object[] {
+			"2012-01-01", "2013-05-05", "2013-12-11", "2014-01-01" 
+		});
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		
+		for(int inx=0;inx<fieldData.size();inx++) {
+			fieldData.set(inx, 
+					sdf.parse((String)fieldData.get(inx)));
+		}
+		
+		testSingleReadWriteAndFilterOnTheFly(fieldId, filterType, 
+			fieldType, 3, fieldData, pattern, 
+			endPattern, boostScore, filterResult,
+			boostResult);
+		
+		logger.debug("filter result : {}", filterResult);
+		
+		List<Boolean> actual = Arrays.asList(new Boolean[] {
+				false,false,true,false
+		});
+		
+		assertEquals(filterResult, actual);
+	}
+	
+	@Test
+	public void testStringSectionFilterOnTheFly() throws IOException, IRException {
+		
+		String fieldId = "SUBJECT";
+		int filterType = Filter.SECTION;
+		Type fieldType = Type.ASTRING;
+		List<Object> fieldData = null;
+		String pattern = "CCC";
+		String endPattern = "EEE";
+		int boostScore = 0;
+		List<Boolean> filterResult = new ArrayList<Boolean>();
+		List<Integer> boostResult = new ArrayList<Integer>();
+		
+		fieldData = Arrays.asList(new Object[] {
+			"AAA", "ABC", "DDD", "ZZZ" 
+		});
+		
+		for(int inx=0;inx<fieldData.size();inx++) {
+			fieldData.set(inx, 
+					new CharVector((String)fieldData.get(inx)));
+		}
+		
+		testSingleReadWriteAndFilterOnTheFly(fieldId, filterType, 
+			fieldType, 3, fieldData, pattern, 
+			endPattern, boostScore, filterResult,
+			boostResult);
+		
+		logger.debug("filter result : {}", filterResult);
+		
+		List<Boolean> actual = Arrays.asList(new Boolean[] {
+				false,false,true,false
+		});
+		
+		assertEquals(filterResult, actual);
 	}
 }

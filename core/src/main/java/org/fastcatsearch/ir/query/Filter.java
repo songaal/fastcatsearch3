@@ -20,6 +20,7 @@ import org.fastcatsearch.ir.filter.FilterException;
 import org.fastcatsearch.ir.filter.FilterFunction;
 import org.fastcatsearch.ir.filter.MatchFilter;
 import org.fastcatsearch.ir.filter.NotSupportedFilterFunctionException;
+import org.fastcatsearch.ir.filter.SectionFilter;
 import org.fastcatsearch.ir.settings.FieldIndexSetting;
 import org.fastcatsearch.ir.settings.FieldSetting;
 
@@ -85,8 +86,8 @@ public class Filter {
 		switch(function){
 			case MATCH:
 				return new MatchFilter(this, fieldIndexSetting, fieldSetting);
-//			case SECTION:
-//				return new SectionFilter(this, fieldSetting);
+			case SECTION:
+				return new SectionFilter(this, fieldIndexSetting, fieldSetting);
 ////				throw new NotSupportedFilterFunctionException(fieldSetting.type+" type section filter is not supported!");
 //			case PREFIX:
 //				return new PrefixFilter(this, fieldSetting); //char필드만 지원.

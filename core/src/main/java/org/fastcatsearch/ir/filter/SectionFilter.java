@@ -50,7 +50,6 @@ public class SectionFilter extends FilterFunction {
 	public boolean filtering(RankInfo rankInfo, DataRef dataRef)
 			throws IOException {
 		fieldSetting.isNumericField();
-		
 		while(dataRef.next()) {
 			BytesRef bytesRef = dataRef.bytesRef();
 			for (int j = 0; j < patternCount; j++) {
@@ -60,10 +59,86 @@ public class SectionFilter extends FilterFunction {
 				int plen2 = patternBuf2.length;
 				
 				//크기비교에서 문자열과 숫자형은 비교방식이 다르므로 다른 루틴을 사용하도록 함.
-				
+				//숫자 : 
+				// 숫자는 MSB 비교가 우선이 되어야 함. 패턴크기는 항상 같음 (캐스팅되어 사용하기 때문에 항상 같은 바이트 수가 나옴)
+				// 1. 패턴크기가 같은경우 : 앞에서부터 순차비교
+				//문자 :
+				// 1. 패턴크기가 같은경우 : 앞에서부터 순차비교
+				// 2. 패턴크기가 다른경우 : 앞에서부터 순차비교, 짧은 패턴에 맞춤. 남는패턴이 있는쪽이 큼
+				if(fieldSetting.isNumericField()) {
+					
+					logger.debug("value : {} / pattern1:{} / pattern2:{}",
+							new Object[] {
+						bytesRef.toIntValue(),
+						patternBuf1.toIntValue(),
+						patternBuf2.toIntValue()
+					});
+					
+					if(
+						compareNumeric(
+						bytesRef,bytesRef.length(), 
+						patternBuf1, patternBuf1.length()) >=0 &&
+						
+						compareNumeric(
+						bytesRef,bytesRef.length(), 
+						patternBuf2, patternBuf2.length()) <=0 
+						
+					) {
+						return true;
+					} else {
+						return false;
+					}
+				} else {
+					
+				}
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * 
+	 * @param lval
+	 * @param lsize
+	 * @param rval
+	 * @param rsize
+	 * @return 0:lval and rval is same / 1:lval is bigger / -1:rval is bigger
+	 */
+	private static int compareNumeric(BytesRef lval, int lsize, BytesRef rval, int rsize) {
+		//check msb;
+		int direction = 1;
+		
+		int lbyte = lval.get(0)&0xff;
+		int rbyte = rval.get(0)&0xff;
+		
+		if((lbyte&0x80)==0) {
+			if((rbyte&0x80)==0) {
+				//lbyte positive / rbyte positive
+				//do nothing
+			} else {
+				//lbyte positive / rbyte negative
+				return 1;
+			}
+		} else {
+			if((rbyte&0x80)==0) {
+				//lbyte negative / rbyte positive
+				return -1;
+			} else {
+				//lbyte negative / rbyte negative
+				direction = -1;
+			}
+		}
+		
+		for(int inx=1;inx<lsize;inx++) {
+			if((lval.get(inx)&0xff) > (rval.get(inx)&0xff)) {
+				return 1 * direction;
+			} else if((lval.get(inx)&0xff) < (rval.get(inx)&0xff)) {
+				return -1 * direction;
+			} else {
+				continue;
+			}
+		}
+		return 0;
 	}
 }
 
