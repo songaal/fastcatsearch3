@@ -8,18 +8,15 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
-import org.apache.lucene.util.CharsRef;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.ir.analysis.AnalyzerFactory;
-import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.settings.AnalyzerFactoryLoader;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.plugin.analysis.AnalysisPlugin;
-import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 import org.slf4j.Logger;
@@ -45,36 +42,17 @@ public class GetAnalizedBasicResultAction extends AuthAction {
 		ResponseWriter responseWriter = getDefaultResponseWriter(writer);
 		responseWriter.object();
 		responseWriter.key("query").value(queryWords);
+		
 		try {
 			Plugin plugin = pluginService.getPlugin(pluginId);
 			if (plugin != null && plugin instanceof AnalysisPlugin) {
 
-				@SuppressWarnings("rawtypes")
-				AnalysisPlugin analysisPlugin = (AnalysisPlugin) plugin;
-
-				//FIXME 실제 운영환경에서는 이 조건이 참이 될수없음. 차후 삭제필요.
-				if (!analysisPlugin.isLoaded()) {
-					plugin.load(environment.isMasterNode());
-				}
-
-				List<AnalysisPluginSetting.Analyzer> analyzerList = analysisPlugin.getPluginSetting().getAnalyzerList();
-
-				Analyzer analyzer = null;
-
-				//TODO 일단 첫번째 analyzer를 사용하는 것으로 구현하며, 여러개일때는 어떻게 할지 고려필요.
-				for (int inx = 0; inx < analyzerList.size();) {
-					logger.debug("analyzer{} : {} / {}", inx, analyzerList.get(inx).getName(), analyzerList.get(inx).getClassName());
-					AnalyzerFactory factory = AnalyzerFactoryLoader.load(analyzerList.get(inx).getClassName());
-
-					factory.init();
-
-					analyzer = factory.create();
-
-					break;
-				}
+				Analyzer analyzer = getAnalyzer(getAnalysisPlugin(pluginId));
 				
 				responseWriter.key("result").array("terms");
+				
 				if (analyzer != null) {
+					
 					char[] fieldValue = queryWords.toCharArray();
 					TokenStream tokenStream = analyzer.tokenStream("", new CharArrayReader(fieldValue));
 					tokenStream.reset();
@@ -85,14 +63,11 @@ public class GetAnalizedBasicResultAction extends AuthAction {
 					CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
 
 					while (tokenStream.incrementToken()) {
-						CharVector key = null;
+						String key = "";
 						if (termAttribute != null) {
-							CharsRef charRef = termAttribute.charsRef();
-							char[] buffer = new char[charRef.length()];
-							System.arraycopy(charRef.chars, charRef.offset, buffer, 0, charRef.length);
-							key = new CharVector(buffer, 0, buffer.length);
+							key = termAttribute.toString();
 						} else {
-							key = new CharVector(charTermAttribute.buffer(), 0, charTermAttribute.length());
+							key = charTermAttribute.toString();
 						}
 						responseWriter.value(key);
 					}
@@ -102,7 +77,7 @@ public class GetAnalizedBasicResultAction extends AuthAction {
 				responseWriter.endArray();
 				
 			} else {
-				throw new Exception("Plugin is not AnalysisPlugin. id="+pluginId);
+				throw new Exception("Plugin is not AnalysisPlugin. id=" + pluginId);
 			}
 		} catch (Throwable t) {
 			errorMessage = t.toString();
@@ -116,5 +91,58 @@ public class GetAnalizedBasicResultAction extends AuthAction {
 			}
 			responseWriter.endObject().done();
 		}
+	}
+	
+	@SuppressWarnings("rawtypes")
+	protected Analyzer getAnalyzer(AnalysisPlugin analysisPlugin) {
+		
+		Analyzer analyzer = null;
+		
+		if(analysisPlugin!=null) {
+			
+			List<org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.Analyzer> 
+			analyzerList = analysisPlugin.getPluginSetting().getAnalyzerList();
+	
+			for(int inx=0;inx<analyzerList.size();) {
+				logger.debug("analyzer{} : {} / {}", new Object[] { inx, 
+						analyzerList.get(inx).getName(),
+						analyzerList.get(inx).getClassName()
+	
+				});
+				AnalyzerFactory factory = AnalyzerFactoryLoader.load(analyzerList.get(inx).getClassName());
+	
+				factory.init();
+	
+				analyzer = factory.create();
+	
+				break;
+			}
+		}
+		
+		return analyzer;
+		
+	}
+	
+	@SuppressWarnings("rawtypes")
+	protected AnalysisPlugin getAnalysisPlugin(String pluginId) {
+		PluginService pluginService = ServiceManager.getInstance().getService(PluginService.class);
+		
+		Plugin plugin = pluginService.getPlugin(pluginId);
+		
+		if(plugin instanceof AnalysisPlugin) {
+			
+			AnalysisPlugin analysisPlugin = (AnalysisPlugin)plugin;
+			
+//			if(analysisPlugin.getDictionary().size()==0) {
+//				plugin.load(false);
+//			}
+			//FIXME 실제 운영환경에서는 이 조건이 참이 될수없음. 차후 삭제필요.
+			if (!analysisPlugin.isLoaded()) {
+				plugin.load(environment.isMasterNode());
+			}
+			
+			return analysisPlugin;
+		}
+		return null;
 	}
 }
