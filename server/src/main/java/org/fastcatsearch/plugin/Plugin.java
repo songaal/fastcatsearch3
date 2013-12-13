@@ -24,6 +24,9 @@ public abstract class Plugin {
 		this.pluginId = pluginSetting.getId();
 	}
 	
+	public String pluginId(){
+		return pluginId;
+	}
 	public final void load(boolean isMaster){
 		boolean isLoadDb = isMaster && pluginSetting.isUseDB();
 		if(isLoadDb){

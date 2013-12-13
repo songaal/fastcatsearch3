@@ -90,4 +90,7 @@ public class HttpServiceController {
 	public void setActionMap(Map<String, HttpAction> actionMap) {
 		this.actionMap = actionMap;
 	}
+	public Map<String, HttpAction> getActionMap() {
+		return actionMap;
+	}
 }

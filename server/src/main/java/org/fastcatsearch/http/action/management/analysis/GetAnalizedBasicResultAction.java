@@ -22,7 +22,7 @@ import org.fastcatsearch.util.ResponseWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@ActionMapping("/management/analysis/analysis-tools-basic")
+@ActionMapping("/management/analysis/analysis-tools")
 public class GetAnalizedBasicResultAction extends AuthAction {
 
 	private static final Logger logger = LoggerFactory.getLogger(GetAnalizedBasicResultAction.class);

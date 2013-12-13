@@ -21,8 +21,10 @@ import org.fastcatsearch.alert.ClusterAlertService;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.http.HttpRequestService;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.Job;
+import org.fastcatsearch.plugin.PluginSetting.Action;
 import org.fastcatsearch.plugin.PluginSetting.PluginSchedule;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting;
 import org.fastcatsearch.service.AbstractService;
@@ -32,6 +34,7 @@ import org.fastcatsearch.util.DynamicClassLoader;
 
 public class PluginService extends AbstractService {
 
+	private static final String pluginActionPrefix = "/_plugin/";
 	private Map<String, Plugin> pluginMap;
 
 	public PluginService(Environment environment, Settings settings, ServiceManager serviceManager) {
@@ -192,6 +195,19 @@ public class PluginService extends AbstractService {
 		return pluginMap.get(pluginId.toUpperCase());
 	}
 
+	public void loadAction() {
+		HttpRequestService httpRequestService = ServiceManager.getInstance().getService(HttpRequestService.class);
+				
+		for (Plugin plugin : getPlugins()) {
+			String pluginId = plugin.pluginId().toUpperCase();
+			List<Action> pluginActionList = plugin.getPluginSetting().getActionList();
+			if (pluginActionList != null && pluginActionList.size() > 0) {
+				for (Action pluginAction : pluginActionList) {
+					httpRequestService.registerAction(pluginAction.getClassName(), pluginActionPrefix + pluginId);
+				}
+			}
+		}
+	}
 	public void loadSchedule() {
 		if (environment.isMasterNode()) {
 			JobService jobService = serviceManager.getService(JobService.class);

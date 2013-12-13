@@ -211,6 +211,7 @@ public class CatServer {
 			
 			//서비스가 모두 뜬 상태에서 후속작업.
 			if(environment.isMasterNode()){
+				pluginService.loadAction();
 				pluginService.loadSchedule();
 			}
 			//색인 스케쥴등록.

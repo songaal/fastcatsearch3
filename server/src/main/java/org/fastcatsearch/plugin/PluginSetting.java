@@ -8,6 +8,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.ActionMethod;
+import org.fastcatsearch.util.DynamicClassLoader;
 
 public class PluginSetting {
 
@@ -115,7 +116,7 @@ public class PluginSetting {
 		private String className;
 		private ActionMapping actionMap;
 
-		@XmlAttribute(name = "class")
+		@XmlAttribute
 		public String getClassName() {
 			return className;
 		}
@@ -124,41 +125,41 @@ public class PluginSetting {
 			this.className = className;
 		}
 		
-		@XmlAttribute(required=false)
+		//read only 속성.
+		@XmlAttribute(required = false)
 		public String getUri() {
 			return findActionMapping("uri");
 		}
-		
-		@XmlAttribute(required=false)
+		@XmlAttribute(required = false)
 		public String getMethods() {
 			return findActionMapping("method");
 		}
-		
+
 		private String findActionMapping(String type) {
-			if(actionMap==null) {
-				try {
-					actionMap = Class.forName(className).getAnnotation(ActionMapping.class);
-				} catch (ClassNotFoundException e) {
-				} catch (NullPointerException e) {
+			if (actionMap == null) {
+				Class<?> actionClass = DynamicClassLoader.loadClass(className);
+				if (actionClass == null) {
+					return null;
 				}
+				actionMap = actionClass.getAnnotation(ActionMapping.class);
 			}
-			if(actionMap!=null) {
-				if("uri".equals(type)) {
+			if (actionMap != null) {
+				if ("uri".equals(type)) {
 					return actionMap.value();
 				}
-				if("method".equals(type)) {
+				if ("method".equals(type)) {
 					String ret = "";
 					ActionMethod[] methods = actionMap.method();
-					for(ActionMethod method : methods) {
-						if(!"".equals(ret)) {
-							ret+=",";
+					for (ActionMethod method : methods) {
+						if (!"".equals(ret)) {
+							ret += ",";
 						}
-						ret+=method.name();
+						ret += method.name();
 					}
 					return ret;
 				}
 			}
-			return "";
+			return null;
 		}
 	}
 

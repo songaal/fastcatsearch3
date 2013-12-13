@@ -147,8 +147,14 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 			logger.error("action load error!", e);
 		}
 	}
-
+	public void registerAction(String className, String pathPrefix) {
+		registerAction(serviceController.getActionMap(), className, pathPrefix, false);
+	}
+	
 	private void registerAction(Map<String, HttpAction> actionMap, String className, boolean isFile) {
+		registerAction(actionMap, className, null, isFile);
+	}
+	private void registerAction(Map<String, HttpAction> actionMap, String className, String pathPrefix, boolean isFile) {
 		if (isFile) {
 			if (className.endsWith(".class")) {
 				className = className.substring(0, className.length() - 6);
@@ -170,6 +176,9 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 					// annotation이 존재할 경우만 사용.
 					if (actionMapping != null) {
 						String path = actionMapping.value();
+						if(pathPrefix != null){
+							path = pathPrefix + path;
+						}
 						ActionMethod[] method = actionMapping.method();
 						actionObj = (HttpAction) actionClass.newInstance();
 						if (actionObj != null) {
@@ -180,10 +189,10 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 							if (actionObj instanceof AuthAction) {
 								AuthAction authAction = (AuthAction) actionObj;
 								authAction.setAuthority(actionMapping.authority(), actionMapping.authorityLevel());
-								 logger.debug("ACTION path={}, authority={}, authorityLevel={}", path, actionMapping.authority(),
+								 logger.debug("ACTION path={}, action={}, method={}, authority={}, authorityLevel={}", path, actionObj, method, actionMapping.authority(),
 										 actionMapping.authorityLevel());
 							}else{
-								 logger.debug("ACTION path={}, action={}, method={}",path, actionObj, method);	
+								 logger.debug("ACTION path={}, action={}, method={}", path, actionObj, method);	
 							}
 
 							actionMap.put(path, actionObj);
