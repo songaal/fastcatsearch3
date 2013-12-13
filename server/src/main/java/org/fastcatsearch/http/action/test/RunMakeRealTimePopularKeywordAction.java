@@ -15,6 +15,7 @@ public class RunMakeRealTimePopularKeywordAction extends ServiceAction {
 	@Override
 	public void doAction(ActionRequest request, ActionResponse response) throws Exception {
 		CollectRealTimePopularKeywordMainJob job = new CollectRealTimePopularKeywordMainJob();
+		job.setEnvironment(environment);
 		job.doRun();
 		
 		Writer writer = response.getWriter();

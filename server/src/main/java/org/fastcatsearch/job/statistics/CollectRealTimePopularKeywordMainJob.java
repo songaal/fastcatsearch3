@@ -38,19 +38,24 @@ public class CollectRealTimePopularKeywordMainJob extends MasterNodeJob {
 		SearchStatisticsService searchStatisticsService = ServiceManager.getInstance().getService(SearchStatisticsService.class);
 		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 		Collection<CategoryStatistics> list = searchStatisticsService.getCategoryStatisticsList();
-		for (CategoryStatistics categoryStatistics : list) {
-			// 카테고리별로 파일을 취합해온다.
-			Category category = categoryStatistics.category();
-			if (category.isUseRealTimePopularKeyword()) {
-				SearchPopularKeywordRealTimeCollectJob job = new SearchPopularKeywordRealTimeCollectJob();
-				NodeJobResult[] nodeJobResultList = ClusterUtils.sendJobToNodeIdList(job, nodeService, searchNodeList, true);
-			}
-		}
+		
+		//FIXME 이미 가져왔다고 가정하고 테스트.
+//		for (CategoryStatistics categoryStatistics : list) {
+//			// 카테고리별로 파일을 취합해온다.
+//			Category category = categoryStatistics.category();
+//			if (category.isUseRealTimePopularKeyword()) {
+//				CollectRealTimePopularKeywordJob job = new CollectRealTimePopularKeywordJob();
+//				NodeJobResult[] nodeJobResultList = ClusterUtils.sendJobToNodeIdList(job, nodeService, searchNodeList, true);
+//			}
+//		}
 
 		// 다 받으면 해당 위치의 파일들을 하나의 파일로 모두 모아서
 		for (CategoryStatistics categoryStatistics : list) {
 			Category category = categoryStatistics.category();
 			if (category.isUseRealTimePopularKeyword()) {
+				logger.debug("environment {}",environment);
+				logger.debug("filePaths {}",environment.filePaths());
+				logger.debug("getStatisticsRoot {}",environment.filePaths().getStatisticsRoot());
 				File targetDir = environment.filePaths().getStatisticsRoot().file(category.getId(), "rt");
 				File tmpDir = new File(targetDir, "tmp");
 				StaticticsSettings staticticsSettings = searchStatisticsService.staticticsSettings();

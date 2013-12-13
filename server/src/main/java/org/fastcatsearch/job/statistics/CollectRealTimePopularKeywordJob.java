@@ -15,7 +15,7 @@ import org.fastcatsearch.transport.TransportException;
 /*
  * 각 search node에서 실행되는 키워드 로그 master로 전송작업. 
  * */
-public class SearchPopularKeywordRealTimeCollectJob extends Job {
+public class CollectRealTimePopularKeywordJob extends Job {
 
 	private static final long serialVersionUID = 3670077290640786680L;
 

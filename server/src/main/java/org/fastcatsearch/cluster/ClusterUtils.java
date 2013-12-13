@@ -37,7 +37,7 @@ public class ClusterUtils {
 			Node node = nodeList.get(i);
 			ResultFuture resultFuture = resultFutureList.get(i);
 			if(resultFuture != null){
-				Object obj = resultFuture.take();
+				Object obj = resultFuture.take();//1분안에 가져온다.
 				resultList[i] = new NodeJobResult(node, obj, resultFuture.isSuccess());
 			}else{
 				resultList[i] = new NodeJobResult(node, null, false);

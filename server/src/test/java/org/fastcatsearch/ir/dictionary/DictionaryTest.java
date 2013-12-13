@@ -2,19 +2,58 @@ package org.fastcatsearch.ir.dictionary;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.fastcatsearch.ir.io.CharVector;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class DictionaryTest {
-
 	@Test
-	public void testSynonym() throws IOException {
+	public void testSynonymDictionary() throws IOException {
+		SynonymDictionary dictionary = new SynonymDictionary();
+		dictionary.addEntry("마우스", new String[] { "mouse, 로지텍" }, true, new boolean[] { true });
+		dictionary.addEntry(null, new String[] { "엘지모니터, monitor, 광시야각, 마우스" }, true, new boolean[] { true });
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		dictionary.writeTo(baos);
+		
+		byte[] data = baos.toByteArray();
+	
+		ByteArrayInputStream bais = new ByteArrayInputStream(data);
+		SynonymDictionary dictionary2 = new SynonymDictionary();
+		dictionary2.readFrom(bais);
+		System.out.println("---- synonym map---");
+		Map<CharVector, CharVector[]> map = dictionary2.map();
+		for(Entry<CharVector, CharVector[]> entry : map.entrySet()){
+			System.out.println(entry.getKey() + ": " +join(entry.getValue()));
+		}
+		
+		System.out.println("---- word set---");
+		for(CharVector cv : dictionary2.getWordSet()){
+			System.out.println(cv);
+		}
+	}
+	
+	
+	private String join(CharVector[] list){
+		String result = "";
+		for(int i=0;i<list.length; i++){
+			result += list[i].toString();
+			if(i < list.length - 1){
+				result += ", ";
+			}
+		}
+		return result;
+	}
+	@Test
+	public void testMapDictionary() throws IOException {
 		MapDictionary dictionary = new MapDictionary();
-		dictionary.addEntry("마우스", new String[] { "mouse", "로지텍" }, true, new boolean[] { true, true });
-		dictionary.addEntry("모니터", new String[] { "엘지모니터", "monitor", "광시야각" }, true, new boolean[] { true, true, true });
+		dictionary.addEntry("마우스", new String[] { "mouse, 로지텍" }, true, new boolean[] { true });
+		dictionary.addEntry("모니터", new String[] { "엘지모니터, monitor, 광시야각" }, true, new boolean[] { true });
 		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		dictionary.writeTo(out);

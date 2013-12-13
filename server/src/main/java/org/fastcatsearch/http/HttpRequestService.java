@@ -65,16 +65,6 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 			scanActions(actionMap, actionBasePackageList);
 		}
 
-		// //// plugin action
-		PluginService pluginService = serviceManager.getService(PluginService.class);
-		for (Plugin plugin : pluginService.getPlugins()) {
-			PluginSetting pluginSetting = plugin.getPluginSetting();
-			for (Action action : pluginSetting.getActionList()) {
-				// addtoMap(actionMap, action.getPath(), action.getClassName());
-				registerAction(actionMap, action.getClassName(), false);
-			}
-		}
-
 		serviceController.setActionMap(actionMap);
 		return true;
 	}
@@ -155,6 +145,10 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 		registerAction(actionMap, className, null, isFile);
 	}
 	private void registerAction(Map<String, HttpAction> actionMap, String className, String pathPrefix, boolean isFile) {
+		if(className == null){
+			logger.warn("Cannot register action class name >> {} : {}", className, pathPrefix);
+			return;
+		}
 		if (isFile) {
 			if (className.endsWith(".class")) {
 				className = className.substring(0, className.length() - 6);

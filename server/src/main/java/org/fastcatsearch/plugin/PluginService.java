@@ -203,7 +203,13 @@ public class PluginService extends AbstractService {
 			List<Action> pluginActionList = plugin.getPluginSetting().getActionList();
 			if (pluginActionList != null && pluginActionList.size() > 0) {
 				for (Action pluginAction : pluginActionList) {
-					httpRequestService.registerAction(pluginAction.getClassName(), pluginActionPrefix + pluginId);
+					String className = pluginAction.getClassName();
+					if(className == null || className.length() == 0){
+						logger.warn("Plugin {} action class name is empty.", pluginId);
+						continue;
+					}
+					className = className.trim();
+					httpRequestService.registerAction(className, pluginActionPrefix + pluginId);
 				}
 			}
 		}

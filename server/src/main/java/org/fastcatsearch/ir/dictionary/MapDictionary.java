@@ -123,7 +123,7 @@ public class MapDictionary extends SourceDictionary implements ReadableDictionar
 		map = new HashMap<CharVector, CharVector[]>();
 		
 		int size = input.readVInt();
-
+logger.debug("readFrom size > {}", size);
 		for(int entryInx=0;entryInx < size; entryInx++) {
 			CharVector key = new CharVector(input.readUString());
 			
