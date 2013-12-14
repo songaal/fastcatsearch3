@@ -3,6 +3,7 @@ package org.fastcatsearch.statistics.util;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.fastcatsearch.statistics.LogFileRunEntryReader;
 import org.junit.Test;
@@ -10,7 +11,7 @@ import org.junit.Test;
 public class MergeEntryReaderTest {
 
 	@Test
-	public void testLogFileMerge() {
+	public void testLogFileMerge() throws IOException {
 		File[] fileList = null;
 		
 		
@@ -31,7 +32,7 @@ public class MergeEntryReaderTest {
 		}
 	}
 
-	private LogFileRunEntryReader[] getReaderList(File[] fileList){
+	private LogFileRunEntryReader[] getReaderList(File[] fileList) throws IOException{
 		LogFileRunEntryReader[] list = new LogFileRunEntryReader[fileList.length];
 		for(int i =0;i<fileList.length; i++){
 			File f = fileList[i];

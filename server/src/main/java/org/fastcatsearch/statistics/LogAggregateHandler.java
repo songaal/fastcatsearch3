@@ -1,6 +1,7 @@
 package org.fastcatsearch.statistics;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -8,7 +9,7 @@ import java.util.TreeMap;
 
 import org.fastcatsearch.statistics.LogAggregator.Counter;
 import org.fastcatsearch.statistics.util.LogReader;
-import org.fastcatsearch.statistics.util.LogWriter;
+import org.fastcatsearch.statistics.util.AggregationResultWriter;
 import org.fastcatsearch.statistics.util.SortedFileMerger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +32,9 @@ public abstract class LogAggregateHandler<LogType extends AbstractLog> {
 		this.encoding = encoding;
 	}
 
-	protected abstract LogWriter<LogType> newLogWriter(File file);
+	protected abstract AggregationResultWriter newLogWriter(File file);
 
-	public void handleLog(String line) {
+	public void handleLog(String line) throws IOException {
 		LogType log = logReader.readLine(line);
 		if (log != null) {
 			Counter counter = aggregateMap.get(log.getKey());
@@ -50,16 +51,14 @@ public abstract class LogAggregateHandler<LogType extends AbstractLog> {
 		}
 	}
 
-	private void flushRun() {
+	private void flushRun() throws IOException {
 		File runFile = new File(runCount++ + ".log");
 		TreeMap<String, Counter> sortedMap = new TreeMap<String, Counter>(comparator);
 		sortedMap.putAll(aggregateMap);
-		LogWriter<LogType> logWriter = newLogWriter(runFile);
+		AggregationResultWriter logWriter = newLogWriter(runFile);
 		try {
 			for (Map.Entry<String, Counter> entry : sortedMap.entrySet()) {
-				logWriter.formatLog(entry.getKey(), entry.getValue());
-				
-				
+				logWriter.write(entry.getKey(), entry.getValue());
 			}
 		} finally {
 			if (logWriter != null) {
@@ -68,7 +67,7 @@ public abstract class LogAggregateHandler<LogType extends AbstractLog> {
 		}
 	}
 	
-	public void done(){
+	public void done() throws IOException{
 		if(aggregateMap.size() > 0){
 			flushRun();
 		}

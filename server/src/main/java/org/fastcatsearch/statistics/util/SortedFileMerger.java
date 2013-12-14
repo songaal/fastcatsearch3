@@ -8,6 +8,9 @@ import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.IOUtil;
 
+/**
+ * 정렬되어 기록된 여러개의 RUN 파일을 하나로 머징한다. 
+ * */
 public class SortedFileMerger {
 	File[] runFileList;
 	File outputFile;

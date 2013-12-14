@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.Comparator;
 
 import org.fastcatsearch.statistics.SearchLogFormatReader.SearchLog;
-import org.fastcatsearch.statistics.util.LogWriter;
+import org.fastcatsearch.statistics.util.AggregationResultWriter;
 import org.fastcatsearch.statistics.util.SearchFileLogReader;
 
 public class PopularKeywordLogAggregateHandler extends LogAggregateHandler<SearchLog> {
@@ -20,7 +20,7 @@ public class PopularKeywordLogAggregateHandler extends LogAggregateHandler<Searc
 	}
 
 	@Override
-	protected LogWriter newLogWriter(File file) {
+	protected AggregationResultWriter newLogWriter(File file) {
 		// TODO Auto-generated method stub
 		return null;
 	}
