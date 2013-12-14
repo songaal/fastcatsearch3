@@ -4,8 +4,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
-import org.fastcatsearch.cluster.ClusterUtils;
-import org.fastcatsearch.cluster.NodeJobResult;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
@@ -14,6 +12,7 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.StaticticsSettings;
 import org.fastcatsearch.settings.StaticticsSettings.Category;
 import org.fastcatsearch.statistics.CategoryStatistics;
+import org.fastcatsearch.statistics.RealTimePopularKeywordGenerator;
 import org.fastcatsearch.statistics.SearchStatisticsService;
 
 /**
