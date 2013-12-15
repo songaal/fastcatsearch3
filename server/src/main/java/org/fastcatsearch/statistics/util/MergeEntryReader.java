@@ -85,9 +85,6 @@ public class MergeEntryReader<E extends RunEntry> {
 
 			if (left <= heapSize) {
 				if (right <= heapSize) {
-					// 키워드가 동일할 경우 먼저 flush된 reader가 우선해야, docNo가 오름차순 정렬순서대로
-					// 올바로 기록됨.
-					// flush후 머징시 문제가 생기는 버그 해결됨 2013-5-21 swsong
 					int c = compareKey(left, right);
 					if (c < 0) {
 						child = left;
@@ -131,6 +128,17 @@ public class MergeEntryReader<E extends RunEntry> {
 	}
 
 	private int compareKey(E entry, E entry2) {
+		if(entry == null && entry2 == null){
+			return 0;
+		}
+		
+		if(entry == null){
+			return -1;
+		}
+		
+		if(entry2 == null){
+			return 1;
+		}
 		// reader gets EOS, returns null
 		return entry.compareTo(entry2);
 	}

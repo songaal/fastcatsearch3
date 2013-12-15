@@ -1,8 +1,7 @@
 package org.fastcatsearch.statistics.util;
 
-import static org.junit.Assert.*;
-
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 
 import org.fastcatsearch.statistics.LogFileRunEntryReader;
@@ -12,31 +11,38 @@ public class MergeEntryReaderTest {
 
 	@Test
 	public void testLogFileMerge() throws IOException {
-		File[] fileList = null;
+		String destDir = "src/test/resources/statistics/rt/test";
 		
-		
-		LogFileRunEntryReader[] entryReaderList = getReaderList(fileList); 
+		File[] fileList = new File(destDir).listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.endsWith(".log");
+			}
+		});
+
+		LogFileRunEntryReader[] entryReaderList = getReaderList(fileList);
 		MergeEntryReader<LogFileRunEntry> reader = new MergeEntryReader<LogFileRunEntry>(entryReaderList);
-		
-		try{
+
+		try {
 			LogFileRunEntry entry = null;
-			
-			while((entry = reader.read()) != null){
+
+			while ((entry = reader.read()) != null) {
 				System.out.println(entry);
 			}
-			
-		}finally{
-			for(LogFileRunEntryReader r : entryReaderList){
+
+		} finally {
+			for (LogFileRunEntryReader r : entryReaderList) {
 				r.close();
 			}
 		}
 	}
 
-	private LogFileRunEntryReader[] getReaderList(File[] fileList) throws IOException{
+	private LogFileRunEntryReader[] getReaderList(File[] fileList) throws IOException {
 		LogFileRunEntryReader[] list = new LogFileRunEntryReader[fileList.length];
-		for(int i =0;i<fileList.length; i++){
+		for (int i = 0; i < fileList.length; i++) {
 			File f = fileList[i];
 			list[i] = new LogFileRunEntryReader(f);
+			list[i].next();
 		}
 		return list;
 	}
