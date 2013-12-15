@@ -1,14 +1,15 @@
 package org.fastcatsearch.statistics.util;
 
-import org.fastcatsearch.statistics.LogFileRunEntryReader;
-
 public class MergeEntryReader<E extends RunEntry> {
 
 	private int[] heap;
-	private RunEntryReader[] reader;
+	private RunEntryReader<E>[] reader;
 	private int runSize;
-	
-	public MergeEntryReader(RunEntryReader[] entryReaderList) {
+
+	private E entry;
+	private E entryOld;
+
+	public MergeEntryReader(RunEntryReader<E>[] entryReaderList) {
 		this.reader = entryReaderList;
 
 		runSize = entryReaderList.length;
@@ -16,12 +17,47 @@ public class MergeEntryReader<E extends RunEntry> {
 
 	}
 
-	public E read() {
+	protected E read() {
+		// int kk = 0;
+		int count = 0;
+		
+		E result = null;
+		while (true) {
+			int idx = heap[1];
+			entry = reader[idx].entry();
 
-		return null;
+			if (entry == null && entryOld == null) {
+				// if cv and cvOld are null, it's done
+				return null;
+			}
+
+			// cv == null일경우는 모든 reader가 종료되어 null이 된경우이며
+			// cvOld 와 cv 가 다른 경우는 머징시 텀이 바뀐경우. cvOld를 기록해야한다.
+			if ((entry == null || (!entry.equals(entryOld)) && entryOld != null)) {
+
+				// entryOld를 리턴한다.
+				result = entryOld;
+			}
+
+			// 갯수머징..
+			if (entryOld != null) {
+				entry.merge(entryOld);
+			}
+
+			// backup cv to old
+			entryOld = entry;
+
+			reader[idx].next();
+
+			heapify(1, runSize);
+			
+			if(result != null){
+				return result;
+			}
+
+		} // while(true)
+
 	}
-
-	// TODO heap을 사용하여 구현.
 
 	protected void makeHeap(int heapSize) {
 		heap = new int[heapSize + 1];
@@ -87,41 +123,6 @@ public class MergeEntryReader<E extends RunEntry> {
 		}
 	}
 
-	RunEntry entry;
-	RunEntry entryOld;
-
-	protected boolean readNextTempIndex(String[] term) {
-		// int kk = 0;
-		int count = 0;
-		while (true) {
-			int idx = heap[1];
-			entry = reader[idx].entry();
-
-			if (entry == null && entryOld == null) {
-				// if cv and cvOld are null, it's done
-				return false;
-			}
-
-			// cv == null일경우는 모든 reader가 종료되어 null이 된경우이며
-			// cvOld 와 cv 가 다른 경우는 머징시 텀이 바뀐경우. cvOld를 기록해야한다.
-			if ((entry == null || !entry.equals(entryOld)) && entryOld != null) {
-
-
-				// backup cv to old
-				entryOld = entry;
-
-
-			}
-			
-			// TODO 갯수머징..
-			entry.merge(entryOld);
-
-			heapify(1, runSize);
-
-		} // while(true)
-
-	}
-
 	protected int compareKey(int one, int another) {
 		int a = heap[one];
 		int b = heap[another];
@@ -129,7 +130,7 @@ public class MergeEntryReader<E extends RunEntry> {
 		return compareKey(reader[a].entry(), reader[b].entry());
 	}
 
-	private int compareKey(RunEntry entry, RunEntry entry2) {
+	private int compareKey(E entry, E entry2) {
 		// reader gets EOS, returns null
 		return entry.compareTo(entry2);
 	}

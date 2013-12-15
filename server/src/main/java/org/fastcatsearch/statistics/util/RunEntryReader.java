@@ -5,7 +5,7 @@ package org.fastcatsearch.statistics.util;
  * */
 public abstract class RunEntryReader<E extends RunEntry> {
 	
-	public abstract boolean read();
+	public abstract boolean next();
 	
 	public abstract E entry();
 	

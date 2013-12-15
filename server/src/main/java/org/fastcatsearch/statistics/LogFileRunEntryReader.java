@@ -25,7 +25,7 @@ public class LogFileRunEntryReader extends RunEntryReader<LogFileRunEntry> {
 	
 
 	@Override
-	public boolean read() {
+	public boolean next() {
 		String line;
 		try {
 			line = reader.readLine();
