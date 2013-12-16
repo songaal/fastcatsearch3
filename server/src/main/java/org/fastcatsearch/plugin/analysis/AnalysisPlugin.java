@@ -173,7 +173,7 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 						dictionary.appendAdditionalNounEntry(mapDictionary.getMap().keySet(), tokenType);
 					}
 					sourceDictionary = mapDictionary;
-				}else if(type == Type.SYNONYM){
+				}else if(type == Type.SYNONYM || type == Type.SYNONYM_2WAY){
 					SynonymDictionary synonymDictionary = new SynonymDictionary(dictFile);
 					if(tokenType != null){
 						dictionary.appendAdditionalNounEntry(synonymDictionary.getWordSet(), tokenType);
