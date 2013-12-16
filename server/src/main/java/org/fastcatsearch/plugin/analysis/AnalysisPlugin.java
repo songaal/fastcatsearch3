@@ -119,7 +119,7 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 				List<ColumnSetting> columnSettingList = dictionarySetting.getColumnSettingList();
 				if (columnSettingList != null) {
 					DictionaryDAO dao = null;
-					if(type == Type.SYNONYM){
+					if(type == Type.SYNONYM || type == Type.SYNONYM_2WAY){
 						dao = new SynonymDictionaryDAO(tableName, columnSettingList, internalDBModule);
 					}else{
 						dao = new DictionaryDAO(tableName, columnSettingList, internalDBModule);
@@ -252,6 +252,8 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 						} else if (type == Type.MAP) {
 							dictionaryType = new MapDictionary();
 						} else if (type == Type.SYNONYM) {
+							dictionaryType = new SynonymDictionary();
+						} else if (type == Type.SYNONYM_2WAY) {
 							dictionaryType = new SynonymDictionary();
 						} else if (type == Type.CUSTOM) {
 							dictionaryType = new CustomDictionary();

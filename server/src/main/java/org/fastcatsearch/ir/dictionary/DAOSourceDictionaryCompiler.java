@@ -51,10 +51,11 @@ public class DAOSourceDictionaryCompiler {
 			valuesIgnoreCase[i] = ignoreCaseList.get(i);
 		}
 		
-		boolean isKeyNullable = dictionaryType instanceof SynonymDictionary;
-		if(!isKeyNullable && keyColumnName == null){
-			throw new Exception("Key column is not specified.");
-		}
+		//synoym_2way처리를 위해 주석처리 swsong 2013-12-16
+//		boolean isKeyNullable = dictionaryType instanceof SynonymDictionary;
+//		if(!isKeyNullable && keyColumnName == null){
+//			throw new Exception("Key column is not specified.");
+//		}
 		
 		while (start <= count) {
 			int end = start + BULK_SIZE;
