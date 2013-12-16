@@ -22,6 +22,7 @@ import org.fastcatsearch.ir.dictionary.DAOSourceDictionaryCompiler;
 import org.fastcatsearch.ir.dictionary.MapDictionary;
 import org.fastcatsearch.ir.dictionary.SetDictionary;
 import org.fastcatsearch.ir.dictionary.SourceDictionary;
+import org.fastcatsearch.ir.dictionary.SpaceDictionary;
 import org.fastcatsearch.ir.dictionary.SynonymDictionary;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginSetting;
@@ -179,8 +180,16 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 						dictionary.appendAdditionalNounEntry(synonymDictionary.getWordSet(), tokenType);
 					}
 					sourceDictionary = synonymDictionary;
+				}else if(type == Type.SPACE){
+					SpaceDictionary spaceDictionary = new SpaceDictionary(dictFile);
+					if(tokenType != null){
+						dictionary.appendAdditionalNounEntry(spaceDictionary.getWordSet(), tokenType);
+					}
+					sourceDictionary = spaceDictionary;
 				}else if(type == Type.CUSTOM){
 					
+				}else{
+					logger.error("Unknown Dictionary type > {}", type);
 				}
 				
 				///add dictionary
@@ -255,6 +264,8 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 							dictionaryType = new SynonymDictionary();
 						} else if (type == Type.SYNONYM_2WAY) {
 							dictionaryType = new SynonymDictionary();
+						} else if (type == Type.SPACE) {
+							dictionaryType = new SpaceDictionary();
 						} else if (type == Type.CUSTOM) {
 							dictionaryType = new CustomDictionary();
 						}
