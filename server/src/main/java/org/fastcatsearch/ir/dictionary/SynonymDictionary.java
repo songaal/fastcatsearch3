@@ -34,6 +34,10 @@ public class SynonymDictionary extends MapDictionary {
 	}
 
 	public Set<CharVector> getWordSet() {
+		return wordSet;
+	}
+	
+	public Set<CharVector> getUnmodifiableWordSet() {
 		return Collections.unmodifiableSet(wordSet);
 	}
 

@@ -60,9 +60,6 @@ public class SetDictionary extends SourceDictionary {
 		}
 	}
 	
-	public void addEntry(String keyword){
-		addEntry(keyword);
-	}
 	@Override
 	public void addEntry(String keyword, Object[] ignore, boolean ignoreCase, boolean[] valuesIgnoreCase) {
 		keyword = keyword.trim();
@@ -74,7 +71,7 @@ public class SetDictionary extends SourceDictionary {
 		}
 	}
 
-	public Set<CharVector> getSet() {
+	public Set<CharVector> getUnmodifiableSet() {
 		return Collections.unmodifiableSet(set);
 	}
 	

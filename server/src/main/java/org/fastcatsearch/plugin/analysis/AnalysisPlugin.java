@@ -164,13 +164,13 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 				if(type == Type.SET){
 					SetDictionary setDictionary = new SetDictionary(dictFile);
 					if(tokenType != null){
-						dictionary.appendAdditionalNounEntry(setDictionary.getSet(), tokenType);
+						dictionary.appendAdditionalNounEntry(setDictionary.set(), tokenType);
 					}
 					sourceDictionary = setDictionary;
 				}else if(type == Type.MAP){
 					MapDictionary mapDictionary = new MapDictionary(dictFile);
 					if(tokenType != null){
-						dictionary.appendAdditionalNounEntry(mapDictionary.getMap().keySet(), tokenType);
+						dictionary.appendAdditionalNounEntry(mapDictionary.map().keySet(), tokenType);
 					}
 					sourceDictionary = mapDictionary;
 				}else if(type == Type.SYNONYM || type == Type.SYNONYM_2WAY){

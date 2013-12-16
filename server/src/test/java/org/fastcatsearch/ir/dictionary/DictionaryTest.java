@@ -58,7 +58,7 @@ public class DictionaryTest {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		dictionary.writeTo(out);
 		out.close();
-		CharVector[] result = dictionary.getMap().get(new CharVector("엘지모니터"));
+		CharVector[] result = dictionary.getUnmodifiableMap().get(new CharVector("엘지모니터"));
 		System.out.println(result[0]+","+result[1]);
 		
 		byte[] buffer = out.toByteArray();
@@ -67,7 +67,7 @@ public class DictionaryTest {
 		ByteArrayInputStream bais = new ByteArrayInputStream(buffer);
 		MapDictionary dictionary2 = new MapDictionary(bais);
 		bais.close();
-		CharVector[] result2 = dictionary2.getMap().get(new CharVector("엘지모니터"));
+		CharVector[] result2 = dictionary2.getUnmodifiableMap().get(new CharVector("엘지모니터"));
 		System.out.println(result2[0]+","+result2[1]);
 		//다시 쓰고.
 		ByteArrayOutputStream out2 = new ByteArrayOutputStream();
@@ -78,7 +78,7 @@ public class DictionaryTest {
 		ByteArrayInputStream bais2 = new ByteArrayInputStream(buffer);
 		MapDictionary dictionary3 = new MapDictionary(bais2);
 		bais2.close();
-		CharVector[] result3 = dictionary3.getMap().get(new CharVector("엘지모니터"));
+		CharVector[] result3 = dictionary3.getUnmodifiableMap().get(new CharVector("엘지모니터"));
 		System.out.println(result3[0]+","+result3[1]);
 		
 		
@@ -110,7 +110,7 @@ public class DictionaryTest {
 		out.close();
 		
 		for(String term : terms) {
-			boolean contains = dictionary.getSet().contains(new CharVector(term));
+			boolean contains = dictionary.getUnmodifiableSet().contains(new CharVector(term));
 			System.out.println("is set has term "+term+" ? "+contains);
 		}
 		
@@ -122,7 +122,7 @@ public class DictionaryTest {
 		bais.close();
 		
 		for(String term : terms) {
-			boolean contains = dictionary2.getSet().contains(new CharVector(term));
+			boolean contains = dictionary2.getUnmodifiableSet().contains(new CharVector(term));
 			System.out.println("is set2 has term "+term+" ? "+contains);
 		}
 		
@@ -137,7 +137,7 @@ public class DictionaryTest {
 		bais2.close();
 		
 		for(String term : terms) {
-			boolean contains = dictionary3.getSet().contains(new CharVector(term));
+			boolean contains = dictionary3.getUnmodifiableSet().contains(new CharVector(term));
 			System.out.println("is set3 has term "+term+" ? "+contains);
 		}
 		
@@ -162,7 +162,7 @@ public class DictionaryTest {
 		String[] terms = new String[] { "삼성", "LG", "애플" };
 		
 		for(String term : terms) {
-			dictionary.addEntry(term);
+//			dictionary.addEntry(term);
 		}
 		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -170,7 +170,7 @@ public class DictionaryTest {
 		out.close();
 		
 		for(String term : terms) {
-			boolean contains = dictionary.getSet().contains(new CharVector(term));
+			boolean contains = dictionary.getUnmodifiableSet().contains(new CharVector(term));
 			System.out.println("is set has term "+term+" ? "+contains);
 		}
 		
@@ -182,7 +182,7 @@ public class DictionaryTest {
 		bais.close();
 		
 		for(String term : terms) {
-			boolean contains = dictionary2.getSet().contains(new CharVector(term));
+			boolean contains = dictionary2.getUnmodifiableSet().contains(new CharVector(term));
 			System.out.println("is set2 has term "+term+" ? "+contains);
 		}
 		
@@ -197,7 +197,7 @@ public class DictionaryTest {
 		bais2.close();
 		
 		for(String term : terms) {
-			boolean contains = dictionary3.getSet().contains(new CharVector(term));
+			boolean contains = dictionary3.getUnmodifiableSet().contains(new CharVector(term));
 			System.out.println("is set3 has term "+term+" ? "+contains);
 		}
 		
@@ -213,4 +213,25 @@ public class DictionaryTest {
 		}
 //		Assert.assertArrayEquals(buffer, buffer2);
 	}
+	@Test
+	public void testSpaceDictionary(){
+		SpaceDictionary spaceDictionary = new SpaceDictionary();
+		spaceDictionary.addEntry("nike, air", null, true, null);
+		spaceDictionary.addEntry("진, 청바지", null, true, null);
+		spaceDictionary.addEntry("맥북, 프로, 레티나", null, true, null);
+		for(Map.Entry<CharVector,CharVector[]> entry : spaceDictionary.map().entrySet()){
+			System.out.println(entry.getKey() + " : " + join(entry.getValue()));
+		}
+		CharVector[] result = spaceDictionary.map().get(new CharVector("NIKEAIR"));
+		Assert.assertEquals("NIKE", result[0].toString());
+		Assert.assertEquals("AIR", result[1].toString());
+		result = spaceDictionary.map().get(new CharVector("진청바지"));
+		Assert.assertEquals("진", result[0].toString());
+		Assert.assertEquals("청바지", result[1].toString());
+		result = spaceDictionary.map().get(new CharVector("맥북프로레티나"));
+		Assert.assertEquals("맥북", result[0].toString());
+		Assert.assertEquals("프로", result[1].toString());
+		Assert.assertEquals("레티나", result[2].toString());
+	}
+	
 }

@@ -11,7 +11,7 @@ import org.fastcatsearch.ir.io.CharVector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CustomDictionary extends SourceDictionary implements ReadableDictionary {
+public class CustomDictionary extends SourceDictionary {
 	
 	public CustomDictionary() {
 	}

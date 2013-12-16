@@ -24,7 +24,7 @@ import org.fastcatsearch.ir.io.DataOutput;
  * 
  * 
  * */
-public class MapDictionary extends SourceDictionary implements ReadableDictionary {
+public class MapDictionary extends SourceDictionary {
 
 	protected Map<CharVector, CharVector[]> map;
 	
@@ -84,7 +84,7 @@ public class MapDictionary extends SourceDictionary implements ReadableDictionar
 		map.put(new CharVector(keyword), list);
 	}
 
-	public Map<CharVector, CharVector[]> getMap() {
+	public Map<CharVector, CharVector[]> getUnmodifiableMap() {
 		return Collections.unmodifiableMap(map);
 	}
 	
