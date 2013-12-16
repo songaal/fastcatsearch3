@@ -1,7 +1,11 @@
 package org.fastcatsearch.statistics.util;
 
-public class MergeEntryReader<E extends RunEntry> {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+public class MergeEntryReader<E extends RunEntry> {
+	protected static Logger logger = LoggerFactory.getLogger(MergeEntryReader.class);
+	
 	private int[] heap;
 	private RunEntryReader<E>[] reader;
 	private int runSize;
@@ -17,7 +21,7 @@ public class MergeEntryReader<E extends RunEntry> {
 
 	}
 
-	protected E read() {
+	public E read() {
 		// int kk = 0;
 		int count = 0;
 		
@@ -31,17 +35,18 @@ public class MergeEntryReader<E extends RunEntry> {
 				return null;
 			}
 
+			logger.debug("check {} : {}", entry, entryOld);
 			// cv == null일경우는 모든 reader가 종료되어 null이 된경우이며
 			// cvOld 와 cv 가 다른 경우는 머징시 텀이 바뀐경우. cvOld를 기록해야한다.
 			if ((entry == null || (!entry.equals(entryOld)) && entryOld != null)) {
 
 				// entryOld를 리턴한다.
 				result = entryOld;
-			}
-
-			// 갯수머징..
-			if (entryOld != null) {
-				entry.merge(entryOld);
+			}else{
+				// 같은 단어이면 갯수머징한다.
+				if (entryOld != null) {
+					entry.merge(entryOld);
+				}
 			}
 
 			// backup cv to old
@@ -86,12 +91,13 @@ public class MergeEntryReader<E extends RunEntry> {
 			if (left <= heapSize) {
 				if (right <= heapSize) {
 					int c = compareKey(left, right);
+					logger.debug("compare result1 >> {}  >> {} : {}", c, left, right);
 					if (c < 0) {
 						child = left;
 					} else if (c > 0) {
 						child = right;
 					} else {
-						child = right;
+						child = left;
 					}
 				} else {
 					// if there is no right el.
@@ -104,6 +110,7 @@ public class MergeEntryReader<E extends RunEntry> {
 
 			// compare and swap
 			int c = compareKey(child, idx);
+			logger.debug("compare result2 >>{}  >> {} : {}", c, child, idx);
 			if (c < 0) {
 				temp = heap[child];
 				heap[child] = heap[idx];
@@ -124,21 +131,20 @@ public class MergeEntryReader<E extends RunEntry> {
 		int a = heap[one];
 		int b = heap[another];
 
-		return compareKey(reader[a].entry(), reader[b].entry());
+		//return compareKey(reader[a].entry(), reader[b].entry());
+		int r = compareKey(reader[a].entry(), reader[b].entry());
+		
+		return r;
 	}
 
 	private int compareKey(E entry, E entry2) {
-		if(entry == null && entry2 == null){
+		logger.debug("compareKey > {} : {}", entry, entry2);
+		if (entry == null && entry2 == null) {
 			return 0;
-		}
-		
-		if(entry == null){
-			return -1;
-		}
-		
-		if(entry2 == null){
+		} else if (entry == null)
 			return 1;
-		}
+		else if (entry2 == null)
+			return -1;
 		// reader gets EOS, returns null
 		return entry.compareTo(entry2);
 	}

@@ -11,6 +11,7 @@
 
 package org.fastcatsearch.db;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -56,7 +57,12 @@ public class InternalDBModule extends AbstractModule {
 
 	public InternalDBModule(String dbPath, List<URL> mapperFileList, Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings);
-		this.dbPath = detbyUrlPrefix + dbPath + detbyUrlSuffix;
+		if(new File(dbPath).exists()){
+			this.dbPath = detbyUrlPrefix + dbPath;	
+		}else{
+			//create
+			this.dbPath = detbyUrlPrefix + dbPath + detbyUrlSuffix;
+		}
 		this.mapperFileList = mapperFileList;
 	}
 
