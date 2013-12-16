@@ -17,23 +17,20 @@ public class FileSourceDictionaryCompiler {
 			ignoreCase = args[3].trim().equalsIgnoreCase("true");
 		}
 		
-		//FIXME
-		boolean[] valuesIgnoreCase = new boolean[1];
-		
 		File sourceFile = new File(sourceFilePath);
 		File binaryFile = new File(binaryFilePath);
 		
 		SourceDictionary dictionary = null;
 		if(type.equals("set")){
-			dictionary = new SetDictionary();
+			dictionary = new SetDictionary(ignoreCase);
 		}else if(type.equals("map")){
-			dictionary = new MapDictionary();
+			dictionary = new MapDictionary(ignoreCase);
 		}else if(type.equals("synonym")){
-			dictionary = new SynonymDictionary();
+			dictionary = new SynonymDictionary(ignoreCase);
 		}else if(type.equals("custom")){
-			dictionary = new CustomDictionary();
+			dictionary = new CustomDictionary(ignoreCase);
 		}
-		dictionary.loadSource(sourceFile, ignoreCase, valuesIgnoreCase);
+		dictionary.loadSource(sourceFile);
 		
 		OutputStream out = new FileOutputStream(binaryFile); 
 		dictionary.writeTo(out);

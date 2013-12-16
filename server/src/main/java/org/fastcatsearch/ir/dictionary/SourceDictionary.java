@@ -8,21 +8,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import org.fastcatsearch.ir.dic.Dictionary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class SourceDictionary /*extends Dictionary*/ implements WritableDictionary, ReadableDictionary {
+public abstract class SourceDictionary implements WritableDictionary, ReadableDictionary {
 	protected static Logger logger = LoggerFactory.getLogger(SourceDictionary.class);
 
-	public SourceDictionary(){
+	protected boolean ignoreCase;
+	
+	public SourceDictionary(boolean ignoreCase){
+		this.ignoreCase = ignoreCase;
 	}
 	
-	public void loadSource(File file, boolean ignoreCase, boolean[] valuesIgnoreCase) {
+	public void loadSource(File file) {
 		InputStream is = null;
 		try {
 			is = new FileInputStream(file);
-			loadSource(is, ignoreCase, valuesIgnoreCase);
+			loadSource(is);
 		} catch (FileNotFoundException e) {
 			logger.error("사전소스파일을 찾을수 없습니다.", e);
 		} finally {
@@ -36,18 +38,18 @@ public abstract class SourceDictionary /*extends Dictionary*/ implements Writabl
 
 	}
 
-	public void loadSource(InputStream is, boolean ignoreCase, boolean[] valuesIgnoreCase) {
+	public void loadSource(InputStream is) {
 		try {
 			BufferedReader br = new BufferedReader(new InputStreamReader(is, "utf-8"));
 			String line = null;
 			while ((line = br.readLine()) != null) {
-				addSourceLineEntry(line, ignoreCase, valuesIgnoreCase);
+				addSourceLineEntry(line);
 			}
 		} catch (IOException e) {
 			logger.error("", e);
 		}
 	}
 	
-	public abstract void addSourceLineEntry(String line, boolean ignoreCase, boolean[] valuesIgnoreCase);
+	public abstract void addSourceLineEntry(String line);
 	
 }

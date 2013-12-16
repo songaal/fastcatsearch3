@@ -26,8 +26,11 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 	public char[] array;
 	public int start;
 	public int length;
-	public transient int hash;
+	protected int hash;
+	protected int ignoreCaseHash;
 
+	private boolean isIgnoreCase;
+	
 	public CharVector() {
 	}
 
@@ -40,10 +43,14 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 		this(array, 0, array.length);
 	}
 	public CharVector(char[] array, int start, int length) {
+		this(array, start, length, false);
+	}
+	public CharVector(char[] array, int start, int length, boolean isIgnoreCase) {
 		this.array = array;
 		this.start = start;
 		this.length = length;
 		this.hash = 0;
+		this.isIgnoreCase = isIgnoreCase;
 	}
 	
 	public void init(char[] array, int start, int length) {
@@ -53,18 +60,46 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 		this.hash = 0;
 	}
 
+	public void setIgnoreCase(){
+		this.isIgnoreCase = true;
+	}
+	public void unsetIgnoreCase(){
+		this.isIgnoreCase = false;
+	}
+	public boolean isIgnoreCase(){
+		return isIgnoreCase;
+	}
+	
 	public int hashCode() {
-		if(hash > 0){
-			return hash;
+		if(!isIgnoreCase){
+			if(hash > 0){
+				return hash;
+			}
+			int h = 0;
+			int off = start;
+	
+			for (int i = 0; i < length; i++) {
+				h = 31 * h + array[off++];
+			}
+			hash = h;
+			return h;
+		}else{
+			if(ignoreCaseHash > 0){
+				return ignoreCaseHash;
+			}
+			int h = 0;
+			int off = start;
+	
+			for (int i = 0; i < length; i++) {
+				int ch = array[off++];
+				if(ch >= 'a' && ch <= 'z'){
+					ch -= 32;//to upper case 
+				}
+				h = 31 * h + ch;
+			}
+			ignoreCaseHash = h;
+			return h;
 		}
-		int h = 0;
-		int off = start;
-
-		for (int i = 0; i < length; i++) {
-			h = 31 * h + array[off++];
-		}
-		hash = h;
-		return h;
 	}
 
 	public CharVector trim() {
@@ -98,9 +133,29 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 				char v2[] = anotherArray.array;
 				int i = start;
 				int j = anotherArray.start;
-				while (n-- != 0) {
-					if (v1[i++] != v2[j++])
-						return false;
+				
+				if(isIgnoreCase || anotherArray.isIgnoreCase){
+					//둘중 하나라도 ignorecase이면 ignorecase로 비교한다.
+					while (n-- != 0) {
+						if (v1[i] != v2[j]){
+							if(((v1[i] <= 'z' && v1[i] >= 'a') || (v1[i] <= 'Z' && v1[i] >= 'A')) //v1이 영문자이거나.
+									|| 
+								((v2[i] <= 'z' && v2[i] >= 'a') || (v2[i] <= 'Z' && v2[i] >= 'A'))){ //v2가 영문자이면..
+								if(Math.abs(v1[i] - v2[j]) != 32){
+									return false;
+								}
+								//OK 대소문자 구분 없이 동일함.
+							}else{
+								return false;
+							}
+						}
+						i++;j++;
+					}
+				}else{
+					while (n-- != 0) {
+						if (v1[i++] != v2[j++])
+							return false;
+					}
 				}
 				return true;
 			}
@@ -146,6 +201,8 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 		another.length = length;
 		another.array = array;
 		another.hash = hash;
+		another.ignoreCaseHash = ignoreCaseHash;
+		another.isIgnoreCase = isIgnoreCase;
 	}
 	public CharVector duplicate() {
 		char[] buffer = new char[length];

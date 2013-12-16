@@ -145,43 +145,54 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 		
 	}
 
-	protected abstract Dictionary<T> loadSystemDictionary();
+	protected abstract Dictionary<T> loadSystemDictionary(boolean ignoreCase);
 		
 	protected CommonDictionary<T> loadDictionary(){
-		Dictionary<T> dictionary = loadSystemDictionary();
-		CommonDictionary<T> commonDictionary = new CommonDictionary<T>(dictionary);
-		
 		AnalysisPluginSetting setting = (AnalysisPluginSetting) pluginSetting;
 		List<DictionarySetting> list = setting.getDictionarySettingList();
 		
+		Dictionary<T> dictionary = null;
+		CommonDictionary<T> commonDictionary = null;
+		
 		if (list != null) {
+			for (DictionarySetting dictionarySetting : list) {
+				Type type = dictionarySetting.getType();
+				if(type == Type.SYSTEM){
+					boolean isIgnoreCase = dictionarySetting.isIgnoreCase();
+					dictionary = loadSystemDictionary(isIgnoreCase);
+					commonDictionary = new CommonDictionary<T>(dictionary);
+					break;
+				}
+			}
+			
 			for (DictionarySetting dictionarySetting : list) {
 				String id = dictionarySetting.getId();
 				Type type = dictionarySetting.getType();
 				String tokenType = dictionarySetting.getTokenType();
 				File dictFile = getDictionaryFile(id);
 				SourceDictionary sourceDictionary = null;
+				boolean isIgnoreCase = dictionarySetting.isIgnoreCase();
 				
 				if(type == Type.SET){
-					SetDictionary setDictionary = new SetDictionary(dictFile);
+					SetDictionary setDictionary = new SetDictionary(dictFile, isIgnoreCase);
 					if(tokenType != null){
 						dictionary.appendAdditionalNounEntry(setDictionary.set(), tokenType);
 					}
 					sourceDictionary = setDictionary;
 				}else if(type == Type.MAP){
-					MapDictionary mapDictionary = new MapDictionary(dictFile);
+					MapDictionary mapDictionary = new MapDictionary(dictFile, isIgnoreCase);
 					if(tokenType != null){
 						dictionary.appendAdditionalNounEntry(mapDictionary.map().keySet(), tokenType);
 					}
 					sourceDictionary = mapDictionary;
 				}else if(type == Type.SYNONYM || type == Type.SYNONYM_2WAY){
-					SynonymDictionary synonymDictionary = new SynonymDictionary(dictFile);
+					SynonymDictionary synonymDictionary = new SynonymDictionary(dictFile, isIgnoreCase);
 					if(tokenType != null){
 						dictionary.appendAdditionalNounEntry(synonymDictionary.getWordSet(), tokenType);
 					}
 					sourceDictionary = synonymDictionary;
 				}else if(type == Type.SPACE){
-					SpaceDictionary spaceDictionary = new SpaceDictionary(dictFile);
+					SpaceDictionary spaceDictionary = new SpaceDictionary(dictFile, isIgnoreCase);
 					if(tokenType != null){
 						dictionary.appendAdditionalNounEntry(spaceDictionary.getWordSet(), tokenType);
 					}
@@ -253,21 +264,22 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 					if (id.equals(dictionaryId)) {
 						Type type = dictionarySetting.getType();
 						DictionaryDAO dictionaryDAO = daoMap.get(dictionaryId);
+						boolean isIgnoreCase = dictionarySetting.isIgnoreCase();
 						// /type에 따라 set, map, synonym, custom을 확인하여 compile 작업수행.
 						File targetFile = getDictionaryFile(dictionaryId);
 						SourceDictionary dictionaryType = null;
 						if (type == Type.SET) {
-							dictionaryType = new SetDictionary();
+							dictionaryType = new SetDictionary(isIgnoreCase);
 						} else if (type == Type.MAP) {
-							dictionaryType = new MapDictionary();
+							dictionaryType = new MapDictionary(isIgnoreCase);
 						} else if (type == Type.SYNONYM) {
-							dictionaryType = new SynonymDictionary();
+							dictionaryType = new SynonymDictionary(isIgnoreCase);
 						} else if (type == Type.SYNONYM_2WAY) {
-							dictionaryType = new SynonymDictionary();
+							dictionaryType = new SynonymDictionary(isIgnoreCase);
 						} else if (type == Type.SPACE) {
-							dictionaryType = new SpaceDictionary();
+							dictionaryType = new SpaceDictionary(isIgnoreCase);
 						} else if (type == Type.CUSTOM) {
-							dictionaryType = new CustomDictionary();
+							dictionaryType = new CustomDictionary(isIgnoreCase);
 						}
 
 						try {

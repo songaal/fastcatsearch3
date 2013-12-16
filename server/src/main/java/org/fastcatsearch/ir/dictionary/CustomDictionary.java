@@ -12,34 +12,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CustomDictionary extends SourceDictionary {
-	
-	public CustomDictionary() {
-	}
-	public CustomDictionary(File file) {
-		
-	}
 	private static Logger logger = LoggerFactory.getLogger(MapDictionary.class);
 
 	private Map<Object, Object[]> map;
 	
+	public CustomDictionary() {
+		this(false);
+	}
+	public CustomDictionary(boolean ignoreCase) {
+		super(ignoreCase);
+	}
+	public CustomDictionary(File file, boolean ignoreCase) {
+		super(ignoreCase);
+	}
 
 	@Override
 	public void writeTo(OutputStream out) throws IOException {
 		// TODO Auto-generated method stub
 
 	}
-
-//	@Override
-//	public List find(CharVector token) {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-//
-//	@Override
-//	public int size() {
-//		// TODO Auto-generated method stub
-//		return 0;
-//	}
 
 	@Override
 	public void readFrom(InputStream in) throws IOException {
@@ -48,13 +39,12 @@ public class CustomDictionary extends SourceDictionary {
 	}
 
 	@Override
-	public void addEntry(String keyword, Object[] values, boolean ignoreCase, boolean[] valuesIgnoreCase) {
+	public void addEntry(String keyword, Object[] values) {
 		// TODO Auto-generated method stub
 		
 	}
-
 	@Override
-	public void addSourceLineEntry(String line, boolean ignoreCase, boolean[] valuesIgnoreCase) {
+	public void addSourceLineEntry(String line) {
 		// TODO Auto-generated method stub
 		
 	}

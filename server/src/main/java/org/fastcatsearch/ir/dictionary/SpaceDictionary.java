@@ -20,15 +20,19 @@ public class SpaceDictionary extends MapDictionary {
 	private Set<CharVector> wordSet;
 
 	public SpaceDictionary() {
+		this(false);
+	}
+	public SpaceDictionary(boolean ignoreCase) {
+		super(ignoreCase);
 		wordSet = new HashSet<CharVector>();
 	}
 
-	public SpaceDictionary(File file) {
-		super(file);
+	public SpaceDictionary(File file, boolean ignoreCase) {
+		super(file, ignoreCase);
 	}
 
-	public SpaceDictionary(InputStream is) {
-		super(is);
+	public SpaceDictionary(InputStream is, boolean ignoreCase) {
+		super(is, ignoreCase);
 	}
 
 	public Set<CharVector> getWordSet() {
@@ -40,8 +44,8 @@ public class SpaceDictionary extends MapDictionary {
 	}
 
 	@Override
-	public void addEntry(String keyword, Object[] ignoreValue, boolean ignoreCase, boolean[] valuesIgnoreCase) {
-		CharVector[] value = makeValue(keyword, ignoreCase);
+	public void addEntry(String keyword, Object[] values) {
+		CharVector[] value = makeValue(keyword);
 		for(CharVector word : value){
 			wordSet.add(word);
 		}
@@ -51,14 +55,11 @@ public class SpaceDictionary extends MapDictionary {
 		
 	}
 	
-	private CharVector[] makeValue(String word, boolean ignoreCase) {
+	private CharVector[] makeValue(String word) {
 		String[] list = word.split(",");
 		CharVector[] value = new CharVector[list.length];
 		for(int i=0;i < list.length;i++){
 			value[i] = new CharVector(list[i].trim());
-			if(ignoreCase){
-				value[i].toUpperCase();
-			}
 		}
 		return value;
 	}

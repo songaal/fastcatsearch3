@@ -20,17 +20,21 @@ import org.fastcatsearch.ir.io.DataOutput;
 public class SynonymDictionary extends MapDictionary {
 
 	private Set<CharVector> wordSet;
-
-	public SynonymDictionary() {
+	
+	public SynonymDictionary(){
+		this(false);
+	}
+	public SynonymDictionary(boolean isIgnoreCase) {
+		super(isIgnoreCase);
 		wordSet = new HashSet<CharVector>();
 	}
 
-	public SynonymDictionary(File file) {
-		super(file);
+	public SynonymDictionary(File file, boolean isIgnoreCase) {
+		super(file, isIgnoreCase);
 	}
 
-	public SynonymDictionary(InputStream is) {
-		super(is);
+	public SynonymDictionary(InputStream is, boolean isIgnoreCase) {
+		super(is, isIgnoreCase);
 	}
 
 	public Set<CharVector> getWordSet() {
@@ -43,7 +47,7 @@ public class SynonymDictionary extends MapDictionary {
 
 	// key가 null일수 있다. 양방향의 경우.
 	@Override
-	public void addEntry(String keyword, Object[] values, boolean ignoreCase, boolean[] valuesIgnoreCase) {
+	public void addEntry(String keyword, Object[] values) {
 
 		ArrayList<CharVector> list = new ArrayList<CharVector>(4);
 
@@ -51,10 +55,6 @@ public class SynonymDictionary extends MapDictionary {
 		if (keyword != null) {
 			keyword = keyword.trim();
 			if (keyword.length() > 0) {
-				if (ignoreCase) {
-					keyword = keyword.toUpperCase();
-				}
-
 				mainWord = new CharVector(keyword);
 				wordSet.add(mainWord);
 			}
@@ -65,9 +65,6 @@ public class SynonymDictionary extends MapDictionary {
 		}
 		// 0번째에 유사어들이 컴마 단위로 모두 입력되어 있으므로 [0]만 확인하면 된다.
 		String valueString = values[0].toString();
-		if (valuesIgnoreCase[0]) {
-			valueString = valueString.toUpperCase();
-		}
 		// 중복제거.
 		String[] synonyms = valueString.split(",");
 		dedupSynonym(synonyms);

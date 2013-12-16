@@ -30,25 +30,17 @@ public class DAOSourceDictionaryCompiler {
 		int start = 1;
 
 		String keyColumnName = null;
-		boolean keyIgnoreCase = false;
 		List<String> valueColumnNames = new ArrayList<String>();
-		List<Boolean> ignoreCaseList = new ArrayList<Boolean>();
 		
 		// key는 설정안해도 무조건 isCompilable이다.
 		for (int i = 0; i < columnList.size(); i++) {
 			ColumnSetting columnSetting = columnList.get(i);
 			if (columnSetting.isCompilable() && !columnSetting.isKey()) {
 				valueColumnNames.add(columnSetting.getName().toUpperCase());
-				ignoreCaseList.add(columnSetting.isIgnoreCase());
 			}
 			if (columnSetting.isKey()) {
 				keyColumnName = columnSetting.getName().toUpperCase();
-				keyIgnoreCase = columnSetting.isIgnoreCase(); 
 			}
-		}
-		boolean[] valuesIgnoreCase = new boolean[ignoreCaseList.size()];
-		for(int i=0;i<ignoreCaseList.size(); i++){
-			valuesIgnoreCase[i] = ignoreCaseList.get(i);
 		}
 		
 		//synoym_2way처리를 위해 주석처리 swsong 2013-12-16
@@ -73,7 +65,7 @@ public class DAOSourceDictionaryCompiler {
 					
 					values[j] = vo.get(columnName).toString();
 				}
-				dictionaryType.addEntry(key, values, keyIgnoreCase, valuesIgnoreCase);
+				dictionaryType.addEntry(key, values);
 			}
 
 			if (result.size() < BULK_SIZE) {

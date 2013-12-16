@@ -5,12 +5,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.lucene.store.InputStreamDataInput;
@@ -18,6 +14,7 @@ import org.apache.lucene.store.OutputStreamDataOutput;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
+import org.fastcatsearch.ir.util.CharVectorHashSet;
 
 public class SetDictionary extends SourceDictionary {
 	
@@ -28,17 +25,20 @@ public class SetDictionary extends SourceDictionary {
 		this(false);
 	}
 	
-	public SetDictionary(boolean isTokenWord) {
-		set = new HashSet<CharVector>();
+	public SetDictionary(boolean ignoreCase) {
+		super(ignoreCase);
+		set = new CharVectorHashSet(ignoreCase);
 	}
 
-	public SetDictionary(Set<CharVector> set, boolean ignoreCase) {
+	public SetDictionary(CharVectorHashSet set, boolean ignoreCase) {
+		super(ignoreCase);
 		this.set = set;
 	}
 
-	public SetDictionary(File file) {
+	public SetDictionary(File file, boolean ignoreCase) {
+		super(ignoreCase);
 		if(!file.exists()){
-			set = new HashSet<CharVector>();
+			set = new CharVectorHashSet(ignoreCase);
 			logger.error("사전파일이 존재하지 않습니다. file={}", file.getAbsolutePath());
 			return;
 		}
@@ -53,6 +53,7 @@ public class SetDictionary extends SourceDictionary {
 	}
 
 	public SetDictionary(InputStream is, boolean ignoreCase){
+		super(ignoreCase);
 		try {
 			readFrom(is);
 		} catch (IOException e) {
@@ -61,12 +62,9 @@ public class SetDictionary extends SourceDictionary {
 	}
 	
 	@Override
-	public void addEntry(String keyword, Object[] ignore, boolean ignoreCase, boolean[] valuesIgnoreCase) {
+	public void addEntry(String keyword, Object[] value) {
 		keyword = keyword.trim();
 		if (keyword.length() > 0) {
-			if(ignoreCase){
-				keyword = keyword.toUpperCase();
-			}
 			set.add(new CharVector(keyword));
 		}
 	}
@@ -98,7 +96,7 @@ public class SetDictionary extends SourceDictionary {
 	public void readFrom(InputStream in) throws IOException {
 		
 		DataInput input = new InputStreamDataInput(in);
-		set = new HashSet<CharVector>();
+		set = new CharVectorHashSet(ignoreCase);
 		int size = input.readInt();
 		
 		for(int entryInx=0;entryInx < size; entryInx++) {
@@ -106,22 +104,9 @@ public class SetDictionary extends SourceDictionary {
 		}
 	}
 
-//	@Override
-//	public List<CharVector> find(CharVector token) {
-//		if(set.contains(token)) {
-//			Arrays.asList(new CharVector[] { token });
-//		}
-//		return null;
-//	}
-//
-//	@Override
-//	public int size() {
-//		return set.size();
-//	}
-
 	@Override
-	public void addSourceLineEntry(String line, boolean ignoreCase, boolean[] valuesIgnoreCase) {
-		addEntry(line, null, ignoreCase, valuesIgnoreCase);
+	public void addSourceLineEntry(String line) {
+		addEntry(line, null);
 	}
 
 }

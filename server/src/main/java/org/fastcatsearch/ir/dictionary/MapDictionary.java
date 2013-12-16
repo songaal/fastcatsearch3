@@ -5,11 +5,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.lucene.store.InputStreamDataInput;
@@ -17,6 +14,7 @@ import org.apache.lucene.store.OutputStreamDataOutput;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
+import org.fastcatsearch.ir.util.CharVectorHashMap;
 /*
  * map 범용 사전. 
  * CharVector : CharVector[] pair이다.
@@ -28,19 +26,23 @@ public class MapDictionary extends SourceDictionary {
 
 	protected Map<CharVector, CharVector[]> map;
 	
-
-	public MapDictionary() {
-		map = new HashMap<CharVector, CharVector[]>();
-		
+	public MapDictionary(){
+		this(false);
+	}
+	public MapDictionary(boolean ignoreCase) {
+		super(ignoreCase);
+		map = new CharVectorHashMap<CharVector[]>(ignoreCase);
 	}
 
-	public MapDictionary(Map<CharVector, CharVector[]> map, boolean ignoreCase) {
+	public MapDictionary(CharVectorHashMap<CharVector[]> map) {
+		super(map.isIgnoreCase());
 		this.map = map;
 	}
 
-	public MapDictionary(File file) {
+	public MapDictionary(File file, boolean ignoreCase) {
+		super(ignoreCase);
 		if(!file.exists()){
-			map = new HashMap<CharVector, CharVector[]>();
+			map = new CharVectorHashMap<CharVector[]>();
 			logger.error("사전파일이 존재하지 않습니다. file={}", file.getAbsolutePath());
 			return;
 		}
@@ -54,7 +56,8 @@ public class MapDictionary extends SourceDictionary {
 		}
 	}
 
-	public MapDictionary(InputStream is) {
+	public MapDictionary(InputStream is, boolean ignoreCase) {
+		super(ignoreCase);
 		try {
 			readFrom(is);
 		} catch (IOException e) {
@@ -64,21 +67,14 @@ public class MapDictionary extends SourceDictionary {
 
 	
 	@Override
-	public void addEntry(String keyword, Object[] values, boolean ignoreCase, boolean[] valuesIgnoreCase) {
+	public void addEntry(String keyword, Object[] values) {
 		if(keyword == null || keyword.length() == 0) {
 			return;
-		}
-		
-		if(ignoreCase){
-			keyword = keyword.toUpperCase();
 		}
 		
 		CharVector[] list = new CharVector[values.length];
 		for (int i = 0; i < values.length; i++) {
 			String value = values[i].toString();
-			if(valuesIgnoreCase[i]){
-				value = value.toUpperCase();
-			}
 			list[i] = new CharVector(value);
 		}
 		map.put(new CharVector(keyword), list);
@@ -120,10 +116,9 @@ public class MapDictionary extends SourceDictionary {
 	public void readFrom(InputStream in) throws IOException {
 		DataInput input = new InputStreamDataInput(in);
 		
-		map = new HashMap<CharVector, CharVector[]>();
+		map = new CharVectorHashMap<CharVector[]>(ignoreCase);
 		
 		int size = input.readVInt();
-logger.debug("readFrom size > {}", size);
 		for(int entryInx=0;entryInx < size; entryInx++) {
 			CharVector key = new CharVector(input.readUString());
 			
@@ -140,29 +135,17 @@ logger.debug("readFrom size > {}", size);
 		
 	}
 
-//	@Override
-//	public List<CharVector> find(CharVector token) {
-//		if(map.containsKey(token)) {
-//			return Arrays.asList(map.get(token));
-//		}
-//		return null;
-//	}
-//
-//	@Override
-//	public int size() {
-//		return map.size();
-//	}
 
 	@Override
-	public void addSourceLineEntry(String line, boolean ignoreCase, boolean[] valuesIgnoreCase) {
+	public void addSourceLineEntry(String line) {
 		String[] kv= line.split("\t");
 		if(kv.length == 1){
 			String value = kv[0].trim();
-			addEntry(null, new String[]{ value}, ignoreCase, valuesIgnoreCase);
+			addEntry(null, new String[]{ value});
 		}else if(kv.length == 2){
 			String keyword = kv[0].trim();
 			String value = kv[1].trim();
-			addEntry(keyword, new String[]{ value }, ignoreCase, valuesIgnoreCase);
+			addEntry(keyword, new String[]{ value });
 		}
 	}
 

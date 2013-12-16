@@ -15,9 +15,9 @@ import org.junit.Test;
 public class DictionaryTest {
 	@Test
 	public void testSynonymDictionary() throws IOException {
-		SynonymDictionary dictionary = new SynonymDictionary();
-		dictionary.addEntry("마우스", new String[] { "mouse, 로지텍" }, true, new boolean[] { true });
-		dictionary.addEntry(null, new String[] { "엘지모니터, monitor, 광시야각, 마우스" }, true, new boolean[] { true });
+		SynonymDictionary dictionary = new SynonymDictionary(true);
+		dictionary.addEntry("마우스", new String[] { "mouse, 로지텍" });
+		dictionary.addEntry(null, new String[] { "엘지모니터, monitor, 광시야각, 마우스" });
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		dictionary.writeTo(baos);
 		
@@ -36,6 +36,10 @@ public class DictionaryTest {
 		for(CharVector cv : dictionary2.getWordSet()){
 			System.out.println(cv);
 		}
+		
+		String word = "MONitor";
+		CharVector[] r = dictionary.map().get(new CharVector(word));
+		System.out.println(word + " >> "+ join(r));
 	}
 	
 	
@@ -51,23 +55,27 @@ public class DictionaryTest {
 	}
 	@Test
 	public void testMapDictionary() throws IOException {
-		MapDictionary dictionary = new MapDictionary();
-		dictionary.addEntry("마우스", new String[] { "mouse, 로지텍" }, true, new boolean[] { true });
-		dictionary.addEntry("모니터", new String[] { "엘지모니터, monitor, 광시야각" }, true, new boolean[] { true });
+		boolean ignoreCase = true;
+		
+		MapDictionary dictionary = new MapDictionary(ignoreCase);
+		dictionary.addEntry("마우스", new String[] { "mouse, 로지텍" });
+		dictionary.addEntry("모니터", new String[] { "엘지모니터, monitor, 광시야각" });
 		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		dictionary.writeTo(out);
 		out.close();
-		CharVector[] result = dictionary.getUnmodifiableMap().get(new CharVector("엘지모니터"));
+		CharVector[] result = dictionary.getUnmodifiableMap().get(new CharVector("모니터"));
 		System.out.println(result[0]+","+result[1]);
+		
+		
 		
 		byte[] buffer = out.toByteArray();
 		
 		//다시 읽고.
 		ByteArrayInputStream bais = new ByteArrayInputStream(buffer);
-		MapDictionary dictionary2 = new MapDictionary(bais);
+		MapDictionary dictionary2 = new MapDictionary(bais, ignoreCase);
 		bais.close();
-		CharVector[] result2 = dictionary2.getUnmodifiableMap().get(new CharVector("엘지모니터"));
+		CharVector[] result2 = dictionary2.getUnmodifiableMap().get(new CharVector("모니터"));
 		System.out.println(result2[0]+","+result2[1]);
 		//다시 쓰고.
 		ByteArrayOutputStream out2 = new ByteArrayOutputStream();
@@ -76,9 +84,9 @@ public class DictionaryTest {
 		
 		//다시 읽고.
 		ByteArrayInputStream bais2 = new ByteArrayInputStream(buffer);
-		MapDictionary dictionary3 = new MapDictionary(bais2);
+		MapDictionary dictionary3 = new MapDictionary(bais2, ignoreCase);
 		bais2.close();
-		CharVector[] result3 = dictionary3.getUnmodifiableMap().get(new CharVector("엘지모니터"));
+		CharVector[] result3 = dictionary3.getUnmodifiableMap().get(new CharVector("모니터"));
 		System.out.println(result3[0]+","+result3[1]);
 		
 		
@@ -102,7 +110,7 @@ public class DictionaryTest {
 		String[] terms = new String[] { "삼성", "LG", "애플" };
 		
 		for(String term : terms) {
-			dictionary.addEntry(term, null, true, null);
+			dictionary.addEntry(term, null);
 		}
 		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -215,16 +223,16 @@ public class DictionaryTest {
 	}
 	@Test
 	public void testSpaceDictionary(){
-		SpaceDictionary spaceDictionary = new SpaceDictionary();
-		spaceDictionary.addEntry("nike, air", null, true, null);
-		spaceDictionary.addEntry("진, 청바지", null, true, null);
-		spaceDictionary.addEntry("맥북, 프로, 레티나", null, true, null);
+		SpaceDictionary spaceDictionary = new SpaceDictionary(true);
+		spaceDictionary.addEntry("nike, air", null);
+		spaceDictionary.addEntry("진, 청바지", null);
+		spaceDictionary.addEntry("맥북, 프로, 레티나", null);
 		for(Map.Entry<CharVector,CharVector[]> entry : spaceDictionary.map().entrySet()){
 			System.out.println(entry.getKey() + " : " + join(entry.getValue()));
 		}
-		CharVector[] result = spaceDictionary.map().get(new CharVector("NIKEAIR"));
-		Assert.assertEquals("NIKE", result[0].toString());
-		Assert.assertEquals("AIR", result[1].toString());
+		CharVector[] result = spaceDictionary.map().get(new CharVector("nIKEAIR"));
+		Assert.assertEquals("nike", result[0].toString());
+		Assert.assertEquals("air", result[1].toString());
 		result = spaceDictionary.map().get(new CharVector("진청바지"));
 		Assert.assertEquals("진", result[0].toString());
 		Assert.assertEquals("청바지", result[1].toString());

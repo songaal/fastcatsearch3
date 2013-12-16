@@ -64,12 +64,13 @@ public class AnalysisPluginSetting extends PluginSetting {
 		}
 	}
 	
-	@XmlType(propOrder={"columnSettingList", "tokenType", "type", "name", "id"})
+	@XmlType(propOrder={"columnSettingList", "ignoreCase", "tokenType", "type", "name", "id"})
 	public static class DictionarySetting {
 		private String id;
 		private String name;
 		private Type type;
 		private String tokenType;
+		private boolean ignoreCase;
 		private List<ColumnSetting> columnSettingList;
 		
 		public static enum Type {
@@ -108,6 +109,15 @@ public class AnalysisPluginSetting extends PluginSetting {
 			this.tokenType = tokenType;
 		}
 		
+		@XmlAttribute
+		public boolean isIgnoreCase() {
+			return ignoreCase;
+		}
+		
+		public void setIgnoreCase(boolean ignoreCase) {
+			this.ignoreCase = ignoreCase;
+		}
+		
 		@XmlElement(name="column")
 		public List<ColumnSetting> getColumnSettingList() {
 			return columnSettingList;
@@ -119,15 +129,15 @@ public class AnalysisPluginSetting extends PluginSetting {
 	}
 	
 	/*
-	 * <dictionary id="boosting" name="부스팅사전" type="custom">
-			<column name="key" searchable="true" key="true" compilable="true" ignoreCase="true"/>
+	 * <dictionary id="boosting" name="부스팅사전" type="custom" ignoreCase="true">
+			<column name="key" searchable="true" key="true" compilable="true"/>
 			<column name="value" searchable="true" compilable="true" separator=","/>
 			<column name="display" searchable="true" />
 			<column name="url" searchable="true" /> 
 			<column name="score" index="true" compilable="true" />
 		</dictionary>
 	 * */
-	@XmlType(propOrder={"nullableUnique", "ignoreCase", "compilable", "searchable", "separator", "index", "key", "type", "name"})
+	@XmlType(propOrder={"nullableUnique", "compilable", "searchable", "separator", "index", "key", "type", "name"})
 	public static class ColumnSetting {
 		private String name;
 		private String type;
@@ -136,7 +146,6 @@ public class AnalysisPluginSetting extends PluginSetting {
 		private String separator;
 		private boolean searchable;
 		private boolean compilable;
-		private boolean ignoreCase;
 		private boolean nullableUnique; //null을 허용하지만 값이 존재할때에는 unique해야하는 컬럼. 유사어의 key컬럼용도. table생성시에는 관여하지 않는다.
 		
 		@XmlAttribute(required = true)
@@ -191,15 +200,6 @@ public class AnalysisPluginSetting extends PluginSetting {
 			this.separator = separator;
 		}
 
-		@XmlAttribute
-		public boolean isIgnoreCase() {
-			return ignoreCase;
-		}
-		
-		public void setIgnoreCase(boolean ignoreCase) {
-			this.ignoreCase = ignoreCase;
-		}
-		
 		@XmlAttribute
 		public boolean isNullableUnique() {
 			return nullableUnique;
