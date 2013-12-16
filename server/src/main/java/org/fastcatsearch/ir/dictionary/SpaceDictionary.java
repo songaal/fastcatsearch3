@@ -42,8 +42,13 @@ public class SpaceDictionary extends MapDictionary {
 	@Override
 	public void addEntry(String keyword, Object[] ignoreValue, boolean ignoreCase, boolean[] valuesIgnoreCase) {
 		CharVector[] value = makeValue(keyword, ignoreCase);
+		for(CharVector word : value){
+			wordSet.add(word);
+		}
 		CharVector key = makeKey(value);
 		map.put(key, value);
+		//key는 붙여쓰기 오류일 경우도 있으므로, wordSet에 추가하지 않는다.
+		
 	}
 	
 	private CharVector[] makeValue(String word, boolean ignoreCase) {
