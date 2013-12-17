@@ -2,6 +2,7 @@ package org.fastcatsearch.http.action.management.analysis;
 
 import java.io.Writer;
 import java.util.Collection;
+import java.util.List;
 
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
@@ -11,6 +12,7 @@ import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.plugin.PluginSetting;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting;
+import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
@@ -30,12 +32,14 @@ public class GetAnalysisPluginList extends AuthAction {
 		for(Plugin plugin : pluginList){
 			PluginSetting pluginSetting = plugin.getPluginSetting();
 			if(pluginSetting instanceof AnalysisPluginSetting){
+				List<DictionarySetting> dictionaryList = ((AnalysisPluginSetting) pluginSetting).getDictionarySettingList();
 				responseWriter.object()
 				.key("id").value(pluginSetting.getId())
 				.key("name").value(pluginSetting.getName())
 				.key("version").value(pluginSetting.getVersion())
 				.key("description").value(pluginSetting.getDescription())
 				.key("className").value(pluginSetting.getClassName())
+				.key("hasDictionary").value(dictionaryList != null && dictionaryList.size() > 0)
 				.endObject();
 			}
 		}
