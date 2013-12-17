@@ -116,7 +116,7 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 
 	@Override
 	protected boolean doClose() throws FastcatSearchException {
-		return false;
+		return true;
 	}
 
 	public Collection<Node> getNodeList() {

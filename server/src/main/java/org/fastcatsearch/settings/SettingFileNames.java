@@ -25,5 +25,5 @@ public class SettingFileNames {
 	
 	public static final String scheduleConfig = "schedule.xml";
 	public static final String statisticsConfig = "statistics.xml";
-	public static final String additionalServiceConfig = "additional-service.xml";
+	public static final String keywordServiceConfig = "additional-service.xml";
 }
