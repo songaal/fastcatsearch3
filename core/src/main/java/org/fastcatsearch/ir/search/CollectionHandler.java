@@ -8,6 +8,9 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.util.BytesRef;
+import org.fastcatsearch.ir.analysis.AnalyzerFactory;
+import org.fastcatsearch.ir.analysis.AnalyzerFactoryManager;
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.common.SettingException;
@@ -22,6 +25,7 @@ import org.fastcatsearch.ir.index.PrimaryKeys;
 import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.query.Query;
+import org.fastcatsearch.ir.settings.AnalyzerSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
@@ -40,10 +44,14 @@ public class CollectionHandler {
 
 	private SearchStatistics searchStatistics; //검색통계치.
 	
-	public CollectionHandler(CollectionContext collectionContext) throws IRException, SettingException {
+	private AnalyzerFactoryManager analyzerFactoryManager;
+	private AnalyzerPoolManager analyzerPoolManager;
+	
+	public CollectionHandler(CollectionContext collectionContext, AnalyzerFactoryManager analyzerFactoryManager) throws IRException, SettingException {
 		this.collectionContext = collectionContext;
 		this.collectionId = collectionContext.collectionId();
 		this.collectionFilePaths = collectionContext.collectionFilePaths();
+		this.analyzerFactoryManager = analyzerFactoryManager;
 	}
 
 	public CollectionHandler load() throws IRException {
@@ -55,6 +63,14 @@ public class CollectionHandler {
 		return this;
 	}
 
+	public void setAnalyzerPoolManager(AnalyzerPoolManager analyzerPoolManager){
+		this.analyzerPoolManager = analyzerPoolManager;
+	}
+	
+	public AnalyzerPoolManager analyzerPoolManager(){
+		return analyzerPoolManager;
+	}
+	
 	public void setSearchStatistics(SearchStatistics searchStatistics){
 		this.searchStatistics = searchStatistics;
 	}
@@ -89,6 +105,11 @@ public class CollectionHandler {
 	}
 
 	private void loadSearcherAndReader() throws IRException {
+		
+		analyzerPoolManager = new AnalyzerPoolManager();
+		List<AnalyzerSetting> analyzerSettingList = collectionContext.schema().schemaSetting().getAnalyzerSettingList();
+		analyzerPoolManager.register(analyzerSettingList, analyzerFactoryManager);
+		
 		this.schema = collectionContext.schema();
 		int dataSequence = collectionContext.indexStatus().getSequence();
 		FilePaths dataPaths = collectionFilePaths.dataPaths();
@@ -115,7 +136,7 @@ public class CollectionHandler {
 					File segmentDir = dataPaths.segmentFile(dataSequence, segmentInfo.getId());
 					// 삭제문서는 마지막 세그먼트의 마지막 리비전에 최신 업데이트 파일이 있으므로, 그것을 로딩한다.
 					BitSet deleteSet = new BitSet(lastRevisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
-					segmentReaderList.add(new SegmentReader(segmentInfo, schema, segmentDir, deleteSet));
+					segmentReaderList.add(new SegmentReader(segmentInfo, schema, segmentDir, deleteSet, analyzerPoolManager));
 					logger.debug("{}", segmentInfo);
 				}
 			} catch (IOException e) {
@@ -239,7 +260,7 @@ public class CollectionHandler {
 				segmentReaderList.get(i).setDeleteSet(deleteSetList[i]);
 			}
 			// 새로생성된 세그먼트는 로딩하여 리스트에 추가해준다.
-			addSegmentReader(new SegmentReader(segmentInfo, schema, segmentDir));
+			addSegmentReader(new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager));
 		} else {
 			/*
 			 * 리비전이 증가한경우.
@@ -279,7 +300,7 @@ public class CollectionHandler {
 				prevSegmentReaderList.get(i).setDeleteSet(deleteSetList[i]);
 			}
 			// 새 revison을 읽는 segmentReader를 만들어서 기존것과 바꾼다.
-			updateSegmentReader(new SegmentReader(segmentInfo, schema, segmentDir), oldSegmentReader);
+			updateSegmentReader(new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager), oldSegmentReader);
 			// 기존 reader는 닫는다.
 			oldSegmentReader.close();
 		}
@@ -293,7 +314,7 @@ public class CollectionHandler {
 			BitSet deleteSet = new BitSet(lastRevisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
 			segmentReaderList.get(i).setDeleteSet(deleteSet);
 		}
-		addSegmentReader(new SegmentReader(segmentInfo, schema, segmentDir));
+		addSegmentReader(new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager));
 	}
 
 	// 단순 update. delete.set파일은 이미 수정되어있다고 가정한다.
@@ -311,7 +332,7 @@ public class CollectionHandler {
 			prevSegmentReaderList.get(i).setDeleteSet(deleteSet);
 		}
 		// 새 revison을 읽는 segmentReader를 만들어서 기존것과 바꾼다.
-		updateSegmentReader(new SegmentReader(segmentInfo, schema, segmentDir), oldSegmentReader);
+		updateSegmentReader(new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager), oldSegmentReader);
 		// 기존 reader는 닫는다.
 		oldSegmentReader.close();
 	}

@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.OperatedClause;
@@ -45,11 +46,11 @@ public class SearchIndexesReader implements Cloneable {
 	public SearchIndexesReader() {
 	}
 
-	public SearchIndexesReader(Schema schema, File dir) throws IOException, IRException {
-		this(schema, dir, 0);
+	public SearchIndexesReader(Schema schema, File dir, AnalyzerPoolManager analyzerPoolManager) throws IOException, IRException {
+		this(schema, dir, 0, analyzerPoolManager);
 	}
 
-	public SearchIndexesReader(Schema schema, File dir, int revision) throws IOException, IRException {
+	public SearchIndexesReader(Schema schema, File dir, int revision, AnalyzerPoolManager analyzerPoolManager) throws IOException, IRException {
 		this.schema = schema;
 		logger.debug("schema > {}", schema);
 		logger.debug("schema.schemaSetting > {}", schema.schemaSetting());
@@ -62,7 +63,7 @@ public class SearchIndexesReader implements Cloneable {
 			IndexSetting setting = indexSettingList.get(i);
 			SearchIndexReader reader = null;
 			try {
-				reader = new SearchIndexReader(setting, schema, dir, revision);
+				reader = new SearchIndexReader(setting, schema, dir, revision, analyzerPoolManager);
 			} catch (Exception e) {
 				logger.error("색인Reader {}로딩중 에러 >> {}", setting.getId(), e);
 				if (reader != null) {

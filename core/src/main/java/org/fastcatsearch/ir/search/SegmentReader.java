@@ -19,6 +19,7 @@ package org.fastcatsearch.ir.search;
 import java.io.File;
 import java.io.IOException;
 
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
@@ -79,11 +80,11 @@ public class SegmentReader {
 		}
 	};
 	
-	public SegmentReader(SegmentInfo segmentInfo, Schema schema, File segmentDir) throws IOException, IRException {
-		this(segmentInfo, schema, segmentDir, null);
+	public SegmentReader(SegmentInfo segmentInfo, Schema schema, File segmentDir, AnalyzerPoolManager analyzerPoolManager) throws IOException, IRException {
+		this(segmentInfo, schema, segmentDir, null, analyzerPoolManager);
 	}
 			
-	public SegmentReader(SegmentInfo segmentInfo, Schema schema, File segmentDir, BitSet bitset) throws IOException, IRException {
+	public SegmentReader(SegmentInfo segmentInfo, Schema schema, File segmentDir, BitSet bitset, AnalyzerPoolManager analyzerPoolManager) throws IOException, IRException {
 		this.segmentSequence = segmentInfo.getIntId();
 		this.schema = schema;
 		this.segmentDir = segmentDir;
@@ -92,7 +93,7 @@ public class SegmentReader {
 		int ref = segmentInfo.getRevisionInfo().getRef();
 		
 		// reader들은 thread-safe하지 않다. clone해서 사용됨.
-		this.searchIndexesReader = new SearchIndexesReader(schema, segmentDir, ref);
+		this.searchIndexesReader = new SearchIndexesReader(schema, segmentDir, ref, analyzerPoolManager);
 		
 		//field index
 		this.fieldIndexesReader = new FieldIndexesReader(schema, segmentDir);

@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
@@ -43,14 +44,14 @@ public class SearchIndexesWriter {
 
 	private int count;
 
-	public SearchIndexesWriter(Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig) throws IOException, IRException {
+	public SearchIndexesWriter(Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager) throws IOException, IRException {
 		this.indexSettingList = schema.schemaSetting().getIndexSettingList();
 		this.indexSize = indexSettingList == null ? 0 : indexSettingList.size();
 		searchIndexWriterList = new SearchIndexWriter[indexSize];
 		
 		for (int i = 0; i < indexSize; i++) {
 			IndexSetting indexSetting = indexSettingList.get(i);
-			searchIndexWriterList[i] = new SearchIndexWriter(indexSetting, schema, dir, revisionInfo, indexConfig);
+			searchIndexWriterList[i] = new SearchIndexWriter(indexSetting, schema, dir, revisionInfo, indexConfig, analyzerPoolManager);
 		}
 	}
 

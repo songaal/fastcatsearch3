@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Date;
 
 import org.fastcatsearch.datasource.reader.DataSourceReader;
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionContext;
@@ -28,6 +29,8 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractCollectionIndexer {
 	protected static final Logger logger = LoggerFactory.getLogger(CollectionFullIndexer.class);
 	protected CollectionContext collectionContext;
+	protected AnalyzerPoolManager analyzerPoolManager;
+	
 	protected DataSourceReader dataSourceReader;
 	protected long startTime;
 	protected IndexingTaskState indexingTaskState;
@@ -43,8 +46,9 @@ public abstract class AbstractCollectionIndexer {
 	
 	protected boolean stopRequested;
 	
-	public AbstractCollectionIndexer(CollectionContext collectionContext) {
+	public AbstractCollectionIndexer(CollectionContext collectionContext, AnalyzerPoolManager analyzerPoolManager) {
 		this.collectionContext = collectionContext;
+		this.analyzerPoolManager = analyzerPoolManager;
 	}
 	
 	protected abstract DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException;
@@ -71,7 +75,7 @@ public abstract class AbstractCollectionIndexer {
 		File filePath = collectionContext.collectionFilePaths().file();
 		dataSourceReader = createDataSourceReader(filePath, schema.schemaSetting());
 		
-		segmentWriter = new SegmentWriter(schema, segmentDir, revisionInfo, indexConfig);
+		segmentWriter = new SegmentWriter(schema, segmentDir, revisionInfo, indexConfig, analyzerPoolManager);
 		
 		indexWriteInfoList = new IndexWriteInfoList();
 		

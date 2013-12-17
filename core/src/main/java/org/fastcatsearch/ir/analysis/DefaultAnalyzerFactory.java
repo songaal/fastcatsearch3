@@ -12,7 +12,7 @@ public class DefaultAnalyzerFactory implements AnalyzerFactory {
 	protected static final Logger logger = LoggerFactory.getLogger(DefaultAnalyzerFactory.class);
 	protected Class<? extends Analyzer> analyzerClass;
 	
-	public DefaultAnalyzerFactory(Class<Analyzer> analyzerClass) {
+	public DefaultAnalyzerFactory(Class<? extends Analyzer> analyzerClass) {
 		this.analyzerClass = analyzerClass;
 	}
 
@@ -30,6 +30,16 @@ public class DefaultAnalyzerFactory implements AnalyzerFactory {
 	@Override
 	public void init() {
 		
+	}
+
+	@Override
+	public Analyzer create(Object option) {
+		return create();
+	}
+
+	@Override
+	public Class<? extends Analyzer> getAnalyzerClass() {
+		return analyzerClass;
 	}
 
 }

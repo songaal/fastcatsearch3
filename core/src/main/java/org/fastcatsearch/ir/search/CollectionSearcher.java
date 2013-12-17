@@ -338,7 +338,7 @@ long a, b = 0, c = System.nanoTime();
 	}
 
 	private String getHighlightedSnippet(String text, String analyzerId, String queryString, String[] tags, View view) throws IOException {
-		AnalyzerPool analyzerPool = collectionHandler.schema().getAnalyzerPool(analyzerId);
+		AnalyzerPool analyzerPool = collectionHandler.analyzerPoolManager().getPool(analyzerId);
 		if (analyzerPool != null) {
 			Analyzer analyzer = analyzerPool.getFromPool();
 			if (analyzer != null) {

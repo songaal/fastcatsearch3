@@ -30,6 +30,7 @@ import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.util.CharsRef;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
@@ -72,7 +73,7 @@ public class SearchIndexWriter {
 
 	private RevisionInfo revisionInfo;
 	
-	public SearchIndexWriter(IndexSetting indexSetting, Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig) throws IOException,
+	public SearchIndexWriter(IndexSetting indexSetting, Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager) throws IOException,
 			IRException {
 		this.indexId = indexSetting.getId();
 		this.baseDir = dir;
@@ -83,7 +84,7 @@ public class SearchIndexWriter {
 		int indexBucketSize = indexConfig.getIndexWorkBucketSize();
 
 		String indexAnalyzerId = indexSetting.getIndexAnalyzer();
-		analyzerPool = schema.getAnalyzerPool(indexAnalyzerId);
+		analyzerPool = analyzerPoolManager.getPool(indexAnalyzerId);
 
 		if (analyzerPool == null) {
 			// 분석기 못찾음.

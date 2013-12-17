@@ -34,7 +34,6 @@ public class MasterCollectionFullIndexingJob extends MasterNodeJob {
 		if (newCollectionContext.workSchemaSetting() != null) {
 			newCollectionContext.setSchema(new Schema(newCollectionContext.workSchemaSetting()));
 		}
-
 		CollectionFullIndexingJob collectionIndexingJob = new CollectionFullIndexingJob(newCollectionContext);
 		collectionIndexingJob.setArgs(collectionId);
 

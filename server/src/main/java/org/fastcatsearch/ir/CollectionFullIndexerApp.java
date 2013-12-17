@@ -2,6 +2,7 @@ package org.fastcatsearch.ir;
 
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.plugin.PluginService;
@@ -49,8 +50,9 @@ public class CollectionFullIndexerApp {
 			Collection collection = new Collection("sample");
 			CollectionContext collectionContext = CollectionContextUtil.load(collection, collectionFilePaths);
 			System.out.println(collectionContext.schema().getFieldSetting("id"));
-
-			CollectionFullIndexer indexer = new CollectionFullIndexer(collectionContext);
+			AnalyzerPoolManager analyzerPoolManager = new AnalyzerPoolManager();
+			
+			CollectionFullIndexer indexer = new CollectionFullIndexer(collectionContext, analyzerPoolManager);
 
 			indexer.doIndexing();
 			indexer.close();

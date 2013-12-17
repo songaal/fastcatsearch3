@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.datasource.reader.DataSourceReader;
 import org.fastcatsearch.datasource.reader.DataSourceReaderFactory;
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.common.IndexingType;
@@ -31,7 +32,7 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
 	private CollectionHandler collectionHandler;
 	
 	public CollectionAddIndexer(CollectionHandler collectionHandler) throws IRException {
-		super(collectionHandler.collectionContext());
+		super(collectionHandler.collectionContext(), collectionHandler.analyzerPoolManager());
 		this.collectionHandler = collectionHandler;
 		
 		//증분색인시는 현재 스키마를 그대로 사용한다.

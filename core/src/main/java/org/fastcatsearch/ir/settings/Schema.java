@@ -21,7 +21,7 @@ public class Schema {
 	private Map<String, Integer> groupIndexSequenceMap;
 	private Map<String, FieldSetting> fieldSettingMap;
 	
-	private AnalyzerPoolManager analyzerPoolManager;
+//	private AnalyzerPoolManager analyzerPoolManager;
 	private String collectionId;
 	
 	public String toString(){
@@ -77,35 +77,35 @@ public class Schema {
 			groupIndexSequenceMap.put(groupIndexSetting.getId().toUpperCase(), i);
 		}
 		
-		//분석기 객체화.
-		analyzerPoolManager = new AnalyzerPoolManager();
-		
-		List<AnalyzerSetting> analyzerSettingSettingList = schemaSetting.getAnalyzerSettingList();
-		if(analyzerSettingSettingList != null){
-			logger.debug("AnalyzerSetting size ={}", analyzerSettingSettingList.size());
-			
-			for(AnalyzerSetting analyzerSetting : analyzerSettingSettingList){
-				String analyzerClassName = analyzerSetting.getClassName();
-				String analyzerId = analyzerSetting.getId();
-				if(analyzerClassName == null || analyzerId == null){
-					continue;
-				}
-				int corePoolSize = analyzerSetting.getCorePoolSize();
-				int maximumPoolSize = analyzerSetting.getMaximumPoolSize();
-				AnalyzerFactory factory = AnalyzerFactoryLoader.load(analyzerClassName);
-				
-				if(factory != null){
-					if(corePoolSize == -1 || maximumPoolSize == -1){
-						analyzerPoolManager.registerAnalyzer(analyzerId.toUpperCase(), factory);
-					}else{
-						analyzerPoolManager.registerAnalyzer(analyzerId.toUpperCase(), factory, corePoolSize, maximumPoolSize);
-					}
-				}else{
-					logger.error("분석기 {}를 로드할수 없습니다.", analyzerClassName);
-				}
-				
-			}
-		}
+//		//분석기 객체화.
+//		analyzerPoolManager = new AnalyzerPoolManager();
+//		
+//		List<AnalyzerSetting> analyzerSettingSettingList = schemaSetting.getAnalyzerSettingList();
+//		if(analyzerSettingSettingList != null){
+//			logger.debug("AnalyzerSetting size ={}", analyzerSettingSettingList.size());
+//			
+//			for(AnalyzerSetting analyzerSetting : analyzerSettingSettingList){
+//				String analyzerClassName = analyzerSetting.getClassName();
+//				String analyzerId = analyzerSetting.getId();
+//				if(analyzerClassName == null || analyzerId == null){
+//					continue;
+//				}
+//				int corePoolSize = analyzerSetting.getCorePoolSize();
+//				int maximumPoolSize = analyzerSetting.getMaximumPoolSize();
+//				AnalyzerFactory factory = AnalyzerFactoryLoader.load(analyzerClassName);
+//				
+//				if(factory != null){
+//					if(corePoolSize == -1 || maximumPoolSize == -1){
+//						analyzerPoolManager.registerAnalyzer(analyzerId.toUpperCase(), factory);
+//					}else{
+//						analyzerPoolManager.registerAnalyzer(analyzerId.toUpperCase(), factory, corePoolSize, maximumPoolSize);
+//					}
+//				}else{
+//					logger.error("분석기 {}를 로드할수 없습니다.", analyzerClassName);
+//				}
+//				
+//			}
+//		}
 		//primary key
 		
 	}
@@ -114,12 +114,12 @@ public class Schema {
 		return collectionId;
 	}
 	
-	public AnalyzerPoolManager getAnalyzerPoolManager(){
-		return analyzerPoolManager;
-	}
-	public AnalyzerPool getAnalyzerPool(String analyzerId){
-		return analyzerPoolManager.getPool(analyzerId);
-	}
+//	public AnalyzerPoolManager getAnalyzerPoolManager(){
+//		return analyzerPoolManager;
+//	}
+//	public AnalyzerPool getAnalyzerPool(String analyzerId){
+//		return analyzerPoolManager.getPool(analyzerId);
+//	}
 	public int getFieldSequence(String fieldId){
 		Integer i =  fieldSequenceMap.get(fieldId);
 		if(i == null){
@@ -211,7 +211,7 @@ public class Schema {
 		this.fieldIndexSequenceMap = other.fieldIndexSequenceMap;
 		this.groupIndexSequenceMap = other.groupIndexSequenceMap;
 		this.fieldSettingMap = other.fieldSettingMap;
-		this.analyzerPoolManager = other.analyzerPoolManager;
+//		this.analyzerPoolManager = other.analyzerPoolManager;
 	}
 	
 }

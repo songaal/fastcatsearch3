@@ -31,6 +31,9 @@ import org.fastcatsearch.common.QueryCacheModule;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.ir.analysis.AnalyzerFactoryManager;
+import org.fastcatsearch.ir.analysis.AnalyzerPool;
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionConfig;
@@ -45,6 +48,7 @@ import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SearchStatistics;
+import org.fastcatsearch.ir.settings.AnalyzerSetting;
 import org.fastcatsearch.job.indexing.MasterCollectionAddIndexingJob;
 import org.fastcatsearch.job.indexing.MasterCollectionFullIndexingJob;
 import org.fastcatsearch.module.ModuleException;
@@ -73,11 +77,15 @@ public class IRService extends AbstractService {
 
 	private RealtimeQueryStatisticsModule realtimeQueryStatisticsModule;
 
+	private AnalyzerFactoryManager analyzerFactoryManager;
 	public IRService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
 		realtimeQueryStatisticsModule = new RealtimeQueryStatisticsModule(environment, settings);
 	}
 
+	public void setAnalyzerFactoryManager(AnalyzerProvider analyzerProvider){
+		this.analyzerFactoryManager = analyzerProvider.getAnalyzerFactoryManager();
+	}
 	protected boolean doStart() throws FastcatSearchException {
 		realtimeQueryStatisticsModule.load();
 
@@ -107,7 +115,7 @@ public class IRService extends AbstractService {
 				if (collectionContext == null) {
 					continue;
 				} else {
-					collectionHandler = new CollectionHandler(collectionContext);
+					collectionHandler = new CollectionHandler(collectionContext, analyzerFactoryManager);
 				}
 
 				collectionHandlerMap.put(collectionId, collectionHandler);
@@ -139,9 +147,12 @@ public class IRService extends AbstractService {
 			throw new FastcatSearchException("ERR-00320");
 		}
 
+		
+		
 		return true;
 	}
 
+	
 	public CollectionHandler collectionHandler(String collectionId) {
 		return collectionHandlerMap.get(collectionId);
 	}
@@ -172,9 +183,10 @@ public class IRService extends AbstractService {
 
 			CollectionContext collectionContext = CollectionContextUtil.create(collectionConfig, collectionFilePaths);
 
+			
 			collectionsConfig.addCollection(collectionId);
 			JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.collections), collectionsConfig, CollectionsConfig.class);
-			CollectionHandler collectionHandler = new CollectionHandler(collectionContext);
+			CollectionHandler collectionHandler = new CollectionHandler(collectionContext, analyzerFactoryManager);
 			collectionHandlerMap.put(collectionId, collectionHandler);
 
 			realtimeQueryStatisticsModule.registerQueryCount(collectionId);
@@ -221,7 +233,7 @@ public class IRService extends AbstractService {
 	// }
 
 	public CollectionHandler loadCollectionHandler(CollectionContext collectionContext) throws IRException, SettingException {
-		return new CollectionHandler(collectionContext).load();
+		return new CollectionHandler(collectionContext, analyzerFactoryManager).load();
 	}
 
 	protected boolean doStop() throws FastcatSearchException {
@@ -380,5 +392,11 @@ public class IRService extends AbstractService {
 			}
 		}
 		return new ArrayList<String>(searchNodeSet);
+	}
+
+	public AnalyzerPoolManager createAnalyzerPoolManager(List<AnalyzerSetting> analyzerSettingList) {
+		AnalyzerPoolManager analyzerPoolManager = new AnalyzerPoolManager();
+		analyzerPoolManager.register(analyzerSettingList, analyzerFactoryManager);
+		return analyzerPoolManager;
 	}
 }

@@ -1,9 +1,11 @@
 package org.fastcatsearch.ir.analysis;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.fastcatsearch.ir.settings.AnalyzerSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,5 +60,19 @@ public class AnalyzerPoolManager {
 		
 		logger.info("Register AnalyzerPool analyzer={}, factory={}, core={}, max={}", analyzerId, factory.getClass().getSimpleName(), corePoolSize, maximumPoolSize);
 
+	}
+
+	public void register(List<AnalyzerSetting> analyzerSettingList, AnalyzerFactoryManager analyzerFactoryManager) {
+		//AnalyzerSettingList 로 AnalyzerPoolManager에 등록한다.
+		for(AnalyzerSetting setting : analyzerSettingList){
+			String analyzerFactoryId = setting.getClassName();
+			AnalyzerFactory factory = analyzerFactoryManager.getAnalyzerFactory(analyzerFactoryId);
+			if(factory != null){
+			registerAnalyzer(setting.getId(), factory, setting.getCorePoolSize(), setting.getMaximumPoolSize());
+			}else{
+				logger.error("Cannot find analyzer factory id >> {}", analyzerFactoryId);
+			}
+		}
+		
 	}
 }

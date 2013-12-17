@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.datasource.reader.DataSourceReader;
 import org.fastcatsearch.datasource.reader.DataSourceReaderFactory;
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
@@ -21,8 +22,8 @@ import org.fastcatsearch.ir.settings.SchemaSetting;
  * */
 public class CollectionFullIndexer extends AbstractCollectionIndexer {
 	
-	public CollectionFullIndexer(CollectionContext collectionContext) throws IRException {
-		super(collectionContext);
+	public CollectionFullIndexer(CollectionContext collectionContext, AnalyzerPoolManager analyzerPoolManager) throws IRException {
+		super(collectionContext, analyzerPoolManager);
 
 		init(collectionContext.schema());
 	}

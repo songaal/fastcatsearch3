@@ -27,6 +27,7 @@ import org.fastcatsearch.db.mapper.IndexingResultMapper.ResultStatus;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.CollectionFullIndexer;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
@@ -68,13 +69,14 @@ public class CollectionFullIndexingJob extends IndexingJob {
 		
 		prepare(IndexingType.FULL);
 		
+		
 		Throwable throwable = null;
 		ResultStatus resultStatus = ResultStatus.RUNNING;
 		Object result = null;
 		long startTime = System.currentTimeMillis();
 		try {
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-			
+			AnalyzerPoolManager analyzerPoolManager = irService.createAnalyzerPoolManager(collectionContext.schema().schemaSetting().getAnalyzerSettingList());			
 			//find index node
 //			CollectionContext collectionContext = irService.collectionContext(collectionId);
 			String indexNodeId = collectionContext.collectionConfig().getIndexNode();
@@ -95,7 +97,7 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			 */
 			//////////////////////////////////////////////////////////////////////////////////////////
 			
-			CollectionFullIndexer collectionFullIndexer = new CollectionFullIndexer(collectionContext);
+			CollectionFullIndexer collectionFullIndexer = new CollectionFullIndexer(collectionContext, analyzerPoolManager);
 			indexer = collectionFullIndexer;
 			collectionFullIndexer.setState(indexingTaskState);
 			collectionFullIndexer.doIndexing();

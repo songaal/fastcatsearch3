@@ -25,8 +25,8 @@ public class AnalysisPluginSetting extends PluginSetting {
 		this.dictionarySettingList = dictionarySettingList;
 	}
 
-	@XmlElementWrapper(name = "analyzer-list")
-	@XmlElement(name="analyzer")
+	@XmlElementWrapper(name = "analyzer-list", required = false)
+	@XmlElement(name="analyzer", required = false)
 	public List<Analyzer> getAnalyzerList() {
 		return analyzerList;
 	}
@@ -37,10 +37,20 @@ public class AnalysisPluginSetting extends PluginSetting {
 	
 	@XmlType(propOrder={"className", "name", "id"})
 	public static class Analyzer {
-		String id;
-		String name;
-		String className;
+		private String id;
+		private String name;
+		private String className;
 		
+		public Analyzer(){
+		}
+		
+		public Analyzer(String id, String name, String className) {
+			this.id = id;
+			this.name = name;
+			this.className = className;
+		}
+		
+		//memory to xml only 속성.
 		@XmlAttribute
 		public String getId() {
 			return id;
@@ -52,15 +62,6 @@ public class AnalysisPluginSetting extends PluginSetting {
 		@XmlAttribute(name="className")
 		public String getClassName() {
 			return className;
-		}
-		public void setId(String id) {
-			this.id = id;
-		}
-		public void setName(String name) {
-			this.name = name;
-		}
-		public void setClassName(String className) {
-			this.className = className;
 		}
 	}
 	

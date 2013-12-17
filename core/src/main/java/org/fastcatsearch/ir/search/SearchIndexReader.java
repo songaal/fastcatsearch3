@@ -30,6 +30,7 @@ import org.apache.lucene.analysis.tokenattributes.StopwordAttribute;
 import org.apache.lucene.analysis.tokenattributes.SynonymAttribute;
 import org.apache.lucene.util.CharsRef;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.index.IndexFieldOption;
@@ -73,11 +74,11 @@ public class SearchIndexReader implements Cloneable {
 	public SearchIndexReader() {
 	}
 
-	public SearchIndexReader(IndexSetting indexSetting, Schema schema, File dir) throws IOException, IRException {
-		this(indexSetting, schema, dir, 0);
+	public SearchIndexReader(IndexSetting indexSetting, Schema schema, File dir, AnalyzerPoolManager analyzerPoolManager) throws IOException, IRException {
+		this(indexSetting, schema, dir, 0, analyzerPoolManager);
 	}
 
-	public SearchIndexReader(IndexSetting indexSetting, Schema schema, File dir, int revision) throws IOException, IRException {
+	public SearchIndexReader(IndexSetting indexSetting, Schema schema, File dir, int revision, AnalyzerPoolManager analyzerPoolManager) throws IOException, IRException {
 		this.schema = schema;
 		this.indexSetting = indexSetting;
 		String id = indexSetting.getId();
@@ -94,7 +95,7 @@ public class SearchIndexReader implements Cloneable {
 			fieldIndexOption = new IndexFieldOption(postingInput.readInt());
 
 			String queryAnalyzerName = indexSetting.getQueryAnalyzer();
-			queryAnalyzerPool = schema.getAnalyzerPool(queryAnalyzerName);
+			queryAnalyzerPool = analyzerPoolManager.getPool(queryAnalyzerName);
 
 			if (queryAnalyzerPool != null) {
 				logger.debug("[{}] QueryTokenizer={}", id, queryAnalyzerPool.getClass().getSimpleName());

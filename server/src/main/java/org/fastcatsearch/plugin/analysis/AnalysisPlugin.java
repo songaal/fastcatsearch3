@@ -3,6 +3,7 @@ package org.fastcatsearch.plugin.analysis;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ import org.fastcatsearch.db.dao.DictionaryStatusDAO;
 import org.fastcatsearch.db.dao.SynonymDictionaryDAO;
 import org.fastcatsearch.db.mapper.DictionaryStatusMapper;
 import org.fastcatsearch.db.vo.DictionaryStatusVO;
+import org.fastcatsearch.ir.analysis.AnalyzerFactory;
 import org.fastcatsearch.ir.dic.CommonDictionary;
 import org.fastcatsearch.ir.dic.Dictionary;
 import org.fastcatsearch.ir.dictionary.CustomDictionary;
@@ -26,6 +28,7 @@ import org.fastcatsearch.ir.dictionary.SpaceDictionary;
 import org.fastcatsearch.ir.dictionary.SynonymDictionary;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginSetting;
+import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.Analyzer;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting.Type;
@@ -47,7 +50,8 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 	protected DictionaryStatusDAO dictionaryStatusDAO;
 	protected DictionaryStatusMapper dictionaryStatusMapper;
 	
-	protected static CommonDictionary commonDictionary;
+	protected CommonDictionary<T> commonDictionary;
+	protected Map<String, AnalyzerInfo> analyzerFactoryMap;
 	
 	public AnalysisPlugin(File pluginDir, PluginSetting pluginSetting) {
 		super(pluginDir, pluginSetting);
@@ -76,12 +80,16 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 			prepareDAO();
 		}
 		commonDictionary = loadDictionary();
+		loadAnalyzerFactory();
 	}
 
 	@Override
 	protected void doUnload() {
 		if(daoMap != null){
 			daoMap.clear();
+		}
+		if(analyzerFactoryMap != null){
+			analyzerFactoryMap.clear();
 		}
 	}
 	
@@ -115,6 +123,7 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 						dictionaryStatusDAO.putEntry(new DictionaryStatusVO(dictionaryId));
 					}
 				}catch(Exception ignore){
+					logger.error("error update dictionary status.", ignore);
 				}
 				
 				List<ColumnSetting> columnSettingList = dictionarySetting.getColumnSettingList();
@@ -199,6 +208,8 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 					sourceDictionary = spaceDictionary;
 				}else if(type == Type.CUSTOM){
 					
+				}else if(type == Type.SYSTEM){
+					//ignore
 				}else{
 					logger.error("Unknown Dictionary type > {}", type);
 				}
@@ -219,7 +230,34 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 		CommonDictionary<T> oldDictionary = this.commonDictionary;
 		CommonDictionary<T> commonDictionary = loadDictionary();
 		this.commonDictionary = commonDictionary;
+		loadAnalyzerFactory();
+		
 		logger.debug("{} Dictionary Reload Done. {}ms", pluginId, (System.nanoTime() - st) / 1000000);
+	}
+	
+	private void loadAnalyzerFactory(){
+		analyzerFactoryMap = new HashMap<String, AnalyzerInfo>();
+		loadAnalyzerFactory(analyzerFactoryMap);
+		
+		///로딩된 analyzer list를 동적으로 setting에 넣어준다. 
+		AnalysisPluginSetting setting = (AnalysisPluginSetting) pluginSetting;
+		List<Analyzer> analyzerList = new ArrayList<Analyzer>();
+		setting.setAnalyzerList(analyzerList);
+		
+		for(Entry<String, AnalyzerInfo> entry : analyzerFactoryMap.entrySet()){
+			String id = entry.getKey();
+			String name = entry.getValue().name();
+			AnalyzerFactory factory = entry.getValue().factory();
+			Class clazz = factory.getAnalyzerClass();
+			Analyzer analyzer = new Analyzer(id, name, clazz.getName());
+			analyzerList.add(analyzer);
+		}
+	}
+	
+	protected abstract void loadAnalyzerFactory(Map<String, AnalyzerInfo> analyzerFactoryMap);
+	
+	public Map<String, AnalyzerInfo> analyzerFactoryMap(){
+		return analyzerFactoryMap;
 	}
 	
 	public CommonDictionary<T> getDictionary(){

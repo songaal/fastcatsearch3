@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -22,27 +23,35 @@ import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.http.HttpRequestService;
+import org.fastcatsearch.ir.AnalyzerProvider;
+import org.fastcatsearch.ir.analysis.AnalyzerFactory;
+import org.fastcatsearch.ir.analysis.AnalyzerFactoryManager;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.plugin.PluginSetting.Action;
 import org.fastcatsearch.plugin.PluginSetting.PluginSchedule;
+import org.fastcatsearch.plugin.analysis.AnalysisPlugin;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting;
+import org.fastcatsearch.plugin.analysis.AnalyzerInfo;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.util.DynamicClassLoader;
 
-public class PluginService extends AbstractService {
+public class PluginService extends AbstractService implements AnalyzerProvider {
 
 	private static final String pluginActionPrefix = "/_plugin/";
 	private Map<String, Plugin> pluginMap;
-
+	private PluginAnalyzerFactoryManager pluginAnalyzerFactoryManager;
+	
 	public PluginService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
+		pluginAnalyzerFactoryManager = new PluginAnalyzerFactoryManager(); //irservice에 전달되는 객체이므로 삭제하지 말고 계속사용한다.
 	}
 
 	@Override
 	protected boolean doStart() throws FastcatSearchException {
+		pluginAnalyzerFactoryManager.clear();
 		pluginMap = new HashMap<String, Plugin>();
 		// 플러그인을 검색하여
 		// 무작위로 시작한다.
@@ -106,15 +115,25 @@ public class PluginService extends AbstractService {
 					is.close();
 					logger.debug("PluginSetting >>> {}, {}", setting, pluginConfigFile.getAbsolutePath());
 					String className = setting.getClassName();
+					String pluginId = setting.getId();
 					Plugin plugin = null;
 					if (className != null && className.length() > 0) {
 						plugin = DynamicClassLoader.loadObject(className, Plugin.class, new Class<?>[] { File.class, PluginSetting.class }, new Object[] { dir, setting });
 						plugin.load(environment.isMasterNode());
 						logger.debug("PLUGIN {} >> {}", setting.getId(), plugin.getClass().getName());
 						pluginMap.put(setting.getId(), plugin);
+						
+						if(plugin instanceof AnalysisPlugin){
+							AnalysisPlugin analysisPlugin = (AnalysisPlugin) plugin;
+							Map<String, AnalyzerInfo> map = analysisPlugin.analyzerFactoryMap();
+							for(Entry<String, AnalyzerInfo> entry : map.entrySet()){
+								pluginAnalyzerFactoryManager.addAnalyzerFactory(pluginId + "." +entry.getKey(), entry.getValue().factory());
+							}
+						}
 						// } else {
 						// plugin = new Plugin(dir, setting);
 					}
+					
 
 				} catch (FileNotFoundException e) {
 					logger.error("{} plugin 설정파일을 읽을수 없음.", dir.getName());
@@ -177,6 +196,10 @@ public class PluginService extends AbstractService {
 			pluginMap.clear();
 			pluginMap = null;
 		}
+		
+		if(pluginAnalyzerFactoryManager != null){
+			pluginAnalyzerFactoryManager.clear();
+		}
 		return true;
 	}
 
@@ -238,6 +261,11 @@ public class PluginService extends AbstractService {
 		} else {
 			logger.info("PluginService Schdule is not started. Because it's not master node. {}", environment.myNodeId());
 		}
+	}
+
+	@Override
+	public AnalyzerFactoryManager getAnalyzerFactoryManager() {
+		return pluginAnalyzerFactoryManager;
 	}
 
 }

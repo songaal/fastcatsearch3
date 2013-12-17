@@ -22,6 +22,7 @@ import java.io.IOException;
 
 import junit.framework.TestCase;
 
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.common.SettingException;
@@ -38,8 +39,8 @@ public class SearchIndexReaderTest extends TestCase{
 	public void testConstructor() throws IOException, SettingException, IRException{
 		Schema schema = new Schema(null);//collection, true);
 		File targetDir = new File("");
-
-		SearchIndexesReader reader = new SearchIndexesReader(schema, targetDir);
+		AnalyzerPoolManager analyzerPoolManager = null;
+		SearchIndexesReader reader = new SearchIndexesReader(schema, targetDir, analyzerPoolManager);
 	}
 
 	public void testRead() throws IOException, SettingException, IRException{

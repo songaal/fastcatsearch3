@@ -173,6 +173,7 @@ public class CatServer {
 		JobService jobService = serviceManager.createService("job", JobService.class);
 		jobService.asSingleton();
 		IRService irService = serviceManager.createService("ir", IRService.class);
+		irService.setAnalyzerFactoryManager(pluginService);
 		SystemInfoService systemInfoService = serviceManager.createService("system_info", SystemInfoService.class);
 		NodeService nodeService = serviceManager.createService("node", NodeService.class);
 

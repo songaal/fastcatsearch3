@@ -25,6 +25,7 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.IndexConfig;
@@ -43,9 +44,9 @@ public class QueryTest extends TestCase{
 		
 		Schema schema = new Schema(null);//collection, true);
 		File targetDir = new File(target);
-
+		AnalyzerPoolManager analyzerPoolManager = null;
 		IndexConfig indexConfig = null;
-		SearchIndexesReader reader = new SearchIndexesReader(schema, targetDir);
+		SearchIndexesReader reader = new SearchIndexesReader(schema, targetDir, analyzerPoolManager);
 		DocumentReader docReader = new DocumentReader(schema, targetDir);
 		int totalDocNum = docReader.getDocumentCount();
 		System.out.println("총 문서수 ="+totalDocNum);

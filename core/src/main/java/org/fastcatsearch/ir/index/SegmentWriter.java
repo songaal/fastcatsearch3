@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
@@ -54,16 +55,16 @@ public class SegmentWriter implements WriteInfoLoggable {
 	private File targetDir;
 	private RevisionInfo revisionInfo;
 
-	public SegmentWriter(Schema schema, File targetDir, IndexConfig indexConfig) throws IRException {
-		this(schema, targetDir, new RevisionInfo(), indexConfig);
+	public SegmentWriter(Schema schema, File targetDir, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager) throws IRException {
+		this(schema, targetDir, new RevisionInfo(), indexConfig, analyzerPoolManager);
 	}
 
 	// for Add indexing
-	public SegmentWriter(Schema schema, File targetDir, RevisionInfo revisionInfo, IndexConfig indexConfig) throws IRException {
-		init(schema, targetDir, revisionInfo, indexConfig);
+	public SegmentWriter(Schema schema, File targetDir, RevisionInfo revisionInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager) throws IRException {
+		init(schema, targetDir, revisionInfo, indexConfig, analyzerPoolManager);
 	}
 
-	public void init(Schema schema, File targetDir, RevisionInfo revisionInfo, IndexConfig indexConfig) throws IRException {
+	public void init(Schema schema, File targetDir, RevisionInfo revisionInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager) throws IRException {
 		try {
 			lastDocNo = -1;
 			this.segmentId = targetDir.getName();
@@ -75,7 +76,7 @@ public class SegmentWriter implements WriteInfoLoggable {
 
 			documentWriter = new DocumentWriter(schema, targetDir, revisionInfo, indexConfig);
 			primaryKeyIndexesWriter = new PrimaryKeyIndexesWriter(schema, targetDir, revisionInfo, indexConfig);
-			searchIndexesWriter = new SearchIndexesWriter(schema, targetDir, revisionInfo, indexConfig);
+			searchIndexesWriter = new SearchIndexesWriter(schema, targetDir, revisionInfo, indexConfig, analyzerPoolManager);
 			fieldIndexesWriter = new FieldIndexesWriter(schema, targetDir, revisionInfo);
 			groupIndexesWriter = new GroupIndexesWriter(schema, targetDir, revisionInfo, indexConfig);
 		} catch (IOException e) {

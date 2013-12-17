@@ -16,6 +16,7 @@ import java.io.File;
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.datasource.reader.DataSourceReader;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.CollectionContext;
@@ -27,7 +28,7 @@ import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.service.ServiceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+@Deprecated
 public class MakeIndexFileTask extends Task {
 	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 	
@@ -53,8 +54,8 @@ public class MakeIndexFileTask extends Task {
 		try{
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			CollectionContext collectionContext = irService.collectionContext(collectionId);
-			
-			writer = new SegmentWriter(workSchema, segmentDir, collectionContext.indexConfig());
+			AnalyzerPoolManager analyzerPoolManager = null;
+			writer = new SegmentWriter(workSchema, segmentDir, collectionContext.indexConfig(), analyzerPoolManager);
 			
 			long startTime = System.currentTimeMillis();
 			long lapTime = startTime;
