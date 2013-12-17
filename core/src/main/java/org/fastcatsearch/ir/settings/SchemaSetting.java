@@ -285,18 +285,7 @@ public class SchemaSetting {
 					idDupCheckSet.add(value);
 				}
 
-				fieldName = "class";
-				value = setting.getClassName();
-				if (value == null || "".equals(value)) {
-					message = NULL_OR_BLANK;
-					break;
-				} else {
-					// core
-					if (DynamicClassLoader.loadClass(value) == null) {
-						throw new ClassNotFoundException("cannot find class " + value);
-					}
-					// Class.forName(value);
-				}
+				//className validation 은 server 패키지에서만 수행할 수 있다.
 
 				fieldName = "maximumPoolSize";
 				value = String.valueOf(setting.getMaximumPoolSize());
@@ -318,8 +307,6 @@ public class SchemaSetting {
 				}
 
 			}
-		} catch (ClassNotFoundException e) {
-			message = NO_CLASS;
 		} finally {
 			if (message != null || ex != null) {
 				if (message == null) {
