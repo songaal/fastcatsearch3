@@ -53,6 +53,8 @@ public class SearchIndexesWriter {
 			IndexSetting indexSetting = indexSettingList.get(i);
 			searchIndexWriterList[i] = new SearchIndexWriter(indexSetting, schema, dir, revisionInfo, indexConfig, analyzerPoolManager);
 		}
+		
+		workMemoryLimit = indexConfig.getIndexWorkMemorySize();
 	}
 
 	public void write(Document doc) throws IRException, IOException {
