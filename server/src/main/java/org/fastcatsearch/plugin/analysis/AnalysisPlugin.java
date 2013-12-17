@@ -35,10 +35,6 @@ import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting
 
 public abstract class AnalysisPlugin<T> extends Plugin {
 
-	public static String DICT_SYNONYM = "synonym";
-	public static String DICT_STOP = "stop";
-	public static String DICT_SYSTEM = "system";
-	
 	protected static String dictionaryPath = "dict/";
 	protected static String dictionarySuffix = ".dict";
 
@@ -154,7 +150,7 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 		
 	}
 
-	protected abstract Dictionary<T> loadSystemDictionary(boolean ignoreCase);
+	protected abstract Dictionary<T> loadSystemDictionary(DictionarySetting dictionarySetting);
 		
 	protected CommonDictionary<T> loadDictionary(){
 		AnalysisPluginSetting setting = (AnalysisPluginSetting) pluginSetting;
@@ -167,8 +163,7 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 			for (DictionarySetting dictionarySetting : list) {
 				Type type = dictionarySetting.getType();
 				if(type == Type.SYSTEM){
-					boolean isIgnoreCase = dictionarySetting.isIgnoreCase();
-					dictionary = loadSystemDictionary(isIgnoreCase);
+					dictionary = loadSystemDictionary(dictionarySetting);
 					commonDictionary = new CommonDictionary<T>(dictionary);
 					break;
 				}
