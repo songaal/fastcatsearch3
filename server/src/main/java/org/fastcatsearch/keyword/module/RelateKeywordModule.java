@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.fastcatsearch.env.Environment;
-import org.fastcatsearch.keyword.KeywordService;
 import org.fastcatsearch.keyword.PopularKeywordDictionary;
 import org.fastcatsearch.keyword.RelateKeywordDictionary;
 import org.fastcatsearch.module.AbstractModule;
@@ -31,7 +30,7 @@ public class RelateKeywordModule extends AbstractModule {
 		categoryKeywordDictionaryMap = new HashMap<String, RelateKeywordDictionary>();
 		for (Category category : categoryList) {
 			String categoryId = category.getId();
-			File dictionaryFile = getKeywordFile(categoryId, RelateKeywordDictionary.fileName);
+			File dictionaryFile = getDictionaryFile(categoryId);
 			try {
 				RelateKeywordDictionary keywordDictionary = null;
 				if(dictionaryFile.exists()){
@@ -49,7 +48,8 @@ public class RelateKeywordModule extends AbstractModule {
 		
 		return true;
 	}
-	private File getKeywordFile(String categoryId, String filename){
+	
+	public File getDictionaryFile(String categoryId) {
 		return new File(home, categoryId + "." + PopularKeywordDictionary.realTimeFileName);
 	}
 	
@@ -76,4 +76,6 @@ public class RelateKeywordModule extends AbstractModule {
 		categoryKeywordDictionaryMap.remove(categoryId);
 		
 	}
+
+	
 }

@@ -6,9 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.fastcatsearch.env.Environment;
-import org.fastcatsearch.keyword.KeywordService;
-import org.fastcatsearch.keyword.PopularKeywordDictionary;
 import org.fastcatsearch.keyword.KeywordDictionary.KeywordDictionaryType;
+import org.fastcatsearch.keyword.PopularKeywordDictionary;
 import org.fastcatsearch.module.AbstractModule;
 import org.fastcatsearch.module.ModuleException;
 import org.fastcatsearch.settings.Settings;
@@ -32,21 +31,31 @@ public class PopularKeywordModule extends AbstractModule {
 		for (Category category : categoryList) {
 			String categoryId = category.getId();
 			if (category.isUseRealTimePopularKeyword()) {
-				loadAndSetDictionary(categoryId, KeywordDictionaryType.POPULAR_KEYWORD_REALTIME, getKeywordFile(categoryId, PopularKeywordDictionary.realTimeFileName));
+				loadAndSetDictionary(categoryId, KeywordDictionaryType.POPULAR_KEYWORD_REALTIME);
 			}
 			if (category.isUsePopularKeyword()) {
-				loadAndSetDictionary(categoryId, KeywordDictionaryType.POPULAR_KEYWORD_DAY, getKeywordFile(categoryId, PopularKeywordDictionary.lastDayFileName));
-				loadAndSetDictionary(categoryId, KeywordDictionaryType.POPULAR_KEYWORD_WEEK, getKeywordFile(categoryId, PopularKeywordDictionary.lastWeekFileName));
+				loadAndSetDictionary(categoryId, KeywordDictionaryType.POPULAR_KEYWORD_DAY);
+				loadAndSetDictionary(categoryId, KeywordDictionaryType.POPULAR_KEYWORD_WEEK);
 			}
 		}
 
 		return true;
 	}
 
-	private File getKeywordFile(String categoryId, String filename){
-		return new File(home, categoryId + "." + PopularKeywordDictionary.realTimeFileName);
+	public File getDictionaryFile(String categoryId, KeywordDictionaryType type){
+		String filename = null;
+		if(type == KeywordDictionaryType.POPULAR_KEYWORD_REALTIME){
+			filename = PopularKeywordDictionary.realTimeFileName;
+		}else if(type == KeywordDictionaryType.POPULAR_KEYWORD_DAY){
+			filename = PopularKeywordDictionary.lastDayFileName;
+		}else if(type == KeywordDictionaryType.POPULAR_KEYWORD_WEEK){
+			filename = PopularKeywordDictionary.lastWeekFileName;
+		}
+		return new File(home, categoryId + "." + filename);
 	}
-	private void loadAndSetDictionary(String categoryId, KeywordDictionaryType type, File dictionaryFile) {
+	
+	private void loadAndSetDictionary(String categoryId, KeywordDictionaryType type) {
+		File dictionaryFile = getDictionaryFile(categoryId, type);
 		if (dictionaryFile.exists()) {
 			try {
 				PopularKeywordDictionary keywordDictionary = new PopularKeywordDictionary(dictionaryFile);
