@@ -150,6 +150,12 @@ public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 			
 			File writeFile = service.getFile(category.getId(), type);
 			
+			File parentDir = writeFile.getParentFile();
+			
+			if(!parentDir.exists()) {
+				FileUtils.forceMkdir(parentDir);
+			}
+			
 			OutputStream ostream = null;
 			
 			try {
