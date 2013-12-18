@@ -11,11 +11,12 @@ Derby SQL 문법에 따른다.
 		create table PopularKeyword (
 			id bigint not null generated always as identity,
 			category varchar(64),
-			time varchar(9),
+			time varchar(12),
 			word varchar(64),
 			count int,
 			rank int,
 			rankDiffType varchar(3),
+			rankDiff int,
 			primary key (id)
 		)
 	</update>
@@ -25,7 +26,7 @@ Derby SQL 문법에 따른다.
 	</update>
 	
 	<select id="validateTable" parameterType="map" resultType="map">
-		select id, category, time, word, count, rank, rankDiffType
+		select id, category, time, word, count, rank, rankDiffType, rankDiff
 		from PopularKeyword
 		fetch first 1 rows only
 	</select>

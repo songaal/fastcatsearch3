@@ -34,15 +34,12 @@ public class PopularKeywordDictionary implements KeywordDictionary {
 	}
 	
 	public PopularKeywordDictionary(File dictionaryFile) {
-		
 		if (!dictionaryFile.exists()) {
 			keywordList = new ArrayList<PopularKeywordVO>();
 			logger.error("사전파일이 존재하지 않습니다. file={}", dictionaryFile.getAbsolutePath());
 			return;
 		}
-		
 		InputStream istream = null;
-		
 		try {
 			istream = new FileInputStream(dictionaryFile);
 			readFrom(istream);

@@ -98,8 +98,7 @@ public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 	private void compilePopularKeyword(KeywordService service, List<Category> categoryList,
 			KeywordDictionaryType type, String time) throws Exception {
 		
-		PopularKeywordMapper mapper = service
-				.getMapperSession(PopularKeywordMapper.class).getMapper();
+		PopularKeywordMapper mapper = service.getMapperSession(PopularKeywordMapper.class).getMapper();
 		
 		for(Category category : categoryList) {
 		
