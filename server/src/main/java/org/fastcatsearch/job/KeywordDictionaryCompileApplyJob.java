@@ -9,14 +9,15 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
-import org.fastcatsearch.additional.KeywordDictionary;
-import org.fastcatsearch.additional.KeywordService;
-import org.fastcatsearch.additional.PopularKeywordDictionary;
-import org.fastcatsearch.additional.KeywordDictionary.KeywordDictionaryType;
 import org.fastcatsearch.db.mapper.PopularKeywordMapper;
 import org.fastcatsearch.db.mapper.RelateKeywordMapper;
 import org.fastcatsearch.db.vo.PopularKeywordVO;
+import org.fastcatsearch.db.vo.RelateKeywordVO;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.keyword.KeywordDictionary.KeywordDictionaryType;
+import org.fastcatsearch.keyword.KeywordService;
+import org.fastcatsearch.keyword.PopularKeywordDictionary;
+import org.fastcatsearch.keyword.RelateKeywordDictionary;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.StaticticsSettings.Category;
 import org.fastcatsearch.statistics.SearchStatisticsService;
@@ -70,6 +71,8 @@ public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 				
 				timeStr = "D" + dateFormat.format(calendar.getTime());
 				
+				compilePopularKeyword(keywordService, categoryList, fileName, timeStr);
+				
 			} else if(dictionaryType == KeywordDictionaryType.POPULAR_KEYWORD_WEEK) {
 				
 				fileName = PopularKeywordDictionary.lastWeekFileName;
@@ -80,10 +83,13 @@ public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 				
 				timeStr = "W" + dateFormat.format(calendar.getTime());
 				
+				compilePopularKeyword(keywordService, categoryList, fileName, timeStr);
+				
 			} else  if(dictionaryType == KeywordDictionaryType.RELATE_KEYWORD) {
 				
+				fileName = RelateKeywordDictionary.fileName;
 				
-				
+				compileRelateKeyword(keywordService, categoryList, fileName);
 			}
 			
 		} catch (IllegalArgumentException e) {
@@ -126,14 +132,39 @@ public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 		}
 	}
 	
-	private void compileRelateKeyword(KeywordService service, List<Category> categoryList,
-			String fileName, String time) throws Exception {
+	private void compileRelateKeyword(KeywordService service, List<Category> categoryList, 
+			String fileName) throws Exception {
 		
 		RelateKeywordMapper mapper = (RelateKeywordMapper) service
 				.getMapperSession(RelateKeywordMapper.class);
 		
-		//List<RelateKeywordVO> keywordList = mapper.getEntryList();
 		
+		for(Category category : categoryList) {
+			
+			List<RelateKeywordVO> keywordList = mapper.getEntryList(category.getId());
+			
+			RelateKeywordDictionary dictionary = new RelateKeywordDictionary();
+			
+			for(RelateKeywordVO keyword : keywordList) {
+				dictionary.putRelateKeyword(keyword.getKeyword(), keyword.getValue());
+			}
+			
+			File writeFile = service.getFile("relate", category.getId() + "_" + fileName);
+			
+			OutputStream ostream = null;
+			
+			try {
+				
+				ostream = new FileOutputStream(writeFile);
+				
+				dictionary.writeTo(ostream);
+				
+			} finally {
+				
+				if (ostream != null) try {
+					ostream.close();
+				} catch (IOException e) { }
+			}
+		}
 	}
-
 }

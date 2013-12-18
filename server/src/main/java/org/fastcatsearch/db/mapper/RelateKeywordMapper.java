@@ -12,7 +12,7 @@ public interface RelateKeywordMapper extends ManagedMapper {
 	
 	public RelateKeywordVO getEntry(@Param("category") String category, @Param("keyword") String keyword) throws Exception;
 	
-	public List<RelateKeywordVO> getEntryList(@Param("keyword") String keyword) throws Exception;
+	public List<RelateKeywordVO> getEntryList(@Param("category") String category) throws Exception;
 	
 	public void putEntry(RelateKeywordVO vo) throws Exception;
 	
