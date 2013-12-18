@@ -49,10 +49,6 @@ public class DBService extends AbstractDBService {
 		, UserAccountMapper.class
 		, GroupAccountMapper.class
 		, GroupAuthorityMapper.class 
-		, KeywordSuggestionMapper.class
-		, RelateKeywordMapper.class
-		, PopularKeywordMapper.class
-		, ADKeywordMapper.class
 	};
 
 	public static DBService getInstance() {
