@@ -11,14 +11,14 @@ Derby SQL 문법에 따른다.
 		create table ADKeyword (
 			id bigint not null generated always as identity,
 			keyword varchar(64),
-			value varchar(64),)
+			value varchar(64),
 			updateTime timestamp,
 			primary key (id)
 		)
 	</update>
 	
 	<update id="createIndex" parameterType="map">
-		create index keyword_index on ADKeyword(category)
+		create index keyword_index on ADKeyword(keyword)
 	</update>
 	
 	<select id="validateTable" parameterType="map" resultType="map">
