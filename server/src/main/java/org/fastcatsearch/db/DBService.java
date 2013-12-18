@@ -49,10 +49,6 @@ public class DBService extends AbstractDBService {
 		, UserAccountMapper.class
 		, GroupAccountMapper.class
 		, GroupAuthorityMapper.class 
-		, KeywordSuggestionMapper.class
-		, RelateKeywordMapper.class
-		, PopularKeywordMapper.class
-		, ADKeywordMapper.class
 	};
 
 	public static DBService getInstance() {
@@ -64,7 +60,7 @@ public class DBService extends AbstractDBService {
 	}
 
 	public DBService(Environment environment, Settings settings, ServiceManager serviceManager) {
-		super("db/system", mapperList, environment, settings, serviceManager);
+		super("db/system", DBService.mapperList, environment, settings, serviceManager);
 	}
 
 	public InternalDBModule internalDBModule() {

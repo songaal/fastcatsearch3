@@ -185,7 +185,7 @@ public class CatServer {
 		TaskStateService taskStateService = serviceManager.createService("taskstate", TaskStateService.class);
 		
 		SearchStatisticsService searchStatisticsService = serviceManager.createService("statistics", SearchStatisticsService.class);
-		KeywordService keywordService = null;//serviceManager.createService("additional", KeywordService.class);
+		KeywordService keywordService = serviceManager.createService("additional", KeywordService.class);
 		
 		logger = LoggerFactory.getLogger(CatServer.class);
 		logger.info("ServerHome = {}", serverHome);
@@ -208,7 +208,7 @@ public class CatServer {
 			processLoggerService.start();
 			taskStateService.start();
 			searchStatisticsService.start();
-//			keywordService.start();
+			keywordService.start();
 			
 			//서비스가 모두 뜬 상태에서 후속작업.
 			if(environment.isMasterNode()){

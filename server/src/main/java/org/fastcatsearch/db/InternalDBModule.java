@@ -91,7 +91,7 @@ public class InternalDBModule extends AbstractModule {
 		}
 		
 		sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);
-		logger.info("DBModule[{}] Loaded!", dbPath);
+		logger.info("DBModule[{}] Loaded! with {}", dbPath, mapperFileList);
 		return true;
 	}
 

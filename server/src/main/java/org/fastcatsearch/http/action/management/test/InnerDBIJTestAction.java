@@ -8,6 +8,7 @@ import java.sql.Connection;
 
 import org.apache.derby.tools.ij;
 import org.apache.ibatis.session.SqlSession;
+import org.fastcatsearch.additional.KeywordService;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.InternalDBModule;
 import org.fastcatsearch.http.ActionMapping;
@@ -38,6 +39,12 @@ public class InnerDBIJTestAction extends AuthAction {
 					writer.write("ERROR : DBService is not running.");
 				}
 				internalDBModule = dbService.internalDBModule();
+			} else if(db.equalsIgnoreCase("keyword")){
+				KeywordService keywordService = ServiceManager.getInstance().getService(KeywordService.class);
+				if (keywordService == null) {
+					writer.write("ERROR : KeywordService is not running.");
+				}
+				internalDBModule = keywordService.internalDBModule();
 				
 			}else if(db.startsWith("plugin")){
 				String[] els = db.split("/");

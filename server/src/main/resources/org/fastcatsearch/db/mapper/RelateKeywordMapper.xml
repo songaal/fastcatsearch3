@@ -19,6 +19,7 @@ Derby SQL 문법에 따른다.
 	</update>
 	
 	<update id="createIndex" parameterType="map">
+		create index category_index on RelateKeyword(category)
 	</update>
 	
 	<select id="validateTable" parameterType="map" resultType="map">
