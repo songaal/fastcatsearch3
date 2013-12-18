@@ -1,10 +1,7 @@
 package org.fastcatsearch.keyword;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.xml.bind.JAXBException;
 
@@ -39,26 +36,28 @@ public class KeywordService extends AbstractDBService {
 	private RelateKeywordModule relateKeywordModule;
 
 	private File moduleHome;
-	
-	private static Class<?>[] mapperList = new Class<?>[]{
-			PopularKeywordMapper.class
-			,RelateKeywordMapper.class
-			,KeywordSuggestionMapper.class
-			,ADKeywordMapper.class
-	};
-	
-	
+
+	private static Class<?>[] mapperList = new Class<?>[] { PopularKeywordMapper.class, RelateKeywordMapper.class, KeywordSuggestionMapper.class, ADKeywordMapper.class };
+
 	public KeywordService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super("db/keyword", KeywordService.mapperList, environment, settings, serviceManager);
-		
+
 		moduleHome = environment.filePaths().file("keyword");
 		popularKeywordModule = new PopularKeywordModule(moduleHome, environment, settings);
 		relateKeywordModule = new RelateKeywordModule(moduleHome, environment, settings);
 	}
-	
-	public File getFile(String moduleName, String fileName) {
-		File home = new File(moduleHome, moduleName);
-		return new File(home,fileName);
+
+	public File getFile(String categoryId, KeywordDictionaryType type) {
+
+		if (type == KeywordDictionaryType.POPULAR_KEYWORD_REALTIME || type == KeywordDictionaryType.POPULAR_KEYWORD_DAY || type == KeywordDictionaryType.POPULAR_KEYWORD_WEEK) {
+			return popularKeywordModule.getDictionaryFile(categoryId, type);
+		} else if (type == KeywordDictionaryType.RELATE_KEYWORD) {
+			return relateKeywordModule.getDictionaryFile(categoryId);
+		} else {
+			// TODO ad keyword, keyword suggestion
+		}
+
+		return null;
 	}
 
 	@Override
@@ -137,17 +136,17 @@ public class KeywordService extends AbstractDBService {
 	}
 
 	public KeywordDictionary getKeywordDictionary(String categoryId, KeywordDictionaryType key) {
-		if(key == KeywordDictionaryType.POPULAR_KEYWORD_DAY || key == KeywordDictionaryType.POPULAR_KEYWORD_REALTIME || key == KeywordDictionaryType.POPULAR_KEYWORD_WEEK){
-			return popularKeywordModule.getKeywordDictionary(categoryId, key); 
-		}else if(key == KeywordDictionaryType.RELATE_KEYWORD){
+		if (key == KeywordDictionaryType.POPULAR_KEYWORD_DAY || key == KeywordDictionaryType.POPULAR_KEYWORD_REALTIME || key == KeywordDictionaryType.POPULAR_KEYWORD_WEEK) {
+			return popularKeywordModule.getKeywordDictionary(categoryId, key);
+		} else if (key == KeywordDictionaryType.RELATE_KEYWORD) {
 			return relateKeywordModule.getKeywordDictionary(categoryId);
-		}else{
-			//TODO ad keyword, keyword suggestion
+		} else {
+			// TODO ad keyword, keyword suggestion
 		}
 		return null;
 	}
 
-	public KeywordDictionary getKeywordDictionary(KeywordDictionaryType key){
+	public KeywordDictionary getKeywordDictionary(KeywordDictionaryType key) {
 		return getKeywordDictionary(null, key);
 	}
 
