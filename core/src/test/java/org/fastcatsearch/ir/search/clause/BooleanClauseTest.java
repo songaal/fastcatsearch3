@@ -1,7 +1,8 @@
-package org.fastcatsearch.ir.query;
+package org.fastcatsearch.ir.search.clause;
 
 import static org.junit.Assert.*;
 
+import org.fastcatsearch.ir.query.RankInfo;
 import org.junit.Test;
 
 public class BooleanClauseTest {

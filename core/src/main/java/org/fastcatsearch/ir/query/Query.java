@@ -18,6 +18,8 @@ package org.fastcatsearch.ir.query;
 
 import java.util.List;
 
+import org.fastcatsearch.ir.search.clause.Clause;
+
 /**
 	cn=allgoods
 	&ht=<a>:</a>

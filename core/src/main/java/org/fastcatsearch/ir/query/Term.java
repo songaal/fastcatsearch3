@@ -17,6 +17,8 @@
 package org.fastcatsearch.ir.query;
 
 import org.fastcatsearch.ir.search.SearchIndexReader;
+import org.fastcatsearch.ir.search.clause.BooleanClause;
+import org.fastcatsearch.ir.search.clause.OperatedClause;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +28,7 @@ import org.slf4j.LoggerFactory;
 
 public class Term {
 	private static Logger logger = LoggerFactory.getLogger(Term.class);
-	public static enum Type {ALL, ANY, EXT, PHR};
+	public static enum Type {ALL, ANY, EXT, PHRASE, BOOL};
 	public static int SYNONYM = 1 << 0;
 	public static int STOPWORD = 1 << 1;
 	public static int HIGHLIGHT = 1 << 2;
@@ -167,7 +169,7 @@ public class Term {
 			return new BooleanClause(searchIndexReader, this, highlightInfo);
 		}else if(type == Type.ANY){
 			return new BooleanClause(searchIndexReader, this, highlightInfo);
-		}else if(type == Type.PHR){
+		}else if(type == Type.PHRASE){
 			return new BooleanClause(searchIndexReader, this, highlightInfo);
 		}
 		

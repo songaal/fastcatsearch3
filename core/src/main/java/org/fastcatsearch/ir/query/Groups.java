@@ -24,6 +24,7 @@ import org.fastcatsearch.ir.group.GroupDataGenerator;
 import org.fastcatsearch.ir.group.GroupsResultGenerator;
 import org.fastcatsearch.ir.search.FieldIndexesReader;
 import org.fastcatsearch.ir.search.GroupIndexesReader;
+import org.fastcatsearch.ir.search.clause.Clause;
 import org.fastcatsearch.ir.settings.Schema;
 
 

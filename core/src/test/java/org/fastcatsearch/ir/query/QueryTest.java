@@ -20,8 +20,6 @@ package org.fastcatsearch.ir.query;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import junit.framework.TestCase;
 
@@ -32,6 +30,9 @@ import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.document.DocumentReader;
 import org.fastcatsearch.ir.search.SearchIndexesReader;
+import org.fastcatsearch.ir.search.clause.Clause;
+import org.fastcatsearch.ir.search.clause.ClauseException;
+import org.fastcatsearch.ir.search.clause.OperatedClause;
 import org.fastcatsearch.ir.settings.Schema;
 
 public class QueryTest extends TestCase{

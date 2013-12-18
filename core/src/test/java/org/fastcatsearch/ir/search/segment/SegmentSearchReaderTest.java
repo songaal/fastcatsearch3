@@ -35,8 +35,6 @@ import org.fastcatsearch.ir.io.FixedHitQueue;
 import org.fastcatsearch.ir.io.FixedHitReader;
 import org.fastcatsearch.ir.io.FixedHitStack;
 import org.fastcatsearch.ir.io.FixedMinHeap;
-import org.fastcatsearch.ir.query.Clause;
-import org.fastcatsearch.ir.query.ClauseException;
 import org.fastcatsearch.ir.query.Group;
 import org.fastcatsearch.ir.query.Groups;
 import org.fastcatsearch.ir.query.Metadata;
@@ -47,6 +45,8 @@ import org.fastcatsearch.ir.query.Term;
 import org.fastcatsearch.ir.search.Hit;
 import org.fastcatsearch.ir.search.HitElement;
 import org.fastcatsearch.ir.search.SegmentReader;
+import org.fastcatsearch.ir.search.clause.Clause;
+import org.fastcatsearch.ir.search.clause.ClauseException;
 import org.fastcatsearch.ir.settings.Schema;
 
 

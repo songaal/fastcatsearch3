@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.fastcatsearch.ir.query;
+package org.fastcatsearch.ir.search.clause;
 
+import org.fastcatsearch.ir.query.RankInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

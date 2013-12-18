@@ -1,4 +1,4 @@
-package org.fastcatsearch.ir.query;
+package org.fastcatsearch.ir.search.clause;
 
 import java.io.IOException;
 
@@ -12,6 +12,9 @@ import org.apache.lucene.analysis.tokenattributes.SynonymAttribute;
 import org.apache.lucene.util.CharsRef;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.CharVectorTokenizer;
+import org.fastcatsearch.ir.query.HighlightInfo;
+import org.fastcatsearch.ir.query.RankInfo;
+import org.fastcatsearch.ir.query.Term;
 import org.fastcatsearch.ir.query.Term.Option;
 import org.fastcatsearch.ir.search.PostingDocs;
 import org.fastcatsearch.ir.search.SearchIndexReader;
@@ -124,7 +127,7 @@ public class BooleanClause implements OperatedClause {
 		} catch (IOException e) {
 			logger.error("", e);
 		} finally {
-			searchIndexReader.releaseAnalyzerToPool(analyzer);
+			searchIndexReader.releaseQueryAnalyzerToPool(analyzer);
 		}
 	}
 

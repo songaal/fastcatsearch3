@@ -14,17 +14,26 @@
  * limitations under the License.
  */
 
-package org.fastcatsearch.ir.query;
+package org.fastcatsearch.ir.search.clause;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.fastcatsearch.ir.query.RankInfo;
+import org.fastcatsearch.ir.search.clause.AllDocumentOperatedClause;
 
+import junit.framework.TestCase;
 
-public interface OperatedClause {
-	public static Logger logger = LoggerFactory.getLogger(OperatedClause.class);
-	/**
-	 * @param docInfo
-	 * @return RankInfo를 올바로 읽었는지 여부. 
-	 */
-	public boolean next(RankInfo docInfo);
+public class AllDocumentOperatedClauseTest extends TestCase {
+	public void test1(){
+		int baseDocNo = 10;
+		int docCount = 99;
+		AllDocumentOperatedClause c = new AllDocumentOperatedClause(docCount);
+		RankInfo ri = new RankInfo();
+		
+		int pos = 0;
+		while(c.next(ri)){
+			assertEquals(ri.docNo()+baseDocNo, baseDocNo+ pos);
+			pos++;
+			System.out.println(ri.docNo());
+		}
+		
+	}
 }

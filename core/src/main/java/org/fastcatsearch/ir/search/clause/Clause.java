@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.fastcatsearch.ir.query;
+package org.fastcatsearch.ir.search.clause;
 
 import java.io.IOException;
 import java.util.Map;
 
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.query.HighlightInfo;
+import org.fastcatsearch.ir.query.Term;
 import org.fastcatsearch.ir.search.SearchIndexesReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

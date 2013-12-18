@@ -22,7 +22,6 @@ import java.util.Map.Entry;
 
 import org.fastcatsearch.ir.group.GroupFunction;
 import org.fastcatsearch.ir.group.function.CountGroupFunction;
-import org.fastcatsearch.ir.query.Clause;
 import org.fastcatsearch.ir.query.Filter;
 import org.fastcatsearch.ir.query.Filters;
 import org.fastcatsearch.ir.query.Group;
@@ -35,6 +34,7 @@ import org.fastcatsearch.ir.query.Term;
 import org.fastcatsearch.ir.query.Term.Option;
 import org.fastcatsearch.ir.query.View;
 import org.fastcatsearch.ir.query.ViewContainer;
+import org.fastcatsearch.ir.search.clause.Clause;
 import org.fastcatsearch.util.DynamicClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -468,10 +468,14 @@ public class QueryParser {
 			term[0] = str.substring(4, str.length() - 1);
 			logger.debug("str = " + str);
 			return Term.Type.EXT;
-		} else if (str.startsWith("PHR")) {
-			term[0] = str.substring(4, str.length() - 1);
+		} else if (str.startsWith("PHRASE")) {
+			term[0] = str.substring(7, str.length() - 1);
 			logger.debug("str = " + str);
-			return Term.Type.PHR;
+			return Term.Type.PHRASE;
+		} else if (str.startsWith("BOOL")) {
+			term[0] = str.substring(5, str.length() - 1);
+			logger.debug("str = " + str);
+			return Term.Type.BOOL;
 		}
 		// 통째로 반환. default = AND
 		term[0] = str;

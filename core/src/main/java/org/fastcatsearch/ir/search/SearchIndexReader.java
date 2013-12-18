@@ -41,11 +41,11 @@ import org.fastcatsearch.ir.io.FixedMinHeap;
 import org.fastcatsearch.ir.io.IOUtil;
 import org.fastcatsearch.ir.io.IndexInput;
 import org.fastcatsearch.ir.query.HighlightInfo;
-import org.fastcatsearch.ir.query.MultiTermOperatedClause;
-import org.fastcatsearch.ir.query.OperatedClause;
-import org.fastcatsearch.ir.query.OrOperatedClause;
 import org.fastcatsearch.ir.query.Term;
 import org.fastcatsearch.ir.query.Term.Option;
+import org.fastcatsearch.ir.search.clause.MultiTermOperatedClause;
+import org.fastcatsearch.ir.search.clause.OperatedClause;
+import org.fastcatsearch.ir.search.clause.OrOperatedClause;
 import org.fastcatsearch.ir.search.posting.PostingDocsMerger;
 import org.fastcatsearch.ir.search.posting.PostingDocsReader;
 import org.fastcatsearch.ir.settings.IndexSetting;
@@ -153,6 +153,7 @@ public class SearchIndexReader implements Cloneable {
 		return reader;
 	}
 
+/*
 	public OperatedClause getOperatedClause(Term term, HighlightInfo highlightInfo) throws IOException, IRException {
 //		String[] indexFieldIdList = term.indexFieldId();
 
@@ -333,7 +334,7 @@ public class SearchIndexReader implements Cloneable {
 		return totalClause;
 
 	}
-
+*/
 	private boolean isBooeanOperator(CharVector token1) {
 		// TODO Auto-generated method stub
 		return false;
@@ -850,7 +851,7 @@ public class SearchIndexReader implements Cloneable {
 		return queryAnalyzerPool.getFromPool();
 	}
 
-	public void releaseAnalyzerToPool(Analyzer analyzer) {
+	public void releaseQueryAnalyzerToPool(Analyzer analyzer) {
 		queryAnalyzerPool.releaseToPool(analyzer);
 	}
 

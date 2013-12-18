@@ -1,6 +1,8 @@
-package org.fastcatsearch.ir.query;
+package org.fastcatsearch.ir.search.clause;
 
+import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.search.PostingDocs;
+import org.fastcatsearch.ir.search.clause.MultiTermOperatedClause;
 import org.junit.Test;
 
 public class PhraseOperatedClauseTest {

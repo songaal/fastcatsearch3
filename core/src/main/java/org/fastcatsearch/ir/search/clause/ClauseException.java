@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fastcatsearch.ir.query;
+package org.fastcatsearch.ir.search.clause;
 
 public class ClauseException extends Exception {
 

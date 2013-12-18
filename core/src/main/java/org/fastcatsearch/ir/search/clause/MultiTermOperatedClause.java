@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.fastcatsearch.ir.query;
+package org.fastcatsearch.ir.search.clause;
 
 import java.util.List;
 
+import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.search.CollectedEntry;
 import org.fastcatsearch.ir.search.PostingDoc;
 import org.fastcatsearch.ir.search.TermDocCollector;

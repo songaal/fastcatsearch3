@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.fastcatsearch.ir.query;
+package org.fastcatsearch.ir.search.clause;
 
 
 import java.util.Random;
 
-import org.fastcatsearch.ir.query.AndOperatedClause;
 import org.fastcatsearch.ir.query.RankInfo;
-import org.fastcatsearch.ir.query.UserOperatedClause;
+import org.fastcatsearch.ir.search.clause.AndOperatedClause;
+import org.fastcatsearch.ir.search.clause.UserOperatedClause;
 
 
 

@@ -1,4 +1,6 @@
-package org.fastcatsearch.ir.query;
+package org.fastcatsearch.ir.search.clause;
+
+import org.fastcatsearch.ir.query.RankInfo;
 
 public class EmptyOperatedClause implements OperatedClause {
 

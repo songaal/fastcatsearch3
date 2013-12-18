@@ -14,48 +14,50 @@
  * limitations under the License.
  */
 
-package org.fastcatsearch.ir.query;
+package org.fastcatsearch.ir.search.clause;
 
 
 import java.util.Random;
 
-import org.fastcatsearch.ir.query.OrOperatedClause;
 import org.fastcatsearch.ir.query.RankInfo;
-import org.fastcatsearch.ir.query.UserOperatedClause;
+import org.fastcatsearch.ir.search.clause.NotOperatedClause;
+import org.fastcatsearch.ir.search.clause.UserOperatedClause;
 
 
 
 import junit.framework.TestCase;
 
-public class OrOperatedClauseTest extends TestCase{
+public class NotOperatedClauseTest extends TestCase{
 	
-	public void __testFixed(){
-		int[] docs1 = new int[]{2,5,7};
+	public void testFixed(){
+		int[] docs1 = new int[]{2,5,7,9,13,18,27,31,37,45};
+		int[] weight1 = new int[]{100,200,100,200,100,200,100,200,300,100};
 		
-		int[] docs2 = new int[]{3};
+		int[] docs2 = new int[]{4,5,6,7,8,9};
+		int[] weight2 = new int[]{300,400,300,300,400,500};
 		
-		UserOperatedClause c1 = new UserOperatedClause(docs1.length, docs1, null);
-		UserOperatedClause c2 = new UserOperatedClause(docs2.length, docs2, null);
+		UserOperatedClause c1 = new UserOperatedClause(docs1.length, docs1, weight1);
+		UserOperatedClause c2 = new UserOperatedClause(docs2.length, docs2, weight2);
 		
 		RankInfo docInfo = new RankInfo();
 		
-		OrOperatedClause orClause = new OrOperatedClause(c1, c2);
+		NotOperatedClause notClause = new NotOperatedClause(c1, c2);
 		
 		
 		int i = 0;
-		while(orClause.next(docInfo)){
-			System.out.println((i+1)+" : "+docInfo.docNo());
+		while(notClause.next(docInfo)){
+			System.out.println((i+1)+" : "+docInfo.docNo()+" : "+docInfo.score());
 			i++;
 		}
 	}
 	
 	
-	public void testRandom(){
-		int count1 = 1000;
+	public void __testRandom(){
+		int count1 = 100;
 		int[] docs1 = new int[count1];
 		makeDocs(count1, docs1);
 		
-		int count2 = 10000;
+		int count2 = 200;
 		int[] docs2 = new int[count2];
 		makeDocs(count2, docs2);
 		
@@ -64,11 +66,11 @@ public class OrOperatedClauseTest extends TestCase{
 		
 		RankInfo docInfo = new RankInfo();
 		
-		OrOperatedClause orClause = new OrOperatedClause(c1, c2);
+		NotOperatedClause notClause = new NotOperatedClause(c1, c2);
 		
 		
 		int i = 0;
-		while(orClause.next(docInfo)){
+		while(notClause.next(docInfo)){
 			System.out.println((i+1)+" : "+docInfo.docNo());
 			i++;
 		}
