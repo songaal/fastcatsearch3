@@ -14,6 +14,7 @@ import org.fastcatsearch.additional.KeywordService;
 import org.fastcatsearch.additional.PopularKeywordDictionary;
 import org.fastcatsearch.additional.KeywordDictionary.KeywordDictionaryType;
 import org.fastcatsearch.db.mapper.PopularKeywordMapper;
+import org.fastcatsearch.db.mapper.RelateKeywordMapper;
 import org.fastcatsearch.db.vo.PopularKeywordVO;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.service.ServiceManager;
@@ -79,6 +80,10 @@ public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 				
 				timeStr = "W" + dateFormat.format(calendar.getTime());
 				
+			} else  if(dictionaryType == KeywordDictionaryType.RELATE_KEYWORD) {
+				
+				
+				
 			}
 			
 		} catch (IllegalArgumentException e) {
@@ -92,7 +97,6 @@ public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 	
 	private void compilePopularKeyword(KeywordService service, List<Category> categoryList,
 			String fileName, String time) throws Exception {
-		
 		
 		PopularKeywordMapper mapper = (PopularKeywordMapper) service
 				.getMapperSession(PopularKeywordMapper.class);
@@ -120,6 +124,16 @@ public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 				} catch (IOException e) { }
 			}
 		}
+	}
+	
+	private void compileRelateKeyword(KeywordService service, List<Category> categoryList,
+			String fileName, String time) throws Exception {
+		
+		RelateKeywordMapper mapper = (RelateKeywordMapper) service
+				.getMapperSession(RelateKeywordMapper.class);
+		
+		//List<RelateKeywordVO> keywordList = mapper.getEntryList();
+		
 	}
 
 }
