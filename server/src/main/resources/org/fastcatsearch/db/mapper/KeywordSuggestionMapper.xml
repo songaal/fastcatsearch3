@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+Derby SQL 문법에 따른다.
+ -->
+<mapper namespace="org.fastcatsearch.db.mapper.KeywordSuggestionMapper">
+
+	<update id="createTable">
+		create table KeywordSuggestion (
+			id bigint not null generated always as identity,
+			keyword varchar(64),
+			primary key (id)
+		)
+	</update>
+	
+	<update id="createIndex" parameterType="map">
+		create index keyword_index on KeywordSuggestion(category)
+	</update>
+	
+	<select id="validateTable" parameterType="map" resultType="map">
+		select id, keyword
+		from KeywordSuggestion
+		fetch first 1 rows only
+	</select>
+
+	<update id="dropTable" parameterType="map">
+		drop table KeywordSuggestion
+	</update>
+	
+	<select id="getEntry" parameterType="int" resultType="org.fastcatsearch.db.vo.KeywordSuggestionVO">
+		select * 
+		from KeywordSuggestion where id = #{id}
+	</select>
+	
+	<select id="getEntryList" parameterType="map" resultType="org.fastcatsearch.db.vo.KeywordSuggestionVO">
+		select * from KeywordSuggestion where keyword=#{keyword}
+	</select>
+	
+	<select id="getCount" parameterType="map" resultType="int">
+		select count(*) from KeywordSuggestion where keyword = #{keyword} 
+	</select>
+	
+	<update id="putEntry" parameterType="map">
+		insert into KeywordSuggestion
+		(keyword) values
+		(#{keyword})
+	</update>
+	
+	<update id="updateEntry" parameterType="map">
+		update KeywordSuggestion set 
+		keyword = #{keyword},
+		where id = #{id}
+	</update>
+	
+	<delete id="deleteEntry" parameterType="int">
+		delete from KeywordSuggestion where id=#{id}
+	</delete>
+	
+	<delete id="deleteEntryList" parameterType="map">
+		delete from KeywordSuggestion
+		where id in (${idList})
+	</delete>
+	
+	<delete id="truncate" parameterType="map">
+		truncate table KeywordSuggestion
+	</delete>
+	
+</mapper>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+Derby SQL 문법에 따른다.
+ -->
+<mapper namespace="org.fastcatsearch.db.mapper.RelateKeywordMapper">
+
+	<update id="createTable">
+		create table RelateKeyword (
+			id bigint not null generated always as identity,
+			category varchar(64),
+			keyword varchar(64),
+			value varchar(64),
+			updateTime timestamp,
+			primary key (id)
+		)
+	</update>
+	
+	<update id="createIndex" parameterType="map">
+	</update>
+	
+	<select id="validateTable" parameterType="map" resultType="map">
+		select id, category, keyword, value, updateTime
+		from RelateKeyword
+		fetch first 1 rows only
+	</select>
+
+	<update id="dropTable" parameterType="map">
+		drop table RelateKeyword
+	</update>
+	
+	<select id="getEntry" parameterType="map" resultType="org.fastcatsearch.db.vo.RelateKeywordVO">
+		select * 
+		from RelateKeyword where category = #{category} and keyword = #{keyword}
+	</select>
+	
+	<select id="getEntryList" parameterType="map" resultType="org.fastcatsearch.db.vo.RelateKeywordVO">
+		select * from RelateKeyword where keyword=#{keyword}
+	</select>
+	
+	<select id="getCount" parameterType="map" resultType="int">
+		select count(*) from RelateKeyword where keyword=#{keyword}
+	</select>
+	
+	<update id="putEntry" parameterType="map">
+		insert into RelateKeyword 
+		(category,keyword,value,updateTime) values
+		(#{category}, #{keyword}, #{value}, #{updateTime})
+	</update>
+	
+	<update id="updateEntry" parameterType="map">
+		update RelateKeyword set 
+		category = #{category},
+		keyword = #{keyword},
+		value = #{value},
+		updateTime = #{updateTime},
+		where id = #{id}
+	</update>
+	
+	<delete id="deleteEntry" parameterType="int">
+		delete from RelateKeyword where id=#{id}
+	</delete>
+	
+	<delete id="deleteEntryList" parameterType="map">
+		delete from RelateKeyword
+		where id in (${idList})
+	</delete>
+	
+	<delete id="truncate" parameterType="map">
+		truncate table RelateKeyword
+	</delete>
+	
+</mapper>

@@ -7,6 +7,74 @@ Derby SQL 문법에 따른다.
  -->
 <mapper namespace="org.fastcatsearch.db.mapper.PopularKeywordMapper">
 
-	<!-- 타 mapper.xml 참고하여 작성. -->
+	<update id="createTable">
+		create table PopularKeyword (
+			id bigint not null generated always as identity,
+			category varchar(64),
+			time varchar(9),
+			word varchar(64),
+			count int,
+			rank int,
+			rankDiffType varchar(3),
+			primary key (id)
+		)
+	</update>
+	
+	<update id="createIndex" parameterType="map">
+		create index category_index on PopularKeyword(category)
+	</update>
+	
+	<select id="validateTable" parameterType="map" resultType="map">
+		select id, category, time, word, count, rank, rankDiffType
+		from PopularKeyword
+		fetch first 1 rows only
+	</select>
+
+	<update id="dropTable" parameterType="map">
+		drop table PopularKeyword
+	</update>
+	
+	<select id="getEntry" parameterType="int" resultType="org.fastcatsearch.db.vo.PopularKeywordVO">
+		select * 
+		from PopularKeyword where id = #{id}
+	</select>
+	
+	<select id="getEntryList" parameterType="map" resultType="org.fastcatsearch.db.vo.PopularKeywordVO">
+		select * from PopularKeyword where category=#{category} and time=#{time}
+	</select>
+	
+	<select id="getCount" parameterType="map" resultType="int">
+		select count(*) from PopularKeyword where category=#{category} and time=#{time}
+	</select>
+	
+	<update id="putEntry" parameterType="map">
+		insert into PopularKeyword 
+		(category,time,word,count,rank,rankDiffType) values
+		(#{category}, #{time}, #{word}, #{count}, #{rank}, #{rankDiffType})
+	</update>
+	
+	<update id="updateEntry" parameterType="map">
+		update PopularKeyword set 
+		category = #{category},
+		time = #{time},
+		word = #{word},
+		count = #{count},
+		rank = #{rank},
+		rankDiffType = #{rankDiffType}
+		where id = #{id}
+	</update>
+	
+	<delete id="deleteEntry" parameterType="int">
+		delete from PopularKeyword where id=#{id}
+	</delete>
+	
+	<delete id="deleteEntryList" parameterType="map">
+		delete from PopularKeyword
+		where id in (${idList})
+	</delete>
+	
+	<delete id="truncate" parameterType="map">
+		truncate table PopularKeyword
+	</delete>
 	
 </mapper>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+Derby SQL 문법에 따른다.
+ -->
+<mapper namespace="org.fastcatsearch.db.mapper.ADKeywordMapper">
+
+	<update id="createTable">
+		create table ADKeyword (
+			id bigint not null generated always as identity,
+			keyword varchar(64),
+			value varchar(64),
+			updateTime timestamp,
+			primary key (id)
+		)
+	</update>
+	
+	<update id="createIndex" parameterType="map">
+		create index keyword_index on ADKeyword(keyword)
+	</update>
+	
+	<select id="validateTable" parameterType="map" resultType="map">
+		select id, keyword, value, updateTime
+		from ADKeyword
+		fetch first 1 rows only
+	</select>
+
+	<update id="dropTable" parameterType="map">
+		drop table ADKeyword
+	</update>
+	
+	<select id="getEntry" parameterType="int" resultType="org.fastcatsearch.db.vo.ADKeywordVO">
+		select * 
+		from ADKeyword where id = #{id}
+	</select>
+	
+	<select id="getEntryList" parameterType="map" resultType="org.fastcatsearch.db.vo.ADKeywordVO">
+		select * from ADKeyword where keyword = #{keyword} 
+	</select>
+	
+	<select id="getCount" parameterType="map" resultType="int">
+		select count(*) from ADKeyword where keyword=#{keyword}
+	</select>
+	
+	<update id="putEntry" parameterType="map">
+		insert into ADKeyword 
+		(keyword,value,updateTime) values
+		(#{keyword}, #{value}, #{updateTime})
+	</update>
+	
+	<update id="updateEntry" parameterType="map">
+		update ADKeyword set 
+		keyword = #{keyword},
+		value = #{value},
+		updateTime = #{updateTime},
+		where id = #{id}
+	</update>
+	
+	<delete id="deleteEntry" parameterType="int">
+		delete from ADKeyword where id=#{id}
+	</delete>
+	
+	<delete id="deleteEntryList" parameterType="map">
+		delete from ADKeyword
+		where id in (${idList})
+	</delete>
+	
+	<delete id="truncate" parameterType="map">
+		truncate table ADKeyword
+	</delete>
+	
+</mapper>
