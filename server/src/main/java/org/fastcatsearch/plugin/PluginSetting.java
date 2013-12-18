@@ -8,6 +8,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.ActionMethod;
+import org.fastcatsearch.http.action.management.analysis.GetAnalizedBasicResultAction;
 import org.fastcatsearch.util.DynamicClassLoader;
 
 public class PluginSetting {
@@ -137,11 +138,16 @@ public class PluginSetting {
 
 		private String findActionMapping(String type) {
 			if (actionMap == null) {
-				Class<?> actionClass = DynamicClassLoader.loadClass(className);
-				if (actionClass == null) {
-					return null;
+				try {
+					Class<?> actionClass = DynamicClassLoader.loadClass(className);
+					if (actionClass == null) {
+						return null;
+					}
+					actionMap = actionClass.getAnnotation(ActionMapping.class);
+				} catch (Exception e) {
+					Class<?> actionClass = GetAnalizedBasicResultAction.class;
+					actionMap = actionClass.getAnnotation(ActionMapping.class);
 				}
-				actionMap = actionClass.getAnnotation(ActionMapping.class);
 			}
 			if (actionMap != null) {
 				if ("uri".equals(type)) {
