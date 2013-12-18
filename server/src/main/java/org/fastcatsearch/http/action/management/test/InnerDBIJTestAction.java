@@ -8,13 +8,13 @@ import java.sql.Connection;
 
 import org.apache.derby.tools.ij;
 import org.apache.ibatis.session.SqlSession;
-import org.fastcatsearch.additional.KeywordService;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.InternalDBModule;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
+import org.fastcatsearch.keyword.KeywordService;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.service.ServiceManager;

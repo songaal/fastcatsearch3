@@ -1,4 +1,4 @@
-package org.fastcatsearch.additional;
+package org.fastcatsearch.keyword;
 
 import java.io.File;
 import java.io.FileInputStream;
