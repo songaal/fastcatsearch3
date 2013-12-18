@@ -68,7 +68,7 @@ Derby SQL 문법에 따른다.
 		delete from PopularKeyword where id=#{id}
 	</delete>
 	
-	<delete id="deleteEntryList" parameterType="map">
+	<delete id="deleteKeywordList" parameterType="map">
 		delete from PopularKeyword
 		where id in (${idList})
 	</delete>

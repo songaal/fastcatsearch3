@@ -9,6 +9,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.db.mapper.PopularKeywordMapper;
 import org.fastcatsearch.db.mapper.RelateKeywordMapper;
 import org.fastcatsearch.db.vo.PopularKeywordVO;
@@ -84,8 +85,10 @@ public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 			}
 			
 		} catch (IllegalArgumentException e) {
+			logger.error("",e);
 			return new JobResult("INVALID KEYWORD DICTIONARY TYPE >> "+dictionaryTypeStr);
 		} catch (Exception e) {
+			logger.error("",e);
 			return new JobResult("KEYWORD DICTIONARY COMPILE ERROR >> "+e.getMessage());
 		}
 		
@@ -95,8 +98,8 @@ public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 	private void compilePopularKeyword(KeywordService service, List<Category> categoryList,
 			KeywordDictionaryType type, String time) throws Exception {
 		
-		PopularKeywordMapper mapper = (PopularKeywordMapper) service
-				.getMapperSession(PopularKeywordMapper.class);
+		PopularKeywordMapper mapper = service
+				.getMapperSession(PopularKeywordMapper.class).getMapper();
 		
 		for(Category category : categoryList) {
 		
@@ -105,6 +108,12 @@ public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 			PopularKeywordDictionary dictionary = new PopularKeywordDictionary(keywordList);
 			
 			File writeFile = service.getFile(category.getId(), type);
+			
+			File parentDir = writeFile.getParentFile();
+			
+			if(!parentDir.exists()) {
+				FileUtils.forceMkdir(parentDir);
+			}
 			
 			OutputStream ostream = null;
 			
@@ -126,8 +135,8 @@ public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 	private void compileRelateKeyword(KeywordService service, List<Category> categoryList, 
 			KeywordDictionaryType type) throws Exception {
 		
-		RelateKeywordMapper mapper = (RelateKeywordMapper) service
-				.getMapperSession(RelateKeywordMapper.class);
+		RelateKeywordMapper mapper = service
+				.getMapperSession(RelateKeywordMapper.class).getMapper();
 		
 		
 		for(Category category : categoryList) {

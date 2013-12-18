@@ -16,7 +16,7 @@ Derby SQL 문법에 따른다.
 	</update>
 	
 	<update id="createIndex" parameterType="map">
-		create index keyword_index on KeywordSuggestion(category)
+		create index keyword_index on KeywordSuggestion(keyword)
 	</update>
 	
 	<select id="validateTable" parameterType="map" resultType="map">

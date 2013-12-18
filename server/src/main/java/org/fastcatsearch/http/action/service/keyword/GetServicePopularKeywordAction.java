@@ -40,7 +40,7 @@ public class GetServicePopularKeywordAction extends ServiceAction {
 		List<PopularKeywordVO> keywordList = popularKeywordDictionary.getKeywordList();
 		
 		responseWriter.object();
-		responseWriter.key("time").value(Formatter.formatDate(popularKeywordDictionary.getCreateTime()));
+		//responseWriter.key("time").value(Formatter.formatDate(popularKeywordDictionary.getCreateTime()));
 		responseWriter.array("list");
 		for(PopularKeywordVO vo : keywordList){
 			responseWriter.object();

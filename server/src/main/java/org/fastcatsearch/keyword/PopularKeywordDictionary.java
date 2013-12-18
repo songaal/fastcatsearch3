@@ -1,6 +1,8 @@
 package org.fastcatsearch.keyword;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -31,6 +33,22 @@ public class PopularKeywordDictionary implements KeywordDictionary {
 	}
 	
 	public PopularKeywordDictionary(File dictionaryFile) {
+		logger.debug("reading dictionary file.. {}", dictionaryFile);
+		
+		InputStream istream = null;
+		
+		try {
+			istream = new FileInputStream(dictionaryFile);
+			readFrom(istream);
+		} catch (IOException e) {
+			logger.error("",e);
+		} finally {
+			if (istream != null) try {
+				istream.close();
+			} catch (IOException e) { }
+		}
+		
+		
 	}
 
 	public Date getCreateTime() {
