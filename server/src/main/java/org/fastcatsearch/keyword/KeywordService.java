@@ -52,8 +52,8 @@ public class KeywordService extends AbstractDBService {
 		super("db/keyword", KeywordService.mapperList, environment, settings, serviceManager);
 		
 		moduleHome = environment.filePaths().file("keyword");
-		popularKeywordModule = new PopularKeywordModule(moduleHome, this, environment, settings);
-		relateKeywordModule = new RelateKeywordModule(moduleHome, this, environment, settings);
+		popularKeywordModule = new PopularKeywordModule(moduleHome, environment, settings);
+		relateKeywordModule = new RelateKeywordModule(moduleHome, environment, settings);
 	}
 	
 	public File getFile(String moduleName, String fileName) {
