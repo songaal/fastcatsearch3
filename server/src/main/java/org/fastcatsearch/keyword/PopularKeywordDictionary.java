@@ -1,14 +1,13 @@
 package org.fastcatsearch.keyword;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.apache.lucene.store.InputStreamDataInput;
 import org.apache.lucene.store.OutputStreamDataOutput;
@@ -25,12 +24,29 @@ public class PopularKeywordDictionary implements KeywordDictionary {
 	private Date createTime;
 	private List<PopularKeywordVO> keywordList;
 	
+	public PopularKeywordDictionary(){
+		keywordList = new ArrayList<PopularKeywordVO>(0);
+	}
+	
 	public PopularKeywordDictionary(List<PopularKeywordVO> keywordList){
 		this.keywordList = keywordList;
 		this.createTime = new Date();
 	}
 	
 	public PopularKeywordDictionary(File dictionaryFile) {
+		if (!dictionaryFile.exists()) {
+			keywordList = new ArrayList<PopularKeywordVO>();
+			logger.error("사전파일이 존재하지 않습니다. file={}", dictionaryFile.getAbsolutePath());
+			return;
+		}
+		InputStream is = null;
+		try {
+			is = new FileInputStream(dictionaryFile);
+			readFrom(is);
+			is.close();
+		} catch (IOException e) {
+			logger.error("", e);
+		}
 	}
 
 	public Date getCreateTime() {

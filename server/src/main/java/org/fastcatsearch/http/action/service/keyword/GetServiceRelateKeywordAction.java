@@ -17,25 +17,37 @@ public class GetServiceRelateKeywordAction extends ServiceAction {
 	@Override
 	public void doAction(ActionRequest request, ActionResponse response) throws Exception {
 		KeywordService keywordService = ServiceManager.getInstance().getService(KeywordService.class);
-		
+
 		writeHeader(response);
 		ResponseWriter responseWriter = getDefaultResponseWriter(response.getWriter());
-		
+
 		String keyword = request.getParameter("keyword");
-		String category = request.getParameter("category");
+		String categoryId = request.getParameter("category");
+		String errorMessage = null;
 		KeywordDictionaryType keywordDictionaryType = KeywordDictionaryType.RELATE_KEYWORD;
-		
-		KeywordDictionary keywordDictionary = keywordService.getKeywordDictionary(category, keywordDictionaryType);
-		
-		RelateKeywordDictionary relateKeywordDictionary = (RelateKeywordDictionary) keywordDictionary;
-		String relateValue = relateKeywordDictionary.getRelateKeyword(keyword);
-		
+
 		responseWriter.object();
-		responseWriter.key("keyword").value(keyword);
-		responseWriter.key("relate").value(relateValue);
-		responseWriter.endObject();
+		responseWriter.key("category").value(categoryId);
+		responseWriter.key("type").value(KeywordDictionaryType.RELATE_KEYWORD.name());
 		
-		responseWriter.done();
+		try {
+			KeywordDictionary keywordDictionary = keywordService.getKeywordDictionary(categoryId, keywordDictionaryType);
+
+			RelateKeywordDictionary relateKeywordDictionary = (RelateKeywordDictionary) keywordDictionary;
+			if(keyword != null){
+				String relateValue = relateKeywordDictionary.getRelateKeyword(keyword);
+				responseWriter.key("keyword").value(keyword);
+				responseWriter.key("relate").value(relateValue);
+			}
+		} catch (Exception e) {
+			errorMessage = e.getMessage();
+		} finally {
+			if (errorMessage != null) {
+				responseWriter.key("errorMessage").value(errorMessage);
+			}
+			responseWriter.endObject();
+			responseWriter.done();
+		}
 	}
 
 }

@@ -32,19 +32,14 @@ public class RelateKeywordModule extends AbstractModule {
 			String categoryId = category.getId();
 			File dictionaryFile = getDictionaryFile(categoryId);
 			try {
-				RelateKeywordDictionary keywordDictionary = null;
-				if(dictionaryFile.exists()){
-					keywordDictionary = new RelateKeywordDictionary(dictionaryFile);
-				}else{
-					keywordDictionary = new RelateKeywordDictionary();
-				}
+				RelateKeywordDictionary keywordDictionary = new RelateKeywordDictionary(dictionaryFile);
 				putRelateKeywordDictionary(categoryId, keywordDictionary);
 			} catch (Exception e) {
 				logger.error("error loading relate keyword > " + dictionaryFile.getAbsolutePath(), e);
+				putRelateKeywordDictionary(categoryId, new RelateKeywordDictionary());
 			}
 
 		}
-		
 		
 		return true;
 	}
