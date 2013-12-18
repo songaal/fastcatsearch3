@@ -1,7 +1,13 @@
 package org.fastcatsearch.db.vo;
 
+import java.io.IOException;
 
-public class PopularKeywordVO {
+import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
+
+
+public class PopularKeywordVO implements Streamable {
 	public enum RankDiffType {UP, DN, NEW, EQ }
 
 	private int id;
@@ -17,7 +23,6 @@ public class PopularKeywordVO {
 	}
 	
 	public PopularKeywordVO(String category, String time, String word, int count, int rank, RankDiffType rankDiffType, int rankDiff) {
-		super();
 		this.category = category;
 		this.time = time;
 		this.word = word;
@@ -76,6 +81,28 @@ public class PopularKeywordVO {
 	}
 	public void setRankDiff(int rankDiff) {
 		this.rankDiff = rankDiff;
+	}
+
+	@Override
+	public void readFrom(DataInput input) throws IOException {
+		this.category = input.readString();
+		this.time = input.readString();
+		this.word = input.readString();
+		this.count = input.readInt();
+		this.rank = input.readInt();
+		this.rankDiffType = RankDiffType.valueOf(input.readString());
+		this.rankDiff =  input.readInt();
+	}
+
+	@Override
+	public void writeTo(DataOutput output) throws IOException {
+		output.writeString(category);
+		output.writeString(time);
+		output.writeString(word);
+		output.writeInt(count);
+		output.writeInt(rank);
+		output.writeString(rankDiffType.name());
+		output.writeInt(rankDiff);
 	}
 	
 }

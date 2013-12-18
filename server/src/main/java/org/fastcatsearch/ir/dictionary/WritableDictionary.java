@@ -5,8 +5,6 @@ import java.io.OutputStream;
 
 public interface WritableDictionary {
 	
-	public void addEntry(String keyword, Object[] values);
-	
 	public void writeTo(OutputStream out) throws IOException;
 	
 }

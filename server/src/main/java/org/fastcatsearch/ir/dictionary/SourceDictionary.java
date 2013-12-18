@@ -50,6 +50,8 @@ public abstract class SourceDictionary implements WritableDictionary, ReadableDi
 		}
 	}
 	
+	public abstract void addEntry(String keyword, Object[] values);
+	
 	public abstract void addSourceLineEntry(String line);
 	
 }

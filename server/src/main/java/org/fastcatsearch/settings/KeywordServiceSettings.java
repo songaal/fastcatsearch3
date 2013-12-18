@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name="additional-service")
-public class AdditionalServiceSettings {
+public class KeywordServiceSettings {
 	private List<String> serviceNodeList;
 	
 	@XmlElementWrapper(name="service-node-list")

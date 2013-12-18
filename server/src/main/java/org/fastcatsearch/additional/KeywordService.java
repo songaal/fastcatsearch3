@@ -1,16 +1,16 @@
 package org.fastcatsearch.additional;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.xml.bind.JAXBException;
 
-import org.apache.ibatis.io.Resources;
+import org.fastcatsearch.additional.KeywordDictionary.KeywordDictionaryType;
+import org.fastcatsearch.additional.module.PopularKeywordModule;
+import org.fastcatsearch.additional.module.RelateKeywordModule;
 import org.fastcatsearch.db.AbstractDBService;
-import org.fastcatsearch.db.InternalDBModule;
 import org.fastcatsearch.db.mapper.ADKeywordMapper;
 import org.fastcatsearch.db.mapper.KeywordSuggestionMapper;
 import org.fastcatsearch.db.mapper.ManagedMapper;
@@ -19,7 +19,7 @@ import org.fastcatsearch.db.mapper.RelateKeywordMapper;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.AdditionalServiceSettings;
+import org.fastcatsearch.settings.KeywordServiceSettings;
 import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.util.JAXBConfigs;
@@ -28,7 +28,14 @@ import org.fastcatsearch.util.JAXBConfigs;
  * */
 public class KeywordService extends AbstractDBService {
 
-	private AdditionalServiceSettings additionalServiceSettings;
+	private KeywordServiceSettings keywordServiceSettings;
+	private Map<KeywordDictionaryType, KeywordDictionary> keywordDictionaryMap;
+	private ReentrantReadWriteLock keywordDictionaryLock; //read일때는 lock없고, write일때만 lock걸린다.
+	
+	private boolean isMaster;
+	
+	private PopularKeywordModule popularKeywordModule;
+	private RelateKeywordModule relateKeywordModule;
 	
 	private static Class<?>[] mapperList = new Class<?>[]{
 			PopularKeywordMapper.class
@@ -37,78 +44,74 @@ public class KeywordService extends AbstractDBService {
 			,ADKeywordMapper.class
 	};
 	
-	private boolean isMaster;
 	
 	public KeywordService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super("db/keyword", mapperList, environment, settings, serviceManager);
 		
-		if(environment.isMasterNode()){
-			isMaster = true;
-			String dbPath = environment.filePaths().file("db/keyword").getAbsolutePath();
-			//system관련 mapper설정.
-			List<URL> mapperFileList = new ArrayList<URL>();
-			for(Class<?> mapperDAO : mapperList){
-				try {
-					String mapperFilePath = mapperDAO.getName().replace('.', '/') +".xml";
-					URL mapperFile = Resources.getResourceURL(mapperFilePath);
-					mapperFileList.add(mapperFile);
-				} catch (IOException e) {
-					logger.error("error load defaultDictionaryMapperFile", e);
-				}
-			}
-			internalDBModule = new InternalDBModule(dbPath, mapperFileList, environment, settings, serviceManager);
-		}
-		
+		File moduleHome = environment.filePaths().file("keyword");
+		popularKeywordModule = new PopularKeywordModule(moduleHome, this, environment, settings);
+		relateKeywordModule = new RelateKeywordModule(moduleHome, this, environment, settings);
 	}
 
 	@Override
 	protected boolean doStart() throws FastcatSearchException {
 		
-		File additionalServiceConfigFile = environment.filePaths().configPath().path(SettingFileNames.keywordServiceConfig).file();
+		File keywordServiceConfigFile = environment.filePaths().configPath().path(SettingFileNames.keywordServiceConfig).file();
 		try {
-			additionalServiceSettings = JAXBConfigs.readConfig(additionalServiceConfigFile, AdditionalServiceSettings.class);
+			keywordServiceSettings = JAXBConfigs.readConfig(keywordServiceConfigFile, KeywordServiceSettings.class);
 		} catch (JAXBException e) {
-			logger.error("additionalService setting file read error.", e);
+			logger.error("KeywordService setting file read error.", e);
 			return false;
 		}
-		if(additionalServiceSettings == null){
-			logger.error("Cannot load additionalService setting file >> {}", additionalServiceSettings);
-			return false;
-		}
-		
-		boolean found = false;
-		for(String serviceNodeId : additionalServiceSettings.getServiceNodeList()){
-			if(environment.myNodeId().equals(serviceNodeId)){
-				logger.info("This node provides AdditionalService.");
-				found = true;
-				break;
-			}
-		}
-		
-		if(!found){
-			logger.info("This node does not provide AdditionalService.");
+		if(keywordServiceSettings == null){
+			logger.error("Cannot load KeywordService setting file >> {}", keywordServiceSettings);
 			return false;
 		}
 		
+		boolean isServiceNode = keywordServiceSettings.getServiceNodeList().contains(environment.myNodeId());
+		
+		///서비스 노드나 ,마스터 노드가 아니면 서비스를 시작하지 않는다.
+		if(!isServiceNode && !isMaster){
+			logger.info("This node does not provide KeywordService.");
+			return false;
+		}
+		
+		//키워드 서비스노드이면..
+		logger.info("This node provides KeywordService.");
+		
+		keywordDictionaryLock = new ReentrantReadWriteLock();
+		keywordDictionaryMap = new HashMap<KeywordDictionaryType, KeywordDictionary>();
+			
+		//모듈 로딩.
+		loadKeywordModules();
 		
 		if (isMaster){
-			//TODO 
 			//마스터서버이면, 자동완성, 연관키워드, 인기검색어 등의 db를 연다.
 			return super.doStart();
 		}else{
 			
-			
-			
 			return true;
 		}
 		
-		
-		
-		
 	}
 
+	
+	private void loadKeywordModules() {
+		popularKeywordModule.load();
+		relateKeywordModule.load();
+	}
+	
+	private void unloadKeywordModules() {
+		popularKeywordModule.unload();
+		relateKeywordModule.unload();
+	}
+
+	
 	@Override
 	protected boolean doStop() throws FastcatSearchException {
+		
+		unloadKeywordModules();
+		
 		if (isMaster){
 			return super.doStop();
 		}else{
@@ -129,6 +132,35 @@ public class KeywordService extends AbstractDBService {
 		}
 	}
 
+
+	
+	public KeywordDictionary getKeywordDictionary(KeywordDictionaryType key){
+		keywordDictionaryLock.readLock().lock();
+		try{
+			return keywordDictionaryMap.get(key);
+		}finally {
+			keywordDictionaryLock.readLock().unlock();
+		}
+	}
+	
+	public void putKeywordDictionary(KeywordDictionaryType key, KeywordDictionary value){
+		keywordDictionaryLock.writeLock().lock();
+		try{
+			keywordDictionaryMap.put(key, value);
+		}finally {
+			keywordDictionaryLock.writeLock().unlock();
+		}
+	}
+	
+	public void removeKeywordDictionary(KeywordDictionaryType key){
+		keywordDictionaryLock.writeLock().lock();
+		try{
+			keywordDictionaryMap.remove(key);
+		}finally {
+			keywordDictionaryLock.writeLock().unlock();
+		}
+	}
+	
 	@Override
 	protected void initMapper(ManagedMapper managedMapper) throws Exception {
 		//do nothing

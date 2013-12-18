@@ -15,6 +15,7 @@ import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.util.CharVectorHashMap;
+
 /*
  * map 범용 사전. 
  * CharVector : CharVector[] pair이다.
@@ -25,10 +26,11 @@ import org.fastcatsearch.ir.util.CharVectorHashMap;
 public class MapDictionary extends SourceDictionary {
 
 	protected Map<CharVector, CharVector[]> map;
-	
-	public MapDictionary(){
+
+	public MapDictionary() {
 		this(false);
 	}
+
 	public MapDictionary(boolean ignoreCase) {
 		super(ignoreCase);
 		map = new CharVectorHashMap<CharVector[]>(ignoreCase);
@@ -41,7 +43,7 @@ public class MapDictionary extends SourceDictionary {
 
 	public MapDictionary(File file, boolean ignoreCase) {
 		super(ignoreCase);
-		if(!file.exists()){
+		if (!file.exists()) {
 			map = new CharVectorHashMap<CharVector[]>();
 			logger.error("사전파일이 존재하지 않습니다. file={}", file.getAbsolutePath());
 			return;
@@ -65,13 +67,12 @@ public class MapDictionary extends SourceDictionary {
 		}
 	}
 
-	
 	@Override
 	public void addEntry(String keyword, Object[] values) {
-		if(keyword == null || keyword.length() == 0) {
+		if (keyword == null || keyword.length() == 0) {
 			return;
 		}
-		
+
 		CharVector[] list = new CharVector[values.length];
 		for (int i = 0; i < values.length; i++) {
 			String value = values[i].toString();
@@ -83,69 +84,65 @@ public class MapDictionary extends SourceDictionary {
 	public Map<CharVector, CharVector[]> getUnmodifiableMap() {
 		return Collections.unmodifiableMap(map);
 	}
-	
+
 	public Map<CharVector, CharVector[]> map() {
 		return map;
 	}
-	
-	
+
 	@Override
 	public void writeTo(OutputStream out) throws IOException {
-		
+
 		DataOutput output = new OutputStreamDataOutput(out);
 		Iterator<CharVector> keySet = map.keySet().iterator();
-		//write size of map
+		// write size of map
 		output.writeVInt(map.size());
-		//write key and value map
-		for(;keySet.hasNext();) {
-			//write key
+		// write key and value map
+		for (; keySet.hasNext();) {
+			// write key
 			CharVector key = keySet.next();
 			output.writeUString(key.array, key.start, key.length);
-			//write values
+			// write values
 			CharVector[] values = map.get(key);
 			output.writeVInt(values.length);
-			for(CharVector value : values) {
+			for (CharVector value : values) {
 				output.writeUString(value.array, value.start, value.length);
 			}
 		}
-		
-		
+
 	}
 
 	@Override
 	public void readFrom(InputStream in) throws IOException {
 		DataInput input = new InputStreamDataInput(in);
-		
+
 		map = new CharVectorHashMap<CharVector[]>(ignoreCase);
-		
+
 		int size = input.readVInt();
-		for(int entryInx=0;entryInx < size; entryInx++) {
+		for (int entryInx = 0; entryInx < size; entryInx++) {
 			CharVector key = new CharVector(input.readUString());
-			
+
 			int valueLength = input.readVInt();
-			
+
 			CharVector[] values = new CharVector[valueLength];
-			
-			for(int valueInx=0; valueInx < valueLength; valueInx++) {
+
+			for (int valueInx = 0; valueInx < valueLength; valueInx++) {
 				values[valueInx] = new CharVector(input.readUString());
 			}
 			map.put(key, values);
 		}
-		
-		
-	}
 
+	}
 
 	@Override
 	public void addSourceLineEntry(String line) {
-		String[] kv= line.split("\t");
-		if(kv.length == 1){
+		String[] kv = line.split("\t");
+		if (kv.length == 1) {
 			String value = kv[0].trim();
-			addEntry(null, new String[]{ value});
-		}else if(kv.length == 2){
+			addEntry(null, new String[] { value });
+		} else if (kv.length == 2) {
 			String keyword = kv[0].trim();
 			String value = kv[1].trim();
-			addEntry(keyword, new String[]{ value });
+			addEntry(keyword, new String[] { value });
 		}
 	}
 
