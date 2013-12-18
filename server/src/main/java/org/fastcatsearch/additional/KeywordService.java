@@ -48,7 +48,7 @@ public class KeywordService extends AbstractDBService {
 	
 	
 	public KeywordService(Environment environment, Settings settings, ServiceManager serviceManager) {
-		super("db/keyword", mapperList, environment, settings, serviceManager);
+		super("db/keyword", KeywordService.mapperList, environment, settings, serviceManager);
 		
 		moduleHome = environment.filePaths().file("keyword");
 		popularKeywordModule = new PopularKeywordModule(moduleHome, this, environment, settings);
@@ -76,7 +76,7 @@ public class KeywordService extends AbstractDBService {
 		}
 		
 		boolean isServiceNode = keywordServiceSettings.getServiceNodeList().contains(environment.myNodeId());
-		
+		isMaster = environment.isMasterNode();
 		///서비스 노드나 ,마스터 노드가 아니면 서비스를 시작하지 않는다.
 		if(!isServiceNode && !isMaster){
 			logger.info("This node does not provide KeywordService.");
@@ -84,7 +84,7 @@ public class KeywordService extends AbstractDBService {
 		}
 		
 		//키워드 서비스노드이면..
-		logger.info("This node provides KeywordService.");
+		logger.info("This node provides KeywordService. isMaster > {}", isMaster);
 		
 		keywordDictionaryLock = new ReentrantReadWriteLock();
 		keywordDictionaryMap = new HashMap<KeywordDictionaryType, KeywordDictionary>();

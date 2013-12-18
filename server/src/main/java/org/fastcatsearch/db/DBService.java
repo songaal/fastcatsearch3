@@ -60,7 +60,7 @@ public class DBService extends AbstractDBService {
 	}
 
 	public DBService(Environment environment, Settings settings, ServiceManager serviceManager) {
-		super("db/system", mapperList, environment, settings, serviceManager);
+		super("db/system", DBService.mapperList, environment, settings, serviceManager);
 	}
 
 	public InternalDBModule internalDBModule() {
