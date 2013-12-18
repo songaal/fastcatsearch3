@@ -25,7 +25,7 @@ public class GetServiceRelateKeywordAction extends ServiceAction {
 		String category = request.getParameter("category");
 		KeywordDictionaryType keywordDictionaryType = KeywordDictionaryType.RELATE_KEYWORD;
 		
-		KeywordDictionary keywordDictionary = keywordService.getKeywordDictionary(keywordDictionaryType);
+		KeywordDictionary keywordDictionary = keywordService.getKeywordDictionary(category, keywordDictionaryType);
 		
 		RelateKeywordDictionary relateKeywordDictionary = (RelateKeywordDictionary) keywordDictionary;
 		String relateValue = relateKeywordDictionary.getRelateKeyword(keyword);

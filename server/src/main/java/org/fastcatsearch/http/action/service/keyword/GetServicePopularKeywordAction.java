@@ -26,7 +26,7 @@ public class GetServicePopularKeywordAction extends ServiceAction {
 		ResponseWriter responseWriter = getDefaultResponseWriter(response.getWriter());
 		
 		String type = request.getParameter("type");
-		String category = request.getParameter("category");
+		String categoryId = request.getParameter("category");
 		KeywordDictionaryType keywordDictionaryType = KeywordDictionaryType.POPULAR_KEYWORD_REALTIME;
 		if("D".equalsIgnoreCase(type)){
 			keywordDictionaryType = KeywordDictionaryType.POPULAR_KEYWORD_DAY;
@@ -34,7 +34,7 @@ public class GetServicePopularKeywordAction extends ServiceAction {
 			keywordDictionaryType = KeywordDictionaryType.POPULAR_KEYWORD_WEEK;
 		}
 		
-		KeywordDictionary keywordDictionary = keywordService.getKeywordDictionary(keywordDictionaryType);
+		KeywordDictionary keywordDictionary = keywordService.getKeywordDictionary(categoryId, keywordDictionaryType);
 		
 		PopularKeywordDictionary popularKeywordDictionary = (PopularKeywordDictionary) keywordDictionary;
 		List<PopularKeywordVO> keywordList = popularKeywordDictionary.getKeywordList();
