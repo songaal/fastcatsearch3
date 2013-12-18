@@ -19,7 +19,6 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.concurrent.CountDownLatch;
 
-import org.fastcatsearch.additional.KeywordService;
 import org.fastcatsearch.alert.ClusterAlertService;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.JobService;
@@ -29,6 +28,7 @@ import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.http.HttpRequestService;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.job.state.TaskStateService;
+import org.fastcatsearch.keyword.KeywordService;
 import org.fastcatsearch.management.SystemInfoService;
 import org.fastcatsearch.notification.NotificationService;
 import org.fastcatsearch.plugin.PluginService;

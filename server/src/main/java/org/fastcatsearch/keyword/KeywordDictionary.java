@@ -1,4 +1,4 @@
-package org.fastcatsearch.additional;
+package org.fastcatsearch.keyword;
 
 import org.fastcatsearch.ir.dictionary.ReadableDictionary;
 import org.fastcatsearch.ir.dictionary.WritableDictionary;
