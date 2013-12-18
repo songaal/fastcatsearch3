@@ -38,14 +38,27 @@ public class KeywordService extends AbstractDBService {
 	private PopularKeywordModule popularKeywordModule;
 	private RelateKeywordModule relateKeywordModule;
 
-	private static Class<?>[] mapperList = new Class<?>[] { PopularKeywordMapper.class, RelateKeywordMapper.class, KeywordSuggestionMapper.class, ADKeywordMapper.class };
-
+	private File moduleHome;
+	
+	private static Class<?>[] mapperList = new Class<?>[]{
+			PopularKeywordMapper.class
+			,RelateKeywordMapper.class
+			,KeywordSuggestionMapper.class
+			,ADKeywordMapper.class
+	};
+	
+	
 	public KeywordService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super("db/keyword", KeywordService.mapperList, environment, settings, serviceManager);
-
-		File moduleHome = environment.filePaths().file("keyword");
-		popularKeywordModule = new PopularKeywordModule(moduleHome, environment, settings);
-		relateKeywordModule = new RelateKeywordModule(moduleHome, environment, settings);
+		
+		moduleHome = environment.filePaths().file("keyword");
+		popularKeywordModule = new PopularKeywordModule(moduleHome, this, environment, settings);
+		relateKeywordModule = new RelateKeywordModule(moduleHome, this, environment, settings);
+	}
+	
+	public File getFile(String moduleName, String fileName) {
+		File home = new File(moduleHome, moduleName);
+		return new File(home,fileName);
 	}
 
 	@Override
