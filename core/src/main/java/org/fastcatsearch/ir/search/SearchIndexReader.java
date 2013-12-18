@@ -74,11 +74,11 @@ public class SearchIndexReader implements Cloneable {
 	public SearchIndexReader() {
 	}
 
-	public SearchIndexReader(IndexSetting indexSetting, Schema schema, File dir, AnalyzerPoolManager analyzerPoolManager) throws IOException, IRException {
-		this(indexSetting, schema, dir, 0, analyzerPoolManager);
+	public SearchIndexReader(IndexSetting indexSetting, Schema schema, File dir, AnalyzerPool queryAnalyzerPool) throws IOException, IRException {
+		this(indexSetting, schema, dir, 0, queryAnalyzerPool);
 	}
 
-	public SearchIndexReader(IndexSetting indexSetting, Schema schema, File dir, int revision, AnalyzerPoolManager analyzerPoolManager) throws IOException, IRException {
+	public SearchIndexReader(IndexSetting indexSetting, Schema schema, File dir, int revision, AnalyzerPool queryAnalyzerPool) throws IOException, IRException {
 		this.schema = schema;
 		this.indexSetting = indexSetting;
 		String id = indexSetting.getId();
@@ -94,15 +94,6 @@ public class SearchIndexReader implements Cloneable {
 			// posting 파일의 첫 int는 색인옵션.
 			fieldIndexOption = new IndexFieldOption(postingInput.readInt());
 
-			String queryAnalyzerName = indexSetting.getQueryAnalyzer();
-			queryAnalyzerPool = analyzerPoolManager.getPool(queryAnalyzerName);
-
-			if (queryAnalyzerPool != null) {
-				logger.debug("[{}] QueryTokenizer={}", id, queryAnalyzerPool.getClass().getSimpleName());
-			} else {
-				// 분석기를 못찾았을 경우.
-				throw new IRException("Query analyzer not found >> " + id + " : " + queryAnalyzerName);
-			}
 		} catch (Exception e) {
 			if (postingInput != null) {
 				postingInput.close();

@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.query.HighlightInfo;
@@ -63,7 +64,17 @@ public class SearchIndexesReader implements Cloneable {
 			IndexSetting setting = indexSettingList.get(i);
 			SearchIndexReader reader = null;
 			try {
-				reader = new SearchIndexReader(setting, schema, dir, revision, analyzerPoolManager);
+				String queryAnalyzerName = setting.getQueryAnalyzer();
+				AnalyzerPool queryAnalyzerPool = analyzerPoolManager.getPool(queryAnalyzerName);
+				
+				if (queryAnalyzerPool != null) {
+					logger.debug("[{}] QueryTokenizer={}", setting.getId(), queryAnalyzerPool.getClass().getSimpleName());
+				} else {
+					// 분석기를 못찾았을 경우.
+					throw new IRException("Query analyzer not found >> " + setting.getId() + " : " + queryAnalyzerName);
+				}
+				
+				reader = new SearchIndexReader(setting, schema, dir, revision, queryAnalyzerPool);
 			} catch (Exception e) {
 				logger.error("색인Reader {}로딩중 에러 >> {}", setting.getId(), e);
 				if (reader != null) {
