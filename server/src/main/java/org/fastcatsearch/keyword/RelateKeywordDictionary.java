@@ -21,7 +21,7 @@ public class RelateKeywordDictionary implements KeywordDictionary {
 	private Map<String, String> keywordMap;
 
 	public RelateKeywordDictionary() {
-		keywordMap = new HashMap<String, String>();
+		keywordMap = new HashMap<String, String>(0);
 	}
 
 	public RelateKeywordDictionary(File dictionaryFile) {

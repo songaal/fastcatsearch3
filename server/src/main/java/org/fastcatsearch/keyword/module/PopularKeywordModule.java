@@ -1,10 +1,12 @@
 package org.fastcatsearch.keyword.module;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.fastcatsearch.db.vo.PopularKeywordVO;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.keyword.KeywordDictionary.KeywordDictionaryType;
 import org.fastcatsearch.keyword.PopularKeywordDictionary;
@@ -28,6 +30,18 @@ public class PopularKeywordModule extends AbstractModule {
 	@Override
 	protected boolean doLoad() throws ModuleException {
 		categoryKeywordDictionaryMap = new HashMap<String, Map<KeywordDictionaryType, PopularKeywordDictionary>>();
+		////
+		Map<KeywordDictionaryType, PopularKeywordDictionary> map = new HashMap<KeywordDictionaryType, PopularKeywordDictionary>();
+		int rank = 1;
+		List<PopularKeywordVO> list = new ArrayList<PopularKeywordVO>();
+		addFakeKeyword(list, "", rank++);
+		PopularKeywordDictionary dict = new PopularKeywordDictionary(list);
+		categoryKeywordDictionaryMap.put("total", map);
+		map.put(KeywordDictionaryType.POPULAR_KEYWORD_DAY, dict);
+		
+		
+		
+		///
 		for (Category category : categoryList) {
 			String categoryId = category.getId();
 			if (category.isUseRealTimePopularKeyword()) {
@@ -42,6 +56,9 @@ public class PopularKeywordModule extends AbstractModule {
 		return true;
 	}
 
+	private void addFakeKeyword(List<PopularKeywordVO> list, String keyword, int rank){
+		
+	}
 	public File getDictionaryFile(String categoryId, KeywordDictionaryType type){
 		String filename = null;
 		if(type == KeywordDictionaryType.POPULAR_KEYWORD_REALTIME){
@@ -56,17 +73,14 @@ public class PopularKeywordModule extends AbstractModule {
 	
 	private void loadAndSetDictionary(String categoryId, KeywordDictionaryType type) {
 		File dictionaryFile = getDictionaryFile(categoryId, type);
-		if (dictionaryFile.exists()) {
-			try {
-				PopularKeywordDictionary keywordDictionary = new PopularKeywordDictionary(dictionaryFile);
-				putPopularKeywordDictionary(categoryId, type, keywordDictionary);
-			} catch (Exception e) {
-				logger.error("error loading popular keyword > " + dictionaryFile.getAbsolutePath(), e);
-			}
-
-		} else {
-			logger.warn("Cannot find keyword dictionary file. > {}", dictionaryFile.getAbsolutePath());
+		try {
+			PopularKeywordDictionary keywordDictionary = new PopularKeywordDictionary(dictionaryFile);
+			putPopularKeywordDictionary(categoryId, type, keywordDictionary);
+		} catch (Exception e) {
+			logger.error("error loading popular keyword > " + dictionaryFile.getAbsolutePath(), e);
+			putPopularKeywordDictionary(categoryId, type, new PopularKeywordDictionary());
 		}
+
 	}
 
 	@Override
@@ -80,6 +94,7 @@ public class PopularKeywordModule extends AbstractModule {
 	}
 	
 	public PopularKeywordDictionary getKeywordDictionary(String categoryId, KeywordDictionaryType key){
+		categoryId = categoryId.toUpperCase();
 		Map<KeywordDictionaryType, PopularKeywordDictionary> map = categoryKeywordDictionaryMap.get(categoryId);
 		if(map == null){
 			return null;
@@ -89,6 +104,7 @@ public class PopularKeywordModule extends AbstractModule {
 	}
 
 	private void putPopularKeywordDictionary(String categoryId, KeywordDictionaryType key, PopularKeywordDictionary value) {
+		categoryId = categoryId.toUpperCase();
 		Map<KeywordDictionaryType, PopularKeywordDictionary> map = categoryKeywordDictionaryMap.get(categoryId);
 		if(map == null){
 			map = new HashMap<KeywordDictionaryType, PopularKeywordDictionary>();
@@ -98,6 +114,7 @@ public class PopularKeywordModule extends AbstractModule {
 	}
 
 	private void removePopularKeywordDictionary(String categoryId, KeywordDictionaryType key) {
+		categoryId = categoryId.toUpperCase();
 		Map<KeywordDictionaryType, PopularKeywordDictionary> map = categoryKeywordDictionaryMap.get(categoryId);
 		if(map != null){
 			map.remove(key);
