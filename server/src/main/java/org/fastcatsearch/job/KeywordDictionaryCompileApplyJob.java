@@ -24,15 +24,14 @@ import org.fastcatsearch.statistics.SearchStatisticsService;
 
 public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 
+	private static final long serialVersionUID = 5101762691161535526L;
+
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
 		Map<String, String> args = getMapArgs();
 		String dictionaryTypeStr = args.get("dictionaryType");
 		
 		KeywordDictionaryType dictionaryType = null;
-		
-		
-		String fileName = null;
 		
 		String timeStr = null;
 		
@@ -51,19 +50,15 @@ public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 			
 			if(dictionaryType == KeywordDictionaryType.POPULAR_KEYWORD_REALTIME) {
 				
-				fileName = PopularKeywordDictionary.realTimeFileName;
-				
 				dateFormat = new SimpleDateFormat("yyyyMMddHH");
 				
 				calendar.add(Calendar.HOUR, -1);
 				
 				timeStr = "R" + dateFormat.format(calendar.getTime());
 				
-				compilePopularKeyword(keywordService, categoryList, fileName, timeStr);
+				compilePopularKeyword(keywordService, categoryList, dictionaryType, timeStr);
 				
 			} else if(dictionaryType == KeywordDictionaryType.POPULAR_KEYWORD_DAY) {
-				
-				fileName = PopularKeywordDictionary.lastDayFileName;
 				
 				dateFormat = new SimpleDateFormat("yyyyMMdd");
 				
@@ -71,11 +66,9 @@ public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 				
 				timeStr = "D" + dateFormat.format(calendar.getTime());
 				
-				compilePopularKeyword(keywordService, categoryList, fileName, timeStr);
+				compilePopularKeyword(keywordService, categoryList, dictionaryType, timeStr);
 				
 			} else if(dictionaryType == KeywordDictionaryType.POPULAR_KEYWORD_WEEK) {
-				
-				fileName = PopularKeywordDictionary.lastWeekFileName;
 				
 				dateFormat = new SimpleDateFormat("yyyyMMww");
 				
@@ -83,13 +76,11 @@ public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 				
 				timeStr = "W" + dateFormat.format(calendar.getTime());
 				
-				compilePopularKeyword(keywordService, categoryList, fileName, timeStr);
+				compilePopularKeyword(keywordService, categoryList, dictionaryType, timeStr);
 				
 			} else  if(dictionaryType == KeywordDictionaryType.RELATE_KEYWORD) {
 				
-				fileName = RelateKeywordDictionary.fileName;
-				
-				compileRelateKeyword(keywordService, categoryList, fileName);
+				compileRelateKeyword(keywordService, categoryList, dictionaryType);
 			}
 			
 		} catch (IllegalArgumentException e) {
@@ -102,7 +93,7 @@ public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 	}
 	
 	private void compilePopularKeyword(KeywordService service, List<Category> categoryList,
-			String fileName, String time) throws Exception {
+			KeywordDictionaryType type, String time) throws Exception {
 		
 		PopularKeywordMapper mapper = (PopularKeywordMapper) service
 				.getMapperSession(PopularKeywordMapper.class);
@@ -113,7 +104,7 @@ public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 			
 			PopularKeywordDictionary dictionary = new PopularKeywordDictionary(keywordList);
 			
-			File writeFile = service.getFile("popular", category.getId() + "_" + fileName);
+			File writeFile = service.getFile(category.getId(), type);
 			
 			OutputStream ostream = null;
 			
@@ -133,7 +124,7 @@ public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 	}
 	
 	private void compileRelateKeyword(KeywordService service, List<Category> categoryList, 
-			String fileName) throws Exception {
+			KeywordDictionaryType type) throws Exception {
 		
 		RelateKeywordMapper mapper = (RelateKeywordMapper) service
 				.getMapperSession(RelateKeywordMapper.class);
@@ -149,7 +140,7 @@ public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 				dictionary.putRelateKeyword(keyword.getKeyword(), keyword.getValue());
 			}
 			
-			File writeFile = service.getFile("relate", category.getId() + "_" + fileName);
+			File writeFile = service.getFile(category.getId(), type);
 			
 			OutputStream ostream = null;
 			
