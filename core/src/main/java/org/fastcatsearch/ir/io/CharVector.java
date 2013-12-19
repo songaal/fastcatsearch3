@@ -140,7 +140,7 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 						if (v1[i] != v2[j]){
 							if(((v1[i] <= 'z' && v1[i] >= 'a') || (v1[i] <= 'Z' && v1[i] >= 'A')) //v1이 영문자이거나.
 									|| 
-								((v2[i] <= 'z' && v2[i] >= 'a') || (v2[i] <= 'Z' && v2[i] >= 'A'))){ //v2가 영문자이면..
+								((v2[j] <= 'z' && v2[j] >= 'a') || (v2[j] <= 'Z' && v2[j] >= 'A'))){ //v2가 영문자이면..
 								if(Math.abs(v1[i] - v2[j]) != 32){
 									return false;
 								}

@@ -5,7 +5,7 @@ import org.fastcatsearch.ir.search.PostingDocs;
 import org.fastcatsearch.ir.search.clause.MultiTermOperatedClause;
 import org.junit.Test;
 
-public class PhraseOperatedClauseTest {
+public class MultiTermOperatedClauseTest {
 
 	@Test
 	public void test() {
