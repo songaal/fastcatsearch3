@@ -83,6 +83,7 @@ public class SearchIndexReader implements Cloneable {
 		this.indexSetting = indexSetting;
 		String id = indexSetting.getId();
 		this.indexId = id;
+		this.queryAnalyzerPool = queryAnalyzerPool;
 		
 		logger.debug("Search Index [{}] Dir = {}", indexId, dir.getAbsolutePath());
 		try {
