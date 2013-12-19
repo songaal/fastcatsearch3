@@ -16,8 +16,8 @@ import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.settings.Settings;
-import org.fastcatsearch.settings.StaticticsSettings;
-import org.fastcatsearch.settings.StaticticsSettings.Category;
+import org.fastcatsearch.settings.StatisticsSettings;
+import org.fastcatsearch.settings.StatisticsSettings.Category;
 import org.fastcatsearch.util.JAXBConfigs;
 
 /**
@@ -28,15 +28,15 @@ import org.fastcatsearch.util.JAXBConfigs;
 public class SearchStatisticsService extends AbstractService {
 
 	private static final DummySearchStatistics fallBackSearchStatistics = new DummySearchStatistics();
-	private File staticsticsHome;
+	private File statisticsHome;
 	private SearchStatistics searchStatistics;
-	private StaticticsSettings staticticsSettings;
+	private StatisticsSettings statisticsSettings;
 	private Map<String, CategoryStatistics> categoryStatisticsMap;
 	
 	public SearchStatisticsService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
-		staticsticsHome = environment.filePaths().getStatisticsRoot().file();
-		staticsticsHome.mkdir();
+		statisticsHome = environment.filePaths().getStatisticsRoot().file();
+		statisticsHome.mkdir();
 	}
 
 	public Collection<CategoryStatistics> getCategoryStatisticsList(){
@@ -47,27 +47,27 @@ public class SearchStatisticsService extends AbstractService {
 	@Override
 	protected boolean doStart() throws FastcatSearchException {
 		categoryStatisticsMap = new HashMap<String, CategoryStatistics>();
-		File staticticsSettingFile = environment.filePaths().configPath().path(SettingFileNames.statisticsConfig).file();
+		File statisticsSettingFile = environment.filePaths().configPath().path(SettingFileNames.statisticsConfig).file();
 		try {
-			staticticsSettings = JAXBConfigs.readConfig(staticticsSettingFile, StaticticsSettings.class);
+			statisticsSettings = JAXBConfigs.readConfig(statisticsSettingFile, StatisticsSettings.class);
 		} catch (JAXBException e) {
-			logger.error("staticticsSetting read error.", e);
+			logger.error("statisticsSetting read error.", e);
 			return false;
 		}
-		if(staticticsSettings == null){
-			logger.error("Cannot load statictics setting file >> {}", staticticsSettingFile);
+		if(statisticsSettings == null){
+			logger.error("Cannot load statistics setting file >> {}", statisticsSettingFile);
 			return false;
 		}
 		
-		List<Category> categoryList = staticticsSettings.getCategoryList();
+		List<Category> categoryList = statisticsSettings.getCategoryList();
 		for(Category category : categoryList){
 			String categoryId = category.getId();
-			CategoryStatistics categoryStatistics = new CategoryStatistics(category, staticsticsHome);
+			CategoryStatistics categoryStatistics = new CategoryStatistics(category, statisticsHome);
 			categoryStatisticsMap.put(categoryId, categoryStatistics);
 			logger.debug("> {}", category);
 		}
 		
-		searchStatistics = new SearchStatisticsImpl(staticsticsHome, categoryStatisticsMap);
+		searchStatistics = new SearchStatisticsImpl(statisticsHome, categoryStatisticsMap);
 		
 		return true;
 	}
@@ -86,8 +86,8 @@ public class SearchStatisticsService extends AbstractService {
 		return true;
 	}
 	
-	public StaticticsSettings staticticsSettings(){
-		return staticticsSettings;
+	public StatisticsSettings statisticsSettings(){
+		return statisticsSettings;
 	}
 	
 	public SearchStatistics searchStatistics(){

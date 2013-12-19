@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.io.FilenameUtils;
-import org.fastcatsearch.settings.StaticticsSettings;
+import org.fastcatsearch.settings.StatisticsSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +17,7 @@ public class RealTimePopularKeywordGenerator {
 
 	private File tmpDir;
 	private File targetDir;
-	private StaticticsSettings staticticsSettings;
+	private StatisticsSettings statisticsSettings;
 
 	private Set<String> stopWords;
 	private String fileEncoding;
@@ -25,10 +25,10 @@ public class RealTimePopularKeywordGenerator {
 	public RealTimePopularKeywordGenerator() {
 	}
 
-	public RealTimePopularKeywordGenerator(File tmpDir, File targetDir, StaticticsSettings staticticsSettings) {
+	public RealTimePopularKeywordGenerator(File tmpDir, File targetDir, StatisticsSettings statisticsSettings) {
 		this.tmpDir = tmpDir;
 		this.targetDir = targetDir;
-		this.staticticsSettings = staticticsSettings;
+		this.statisticsSettings = statisticsSettings;
 	}
 
 	private File getLogFile(File dir, int number) {

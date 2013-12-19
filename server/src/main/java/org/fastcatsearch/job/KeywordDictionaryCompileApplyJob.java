@@ -20,7 +20,7 @@ import org.fastcatsearch.keyword.KeywordService;
 import org.fastcatsearch.keyword.PopularKeywordDictionary;
 import org.fastcatsearch.keyword.RelateKeywordDictionary;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.StaticticsSettings.Category;
+import org.fastcatsearch.settings.StatisticsSettings.Category;
 import org.fastcatsearch.statistics.SearchStatisticsService;
 
 public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
@@ -44,7 +44,7 @@ public class KeywordDictionaryCompileApplyJob extends MasterNodeJob {
 		
 		SearchStatisticsService statisticsService = ServiceManager.getInstance().getService(SearchStatisticsService.class);
 		
-		List<Category> categoryList = statisticsService.staticticsSettings().getCategoryList();
+		List<Category> categoryList = statisticsService.statisticsSettings().getCategoryList();
 		
 		try {
 			dictionaryType = KeywordDictionaryType.valueOf(dictionaryTypeStr);

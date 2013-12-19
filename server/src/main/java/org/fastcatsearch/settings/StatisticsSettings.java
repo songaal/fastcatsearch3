@@ -8,8 +8,8 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-@XmlRootElement(name="statictics")
-public class StaticticsSettings {
+@XmlRootElement(name="statistics")
+public class StatisticsSettings {
 	private RealTimePopularKeywordConfig realTimePopularKeywordConfig;
 	private PopularKeywordConfig popularKeywordConfig;
 	private RelateKeywordConfig relateKeywordConfig;

@@ -9,8 +9,8 @@ import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.job.MasterNodeJob;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.StaticticsSettings;
-import org.fastcatsearch.settings.StaticticsSettings.Category;
+import org.fastcatsearch.settings.StatisticsSettings;
+import org.fastcatsearch.settings.StatisticsSettings.Category;
 import org.fastcatsearch.statistics.CategoryStatistics;
 import org.fastcatsearch.statistics.RealTimePopularKeywordGenerator;
 import org.fastcatsearch.statistics.SearchStatisticsService;
@@ -57,8 +57,8 @@ public class CollectRealTimePopularKeywordMainJob extends MasterNodeJob {
 				logger.debug("getStatisticsRoot {}",environment.filePaths().getStatisticsRoot());
 				File targetDir = environment.filePaths().getStatisticsRoot().file(category.getId(), "rt");
 				File tmpDir = new File(targetDir, "tmp");
-				StaticticsSettings staticticsSettings = searchStatisticsService.staticticsSettings();
-				RealTimePopularKeywordGenerator g = new RealTimePopularKeywordGenerator(tmpDir, targetDir, staticticsSettings); // TODO
+				StatisticsSettings statisticsSettings = searchStatisticsService.statisticsSettings();
+				RealTimePopularKeywordGenerator g = new RealTimePopularKeywordGenerator(tmpDir, targetDir, statisticsSettings); // TODO
 				g.generate();
 			}
 		}

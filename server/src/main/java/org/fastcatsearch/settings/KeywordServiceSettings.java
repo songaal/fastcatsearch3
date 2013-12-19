@@ -6,7 +6,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.fastcatsearch.settings.StaticticsSettings.Category;
+import org.fastcatsearch.settings.StatisticsSettings.Category;
 
 @XmlRootElement(name="additional-service")
 public class KeywordServiceSettings {

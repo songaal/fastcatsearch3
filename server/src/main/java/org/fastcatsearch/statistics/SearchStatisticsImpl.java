@@ -10,7 +10,7 @@ import org.fastcatsearch.ir.search.SearchStatistics;
 public class SearchStatisticsImpl implements SearchStatistics {
 	private Map<String, CategoryStatistics> categoryStatisticsMap;
 	
-	public SearchStatisticsImpl(File staticsticsHome, Map<String, CategoryStatistics> categoryStatisticsMap) {
+	public SearchStatisticsImpl(File statisticsHome, Map<String, CategoryStatistics> categoryStatisticsMap) {
 		this.categoryStatisticsMap = categoryStatisticsMap;
 	}
 

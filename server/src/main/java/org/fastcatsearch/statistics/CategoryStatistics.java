@@ -10,7 +10,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.fastcatsearch.ir.search.SearchStatistics;
-import org.fastcatsearch.settings.StaticticsSettings.Category;
+import org.fastcatsearch.settings.StatisticsSettings.Category;
 import org.fastcatsearch.util.AsynchronousCounter;
 import org.fastcatsearch.util.AsynchronousFileLogger;
 import org.slf4j.Logger;

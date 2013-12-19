@@ -7,7 +7,7 @@ import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.StaticticsSettings.Category;
+import org.fastcatsearch.settings.StatisticsSettings.Category;
 import org.fastcatsearch.statistics.CategoryStatistics;
 import org.fastcatsearch.statistics.SearchStatisticsService;
 import org.fastcatsearch.transport.TransportException;

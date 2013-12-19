@@ -11,7 +11,7 @@ import org.fastcatsearch.keyword.RelateKeywordDictionary;
 import org.fastcatsearch.module.AbstractModule;
 import org.fastcatsearch.module.ModuleException;
 import org.fastcatsearch.settings.Settings;
-import org.fastcatsearch.settings.StaticticsSettings.Category;
+import org.fastcatsearch.settings.StatisticsSettings.Category;
 
 public class RelateKeywordModule extends AbstractModule {
 	

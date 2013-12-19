@@ -20,7 +20,7 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.KeywordServiceSettings;
 import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.settings.Settings;
-import org.fastcatsearch.settings.StaticticsSettings.Category;
+import org.fastcatsearch.settings.StatisticsSettings.Category;
 import org.fastcatsearch.util.JAXBConfigs;
 
 /**
