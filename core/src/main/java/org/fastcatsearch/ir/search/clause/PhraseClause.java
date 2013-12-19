@@ -6,6 +6,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
+import org.apache.lucene.analysis.tokenattributes.FeatureAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.analysis.tokenattributes.StopwordAttribute;
 import org.apache.lucene.analysis.tokenattributes.SynonymAttribute;
@@ -49,6 +50,7 @@ public class PhraseClause implements OperatedClause {
 			PositionIncrementAttribute positionAttribute = null;
 			SynonymAttribute synonymAttribute = null;
 			StopwordAttribute stopwordAttribute = null;
+			FeatureAttribute featureAttribute = null;
 			int positionOffset = 0;
 			
 			
