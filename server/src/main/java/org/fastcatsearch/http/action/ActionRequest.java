@@ -34,7 +34,7 @@ public class ActionRequest {
 			} else if (request.getMethod() == HttpMethod.POST) {
 				long len = HttpHeaders.getContentLength(request);
 				ChannelBuffer buffer = request.getContent();
-				queryString = new String(buffer.array(), 0, (int) len);
+				queryString = new String(buffer.toByteBuffer().array(), 0, (int) len);
 			} else {
 	
 			}
