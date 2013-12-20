@@ -36,15 +36,27 @@ Derby SQL 문법에 따른다.
 		select * 
 		from RelateKeyword where category = #{category} and keyword = #{keyword}
 	</select>
-	
+	<select id="getEntryListByWhereCondition" parameterType="map" resultType="org.fastcatsearch.db.vo.RelateKeywordVO">
+		select * from (
+		select ROW_NUMBER() OVER () AS ROWNUM,a.* from RelateKeyword a where category=#{category} 
+		<if test="whereCondition != ''">
+		${whereCondition}
+		</if>
+		) a where ROWNUM &gt;= #{start} and ROWNUM &lt; #{end}
+	</select>
+	<select id="getCountByWhereCondition" parameterType="map" resultType="int">
+		select count(*) from RelateKeyword where category=#{category} 
+		<if test="whereCondition != ''">
+		${whereCondition}
+		</if>
+	</select>
 	<select id="getEntryList" parameterType="map" resultType="org.fastcatsearch.db.vo.RelateKeywordVO">
 		select * from RelateKeyword where category=#{category}
 	</select>
 	
 	<select id="getCount" parameterType="map" resultType="int">
-		select count(*) from RelateKeyword where keyword=#{keyword}
+		select count(*) from RelateKeyword where category=#{category}
 	</select>
-	
 	<update id="putEntry" parameterType="map">
 		insert into RelateKeyword 
 		(category,keyword,value,updateTime) values
