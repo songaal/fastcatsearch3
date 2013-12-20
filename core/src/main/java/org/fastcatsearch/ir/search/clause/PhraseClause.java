@@ -7,6 +7,7 @@ import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.FeatureAttribute;
+import org.apache.lucene.analysis.tokenattributes.FeatureAttribute.FeatureType;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.analysis.tokenattributes.StopwordAttribute;
 import org.apache.lucene.analysis.tokenattributes.SynonymAttribute;
@@ -24,18 +25,17 @@ import org.fastcatsearch.ir.settings.RefSetting;
 
 public class PhraseClause implements OperatedClause {
 
-	
 	private OperatedClause operatedClause;
-	
+
 	public PhraseClause(SearchIndexReader searchIndexReader, Term term, HighlightInfo highlightInfo) {
 		String indexId = searchIndexReader.indexId();
 		String termString = term.termString();
 		int weight = term.weight();
 		Option option = term.option();
-		
+
 		CharVector fullTerm = new CharVector(termString);
 		Analyzer analyzer = searchIndexReader.getQueryAnalyzerFromPool();
-		
+
 		IndexSetting indexSetting = searchIndexReader.indexSetting();
 		if (highlightInfo != null) {
 			String queryAnalyzerName = indexSetting.getQueryAnalyzer();
@@ -52,9 +52,8 @@ public class PhraseClause implements OperatedClause {
 			StopwordAttribute stopwordAttribute = null;
 			FeatureAttribute featureAttribute = null;
 			int positionOffset = 0;
-			
-			
-			//어절로 분리.
+
+			// 어절로 분리.
 			while (charVectorTokenizer.hasNext()) {
 				CharVector eojeol = charVectorTokenizer.next();
 
@@ -78,27 +77,31 @@ public class PhraseClause implements OperatedClause {
 				if (tokenStream.hasAttribute(StopwordAttribute.class)) {
 					stopwordAttribute = tokenStream.getAttribute(StopwordAttribute.class);
 				}
+				if (tokenStream.hasAttribute(FeatureAttribute.class)) {
+					featureAttribute = tokenStream.getAttribute(FeatureAttribute.class);
+				}
+				// PosTagAttribute tagAttribute =
+				// tokenStream.getAttribute(PosTagAttribute.class);
 
-				// PosTagAttribute tagAttribute = tokenStream.getAttribute(PosTagAttribute.class);
-				
+				FeatureType prevType = null;
 				CharVector token = null;
 				while (tokenStream.incrementToken()) {
 
 					if (refTermAttribute != null) {
 						CharsRef charRef = refTermAttribute.charsRef();
-						
-						if(charRef!=null) {
+
+						if (charRef != null) {
 							char[] buffer = new char[charRef.length()];
 							System.arraycopy(charRef.chars, charRef.offset, buffer, 0, charRef.length);
 							token = new CharVector(buffer, 0, buffer.length);
-						} else if(termAttribute!=null && termAttribute.buffer()!=null) {
+						} else if (termAttribute != null && termAttribute.buffer() != null) {
 							token = new CharVector(termAttribute.buffer());
 						}
 					} else {
 						token = new CharVector(charTermAttribute.buffer(), 0, charTermAttribute.length());
 					}
 
-					logger.debug("token = {}", token);
+					// logger.debug("token = {}", token);
 					// token.toUpperCase();
 					//
 					// stopword
@@ -107,24 +110,43 @@ public class PhraseClause implements OperatedClause {
 						logger.debug("stopword : {}", token);
 						continue;
 					}
+					
+					FeatureType featureType = null;
+					if (featureAttribute != null) {
+						featureType = featureAttribute.type();
+						if (featureType == FeatureType.APPEND) {
+							if (prevType != null && (prevType == FeatureType.MAIN || prevType == FeatureType.APPEND)) {
+								// 이전 타입이 main 또는 계속해서 append이면, 부가점수를 올려준다.
+								// TODO
+							} else {
+								// 버린다. 즉, 검색시 무시된다.
+							}
+						} else {
+							// main 결과 셋으로 사용.
+							// TODO
+						}
+						prevType = featureType;
+					}
 
 					int queryPosition = 0;
 					if (positionAttribute != null) {
 						int position = positionAttribute.getPositionIncrement();
 						queryPosition = positionOffset + position; //
-						positionOffset = position + 2; // 다음 position은 +2 부터 할당한다. 공백도 1만큼 차지.
+						positionOffset = position + 2; // 다음 position은 +2 부터
+														// 할당한다. 공백도 1만큼 차지.
 					}
-					
+
+					logger.debug("PHRASE TERM {} >> [{}] [{}, {}] ", token, featureType, positionAttribute.getPositionIncrement(), queryPosition);
 					PostingDocs postingDocs = searchIndexReader.getPosting(token);
 					OperatedClause clause = new TermOperatedClause(postingDocs, weight);
-					
-					if(operatedClause == null){
+
+					if (operatedClause == null) {
 						operatedClause = clause;
-					}else{
+					} else {
 						operatedClause = new AndOperatedClause(operatedClause, clause);
 					}
 				}
-				
+
 			}
 		} catch (IOException e) {
 			logger.error("", e);
@@ -135,7 +157,7 @@ public class PhraseClause implements OperatedClause {
 
 	@Override
 	public boolean next(RankInfo docInfo) {
-		if(operatedClause == null){
+		if (operatedClause == null) {
 			return false;
 		}
 		return operatedClause.next(docInfo);

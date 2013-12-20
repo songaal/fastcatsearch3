@@ -19,6 +19,7 @@ package org.fastcatsearch.ir.query;
 import org.fastcatsearch.ir.search.SearchIndexReader;
 import org.fastcatsearch.ir.search.clause.BooleanClause;
 import org.fastcatsearch.ir.search.clause.OperatedClause;
+import org.fastcatsearch.ir.search.clause.PhraseClause;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -170,7 +171,7 @@ public class Term {
 		}else if(type == Type.ANY){
 			return new BooleanClause(searchIndexReader, this, highlightInfo);
 		}else if(type == Type.PHRASE){
-			return new BooleanClause(searchIndexReader, this, highlightInfo);
+			return new PhraseClause(searchIndexReader, this, highlightInfo);
 		}
 		
 		return new BooleanClause(searchIndexReader, this, highlightInfo);

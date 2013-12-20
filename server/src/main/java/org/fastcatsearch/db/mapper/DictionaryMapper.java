@@ -18,7 +18,7 @@ public interface DictionaryMapper {
 
 	public Map<String, Object> getEntry(@Param("table") String table, @Param("id") Object id) throws Exception;
 	
-	public Map<String, Object> getEntryByKeyword(@Param("table") String table, @Param("keyword") String keyword) throws Exception;
+	public List<Map<String,Object>> getEntryListByWhereCondition(@Param("table") String table,@Param("whereCondition") String whereCondition) throws Exception;
 	
 	public List<Map<String, Object>> getEntryList(@Param("table") String table, @Param("start") int start, @Param("end") int end
 			, @Param("search") String search, @Param("columns") String[] columns, @Param("sortAsc") Boolean sortAsc) throws Exception;

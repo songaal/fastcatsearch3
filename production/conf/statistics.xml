@@ -1,4 +1,4 @@
-<statictics>
+<statistics>
 	
 	<category-list>
 		<category id="total" name="통합검색" usePopularKeyword="true" useRelateKeyword="true" useRealTimePopularKeyword="true"/>
@@ -14,4 +14,4 @@
 	<relate-keyword>
 		<minimumHitCount>3</minimumHitCount>
 	</relate-keyword>
-</statictics>
+</statistics>

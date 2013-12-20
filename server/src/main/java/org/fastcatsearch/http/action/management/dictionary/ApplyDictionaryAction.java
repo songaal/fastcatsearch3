@@ -5,8 +5,6 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.fastcatsearch.cluster.NodeService;
-import org.fastcatsearch.db.dao.DictionaryDAO;
 import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;

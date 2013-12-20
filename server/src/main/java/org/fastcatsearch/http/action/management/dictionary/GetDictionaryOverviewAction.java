@@ -54,11 +54,13 @@ public class GetDictionaryOverviewAction extends AuthAction {
 				if(tokenType == null || tokenType.length() == 0){
 					tokenType = "NONE";
 				}
+				String ignoreCase = dictionary.isIgnoreCase() ? "Y" : "N";
 				resultWriter.object()
 				.key("id").value(dictionaryId)
 				.key("name").value(name)
 				.key("type").value(type)
-				.key("tokenType").value(tokenType);
+				.key("tokenType").value(tokenType)
+				.key("ignoreCase").value(ignoreCase);
 				int entrySize = 0;
 				String updateTime = null;
 				int applyEntrySize = 0;

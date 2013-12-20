@@ -18,7 +18,6 @@ import org.fastcatsearch.ir.util.CharVectorHashSet;
 
 public class SetDictionary extends SourceDictionary {
 	
-	
 	private Set<CharVector> set;
 
 	public SetDictionary() {
@@ -65,7 +64,8 @@ public class SetDictionary extends SourceDictionary {
 	public void addEntry(String keyword, Object[] value) {
 		keyword = keyword.trim();
 		if (keyword.length() > 0) {
-			set.add(new CharVector(keyword));
+			CharVector cv = new CharVector(keyword);
+			set.add(cv);
 		}
 	}
 
@@ -75,6 +75,10 @@ public class SetDictionary extends SourceDictionary {
 	
 	public Set<CharVector> set() {
 		return set;
+	}
+	
+	public void setSet(Set<CharVector> set) {
+		this.set = set;
 	}
 	
 	@Override
@@ -108,5 +112,17 @@ public class SetDictionary extends SourceDictionary {
 	public void addSourceLineEntry(String line) {
 		addEntry(line, null);
 	}
+
+	@Override
+	public void reload(Object object) throws IllegalArgumentException {
+		if(object != null && object instanceof SetDictionary){
+			SetDictionary setDictionary = (SetDictionary) object;
+			this.set = setDictionary.set();
+			
+		}else{
+			throw new IllegalArgumentException("Reload dictionary argument error. argument = " + object);
+		}
+	}
+
 
 }

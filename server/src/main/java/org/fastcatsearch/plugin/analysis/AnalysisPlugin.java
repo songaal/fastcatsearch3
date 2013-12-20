@@ -170,10 +170,10 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 			}
 			
 			for (DictionarySetting dictionarySetting : list) {
-				String id = dictionarySetting.getId();
+				String dictionaryId = dictionarySetting.getId();
 				Type type = dictionarySetting.getType();
 				String tokenType = dictionarySetting.getTokenType();
-				File dictFile = getDictionaryFile(id);
+				File dictFile = getDictionaryFile(dictionaryId);
 				SourceDictionary sourceDictionary = null;
 				boolean isIgnoreCase = dictionarySetting.isIgnoreCase();
 				
@@ -192,6 +192,7 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 				}else if(type == Type.SYNONYM || type == Type.SYNONYM_2WAY){
 					SynonymDictionary synonymDictionary = new SynonymDictionary(dictFile, isIgnoreCase);
 					if(tokenType != null){
+						logger.debug("synonym word set > {}", synonymDictionary.getWordSet());
 						dictionary.appendAdditionalNounEntry(synonymDictionary.getWordSet(), tokenType);
 					}
 					sourceDictionary = synonymDictionary;
@@ -208,10 +209,10 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 				}else{
 					logger.error("Unknown Dictionary type > {}", type);
 				}
-				
+				logger.info("Dictionary {} is loaded. tokenType[{}] isIgnoreCase[{}]", dictionaryId, tokenType, isIgnoreCase);
 				///add dictionary
 				if(sourceDictionary != null){
-					commonDictionary.addDictionary(id, sourceDictionary);
+					commonDictionary.addDictionary(dictionaryId, sourceDictionary);
 				}
 				
 			}
@@ -222,11 +223,43 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 	
 	public void reloadDictionary(){
 		long st = System.nanoTime();
-		CommonDictionary<T> oldDictionary = this.commonDictionary;
-		CommonDictionary<T> commonDictionary = loadDictionary();
-		this.commonDictionary = commonDictionary;
-		loadAnalyzerFactory();
+		CommonDictionary<T> newCommonDictionary = loadDictionary();
 		
+		//1. commonDictionary에 systemdictinary셋팅.
+		commonDictionary.reset(newCommonDictionary);
+		//2. dictionaryMap 에 셋팅.
+		Map<String, Object> dictionaryMap = commonDictionary.getDictionaryMap();
+		for(Entry<String, Object> entry : dictionaryMap.entrySet()){
+			String dictionaryId = entry.getKey();
+			Object dictionary = entry.getValue();
+			//dictionary 객체 자체는 유지하고, 내부 실데이터(map,set등)만 업데이트해준다.
+			//상속시 instanceof로는 정확한 클래스가 판별이 불가능하므로 isAssignableFrom 로 판별한다.
+			if(dictionary.getClass().isAssignableFrom(SetDictionary.class)){
+				SetDictionary setDictionary = (SetDictionary) dictionary;
+				SetDictionary newDictionary = (SetDictionary) newCommonDictionary.getDictionary(dictionaryId);
+				setDictionary.setSet(newDictionary.set());
+			}else if(dictionary.getClass().isAssignableFrom(MapDictionary.class)){
+				MapDictionary mapDictionary = (MapDictionary) dictionary;
+				MapDictionary newDictionary = (MapDictionary) newCommonDictionary.getDictionary(dictionaryId);
+				mapDictionary.setMap(newDictionary.map());
+			}else if(dictionary.getClass().isAssignableFrom(SynonymDictionary.class)){
+				SynonymDictionary synonymDictionary = (SynonymDictionary) dictionary;
+				SynonymDictionary newDictionary = (SynonymDictionary) newCommonDictionary.getDictionary(dictionaryId);
+				synonymDictionary.setMap(newDictionary.map());
+				synonymDictionary.setWordSet(newDictionary.getWordSet());
+			}else if(dictionary.getClass().isAssignableFrom(SpaceDictionary.class)){
+				SpaceDictionary spaceDictionary = (SpaceDictionary) dictionary;
+				SpaceDictionary newDictionary = (SpaceDictionary) newCommonDictionary.getDictionary(dictionaryId);
+				spaceDictionary.setMap(newDictionary.map());
+				spaceDictionary.setWordSet(newDictionary.getWordSet());
+			}else if(dictionary.getClass().isAssignableFrom(CustomDictionary.class)){
+				CustomDictionary customDictionary = (CustomDictionary) dictionary;
+				
+			}
+			logger.info("Dictionary {} is updated!", dictionaryId);
+			
+		}
+		newCommonDictionary = null;
 		logger.debug("{} Dictionary Reload Done. {}ms", pluginId, (System.nanoTime() - st) / 1000000);
 	}
 	

@@ -43,11 +43,14 @@ Derby SQL 문법에 따른다.
 		from ${table} where id = #{id}
 	</select>
 	
-	<select id="getEntryByKeyword" parameterType="string" resultType="map">
+	<!-- <select id="getEntryByKeyword" parameterType="string" resultType="map">
 		select *
 		from ${table} where UPPER(keyword) = UPPER(#{keyword})
+	</select> -->
+	<select id="getEntryListByWhereCondition" parameterType="string" resultType="map">
+		select *
+		from ${table} where ${whereCondition}
 	</select>
-
 	<select id="getEntryList" parameterType="map" resultType="map">
 		<choose>
 			<when test="start &gt; 0">

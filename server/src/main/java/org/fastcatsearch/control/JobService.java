@@ -179,7 +179,7 @@ public class JobService extends AbstractService implements JobExecutor {
 
 		if (job instanceof IndexingJob) {
 			if (indexingMutex.isLocked((IndexingJob) job)) {
-				indexingLogger.info("The collection [" + job.getStringArgs(0) + "] has already started an indexing job.");
+				indexingLogger.info("The collection [" + job.getStringArgs() + "] has already started an indexing job.");
 				return null;
 			}
 		}

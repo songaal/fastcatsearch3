@@ -11,7 +11,7 @@ import java.io.InputStreamReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class SourceDictionary implements WritableDictionary, ReadableDictionary {
+public abstract class SourceDictionary implements ReloadableDictionary, WritableDictionary, ReadableDictionary {
 	protected static Logger logger = LoggerFactory.getLogger(SourceDictionary.class);
 
 	protected boolean ignoreCase;

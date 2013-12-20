@@ -38,18 +38,7 @@ public class DictionaryDAO {
 		return tableName;
 	}
 	
-	public Map<String,Object> getEntryByKeyword(String keyword) {
-		MapperSession<DictionaryMapper> mapperSession = openMapperSession();
-		try {
-			return mapperSession.getMapper().getEntryByKeyword(getTableName(), keyword);
-		} catch (Exception e) {
-			logger.error("",e);
-		} finally {
-			logger.debug("create dictionary table > {}", tableName);
-			mapperSession.closeSession();
-		}
-		return null;
-	}
+	
 
 	public DictionaryDAO(String tableName, List<ColumnSetting> columnSettingList, InternalDBModule internalDBModule) {
 		this.tableName = tableName;
@@ -171,6 +160,19 @@ public class DictionaryDAO {
 		}
 	}
 
+	public List<Map<String,Object>> getEntryByWhereCondition(String whereCondition) {
+		MapperSession<DictionaryMapper> mapperSession = openMapperSession();
+		try {
+			return mapperSession.getMapper().getEntryListByWhereCondition(getTableName(), whereCondition);
+		} catch (Exception e) {
+			logger.error("",e);
+		} finally {
+			logger.debug("create dictionary table > {}", tableName);
+			mapperSession.closeSession();
+		}
+		return null;
+	}
+	
 	public int getCount(String search) throws Exception {
 		return getCount(search, searchColumns);
 	}

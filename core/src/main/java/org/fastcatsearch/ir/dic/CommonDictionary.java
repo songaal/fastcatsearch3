@@ -24,6 +24,11 @@ public class CommonDictionary<E> {
 		createTime = new Date();
 	}
 	
+	//systemDictionary를 재설정한다. dictionaryMap은 따로 외부에서 해주어야함.
+	public void reset(CommonDictionary<E> dictionary){
+		this.systemDictionary = dictionary.systemDictionary;
+		this.createTime = dictionary.createTime;
+	}
 	public List<E> find(CharVector token) {
 		return systemDictionary.find(token);
 	}
@@ -32,14 +37,16 @@ public class CommonDictionary<E> {
 		return systemDictionary.size();
 	}
 	
-	public Object getDictionary(String name){
-		return dictionaryMap.get(name);
+	public Object getDictionary(String dictionaryId){
+		return dictionaryMap.get(dictionaryId);
 	}
 	
-	public Object addDictionary(String name, Object dictionary){
-		logger.debug("addDictionary {} : {}", name, dictionary);
-		
-		return dictionaryMap.put(name, dictionary);
+	public Map<String, Object> getDictionaryMap(){
+		return dictionaryMap;
+	}
+	public Object addDictionary(String dictionaryId, Object dictionary){
+		logger.debug("addDictionary {} : {}", dictionaryId, dictionary);
+		return dictionaryMap.put(dictionaryId, dictionary);
 	}
 
 	public void appendAdditionalNounEntry(Set<CharVector> keySet, String tokenType) {
@@ -50,4 +57,5 @@ public class CommonDictionary<E> {
 	public String toString(){
 		return getClass().getSimpleName() + "] createTime=" + createTime + ", entry = " + (systemDictionary != null ? systemDictionary.size() : 0) + ", dictionaries = "+dictionaryMap.size(); 
 	}
+	
 }

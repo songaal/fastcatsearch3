@@ -7,7 +7,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -16,6 +15,7 @@ import org.apache.lucene.store.OutputStreamDataOutput;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
+import org.fastcatsearch.ir.util.CharVectorHashSet;
 
 public class SynonymDictionary extends MapDictionary {
 
@@ -26,7 +26,7 @@ public class SynonymDictionary extends MapDictionary {
 	}
 	public SynonymDictionary(boolean isIgnoreCase) {
 		super(isIgnoreCase);
-		wordSet = new HashSet<CharVector>();
+		wordSet = new CharVectorHashSet(isIgnoreCase);
 	}
 
 	public SynonymDictionary(File file, boolean isIgnoreCase) {
@@ -39,6 +39,10 @@ public class SynonymDictionary extends MapDictionary {
 
 	public Set<CharVector> getWordSet() {
 		return wordSet;
+	}
+	
+	public void setWordSet(Set<CharVector> wordSet) {
+		this.wordSet = wordSet;
 	}
 	
 	public Set<CharVector> getUnmodifiableWordSet() {
@@ -101,6 +105,7 @@ public class SynonymDictionary extends MapDictionary {
 						// 이전값과 머징.
 						value = mergeSynonyms(value2, value);
 					}
+					
 					map.put(key, value);
 					//logger.debug("유사어 양방향 {} >> {}", key, join(value));
 				}
@@ -126,6 +131,7 @@ public class SynonymDictionary extends MapDictionary {
 					// 이전값과 머징.
 					value = mergeSynonyms(value2, value);
 				}
+				
 				map.put(mainWord, value);
 				//logger.debug("유사어 단방향 {} >> {}", mainWord, join(value));
 			}
@@ -205,10 +211,22 @@ public class SynonymDictionary extends MapDictionary {
 	public void readFrom(InputStream in) throws IOException {
 		super.readFrom(in);
 		DataInput input = new InputStreamDataInput(in);
-		wordSet = new HashSet<CharVector>();
+		wordSet = new CharVectorHashSet(ignoreCase);
 		int size = input.readVInt();
 		for (int entryInx = 0; entryInx < size; entryInx++) {
 			wordSet.add(new CharVector(input.readUString()));
+		}
+	}
+	
+	@Override
+	public void reload(Object object) throws IllegalArgumentException {
+		if(object != null && object instanceof SynonymDictionary){
+			super.reload(object);
+			SynonymDictionary synonymDictionary = (SynonymDictionary) object;
+			this.wordSet = synonymDictionary.getWordSet();
+			
+		}else{
+			throw new IllegalArgumentException("Reload dictionary argument error. argument = " + object);
 		}
 	}
 }

@@ -49,5 +49,8 @@ public class CustomDictionary extends SourceDictionary {
 		
 	}
 
-
+	@Override
+	public void reload(Object object) throws IllegalArgumentException {
+		
+	}
 }

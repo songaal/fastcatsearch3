@@ -78,7 +78,9 @@ public class MapDictionary extends SourceDictionary {
 			String value = values[i].toString();
 			list[i] = new CharVector(value);
 		}
-		map.put(new CharVector(keyword), list);
+		
+		CharVector cv = new CharVector(keyword);
+		map.put(cv, list);
 	}
 
 	public Map<CharVector, CharVector[]> getUnmodifiableMap() {
@@ -87,6 +89,10 @@ public class MapDictionary extends SourceDictionary {
 
 	public Map<CharVector, CharVector[]> map() {
 		return map;
+	}
+	
+	public void setMap(Map<CharVector, CharVector[]> map) {
+		this.map = map;
 	}
 
 	@Override
@@ -146,4 +152,14 @@ public class MapDictionary extends SourceDictionary {
 		}
 	}
 
+	@Override
+	public void reload(Object object) throws IllegalArgumentException {
+		if(object != null && object instanceof MapDictionary){
+			MapDictionary mapDictionary = (MapDictionary) object;
+			this.map = mapDictionary.map();
+			
+		}else{
+			throw new IllegalArgumentException("Reload dictionary argument error. argument = " + object);
+		}
+	}
 }

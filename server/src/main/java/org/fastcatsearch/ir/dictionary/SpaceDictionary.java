@@ -14,6 +14,7 @@ import org.apache.lucene.store.OutputStreamDataOutput;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
+import org.fastcatsearch.ir.util.CharVectorHashSet;
 
 public class SpaceDictionary extends MapDictionary {
 
@@ -24,7 +25,7 @@ public class SpaceDictionary extends MapDictionary {
 	}
 	public SpaceDictionary(boolean ignoreCase) {
 		super(ignoreCase);
-		wordSet = new HashSet<CharVector>();
+		wordSet = new CharVectorHashSet(ignoreCase);
 	}
 
 	public SpaceDictionary(File file, boolean ignoreCase) {
@@ -37,6 +38,10 @@ public class SpaceDictionary extends MapDictionary {
 
 	public Set<CharVector> getWordSet() {
 		return wordSet;
+	}
+	
+	public void setWordSet(Set<CharVector> wordSet) {
+		this.wordSet = wordSet;
 	}
 	
 	public Set<CharVector> getUnmodifiableWordSet() {
@@ -92,10 +97,22 @@ public class SpaceDictionary extends MapDictionary {
 	public void readFrom(InputStream in) throws IOException {
 		super.readFrom(in);
 		DataInput input = new InputStreamDataInput(in);
-		wordSet = new HashSet<CharVector>();
+		wordSet = new CharVectorHashSet(ignoreCase);
 		int size = input.readVInt();
 		for (int entryInx = 0; entryInx < size; entryInx++) {
 			wordSet.add(new CharVector(input.readUString()));
+		}
+	}
+	
+	@Override
+	public void reload(Object object) throws IllegalArgumentException {
+		if(object != null && object instanceof SpaceDictionary){
+			super.reload(object);
+			SpaceDictionary spaceDictionary = (SpaceDictionary) object;
+			this.wordSet = spaceDictionary.getWordSet();
+			
+		}else{
+			throw new IllegalArgumentException("Reload dictionary argument error. argument = " + object);
 		}
 	}
 }

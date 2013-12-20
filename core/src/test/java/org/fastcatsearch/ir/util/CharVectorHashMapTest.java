@@ -10,7 +10,7 @@ public class CharVectorHashMapTest {
 
 	@Test
 	public void testIgnoreCase() {
-		Map<CharVector, CharVector> map = new CharVectorHashMap<CharVector>(true);
+		Map<CharVector, CharVector> map = new CharVectorHashMap<CharVector>(false);
 		CharVector charKey = getCharVector("abc");
 		map.put(charKey, charKey);
 		charKey = getCharVector("ABC");
@@ -24,7 +24,8 @@ public class CharVectorHashMapTest {
 		
 		printMap(map);
 		
-		System.out.println(map.containsKey(getCharVector("aBc")));
+		System.out.println(map.containsKey(getICCharVector("abc")));
+		System.out.println(map.containsKey(getICCharVector("aBc")));
 		System.out.println(map.containsKey(getCharVector("Abc")));
 		System.out.println(map.containsKey(getCharVector("가나다")));
 	}
@@ -37,6 +38,12 @@ public class CharVectorHashMapTest {
 
 	private CharVector getCharVector(String string) {
 		return new CharVector(string);
+	}
+	
+	private CharVector getICCharVector(String string) {
+		CharVector cv = new CharVector(string);
+		cv.setIgnoreCase();
+		return cv;
 	}
 
 }
