@@ -42,6 +42,11 @@ Derby SQL 문법에 따른다.
 		select *
 		from ${table} where id = #{id}
 	</select>
+	
+	<select id="getEntryByKeyword" parameterType="string" resultType="map">
+		select *
+		from ${table} where UPPER(keyword) = UPPER(#{keyword})
+	</select>
 
 	<select id="getEntryList" parameterType="map" resultType="map">
 		<choose>

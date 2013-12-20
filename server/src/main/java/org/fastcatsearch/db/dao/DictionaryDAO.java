@@ -37,6 +37,19 @@ public class DictionaryDAO {
 	public String getTableName() {
 		return tableName;
 	}
+	
+	public Map<String,Object> getEntryByKeyword(String keyword) {
+		MapperSession<DictionaryMapper> mapperSession = openMapperSession();
+		try {
+			return mapperSession.getMapper().getEntryByKeyword(getTableName(), keyword);
+		} catch (Exception e) {
+			logger.error("",e);
+		} finally {
+			logger.debug("create dictionary table > {}", tableName);
+			mapperSession.closeSession();
+		}
+		return null;
+	}
 
 	public DictionaryDAO(String tableName, List<ColumnSetting> columnSettingList, InternalDBModule internalDBModule) {
 		this.tableName = tableName;
