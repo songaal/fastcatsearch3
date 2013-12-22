@@ -23,41 +23,76 @@ import org.fastcatsearch.ir.index.MemoryPosting;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.IOUtil;
 import org.fastcatsearch.ir.util.Formatter;
+import org.junit.Test;
 
 public class MemoryPostingTest {
 	public static void main(String[] args) throws IRException {
 		MemoryPostingTest t = new MemoryPostingTest();
 		int size = Integer.parseInt(args[0]);
 		int count = Integer.parseInt(args[1]);
-		
+
 		t.test1(size, count);
 	}
-	public void test1(int size, int count) throws IRException{
-//		try {
-//			Thread.sleep(20 * 1000);
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+
+	public void test1(int size, int count) throws IRException {
+		// try {
+		// Thread.sleep(20 * 1000);
+		// } catch (InterruptedException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
 		MemoryPosting mp = new MemoryPosting(16 * 1024);
-		
+
 		byte[] buf = new byte[size * 2];
 		char[] cbuf = new char[size];
-		
+
 		Random r = new Random(System.currentTimeMillis());
 		CharVector term = new CharVector();
-		
+
 		for (int i = 0; i < count; i++) {
 			r.nextBytes(buf);
 			for (int pos = 0; pos < size; pos++) {
 				cbuf[pos] = (char) IOUtil.readShort(buf, pos * 2);
 			}
 			term.init(cbuf, 0, size);
-			
+
 			mp.add(term, r.nextInt(10000000));
-			if((i + 1) % 10000 == 0)
-				System.out.println("mem = "+Formatter.getFormatSize(Runtime.getRuntime().totalMemory()) + " / "+Formatter.getFormatSize(mp.staticMemorySize()) +" / "+Formatter.getFormatSize(mp.workingMemorySize()));
+			if ((i + 1) % 10000 == 0)
+				System.out.println("mem = " + Formatter.getFormatSize(Runtime.getRuntime().totalMemory()) + " / " + Formatter.getFormatSize(mp.staticMemorySize()) + " / "
+						+ Formatter.getFormatSize(mp.workingMemorySize()));
 		}
-		
+
+	}
+
+	@Test
+	public void testLargeAndFlush() throws IRException {
+
+		int flush = 10;
+		int count = 10000000;
+		MemoryPosting mp = new MemoryPosting(16 * 1024);
+		System.out.println("---------START------------");
+		Random r = new Random(System.currentTimeMillis());
+		CharVector term = new CharVector("abc");
+
+		for (int f = 0; f < flush; f++) {
+
+			int docNo = 0;
+
+			for (int i = 0; i < count; i++) {
+				docNo += (r.nextInt(10) + 1);
+				mp.add(term, docNo);
+				if ((i + 1) % 100000 == 0)
+					System.out.println("mem = " + Formatter.getFormatSize(Runtime.getRuntime().totalMemory()) + " / " + Formatter.getFormatSize(mp.staticMemorySize()) + " / "
+							+ Formatter.getFormatSize(mp.workingMemorySize()));
+			}
+			
+			mp.clear();
+			System.out.println("---------------------");
+			System.out.println("CLEAR mem = " + Formatter.getFormatSize(Runtime.getRuntime().totalMemory()) + " / " + Formatter.getFormatSize(mp.staticMemorySize()) + " / "
+					+ Formatter.getFormatSize(mp.workingMemorySize()));
+			System.out.println("---------------------");
+			
+		}
+
 	}
 }

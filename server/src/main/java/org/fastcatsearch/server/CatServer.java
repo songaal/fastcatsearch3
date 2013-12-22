@@ -163,6 +163,8 @@ public class CatServer {
 		}
 		
 		Environment environment = new Environment(serverHome).init();
+		logger = LoggerFactory.getLogger(CatServer.class);
+		
 		this.serviceManager = new ServiceManager(environment);
 		serviceManager.asSingleton();
 
@@ -187,7 +189,7 @@ public class CatServer {
 		SearchStatisticsService searchStatisticsService = serviceManager.createService("statistics", SearchStatisticsService.class);
 		KeywordService keywordService = serviceManager.createService("additional", KeywordService.class);
 		
-		logger = LoggerFactory.getLogger(CatServer.class);
+		
 		logger.info("ServerHome = {}", serverHome);
 		try {
 			

@@ -8,9 +8,9 @@
 		create table
 		IndexingResult (
 		id int GENERATED ALWAYS AS IDENTITY,
-		collectionId varchar(20),
-		type varchar(4),
-		status varchar(10),
+		collectionId varchar(30),
+		type varchar(30),
+		status varchar(30),
 		docSize int,
 		insertSize int,
 		updateSize int,

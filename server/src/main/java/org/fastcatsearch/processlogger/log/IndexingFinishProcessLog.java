@@ -119,7 +119,7 @@ public class IndexingFinishProcessLog implements ProcessLog, IndexingLoggable {
 	public void writeLog(IndexingHistoryMapper indexingHistoryMapper, IndexingResultMapper indexingResultMapper){
 
 		IndexingStatusVO vo = new IndexingStatusVO();
-		if (isFail()) {
+		if (!isFail()) {
 			//
 			// 색인 성공
 			//
@@ -154,11 +154,13 @@ public class IndexingFinishProcessLog implements ProcessLog, IndexingLoggable {
 		try {
 			//색인결과는 취소와 정지가 아닐경우에만 업데이트한다. 실패는 색인파일에 영향을 줄수 있으므로 표기한다.  
 			if(vo.status != ResultStatus.CANCEL && vo.status != ResultStatus.STOP){
-				if (getIndexingType() == IndexingType.FULL) {
-					indexingResultMapper.deleteEntry(getCollectionId(), IndexingType.FULL);
-					indexingResultMapper.deleteEntry(getCollectionId(), IndexingType.ADD);
-				}else if(getIndexingType() == IndexingType.ADD){
-					indexingResultMapper.deleteEntry(getCollectionId(), IndexingType.ADD);
+				if (indexingType == IndexingType.FULL) {
+					indexingResultMapper.deleteEntry(collectionId, IndexingType.FULL);
+					indexingResultMapper.deleteEntry(collectionId, IndexingType.ADD);
+				}else if(indexingType == IndexingType.ADD){
+					indexingResultMapper.deleteEntry(collectionId, IndexingType.ADD);
+				}else{
+					indexingResultMapper.deleteEntry(collectionId, indexingType);
 				}
 				indexingResultMapper.putEntry(vo);
 			}

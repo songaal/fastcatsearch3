@@ -28,7 +28,7 @@ public class GetIndexingResultAction extends AuthAction {
 		DBService dbService = ServiceManager.getInstance().getService(DBService.class);
 		MapperSession<IndexingResultMapper> mapperSession = dbService.getMapperSession(IndexingResultMapper.class);
 		IndexingResultMapper indexingResultMapper = mapperSession.getMapper();
-		List<IndexingStatusVO> indexStatusList = indexingResultMapper.getEntryList(collectionId);
+		List<IndexingStatusVO> indexingResultList = indexingResultMapper.getEntryList(collectionId);
 
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
@@ -36,8 +36,8 @@ public class GetIndexingResultAction extends AuthAction {
 		resultWriter.object().key("indexingResult").object();
 
 		try {
-			if (indexStatusList != null) {
-				for (IndexingStatusVO vo : indexStatusList) {
+			if (indexingResultList != null) {
+				for (IndexingStatusVO vo : indexingResultList) {
 					resultWriter.key(vo.type.name()).object()
 						.key("collectionId").value(vo.collectionId)
 						.key("status").value(vo.status.name())

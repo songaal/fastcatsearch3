@@ -46,4 +46,21 @@ public class CharVectorHashMapTest {
 		return cv;
 	}
 
+	@Test
+	public void testCharVectorSpeed(){
+		CharVector term1 = new CharVector("abcdefghijklmnop");
+		CharVector term2 = new CharVector("abcdefghijklmnop");
+		int COUNT = 1000 * 100000;
+		long st = System.nanoTime();
+		for(int i=0;i<COUNT;i++){
+			boolean b = term1.equals(term2);
+		}
+		System.out.println("time1 = "+(System.nanoTime() - st)/1000000 + "ms");
+		st = System.nanoTime();
+		term1.setIgnoreCase();
+		for(int i=0;i<COUNT;i++){
+			boolean b = term1.equals(term2);
+		}
+		System.out.println("time2 = "+(System.nanoTime() - st)/1000000 + "ms");
+	}
 }

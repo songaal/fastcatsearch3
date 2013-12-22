@@ -8,6 +8,8 @@ public class IndexingTaskState extends TaskState {
 	public static final String STATE_FINALIZE = "FINALIZE";
 	public static final String STATE_STOP_REQUESTED = "STOP REQUESTED";
 	
+	public static final String STATE_DOCUMENT_STORE = "DOCUMENT STORE"; //문서저장 색인작업.
+	
 	public IndexingTaskState(TaskKey taskKey, TaskStateService taskStateService) {
 		super(taskKey, taskStateService);
 	}

@@ -42,7 +42,6 @@ public class SegmentWriter implements WriteInfoLoggable {
 
 	private int lastDocNo;
 	private int count;
-	private boolean requestStop;
 	private long startTime;
 
 	private DocumentWriter documentWriter;
