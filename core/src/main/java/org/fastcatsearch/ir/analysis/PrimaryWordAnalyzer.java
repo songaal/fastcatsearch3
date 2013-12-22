@@ -40,13 +40,27 @@ public class PrimaryWordAnalyzer extends Analyzer {
 
 			@Override
 			public boolean incrementToken() throws IOException {
+				boolean found = false;
 				while (input.incrementToken()) {
-					if (typeAttribute.type() != TypeTokenizer.SYMBOL) {
+					found = false;
+					if (typeAttribute.type() == TypeTokenizer.SYMBOL) {
 						// logger.debug("term : {}", charTermAttribute.toString());
-						return true;
+						continue;
 					}
+					
+					if(typeAttribute.type() == TypeTokenizer.HANGUL && charTermAttribute.length() > 10){
+						continue;
+					}
+					
+					if(charTermAttribute.length() > 15){
+						continue;
+					}
+					
+					found = true;
+					break;
 				}
-				return false;
+				
+				return found;
 			}
 		};
 
