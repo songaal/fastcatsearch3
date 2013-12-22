@@ -2,20 +2,17 @@ package org.fastcatsearch.http.action.management.indexing;
 
 import java.io.Writer;
 
-import org.fastcatsearch.cluster.Node;
-import org.fastcatsearch.cluster.NodeService;
+import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
-import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.job.indexing.CollectionDatasourceDumpJob;
+import org.fastcatsearch.job.indexing.MasterCollectionFullIndexingJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/datasource/full/run")
+@ActionMapping("/indexing/full/run")
 public class RunFullIndexingAction extends AuthAction {
 	
 	@Override
@@ -23,17 +20,12 @@ public class RunFullIndexingAction extends AuthAction {
 		
 		String collectionId = request.getParameter("collectionId");
 
-		IRService irService = ServiceManager.getInstance().getService(IRService.class);
-		CollectionContext collectionContext = irService.collectionContext(collectionId);
-		String indexNodeId = collectionContext.collectionConfig().getIndexNode();
-
-		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
-		Node indexNode = nodeService.getNodeById(indexNodeId);
-
-		CollectionDatasourceDumpJob job = new CollectionDatasourceDumpJob();
-		job.setArgs(collectionId);
-
-		ResultFuture jobResult = nodeService.sendRequest(indexNode, job);
+		JobService jobService = ServiceManager.getInstance().getService(JobService.class);
+		
+		MasterCollectionFullIndexingJob masterCollectionIndexingJob = new MasterCollectionFullIndexingJob();
+		masterCollectionIndexingJob.setArgs(collectionId);
+		
+		ResultFuture jobResult = jobService.offer(masterCollectionIndexingJob);
 		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
