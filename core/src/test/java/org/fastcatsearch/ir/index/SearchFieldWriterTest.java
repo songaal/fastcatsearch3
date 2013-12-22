@@ -29,6 +29,7 @@ import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.document.DocumentReader;
 import org.fastcatsearch.ir.settings.Schema;
+import org.fastcatsearch.ir.settings.SchemaSetting;
 
 
 public class SearchFieldWriterTest extends TestCase{
@@ -37,10 +38,11 @@ public class SearchFieldWriterTest extends TestCase{
 	String target = homePath+collection+"/data";
 	
 	public void testMakeIndex() throws SettingException, IOException, IRException{
-		Schema schema = new Schema(null);//collection, true);
+		SchemaSetting schemaSetting = new SchemaSetting();
+		Schema schema = new Schema(schemaSetting);//collection, true);
 		File targetDir = new File(target);
 		IndexConfig indexConfig = null;
-		DocumentReader reader = new DocumentReader(schema, targetDir);
+		DocumentReader reader = new DocumentReader(schemaSetting, targetDir);
 		AnalyzerPoolManager analyzerPoolManager = null;
 		SearchIndexesWriter writer = new SearchIndexesWriter(schema, targetDir, new RevisionInfo(), indexConfig, analyzerPoolManager);
 		int documentCount = reader.getDocumentCount();

@@ -406,7 +406,7 @@ long a, b = 0, c = System.nanoTime();
 			// int lastRevision = segmentReader.getLastRevision();
 			String segmentId = segmentReader.segmentInfo().getId();
 			int revision = segmentReader.segmentInfo().getRevision();
-			DocumentReader reader = new DocumentReader(collectionHandler.schema(), segmentReader.segmentDir());
+			DocumentReader reader = new DocumentReader(collectionHandler.schema().schemaSetting(), segmentReader.segmentDir());
 			BitSet deleteSet = null;
 			deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentId));
 

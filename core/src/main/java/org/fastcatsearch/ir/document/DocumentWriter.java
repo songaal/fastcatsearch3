@@ -34,6 +34,7 @@ import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.io.IndexInput;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.Schema;
+import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,12 +64,12 @@ public class DocumentWriter implements WriteInfoLoggable {
 	private Deflater compressor;
 	private int count; //현 색인시 추가문서갯수.
 	
-	public DocumentWriter(Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig) throws IOException, IRException {
+	public DocumentWriter(SchemaSetting schemaSetting, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig) throws IOException, IRException {
 		
 		boolean isAppend = revisionInfo.isAppend();
 		
 		compressor = new Deflater(Deflater.BEST_SPEED);
-		fields = schema.schemaSetting().getFieldSettingList();
+		fields = schemaSetting.getFieldSettingList();
 		
 		docOutput = new BufferedFileOutput(dir, IndexFileNames.docStored, isAppend);
 		positionOutput = new BufferedFileOutput(dir, IndexFileNames.docPosition, isAppend);

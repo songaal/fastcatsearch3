@@ -1,13 +1,10 @@
 package org.fastcatsearch.ir;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.datasource.reader.AbstractDataSourceReader;
 import org.fastcatsearch.datasource.reader.DataSourceReader;
-import org.fastcatsearch.datasource.reader.DefaultDataSourceReaderFactory;
+import org.fastcatsearch.datasource.reader.StoredDocumentSourceReader;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexingType;
@@ -15,24 +12,19 @@ import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
-import org.fastcatsearch.ir.config.DataSourceConfig;
+import org.fastcatsearch.ir.index.SelectedIndexList;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 
-/**
- * 컬렉션의 전체색인을 수행하는 indexer.
- * */
-public class CollectionFullIndexer extends AbstractCollectionIndexer {
-	
-	public CollectionFullIndexer(CollectionContext collectionContext, AnalyzerPoolManager analyzerPoolManager) throws IRException {
-		super(collectionContext, analyzerPoolManager);
+public class CollectionIndexBuildIndexer extends AbstractCollectionIndexer {
 
+	public CollectionIndexBuildIndexer(CollectionContext collectionContext, AnalyzerPoolManager analyzerPoolManager, SelectedIndexList selectedIndexList) throws IRException {
+		super(collectionContext, analyzerPoolManager, selectedIndexList);
 		init(collectionContext.schema());
 	}
 
 	@Override
-	protected DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException{
-		DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
-		return DefaultDataSourceReaderFactory.createFullIndexingSourceReader(filePath, schemaSetting, dataSourceConfig);
+	protected DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException {
+		return new StoredDocumentSourceReader(filePath, schemaSetting);
 	}
 
 	@Override
@@ -44,14 +36,10 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 
 		// 디렉토리 초기화.
 		File indexDataDir = collectionContext.collectionFilePaths().dataPaths().indexDirFile(newDataSequence);
-		try {
-			FileUtils.deleteDirectory(indexDataDir);
-		} catch (IOException e) {
-			throw new IRException(e);
+		if(!indexDataDir.exists()){
+			throw new IRException("Index directory not found. >> " + indexDataDir);
 		}
-
 		collectionContext.clearDataInfoAndStatus();
-		indexDataDir.mkdirs();
 	}
 
 	@Override
@@ -77,7 +65,6 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 			}
 			return false;
 		}
-		
 	}
-}
 
+}

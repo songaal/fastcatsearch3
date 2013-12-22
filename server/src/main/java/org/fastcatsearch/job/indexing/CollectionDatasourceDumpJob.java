@@ -10,8 +10,8 @@ import java.util.List;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.io.Streamable;
-import org.fastcatsearch.datasource.reader.DataSourceReader;
-import org.fastcatsearch.datasource.reader.DataSourceReaderFactory;
+import org.fastcatsearch.datasource.reader.AbstractDataSourceReader;
+import org.fastcatsearch.datasource.reader.DefaultDataSourceReaderFactory;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
@@ -67,13 +67,13 @@ public class CollectionDatasourceDumpJob extends Job implements Streamable {
 		}
 
 		Writer writer = null;
-		DataSourceReader dataSourceReader = null;
+		AbstractDataSourceReader dataSourceReader = null;
 		try {
 			long startTime = System.currentTimeMillis();
 			long lapTime = startTime;
 			
 			writer = new OutputStreamWriter(new FileOutputStream(new File(filePath,  "datasource."+System.currentTimeMillis()+".txt")));
-			dataSourceReader = DataSourceReaderFactory.createFullIndexingSourceReader(filePath, schemaSetting, dataSourceConfig);
+			dataSourceReader = DefaultDataSourceReaderFactory.createFullIndexingSourceReader(filePath, schemaSetting, dataSourceConfig);
 			int count = 0;
 			while (dataSourceReader.hasNext()) {
 				Document document = dataSourceReader.nextDocument();

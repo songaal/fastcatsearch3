@@ -2,6 +2,7 @@ package org.fastcatsearch.ir.index;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.fastcatsearch.ir.common.IRException;
@@ -21,14 +22,25 @@ public class FieldIndexesWriter implements WriteInfoLoggable {
 	private int indexSize;
 
 	public FieldIndexesWriter(Schema schema, File dir, RevisionInfo revisionInfo) throws IOException, IRException {
+		
+	}
+	public FieldIndexesWriter(Schema schema, File dir, RevisionInfo revisionInfo, List<String> indexIdList) throws IOException, IRException {
 		List<FieldIndexSetting> fieldIndexSettingList = schema.schemaSetting().getFieldIndexSettingList();
-		indexSize = fieldIndexSettingList == null ? 0 : fieldIndexSettingList.size();
-		fieldIndexWriterList = new FieldIndexWriter[indexSize];
+		int totalSize = fieldIndexSettingList == null ? 0 : fieldIndexSettingList.size();
+		
 		boolean isAppend = revisionInfo.isAppend();
-		for (int i = 0; i < indexSize; i++) {
-			fieldIndexWriterList[i] = new FieldIndexWriter(fieldIndexSettingList.get(i), schema.fieldSettingMap(), schema.fieldSequenceMap(), dir, isAppend);
+		
+		List<FieldIndexWriter> list = new ArrayList<FieldIndexWriter>();
+		for (int i = 0, idx = 0; i < totalSize; i++) {
+			FieldIndexSetting indexSetting = fieldIndexSettingList.get(i);
+			if(indexIdList == null || indexIdList.contains(indexSetting.getId())){
+				fieldIndexWriterList[idx++] = new FieldIndexWriter(fieldIndexSettingList.get(i), schema.fieldSettingMap(), schema.fieldSequenceMap(), dir, isAppend);
+			}
 		}
-
+		
+		fieldIndexWriterList = list.toArray(new FieldIndexWriter[0]);
+		indexSize = fieldIndexWriterList.length;
+		
 	}
 
 	public void write(Document document) throws IOException, IRException {

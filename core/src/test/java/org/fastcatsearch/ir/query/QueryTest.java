@@ -34,6 +34,7 @@ import org.fastcatsearch.ir.search.clause.Clause;
 import org.fastcatsearch.ir.search.clause.ClauseException;
 import org.fastcatsearch.ir.search.clause.OperatedClause;
 import org.fastcatsearch.ir.settings.Schema;
+import org.fastcatsearch.ir.settings.SchemaSetting;
 
 public class QueryTest extends TestCase{
 	
@@ -43,12 +44,13 @@ public class QueryTest extends TestCase{
 	
 	public void testClause() throws IOException, SettingException, ClauseException, IRException{
 		
-		Schema schema = new Schema(null);//collection, true);
+		SchemaSetting schemaSetting = new SchemaSetting();
+		Schema schema = new Schema(schemaSetting);
 		File targetDir = new File(target);
 		AnalyzerPoolManager analyzerPoolManager = null;
 		IndexConfig indexConfig = null;
 		SearchIndexesReader reader = new SearchIndexesReader(schema, targetDir, analyzerPoolManager);
-		DocumentReader docReader = new DocumentReader(schema, targetDir);
+		DocumentReader docReader = new DocumentReader(schemaSetting, targetDir);
 		int totalDocNum = docReader.getDocumentCount();
 		System.out.println("총 문서수 ="+totalDocNum);
 		

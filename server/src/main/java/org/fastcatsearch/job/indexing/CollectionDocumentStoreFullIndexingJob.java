@@ -19,9 +19,12 @@ import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.db.mapper.IndexingResultMapper.ResultStatus;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.CollectionFullDocumentStorer;
+import org.fastcatsearch.ir.CollectionIndexBuildIndexer;
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
+import org.fastcatsearch.ir.index.SelectedIndexList;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.result.IndexingJobResult;
@@ -88,11 +91,15 @@ public class CollectionDocumentStoreFullIndexingJob extends IndexingJob {
 			 */
 			//////////////////////////////////////////////////////////////////////////////////////////
 			
-			CollectionFullDocumentStorer collectionFullDocumentStorer = new CollectionFullDocumentStorer(collectionContext);
-			indexer = collectionFullDocumentStorer;
-			collectionFullDocumentStorer.setState(indexingTaskState);
-			collectionFullDocumentStorer.doIndexing();
-			boolean isIndexed = collectionFullDocumentStorer.close();
+//			CollectionFullDocumentStorer collectionFullDocumentStorer = new CollectionFullDocumentStorer(collectionContext);
+//			indexer = collectionFullDocumentStorer;
+//			collectionFullDocumentStorer.setState(indexingTaskState);
+//			collectionFullDocumentStorer.doIndexing();
+			
+			AnalyzerPoolManager analyzerPoolManager = null;
+			SelectedIndexList selectedIndexList = new SelectedIndexList(); //아무 index선택하지 않으므로 document만 저장된다.
+			CollectionIndexBuildIndexer collectionIndexBuildIndexer = new CollectionIndexBuildIndexer(collectionContext, analyzerPoolManager, selectedIndexList); 
+			boolean isIndexed = collectionIndexBuildIndexer.close();
 			if(!isIndexed && stopRequested){
 				//여기서 끝낸다.
 				throw new IndexingStopException();
@@ -127,7 +134,6 @@ public class CollectionDocumentStoreFullIndexingJob extends IndexingJob {
 			} else if (result instanceof Streamable) {
 				streamableResult = (Streamable) result;
 			}
-logger.debug(">>> updateIndexingStatusFinish > {}", streamableResult);
 			updateIndexingStatusFinish(resultStatus, streamableResult);
 		}
 

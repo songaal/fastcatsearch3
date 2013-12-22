@@ -24,14 +24,15 @@ import junit.framework.TestCase;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.settings.Schema;
+import org.fastcatsearch.ir.settings.SchemaSetting;
 
 public class DocumentReaderTest extends TestCase{
 	public void testOneDoc() throws IOException, SettingException{
 		String homePath = "testHome/";
 		String collection = "test2"; 
-		Schema schema = new Schema(null);
+		SchemaSetting schemaSetting = new SchemaSetting();
 		File targetDir = new File(homePath+ "collection/" + collection+ "/data");
-		DocumentReader reader = new DocumentReader(schema, targetDir);
+		DocumentReader reader = new DocumentReader(schemaSetting, targetDir);
 		int docNo = 3;
 		
 		Document document = reader.readDocument(docNo++);
@@ -44,11 +45,11 @@ public class DocumentReaderTest extends TestCase{
 		String collection = "test3";
 		int dataSequence = 1;
 		int segNum = 1;
-		Schema schema = new Schema(null);
+		SchemaSetting schemaSetting = new SchemaSetting();
 		File targetDir = new File(homePath+ "collection/" + collection+ "/data");
 		File segmentDir = new File(targetDir, Integer.toString(segNum));
 		System.out.println("segmentDir = "+segmentDir.getAbsolutePath());
-		DocumentReader reader = new DocumentReader(schema, segmentDir);
+		DocumentReader reader = new DocumentReader(schemaSetting, segmentDir);
 		int count = reader.getDocumentCount();
 		System.out.println("## count="+count);
 		for(int docNo=0;docNo<count;docNo++){

@@ -2,10 +2,12 @@ package org.fastcatsearch.ir;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.fastcatsearch.datasource.reader.AbstractDataSourceReader;
 import org.fastcatsearch.datasource.reader.DataSourceReader;
-import org.fastcatsearch.datasource.reader.DataSourceReaderFactory;
+import org.fastcatsearch.datasource.reader.DefaultDataSourceReaderFactory;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
@@ -43,7 +45,7 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
 	protected DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException{
 		DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
 		String lastIndexTime = collectionContext.getLastIndexTime();
-		return DataSourceReaderFactory.createAddIndexingSourceReader(filePath, schemaSetting, dataSourceConfig, lastIndexTime);
+		return DefaultDataSourceReaderFactory.createAddIndexingSourceReader(filePath, schemaSetting, dataSourceConfig, lastIndexTime);
 	}
 
 	/*

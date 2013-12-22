@@ -23,11 +23,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public abstract class SourceModifier {
+public abstract class SourceModifier<DateType> {
 	
 	protected static Logger logger = LoggerFactory.getLogger(SourceModifier.class);
 			
-	public abstract void modify(Map<String, Object> keyValueMap) throws IRException;
+	public abstract void modify(DateType data) throws IRException;
 	
 	public abstract void init(Object obj);
 }

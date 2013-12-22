@@ -101,7 +101,7 @@ public class SegmentReader {
 //		// group index
 		this.groupIndexesReader = new GroupIndexesReader(schema, segmentDir, ref);
 
-		this.documentReader = new DocumentReader(schema, segmentDir, segmentInfo.getBaseNumber());
+		this.documentReader = new DocumentReader(schema.schemaSetting(), segmentDir, segmentInfo.getBaseNumber());
 		
 		
 		if (bitset != null) {

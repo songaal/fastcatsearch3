@@ -18,6 +18,7 @@ package org.fastcatsearch.ir.index;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
@@ -45,16 +46,28 @@ public class SearchIndexesWriter {
 	private int count;
 
 	public SearchIndexesWriter(Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager) throws IOException, IRException {
+		this(schema, dir, revisionInfo, indexConfig, analyzerPoolManager, null);
+	}
+
+	public SearchIndexesWriter(Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager,
+			List<String> indexIdList) throws IOException, IRException {
 		this.indexSettingList = schema.schemaSetting().getIndexSettingList();
-		this.indexSize = indexSettingList == null ? 0 : indexSettingList.size();
-		searchIndexWriterList = new SearchIndexWriter[indexSize];
 		
-		for (int i = 0; i < indexSize; i++) {
+		int totalSize = indexSettingList == null ? 0 : indexSettingList.size();
+		
+		List<SearchIndexWriter> list = new ArrayList<SearchIndexWriter>();
+		for (int i = 0, idx = 0; i < totalSize; i++) {
 			IndexSetting indexSetting = indexSettingList.get(i);
-			searchIndexWriterList[i] = new SearchIndexWriter(indexSetting, schema, dir, revisionInfo, indexConfig, analyzerPoolManager);
+			if(indexIdList == null || indexIdList.contains(indexSetting.getId())){
+				searchIndexWriterList[idx++] = new SearchIndexWriter(indexSetting, schema, dir, revisionInfo, indexConfig, analyzerPoolManager);
+			}
 		}
 		
+		searchIndexWriterList = list.toArray(new SearchIndexWriter[0]);
+		indexSize = searchIndexWriterList.length;
+		
 		workMemoryLimit = indexConfig.getIndexWorkMemorySize();
+		
 	}
 
 	public void write(Document doc) throws IRException, IOException {

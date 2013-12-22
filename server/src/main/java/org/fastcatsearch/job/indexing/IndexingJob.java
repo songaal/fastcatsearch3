@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.db.mapper.IndexingResultMapper.ResultStatus;
 import org.fastcatsearch.ir.AbstractCollectionIndexer;
-import org.fastcatsearch.ir.Indexerable;
+import org.fastcatsearch.ir.CollectionIndexerable;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
@@ -42,7 +42,7 @@ public abstract class IndexingJob extends Job implements Streamable {
 	private long indexingStartTime;
 	protected boolean stopRequested; //색인중단요청..
 	
-	protected Indexerable indexer;
+	protected CollectionIndexerable indexer;
 	
 	
 	public long indexingStartTime(){

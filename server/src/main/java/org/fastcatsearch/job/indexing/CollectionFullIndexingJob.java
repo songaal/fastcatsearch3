@@ -91,7 +91,6 @@ public class CollectionFullIndexingJob extends IndexingJob {
 
 			updateIndexingStatusStart();
 
-//			collectionContext = collectionContext.copy();
 			/*
 			 * Do indexing!!
 			 */

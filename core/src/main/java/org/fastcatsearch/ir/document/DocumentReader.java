@@ -33,6 +33,7 @@ import org.fastcatsearch.ir.io.IOUtil;
 import org.fastcatsearch.ir.io.IndexInput;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.Schema;
+import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,13 +60,13 @@ public class DocumentReader implements Cloneable {
 	public DocumentReader() {
 	}
 
-	public DocumentReader(Schema schema, File dir) throws IOException {
-		this(schema, dir, 0);
+	public DocumentReader(SchemaSetting schemaSetting, File dir) throws IOException {
+		this(schemaSetting, dir, 0);
 	}
 
-	public DocumentReader(Schema schema, File dir, int baseDocNo) throws IOException {
+	public DocumentReader(SchemaSetting schemaSetting, File dir, int baseDocNo) throws IOException {
 		this.baseDocNo = baseDocNo;
-		fields = schema.schemaSetting().getFieldSettingList();
+		fields = schemaSetting.getFieldSettingList();
 		docInput = new BufferedFileInput(dir, IndexFileNames.docStored);
 		positionInput = new BufferedFileInput(dir, IndexFileNames.docPosition);
 		positionLimit = positionInput.length();

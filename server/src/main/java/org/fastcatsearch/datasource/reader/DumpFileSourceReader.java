@@ -31,7 +31,7 @@ import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.index.PrimaryKeys;
 import org.fastcatsearch.ir.io.DirBufferedReader;
 
-public class FSFileSourceReader extends SingleSourceReader {
+public class DumpFileSourceReader extends SingleSourceReader {
 
 	private DirBufferedReader br;
 	private Map<String, Object> dataMap;
@@ -44,7 +44,7 @@ public class FSFileSourceReader extends SingleSourceReader {
 	private Pattern OPAT;
 	private Pattern CPAT;
 
-	public FSFileSourceReader(File filePath, DataSourceConfig dataSourceConfig, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime) throws IRException {
+	public DumpFileSourceReader(File filePath, DataSourceConfig dataSourceConfig, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime) throws IRException {
 		super(filePath, dataSourceConfig, singleSourceConfig, sourceModifier, lastIndexTime);
 	}
 

@@ -14,7 +14,7 @@ package org.fastcatsearch.task;
 import java.io.File;
 
 import org.apache.commons.io.FileUtils;
-import org.fastcatsearch.datasource.reader.DataSourceReader;
+import org.fastcatsearch.datasource.reader.AbstractDataSourceReader;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
@@ -33,7 +33,7 @@ public class MakeIndexFileTask extends Task {
 	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 	
 	public int makeIndex(String collectionId, File collectionHomeDir, Schema workSchema, File collectionDataDir,
-			DataSourceReader sourceReader, File segmentDir) throws Exception {
+			AbstractDataSourceReader sourceReader, File segmentDir) throws Exception {
 			
 		if(workSchema.getFieldSize() == 0){
 			throw new TaskException("["+collectionId+"] Full Indexing Canceled. Schema field is empty.");

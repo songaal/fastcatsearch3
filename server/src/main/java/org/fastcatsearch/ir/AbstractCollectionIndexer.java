@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 
+import org.fastcatsearch.datasource.reader.AbstractDataSourceReader;
 import org.fastcatsearch.datasource.reader.DataSourceReader;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
@@ -15,8 +16,11 @@ import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.DeleteIdSet;
+import org.fastcatsearch.ir.index.IndexWritable;
 import org.fastcatsearch.ir.index.IndexWriteInfoList;
 import org.fastcatsearch.ir.index.SegmentWriter;
+import org.fastcatsearch.ir.index.SelectedIndexList;
+import org.fastcatsearch.ir.index.WriteInfoLoggable;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.ir.util.Formatter;
@@ -26,7 +30,7 @@ import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractCollectionIndexer implements Indexerable {
+public abstract class AbstractCollectionIndexer implements CollectionIndexerable {
 	protected static final Logger logger = LoggerFactory.getLogger(CollectionFullIndexer.class);
 	protected CollectionContext collectionContext;
 	protected AnalyzerPoolManager analyzerPoolManager;
@@ -39,16 +43,21 @@ public abstract class AbstractCollectionIndexer implements Indexerable {
 	
 	protected IndexWriteInfoList indexWriteInfoList;
 	
-	protected SegmentWriter segmentWriter;
+	protected IndexWritable segmentWriter;
 	protected SegmentInfo workingSegmentInfo;
 	protected int count;
 	protected long lapTime;
 	
 	protected boolean stopRequested;
+	protected SelectedIndexList selectedIndexList;// 색인필드 선택사항.
 	
 	public AbstractCollectionIndexer(CollectionContext collectionContext, AnalyzerPoolManager analyzerPoolManager) {
+		this(collectionContext, analyzerPoolManager, null);
+	}
+	public AbstractCollectionIndexer(CollectionContext collectionContext, AnalyzerPoolManager analyzerPoolManager, SelectedIndexList selectedIndexList) {
 		this.collectionContext = collectionContext;
 		this.analyzerPoolManager = analyzerPoolManager;
+		this.selectedIndexList = selectedIndexList;
 	}
 	
 	protected abstract DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException;
@@ -75,7 +84,7 @@ public abstract class AbstractCollectionIndexer implements Indexerable {
 		File filePath = collectionContext.collectionFilePaths().file();
 		dataSourceReader = createDataSourceReader(filePath, schema.schemaSetting());
 		
-		segmentWriter = new SegmentWriter(schema, segmentDir, revisionInfo, indexConfig, analyzerPoolManager);
+		segmentWriter = new SegmentWriter(schema, segmentDir, revisionInfo, indexConfig, analyzerPoolManager, selectedIndexList);
 		
 		indexWriteInfoList = new IndexWriteInfoList();
 		
@@ -112,7 +121,8 @@ public abstract class AbstractCollectionIndexer implements Indexerable {
 		if (segmentWriter != null) {
 			try {
 				segmentWriter.close();
-				segmentWriter.getIndexWriteInfo(indexWriteInfoList);
+				if(segmentWriter instanceof WriteInfoLoggable)
+				((WriteInfoLoggable) segmentWriter).getIndexWriteInfo(indexWriteInfoList);
 			} catch (IOException e) {
 				throw new IRException(e);
 			}

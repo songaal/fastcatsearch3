@@ -57,9 +57,9 @@ public class DocumentWriteReadTest extends TestCase{
 		File targetDir = new File("temp/");
 		
 		
-		Schema schema = createSchema();
+		SchemaSetting schemaSetting = createSchemaSetting();
 		IndexConfig indexConfig = createIndexConfig();
-		DocumentWriter dw = new DocumentWriter(schema, targetDir, new RevisionInfo(), indexConfig);
+		DocumentWriter dw = new DocumentWriter(schemaSetting, targetDir, new RevisionInfo(), indexConfig);
 		
 		Document document = new Document(6);
 		document.add(new LongField("id", "100"));
@@ -82,10 +82,10 @@ public class DocumentWriteReadTest extends TestCase{
 	public void testWriteAndRead() throws IRException, IOException, SettingException{
 		File targetDir = new File("temp/");
 		
-		Schema schema = createSchema();
+		SchemaSetting schemaSetting = createSchemaSetting();
 //		schema.getFieldSettingList().get(2).setStore(false); //field-2는 저장하지 않음.
 		IndexConfig indexConfig = createIndexConfig();
-		DocumentWriter dw = new DocumentWriter(schema, targetDir, new RevisionInfo(), indexConfig);
+		DocumentWriter dw = new DocumentWriter(schemaSetting, targetDir, new RevisionInfo(), indexConfig);
 		
 		Document document = new Document(6);
 		document.add(new LongField("id", "100"));
@@ -117,7 +117,7 @@ public class DocumentWriteReadTest extends TestCase{
 		dw.close();
 		
 		
-		DocumentReader reader = new DocumentReader(schema, targetDir);
+		DocumentReader reader = new DocumentReader(schemaSetting, targetDir);
 		Document actualDocument = reader.readDocument(0);
 		System.out.println(actualDocument);
 		actualDocument = reader.readDocument(1);
@@ -131,14 +131,14 @@ public class DocumentWriteReadTest extends TestCase{
 	public void testWriteAndReadMultiField() throws IRException, IOException, SettingException{
 		File targetDir = new File("temp/");
 		
-		Schema schema = createSchema();
-		schema.schemaSetting().getFieldSettingList().get(1).setMultiValue(true);
-		schema.schemaSetting().getFieldSettingList().get(2).setMultiValue(true);
-		schema.schemaSetting().getFieldSettingList().get(3).setMultiValue(true);
-		schema.schemaSetting().getFieldSettingList().get(4).setMultiValue(true);
+		SchemaSetting schemaSetting = createSchemaSetting();
+		schemaSetting.getFieldSettingList().get(1).setMultiValue(true);
+		schemaSetting.getFieldSettingList().get(2).setMultiValue(true);
+		schemaSetting.getFieldSettingList().get(3).setMultiValue(true);
+		schemaSetting.getFieldSettingList().get(4).setMultiValue(true);
 		
 		IndexConfig indexConfig = createIndexConfig();
-		DocumentWriter dw = new DocumentWriter(schema, targetDir, new RevisionInfo(), indexConfig);
+		DocumentWriter dw = new DocumentWriter(schemaSetting, targetDir, new RevisionInfo(), indexConfig);
 		
 		Document document = new Document(6);
 		document.add(new LongField("id", "100"));
@@ -169,7 +169,7 @@ public class DocumentWriteReadTest extends TestCase{
 		dw.close();
 		
 		
-		DocumentReader reader = new DocumentReader(schema, targetDir);
+		DocumentReader reader = new DocumentReader(schemaSetting, targetDir);
 		Document actualDocument = reader.readDocument(0);
 		
 		System.out.println(actualDocument);
@@ -181,14 +181,14 @@ public class DocumentWriteReadTest extends TestCase{
 	public void testWriteAndReadMultiFieldLarge() throws IRException, IOException, SettingException{
 		File targetDir = new File("temp/");
 		
-		Schema schema = createSchema();
-		schema.schemaSetting().getFieldSettingList().get(1).setMultiValue(true);
-		schema.schemaSetting().getFieldSettingList().get(2).setMultiValue(true);
-		schema.schemaSetting().getFieldSettingList().get(3).setMultiValue(true);
-		schema.schemaSetting().getFieldSettingList().get(4).setMultiValue(true);
+		SchemaSetting schemaSetting = createSchemaSetting();
+		schemaSetting.getFieldSettingList().get(1).setMultiValue(true);
+		schemaSetting.getFieldSettingList().get(2).setMultiValue(true);
+		schemaSetting.getFieldSettingList().get(3).setMultiValue(true);
+		schemaSetting.getFieldSettingList().get(4).setMultiValue(true);
 		
 		IndexConfig indexConfig = createIndexConfig();
-		DocumentWriter dw = new DocumentWriter(schema, targetDir, new RevisionInfo(), indexConfig);
+		DocumentWriter dw = new DocumentWriter(schemaSetting, targetDir, new RevisionInfo(), indexConfig);
 		
 		int count = 300;
 		for (int i = 0; i < count; i++) {
@@ -202,7 +202,7 @@ public class DocumentWriteReadTest extends TestCase{
 		dw.close();
 		
 		
-		DocumentReader reader = new DocumentReader(schema, targetDir);
+		DocumentReader reader = new DocumentReader(schemaSetting, targetDir);
 		for (int i = 0; i < count; i++) {
 			Document actualDocument = reader.readDocument(i);
 			
@@ -278,7 +278,7 @@ public class DocumentWriteReadTest extends TestCase{
 		return document;
 	}
 	
-	public Schema createSchema(){
+	public SchemaSetting createSchemaSetting(){
 		SchemaSetting setting = new SchemaSetting();
 		
 		//add fieldsetting
@@ -329,7 +329,7 @@ public class DocumentWriteReadTest extends TestCase{
 		analyzerSettingList.add(new AnalyzerSetting("korean_query","korean_query", 10, 100, "com.fastcatsearch.plugin.analysis.korean.StandardKoreanAnalyzer"));
 		setting.setAnalyzerSettingList(analyzerSettingList);
 		
-		return new Schema(setting);
+		return setting;
 	}
 	
 	public IndexConfig createIndexConfig(){

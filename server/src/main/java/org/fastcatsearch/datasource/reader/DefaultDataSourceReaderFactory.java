@@ -12,23 +12,23 @@
 package org.fastcatsearch.datasource.reader;
 
 import java.io.File;
+import java.util.Map;
 
 import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
-import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.util.DynamicClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DataSourceReaderFactory {
-	private static Logger logger = LoggerFactory.getLogger(DataSourceReaderFactory.class);
+public class DefaultDataSourceReaderFactory {
+	private static Logger logger = LoggerFactory.getLogger(DefaultDataSourceReaderFactory.class);
 
-	public static DataSourceReader createFullIndexingSourceReader(File filePath, SchemaSetting schemaSetting, DataSourceConfig dataSourceConfig) throws IRException {
+	public static AbstractDataSourceReader<Map<String, Object>> createFullIndexingSourceReader(File filePath, SchemaSetting schemaSetting, DataSourceConfig dataSourceConfig) throws IRException {
 
-		DataSourceReader dataSourceReader = new DataSourceReader(schemaSetting);
+		AbstractDataSourceReader<Map<String, Object>> dataSourceReader = new DefaultDataSourceReader(schemaSetting);
 		logger.debug("dataSourceConfig > {}", dataSourceConfig);
 		if (dataSourceConfig != null && dataSourceConfig.getFullIndexingSourceConfig() != null) {
 			
@@ -36,7 +36,7 @@ public class DataSourceReaderFactory {
 				if(!singleSourceConfig.isActive()){
 					continue;
 				}
-				SingleSourceReader sourceReader = createSingleSourceReader(filePath, dataSourceConfig, singleSourceConfig, null);
+				SingleSourceReader<Map<String, Object>> sourceReader = createSingleSourceReader(filePath, dataSourceConfig, singleSourceConfig, null);
 				sourceReader.init();
 				dataSourceReader.addSourceReader(sourceReader);
 			}
@@ -47,9 +47,9 @@ public class DataSourceReaderFactory {
 		return dataSourceReader;
 	}
 	
-	public static DataSourceReader createAddIndexingSourceReader(File filePath, SchemaSetting schemaSetting, DataSourceConfig dataSourceConfig, String lastIndexTime) throws IRException {
+	public static AbstractDataSourceReader<Map<String, Object>> createAddIndexingSourceReader(File filePath, SchemaSetting schemaSetting, DataSourceConfig dataSourceConfig, String lastIndexTime) throws IRException {
 
-		DataSourceReader dataSourceReader = new DataSourceReader(schemaSetting);
+		AbstractDataSourceReader<Map<String, Object>> dataSourceReader = new DefaultDataSourceReader(schemaSetting);
 		logger.debug("dataSourceConfig > {}", dataSourceConfig);
 		if (dataSourceConfig != null && dataSourceConfig.getAddIndexingSourceConfig() != null) {
 			
@@ -57,7 +57,7 @@ public class DataSourceReaderFactory {
 				if(!singleSourceConfig.isActive()){
 					continue;
 				}
-				SingleSourceReader sourceReader = createSingleSourceReader(filePath, dataSourceConfig, singleSourceConfig, lastIndexTime);
+				SingleSourceReader<Map<String, Object>> sourceReader = createSingleSourceReader(filePath, dataSourceConfig, singleSourceConfig, lastIndexTime);
 				sourceReader.init();
 				dataSourceReader.addSourceReader(sourceReader);
 			}
@@ -68,15 +68,15 @@ public class DataSourceReaderFactory {
 		return dataSourceReader;
 	}
 
-	private static SingleSourceReader createSingleSourceReader(File filePath, DataSourceConfig dataSourceConfig, SingleSourceConfig singleSourceConfig, String lastIndexTime) throws IRException {
+	private static SingleSourceReader<Map<String, Object>> createSingleSourceReader(File filePath, DataSourceConfig dataSourceConfig, SingleSourceConfig singleSourceConfig, String lastIndexTime) throws IRException {
 		String sourceReaderType = singleSourceConfig.getSourceReader();
 		String sourceModifierType = singleSourceConfig.getSourceModifier();
-		SourceModifier sourceModifier = null;
+		SourceModifier<Map<String, Object>> sourceModifier = null;
 		if (sourceModifierType != null && sourceModifierType.length() > 0) {
 			sourceModifier = DynamicClassLoader.loadObject(sourceModifierType, SourceModifier.class);
 		}
 
-		SingleSourceReader sourceReader = DynamicClassLoader.loadObject(sourceReaderType, SingleSourceReader.class, new Class[] { File.class,
+		SingleSourceReader<Map<String, Object>> sourceReader = DynamicClassLoader.loadObject(sourceReaderType, SingleSourceReader.class, new Class[] { File.class,
 			DataSourceConfig.class, SingleSourceConfig.class, SourceModifier.class, String.class }, new Object[] { filePath, dataSourceConfig, 
 				singleSourceConfig, sourceModifier, lastIndexTime });
 		logger.debug("Loading sourceReader : {} >> {}, modifier:{}", sourceReaderType, sourceReader, sourceModifier);

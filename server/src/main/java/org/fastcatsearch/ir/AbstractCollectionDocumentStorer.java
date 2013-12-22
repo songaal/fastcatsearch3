@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 
-import org.fastcatsearch.datasource.reader.DataSourceReader;
+import org.fastcatsearch.datasource.reader.AbstractDataSourceReader;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
@@ -27,11 +27,11 @@ import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractCollectionDocumentStorer implements Indexerable {
+public abstract class AbstractCollectionDocumentStorer implements CollectionIndexerable {
 	protected static final Logger logger = LoggerFactory.getLogger(CollectionFullIndexer.class);
 	protected CollectionContext collectionContext;
 	
-	protected DataSourceReader dataSourceReader;
+	protected AbstractDataSourceReader dataSourceReader;
 	protected long startTime;
 	protected IndexingTaskState indexingTaskState;
 	
@@ -48,7 +48,7 @@ public abstract class AbstractCollectionDocumentStorer implements Indexerable {
 		this.collectionContext = collectionContext;
 	}
 	
-	protected abstract DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException;
+	protected abstract AbstractDataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException;
 	protected abstract void prepare() throws IRException;
 	protected abstract boolean done(RevisionInfo revisionInfo, IndexStatus indexStatus) throws IRException;
 	
@@ -73,7 +73,7 @@ public abstract class AbstractCollectionDocumentStorer implements Indexerable {
 		dataSourceReader = createDataSourceReader(filePath, schema.schemaSetting());
 		
 		try{
-			documentWriter = new DocumentWriter(schema, segmentDir, revisionInfo, indexConfig);
+			documentWriter = new DocumentWriter(schema.schemaSetting(), segmentDir, revisionInfo, indexConfig);
 		}catch(Exception e){
 			throw new IRException(e);
 		}
