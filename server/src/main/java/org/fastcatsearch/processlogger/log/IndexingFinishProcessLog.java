@@ -1,16 +1,20 @@
 package org.fastcatsearch.processlogger.log;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.db.mapper.IndexingHistoryMapper;
+import org.fastcatsearch.db.mapper.IndexingResultMapper;
 import org.fastcatsearch.db.mapper.IndexingResultMapper.ResultStatus;
+import org.fastcatsearch.db.vo.IndexingStatusVO;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
 
-public class IndexingFinishProcessLog implements ProcessLog {
+public class IndexingFinishProcessLog implements ProcessLog, IndexingLoggable {
 
 	private String collectionId;
 	private IndexingType indexingType;
@@ -111,5 +115,57 @@ public class IndexingFinishProcessLog implements ProcessLog {
 		}
 	}
 	
+	
+	public void writeLog(IndexingHistoryMapper indexingHistoryMapper, IndexingResultMapper indexingResultMapper){
+
+		IndexingStatusVO vo = new IndexingStatusVO();
+		if (isFail()) {
+			//
+			// 색인 성공
+			//
+			IndexingJobResult indexingJobResult = (IndexingJobResult) getResult();
+			vo.collectionId = getCollectionId();
+			vo.type = getIndexingType();
+			vo.status = getResultStatus();
+			vo.isScheduled = isScheduled();
+			if(indexingJobResult.indexStatus != null){
+				vo.docSize = indexingJobResult.indexStatus.getDocumentCount();
+				vo.insertSize = indexingJobResult.indexStatus.getInsertCount();
+				vo.updateSize = indexingJobResult.indexStatus.getUpdateCount();
+				vo.deleteSize = indexingJobResult.indexStatus.getDeleteCount();
+			}
+			vo.startTime = new Timestamp(getStartTime());
+			vo.endTime = new Timestamp(getEndTime());
+			vo.duration = getDurationTime();
+
+		} else {
+			//
+			// 색인 실패
+			//
+			vo.collectionId = getCollectionId();
+			vo.type = getIndexingType();
+			vo.status = getResultStatus();
+			vo.isScheduled = isScheduled();
+			vo.startTime = new Timestamp(getStartTime());
+			vo.endTime = new Timestamp(getEndTime());
+			vo.duration = getDurationTime();
+		}
+
+		try {
+			//색인결과는 취소와 정지가 아닐경우에만 업데이트한다. 실패는 색인파일에 영향을 줄수 있으므로 표기한다.  
+			if(vo.status != ResultStatus.CANCEL && vo.status != ResultStatus.STOP){
+				if (getIndexingType() == IndexingType.FULL) {
+					indexingResultMapper.deleteEntry(getCollectionId(), IndexingType.FULL);
+					indexingResultMapper.deleteEntry(getCollectionId(), IndexingType.ADD);
+				}else if(getIndexingType() == IndexingType.ADD){
+					indexingResultMapper.deleteEntry(getCollectionId(), IndexingType.ADD);
+				}
+				indexingResultMapper.putEntry(vo);
+			}
+			indexingHistoryMapper.putEntry(vo);
+		} catch (Exception e) {
+			logger.error("", e);
+		}
+	}
 
 }
