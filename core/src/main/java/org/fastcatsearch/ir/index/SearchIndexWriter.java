@@ -19,6 +19,7 @@ package org.fastcatsearch.ir.index;
 import java.io.CharArrayReader;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -65,8 +66,7 @@ public class SearchIndexWriter {
 
 	private File tempFile;
 	private IndexOutput tempOutput;
-	private long[] flushPosition; // each flush file position
-	private int flushCount;
+	private List<Long> flushPosition; // each flush file position
 	private int count;
 	private int[] indexFieldSequence; // index내에 색인할 필드가 여러개일 경우 필드 번호.
 	private int positionIncrementGap;
@@ -112,8 +112,7 @@ public class SearchIndexWriter {
 		positionIncrementGap = indexSetting.getPositionIncrementGap();
 
 		collector = new HashMap<CharVector, Counter>();
-		flushPosition = new long[1024];
-		flushCount = 0;
+		flushPosition = new ArrayList<Long>();
 
 		tempFile = new File(dir, IndexFileNames.getSearchTempFileName(indexId));
 		tempOutput = new BufferedFileOutput(tempFile, false);
@@ -220,18 +219,9 @@ public class SearchIndexWriter {
 		logger.info("flush[{}]...{}", indexId, count);
 
 		try {
-			// flush postion array 증가.
-			if (flushPosition.length == flushCount) {
-				long[] newFlushPosition = new long[flushPosition.length * 2];
-				logger.info("Widen flush position array capacity >> {}", newFlushPosition.length);
-				System.arraycopy(flushPosition, 0, newFlushPosition, 0, flushPosition.length);
-				flushPosition = newFlushPosition;
-			}
-			flushPosition[flushCount] = memoryPosting.save(tempOutput);
+			flushPosition.add(memoryPosting.save(tempOutput));
 			// ensure every data wrote on disk!
 			tempOutput.flush();
-
-			flushCount++;
 
 			memoryPosting.clear();
 		} catch (IOException e) {
@@ -252,20 +242,19 @@ public class SearchIndexWriter {
 
 		try {
 			if (count > 0) {
-				logger.debug("Close, flushCount={}", flushCount);
+				logger.debug("Close, flushCount={}", flushPosition.size());
 
 				if (revisionInfo.isAppend()) {
 					File prevAppendDir = IndexFileNames.getRevisionDir(baseDir, revisionInfo.getRef());
 					File revisionDir = IndexFileNames.getRevisionDir(baseDir, revisionInfo.getId());
-
-					TempSearchFieldAppender appender = new TempSearchFieldAppender(indexId, flushCount, flushPosition, tempFile);
+					TempSearchFieldAppender appender = new TempSearchFieldAppender(indexId, flushPosition, tempFile);
 					try {
 						appender.mergeAndAppendIndex(prevAppendDir, revisionDir, indexConfig.getIndexTermInterval(), fieldIndexOption);
 					} finally {
 						appender.close();
 					}
 				} else {
-					TempSearchFieldMerger merger = new TempSearchFieldMerger(indexId, flushCount, flushPosition, tempFile);
+					TempSearchFieldMerger merger = new TempSearchFieldMerger(indexId, flushPosition, tempFile);
 					try {
 						merger.mergeAndMakeIndex(baseDir, indexConfig.getIndexTermInterval(), fieldIndexOption);
 					} finally {

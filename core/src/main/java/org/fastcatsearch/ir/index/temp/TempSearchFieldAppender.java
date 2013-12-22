@@ -18,6 +18,7 @@ package org.fastcatsearch.ir.index.temp;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
@@ -37,8 +38,8 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 
 	private int oldIndexTermCount;
 	
-	public TempSearchFieldAppender(String indexId, int flushCount, long[] flushPosition, File tempFile) throws IOException {
-		super(indexId, flushCount, flushPosition, tempFile);
+	public TempSearchFieldAppender(String indexId, List<Long> flushPosition, File tempFile) throws IOException {
+		super(indexId, flushPosition, tempFile);
 	}
 
 	public boolean mergeAndAppendIndex(File segmentDir1, File targetDir, int indexInterval, IndexFieldOption fieldIndexOption) throws IOException,

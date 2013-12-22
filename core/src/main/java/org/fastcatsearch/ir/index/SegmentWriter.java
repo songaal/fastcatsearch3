@@ -54,11 +54,11 @@ public class SegmentWriter implements WriteInfoLoggable {
 	private File targetDir;
 	private RevisionInfo revisionInfo;
 
+	@Deprecated
 	public SegmentWriter(Schema schema, File targetDir, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager) throws IRException {
 		this(schema, targetDir, new RevisionInfo(), indexConfig, analyzerPoolManager);
 	}
 
-	// for Add indexing
 	public SegmentWriter(Schema schema, File targetDir, RevisionInfo revisionInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager) throws IRException {
 		init(schema, targetDir, revisionInfo, indexConfig, analyzerPoolManager);
 	}

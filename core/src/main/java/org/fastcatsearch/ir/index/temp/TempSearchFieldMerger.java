@@ -18,6 +18,7 @@ package org.fastcatsearch.ir.index.temp;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.common.IndexFileNames;
@@ -46,12 +47,12 @@ public class TempSearchFieldMerger {
 	private int prevDocNo;
 	private BytesRef[] buffers;
 
-	public TempSearchFieldMerger(String indexId, int flushCount, long[] flushPosition, File tempFile) throws IOException {
+	public TempSearchFieldMerger(String indexId, List<Long> flushPosition, File tempFile) throws IOException {
 		this.indexId = indexId;
-		this.flushCount = flushCount;
+		this.flushCount = flushPosition.size();
 		reader = new TempSearchFieldReader[flushCount];
 		for (int m = 0; m < flushCount; m++) {
-			reader[m] = new TempSearchFieldReader(m, indexId, tempFile, flushPosition[m]);
+			reader[m] = new TempSearchFieldReader(m, indexId, tempFile, flushPosition.get(m));
 			reader[m].next();
 		}
 
