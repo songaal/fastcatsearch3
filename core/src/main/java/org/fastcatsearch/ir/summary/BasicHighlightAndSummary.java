@@ -9,6 +9,8 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
+import org.apache.lucene.analysis.tokenattributes.FeatureAttribute;
+import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.apache.lucene.search.highlight.Formatter;
 import org.apache.lucene.search.highlight.Fragmenter;
 import org.apache.lucene.search.highlight.Highlighter;
@@ -17,9 +19,7 @@ import org.apache.lucene.search.highlight.Scorer;
 import org.apache.lucene.search.highlight.SimpleFragmenter;
 import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
 import org.apache.lucene.search.highlight.WeightedTerm;
-import org.apache.lucene.util.Attribute;
 import org.apache.lucene.util.CharsRef;
-import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.search.HighlightAndSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,51 +48,70 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		//
 		// minimum count of fragments
 		//
-    	if(maxFragments <= 0) {
-    		maxFragments = 1;
-    	}
+		if(maxFragments <= 0) {
+			maxFragments = 1;
+		}
 
-    	//
-    	// one full length of summary 
-    	//
-    	if(len<=0) {
-    		len = pText.length() + 1;
-    	}
-    	
-    	//
-    	// lucene summary length is size of each fragment, so divide it by count of fragments
-    	//
-    	len = len / maxFragments;
+		//
+		// one full length of summary 
+		//
+		if(len<=0) {
+			len = pText.length() + 1;
+		}
 		
-    	TokenStream tokenStream = null;
-    	
-    	
-    	
-    	//TODO 스니펫만 만들고 하이라이팅을 하지 않는필드에 대해서는 DummyFormatter를 만들어서 넣어준다.
-    	
-    	
-    	Formatter formatter = new SimpleHTMLFormatter(tags[0], tags[1]);
-    	
+		//
+		// lucene summary length is size of each fragment, so divide it by count of fragments
+		//
+		len = len / maxFragments;
+		
+		TokenStream tokenStream = null;
+		
+		
+		
+		//TODO 스니펫만 만들고 하이라이팅을 하지 않는필드에 대해서는 DummyFormatter를 만들어서 넣어준다.
+		
+		
+		Formatter formatter = new SimpleHTMLFormatter(tags[0], tags[1]);
+		
 		//
 		// tokenize query and make weighted terms
 		//
-    	List<WeightedTerm> terms = new ArrayList<WeightedTerm>();
-    	tokenStream = analyzer.tokenStream("", new StringReader(query));
-    	
-    	CharsRefTermAttribute termAttribute = null;
-    	if(tokenStream.hasAttribute(CharsRefTermAttribute.class)){
-    		termAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
-    	}
-    	
-    	CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
+		List<WeightedTerm> terms = new ArrayList<WeightedTerm>();
+		tokenStream = analyzer.tokenStream("", new StringReader(query));
+		
+		CharsRefTermAttribute termAttribute = null;
+		if(tokenStream.hasAttribute(CharsRefTermAttribute.class)){
+			termAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
+		}
+		
+		FeatureAttribute featureAttribute = null;
+		
+		if(tokenStream.hasAttribute(FeatureAttribute.class)) {
+			featureAttribute = tokenStream.getAttribute(FeatureAttribute.class);
+		}
+		
+		CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
 		while(tokenStream.incrementToken()) {
-			//
-			// TODO:
-			// 가중치 부여 : 현재 1.0f 로 기본가중치를 주고 있다.
-			// 이 부분에서 가중치 를 많이 주면 해당 단어로 요약의 중심이 
-			// 이동되므로 명사일 경우 가중치를 더 주는 방식을 고려해 본다.
-			//
+			
 			String termString = null;
+			
+			float score = 0f;
+			
+			if(featureAttribute!=null) {
+				if(featureAttribute.type()==FeatureAttribute.FeatureType.MAIN) {
+					score = 3.0f;
+				} else if(featureAttribute.type()==FeatureAttribute.FeatureType.ADDITION) {
+					score = 1.0f;
+				} else if(featureAttribute.type()==FeatureAttribute.FeatureType.APPEND) {
+					score = 0f;
+				}
+			}
+			
+			termString = new String(charTermAttribute.buffer(), 0, charTermAttribute.length());
+			terms.add(new WeightedTerm(score, termString));
+			
+			logger.trace("charTermAttribute : {}", termString);
+			
 			if (termAttribute != null) {
 				//FIXME:termString이 공백일 수 있는지 확인 필요
 				CharsRef charRef = termAttribute.charsRef();
@@ -101,41 +120,97 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 				} else {
 					termString = "";
 				}
-			} else {
-				termString = new String(charTermAttribute.buffer(), 0, charTermAttribute.length());
+				terms.add(new WeightedTerm(score, termString));
 			}
-//			logger.debug("HL >> {}", termString);
-			terms.add(new WeightedTerm(1.0f, termString));
 		}
 		
 		WeightedTerm[] weightedTerms = new WeightedTerm[terms.size()];
 		weightedTerms = terms.toArray(weightedTerms);
 		
 		Scorer scorer = new TokenizedTermScorer(weightedTerms);
-        Highlighter highlighter = new Highlighter(formatter,scorer);
-        Fragmenter fragmenter = new SimpleFragmenter(len);
-        highlighter.setTextFragmenter(fragmenter);
+		Highlighter highlighter = new Highlighter(formatter, scorer);
+		Fragmenter fragmenter = new SimpleFragmenter(len);
+		highlighter.setTextFragmenter(fragmenter);
 		
-		tokenStream = analyzer.tokenStream("", new StringReader(pText));
+		tokenStream = //analyzer.tokenStream("", new StringReader(pText));
+				new WrappedTokenStream(analyzer.tokenStream("", new StringReader(pText)));
 		
-        String text = pText;
-        		
-        try {
+		String text = pText;
+
+		try {
 			text = highlighter.getBestFragments(tokenStream, pText, maxFragments, FRAGMENT_SEPARATOR);
 		} catch (InvalidTokenOffsetsException e) {
 			logger.error("",e);
 		}
 
-        //
-        // return original text when if not summarized 
-        //
-        if (text == null || "".equals(text)) {
-	        if(len > pText.length()) {
-	        	len = pText.length();
-	        }
-        	text = pText.substring(0,len);
-        }
-        return text;
+		//
+		// return original text when if not summarized
+		//
+		if (text == null || "".equals(text)) {
+			if (len > pText.length()) {
+				len = pText.length();
+			}
+			text = pText.substring(0, len);
+		}
+		return text;
 	}
+	
+	class WrappedTokenStream extends TokenStream {
+		
+		private TokenStream tokenStream;
+		private OffsetAttribute offsetAttribute;
+		private CharTermAttribute charTermAttribute;
+		private CharsRefTermAttribute charsRefTermAttribute;
+		
+		private OffsetAttribute offsetAttributeLocal;
+		private CharTermAttribute charTermAttributeLocal;
+		private CharsRefTermAttribute charsRefTermAttributeLocal;
 
+		public WrappedTokenStream(TokenStream tokenStream) {
+			this.tokenStream = tokenStream;
+			offsetAttribute = tokenStream.getAttribute(OffsetAttribute.class);
+			charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
+			if(tokenStream.hasAttribute(CharsRefTermAttribute.class)) {
+				charsRefTermAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
+			}
+			
+			offsetAttributeLocal = this.addAttribute(OffsetAttribute.class);
+			charTermAttributeLocal = this.addAttribute(CharTermAttribute.class);
+			charsRefTermAttributeLocal = this.addAttribute(CharsRefTermAttribute.class);
+		}
+		@Override
+		public void end() throws IOException { tokenStream.end(); }
+		@Override
+		public void reset() throws IOException { tokenStream.reset(); }
+		@Override
+		public void close() throws IOException { tokenStream.close(); }
+		@Override
+		public boolean incrementToken() throws IOException {
+			boolean ret = tokenStream.incrementToken();
+	
+			char[] buffer;
+			int offset;
+			int length;
+			
+			if(charTermAttributeLocal.buffer().length < charTermAttribute.buffer().length ) {
+				charTermAttributeLocal.resizeBuffer(charTermAttribute.buffer().length);
+			}
+			buffer = charTermAttribute.buffer();
+			length = charTermAttribute.length();
+			charTermAttributeLocal.copyBuffer(buffer, 0, length);
+			charTermAttributeLocal.setLength(length);
+			
+			offsetAttributeLocal.setOffset(offsetAttribute.startOffset(),
+					offsetAttribute.startOffset() + length);
+			
+			buffer = charsRefTermAttribute.charsRef().chars;
+			offset = charsRefTermAttribute.charsRef().offset;
+			length = charsRefTermAttribute.charsRef().length;
+			charsRefTermAttributeLocal.setBuffer(buffer, offset, length);
+			
+			
+			return ret;
+		}
+		
+	}
 }
