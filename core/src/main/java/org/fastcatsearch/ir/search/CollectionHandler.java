@@ -10,6 +10,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.analysis.AnalyzerFactory;
 import org.fastcatsearch.ir.analysis.AnalyzerFactoryManager;
+import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
@@ -558,6 +559,10 @@ public class CollectionHandler {
 		}
 
 		return segmentReaderList.size();
+	}
+
+	public AnalyzerPool getAnalyzerPool(String analyzerId) {
+		return analyzerPoolManager.getPool(analyzerId);
 	}
 
 	

@@ -219,7 +219,7 @@ public class SearchIndexWriter {
 			return;
 		}
 
-		logger.info("flush[{}]...{}", indexId, count);
+		logger.info("[{}] Flush#{} [documents {}th..]", indexId, flushPosition.size() + 1, count);
 
 		try {
 			flushPosition.add(memoryPosting.save(tempOutput));
