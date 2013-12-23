@@ -56,6 +56,7 @@ public class SearchIndexesWriter {
 		int totalSize = indexSettingList == null ? 0 : indexSettingList.size();
 		
 		List<SearchIndexWriter> list = new ArrayList<SearchIndexWriter>();
+
 		for (int i = 0; i < totalSize; i++) {
 			IndexSetting indexSetting = indexSettingList.get(i);
 			if(indexIdList == null || indexIdList.contains(indexSetting.getId())){
