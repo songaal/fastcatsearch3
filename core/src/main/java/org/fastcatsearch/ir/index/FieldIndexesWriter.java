@@ -22,7 +22,7 @@ public class FieldIndexesWriter implements WriteInfoLoggable {
 	private int indexSize;
 
 	public FieldIndexesWriter(Schema schema, File dir, RevisionInfo revisionInfo) throws IOException, IRException {
-		
+		this(schema, dir, revisionInfo, null);
 	}
 	public FieldIndexesWriter(Schema schema, File dir, RevisionInfo revisionInfo, List<String> indexIdList) throws IOException, IRException {
 		List<FieldIndexSetting> fieldIndexSettingList = schema.schemaSetting().getFieldIndexSettingList();

@@ -30,7 +30,7 @@ public class IndexFileNames {
 	public static final String mirrorSync = "mirror.sync";
 	
 	public static String getTempFileName(String name){
-		return name.toLowerCase() + "." + tempFile;
+		return name + "." + tempFile;
 	}
 	
 	//
@@ -53,22 +53,22 @@ public class IndexFileNames {
 	// group
 	//
 	public static String getGroupIndexFileName(String name){
-		return "group." + name.toLowerCase() + ".index";
+		return "group." + name + ".index";
 	}
 	//증분색인시 이전 리비전과의 머징을 위해 필요한 pk파일. group writer에서만 사용된다.
 	public static String getGroupKeyMapFileName(String name){
-		return "group." + name.toLowerCase() + ".pk";
+		return "group." + name + ".pk";
 	}
 	 //그룹순차번호별 key string저장.
 	public static String getGroupKeyFileName(String name){
-		return "group." + name.toLowerCase() + ".key";
+		return "group." + name + ".key";
 	}
 	
 	//
 	// field index
 	//
 	public static String getFieldIndexFileName(String name){
-		return "field." + name.toLowerCase() + ".index";
+		return "field." + name + ".index";
 	}
 	
 	
@@ -76,26 +76,26 @@ public class IndexFileNames {
 	// common
 	//
 	public static String getSuffixFileName(String name, String suffix){
-		return name.toLowerCase() + "." + suffix;
+		return name + "." + suffix;
 	}
 	public static String getSuffixFileName(String name, String... suffixList){
 		for(String suffix : suffixList){
 			name += ("."+suffix);
 		}
-		return name.toLowerCase();
+		return name;
 	}
 	public static String getMultiValueSuffixFileName(String name, String suffix){
-		return name.toLowerCase() + ".mv." + suffix;
+		return name + ".mv." + suffix;
 	}
 	public static String getMultiValueFileName(String name){
-		return name.toLowerCase() + ".mv";
+		return name + ".mv";
 	}
 	public static String getPositionFileName(String name){
-		return name.toLowerCase() + ".position";
+		return name + ".position";
 	}
 	
 	public static String getIndexFileName(String name){
-		return name.toLowerCase() + ".index";
+		return name + ".index";
 	}
 	
 	public static File getRevisionDir(File parent, int revision){
