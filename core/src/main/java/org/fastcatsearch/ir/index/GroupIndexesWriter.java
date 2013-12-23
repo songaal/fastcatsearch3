@@ -31,10 +31,11 @@ public class GroupIndexesWriter implements WriteInfoLoggable {
 		int totalSize = groupIndexSettingList == null ? 0 : groupIndexSettingList.size();
 
 		List<GroupIndexWriter> list = new ArrayList<GroupIndexWriter>();
-		for (int i = 0, idx = 0; i < totalSize; i++) {
+		for (int i = 0; i < totalSize; i++) {
 			GroupIndexSetting indexSetting = groupIndexSettingList.get(i);
 			if (indexIdList == null || indexIdList.contains(indexSetting.getId())) {
-				groupIndexWriterList[idx++] = new GroupIndexWriter(indexSetting, schema.fieldSettingMap(), schema.fieldSequenceMap(), dir, revisionInfo, indexConfig);
+				GroupIndexWriter groupIndexWriter = new GroupIndexWriter(indexSetting, schema.fieldSettingMap(), schema.fieldSequenceMap(), dir, revisionInfo, indexConfig);
+				list.add(groupIndexWriter);
 			}
 		}
 		groupIndexWriterList = list.toArray(new GroupIndexWriter[0]);

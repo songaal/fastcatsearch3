@@ -24,6 +24,7 @@ import org.fastcatsearch.ir.index.WriteInfoLoggable;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.ir.util.Formatter;
+import org.fastcatsearch.job.indexing.IndexingStopException;
 import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.FilePaths;
@@ -43,7 +44,7 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
 	
 	protected IndexWriteInfoList indexWriteInfoList;
 	
-	protected IndexWritable segmentWriter;
+	protected IndexWritable indexWriter;
 	protected SegmentInfo workingSegmentInfo;
 	protected int count;
 	protected long lapTime;
@@ -62,7 +63,10 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
 	
 	protected abstract DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException;
 	protected abstract void prepare() throws IRException;
-	protected abstract boolean done(RevisionInfo revisionInfo, IndexStatus indexStatus) throws IRException;
+	protected abstract boolean done(RevisionInfo revisionInfo, IndexStatus indexStatus) throws IRException, IndexingStopException;
+	protected IndexWritable createIndexWriter(Schema schema, File segmentDir, RevisionInfo revisionInfo, IndexConfig indexConfig) throws IRException {
+		return new SegmentWriter(schema, segmentDir, revisionInfo, indexConfig, analyzerPoolManager, selectedIndexList);
+	}
 	
 	public void init(Schema schema) throws IRException {
 		
@@ -84,7 +88,7 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
 		File filePath = collectionContext.collectionFilePaths().file();
 		dataSourceReader = createDataSourceReader(filePath, schema.schemaSetting());
 		
-		segmentWriter = new SegmentWriter(schema, segmentDir, revisionInfo, indexConfig, analyzerPoolManager, selectedIndexList);
+		indexWriter = createIndexWriter(schema, segmentDir, revisionInfo, indexConfig);
 		
 		indexWriteInfoList = new IndexWriteInfoList();
 		
@@ -92,7 +96,7 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
 	}
 
 	public void addDocument(Document document) throws IRException, IOException{
-		segmentWriter.addDocument(document);
+		indexWriter.addDocument(document);
 		count++;
 		if (count % 10000 == 0) {
 			logger.info(
@@ -115,14 +119,14 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
 	
 	//색인취소(0건)이면 false;
 	@Override
-	public boolean close() throws IRException, SettingException {
+	public boolean close() throws IRException, SettingException, IndexingStopException {
 		
 		RevisionInfo revisionInfo = workingSegmentInfo.getRevisionInfo();
-		if (segmentWriter != null) {
+		if (indexWriter != null) {
 			try {
-				segmentWriter.close();
-				if(segmentWriter instanceof WriteInfoLoggable)
-				((WriteInfoLoggable) segmentWriter).getIndexWriteInfo(indexWriteInfoList);
+				indexWriter.close();
+				if(indexWriter instanceof WriteInfoLoggable)
+				((WriteInfoLoggable) indexWriter).getIndexWriteInfo(indexWriteInfoList);
 			} catch (IOException e) {
 				throw new IRException(e);
 			}
@@ -143,11 +147,10 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
 		
 		if(done(revisionInfo, indexStatus)){
 			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
-			return true;
 		}else{
 			//저장하지 않음.
-			return false;
 		}
+		return true;
 	}
 	
 	public IndexWriteInfoList indexWriteInfoList() {

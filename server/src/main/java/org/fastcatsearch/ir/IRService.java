@@ -87,7 +87,7 @@ public class IRService extends AbstractService {
 		this.analyzerFactoryManager = analyzerProvider.getAnalyzerFactoryManager();
 	}
 	protected boolean doStart() throws FastcatSearchException {
-		realtimeQueryStatisticsModule.load();
+//		realtimeQueryStatisticsModule.load();
 
 		collectionHandlerMap = new HashMap<String, CollectionHandler>();
 		// collections 셋팅을 읽어온다.

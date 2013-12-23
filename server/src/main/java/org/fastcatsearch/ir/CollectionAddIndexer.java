@@ -22,6 +22,7 @@ import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentReader;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
+import org.fastcatsearch.job.indexing.IndexingStopException;
 import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.CoreFileUtils;
 import org.fastcatsearch.util.FilePaths;
@@ -101,7 +102,7 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
 	}
 
 	@Override
-	protected boolean done(RevisionInfo revisionInfo, IndexStatus indexStatus) throws IRException {
+	protected boolean done(RevisionInfo revisionInfo, IndexStatus indexStatus) throws IRException, IndexingStopException {
 
 		int insertCount = revisionInfo.getInsertCount();
 		int deleteCount = revisionInfo.getDeleteCount();
@@ -152,12 +153,6 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
 				return true;
 			} else {
 				// 추가,삭제 문서 모두 없을때.
-				if(!stopRequested){
-					logger.info("[{}] Indexing Canceled due to no documents.", collectionContext.collectionId());
-				}else{
-					logger.info("[{}] Indexing Canceled due to Stop Requested!", collectionContext.collectionId());
-				}
-
 				// 리비전 디렉토리 삭제.
 				File segmentDir = indexFilePaths.file(workingSegmentInfo.getId());
 				File revisionDir = IndexFileNames.getRevisionDir(segmentDir, revisionInfo.getId());
@@ -170,7 +165,14 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
 					FileUtils.deleteDirectory(revisionDir);
 					logger.info("delete revision dir ={}", revisionDir.getAbsolutePath());
 				}
-				return false;
+				
+				if(!stopRequested){
+					logger.info("[{}] Indexing Canceled due to no documents.", collectionContext.collectionId());
+					throw new IndexingStopException(collectionContext.collectionId()+" Indexing Canceled due to no documents.");
+				}else{
+					logger.info("[{}] Indexing Canceled due to Stop Requested!", collectionContext.collectionId());
+					throw new IndexingStopException(collectionContext.collectionId()+" Indexing Canceled due to Stop Requested");
+				}
 			}
 			
 		} catch (IOException e) {

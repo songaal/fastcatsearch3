@@ -59,19 +59,13 @@ public class SegmentIndexWriter implements IndexWritable {
 				}
 
 				List<String> searchIndexList = selectedIndexList.getSearchIndexList();
-				if (searchIndexList != null) {
-					searchIndexesWriter = new SearchIndexesWriter(schema, targetDir, revisionInfo, indexConfig, analyzerPoolManager, searchIndexList);
-				}
+				searchIndexesWriter = new SearchIndexesWriter(schema, targetDir, revisionInfo, indexConfig, analyzerPoolManager, searchIndexList);
 
 				List<String> fieldIndexList = selectedIndexList.getFieldIndexList();
-				if (fieldIndexList != null) {
-					fieldIndexesWriter = new FieldIndexesWriter(schema, targetDir, revisionInfo, fieldIndexList);
-				}
-
+				fieldIndexesWriter = new FieldIndexesWriter(schema, targetDir, revisionInfo, fieldIndexList);
+				
 				List<String> groupIndexList = selectedIndexList.getGroupIndexList();
-				if (groupIndexList != null) {
-					groupIndexesWriter = new GroupIndexesWriter(schema, targetDir, revisionInfo, indexConfig, groupIndexList);
-				}
+				groupIndexesWriter = new GroupIndexesWriter(schema, targetDir, revisionInfo, indexConfig, groupIndexList);
 
 			}
 		} catch (IOException e) {

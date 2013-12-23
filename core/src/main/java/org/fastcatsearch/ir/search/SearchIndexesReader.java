@@ -101,8 +101,12 @@ public class SearchIndexesReader implements Cloneable {
 			if (r != null) {
 				newReader = r.clone();
 			}
-			reader.readerList.add(newReader);
-			logger.debug("clone add newReader > {}", newReader);
+			if(newReader != null){
+				reader.readerList.add(newReader);
+				logger.debug("clone add newReader > {}", newReader);
+			}else{
+				logger.warn("clone add newReader is null > {}", r);
+			}
 		}
 		reader.primaryKeyIndexesReader = primaryKeyIndexesReader.clone();
 		

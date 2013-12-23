@@ -17,6 +17,7 @@ import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.settings.SchemaSetting;
+import org.fastcatsearch.job.indexing.IndexingStopException;
 
 /**
  * 컬렉션의 전체색인을 수행하는 indexer.
@@ -55,7 +56,7 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 	}
 
 	@Override
-	protected boolean done(RevisionInfo revisionInfo, IndexStatus indexStatus) throws IRException {
+	protected boolean done(RevisionInfo revisionInfo, IndexStatus indexStatus) throws IRException, IndexingStopException {
 		int insertCount = revisionInfo.getInsertCount();
 
 		if (insertCount > 0 && !stopRequested) {
@@ -72,10 +73,11 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 		}else{
 			if(!stopRequested){
 				logger.info("[{}] Indexing Canceled due to no documents.", collectionContext.collectionId());
+				throw new IndexingStopException(collectionContext.collectionId()+" Indexing Canceled due to no documents.");
 			}else{
 				logger.info("[{}] Indexing Canceled due to Stop Requested!", collectionContext.collectionId());
+				throw new IndexingStopException(collectionContext.collectionId()+" Indexing Canceled due to Stop Requested");
 			}
-			return false;
 		}
 		
 	}

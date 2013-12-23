@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
-import org.fastcatsearch.datasource.reader.AbstractDataSourceReader;
+import org.fastcatsearch.datasource.reader.DataSourceReader;
 import org.fastcatsearch.datasource.reader.DefaultDataSourceReaderFactory;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.CollectionContext;
@@ -12,17 +12,19 @@ import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
+import org.fastcatsearch.ir.index.SelectedIndexList;
 import org.fastcatsearch.ir.settings.SchemaSetting;
+import org.fastcatsearch.job.indexing.IndexingStopException;
 
-public class CollectionFullDocumentStorer extends AbstractCollectionDocumentStorer {
+public class CollectionFullDocumentStorer extends AbstractCollectionIndexer {
 
 	public CollectionFullDocumentStorer(CollectionContext collectionContext) throws IRException {
-		super(collectionContext);
+		super(collectionContext, null, new SelectedIndexList());
 		init(collectionContext.schema());
 	}
 
 	@Override
-	protected AbstractDataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException{
+	protected DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException{
 		DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
 		return DefaultDataSourceReaderFactory.createFullIndexingSourceReader(filePath, schemaSetting, dataSourceConfig);
 	}
@@ -48,20 +50,22 @@ public class CollectionFullDocumentStorer extends AbstractCollectionDocumentStor
 	}
 
 	@Override
-	protected boolean done(RevisionInfo revisionInfo, IndexStatus indexStatus) throws IRException {
+	protected boolean done(RevisionInfo revisionInfo, IndexStatus indexStatus) throws IRException, IndexingStopException {
 		int insertCount = revisionInfo.getInsertCount();
 
 		if (insertCount > 0 && !stopRequested) {
 			collectionContext.indexStatus().setFullIndexStatus(indexStatus);
 			
-			return true;
+			return false;
 		}else{
 			if(!stopRequested){
 				logger.info("[{}] Document Store Canceled due to no documents.", collectionContext.collectionId());
+				throw new IndexingStopException(collectionContext.collectionId()+" Indexing Canceled due to no documents.");
 			}else{
 				logger.info("[{}] Document Store Canceled due to Stop Requested!", collectionContext.collectionId());
+				throw new IndexingStopException(collectionContext.collectionId()+" Indexing Canceled due to Stop Requested");
 			}
-			return false;
+			
 		}
 	}
 

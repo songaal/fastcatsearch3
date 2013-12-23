@@ -31,10 +31,11 @@ public class FieldIndexesWriter implements WriteInfoLoggable {
 		boolean isAppend = revisionInfo.isAppend();
 		
 		List<FieldIndexWriter> list = new ArrayList<FieldIndexWriter>();
-		for (int i = 0, idx = 0; i < totalSize; i++) {
+		for (int i = 0; i < totalSize; i++) {
 			FieldIndexSetting indexSetting = fieldIndexSettingList.get(i);
 			if(indexIdList == null || indexIdList.contains(indexSetting.getId())){
-				fieldIndexWriterList[idx++] = new FieldIndexWriter(fieldIndexSettingList.get(i), schema.fieldSettingMap(), schema.fieldSequenceMap(), dir, isAppend);
+				FieldIndexWriter fieldIndexWriter = new FieldIndexWriter(fieldIndexSettingList.get(i), schema.fieldSettingMap(), schema.fieldSequenceMap(), dir, isAppend);
+				list.add(fieldIndexWriter);
 			}
 		}
 		

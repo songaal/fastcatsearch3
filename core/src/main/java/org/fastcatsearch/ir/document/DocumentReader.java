@@ -25,6 +25,7 @@ import java.util.zip.Inflater;
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.field.Field;
+import org.fastcatsearch.ir.field.FieldDataParseException;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BytesDataInput;
 import org.fastcatsearch.ir.io.ByteRefArrayOutputStream;
@@ -90,8 +91,13 @@ public class DocumentReader implements Cloneable {
 	public Document readDocument(int docNo) throws IOException {
 		return readDocument(docNo, null);
 	}
-
+	public Document readIndexableDocument(int docNo) throws IOException {
+		return readDocument(docNo, null, true);
+	}
 	public Document readDocument(int docNo, boolean[] fieldSelectOption) throws IOException {
+		return readDocument(docNo, fieldSelectOption, false);
+	}
+	public Document readDocument(int docNo, boolean[] fieldSelectOption, boolean indexable) throws IOException {
 		// if(docNo < baseDocNo) throw new
 		// IOException("Request docNo cannot less than baseDocNo! docNo = "+docNo+", baseDocNo = "+baseDocNo);
 
@@ -166,10 +172,19 @@ public class DocumentReader implements Cloneable {
 				f = fs.createEmptyField();
 //				logger.debug("fill {} >> empty", i);
 			}
-			
+			if(indexable){
+				String multiValueDelimiter = fs.getMultiValueDelimiter();
+				try {
+					f.parseIndexable(multiValueDelimiter);
+				} catch (FieldDataParseException e) {
+					throw new IOException(e);
+				}
+			}
 			document.set(i, f);
 		}
+		
 		document.setDocId(docNo + baseDocNo);
+		
 		return document;
 	}
 

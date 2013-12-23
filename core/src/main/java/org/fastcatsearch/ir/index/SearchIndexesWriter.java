@@ -41,7 +41,7 @@ public class SearchIndexesWriter {
 	
 	// limit memory use. if exeed this value, flush.
 	private long workMemoryLimit;
-	private int workMemoryCheck = 10000; //해당 갯수만큼 색인문서가 진행되면 정보를 출력한다. 
+	private int workMemoryCheck = 1000; //해당 갯수만큼 색인문서가 진행되면 정보를 출력한다. 
 
 	private int count;
 
@@ -56,10 +56,11 @@ public class SearchIndexesWriter {
 		int totalSize = indexSettingList == null ? 0 : indexSettingList.size();
 		
 		List<SearchIndexWriter> list = new ArrayList<SearchIndexWriter>();
-		for (int i = 0, idx = 0; i < totalSize; i++) {
+		for (int i = 0; i < totalSize; i++) {
 			IndexSetting indexSetting = indexSettingList.get(i);
 			if(indexIdList == null || indexIdList.contains(indexSetting.getId())){
-				searchIndexWriterList[idx++] = new SearchIndexWriter(indexSetting, schema, dir, revisionInfo, indexConfig, analyzerPoolManager);
+				SearchIndexWriter searchIndexWriter = new SearchIndexWriter(indexSetting, schema, dir, revisionInfo, indexConfig, analyzerPoolManager);
+				list.add(searchIndexWriter);
 			}
 		}
 		

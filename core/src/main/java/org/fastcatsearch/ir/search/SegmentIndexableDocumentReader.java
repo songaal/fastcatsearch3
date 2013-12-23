@@ -27,33 +27,33 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 각 세그먼트별 문서를 읽어온다.
+ * 각 세그먼트별 문서를 색인가능하도록 읽어온다.
  * 
  * @author sangwook.song
  * 
  */
-public class SegmentDocumentReader {
-	private static Logger logger = LoggerFactory.getLogger(SegmentDocumentReader.class);
+public class SegmentIndexableDocumentReader {
+	private static Logger logger = LoggerFactory.getLogger(SegmentIndexableDocumentReader.class);
 	private final DocumentReader reader;
 	private final int limit;
 	
-	public SegmentDocumentReader(SchemaSetting schemaSetting, File segHomePath) throws IOException {
+	public SegmentIndexableDocumentReader(SchemaSetting schemaSetting, File segHomePath) throws IOException {
 		reader = new DocumentReader(schemaSetting, segHomePath);
 		limit = reader.getDocumentCount();
 	}
 
-	public Document[] getDocumentList(int[] docNos) throws IOException {
-		Document[] result = new Document[docNos.length];
-		for (int i = 0; i < docNos.length; i++) {
-			int docNo = docNos[i];
-			result[i] = reader.readDocument(docNo);
-		}
-		return result;
-	}
-
-	public Document getDocument(int docNo) throws IOException {
-		return reader.readDocument(docNo);
-	}
+//	public Document[] getDocumentList(int[] docNos) throws IOException {
+//		Document[] result = new Document[docNos.length];
+//		for (int i = 0; i < docNos.length; i++) {
+//			int docNo = docNos[i];
+//			result[i] = reader.readDocument(docNo);
+//		}
+//		return result;
+//	}
+//
+//	public Document getDocument(int docNo) throws IOException {
+//		return reader.readDocument(docNo);
+//	}
 
 	public Enumeration<Document> getEnumertion() {
 		return new SegmentDocumentEnumeration();
@@ -80,7 +80,8 @@ public class SegmentDocumentReader {
 		@Override
 		public Document nextElement() {
 			try {
-				return reader.readDocument(pos++);
+				Document document =  reader.readIndexableDocument(pos++);
+				return document;
 			} catch (IOException e) {
 				logger.error("", e);
 				return null;

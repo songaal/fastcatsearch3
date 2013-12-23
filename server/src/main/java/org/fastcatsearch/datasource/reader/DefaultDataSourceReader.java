@@ -16,21 +16,13 @@
 
 package org.fastcatsearch.datasource.reader;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
-import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.field.Field;
-import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.settings.FieldSetting;
-import org.fastcatsearch.ir.settings.PrimaryKeySetting;
-import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 데이터소스 리더.

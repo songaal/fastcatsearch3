@@ -18,10 +18,13 @@ import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.db.mapper.IndexingResultMapper.ResultStatus;
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.ir.CollectionFullDocumentStorer;
+import org.fastcatsearch.ir.CollectionIndexBuildIndexer;
+import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
+import org.fastcatsearch.ir.index.SelectedIndexList;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.result.IndexingJobResult;
@@ -31,22 +34,20 @@ import org.fastcatsearch.transport.vo.StreamableCollectionContext;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
 
 /**
- * 전체색인용 문서만를 저장한다. 색인은 생성하지 않는다.
- * 색인은 차후 build index시 생성하도록 한다.
- * @see CollectionIndexBuildFullIndexingJob
+ * 전체색인용 색인만 생성한다. 문서는 저장하지 않고, 이미 저장된 문서를 읽어서 색인한다.
  * 
  * index node가 아닌 노드에 전달되면 색인을 수행하지 않는다.
  *  
  * */
-public class CollectionDocumentStoreFullIndexingJob extends IndexingJob {
+public class CollectionIndexBuildFullIndexingJob extends IndexingJob {
 
 	private static final long serialVersionUID = -4291415269961866851L;
 	private CollectionContext collectionContext; 
 	
-	public CollectionDocumentStoreFullIndexingJob(){
+	public CollectionIndexBuildFullIndexingJob(){
 	}
 	
-	public CollectionDocumentStoreFullIndexingJob(CollectionContext collectionContext){
+	public CollectionIndexBuildFullIndexingJob(CollectionContext collectionContext){
 		this.collectionContext = collectionContext;
 	}
 	
@@ -63,7 +64,7 @@ public class CollectionDocumentStoreFullIndexingJob extends IndexingJob {
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
 		
-		prepare(IndexingType.FULL_DOCUMENT_STORE);
+		prepare(IndexingType.FULL_INDEX_BUILD);
 		
 		
 		Throwable throwable = null;
@@ -71,6 +72,8 @@ public class CollectionDocumentStoreFullIndexingJob extends IndexingJob {
 		Object result = null;
 		long startTime = System.currentTimeMillis();
 		try {
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+			AnalyzerPoolManager analyzerPoolManager = irService.createAnalyzerPoolManager(collectionContext.schema().schemaSetting().getAnalyzerSettingList());
 			//find index node
 			String indexNodeId = collectionContext.collectionConfig().getIndexNode();
 			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
@@ -88,12 +91,12 @@ public class CollectionDocumentStoreFullIndexingJob extends IndexingJob {
 			 * Do Document Store!!
 			 */
 			//////////////////////////////////////////////////////////////////////////////////////////
-			
-			CollectionFullDocumentStorer collectionFullDocumentStorer = new CollectionFullDocumentStorer(collectionContext);
-			indexer = collectionFullDocumentStorer;
-			collectionFullDocumentStorer.setState(indexingTaskState);
-			collectionFullDocumentStorer.doIndexing();
-			boolean isIndexed = collectionFullDocumentStorer.close();
+			SelectedIndexList selectedIndexList = SelectedIndexList.ALL_INDEXING; //TODO 차후 선택적으로 바꾼다.
+			CollectionIndexBuildIndexer collectionIndexBuildIndexer = new CollectionIndexBuildIndexer(collectionContext, analyzerPoolManager, selectedIndexList);
+			indexer = collectionIndexBuildIndexer;
+			collectionIndexBuildIndexer.setState(indexingTaskState);
+			collectionIndexBuildIndexer.doIndexing();
+			boolean isIndexed = collectionIndexBuildIndexer.close();
 			if(!isIndexed && stopRequested){
 				//여기서 끝낸다.
 				throw new IndexingStopException();
@@ -102,7 +105,7 @@ public class CollectionDocumentStoreFullIndexingJob extends IndexingJob {
 			int duration = (int) (System.currentTimeMillis() - startTime);
 			
 			IndexStatus indexStatus = collectionContext.indexStatus().getFullIndexStatus();
-			indexingLogger.info("[{}] Collection Doucument Store Full Indexing Finished! {} time = {}", collectionId, indexStatus, duration);
+			indexingLogger.info("[{}] Collection Index Build Full Indexing Finished! {} time = {}", collectionId, indexStatus, duration);
 			result = new IndexingJobResult(collectionId, indexStatus, duration);
 			resultStatus = ResultStatus.SUCCESS;
 

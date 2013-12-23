@@ -52,7 +52,9 @@ import org.slf4j.LoggerFactory;
 
 public class SearchIndexWriter {
 	private static Logger logger = LoggerFactory.getLogger(SearchIndexWriter.class);
-
+	
+	private static Logger testLogger = LoggerFactory.getLogger("TEST_LOG");
+	
 	private String indexId;
 	private MemoryPosting memoryPosting;
 	private IndexFieldOption fieldIndexOption;
@@ -129,7 +131,7 @@ public class SearchIndexWriter {
 			if(sequence < 0){
 				continue;
 			}
-			write(count, doc.get(sequence), analyzer, ignoreCase, positionIncrementGap);
+			write(count, doc.get(sequence), ignoreCase, positionIncrementGap);
 			// positionIncrementGap은 필드가 증가할때마다 동일량으로 증가. 예) 0, 100, 200, 300...
 			positionIncrementGap += positionIncrementGap;
 		}
@@ -137,7 +139,7 @@ public class SearchIndexWriter {
 		count++;
 	}
 
-	private void write(int docNo, Field field, Analyzer analyzer, boolean upperCase, int positionIncrementGap) throws IRException, IOException {
+	private void write(int docNo, Field field, boolean upperCase, int positionIncrementGap) throws IRException, IOException {
 		if (field == null) {
 			return;
 		}
@@ -175,28 +177,35 @@ public class SearchIndexWriter {
 			positionAttribute = tokenStream.getAttribute(PositionIncrementAttribute.class);
 		}
 		CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
-
+try{
 		while (tokenStream.incrementToken()) {
-			CharVector key = null;
-			if (termAttribute != null) {
-				CharsRef charRef = termAttribute.charsRef();
-				char[] buffer = new char[charRef.length()];
-				System.arraycopy(charRef.chars, charRef.offset, buffer, 0, charRef.length);
-				key = new CharVector(buffer, 0, buffer.length);
-			} else {
-				key = new CharVector(charTermAttribute.buffer(), 0, charTermAttribute.length());
-			}
-			// 영문 토크나이저 사용시 스테밍된 결과가 소문자로 반환되어 다시한번 key를 uppercase로 변환필요.
-			if (upperCase) {
-				key.toUpperCase();
-			}
-			int position = -1;
-			if (positionAttribute != null) {
-				position = positionAttribute.getPositionIncrement() + positionIncrementGap;
-			}
-			// logger.debug("FIELD#{}: {} >> {} ({})", indexFieldNum, key, docNo, position);
-			memoryPosting.add(key, docNo, position);
+//			CharVector key = null;
+//			if (termAttribute != null) {
+//				CharsRef charRef = termAttribute.charsRef();
+//				char[] buffer = new char[charRef.length()];
+//				System.arraycopy(charRef.chars, charRef.offset, buffer, 0, charRef.length);
+//				key = new CharVector(buffer, 0, buffer.length);
+//			} else {
+//				key = new CharVector(charTermAttribute.buffer(), 0, charTermAttribute.length());
+//			}
+//			// 영문 토크나이저 사용시 스테밍된 결과가 소문자로 반환되어 다시한번 key를 uppercase로 변환필요.
+//			if (upperCase) {
+//				key.toUpperCase();
+//			}
+//			int position = -1;
+//			if (positionAttribute != null) {
+//				position = positionAttribute.getPositionIncrement() + positionIncrementGap;
+//			}
+//			// logger.debug("FIELD#{}: {} >> {} ({})", indexFieldNum, key, docNo, position);
+//			if(docNo > 42000){
+//				testLogger.debug("[{}] [{}] [{}]", docNo, position, key);
+//			}
+//			memoryPosting.add(key, docNo, position);
 		}
+}catch(OutOfMemoryError e){
+	e.printStackTrace();
+	logger.error("indexValue OOM", e);
+}
 	}
 
 	public int checkWorkingMemorySize() {

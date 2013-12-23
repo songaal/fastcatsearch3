@@ -88,7 +88,8 @@ public class IndexingFinishNotification extends Notification {
 	public String toMessageString() {
 		Object[] params = new Object[6];
 		params[0] = collectionId;
-		params[1] = (indexingType == IndexingType.FULL)?"전체":"증분";
+//		params[1] = (indexingType == IndexingType.FULL)?"전체":"증분";
+		params[1] = indexingType.toString();
 		params[2] = resultStatus.toString();
 		params[3] = new Timestamp(startTime).toString();
 		params[4] = new Timestamp(finishTime).toString();
