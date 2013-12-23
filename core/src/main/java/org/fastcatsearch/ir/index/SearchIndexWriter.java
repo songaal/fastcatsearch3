@@ -177,35 +177,29 @@ public class SearchIndexWriter {
 			positionAttribute = tokenStream.getAttribute(PositionIncrementAttribute.class);
 		}
 		CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
-try{
+	
 		while (tokenStream.incrementToken()) {
-//			CharVector key = null;
-//			if (termAttribute != null) {
-//				CharsRef charRef = termAttribute.charsRef();
-//				char[] buffer = new char[charRef.length()];
-//				System.arraycopy(charRef.chars, charRef.offset, buffer, 0, charRef.length);
-//				key = new CharVector(buffer, 0, buffer.length);
-//			} else {
-//				key = new CharVector(charTermAttribute.buffer(), 0, charTermAttribute.length());
-//			}
-//			// 영문 토크나이저 사용시 스테밍된 결과가 소문자로 반환되어 다시한번 key를 uppercase로 변환필요.
-//			if (upperCase) {
-//				key.toUpperCase();
-//			}
-//			int position = -1;
-//			if (positionAttribute != null) {
-//				position = positionAttribute.getPositionIncrement() + positionIncrementGap;
-//			}
-//			// logger.debug("FIELD#{}: {} >> {} ({})", indexFieldNum, key, docNo, position);
-//			if(docNo > 42000){
-//				testLogger.debug("[{}] [{}] [{}]", docNo, position, key);
-//			}
-//			memoryPosting.add(key, docNo, position);
+			CharVector key = null;
+			if (termAttribute != null) {
+				CharsRef charRef = termAttribute.charsRef();
+				char[] buffer = new char[charRef.length()];
+				System.arraycopy(charRef.chars, charRef.offset, buffer, 0, charRef.length);
+				key = new CharVector(buffer, 0, buffer.length);
+			} else {
+				key = new CharVector(charTermAttribute.buffer(), 0, charTermAttribute.length());
+			}
+			// 영문 토크나이저 사용시 스테밍된 결과가 소문자로 반환되어 다시한번 key를 uppercase로 변환필요.
+			if (upperCase) {
+				key.toUpperCase();
+			}
+			int position = -1;
+			if (positionAttribute != null) {
+				position = positionAttribute.getPositionIncrement() + positionIncrementGap;
+			}
+			// logger.debug("FIELD#{}: {} >> {} ({})", indexFieldNum, key, docNo, position);
+			
+			memoryPosting.add(key, docNo, position);
 		}
-}catch(OutOfMemoryError e){
-	e.printStackTrace();
-	logger.error("indexValue OOM", e);
-}
 	}
 
 	public int checkWorkingMemorySize() {

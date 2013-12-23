@@ -41,7 +41,7 @@ public class SearchIndexesWriter {
 	
 	// limit memory use. if exeed this value, flush.
 	private long workMemoryLimit;
-	private int workMemoryCheck = 1000; //해당 갯수만큼 색인문서가 진행되면 정보를 출력한다. 
+	private int workMemoryCheck = 10000; //해당 갯수만큼 색인문서가 진행되면 정보를 출력한다. 
 
 	private int count;
 
@@ -81,11 +81,19 @@ public class SearchIndexesWriter {
 			searchIndexWriterList[i].write(doc);
 		}
 
+		
 		if ((count + 1) % workMemoryCheck == 0) {
 			int workingMemorySize = checkWorkingMemorySize();
 			logger.debug("SearchField Memory = {}, limit = {}", Formatter.getFormatSize(workingMemorySize), Formatter.getFormatSize(workMemoryLimit));
 			if (workingMemorySize > workMemoryLimit) {
-				logger.info("write memory used = {}", workingMemorySize);
+				logger.info("Write memory used = {}", count + 1, workingMemorySize);
+				flush();
+			}
+		}else if ((count + 1) % 1000 == 0) {
+			//1000개씩 확인해본다.
+			int workingMemorySize = checkWorkingMemorySize();
+			if (workingMemorySize > workMemoryLimit) {
+				logger.info("[{}] documents write memory used = {}", count + 1, workingMemorySize);
 				flush();
 			}
 		}
@@ -98,7 +106,7 @@ public class SearchIndexesWriter {
 		for (int i = 0; i < indexSize; i++) {
 			totalMemorySize += searchIndexWriterList[i].checkWorkingMemorySize();
 		}
-		logger.debug("SearchIndex Working Mem[{}]", Formatter.getFormatSize(totalMemorySize));
+//		logger.debug("SearchIndex Working Mem[{}]", Formatter.getFormatSize(totalMemorySize));
 		return totalMemorySize;
 	}
 
