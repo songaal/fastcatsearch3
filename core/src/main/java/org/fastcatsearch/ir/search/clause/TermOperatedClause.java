@@ -21,67 +21,45 @@ import java.io.IOException;
 
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.search.PostingDoc;
-import org.fastcatsearch.ir.search.PostingDocs;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.fastcatsearch.ir.search.PostingReader;
 
 
 
 public class TermOperatedClause implements OperatedClause {
-	private static Logger logger = LoggerFactory.getLogger(TermOperatedClause.class);
-	private int pos;
-	
-	private PostingDocs termDocs;
-	private PostingDoc[] termDocList;
-	
-	private int weight;
+	private PostingReader postingReader;
 	private boolean ignoreTermFreq;
 	
-	public TermOperatedClause(PostingDocs termDocs, int weight) throws IOException {
-		this(termDocs, weight, false);
+	public TermOperatedClause(PostingReader postingReader) throws IOException {
+		this(postingReader, false);
 	}
-	public TermOperatedClause(PostingDocs termDocs, int weight, boolean ignoreTermFreq) throws IOException {
-		this.termDocs = termDocs;
-		if(termDocs != null){
-			termDocList = termDocs.postingDocList();
-		}
-		this.weight = weight;
+	public TermOperatedClause(PostingReader postingReader, boolean ignoreTermFreq) throws IOException {
+		this.postingReader = postingReader;
 		this.ignoreTermFreq = ignoreTermFreq;
 	}
 
-	public PostingDocs termDocs(){
-		return termDocs;
-	}
-	/* (non-Javadoc)
-	 * @see cat.ir.query.OperatedClause#next(cat.ir.query.RankInfo)
-	 */
 	public boolean next(RankInfo docInfo) {
-		if(termDocs == null){
+		
+		if(postingReader.hasNext()){
+			PostingDoc postingDoc = postingReader.next();
+			docInfo.init(postingDoc.docNo(), ignoreTermFreq ? postingReader.weight() : postingReader.weight() + (postingDoc.tf() - 1));
+			return true;
+		}else{
 			docInfo.init(-1,-1);
 			return false;
 		}
-		
-		if(pos < termDocs.count()){
-			PostingDoc termDoc = termDocList[pos];
-			//if tf is greater than 1, score is weight + (tf - 1) * 1
-			docInfo.init(termDoc.docNo(), ignoreTermFreq ? weight : weight + (termDoc.tf() - 1));
-			//docInfo.init(docs[pos], tfs[pos] * weight);
-			pos++;
-			return true;
-		}
-		
-		docInfo.init(-1,-1);
-		return false;
 	}
 	
 	@Override
 	public String toString(){
-		if(termDocs != null){
-			return "["+getClass().getSimpleName()+"]"+termDocs.term()+":"+termDocs.count();
+		if(postingReader != null){
+			return "["+getClass().getSimpleName()+"]"+postingReader.term()+":"+postingReader.size();
 		}else{
 			return "["+getClass().getSimpleName()+"] null";
 		}
+	}
+	@Override
+	public void close() {
+		
 	}
 
 }

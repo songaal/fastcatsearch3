@@ -18,7 +18,10 @@ import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.query.Term;
 import org.fastcatsearch.ir.query.Term.Option;
 import org.fastcatsearch.ir.search.PostingDocs;
+import org.fastcatsearch.ir.search.PostingReader;
 import org.fastcatsearch.ir.search.SearchIndexReader;
+import org.fastcatsearch.ir.search.method.NormalSearchMethod;
+import org.fastcatsearch.ir.search.method.SearchMethod;
 import org.fastcatsearch.ir.settings.IndexSetting;
 import org.fastcatsearch.ir.settings.RefSetting;
 
@@ -86,7 +89,11 @@ public class BooleanClause implements OperatedClause {
 				
 				CharVector token = null;
 				while (tokenStream.incrementToken()) {
-
+					if(featureAttribute != null){
+						if(featureAttribute.type() == FeatureAttribute.FeatureType.MAIN){
+							
+						}
+					}
 					if (refTermAttribute != null) {
 						CharsRef charRef = refTermAttribute.charsRef();
 						
@@ -102,7 +109,6 @@ public class BooleanClause implements OperatedClause {
 					}
 
 					logger.debug("token = {}", token);
-					// token.toUpperCase();
 					//
 					// stopword
 					//
@@ -118,14 +124,16 @@ public class BooleanClause implements OperatedClause {
 						positionOffset = position + 2; // 다음 position은 +2 부터 할당한다. 공백도 1만큼 차지.
 					}
 					
-					PostingDocs postingDocs = searchIndexReader.getPosting(token);
-					OperatedClause clause = new TermOperatedClause(postingDocs, weight);
+					SearchMethod searchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
+					PostingReader postingReader = searchMethod.search(indexId, token, queryPosition, weight);
+					OperatedClause clause = new TermOperatedClause(postingReader);
 					
 					if(operatedClause == null){
 						operatedClause = clause;
 					}else{
 						operatedClause = new AndOperatedClause(operatedClause, clause);
 					}
+					logger.debug(">>> operatedClause = {}", operatedClause);
 				}
 				
 			}
@@ -142,6 +150,13 @@ public class BooleanClause implements OperatedClause {
 			return false;
 		}
 		return operatedClause.next(docInfo);
+	}
+
+	@Override
+	public void close() {
+		if(operatedClause != null){
+			operatedClause.close();
+		}
 	}
 
 }

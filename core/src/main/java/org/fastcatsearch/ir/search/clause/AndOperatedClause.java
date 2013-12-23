@@ -75,4 +75,14 @@ public class AndOperatedClause implements OperatedClause {
 						+ (clause2!= null?clause2.toString():"null");
 	}
 
+	@Override
+	public void close() {
+		if(clause1 != null){
+			clause1.close();
+		}
+		if(clause2 != null){
+			clause2.close();
+		}
+	}
+
 }

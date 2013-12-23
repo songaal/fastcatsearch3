@@ -22,34 +22,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
-import org.apache.lucene.analysis.tokenattributes.StopwordAttribute;
-import org.apache.lucene.analysis.tokenattributes.SynonymAttribute;
-import org.apache.lucene.util.CharsRef;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
-import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.index.IndexFieldOption;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.ir.io.CharVectorTokenizer;
 import org.fastcatsearch.ir.io.FixedMinHeap;
 import org.fastcatsearch.ir.io.IOUtil;
 import org.fastcatsearch.ir.io.IndexInput;
-import org.fastcatsearch.ir.query.HighlightInfo;
-import org.fastcatsearch.ir.query.Term;
-import org.fastcatsearch.ir.query.Term.Option;
-import org.fastcatsearch.ir.search.clause.MultiTermOperatedClause;
-import org.fastcatsearch.ir.search.clause.OperatedClause;
-import org.fastcatsearch.ir.search.clause.OrOperatedClause;
+import org.fastcatsearch.ir.search.method.AbstractSearchMethod;
+import org.fastcatsearch.ir.search.method.SearchMethod;
 import org.fastcatsearch.ir.search.posting.PostingDocsMerger;
 import org.fastcatsearch.ir.search.posting.PostingDocsReader;
 import org.fastcatsearch.ir.settings.IndexSetting;
-import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +52,7 @@ public class SearchIndexReader implements Cloneable {
 	private Schema schema;
 	private MemoryLexicon memoryLexicon;
 	private long fileLimit;
-	private IndexFieldOption fieldIndexOption;
+	private IndexFieldOption indexFieldOption;
 
 	private AnalyzerPool queryAnalyzerPool;
 	private IndexSetting indexSetting;
@@ -93,7 +79,7 @@ public class SearchIndexReader implements Cloneable {
 			fileLimit = lexiconInput.length();
 			
 			// posting 파일의 첫 int는 색인옵션.
-			fieldIndexOption = new IndexFieldOption(postingInput.readInt());
+			indexFieldOption = new IndexFieldOption(postingInput.readInt());
 
 		} catch (Exception e) {
 			if (postingInput != null) {
@@ -150,7 +136,7 @@ public class SearchIndexReader implements Cloneable {
 		reader.fileLimit = fileLimit;
 		reader.queryAnalyzerPool = queryAnalyzerPool;
 		reader.indexSetting = indexSetting;
-		reader.fieldIndexOption = fieldIndexOption;
+		reader.indexFieldOption = indexFieldOption;
 		return reader;
 	}
 
@@ -407,6 +393,7 @@ public class SearchIndexReader implements Cloneable {
 		int lastDocNo = postingInput.readInt();
 
 		PostingDoc[] termDocList = new PostingDoc[count];
+		logger.debug(">>>>> create PostingDoc array size {} = {} / {}MB", singleTerm, count, Runtime.getRuntime().totalMemory() / (1024 * 1024));
 
 		int prevId = -1;
 		int docId = -1;
@@ -418,7 +405,7 @@ public class SearchIndexReader implements Cloneable {
 			}
 			int tf = postingInput.readVInt();
 			int[] positions = null;
-			if (tf > 0 && fieldIndexOption.isStorePosition()) {
+			if (tf > 0 && indexFieldOption.isStorePosition()) {
 				int prevPosition = -1;
 				positions = new int[tf];
 				for (int j = 0; j < tf; j++) {
@@ -730,7 +717,7 @@ public class SearchIndexReader implements Cloneable {
 					int tf = postingInput.readVInt();
 
 					int[] positions = null;
-					if (fieldIndexOption.isStorePosition()) {
+					if (indexFieldOption.isStorePosition()) {
 						int prevPosition = -1;
 						positions = new int[tf];
 						for (int j = 0; j < tf; j++) {
@@ -860,5 +847,11 @@ public class SearchIndexReader implements Cloneable {
 		return indexSetting;
 	}
 
+	
+	public SearchMethod createSearchMethod(AbstractSearchMethod searchMethod){
+		//index input은 clone하여 각자 사용한다. 
+		searchMethod.init(this.memoryLexicon, this.lexiconInput.clone(), this.postingInput.clone(), this.indexFieldOption);
+		return searchMethod;
+	}
 	
 }

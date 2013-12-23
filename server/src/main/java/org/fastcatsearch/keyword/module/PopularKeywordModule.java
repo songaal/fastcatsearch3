@@ -34,7 +34,6 @@ public class PopularKeywordModule extends AbstractModule {
 		Map<KeywordDictionaryType, PopularKeywordDictionary> map = new HashMap<KeywordDictionaryType, PopularKeywordDictionary>();
 		int rank = 1;
 		List<PopularKeywordVO> list = new ArrayList<PopularKeywordVO>();
-		addFakeKeyword(list, "", rank++);
 		PopularKeywordDictionary dict = new PopularKeywordDictionary(list);
 		categoryKeywordDictionaryMap.put("total", map);
 		map.put(KeywordDictionaryType.POPULAR_KEYWORD_DAY, dict);
@@ -56,9 +55,6 @@ public class PopularKeywordModule extends AbstractModule {
 		return true;
 	}
 
-	private void addFakeKeyword(List<PopularKeywordVO> list, String keyword, int rank){
-		
-	}
 	public File getDictionaryFile(String categoryId, KeywordDictionaryType type){
 		String filename = null;
 		if(type == KeywordDictionaryType.POPULAR_KEYWORD_REALTIME){

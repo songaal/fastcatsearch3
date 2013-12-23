@@ -71,4 +71,14 @@ public class NotOperatedClause implements OperatedClause {
 		
 	}
 
+	@Override
+	public void close() {
+		if(clause1 != null){
+			clause1.close();
+		}
+		if(clause2 != null){
+			clause2.close();
+		}		
+	}
+
 }

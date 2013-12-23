@@ -28,4 +28,7 @@ public interface OperatedClause {
 	 * @return RankInfo를 올바로 읽었는지 여부. 
 	 */
 	public boolean next(RankInfo docInfo);
+	
+	
+	public void close();
 }

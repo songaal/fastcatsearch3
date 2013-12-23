@@ -148,5 +148,10 @@ public class MultiTermOperatedClause implements OperatedClause {
 		
 		return true;
 	}
+
+	@Override
+	public void close() {
+		
+	}
 	
 }

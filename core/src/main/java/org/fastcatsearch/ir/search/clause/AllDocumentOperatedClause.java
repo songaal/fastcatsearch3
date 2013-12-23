@@ -46,4 +46,9 @@ public class AllDocumentOperatedClause implements OperatedClause {
 		return false;
 	}
 
+	@Override
+	public void close() {
+		
+	}
+
 }

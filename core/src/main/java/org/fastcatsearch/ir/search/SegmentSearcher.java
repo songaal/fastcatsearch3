@@ -142,7 +142,7 @@ public class SegmentSearcher {
 				RankInfo rankInfo = new RankInfo();
 				if (operatedClause.next(rankInfo)) {
 					rankInfoList[nread] = rankInfo;
-//					logger.debug("search rankInfo {} ", rankInfo);
+					logger.debug("search rankInfo {} ", rankInfo);
 				} else {
 					exausted = true;
 					break;

@@ -29,9 +29,9 @@ public class UserOperatedClause implements OperatedClause {
 	private int pos;
 	private int count;
 	private int[] docs;
-	private int[] weight;
+	private float[] weight;
 	
-	public UserOperatedClause(int count, int[] docs, int[] weight) {
+	public UserOperatedClause(int count, int[] docs, float[] weight) {
 		this.count = count;
 		this.docs = docs;
 		this.weight = weight;
@@ -45,6 +45,10 @@ public class UserOperatedClause implements OperatedClause {
 		}
 		docInfo.init(-1,-1);
 		return false;
+	}
+
+	@Override
+	public void close() {
 	}
 
 }

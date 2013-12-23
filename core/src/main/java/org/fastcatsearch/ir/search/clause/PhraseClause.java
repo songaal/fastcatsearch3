@@ -19,7 +19,10 @@ import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.query.Term;
 import org.fastcatsearch.ir.query.Term.Option;
 import org.fastcatsearch.ir.search.PostingDocs;
+import org.fastcatsearch.ir.search.PostingReader;
 import org.fastcatsearch.ir.search.SearchIndexReader;
+import org.fastcatsearch.ir.search.method.NormalSearchMethod;
+import org.fastcatsearch.ir.search.method.SearchMethod;
 import org.fastcatsearch.ir.settings.IndexSetting;
 import org.fastcatsearch.ir.settings.RefSetting;
 
@@ -137,8 +140,10 @@ public class PhraseClause implements OperatedClause {
 					}
 
 					logger.debug("PHRASE TERM {} >> [{}] [{}, {}] ", token, featureType, positionAttribute.getPositionIncrement(), queryPosition);
-					PostingDocs postingDocs = searchIndexReader.getPosting(token);
-					OperatedClause clause = new TermOperatedClause(postingDocs, weight);
+					SearchMethod searchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
+					PostingReader postingReader = searchMethod.search(indexId, token, queryPosition, weight);
+//					OperatedClause clause = new TermOperatedClause(postingDocs, weight);
+					OperatedClause clause = new TermOperatedClause(postingReader);
 
 					if (operatedClause == null) {
 						operatedClause = clause;
@@ -161,6 +166,13 @@ public class PhraseClause implements OperatedClause {
 			return false;
 		}
 		return operatedClause.next(docInfo);
+	}
+
+	@Override
+	public void close() {
+		if(operatedClause != null){
+			operatedClause.close();
+		}
 	}
 
 }
