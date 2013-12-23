@@ -17,9 +17,9 @@
 package org.fastcatsearch.ir.analysis;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.slf4j.Logger;
@@ -39,6 +39,7 @@ public class AnalyzerPool {
 	private final int corePoolSize;
 	private final int maximumPoolSize;
 	private List<Analyzer> pool = new ArrayList<Analyzer>();
+	private Set<Analyzer> dedupSet = new HashSet<Analyzer>();
 	
 	public AnalyzerPool(String analyzerName, AnalyzerFactory factory, int corePoolSize, int maximumPoolSize) {
 		this.analyzerName = analyzerName;
@@ -47,7 +48,10 @@ public class AnalyzerPool {
 		this.maximumPoolSize = maximumPoolSize;
 		
 		for (int i = 0; i < corePoolSize; i++) {
-			pool.add(factory.create());
+			Analyzer e = factory.create();
+			if(dedupSet.add(e)){
+				pool.add(e);
+			}
 		}
 	}
 	
@@ -58,6 +62,7 @@ public class AnalyzerPool {
 			e = (Analyzer) factory.create();
 		}else{
 			e = pool.remove(pool.size() - 1);
+			dedupSet.remove(e);
 		}
 		
 		return e;
@@ -67,7 +72,10 @@ public class AnalyzerPool {
 	public synchronized void releaseToPool(Analyzer e){
 		if(e == null) return;
 		if(pool.size() < maximumPoolSize){
-			pool.add(e);
+			if(dedupSet.add(e)){
+				pool.add(e);
+			}
+			
 		}
 		//현재 사이즈가 CORE_SIZE를 초과하면 버린다.
 	}
