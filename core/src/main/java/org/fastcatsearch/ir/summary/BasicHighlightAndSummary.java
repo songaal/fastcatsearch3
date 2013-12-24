@@ -123,18 +123,19 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 				}
 				prevTermString = termString;
 				
-				if (termAttribute != null) {
-					if (!(offsetAttribute.startOffset() > 0 && termAttribute
-							.charsRef().length() == 1)) {
-						
+				//refterm 은 1글자 이하의 텀에서는 의미가 없음
+				if(termString.length() > 1) {
+					if(logger.isTraceEnabled()) {
+						logger.trace("charTermAttribute : {} : [{}/{}]", termString, 
+								offsetAttribute.startOffset(), termAttribute.charsRef().length());
+					}
+					
+					if (termAttribute != null) {
 						CharsRef charRef = termAttribute.charsRef();
-						if(charRef!=null) {
-							termString = charRef.toString();
-						} else {
-							termString = "";
+						if (charRef!=null && !(charRef.offset > 0 && charRef.length() == 1)) {
+							terms.add(new WeightedTerm(score, charRef.toString()));
+							logger.trace("++ charRefTerm : {}", termString);
 						}
-						terms.add(new WeightedTerm(score, termString));
-						logger.trace("++ charRefTerm : {}", termString);
 					}
 				}
 			}

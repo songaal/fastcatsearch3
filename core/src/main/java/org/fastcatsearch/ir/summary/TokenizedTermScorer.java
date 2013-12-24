@@ -9,6 +9,7 @@ import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
 import org.apache.lucene.search.highlight.Scorer;
 import org.apache.lucene.search.highlight.TextFragment;
 import org.apache.lucene.search.highlight.WeightedTerm;
+import org.apache.lucene.util.CharsRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,26 +82,26 @@ public class TokenizedTermScorer implements Scorer {
 		
 		termText = termAtt.toString();
 		
-		//logger.trace("termAtt : {}",termText);
+		//logger.trace("termAtt : {} in {}",termText, uniqueTermsInFragment);
 		
 		queryTerm = termsToFind.get(termText);
 		if (queryTerm != null) {
-			if (!uniqueTermsInFragment.contains(termText)) {
-				logger.trace("matched termText {}",termText);
-				totalScore += queryTerm.getWeight();
-				uniqueTermsInFragment.add(termText);
-				return queryTerm.getWeight();
-			}
+			logger.trace("matched termText {}",termText);
+			totalScore += queryTerm.getWeight();
+			//uniqueTermsInFragment.add(termText);
+			return queryTerm.getWeight();
 		}
 		
-		if (refTermAtt != null && refTermAtt.charsRef() != null) {
-			termText = refTermAtt.toString();
-			queryTerm = termsToFind.get(termText);
-			if (queryTerm!=null && !uniqueTermsInFragment.contains(termText)) {
-				logger.trace("matched refTermText {}",termText);
-				totalScore += queryTerm.getWeight();
-				uniqueTermsInFragment.add(termText);
-				return queryTerm.getWeight();
+		if (refTermAtt != null) {
+			CharsRef charRef = refTermAtt.charsRef();
+			if(charRef!=null) {
+				queryTerm = termsToFind.get(charRef.toString());
+				if (queryTerm != null && !(charRef.offset > 0 && charRef.length == 1)) {
+					logger.trace("matched refTermText {}",termText);
+					totalScore += queryTerm.getWeight();
+					//uniqueTermsInFragment.add(termText);
+					return queryTerm.getWeight();
+				}
 			}
 		}
 		
