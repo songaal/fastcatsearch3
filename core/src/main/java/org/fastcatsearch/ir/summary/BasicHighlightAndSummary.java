@@ -102,8 +102,6 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 					score = 3.0f;
 				} else if(featureAttribute.type()==FeatureAttribute.FeatureType.ADDITION) {
 					score = 1.0f;
-				} else if(featureAttribute.type()==FeatureAttribute.FeatureType.APPEND) {
-					score = 0f;
 				}
 			}
 			
@@ -113,7 +111,6 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 			logger.trace("charTermAttribute : {}", termString);
 			
 			if (termAttribute != null) {
-				//FIXME:termString이 공백일 수 있는지 확인 필요
 				CharsRef charRef = termAttribute.charsRef();
 				if(charRef!=null) {
 					termString = charRef.toString();
@@ -133,7 +130,7 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		highlighter.setTextFragmenter(fragmenter);
 		
 		tokenStream = //analyzer.tokenStream("", new StringReader(pText));
-				new WrappedTokenStream(analyzer.tokenStream("", new StringReader(pText)));
+				new WrappedTokenStream(analyzer.tokenStream("", new StringReader(pText)), pText);
 		
 		String text = pText;
 
@@ -157,6 +154,8 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 	
 	class WrappedTokenStream extends TokenStream {
 		
+		private String pText;
+		
 		private TokenStream tokenStream;
 		private OffsetAttribute offsetAttribute;
 		private CharTermAttribute charTermAttribute;
@@ -166,7 +165,8 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		private CharTermAttribute charTermAttributeLocal;
 		private CharsRefTermAttribute charsRefTermAttributeLocal;
 
-		public WrappedTokenStream(TokenStream tokenStream) {
+		public WrappedTokenStream(TokenStream tokenStream, String pText) {
+			this.pText = pText;
 			this.tokenStream = tokenStream;
 			offsetAttribute = tokenStream.getAttribute(OffsetAttribute.class);
 			charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
@@ -200,8 +200,13 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 			charTermAttributeLocal.copyBuffer(buffer, 0, length);
 			charTermAttributeLocal.setLength(length);
 			
-			offsetAttributeLocal.setOffset(offsetAttribute.startOffset(),
-					offsetAttribute.startOffset() + length);
+			if(charTermAttribute.buffer()[0] == pText.charAt(offsetAttribute.startOffset())) {
+				offsetAttributeLocal.setOffset(offsetAttribute.startOffset(),
+						offsetAttribute.startOffset() + length);
+			} else {
+				offsetAttributeLocal.setOffset(offsetAttribute.startOffset(),
+						offsetAttribute.endOffset());
+			}
 			
 			buffer = charsRefTermAttribute.charsRef().chars;
 			offset = charsRefTermAttribute.charsRef().offset;
