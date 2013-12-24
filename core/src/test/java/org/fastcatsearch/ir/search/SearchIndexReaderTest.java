@@ -40,7 +40,7 @@ public class SearchIndexReaderTest extends TestCase{
 		Schema schema = new Schema(null);//collection, true);
 		File targetDir = new File("");
 		AnalyzerPoolManager analyzerPoolManager = null;
-		SearchIndexesReader reader = new SearchIndexesReader(schema, targetDir, analyzerPoolManager);
+		SearchIndexesReader reader = new SearchIndexesReader(schema, targetDir, analyzerPoolManager, 10000);
 	}
 
 	public void testRead() throws IOException, SettingException, IRException{

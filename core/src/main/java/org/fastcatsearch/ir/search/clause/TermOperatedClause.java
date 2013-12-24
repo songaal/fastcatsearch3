@@ -16,52 +16,55 @@
 
 package org.fastcatsearch.ir.search.clause;
 
-
 import java.io.IOException;
 
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.search.PostingDoc;
 import org.fastcatsearch.ir.search.PostingReader;
 
-
-
 public class TermOperatedClause implements OperatedClause {
 	private PostingReader postingReader;
-	private boolean ignoreTermFreq;
-	
+	// private boolean ignoreTermFreq;
+	private int segmentDF;
+	private int documentCount;
+
 	public TermOperatedClause(PostingReader postingReader) throws IOException {
-		this(postingReader, false);
-	}
-	public TermOperatedClause(PostingReader postingReader, boolean ignoreTermFreq) throws IOException {
-		this.postingReader = postingReader;
-		this.ignoreTermFreq = ignoreTermFreq;
+		if (postingReader != null) {
+			this.postingReader = postingReader;
+			// this.ignoreTermFreq = ignoreTermFreq;
+			this.segmentDF = postingReader.size();
+			this.documentCount = postingReader.documentCount();
+		}
 	}
 
 	public boolean next(RankInfo docInfo) {
-		if(postingReader == null){
+		if (postingReader == null) {
 			return false;
 		}
-		if(postingReader.hasNext()){
+		if (postingReader.hasNext()) {
 			PostingDoc postingDoc = postingReader.next();
-			docInfo.init(postingDoc.docNo(), ignoreTermFreq ? postingReader.weight() : postingReader.weight() + (postingDoc.tf() - 1));
+			float tf = 2.2f * postingDoc.tf() / (2.0f + postingDoc.tf());
+			float idf = (float) Math.log(documentCount / segmentDF);
+			docInfo.init(postingDoc.docNo(), tf * idf * postingReader.weight(), 1);
 			return true;
-		}else{
-			docInfo.init(-1,-1);
+		} else {
+			docInfo.init(-1, -1, -1);
 			return false;
 		}
 	}
-	
+
 	@Override
-	public String toString(){
-		if(postingReader != null){
-			return "["+getClass().getSimpleName()+"]"+postingReader.term()+":"+postingReader.size();
-		}else{
-			return "["+getClass().getSimpleName()+"] null";
+	public String toString() {
+		if (postingReader != null) {
+			return "[" + getClass().getSimpleName() + "]" + postingReader.term() + ":" + postingReader.size();
+		} else {
+			return "[" + getClass().getSimpleName() + "] null";
 		}
 	}
+
 	@Override
 	public void close() {
-		if(postingReader == null){
+		if (postingReader == null) {
 			postingReader.close();
 		}
 	}

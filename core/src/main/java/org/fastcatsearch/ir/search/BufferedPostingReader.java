@@ -20,8 +20,8 @@ public class BufferedPostingReader extends AbstractPostingReader {
 	private int postingRemain;
 	private int prevId;
 
-	public BufferedPostingReader(CharVector term, int termPosition, int weight, IndexFieldOption indexFieldOption, IndexInput postingInput, long inputOffset) {
-		super(term, termPosition, weight);
+	public BufferedPostingReader(CharVector term, int termPosition, float weight, int documentCount, IndexFieldOption indexFieldOption, IndexInput postingInput, long inputOffset) {
+		super(term, termPosition, weight, documentCount);
 		this.postingInput = postingInput;
 		this.isStorePosition = indexFieldOption.isStorePosition();
 		

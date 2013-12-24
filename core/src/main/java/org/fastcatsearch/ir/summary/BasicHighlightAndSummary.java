@@ -93,6 +93,7 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
 		OffsetAttribute offsetAttribute = tokenStream.getAttribute(OffsetAttribute.class);
 		
+		String prevTermString = null;
 		while(tokenStream.incrementToken()) {
 			
 			String termString = new String(charTermAttribute.buffer(), 0, charTermAttribute.length());
@@ -116,8 +117,11 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 			}
 			
 			if(score > 0) {
-				terms.add(new WeightedTerm(score, termString));
-				logger.trace("charTermAttribute : {}", termString);
+				if(!termString.equals(prevTermString)){
+					terms.add(new WeightedTerm(score, termString));
+					logger.trace("++ charTermAttribute : {}", termString);
+				}
+				prevTermString = termString;
 				
 				if (termAttribute != null) {
 					if (!(offsetAttribute.startOffset() > 0 && termAttribute
@@ -130,6 +134,7 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 							termString = "";
 						}
 						terms.add(new WeightedTerm(score, termString));
+						logger.trace("++ charRefTerm : {}", termString);
 					}
 				}
 			}

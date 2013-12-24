@@ -106,8 +106,7 @@ public class MultiTermOperatedClause implements OperatedClause {
 						CollectedEntry entry = termDocCollector.get(i);
 						PostingDoc termDoc = entry.termDoc();
 						// okapi점수에 tf만 사용. 쿼리점수무시. idf무시.
-						// documentScore += (2.2f * (float)termDoc.tf() / (2.0f
-						// + (float)termDoc.tf()));
+						// documentScore += (2.2f * (float)termDoc.tf() / (2.0f+ (float)termDoc.tf()));
 						documentScore += 1;
 //						logger.debug("[{}]doc >> {} : {} >> score {}", entry.term(), termDoc.docNo(), termDoc.tf(), documentScore);
 

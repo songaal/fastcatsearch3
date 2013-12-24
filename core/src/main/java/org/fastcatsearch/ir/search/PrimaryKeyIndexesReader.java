@@ -76,7 +76,7 @@ public class PrimaryKeyIndexesReader implements Cloneable {
 	}
 
 	public OperatedClause getOperatedClause(Term term) throws IOException, FieldDataParseException {
-		int weight = term.weight();
+		float weight = term.weight();
 		String termString = term.termString();
 		String[] list = termString.split(" ");
 		int size = 1;

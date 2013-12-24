@@ -56,20 +56,22 @@ public class SearchIndexReader implements Cloneable {
 
 	private AnalyzerPool queryAnalyzerPool;
 	private IndexSetting indexSetting;
+	private int segmentDocumentCount;
 	
 	public SearchIndexReader() {
 	}
 
-	public SearchIndexReader(IndexSetting indexSetting, Schema schema, File dir, AnalyzerPool queryAnalyzerPool) throws IOException, IRException {
-		this(indexSetting, schema, dir, 0, queryAnalyzerPool);
+	public SearchIndexReader(IndexSetting indexSetting, Schema schema, File dir, AnalyzerPool queryAnalyzerPool, int segmentDocumentCount) throws IOException, IRException {
+		this(indexSetting, schema, dir, 0, queryAnalyzerPool, segmentDocumentCount);
 	}
 
-	public SearchIndexReader(IndexSetting indexSetting, Schema schema, File dir, int revision, AnalyzerPool queryAnalyzerPool) throws IOException, IRException {
+	public SearchIndexReader(IndexSetting indexSetting, Schema schema, File dir, int revision, AnalyzerPool queryAnalyzerPool, int segmentDocumentCount) throws IOException, IRException {
 		this.schema = schema;
 		this.indexSetting = indexSetting;
 		String id = indexSetting.getId();
 		this.indexId = id;
 		this.queryAnalyzerPool = queryAnalyzerPool;
+		this.segmentDocumentCount = segmentDocumentCount;
 		
 		logger.debug("Search Index [{}] Dir = {}", indexId, dir.getAbsolutePath());
 		try {
@@ -137,202 +139,11 @@ public class SearchIndexReader implements Cloneable {
 		reader.queryAnalyzerPool = queryAnalyzerPool;
 		reader.indexSetting = indexSetting;
 		reader.indexFieldOption = indexFieldOption;
+		reader.segmentDocumentCount = segmentDocumentCount;
+		
 		return reader;
 	}
-
-/*
-	public OperatedClause getOperatedClause(Term term, HighlightInfo highlightInfo) throws IOException, IRException {
-//		String[] indexFieldIdList = term.indexFieldId();
-
-		Term.Type type = term.type();
-		int weight = term.weight();
-		Option option = term.option();
-
-		CharVector fullTerm = new CharVector(term.termString());
-
-		OperatedClause totalClause = null;
-
-//		for (int i = 0; i < indexFieldIdList.length; i++) {
-//			String indexFieldId = indexFieldIdList[i];
-//
-//			logger.debug("getOperatedClause {} at {}, type={}", term.termString(), indexFieldId, type);
-//
-//			int indexFieldSequence = schema.getSearchIndexSequence(indexFieldId);
-//			if (indexFieldSequence < 0) {
-//				throw new IRException("Unknown Search Fieldname = " + indexFieldId);
-//				// continue;
-//			}
-			
-			
-			//필드별 사용된 analyzer를 map에 넣어주어 나중에 highlight시 해당 analyzer를 사용할수 있도록 한다.
-			if (highlightInfo != null) {
-				String queryAnalyzerName = indexSetting.getQueryAnalyzer();
-				for (RefSetting refSetting : indexSetting.getFieldList()) {
-					highlightInfo.add(refSetting.getRef(), queryAnalyzerName, term.termString());
-				}
-			}
-
-			OperatedClause oneFieldClause = null;
-			Analyzer tokenizer = queryAnalyzerPool.getFromPool();
-			boolean ignoreCase = indexSetting.isIgnoreCase();
-			if(ignoreCase){
-				fullTerm = fullTerm.toUpperCase();
-			}
-			
-			try {
-				CharVectorTokenizer charVectorTokenizer = new CharVectorTokenizer(fullTerm);
-				CharTermAttribute termAttribute = null;
-				CharsRefTermAttribute refTermAttribute = null;
-				PositionIncrementAttribute positionAttribute = null;
-				SynonymAttribute synonymAttribute = null;
-				StopwordAttribute stopwordAttribute = null;
-
-				MultiTermOperatedClause phraseOperatedClause = new MultiTermOperatedClause(fieldIndexOption.isStorePosition());
-
-				int positionOffset = 0;
-				CharVector token = null;
-
-				while (charVectorTokenizer.hasNext()) {
-					CharVector eojeol = charVectorTokenizer.next();
-
-					if (option.useWildcard()) {
-						if (isWildcardTerm(eojeol)) {
-
-						}
-					}
-
-					if (option.isBoolean()) {
-						if (isBooeanOperator(eojeol)) {
-
-						}
-					}
-					
-					
-					
-					logger.debug("find {} [ignorecase={}] at {} by {}", eojeol,ignoreCase, indexId, tokenizer);
-					TokenStream tokenStream = tokenizer.tokenStream(indexId, eojeol.getReader());
-					tokenStream.reset();
-
-					if (tokenStream.hasAttribute(CharsRefTermAttribute.class)) {
-						refTermAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
-					}
-					if (tokenStream.hasAttribute(CharTermAttribute.class)) {
-						termAttribute = tokenStream.getAttribute(CharTermAttribute.class);
-					}
-					if (tokenStream.hasAttribute(PositionIncrementAttribute.class)) {
-						positionAttribute = tokenStream.getAttribute(PositionIncrementAttribute.class);
-					}
-					CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
-
-					if (tokenStream.hasAttribute(SynonymAttribute.class)) {
-						synonymAttribute = tokenStream.getAttribute(SynonymAttribute.class);
-					}
-					if (tokenStream.hasAttribute(StopwordAttribute.class)) {
-						stopwordAttribute = tokenStream.getAttribute(StopwordAttribute.class);
-					}
-
-					// PosTagAttribute tagAttribute = tokenStream.getAttribute(PosTagAttribute.class);
-
-					while (tokenStream.incrementToken()) {
-
-						if (refTermAttribute != null) {
-							CharsRef charRef = refTermAttribute.charsRef();
-							
-							if(charRef!=null) {
-								char[] buffer = new char[charRef.length()];
-								System.arraycopy(charRef.chars, charRef.offset, buffer, 0, charRef.length);
-								token = new CharVector(buffer, 0, buffer.length);
-							} else if(termAttribute!=null && termAttribute.buffer()!=null) {
-								token = new CharVector(termAttribute.buffer());
-							}
-						} else {
-							token = new CharVector(charTermAttribute.buffer(), 0, charTermAttribute.length());
-						}
-
-						logger.debug("token = {}", token);
-						// token.toUpperCase();
-						//
-						// stopword
-						//
-						if (option.useStopword() && stopwordAttribute != null && stopwordAttribute.isStopword()) {
-							logger.debug("stopword : {}", token);
-							continue;
-						}
-
-						int queryPosition = 0;
-						if (positionAttribute != null) {
-							int position = positionAttribute.getPositionIncrement();
-							queryPosition = positionOffset + position; //
-							positionOffset = position + 2; // 다음 position은 +2 부터 할당한다. 공백도 1만큼 차지.
-						}
-						PostingDocs termDocs = getPosting(token);
-				
-						//
-						// 유사어확장.
-						//
-						List<PostingDocs> synoymList = null;
-
-						if (option.useSynonym() && synonymAttribute != null) {
-							CharVector[] synonymList = synonymAttribute.getSynonym();
-							if (synonymList != null) {
-								synoymList = new ArrayList<PostingDocs>(synonymList.length);
-								for (int j = 0; j < synonymList.length; j++) {
-									CharVector synonym = synonymList[j];
-									//
-									// 유사어도 ignore case검사.
-									//
-									if(ignoreCase){
-										// 여기서 synonym을 변경하면 사전의 entry가 변경되므로 변경하지 않도록한다.
-										synonym = synonym.duplicate();
-										synonym.toUpperCase();
-									}
-
-									logger.debug("synonym = {}, ignoreCase={}", synonym, ignoreCase);
-									PostingDocs synonymTermDocs = getPosting(synonym);
-									if (synonymTermDocs != null) {
-										synoymList.add(synonymTermDocs);
-									}
-									
-								}
-							}
-						}
-
-						phraseOperatedClause.addTerm(termDocs, queryPosition, synoymList);
-
-					}// while
-
-					oneFieldClause = phraseOperatedClause;
-				}
-			} catch (IOException e) {
-				logger.error("", e);
-			} finally {
-				queryAnalyzerPool.releaseToPool(tokenizer);
-			}
-
-			if (totalClause == null) {
-				totalClause = oneFieldClause;
-			} else {
-				totalClause = new OrOperatedClause(totalClause, oneFieldClause);
-			}
-
-//		}// for
-
-
-		return totalClause;
-
-	}
-*/
-	private boolean isBooeanOperator(CharVector token1) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	private boolean isWildcardTerm(CharVector token1) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-
+	
 	public PostingDocs getPosting(CharVector singleTerm) throws IOException {
 		if (memoryLexicon.size() == 0){
 			return null;
@@ -852,7 +663,7 @@ public class SearchIndexReader implements Cloneable {
 	}
 	public SearchMethod createSearchMethod(AbstractSearchMethod searchMethod){
 		//index input은 clone하여 각자 사용한다. 
-		searchMethod.init(this.memoryLexicon, this.lexiconInput.clone(), this.postingInput.clone(), this.indexFieldOption);
+		searchMethod.init(this.memoryLexicon, this.lexiconInput.clone(), this.postingInput.clone(), this.indexFieldOption, this.segmentDocumentCount);
 		return searchMethod;
 	}
 	

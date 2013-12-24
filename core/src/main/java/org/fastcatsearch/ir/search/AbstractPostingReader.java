@@ -6,17 +6,18 @@ public abstract class AbstractPostingReader implements PostingReader {
 
 	protected CharVector term;
 	protected int termPosition;
-	protected int weight;
+	protected float weight;
+	protected int documentCount;
 	
-	
-	public AbstractPostingReader(CharVector term, int termPosition, int weight) {
+	public AbstractPostingReader(CharVector term, int termPosition, float weight, int documentCount) {
 		this.term = term;
 		this.termPosition = termPosition;
 		this.weight = weight;
+		this.documentCount = documentCount;
 	}
 
 	@Override
-	public int weight() {
+	public float weight() {
 		return weight;
 	}
 
@@ -28,6 +29,11 @@ public abstract class AbstractPostingReader implements PostingReader {
 	@Override
 	public CharVector term() {
 		return term;
+	}
+	
+	@Override
+	public int documentCount() {
+		return documentCount;
 	}
 
 }

@@ -12,7 +12,7 @@ public interface PostingReader {
 	
 	public int size();
 
-	public int weight();
+	public float weight();
 	
 	public boolean hasNext();
 
@@ -24,4 +24,5 @@ public interface PostingReader {
 
 	public CharVector term();
 
+	public int documentCount();
 }

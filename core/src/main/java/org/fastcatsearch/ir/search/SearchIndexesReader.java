@@ -43,16 +43,18 @@ public class SearchIndexesReader implements Cloneable {
 	private List<IndexSetting> indexSettingList;
 	private ArrayList<SearchIndexReader> readerList;
 	private PrimaryKeyIndexesReader primaryKeyIndexesReader;
+	private int segmentDocumentCount;
 
 	public SearchIndexesReader() {
 	}
 
-	public SearchIndexesReader(Schema schema, File dir, AnalyzerPoolManager analyzerPoolManager) throws IOException, IRException {
-		this(schema, dir, 0, analyzerPoolManager);
+	public SearchIndexesReader(Schema schema, File dir, AnalyzerPoolManager analyzerPoolManager, int segmentDocumentCount) throws IOException, IRException {
+		this(schema, dir, 0, analyzerPoolManager, segmentDocumentCount);
 	}
 
-	public SearchIndexesReader(Schema schema, File dir, int revision, AnalyzerPoolManager analyzerPoolManager) throws IOException, IRException {
+	public SearchIndexesReader(Schema schema, File dir, int revision, AnalyzerPoolManager analyzerPoolManager, int segmentDocumentCount) throws IOException, IRException {
 		this.schema = schema;
+		this.segmentDocumentCount = segmentDocumentCount;
 		logger.debug("schema > {}", schema);
 		logger.debug("schema.schemaSetting > {}", schema.schemaSetting());
 		indexSettingList = schema.schemaSetting().getIndexSettingList();
@@ -74,7 +76,7 @@ public class SearchIndexesReader implements Cloneable {
 					throw new IRException("Query analyzer not found >> " + setting.getId() + " : " + queryAnalyzerName);
 				}
 				
-				reader = new SearchIndexReader(setting, schema, dir, revision, queryAnalyzerPool);
+				reader = new SearchIndexReader(setting, schema, dir, revision, queryAnalyzerPool, segmentDocumentCount);
 			} catch (Exception e) {
 				logger.error("색인Reader {}로딩중 에러 >> {}", setting.getId(), e);
 				if (reader != null) {
@@ -92,10 +94,10 @@ public class SearchIndexesReader implements Cloneable {
 
 		SearchIndexesReader reader = new SearchIndexesReader();
 		reader.schema = schema;
+		reader.segmentDocumentCount = segmentDocumentCount;
 		reader.indexSettingList = indexSettingList;
 		reader.readerList = new ArrayList<SearchIndexReader>(readerList.size());
-		
-		logger.debug("clone readerList.size > {}",readerList.size());
+//		logger.debug("clone readerList.size > {}",readerList.size());
 		for (SearchIndexReader r : readerList) {
 			SearchIndexReader newReader = null;
 			if (r != null) {
@@ -103,9 +105,6 @@ public class SearchIndexesReader implements Cloneable {
 			}
 			if(newReader != null){
 				reader.readerList.add(newReader);
-				logger.debug("clone add newReader > {}", newReader);
-			}else{
-				logger.warn("clone add newReader is null > {}", r);
 			}
 		}
 		reader.primaryKeyIndexesReader = primaryKeyIndexesReader.clone();

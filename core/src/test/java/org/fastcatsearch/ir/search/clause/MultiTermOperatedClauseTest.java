@@ -24,7 +24,7 @@ public class MultiTermOperatedClauseTest {
 		int weight = 1;
 
 		PostingDoc[] data = createData(new int[] { 1, 2, 3, 4, 7, 8 });
-		PostingReader reader = new DataPostingReader(new CharVector("abc"), queryPosition++, weight, data, data.length);
+		PostingReader reader = new DataPostingReader(new CharVector("abc"), queryPosition++, weight, data, data.length, 10);
 		
 		assertTrue(reader.hasNext());
 		
@@ -32,11 +32,11 @@ public class MultiTermOperatedClauseTest {
 
 		data = createData(new int[] { 2, 3, 7, 10, 11 });
 		
-		reader = new DataPostingReader(new CharVector("123"), queryPosition++, weight, data, data.length);
+		reader = new DataPostingReader(new CharVector("123"), queryPosition++, weight, data, data.length, 10);
 		multiTermOperatedClause.addTerm(reader);
 
 		data = createData(new int[] { 1, 2, 3, 9, 10, 11, 12, 13 });
-		reader = new DataPostingReader(new CharVector("qqq"), queryPosition++, weight, data, data.length);
+		reader = new DataPostingReader(new CharVector("qqq"), queryPosition++, weight, data, data.length, 10);
 		multiTermOperatedClause.addTerm(reader);
 
 		RankInfo rankInfo = new RankInfo();

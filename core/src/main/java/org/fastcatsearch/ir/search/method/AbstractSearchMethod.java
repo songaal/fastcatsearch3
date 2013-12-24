@@ -22,14 +22,18 @@ public abstract class AbstractSearchMethod implements SearchMethod {
 	
 	protected long lexiconFileLimit;
 	
+	protected int segmentDocumentCount;
+	
 	public AbstractSearchMethod() {
 	}
 
-	public void init(MemoryLexicon memoryLexicon, IndexInput lexiconInput, IndexInput postingInput, IndexFieldOption indexFieldOption) {
+	public void init(MemoryLexicon memoryLexicon, IndexInput lexiconInput, IndexInput postingInput, IndexFieldOption indexFieldOption, int segmentDocumentCount) {
 		this.memoryLexicon = memoryLexicon;
 		this.lexiconInput = lexiconInput;
 		this.postingInput = postingInput;
 		this.indexFieldOption = indexFieldOption;
+		this.segmentDocumentCount = segmentDocumentCount;
+		
 		this.lexiconFileLimit = lexiconInput.length();
 	}
 	
@@ -51,12 +55,12 @@ public abstract class AbstractSearchMethod implements SearchMethod {
 		return len1 - len2;
 	}
 	
-	protected abstract PostingReader doSearch(String indexId, CharVector term, int termPosition, int weight);
+	protected abstract PostingReader doSearch(String indexId, CharVector term, int termPosition, float weight, int segmentDocumentCount);
 		
 	@Override
-	public PostingReader search(String indexId, CharVector term, int termPosition, int weight) {
+	public PostingReader search(String indexId, CharVector term, int termPosition, float weight) {
 		try{
-			return doSearch(indexId, term, termPosition, weight);
+			return doSearch(indexId, term, termPosition, weight, segmentDocumentCount);
 		}finally{
 			lexiconInput.clone();
 		}

@@ -32,7 +32,7 @@ public class PhraseClause implements OperatedClause {
 	public PhraseClause(SearchIndexReader searchIndexReader, Term term, HighlightInfo highlightInfo) {
 		String indexId = searchIndexReader.indexId();
 		String termString = term.termString();
-		int weight = term.weight();
+		float weight = term.weight();
 		Option option = term.option();
 
 		CharVector fullTerm = new CharVector(termString);
@@ -138,8 +138,7 @@ public class PhraseClause implements OperatedClause {
 					if (positionAttribute != null) {
 						int position = positionAttribute.getPositionIncrement();
 						queryPosition = positionOffset + position; //
-						positionOffset = position + 2; // 다음 position은 +2 부터
-														// 할당한다. 공백도 1만큼 차지.
+						positionOffset = position + 2; // 다음 position은 +2 부터 할당한다. 공백도 1만큼 차지.
 					}
 
 					logger.debug("PHRASE TERM {} >> [{}] [{}, {}] ", token, featureType, positionAttribute.getPositionIncrement(), queryPosition);

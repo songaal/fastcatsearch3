@@ -5,5 +5,5 @@ import org.fastcatsearch.ir.search.PostingReader;
 
 public interface SearchMethod {
 	
-	public PostingReader search(String indexId, CharVector term, int termPosition, int weight);
+	public PostingReader search(String indexId, CharVector term, int termPosition, float weight);
 }

@@ -49,7 +49,7 @@ public class QueryTest extends TestCase{
 		File targetDir = new File(target);
 		AnalyzerPoolManager analyzerPoolManager = null;
 		IndexConfig indexConfig = null;
-		SearchIndexesReader reader = new SearchIndexesReader(schema, targetDir, analyzerPoolManager);
+		SearchIndexesReader reader = new SearchIndexesReader(schema, targetDir, analyzerPoolManager, 10000);
 		DocumentReader docReader = new DocumentReader(schemaSetting, targetDir);
 		int totalDocNum = docReader.getDocumentCount();
 		System.out.println("총 문서수 ="+totalDocNum);

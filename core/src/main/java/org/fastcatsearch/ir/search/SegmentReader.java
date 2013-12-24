@@ -92,8 +92,11 @@ public class SegmentReader {
 		int revision = segmentInfo.getRevisionInfo().getId();
 		int ref = segmentInfo.getRevisionInfo().getRef();
 		
+		this.documentReader = new DocumentReader(schema.schemaSetting(), segmentDir, segmentInfo.getBaseNumber());
+		int documentCount = documentReader.getDocumentCount();
+		
 		// reader들은 thread-safe하지 않다. clone해서 사용됨.
-		this.searchIndexesReader = new SearchIndexesReader(schema, segmentDir, ref, analyzerPoolManager);
+		this.searchIndexesReader = new SearchIndexesReader(schema, segmentDir, ref, analyzerPoolManager, documentCount);
 		
 		//field index
 		this.fieldIndexesReader = new FieldIndexesReader(schema, segmentDir);
@@ -101,7 +104,6 @@ public class SegmentReader {
 //		// group index
 		this.groupIndexesReader = new GroupIndexesReader(schema, segmentDir, ref);
 
-		this.documentReader = new DocumentReader(schema.schemaSetting(), segmentDir, segmentInfo.getBaseNumber());
 		
 		
 		if (bitset != null) {
