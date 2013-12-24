@@ -10,6 +10,7 @@ public class TermDocCollector {
 	public TermDocCollector(){
 		this(4);
 	}
+	
 	public TermDocCollector(int length){
 		list = new CollectedEntry[length];
 		for (int i = 0; i < list.length; i++) {
@@ -46,6 +47,7 @@ public class TermDocCollector {
 		size = 0;
 	}
 	
+	
 	public CollectedEntry get(int i){
 		return list[i];
 	}
@@ -54,10 +56,14 @@ public class TermDocCollector {
 		return size;
 	}
 	
+	public int capasity(){
+		return list.length;
+	}
+	
 	public void addAll(TermDocCollector termDocCollector){
 		for (int i = 0; i < termDocCollector.size; i++) {
 			CollectedEntry entry = termDocCollector.list[i];
-			add(entry.term(), entry.termDoc(),  entry.queryPosition(), entry.isSynonym());
+			add(entry.term(), entry.termDoc(), entry.queryPosition(), entry.isSynonym());
 		}
 	}
 	

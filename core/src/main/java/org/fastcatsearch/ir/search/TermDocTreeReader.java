@@ -6,8 +6,9 @@ public class TermDocTreeReader {
 
 	private NodeReader root;
 
-	// private
 	public void addNode(NodeReader node) {
+		
+		
 		if (root == null) {
 			root = node;
 		} else {
@@ -31,22 +32,6 @@ public class TermDocTreeReader {
 
 		return -1;
 	}
-//	public int next(List<TermDoc> totalTermDocList) {
-//		
-//		if(root == null){
-//			return -1;
-//		}
-//		
-//		int docNo = root.next();
-//
-//		if (docNo != -1) {
-//			root.fill(totalTermDocList);
-//			return docNo;
-//		}
-//
-//		return -1;
-//	}
-
 	
 	class BigramTreeNode extends NodeReader {
 
@@ -56,22 +41,21 @@ public class TermDocTreeReader {
 		private int docNo1;
 		private int docNo2;
 
-//		private List<CollectedEntry> termDocList;
 		private TermDocCollector tempTermDocCollector;
 
 		public BigramTreeNode(NodeReader node1, NodeReader node2) {
 			this.node1 = node1;
 			this.node2 = node2;
 
-//			termDocList = new ArrayList<CollectedEntry>(2);
 			tempTermDocCollector = new TermDocCollector(2);
 			docNo1 = node1.next();
 			docNo2 = node2.next();
+			
+			logger.debug("BigramTreeNode doc >> {} : {}", docNo1, docNo2);
 		}
 
 		@Override
 		public int next() {
-//			termDocList.clear();
 			tempTermDocCollector.clear();
 			if (docNo1 == -1 && docNo2 == -1) {
 				return -1;
@@ -101,8 +85,15 @@ public class TermDocTreeReader {
 		public void fill(TermDocCollector termDocCollector) {
 			termDocCollector.addAll(tempTermDocCollector);
 		}
-//		public void fill(List<TermDoc> totalTermDocList) {
-//			totalTermDocList.addAll(termDocList);
-//		}
+
+		@Override
+		public void close() {
+			node1.close();
+			node2.close();
+		}
+	}
+
+	public void close() {
+		root.close();
 	}
 }

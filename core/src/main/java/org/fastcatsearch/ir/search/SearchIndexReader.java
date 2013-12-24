@@ -847,7 +847,9 @@ public class SearchIndexReader implements Cloneable {
 		return indexSetting;
 	}
 
-	
+	public IndexFieldOption indexFieldOption(){
+		return indexFieldOption;
+	}
 	public SearchMethod createSearchMethod(AbstractSearchMethod searchMethod){
 		//index input은 clone하여 각자 사용한다. 
 		searchMethod.init(this.memoryLexicon, this.lexiconInput.clone(), this.postingInput.clone(), this.indexFieldOption);

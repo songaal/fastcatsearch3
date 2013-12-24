@@ -21,21 +21,23 @@ public class TermDocTreeReaderTest {
 		
 		TermDocTreeReader reader = new TermDocTreeReader();
 		
+		int weight = 1;
+		int termPosition = 0;
 		termDocList = makeTermDocList(COUNT);
-		PostingDocs termDocs = new PostingDocs(new CharVector("aa"), termDocList, termDocList.length);
-		PostingDocsTreeNode node = new PostingDocsTreeNode(termDocs, 0, false);
+		PostingReader termDocs = new DataPostingReader(new CharVector("aa"), termPosition, weight, termDocList, termDocList.length);
+		PostingDocsTreeNode node = new PostingDocsTreeNode(termDocs, false);
 		reader.addNode(node);
 		expectedCount += COUNT;
 		
 		termDocList = makeTermDocList(COUNT);
-		termDocs = new PostingDocs(new CharVector("bb"), termDocList, termDocList.length);
-		node = new PostingDocsTreeNode(termDocs, 0, false);
+		termDocs = new DataPostingReader(new CharVector("bb"), termPosition, weight, termDocList, termDocList.length);
+		node = new PostingDocsTreeNode(termDocs, false);
 		reader.addNode(node);
 		expectedCount += COUNT;
 		
 		termDocList = makeTermDocList(COUNT);
-		termDocs = new PostingDocs(new CharVector("cc"), termDocList, termDocList.length);
-		node = new PostingDocsTreeNode(termDocs, 0, false);
+		termDocs = new DataPostingReader(new CharVector("cc"), termPosition, weight, termDocList, termDocList.length);
+		node = new PostingDocsTreeNode(termDocs, false);
 		reader.addNode(node);
 		expectedCount += COUNT;
 		

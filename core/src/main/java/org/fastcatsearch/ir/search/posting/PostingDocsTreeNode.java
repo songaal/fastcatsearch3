@@ -1,40 +1,41 @@
 package org.fastcatsearch.ir.search.posting;
 
 import org.fastcatsearch.ir.search.PostingDoc;
+import org.fastcatsearch.ir.search.PostingReader;
 import org.fastcatsearch.ir.search.TermDocCollector;
-import org.fastcatsearch.ir.search.PostingDocs;
 
 public class PostingDocsTreeNode extends NodeReader {
 
-	private PostingDocs postingDocs;
-	private int pos;
-	private int count;
-	private int queryPosition;
+	private PostingReader postingReader;
 	private boolean isSynonym;
 	private PostingDoc postingDoc;
 	
-	public PostingDocsTreeNode(PostingDocs termDocs, int queryPosition) {
-		this(termDocs, queryPosition, false);
+	public PostingDocsTreeNode(PostingReader postingReader) {
+		this(postingReader, false);
 	}
 	
-	public PostingDocsTreeNode(PostingDocs termDocs, int queryPosition, boolean isSynonym) {
-		this.postingDocs = termDocs;
-		this.queryPosition = queryPosition;
+	public PostingDocsTreeNode(PostingReader postingReader, boolean isSynonym) {
+		this.postingReader = postingReader;
 		this.isSynonym = isSynonym;
-		this.count = termDocs.count();
 	}
 
 	@Override
 	public int next() {
-		if (pos < count) {
-			postingDoc = postingDocs.postingDocList()[pos++];
+		if(postingReader.hasNext()){
+			postingDoc = postingReader.next();
 			return postingDoc.docNo();
+		}else{
+			return -1;
 		}
-		return -1;
 	}
 
 	@Override
 	public void fill(TermDocCollector termDocCollector) {
-		termDocCollector.add(postingDocs.term(), postingDoc, queryPosition, isSynonym);
+		termDocCollector.add(postingReader.term(), postingDoc, postingReader.termPosition(), isSynonym);
+	}
+
+	@Override
+	public void close() {
+		postingReader.close();
 	}
 }

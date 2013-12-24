@@ -60,7 +60,7 @@ public class SortGenerator {
 		for (int i = 0; i < sortSize; i++) {
 			Sort sort = querySortList.get(i);
 			String fieldId = sort.fieldIndexId();
-			fieldIdList.add(fieldId);
+			
 			int idx = schema.getFieldIndexSequence(fieldId);
 			
 			//save each sort field number in order
@@ -74,8 +74,10 @@ public class SortGenerator {
 				}else{
 					throw new IOException("Unknown sort field name = "+fieldId);
 				}
+				fieldIdList.add(null);
 			}else{
 				fieldIndex[i] = idx;
+				fieldIdList.add(fieldId);
 //				dataSize += schema.getFieldSetting(fieldId).getByteSize();
 			}
 			isAscending[i] = sort.asc();

@@ -18,7 +18,6 @@ import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.query.Term;
 import org.fastcatsearch.ir.query.Term.Option;
-import org.fastcatsearch.ir.search.PostingDocs;
 import org.fastcatsearch.ir.search.PostingReader;
 import org.fastcatsearch.ir.search.SearchIndexReader;
 import org.fastcatsearch.ir.search.method.NormalSearchMethod;
@@ -28,7 +27,7 @@ import org.fastcatsearch.ir.settings.RefSetting;
 
 public class PhraseClause implements OperatedClause {
 
-	private OperatedClause operatedClause;
+	private MultiTermOperatedClause operatedClause;
 
 	public PhraseClause(SearchIndexReader searchIndexReader, Term term, HighlightInfo highlightInfo) {
 		String indexId = searchIndexReader.indexId();
@@ -46,6 +45,10 @@ public class PhraseClause implements OperatedClause {
 				highlightInfo.add(refSetting.getRef(), queryAnalyzerName, term.termString());
 			}
 		}
+		
+		
+		operatedClause = new MultiTermOperatedClause(searchIndexReader.indexFieldOption().isStorePosition());
+		
 		try {
 			CharVectorTokenizer charVectorTokenizer = new CharVectorTokenizer(fullTerm);
 			CharTermAttribute termAttribute = null;
@@ -143,13 +146,14 @@ public class PhraseClause implements OperatedClause {
 					SearchMethod searchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
 					PostingReader postingReader = searchMethod.search(indexId, token, queryPosition, weight);
 //					OperatedClause clause = new TermOperatedClause(postingDocs, weight);
-					OperatedClause clause = new TermOperatedClause(postingReader);
+//					OperatedClause clause = new TermOperatedClause(postingReader);
+					operatedClause.addTerm(postingReader);
 
-					if (operatedClause == null) {
-						operatedClause = clause;
-					} else {
-						operatedClause = new AndOperatedClause(operatedClause, clause);
-					}
+//					if (operatedClause == null) {
+//						operatedClause = clause;
+//					} else {
+//						operatedClause = new AndOperatedClause(operatedClause, clause);
+//					}
 				}
 
 			}
