@@ -43,21 +43,21 @@ public class BytesBuffer {
 		clear();
 	}
 
-	public BytesBuffer(byte[] buffer, int limit) {
+	public BytesBuffer(byte[] buffer, int length) {
 		this.bytes = buffer;
-		this.length = limit;
+		this.length = length;
 	}
 
-	public BytesBuffer(byte[] buffer, int pos, int limit) {
+	public BytesBuffer(byte[] buffer, int offset, int length) {
 		this.bytes = buffer;
-		this.offset = pos;
-		this.length = limit;
+		this.offset = offset;
+		this.length = length;
 	}
 
-	public void init(byte[] buffer, int pos, int limit) {
+	public void init(byte[] buffer, int offset, int length) {
 		this.bytes = buffer;
-		this.offset = pos;
-		this.length = limit;
+		this.offset = offset;
+		this.length = length;
 	}
 
 	public void clear() {
@@ -92,7 +92,7 @@ public class BytesBuffer {
 	}
 
 	public int limit() {
-		return length;
+		return offset + length;
 	}
 
 	public void pos(int pos) {
@@ -103,8 +103,8 @@ public class BytesBuffer {
 		this.offset += n;
 	}
 
-	public void limit(int limit) {
-		this.length = limit;
+	public void limit(int length) {
+		this.length = length;
 	}
 
 	public int remaining() {
@@ -128,10 +128,10 @@ public class BytesBuffer {
 		bytes[offset++] = (byte) b;
 	}
 
-	public void write(byte[] src) {
-		System.arraycopy(src, 0, bytes, offset, src.length);
-		offset += src.length;
-	}
+//	public void write(byte[] src) {
+//		System.arraycopy(src, 0, bytes, offset, src.length);
+//		offset += src.length;
+//	}
 
 	public void write(byte[] src, int srcPos, int srcLen) {
 		System.arraycopy(src, srcPos, bytes, offset, srcLen);

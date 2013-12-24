@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import org.fastcatsearch.ir.io.BufferedFileInput;
-import org.fastcatsearch.ir.io.Input;
 import org.fastcatsearch.ir.io.IndexInput;
 
 

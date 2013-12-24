@@ -228,4 +228,41 @@ public class FilterTest {
 		
 		assertEquals(filterResult, actual);
 	}
+	
+	@Test
+	public void testStringSuffixFilterOnTheFly() throws IOException, IRException {
+		
+		String fieldId = "SUBJECT";
+		int filterType = Filter.SUFFIX;
+		Type fieldType = Type.ASTRING;
+		List<Object> fieldData = null;
+		String pattern = "CCC";
+		int boostScore = 0;
+		List<Boolean> filterResult = new ArrayList<Boolean>();
+		List<Integer> boostResult = new ArrayList<Integer>();
+		
+		fieldData = Arrays.asList(new Object[] {
+			"CCC", "ABCCCC", "CCCD", "ZCCCZ", ""
+		});
+		int maxSize = 0;
+		for(int inx=0;inx<fieldData.size();inx++) {
+			String str = (String) fieldData.get(inx);
+			if(str.length() > maxSize){
+				maxSize = str.length();
+			}
+			fieldData.set(inx, 
+					new CharVector((String)fieldData.get(inx)));
+		}
+		
+		testSingleReadWriteAndFilterOnTheFly(fieldId, filterType, 
+			fieldType, maxSize, fieldData, pattern, 
+			null, boostScore, filterResult,
+			boostResult);
+		
+		logger.debug("filter result : {}", filterResult);
+		
+		List<Boolean> actual = Arrays.asList(new Boolean[] { true, true, false, false, false });
+		
+		assertEquals(actual, filterResult);
+	}
 }

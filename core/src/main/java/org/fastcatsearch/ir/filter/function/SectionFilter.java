@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package org.fastcatsearch.ir.filter;
+package org.fastcatsearch.ir.filter.function;
 
 import java.io.IOException;
 
 import org.apache.lucene.util.BytesRef;
+import org.fastcatsearch.ir.filter.FilterException;
+import org.fastcatsearch.ir.filter.FilterFunction;
 import org.fastcatsearch.ir.io.DataRef;
 import org.fastcatsearch.ir.query.Filter;
 import org.fastcatsearch.ir.query.RankInfo;
@@ -45,8 +47,8 @@ public class SectionFilter extends FilterFunction {
 	@Override
 	public boolean filtering(RankInfo rankInfo, DataRef dataRef) throws IOException {
 		
-		// TODO:멀티밸류, 다중필터
 		while (dataRef.next()) {
+			
 			BytesRef bytesRef = dataRef.bytesRef();
 			for (int j = 0; j < patternCount; j++) {
 				BytesRef patternBuf1 = patternList[j];
@@ -66,9 +68,11 @@ public class SectionFilter extends FilterFunction {
 					compareNumeric(bytesRef, bytesRef.length(), patternBuf2, patternBuf2.length()) <= 0
 
 					) {
+						if(isBoostFunction){
+							//boost옵션이 있다면 점수를 올려주고 리턴한다.
+							rankInfo.addScore(boostScore);
+						}
 						return true;
-					} else {
-						return false;
 					}
 				} else {
 					if (compareString(bytesRef, bytesRef.length(), patternBuf1, patternBuf1.length()) >= 0 &&
@@ -76,14 +80,17 @@ public class SectionFilter extends FilterFunction {
 					compareString(bytesRef, bytesRef.length(), patternBuf2, patternBuf2.length()) <= 0
 
 					) {
+						if(isBoostFunction){
+							//boost옵션이 있다면 점수를 올려주고 리턴한다.
+							rankInfo.addScore(boostScore);
+						}
 						return true;
-					} else {
-						return false;
 					}
 				}
-			}
+				
+			}//for
 		}
-		return false;
+		return isBoostFunction;
 	}
 
 	private static int compareString(BytesRef lval, int lsize, BytesRef rval, int rsize) {

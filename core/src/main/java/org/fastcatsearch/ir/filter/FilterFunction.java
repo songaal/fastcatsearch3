@@ -23,7 +23,6 @@ import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.field.FieldDataParseException;
 import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.io.DataRef;
-import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.query.Filter;
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.settings.FieldIndexSetting;
@@ -31,7 +30,9 @@ import org.fastcatsearch.ir.settings.FieldSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+/**
+ * 필터기능을 제공한다.
+ * */
 public abstract class FilterFunction {
 	protected static Logger logger = LoggerFactory.getLogger(FilterFunction.class);
 	protected FieldSetting fieldSetting;
@@ -41,16 +42,6 @@ public abstract class FilterFunction {
 	protected int boostScore;
 	protected boolean isBoostFunction;
 	
-/*	case MATCH:
-	case SECTION:
-	case PREFIX:
-	case SUFFIX:
-	case MATCH_BOOST:
-	case SECTION_BOOST:
-	case PREFIX_BOOST:
-	case SUFFIX_BOOST:
-	case EXCLUDE:
-*/
 	public FilterFunction(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting, boolean isBoostFunction) throws FilterException{
 		this.fieldSetting = fieldSetting;
 		this.isBoostFunction = isBoostFunction;

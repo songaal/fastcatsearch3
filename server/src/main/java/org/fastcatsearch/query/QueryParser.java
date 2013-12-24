@@ -498,9 +498,9 @@ public class QueryParser {
 			String method = str[1];
 			String[] patternList = str[2].split(SEMICOLON_SEPARATOR);
 			removeEscape(patternList);
-			if (method.equalsIgnoreCase("match")) {
+			if (method.equalsIgnoreCase("MATCH")) {
 				f.add(new Filter(field, Filter.MATCH, patternList));
-			} else if (method.equalsIgnoreCase("section")) {
+			} else if (method.equalsIgnoreCase("SECTION")) {
 				String[] patList = new String[patternList.length];
 				String[] endPatList = new String[patternList.length];
 
@@ -516,18 +516,18 @@ public class QueryParser {
 					}
 				}
 				f.add(new Filter(field, Filter.SECTION, patList, endPatList));
-			} else if (method.equalsIgnoreCase("prefix")) {
+			} else if (method.equalsIgnoreCase("PREFIX")) {
 				f.add(new Filter(field, Filter.PREFIX, patternList));
-			} else if (method.equalsIgnoreCase("suffix")) {
+			} else if (method.equalsIgnoreCase("SUFFIX")) {
 				f.add(new Filter(field, Filter.SUFFIX, patternList));
-			} else if (method.equalsIgnoreCase("match_boost")) {
+			} else if (method.equalsIgnoreCase("MATCH_BOOST")) {
 				if (str.length >= 4) {
 					int boostScore = Integer.parseInt(str[3]);
 					f.add(new Filter(field, Filter.MATCH_BOOST, patternList, boostScore));
 				} else {
 					logger.warn("MATCH_BOOST Pattern string is empty.");
 				}
-			} else if (method.equalsIgnoreCase("section_boost")) {
+			} else if (method.equalsIgnoreCase("SECTION_BOOST")) {
 				if (str.length >= 4) {
 					String[] patList = new String[patternList.length];
 					String[] endPatList = new String[patternList.length];
@@ -544,16 +544,19 @@ public class QueryParser {
 				} else {
 					logger.warn("SECTION_BOOST Pattern string or boost score is empty.");
 				}
-			} else if (method.equalsIgnoreCase("prefix_boost")) {
+			} else if (method.equalsIgnoreCase("PREFIX_BOOST")) {
 				int boostScore = Integer.parseInt(str[3]);
 				f.add(new Filter(field, Filter.PREFIX_BOOST, patternList, boostScore));
-			} else if (method.equalsIgnoreCase("suffix_boost")) {
+			} else if (method.equalsIgnoreCase("SUFFIX_BOOST")) {
 				int boostScore = Integer.parseInt(str[3]);
 				f.add(new Filter(field, Filter.SUFFIX_BOOST, patternList, boostScore));
-			} else if (method.equalsIgnoreCase("exclude")) {
+			} else if (method.equalsIgnoreCase("EXCLUDE")) {
 				f.add(new Filter(field, Filter.EXCLUDE, patternList));
+			} else if (method.equalsIgnoreCase("EXCLUDE_BOOST")) {
+				int boostScore = Integer.parseInt(str[3]);
+				f.add(new Filter(field, Filter.EXCLUDE_BOOST, patternList, boostScore));
 			} else {
-				logger.error("Unknown Filter method = " + method);
+				logger.error("Unknown Filter method = {}", method);
 			}
 
 		}

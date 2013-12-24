@@ -23,8 +23,6 @@ import java.io.IOException;
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.ir.io.BytesBuffer;
-import org.fastcatsearch.ir.io.Input;
 import org.fastcatsearch.ir.io.IndexInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

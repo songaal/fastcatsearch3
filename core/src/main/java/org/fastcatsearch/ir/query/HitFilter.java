@@ -77,6 +77,7 @@ public class HitFilter {
 			String fieldId = fieldIndexSetting.getRef();
 			FieldSetting fieldSetting = schema.getFieldSetting(fieldId);
 			filterFunctions[i] = filter.createFilterFunction(fieldIndexSetting, fieldSetting);
+			logger.debug("FilterFunction[{}] > {}", i, filterFunctions[i]);
 		}
 	}
 
@@ -101,7 +102,8 @@ public class HitFilter {
 				DataRef dataRef = dataRefList.get(i);
 				//이미 제외된 거라면 더이상 확인하지 않는다.
 				if(filterFunctions[i].filtering(rankInfo, dataRef)){
-					//부합한다면 다음조건으로 계속진행한다.
+					//부합한다면 다음조건으로 계속진행한다. 
+					//필터조건끼리는 AND관계이므로 모든 조건이 부합할때까지는 아직 break하면 안된다.
 				}else{
 					//부합하지 않는다면 끝낸다.
 					isInclude = false;
