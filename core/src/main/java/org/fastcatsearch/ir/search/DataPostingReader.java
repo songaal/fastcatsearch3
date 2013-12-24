@@ -11,6 +11,7 @@ public class DataPostingReader extends AbstractPostingReader {
 	public DataPostingReader(CharVector term, int termPosition, int weight, PostingDoc[] dataList, int dataLength){
 		super(term, termPosition, weight);
 		this.dataList = dataList;
+		this.dataLength = dataList != null ? dataList.length : 0;
 	}
 	
 	@Override

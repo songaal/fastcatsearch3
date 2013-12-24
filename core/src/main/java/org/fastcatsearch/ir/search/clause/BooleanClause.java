@@ -35,7 +35,6 @@ public class BooleanClause implements OperatedClause {
 		String termString = term.termString();
 		int weight = term.weight();
 		Option option = term.option();
-		
 		CharVector fullTerm = new CharVector(termString);
 		Analyzer analyzer = searchIndexReader.getQueryAnalyzerFromPool();
 		
@@ -47,7 +46,7 @@ public class BooleanClause implements OperatedClause {
 			}
 		}
 		try {
-			CharVectorTokenizer charVectorTokenizer = new CharVectorTokenizer(fullTerm);
+//			CharVectorTokenizer charVectorTokenizer = new CharVectorTokenizer(fullTerm);
 			CharTermAttribute termAttribute = null;
 			CharsRefTermAttribute refTermAttribute = null;
 			PositionIncrementAttribute positionAttribute = null;
@@ -58,10 +57,10 @@ public class BooleanClause implements OperatedClause {
 			
 			
 			//어절로 분리.
-			while (charVectorTokenizer.hasNext()) {
-				CharVector eojeol = charVectorTokenizer.next();
+//			while (charVectorTokenizer.hasNext()) {
+//				CharVector eojeol = charVectorTokenizer.next();
 
-				TokenStream tokenStream = analyzer.tokenStream(indexId, eojeol.getReader());
+				TokenStream tokenStream = analyzer.tokenStream(indexId, fullTerm.getReader());
 				tokenStream.reset();
 
 				if (tokenStream.hasAttribute(CharsRefTermAttribute.class)) {
@@ -89,11 +88,15 @@ public class BooleanClause implements OperatedClause {
 				
 				CharVector token = null;
 				while (tokenStream.incrementToken()) {
-					if(featureAttribute != null){
-						if(featureAttribute.type() == FeatureAttribute.FeatureType.MAIN){
-							
-						}
+					
+					//
+					// stopword
+					//
+					if (option.useStopword() && stopwordAttribute != null && stopwordAttribute.isStopword()) {
+						logger.debug("stopword");
+						continue;
 					}
+					
 					if (refTermAttribute != null) {
 						CharsRef charRef = refTermAttribute.charsRef();
 						
@@ -108,32 +111,37 @@ public class BooleanClause implements OperatedClause {
 						token = new CharVector(charTermAttribute.buffer(), 0, charTermAttribute.length());
 					}
 
-					logger.debug("token = {}", token);
-					//
-					// stopword
-					//
-					if (option.useStopword() && stopwordAttribute != null && stopwordAttribute.isStopword()) {
-						logger.debug("stopword : {}", token);
-						continue;
-					}
-
-					int queryPosition = 0;
-					if (positionAttribute != null) {
-						int position = positionAttribute.getPositionIncrement();
-						queryPosition = positionOffset + position; //
-						positionOffset = position + 2; // 다음 position은 +2 부터 할당한다. 공백도 1만큼 차지.
-					}
+					int queryPosition = positionAttribute != null ? positionAttribute.getPositionIncrement() : 0;
+					logger.debug("token = {} : {}", token, queryPosition);
+					
 					
 					SearchMethod searchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
 					PostingReader postingReader = searchMethod.search(indexId, token, queryPosition, weight);
-					OperatedClause clause = new TermOperatedClause(postingReader);
 					
-					if(operatedClause == null){
-						operatedClause = clause;
-					}else{
-						operatedClause = new AndOperatedClause(operatedClause, clause);
+					OperatedClause clause = new TermOperatedClause(postingReader, true);
+					
+					if(featureAttribute != null){
+						if(featureAttribute.type() == FeatureAttribute.FeatureType.MAIN){
+							if(operatedClause == null){
+								operatedClause = clause;
+							}else{
+								operatedClause = new AndOperatedClause(operatedClause, clause);
+							}
+						}else{
+							if(operatedClause == null){
+								//FIXME 첨에 main이 아닌 텀이 나오면 ignore 버린다.
+								//TODO 가지고 있다가 나중에 추가해주도록...
+							}else{
+								operatedClause = new WeightedOperatedClause(operatedClause, clause);
+							}
+						}
 					}
-				}
+					
+					
+					
+					
+					
+//				}
 				
 			}
 		} catch (IOException e) {

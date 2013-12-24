@@ -26,7 +26,9 @@ public abstract class SelectableIndexesReader<T extends ReferencableIndexReader,
 
 		for (int i = 0; i < fieldList.length; i++) {
 			String fieldId = fieldList[i];
-
+			if (fieldId == null) {
+				continue;
+			}
 			T reader = null;
 			for (int j = 0; j < indexSettingList.size(); j++) {
 				S setting = indexSettingList.get(j);
@@ -40,7 +42,6 @@ public abstract class SelectableIndexesReader<T extends ReferencableIndexReader,
 			}
 
 			indexRef.add(fieldId, reader);
-			logger.debug("Select Index2 field={} r={}", fieldId, reader);
 
 			if (reader == null) {
 				logger.error("색인된 필드를 찾지못함.>>{}", fieldId);
