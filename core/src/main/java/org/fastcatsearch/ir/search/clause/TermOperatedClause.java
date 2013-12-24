@@ -38,7 +38,9 @@ public class TermOperatedClause implements OperatedClause {
 	}
 
 	public boolean next(RankInfo docInfo) {
-		
+		if(postingReader == null){
+			return false;
+		}
 		if(postingReader.hasNext()){
 			PostingDoc postingDoc = postingReader.next();
 			docInfo.init(postingDoc.docNo(), ignoreTermFreq ? postingReader.weight() : postingReader.weight() + (postingDoc.tf() - 1));
@@ -59,7 +61,9 @@ public class TermOperatedClause implements OperatedClause {
 	}
 	@Override
 	public void close() {
-		
+		if(postingReader == null){
+			postingReader.close();
+		}
 	}
 
 }
