@@ -91,33 +91,47 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		}
 		
 		CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
+		OffsetAttribute offsetAttribute = tokenStream.getAttribute(OffsetAttribute.class);
+		
 		while(tokenStream.incrementToken()) {
 			
-			String termString = null;
+			String termString = new String(charTermAttribute.buffer(), 0, charTermAttribute.length());
 			
 			float score = 0f;
 			
 			if(featureAttribute!=null) {
 				if(featureAttribute.type()==FeatureAttribute.FeatureType.MAIN) {
+					logger.trace("MAIN WORD {}", termString);
 					score = 3.0f;
 				} else if(featureAttribute.type()==FeatureAttribute.FeatureType.ADDITION) {
+					logger.trace("ADDITION WORD {}", termString);
 					score = 1.0f;
+				} else if(featureAttribute.type()==FeatureAttribute.FeatureType.APPEND) {
+					logger.trace("APPEND WORD {}", termString);
+					score = 0f;
+				} else if(featureAttribute.type()==FeatureAttribute.FeatureType.NULL) {
+					logger.trace("NULL {}", termString);
+					score = 0f;
 				}
 			}
 			
-			termString = new String(charTermAttribute.buffer(), 0, charTermAttribute.length());
-			terms.add(new WeightedTerm(score, termString));
-			
-			logger.trace("charTermAttribute : {}", termString);
-			
-			if (termAttribute != null) {
-				CharsRef charRef = termAttribute.charsRef();
-				if(charRef!=null) {
-					termString = charRef.toString();
-				} else {
-					termString = "";
-				}
+			if(score > 0) {
 				terms.add(new WeightedTerm(score, termString));
+				logger.trace("charTermAttribute : {}", termString);
+				
+				if (termAttribute != null) {
+					if (!(offsetAttribute.startOffset() > 0 && termAttribute
+							.charsRef().length() == 1)) {
+						
+						CharsRef charRef = termAttribute.charsRef();
+						if(charRef!=null) {
+							termString = charRef.toString();
+						} else {
+							termString = "";
+						}
+						terms.add(new WeightedTerm(score, termString));
+					}
+				}
 			}
 		}
 		
@@ -200,7 +214,9 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 			charTermAttributeLocal.copyBuffer(buffer, 0, length);
 			charTermAttributeLocal.setLength(length);
 			
-			if( charTermAttribute.buffer()[0] == pText.charAt(offsetAttribute.startOffset())
+			if( charTermAttribute.length() > 0 
+					&& charTermAttribute.buffer()[0] == 
+						pText.charAt(offsetAttribute.startOffset())
 					&& offsetAttribute.startOffset() + length <= pText.length()) {
 				offsetAttributeLocal.setOffset(offsetAttribute.startOffset(),
 						offsetAttribute.startOffset() + length);
@@ -209,12 +225,12 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 						offsetAttribute.endOffset());
 			}
 			
-			buffer = charsRefTermAttribute.charsRef().chars;
-			offset = charsRefTermAttribute.charsRef().offset;
-			length = charsRefTermAttribute.charsRef().length;
-			charsRefTermAttributeLocal.setBuffer(buffer, offset, length);
-			
-			
+			if(charsRefTermAttribute!=null) {
+				buffer = charsRefTermAttribute.charsRef().chars;
+				offset = charsRefTermAttribute.charsRef().offset;
+				length = charsRefTermAttribute.charsRef().length;
+				charsRefTermAttributeLocal.setBuffer(buffer, offset, length);
+			}
 			return ret;
 		}
 		
