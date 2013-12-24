@@ -200,7 +200,8 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 			charTermAttributeLocal.copyBuffer(buffer, 0, length);
 			charTermAttributeLocal.setLength(length);
 			
-			if(charTermAttribute.buffer()[0] == pText.charAt(offsetAttribute.startOffset())) {
+			if( charTermAttribute.buffer()[0] == pText.charAt(offsetAttribute.startOffset())
+					&& offsetAttribute.startOffset() + length <= pText.length()) {
 				offsetAttributeLocal.setOffset(offsetAttribute.startOffset(),
 						offsetAttribute.startOffset() + length);
 			} else {
