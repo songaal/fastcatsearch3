@@ -142,7 +142,6 @@ public class SegmentSearcher {
 				RankInfo rankInfo = new RankInfo();
 				if (operatedClause.next(rankInfo)) {
 					rankInfoList[nread] = rankInfo;
-					logger.debug("search rankInfo {} ", rankInfo);
 				} else {
 					exausted = true;
 					break;
@@ -167,7 +166,7 @@ public class SegmentSearcher {
 					count++;
 //					logger.debug("ok docNo = {}", rankInfo.docNo());
 				} else {
-					logger.debug("deleted docNo = {}", rankInfo.docNo());
+//					logger.debug("deleted docNo = {}", rankInfo.docNo());
 				}
 
 			}

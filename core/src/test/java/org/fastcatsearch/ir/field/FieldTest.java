@@ -15,13 +15,22 @@ import org.fastcatsearch.ir.field.IntField;
 import org.fastcatsearch.ir.io.BytesDataInput;
 import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FieldTest {
-
+	protected static Logger logger = LoggerFactory.getLogger(FieldTest.class);
 	
 	private BytesDataInput write(Field field) throws IOException{
 		BytesDataOutput output = new BytesDataOutput();
 		field.writeTo(output);
+		byte[] array = output.array();
+		return new BytesDataInput(array, 0, array.length);
+	}
+	
+	private BytesDataInput writeFixedDataTo(Field field) throws IOException{
+		BytesDataOutput output = new BytesDataOutput();
+		field.writeFixedDataTo(output);
 		byte[] array = output.array();
 		return new BytesDataInput(array, 0, array.length);
 	}
@@ -96,6 +105,19 @@ public class FieldTest {
 		assertEquals(value, value2);
 		
 		System.out.println(value2);
+		
+	}
+	
+	@Test
+	public void testDatetimeFieldFilter() throws IOException, FieldDataParseException {
+		
+		String value = "2001-11-17 11";
+		DatetimeField field = new DatetimeField("A", value);
+		BytesDataOutput output = new BytesDataOutput();
+		field.writeFixedDataTo(output);
+		byte[] array = output.array();
+		
+		logger.info("{}", array);
 		
 	}
 	

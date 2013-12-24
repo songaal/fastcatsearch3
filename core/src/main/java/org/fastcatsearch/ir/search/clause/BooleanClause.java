@@ -133,7 +133,6 @@ public class BooleanClause implements OperatedClause {
 					}else{
 						operatedClause = new AndOperatedClause(operatedClause, clause);
 					}
-					logger.debug(">>> operatedClause = {}", operatedClause);
 				}
 				
 			}

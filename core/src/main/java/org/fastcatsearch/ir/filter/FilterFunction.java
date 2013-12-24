@@ -39,7 +39,6 @@ public abstract class FilterFunction {
 	protected BytesRef[] patternList;
 	protected BytesRef[] endPatternList;
 	protected int boostScore;
-//	protected int fieldByteSize;
 	protected boolean isBoostFunction;
 	
 /*	case MATCH:
@@ -55,7 +54,6 @@ public abstract class FilterFunction {
 	public FilterFunction(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting, boolean isBoostFunction) throws FilterException{
 		this.fieldSetting = fieldSetting;
 		this.isBoostFunction = isBoostFunction;
-//		this.fieldByteSize = fieldSetting.getByteSize();
 		patternCount = filter.patternLength();
 		patternList = new BytesRef[patternCount];
 		endPatternList = new BytesRef[patternCount];
@@ -73,12 +71,12 @@ public abstract class FilterFunction {
 				if(isIgnoreCase){
 					pattern = pattern.toUpperCase();
 				}
-				logger.debug("Filter Pattern2 {}", pattern);
 				Field f = fieldSetting.createPatternField(pattern);
 				int patternByteSize = fieldSetting.getByteSize();
 				BytesDataOutput arrayOutput = new BytesDataOutput(patternByteSize);
 				f.writeFixedDataTo(arrayOutput);
 				patternList[j] = arrayOutput.bytesRef();
+				logger.debug("Filter Pattern>>> {} > {}", pattern, patternList[j]);
 				
 				if(filter.isEndPatternExist()){
 					pattern = filter.endPattern(j);
@@ -108,10 +106,6 @@ public abstract class FilterFunction {
 	 * @return true : 포함됨, false : 포함되지 않음.
 	 */
 	public abstract boolean filtering(RankInfo rankInfo, DataRef dataRef) throws IOException;
-		
-//	public int getFieldByteSize(){
-//		return fieldByteSize;
-//	}
 	
 	public BytesRef[] getPatternList(){
 		return patternList;

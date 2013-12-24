@@ -83,7 +83,7 @@ public class GroupDataMerger {
 					prevEntry.merge(entry);
 				} else {
 					// 다른 그룹출현.
-					logger.debug("groupEntryList.add2 {}", prevEntry);
+//					logger.debug("groupEntryList.add2 {}", prevEntry);
 					groupEntryList.add(prevEntry);
 					prevEntry = entry;
 				}
@@ -96,7 +96,7 @@ public class GroupDataMerger {
 				heapList[groupNum].heapify();
 			}
 			if(prevEntry != null){
-				logger.debug("groupEntryList.add3 {}", prevEntry);
+//				logger.debug("groupEntryList.add3 {}", prevEntry);
 				groupEntryList.add(prevEntry);
 			}
 
