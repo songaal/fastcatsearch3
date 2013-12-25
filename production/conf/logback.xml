@@ -59,6 +59,9 @@
 		<appender-ref ref="systemlog" />
 	</logger>
 	
+	<logger name="org.apache.ibatis" level="INFO" additivity="false" />
+	<logger name="org.fastcatsearch.db.mapper" level="INFO" additivity="false" />
+	
 	<root level="debug">
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="systemlog" />
