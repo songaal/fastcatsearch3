@@ -1,28 +1,15 @@
 package org.fastcatsearch.http;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicLong;
 
-import org.fastcatsearch.cluster.Node;
-import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.module.AbstractModule;
 import org.fastcatsearch.module.ModuleException;
 import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.transport.NetworkExceptionHelper;
-import org.fastcatsearch.transport.NodeChannels;
-import org.fastcatsearch.transport.TransportModule;
-import org.fastcatsearch.transport.common.ByteCounter;
-import org.fastcatsearch.transport.common.FileChannelHandler;
-import org.fastcatsearch.transport.common.MessageChannelHandler;
-import org.fastcatsearch.transport.common.MessageCounter;
-import org.fastcatsearch.transport.common.ReadableFrameDecoder;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelHandler;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -38,8 +25,6 @@ import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.jboss.netty.handler.timeout.ReadTimeoutException;
 
 public class HttpTransportModule extends AbstractModule {
-
-	private final AtomicLong requestIds = new AtomicLong();
 
 	private volatile Channel serverChannel;
 	private volatile ServerBootstrap serverBootstrap;
@@ -61,10 +46,6 @@ public class HttpTransportModule extends AbstractModule {
 
 	private final int port;
 
-	private final String bindHost;
-
-	private final String publishHost;
-
 	private final Boolean tcpNoDelay;
 
 	private final Boolean tcpKeepAlive;
@@ -76,13 +57,6 @@ public class HttpTransportModule extends AbstractModule {
 
 	final int maxCumulationBufferCapacity; // Integer.MAX_VALUE가 최대이다. 넘는다면 재설정해준다.
 	final int maxCompositeBufferComponents;
-
-	private ExecutorService executorService;
-	private int bossCount;
-
-	private ConcurrentHashMap<Node, NodeChannels> connectedNodes;
-
-	private ConcurrentHashMap<Long, ResultFuture> resultFutureMap;
 
 	private volatile HttpServerAdapter httpServerAdapter;
 
@@ -100,8 +74,6 @@ public class HttpTransportModule extends AbstractModule {
 		this.maxCompositeBufferComponents = settings.getInt("max_composite_buffer_components", -1);
 		this.workerCount = settings.getInt("worker_count", Runtime.getRuntime().availableProcessors() * 2);
 		
-		this.bindHost = settings.getString("bind_host", settings.getString("http.bind_host", settings.getString("http.host")));
-		this.publishHost = settings.getString("publish_host", settings.getString("http.publish_host", settings.getString("http.host")));
 		this.tcpNoDelay = settings.getBoolean("tcp_no_delay", true);
 		this.tcpKeepAlive = settings.getBoolean("tcp_keep_alive", true);
 		this.reuseAddress = settings.getBoolean("reuse_address", true);
@@ -131,9 +103,6 @@ public class HttpTransportModule extends AbstractModule {
 
 		serverChannel = serverBootstrap.bind(new InetSocketAddress(port));
 		logger.debug("Bound to port [{}]", port);
-
-		connectedNodes = new ConcurrentHashMap<Node, NodeChannels>();
-		resultFutureMap = new ConcurrentHashMap<Long, ResultFuture>();
 
 		return true;
 	}
