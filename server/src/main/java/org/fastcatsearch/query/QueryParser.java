@@ -173,7 +173,13 @@ public class QueryParser {
 		} else if (Query.EL.se == el) {
 
 			if (value.length() > 0) {
-				Clause clause = (Clause) makeClause(value, query);
+				Object obj = makeClause(value, query);
+				Clause clause = null;
+				if(obj instanceof Term){
+					clause = new Clause((Term) obj);
+				}else{
+					clause = (Clause) makeClause(value, query);
+				}
 				query.setClause(clause);
 			}
 		} else if (Query.EL.ft == el) {

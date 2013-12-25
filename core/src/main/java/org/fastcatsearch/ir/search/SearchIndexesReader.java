@@ -116,7 +116,6 @@ public class SearchIndexesReader implements Cloneable {
 		String[] indexFieldIdList = term.indexFieldId();
 
 		OperatedClause totalClause = null;
-		String primaryKeyId = schema.schemaSetting().getPrimaryKeySetting().getId();
 
 		for (int i = 0; i < indexFieldIdList.length; i++) {
 			String indexFieldId = indexFieldIdList[i];
@@ -127,6 +126,8 @@ public class SearchIndexesReader implements Cloneable {
 			int indexFieldSequence = schema.getSearchIndexSequence(indexFieldId);
 			logger.debug("getSearchIndexSequence {} > {}", indexFieldId, indexFieldSequence);
 			if (indexFieldSequence < 0) {
+				String primaryKeyId = schema.schemaSetting().getPrimaryKeySetting().getId();
+				logger.debug("getSearchIndexSequence primaryKeyId > {}", primaryKeyId);
 				if (indexFieldId.equals(primaryKeyId)) {
 					isPrimaryKeyField = true;
 				} else {
