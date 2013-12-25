@@ -19,7 +19,11 @@ package org.fastcatsearch.ir.search.clause;
 import org.fastcatsearch.ir.query.RankInfo;
 
 
-
+/**
+ * TODO 아직미구현. 현재는 AndOperatedClause와 같음. 
+ * FeatureType.Append 인 앞쪽에 붙어야하는 텀들은 left join방식으로 앞쪽에 가중치만 올려준다.
+ * 
+ * */
 public class AppendOperatedClause implements OperatedClause {
 	private OperatedClause clause1;
 	private OperatedClause clause2;
