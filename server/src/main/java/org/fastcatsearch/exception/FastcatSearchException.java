@@ -70,6 +70,6 @@ public class FastcatSearchException extends Exception {
 
 	@Override
 	public String toString(){
-		return errorMessage + " [Cause]" + (cause != null ? cause.getMessage() : null);
+		return getClass().getName() + ": " +errorMessage + " [Cause]" + (cause != null ? cause.getMessage() : null);
 	}
 }

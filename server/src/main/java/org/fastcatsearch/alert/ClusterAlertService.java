@@ -99,26 +99,31 @@ public class ClusterAlertService extends AbstractService {
 		if (value != null) {
 			// 이미 발생한 에러면.
 			count = value.incrementCount();
-			logger.debug("handleException1 > {} : {}", count, e.getMessage());
+			logger.debug("handleException1 > {} : {}", count, e.toString());
 		} else {
 			exceptionMap.put(key, key);
 			key.setTime();
 			count = key.getCount();
 			//새로추가.
 			exceptionList.add(key);
-			logger.debug("handleException2 > {} : {}", count, e.getMessage());
+			logger.debug("handleException2 > {} : {}", count, e.toString());
 		}
 
 		if (count > 1) {
 			// 두번째부터는 최종스택만 출력한다.
 			if (e instanceof FastcatSearchException) {
-				logger.error("[{}] [{}] {}", node, count, e.getMessage());
+				logger.error("[{}] [{}] {}", node, count, e.toString());
 			} else {
-				logger.error("[{}] [{}] {}", node, count, e.getStackTrace()[0]);
+				StackTraceElement[] els = e.getStackTrace();
+				if(els.length > 0){
+					logger.error("[{}] [{}] {} {}", node, count, e.toString(), els[0]);
+				}else{
+					logger.error("[{}] [{}] {}", node, count, e.toString());
+				}
 			}
 		} else {
 			if (e instanceof FastcatSearchException) {
-				logger.error("[" + node + "] exception : {}", e.getMessage());
+				logger.error("[" + node + "] {}", e.toString());
 			} else {
 				logger.error("[" + node + "] exception", e);
 			}
@@ -185,18 +190,17 @@ public class ClusterAlertService extends AbstractService {
 		private int hash;
 		private Node node;
 		private Throwable e;
-		private StackTraceElement el;
+//		private StackTraceElement el;
 		private long time;
 		private AtomicInteger count;
 		
 		public NodeExceptionInfo(Node node, Throwable e) {
 			this.node = node;
 			this.e = e;
-			e.getStackTrace();
-			StackTraceElement[] els = e.getStackTrace();
-			if(els != null && els.length > 0){
-				this.el = els[0];
-			}
+//			StackTraceElement[] els = e.getStackTrace();
+//			if(els != null && els.length > 0){
+//				this.el = els[0];
+//			}
 			count = new AtomicInteger(1);
 		}
 
@@ -227,10 +231,7 @@ public class ClusterAlertService extends AbstractService {
 		public int hashCode(){
 			int h = hash;
 			if(h == 0){
-				h = node.toString().hashCode() * 31;
-				if(el != null){
-					h += el.hashCode();
-				}
+				h = node.toString().hashCode() * 31 + e.hashCode();
 				hash = h;
 			}
 			return hash;
@@ -239,7 +240,7 @@ public class ClusterAlertService extends AbstractService {
 		public boolean equals(Object obj) {
 			if (obj instanceof NodeExceptionInfo) {
 				NodeExceptionInfo key = (NodeExceptionInfo) obj;
-				return this.node.equals(key.node) && (el != null ? this.el.equals(key.el) : true);
+				return this.node.equals(key.node) && this.e.equals(key.e);
 			}
 			return false;
 		}
