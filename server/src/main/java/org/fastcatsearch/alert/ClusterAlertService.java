@@ -192,7 +192,11 @@ public class ClusterAlertService extends AbstractService {
 		public NodeExceptionInfo(Node node, Throwable e) {
 			this.node = node;
 			this.e = e;
-			this.el = e.getStackTrace()[0];
+			e.getStackTrace();
+			StackTraceElement[] els = e.getStackTrace();
+			if(els != null && els.length > 0){
+				this.el = els[0];
+			}
 			count = new AtomicInteger(1);
 		}
 
@@ -223,7 +227,10 @@ public class ClusterAlertService extends AbstractService {
 		public int hashCode(){
 			int h = hash;
 			if(h == 0){
-				h = node.toString().hashCode() * 31 + el.hashCode();
+				h = node.toString().hashCode() * 31;
+				if(el != null){
+					h += el.hashCode();
+				}
 				hash = h;
 			}
 			return hash;
@@ -232,7 +239,7 @@ public class ClusterAlertService extends AbstractService {
 		public boolean equals(Object obj) {
 			if (obj instanceof NodeExceptionInfo) {
 				NodeExceptionInfo key = (NodeExceptionInfo) obj;
-				return this.node.equals(key.node) && this.el.equals(key.el);
+				return this.node.equals(key.node) && (el != null ? this.el.equals(key.el) : true);
 			}
 			return false;
 		}
