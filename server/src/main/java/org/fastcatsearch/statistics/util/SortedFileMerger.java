@@ -16,20 +16,23 @@ import org.slf4j.LoggerFactory;
 public class SortedFileMerger {
 	
 	protected static Logger logger = LoggerFactory.getLogger(SortedFileMerger.class);
-	File[] runFileList;
-	File outputFile;
-	Comparator<String> comparator;
+	
+	private File[] runFileList;
+	private File outputFile;
+	private Comparator<String> comparator;
 	
 	public SortedFileMerger(File[] runFileList, File outputFile, Comparator<String> comparator) {
-		
+		this.runFileList = runFileList;
+		this.outputFile = outputFile;
+		this.comparator = comparator;
 	}
 
 	public void merge() {
 		int runSize = runFileList.length;
 		RunEntryReader[] readerList = new RunEntryReader[runSize];
-		MergeEntryReader mergeEntryReader = new MergeEntryReader(readerList);
+		RunEntryMergeReader mergeEntryReader = new RunEntryMergeReader(readerList);
 		
-		//TODO MergeEntryReaderTest를 참조하여 구현..
+		//TODO RunEntryMergeReaderTest를 참조하여 구현..
 		
 		
 	}

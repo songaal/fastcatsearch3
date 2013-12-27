@@ -9,17 +9,17 @@ import org.fastcatsearch.ir.io.DirBufferedReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LogAggregator {
+public class LogAggregator<LogType extends AbstractLog> {
 
 	protected static Logger logger = LoggerFactory.getLogger(LogAggregator.class);
 
 	private File[] inFileList;
-	private List<LogAggregateHandler> logAggregateHandlerList;
+	private List<LogAggregateHandler<LogType>> logAggregateHandlerList;
 	private int runSize;
 	private Set<String> stopWords;
 	private String encoding;
 
-	public LogAggregator(File[] inFileList, List<LogAggregateHandler> logAggregateHandlerList, int runSize, String encoding, Set<String> stopWords) {
+	public LogAggregator(File[] inFileList, List<LogAggregateHandler<LogType>> logAggregateHandlerList, int runSize, String encoding, Set<String> stopWords) {
 		this.inFileList = inFileList;
 		this.logAggregateHandlerList = logAggregateHandlerList;
 		this.runSize = runSize;
@@ -36,7 +36,7 @@ public class LogAggregator {
 			while ((line = lineReader.readLine()) != null) {
 				logger.debug("line > {}", line);
 				// 여러 핸들러가 수행한다.
-				for (LogAggregateHandler h : logAggregateHandlerList) {
+				for (LogAggregateHandler<LogType> h : logAggregateHandlerList) {
 					h.handleLog(line);
 				}
 			}

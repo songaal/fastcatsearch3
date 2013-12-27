@@ -27,16 +27,10 @@ public class LogFileRunEntryReader extends RunEntryReader<LogFileRunEntry> {
 		try {
 			while ((line = reader.readLine()) != null) {
 				logger.debug("[{}] read >> {}", this.hashCode(), line);
-				if (line == null) {
-					// stream의 끝.
-					entry = null;
-					return false;
-				} else {
-					String[] el = line.split("\t");
-					if (el.length == 2) {
-						entry = new LogFileRunEntry(line, el[0], Integer.parseInt(el[1]));
-						return true;
-					}
+				String[] el = line.split("\t");
+				if (el.length == 2) {
+					entry = new LogFileRunEntry(line, el[0], Integer.parseInt(el[1]));
+					return true;
 				}
 			}
 		} catch (Exception e) {

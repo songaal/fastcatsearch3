@@ -19,8 +19,9 @@ public class RealTimePopularKeywordGeneratorTest {
 		File targetDir = new File("src/test/resources/statistics/rt");
 		File tmpDir = new File(targetDir, "tmp");
 		StatisticsSettings statisticsSettings = getStatisticsSettings(stopwords, 1, 1, 1);
+		String fileEncoding = "utf-8";
 		
-		RealTimePopularKeywordGenerator g = new RealTimePopularKeywordGenerator(tmpDir, targetDir, statisticsSettings);
+		RealTimePopularKeywordGenerator g = new RealTimePopularKeywordGenerator(tmpDir, targetDir, statisticsSettings, fileEncoding);
 		
 		g.generate();
 	}

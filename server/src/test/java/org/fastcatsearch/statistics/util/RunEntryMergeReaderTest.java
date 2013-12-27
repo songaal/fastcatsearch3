@@ -7,7 +7,7 @@ import java.io.IOException;
 import org.fastcatsearch.statistics.LogFileRunEntryReader;
 import org.junit.Test;
 
-public class MergeEntryReaderTest {
+public class RunEntryMergeReaderTest {
 
 	@Test
 	public void testLogFileMerge() throws IOException {
@@ -21,7 +21,7 @@ public class MergeEntryReaderTest {
 		});
 
 		LogFileRunEntryReader[] entryReaderList = getReaderList(fileList);
-		MergeEntryReader<LogFileRunEntry> reader = new MergeEntryReader<LogFileRunEntry>(entryReaderList);
+		RunEntryMergeReader<LogFileRunEntry> reader = new RunEntryMergeReader<LogFileRunEntry>(entryReaderList);
 
 		try {
 			LogFileRunEntry entry = null;

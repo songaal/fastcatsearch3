@@ -3,8 +3,8 @@ package org.fastcatsearch.statistics.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MergeEntryReader<E extends RunEntry> {
-	protected static Logger logger = LoggerFactory.getLogger(MergeEntryReader.class);
+public class RunEntryMergeReader<E extends RunEntry> {
+	protected static Logger logger = LoggerFactory.getLogger(RunEntryMergeReader.class);
 	
 	private int[] heap;
 	private RunEntryReader<E>[] reader;
@@ -13,7 +13,7 @@ public class MergeEntryReader<E extends RunEntry> {
 	private E entry;
 	private E entryOld;
 
-	public MergeEntryReader(RunEntryReader<E>[] entryReaderList) {
+	public RunEntryMergeReader(RunEntryReader<E>[] entryReaderList) {
 		this.reader = entryReaderList;
 
 		runSize = entryReaderList.length;

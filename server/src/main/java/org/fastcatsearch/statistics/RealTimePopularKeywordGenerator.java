@@ -8,9 +8,13 @@ import java.util.Set;
 
 import org.apache.commons.io.FilenameUtils;
 import org.fastcatsearch.settings.StatisticsSettings;
+import org.fastcatsearch.statistics.SearchLogFormatReader.SearchLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 실시간 인기키워드를 만드는 클래스.
+ * */
 public class RealTimePopularKeywordGenerator {
 
 	protected static Logger logger = LoggerFactory.getLogger(RealTimePopularKeywordGenerator.class);
@@ -25,16 +29,21 @@ public class RealTimePopularKeywordGenerator {
 	public RealTimePopularKeywordGenerator() {
 	}
 
-	public RealTimePopularKeywordGenerator(File tmpDir, File targetDir, StatisticsSettings statisticsSettings) {
+	public RealTimePopularKeywordGenerator(File tmpDir, File targetDir, StatisticsSettings statisticsSettings, String fileEncoding) {
 		this.tmpDir = tmpDir;
 		this.targetDir = targetDir;
 		this.statisticsSettings = statisticsSettings;
+		this.fileEncoding = fileEncoding;
 	}
 
 	private File getLogFile(File dir, int number) {
 		return new File(dir, number + ".log");
 	}
 
+	/*
+	 * 0.log -> 1.log 로 {maxNumber}.log 까지 파일명을 shift한다.
+	 * 최종적으로 0.log파일은 없어진다.
+	 * */
 	protected void rollingByNumber(File targetDir, int maxNumber) {
 		File lastFile = getLogFile(targetDir, maxNumber - 1);
 		if (lastFile.exists()) {
@@ -75,13 +84,13 @@ public class RealTimePopularKeywordGenerator {
 		});
 		
 		File outputFile = new File(targetDir, "0.log");
-		List<LogAggregateHandler> handlerList = new ArrayList<LogAggregateHandler>();
+		List<LogAggregateHandler<SearchLog>> handlerList = new ArrayList<LogAggregateHandler<SearchLog>>();
 		handlerList.add(new PopularKeywordLogAggregateHandler(runSize, fileEncoding));
-		LogAggregator tmpLogAggregator = new LogAggregator(inFileList, handlerList, runSize, fileEncoding, stopWords);
+		LogAggregator<SearchLog> tmpLogAggregator = new LogAggregator<SearchLog>(inFileList, handlerList, runSize, fileEncoding, stopWords);
 		tmpLogAggregator.aggregate(outputFile); //0.log
 		
 
-		// 3. targetDir내 파일 머장 합산(최근갯수에 가중치를 곱한다.*6 *5 *4 ...)하여 tmp.log로 기. 키워드정렬. 
+		// 3. targetDir내 파일 머장 합산(최근갯수에 가중치를 곱한다.*6 *5 *4 ...)하여 tmp.log로 기록. 키워드로 정렬. 
 		// (제외어 파일 사용)
 		inFileList = targetDir.listFiles(new FilenameFilter() {
 			@Override
@@ -94,9 +103,9 @@ public class RealTimePopularKeywordGenerator {
 			}
 		});
 		File tmpFile = new File(targetDir, "tmp.log");
-		List<LogAggregateHandler> handlerList2 = new ArrayList<LogAggregateHandler>();
+		List<LogAggregateHandler<SearchLog>> handlerList2 = new ArrayList<LogAggregateHandler<SearchLog>>();
 		handlerList2.add(new PopularKeywordLogAggregateHandler(runSize, fileEncoding));
-		LogAggregator logAggregator = new LogAggregator(inFileList, handlerList2, runSize, fileEncoding, stopWords);
+		LogAggregator<SearchLog> logAggregator = new LogAggregator<SearchLog>(inFileList, handlerList2, runSize, fileEncoding, stopWords);
 		logAggregator.aggregate(tmpFile); //tmp.log
 
 		// 4. 기존 last.log를 last.log.bak으로 이동하고,

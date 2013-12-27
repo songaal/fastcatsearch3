@@ -48,6 +48,7 @@ public class CollectRealTimePopularKeywordMainJob extends MasterNodeJob {
 //			}
 //		}
 
+		String fileEncoding = "utf-8";
 		// 다 받으면 해당 위치의 파일들을 하나의 파일로 모두 모아서
 		for (CategoryStatistics categoryStatistics : list) {
 			Category category = categoryStatistics.category();
@@ -58,7 +59,7 @@ public class CollectRealTimePopularKeywordMainJob extends MasterNodeJob {
 				File targetDir = environment.filePaths().getStatisticsRoot().file(category.getId(), "rt");
 				File tmpDir = new File(targetDir, "tmp");
 				StatisticsSettings statisticsSettings = searchStatisticsService.statisticsSettings();
-				RealTimePopularKeywordGenerator g = new RealTimePopularKeywordGenerator(tmpDir, targetDir, statisticsSettings); // TODO
+				RealTimePopularKeywordGenerator g = new RealTimePopularKeywordGenerator(tmpDir, targetDir, statisticsSettings, fileEncoding); // TODO
 				g.generate();
 			}
 		}

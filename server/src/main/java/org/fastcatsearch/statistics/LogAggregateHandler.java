@@ -14,6 +14,16 @@ import org.fastcatsearch.statistics.util.SortedFileMerger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * LogReader를 이용해 handleLog(String line) 를 통해 들어온 로그 1줄을 파싱해 읽어들여,
+ * aggregateMap에 카운트를 올려준다. (통계작업)
+ * 메모리가 커질수 있으므로, aggregateMap.size()가 미리정해놓은 runSize보다 커지면 파일로 flush한다.
+ * flush한 run파일은 comparator 를 통해 정렬하여 기록된다.
+ * 마지막 done()호출시 run들을 파일병합하여 하나의 정렬된 파일로 만든다.
+ * 
+ * 하위클래스에서는 source 로그파일을 읽어들이는 reader를 정의하고, output을 위한 comparator 를 정의한다. 
+ * 
+ * */
 public abstract class LogAggregateHandler<LogType extends AbstractLog> {
 	protected static Logger logger = LoggerFactory.getLogger(LogAggregateHandler.class);
 	

@@ -14,6 +14,7 @@ public class StatisticsSettings {
 	private PopularKeywordConfig popularKeywordConfig;
 	private RelateKeywordConfig relateKeywordConfig;
 	private String stopwords;
+	private String fileEncoding;
 	
 	private List<Category> categoryList;
 	
@@ -48,6 +49,15 @@ public class StatisticsSettings {
 
 	public void setStopwords(String stopwords) {
 		this.stopwords = stopwords;
+	}
+	
+	@XmlElement
+	public String getFileEncoding() {
+		return fileEncoding;
+	}
+
+	public void setFileEncoding(String fileEncoding) {
+		this.fileEncoding = fileEncoding;
 	}
 
 	@XmlElementWrapper(name="category-list")
