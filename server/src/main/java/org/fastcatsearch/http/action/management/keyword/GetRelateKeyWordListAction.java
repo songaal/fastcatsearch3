@@ -15,7 +15,7 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
 @ActionMapping(value="/management/keyword/relate/list", authority=ActionAuthority.Dictionary)
-public class GetRecommendKeyWordListAction extends AuthAction {
+public class GetRelateKeyWordListAction extends AuthAction {
 
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
@@ -55,8 +55,9 @@ public class GetRecommendKeyWordListAction extends AuthAction {
 				List<RelateKeywordVO> list = relateKeywordMapper.getEntryListByWhereCondition(categoryId, whereCondition, start, start+length);
 				for(RelateKeywordVO vo : list) {
 					
-					resultWriter.object().key("keyword").value(vo.getKeyword())
-						.key("value").value(vo.getValue()).endObject();
+					resultWriter.object().key("ID").value(vo.getId())
+						.key("KEYWORD").value(vo.getKeyword())
+						.key("VALUE").value(vo.getValue()).endObject();
 				}
 			}
 		}
