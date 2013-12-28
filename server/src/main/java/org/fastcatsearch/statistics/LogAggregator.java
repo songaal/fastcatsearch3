@@ -3,9 +3,9 @@ package org.fastcatsearch.statistics;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 
 import org.fastcatsearch.ir.io.DirBufferedReader;
+import org.fastcatsearch.statistics.log.AbstractLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,19 +14,14 @@ public class LogAggregator<LogType extends AbstractLog> {
 	protected static Logger logger = LoggerFactory.getLogger(LogAggregator.class);
 
 	private File[] inFileList;
-	private List<LogAggregateHandler<LogType>> logAggregateHandlerList;
-	private int runSize;
-	private Set<String> stopWords;
 	private String encoding;
+	private List<LogAggregateHandler<LogType>> logAggregateHandlerList;
 
-	public LogAggregator(File[] inFileList, List<LogAggregateHandler<LogType>> logAggregateHandlerList, int runSize, String encoding, Set<String> stopWords) {
+	public LogAggregator(File[] inFileList, String encoding, List<LogAggregateHandler<LogType>> logAggregateHandlerList) {
 		this.inFileList = inFileList;
-		this.logAggregateHandlerList = logAggregateHandlerList;
-		this.runSize = runSize;
 		this.encoding = encoding;
-		this.stopWords = stopWords;
+		this.logAggregateHandlerList = logAggregateHandlerList;
 	}
-
 
 	public void aggregate(File outputFile) {
 
@@ -40,9 +35,12 @@ public class LogAggregator<LogType extends AbstractLog> {
 					h.handleLog(line);
 				}
 			}
+			
+			for (LogAggregateHandler<LogType> h : logAggregateHandlerList) {
+				h.done();
+			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("", e);
 		}
 	}
 

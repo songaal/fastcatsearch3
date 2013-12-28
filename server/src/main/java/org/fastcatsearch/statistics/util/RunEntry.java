@@ -18,4 +18,6 @@ public abstract class RunEntry implements Comparable {
 	
 	public abstract void merge(RunEntry other);
 	
+	@Override
+	public abstract boolean equals(Object obj);
 }

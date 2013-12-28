@@ -3,15 +3,15 @@ package org.fastcatsearch.statistics.util;
 /**
  * 메모리에 합산된 키워드별 갯수 데이터의 일부를 flush한 파일의 한 Entry를 나타낸다. 
  * */
-public class LogFileRunEntry extends RunEntry {
+public class KeyCountRunEntry extends RunEntry {
 	private String key;
 	private int count;
 
-	public LogFileRunEntry(){
+	public KeyCountRunEntry(){
 		super(null);
 	}
 	
-	public LogFileRunEntry(String rawLine, String key, int count) {
+	public KeyCountRunEntry(String rawLine, String key, int count) {
 		super(rawLine);
 		this.key = key;
 		this.count = count;
@@ -30,7 +30,7 @@ public class LogFileRunEntry extends RunEntry {
 		if(key == null){
 			return 1;
 		}
-		LogFileRunEntry e = (LogFileRunEntry) o;
+		KeyCountRunEntry e = (KeyCountRunEntry) o;
 		if(e.key == null){
 			return -1;
 		}
@@ -40,8 +40,19 @@ public class LogFileRunEntry extends RunEntry {
 
 	@Override
 	public void merge(RunEntry other) {
-		LogFileRunEntry o = (LogFileRunEntry) other;
+		KeyCountRunEntry o = (KeyCountRunEntry) other;
 		count += o.count;
+	}
+	
+	@Override
+	public String toString(){
+		return getClass().getSimpleName()+"] "+key + ": "+ count;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		
+		return key.equals(((KeyCountRunEntry)obj).key);
 	}
 
 }

@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 
-import org.fastcatsearch.statistics.LogFileRunEntryReader;
+import org.fastcatsearch.statistics.KeyCountRunEntryReader;
 import org.junit.Test;
 
 public class RunEntryMergeReaderTest {
@@ -20,28 +20,28 @@ public class RunEntryMergeReaderTest {
 			}
 		});
 
-		LogFileRunEntryReader[] entryReaderList = getReaderList(fileList);
-		RunEntryMergeReader<LogFileRunEntry> reader = new RunEntryMergeReader<LogFileRunEntry>(entryReaderList);
+		KeyCountRunEntryReader[] entryReaderList = getReaderList(fileList);
+		RunEntryMergeReader<KeyCountRunEntry> reader = new RunEntryMergeReader<KeyCountRunEntry>(entryReaderList);
 
 		try {
-			LogFileRunEntry entry = null;
+			KeyCountRunEntry entry = null;
 
 			while ((entry = reader.read()) != null) {
 				System.out.println(entry);
 			}
 
 		} finally {
-			for (LogFileRunEntryReader r : entryReaderList) {
+			for (KeyCountRunEntryReader r : entryReaderList) {
 				r.close();
 			}
 		}
 	}
 
-	private LogFileRunEntryReader[] getReaderList(File[] fileList) throws IOException {
-		LogFileRunEntryReader[] list = new LogFileRunEntryReader[fileList.length];
+	private KeyCountRunEntryReader[] getReaderList(File[] fileList) throws IOException {
+		KeyCountRunEntryReader[] list = new KeyCountRunEntryReader[fileList.length];
 		for (int i = 0; i < fileList.length; i++) {
 			File f = fileList[i];
-			list[i] = new LogFileRunEntryReader(f);
+			list[i] = new KeyCountRunEntryReader(f, "utf-8");
 			list[i].next();
 		}
 		return list;

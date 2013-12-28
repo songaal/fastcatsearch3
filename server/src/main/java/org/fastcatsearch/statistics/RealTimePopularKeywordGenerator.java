@@ -8,7 +8,7 @@ import java.util.Set;
 
 import org.apache.commons.io.FilenameUtils;
 import org.fastcatsearch.settings.StatisticsSettings;
-import org.fastcatsearch.statistics.SearchLogFormatReader.SearchLog;
+import org.fastcatsearch.statistics.log.SearchLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +71,7 @@ public class RealTimePopularKeywordGenerator {
 		rollingByNumber(targetDir, MAX_FILE_COUNT);
 
 		// 2. tmpDir내 모든 로그파일을 메모리에 담아 키워드순으로 정렬하여 파일기록(rt/0.log)후 tmp디렉토리 삭제.
-		int runSize = 1000;
+		int runKeySize = 100000;
 		File[] inFileList = tmpDir.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
@@ -85,8 +85,8 @@ public class RealTimePopularKeywordGenerator {
 		
 		File outputFile = new File(targetDir, "0.log");
 		List<LogAggregateHandler<SearchLog>> handlerList = new ArrayList<LogAggregateHandler<SearchLog>>();
-		handlerList.add(new PopularKeywordLogAggregateHandler(runSize, fileEncoding));
-		LogAggregator<SearchLog> tmpLogAggregator = new LogAggregator<SearchLog>(inFileList, handlerList, runSize, fileEncoding, stopWords);
+//		handlerList.add(new PopularKeywordLogAggregateHandler(runKeySize, fileEncoding));
+		LogAggregator<SearchLog> tmpLogAggregator = new LogAggregator<SearchLog>(inFileList, handlerList, runKeySize, fileEncoding, stopWords);
 		tmpLogAggregator.aggregate(outputFile); //0.log
 		
 
@@ -104,8 +104,8 @@ public class RealTimePopularKeywordGenerator {
 		});
 		File tmpFile = new File(targetDir, "tmp.log");
 		List<LogAggregateHandler<SearchLog>> handlerList2 = new ArrayList<LogAggregateHandler<SearchLog>>();
-		handlerList2.add(new PopularKeywordLogAggregateHandler(runSize, fileEncoding));
-		LogAggregator<SearchLog> logAggregator = new LogAggregator<SearchLog>(inFileList, handlerList2, runSize, fileEncoding, stopWords);
+//		handlerList2.add(new PopularKeywordLogAggregateHandler(runKeySize, fileEncoding));
+		LogAggregator<SearchLog> logAggregator = new LogAggregator<SearchLog>(inFileList, handlerList2, runKeySize, fileEncoding, stopWords);
 		logAggregator.aggregate(tmpFile); //tmp.log
 
 		// 4. 기존 last.log를 last.log.bak으로 이동하고,

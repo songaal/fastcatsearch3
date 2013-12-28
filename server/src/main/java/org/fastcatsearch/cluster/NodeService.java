@@ -174,6 +174,10 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 	}
 
 	public ResultFuture sendRequest(final Node node, final Job job) {
+		if(node == null || job == null){
+			return null;
+		}
+		
 		if (node.equals(myNode)) {
 			return JobService.getInstance().offer(job);
 		}

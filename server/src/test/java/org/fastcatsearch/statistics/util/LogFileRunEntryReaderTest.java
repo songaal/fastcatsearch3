@@ -3,7 +3,7 @@ package org.fastcatsearch.statistics.util;
 import java.io.File;
 import java.io.IOException;
 
-import org.fastcatsearch.statistics.LogFileRunEntryReader;
+import org.fastcatsearch.statistics.KeyCountRunEntryReader;
 import org.junit.Test;
 
 public class LogFileRunEntryReaderTest {
@@ -12,7 +12,7 @@ public class LogFileRunEntryReaderTest {
 	public void test() throws IOException {
 		String destDir = "src/test/resources/statistics/rt/test";
 		File file = new File(destDir, "1.log");
-		LogFileRunEntryReader reader = new LogFileRunEntryReader(file);
+		KeyCountRunEntryReader reader = new KeyCountRunEntryReader(file, "utf-8");
 		
 		
 		while(reader.next()){

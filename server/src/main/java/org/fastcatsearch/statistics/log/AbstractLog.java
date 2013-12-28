@@ -1,4 +1,4 @@
-package org.fastcatsearch.statistics;
+package org.fastcatsearch.statistics.log;
 
 public abstract class AbstractLog {
 
