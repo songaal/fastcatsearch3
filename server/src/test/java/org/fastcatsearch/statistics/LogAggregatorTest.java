@@ -36,13 +36,13 @@ public class LogAggregatorTest {
 				}
 			}
 		});
-		File outputFile = new File(targetDir, "0.log");
+		String outputFilename = "0.log";
 		
 		List<LogAggregateHandler<SearchLog>> handlerList = new ArrayList<LogAggregateHandler<SearchLog>>();
-		handlerList.add(new PopularKeywordLogAggregateHandler(targetDir, runKeySize, outputEncoding, banWords));
+		handlerList.add(new PopularKeywordLogAggregateHandler(targetDir, outputFilename, runKeySize, outputEncoding, banWords, 0));
 		
 		LogAggregator<SearchLog> tmpLogAggregator = new LogAggregator<SearchLog>(inFileList, inputEncoding, handlerList);
-		tmpLogAggregator.aggregate(outputFile); 
+		tmpLogAggregator.aggregate(); 
 		
 		
 		

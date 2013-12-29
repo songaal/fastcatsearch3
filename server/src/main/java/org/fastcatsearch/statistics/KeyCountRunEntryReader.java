@@ -35,7 +35,7 @@ public class KeyCountRunEntryReader extends RunEntryReader<KeyCountRunEntry> {
 				String[] el = line.split("\t");
 				if (el.length == 2) {
 					try {
-						entry = new KeyCountRunEntry(line, el[0], Integer.parseInt(el[1]));
+						entry = newKeyCountRunEntry(line, el[0], Integer.parseInt(el[1]));
 					} catch (Exception e) {
 						logger.error("", e);
 					}
@@ -54,6 +54,10 @@ public class KeyCountRunEntryReader extends RunEntryReader<KeyCountRunEntry> {
 		return false;
 	}
 
+	protected KeyCountRunEntry newKeyCountRunEntry(String line, String keyword, int count){
+		 return new KeyCountRunEntry(line, keyword, count);
+	}
+	
 	@Override
 	public void close() {
 		if (reader != null) {

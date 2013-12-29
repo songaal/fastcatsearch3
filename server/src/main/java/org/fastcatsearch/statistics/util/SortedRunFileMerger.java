@@ -16,7 +16,7 @@ public class SortedRunFileMerger implements RunMerger {
 	
 	private File[] runFileList;
 	private AggregationResultWriter writer;
-	private String encoding;
+	protected String encoding;
 	
 	public SortedRunFileMerger(File[] runFileList, String encoding, AggregationResultWriter writer) {
 		this.runFileList = runFileList;
@@ -47,7 +47,7 @@ public class SortedRunFileMerger implements RunMerger {
 		
 	}
 	
-	private KeyCountRunEntryReader[] getReaderList(File[] fileList) throws IOException {
+	protected KeyCountRunEntryReader[] getReaderList(File[] fileList) throws IOException {
 		KeyCountRunEntryReader[] list = new KeyCountRunEntryReader[fileList.length];
 		for (int i = 0; i < fileList.length; i++) {
 			File f = fileList[i];

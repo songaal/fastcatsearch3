@@ -15,28 +15,28 @@ public class LogAggregator<LogType extends AbstractLog> {
 
 	private File[] inFileList;
 	private String encoding;
-	private List<LogAggregateHandler<LogType>> logAggregateHandlerList;
+	private List<LogAggregateHandler<LogType>> handlerList;
 
-	public LogAggregator(File[] inFileList, String encoding, List<LogAggregateHandler<LogType>> logAggregateHandlerList) {
+	public LogAggregator(File[] inFileList, String encoding, List<LogAggregateHandler<LogType>> handlerList) {
 		this.inFileList = inFileList;
 		this.encoding = encoding;
-		this.logAggregateHandlerList = logAggregateHandlerList;
+		this.handlerList = handlerList;
 	}
 
-	public void aggregate(File outputFile) {
+	public void aggregate() {
 
 		try {
 			DirBufferedReader lineReader = new DirBufferedReader(inFileList, encoding);
 			String line = null;
 			while ((line = lineReader.readLine()) != null) {
-				logger.debug("line > {}", line);
+//				logger.debug("line > {}", line);
 				// 여러 핸들러가 수행한다.
-				for (LogAggregateHandler<LogType> h : logAggregateHandlerList) {
+				for (LogAggregateHandler<LogType> h : handlerList) {
 					h.handleLog(line);
 				}
 			}
 			
-			for (LogAggregateHandler<LogType> h : logAggregateHandlerList) {
+			for (LogAggregateHandler<LogType> h : handlerList) {
 				h.done();
 			}
 		} catch (IOException e) {

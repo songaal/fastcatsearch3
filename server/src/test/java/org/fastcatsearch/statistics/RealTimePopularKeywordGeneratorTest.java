@@ -1,35 +1,38 @@
 package org.fastcatsearch.statistics;
 
-import static org.junit.Assert.*;
-
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.fastcatsearch.settings.StatisticsSettings;
 import org.fastcatsearch.settings.StatisticsSettings.PopularKeywordConfig;
 import org.fastcatsearch.settings.StatisticsSettings.RealTimePopularKeywordConfig;
 import org.fastcatsearch.settings.StatisticsSettings.RelateKeywordConfig;
+import org.fastcatsearch.statistics.vo.RankKeyword;
 import org.junit.Test;
 
 public class RealTimePopularKeywordGeneratorTest {
 
 	@Test
-	public void test() {
+	public void test() throws IOException {
 		String stopwords = "무료배송, 쿠폰, 특별할인";
 		File targetDir = new File("src/test/resources/statistics/rt");
-		File tmpDir = new File(targetDir, "tmp");
 		StatisticsSettings statisticsSettings = getStatisticsSettings(stopwords, 1, 1, 1);
 		String fileEncoding = "utf-8";
 		
-		RealTimePopularKeywordGenerator g = new RealTimePopularKeywordGenerator(tmpDir, targetDir, statisticsSettings, fileEncoding);
+		RealTimePopularKeywordGenerator g = new RealTimePopularKeywordGenerator(targetDir, statisticsSettings, fileEncoding);
 		
-		g.generate();
+		List<RankKeyword> result = g.generate();
+		for(RankKeyword keyword : result){
+			System.out.println(keyword);
+		}
+		
 	}
 	
 	@Test
 	public void testRolling() throws IOException {
 		File targetDir = new File("src/test/resources/statistics/rt/test");
-		RealTimePopularKeywordGenerator g = new RealTimePopularKeywordGenerator();
+		RealTimePopularKeywordGenerator g = new RealTimePopularKeywordGenerator(new File("."), null, "");
 		g.rollingByNumber(targetDir, 7);
 		new File(targetDir, "0.log").createNewFile();
 	}
@@ -38,6 +41,8 @@ public class RealTimePopularKeywordGeneratorTest {
 		PopularKeywordConfig popularKeywordConfig = new PopularKeywordConfig();
 		RelateKeywordConfig relateKeywordConfig = new RelateKeywordConfig();
 		realTimePopularKeywordConfig.setMinimumHitCount(rtPopMinHit);
+		realTimePopularKeywordConfig.setRecentLogUsingCount(6);
+		realTimePopularKeywordConfig.setTopCount(10);
 		popularKeywordConfig.setMinimumHitCount(popMinHit);
 		relateKeywordConfig.setMinimumHitCount(relMinHit);
 		

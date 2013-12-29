@@ -15,6 +15,7 @@ public class StatisticsSettings {
 	private RelateKeywordConfig relateKeywordConfig;
 	private String stopwords;
 	private String fileEncoding;
+	private int workingMemoryKeySize;
 	
 	private List<Category> categoryList;
 	
@@ -60,6 +61,15 @@ public class StatisticsSettings {
 		this.fileEncoding = fileEncoding;
 	}
 
+	@XmlElement
+	public int getWorkingMemoryKeySize() {
+		return workingMemoryKeySize;
+	}
+
+	public void setWorkingMemoryKeySize(int workingMemoryKeySize) {
+		this.workingMemoryKeySize = workingMemoryKeySize;
+	}
+	
 	@XmlElementWrapper(name="category-list")
 	@XmlElement(name="category")
 	public List<Category> getCategoryList() {
@@ -132,7 +142,26 @@ public class StatisticsSettings {
 	}
 	
 	public static class RealTimePopularKeywordConfig {
+		private int recentLogUsingCount; //사용할 최근 로그갯수.
+		private int topCount; //상위 몇개를 뽑아낼지.
 		private int minimumHitCount;
+
+		@XmlElement
+		public int getRecentLogUsingCount() {
+			return recentLogUsingCount;
+		}
+
+		public void setRecentLogUsingCount(int recentLogUsingCount) {
+			this.recentLogUsingCount = recentLogUsingCount;
+		}
+		@XmlElement
+		public int getTopCount() {
+			return topCount;
+		}
+
+		public void setTopCount(int topCount) {
+			this.topCount = topCount;
+		}
 
 		@XmlElement
 		public Integer getMinimumHitCount() {
@@ -144,8 +173,18 @@ public class StatisticsSettings {
 		}
 	}
 	public static class PopularKeywordConfig {
+		private int topCount; //상위 몇개를 뽑아낼지.
 		private int minimumHitCount;
 
+		@XmlElement
+		public int getTopCount() {
+			return topCount;
+		}
+
+		public void setTopCount(int topCount) {
+			this.topCount = topCount;
+		}
+		
 		@XmlElement
 		public Integer getMinimumHitCount() {
 			return minimumHitCount;

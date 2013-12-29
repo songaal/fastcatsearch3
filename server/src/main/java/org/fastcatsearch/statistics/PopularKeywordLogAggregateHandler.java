@@ -17,13 +17,13 @@ import org.fastcatsearch.util.FileUtils;
  * */
 public class PopularKeywordLogAggregateHandler extends LogAggregateHandler<SearchLog> {
 
-	private File targetDir;
 	private File runTmpDir;
-
-	public PopularKeywordLogAggregateHandler(File targetDir, int runKeySize, String outputEncoding, Set<String> banWords) {
-		super(new SearchLogParser(), runKeySize, outputEncoding, banWords);
-		this.targetDir = targetDir;
+	private File destFile;
+	public PopularKeywordLogAggregateHandler(File targetDir, String fileName, int runKeySize, String outputEncoding, Set<String> banWords, int minimumHitCount) {
+		super(new SearchLogParser(), runKeySize, outputEncoding, banWords, minimumHitCount);
 		this.runTmpDir = new File(targetDir, "_run");
+		this.destFile = new File(targetDir, fileName);
+		
 		if (!targetDir.exists()) {
 			targetDir.mkdir();
 		}
@@ -42,7 +42,6 @@ public class PopularKeywordLogAggregateHandler extends LogAggregateHandler<Searc
 	protected boolean checkNeedMerge(int flushCount) {
 		if (flushCount == 1) {
 			File srcFile = getRunFile(0);
-			File destFile = new File(targetDir, "0.log");
 			if(destFile.exists()){
 				destFile.delete();
 			}
@@ -59,14 +58,13 @@ public class PopularKeywordLogAggregateHandler extends LogAggregateHandler<Searc
 
 	@Override
 	protected RunMerger newFinalMerger(String encoding, int flushCount) {
-		File file = new File(targetDir, "0.log");
 
 		File[] runFileList = new File[flushCount];
 		for (int i = 0; i < flushCount; i++) {
 			runFileList[i] = getRunFile(i);
 		}
 
-		AggregationResultWriter writer = new AggregationResultFileWriter(file, encoding);
+		AggregationResultWriter writer = new AggregationResultFileWriter(destFile, encoding, minimumHitCount);
 		return new SortedRunFileMerger(runFileList, encoding, writer);
 	}
 

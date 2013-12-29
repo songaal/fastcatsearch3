@@ -32,13 +32,15 @@ public abstract class LogAggregateHandler<LogType extends AbstractLog> {
 	private int flushCount;
 	private String outputEncoding;
 	private Set<String> banWords;
-
-	public LogAggregateHandler(LogParser<LogType> logParser, int runKeySize, String outputEncoding, Set<String> banWords) {
+	protected int minimumHitCount;
+	
+	public LogAggregateHandler(LogParser<LogType> logParser, int runKeySize, String outputEncoding, Set<String> banWords, int minimumHitCount) {
 		this.logParser = logParser;
 		this.runKeySize = runKeySize;
 		this.aggregateMap = new HashMap<String, Counter>(runKeySize);
 		this.outputEncoding = outputEncoding;
 		this.banWords = banWords;
+		this.minimumHitCount = minimumHitCount;
 	}
 
 	// 중간 run 결과를 기록할 writer를 받는다.
@@ -53,7 +55,7 @@ public abstract class LogAggregateHandler<LogType extends AbstractLog> {
 
 	public void handleLog(String line) throws IOException {
 		LogType log = logParser.parseLine(line);
-		logger.debug("{}: {}", getClass().getSimpleName(), log);
+//		logger.debug("{}: {}", getClass().getSimpleName(), log);
 		if (log != null) {
 
 			if (banWords != null) {
