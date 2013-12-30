@@ -4,7 +4,7 @@ import java.util.HashSet;
 
 import org.fastcatsearch.ir.common.IRException;
 
-public class DeleteIdSet extends HashSet<PrimaryKeys>{
+public class DeleteIdSet extends HashSet<PrimaryKeys> {
 
 	private static final long serialVersionUID = -518125101167212596L;
 

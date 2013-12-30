@@ -74,8 +74,9 @@ public abstract class AbstractDataSourceReader<DataType> implements DataSourceRe
 		return deleteIdList;
 	}
 
-	public void addSourceReader(SingleSourceReader<DataType> sourceReader) {
+	public void addSourceReader(SingleSourceReader<DataType> sourceReader) throws IRException {
 		sourceReader.setDeleteIdList(deleteIdList);
+		sourceReader.init();
 		singleSourceReaderList.add(sourceReader);
 	}
 
