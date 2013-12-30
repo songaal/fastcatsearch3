@@ -40,12 +40,14 @@ public class TempSearchFieldMerger {
 	protected int flushCount;
 	protected BytesDataOutput tempPostingOutput;
 	
+	protected int totalCount;
+	protected int prevDocNo;
+	
 	private int bufferCount = 0;
 	private CharVector cv;
 	private CharVector cvOld;
-	private int totalCount;
-	private int prevDocNo;
 	private BytesRef[] buffers;
+	
 
 	public TempSearchFieldMerger(String indexId, List<Long> flushPosition, File tempFile) throws IOException {
 		this.indexId = indexId;
@@ -109,17 +111,20 @@ public class TempSearchFieldMerger {
 				
 				
 				//1. Write Posting
+logger.debug("len2:{} / count:{} / lastDocNo:{} / firstDocNo:{} / sz:{} / len:{} / term:{}", len2, count, lastDocNo, firstDocNo, sz, len, term.toString());
 				postingOutput.writeVInt(len2);
 				postingOutput.writeInt(count);
 				postingOutput.writeInt(lastDocNo);
 				postingOutput.writeVInt(firstDocNo);
 				postingOutput.writeBytes(tempPostingOutput.array(), sz, len);
 
-				
 				//2. Write Lexicon
 				long lexiconPosition = lexiconOutput.position();
 				lexiconOutput.writeUString(term.array, term.start, term.length);
 				lexiconOutput.writeLong(postingPosition);
+				
+				
+				
 				
 				//3. Write Index
 				if (indexInterval > 0 && (termCount % indexInterval) == 0) {

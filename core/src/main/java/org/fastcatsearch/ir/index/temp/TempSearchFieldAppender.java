@@ -32,8 +32,6 @@ import org.fastcatsearch.ir.io.IndexOutput;
 
 public class TempSearchFieldAppender extends TempSearchFieldMerger {
 
-	private int totalCount;
-	private int prevDocNo;
 	private byte[] buffer = new byte[1024 * 1024];
 
 	private int oldIndexTermCount;
@@ -53,16 +51,16 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 		IndexOutput postingOutput = new BufferedFileOutput(targetDir, IndexFileNames.getSearchPostingFileName(indexId));
 
 		IndexFieldOption option1 = new IndexFieldOption(postingInput1.readInt());
-		if(!fieldIndexOption.equals(option1)){
-			throw new IRException("Cannot append indexes. Index option is the same. new="+fieldIndexOption.value() +", old="+ option1.value());
-		}
-		
-		// 같은 텀이 있을때에 posting 문서번호를 다 읽어서 머징한다.
-		// 같은 텀이 없다면 포스팅데이터를 뚝 떼어서 새로운 포스팅에 붙이면 된다.
-		// 단지, 세그먼트 2의 문서번호는 동일한 수만 큼 증가했으므로 포스팅별 시작문서번호, lastDocNo가 조정되야 한다.(+seg2BaseDocNo)
-		// indexOutput은 indexInterval번마다 기록해준다.
-
 		try {
+			
+			if(!fieldIndexOption.equals(option1)){
+				throw new IRException("Cannot append indexes. Index option is the same. new="+fieldIndexOption.value() +", old="+ option1.value());
+			}
+			
+			// 같은 텀이 있을때에 posting 문서번호를 다 읽어서 머징한다.
+			// 같은 텀이 없다면 포스팅데이터를 뚝 떼어서 새로운 포스팅에 붙이면 된다.
+			// 단지, 세그먼트 2의 문서번호는 동일한 수만 큼 증가했으므로 포스팅별 시작문서번호, lastDocNo가 조정되야 한다.(+seg2BaseDocNo)
+			// indexOutput은 indexInterval번마다 기록해준다.
 
 			//Posting 파일의 맨처음 int는 색인필드옵션이다.
 			postingOutput.writeInt(fieldIndexOption.value());
@@ -138,6 +136,7 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 
 					postingOutput.writeVInt(newFirstDocNo);
 					postingOutput.writeBytes(tempPostingOutput.array(), sz2, len2);
+logger.debug("newLen:{} / count:{} / lastDocNo2:{} / data1Length:{} / newFirstDocNo:{} / sz2:{} / len2:{} / term:{}", newLen, count1+count2, lastDocNo2, data1Length, newFirstDocNo, sz2, len2, term.toString());
 
 					lexiconOutput.writeUString(term.array, term.start, term.length);
 					lexiconOutput.writeLong(position);
@@ -160,6 +159,7 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 					postingOutput.writeVInt(len);
 					postingOutput.writeBytes(buffer, 0, len);
 
+logger.debug("len:{} term:{}", len, term.toString());
 					// write lexicon
 					lexiconOutput.writeUString(term.array, term.start, term.length);
 					lexiconOutput.writeLong(position);
@@ -188,6 +188,8 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 					postingOutput.writeInt(lastDocNo);
 					postingOutput.writeVInt(firstDocNo);
 					postingOutput.writeBytes(tempPostingOutput.array(), sz, len);
+					
+logger.debug("len2:{} / count:{} / lastDocNo:{} / firstDocNo:{} / sz:{} / len:{} / term:{}", len2, count, lastDocNo, firstDocNo, sz2, len2, term.toString());
 
 					// write term
 					lexiconOutput.writeUString(term.array, term.start, term.length);

@@ -105,6 +105,44 @@ public class HangulUtil {
 		}
 		return candidate.toString();
 	}
+	
+	// 초성검색
+	public static String makeChosung(String keyword, char delimiter) {
+		StringBuffer candidate = new StringBuffer();
+		StringBuffer prefix = new StringBuffer();
+		for (int i = 0; i < keyword.length(); i++) {
+			char ch = keyword.charAt(i);
+			if (ch < unicodeHangulBase || ch > unicodeHangulLast) {
+				prefix.append(ch);
+				candidate.append(prefix);
+			} else {
+				// Character is composed of {Chosung+Jungsung} OR
+				// {Chosung+Jungsung+Jongsung}
+				int unicode = ch - unicodeHangulBase;
+				int choSung = unicode / (JUNGSUNG_LIST.length() * JONGSUNG_LIST.length());
+				// 1. add prefix+chosung
+				candidate.append(prefix);
+				candidate.append(CHOSUNG_LIST.charAt(choSung));
+				candidate.append(delimiter);
+				// 2. add prefix+chosung+jungsung
+				unicode = unicode % (JUNGSUNG_LIST.length() * JONGSUNG_LIST.length());
+				int jongSung = unicode % JONGSUNG_LIST.length();
+				char choJung = (char) (ch - jongSung);
+				candidate.append(prefix);
+				candidate.append(choJung);
+				// change prefix
+				prefix.append(ch);
+				if (jongSung > 0) {
+					candidate.append(delimiter);
+					// 3. add whole character
+					candidate.append(prefix);
+				}
+			}
+			if (i < keyword.length() - 1)
+				candidate.append(delimiter);
+		}
+		return candidate.toString();
+	}
 
 	public static char mergeJaso(String choSung, String jungSung, String jongSung) {
 		int choSungPos = CHOSUNG_LIST.indexOf(choSung);
