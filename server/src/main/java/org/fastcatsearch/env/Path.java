@@ -111,6 +111,10 @@ public class Path {
 	public Path getStatisticsRoot() {
 		return makeRelativePath("statistics");
 	}
+	
+	public Path getKeywordsRoot() {
+		return makeRelativePath("keywords");
+	}
 
 
 }

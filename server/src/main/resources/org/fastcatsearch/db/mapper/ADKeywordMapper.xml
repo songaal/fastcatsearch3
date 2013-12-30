@@ -18,7 +18,7 @@ Derby SQL 문법에 따른다.
 	</update>
 	
 	<update id="createIndex" parameterType="map">
-		create index keyword_index on ADKeyword(keyword)
+		create index ad_keyword_index on ADKeyword(keyword)
 	</update>
 	
 	<select id="validateTable" parameterType="map" resultType="map">

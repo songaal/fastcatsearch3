@@ -1,5 +1,6 @@
 package org.fastcatsearch.http.action.service.keyword;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import org.fastcatsearch.db.vo.PopularKeywordVO;
@@ -28,6 +29,7 @@ public class GetServicePopularKeywordAction extends ServiceAction {
 
 		String type = request.getParameter("type");
 		String categoryId = request.getParameter("category");
+		int interval = request.getIntParameter("interval", 1);
 		String errorMessage = null;
 
 		try {
@@ -37,20 +39,22 @@ public class GetServicePopularKeywordAction extends ServiceAction {
 				keywordDictionaryType = KeywordDictionaryType.POPULAR_KEYWORD_DAY;
 			} else if ("W".equalsIgnoreCase(type)) {
 				keywordDictionaryType = KeywordDictionaryType.POPULAR_KEYWORD_WEEK;
+			} else if ("M".equalsIgnoreCase(type)) {
+				keywordDictionaryType = KeywordDictionaryType.POPULAR_KEYWORD_MONTH;
 			}
 
 			responseWriter.key("category").value(categoryId);
 			responseWriter.key("type").value(keywordDictionaryType.name());
 			
 			
-			KeywordDictionary keywordDictionary = keywordService.getKeywordDictionary(categoryId, keywordDictionaryType);
+			KeywordDictionary keywordDictionary = keywordService.getKeywordDictionary(categoryId, keywordDictionaryType, interval);
 
 			PopularKeywordDictionary popularKeywordDictionary = (PopularKeywordDictionary) keywordDictionary;
 			if (popularKeywordDictionary != null) {
 
 				List<PopularKeywordVO> keywordList = popularKeywordDictionary.getKeywordList();
 				if (popularKeywordDictionary.getCreateTime() != null) {
-					responseWriter.key("time").value(Formatter.formatDate(popularKeywordDictionary.getCreateTime()));
+					responseWriter.key("time").value(new SimpleDateFormat("yyyy.MM.dd HH:mm").format(popularKeywordDictionary.getCreateTime()));
 				}
 				responseWriter.key("list").array();
 				for (PopularKeywordVO vo : keywordList) {

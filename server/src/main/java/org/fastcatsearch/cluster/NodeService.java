@@ -200,15 +200,19 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 		
 		//노드가 같고, file도 같다면 전송하지 않는다.
 		if (node.equals(myNode)) {
-			if(sourcefile.getAbsolutePath().equals(targetFile.getAbsolutePath())){
+			File a = environment.filePaths().makePath(sourcefile.getPath()).file();
+			File b = environment.filePaths().makePath(targetFile.getPath()).file();
+			logger.warn("compare. [{}] : [{}] = {}", a.getAbsolutePath(), b.getAbsolutePath(), a.getAbsolutePath().equals(b.getAbsolutePath()));
+			
+			if(a.getAbsolutePath().equals(b.getAbsolutePath())){
 				logger.warn("Cannot send same file to same node. Skip! {}", sourcefile);
 				return null;
 			}else{
 				//다르다면 로컬 복사한다.
 				try {
-					targetFile = environment.filePaths().file(targetFile.getPath());
+					targetFile = environment.filePaths().makePath(targetFile.getPath()).file();
+					logger.warn("Copy files locally. {} > {}", sourcefile.getAbsolutePath(), targetFile.getAbsolutePath());
 					FileUtils.copyFile(sourcefile, targetFile);
-					logger.warn("Copy files locally. {} > {}", sourcefile, targetFile);
 					SendFileResultFuture f = new SendFileResultFuture(0, null);
 					f.put(null, true);
 					return f;

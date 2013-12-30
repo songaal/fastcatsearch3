@@ -15,6 +15,12 @@ public interface PopularKeywordMapper extends ManagedMapper {
 	
 	public void putEntry(PopularKeywordVO vo) throws Exception;
 	
-	public void deleteEntry(@Param("id") int id);
+	public void updateEntry(PopularKeywordVO vo);
 	
+	public void deleteEntryById(@Param("id") int id);
+	
+	public void deleteElderThan(@Param("category") String categoryId, @Param("time") String time);
+
+	public PopularKeywordVO getRankEntry(@Param("category") String categoryId, @Param("time") String time, @Param("rank") int rank);
+
 }

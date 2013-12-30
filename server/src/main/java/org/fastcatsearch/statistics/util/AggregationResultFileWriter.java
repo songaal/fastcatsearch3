@@ -24,6 +24,7 @@ public class AggregationResultFileWriter implements AggregationResultWriter {
 	}
 
 	public void write(String key, int count) throws IOException {
+//		logger.debug("final write >> {} : {} ( {} )",key, count, minimumCount);
 		if(count < minimumCount){
 			return;
 		}

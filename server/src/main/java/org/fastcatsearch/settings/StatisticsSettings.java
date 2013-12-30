@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name="statistics")
 public class StatisticsSettings {
-	private RealTimePopularKeywordConfig realTimePopularKeywordConfig;
+	private RealtimePopularKeywordConfig realTimePopularKeywordConfig;
 	private PopularKeywordConfig popularKeywordConfig;
 	private RelateKeywordConfig relateKeywordConfig;
 	private String stopwords;
@@ -20,11 +20,11 @@ public class StatisticsSettings {
 	private List<Category> categoryList;
 	
 	@XmlElement(name="realtime-popular-keyword")
-	public RealTimePopularKeywordConfig getRealTimePopularKeywordConfig() {
+	public RealtimePopularKeywordConfig getRealTimePopularKeywordConfig() {
 		return realTimePopularKeywordConfig;
 	}
 
-	public void setRealTimePopularKeywordConfig(RealTimePopularKeywordConfig realTimePopularKeywordConfig) {
+	public void setRealTimePopularKeywordConfig(RealtimePopularKeywordConfig realTimePopularKeywordConfig) {
 		this.realTimePopularKeywordConfig = realTimePopularKeywordConfig;
 	}
 	@XmlElement(name="popular-keyword")
@@ -141,7 +141,7 @@ public class StatisticsSettings {
 		}
 	}
 	
-	public static class RealTimePopularKeywordConfig {
+	public static class RealtimePopularKeywordConfig {
 		private int recentLogUsingCount; //사용할 최근 로그갯수.
 		private int topCount; //상위 몇개를 뽑아낼지.
 		private int minimumHitCount;
@@ -164,7 +164,7 @@ public class StatisticsSettings {
 		}
 
 		@XmlElement
-		public Integer getMinimumHitCount() {
+		public int getMinimumHitCount() {
 			return minimumHitCount;
 		}
 

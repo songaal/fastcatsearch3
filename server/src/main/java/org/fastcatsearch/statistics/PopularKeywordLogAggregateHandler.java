@@ -38,23 +38,23 @@ public class PopularKeywordLogAggregateHandler extends LogAggregateHandler<Searc
 		return new AggregationResultFileWriter(file, encoding);
 	}
 
-	@Override
-	protected boolean checkNeedMerge(int flushCount) {
-		if (flushCount == 1) {
-			File srcFile = getRunFile(0);
-			if(destFile.exists()){
-				destFile.delete();
-			}
-			try {
-				FileUtils.moveFile(srcFile, destFile);
-			} catch (IOException e) {
-				logger.error("", e);
-			}
-		}
-		
-		//flush가 1번이거나 없으면, 머징하지 않는다.
-		return flushCount > 1;
-	}
+//	@Override
+//	protected boolean checkNeedMerge(int flushCount) {
+//		if (flushCount == 1) {
+//			File srcFile = getRunFile(0);
+//			if(destFile.exists()){
+//				destFile.delete();
+//			}
+//			try {
+//				FileUtils.moveFile(srcFile, destFile);
+//			} catch (IOException e) {
+//				logger.error("", e);
+//			}
+//		}
+//		
+//		//flush가 1번이거나 없으면, 머징하지 않는다.
+//		return flushCount > 1;
+//	}
 
 	@Override
 	protected RunMerger newFinalMerger(String encoding, int flushCount) {

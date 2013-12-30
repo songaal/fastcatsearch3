@@ -35,7 +35,7 @@ public class CollectRealTimePopularKeywordJob extends Job {
 					logger.warn("Cannot find log file > {}", sourceFile);
 					continue;
 				}
-				File rtTmpHome = environment.filePaths().getStatisticsRoot().file(category.getId(), "rt", "tmp");
+				File rtTmpHome = environment.filePaths().getStatisticsRoot().file("rt", category.getId(), "init");
 
 				File targetFile = new File(rtTmpHome, nodeService.getMyNode().id() + ".log");
 				File targetFile2 = environment.filePaths().relativise(targetFile);
@@ -44,7 +44,7 @@ public class CollectRealTimePopularKeywordJob extends Job {
 				try {
 					nodeService.sendFile(nodeService.getMaserNode(), sourceFile, targetFile2);
 				} catch (TransportException e) {
-					e.printStackTrace();
+					logger.error("", e);
 				}
 
 			}

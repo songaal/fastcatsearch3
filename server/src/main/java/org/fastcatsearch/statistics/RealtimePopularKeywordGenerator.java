@@ -28,35 +28,42 @@ import org.slf4j.LoggerFactory;
 /**
  * 실시간 인기키워드를 만드는 클래스.
  * */
-public class RealTimePopularKeywordGenerator {
+public class RealtimePopularKeywordGenerator {
 
-	protected static Logger logger = LoggerFactory.getLogger(RealTimePopularKeywordGenerator.class);
+	protected static Logger logger = LoggerFactory.getLogger(RealtimePopularKeywordGenerator.class);
 
+	private static final String WORKING_LOG_FILENAME = "0.log";
+	private static final String KEY_COUNT_LOG_FILENAME = "key-count.log";
+	private static final String KEY_COUNT_RANK_LOG_FILENAME = "key-count-rank.log";
+	private static final String KEY_COUNT_RANK_PREV_LOG_FILENAME = "key-count-rank-prev.log";
+	
 	private Set<String> banWords;
 	private String fileEncoding;
 	
+	//targetDir : 작업대상 디렉토리.
 	private File targetDir;
-	// STEP1_DIR: 각 노드들로 부터 전달받은 로그들이 쌓여있다. node1.log, node2.log, ..
-	private final File STEP1_DIR;
-	// STEP2_DIR: step1의 로그들을 key, count로 취합한 로그들이 단위시간별로 쌓여있다.
+	// logFileList: 각 노드들로 부터 전달받은 로그들. node1.log, node2.log, ..
+	private File[] logFileList;
+	
+	// WORKING_DIR: logFileList의 로그들을 key, count로 취합한 로그들이 단위시간별로 쌓여있다.
 	// 예) 0.log, 1.log, 2.log, ...
-	private final File STEP2_DIR;
-	// STEP3_DIR: step2의 로드들을 가중치적용한 취합파일 key-count.log존재.
+	private final File WORKING_DIR;
+	// RESULT_DIR: WORKING_DIR의 로드들을 가중치적용한 취합파일 key-count.log존재.
 	// count로 정렬한 key-count-rank.log존재. 이전 정렬파일 key-count-rank-prev.log존재
-	private final File STEP3_DIR;
+	private final File RESULT_DIR;
 
 	private final int recentLogUsingCount;
 	private final int runKeySize;
 	private final int minimumHitCount;
 	private final int topCount;
 
-	public RealTimePopularKeywordGenerator(File targetDir, StatisticsSettings statisticsSettings, String fileEncoding) {
+	public RealtimePopularKeywordGenerator(File targetDir, File[] logFileList, StatisticsSettings statisticsSettings, String fileEncoding) {
 		this.targetDir = targetDir;
+		this.logFileList = logFileList;
 		this.fileEncoding = fileEncoding;
 
-		STEP1_DIR = new File(targetDir, "step1");
-		STEP2_DIR = new File(targetDir, "step2");
-		STEP3_DIR = new File(targetDir, "step3");
+		WORKING_DIR = new File(targetDir, "working");
+		RESULT_DIR = new File(targetDir, "result");
 
 		int size = statisticsSettings.getWorkingMemoryKeySize();
 		if (size > 0) {
@@ -74,7 +81,12 @@ public class RealTimePopularKeywordGenerator {
 
 		minimumHitCount = statisticsSettings.getRealTimePopularKeywordConfig().getMinimumHitCount();
 
-		topCount = statisticsSettings.getRealTimePopularKeywordConfig().getTopCount();
+		int topCount = statisticsSettings.getRealTimePopularKeywordConfig().getTopCount();
+		if(topCount == 0){
+			this.topCount = 10; //디폴트 10개 뽑아냄.
+		}else{
+			this.topCount = topCount;
+		}
 	}
 
 	private File getLogFile(File dir, int number) {
@@ -88,49 +100,36 @@ public class RealTimePopularKeywordGenerator {
 		if(!targetDir.exists()){
 			throw new IOException("ROOT " + targetDir + " not found.");
 		}
-		if(!STEP1_DIR.exists()){
-			throw new IOException(STEP1_DIR + " not found.");
-		}
 		
-		if(STEP2_DIR.exists()){
-			FileUtils.deleteQuietly(STEP2_DIR);
+		if(WORKING_DIR.exists()){
+			FileUtils.deleteQuietly(WORKING_DIR);
 		}
-		STEP2_DIR.mkdir();
+		WORKING_DIR.mkdir();
 		
-		//STEP3_DIR은 존재하면 삭제하지 않고 그대로 이용한다.
-		if(!STEP3_DIR.exists()){
-			STEP3_DIR.mkdir();
+		//STEP3_DIR는 이전 랭킹로그도 참조해야하므로, 삭제하지 않고 그대로 이용한다.
+		if(!RESULT_DIR.exists()){
+			RESULT_DIR.mkdir();
 		}
 		/*
-		 * 1. 기존 파일 롤링. step2/0.log => step2/1.log.
+		 * 1. 기존 파일 롤링. working/0.log => working/1.log....
 		 */
-		rollingByNumber(STEP2_DIR, recentLogUsingCount);
+		rollingByNumber(WORKING_DIR, recentLogUsingCount);
 
 		/*
-		 * 2. tmpDir내 모든 로그파일을 메모리에 담아 키워드순으로 정렬하여 파일기록(rt/0.log)후 tmp디렉토리 삭제.
+		 * 2. logFileList 로그파일을 메모리에 담아 키워드순으로 정렬하여 파일기록(rt/working/0.log). 제외어 파일 사용. 
+		 * 내부적으로 _run임시 디렉토리 사용함.
 		 */
-		File[] inFileList = STEP1_DIR.listFiles(new FilenameFilter() {
-			@Override
-			public boolean accept(File dir, String name) {
-				try {
-					return FilenameUtils.getExtension(name).equals("log");
-				} catch (Exception e) {
-					return false;
-				}
-			}
-		});
 
-		String outputFilename = "0.log";
 		List<LogAggregateHandler<SearchLog>> handlerList = new ArrayList<LogAggregateHandler<SearchLog>>();
-		handlerList.add(new PopularKeywordLogAggregateHandler(STEP2_DIR, outputFilename, runKeySize, fileEncoding, banWords, minimumHitCount));
-		LogAggregator<SearchLog> tmpLogAggregator = new LogAggregator<SearchLog>(inFileList, fileEncoding, handlerList);
+		handlerList.add(new PopularKeywordLogAggregateHandler(WORKING_DIR, WORKING_LOG_FILENAME, runKeySize, fileEncoding, banWords, minimumHitCount));
+		LogAggregator<SearchLog> tmpLogAggregator = new LogAggregator<SearchLog>(logFileList, fileEncoding, handlerList);
 		tmpLogAggregator.aggregate();
 
 		/*
-		 * 3. STEP2_DIR내 파일 머장 합산(최근갯수에 decay factor 를 곱한다.)하여 STEP3_DIR/key-count.log로 기록. 키워드로 정렬. (제외어 파일 사용)
+		 * 3. WORKING_DIR 내 파일 머장 합산(최근갯수에 decay factor 를 곱한다.)하여 RESULT_DIR/key-count.log로 기록. 키워드로 정렬. 
 		 */
 		final List<Float> weightArrayList = new ArrayList<Float>();
-		inFileList = STEP2_DIR.listFiles(new FilenameFilter() {
+		File[] inFileList = WORKING_DIR.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
 				try {
@@ -151,16 +150,16 @@ public class RealTimePopularKeywordGenerator {
 		for (int i = 0; i < weightArrayList.size(); i++) {
 			weightList[i] = weightArrayList.get(i);
 		}
-		File keyCountFile = new File(STEP3_DIR, "key-count.log");
-		AggregationResultFileWriter writer = new AggregationResultFileWriter(keyCountFile, "utf-8");
-		WeightedSortedRunFileMerger merger = new WeightedSortedRunFileMerger(inFileList, weightList, "utf-8", writer);
+		File keyCountFile = new File(RESULT_DIR, KEY_COUNT_LOG_FILENAME);
+		AggregationResultFileWriter writer = new AggregationResultFileWriter(keyCountFile, fileEncoding);
+		WeightedSortedRunFileMerger merger = new WeightedSortedRunFileMerger(inFileList, weightList, fileEncoding, writer);
 		merger.merge();
 
 		/*
 		 * 4. 기존 key-count-rank.log를 key-count-rank-prev.log으로 이동하고 key-count.log를 count기준 정렬하여, key-count-rank.log 로 기록한다. 파일기반 소팅 사용.
 		 */
-		File rankFile = new File(STEP3_DIR, "key-count-rank.log");
-		File prevRankFile = new File(STEP3_DIR, "key-count-rank-prev.log");
+		File rankFile = new File(RESULT_DIR, KEY_COUNT_RANK_LOG_FILENAME);
+		File prevRankFile = new File(RESULT_DIR, KEY_COUNT_RANK_PREV_LOG_FILENAME);
 		if (rankFile.exists()) {
 			FileUtils.copyFile(rankFile, prevRankFile);
 		}
@@ -185,7 +184,7 @@ public class RealTimePopularKeywordGenerator {
 		};
 
 		// LogSorter를 사용해 keyCountFile -> rankFile 로 저장한다.
-		File sortWorkDir = new File(STEP3_DIR, "tmp");
+		File sortWorkDir = new File(RESULT_DIR, "tmp");
 		InputStream is = new FileInputStream(keyCountFile);
 		OutputStream os = new FileOutputStream(rankFile);
 		try {

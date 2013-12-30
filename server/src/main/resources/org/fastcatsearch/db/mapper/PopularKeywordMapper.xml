@@ -9,24 +9,23 @@ Derby SQL 문법에 따른다.
 
 	<update id="createTable">
 		create table PopularKeyword (
-			id bigint not null generated always as identity,
 			category varchar(64),
-			time varchar(12),
+			time varchar(20),
+			rank int,
 			word varchar(64),
 			count int,
-			rank int,
 			rankDiffType varchar(3),
 			rankDiff int,
-			primary key (id)
+			primary key (category, time, rank)
 		)
 	</update>
 	
 	<update id="createIndex" parameterType="map">
-		create index category_index on PopularKeyword(category)
+		create index popular_category_index on PopularKeyword(category)
 	</update>
 	
 	<select id="validateTable" parameterType="map" resultType="map">
-		select id, category, time, word, count, rank, rankDiffType, rankDiff
+		select category, time, word, count, rank, rankDiffType, rankDiff
 		from PopularKeyword
 		fetch first 1 rows only
 	</select>
@@ -35,38 +34,42 @@ Derby SQL 문법에 따른다.
 		drop table PopularKeyword
 	</update>
 	
-	<select id="getEntry" parameterType="int" resultType="org.fastcatsearch.db.vo.PopularKeywordVO">
-		select * 
-		from PopularKeyword where id = #{id}
+	<select id="getEntryList" parameterType="map" resultType="org.fastcatsearch.db.vo.PopularKeywordVO">
+		select * from PopularKeyword 
+		where category=#{category} and time=#{time}
 	</select>
 	
-	<select id="getEntryList" parameterType="map" resultType="org.fastcatsearch.db.vo.PopularKeywordVO">
-		select * from PopularKeyword where category=#{category} and time=#{time}
+	<select id="getRankEntry" parameterType="map" resultType="org.fastcatsearch.db.vo.PopularKeywordVO">
+		select * 
+		from PopularKeyword
+		where category = #{category} and time = #{time} and rank = #{rank}
 	</select>
 	
 	<select id="getCount" parameterType="map" resultType="int">
 		select count(*) from PopularKeyword where category=#{category} and time=#{time}
 	</select>
 	
-	<update id="putEntry" parameterType="map">
+	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.PopularKeywordVO">
 		insert into PopularKeyword 
-		(category,time,word,count,rank,rankDiffType) values
-		(#{category}, #{time}, #{word}, #{count}, #{rank}, #{rankDiffType})
-	</update>
+		(category,time,word,count,rank,rankDiffType, rankDiff) values
+		(#{category}, #{time}, #{word}, #{count}, #{rank}, #{rankDiffType}, #{rankDiff})
+	</insert>
 	
-	<update id="updateEntry" parameterType="map">
+	<update id="updateEntry" parameterType="org.fastcatsearch.db.vo.PopularKeywordVO">
 		update PopularKeyword set 
-		category = #{category},
-		time = #{time},
 		word = #{word},
 		count = #{count},
 		rank = #{rank},
-		rankDiffType = #{rankDiffType}
-		where id = #{id}
+		rankDiffType = #{rankDiffType},
+		rankDiff = #{rankDiff}
+		where category = #{category} and time = #{time} and rank = #{rank}
 	</update>
 	
 	<delete id="deleteEntry" parameterType="int">
 		delete from PopularKeyword where id=#{id}
+	</delete>
+	
+	<delete id="deleteElderThan" parameterType="map">
 	</delete>
 	
 	<delete id="deleteKeywordList" parameterType="map">
@@ -78,4 +81,11 @@ Derby SQL 문법에 따른다.
 		truncate table PopularKeyword
 	</delete>
 	
+	
+	
+	<update id="updateOrInsertList" parameterType="map">
+		insert into PopularKeyword 
+		(category,time,word,count,rank,rankDiffType) values
+		(#{category}, #{time}, #{word}, #{count}, #{rank}, #{rankDiffType})
+	</update>
 </mapper>

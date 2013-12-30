@@ -25,9 +25,9 @@ public class DictionaryCompileApplyJob extends MasterNodeJob {
 
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
-		Map<String, String> args = getMapArgs();
-		String pluginId = args.get("pluginId");
-		String dictListStr = args.get("dictionary");
+		Map<String, Object> args = getMapArgs();
+		String pluginId = (String) args.get("pluginId");
+		String dictListStr = (String) args.get("dictionary");
 		String[] dictList = null;
 		if (dictListStr != null && dictListStr.length() > 0) {
 			dictList = dictListStr.split(",");

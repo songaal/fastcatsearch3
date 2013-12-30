@@ -17,15 +17,18 @@ import org.fastcatsearch.ir.io.DataOutput;
 
 public class PopularKeywordDictionary implements KeywordDictionary {
 	
-	public static final String realTimeFileName = "realTime.dict";
-	public static final String lastDayFileName = "lastDay.dict";
-	public static final String lastWeekFileName = "lastWeek.dict";
+	public static final String realTimeFileName = "realTimePopularKeyword";
+	public static final String dailyFileName = "dailyPopularKeyword";
+	public static final String weeklyFileName = "weeklyPopularKeyword";
+	public static final String monthlyFileName = "monthlyPopularKeyword";
+	public static final String yearlyFileName = "yearlyPopularKeyword";
 	
 	private Date createTime;
 	private List<PopularKeywordVO> keywordList;
 	
 	public PopularKeywordDictionary(){
 		keywordList = new ArrayList<PopularKeywordVO>(0);
+		this.createTime = new Date();
 	}
 	
 	public PopularKeywordDictionary(List<PopularKeywordVO> keywordList){
@@ -33,18 +36,15 @@ public class PopularKeywordDictionary implements KeywordDictionary {
 		this.createTime = new Date();
 	}
 	
-	public PopularKeywordDictionary(File dictionaryFile) {
+	public PopularKeywordDictionary(File dictionaryFile) throws IOException {
 		if (!dictionaryFile.exists()) {
 			keywordList = new ArrayList<PopularKeywordVO>();
-			logger.error("사전파일이 존재하지 않습니다. file={}", dictionaryFile.getAbsolutePath());
-			return;
+			throw new IOException("dictionary file not found: " + dictionaryFile.getAbsolutePath());
 		}
 		InputStream istream = null;
 		try {
 			istream = new FileInputStream(dictionaryFile);
 			readFrom(istream);
-		} catch (IOException e) {
-			logger.error("",e);
 		} finally {
 			if (istream != null) try {
 				istream.close();
@@ -70,7 +70,7 @@ public class PopularKeywordDictionary implements KeywordDictionary {
 	@Override
 	public void readFrom(InputStream in) throws IOException {
 		DataInput input = new InputStreamDataInput(in);
-
+		this.createTime = new Date(input.readLong());
 		keywordList = new ArrayList<PopularKeywordVO>();
 
 		int size = input.readVInt();
@@ -85,6 +85,7 @@ public class PopularKeywordDictionary implements KeywordDictionary {
 	@Override
 	public void writeTo(OutputStream out) throws IOException {
 		DataOutput output = new OutputStreamDataOutput(out);
+		output.writeLong(createTime.getTime());
 		int size = keywordList.size();
 		output.writeVInt(size);
 		
