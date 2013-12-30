@@ -37,7 +37,6 @@ public class DefaultDataSourceReaderFactory {
 					continue;
 				}
 				SingleSourceReader<Map<String, Object>> sourceReader = createSingleSourceReader(filePath, dataSourceConfig, singleSourceConfig, null);
-				sourceReader.init();
 				dataSourceReader.addSourceReader(sourceReader);
 			}
 		} else {
@@ -58,7 +57,6 @@ public class DefaultDataSourceReaderFactory {
 					continue;
 				}
 				SingleSourceReader<Map<String, Object>> sourceReader = createSingleSourceReader(filePath, dataSourceConfig, singleSourceConfig, lastIndexTime);
-				sourceReader.init();
 				dataSourceReader.addSourceReader(sourceReader);
 			}
 		} else {
