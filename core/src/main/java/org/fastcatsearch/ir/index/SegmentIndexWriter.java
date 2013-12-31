@@ -98,7 +98,7 @@ public class SegmentIndexWriter implements IndexWritable {
 			primaryKeyIndexesWriter.write(document, docNo);
 		}
 		if (searchIndexesWriter != null) {
-			searchIndexesWriter.write(document);
+			searchIndexesWriter.write(document, docNo);
 		}
 		if (fieldIndexesWriter != null) {
 			fieldIndexesWriter.write(document);

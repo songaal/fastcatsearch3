@@ -131,7 +131,7 @@ public class SearchIndexWriter {
 			if(sequence < 0){
 				continue;
 			}
-			write(count, doc.get(sequence), ignoreCase, positionIncrementGap);
+			write(docNo, doc.get(sequence), ignoreCase, positionIncrementGap);
 			// positionIncrementGap은 필드가 증가할때마다 동일량으로 증가. 예) 0, 100, 200, 300...
 			positionIncrementGap += positionIncrementGap;
 		}

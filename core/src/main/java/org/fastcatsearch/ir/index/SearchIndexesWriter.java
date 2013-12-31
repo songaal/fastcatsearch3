@@ -78,7 +78,7 @@ public class SearchIndexesWriter {
 
 	public void write(Document doc, int docNo) throws IRException, IOException {
 		for (int i = 0; i < indexSize; i++) {
-			searchIndexWriterList[i].write(doc);
+			searchIndexWriterList[i].write(doc, docNo);
 		}
 
 		
