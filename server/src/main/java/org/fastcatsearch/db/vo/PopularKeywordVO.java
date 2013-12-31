@@ -13,9 +13,10 @@ public class PopularKeywordVO implements Streamable {
 	private int id;
 	private String category;
 	private String time;
+	private int rank;
+	
 	private String word;
 	private int count;
-	private int rank;
 	private RankDiffType rankDiffType;
 	private int rankDiff;
 	

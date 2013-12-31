@@ -24,20 +24,23 @@ public class RelateKeywordDictionary implements KeywordDictionary {
 		keywordMap = new HashMap<String, String>(0);
 	}
 
-	public RelateKeywordDictionary(File dictionaryFile) {
+	public RelateKeywordDictionary(File dictionaryFile) throws IOException {
 		if (!dictionaryFile.exists()) {
 			keywordMap = new HashMap<String, String>();
 			logger.error("사전파일이 존재하지 않습니다. file={}", dictionaryFile.getAbsolutePath());
-			return;
+			throw new IOException("dictionary file not found: " + dictionaryFile.getAbsolutePath());
 		}
-		InputStream is = null;
+		InputStream istream = null;
 		try {
-			is = new FileInputStream(dictionaryFile);
-			readFrom(is);
-			is.close();
-		} catch (IOException e) {
-			logger.error("", e);
+			istream = new FileInputStream(dictionaryFile);
+			readFrom(istream);
+			istream.close();
+		} finally {
+			if (istream != null) try {
+				istream.close();
+			} catch (IOException e) { }
 		}
+		
 	}
 
 	public String getRelateKeyword(String keyword) {

@@ -85,8 +85,8 @@ public abstract class Job implements Runnable, Serializable {
 		return (String[]) args;
 	}
 
-	public Map<String, String> getMapArgs() {
-		return (Map<String, String>) args;
+	public Map<String, Object> getMapArgs() {
+		return (Map<String, Object>) args;
 	}
 
 	public void setScheduled(boolean isScheduled) {

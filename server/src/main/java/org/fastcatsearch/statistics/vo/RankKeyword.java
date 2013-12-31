@@ -1,12 +1,11 @@
 package org.fastcatsearch.statistics.vo;
 
+import org.fastcatsearch.db.vo.PopularKeywordVO.RankDiffType;
+
 /**
  * 로그취합결과로 얻어진 인기키워드.
  * */
 public class RankKeyword {
-	public enum RankDiffType {
-		UP, DN, NEW, EQ
-	}
 
 	private String keyword;
 	private int rank;

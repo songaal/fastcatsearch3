@@ -1,6 +1,7 @@
 package org.fastcatsearch.keyword;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
@@ -18,9 +19,9 @@ import org.fastcatsearch.keyword.module.PopularKeywordModule;
 import org.fastcatsearch.keyword.module.RelateKeywordModule;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.KeywordServiceSettings;
+import org.fastcatsearch.settings.KeywordServiceSettings.KeywordServiceCategory;
 import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.settings.Settings;
-import org.fastcatsearch.settings.StatisticsSettings.Category;
 import org.fastcatsearch.util.JAXBConfigs;
 
 /**
@@ -37,20 +38,26 @@ public class KeywordService extends AbstractDBService {
 
 	private File moduleHome;
 
-	private static Class<?>[] mapperList = new Class<?>[] { PopularKeywordMapper.class, RelateKeywordMapper.class, KeywordSuggestionMapper.class, ADKeywordMapper.class };
+	private static Class<?>[] mapperList = new Class<?>[] { PopularKeywordMapper.class, RelateKeywordMapper.class,
+			KeywordSuggestionMapper.class, ADKeywordMapper.class };
 
 	public KeywordService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super("db/keyword", KeywordService.mapperList, environment, settings, serviceManager);
 
-		moduleHome = environment.filePaths().file("keyword");
+		moduleHome = environment.filePaths().getKeywordsRoot().file();
 		popularKeywordModule = new PopularKeywordModule(moduleHome, environment, settings);
 		relateKeywordModule = new RelateKeywordModule(moduleHome, environment, settings);
 	}
 
 	public File getFile(String categoryId, KeywordDictionaryType type) {
+		return getFile(categoryId, type, 1);
+	}
 
-		if (type == KeywordDictionaryType.POPULAR_KEYWORD_REALTIME || type == KeywordDictionaryType.POPULAR_KEYWORD_DAY || type == KeywordDictionaryType.POPULAR_KEYWORD_WEEK) {
-			return popularKeywordModule.getDictionaryFile(categoryId, type);
+	public File getFile(String categoryId, KeywordDictionaryType type, int interval) {
+
+		if (type == KeywordDictionaryType.POPULAR_KEYWORD_REALTIME || type == KeywordDictionaryType.POPULAR_KEYWORD_DAY || type == KeywordDictionaryType.POPULAR_KEYWORD_WEEK
+				|| type == KeywordDictionaryType.POPULAR_KEYWORD_MONTH) {
+			return popularKeywordModule.getDictionaryFile(categoryId, type, interval);
 		} else if (type == KeywordDictionaryType.RELATE_KEYWORD) {
 			return relateKeywordModule.getDictionaryFile(categoryId);
 		} else {
@@ -58,6 +65,10 @@ public class KeywordService extends AbstractDBService {
 		}
 
 		return null;
+	}
+
+	public KeywordServiceSettings keywordServiceSettings() {
+		return keywordServiceSettings;
 	}
 
 	@Override
@@ -99,8 +110,16 @@ public class KeywordService extends AbstractDBService {
 
 	}
 
+	public void loadPopularKeywordDictionary(String categoryId, KeywordDictionaryType type, int interval) throws IOException {
+		popularKeywordModule.loadAndSetDictionary(categoryId, type, interval);
+	}
+
+	public void loadRelateKeywordDictionary(String categoryId) throws IOException {
+		relateKeywordModule.loadAndSetDictionary(categoryId);
+	}
+
 	private void loadKeywordModules() {
-		List<Category> categoryList = keywordServiceSettings.getCategoryList();
+		List<KeywordServiceCategory> categoryList = keywordServiceSettings.getCategoryList();
 		popularKeywordModule.setCategoryList(categoryList);
 		popularKeywordModule.load();
 		relateKeywordModule.setCategoryList(categoryList);
@@ -136,8 +155,13 @@ public class KeywordService extends AbstractDBService {
 	}
 
 	public KeywordDictionary getKeywordDictionary(String categoryId, KeywordDictionaryType key) {
-		if (key == KeywordDictionaryType.POPULAR_KEYWORD_DAY || key == KeywordDictionaryType.POPULAR_KEYWORD_REALTIME || key == KeywordDictionaryType.POPULAR_KEYWORD_WEEK) {
-			return popularKeywordModule.getKeywordDictionary(categoryId, key);
+		return getKeywordDictionary(categoryId, key, 1);
+	}
+
+	public KeywordDictionary getKeywordDictionary(String categoryId, KeywordDictionaryType key, int interval) {
+		if (key == KeywordDictionaryType.POPULAR_KEYWORD_REALTIME || key == KeywordDictionaryType.POPULAR_KEYWORD_DAY || key == KeywordDictionaryType.POPULAR_KEYWORD_WEEK
+				|| key == KeywordDictionaryType.POPULAR_KEYWORD_MONTH) {
+			return popularKeywordModule.getKeywordDictionary(categoryId, key, interval);
 		} else if (key == KeywordDictionaryType.RELATE_KEYWORD) {
 			return relateKeywordModule.getKeywordDictionary(categoryId);
 		} else {

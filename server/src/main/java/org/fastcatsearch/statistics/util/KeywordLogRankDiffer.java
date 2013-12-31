@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fastcatsearch.db.vo.PopularKeywordVO.RankDiffType;
 import org.fastcatsearch.statistics.KeyCountRunEntryReader;
 import org.fastcatsearch.statistics.vo.RankKeyword;
 import org.slf4j.Logger;
@@ -65,11 +66,11 @@ public class KeywordLogRankDiffer {
 								int rankDiff = prevRank - keyword.getRank();
 								keyword.setRankDiff(Math.abs(rankDiff));
 								if (rankDiff == 0) {
-									keyword.setRankDiffType(RankKeyword.RankDiffType.EQ);
+									keyword.setRankDiffType(RankDiffType.EQ);
 								} else if (rankDiff > 0) {
-									keyword.setRankDiffType(RankKeyword.RankDiffType.UP);
+									keyword.setRankDiffType(RankDiffType.UP);
 								} else {
-									keyword.setRankDiffType(RankKeyword.RankDiffType.DN);
+									keyword.setRankDiffType(RankDiffType.DN);
 								}
 								foundCount++;
 								break;

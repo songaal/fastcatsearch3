@@ -51,7 +51,7 @@ public abstract class LogAggregateHandler<LogType extends AbstractLog> {
 
 	protected abstract void doDone();
 
-	protected abstract boolean checkNeedMerge(int flushCount);
+//	protected abstract boolean checkNeedMerge(int flushCount);
 
 	public void handleLog(String line) throws IOException {
 		LogType log = logParser.parseLine(line);
@@ -103,7 +103,8 @@ public abstract class LogAggregateHandler<LogType extends AbstractLog> {
 
 		// 여기까지오면, targetDir에 0.log, 1.log 등의 run들이 쌓여있다.
 		// 이제 정렬된 run들을 모아서 하나로 만든다.
-		if (checkNeedMerge(flushCount)) {
+		if(flushCount > 0) {
+//		if (checkNeedMerge(flushCount)) {
 			RunMerger merger = newFinalMerger(outputEncoding, flushCount);
 			if (merger != null) {
 				merger.merge();

@@ -187,7 +187,7 @@ public class CatServer {
 		TaskStateService taskStateService = serviceManager.createService("taskstate", TaskStateService.class);
 		
 		SearchStatisticsService searchStatisticsService = serviceManager.createService("statistics", SearchStatisticsService.class);
-		KeywordService keywordService = serviceManager.createService("additional", KeywordService.class);
+		KeywordService keywordService = serviceManager.createService("keyword", KeywordService.class);
 		
 		
 		logger.info("ServerHome = {}", serverHome);
