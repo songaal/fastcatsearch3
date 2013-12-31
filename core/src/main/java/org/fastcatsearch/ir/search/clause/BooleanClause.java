@@ -115,6 +115,7 @@ public class BooleanClause implements OperatedClause {
 				
 				if (featureAttribute != null && featureAttribute.type() == FeatureType.APPEND) {
 					//TODO append 한다.
+					clause = new TermOperatedClause(postingReader);
 					clause = new AppendOperatedClause(operatedClause, clause);
 				}else{
 					clause = new TermOperatedClause(postingReader);

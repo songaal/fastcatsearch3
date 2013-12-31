@@ -14,24 +14,33 @@ public class IndexTest {
 	private static final Logger logger = LoggerFactory.getLogger(IndexTest.class);
 
 	@Test
-	public void testSimple() throws Exception {
+	public void tetSimple() throws Exception {
 		
 		//File baseDir = new File("/home/websqrd/fastcatsearch/collections/webtoon/data/index0/0/0/");
 		File baseDir = new File("/home/websqrd/fastcatsearch/collections/webtoon/data/index1/0/1/");
 		
 		BufferedFileInput lexiconInput = new BufferedFileInput(baseDir, "search.SUBJECT.lexicon");
 		BufferedFileInput postingInput = new BufferedFileInput(baseDir, "search.SUBJECT.posting");
+		BufferedFileInput indexInput = new BufferedFileInput(baseDir, "search.SUBJECT.index");
 		
 		int option = postingInput.readInt();
 		
 		int count = lexiconInput.readInt();
+		int docCnt = indexInput.readInt();
+		char[] cbuf = indexInput.readUString();
+		
+		logger.debug("--------------------------------------------------------------------------------");
+		logger.debug("firstdoc : {}", new String(cbuf));
+		logger.debug("--------------------------------------------------------------------------------");
+		
+		
 		long nextPos = 0;
 		for(int inx=0;inx<count; inx++) {
 			char[] buf = lexiconInput.readUString();
 			
-			logger.debug("nextPos : {} / word : {}", nextPos, new String(buf) );
-			
 			nextPos = lexiconInput.readLong();
+			
+			logger.debug("nextPos : {} / word : {}", nextPos, new String(buf) );
 			
 			postingInput.seek(nextPos);
 			int len = postingInput.readVInt();

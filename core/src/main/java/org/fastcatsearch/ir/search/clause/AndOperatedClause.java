@@ -34,7 +34,7 @@ public class AndOperatedClause implements OperatedClause {
 	public boolean next(RankInfo docInfo) {
 		RankInfo docInfo1 = new RankInfo();
 		RankInfo docInfo2 = new RankInfo();
-
+		
 		hasNext1 = clause1.next(docInfo1);
 		hasNext2 = clause2.next(docInfo2);
 
