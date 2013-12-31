@@ -32,8 +32,6 @@ import org.fastcatsearch.ir.io.IndexOutput;
 
 public class TempSearchFieldAppender extends TempSearchFieldMerger {
 
-	private int totalCount;
-	private int prevDocNo;
 	private byte[] buffer = new byte[1024 * 1024];
 
 	private int oldIndexTermCount;

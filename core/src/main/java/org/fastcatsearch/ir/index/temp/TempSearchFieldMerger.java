@@ -43,8 +43,8 @@ public class TempSearchFieldMerger {
 	private int bufferCount = 0;
 	private CharVector cv;
 	private CharVector cvOld;
-	private int totalCount;
-	private int prevDocNo;
+	protected int totalCount;
+	protected int prevDocNo;
 	private BytesRef[] buffers;
 
 	public TempSearchFieldMerger(String indexId, List<Long> flushPosition, File tempFile) throws IOException {
