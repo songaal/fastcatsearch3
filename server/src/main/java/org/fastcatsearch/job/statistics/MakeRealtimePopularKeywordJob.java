@@ -8,11 +8,13 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
+import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.db.mapper.PopularKeywordMapper;
 import org.fastcatsearch.db.vo.PopularKeywordVO;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.job.MasterNodeJob;
+import org.fastcatsearch.job.keyword.ApplyRealtimePopularKeywordJob;
 import org.fastcatsearch.keyword.KeywordService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.StatisticsSettings;
@@ -118,8 +120,12 @@ public class MakeRealtimePopularKeywordJob extends MasterNodeJob {
 			}
 		}
 
-		// TODO 카테고리별로 컴파일된 실시간 인기검색어 파일을 서비스노드에 전파하고 load시킨다.
-
+		// 카테고리별로 컴파일된 실시간 인기검색어 파일을 서비스노드에 전파하고 load시킨다.
+		ApplyRealtimePopularKeywordJob applyJob = new ApplyRealtimePopularKeywordJob();
+		ResultFuture resultFuture = jobExecutor.offer(applyJob);
+		resultFuture.take();
+		
+		
 		return new JobResult(true);
 	}
 }

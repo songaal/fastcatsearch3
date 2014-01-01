@@ -20,6 +20,7 @@ import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.job.statistics.CollectSearchStatisticsLogsJob;
 import org.fastcatsearch.job.statistics.MakePopularKeywordJob;
 import org.fastcatsearch.job.statistics.MakeRealtimePopularKeywordJob;
+import org.fastcatsearch.job.statistics.MakeRelateKeywordJob;
 import org.fastcatsearch.keyword.KeywordDictionary.KeywordDictionaryType;
 import org.fastcatsearch.keyword.module.PopularKeywordModule;
 import org.fastcatsearch.keyword.module.RelateKeywordModule;
@@ -116,9 +117,13 @@ public class KeywordService extends AbstractDBService {
 			JobService.getInstance().schedule(new MakeRealtimePopularKeywordJob(), nextTimeForRealtimeLog, DateUtils.getSecondsByMinutes(5)); // 5분주기.
 			// Daily 매 정시기준으로 1일 단위.
 			calendar = DateUtils.getNextDayHour(0); // 다음날 0시.
-			calendar.add(Calendar.MINUTE, 2); // +2분 여유.
+			calendar.add(Calendar.MINUTE, 10); // +10분 여유.
 			Date nextTimeForDailyLog = calendar.getTime();
 			JobService.getInstance().schedule(new MakePopularKeywordJob(), nextTimeForDailyLog, DateUtils.getSecondsByDays(1)); // 1일
+			
+			JobService.getInstance().schedule(new MakeRelateKeywordJob(), nextTimeForDailyLog, DateUtils.getSecondsByDays(1)); // 1일
+			
+			
 		}
 
 		if (isMaster) {

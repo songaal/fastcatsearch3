@@ -8,20 +8,12 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
-import org.fastcatsearch.control.ResultFuture;
-import org.fastcatsearch.db.InternalDBModule.MapperSession;
-import org.fastcatsearch.db.mapper.PopularKeywordMapper;
-import org.fastcatsearch.db.vo.PopularKeywordVO;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.job.MasterNodeJob;
-import org.fastcatsearch.job.keyword.ApplyPopularKeywordJob;
-import org.fastcatsearch.keyword.KeywordService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.StatisticsSettings;
 import org.fastcatsearch.settings.StatisticsSettings.Category;
-import org.fastcatsearch.statistics.PopularKeywordGenerator;
 import org.fastcatsearch.statistics.SearchStatisticsService;
-import org.fastcatsearch.statistics.vo.RankKeyword;
 
 /**
  * 일/주/월/년의 인기키워드를 만들어 DB에 입력한다.
@@ -29,7 +21,7 @@ import org.fastcatsearch.statistics.vo.RankKeyword;
  * TODO 구현필요.
  * */
 
-public class MakePopularKeywordJob extends MasterNodeJob {
+public class MakeRelateKeywordJob extends MasterNodeJob {
 
 	private static final long serialVersionUID = -187434814363709436L;
 
@@ -80,47 +72,6 @@ public class MakePopularKeywordJob extends MasterNodeJob {
 					 * */
 					
 					
-					PopularKeywordGenerator g = new PopularKeywordGenerator(targetDir, inFileList, statisticsSettings, fileEncoding);
-					// 카테고리별 실시간 인기키워드결과.
-					List<RankKeyword> result = g.generate();
-
-					logger.debug("-- POPULAR [{}] --", category.getId());
-					for (RankKeyword rankKeyword : result) {
-						logger.debug("{}", rankKeyword);
-					}
-					logger.debug("--------------------");
-
-					KeywordService keywordService = ServiceManager.getInstance().getService(KeywordService.class);
-					MapperSession<PopularKeywordMapper> mapperSession = keywordService.getMapperSession(PopularKeywordMapper.class);
-					try {
-						// DB에 입력한다.
-						PopularKeywordMapper mapper = mapperSession.getMapper();
-						// 먼저 TIME = RECENT 에 1~10위 까지 업데이트함. 10개가 안될수 있으므로, Update를 사용.
-
-						String TIME_REALTIME = "REALTIME"; 
-						for(RankKeyword rankKeyword : result){
-							int rank = rankKeyword.getRank();
-							
-							PopularKeywordVO vo = mapper.getRankEntry(categoryId, TIME_REALTIME, rank);
-							
-							PopularKeywordVO newVo = new PopularKeywordVO(categoryId, TIME_REALTIME, rankKeyword.getKeyword(), 0, rank, rankKeyword.getRankDiffType(), rankKeyword.getRankDiff());
-							if(vo == null){
-								mapper.putEntry(newVo);
-							}else{
-								mapper.updateEntry(newVo);
-							}
-							// 히스토리성 데이터를 남김.
-							newVo.setTime(timeFormatString);
-							mapper.putEntry(newVo);
-						}
-						
-						//TODO 구현필요.
-						//mapper.deleteElderThan(categoryId, prevTimeFormatString);// 1시간이전 데이터 지움.
-					} finally {
-						if (mapperSession != null) {
-							mapperSession.closeSession();
-						}
-					}
 
 				} catch (Throwable e) {
 					logger.error("[" + category.getId() + "] fail to generate realtime popular keyword", e);
@@ -130,10 +81,10 @@ public class MakePopularKeywordJob extends MasterNodeJob {
 			}
 		}
 
-		// 카테고리별로 컴파일된 인기검색어 파일을 서비스노드에 전파하고 load시킨다.
-		ApplyPopularKeywordJob applyJob = new ApplyPopularKeywordJob();
-		ResultFuture resultFuture = jobExecutor.offer(applyJob);
-		resultFuture.take();
+		// 카테고리별로 컴파일된 연관검색어 파일을 서비스노드에 전파하고 load시킨다.
+//		ApplyRelateKeywordJob applyJob = new ApplyRelateKeywordJob();
+//		ResultFuture resultFuture = jobExecutor.offer(applyJob);
+//		resultFuture.take();
 		
 		
 		return new JobResult(true);
