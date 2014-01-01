@@ -2,10 +2,13 @@ package org.fastcatsearch.keyword;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
+import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.db.AbstractDBService;
 import org.fastcatsearch.db.mapper.ADKeywordMapper;
 import org.fastcatsearch.db.mapper.KeywordSuggestionMapper;
@@ -14,6 +17,9 @@ import org.fastcatsearch.db.mapper.PopularKeywordMapper;
 import org.fastcatsearch.db.mapper.RelateKeywordMapper;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.job.statistics.CollectSearchStatisticsLogsJob;
+import org.fastcatsearch.job.statistics.MakePopularKeywordJob;
+import org.fastcatsearch.job.statistics.MakeRealtimePopularKeywordJob;
 import org.fastcatsearch.keyword.KeywordDictionary.KeywordDictionaryType;
 import org.fastcatsearch.keyword.module.PopularKeywordModule;
 import org.fastcatsearch.keyword.module.RelateKeywordModule;
@@ -22,6 +28,7 @@ import org.fastcatsearch.settings.KeywordServiceSettings;
 import org.fastcatsearch.settings.KeywordServiceSettings.KeywordServiceCategory;
 import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.settings.Settings;
+import org.fastcatsearch.util.DateUtils;
 import org.fastcatsearch.util.JAXBConfigs;
 
 /**
@@ -38,8 +45,7 @@ public class KeywordService extends AbstractDBService {
 
 	private File moduleHome;
 
-	private static Class<?>[] mapperList = new Class<?>[] { PopularKeywordMapper.class, RelateKeywordMapper.class,
-			KeywordSuggestionMapper.class, ADKeywordMapper.class };
+	private static Class<?>[] mapperList = new Class<?>[] { PopularKeywordMapper.class, RelateKeywordMapper.class, KeywordSuggestionMapper.class, ADKeywordMapper.class };
 
 	public KeywordService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super("db/keyword", KeywordService.mapperList, environment, settings, serviceManager);
@@ -99,6 +105,21 @@ public class KeywordService extends AbstractDBService {
 
 		// 모듈 로딩.
 		loadKeywordModules();
+
+		// 마스터 노드만 통계를 낸다.
+		if (isMaster) {
+			// 수집 스케쥴을 건다.
+			// Realtime 정시에서 시작하여 5분단위.
+			Calendar calendar = DateUtils.getLatestTimeLargerThanNow(5);
+			calendar.add(Calendar.MINUTE, 2); // +2분 여유.
+			Date nextTimeForRealtimeLog = calendar.getTime();
+			JobService.getInstance().schedule(new MakeRealtimePopularKeywordJob(), nextTimeForRealtimeLog, DateUtils.getSecondsByMinutes(5)); // 5분주기.
+			// Daily 매 정시기준으로 1일 단위.
+			calendar = DateUtils.getNextDayHour(0); // 다음날 0시.
+			calendar.add(Calendar.MINUTE, 2); // +2분 여유.
+			Date nextTimeForDailyLog = calendar.getTime();
+			JobService.getInstance().schedule(new MakePopularKeywordJob(), nextTimeForDailyLog, DateUtils.getSecondsByDays(1)); // 1일
+		}
 
 		if (isMaster) {
 			// 마스터서버이면, 자동완성, 연관키워드, 인기검색어 등의 db를 연다.

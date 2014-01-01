@@ -23,11 +23,13 @@ public class ScheduledJob extends Job {
 		this.periodInSecond = periodInSecond;
 	}
 
-	public ScheduledJob(String jobClassName, String args) {
-		actualJob = DynamicClassLoader.loadObject(jobClassName, Job.class);
+	public ScheduledJob(String jobClassName, String args, Date startTime, int periodInSecond) {
+		this.actualJob = DynamicClassLoader.loadObject(jobClassName, Job.class);
 		String[] arglist = args.split("\t");
 		actualJob.setArgs(arglist);
 		actualJob.setScheduled(true); // scheduled job.
+		this.startTime = startTime;
+		this.periodInSecond = periodInSecond;
 	}
 
 	@Override

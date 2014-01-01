@@ -68,7 +68,7 @@ public class SegmentSearcher {
 			documentReader = segmentReader.newDocumentReader();
 		}
 		Document document = documentReader.readDocument(docNo, fieldSelectOption);
-		document.setDocId(docNo + segmentReader.segmentInfo().getBaseNumber());
+//		document.setDocId(docNo + segmentReader.segmentInfo().getBaseNumber());
 		return document;
 	}
 

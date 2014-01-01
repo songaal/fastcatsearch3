@@ -8,10 +8,14 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
+import org.fastcatsearch.cluster.ClusterUtils;
+import org.fastcatsearch.cluster.NodeJobResult;
+import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.db.mapper.PopularKeywordMapper;
 import org.fastcatsearch.db.vo.PopularKeywordVO;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.job.MasterNodeJob;
 import org.fastcatsearch.keyword.KeywordService;
 import org.fastcatsearch.service.ServiceManager;
@@ -22,9 +26,20 @@ import org.fastcatsearch.statistics.SearchStatisticsService;
 import org.fastcatsearch.statistics.vo.RankKeyword;
 
 /**
- * 실시간 인기검색어 생성 작업. 컴파일 및 적용은 아직 하지 않는다.
+ * 실시간 인기검색어 취합 MAIN 작업.
  * */
-public class MakeRealtimePopularKeywordJob extends MasterNodeJob {
+
+
+
+//TODO 구현한다.
+
+
+
+
+
+
+
+public class MakePopularKeywordJob extends MasterNodeJob {
 
 	private static final long serialVersionUID = -187434814363709436L;
 

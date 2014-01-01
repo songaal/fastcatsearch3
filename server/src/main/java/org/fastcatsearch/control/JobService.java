@@ -237,6 +237,8 @@ public class JobService extends AbstractService implements JobExecutor {
 			return;
 		}
 		String jobKey = getJobKey(job);
+		logger.debug("## jobKey > {} : {} : {}", jobKey, job, job.getArgs());
+		
 		ScheduledJob scheduledJob = scheduleMap.get(jobKey);
 		if(scheduledJob == null || forceUpdate){
 			scheduledJob = new ScheduledJob(job, startTime, periodInSecond);
@@ -245,6 +247,7 @@ public class JobService extends AbstractService implements JobExecutor {
 				logger.info("Cancel old schdule {}", oldScheduledJob);
 				oldScheduledJob.cancel();
 			}
+			logger.info("# Scheduled Job registerd >> {}", scheduledJob.toString());
 			offer(scheduledJob);
 		}else{
 			logger.error("{} is already scheduled", job);
