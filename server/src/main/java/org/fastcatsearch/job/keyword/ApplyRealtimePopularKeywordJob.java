@@ -85,7 +85,7 @@ public class ApplyRealtimePopularKeywordJob extends MasterNodeJob {
 				MapperSession<PopularKeywordMapper> mapperSession = keywordService.getMapperSession(PopularKeywordMapper.class);
 				try {
 					PopularKeywordMapper mapper = mapperSession.getMapper();
-					List<PopularKeywordVO> list = mapper.getEntryList(categoryId, "REALTIME");
+					List<PopularKeywordVO> list = mapper.getTopEntryList(categoryId, "REALTIME", 10);
 					KeywordDictionaryCompiler.compilePopularKeyword(list, dictFile);
 					//성공. dictFile 파일을 전파를 위해 categoryId 유지.
 					successCategoryIdList.add(categoryId);

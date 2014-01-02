@@ -81,7 +81,7 @@ public class SearchStatisticsService extends AbstractService {
 			calendar.add(Calendar.MINUTE, 1);
 			Date nextTimeForRealtimeLog = calendar.getTime();
 			JobService.getInstance().schedule(new CollectSearchStatisticsLogsJob(CollectSearchStatisticsLogsJob.TYPE_REALTIME), nextTimeForRealtimeLog,
-					DateUtils.getSecondsByMinutes(5)); // 5분주기.
+					DateUtils.getSecondsByMinutes(1)); // 5분주기.
 			// Daily 매 정시기준으로 1시간 단위.
 			calendar = DateUtils.getNextDayHour(0); // 다음날 0시.
 			calendar.add(Calendar.MINUTE, 1);

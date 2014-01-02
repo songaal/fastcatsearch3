@@ -13,6 +13,8 @@ public interface PopularKeywordMapper extends ManagedMapper {
 	
 	public List<PopularKeywordVO> getEntryList(@Param("category") String category, @Param("time") String time) throws Exception;
 	
+	public List<PopularKeywordVO> getTopEntryList(@Param("category") String category, @Param("time") String time, @Param("limit") int limit) throws Exception;
+	
 	public void putEntry(PopularKeywordVO vo) throws Exception;
 	
 	public void updateEntry(PopularKeywordVO vo);

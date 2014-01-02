@@ -1,17 +1,25 @@
 <statistics>
-	
+
 	<category-list>
+		<category id="root" name="root" usePopularKeyword="true" useRelateKeyword="true" useRealTimePopularKeyword="true"/>
 		<category id="total" name="통합검색" usePopularKeyword="true" useRelateKeyword="true" useRealTimePopularKeyword="true"/>
-		<category id="detail" name="상세검색" usePopularKeyword="true" useRelateKeyword="false" useRealTimePopularKeyword="false"/>
+		<category id="detail" name="상세검색" usePopularKeyword="true" useRelateKeyword="false" useRealTimePopularKeyword="true"/>
 	</category-list>
 	
+	<banwords>무료, 배송, 쿠폰, 할인</banwords>
+	<file-encoding>utf-8</file-encoding>
+	
 	<realtime-popular-keyword>
-		<minimumHitCount>3</minimumHitCount>
+		<recentLogUsingCount>6</recentLogUsingCount>
+		<topCount>10</topCount>
+		<minimumHitCount>1</minimumHitCount>
 	</realtime-popular-keyword>
 	<popular-keyword>
-		<minimumHitCount>5</minimumHitCount>
+		<topCount>10</topCount>
+		<minimumHitCount>2</minimumHitCount>
 	</popular-keyword>
 	<relate-keyword>
-		<minimumHitCount>3</minimumHitCount>
+		<minimumHitCount>2</minimumHitCount>
 	</relate-keyword>
+	
 </statistics>

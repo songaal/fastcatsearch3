@@ -17,9 +17,9 @@ public class RealtimePopularKeywordGeneratorTest {
 
 	@Test
 	public void test() throws IOException {
-		String stopwords = "무료배송, 쿠폰, 특별할인";
+		String banwords = "무료배송, 쿠폰, 특별할인";
 		File targetDir = new File("src/test/resources/statistics/rt");
-		StatisticsSettings statisticsSettings = getStatisticsSettings(stopwords, 1, 1, 1);
+		StatisticsSettings statisticsSettings = getStatisticsSettings(banwords, 1, 1, 1);
 		String fileEncoding = "utf-8";
 		
 		File initDir = new File(targetDir, "init");
@@ -50,7 +50,7 @@ public class RealtimePopularKeywordGeneratorTest {
 		g.rollingByNumber(targetDir, 7);
 		new File(targetDir, "0.log").createNewFile();
 	}
-	public StatisticsSettings getStatisticsSettings(String stopwords, int rtPopMinHit, int popMinHit, int relMinHit){
+	public StatisticsSettings getStatisticsSettings(String banwords, int rtPopMinHit, int popMinHit, int relMinHit){
 		RealtimePopularKeywordConfig realTimePopularKeywordConfig = new RealtimePopularKeywordConfig();
 		PopularKeywordConfig popularKeywordConfig = new PopularKeywordConfig();
 		RelateKeywordConfig relateKeywordConfig = new RelateKeywordConfig();
@@ -61,7 +61,7 @@ public class RealtimePopularKeywordGeneratorTest {
 		relateKeywordConfig.setMinimumHitCount(relMinHit);
 		
 		StatisticsSettings statisticsSettings = new StatisticsSettings();
-		statisticsSettings.setStopwords(stopwords);
+		statisticsSettings.setBanwords(banwords);
 		statisticsSettings.setRealTimePopularKeywordConfig(realTimePopularKeywordConfig);
 		statisticsSettings.setPopularKeywordConfig(popularKeywordConfig);
 		statisticsSettings.setRelateKeywordConfig(relateKeywordConfig);

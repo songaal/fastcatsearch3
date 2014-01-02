@@ -13,9 +13,8 @@ public class StatisticsSettings {
 	private RealtimePopularKeywordConfig realTimePopularKeywordConfig;
 	private PopularKeywordConfig popularKeywordConfig;
 	private RelateKeywordConfig relateKeywordConfig;
-	private String stopwords;
+	private String banwords;
 	private String fileEncoding;
-	private int workingMemoryKeySize;
 	
 	private List<Category> categoryList;
 	
@@ -44,15 +43,15 @@ public class StatisticsSettings {
 		this.relateKeywordConfig = relateKeywordConfig;
 	}
 	@XmlElement
-	public String getStopwords() {
-		return stopwords;
+	public String getBanwords() {
+		return banwords;
 	}
 
-	public void setStopwords(String stopwords) {
-		this.stopwords = stopwords;
+	public void setBanwords(String banwords) {
+		this.banwords = banwords;
 	}
 	
-	@XmlElement
+	@XmlElement(name="file-encoding")
 	public String getFileEncoding() {
 		return fileEncoding;
 	}
@@ -61,15 +60,6 @@ public class StatisticsSettings {
 		this.fileEncoding = fileEncoding;
 	}
 
-	@XmlElement
-	public int getWorkingMemoryKeySize() {
-		return workingMemoryKeySize;
-	}
-
-	public void setWorkingMemoryKeySize(int workingMemoryKeySize) {
-		this.workingMemoryKeySize = workingMemoryKeySize;
-	}
-	
 	@XmlElementWrapper(name="category-list")
 	@XmlElement(name="category")
 	public List<Category> getCategoryList() {

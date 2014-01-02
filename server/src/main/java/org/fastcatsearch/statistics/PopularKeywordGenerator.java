@@ -66,12 +66,7 @@ public class PopularKeywordGenerator {
 		WORKING_DIR = new File(targetDir, "working");
 		RESULT_DIR = new File(targetDir, "result");
 
-		int size = statisticsSettings.getWorkingMemoryKeySize();
-		if (size > 0) {
-			runKeySize = size;
-		} else {
-			runKeySize = 10 * 10000; // 디폴트로 메모리에서는 10만개만 취합한다.
-		}
+		runKeySize = 10 * 10000; // 디폴트로 메모리에서는 10만개만 취합한다.
 
 		int count = statisticsSettings.getRealTimePopularKeywordConfig().getRecentLogUsingCount();
 		if (count > 0) {

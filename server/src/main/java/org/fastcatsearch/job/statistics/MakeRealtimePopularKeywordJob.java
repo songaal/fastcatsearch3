@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
+import org.fastcatsearch.alert.AlertServiceTest;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.db.mapper.PopularKeywordMapper;
@@ -16,6 +17,7 @@ import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.job.MasterNodeJob;
 import org.fastcatsearch.job.keyword.ApplyRealtimePopularKeywordJob;
 import org.fastcatsearch.keyword.KeywordService;
+import org.fastcatsearch.notification.NotificationService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.StatisticsSettings;
 import org.fastcatsearch.settings.StatisticsSettings.Category;
@@ -55,11 +57,14 @@ public class MakeRealtimePopularKeywordJob extends MasterNodeJob {
 			if (category.isUseRealTimePopularKeyword()) {
 				try {
 					String categoryId = category.getId();
-					File targetDir = environment.filePaths().getStatisticsRoot().file(categoryId, "rt");
 					// 취합된 로그파일이 존재하는 디렉토리.
-					File initDir = new File(targetDir, "init");
+					File collectDir = environment.filePaths().getStatisticsRoot().file(categoryId, "collect", "rt");
+					File targetDir = environment.filePaths().getStatisticsRoot().file(categoryId, "popular", "rt");
+					if(!targetDir.exists()){
+						targetDir.mkdirs();
+					}
 
-					File[] inFileList = initDir.listFiles(new FilenameFilter() {
+					File[] inFileList = collectDir.listFiles(new FilenameFilter() {
 						@Override
 						public boolean accept(File dir, String name) {
 							try {
@@ -70,6 +75,10 @@ public class MakeRealtimePopularKeywordJob extends MasterNodeJob {
 						}
 					});
 
+					if(inFileList == null || inFileList.length == 0){
+						logger.warn("[{}] Skip making realtime popular keyword due to no log files > {}", categoryId, inFileList);
+						continue;
+					}
 					RealtimePopularKeywordGenerator g = new RealtimePopularKeywordGenerator(targetDir, inFileList, statisticsSettings, fileEncoding);
 					// 카테고리별 실시간 인기키워드결과.
 					List<RankKeyword> result = g.generate();
@@ -87,8 +96,11 @@ public class MakeRealtimePopularKeywordJob extends MasterNodeJob {
 						PopularKeywordMapper mapper = mapperSession.getMapper();
 						// 먼저 TIME = RECENT 에 1~10위 까지 업데이트함. 10개가 안될수 있으므로, Update를 사용.
 
-						String TIME_REALTIME = "REALTIME"; 
-						for(RankKeyword rankKeyword : result){
+						int LIMIT = 10;
+						String TIME_REALTIME = "REALTIME";
+						int size = result.size() < LIMIT ? result.size() : LIMIT; 
+						for (int i = 0; i < size; i++) {
+							RankKeyword rankKeyword = result.get(i);
 							int rank = rankKeyword.getRank();
 							
 							PopularKeywordVO vo = mapper.getRankEntry(categoryId, TIME_REALTIME, rank);
@@ -99,6 +111,13 @@ public class MakeRealtimePopularKeywordJob extends MasterNodeJob {
 							}else{
 								mapper.updateEntry(newVo);
 							}
+							// 히스토리성 데이터를 남김.
+							newVo.setTime(timeFormatString);
+							mapper.putEntry(newVo);
+						}
+						
+						for(RankKeyword rankKeyword : result){
+							PopularKeywordVO newVo = new PopularKeywordVO(categoryId, TIME_REALTIME, rankKeyword.getKeyword(), 0, rankKeyword.getRank(), rankKeyword.getRankDiffType(), rankKeyword.getRankDiff());
 							// 히스토리성 데이터를 남김.
 							newVo.setTime(timeFormatString);
 							mapper.putEntry(newVo);

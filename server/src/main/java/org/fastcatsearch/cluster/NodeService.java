@@ -202,7 +202,7 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 		if (node.equals(myNode)) {
 			File a = environment.filePaths().makePath(sourcefile.getPath()).file();
 			File b = environment.filePaths().makePath(targetFile.getPath()).file();
-			logger.warn("compare. [{}] : [{}] = {}", a.getAbsolutePath(), b.getAbsolutePath(), a.getAbsolutePath().equals(b.getAbsolutePath()));
+//			logger.warn("compare. [{}] : [{}] = {}", a.getAbsolutePath(), b.getAbsolutePath(), a.getAbsolutePath().equals(b.getAbsolutePath()));
 			
 			if(a.getAbsolutePath().equals(b.getAbsolutePath())){
 				logger.warn("Cannot send same file to same node. Skip! {}", sourcefile);

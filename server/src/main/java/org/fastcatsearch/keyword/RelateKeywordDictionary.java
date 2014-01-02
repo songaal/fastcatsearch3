@@ -27,7 +27,7 @@ public class RelateKeywordDictionary implements KeywordDictionary {
 	public RelateKeywordDictionary(File dictionaryFile) throws IOException {
 		if (!dictionaryFile.exists()) {
 			keywordMap = new HashMap<String, String>();
-			logger.error("사전파일이 존재하지 않습니다. file={}", dictionaryFile.getAbsolutePath());
+			logger.error("키워드사전파일이 존재하지 않습니다. file={}", dictionaryFile.getAbsolutePath());
 			throw new IOException("dictionary file not found: " + dictionaryFile.getAbsolutePath());
 		}
 		InputStream istream = null;

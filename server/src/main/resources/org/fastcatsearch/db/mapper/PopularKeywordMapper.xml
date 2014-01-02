@@ -39,6 +39,12 @@ Derby SQL 문법에 따른다.
 		where category=#{category} and time=#{time}
 	</select>
 	
+	<select id="getTopEntryList" parameterType="map" resultType="org.fastcatsearch.db.vo.PopularKeywordVO">
+		select * from PopularKeyword 
+		where category=#{category} and time=#{time} and rank <= #{limit}
+		order by rank asc
+	</select>
+	
 	<select id="getRankEntry" parameterType="map" resultType="org.fastcatsearch.db.vo.PopularKeywordVO">
 		select * 
 		from PopularKeyword

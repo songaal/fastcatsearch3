@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -65,12 +66,7 @@ public class RealtimePopularKeywordGenerator {
 		WORKING_DIR = new File(targetDir, "working");
 		RESULT_DIR = new File(targetDir, "result");
 
-		int size = statisticsSettings.getWorkingMemoryKeySize();
-		if (size > 0) {
-			runKeySize = size;
-		} else {
-			runKeySize = 10 * 10000; // 디폴트로 메모리에서는 10만개만 취합한다.
-		}
+		runKeySize = 10 * 10000; // 디폴트로 메모리에서는 10만개만 취합한다.
 
 		int count = statisticsSettings.getRealTimePopularKeywordConfig().getRecentLogUsingCount();
 		if (count > 0) {
@@ -87,6 +83,11 @@ public class RealtimePopularKeywordGenerator {
 		}else{
 			this.topCount = topCount;
 		}
+		
+		banWords = new HashSet<String>();
+		for(String word : statisticsSettings.getBanwords().split(",")){
+			banWords.add(word.trim());
+		}
 	}
 
 	private File getLogFile(File dir, int number) {
@@ -101,10 +102,9 @@ public class RealtimePopularKeywordGenerator {
 			throw new IOException("ROOT " + targetDir + " not found.");
 		}
 		
-		if(WORKING_DIR.exists()){
-			FileUtils.deleteQuietly(WORKING_DIR);
+		if(!WORKING_DIR.exists()){
+			WORKING_DIR.mkdir();
 		}
-		WORKING_DIR.mkdir();
 		
 		//STEP3_DIR는 이전 랭킹로그도 참조해야하므로, 삭제하지 않고 그대로 이용한다.
 		if(!RESULT_DIR.exists()){
@@ -149,6 +149,11 @@ public class RealtimePopularKeywordGenerator {
 		float[] weightList = new float[weightArrayList.size()];
 		for (int i = 0; i < weightArrayList.size(); i++) {
 			weightList[i] = weightArrayList.get(i);
+		}
+		
+		if(inFileList == null || inFileList.length == 0){
+			logger.warn("skip making realtime popular keyword due to no working log files at {}", WORKING_DIR.getAbsolutePath());
+			return new ArrayList<RankKeyword>(0);
 		}
 		File keyCountFile = new File(RESULT_DIR, KEY_COUNT_LOG_FILENAME);
 		AggregationResultFileWriter writer = new AggregationResultFileWriter(keyCountFile, fileEncoding);
