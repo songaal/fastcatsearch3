@@ -7,13 +7,15 @@ import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.db.mapper.UserAccountMapper;
 import org.fastcatsearch.db.vo.UserAccountVO;
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping (value="/settings/authority/get-user-list")
+@ActionMapping (value="/settings/authority/get-user-list", authority=ActionAuthority.Settings, authorityLevel=ActionAuthorityLevel.READABLE)
 public class GetUserListAction extends AuthAction {
 
 	@Override

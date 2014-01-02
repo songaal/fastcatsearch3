@@ -18,7 +18,7 @@ import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
 
-@ActionMapping (value="/settings/authority/get-group-authority-list")
+@ActionMapping (value="/settings/authority/get-group-authority-list", authority=ActionAuthority.Settings, authorityLevel=ActionAuthorityLevel.WRITABLE)
 public class GetGroupAuthorityListAction extends AuthAction {
 	
 	private ActionAuthority[] authorities;

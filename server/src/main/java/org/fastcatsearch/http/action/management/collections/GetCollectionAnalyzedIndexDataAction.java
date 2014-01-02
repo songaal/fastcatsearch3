@@ -11,6 +11,8 @@ import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -33,7 +35,7 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
 
-@ActionMapping("/management/collections/index-data-analyzed")
+@ActionMapping(value="/management/collections/index-data-analyzed", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.READABLE)
 public class GetCollectionAnalyzedIndexDataAction extends AuthAction {
 
 	@Override

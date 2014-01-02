@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -17,7 +19,7 @@ import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.util.JAXBConfigs;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/management/collections/update-jdbc-source")
+@ActionMapping(value = "/management/collections/update-jdbc-source", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.WRITABLE)
 public class UpdateCollectionJdbcSourceAction extends AuthAction {
 
 	@Override

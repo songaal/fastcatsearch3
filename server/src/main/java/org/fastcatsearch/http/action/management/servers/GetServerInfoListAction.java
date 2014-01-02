@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -11,7 +13,7 @@ import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/management/servers/list")
+@ActionMapping(value = "/management/servers/list", authority = ActionAuthority.Servers, authorityLevel = ActionAuthorityLevel.READABLE)
 public class GetServerInfoListAction extends AuthAction {
 
 	@Override

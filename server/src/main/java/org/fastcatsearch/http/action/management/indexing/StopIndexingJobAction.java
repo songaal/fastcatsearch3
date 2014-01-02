@@ -6,6 +6,8 @@ import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -16,7 +18,7 @@ import org.fastcatsearch.job.indexing.CollectionIndexingStopJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/indexing/stop")
+@ActionMapping(value = "/indexing/stop", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.WRITABLE )
 public class StopIndexingJobAction extends AuthAction {
 
 	@Override

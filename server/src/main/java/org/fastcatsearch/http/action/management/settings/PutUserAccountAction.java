@@ -6,13 +6,15 @@ import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.db.mapper.UserAccountMapper;
 import org.fastcatsearch.db.vo.UserAccountVO;
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping(value = "/settings/authority/update-user")
+@ActionMapping(value = "/settings/authority/update-user", authority = ActionAuthority.Settings, authorityLevel = ActionAuthorityLevel.WRITABLE)
 public class PutUserAccountAction extends AuthAction {
 
 	private static final int MODE_INSERT = 1;

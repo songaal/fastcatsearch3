@@ -9,6 +9,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -22,7 +24,7 @@ import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.util.JAXBConfigs;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/management/collections/update-datasource")
+@ActionMapping(value = "/management/collections/update-datasource", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.WRITABLE)
 public class UpdateCollectionDatasourceAction extends AuthAction {
 
 	@Override

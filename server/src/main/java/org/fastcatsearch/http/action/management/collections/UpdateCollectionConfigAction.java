@@ -3,6 +3,8 @@ package org.fastcatsearch.http.action.management.collections;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -14,7 +16,7 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/management/collections/update-config")
+@ActionMapping(value = "/management/collections/update-config", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.WRITABLE)
 public class UpdateCollectionConfigAction extends AuthAction {
 
 	@Override

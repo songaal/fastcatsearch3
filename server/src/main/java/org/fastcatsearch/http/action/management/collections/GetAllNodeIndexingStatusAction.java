@@ -7,6 +7,8 @@ import java.util.List;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.ResultFuture;
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -19,7 +21,7 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
 
-@ActionMapping("/management/collections/all-node-indexing-status")
+@ActionMapping(value = "/management/collections/all-node-indexing-status", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.READABLE)
 public class GetAllNodeIndexingStatusAction extends AuthAction {
 
 	@Override

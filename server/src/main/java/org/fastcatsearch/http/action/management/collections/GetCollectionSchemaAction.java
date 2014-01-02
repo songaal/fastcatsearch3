@@ -3,6 +3,8 @@ package org.fastcatsearch.http.action.management.collections;
 import java.io.File;
 import java.io.OutputStream;
 
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -15,7 +17,7 @@ import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.util.FilePaths;
 import org.fastcatsearch.util.JAXBConfigs;
 
-@ActionMapping("/management/collections/schema")
+@ActionMapping(value = "/management/collections/schema", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.READABLE)
 public class GetCollectionSchemaAction extends AuthAction {
 
 	@Override

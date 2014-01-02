@@ -6,13 +6,15 @@ import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.db.mapper.GroupAccountMapper;
 import org.fastcatsearch.db.vo.GroupAccountVO;
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping (value="/settings/authority/update-group")
+@ActionMapping (value="/settings/authority/update-group", authority=ActionAuthority.Settings, authorityLevel=ActionAuthorityLevel.WRITABLE)
 public class PutGroupAccountAction extends AuthAction {
 
 	@Override

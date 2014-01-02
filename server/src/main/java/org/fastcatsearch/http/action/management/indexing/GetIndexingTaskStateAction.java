@@ -2,6 +2,7 @@ package org.fastcatsearch.http.action.management.indexing;
 
 import java.io.Writer;
 
+import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -13,7 +14,7 @@ import org.fastcatsearch.job.state.TaskStateService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/indexing/task-state")
+@ActionMapping(value = "/indexing/task-state", authority = ActionAuthority.Collections)
 public class GetIndexingTaskStateAction extends AuthAction {
 
 	@Override

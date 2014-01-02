@@ -3,6 +3,8 @@ package org.fastcatsearch.http.action.management.analysis;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -14,7 +16,7 @@ import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.JAXBConfigs;
 
-@ActionMapping("/management/analysis/plugin-setting")
+@ActionMapping(value = "/management/analysis/plugin-setting", authority = ActionAuthority.Analysis, authorityLevel = ActionAuthorityLevel.READABLE)
 public class GetAnalysisPluginSettings extends AuthAction {
 
 	@Override

@@ -8,13 +8,14 @@ import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.db.mapper.NotificationHistoryMapper;
 import org.fastcatsearch.db.vo.NotificationVO;
 import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping(value="/management/logs/notification-history-list", authority=ActionAuthority.Logs)
+@ActionMapping(value="/management/logs/notification-history-list", authority=ActionAuthority.Logs, authorityLevel = ActionAuthorityLevel.READABLE)
 public class GetNotificationHistoryListAction extends AuthAction {
 	
 	@Override

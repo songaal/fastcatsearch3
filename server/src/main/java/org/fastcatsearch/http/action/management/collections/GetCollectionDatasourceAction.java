@@ -2,6 +2,8 @@ package org.fastcatsearch.http.action.management.collections;
 
 import java.io.OutputStream;
 
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -12,7 +14,7 @@ import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.JAXBConfigs;
 
-@ActionMapping("/management/collections/datasource")
+@ActionMapping(value = "/management/collections/datasource", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.READABLE)
 public class GetCollectionDatasourceAction extends AuthAction {
 
 	@Override

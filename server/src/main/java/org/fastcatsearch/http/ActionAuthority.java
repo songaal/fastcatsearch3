@@ -9,7 +9,8 @@ public enum ActionAuthority {
 	Collections ("Collections"), 
 	Analysis  ("Analysis"),
 	Servers ("Servers"),
-	Logs ("Logs");
+	Logs ("Logs"),
+	Settings ("Settings");
 	
 	private String name;
 	

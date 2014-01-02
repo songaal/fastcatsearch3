@@ -7,6 +7,8 @@ import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.db.mapper.IndexingResultMapper;
 import org.fastcatsearch.db.vo.IndexingStatusVO;
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -15,7 +17,7 @@ import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/management/collections/indexing-result")
+@ActionMapping(value = "/management/collections/indexing-result", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.READABLE)
 public class GetIndexingResultAction extends AuthAction {
 
 	@Override

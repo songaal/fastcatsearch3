@@ -4,6 +4,8 @@ import java.io.Writer;
 
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -13,7 +15,7 @@ import org.fastcatsearch.job.indexing.MasterCollectionFullIndexingJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/indexing/full/document-store/run")
+@ActionMapping(value = "/indexing/full/document-store/run", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.WRITABLE )
 public class RunDocumentStoreFullIndexingAction extends AuthAction {
 	
 	@Override

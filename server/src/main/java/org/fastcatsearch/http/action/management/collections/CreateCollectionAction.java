@@ -3,6 +3,8 @@ package org.fastcatsearch.http.action.management.collections;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -14,7 +16,7 @@ import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/management/collections/create")
+@ActionMapping(value = "/management/collections/create", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.WRITABLE)
 public class CreateCollectionAction extends AuthAction {
 
 	@Override

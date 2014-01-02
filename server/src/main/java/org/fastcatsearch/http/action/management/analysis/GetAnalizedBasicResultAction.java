@@ -10,6 +10,8 @@ import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.core.AnalyzerOption;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -25,7 +27,7 @@ import org.fastcatsearch.util.ResponseWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@ActionMapping("/management/analysis/analysis-tools")
+@ActionMapping(value = "/management/analysis/analysis-tools", authority = ActionAuthority.Analysis, authorityLevel = ActionAuthorityLevel.READABLE)
 public class GetAnalizedBasicResultAction extends AuthAction {
 
 	private static final Logger logger = LoggerFactory.getLogger(GetAnalizedBasicResultAction.class);

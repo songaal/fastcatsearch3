@@ -3,6 +3,8 @@ package org.fastcatsearch.http.action.management.collections;
 import java.io.Writer;
 import java.util.ArrayList;
 
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -18,7 +20,7 @@ import org.fastcatsearch.ir.search.SegmentSearcher;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/management/collections/index-data")
+@ActionMapping(value = "/management/collections/index-data", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.READABLE)
 public class GetCollectionIndexDataAction extends AuthAction {
 
 	@Override

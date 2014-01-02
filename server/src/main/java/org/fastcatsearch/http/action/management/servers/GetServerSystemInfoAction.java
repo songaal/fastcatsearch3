@@ -7,6 +7,8 @@ import org.fastcatsearch.cluster.ClusterUtils;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeJobResult;
 import org.fastcatsearch.cluster.NodeService;
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -21,7 +23,7 @@ import org.fastcatsearch.util.ResultWriterException;
  * nodeId가 존재하면 하나의 데이터만 리턴하고 없으면 모든 노드의 데이터리턴.
  * 
  * */
-@ActionMapping("/management/servers/systemInfo")
+@ActionMapping(value = "/management/servers/systemInfo", authority = ActionAuthority.Servers, authorityLevel = ActionAuthorityLevel.READABLE)
 public class GetServerSystemInfoAction extends AuthAction {
 
 	@Override

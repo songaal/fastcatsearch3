@@ -8,6 +8,8 @@ import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.SettingManager;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -19,7 +21,7 @@ import org.fastcatsearch.settings.NodeListSettings;
 import org.fastcatsearch.settings.NodeListSettings.NodeSettings;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/management/servers/update")
+@ActionMapping(value = "/management/servers/update", authority = ActionAuthority.Servers, authorityLevel = ActionAuthorityLevel.WRITABLE)
 public class UpdateServerInfoAction extends AuthAction {
 
 	@Override

@@ -2,6 +2,8 @@ package org.fastcatsearch.http.action.management.collections;
 
 import java.io.File;
 
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -16,7 +18,7 @@ import org.fastcatsearch.util.FilePaths;
 import org.fastcatsearch.util.JAXBConfigs;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/management/collections/schema/remove")
+@ActionMapping(value = "/management/collections/schema/remove", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.WRITABLE)
 public class RemoveCollectionSchemaAction extends AuthAction {
 
 	@Override

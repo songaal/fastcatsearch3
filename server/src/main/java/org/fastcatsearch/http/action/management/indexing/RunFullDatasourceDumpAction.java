@@ -5,6 +5,8 @@ import java.io.Writer;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.ResultFuture;
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -15,7 +17,7 @@ import org.fastcatsearch.job.indexing.CollectionDatasourceDumpJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/datasource/full/dump")
+@ActionMapping(value = "/datasource/full/dump", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.WRITABLE )
 public class RunFullDatasourceDumpAction extends AuthAction {
 	
 	@Override

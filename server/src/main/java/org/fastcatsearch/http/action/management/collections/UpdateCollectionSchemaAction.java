@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -30,7 +32,7 @@ import org.json.JSONObject;
 /**
  * 
  * */
-@ActionMapping("/management/collections/schema/update")
+@ActionMapping(value = "/management/collections/schema/update", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.WRITABLE)
 public class UpdateCollectionSchemaAction extends AuthAction {
 
 	@Override

@@ -4,6 +4,8 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.List;
 
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -16,7 +18,7 @@ import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/management/analysis/plugin-list")
+@ActionMapping(value = "/management/analysis/plugin-list", authority = ActionAuthority.Analysis, authorityLevel = ActionAuthorityLevel.READABLE)
 public class GetAnalysisPluginList extends AuthAction {
 
 	@Override
