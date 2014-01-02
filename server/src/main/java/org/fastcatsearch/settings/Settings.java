@@ -199,5 +199,19 @@ public class Settings {
 		}
 	}
 
+	public Properties getStartsWith(String prefix){
+		Properties props = new Properties();
+		String match = prefix + ".";
+		for(Object key : properties.keySet()){
+			String stringKey = key.toString();
+			if(stringKey.startsWith(match)){
+				String newKey = stringKey.substring(match.length());
+				String value = properties.getProperty(stringKey);
+				props.put(newKey, value);
+			}
+		}
+		
+		return props;
+	}
 
 }

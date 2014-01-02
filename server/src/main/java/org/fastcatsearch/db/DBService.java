@@ -19,6 +19,7 @@ import org.fastcatsearch.db.mapper.GroupAuthorityMapper;
 import org.fastcatsearch.db.mapper.IndexingHistoryMapper;
 import org.fastcatsearch.db.mapper.IndexingResultMapper;
 import org.fastcatsearch.db.mapper.ManagedMapper;
+import org.fastcatsearch.db.mapper.NotificationConfigMapper;
 import org.fastcatsearch.db.mapper.NotificationHistoryMapper;
 import org.fastcatsearch.db.mapper.TaskHistoryMapper;
 import org.fastcatsearch.db.mapper.UserAccountMapper;
@@ -45,6 +46,7 @@ public class DBService extends AbstractDBService {
 		, UserAccountMapper.class
 		, GroupAccountMapper.class
 		, GroupAuthorityMapper.class 
+		, NotificationConfigMapper.class
 	};
 
 	public static DBService getInstance() {

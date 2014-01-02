@@ -15,19 +15,19 @@ public class EmailSenderTest {
 		GmailProperties gmailProperties = new GmailProperties(true);
 		gmailProperties.setAuthentication("webmaster@websqrd.com", "dnpqtmznpdjem1@");
 		EmailSender emailSender = new EmailSender(gmailProperties);
-		String fromAddress = "noreply@websqrd.com";
+		String fromAddress = "";
 		List<String> recipientToList = new ArrayList<String>();
 		List<String> recipientCCList = new ArrayList<String>();
 		List<String> recipientBCCList = new ArrayList<String>();
 		
 		recipientToList.add("swsong@websqrd.com");
-		recipientToList.add("lupfeliz@websqrd.com");
-		recipientToList.add("jhkang@websqrd.com");
-		
-		recipientCCList.add("lupfeliz@gmail.com");
-		recipientCCList.add("songaal@gmail.com");
-		
-		recipientBCCList.add("songaal@naver.com");
+//		recipientToList.add("lupfeliz@websqrd.com");
+//		recipientToList.add("jhkang@websqrd.com");
+//		
+//		recipientCCList.add("lupfeliz@gmail.com");
+//		recipientCCList.add("songaal@gmail.com");
+//		
+//		recipientBCCList.add("songaal@naver.com");
 		
 		String subject = "웹스퀘어드 메일테스트입니다.";
 		String text = "<h1>메일잘가나</h1>" +
@@ -256,11 +256,11 @@ public class EmailSenderTest {
 				"\n" + 
 				"  </div>";
 		List<File> files = new ArrayList<File>();
-		files.add(new File("/Users/swsong/Desktop/20130414184_수원시_수원시.hwp"));
-		files.add(new File("/Users/swsong/Desktop/dic.product.txt"));
-		files.add(new File("/Users/swsong/Desktop/fastcat.jpg"));
+//		files.add(new File("/Users/swsong/Desktop/20130414184_수원시_수원시.hwp"));
+//		files.add(new File("/Users/swsong/Desktop/dic.product.txt"));
+//		files.add(new File("/Users/swsong/Desktop/fastcat.jpg"));
 		
-		emailSender.send(fromAddress, recipientToList, recipientCCList, recipientBCCList, subject, text, files);
+		emailSender.send(fromAddress, recipientToList, recipientCCList, recipientBCCList, subject, text, "text/plain", files);
 	}
 
 }

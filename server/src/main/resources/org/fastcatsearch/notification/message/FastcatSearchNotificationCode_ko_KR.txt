@@ -1,7 +1,8 @@
 ### 01000
 
-MSG-00100: 노드{0}에서 메모리부족에러가 발생했습니다. 코드={1}
+MSG-00100: OutOfMemory error
 
-
-MSG-01000: {0}컬렉션의 {1}색인이 {2}실행되었습니다. 시각:{3}
-MSG-01001: {0}컬렉션의 {1}색인이 {2}하였습니다. 시간:{3}~{4}. {5} 
+MSG-01000: Collection indexing start
+MSG-01001: Collection indexing finish successfully 
+MSG-01002: Collection indexing fail
+MSG-01003: Collection indexing cancel
