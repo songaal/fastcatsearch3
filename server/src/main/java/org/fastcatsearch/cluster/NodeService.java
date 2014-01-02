@@ -2,6 +2,7 @@ package org.fastcatsearch.cluster;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -253,7 +254,7 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 			//삭제된 경우.
 			for(String key : nodeMap.keySet()) {
 				if(nodeListSettings.findNodeById(key)==-1) {
-					//TODO:노드 정지 및 삭제
+					//노드 삭제
 					nodeMap.remove(key);
 					break;
 				}
@@ -266,33 +267,39 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 	
 				String nodeId = setting.getId();
 				String name = setting.getName();
-				String address = setting.getAddress();
-				int port = setting.getPort();
 				boolean enabled = setting.isEnabled();
+				InetSocketAddress address = new InetSocketAddress(setting.getAddress(), setting.getPort());
 	
 				Node node = null;
+				
 	
 				if(nodeMap.containsKey(nodeId)) {
 					node = nodeMap.get(nodeId);
 					//주소 및 포트가 변경 되었다면
-					if( !( address!=null && address.equals(node.address()) &&
-						port == node.port()) ) {
-						//기존 노드의 정지 후 새 노드를 시작함.
-						if(node.isEnabled() && node.isActive()) {
-							//TODO:노드 정지 및 삭제
-							logger.trace("updating (stop)node {}..", new Object[] { inx });
-						}
-						node = new Node(nodeId, name, address, port, enabled);
+					logger.debug("check node {} ({}:{}) : ({}:{})", nodeId, address.getAddress(), address.getPort(), node.address().getAddress(), node.address().getPort());
+					
+					if (!(address.getHostName() != null
+							&& address.getHostName().equals( node.address().getHostName()) 
+							&& address.getPort() == node.address().getPort()
+						)) {
+						//기존 노드의 삭제 후 새 노드를 시작함.
+						nodeMap.remove(nodeId);
+						logger.debug("updating (remove) node {} ({}/{}:{})..", inx, nodeId, node.address(), node.port());
+						node.setInactive();
+						node.setDisabled();
 					}
-				} else {
-					//신규노드
-					node = new Node(nodeId, name, address, port, enabled);
-					logger.trace("add new node.. {}", node);
+				}
+				if(!nodeMap.containsKey(nodeId)) {
+					//노드추가
+					node = new Node(nodeId, name, address.getHostName(), address.getPort(), enabled);
+					logger.debug("add new node.. {}", node);
 					nodeMap.put(nodeId, node);
+					if(enabled) {
+						node.setActive();
+					}
 				}
 			}
 		}
-		
 		environment.settingManager().storeNodeListSettings(nodeListSettings);
 	}
 }
