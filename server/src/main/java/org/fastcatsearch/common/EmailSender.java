@@ -32,6 +32,9 @@ public class EmailSender {
 			properties = new Properties();
 		}
 
+		public MailProperties(Properties properties){
+			this.properties = properties;
+		}
 		public void add(String key, String value) {
 			properties.put(key, value);
 		}
@@ -73,6 +76,7 @@ public class EmailSender {
 			properties.put("mail.smtp.host", "smtp.gmail.com");
 			properties.put("mail.smtp.starttls.enable", "true");
 			properties.put("mail.smtp.auth", "true");
+			properties.put("mail.smtp.ssl.trust", "smtp.gmail.com");
 			properties.put("mail.debug", debug);
 		}
 	}
@@ -87,11 +91,19 @@ public class EmailSender {
 		this.mailProperties = mailProperties;
 	}
 
-	public void send(String fromAddress, List<String> recipientToList, String subject, String text) throws IOException {
-		send(fromAddress, recipientToList, null, null, subject, text, null);
+	public void sendHTML(String fromAddress, List<String> recipientToList, String subject, String text) throws IOException {
+		send(fromAddress, recipientToList, null, null, subject, text, "text/html", null);
 	}
 
-	public void send(String fromAddress, List<String> recipientToList, List<String> recipientCCList, List<String> recipientBCCList, String subject, String text, List<File> files) throws IOException {
+	public void sendText(String fromAddress, List<String> recipientToList, String subject, String text) throws IOException {
+		send(fromAddress, recipientToList, null, null, subject, text, "text/plain", null);
+	}
+	
+	public void send(String fromAddress, List<String> recipientToList, String subject, String text, String mimeType) throws IOException {
+		send(fromAddress, recipientToList, null, null, subject, text, mimeType, null);
+	}
+	
+	public void send(String fromAddress, List<String> recipientToList, List<String> recipientCCList, List<String> recipientBCCList, String subject, String text, String mimeType, List<File> files) throws IOException {
 
 		Session session = Session.getInstance(mailProperties.properties(), mailProperties.authenticator());
 
@@ -99,7 +111,7 @@ public class EmailSender {
 			MimeMessage msg = new MimeMessage(session);
 			MimeMultipart mmp = new MimeMultipart();
 			MimeBodyPart mbp = new MimeBodyPart();
-			mbp.setContent(text, "text/html;\n\tcharset=\"UTF-8\"");
+			mbp.setContent(text, mimeType+";\n\tcharset=\"UTF-8\"");
 			mbp.setHeader("Content-Transfer-Encoding", "base64");
 			mmp.addBodyPart(mbp);
 			

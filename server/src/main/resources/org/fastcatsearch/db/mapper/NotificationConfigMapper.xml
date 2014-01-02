@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- default field : id, keyword -->
+<mapper namespace="org.fastcatsearch.db.mapper.NotificationConfigMapper">
+
+	<update id="createTable">
+		create table NotificationConfig (
+		id int GENERATED ALWAYS AS IDENTITY,
+		code varchar(30),
+		alertTo varchar(2000),
+		primary key (id)
+		)
+	</update>
+	
+	<update id="createIndex" >
+		create unique index code_NotificationConfig_index on NotificationConfig(code)
+	</update>
+	
+	
+	<select id="validateTable" parameterType="map" resultType="map">
+		select id, code, alertTo
+		from NotificationConfig 
+		fetch first 1 rows only
+	</select>
+
+	<update id="dropTable" parameterType="map">
+		drop table NotificationConfig
+	</update>
+	
+	<select id="getEntry" parameterType="String" resultType="org.fastcatsearch.db.vo.NotificationConfigVO">
+		select *
+		from NotificationConfig where code = #{code}
+	</select>
+	
+	<select id="getEntryList" parameterType="map" resultType="org.fastcatsearch.db.vo.NotificationConfigVO">
+		select *
+		from NotificationConfig
+	</select>
+
+	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.NotificationConfigVO" useGeneratedKeys="true" keyProperty="id">
+		insert into NotificationConfig ( 
+		code, alertTo
+		)
+		values (
+		#{code}, #{alertTo}
+		)
+	</insert>
+	
+	<update id="updateEntry" parameterType="org.fastcatsearch.db.vo.NotificationConfigVO">
+		update NotificationConfig 
+		set alertTo = #{alertTo}
+		where code = #{code}
+	</update>
+	
+	<update id="deleteEntry" parameterType="String">
+		delete from NotificationConfig where code = #{code}
+	</update>
+
+</mapper>
