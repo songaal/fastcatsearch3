@@ -57,7 +57,6 @@ public class CollectionSearcher {
 	}
 
 	public GroupsData doGrouping(Query q) throws IRException, IOException, SettingException {
-		collectionHandler.addSearchStatistics(q);
 		
 		int segmentSize = collectionHandler.segmentSize();
 		if (segmentSize == 0) {
@@ -132,7 +131,6 @@ public class CollectionSearcher {
 	}
 
 	public Result search(Query q) throws IRException, IOException, SettingException {
-		collectionHandler.addSearchStatistics(q);
 		
 		InternalSearchResult internalSearchResult = searchInternal(q);
 		DocIdList hitList = internalSearchResult.getDocIdList();

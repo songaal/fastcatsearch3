@@ -43,8 +43,6 @@ public class CollectionHandler {
 	private boolean isLoaded;
 	private FilePaths collectionFilePaths;
 
-	private SearchStatistics searchStatistics; //검색통계치.
-	
 	private AnalyzerFactoryManager analyzerFactoryManager;
 	private AnalyzerPoolManager analyzerPoolManager;
 	
@@ -70,15 +68,6 @@ public class CollectionHandler {
 	
 	public AnalyzerPoolManager analyzerPoolManager(){
 		return analyzerPoolManager;
-	}
-	
-	public void setSearchStatistics(SearchStatistics searchStatistics){
-		this.searchStatistics = searchStatistics;
-	}
-	public void addSearchStatistics(Query q) {
-		if(searchStatistics != null){
-			searchStatistics.add(q);
-		}
 	}
 	
 	public Schema schema(){

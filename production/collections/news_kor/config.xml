@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <collection-config>
-	<index-node>node1</index-node>
-	<shard-list>
-		<shard id="news_kor" />
-	</shard-list>
-	<data-plan>
-		<data-sequence-cycle>2</data-sequence-cycle>
-		<segment-document-limit>15</segment-document-limit>
-		<segment-revision-backup-size>2</segment-revision-backup-size>
-	</data-plan>
-	<index>
-		<term-interval>64</term-interval>
-		<work-bucket-size>256</work-bucket-size>
-		<work-memory-size>134217728</work-memory-size>
-		<pk-bucket-size>65536</pk-bucket-size>
-		<pk-term-interval>64</pk-term-interval>
-	</index>
-	<name>뉴스</name>
+    <name>news_kor</name>
+    <index-node>node1</index-node>
+    <search-node-list>
+        <node>node1</node>
+    </search-node-list>
+    <data-node-list>
+        <node>node1</node>
+    </data-node-list>
+    <data-plan>
+        <segment-revision-backup-size>0</segment-revision-backup-size>
+        <segment-document-limit>2000000</segment-document-limit>
+        <data-sequence-cycle>2</data-sequence-cycle>
+    </data-plan>
 </collection-config>

@@ -14,7 +14,6 @@ import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
-import org.fastcatsearch.keyword.KeywordService;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.service.ServiceManager;
@@ -39,13 +38,6 @@ public class InnerDBIJTestAction extends AuthAction {
 					writer.write("ERROR : DBService is not running.");
 				}
 				internalDBModule = dbService.internalDBModule();
-			} else if(db.equalsIgnoreCase("keyword")){
-				KeywordService keywordService = ServiceManager.getInstance().getService(KeywordService.class);
-				if (keywordService == null) {
-					writer.write("ERROR : KeywordService is not running.");
-				}
-				internalDBModule = keywordService.internalDBModule();
-				
 			}else if(db.startsWith("plugin")){
 				String[] els = db.split("/");
 				String pluginId = els[1];
