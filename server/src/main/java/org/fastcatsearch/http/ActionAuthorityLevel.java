@@ -11,8 +11,10 @@ public enum ActionAuthorityLevel {
 		}
 		if(level == WRITABLE){
 			return this == WRITABLE;
-		}else if(level == READABLE){
+		} else if(level == READABLE){
 			return this == WRITABLE || this == READABLE;
+		} else if(this == NONE) {
+			return this == level;
 		}
 		return this != NONE;
 	}

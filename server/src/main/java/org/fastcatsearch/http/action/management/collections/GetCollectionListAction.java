@@ -14,7 +14,7 @@ import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping(value = "/management/collections/collection-list", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.READABLE)
+@ActionMapping(value = "/management/collections/collection-list", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.NONE)
 public class GetCollectionListAction extends AuthAction {
 
 	@Override

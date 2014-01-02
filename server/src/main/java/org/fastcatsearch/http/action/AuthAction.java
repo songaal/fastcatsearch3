@@ -26,6 +26,8 @@ public abstract class AuthAction extends ServiceAction {
 		}
 		Object obj = session.getAttribute(AUTH_KEY);
 		
+		logger.trace("session obj = {}", obj);
+		
 		try {
 			
 			if (obj == null) {
@@ -43,10 +45,17 @@ public abstract class AuthAction extends ServiceAction {
 					currentLevel = ActionAuthorityLevel.NONE;
 				}
 				
+				if(logger.isTraceEnabled()) {
+					logger.trace(
+							"authority:{} requireLevel:{} / currentLevel:{} [{}]",
+							authority, authorityLevel, currentLevel,
+							currentLevel.isLargerThan(authorityLevel));
+				}
+				
 				if (authority == ActionAuthority.NULL
 						|| (authority != ActionAuthority.NULL && currentLevel
 								.isLargerThan(authorityLevel))) {
-					logger.debug("authorized");					
+					logger.trace("authorized");					
 					doAuthAction(request, response);
 				} else {
 					doNotAuthenticatedResult(request, response);

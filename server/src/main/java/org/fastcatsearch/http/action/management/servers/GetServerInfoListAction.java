@@ -13,7 +13,7 @@ import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping(value = "/management/servers/list", authority = ActionAuthority.Servers, authorityLevel = ActionAuthorityLevel.READABLE)
+@ActionMapping(value = "/management/servers/list", authority = ActionAuthority.Servers, authorityLevel = ActionAuthorityLevel.NONE)
 public class GetServerInfoListAction extends AuthAction {
 
 	@Override
