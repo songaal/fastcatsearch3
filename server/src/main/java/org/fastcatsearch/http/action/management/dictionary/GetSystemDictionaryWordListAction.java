@@ -3,6 +3,8 @@ package org.fastcatsearch.http.action.management.dictionary;
 import java.io.Writer;
 import java.util.List;
 
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -16,7 +18,7 @@ import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/management/dictionary/system")
+@ActionMapping(value="/management/dictionary/system", authority=ActionAuthority.Dictionary, authorityLevel=ActionAuthorityLevel.READABLE)
 public class GetSystemDictionaryWordListAction extends AuthAction {
 
 	@Override

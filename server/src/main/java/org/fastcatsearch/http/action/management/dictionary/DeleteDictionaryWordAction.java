@@ -3,6 +3,8 @@ package org.fastcatsearch.http.action.management.dictionary;
 import java.io.Writer;
 
 import org.fastcatsearch.db.dao.DictionaryDAO;
+import org.fastcatsearch.http.ActionAuthority;
+import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -13,7 +15,7 @@ import org.fastcatsearch.plugin.analysis.AnalysisPlugin;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/management/dictionary/delete")
+@ActionMapping(value="/management/dictionary/delete", authority=ActionAuthority.Dictionary, authorityLevel=ActionAuthorityLevel.WRITABLE)
 public class DeleteDictionaryWordAction extends AuthAction {
 
 	@Override

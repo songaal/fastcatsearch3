@@ -1,9 +1,11 @@
 package org.fastcatsearch.http.action;
 
 import java.io.Writer;
+import java.util.Map;
 
 import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionAuthorityLevel;
+import org.fastcatsearch.http.SessionInfo;
 import org.fastcatsearch.util.ResponseWriter;
 
 public abstract class AuthAction extends ServiceAction {
@@ -26,16 +28,31 @@ public abstract class AuthAction extends ServiceAction {
 		
 		try {
 			
-			//FIXME 일단 테스트시에는 auth없이..
-			doAuthAction(request, response);
-			/*
 			if (obj == null) {
 				// 인증 안되어 있음.
 				doNotAuthenticatedResult(request, response);
 			} else {
-				doAuthAction(request, response);
+				
+				SessionInfo sessionInfo = (SessionInfo)obj;
+				
+				Map<ActionAuthority, ActionAuthorityLevel> authorityMap = sessionInfo.getAuthorityMap();
+				
+				ActionAuthorityLevel currentLevel = authorityMap.get(authority);
+				
+				if (currentLevel == null) {
+					currentLevel = ActionAuthorityLevel.NONE;
+				}
+				
+				if (authority == ActionAuthority.NULL
+						|| (authority != ActionAuthority.NULL && currentLevel
+								.isLargerThan(authorityLevel))) {
+					logger.debug("authorized");					
+					doAuthAction(request, response);
+				} else {
+					doNotAuthenticatedResult(request, response);
+				}
+				
 			}
-			*/
 		} finally {
 			response.getWriter().close();
 		}
