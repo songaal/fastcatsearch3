@@ -18,7 +18,7 @@ import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping(value = "/management/analysis/plugin-list", authority = ActionAuthority.Analysis, authorityLevel = ActionAuthorityLevel.READABLE)
+@ActionMapping(value = "/management/analysis/plugin-list", authority = ActionAuthority.Analysis, authorityLevel = ActionAuthorityLevel.NONE)
 public class GetAnalysisPluginList extends AuthAction {
 
 	@Override
