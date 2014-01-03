@@ -11,8 +11,6 @@ public interface UserAccountMapper extends ManagedMapper {
 	
 	public UserAccountVO getEntryByUserId(@Param("userId") String userId) throws Exception;
 	
-	public UserAccountVO getEntryByUserIdAndPassword(@Param("userId")String userId, @Param("password")String password);
-	
 	public List<UserAccountVO> getEntryList() throws Exception;
 	
 	public int getCount() throws Exception;

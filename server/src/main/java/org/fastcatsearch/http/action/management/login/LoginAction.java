@@ -31,77 +31,73 @@ public class LoginAction extends ServiceAction {
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		resultWriter.object();
-		
+
 		String userId = request.getParameter("id");
 		String password = request.getParameter("password");
-		
+
 		MapperSession<UserAccountMapper> userAccountSession = null;
-		
+
 		MapperSession<GroupAuthorityMapper> groupAuthoritySession = null;
-		
+
 		try {
-			
+
 			userAccountSession = DBService.getInstance().getMapperSession(UserAccountMapper.class);
-			
+
 			groupAuthoritySession = DBService.getInstance().getMapperSession(GroupAuthorityMapper.class);
-			
-			UserAccountMapper userAccountMapper = (UserAccountMapper) 
-					userAccountSession.getMapper();
-			GroupAuthorityMapper groupAuthorityMapper = (GroupAuthorityMapper) 
-					groupAuthoritySession.getMapper();
-			
-			//db에 id, passwd를 던져서 로그인 성공여부 확인.
-			UserAccountVO userInfo = userAccountMapper.getEntryByUserIdAndPassword(userId, password);
-			if(userInfo != null){
-				
-				Map<ActionAuthority,ActionAuthorityLevel> 
-						authorityMap = new HashMap<ActionAuthority,ActionAuthorityLevel>();
+
+			UserAccountMapper userAccountMapper = (UserAccountMapper) userAccountSession.getMapper();
+			GroupAuthorityMapper groupAuthorityMapper = (GroupAuthorityMapper) groupAuthoritySession.getMapper();
+
+			// db에 id, passwd를 던져서 로그인 성공여부 확인.
+			UserAccountVO userInfo = userAccountMapper.getEntryByUserId(userId);
+			boolean isCorrectPassword = false;
+			if (userInfo != null) {
+				isCorrectPassword = userInfo.isEqualsEncryptedPassword(password);
+			}
+
+			if (isCorrectPassword) {
+
+				Map<ActionAuthority, ActionAuthorityLevel> authorityMap = new HashMap<ActionAuthority, ActionAuthorityLevel>();
 				try {
-				
-//					if("admin".equals(userId)) {
-//						
-//						//Admin 의 경우 모든 권한...
-//						ActionAuthority[] allAuthority = ActionAuthority.values();
-//						for(ActionAuthority authority : allAuthority) {
-//							authorityMap.put(authority, ActionAuthorityLevel.WRITABLE);
-//						}
-//					} else {
-						//db에서 내 그룹의 권한을 가져와서 authorityMap에 채워준다.
-						int groupId = userInfo.groupId;
-						List<GroupAuthorityVO>authorityList = groupAuthorityMapper.getEntryList(groupId);
-						for(GroupAuthorityVO authority : authorityList) {
-							authorityMap.put(ActionAuthority.valueOf(authority.authorityCode), 
-									ActionAuthorityLevel.valueOf(authority.authorityLevel) );
-						}
-//					}
-					if(authorityMap!=null && authorityMap.size()!=0) {
+
+					// db에서 내 그룹의 권한을 가져와서 authorityMap에 채워준다.
+					int groupId = userInfo.groupId;
+					List<GroupAuthorityVO> authorityList = groupAuthorityMapper.getEntryList(groupId);
+					for (GroupAuthorityVO authority : authorityList) {
+						authorityMap.put(ActionAuthority.valueOf(authority.authorityCode),
+								ActionAuthorityLevel.valueOf(authority.authorityLevel));
+					}
+					if (authorityMap != null && authorityMap.size() != 0) {
 						session.setAttribute(AuthAction.AUTH_KEY, new SessionInfo(userId, authorityMap));
 					}
 				} catch (Exception e) {
 					userInfo = null;
-					logger.error("",e);
+					logger.error("", e);
 				} finally {
 				}
 			}
-			
-			if(userInfo != null){
+
+			if (isCorrectPassword) {
 				resultWriter.key("status").value("0");
 				resultWriter.key("name").value(userInfo.name);
-			}else{
-				//로그인 실패.
+			} else {
+				// 로그인 실패.
 				resultWriter.key("status").value("1");
 			}
-		
-			
+
 			resultWriter.endObject();
 		} finally {
-			if(userAccountSession!=null) try {
-				userAccountSession.closeSession();
-			} catch (Exception e) { }
-			
-			if(groupAuthoritySession!=null) try {
-				groupAuthoritySession.closeSession();
-			} catch (Exception e) { }
+			if (userAccountSession != null)
+				try {
+					userAccountSession.closeSession();
+				} catch (Exception e) {
+				}
+
+			if (groupAuthoritySession != null)
+				try {
+					groupAuthoritySession.closeSession();
+				} catch (Exception e) {
+				}
 		}
 		resultWriter.done();
 		writer.close();

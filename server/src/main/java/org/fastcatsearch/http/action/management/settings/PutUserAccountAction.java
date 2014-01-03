@@ -53,12 +53,14 @@ public class PutUserAccountAction extends AuthAction {
 					int updateMode = 0;
 
 					synchronized (userAccountMapper) {
+						boolean doChangePassword = false;
+						
 						if (id != -1) {
 							vo = userAccountMapper.getEntry(id);
 							if (vo != null) {
 								updateMode = MODE_UPDATE;
 								if (password == null || "".equals(password) || !password.equals(confirmPassword)) {
-									password = vo.password;
+									doChangePassword = true;
 								}
 							}
 						} else {
@@ -71,7 +73,9 @@ public class PutUserAccountAction extends AuthAction {
 
 						vo.name = userName;
 						vo.userId = userId;
-						vo.password = password;
+						if(!doChangePassword){
+							vo.setEncryptedPassword(password);
+						}
 						vo.email = email;
 						vo.sms = sms;
 						vo.groupId = groupId;
