@@ -94,21 +94,29 @@ public class NotificationJob extends Job implements Streamable {
 								String userId = kv[1].trim();
 
 								UserAccountVO userAccountVO = userAccountMapper.getEntryByUserId(userId);
+								if(userAccountVO == null){
+									logger.warn("Cannot find user [{}] for notification.", userId);
+									continue;
+								}
 								String email = userAccountVO.email;
 								String sms = userAccountVO.sms;
 								if (type.equalsIgnoreCase("EMAIL")) {
-									if (email != null) {
+									if (email != null && email.length() > 0) {
 										email = email.trim();
 										if (email.length() > 0) {
 											emailToList.add(email);
 										}
+									}else{
+										logger.warn("Notification user [{}] do not have email address.", userId);
 									}
 								} else if (type.equalsIgnoreCase("SMS")) {
-									if (sms != null) {
+									if (sms != null && sms.length() > 0) {
 										sms = sms.trim();
 										if (sms.length() > 0) {
 											smsToList.add(sms);
 										}
+									}else{
+										logger.warn("Notification user [{}] do not have SMS number.", userId);
 									}
 								}
 							}

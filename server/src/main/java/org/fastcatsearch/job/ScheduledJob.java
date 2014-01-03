@@ -39,7 +39,9 @@ public class ScheduledJob extends Job {
 	}
 	public void cancel() {
 		isCanceled = true;
-		Thread.currentThread().interrupt();
+		synchronized(this){
+			this.notify();
+		}
 	}
 
 	public Job actualJob() {
@@ -72,14 +74,20 @@ public class ScheduledJob extends Job {
 			return new JobResult();
 		}
 		try {
-			Thread.sleep(getTimeToWaitInMillisecond());
+			synchronized (this) {
+				wait(getTimeToWaitInMillisecond());
+			}
 		} catch (InterruptedException e) {
 			// if cancel method is called.
+			logger.info("[{}] {}({}) is interrupted canceled.", getClass().getSimpleName(), actualJob.getClass().getSimpleName(), actualJob.getArgs());
+			return new JobResult();
+		}
+		if (isCanceled) {
 			logger.info("[{}] {}({}) is canceled.", getClass().getSimpleName(), actualJob.getClass().getSimpleName(), actualJob.getArgs());
 			return new JobResult();
 		}
-
 		try {
+			logger.debug("##### Scheduled Job offer job {} >> \n{}", this, actualJob);
 			ResultFuture resultFuture = jobExecutor.offer(actualJob);
 			Object result = null;
 			if (resultFuture == null) {

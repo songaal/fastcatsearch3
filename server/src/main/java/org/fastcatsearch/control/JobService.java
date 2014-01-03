@@ -14,6 +14,7 @@ package org.fastcatsearch.control;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -252,15 +253,25 @@ public class JobService extends AbstractService implements JobExecutor {
 		}else{
 			logger.error("{} is already scheduled", job);
 		}
+		showScheduledJob();
 	}
 	
+	private void showScheduledJob(){
+		logger.debug("----------------------");
+		for(Entry<String, ScheduledJob> entry : scheduleMap.entrySet()){
+			logger.debug(">>> {} : {}", entry.getKey(), entry.getValue());
+		}
+		logger.debug("----------------------");
+	}
 	
 	public void cancelSchedule(Job job){
 		String jobKey = getJobKey(job);
 		ScheduledJob scheduledJob = scheduleMap.remove(jobKey);
+		logger.debug("## cancel jobKey > {} : {}", jobKey, scheduledJob);
 		if(scheduledJob != null){
 			scheduledJob.cancel();
 		}
+		showScheduledJob();
 	}
 	
 	private String getJobKey(Job job){
