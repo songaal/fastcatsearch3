@@ -333,6 +333,7 @@ public class IRService extends AbstractService {
 				}
 			} else {
 				JobService.getInstance().cancelSchedule(job);
+				logger.error("[{}] Full Indexing schedule canceled.", collectionId);
 			}
 		}
 		if (addIndexingSchedule != null) {
@@ -353,6 +354,7 @@ public class IRService extends AbstractService {
 
 			} else {
 				JobService.getInstance().cancelSchedule(job);
+				logger.error("[{}] Add Indexing schedule canceled.", collectionId);
 			}
 		}
 		return true;
