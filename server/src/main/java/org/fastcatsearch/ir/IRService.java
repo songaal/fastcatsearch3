@@ -32,7 +32,6 @@ import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.analysis.AnalyzerFactoryManager;
-import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
@@ -61,7 +60,6 @@ import org.fastcatsearch.util.JAXBConfigs;
 
 public class IRService extends AbstractService {
 
-	private static String keywordFileName = ".keyword.log";
 	private Map<String, CollectionHandler> collectionHandlerMap;
 
 	// TODO 캐시방식을 변경하자.
@@ -73,20 +71,26 @@ public class IRService extends AbstractService {
 	private CollectionsConfig collectionsConfig;
 	private File collectionsRoot;
 
-	private RealtimeQueryStatisticsModule realtimeQueryStatisticsModule;
+	private RealtimeQueryCountModule realtimeQueryStatisticsModule;
 
 	private AnalyzerFactoryManager analyzerFactoryManager;
+	
+	private Set<String> searchNodeCollectionIdSet; //이 노드가 검색노드인 컬렉션세트.
+	
 	public IRService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
-		realtimeQueryStatisticsModule = new RealtimeQueryStatisticsModule(environment, settings);
+		realtimeQueryStatisticsModule = new RealtimeQueryCountModule(environment, settings);
 	}
 
 	public void setAnalyzerFactoryManager(AnalyzerProvider analyzerProvider){
 		this.analyzerFactoryManager = analyzerProvider.getAnalyzerFactoryManager();
 	}
+	
+	
 	protected boolean doStart() throws FastcatSearchException {
-//		realtimeQueryStatisticsModule.load();
 
+		realtimeQueryStatisticsModule.load();
+		
 		collectionHandlerMap = new HashMap<String, CollectionHandler>();
 		// collections 셋팅을 읽어온다.
 		collectionsRoot = environment.filePaths().getCollectionsRoot().file();
@@ -96,11 +100,14 @@ public class IRService extends AbstractService {
 		} catch (JAXBException e) {
 			logger.error("[ERROR] 컬렉션리스트 로딩실패. " + e.getMessage(), e);
 		}
-		int longSchedulePeriodInMinute = settings.getInt("longSchedulePeriodInMinute", 5); // 기본
-																							// 5분.
+
+		searchNodeCollectionIdSet = new HashSet<String>();
+		
 		for (Collection collection : collectionsConfig.getCollectionList()) {
 			try {
 				String collectionId = collection.getId();
+				realtimeQueryStatisticsModule.registerQueryCount(collectionId);
+				
 				CollectionContext collectionContext = null;
 				CollectionHandler collectionHandler = null;
 				logger.info("Load Collection [{}]", collectionId);
@@ -114,10 +121,15 @@ public class IRService extends AbstractService {
 					continue;
 				} else {
 					collectionHandler = new CollectionHandler(collectionContext, analyzerFactoryManager);
+					
+					if(collectionContext.collectionConfig().getSearchNodeList().contains(environment.myNodeId())){
+						searchNodeCollectionIdSet.add(collectionId);
+					}
 				}
 
 				collectionHandlerMap.put(collectionId, collectionHandler);
-
+				collectionHandler.setQueryCounter(realtimeQueryStatisticsModule.getQueryCounter(collectionId));
+				
 				// active하지 않은 컬렉션은 map에 설정만 넣어두고 로드하지 않는다.
 				collectionHandler.load();
 
@@ -208,27 +220,13 @@ public class IRService extends AbstractService {
 	}
 
 	public CollectionHandler removeCollectionHandler(String collectionId) {
-		realtimeQueryStatisticsModule.registerQueryCount(collectionId);
+		realtimeQueryStatisticsModule.removeQueryCount(collectionId);
 		return collectionHandlerMap.remove(collectionId);
 	}
 
 	public CollectionHandler putCollectionHandler(String collectionId, CollectionHandler collectionHandler) {
 		return collectionHandlerMap.put(collectionId, collectionHandler);
 	}
-
-	// public CollectionHandler initCollectionHandler(Collection collection,
-	// Integer newDataSequence) throws IRException, SettingException {
-	// CollectionContext collectionContext = loadCollectionContext(collection,
-	// newDataSequence);
-	//
-	// return new CollectionHandler(collectionContext);
-	// }
-
-	// public CollectionHandler loadCollectionHandler(Collection collection)
-	// throws IRException, SettingException {
-	// CollectionContext collectionContext = loadCollectionContext(collection);
-	// return loadCollectionHandler(collectionContext);
-	// }
 
 	public CollectionHandler loadCollectionHandler(CollectionContext collectionContext) throws IRException, SettingException {
 		return new CollectionHandler(collectionContext, analyzerFactoryManager).load();
@@ -302,10 +300,11 @@ public class IRService extends AbstractService {
 		}
 	}
 
-	public RealtimeQueryStatisticsModule queryStatistics() {
+	public RealtimeQueryCountModule queryCountModule() {
 		return realtimeQueryStatisticsModule;
 	}
-
+	
+	
 	private SimpleDateFormat simpleDateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	public boolean reloadSchedule(String collectionId) {
@@ -368,6 +367,9 @@ public class IRService extends AbstractService {
 		}
 	}
 
+	public Set<String> getSearchNodeCollectionIdSet(){
+		return searchNodeCollectionIdSet;
+	}
 	// 모든 컬렉션들의 검색노드들을 모아서 리턴한다.
 	public List<String> getSearchNodeList() {
 		Set<String> searchNodeSet = new HashSet<String>();

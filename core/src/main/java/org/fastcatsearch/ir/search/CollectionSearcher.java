@@ -131,6 +131,7 @@ public class CollectionSearcher {
 	}
 
 	public Result search(Query q) throws IRException, IOException, SettingException {
+		collectionHandler.queryCounter().incrementCount();
 		
 		InternalSearchResult internalSearchResult = searchInternal(q);
 		DocIdList hitList = internalSearchResult.getDocIdList();
@@ -158,6 +159,9 @@ public class CollectionSearcher {
 			logger.warn("Collection {} is not indexed!", collectionHandler.collectionId());
 		}
 
+		logger.debug("searchInternal incrementCount > {} ", q);
+		collectionHandler.queryCounter().incrementCount();
+		
 		Schema schema = collectionHandler.schema();
 
 		Metadata meta = q.getMeta();

@@ -25,6 +25,7 @@ import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.http.HttpRequestService;
+import org.fastcatsearch.ir.CollectionQueryCountService;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.job.state.TaskStateService;
 import org.fastcatsearch.management.SystemInfoService;
@@ -182,7 +183,7 @@ public class CatServer {
 		clusterAlertService.asSingleton();
 		ProcessLoggerService processLoggerService = serviceManager.createService("processlogger", ProcessLoggerService.class);
 		TaskStateService taskStateService = serviceManager.createService("taskstate", TaskStateService.class);
-		
+		CollectionQueryCountService collectionQueryCountService = serviceManager.createService("query_count", CollectionQueryCountService.class);
 		
 		logger.info("ServerHome = {}", serverHome);
 		try {
@@ -203,6 +204,8 @@ public class CatServer {
 			clusterAlertService.start();
 			processLoggerService.start();
 			taskStateService.start();
+			
+			collectionQueryCountService.start();
 			
 			//서비스가 모두 뜬 상태에서 후속작업.
 			if(environment.isMasterNode()){
@@ -264,6 +267,8 @@ public class CatServer {
 
 	public void stop() throws FastcatSearchException {
 		
+		serviceManager.stopService(CollectionQueryCountService.class);
+		
 		serviceManager.stopService(TaskStateService.class);
 		serviceManager.stopService(NotificationService.class);
 		serviceManager.stopService(ClusterAlertService.class);
@@ -284,6 +289,9 @@ public class CatServer {
 	}
 
 	public void close() throws FastcatSearchException {
+		
+		serviceManager.closeService(CollectionQueryCountService.class);
+		
 		serviceManager.closeService(TaskStateService.class);
 		serviceManager.closeService(NotificationService.class);
 		serviceManager.closeService(ClusterAlertService.class);

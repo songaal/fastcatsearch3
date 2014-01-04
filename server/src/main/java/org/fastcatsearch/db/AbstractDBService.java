@@ -47,7 +47,7 @@ public abstract class AbstractDBService extends AbstractService {
 				logger.error("error load MapperFile", e);
 			}
 		}
-		internalDBModule = new InternalDBModule(absoluteDbPath, mapperFileList, environment, settings, serviceManager);
+		internalDBModule = new InternalDBModule(absoluteDbPath, mapperFileList, environment, settings);
 		
 	}
 	

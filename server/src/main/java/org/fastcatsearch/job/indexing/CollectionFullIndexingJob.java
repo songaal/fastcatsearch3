@@ -35,6 +35,7 @@ import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.util.Counter;
 import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.cluster.NodeCollectionReloadJob;
 import org.fastcatsearch.job.cluster.NodeDirectoryCleanJob;
@@ -195,6 +196,8 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			
 			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
 			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
+			Counter queryCounter = irService.queryCountModule().getQueryCounter(collectionId);
+			collectionHandler.setQueryCounter(queryCounter);
 			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
 			if (oldCollectionHandler != null) {
 				logger.info("## [{}] Close Previous Collection Handler", collectionContext.collectionId());

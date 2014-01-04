@@ -11,17 +11,41 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 public abstract class ServiceAction extends HttpAction {
 	public static final String DEFAULT_ROOT_ELEMENT = "response";
 	public static final String DEFAULT_CHARSET = "utf-8";
-	public static enum Type { json, xml, jsonp, html, text };
-	
-	public ServiceAction(){ 
+
+	public static enum Type {
+		json, xml, jsonp, html, text
+	};
+
+	public ServiceAction() {
 	}
-	
+
+	abstract public void doAction(ActionRequest request, ActionResponse response) throws Exception;
+
+	@Override
+	public void runAction(ActionRequest request, ActionResponse response) throws Exception {
+		try {
+			doAction(request, response);
+		} catch (Throwable t) {
+			logger.error("", t);
+			writeHeader(response);
+			Writer writer = response.getWriter();
+			try {
+				ResponseWriter resultWriter = getDefaultResponseWriter(writer);
+				resultWriter.object().key("success").value(false).key("errorMessage").value(t.getMessage() + ": " + t.getCause()).endObject();
+				resultWriter.done();
+			} finally {
+				writer.close();
+			}
+		}
+	}
+
 	protected void writeHeader(ActionResponse response) {
 		writeHeader(response, DEFAULT_CHARSET);
 	}
+
 	protected void writeHeader(ActionResponse response, String responseCharset) {
 		response.setStatus(HttpResponseStatus.OK);
-		logger.debug("resultType > {}",resultType);
+//		logger.debug("resultType > {}", resultType);
 		if (resultType == Type.json) {
 			response.setContentType("application/json; charset=" + responseCharset);
 		} else if (resultType == Type.jsonp) {
@@ -36,10 +60,11 @@ public abstract class ServiceAction extends HttpAction {
 			response.setContentType("application/json; charset=" + responseCharset);
 		}
 	}
-	protected ResponseWriter getDefaultResponseWriter(Writer writer){
+
+	protected ResponseWriter getDefaultResponseWriter(Writer writer) {
 		return getResponseWriter(writer, DEFAULT_ROOT_ELEMENT, true, null);
 	}
-	
+
 	protected ResponseWriter getResponseWriter(Writer writer, String rootElement, boolean isBeautify, String jsonCallback) {
 		ResponseWriter resultWriter = null;
 		if (resultType == Type.json) {

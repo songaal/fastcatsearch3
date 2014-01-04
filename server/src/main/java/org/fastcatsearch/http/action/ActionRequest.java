@@ -38,7 +38,7 @@ public class ActionRequest {
 			} else {
 	
 			}
-			logger.debug("action {}, {}", uri, queryString);
+//			logger.debug("action {}, {}", uri, queryString);
 			try {
 				if(queryString != null){
 					queryString = URLDecoder.decode(queryString, DEFAULT_CHARSET);

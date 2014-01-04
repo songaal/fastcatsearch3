@@ -37,7 +37,7 @@ public class HttpSessionManager {
 
 	public HttpSession handleCookie(HttpRequest request, ActionResponse actionResponse) {
 		String cookieString = request.getHeader(HttpHeaders.Names.COOKIE);
-		logger.debug("cookie >> {}", cookieString);
+//		logger.debug("cookie >> {}", cookieString);
 		HttpSession sessionObj = null;
 		String responseCookie = "";
 		boolean hasSessionCookie = false;
@@ -65,7 +65,7 @@ public class HttpSessionManager {
 						sessionObj = new HttpSession(value);
 						sessionObjMap.put(value, sessionObj);
 					}else{
-						logger.debug("세션객체 찾음. {} >> {}", kv[i], sessionObj.map());
+//						logger.debug("세션객체 찾음. {} >> {}", kv[i], sessionObj.map());
 					}
 				} else {
 					if (responseCookie.length() > 0) {

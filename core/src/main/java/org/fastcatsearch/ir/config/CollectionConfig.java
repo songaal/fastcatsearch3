@@ -58,7 +58,7 @@ public class CollectionConfig {
 		this.name = name;
 	}
 	
-	@XmlElement(name="index-node")
+	@XmlElement(name="index-node", required=true)
 	public String getIndexNode() {
 		return indexNode;
 	}
@@ -66,7 +66,7 @@ public class CollectionConfig {
 		this.indexNode = indexNode;
 	}
 	
-	@XmlElementWrapper(name="search-node-list")
+	@XmlElementWrapper(name="search-node-list", required=true)
 	@XmlElement(name="node")
 	public List<String> getSearchNodeList() {
 		return searchNodeList;
@@ -76,7 +76,7 @@ public class CollectionConfig {
 		this.searchNodeList = searchNodeList;
 	}
 	
-	@XmlElementWrapper(name="data-node-list")
+	@XmlElementWrapper(name="data-node-list", required=true)
 	@XmlElement(name="node")
 	public List<String> getDataNodeList() {
 		return dataNodeList;

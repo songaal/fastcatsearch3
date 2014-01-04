@@ -2,33 +2,34 @@ package org.fastcatsearch.http.action.management.common;
 
 import java.io.Writer;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
-import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.CollectionQueryCountService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping("/management/common/query-statistics")
+/**
+ * {"컬렉션명" : 갯수, "컬렉션명" : 갯수, ... } 로 리턴한다.
+ * */
+@ActionMapping("/management/common/realtime-query-count")
 public class GetRealtimeQueryCountAction extends AuthAction {
 
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
 		
-		IRService irService = ServiceManager.getInstance().getService(IRService.class);
+		CollectionQueryCountService collectionQueryCountService = ServiceManager.getInstance().getService(CollectionQueryCountService.class);
 		
 		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
-		resultWriter.object().key("").array();
-		for(Entry<String, AtomicInteger[]> entry : irService.queryStatistics().statisticsEntrySet()){
-			resultWriter.object().key("collectionId").value(entry.getKey()).key("count").value(entry.getValue()[1].get()).endObject();
+		resultWriter.object();
+		for(Entry<String, Integer> entry : collectionQueryCountService.aggregateCountResult().entrySet()){
+			resultWriter.key(entry.getKey()).value(entry.getValue());
 		}
-		resultWriter.endObject()
-		.endObject();
+		resultWriter.endObject();
 		
 		resultWriter.done();
 		

@@ -8,7 +8,6 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.util.BytesRef;
-import org.fastcatsearch.ir.analysis.AnalyzerFactory;
 import org.fastcatsearch.ir.analysis.AnalyzerFactoryManager;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
@@ -25,9 +24,10 @@ import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.index.PrimaryKeys;
 import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.io.BytesBuffer;
-import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.settings.AnalyzerSetting;
 import org.fastcatsearch.ir.settings.Schema;
+import org.fastcatsearch.ir.util.Counter;
+import org.fastcatsearch.ir.util.DummyCounter;
 import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,11 +46,15 @@ public class CollectionHandler {
 	private AnalyzerFactoryManager analyzerFactoryManager;
 	private AnalyzerPoolManager analyzerPoolManager;
 	
+	private Counter queryCounter;
+	
 	public CollectionHandler(CollectionContext collectionContext, AnalyzerFactoryManager analyzerFactoryManager) throws IRException, SettingException {
 		this.collectionContext = collectionContext;
 		this.collectionId = collectionContext.collectionId();
 		this.collectionFilePaths = collectionContext.collectionFilePaths();
 		this.analyzerFactoryManager = analyzerFactoryManager;
+		
+		queryCounter = new DummyCounter();
 	}
 
 	public CollectionHandler load() throws IRException {
@@ -62,6 +66,7 @@ public class CollectionHandler {
 		return this;
 	}
 
+	@Deprecated
 	public void setAnalyzerPoolManager(AnalyzerPoolManager analyzerPoolManager){
 		this.analyzerPoolManager = analyzerPoolManager;
 	}
@@ -552,6 +557,19 @@ public class CollectionHandler {
 
 	public AnalyzerPool getAnalyzerPool(String analyzerId) {
 		return analyzerPoolManager.getPool(analyzerId);
+	}
+
+	public void setQueryCounter(Counter queryCounter) {
+		if(queryCounter != null){
+			this.queryCounter = queryCounter;
+			logger.debug("[{}] Collection set Query counter {}", collectionId, queryCounter);
+		}else{
+			logger.debug("[{}] Collection Query counter Not Found!", collectionId);
+		}
+	}
+	
+	public Counter queryCounter(){
+		return queryCounter;
 	}
 
 	

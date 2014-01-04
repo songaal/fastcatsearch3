@@ -20,7 +20,6 @@ import java.io.CharArrayReader;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -42,7 +41,6 @@ import org.fastcatsearch.ir.index.temp.TempSearchFieldAppender;
 import org.fastcatsearch.ir.index.temp.TempSearchFieldMerger;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.ir.io.Counter;
 import org.fastcatsearch.ir.io.IndexOutput;
 import org.fastcatsearch.ir.settings.IndexSetting;
 import org.fastcatsearch.ir.settings.RefSetting;
@@ -58,7 +56,6 @@ public class SearchIndexWriter {
 	private String indexId;
 	private MemoryPosting memoryPosting;
 	private IndexFieldOption fieldIndexOption;
-	private HashMap<CharVector, Counter> collector;
 	private AnalyzerPool analyzerPool;
 	private Analyzer analyzer;
 	private File baseDir;
@@ -113,7 +110,6 @@ public class SearchIndexWriter {
 
 		positionIncrementGap = indexSetting.getPositionIncrementGap();
 
-		collector = new HashMap<CharVector, Counter>();
 		flushPosition = new ArrayList<Long>();
 
 		tempFile = new File(dir, IndexFileNames.getSearchTempFileName(indexId));
@@ -143,7 +139,6 @@ public class SearchIndexWriter {
 		if (field == null) {
 			return;
 		}
-		collector.clear();
 
 		// 같은문서에 indexFieldNum가 중복되어서 들어오면 multi-field-index로 처리한다.
 		if (field.isMultiValue()) {

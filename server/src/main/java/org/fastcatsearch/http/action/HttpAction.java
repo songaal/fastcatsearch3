@@ -47,13 +47,13 @@ public abstract class HttpAction implements Runnable, Cloneable {
 		
 	}
 	
-	abstract public void doAction(ActionRequest request, ActionResponse response) throws Exception;
+	abstract public void runAction(ActionRequest request, ActionResponse response) throws Exception;
 		
 	@Override
 	public void run() {
 		
 		try {
-			doAction(request, response);
+			runAction(request, response);
 			httpChannel.sendResponse(response);
 		} catch (Throwable e) {
 			logger.error("Action수행중 에러발생.", e);

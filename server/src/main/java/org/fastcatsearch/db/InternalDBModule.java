@@ -55,7 +55,7 @@ public class InternalDBModule extends AbstractModule {
 		instance = this;
 	}
 
-	public InternalDBModule(String dbPath, List<URL> mapperFileList, Environment environment, Settings settings, ServiceManager serviceManager) {
+	public InternalDBModule(String dbPath, List<URL> mapperFileList, Environment environment, Settings settings) {
 		super(environment, settings);
 		if(new File(dbPath).exists()){
 			this.dbPath = detbyUrlPrefix + dbPath;	

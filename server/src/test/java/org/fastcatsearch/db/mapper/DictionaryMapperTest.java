@@ -23,7 +23,7 @@ public class DictionaryMapperTest {
 		URL mapperFile = Resources.getResourceURL(mapperFilePath);
 		List<URL> mapperFileList = new ArrayList<URL>();
 		mapperFileList.add(mapperFile);
-		InternalDBModule internalDBModule = new InternalDBModule(dbPath, mapperFileList, null, null, null);
+		InternalDBModule internalDBModule = new InternalDBModule(dbPath, mapperFileList, null, null);
 		internalDBModule.load();
 		List<ColumnSetting> columnSettingList = new ArrayList<ColumnSetting>();
 		

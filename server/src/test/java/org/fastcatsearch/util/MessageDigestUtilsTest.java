@@ -31,5 +31,10 @@ public class MessageDigestUtilsTest {
 		String code = MessageDigestUtils.getMessageDigestString(md, bytes);
 		System.out.println(md + " > " + code + " , time = " + (System.nanoTime() - st) / (1000 * 1000) + "ms");
 	}
+	
+	@Test
+	public void test2() {
+		System.out.println(MessageDigestUtils.getSHA1String("1111"));
+	}
 
 }

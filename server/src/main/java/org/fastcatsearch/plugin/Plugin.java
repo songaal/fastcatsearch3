@@ -63,7 +63,7 @@ public abstract class Plugin {
 		new File(dbPath).getParentFile().mkdirs();
 		List<URL> mapperFileList = new ArrayList<URL>();
 		addMapperFile(mapperFileList);
-		internalDBModule = new InternalDBModule(dbPath, mapperFileList, null, null, null);
+		internalDBModule = new InternalDBModule(dbPath, mapperFileList, null, null);
 		internalDBModule.load();
 	}
 
