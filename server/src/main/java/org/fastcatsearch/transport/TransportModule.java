@@ -365,7 +365,9 @@ public class TransportModule extends AbstractModule {
 			throw e;
 		}
 		if(channels != null){
-			node.setActive();
+			if(!node.isActive()){
+				node.setActive();
+			}
 		}
 		return channels;
 	}
@@ -449,7 +451,7 @@ public class TransportModule extends AbstractModule {
         BytesStreamOutput stream = cachedEntry.bytes();
         stream.skip(MessageProtocol.HEADER_SIZE);
         stream.writeString(request.getClass().getName());
-        logger.debug("write class {}", request.getClass().getName());
+//        logger.debug("write class {}", request.getClass().getName());
         if(request instanceof Streamable){
         	Streamable streamable = (Streamable) request;
         	streamable.writeTo(stream);

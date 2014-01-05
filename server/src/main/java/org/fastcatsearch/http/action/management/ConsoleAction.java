@@ -13,9 +13,9 @@ import org.fastcatsearch.http.action.HttpAction;
 public class ConsoleAction extends HttpAction {
 
 	@Override
-	public void doAction(ActionRequest request, ActionResponse response) throws Exception {
+	public void runAction(ActionRequest request, ActionResponse response) throws Exception {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 }

@@ -61,7 +61,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
             return;
         }
         
-        logger.debug("message received[{}]>> {}", type, e);
+//        logger.debug("message received[{}]>> {}", type, e);
         buffer.readByte();//type을 읽어서 버린다.
         int dataLength = buffer.readInt();
         
@@ -71,7 +71,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         
         long requestId = wrappedStream.readLong();
 		byte status = wrappedStream.readByte();
-		logger.debug("message status[{}]", status);
+//		logger.debug("message status[{}]", status);
 //		logger.debug("## readIndex={}, writerIndex={}", buffer.readerIndex(), buffer.writerIndex());
 		//logger.debug("## readString={}", wrappedStream.readString());
         if (TransportOption.isRequest(status)) {
@@ -80,19 +80,19 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
 //        		wrappedStream.read();
 //			}
             handleRequest(ctx.getChannel(), wrappedStream, requestId);
-            logger.debug("buffer.readerIndex()={}, expectedIndexReader={}", buffer.readerIndex(), expectedIndexReader);
+//            logger.debug("buffer.readerIndex()={}, expectedIndexReader={}", buffer.readerIndex(), expectedIndexReader);
             if (buffer.readerIndex() != expectedIndexReader) {
                 if (buffer.readerIndex() < expectedIndexReader) {
-                    logger.warn("Message not fully read (request) for [{}] and action [{}], resetting", requestId);
+//                    logger.warn("Message not fully read (request) for [{}] and action [{}], resetting", requestId);
                 } else {
-                    logger.warn("Message read past expected size (request) for [{}] and action [{}], resetting", requestId);
+//                    logger.warn("Message read past expected size (request) for [{}] and action [{}], resetting", requestId);
                 }
                 buffer.readerIndex(expectedIndexReader);
             }
         } else {
 //        	logger.debug("# status = {}", status);
             if (TransportOption.isError(status)) {
-            	logger.debug("# status isError");
+//            	logger.debug("# status isError");
                 handlerErrorResponse(wrappedStream, requestId);
             }else if (TransportOption.isResponseObject(status)) {
 //            	logger.debug("# status isResponseObject");
@@ -127,11 +127,11 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
     	logger.error("에러발생 >> {}", e.getCause().getMessage());
     }
     private void handleRequest(Channel channel, DataInput input, long requestId) throws IOException {
-    	logger.debug("handleRequest ");
+//    	logger.debug("handleRequest ");
         final TransportChannel transportChannel = new TransportChannel(channel, requestId);
         try {
         	String jobName = input.readString();
-        	logger.debug("#### READ job = {}", jobName);
+//        	logger.debug("#### READ job = {}", jobName);
         	Job requestJob = DynamicClassLoader.loadObject(jobName, Job.class);
         	requestJob.setEnvironment(environment);
         	if(requestJob instanceof Streamable){
@@ -155,7 +155,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         	String className = input.readString();
         	Streamable streamableResult = DynamicClassLoader.loadObject(className, Streamable.class);
         	streamableResult.readFrom(input);
-        	logger.debug("## Response-{} >> {}", requestId, streamableResult.toString());
+//        	logger.debug("## Response-{} >> {}", requestId, streamableResult.toString());
         	
         	transport.resultReceived(requestId, streamableResult);
         } catch (Exception e) {
@@ -167,7 +167,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
     private void handleObjectResponse(DataInput input, long requestId) {
         try {
         	Object response = input.readGenericValue();
-        	logger.debug("## Response-{} >> {}", requestId, response);
+//        	logger.debug("## Response-{} >> {}", requestId, response);
         	
         	transport.resultReceived(requestId, response);
         } catch (Exception e) {
@@ -193,7 +193,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
         private final TransportChannel transportChannel;
 
         public RequestHandler(Job job, TransportChannel transportChannel) {
-        	logger.debug("Request Job >> {}", job.getClass().getName());
+//        	logger.debug("Request Job >> {}", job.getClass().getName());
             this.job = job;
             this.transportChannel = transportChannel;
         }
@@ -203,7 +203,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
             try {
             	ResultFuture resultFuture = jobExecutor.offer(job);
             	Object obj = resultFuture.take();
-            	logger.debug("## RequestHandler {} result >> {}", job.getClass().getSimpleName(), obj);
+//            	logger.debug("## RequestHandler {} result >> {}", job.getClass().getSimpleName(), obj);
             	if(obj instanceof Streamable){
             		Streamable result = (Streamable) obj;
             		transportChannel.sendResponse(result);
@@ -213,7 +213,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
             		//전송된 job의 결과가 streamable이 아니라면 어떻게 할까?
             		transportChannel.sendResponse(obj);
             	}
-            	logger.debug("Request Job Result >> {}", obj);
+//            	logger.debug("Request Job Result >> {}", obj);
             } catch (Throwable e) {
             	logger.error("Fail to write response message", e);
                 // we can only send a response transport is started....

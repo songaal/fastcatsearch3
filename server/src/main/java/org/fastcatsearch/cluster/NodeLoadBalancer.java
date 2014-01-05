@@ -46,8 +46,8 @@ public class NodeLoadBalancer {
 		while (tryCount++ < list.size()) {
 			long seq = l.getAndIncrement();
 			int index = (int) (seq % list.size());
-			//logger.debug("getAndIncrement > {}, list.size()={} >>> {}", seq, list.size(), index);
 			node = list.get(index);
+			logger.info("{}]getAndIncrement seq[{}], list.size()[{}] index[{}] >> node[{}] isactive[{}]", tryCount - 1, seq, list.size(), index, node, node.isActive());
 
 			if (node.isActive()) {
 				return node;

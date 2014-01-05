@@ -1,8 +1,13 @@
 package org.fastcatsearch.http.action.management.collections;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import org.fastcatsearch.cluster.ClusterUtils;
+import org.fastcatsearch.cluster.NodeJobResult;
+import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
@@ -12,6 +17,7 @@ import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.job.management.UpdateCollectionConfigJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.ResponseWriter;
@@ -25,6 +31,7 @@ public class UpdateCollectionConfigAction extends AuthAction {
 		String collectionId = request.getParameter("collectionId");
 		String collectionName = request.getParameter("collectionName");
 		String indexNode = request.getParameter("indexNode");
+		String searchNodeList = request.getParameter("searchNodeList");
 		String dataNodeList = request.getParameter("dataNodeList");
 		int dataSequenceCycle = request.getIntParameter("dataSequenceCycle");
 		int segmentRevisionBackupSize = request.getIntParameter("segmentRevisionBackupSize");
@@ -40,6 +47,15 @@ public class UpdateCollectionConfigAction extends AuthAction {
 		collectionConfig.getDataPlanConfig().setSegmentRevisionBackupSize(segmentRevisionBackupSize);
 		collectionConfig.getDataPlanConfig().setSegmentDocumentLimit(segmentDocumentLimit);
 		
+		List<String> searchNodeListObj = new ArrayList<String>();
+		for(String nodeStr : searchNodeList.split(",")){
+			nodeStr = nodeStr.trim();
+			if(nodeStr.length() > 0){
+				searchNodeListObj.add(nodeStr);
+			}
+		}
+		collectionConfig.setSearchNodeList(searchNodeListObj);
+		
 		List<String> dataNodeListObj = new ArrayList<String>();
 		for(String nodeStr : dataNodeList.split(",")){
 			nodeStr = nodeStr.trim();
@@ -49,8 +65,32 @@ public class UpdateCollectionConfigAction extends AuthAction {
 		}
 		collectionConfig.setDataNodeList(dataNodeListObj);
 		
+		//master노드의 컬렉션셋팅 업데이트가 성공했다면 나머지 노드에 수행한다.
 		boolean isSuccess = CollectionContextUtil.updateConfig(collectionConfig, collectionContext.collectionFilePaths());
 		
+		if(isSuccess){
+			logger.error("[{}] Master Update collection config success!", collectionId);
+			Set<String> nodeSet = new HashSet<String>();
+			nodeSet.addAll(searchNodeListObj);
+			nodeSet.addAll(dataNodeListObj);
+			List<String> nodeIdList = new ArrayList<String>();
+			nodeIdList.addAll(nodeSet);
+			
+			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
+			
+			
+			UpdateCollectionConfigJob job = new UpdateCollectionConfigJob(collectionId, collectionConfig);
+			
+			NodeJobResult[] resultList = ClusterUtils.sendJobToNodeIdList(job, nodeService, nodeIdList, false);
+			for(NodeJobResult result : resultList){
+				logger.debug("[{}] [{}] [{}] Node Update collection config.", result.isSuccess(), result.node(), collectionId);
+			}
+			
+			
+		}else{
+			logger.error("[{}] Master Update collection config fail!", collectionId);
+			
+		}
 		ResponseWriter responseWriter = getDefaultResponseWriter(response.getWriter());
 		responseWriter.object();
 		responseWriter.key("success").value(isSuccess);

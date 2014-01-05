@@ -122,7 +122,7 @@ public class CollectionQueryCountService extends AbstractService {
 
 		@Override
 		public void run() {
-			logger.debug("RUN ReportCountTask");
+//			logger.debug("RUN ReportCountTask");
 			NodeService nodeService = serviceManager.getService(NodeService.class);
 			IRService irService = serviceManager.getService(IRService.class);
 			
@@ -146,7 +146,7 @@ public class CollectionQueryCountService extends AbstractService {
 
 		@Override
 		public void run() {
-			logger.debug("RUN AggregateCountTask");
+//			logger.debug("RUN AggregateCountTask");
 			Set<String> set = aggregateModule.getRegisteredCollectionSet();
 			Map<String, Integer> result = new HashMap<String, Integer>();
 			for (String collectionId : set) {
@@ -183,7 +183,7 @@ public class CollectionQueryCountService extends AbstractService {
 			for (Entry<String, Integer> entry : result.entrySet()) {
 				if (entry.getValue() != null) {
 					collectionQueryCountService.addQueryCount(entry.getKey(), entry.getValue());
-					logger.debug("## add query count {} : {}", entry.getKey(), entry.getValue());
+//					logger.debug("## add query count {} : {}", entry.getKey(), entry.getValue());
 				}
 			}
 

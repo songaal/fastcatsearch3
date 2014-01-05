@@ -186,7 +186,7 @@ public class JobService extends AbstractService implements JobExecutor {
 		}
 
 		long myJobId = jobIdIncrement.getAndIncrement();
-		logger.debug("### OFFER Job-{} : {}", myJobId, job.getClass().getSimpleName());
+//		logger.debug("### OFFER Job-{} : {}", myJobId, job.getClass().getSimpleName());
 
 		if (job instanceof IndexingJob) {
 			indexingMutex.access(myJobId, (IndexingJob) job);
@@ -210,8 +210,8 @@ public class JobService extends AbstractService implements JobExecutor {
 		ResultFuture resultFuture = resultFutureMap.remove(jobId);
 		runningJobList.remove(jobId);
 		if (logger.isDebugEnabled()) {
-			logger.debug("### ResultFuture = {} / map={} / job={} / result={} / success= {}", new Object[] { resultFuture, resultFutureMap.size(),
-					job.getClass().getSimpleName(), result, isSuccess });
+//			logger.debug("### ResultFuture = {} / map={} / job={} / result={} / success= {}", new Object[] { resultFuture, resultFutureMap.size(),
+//					job.getClass().getSimpleName(), result, isSuccess });
 		}
 
 		if (job instanceof IndexingJob) {

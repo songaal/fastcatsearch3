@@ -148,6 +148,7 @@ public abstract class Job implements Runnable, Serializable {
 				throw new FastcatSearchException("ERR-00110");
 			}
 		} catch (Throwable e) {
+			logger.error("", e);
 			ClusterAlertService clusterAlertService = ServiceManager.getInstance().getService(ClusterAlertService.class);
 			clusterAlertService.alert(e);
 			jobExecutor.result(this, e, false);

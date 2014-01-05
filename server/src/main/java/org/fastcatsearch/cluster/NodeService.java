@@ -228,15 +228,15 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 	}
 
 	@Override
-	public void updateLoadBalance(String shardId, List<String> dataNodeIdList) {
+	public void updateLoadBalance(String collectionId, List<String> dataNodeIdList) {
 		List<Node> list = getNodeById(dataNodeIdList);
-		loadBalancer.update(shardId, list);
+		loadBalancer.update(collectionId, list);
 	}
 	
 	@Override
-	public Node getBalancedNode(String shardId){
-		Node node = loadBalancer.getBalancedNode(shardId);
-		logger.debug("#Balanced node [{}] >> {}", shardId, node);
+	public Node getBalancedNode(String collectionId){
+		Node node = loadBalancer.getBalancedNode(collectionId);
+		logger.debug("#Balanced node [{}] >> {}", collectionId, node);
 		return node;
 	}
 	

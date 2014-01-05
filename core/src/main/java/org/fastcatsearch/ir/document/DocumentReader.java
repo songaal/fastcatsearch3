@@ -136,7 +136,7 @@ public class DocumentReader implements Cloneable {
 				}
 
 			} catch (DataFormatException e) {
-				throw new IOException("DataFormatException");
+				throw new IOException(e);
 			} finally {
 				decompressor.end();
 			}
@@ -192,8 +192,8 @@ public class DocumentReader implements Cloneable {
 	public DocumentReader clone() {
 		DocumentReader reader = new DocumentReader();
 		reader.fields = fields;
-		reader.docInput = docInput;
-		reader.positionInput = positionInput;
+		reader.docInput = docInput.clone();
+		reader.positionInput = positionInput.clone();
 		// reader.baseDocNo = baseDocNo;
 		reader.documentCount = documentCount;
 
