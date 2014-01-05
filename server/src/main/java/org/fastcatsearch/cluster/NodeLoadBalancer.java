@@ -16,18 +16,20 @@ public class NodeLoadBalancer {
 	protected static Logger logger = LoggerFactory.getLogger(NodeLoadBalancer.class);
 	
 	private Map<String, List<Node>> map;
-	private Map<String, AtomicLong> sequenceMap;
-
+	//컬렉션별로 seq를 유지하면 동일 노드에 여러 컬렉션을 한번에 검색하게 되므로, 이 방법은 사용하지 않는다.
+//	private Map<String, AtomicLong> sequenceMap;
+	private AtomicLong rrSequence; //round robin 시퀀스.
 	public NodeLoadBalancer() {
 		map = new ConcurrentHashMap<String, List<Node>>();
-		sequenceMap = new ConcurrentHashMap<String, AtomicLong>();
+//		sequenceMap = new ConcurrentHashMap<String, AtomicLong>();
+		rrSequence = new AtomicLong();
 	}
 
 	public void update(String id, List<Node> list) {
 		map.put(id, list);
-		if (!sequenceMap.containsKey(id)) {
-			sequenceMap.put(id, new AtomicLong());
-		}
+//		if (!sequenceMap.containsKey(id)) {
+//			sequenceMap.put(id, new AtomicLong());
+//		}
 	}
 
 	/**
@@ -35,19 +37,22 @@ public class NodeLoadBalancer {
 	 * active한 노드가 없을 경우 null을 리턴한다.
 	 * */
 	public Node getBalancedNode(String id) {
-		AtomicLong l = sequenceMap.get(id);
+		long seq = rrSequence.getAndIncrement();
+//		AtomicLong l = sequenceMap.get(id);
 		List<Node> list = map.get(id);
-		if(l == null || list == null){
-			logger.warn("#No node list for {}", id);
-			return null;
-		}
+//		if(l == null || list == null){
+//			logger.warn("#No node list for {}", id);
+//			return null;
+//		}
 		Node node = null;
 		int tryCount = 0;
-		while (tryCount++ < list.size()) {
-			long seq = l.getAndIncrement();
-			int index = (int) (seq % list.size());
+		int length = list.size();
+		//width만큼 돌면서 노드를 찾는다.
+		for (int i = 0; i < length; i++) {
+//			long seq = l.getAndIncrement();
+			int index = (int) (seq++ % length);
 			node = list.get(index);
-			logger.info("{}]getAndIncrement seq[{}], list.size()[{}] index[{}] >> node[{}] isactive[{}]", tryCount - 1, seq, list.size(), index, node, node.isActive());
+//			logger.info("{}]getAndIncrement seq[{}], list.size()[{}] index[{}] >> node[{}] isactive[{}]", tryCount - 1, seq, list.size(), index, node, node.isActive());
 
 			if (node.isActive()) {
 				return node;
