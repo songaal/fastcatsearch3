@@ -113,13 +113,15 @@ public class BooleanClause implements OperatedClause {
 
 				OperatedClause clause = null;
 				
-				if (featureAttribute != null && featureAttribute.type() == FeatureType.APPEND) {
-					//TODO append 한다.
+//				if (featureAttribute != null && featureAttribute.type() == FeatureType.APPEND) {
+//					//TODO append 한다.
+//					clause = new TermOperatedClause(postingReader);
+//					if(operatedClause != null){
+//						clause = new AppendOperatedClause(operatedClause, clause);
+//					}
+//				}else{
 					clause = new TermOperatedClause(postingReader);
-					clause = new AppendOperatedClause(operatedClause, clause);
-				}else{
-					clause = new TermOperatedClause(postingReader);
-				}
+//				}
 				
 				if (operatedClause == null) {
 					operatedClause = clause;
