@@ -289,7 +289,7 @@ public class CollectionSearcher {
 			Document doc = collectionHandler.segmentReader(segmentSequence).segmentSearcher().getDocument(docNo, fieldSelectOption);
 			eachDocList[idx++] = doc;
 		}
-long a, b = 0, c = System.nanoTime();
+//long a, b = 0, c = System.nanoTime();
 
 		for (int i = 0; i < realSize; i++) {
 			Document document = eachDocList[i];
@@ -315,14 +315,15 @@ long a, b = 0, c = System.nanoTime();
 						text = field.toString();
 					}
 
-					if (has != null && text != null && highlightInfo != null) {
+					//스니펫 사이즈가 있고 서머리요청이있거나 OR 하이라이팅을 요청했을 때에만 수행한다.
+					if (has != null && text != null && highlightInfo != null && ((view.snippetSize() > 0 && view.isSummarized()) || view.isHighlighted())) {
 						String fiedlName = view.fieldId();
 						String analyzerId = highlightInfo.getAnalyzer(fiedlName);
 						String queryString = highlightInfo.getQueryString(fiedlName);
 						if (analyzerId != null && queryString != null) {
-							a = System.nanoTime();
+//							a = System.nanoTime();
 							text = getHighlightedSnippet(text, analyzerId, queryString, tags, view);
-							b += (System.nanoTime() - a);
+//							b += (System.nanoTime() - a);
 						}
 					}
 
@@ -335,7 +336,7 @@ long a, b = 0, c = System.nanoTime();
 				}
 			}
 		}
-		logger.debug("time > {}, {}", (System.nanoTime() - c) / 1000000, b / 1000000);
+//		logger.debug("time > {}, {}", (System.nanoTime() - c) / 1000000, b / 1000000);
 		return new DocumentResult(row, fieldIdList);
 	}
 
@@ -343,16 +344,12 @@ long a, b = 0, c = System.nanoTime();
 		AnalyzerPool analyzerPool = collectionHandler.analyzerPoolManager().getPool(analyzerId);
 		if (analyzerPool != null) {
 			Analyzer analyzer = analyzerPool.getFromPool();
-			try {
-				if (analyzer != null) {
-					try {
-						text = has.highlight(analyzer, text, queryString, view.isHighlighted() ? tags : null, view.snippetSize(), view.fragmentSize());
-					} finally {
-						analyzerPool.releaseToPool(analyzer);
-					}
+			if (analyzer != null) {
+				try {
+					text = has.highlight(analyzer, text, queryString, view.isHighlighted() ? tags : null, view.snippetSize(), view.fragmentSize());
+				} finally {
+					analyzerPool.releaseToPool(analyzer);
 				}
-			} finally {
-				analyzerPool.releaseToPool(analyzer);
 			}
 		}
 		return text;

@@ -399,19 +399,20 @@ public class QueryParser {
 				} else {
 					Term term = makeTerm(value);
 
-					for (String field : term.indexFieldId()) {
-						// FIXME:fl 구문이 se구문보다 뒤에 나올 경우의 처리가 필요함.
-						// View가 생성이 되지 않은 상태에서의 하이라이팅 처리...
-						ViewContainer views = query.getViews();
-						views.setSummarized(field, term.option().useSummary());
-						views.setHighlighted(field, term.option().useHighlight());
-					}
+//					for (String field : term.indexFieldId()) {
+//						// FIXME:fl 구문이 se구문보다 뒤에 나올 경우의 처리가 필요함.
+//						// View가 생성이 되지 않은 상태에서의 하이라이팅 처리...
+//						ViewContainer views = query.getViews();
+//						views.setSummarized(field, term.option().useSummary());
+//						views.setHighlighted(field, term.option().useHighlight());
+//					}
 					return term;
 				}
 			}
 		} catch (QueryParseException e) {
 			throw e;
 		} catch (Exception e) {
+			logger.error("", e);
 			throw new QueryParseException("parsing clause error: " + value, e);
 		}
 

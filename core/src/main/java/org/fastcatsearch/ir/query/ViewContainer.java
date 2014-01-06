@@ -49,7 +49,7 @@ public class ViewContainer {
 			for(View view : map.get(fieldId)) {
 				//positive only setting
 				if(summarized) {
-					view.setHighlighted(summarized);
+					view.setSummarized(summarized);
 				}
 			}
 		}

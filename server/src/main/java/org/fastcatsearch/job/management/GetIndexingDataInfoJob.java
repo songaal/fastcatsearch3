@@ -30,6 +30,10 @@ public class GetIndexingDataInfoJob extends Job implements Streamable {
 		
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		CollectionContext collectionContext = irService.collectionContext(collectionId);
+		if(collectionContext == null){
+			//컬렉션이 올바로 로딩되지 않았다면 빈 객체리턴.
+			return new JobResult(result);
+		}
 		
 		DataInfo dataInfo = collectionContext.dataInfo();
 		
