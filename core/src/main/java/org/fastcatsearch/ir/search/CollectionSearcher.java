@@ -289,7 +289,7 @@ public class CollectionSearcher {
 			Document doc = collectionHandler.segmentReader(segmentSequence).segmentSearcher().getDocument(docNo, fieldSelectOption);
 			eachDocList[idx++] = doc;
 		}
-long a, b = 0, c = System.nanoTime();
+//long a, b = 0, c = System.nanoTime();
 
 		for (int i = 0; i < realSize; i++) {
 			Document document = eachDocList[i];
@@ -320,9 +320,9 @@ long a, b = 0, c = System.nanoTime();
 						String analyzerId = highlightInfo.getAnalyzer(fiedlName);
 						String queryString = highlightInfo.getQueryString(fiedlName);
 						if (analyzerId != null && queryString != null) {
-							a = System.nanoTime();
+//							a = System.nanoTime();
 							text = getHighlightedSnippet(text, analyzerId, queryString, tags, view);
-							b += (System.nanoTime() - a);
+//							b += (System.nanoTime() - a);
 						}
 					}
 
@@ -335,7 +335,7 @@ long a, b = 0, c = System.nanoTime();
 				}
 			}
 		}
-		logger.debug("time > {}, {}", (System.nanoTime() - c) / 1000000, b / 1000000);
+//		logger.debug("time > {}, {}", (System.nanoTime() - c) / 1000000, b / 1000000);
 		return new DocumentResult(row, fieldIdList);
 	}
 
