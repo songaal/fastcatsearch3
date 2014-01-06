@@ -35,12 +35,12 @@ public class HangulUtilTest {
 	public void testPrefix() {
 		String s = HangulUtil.makeHangulPrefix("빙그레", '\t');
 		
-		assertEquals("ㅂ	비	빙	빙ㄱ	빙그	빙그ㄹ	빙그레", s);
 		
 		String[] ss = s.split("\t");
 		for (int i = 0; i < ss.length; i++) {
 			logger.debug("word : {}",ss[i]);
 		}
+		assertEquals("ㅂ	비	빙	빙ㄱ	빙그	빙그ㄹ	빙그레", s);
 	}
 
 	@Test
@@ -54,11 +54,13 @@ public class HangulUtilTest {
 	
 	@Test
 	public void tesChosungt() {
-		String s = HangulUtil.makeChosung("빙그레", '\t');
+		String s = HangulUtil.makeHangulChosung("빙그레", '\t');
+		logger.debug(s);
 		String[] ss = s.split("\t");
 		for (int i = 0; i < ss.length; i++) {
 			logger.debug("word : {}",ss[i]);
 		}
+		assertEquals("ㅂ	ㅂㄱ	ㅂㄱㄹ", s);
 	}
 
 }

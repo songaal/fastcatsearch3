@@ -120,7 +120,10 @@ public class HangulUtil {
 				int choSung = unicode / (JUNGSUNG_LIST.length() * JONGSUNG_LIST.length());
 				candidate.append(prefix);
 				candidate.append(CHOSUNG_LIST.charAt(choSung));
-				candidate.append(delimiter);
+				
+				if (i < keyword.length() - 1) {
+					candidate.append(delimiter);
+				}
 				
 				prefix.append(CHOSUNG_LIST.charAt(choSung));
 			}
