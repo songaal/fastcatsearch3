@@ -1,5 +1,7 @@
 package org.fastcatsearch.http.action.service;
 
+import java.io.Writer;
+
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
@@ -19,21 +21,25 @@ public class TestAction extends ServiceAction {
 	public void doAction(ActionRequest request, ActionResponse response) throws Exception {
 		
 		writeHeader(response);
+		
+		logger.info("parameter Map >> {}", request.getParameterMap());
 		Object obj = session.getAttribute("test");
 		logger.debug(getClass().getSimpleName()+" session="+obj);
 		if(obj == null){
 			session.setAttribute("test", "세션테스트");
 		}
 		String contentStr = "<html><body><h1>제목</h1><h3>sub title</h3></body></html>";
+		Writer writer = response.getWriter();
 		try {
-			response.getWriter().write(contentStr);
+			writer.write(contentStr);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("", e);
+		} finally {
+			if(writer != null){
+				writer.close();
+			}
 		}
 	
-		response.setStatus(HttpResponseStatus.OK);
-		
-		
 	}
 
 }

@@ -57,7 +57,7 @@ public class NodeLoadBalancer {
 			if (node.isActive()) {
 				return node;
 			} else {
-				logger.warn("#Node inactive! {}", node);
+//				logger.warn("#Node inactive! {}", node);
 			}
 		}
 		logger.warn("#Fail to select node for {}", id);

@@ -39,14 +39,14 @@ public class ActionRequest {
 	
 			}
 //			logger.debug("action {}, {}", uri, queryString);
-			try {
-				if(queryString != null){
-					queryString = URLDecoder.decode(queryString, DEFAULT_CHARSET);
-//					logger.debug(">> {}", queryString);
-				}
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
+//			try {
+//				if(queryString != null){
+//					queryString = URLDecoder.decode(queryString, DEFAULT_CHARSET);
+////					logger.debug(">> {}", queryString);
+//				}
+//			} catch (UnsupportedEncodingException e) {
+//				e.printStackTrace();
+//			}
 			parameterMap = new HashMap<String, String>();
 			if (queryString != null) {
 				parse();
@@ -140,12 +140,11 @@ public class ActionRequest {
 					parameterMap.put(pair, "");
 				} else {
 					// key=value
-					String key = URLDecoder.decode(pair.substring(0, eq), charset);
-					String value = URLDecoder.decode(pair.substring(eq + 1), charset);
-					// String key = pair.substring(0, eq);
-					// String value = pair.substring(eq + 1);
-//					parameterMap.put(key.toUpperCase(), value);
-					parameterMap.put(key, value);
+					String key = pair.substring(0, eq);
+					String value = pair.substring(eq + 1);
+					String decodedValue = URLDecoder.decode(value, charset);
+//					logger.debug("DECODE {} > {}", value, decodedValue);
+					parameterMap.put(key, decodedValue);
 
 				}
 			}
@@ -153,7 +152,7 @@ public class ActionRequest {
 			logger.error("encoding error!", e);
 		}
 		
-		logger.debug("parameterMap >> {}", parameterMap);
+//		logger.debug("parameterMap >> {}", parameterMap);
 	}
 
 	

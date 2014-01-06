@@ -63,7 +63,7 @@ public abstract class AbstractSearchAction extends ServiceAction {
 
 	@Override
 	public void doAction(ActionRequest request, ActionResponse response) throws Exception {
-
+		logger.debug("request.getParameterMap() >> {}", request.getParameterMap());
 		QueryMap queryMap = new QueryMap(request.getParameterMap());
 		logger.debug("queryMap tostring>> {}", queryMap);
 		Integer timeout = request.getIntParameter("timeout", DEFAULT_TIMEOUT);
