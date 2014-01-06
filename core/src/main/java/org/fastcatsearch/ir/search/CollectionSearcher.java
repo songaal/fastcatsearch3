@@ -315,7 +315,8 @@ public class CollectionSearcher {
 						text = field.toString();
 					}
 
-					if (has != null && text != null && highlightInfo != null) {
+					//스니펫 사이즈를 넣어주었을때만 요약을 한다.
+					if (has != null && text != null && highlightInfo != null && view.snippetSize() > 0) {
 						String fiedlName = view.fieldId();
 						String analyzerId = highlightInfo.getAnalyzer(fiedlName);
 						String queryString = highlightInfo.getQueryString(fiedlName);
