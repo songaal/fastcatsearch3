@@ -43,7 +43,7 @@ public class HttpServiceController {
 	private HttpAction createAction(HttpRequest request, HttpChannel httpChannel) {
 		String uri = request.getUri();
 		
-		logger.debug("URI : {}, method={}, version={}", uri, request.getMethod(), request.getProtocolVersion());
+//		logger.debug("URI : {}, method={}, version={}", uri, request.getMethod(), request.getProtocolVersion());
 		// uri의 파라미터 제거
 		int pos = uri.indexOf("?");
 		if (pos > 0) {

@@ -24,10 +24,10 @@ public class ActionRequest {
 	public ActionRequest(String uri, HttpRequest request) {
 		this.uri = uri;
 		this.request = request;
-		
-		if(request!=null) {
+
+		if (request != null) {
 			if (request.getMethod() == HttpMethod.GET) {
-//				logger.debug("URI:{} , {}, {}", request.getUri(), request.getUri().length(), uri.length());
+				// logger.debug("URI:{} , {}, {}", request.getUri(), request.getUri().length(), uri.length());
 				if (request.getUri().length() > uri.length()) {
 					queryString = request.getUri().substring(uri.length() + 1); // 맨앞의 ?를 제거하기 위해 +1
 				}
@@ -36,17 +36,17 @@ public class ActionRequest {
 				ChannelBuffer buffer = request.getContent();
 				queryString = new String(buffer.toByteBuffer().array(), 0, (int) len);
 			} else {
-	
+
 			}
-//			logger.debug("action {}, {}", uri, queryString);
-//			try {
-//				if(queryString != null){
-//					queryString = URLDecoder.decode(queryString, DEFAULT_CHARSET);
-////					logger.debug(">> {}", queryString);
-//				}
-//			} catch (UnsupportedEncodingException e) {
-//				e.printStackTrace();
-//			}
+			logger.debug("action {}, {}", uri, queryString);
+			// try {
+			// if(queryString != null){
+			// queryString = URLDecoder.decode(queryString, DEFAULT_CHARSET);
+			// // logger.debug(">> {}", queryString);
+			// }
+			// } catch (UnsupportedEncodingException e) {
+			// e.printStackTrace();
+			// }
 			parameterMap = new HashMap<String, String>();
 			if (queryString != null) {
 				parse();
@@ -54,13 +54,14 @@ public class ActionRequest {
 		}
 	}
 
-	public boolean isMethodGet(){
+	public boolean isMethodGet() {
 		return request.getMethod() == HttpMethod.GET;
 	}
-	public boolean isMethodPost(){
+
+	public boolean isMethodPost() {
 		return request.getMethod() == HttpMethod.POST;
 	}
-	
+
 	public HttpRequest request() {
 		return request;
 	}
@@ -72,13 +73,13 @@ public class ActionRequest {
 	public Map<String, String> getParameterMap() {
 		return parameterMap;
 	}
-	
+
 	public String getParameter(String key) {
 		return getParameter(key, null);
 	}
 
 	public String getParameter(String key, String defaultValue) {
-		if(parameterMap.containsKey(key)) {
+		if (parameterMap.containsKey(key)) {
 			return parameterMap.get(key);
 		} else {
 			return defaultValue;
@@ -88,22 +89,22 @@ public class ActionRequest {
 	public int getIntParameter(String key) {
 		return getIntParameter(key, 0);
 	}
-	
+
 	public int getIntParameter(String key, int defaultValue) {
 		String value = getParameter(key);
 		if (value != null) {
-			try{
+			try {
 				return Integer.parseInt(value);
-			}catch(NumberFormatException e){
+			} catch (NumberFormatException e) {
 			}
 		}
 		return defaultValue;
 	}
-	
+
 	public boolean getBooleanParameter(String key) {
 		return getBooleanParameter(key, false);
 	}
-	
+
 	public boolean getBooleanParameter(String key, boolean defaultValue) {
 		String value = getParameter(key);
 		if (value != null) {
@@ -131,29 +132,29 @@ public class ActionRequest {
 	}
 
 	private void parse(String charset) {
-		try {
-			for (String pair : queryString.split("&")) {
-				int eq = pair.indexOf("=");
-				if (eq < 0) {
-					// key with no value
-//					parameterMap.put(pair.toUpperCase(), "");
-					parameterMap.put(pair, "");
-				} else {
-					// key=value
-					String key = pair.substring(0, eq);
-					String value = pair.substring(eq + 1);
+		for (String pair : queryString.split("&")) {
+			int eq = pair.indexOf("=");
+			if (eq < 0) {
+				// key with no value
+				// parameterMap.put(pair.toUpperCase(), "");
+				parameterMap.put(pair, "");
+			} else {
+				// key=value
+				String key = pair.substring(0, eq);
+				String value = pair.substring(eq + 1);
+				try {
 					String decodedValue = URLDecoder.decode(value, charset);
-//					logger.debug("DECODE {} > {}", value, decodedValue);
+					logger.debug("DECODE {} > {}", value, decodedValue);
 					parameterMap.put(key, decodedValue);
-
+				} catch (Exception e) {
+					// 디코드 에러시 디코드하지 않음. '100%보증'과 같은 문자가 들어올수 있음.
+					parameterMap.put(key, value);
 				}
+
 			}
-		} catch (UnsupportedEncodingException e) {
-			logger.error("encoding error!", e);
 		}
-		
-//		logger.debug("parameterMap >> {}", parameterMap);
+
+		// logger.debug("parameterMap >> {}", parameterMap);
 	}
 
-	
 }
