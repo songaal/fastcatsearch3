@@ -92,7 +92,7 @@ public class BlockingCachedStreamOutput {
     
     
     public Entry popEntry() {
-    	logger.debug("{}", toString());
+//    	logger.debug("{}", toString());
         BlockingQueue<Entry> ref = cache.get();
         if (ref == null) {
         	ref = initCache();
@@ -108,9 +108,9 @@ public class BlockingCachedStreamOutput {
 				}
 				//생성을 못했을 경우 take.
 				if(entry == null){
-					logger.debug("# Take wait!!");
+//					logger.debug("# Take wait!!");
 					entry = ref.take();
-					logger.debug("# Take Done!!");
+//					logger.debug("# Take Done!!");
 					entry.reset();
 					inPoolCount.decrementAndGet();
 				}
