@@ -343,12 +343,16 @@ long a, b = 0, c = System.nanoTime();
 		AnalyzerPool analyzerPool = collectionHandler.analyzerPoolManager().getPool(analyzerId);
 		if (analyzerPool != null) {
 			Analyzer analyzer = analyzerPool.getFromPool();
-			if (analyzer != null) {
-				try {
-					text = has.highlight(analyzer, text, queryString, view.isHighlighted() ? tags : null, view.snippetSize(), view.fragmentSize());
-				} finally {
-					analyzerPool.releaseToPool(analyzer);
+			try {
+				if (analyzer != null) {
+					try {
+						text = has.highlight(analyzer, text, queryString, view.isHighlighted() ? tags : null, view.snippetSize(), view.fragmentSize());
+					} finally {
+						analyzerPool.releaseToPool(analyzer);
+					}
 				}
+			} finally {
+				analyzerPool.releaseToPool(analyzer);
 			}
 		}
 		return text;

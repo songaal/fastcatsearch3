@@ -5,9 +5,11 @@ import java.util.concurrent.ExecutorService;
 
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
+import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.http.action.HttpAction;
 import org.fastcatsearch.http.action.ServiceAction;
 import org.fastcatsearch.http.action.ServiceAction.Type;
+import org.fastcatsearch.http.action.management.login.LoginAction;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
@@ -80,8 +82,11 @@ public class HttpServiceController {
 			return null;
 		}
 		ActionResponse actionResponse = new ActionResponse();
-		HttpSession httpSession = httpSessionManager.handleCookie(request, actionResponse);
-		
+		HttpSession httpSession = null;
+		if(actionObj instanceof AuthAction || actionObj instanceof LoginAction){
+			//관리용 action일때에만 세션을 확인하고 serviceaction은 세션확인없음.
+			httpSession = httpSessionManager.handleCookie(request, actionResponse);
+		}
 		HttpAction action = actionObj.clone();
 		action.init(contenType, new ActionRequest(uri, request), actionResponse, httpSession, httpChannel);
 		return action;

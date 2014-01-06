@@ -3,6 +3,7 @@ package org.fastcatsearch.http;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.fastcatsearch.http.action.ActionResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
@@ -22,7 +23,7 @@ public class HttpSessionManager {
 	private int expireTimeInHour;
 	
 	public HttpSessionManager() {
-		sessionObjMap = new HashMap<String, HttpSession>();
+		sessionObjMap = new ConcurrentHashMap<String, HttpSession>();
 	}
 
 	public HttpSession getSessionObj(String sessionId) {

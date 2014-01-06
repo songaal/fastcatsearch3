@@ -76,8 +76,9 @@ public class AnalyzerPool {
 				pool.add(e);
 			}
 			
+		}else{
+			//현재 사이즈가 CORE_SIZE를 초과하면 버린다.
 		}
-		//현재 사이즈가 CORE_SIZE를 초과하면 버린다.
 	}
 	
 	public synchronized int size(){
