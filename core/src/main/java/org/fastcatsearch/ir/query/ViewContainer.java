@@ -7,33 +7,34 @@ import java.util.Map;
 
 public class ViewContainer {
 	
-	public List<View> container;
+	private List<View> container;
 	
-	public Map<String,List<View>> map;
-
+//	private Map<String,List<View>> map;
+//	private List<View> viewElements;
+	
 	public ViewContainer(int length) {
 		container = new ArrayList<View>(length);
-		map = new HashMap<String,List<View>>();
+//		map = new HashMap<String,List<View>>();
 	}
 	public ViewContainer() {
 		container = new ArrayList<View>();
-		map = new HashMap<String,List<View>>();
+//		map = new HashMap<String,List<View>>();
 	}
 	
-	List<View> viewElements = null;
+	
 	public void add(View view) {
-		if(view!=null) {
-			if(!map.containsKey(view.fieldId())) {
-				viewElements = new ArrayList<View>();
-				viewElements.add(view);
-				map.put(view.fieldId(), viewElements);
-			} else {
-				viewElements = map.get(view.fieldId());
-				if(!viewElements.contains(view)) {
-					viewElements.add(view);
-				}
-			}
-		}
+//		if(view!=null) {
+//			if(!map.containsKey(view.fieldId())) {
+//				viewElements = new ArrayList<View>();
+//				viewElements.add(view);
+//				map.put(view.fieldId(), viewElements);
+//			} else {
+//				viewElements = map.get(view.fieldId());
+//				if(!viewElements.contains(view)) {
+//					viewElements.add(view);
+//				}
+//			}
+//		}
 		if(!container.contains(view)) {
 			container.add(view);
 		}
@@ -43,7 +44,7 @@ public class ViewContainer {
 		return container.get(inx);
 	}
 	
-	public void setSummarized(String fieldId,
+	/*public void setSummarized(String fieldId,
 			boolean summarized) {
 		if(map.containsKey(fieldId)) {
 			for(View view : map.get(fieldId)) {
@@ -53,9 +54,9 @@ public class ViewContainer {
 				}
 			}
 		}
-	}
+	}*/
 	
-	public void setHighlighted(String fieldId,
+	/*public void setHighlighted(String fieldId,
 			boolean highlighted) {
 		if(map.containsKey(fieldId)) {
 			for(View view : map.get(fieldId)) {
@@ -65,7 +66,7 @@ public class ViewContainer {
 				}
 			}
 		}
-	}
+	}*/
 	
 	public int size() {
 		if(container!=null) {

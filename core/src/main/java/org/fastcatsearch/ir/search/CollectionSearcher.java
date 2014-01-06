@@ -315,15 +315,26 @@ public class CollectionSearcher {
 						text = field.toString();
 					}
 
-					//스니펫 사이즈가 있고 서머리요청이있거나 OR 하이라이팅을 요청했을 때에만 수행한다.
-					if (has != null && text != null && highlightInfo != null && ((view.snippetSize() > 0 && view.isSummarized()) || view.isHighlighted())) {
-						String fiedlName = view.fieldId();
-						String analyzerId = highlightInfo.getAnalyzer(fiedlName);
-						String queryString = highlightInfo.getQueryString(fiedlName);
+					boolean isHighlightSummary = false;
+					if (has != null && text != null && highlightInfo != null) {
+						//하이라이팅만 수행하거나, 또는 view.snippetSize 가 존재하면 summary까지 수행될수 있다.
+						String fiedlId = view.fieldId();
+						String analyzerId = highlightInfo.getAnalyzer(fiedlId);
+						String queryString = highlightInfo.getQueryString(fiedlId);
 						if (analyzerId != null && queryString != null) {
 //							a = System.nanoTime();
 							text = getHighlightedSnippet(text, analyzerId, queryString, tags, view);
 //							b += (System.nanoTime() - a);
+							isHighlightSummary = true;
+						}
+					}
+					
+					if(!isHighlightSummary && view.isSummarize()){
+						//검색필드가 아니라서 하이라이팅이 불가능한경우는 앞에서부터 잘라 summary 해준다.
+						if(text != null){
+							if(text.length() > view.snippetSize()){
+								text = text.substring(0, view.snippetSize());
+							}
 						}
 					}
 
@@ -346,7 +357,7 @@ public class CollectionSearcher {
 			Analyzer analyzer = analyzerPool.getFromPool();
 			if (analyzer != null) {
 				try {
-					text = has.highlight(analyzer, text, queryString, view.isHighlighted() ? tags : null, view.snippetSize(), view.fragmentSize());
+					text = has.highlight(analyzer, text, queryString, tags, view.snippetSize(), view.fragmentSize());
 				} finally {
 					analyzerPool.releaseToPool(analyzer);
 				}

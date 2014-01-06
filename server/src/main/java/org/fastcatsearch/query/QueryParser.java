@@ -161,8 +161,7 @@ public class QueryParser {
 			for (int k = 0; k < list.length; k++) {
 				String[] str = list[k].split(COLON_SEPARATOR);
 				if (str.length > 2) {
-					//FIXME:하이라이팅 관련 무조건 ON 되도록 임시 수정
-					views.add(new View(str[0], Integer.parseInt(str[1]), Integer.parseInt(str[2]), false, false));
+					views.add(new View(str[0], Integer.parseInt(str[1]), Integer.parseInt(str[2])));
 				} else if (str.length > 1) {
 					views.add(new View(str[0], Integer.parseInt(str[1])));
 				} else {

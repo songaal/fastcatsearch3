@@ -83,7 +83,7 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 		//views = new ArrayList<View>(viewSize);
 		views = new ViewContainer();
 		for (int i = 0; i < viewSize; i++) {
-			views.add(new View(input.readString(), input.readVInt(), input.readVInt(), input.readBoolean(), input.readBoolean()));
+			views.add(new View(input.readString(), input.readVInt(), input.readVInt()));
 		}
 		
 		// tags[]
@@ -115,8 +115,6 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 			output.writeString(view.fieldId());
 			output.writeVInt(view.snippetSize());
 			output.writeVInt(view.fragmentSize());
-			output.writeBoolean(view.isSummarized());
-			output.writeBoolean(view.isHighlighted());
 		}
 
 		// tags[]
