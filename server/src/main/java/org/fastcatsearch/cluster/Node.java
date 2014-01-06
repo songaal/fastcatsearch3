@@ -25,6 +25,7 @@ public class Node implements Streamable{
 	
 	public Node(String nodeId, InetSocketAddress socketAddress) {
         this.nodeId = nodeId.intern();
+        this.name = this.nodeId;
         this.socketAddress = socketAddress;
     }
 	
@@ -102,6 +103,7 @@ public class Node implements Streamable{
     @Override
     public void readFrom(DataInput in) throws IOException {
         nodeId = in.readString().intern();
+        name = in.readString();
         String hostName = in.readString().intern();
         int port = in.readInt();
         socketAddress = new InetSocketAddress(hostName, port);
@@ -110,6 +112,7 @@ public class Node implements Streamable{
     @Override
     public void writeTo(DataOutput out) throws IOException {
         out.writeString(nodeId);
+        out.writeString(name);
         out.writeString(socketAddress.getHostName());
         out.writeInt(socketAddress.getPort());
     }
