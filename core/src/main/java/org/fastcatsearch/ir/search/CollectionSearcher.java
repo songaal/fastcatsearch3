@@ -315,8 +315,8 @@ public class CollectionSearcher {
 						text = field.toString();
 					}
 
-					//스니펫 사이즈를 넣어주었을때만 요약을 한다.
-					if (has != null && text != null && highlightInfo != null && view.snippetSize() > 0) {
+					//스니펫 사이즈가 있고 서머리요청이있거나 OR 하이라이팅을 요청했을 때에만 수행한다.
+					if (has != null && text != null && highlightInfo != null && ((view.snippetSize() > 0 && view.isSummarized()) || view.isHighlighted())) {
 						String fiedlName = view.fieldId();
 						String analyzerId = highlightInfo.getAnalyzer(fiedlName);
 						String queryString = highlightInfo.getQueryString(fiedlName);
