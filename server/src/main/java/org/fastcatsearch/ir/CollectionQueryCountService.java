@@ -21,9 +21,7 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
 
 /**
- * 컬렉션별 검색갯수를 모은다.
- * search노드는 1초에 한번 mater로 갯수를 보낸다.
- * master노드는 1초에 한번 갯수를 취합하여 aggregateCountResult에 유지한다.
+ * 컬렉션별 검색갯수를 모은다. search노드는 1초에 한번 mater로 갯수를 보낸다. master노드는 1초에 한번 갯수를 취합하여 aggregateCountResult에 유지한다.
  * 
  * */
 public class CollectionQueryCountService extends AbstractService {
@@ -34,7 +32,7 @@ public class CollectionQueryCountService extends AbstractService {
 
 	private Timer aggregateTimer;
 	private Timer reportTimer;
-	
+
 	public CollectionQueryCountService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
 
@@ -56,35 +54,32 @@ public class CollectionQueryCountService extends AbstractService {
 		}
 	}
 
-	public Map<String, Integer> aggregateCountResult(){
+	public Map<String, Integer> aggregateCountResult() {
 		return aggregateCountResult;
 	}
-	
-	
+
 	@Override
 	protected boolean doStart() throws FastcatSearchException {
-		
-		
-		
+
 		IRService irService = serviceManager.getService(IRService.class);
 		Set<String> collectionIdSet = irService.getSearchNodeCollectionIdSet();
 		boolean isSearchNode = collectionIdSet.size() > 0;
-		
-		int period = 1000; //1초.
+
+		int period = 1000; // 1초.
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.MILLISECOND, 0);
 		cal.add(Calendar.SECOND, 1);
 		if (environment.isMasterNode()) {
-			
+
 			aggregateModule.load();
-			
+
 			aggregateTimer = new Timer();
 			// 1초단위로 취합하는 timertask를 시작한다.
-			aggregateCountResult = new HashMap<String, Integer>();//처음에 빈 객체.
+			aggregateCountResult = new HashMap<String, Integer>();// 처음에 빈 객체.
 			aggregateTimer.scheduleAtFixedRate(new AggregateCountTask(), cal.getTime(), period);
 		}
-		
-		if(isSearchNode) {
+
+		if (isSearchNode) {
 			// 1초 단위로 report하는 timertask를 시작한다.
 			reportTimer = new Timer();
 			reportTimer.scheduleAtFixedRate(new ReportCountTask(), cal.getTime(), period);
@@ -94,19 +89,19 @@ public class CollectionQueryCountService extends AbstractService {
 
 	@Override
 	protected boolean doStop() throws FastcatSearchException {
-		
-		if(aggregateTimer != null){
+
+		if (aggregateTimer != null) {
 			aggregateTimer.cancel();
 		}
-		
-		if(reportTimer != null){
+
+		if (reportTimer != null) {
 			reportTimer.cancel();
 		}
-		
+
 		if (aggregateModule != null) {
 			aggregateModule.unload();
 		}
-		
+
 		return true;
 	}
 
@@ -122,10 +117,10 @@ public class CollectionQueryCountService extends AbstractService {
 
 		@Override
 		public void run() {
-//			logger.debug("RUN ReportCountTask");
+			// logger.debug("RUN ReportCountTask");
 			NodeService nodeService = serviceManager.getService(NodeService.class);
 			IRService irService = serviceManager.getService(IRService.class);
-			
+
 			RealtimeQueryCountModule module = irService.queryCountModule();
 			Set<String> collectionIdSet = irService.getSearchNodeCollectionIdSet();
 
@@ -133,7 +128,7 @@ public class CollectionQueryCountService extends AbstractService {
 			for (String collectionId : collectionIdSet) {
 				int count = module.getQueryCount(collectionId);
 				result.put(collectionId, count);
-//				logger.debug("##[REPORT] search count {} > {}", collectionId, count);
+				// logger.debug("##[REPORT] search count {} > {}", collectionId, count);
 			}
 			ReportQueryCountJob job = new ReportQueryCountJob(result);
 			job.setNoResult();
@@ -146,14 +141,14 @@ public class CollectionQueryCountService extends AbstractService {
 
 		@Override
 		public void run() {
-//			logger.debug("RUN AggregateCountTask");
+			// logger.debug("RUN AggregateCountTask");
 			Set<String> set = aggregateModule.getRegisteredCollectionSet();
 			Map<String, Integer> result = new HashMap<String, Integer>();
 			for (String collectionId : set) {
 				int count = aggregateModule.getQueryCount(collectionId);
 				if (count >= 0) {
 					result.put(collectionId, count);
-//					logger.debug("##[AGGREGATE] search count {} > {}", collectionId, count);
+					// logger.debug("##[AGGREGATE] search count {} > {}", collectionId, count);
 				}
 			}
 			// set
@@ -164,7 +159,7 @@ public class CollectionQueryCountService extends AbstractService {
 
 	/*
 	 * master서버에 검색갯수를 전달한다. masternode에서 실행되야한다.
-	 * */
+	 */
 	public static class ReportQueryCountJob extends MasterNodeJob implements Streamable {
 
 		private static final long serialVersionUID = -854194838400321409L;
@@ -181,9 +176,11 @@ public class CollectionQueryCountService extends AbstractService {
 			Map<String, Integer> result = (Map<String, Integer>) args;
 			CollectionQueryCountService collectionQueryCountService = ServiceManager.getInstance().getService(CollectionQueryCountService.class);
 			for (Entry<String, Integer> entry : result.entrySet()) {
-				if (entry.getValue() != null) {
-					collectionQueryCountService.addQueryCount(entry.getKey(), entry.getValue());
-//					logger.debug("## add query count {} : {}", entry.getKey(), entry.getValue());
+				if (entry.getValue() != null && entry.getValue() > 0) {
+					if (collectionQueryCountService.isRunning()) {
+						collectionQueryCountService.addQueryCount(entry.getKey(), entry.getValue());
+					}
+					// logger.debug("## add query count {} : {}", entry.getKey(), entry.getValue());
 				}
 			}
 
@@ -204,11 +201,11 @@ public class CollectionQueryCountService extends AbstractService {
 		@Override
 		public void writeTo(DataOutput output) throws IOException {
 			Map<String, Integer> result = (Map<String, Integer>) args;
-			
+
 			output.writeVInt(result.size());
-			
-			for(Entry<String, Integer> entry : result.entrySet()){
-				if(entry.getValue() != null){
+
+			for (Entry<String, Integer> entry : result.entrySet()) {
+				if (entry.getValue() != null) {
 					output.writeString(entry.getKey());
 					output.writeVInt(entry.getValue().intValue());
 				}
