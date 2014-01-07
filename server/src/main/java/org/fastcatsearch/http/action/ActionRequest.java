@@ -1,6 +1,5 @@
 package org.fastcatsearch.http.action;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,14 +38,7 @@ public class ActionRequest {
 
 			}
 			logger.debug("action {}, {}", uri, queryString);
-			// try {
-			// if(queryString != null){
-			// queryString = URLDecoder.decode(queryString, DEFAULT_CHARSET);
-			// // logger.debug(">> {}", queryString);
-			// }
-			// } catch (UnsupportedEncodingException e) {
-			// e.printStackTrace();
-			// }
+	
 			parameterMap = new HashMap<String, String>();
 			if (queryString != null) {
 				parse();
@@ -144,7 +136,7 @@ public class ActionRequest {
 				String value = pair.substring(eq + 1);
 				try {
 					String decodedValue = URLDecoder.decode(value, charset);
-					logger.debug("DECODE {} > {}", value, decodedValue);
+//					logger.debug("DECODE {} > {}", value, decodedValue);
 					parameterMap.put(key, decodedValue);
 				} catch (Exception e) {
 					// 디코드 에러시 디코드하지 않음. '100%보증'과 같은 문자가 들어올수 있음.
