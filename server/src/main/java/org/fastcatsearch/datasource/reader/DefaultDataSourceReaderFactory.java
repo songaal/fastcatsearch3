@@ -77,7 +77,7 @@ public class DefaultDataSourceReaderFactory {
 		SingleSourceReader<Map<String, Object>> sourceReader = DynamicClassLoader.loadObject(sourceReaderType, SingleSourceReader.class, new Class[] { File.class,
 			DataSourceConfig.class, SingleSourceConfig.class, SourceModifier.class, String.class }, new Object[] { filePath, dataSourceConfig, 
 				singleSourceConfig, sourceModifier, lastIndexTime });
-		logger.debug("Loading sourceReader : {} >> {}, modifier:{}", sourceReaderType, sourceReader, sourceModifier);
+		logger.debug("Loading sourceReader : {} >> {}, modifier:{} / lastIndexTime:{}", sourceReaderType, sourceReader, sourceModifier, lastIndexTime);
 		// dataSourceReader가 null일 수 있다.
 		if (sourceReader == null) {
 			throw new IRException("소스리더를 로드하지 못했습니다. 해당 클래스가 클래스패스에 없거나 생성자 시그너처가 일치하는지 확인이 필요합니다. reader=" + sourceReaderType);

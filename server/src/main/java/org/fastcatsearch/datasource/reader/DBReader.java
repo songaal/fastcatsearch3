@@ -56,8 +56,6 @@ public class DBReader extends SingleSourceReader {
 	private int bulkCount;
 	private int readCount;
 
-	private String lastIndexTime;
-
 	public DBReader(File filePath, DataSourceConfig dataSourceConfig, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime)
 			throws IRException {
 		super(filePath, dataSourceConfig, singleSourceConfig, sourceModifier, lastIndexTime);
@@ -129,7 +127,11 @@ public class DBReader extends SingleSourceReader {
 				throw new IRException("Data query sql is empty!");
 			}
 
-			logger.debug("Data query = {}", dataSQL);
+			if(logger.isTraceEnabled()) {
+				logger.trace("real query = {}", q(dataSQL));
+			} else {
+				logger.debug("Data query = {}", dataSQL);
+			}
 			if (getConfigInt("fetchSize") <= 0){
 				//in mysql, fetch data row by row 
 				pstmt = con.prepareStatement(q(dataSQL), ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -173,12 +175,12 @@ public class DBReader extends SingleSourceReader {
 	}
 
 	private String q(String query) {
-		if (lastIndexTime != null) {
+		if (query!=null && lastIndexTime != null) {
 			if (lastIndexTime.length() == 0) {
 				// 현재시각으로 넣어준다.
-				return query.replaceAll("\\$\\{last_index_time\\}", "'" + Formatter.formatDate() + "'");
+				query = query.replaceAll("\\$\\{last_index_time\\}", "'" + Formatter.formatDate() + "'");
 			} else {
-				return query.replaceAll("\\$\\{last_index_time\\}", "'" + lastIndexTime + "'");
+				query = query.replaceAll("\\$\\{last_index_time\\}", "'" + lastIndexTime + "'");
 			}
 		}
 
