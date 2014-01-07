@@ -45,7 +45,10 @@ public class NodeLoadBalancer {
 //			return null;
 //		}
 		Node node = null;
-		int tryCount = 0;
+		if(list == null){
+			logger.error("cannot find node list for {}", id);
+			return null;
+		}
 		int length = list.size();
 		//width만큼 돌면서 노드를 찾는다.
 		for (int i = 0; i < length; i++) {

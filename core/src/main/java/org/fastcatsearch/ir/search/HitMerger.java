@@ -90,7 +90,7 @@ public class HitMerger extends FixedMinHeap<FixedHitReader> {
 			}
 		}
 		
-		if(r1.collection() == r2.collection()){
+		if(r1.collectionId() == r2.collectionId()){
 			//정렬 데이터가 모두 같다면 문서번호가 최신인걸 보여준다. 
 //			return two.docNo() - one.docNo();
 			return one.compareTo(two);

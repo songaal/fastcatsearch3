@@ -152,8 +152,19 @@ public class CollectionSearcher {
 		}
 		return new Result(documentResult.rows(), groupResults, documentResult.fieldIdList(), realSize, totalSize, start);
 	}
-
+	
 	public InternalSearchResult searchInternal(Query q) throws IRException, IOException, SettingException {
+		return searchInternal(null, q);
+	}
+	
+	public InternalSearchResult searchInternal(String collectionId, Query q) throws IRException, IOException, SettingException {
+		return searchInternal(null, q, false);
+	}
+	
+	/**
+	 * @param forMerging : 머징용도이면 start + length 만큼을 앞에서부터 모두 가져온다. 
+	 * */
+	public InternalSearchResult searchInternal(String collectionId, Query q, boolean forMerging) throws IRException, IOException, SettingException {
 		int segmentSize = collectionHandler.segmentSize();
 		if (segmentSize == 0) {
 			logger.warn("Collection {} is not indexed!", collectionHandler.collectionId());
@@ -167,7 +178,14 @@ public class CollectionSearcher {
 		Metadata meta = q.getMeta();
 		int start = meta.start();
 		int rows = meta.rows();
-		String collectionId = meta.collectionId();
+		
+		if (forMerging) {// 앞에서 부터 모두.
+			rows += start;
+		}
+		
+		if(collectionId == null){
+			collectionId = meta.collectionId();
+		}
 		Groups groups = q.getGroups();
 
 		Sorts sorts = q.getSorts();
@@ -223,7 +241,13 @@ public class CollectionSearcher {
 		while (hitMerger.size() > 0) {
 			FixedHitReader r = hitMerger.peek();
 			HitElement el = r.read();
-			if (c >= start) {
+			
+			if (forMerging) {
+				//머징용도는 처음부터 모두 넣는다.
+				totalHit.push(el);
+				n++;
+			}else if (c >= start) {
+				//차후 머징용도가 아니라면 start이후 부터만 가져온다. 
 				totalHit.push(el);
 				n++;
 			}

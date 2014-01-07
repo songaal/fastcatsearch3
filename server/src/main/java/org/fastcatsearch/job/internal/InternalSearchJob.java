@@ -19,11 +19,17 @@ import org.fastcatsearch.transport.vo.StreamableInternalSearchResult;
 
 public class InternalSearchJob extends Job implements Streamable {
 	private QueryMap queryMap;
+	private boolean forMerging;
 	
 	public InternalSearchJob(){}
 	
 	public InternalSearchJob(QueryMap queryMap){
 		this.queryMap = queryMap;
+	}
+	
+	public InternalSearchJob(QueryMap queryMap, boolean forMerging){
+		this.queryMap = queryMap;
+		this.forMerging = forMerging;
 	}
 	
 	@Override
@@ -59,7 +65,7 @@ public class InternalSearchJob extends Job implements Streamable {
 					throw new FastcatSearchException("ERR-00520", collectionId);
 				}
 				
-				result = collectionHandler.searcher().searchInternal(q);
+				result = collectionHandler.searcher().searchInternal(collectionId, q, forMerging);
 				irService.shardSearchCache().put(queryMap.queryString(), result);
 			}
 
@@ -79,9 +85,11 @@ public class InternalSearchJob extends Job implements Streamable {
 	public void readFrom(DataInput input) throws IOException {
 		this.queryMap = new QueryMap();
 		queryMap.readFrom(input);
+		this.forMerging = input.readBoolean();
 	}
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
 		queryMap.writeTo(output);
+		output.writeBoolean(forMerging);
 	}
 }

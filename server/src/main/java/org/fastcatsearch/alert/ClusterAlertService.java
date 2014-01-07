@@ -240,7 +240,8 @@ public class ClusterAlertService extends AbstractService {
 		public boolean equals(Object obj) {
 			if (obj instanceof NodeExceptionInfo) {
 				NodeExceptionInfo key = (NodeExceptionInfo) obj;
-				return this.node.equals(key.node) && this.e.equals(key.e);
+				String message = this.e.getMessage();
+				return this.node.equals(key.node) && (message != null ? message.equals(key.e.getMessage()) : key.e.getMessage() == null);
 			}
 			return false;
 		}

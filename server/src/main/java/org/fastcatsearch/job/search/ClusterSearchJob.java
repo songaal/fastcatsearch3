@@ -84,15 +84,18 @@ public class ClusterSearchJob extends Job {
 		Groups groups = q.getGroups();
 		
 		//TODO collectionId가 collectionGroup명인지 확인하여 그룹이면 여러컬렉션 검색.
-		String[] collectionIdList = new String[]{ collectionId };
 		
-		CollectionContext collectionContext = irService.collectionContext(collectionId);
+		String[] collectionIdList = collectionId.split(",");//new String[]{ collectionId };
+		
+//		CollectionContext collectionContext = irService.collectionContext(collectionId);
+		//무조건 첫번째 context사용. 모든 컬렉션이 동일하다고 가정.
+		CollectionContext collectionContext = irService.collectionContext(collectionIdList[0]);
 		
 		ResultFuture[] resultFutureList = new ResultFuture[collectionIdList.length];
 		Map<String, Integer> collectionNumberMap = new HashMap<String, Integer>();
 		Node[] selectedNodeList = new Node[collectionIdList.length];
 		
-		
+		boolean forMerging = collectionIdList.length > 1;
 		for (int i = 0; i < collectionIdList.length; i++) {
 			String id = collectionIdList[i];
 			collectionNumberMap.put(id, i);
@@ -106,8 +109,9 @@ public class ClusterSearchJob extends Job {
 
 			QueryMap newQueryMap = queryMap.clone();
 			newQueryMap.setId(id);
-			logger.debug("query-{} >> {}", i, newQueryMap);
-			InternalSearchJob job = new InternalSearchJob(newQueryMap);
+			logger.debug("query-{} {} >> {}", i, id, newQueryMap);
+			//collectionId가 하나이상이면 머징을 해야한다.
+			InternalSearchJob job = new InternalSearchJob(newQueryMap, forMerging);
 			resultFutureList[i] = nodeService.sendRequest(dataNode, job);
 		}
 		
