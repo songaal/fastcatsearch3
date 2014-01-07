@@ -564,7 +564,7 @@ public class TransportModule extends AbstractModule {
 		    	if(fileSize != writeSize){
 		    		logger.error("파일사이즈가 다릅니다. expected={}, actual={}, file={}", new Object[]{fileSize, writeSize, sourceFilePath});
 		    	}else{
-		    		logger.error("File Write Done filesize={}, file={}", writeSize, sourceFilePath);
+		    		logger.info("File Write Done filesize={}, file={}", writeSize, sourceFilePath);
 		    	}
     		}
         }finally{
