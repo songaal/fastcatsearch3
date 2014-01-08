@@ -19,6 +19,7 @@ package org.fastcatsearch.ir.document;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Random;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.ir.common.IRException;
@@ -31,6 +32,7 @@ import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
 import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.Schema;
+import org.fastcatsearch.ir.util.Formatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,11 +48,15 @@ public class PrimaryKeyIndexesWriter {
 	private boolean hasPrimaryKey;
 	private BytesDataOutput pkbaos;
 	private BitSet deleteSet;
-	private PrimaryKeyIndexWriter indexWriter;
+	private LargePrimaryKeyIndexWriter indexWriter;
 	private int updateDocCount;
 	private PrimaryKeySetting primaryKeySetting;
 	private int[] primaryKeyFieldIdList;
 
+	
+	int MEMORY_LIMIT = 10 * 1024 * 1024; //적절은 64M
+	int CHECK_COUNT = 100000;
+	int count;
 	public PrimaryKeyIndexesWriter(Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig) throws IOException, IRException {
 		String segmentId = dir.getName();
 		boolean isAppend = revisionInfo.isAppend();
@@ -83,10 +89,10 @@ public class PrimaryKeyIndexesWriter {
 		//
 		logger.debug(">>>>>> revisionDir>{}, indexConfig>{}", revisionDir, indexConfig);
 		if (isAppend) {
-			indexWriter = new PrimaryKeyIndexWriter(revisionDir, IndexFileNames.getTempFileName(IndexFileNames.primaryKeyMap), indexConfig.getPkTermInterval(), indexConfig.getPkBucketSize());
+			indexWriter = new LargePrimaryKeyIndexWriter(revisionDir, IndexFileNames.getTempFileName(IndexFileNames.primaryKeyMap), indexConfig.getPkTermInterval(), indexConfig.getPkBucketSize());
 		} else {
 			// 전체색인의 경우는 이후에 다시 작업할 일이 없으므로, 완전한 pk map파일로 기록한다.
-			indexWriter = new PrimaryKeyIndexWriter(revisionDir, IndexFileNames.primaryKeyMap, indexConfig.getPkTermInterval(), indexConfig.getPkBucketSize());
+			indexWriter = new LargePrimaryKeyIndexWriter(revisionDir, IndexFileNames.primaryKeyMap, indexConfig.getPkTermInterval(), indexConfig.getPkBucketSize());
 		}
 
 		pkbaos = new BytesDataOutput(1024); //초기 1kb로 시작.
@@ -130,12 +136,22 @@ public class PrimaryKeyIndexesWriter {
 				deleteSet.set(preDocNo);
 				updateDocCount++;// 수집시 데이터내에 서로 중복된 문서가 발견된 경우 count증가.
 			}
+			
+			count++;
+			if (count % CHECK_COUNT == 0) {
+				long memorySize = indexWriter.checkWorkingMemorySize();
+				logger.debug("PK check #{} mem {}", count, Formatter.getFormatSize(memorySize));
+				if (memorySize > MEMORY_LIMIT) {
+					indexWriter.flush();
+				}
+			}
+			
+			
 		}
 	}
 
 	public void close() throws IOException {
 		if(indexWriter != null){
-			indexWriter.write();
 			indexWriter.close();
 		}
 		
