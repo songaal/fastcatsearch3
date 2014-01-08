@@ -87,7 +87,6 @@ public class PrimaryKeyIndexesWriter {
 		//
 		// 증분수집일 경우, pk를 나중에 쉽게 읽을 수 있도록 임시벌크파일 형태로 기록한다.
 		//
-		logger.debug(">>>>>> revisionDir>{}, indexConfig>{}", revisionDir, indexConfig);
 		if (isAppend) {
 			indexWriter = new LargePrimaryKeyIndexWriter(revisionDir, IndexFileNames.getTempFileName(IndexFileNames.primaryKeyMap), indexConfig.getPkTermInterval(), indexConfig.getPkBucketSize());
 		} else {
@@ -140,7 +139,7 @@ public class PrimaryKeyIndexesWriter {
 			count++;
 			if (count % CHECK_COUNT == 0) {
 				long memorySize = indexWriter.checkWorkingMemorySize();
-				logger.debug("PK check #{} mem {}", count, Formatter.getFormatSize(memorySize));
+				logger.info("PK check #{} pk mem {}", count, Formatter.getFormatSize(memorySize));
 				if (memorySize > MEMORY_LIMIT) {
 					indexWriter.flush();
 				}
