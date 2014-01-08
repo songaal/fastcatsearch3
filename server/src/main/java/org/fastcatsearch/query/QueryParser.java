@@ -106,7 +106,8 @@ public class QueryParser {
 
 	public Query.EL detectElement(String name) {
 		try {
-			return Query.EL.valueOf(name);
+			//EL enum이 소문자이므로 소문자로 바꾼다.
+			return Query.EL.valueOf(name.toLowerCase());
 		} catch (IllegalArgumentException e) {
 			return null;
 		}
