@@ -41,7 +41,7 @@ public class MemoryPostingTest {
 		// // TODO Auto-generated catch block
 		// e.printStackTrace();
 		// }
-		MemoryPosting mp = new MemoryPosting(16 * 1024);
+		MemoryPosting mp = new MemoryPosting(64 * 1024);
 
 		byte[] buf = new byte[size * 2];
 		char[] cbuf = new char[size];
@@ -67,32 +67,43 @@ public class MemoryPostingTest {
 	@Test
 	public void testLargeAndFlush() throws IRException {
 
-		int flush = 10;
-		int count = 10000000;
-		MemoryPosting mp = new MemoryPosting(16 * 1024);
+		int count = 1000000000;
+		MemoryPosting mp = new MemoryPosting(64 * 1024);
 		System.out.println("---------START------------");
 		Random r = new Random(System.currentTimeMillis());
 		CharVector term = new CharVector("abc");
-
-		for (int f = 0; f < flush; f++) {
+		byte[] buf = new byte[8];
+//		for (int f = 0; f < flush; f++) {
 
 			int docNo = 0;
 
 			for (int i = 0; i < count; i++) {
 				docNo += (r.nextInt(10) + 1);
+				r.nextBytes(buf);
+				term = new CharVector(new String(buf));
 				mp.add(term, docNo);
-				if ((i + 1) % 100000 == 0)
-					System.out.println("mem = " + Formatter.getFormatSize(Runtime.getRuntime().totalMemory()) + " / " + Formatter.getFormatSize(mp.staticMemorySize()) + " / "
+				if ((i + 1) % 100000 == 0){
+					System.out.println((i+1)+"] mem = max:" + Formatter.getFormatSize(Runtime.getRuntime().maxMemory()) + " / tot:" + Formatter.getFormatSize(Runtime.getRuntime().totalMemory()) + " / free:" +
+							Formatter.getFormatSize(Runtime.getRuntime().freeMemory()) + " / static:" + Formatter.getFormatSize(mp.staticMemorySize()) + " / work:"
 							+ Formatter.getFormatSize(mp.workingMemorySize()));
+					
+					//mp.saveTo();
+					
+					if(mp.staticMemorySize() > 128 * 1024 * 1024){
+						mp.clear();
+						System.out.println("---------------------");
+						System.out.println("CLEAR mem = max:" + Formatter.getFormatSize(Runtime.getRuntime().maxMemory()) + " / tot:" + Formatter.getFormatSize(Runtime.getRuntime().totalMemory()) + " / free:" +
+								Formatter.getFormatSize(Runtime.getRuntime().freeMemory()) + " / static:" + Formatter.getFormatSize(mp.staticMemorySize()) + " / work:"
+								+ Formatter.getFormatSize(mp.workingMemorySize()));
+						
+						System.out.println("---------------------");
+					}
+				}
 			}
 			
-			mp.clear();
-			System.out.println("---------------------");
-			System.out.println("CLEAR mem = " + Formatter.getFormatSize(Runtime.getRuntime().totalMemory()) + " / " + Formatter.getFormatSize(mp.staticMemorySize()) + " / "
-					+ Formatter.getFormatSize(mp.workingMemorySize()));
-			System.out.println("---------------------");
 			
-		}
+			
+//		}
 
 	}
 }
