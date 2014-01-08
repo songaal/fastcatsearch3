@@ -1,0 +1,9 @@
+### 01000
+
+MSG-00100: OutOfMemory Error at Node{0}. Code={1}
+
+
+MSG-01000: {0} collection's {1} indexing job {2} started! time:{3}
+MSG-01001: {0} collection's {1} indexing job done successfully. time:{2}~{3}. {4} 
+MSG-01002: {0} collection's {1} indexing job failed. time:{2}~{3}. {4}
+MSG-01003: {0} collection's {1} indexing job canceled. time:{2}~{3}.

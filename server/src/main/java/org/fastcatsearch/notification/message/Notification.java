@@ -21,8 +21,10 @@ import org.slf4j.LoggerFactory;
 
 public abstract class Notification implements Streamable {
 	protected static final Logger logger = LoggerFactory.getLogger(Streamable.class);
-	private static final ResourceBundle codeResourceBundle = getBundle("org.fastcatsearch.notification.message.FastcatSearchNotificationCode");
-	private static final ResourceBundle formatResourceBundle = getBundle("org.fastcatsearch.notification.message.FastcatSearchNotificationFormat");
+	private static final ResourceBundle codeResourceBundle = ResourceBundle.getBundle("org.fastcatsearch.notification.message.FastcatSearchNotificationCode",
+			new ResourceBundleControl(Charset.forName("UTF-8")));
+	private static final ResourceBundle formatResourceBundle = ResourceBundle.getBundle("org.fastcatsearch.notification.message.FastcatSearchNotificationFormat",
+			new ResourceBundleControl(Charset.forName("UTF-8")));
 
 	private static Map<String, String> codeDefinitionMap = new TreeMap<String, String>();
 	static {
@@ -97,28 +99,4 @@ public abstract class Notification implements Streamable {
 		return codeDefinitionMap;
 	}
 	
-	
-	private static ResourceBundle getBundle(String className) {
-		//FIXME:리소스번들을 유연하게 사용할 수 있도록 수정요.
-		//우선은 오류나지 않도록 수정.
-		ResourceBundle bundle = null;
-		String[] encodings = { "UTF-8", "ko_KR", "en_US" };
-		for(String encoding : encodings) {
-			if(bundle==null) {
-				try {
-				bundle = ResourceBundle.getBundle(className,
-					new ResourceBundleControl(Charset.forName(encoding)));
-				} catch (NullPointerException ignore) {
-				} catch (MissingResourceException ignore) {
-				} catch (IllegalArgumentException ignore) {
-				}
-			}
-			if(bundle != null) { break; }
-		}
-		if(bundle==null) {
-			bundle = ResourceBundle.getBundle(className);
-		}
-		
-		return bundle;
-	}
 }
