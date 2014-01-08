@@ -114,6 +114,8 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 					logger.trace("NULL {}", termString);
 					score = 0f;
 				}
+			} else {
+				score = 1.0f;
 			}
 			
 			if(score > 0) {
@@ -157,8 +159,8 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		try {
 			text = highlighter.getBestFragments(tokenStream, pText, maxFragments, FRAGMENT_SEPARATOR);
 		} catch (InvalidTokenOffsetsException e) {
-			logger.debug("error : {} / pText:{} / query:{} / result:{}", e.getMessage(),  pText, query);
-			//logger.error("",e);
+			//logger.debug("error : {} / pText:{} / query:{} / result:{}", e.getMessage(),  pText, query);
+			logger.error("",e);
 		}
 
 		//
@@ -222,7 +224,6 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 			charTermAttributeLocal.setLength(length);
 			
 			if( charTermAttribute.length() > 0 
-					&& pText.length() > offsetAttribute.startOffset()
 					&& charTermAttribute.buffer()[0] == 
 						pText.charAt(offsetAttribute.startOffset())
 					&& offsetAttribute.startOffset() + length <= pText.length()) {
@@ -231,7 +232,7 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 			} else {
 				offsetAttributeLocal.setOffset(offsetAttribute.startOffset(),
 						offsetAttribute.endOffset());
-			}
+			}			
 			
 			if(charsRefTermAttribute!=null) {
 				buffer = charsRefTermAttribute.charsRef().chars;

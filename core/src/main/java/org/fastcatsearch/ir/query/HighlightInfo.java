@@ -27,17 +27,19 @@ public class HighlightInfo {
 	
 	private Map<String, String> fieldAnalyzerMap;
 	private Map<String, String> fieldQueryMap;
+	private Map<String, Boolean> fieldHighlightMap;
 	
 	public HighlightInfo() {
 		this.fieldAnalyzerMap = new HashMap<String, String>();
 		this.fieldQueryMap = new HashMap<String, String>();
+		this.fieldHighlightMap = new HashMap<String, Boolean>();
 	}
 	
 	public HighlightInfo(Map<String, String> fieldAnalyzerMap, Map<String, String> fieldQueryMap) {
 		this.fieldAnalyzerMap = fieldAnalyzerMap;
 		this.fieldQueryMap = fieldQueryMap;
 	}
-	public void add(String fieldId, String analyzer, String termString){
+	public void add(String fieldId, String analyzer, String termString, boolean b){
 		fieldAnalyzerMap.put(fieldId, analyzer);
 		String value = fieldQueryMap.get(fieldId);
 		if(value != null){
@@ -46,6 +48,7 @@ public class HighlightInfo {
 			value = termString;
 		}
 		fieldQueryMap.put(fieldId, value);
+		fieldHighlightMap.put(fieldId, b);
 	}
 	
 	public String getAnalyzer(String fieldId){
@@ -62,5 +65,14 @@ public class HighlightInfo {
 	
 	public Map<String, String> fieldQueryMap(){
 		return fieldQueryMap;
+	}
+
+	public boolean useHighlight(String fieldId) {
+		
+		if(fieldHighlightMap.containsKey(fieldId)) {
+			return fieldHighlightMap.get(fieldId);
+		} else {
+			return false;
+		}
 	}
 }

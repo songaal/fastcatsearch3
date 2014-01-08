@@ -42,7 +42,7 @@ public class BooleanClause implements OperatedClause {
 		if (highlightInfo != null) {
 			String queryAnalyzerName = indexSetting.getQueryAnalyzer();
 			for (RefSetting refSetting : indexSetting.getFieldList()) {
-				highlightInfo.add(refSetting.getRef(), queryAnalyzerName, term.termString());
+				highlightInfo.add(refSetting.getRef(), queryAnalyzerName, term.termString(), term.option().useHighlight());
 			}
 		}
 		try {

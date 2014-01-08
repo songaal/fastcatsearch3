@@ -342,14 +342,16 @@ public class CollectionSearcher {
 					boolean isHighlightSummary = false;
 					if (has != null && text != null && highlightInfo != null) {
 						//하이라이팅만 수행하거나, 또는 view.snippetSize 가 존재하면 summary까지 수행될수 있다.
-						String fiedlId = view.fieldId();
-						String analyzerId = highlightInfo.getAnalyzer(fiedlId);
-						String queryString = highlightInfo.getQueryString(fiedlId);
-						if (analyzerId != null && queryString != null) {
-//							a = System.nanoTime();
-							text = getHighlightedSnippet(text, analyzerId, queryString, tags, view);
-//							b += (System.nanoTime() - a);
-							isHighlightSummary = true;
+						String fieldId = view.fieldId();
+						if(highlightInfo.useHighlight(fieldId)) {
+							String analyzerId = highlightInfo.getAnalyzer(fieldId);
+							String queryString = highlightInfo.getQueryString(fieldId);
+							if (analyzerId != null && queryString != null) {
+	//							a = System.nanoTime();
+								text = getHighlightedSnippet(text, analyzerId, queryString, tags, view);
+	//							b += (System.nanoTime() - a);
+								isHighlightSummary = true;
+							}
 						}
 					}
 					
