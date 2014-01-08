@@ -18,10 +18,10 @@ public class IndexConfig {
 	public static final IndexConfig defaultConfig;
 	static{
 		defaultConfig = new IndexConfig();
-		defaultConfig.pkTermInterval = 64;
+		defaultConfig.pkTermInterval = 128;
 		defaultConfig.pkBucketSize = 65536;
-		defaultConfig.indexTermInterval = 64;
-		defaultConfig.indexWorkBucketSize = 256;
+		defaultConfig.indexTermInterval = 128;
+		defaultConfig.indexWorkBucketSize = 65536;
 		defaultConfig.indexWorkMemorySize = 134217728; //128mb
 	}
 	
