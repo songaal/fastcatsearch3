@@ -54,7 +54,7 @@ public class PrimaryKeyIndexesWriter {
 	private int[] primaryKeyFieldIdList;
 
 	
-	int MEMORY_LIMIT = 10 * 1024 * 1024; //적절은 64M
+	int MEMORY_LIMIT = 64 * 1024 * 1024; //적절은 64M
 	int CHECK_COUNT = 100000;
 	int count;
 	public PrimaryKeyIndexesWriter(Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig) throws IOException, IRException {
