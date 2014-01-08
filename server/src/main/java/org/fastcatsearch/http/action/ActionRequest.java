@@ -37,7 +37,7 @@ public class ActionRequest {
 			} else {
 
 			}
-			logger.debug("action {}, {}", uri, queryString);
+			logger.debug("action {}, param={}", uri, queryString);
 	
 			parameterMap = new HashMap<String, String>();
 			if (queryString != null) {

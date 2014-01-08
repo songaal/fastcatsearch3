@@ -10,9 +10,13 @@ import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.ServiceAction;
 import org.fastcatsearch.http.writer.AbstractSearchResultWriter;
 import org.fastcatsearch.http.writer.SearchResultWriter;
+import org.fastcatsearch.ir.group.GroupResult;
+import org.fastcatsearch.ir.group.GroupResults;
+import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.query.QueryMap;
+import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
@@ -27,9 +31,7 @@ public abstract class AbstractSearchAction extends ServiceAction {
 	public static final int DEFAULT_TIMEOUT = 5; // 5초.
 
 	protected abstract Job createSearchJob(QueryMap queryMap);
-	
-	
-	
+
 	protected AbstractSearchResultWriter createSearchResultWriter(Writer writer) {
 		return new SearchResultWriter(getSearchResultWriter(writer));
 	}
@@ -43,7 +45,9 @@ public abstract class AbstractSearchAction extends ServiceAction {
 		ResultFuture jobResult = JobService.getInstance().offer(searchJob);
 		Object obj = jobResult.poll(timeout);
 		searchTime = (System.nanoTime() - st) / 1000000;
-		writeSearchLog(requestId, obj, searchTime);
+		String collectionId = extractSearchCollectionId(queryMap);
+		String searchKeyword = extractSearchKeyowrd(queryMap);
+		writeSearchLog(requestId, collectionId, searchKeyword, obj, searchTime);
 
 		AbstractSearchResultWriter resultWriter = createSearchResultWriter(writer);
 
@@ -56,7 +60,27 @@ public abstract class AbstractSearchAction extends ServiceAction {
 		writer.close();
 
 	}
-	
+
+	private String extractSearchCollectionId(QueryMap queryMap) {
+		return queryMap.get(Query.EL.cn.name());
+	}
+
+	private String extractSearchKeyowrd(QueryMap queryMap) {
+		String udString = queryMap.get(Query.EL.ud.name()); //FIXME ud가 대문자로 들어올경우는 문제될수 있다.
+		if (udString != null) {
+			String els[] = udString.split(",");
+			for (String el : els) {
+				String[] kv = el.split(":");
+				if (kv.length == 2) {
+					if (kv[0].equalsIgnoreCase("keyword")) {
+						return kv[1];
+					}
+				}
+			}
+		}
+		return "";
+	}
+
 	protected long getRequestId() {
 		return taskSeq.getAndIncrement();
 	}
@@ -86,11 +110,41 @@ public abstract class AbstractSearchAction extends ServiceAction {
 
 	}
 
-	protected void writeSearchLog(long requestId, Object obj, long searchTime) {
+	private static String LOG_DELIMITER = "\t";
+	protected void writeSearchLog(long requestId, String collectionId, String searchKeyword, Object obj, long searchTime) {
 		if (obj instanceof Result) {
 			Result result = (Result) obj;
-			String logStr = requestId + "," + searchTime + "," + result.getCount() + "," + result.getTotalCount();
-			searchLogger.info(logStr);
+			StringBuffer logBuffer = new StringBuffer();
+			logBuffer.append(requestId);
+			logBuffer.append(LOG_DELIMITER);
+			
+			logBuffer.append(collectionId);
+			logBuffer.append(LOG_DELIMITER);
+			
+			logBuffer.append(searchKeyword);
+			logBuffer.append(LOG_DELIMITER);
+			
+			logBuffer.append(searchTime);
+			logBuffer.append(LOG_DELIMITER);
+			
+			logBuffer.append(result.getCount());
+			logBuffer.append(LOG_DELIMITER);
+			
+			logBuffer.append(result.getTotalCount());
+			
+			GroupResults groupResults = result.getGroupResult();
+			if(groupResults != null){
+				logBuffer.append(LOG_DELIMITER);
+				int groupSize = groupResults.groupSize();
+				for (int i = 0; i < groupSize; i++) {
+					GroupResult groupResult = groupResults.getGroupResult(i);
+					if (i > 0) {
+						logBuffer.append(";");
+					}
+					logBuffer.append(groupResult.size());
+				}
+			}
+			searchLogger.info(logBuffer.toString());
 		}
 	}
 
