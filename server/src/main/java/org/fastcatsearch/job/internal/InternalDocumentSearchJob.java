@@ -93,7 +93,7 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 		
 		// HighlightInfo
 		if (input.readBoolean()) {
-			highlightInfo = new HighlightInfo((Map<String, String>) input.readGenericValue(), (Map<String, String>) input.readGenericValue());
+			highlightInfo = new HighlightInfo((Map<String, String>) input.readGenericValue(), (Map<String, String>) input.readGenericValue(), (Map<String, Boolean>) input.readGenericValue());
 		}
 	}
 
@@ -133,6 +133,7 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 			output.writeBoolean(true);
 			output.writeGenericValue(highlightInfo.fieldAnalyzerMap());
 			output.writeGenericValue(highlightInfo.fieldQueryMap());
+			output.writeGenericValue(highlightInfo.fieldHighlightMap());
 		}
 	}
 }

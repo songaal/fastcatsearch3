@@ -40,7 +40,7 @@ public class StreamableInternalSearchResult implements Streamable {
 		}
 		HighlightInfo highlightInfo = null;
 		if(input.readBoolean()){
-			highlightInfo = new HighlightInfo((Map<String, String>) input.readGenericValue(), (Map<String, String>) input.readGenericValue());
+			highlightInfo = new HighlightInfo((Map<String, String>) input.readGenericValue(), (Map<String, String>) input.readGenericValue(), (Map<String, Boolean>) input.readGenericValue());
 		}
 		this.internalSearchResult = new InternalSearchResult(collectionId, sHitElement.getHitElementList(), count, totalCount,
 				sGroupData.groupData(), highlightInfo);
@@ -69,6 +69,7 @@ public class StreamableInternalSearchResult implements Streamable {
 			output.writeBoolean(true);
 			output.writeGenericValue(internalSearchResult.getHighlightInfo().fieldAnalyzerMap());
 			output.writeGenericValue(internalSearchResult.getHighlightInfo().fieldQueryMap());
+			output.writeGenericValue(internalSearchResult.getHighlightInfo().fieldHighlightMap());
 		}else{
 			output.writeBoolean(false);
 		}

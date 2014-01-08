@@ -159,8 +159,7 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		try {
 			text = highlighter.getBestFragments(tokenStream, pText, maxFragments, FRAGMENT_SEPARATOR);
 		} catch (InvalidTokenOffsetsException e) {
-			//logger.debug("error : {} / pText:{} / query:{} / result:{}", e.getMessage(),  pText, query);
-			logger.error("",e);
+			logger.debug("error : {} / pText:{} / query:{} / result:{}", e.getMessage(),  pText, query);
 		}
 
 		//
@@ -224,9 +223,9 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 			charTermAttributeLocal.setLength(length);
 			
 			if( charTermAttribute.length() > 0 
+					&& offsetAttribute.startOffset() + length <= pText.length()
 					&& charTermAttribute.buffer()[0] == 
-						pText.charAt(offsetAttribute.startOffset())
-					&& offsetAttribute.startOffset() + length <= pText.length()) {
+						pText.charAt(offsetAttribute.startOffset())) {
 				offsetAttributeLocal.setOffset(offsetAttribute.startOffset(),
 						offsetAttribute.startOffset() + length);
 			} else {
