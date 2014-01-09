@@ -22,5 +22,7 @@ public interface IndexingResultMapper extends ManagedMapper {
 	public void putEntry(IndexingStatusVO vo) throws Exception;
 	
 	public void deleteEntry(@Param("collectionId") String collectionId, @Param("type") IndexingType type);
+
+	public List<IndexingStatusVO> getRecentEntryList(@Param("collectionId")String collectionId, @Param("num")int num);
 	
 }

@@ -47,6 +47,14 @@
 		IndexingResult
 		where collectionId = #{collectionId}
 	</select>
+	
+	<select id="getRecentEntryList" parameterType="map" resultType="org.fastcatsearch.db.vo.IndexingStatusVO">
+		select * from (
+		select ROW_NUMBER() OVER() AS RNUM, rdata.* from
+		IndexingResult rdata
+		where collectionId = #{collectionId} order by endTime desc
+		) rdata where RNUM &lt; ${num}
+	</select>
 
 	<select id="getCount" parameterType="map" resultType="int">
 		select
