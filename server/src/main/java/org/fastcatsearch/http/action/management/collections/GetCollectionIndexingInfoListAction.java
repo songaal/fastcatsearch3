@@ -15,6 +15,8 @@ import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.config.CollectionConfig;
+import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
@@ -61,13 +63,19 @@ public class GetCollectionIndexingInfoListAction extends AuthAction {
 				if (collections != null && !collections.contains(collectionId)) {
 					continue;
 				}
-				
+				CollectionContext collectionContext = irService.collectionContext(collectionId);
+				if(collectionContext == null){
+					continue;
+				}
+				CollectionConfig collectionConfig = collectionContext.collectionConfig();
+
 				//fetch only one
 				List<IndexingStatusVO> indexingInfo = mapper.getEntryList(collectionId, 0, 1);
 				if(indexingInfo != null && indexingInfo.size() == 1) {
 					IndexingStatusVO vo = indexingInfo.get(0);
 					responseWriter.object()
 						.key("id").value(collectionId)
+						.key("name").value(collectionConfig.getName())
 						.key("status").value(vo.status)
 						.key("docSize").value(vo.docSize)
 						.key("duration").value(vo.duration)
@@ -76,6 +84,7 @@ public class GetCollectionIndexingInfoListAction extends AuthAction {
 				} else {
 					responseWriter.object()
 						.key("id").value(collectionId)
+						.key("name").value("")
 						.key("status").value("")
 						.key("docSize").value("")
 						.key("duration").value("")
