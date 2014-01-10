@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.InternalDBModule.MapperSession;
-import org.fastcatsearch.db.mapper.IndexingResultMapper;
+import org.fastcatsearch.db.mapper.IndexingHistoryMapper;
 import org.fastcatsearch.db.vo.IndexingStatusVO;
 import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionAuthorityLevel;
@@ -31,13 +31,13 @@ public class GetCollectionIndexingInfoListAction extends AuthAction {
 		
 		DBService dbService = ServiceManager.getInstance().getService(DBService.class);
 		
-		MapperSession<IndexingResultMapper> session = null;
+		MapperSession<IndexingHistoryMapper> session = null;
 		
 		try {
 		
-			session = dbService.getMapperSession(IndexingResultMapper.class);
+			session = dbService.getMapperSession(IndexingHistoryMapper.class);
 			
-			IndexingResultMapper mapper = session.getMapper();
+			IndexingHistoryMapper mapper = session.getMapper();
 			
 			String collectionListStr = request.getParameter("collectionId", "");
 			
@@ -63,12 +63,12 @@ public class GetCollectionIndexingInfoListAction extends AuthAction {
 				}
 				
 				//fetch only one
-				List<IndexingStatusVO> indexingInfo = mapper.getRecentEntryList(collectionId, 1);
+				List<IndexingStatusVO> indexingInfo = mapper.getEntryList(collectionId, 0, 1);
 				if(indexingInfo != null && indexingInfo.size() == 1) {
 					IndexingStatusVO vo = indexingInfo.get(0);
 					responseWriter.object()
 						.key("id").value(collectionId)
-						.key("status").value(vo.startTime)
+						.key("status").value(vo.status)
 						.key("docSize").value(vo.docSize)
 						.key("duration").value(vo.duration)
 						.key("time").value(vo.endTime)
