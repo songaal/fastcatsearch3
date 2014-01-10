@@ -47,6 +47,8 @@ import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.settings.AnalyzerSetting;
+import org.fastcatsearch.job.MultipleScheduledJob;
+import org.fastcatsearch.job.ScheduledJobEntry;
 import org.fastcatsearch.job.indexing.MasterCollectionAddIndexingJob;
 import org.fastcatsearch.job.indexing.MasterCollectionFullIndexingJob;
 import org.fastcatsearch.module.ModuleException;
@@ -304,17 +306,24 @@ public class IRService extends AbstractService {
 		return realtimeQueryStatisticsModule;
 	}
 	
-	
 	private SimpleDateFormat simpleDateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+	private static String IndexingSchduleKey = "INDEXING-SCHEDULE-";
+	
 	public boolean reloadSchedule(String collectionId) {
 		CollectionContext collectionContext = collectionContext(collectionId);
 		if (collectionContext == null) {
 			return false;
 		}
+		
+		JobService.getInstance().cancelSchedule(IndexingSchduleKey + collectionId);
+		
 		IndexingScheduleConfig indexingScheduleConfig = collectionContext(collectionId).indexingScheduleConfig();
 		IndexingSchedule fullIndexingSchedule = indexingScheduleConfig.getFullIndexingSchedule();
 		IndexingSchedule addIndexingSchedule = indexingScheduleConfig.getAddIndexingSchedule();
+		
+		List<ScheduledJobEntry> scheduledEntryList = new ArrayList<ScheduledJobEntry>();
+		
 		if (fullIndexingSchedule != null) {
 			MasterCollectionFullIndexingJob job = new MasterCollectionFullIndexingJob();
 			job.setArgs(collectionId);
@@ -325,16 +334,15 @@ public class IRService extends AbstractService {
 
 				try {
 					logger.debug("Load full indexing schdule {} : {}: {}", collectionId, startTime, periodInSecond);
-					JobService.getInstance().schedule(job, simpleDateFormat.parse(startTime), periodInSecond, true);
+					scheduledEntryList.add(new ScheduledJobEntry(job, simpleDateFormat.parse(startTime), periodInSecond));
+//					JobService.getInstance().schedule(job, simpleDateFormat.parse(startTime), periodInSecond, true);
 				} catch (ParseException e) {
 					logger.error("[{}] Full Indexing schedule time parse error : {}", collectionId, startTime);
 					return false;
 				}
-			} else {
-				JobService.getInstance().cancelSchedule(job);
-				logger.info("[{}] Full Indexing schedule canceled.", collectionId);
 			}
 		}
+		
 		if (addIndexingSchedule != null) {
 			MasterCollectionAddIndexingJob job = new MasterCollectionAddIndexingJob();
 			job.setArgs(collectionId);
@@ -345,17 +353,18 @@ public class IRService extends AbstractService {
 
 				try {
 					logger.debug("Load add indexing schdule {} : {}: {}", collectionId, startTime, periodInSecond);
-					JobService.getInstance().schedule(job, simpleDateFormat.parse(startTime), periodInSecond, true);
+					scheduledEntryList.add(new ScheduledJobEntry(job, simpleDateFormat.parse(startTime), periodInSecond));
+//					JobService.getInstance().schedule(job, simpleDateFormat.parse(startTime), periodInSecond, true);
 				} catch (ParseException e) {
 					logger.error("[{}] Add Indexing schedule time parse error : {}", collectionId, startTime);
 					return false;
 				}
 
-			} else {
-				JobService.getInstance().cancelSchedule(job);
-				logger.info("[{}] Add Indexing schedule canceled.", collectionId);
 			}
 		}
+		
+		MultipleScheduledJob scheduledJob = new MultipleScheduledJob(IndexingSchduleKey + collectionId, scheduledEntryList);
+		JobService.getInstance().schedule(scheduledJob, true);
 		return true;
 	}
 

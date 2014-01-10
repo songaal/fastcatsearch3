@@ -27,6 +27,7 @@ import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.ScheduledJob;
+import org.fastcatsearch.job.SingleScheduledJob;
 import org.fastcatsearch.job.indexing.IndexingJob;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
@@ -164,7 +165,7 @@ public class JobService extends AbstractService implements JobExecutor {
 
 		if (job instanceof IndexingJob) {
 			// 색인작업은 execute로 실행할수 없다.
-			return null;
+			return new ResultFuture();
 		}
 		long myJobId = jobIdIncrement.getAndIncrement();
 		ResultFuture resultFuture = new ResultFuture(myJobId, resultFutureMap);
@@ -181,7 +182,7 @@ public class JobService extends AbstractService implements JobExecutor {
 		if (job instanceof IndexingJob) {
 			if (indexingMutex.isLocked((IndexingJob) job)) {
 				indexingLogger.info("The collection [" + job.getStringArgs() + "] has already started an indexing job.");
-				return null;
+				return new ResultFuture();
 			}
 		}
 
@@ -227,7 +228,26 @@ public class JobService extends AbstractService implements JobExecutor {
 		}
 
 	}
-
+	public void schedule(ScheduledJob scheduledJob){
+		schedule(scheduledJob, false);
+	}
+	public void schedule(ScheduledJob scheduledJob, boolean forceUpdate){
+		String key = scheduledJob.key();
+		ScheduledJob oldJob = scheduleMap.get(key);
+		if(oldJob == null || forceUpdate){
+			ScheduledJob oldScheduledJob = scheduleMap.put(key, scheduledJob);
+			if(oldScheduledJob != null){
+				logger.info("Cancel old schdule {}", oldScheduledJob);
+				oldScheduledJob.cancel();
+			}
+			logger.info("# Scheduled Job registerd >> {}", scheduledJob.toString());
+			offer(scheduledJob);
+		}else{
+			logger.error("{} is already scheduled > {}", key, key);
+		}
+		showScheduledJob();
+	}
+	
 	public void schedule(Job job, Date startTime, int periodInSecond){
 		schedule(job, startTime, periodInSecond, false);
 	}
@@ -242,7 +262,7 @@ public class JobService extends AbstractService implements JobExecutor {
 		
 		ScheduledJob scheduledJob = scheduleMap.get(jobKey);
 		if(scheduledJob == null || forceUpdate){
-			scheduledJob = new ScheduledJob(job, startTime, periodInSecond);
+			scheduledJob = new SingleScheduledJob(jobKey, job, startTime, periodInSecond);
 			ScheduledJob oldScheduledJob = scheduleMap.put(jobKey, scheduledJob);
 			if(oldScheduledJob != null){
 				logger.info("Cancel old schdule {}", oldScheduledJob);
@@ -264,10 +284,9 @@ public class JobService extends AbstractService implements JobExecutor {
 		logger.debug("----------------------");
 	}
 	
-	public void cancelSchedule(Job job){
-		String jobKey = getJobKey(job);
-		ScheduledJob scheduledJob = scheduleMap.remove(jobKey);
-		logger.debug("## cancel jobKey > {} : {}", jobKey, scheduledJob);
+	public void cancelSchedule(String key){
+		ScheduledJob scheduledJob = scheduleMap.remove(key);
+		logger.debug("## cancel schedule {} : {}", key, scheduledJob);
 		if(scheduledJob != null){
 			scheduledJob.cancel();
 		}

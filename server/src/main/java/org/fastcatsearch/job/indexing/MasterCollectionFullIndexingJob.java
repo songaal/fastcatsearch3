@@ -36,7 +36,7 @@ public class MasterCollectionFullIndexingJob extends MasterNodeJob {
 		}
 		CollectionFullIndexingJob collectionIndexingJob = new CollectionFullIndexingJob(newCollectionContext);
 		collectionIndexingJob.setArgs(collectionId);
-
+		logger.info("Request full indexing job to index node[{}] >> {}", indexNodeId, indexNode);
 		ResultFuture jobResult = nodeService.sendRequest(indexNode, collectionIndexingJob);
 		if (jobResult != null) {
 			Object obj = jobResult.take();
@@ -53,7 +53,7 @@ public class MasterCollectionFullIndexingJob extends MasterNodeJob {
 			}
 
 		} else {
-			throw new FastcatSearchException("Cannot send indexing job.");
+			throw new FastcatSearchException("Cannot send indexing job of {} to {}", collectionId, indexNodeId);
 		}
 
 		return new JobResult();

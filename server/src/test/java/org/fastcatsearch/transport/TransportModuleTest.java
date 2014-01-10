@@ -26,7 +26,7 @@ public class TransportModuleTest {
 		public ResultFuture offer(Job job) {
 			job.setJobExecutor(this);
 			job.run();
-			return null;
+			return new ResultFuture();
 		}
 
 		@Override

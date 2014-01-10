@@ -27,12 +27,12 @@ public class MasterCollectionAddIndexingJob extends MasterNodeJob {
 		
 		CollectionAddIndexingJob collectionIndexingJob = new CollectionAddIndexingJob();
 		collectionIndexingJob.setArgs(collectionId);
-		
+		logger.info("Request add indexing job to index node[{}] >> {}", indexNodeId, indexNode);
 		ResultFuture jobResult = nodeService.sendRequest(indexNode, collectionIndexingJob);
 		if(jobResult != null){
 			Object obj = jobResult.take();
 		}else{
-			throw new FastcatSearchException("Cannot send indexing job.");
+			throw new FastcatSearchException("Cannot send indexing job of {} to {}", collectionId, indexNodeId);
 		}
 			
 			

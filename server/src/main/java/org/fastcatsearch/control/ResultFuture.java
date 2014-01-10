@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 
 public class ResultFuture {
 	private static Logger logger = LoggerFactory.getLogger(ResultFuture.class);
-	protected BlockingQueue<Object> queue = new LinkedBlockingQueue<Object>();
+	protected BlockingQueue<Object> queue;
 	protected boolean isSuccess;
 	protected long requestId;
 	protected Map<Long, ? extends ResultFuture> resultFutureMap;
@@ -31,10 +31,19 @@ public class ResultFuture {
 	
 	private static class NullResult { }
 	
+	/**
+	 * 실패 결과.
+	 * */
+	public ResultFuture() {
+		requestId = -1;
+		result = NULL_RESULT;
+	}
+	
 	public ResultFuture(long requestId, Map<Long, ? extends ResultFuture> resultFutureMap) {
 		this.requestId = requestId;
 		this.resultFutureMap = resultFutureMap;
 		this.startTime = System.currentTimeMillis();
+		queue = new LinkedBlockingQueue<Object>();
 	}
 
 	public long getElapsedTimeMilis(){
