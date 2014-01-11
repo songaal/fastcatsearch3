@@ -316,7 +316,8 @@ public class IRService extends AbstractService {
 			return false;
 		}
 		
-		JobService.getInstance().cancelSchedule(IndexingSchduleKey + collectionId);
+		String scheduleKey = IndexingSchduleKey + collectionId;
+		JobService.getInstance().cancelSchedule(scheduleKey);
 		
 		IndexingScheduleConfig indexingScheduleConfig = collectionContext(collectionId).indexingScheduleConfig();
 		IndexingSchedule fullIndexingSchedule = indexingScheduleConfig.getFullIndexingSchedule();
@@ -362,9 +363,12 @@ public class IRService extends AbstractService {
 
 			}
 		}
-		
-		MultipleScheduledJob scheduledJob = new MultipleScheduledJob(IndexingSchduleKey + collectionId, scheduledEntryList);
-		JobService.getInstance().schedule(scheduledJob, true);
+		if(scheduledEntryList.size() > 0){
+			MultipleScheduledJob scheduledJob = new MultipleScheduledJob(scheduleKey, scheduledEntryList);
+			JobService.getInstance().schedule(scheduledJob, true);
+		}else{
+			logger.info("Collection {} has no indexing schedule.", collectionId);
+		}
 		return true;
 	}
 

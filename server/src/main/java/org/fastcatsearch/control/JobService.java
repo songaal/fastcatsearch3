@@ -286,8 +286,8 @@ public class JobService extends AbstractService implements JobExecutor {
 	
 	public void cancelSchedule(String key){
 		ScheduledJob scheduledJob = scheduleMap.remove(key);
-		logger.debug("## cancel schedule {} : {}", key, scheduledJob);
 		if(scheduledJob != null){
+			logger.debug("## cancel schedule {} : {}", key, scheduledJob);
 			scheduledJob.cancel();
 		}
 		showScheduledJob();

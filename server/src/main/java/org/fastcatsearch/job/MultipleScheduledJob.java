@@ -39,9 +39,10 @@ public class MultipleScheduledJob extends ScheduledJob {
 				Job actualJob = entry.getJob();
 				try {
 					long timeToWait = getTimeToWaitInMillisecond(entry);
+					logger.info("Next {} indexing will run {} at {} after waiting {}ms", key(), actualJob.getClass().getSimpleName(), entry.getStartTime(), timeToWait);
 					if (timeToWait > 0) {
 						synchronized (this) {
-							wait();
+							wait(timeToWait);
 						}
 					}
 				} catch (InterruptedException e) {
