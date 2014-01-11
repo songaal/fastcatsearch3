@@ -43,7 +43,7 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 		int servicePort = environment.settingManager().getIdSettings().getInt("servicePort");
 		transportModule = new HttpTransportModule(environment, settings, servicePort);
 		transportModule.httpServerAdapter(this);
-		ExecutorService executorService = ThreadPoolFactory.newUnlimitedCachedDaemonThreadPool("http-execute-pool");
+		ExecutorService executorService = ThreadPoolFactory.newCachedDaemonThreadPool("http-execute-pool", 300);
 		HttpSessionManager httpSessionManager = new HttpSessionManager();
 		httpSessionManager.setExpireTimeInHour(settings.getInt("session_expire_hour", 24)); // 24시간.
 		serviceController = new HttpServiceController(executorService, httpSessionManager);
