@@ -14,6 +14,7 @@ public class ScheduledJobEntry {
 	
 	public ScheduledJobEntry(Job job, Date startTime, int periodInSecond){
 		this.job = job;
+		job.setScheduled(true);
 		this.startTime = startTime;
 		this.periodInSecond = periodInSecond;
 		this.executeInfo = new ScheduledJobExecuteInfo();

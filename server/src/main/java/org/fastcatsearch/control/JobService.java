@@ -26,8 +26,9 @@ import org.fastcatsearch.common.ThreadPoolFactory;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.job.Job;
+import org.fastcatsearch.job.MixedScheduledJob;
 import org.fastcatsearch.job.ScheduledJob;
-import org.fastcatsearch.job.SingleScheduledJob;
+import org.fastcatsearch.job.ScheduledJobEntry;
 import org.fastcatsearch.job.indexing.IndexingJob;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
@@ -257,23 +258,11 @@ public class JobService extends AbstractService implements JobExecutor {
 			logger.error("Schedule must be positive integer. periodInSecond = {}", periodInSecond);
 			return;
 		}
-		String jobKey = getJobKey(job);
-		logger.debug("## jobKey > {} : {} : {}", jobKey, job, job.getArgs());
 		
-		ScheduledJob scheduledJob = scheduleMap.get(jobKey);
-		if(scheduledJob == null || forceUpdate){
-			scheduledJob = new SingleScheduledJob(jobKey, job, startTime, periodInSecond);
-			ScheduledJob oldScheduledJob = scheduleMap.put(jobKey, scheduledJob);
-			if(oldScheduledJob != null){
-				logger.info("Cancel old schdule {}", oldScheduledJob);
-				oldScheduledJob.cancel();
-			}
-			logger.info("# Scheduled Job registerd >> {}", scheduledJob.toString());
-			offer(scheduledJob);
-		}else{
-			logger.error("{} is already scheduled", job);
-		}
-		showScheduledJob();
+		String scheduledJobKey = getJobKey(job);
+		ScheduledJobEntry scheduledJobEntry = new org.fastcatsearch.job.ScheduledJobEntry(job, startTime, periodInSecond);
+		MixedScheduledJob scheduledJob = new MixedScheduledJob(scheduledJobKey, scheduledJobEntry);
+		schedule(scheduledJob, forceUpdate);
 	}
 	
 	private void showScheduledJob(){

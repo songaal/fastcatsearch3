@@ -1,5 +1,6 @@
 package org.fastcatsearch.job;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -9,13 +10,19 @@ import org.fastcatsearch.exception.FastcatSearchException;
 /**
  * 입력된 여러 스케쥴은 한번에 하나씩만 수행된다. 스케쥴 시간이 겹치는 경우, 앞쪽의 작업이 먼저 수행된다.
  * */
-public class MultipleScheduledJob extends ScheduledJob {
+public class MixedScheduledJob extends ScheduledJob {
 
 	private static final long serialVersionUID = -8978933991846840288L;
 	private List<ScheduledJobEntry> entryList;
 	protected boolean isCanceled;
-
-	public MultipleScheduledJob(String key, List<ScheduledJobEntry> entryList) {
+	
+	public MixedScheduledJob(String key, ScheduledJobEntry scheduledJobEntry) {
+		super(key);
+		this.entryList = new ArrayList<ScheduledJobEntry>(1);
+		entryList.add(scheduledJobEntry);
+	}
+	
+	public MixedScheduledJob(String key, List<ScheduledJobEntry> entryList) {
 		super(key);
 		this.entryList = entryList;
 	}

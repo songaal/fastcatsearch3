@@ -47,7 +47,7 @@ import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.settings.AnalyzerSetting;
-import org.fastcatsearch.job.MultipleScheduledJob;
+import org.fastcatsearch.job.MixedScheduledJob;
 import org.fastcatsearch.job.ScheduledJobEntry;
 import org.fastcatsearch.job.indexing.MasterCollectionAddIndexingJob;
 import org.fastcatsearch.job.indexing.MasterCollectionFullIndexingJob;
@@ -364,7 +364,7 @@ public class IRService extends AbstractService {
 			}
 		}
 		if(scheduledEntryList.size() > 0){
-			MultipleScheduledJob scheduledJob = new MultipleScheduledJob(scheduleKey, scheduledEntryList);
+			MixedScheduledJob scheduledJob = new MixedScheduledJob(scheduleKey, scheduledEntryList);
 			JobService.getInstance().schedule(scheduledJob, true);
 		}else{
 			logger.info("Collection {} has no indexing schedule.", collectionId);

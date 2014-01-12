@@ -71,12 +71,12 @@ public abstract class IndexingJob extends Job implements Streamable {
 	}
 
 	protected void updateIndexingStatusStart() {
-		indexingLogger.info("[{}] {} Indexing Start! {}", collectionId, indexingType.name(), getClass().getSimpleName());
+		indexingLogger.info("[{}] {} Indexing Start! {}, schedule={}", collectionId, indexingType.name(), getClass().getSimpleName(), isScheduled());
 		indexingStartTime = System.currentTimeMillis();
 		processLoggerService.log(IndexingProcessLogger.class, new IndexingStartProcessLog(collectionId, indexingType, jobStartTime(), isScheduled()));
 		notificationService.sendNotification(new IndexingStartNotification(collectionId, indexingType, jobStartTime(), isScheduled()));
 		indexingTaskKey = new IndexingTaskKey(collectionId, indexingType);
-		indexingTaskState = (IndexingTaskState) taskStateService.register(indexingTaskKey);
+		indexingTaskState = (IndexingTaskState) taskStateService.register(indexingTaskKey, isScheduled);
 		indexingTaskState.start();
 	}
 
@@ -104,11 +104,13 @@ public abstract class IndexingJob extends Job implements Streamable {
 
 	@Override
 	public void readFrom(DataInput input) throws IOException {
+		isScheduled = input.readBoolean();
 		args = input.readString();
 	}
 
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
+		output.writeBoolean(isScheduled);
 		output.writeString((String) args);
 	}
 }

@@ -17,8 +17,12 @@ public abstract class TaskState implements Streamable {
 	private long startTime;
 	private String startTimeString;
 	protected int progressRate; // 100이하.
-	
+
 	public TaskState(){
+	}
+	
+	public TaskState(boolean isScheduled){
+		this.isScheduled = isScheduled;
 	}
 	
 	public boolean isScheduled(){

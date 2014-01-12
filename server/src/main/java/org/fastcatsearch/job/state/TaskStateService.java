@@ -69,9 +69,9 @@ public class TaskStateService extends AbstractService {
 		return true;
 	}
 
-	public TaskState register(TaskKey key) {
+	public TaskState register(TaskKey key, boolean isScheduled) {
 		if (!map.containsKey(key)) {
-			TaskState taskState = key.createState();
+			TaskState taskState = key.createState(isScheduled);
 			map.put(key, taskState);
 			return taskState;
 		} else {

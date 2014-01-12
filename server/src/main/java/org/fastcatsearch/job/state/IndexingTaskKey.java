@@ -21,8 +21,8 @@ public class IndexingTaskKey extends TaskKey {
 	}
 
 	@Override
-	public TaskState createState() {
-		return new IndexingTaskState();
+	public TaskState createState(boolean isScheduled) {
+		return new IndexingTaskState(isScheduled);
 	}
 
 	public String collectionId(){

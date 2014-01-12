@@ -8,33 +8,38 @@ import org.fastcatsearch.ir.io.DataOutput;
 
 public abstract class TaskKey implements Streamable {
 	protected String key;
-	
-	public TaskKey(){
+
+	public TaskKey() {
 	}
-	
-	public TaskKey(String key){
+
+	public TaskKey(String key) {
 		this.key = key;
 	}
-	
+
 	public String getKey() {
 		return key;
 	}
-	
-	public abstract TaskState createState();
-	
+
+	public TaskState createState() {
+		return createState(false);
+	}
+
+	public abstract TaskState createState(boolean isScheduled);
+
 	@Override
-	public int hashCode(){
+	public int hashCode() {
 		return key.hashCode();
 	}
+
 	@Override
-	public boolean equals(Object other){
+	public boolean equals(Object other) {
 		return key.equals(((TaskKey) other).key);
 	}
-	
+
 	@Override
 	public void readFrom(DataInput input) throws IOException {
 		key = input.readString();
-		
+
 	}
 
 	@Override

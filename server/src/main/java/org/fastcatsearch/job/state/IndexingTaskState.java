@@ -18,6 +18,10 @@ public class IndexingTaskState extends TaskState {
 	public IndexingTaskState() {
 	}
 
+	public IndexingTaskState(boolean isScheduled) {
+		super(isScheduled);
+	}
+	
 	private int documentCount;
 
 	public int getDocumentCount() {
