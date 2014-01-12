@@ -1,34 +1,30 @@
 package org.fastcatsearch.job.state;
 
+import java.io.IOException;
 import java.util.Date;
 
+import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.util.Formatter;
 
-public abstract class TaskState {
+public abstract class TaskState implements Streamable {
 	public static final String STATE_STARTED = "STARTED";
 	public static final String STATE_FINISHED = "FINISHED";
 	
-	protected TaskStateService taskStateService;
+	protected boolean isScheduled;
 	protected String state;
-//	private boolean isRunning;
 	private long startTime;
 	private String startTimeString;
-	protected TaskKey taskKey;
 	protected int progressRate; // 100이하.
 	
-	public TaskState(TaskKey taskKey, TaskStateService taskStateService){
-		this.taskKey = taskKey;
-		this.taskStateService = taskStateService;
+	public TaskState(){
 	}
 	
-	public TaskKey taskKey(){
-		return taskKey;
+	public boolean isScheduled(){
+		return isScheduled;
 	}
-	
-//	public boolean isRunning() {
-//		return isRunning;
-//	}
-	
+
 	public String getElapsedTime() {
 		return Formatter.getFormatTime((System.nanoTime() - startTime) / 1000000);
 	}
@@ -48,7 +44,6 @@ public abstract class TaskState {
 	public void finish() {
 		if (state != null) {
 			state = STATE_FINISHED;
-			taskStateService.remove(taskKey);
 		}
 	}
 	
@@ -78,4 +73,22 @@ public abstract class TaskState {
 	
 	public abstract String getSummary();
 	
+	@Override
+	public void readFrom(DataInput input) throws IOException {
+		isScheduled = input.readBoolean();
+		state = input.readString();
+		startTime = input.readLong();
+		startTimeString = input.readString();
+		progressRate = input.readInt();
+		
+	}
+
+	@Override
+	public void writeTo(DataOutput output) throws IOException {
+		output.writeBoolean(isScheduled);
+		output.writeString(state);
+		output.writeLong(startTime);
+		output.writeString(startTimeString);
+		output.writeInt(progressRate);
+	}
 }

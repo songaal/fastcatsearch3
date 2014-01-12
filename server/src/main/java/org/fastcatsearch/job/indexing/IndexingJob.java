@@ -45,6 +45,8 @@ public abstract class IndexingJob extends Job implements Streamable {
 
 	protected CollectionIndexerable indexer;
 
+	private IndexingTaskKey indexingTaskKey;
+	
 	public long indexingStartTime() {
 		return indexingStartTime;
 	}
@@ -73,7 +75,7 @@ public abstract class IndexingJob extends Job implements Streamable {
 		indexingStartTime = System.currentTimeMillis();
 		processLoggerService.log(IndexingProcessLogger.class, new IndexingStartProcessLog(collectionId, indexingType, jobStartTime(), isScheduled()));
 		notificationService.sendNotification(new IndexingStartNotification(collectionId, indexingType, jobStartTime(), isScheduled()));
-		IndexingTaskKey indexingTaskKey = new IndexingTaskKey(collectionId, indexingType, isScheduled);
+		indexingTaskKey = new IndexingTaskKey(collectionId, indexingType);
 		indexingTaskState = (IndexingTaskState) taskStateService.register(indexingTaskKey);
 		indexingTaskState.start();
 	}
@@ -96,6 +98,7 @@ public abstract class IndexingJob extends Job implements Streamable {
 			notificationService.sendNotification(indexingFinishNotification);
 		}
 		indexingTaskState.finish();
+		taskStateService.remove(indexingTaskKey);
 		indexingLogger.info("[{}] {} Indexing Finish!", collectionId, indexingType.name());
 	}
 

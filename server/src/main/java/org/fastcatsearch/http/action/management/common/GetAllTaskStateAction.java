@@ -2,6 +2,7 @@ package org.fastcatsearch.http.action.management.common;
 
 import java.io.Writer;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
@@ -23,18 +24,19 @@ public class GetAllTaskStateAction extends AuthAction {
 		//해당노드이면 그대로 수행한다.
 		TaskStateService taskStateService = ServiceManager.getInstance().getService(TaskStateService.class);
 		
-		List<TaskState> taskStateList = taskStateService.getTaskStateList(null);
+		List<Entry<TaskKey, TaskState>> taskEntryList = taskStateService.getTaskEntryList(null);
 		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		resultWriter.object().key("taskState").array();
 		
-		if(taskStateList != null){
-			for(TaskState taskState : taskStateList){
-				TaskKey taskKey = taskState.taskKey();
+		if(taskEntryList != null){
+			for(Entry<TaskKey, TaskState> entry : taskEntryList){
+				TaskKey taskKey = entry.getKey();
+				TaskState taskState = entry.getValue();
 				resultWriter.object()
-				.key("isScheduled").value(taskKey.isScheduled())
-				.key("summary").value(taskState.getSummary())
+				.key("summary").value(taskKey.getSummary() + " " + taskState.getSummary())
+				.key("isScheduled").value(taskState.isScheduled())
 				.key("progress").value(taskState.getProgressRate())
 				.key("startTime").value(taskState.getStartTime())
 				.key("elapsed").value(taskState.getElapsedTime())

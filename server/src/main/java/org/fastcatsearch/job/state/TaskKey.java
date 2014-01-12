@@ -1,22 +1,26 @@
 package org.fastcatsearch.job.state;
 
-public abstract class TaskKey {
+import java.io.IOException;
+
+import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.ir.io.DataInput;
+import org.fastcatsearch.ir.io.DataOutput;
+
+public abstract class TaskKey implements Streamable {
 	protected String key;
-	protected boolean isScheduled;
 	
-	public TaskKey(boolean isScheduled){
-		this.isScheduled = isScheduled;
+	public TaskKey(){
+	}
+	
+	public TaskKey(String key){
+		this.key = key;
 	}
 	
 	public String getKey() {
 		return key;
 	}
-
-	public boolean isScheduled(){
-		return isScheduled;
-	}
 	
-	public abstract TaskState createState(TaskStateService taskStateService);
+	public abstract TaskState createState();
 	
 	@Override
 	public int hashCode(){
@@ -26,4 +30,17 @@ public abstract class TaskKey {
 	public boolean equals(Object other){
 		return key.equals(((TaskKey) other).key);
 	}
+	
+	@Override
+	public void readFrom(DataInput input) throws IOException {
+		key = input.readString();
+		
+	}
+
+	@Override
+	public void writeTo(DataOutput output) throws IOException {
+		output.writeString(key);
+	}
+
+	public abstract String getSummary();
 }

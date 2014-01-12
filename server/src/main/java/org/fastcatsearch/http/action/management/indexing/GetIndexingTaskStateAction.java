@@ -21,15 +21,15 @@ public class GetIndexingTaskStateAction extends AuthAction {
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
 		String collectionId = request.getParameter("collectionId");
 		
-		//TODO collection의 index node인지 확인하고 해당 노드가 아니면 전달하여 받아온다.
-		//해당노드이면 그대로 수행한다.
 		TaskStateService taskStateService = ServiceManager.getInstance().getService(TaskStateService.class);
-		IndexingTaskState indexingTaskState = (IndexingTaskState) taskStateService.get(new IndexingTaskKey(collectionId, IndexingType.FULL));
-		logger.debug("indexingTaskState1 > {}",indexingTaskState);
+		IndexingTaskKey indexingTaskKey = new IndexingTaskKey(collectionId, IndexingType.FULL);
+		IndexingTaskState indexingTaskState = (IndexingTaskState) taskStateService.get(indexingTaskKey);
+//		logger.debug("indexingTaskState1 > {}",indexingTaskState);
 		if(indexingTaskState == null){
-			indexingTaskState = (IndexingTaskState) taskStateService.get(new IndexingTaskKey(collectionId, IndexingType.ADD));
+			indexingTaskKey = new IndexingTaskKey(collectionId, IndexingType.ADD);
+			indexingTaskState = (IndexingTaskState) taskStateService.get(indexingTaskKey);
 		}
-		logger.debug("indexingTaskState2 > {}",indexingTaskState);
+//		logger.debug("indexingTaskState2 > {}",indexingTaskState);
 		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
@@ -38,11 +38,10 @@ public class GetIndexingTaskStateAction extends AuthAction {
 		.object();
 		
 		if(indexingTaskState != null){
-			IndexingTaskKey indexingTaskKey = (IndexingTaskKey) indexingTaskState.taskKey();
-			
-			resultWriter.key("isScheduled").value(indexingTaskKey.isScheduled())
+			resultWriter
 			.key("collectionId").value(collectionId)
 			.key("indexingType").value(indexingTaskKey.indexingType())
+			.key("isScheduled").value(indexingTaskState.isScheduled())
 			.key("state").value(indexingTaskState.getState()) //색인, 전파등...
 			.key("count").value(indexingTaskState.getDocumentCount())
 			.key("startTime").value(indexingTaskState.getStartTime())
