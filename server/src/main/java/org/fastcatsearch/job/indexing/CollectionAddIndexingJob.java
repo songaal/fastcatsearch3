@@ -88,6 +88,10 @@ public class CollectionAddIndexingJob extends IndexingJob {
 			 */
 			//////////////////////////////////////////////////////////////////////////////////////////
 			SegmentInfo lastSegmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
+			if(lastSegmentInfo == null){
+				//색인이 안된상태이다.
+				throw new FastcatSearchException("Cannot index collection. It has no full indexing information. collectionId = "+collectionContext.collectionId());
+			}
 			String lastRevisionUUID = lastSegmentInfo.getRevisionInfo().getUuid();
 			
 			CollectionAddIndexer collectionIndexer = new CollectionAddIndexer(collectionHandler);
