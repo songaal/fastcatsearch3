@@ -62,7 +62,7 @@ public abstract class DataOutput extends OutputStream {
 	public abstract void writeByte(byte b) throws IOException;
 
 	public void writeByte(int b) throws IOException {
-		writeByte(b);
+		writeByte((byte)b);
 	}
 
 	@Override

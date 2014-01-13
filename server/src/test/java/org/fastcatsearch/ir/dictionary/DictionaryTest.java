@@ -58,8 +58,8 @@ public class DictionaryTest {
 		boolean ignoreCase = true;
 		
 		MapDictionary dictionary = new MapDictionary(ignoreCase);
-		dictionary.addEntry("마우스", new String[] { "mouse, 로지텍" });
-		dictionary.addEntry("모니터", new String[] { "엘지모니터, monitor, 광시야각" });
+		dictionary.addEntry("마우스", new String[] { "mouse", "로지텍" });
+		dictionary.addEntry("모니터", new String[] { "엘지모니터", "monitor", "광시야각" });
 		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		dictionary.writeTo(out);
@@ -87,6 +87,57 @@ public class DictionaryTest {
 		MapDictionary dictionary3 = new MapDictionary(bais2, ignoreCase);
 		bais2.close();
 		CharVector[] result3 = dictionary3.getUnmodifiableMap().get(new CharVector("모니터"));
+		System.out.println(result3[0]+","+result3[1]);
+		
+		
+		byte[] buffer2 = out2.toByteArray();
+		
+		Assert.assertEquals(buffer.length, buffer2.length);
+		for (int i = 0; i < buffer2.length; i++) {
+			System.out.println(buffer[i]+":"+buffer2[i]);
+			if(buffer[i] != buffer2[i]){
+				System.out.println(">>>>>>>>>>>>>>>>");
+			}
+		}
+//		Assert.assertArrayEquals(buffer, buffer2);
+	}
+	
+	@Test
+	public void testCustomDictionary() throws IOException {
+		boolean ignoreCase = true;
+		
+		CustomDictionary dictionary = new CustomDictionary(ignoreCase);
+		dictionary.addEntry("마우스", new Object[] { "mouse", "로지텍", 1 });
+		dictionary.addEntry("모니터", new Object[] { 0,"엘지모니터", "monitor", "광시야각", 2 });
+		
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		dictionary.writeTo(out);
+		out.close();
+		//Object[] result = dictionary.getUnmodifiableMap().get(new CharVector("모니터"));
+		Object[] result = dictionary.map().get(new CharVector("모니터"));
+		System.out.println(result.length+":"+result[0]);
+		System.out.println(result[0]+","+result[1]);
+		
+		
+		
+		byte[] buffer = out.toByteArray();
+		
+		//다시 읽고.
+		ByteArrayInputStream bais = new ByteArrayInputStream(buffer);
+		CustomDictionary dictionary2 = new CustomDictionary(bais, ignoreCase);
+		bais.close();
+		Object[] result2 = dictionary2.getUnmodifiableMap().get(new CharVector("모니터"));
+		System.out.println(result2[0]+","+result2[1]);
+		//다시 쓰고.
+		ByteArrayOutputStream out2 = new ByteArrayOutputStream();
+		dictionary2.writeTo(out2);
+		out2.close();
+		
+		//다시 읽고.
+		ByteArrayInputStream bais2 = new ByteArrayInputStream(buffer);
+		CustomDictionary dictionary3 = new CustomDictionary(bais2, ignoreCase);
+		bais2.close();
+		Object[] result3 = dictionary3.getUnmodifiableMap().get(new CharVector("모니터"));
 		System.out.println(result3[0]+","+result3[1]);
 		
 		
