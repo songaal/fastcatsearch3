@@ -76,9 +76,8 @@ public class ClusterSearchJob extends Job {
 		if (!noCache) {
 			Result result = irService.searchCache().get(queryMap.queryString());
 			// logger.debug("CACHE_GET result>>{}, qr >>{}", result, queryMap.queryString());
-			writeSearchLog(collectionId, searchKeyword, result, (System.nanoTime() - st) / 1000000);
 			if (result != null) {
-				logger.debug("Cached Result!");
+				writeSearchLog(collectionId, searchKeyword, result, (System.nanoTime() - st) / 1000000, true);
 				return new JobResult(result);
 			}
 		}
@@ -253,13 +252,15 @@ public class ClusterSearchJob extends Job {
 			return new JobResult(searchResult);
 		} finally {
 			//로깅은 반드시 수행한다.
-			writeSearchLog(collectionId, searchKeyword, searchResult, (System.nanoTime() - st) / 1000000);
+			writeSearchLog(collectionId, searchKeyword, searchResult, (System.nanoTime() - st) / 1000000, false);
 		}
 	}
 
 	private static String LOG_DELIMITER = "\t";
-
-	protected void writeSearchLog(String collectionId, String searchKeyword, Object obj, long searchTime) {
+	private static String CACHE = "[cache]";
+	private static String NOCACHE = "[nocache]";
+	
+	protected void writeSearchLog(String collectionId, String searchKeyword, Object obj, long searchTime, boolean isCache) {
 		int count = -1;
 		int totalCount = -1;
 		GroupResults groupResults = null;
@@ -273,6 +274,9 @@ public class ClusterSearchJob extends Job {
 
 		StringBuffer logBuffer = new StringBuffer();
 
+		logBuffer.append(isCache ? CACHE : NOCACHE);
+		logBuffer.append(LOG_DELIMITER);
+		
 		logBuffer.append(collectionId);
 		logBuffer.append(LOG_DELIMITER);
 

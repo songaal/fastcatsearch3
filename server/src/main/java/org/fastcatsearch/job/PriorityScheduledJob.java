@@ -2,6 +2,7 @@ package org.fastcatsearch.job;
 
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -50,6 +51,11 @@ public class PriorityScheduledJob extends ScheduledJob {
 
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
+		//처음에 시작시간을 모두 업데이트 해준다.
+		Iterator<ScheduledJobEntry> iterator = priorityJobQueue.iterator();
+		while(iterator.hasNext()){
+			updateStartTimeByNow(iterator.next());
+		}
 		while (!isCanceled) {
 			try {
 				ScheduledJobEntry entry = priorityJobQueue.poll();
