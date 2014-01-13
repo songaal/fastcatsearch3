@@ -117,7 +117,6 @@ public class CustomDictionary extends SourceDictionary {
 		DataInput input = new InputStreamDataInput(in);
 		
 		map = new HashMap<Object, Object[]>();
-
 		int size = input.readVInt();
 		for (int entryInx = 0; entryInx < size; entryInx++) {
 			byte type = input.readByte();
