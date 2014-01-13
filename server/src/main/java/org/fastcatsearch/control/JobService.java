@@ -26,7 +26,7 @@ import org.fastcatsearch.common.ThreadPoolFactory;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.MixedScheduledJob;
+import org.fastcatsearch.job.PriorityScheduledJob;
 import org.fastcatsearch.job.ScheduledJob;
 import org.fastcatsearch.job.ScheduledJobEntry;
 import org.fastcatsearch.job.indexing.IndexingJob;
@@ -261,7 +261,7 @@ public class JobService extends AbstractService implements JobExecutor {
 		
 		String scheduledJobKey = getJobKey(job);
 		ScheduledJobEntry scheduledJobEntry = new org.fastcatsearch.job.ScheduledJobEntry(job, startTime, periodInSecond);
-		MixedScheduledJob scheduledJob = new MixedScheduledJob(scheduledJobKey, scheduledJobEntry);
+		PriorityScheduledJob scheduledJob = new PriorityScheduledJob(scheduledJobKey, scheduledJobEntry);
 		schedule(scheduledJob, forceUpdate);
 	}
 	

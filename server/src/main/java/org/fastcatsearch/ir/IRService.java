@@ -47,7 +47,7 @@ import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.settings.AnalyzerSetting;
-import org.fastcatsearch.job.MixedScheduledJob;
+import org.fastcatsearch.job.PriorityScheduledJob;
 import org.fastcatsearch.job.ScheduledJobEntry;
 import org.fastcatsearch.job.indexing.MasterCollectionAddIndexingJob;
 import org.fastcatsearch.job.indexing.MasterCollectionFullIndexingJob;
@@ -335,8 +335,8 @@ public class IRService extends AbstractService {
 
 				try {
 					logger.debug("Load full indexing schdule {} : {}: {}", collectionId, startTime, periodInSecond);
-					scheduledEntryList.add(new ScheduledJobEntry(job, simpleDateFormat.parse(startTime), periodInSecond));
-//					JobService.getInstance().schedule(job, simpleDateFormat.parse(startTime), periodInSecond, true);
+					//실행이 보장되는 스케쥴 작업으로 생성.
+					scheduledEntryList.add(new ScheduledJobEntry(job, simpleDateFormat.parse(startTime), periodInSecond, true));
 				} catch (ParseException e) {
 					logger.error("[{}] Full Indexing schedule time parse error : {}", collectionId, startTime);
 					return false;
@@ -354,8 +354,7 @@ public class IRService extends AbstractService {
 
 				try {
 					logger.debug("Load add indexing schdule {} : {}: {}", collectionId, startTime, periodInSecond);
-					scheduledEntryList.add(new ScheduledJobEntry(job, simpleDateFormat.parse(startTime), periodInSecond));
-//					JobService.getInstance().schedule(job, simpleDateFormat.parse(startTime), periodInSecond, true);
+					scheduledEntryList.add(new ScheduledJobEntry(job, simpleDateFormat.parse(startTime), periodInSecond, false));
 				} catch (ParseException e) {
 					logger.error("[{}] Add Indexing schedule time parse error : {}", collectionId, startTime);
 					return false;
@@ -364,7 +363,7 @@ public class IRService extends AbstractService {
 			}
 		}
 		if(scheduledEntryList.size() > 0){
-			MixedScheduledJob scheduledJob = new MixedScheduledJob(scheduleKey, scheduledEntryList);
+			PriorityScheduledJob scheduledJob = new PriorityScheduledJob(scheduleKey, scheduledEntryList);
 			JobService.getInstance().schedule(scheduledJob, true);
 		}else{
 			logger.info("Collection {} has no indexing schedule.", collectionId);
