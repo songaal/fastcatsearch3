@@ -8,7 +8,6 @@ import java.util.Map;
 
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
-import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
