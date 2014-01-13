@@ -11,55 +11,44 @@
 
 package org.fastcatsearch.common;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import org.fastcatsearch.env.Environment;
-import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.module.AbstractModule;
+import org.fastcatsearch.module.ModuleException;
 import org.fastcatsearch.settings.Settings;
+import org.fastcatsearch.util.LRUCache;
 
-//
-//
-public class QueryCacheModule<T> extends AbstractModule {
+/**
+ * */
+public class QueryCacheModule<K, V> extends AbstractModule {
 
-	private LinkedHashMap<String, T> LRUCache;
-	private static final int MAX_CACHE_SIZE = 1024;
-	private float loadFactor = 1f;
-
+	private LRUCache<K, V> lruCache;
+	
 	public QueryCacheModule(Environment environment, Settings settings) {
 		super(environment, settings);
 	}
 
 	@Override
-	protected synchronized boolean doUnload() {
-		LRUCache.clear();
+	protected boolean doLoad() throws ModuleException {
+		int maxCacheSize = settings.getInt("search-cache-size", 1000);
+		lruCache = new LRUCache<K, V>(maxCacheSize);
 		return true;
 	}
+
 	@Override
-	protected synchronized boolean doLoad() {
-		LRUCache = new LinkedHashMap<String, T>(MAX_CACHE_SIZE, loadFactor, true) {
-			private static final long serialVersionUID = 4515949078102499045L;
-
-			@Override
-			protected boolean removeEldestEntry(Map.Entry<String, T> eldest) {
-				return size() > MAX_CACHE_SIZE;
-			}
-		};
-
+	protected boolean doUnload() {
+		lruCache.close();
 		return true;
 	}
 
-
-	public synchronized void put(String queryString, T result) {
-		LRUCache.put(queryString, result);
+	public void put(K key, V value) {
+		lruCache.put(key, value);
 	}
 
-	public synchronized T get(String queryString) {
-		return LRUCache.get(queryString);
+	public V get(K key) {
+		return lruCache.get(key);
 	}
 
-	public synchronized int size() {
-		return LRUCache.size();
+	public int size() {
+		return lruCache.size();
 	}
 }

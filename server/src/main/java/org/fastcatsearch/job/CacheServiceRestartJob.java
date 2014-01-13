@@ -35,12 +35,12 @@ public class CacheServiceRestartJob extends Job{
 		
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		
-		boolean result = irService.searchCache().unload()
-		&& irService.groupingCache().unload()
-		&& irService.documentCache().unload()
-		&& irService.searchCache().load()
-		&& irService.groupingCache().load()
-		&& irService.documentCache().load();
+		boolean result = irService.searchCache().unload();
+		result = irService.groupingCache().unload() && result;
+		result = irService.documentCache().unload() && result;
+		result = irService.searchCache().load() && result;
+		result = irService.groupingCache().load() && result;
+		result = irService.documentCache().load() && result;
 		
 		return new JobResult(result);
 	}
