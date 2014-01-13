@@ -203,6 +203,12 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 					}
 					sourceDictionary = spaceDictionary;
 				}else if(type == Type.CUSTOM){
+					CustomDictionary customDictionary = new CustomDictionary(dictFile, isIgnoreCase);
+					if(tokenType != null){
+						//FIXME:
+						//dictionary.appendAdditionalNounEntry(customDictionary.map().keySet(), tokenType);
+					}
+					sourceDictionary = customDictionary;
 					
 				}else if(type == Type.SYSTEM){
 					//ignore
@@ -254,7 +260,8 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 				spaceDictionary.setWordSet(newDictionary.getWordSet());
 			}else if(dictionary.getClass().isAssignableFrom(CustomDictionary.class)){
 				CustomDictionary customDictionary = (CustomDictionary) dictionary;
-				
+				CustomDictionary newDictionary = (CustomDictionary) newCommonDictionary.getDictionary(dictionaryId);
+				customDictionary.setMap(newDictionary.map());
 			}
 			logger.info("Dictionary {} is updated!", dictionaryId);
 			

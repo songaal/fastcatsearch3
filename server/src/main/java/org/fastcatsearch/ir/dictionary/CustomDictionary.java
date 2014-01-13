@@ -66,6 +66,10 @@ public class CustomDictionary extends SourceDictionary {
 		return map;
 	}
 
+	public void setMap(Map<Object, Object[]> map) {
+		this.map = map;
+	}
+	
 	@Override
 	public void writeTo(OutputStream out) throws IOException {
 		DataOutput output = (DataOutput) new OutputStreamDataOutput(out);
