@@ -272,16 +272,8 @@ public class IRService extends AbstractService {
 		return searchCache;
 	}
 
-	public QueryCacheModule<String, InternalSearchResult> shardSearchCache() {
-		return shardSearchCache;
-	}
-
 	public QueryCacheModule<String, GroupResults> groupingCache() {
 		return groupingCache;
-	}
-
-	public QueryCacheModule<String, GroupsData> groupingDataCache() {
-		return groupingDataCache;
 	}
 
 	public QueryCacheModule<String, Result> documentCache() {

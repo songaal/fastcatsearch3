@@ -245,7 +245,9 @@ public class ClusterSearchJob extends Job {
 
 			searchResult = new Result(rows, groupResults, fieldIdList, realSize, totalSize, meta.start());
 
-			irService.searchCache().put(queryMap.queryString(), searchResult);
+			if(!noCache && realSize > 0){
+				irService.searchCache().put(queryMap.queryString(), searchResult);
+			}
 //			logger.debug("CACHE_PUT result>>{}, qr >>{}", searchResult, queryMap.queryString());
 
 //			logger.debug("ClusterSearchJob 수행시간 : {}", Strings.getHumanReadableTimeInterval((System.nanoTime() - st) / 1000000));

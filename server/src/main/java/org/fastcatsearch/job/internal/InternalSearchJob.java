@@ -42,22 +42,13 @@ public class InternalSearchJob extends Job implements Streamable {
 			throw new FastcatSearchException("ERR-01000", e.getMessage());
 		}
 		
-//		Metadata meta = q.getMeta();
 		String collectionId = queryMap.collectionId();
 		
 		try {
 			InternalSearchResult result = null;
-			boolean noCache = false;
-			//no cache 옵션이 없으면 캐시를 확인한다.
-			if((q.getMeta().option() & Query.SEARCH_OPT_NOCACHE) > 0){
-				noCache = true;
-			}
 			
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			
-			if(!noCache){
-				result = irService.shardSearchCache().get(queryMap.queryString());
-			}
 			//Not Exist in Cache
 			if(result == null){
 				CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
@@ -66,11 +57,8 @@ public class InternalSearchJob extends Job implements Streamable {
 				}
 				
 				result = collectionHandler.searcher().searchInternal(collectionId, q, forMerging);
-				irService.shardSearchCache().put(queryMap.queryString(), result);
 			}
 
-			//shard에서는 keyword 통계를 내지않는다.
-			logger.debug(">>result : {}", result);
 			return new JobResult(new StreamableInternalSearchResult(result));
 			
 		} catch (FastcatSearchException e){
