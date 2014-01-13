@@ -65,11 +65,11 @@ public class IRService extends AbstractService {
 	private Map<String, CollectionHandler> collectionHandlerMap;
 
 	// TODO 캐시방식을 변경하자.
-	private QueryCacheModule<Result> searchCache;
-	private QueryCacheModule<InternalSearchResult> shardSearchCache;
-	private QueryCacheModule<GroupResults> groupingCache;
-	private QueryCacheModule<GroupsData> groupingDataCache;
-	private QueryCacheModule<Result> documentCache;
+	private QueryCacheModule<String, Result> searchCache;
+	private QueryCacheModule<String, InternalSearchResult> shardSearchCache;
+	private QueryCacheModule<String, GroupResults> groupingCache;
+	private QueryCacheModule<String, GroupsData> groupingDataCache;
+	private QueryCacheModule<String, Result> documentCache;
 	private CollectionsConfig collectionsConfig;
 	private File collectionsRoot;
 
@@ -144,11 +144,11 @@ public class IRService extends AbstractService {
 			}
 		}
 
-		searchCache = new QueryCacheModule<Result>(environment, settings);
-		shardSearchCache = new QueryCacheModule<InternalSearchResult>(environment, settings);
-		groupingCache = new QueryCacheModule<GroupResults>(environment, settings);
-		groupingDataCache = new QueryCacheModule<GroupsData>(environment, settings);
-		documentCache = new QueryCacheModule<Result>(environment, settings);
+		searchCache = new QueryCacheModule<String, Result>(environment, settings);
+		shardSearchCache = new QueryCacheModule<String, InternalSearchResult>(environment, settings);
+		groupingCache = new QueryCacheModule<String, GroupResults>(environment, settings);
+		groupingDataCache = new QueryCacheModule<String, GroupsData>(environment, settings);
+		documentCache = new QueryCacheModule<String, Result>(environment, settings);
 		try {
 			searchCache.load();
 			shardSearchCache.load();
@@ -268,23 +268,23 @@ public class IRService extends AbstractService {
 		return true;
 	}
 
-	public QueryCacheModule<Result> searchCache() {
+	public QueryCacheModule<String, Result> searchCache() {
 		return searchCache;
 	}
 
-	public QueryCacheModule<InternalSearchResult> shardSearchCache() {
+	public QueryCacheModule<String, InternalSearchResult> shardSearchCache() {
 		return shardSearchCache;
 	}
 
-	public QueryCacheModule<GroupResults> groupingCache() {
+	public QueryCacheModule<String, GroupResults> groupingCache() {
 		return groupingCache;
 	}
 
-	public QueryCacheModule<GroupsData> groupingDataCache() {
+	public QueryCacheModule<String, GroupsData> groupingDataCache() {
 		return groupingDataCache;
 	}
 
-	public QueryCacheModule<Result> documentCache() {
+	public QueryCacheModule<String, Result> documentCache() {
 		return documentCache;
 	}
 

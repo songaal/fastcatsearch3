@@ -152,7 +152,7 @@ public class QueryParser {
 				// key:value 매핑.
 				if (keyValue.length == 2) {
 					removeEscape(keyValue);
-					map.put(keyValue[0], keyValue[1]);
+					map.put(keyValue[0].toUpperCase(), keyValue[1]);
 				}
 			}
 			m5.setUserData(map);
