@@ -4,12 +4,14 @@ import java.io.IOException;
 
 import javax.xml.bind.JAXBException;
 
+import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.Job;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.FilePaths;
 import org.fastcatsearch.util.JAXBConfigs;
@@ -57,6 +59,9 @@ public class UpdateCollectionConfigJob extends Job implements Streamable {
 		FilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(this.collectionId);		
 		
 		boolean isSuccess = CollectionContextUtil.updateConfig(this.collectionConfig, collectionFilePaths);
+		
+		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
+		nodeService.updateLoadBalance(collectionId, collectionConfig.getDataNodeList());
 		
 		return new JobResult(isSuccess);
 	}

@@ -17,6 +17,7 @@ import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.management.UpdateCollectionConfigJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.CollectionContextUtil;
@@ -68,6 +69,10 @@ public class UpdateCollectionConfigAction extends AuthAction {
 		//master노드의 컬렉션셋팅 업데이트가 성공했다면 나머지 노드에 수행한다.
 		boolean isSuccess = CollectionContextUtil.updateConfig(collectionConfig, collectionContext.collectionFilePaths());
 		
+		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
+		nodeService.updateLoadBalance(collectionId, dataNodeListObj);
+		
+		
 		if(isSuccess){
 			logger.error("[{}] Master Update collection config success!", collectionId);
 			Set<String> nodeSet = new HashSet<String>();
@@ -75,9 +80,6 @@ public class UpdateCollectionConfigAction extends AuthAction {
 			nodeSet.addAll(dataNodeListObj);
 			List<String> nodeIdList = new ArrayList<String>();
 			nodeIdList.addAll(nodeSet);
-			
-			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
-			
 			
 			UpdateCollectionConfigJob job = new UpdateCollectionConfigJob(collectionId, collectionConfig);
 			

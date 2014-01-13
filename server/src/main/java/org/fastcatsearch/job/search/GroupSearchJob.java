@@ -52,8 +52,9 @@ public class GroupSearchJob extends Job {
 			GroupResults groupResults = null;
 			boolean noCache = false;
 			//no cache 옵션이 없으면 캐시를 확인한다.
-			if((q.getMeta().option() & Query.SEARCH_OPT_NOCACHE) > 0)
+			if(q.getMeta().isSearchOption(Query.SEARCH_OPT_NOCACHE)){
 				noCache = true;
+			}
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			if(!noCache)
 				groupResults = irService.groupingCache().get(queryString);

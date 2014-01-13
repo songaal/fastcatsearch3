@@ -41,15 +41,9 @@ public class InternalGroupSearchJob extends Job implements Streamable {
 		
 		try {
 			GroupsData result = null;
-			boolean noCache = false;
-			//no cache 옵션이 없으면 캐시를 확인한다.
-			if((q.getMeta().option() & Query.SEARCH_OPT_NOCACHE) > 0)
-				noCache = true;
 			
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			
-			if(!noCache)
-				result = irService.groupingDataCache().get(queryMap.queryString());
 			
 			//Not Exist in Cache
 			if(result == null){
@@ -59,9 +53,6 @@ public class InternalGroupSearchJob extends Job implements Streamable {
 				}
 				
 				result = collectionHandler.searcher().doGrouping(q);
-				if(!noCache){
-					irService.groupingDataCache().put(queryMap.queryString(), result);
-				}
 			}
 			
 			return new JobResult(new StreamableGroupsData(result));

@@ -272,16 +272,8 @@ public class IRService extends AbstractService {
 		return searchCache;
 	}
 
-	public QueryCacheModule<String, InternalSearchResult> shardSearchCache() {
-		return shardSearchCache;
-	}
-
 	public QueryCacheModule<String, GroupResults> groupingCache() {
 		return groupingCache;
-	}
-
-	public QueryCacheModule<String, GroupsData> groupingDataCache() {
-		return groupingDataCache;
 	}
 
 	public QueryCacheModule<String, Result> documentCache() {
@@ -289,7 +281,7 @@ public class IRService extends AbstractService {
 	}
 
 	public void registerLoadBanlancer(NodeLoadBalancable nodeLoadBalancable) {
-		// 차후 검색시 로드밸런싱에 대비하여 먼저 shardId로 node들을 등록해놓는다.
+		// 차후 검색시 로드밸런싱에 대비하여 먼저 collectionId로 node들을 등록해놓는다.
 		for (Collection collection : getCollectionList()) {
 			String collectionId = collection.getId();
 			CollectionHandler collectionHandler = collectionHandlerMap.get(collectionId);

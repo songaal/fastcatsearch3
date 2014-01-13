@@ -67,8 +67,9 @@ public class DocumentSearchJob extends Job {
 			Result result = null;
 			boolean noCache = false;
 			//no cache 옵션이 없으면 캐시를 확인한다.
-			if((q.getMeta().option() & Query.SEARCH_OPT_NOCACHE) > 0)
+			if(q.getMeta().isSearchOption(Query.SEARCH_OPT_NOCACHE)){
 				noCache = true;
+			}
 //			logger.debug("NoCache => "+noCache+" ,option = "+q.getMeta().option()+", "+(q.getMeta().option() & Query.SEARCH_OPT_NOCACHE));
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			String cacheKey = collection+":"+idStr;
