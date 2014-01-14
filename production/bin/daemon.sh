@@ -22,11 +22,18 @@ SERVER_HOME=`pwd`
 
 CONF=$SERVER_HOME/conf
 LIB=$SERVER_HOME/lib
-LOG=logs/server.out
+LOGS=$SERVER_HOME/logs
+SERVER_LOG=$LOGS/server.log
+
+# make log directory if not exists
+mkdir -p $LOGS
+
 
 # PROFILE
 PROFILE_AGENT_LINUX_X86_32=$SERVER_HOME/bin/profile/yourkit/linux-x86-32/libyjpagent.so
 PROFILE_AGENT_LINUX_X86_64=$SERVER_HOME/bin/profile/yourkit/linux-x86-64/libyjpagent.so
+PROFILE_AGENT_WIN32=$SERVER_HOME/bin/profile/yourkit/win32/yjpagent.dll
+PROFILE_AGENT_WIN64=$SERVER_HOME/bin/profile/yourkit/win64/yjpagent.dll
 PROFILE_AGENT=PROFILE_AGENT_LINUX_X86_64
 PROFILE_PORT=10001
 
@@ -36,34 +43,80 @@ JAVA_OPTS="-server -Dfile.encoding=UTF-8 -Dlogback.configurationFile=$CONF/logba
 DEBUG_OPT="-verbosegc -XX:+PrintGCDetails -Dcom.sun.management.jmxremote"
 PROFILE_OPT="-agentpath:$PROFILE_AGENT=port=$PROFILE_PORT"
 
+ADDITIONAL_OPTS=
+
 if [ "$1" = "debug" ] ; then
 	
-	exec java -Dserver.home=$SERVER_HOME $JVM_OPTS $JAVA_OPTS $DEBUG_OPT -classpath $LIB/fastcatsearch-bootstrap.jar org.fastcatsearch.server.Bootstrap start
-
-elif [ "$1" = "run" ] ; then
-
-	exec java -Dserver.home=$SERVER_HOME $JVM_OPTS $JAVA_OPTS -classpath $LIB/fastcatsearch-bootstrap.jar org.fastcatsearch.server.Bootstrap start
-
-elif [ "$1" = "start" ] ; then
-
-	nohup java -Dserver.home=$SERVER_HOME $JVM_OPTS $JAVA_OPTS -classpath $LIB/fastcatsearch-bootstrap.jar org.fastcatsearch.server.Bootstrap start >> $LOG 2>&1 &
-	echo "$!" > ".pid"
-	echo "Start Daemon PID = $!"
+	ADDITIONAL_OPTS=$DEBUG_OPT
 	
 elif [ "$1" = "profile" ] ; then
 	
-	nohup java -Dserver.home=$SERVER_HOME $JVM_OPTS $JAVA_OPTS $PROFILE_OPT -classpath $LIB/fastcatsearch-bootstrap.jar org.fastcatsearch.server.Bootstrap start >> $LOG 2>&1 &
-	echo "$!" > ".pid"
-	echo "Start Daemon PID = $!"
+	ADDITIONAL_OPTS=$PROFILE_OPT
+	
+fi
+
+
+if [ "$1" = "run" ] ; then
+
+	exec java -Dserver.home=$SERVER_HOME $JVM_OPTS $JAVA_OPTS -classpath $LIB/fastcatsearch-server-bootstrap.jar org.fastcatsearch.server.Bootstrap start
+
+elif [ "$1" = "start" ] || [ "$1" = "debug" ] || [ "$1" = "profile" ] ; then
+
+	nohup java -Dserver.home=$SERVER_HOME $JVM_OPTS $JAVA_OPTS $ADDITIONAL_OPTS -classpath $LIB/fastcatsearch-server-bootstrap.jar org.fastcatsearch.server.Bootstrap start >> $SERVER_LOG &
+	PID=`echo "$!"`
+	sleep 1
+	if ps -p $PID > /dev/null
+	then
+		echo "################################"
+		echo $PID > ".pid"
+		echo "Start server PID = $PID"
+		echo "nohup java -Dserver.home=$SERVER_HOME $JVM_OPTS $JAVA_OPTS $ADDITIONAL_OPTS -classpath $LIB/fastcatsearch-server-bootstrap.jar org.fastcatsearch.server.Bootstrap start >> $SERVER_LOG &"
+		echo "################################"
+		tail -f $LOGS/system.log
+	else
+		echo "[ERROR] Fail to start server. Check details at logs/server.log file."
+		echo "---------------------------"
+		tail -1 $LOGS/server.log
+		echo "---------------------------"
+	fi
 
 elif [ "$1" = "stop" ] ; then
 	if [ -f ".pid" ] ; then
 		PID=`cat ".pid"`
-		echo "Stop Daemon PID = $PID"
-		kill "$PID"
-		rm ".pid"
+		if ps -p $PID > /dev/null
+		then
+			echo "################################"
+			echo "Stop Daemon PID = $PID"
+			ps -p "$PID"
+			echo "kill $PID"
+			kill "$PID"
+			echo "################################"
+			tail -f $LOGS/system.log
+		else
+			echo "Cannot find pid $PID"
+		fi
 	else
 		echo "Cannot stop daemon: .pid file not found"
+		ps -ef|grep org.fastcatsearch.server.Bootstrap|grep -v grep
+	fi
+	
+elif [ "$1" = "kill" ] ; then
+	if [ -f ".pid" ] ; then
+		PID=`cat ".pid"`
+		if ps -p $PID > /dev/null
+		then
+			echo "################################"
+			echo "Kill Daemon PID = $PID"
+			ps -p "$PID"
+			echo "kill -9 $PID"
+			kill -9 "$PID"
+			echo "################################"
+		else
+			echo "Cannot find pid $PID"
+		fi
+	else
+		echo "Cannot kill daemon: .pid file not found"
+		ps -ef|grep org.fastcatsearch.server.Bootstrap|grep -v grep
 	fi
 	
 elif [ -z "$1" ] ; then

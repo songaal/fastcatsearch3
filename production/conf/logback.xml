@@ -63,7 +63,7 @@
 	<logger name="org.fastcatsearch.db.mapper" level="INFO" additivity="false" />
 	
 	<root level="debug">
-		<appender-ref ref="STDOUT" />
+		<!-- appender-ref ref="STDOUT" /-->
 		<appender-ref ref="systemlog" />
 	</root>
 
