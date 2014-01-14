@@ -24,10 +24,17 @@ CONF=$SERVER_HOME/conf
 LIB=$SERVER_HOME/lib
 LOG=logs/server.out
 
+# PROFILE
+PROFILE_AGENT_LINUX_X86_32=$SERVER_HOME/bin/profile/yourkit/linux-x86-32/libyjpagent.so
+PROFILE_AGENT_LINUX_X86_64=$SERVER_HOME/bin/profile/yourkit/linux-x86-64/libyjpagent.so
+PROFILE_AGENT=PROFILE_AGENT_LINUX_X86_64
+PROFILE_PORT=10001
+
 HEAP_MEMORY_SIZE=512m
 JVM_OPTS="-Xms$HEAP_MEMORY_SIZE -Xmx$HEAP_MEMORY_SIZE -XX:+HeapDumpOnOutOfMemoryError"
 JAVA_OPTS="-server -Dfile.encoding=UTF-8 -Dlogback.configurationFile=$CONF/logback.xml -Dderby.stream.error.file=logs/db.log"
 DEBUG_OPT="-verbosegc -XX:+PrintGCDetails -Dcom.sun.management.jmxremote"
+PROFILE_OPT="-agentpath:$PROFILE_AGENT=port=$PROFILE_PORT"
 
 if [ "$1" = "debug" ] ; then
 	
@@ -43,6 +50,12 @@ elif [ "$1" = "start" ] ; then
 	echo "$!" > ".pid"
 	echo "Start Daemon PID = $!"
 	
+elif [ "$1" = "profile" ] ; then
+	
+	nohup java -Dserver.home=$SERVER_HOME $JVM_OPTS $JAVA_OPTS $PROFILE_OPT -classpath $LIB/fastcatsearch-bootstrap.jar org.fastcatsearch.server.Bootstrap start >> $LOG 2>&1 &
+	echo "$!" > ".pid"
+	echo "Start Daemon PID = $!"
+
 elif [ "$1" = "stop" ] ; then
 	if [ -f ".pid" ] ; then
 		PID=`cat ".pid"`
@@ -55,6 +68,6 @@ elif [ "$1" = "stop" ] ; then
 	
 elif [ -z "$1" ] ; then
 	
-	echo "usage: $0 run | start | stop | debug"
+	echo "usage: $0 run | start | stop | debug | profile"
 	
 fi

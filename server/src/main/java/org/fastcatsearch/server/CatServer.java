@@ -132,14 +132,14 @@ public class CatServer {
 		instance = this;
 
 		if (serverHome == null) {
-			System.err.println("Warning! No argument for \"server.home\".");
+			System.err.println("Warning! No argument for \"{HomePath}\".");
 			usage();
 			System.exit(1);
 		}
 
 		File f = new File(serverHome);
 		if (!f.exists()) {
-			System.err.println("Warning! Path \"" + serverHome + "\" is not exist!");
+			System.err.println("Warning! HomePath \"" + serverHome + "\" is not exist!");
 			usage();
 			System.exit(1);
 		}
