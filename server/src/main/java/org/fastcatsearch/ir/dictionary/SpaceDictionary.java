@@ -61,7 +61,7 @@ public class SpaceDictionary extends MapDictionary {
 	}
 	
 	private CharVector[] makeValue(String word) {
-		String[] list = word.split(",");
+		String[] list = word.split("\\s");
 		CharVector[] value = new CharVector[list.length];
 		for(int i=0;i < list.length;i++){
 			value[i] = new CharVector(list[i].trim());

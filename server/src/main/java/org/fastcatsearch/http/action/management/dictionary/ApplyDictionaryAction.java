@@ -5,12 +5,19 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fastcatsearch.cluster.ClusterUtils;
+import org.fastcatsearch.cluster.Node;
+import org.fastcatsearch.cluster.NodeService;
+import org.fastcatsearch.control.JobExecutor;
+import org.fastcatsearch.control.JobService;
+import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
+import org.fastcatsearch.job.plugin.MasterUpdateAllNodeDictionaryJob;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.plugin.analysis.AnalysisPlugin;
@@ -53,18 +60,26 @@ public class ApplyDictionaryAction extends AuthAction {
 			}
 		}
 		
-		//TODO 1. 타 서버 전파 및 리로드 요청.
-//		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
-//		nodeService.sendRequest(node, job);
-		
-		//2. 로컬 사전리로드 
-		analysisPlugin.reloadDictionary();
+		/*
+		 * 0. db 사전상태 업데이트
+		 * */
 		for (int i = 0; i < successList.size(); i++) {
 			String id = successList.get(i);
 			int applyEntrySize = successCountList.get(i);
 			analysisPlugin.dictionaryStatusDAO().updateApplyStatus(id, applyEntrySize);
 		}
 		
+		if(successList.size() > 0){
+			//1. 로컬 사전리로드 
+			analysisPlugin.reloadDictionary();
+			
+			//2. 타 서버 전파 및 리로드 요청.
+			//해당 plugin의 모든 파일을 전송하고 업데이트 한다. 
+			MasterUpdateAllNodeDictionaryJob updateDictionaryJob = new MasterUpdateAllNodeDictionaryJob();
+			updateDictionaryJob.setArgs(pluginId);
+			ResultFuture resultFuture = JobService.getInstance().offer(updateDictionaryJob);
+			resultFuture.take();
+		}
 		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
