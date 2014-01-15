@@ -18,11 +18,13 @@ import org.fastcatsearch.ir.util.CharVectorHashSet;
 
 public class SpaceDictionary extends MapDictionary {
 
+	private final static String DELIMITER = "\\s";
 	private Set<CharVector> wordSet;
 
 	public SpaceDictionary() {
 		this(false);
 	}
+
 	public SpaceDictionary(boolean ignoreCase) {
 		super(ignoreCase);
 		wordSet = new CharVectorHashSet(ignoreCase);
@@ -39,44 +41,25 @@ public class SpaceDictionary extends MapDictionary {
 	public Set<CharVector> getWordSet() {
 		return wordSet;
 	}
-	
+
 	public void setWordSet(Set<CharVector> wordSet) {
 		this.wordSet = wordSet;
 	}
-	
+
 	public Set<CharVector> getUnmodifiableWordSet() {
 		return Collections.unmodifiableSet(wordSet);
 	}
 
 	@Override
-	public void addEntry(String keyword, Object[] values) {
-		CharVector[] value = makeValue(keyword);
-		for(CharVector word : value){
-			wordSet.add(word);
-		}
-		CharVector key = makeKey(value);
-		map.put(key, value);
-		//key는 붙여쓰기 오류일 경우도 있으므로, wordSet에 추가하지 않는다.
+	public void addEntry(String word, Object[] values) {
+		String keyword = word.replaceAll(DELIMITER, "");
+		String[] list = word.split(DELIMITER);
+		super.addEntry(keyword, list);
 		
-	}
-	
-	private CharVector[] makeValue(String word) {
-		String[] list = word.split("\\s");
-		CharVector[] value = new CharVector[list.length];
-		for(int i=0;i < list.length;i++){
-			value[i] = new CharVector(list[i].trim());
+		for (int i = 0; i < list.length; i++) {
+			wordSet.add(new CharVector(list[i].trim()));
 		}
-		return value;
 	}
-	
-	private CharVector makeKey(CharVector[] value) {
-		String key = "";
-		for(CharVector cv : value){
-			key += cv.toString();
-		}
-		return new CharVector(key);
-	}
-	
 
 	@Override
 	public void writeTo(OutputStream out) throws IOException {
@@ -103,15 +86,15 @@ public class SpaceDictionary extends MapDictionary {
 			wordSet.add(new CharVector(input.readUString()));
 		}
 	}
-	
+
 	@Override
 	public void reload(Object object) throws IllegalArgumentException {
-		if(object != null && object instanceof SpaceDictionary){
+		if (object != null && object instanceof SpaceDictionary) {
 			super.reload(object);
 			SpaceDictionary spaceDictionary = (SpaceDictionary) object;
 			this.wordSet = spaceDictionary.getWordSet();
-			
-		}else{
+
+		} else {
 			throw new IllegalArgumentException("Reload dictionary argument error. argument = " + object);
 		}
 	}
