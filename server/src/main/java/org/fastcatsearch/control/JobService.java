@@ -254,8 +254,8 @@ public class JobService extends AbstractService implements JobExecutor {
 	}
 	
 	public void schedule(Job job, Date startTime, int periodInSecond, boolean forceUpdate){
-		if(periodInSecond <= 0){
-			logger.error("Schedule must be positive integer. periodInSecond = {}", periodInSecond);
+		if(periodInSecond < 0){
+			logger.error("Schedule must be 0 or positive number. periodInSecond = {}", periodInSecond);
 			return;
 		}
 		
