@@ -328,8 +328,10 @@ public class IRService extends AbstractService {
 
 				try {
 					logger.debug("Load full indexing schdule {} : {}: {}", collectionId, startTime, periodInSecond);
-					//실행이 보장되는 스케쥴 작업으로 생성.
-					scheduledEntryList.add(new ScheduledJobEntry(job, simpleDateFormat.parse(startTime), periodInSecond, true));
+					if(periodInSecond >= 0){
+						//실행이 보장되는 스케쥴 작업으로 생성.
+						scheduledEntryList.add(new ScheduledJobEntry(job, simpleDateFormat.parse(startTime), periodInSecond, true));
+					}
 				} catch (ParseException e) {
 					logger.error("[{}] Full Indexing schedule time parse error : {}", collectionId, startTime);
 					return false;
@@ -347,7 +349,9 @@ public class IRService extends AbstractService {
 
 				try {
 					logger.debug("Load add indexing schdule {} : {}: {}", collectionId, startTime, periodInSecond);
-					scheduledEntryList.add(new ScheduledJobEntry(job, simpleDateFormat.parse(startTime), periodInSecond, false));
+					if(periodInSecond >= 0){
+						scheduledEntryList.add(new ScheduledJobEntry(job, simpleDateFormat.parse(startTime), periodInSecond, false));
+					}
 				} catch (ParseException e) {
 					logger.error("[{}] Add Indexing schedule time parse error : {}", collectionId, startTime);
 					return false;

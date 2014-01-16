@@ -54,7 +54,8 @@ public class PriorityScheduledJob extends ScheduledJob {
 		//처음에 시작시간을 모두 업데이트 해준다.
 		Iterator<ScheduledJobEntry> iterator = priorityJobQueue.iterator();
 		while(iterator.hasNext()){
-			updateStartTimeByNow(iterator.next());
+			ScheduledJobEntry e = iterator.next();
+			updateStartTimeByNow(e);
 		}
 		while (!isCanceled) {
 			try {
@@ -131,8 +132,14 @@ public class PriorityScheduledJob extends ScheduledJob {
 
 		if (nextStartTime < now) {
 			// 현 시간보다 커질때까지 더한다.
-			while (nextStartTime < now) {
-				nextStartTime += periodInSecond;// increase by period
+			if(periodInSecond > 0){
+				//주기가 0이 아닐때만 더해서 다음 시간을 구한다.
+				while (nextStartTime < now) {
+					nextStartTime += periodInSecond;// increase by period
+				}
+			}else{
+				//주기가 0 이라면 바로시작한다. delay time = 1초.
+				nextStartTime = now + 1000;
 			}
 			entry.setStartTime(new Date(nextStartTime));
 		} else {
