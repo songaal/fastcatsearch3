@@ -112,10 +112,7 @@ public class HangulUtil {
 		StringBuffer prefix = new StringBuffer();
 		for (int i = 0; i < keyword.length(); i++) {
 			char ch = keyword.charAt(i);
-			if (ch < unicodeHangulBase || ch > unicodeHangulLast) {
-				prefix.append(ch);
-				candidate.append(prefix);
-			} else {
+			if (ch >= unicodeHangulBase && ch <= unicodeHangulLast) {
 				int unicode = ch - unicodeHangulBase;
 				int choSung = unicode / (JUNGSUNG_LIST.length() * JONGSUNG_LIST.length());
 				candidate.append(prefix);

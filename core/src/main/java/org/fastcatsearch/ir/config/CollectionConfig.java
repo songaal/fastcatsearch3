@@ -1,5 +1,6 @@
 package org.fastcatsearch.ir.config;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -40,11 +41,14 @@ public class CollectionConfig {
 	private DataPlanConfig dataPlanConfig;
 	
 	public CollectionConfig(){
+		searchNodeList = new ArrayList<String>();
+		dataNodeList = new ArrayList<String>();
 	}
 	
-	public CollectionConfig(String name, String indexNode, List<String> dataNodeList, DataPlanConfig dataPlanConfig){
+	public CollectionConfig(String name, String indexNode, List<String> searchNodeList, List<String> dataNodeList, DataPlanConfig dataPlanConfig){
 		this.name = name;
 		this.indexNode = indexNode;
+		this.searchNodeList = searchNodeList;
 		this.dataNodeList = dataNodeList;
 		this.dataPlanConfig = dataPlanConfig;
 	}

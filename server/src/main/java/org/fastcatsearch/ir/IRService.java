@@ -124,7 +124,8 @@ public class IRService extends AbstractService {
 				} else {
 					collectionHandler = new CollectionHandler(collectionContext, analyzerFactoryManager);
 					
-					if(collectionContext.collectionConfig().getSearchNodeList().contains(environment.myNodeId())){
+					if(collectionContext.collectionConfig().getSearchNodeList() != null 
+						&& collectionContext.collectionConfig().getSearchNodeList().contains(environment.myNodeId())){
 						searchNodeCollectionIdSet.add(collectionId);
 					}
 				}

@@ -25,7 +25,18 @@ public class CreateCollectionAction extends AuthAction {
 		String collectionId = request.getParameter("collectionId");
 		String collectionName = request.getParameter("name");
 		String indexNode = request.getParameter("indexNode");
+		String searchNodeListString = request.getParameter("searchNodeList");
 		String dataNodeListString = request.getParameter("dataNodeList");
+		
+		List<String> searchNodeList = new ArrayList<String>();
+		if (searchNodeListString != null) {
+			for (String nodeStr : searchNodeListString.split(",")) {
+				nodeStr = nodeStr.trim();
+				if (nodeStr.length() > 0) {
+					searchNodeList.add(nodeStr);
+				}
+			}
+		}
 
 		List<String> dataNodeList = new ArrayList<String>();
 		if (dataNodeListString != null) {
@@ -43,7 +54,7 @@ public class CreateCollectionAction extends AuthAction {
 		try {
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 
-			CollectionConfig collectionConfig = new CollectionConfig(collectionName, indexNode, dataNodeList, DataPlanConfig.DefaultDataPlanConfig);
+			CollectionConfig collectionConfig = new CollectionConfig(collectionName, indexNode, searchNodeList, dataNodeList, DataPlanConfig.DefaultDataPlanConfig);
 
 			CollectionHandler collectionHandler = irService.createCollection(collectionId, collectionConfig);
 			
