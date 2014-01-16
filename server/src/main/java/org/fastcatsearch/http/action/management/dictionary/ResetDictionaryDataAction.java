@@ -73,6 +73,8 @@ public class ResetDictionaryDataAction extends AuthAction {
 				String[] record = recordStr.split("\t");
 				String[] values = new String[columns.length];
 				System.arraycopy(record, 0, values, 0, record.length);
+				
+				logger.trace("put entry data table:{}, columns:{}, values:{}", tableName, columns, values);
 
 				mapperSession.getMapper().putEntry(tableName, columns, values);
 			}
