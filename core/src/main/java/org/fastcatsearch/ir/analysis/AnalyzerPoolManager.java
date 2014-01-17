@@ -66,9 +66,13 @@ public class AnalyzerPoolManager {
 		//AnalyzerSettingList 로 AnalyzerPoolManager에 등록한다.
 		for(AnalyzerSetting setting : analyzerSettingList){
 			String analyzerFactoryId = setting.getClassName();
+			if(analyzerFactoryId == null || analyzerFactoryId.trim().length() == 0) {
+				logger.error("Analyzer id empty >> {}", analyzerFactoryId);
+				continue;
+			}
 			AnalyzerFactory factory = analyzerFactoryManager.getAnalyzerFactory(analyzerFactoryId);
 			if(factory != null){
-			registerAnalyzer(setting.getId(), factory, setting.getCorePoolSize(), setting.getMaximumPoolSize());
+				registerAnalyzer(setting.getId(), factory, setting.getCorePoolSize(), setting.getMaximumPoolSize());
 			}else{
 				logger.error("Cannot find analyzer factory id >> {}", analyzerFactoryId);
 			}

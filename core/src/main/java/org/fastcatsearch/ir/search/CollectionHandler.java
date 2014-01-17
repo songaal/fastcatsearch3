@@ -45,15 +45,15 @@ public class CollectionHandler {
 
 	private AnalyzerFactoryManager analyzerFactoryManager;
 	private AnalyzerPoolManager analyzerPoolManager;
-	
+
 	private Counter queryCounter;
-	
+
 	public CollectionHandler(CollectionContext collectionContext, AnalyzerFactoryManager analyzerFactoryManager) throws IRException, SettingException {
 		this.collectionContext = collectionContext;
 		this.collectionId = collectionContext.collectionId();
 		this.collectionFilePaths = collectionContext.collectionFilePaths();
 		this.analyzerFactoryManager = analyzerFactoryManager;
-		
+
 		queryCounter = new DummyCounter();
 	}
 
@@ -67,18 +67,18 @@ public class CollectionHandler {
 	}
 
 	@Deprecated
-	public void setAnalyzerPoolManager(AnalyzerPoolManager analyzerPoolManager){
+	public void setAnalyzerPoolManager(AnalyzerPoolManager analyzerPoolManager) {
 		this.analyzerPoolManager = analyzerPoolManager;
 	}
-	
-	public AnalyzerPoolManager analyzerPoolManager(){
+
+	public AnalyzerPoolManager analyzerPoolManager() {
 		return analyzerPoolManager;
 	}
-	
-	public Schema schema(){
+
+	public Schema schema() {
 		return schema;
 	}
-	
+
 	public long getStartedTime() {
 		return startedTime;
 	}
@@ -86,7 +86,7 @@ public class CollectionHandler {
 	public FilePaths indexFilePaths() {
 		return collectionFilePaths;
 	}
-	
+
 	public CollectionContext collectionContext() {
 		return collectionContext;
 	}
@@ -100,11 +100,11 @@ public class CollectionHandler {
 	}
 
 	private void loadSearcherAndReader() throws IRException {
-		
+
 		analyzerPoolManager = new AnalyzerPoolManager();
 		List<AnalyzerSetting> analyzerSettingList = collectionContext.schema().schemaSetting().getAnalyzerSettingList();
 		analyzerPoolManager.register(analyzerSettingList, analyzerFactoryManager);
-		
+
 		this.schema = collectionContext.schema();
 		int dataSequence = collectionContext.indexStatus().getSequence();
 		FilePaths dataPaths = collectionFilePaths.dataPaths();
@@ -120,8 +120,8 @@ public class CollectionHandler {
 		segmentReaderList = new ArrayList<SegmentReader>();
 		List<SegmentInfo> segmentInfoList = collectionContext.dataInfo().getSegmentInfoList();
 		int segmentSize = segmentInfoList.size();
-		
-//		logger.debug("segmentInfoList > {}, {}", segmentInfoList.size(), segmentInfoList);
+
+		// logger.debug("segmentInfoList > {}, {}", segmentInfoList.size(), segmentInfoList);
 		if (segmentSize > 0) {
 			// 0,1,2...차례대로 list에 존재해야한다. deleteset을 적용해야하기때문에..
 			SegmentInfo lastSegmentInfo = segmentInfoList.get(segmentSize - 1);
@@ -142,8 +142,10 @@ public class CollectionHandler {
 
 	public void close() throws IOException {
 		logger.info("Close Collection handler {}", collectionId);
-		for (SegmentReader segmentReader : segmentReaderList) {
-			segmentReader.close();
+		if (segmentReaderList != null) {
+			for (SegmentReader segmentReader : segmentReaderList) {
+				segmentReader.close();
+			}
 		}
 		collectionSearcher = null;
 		isLoaded = false;
@@ -191,9 +193,9 @@ public class CollectionHandler {
 		return segmentReaderList.get(segmentNumber).segmentSearcher();
 	}
 
-//	public Schema schema() {
-//		return collectionContext.schema();
-//	}
+	// public Schema schema() {
+	// return collectionContext.schema();
+	// }
 
 	// segment reader 추가.
 	// collectionContext에는 segmentInfo를 추가하지 않는다.
@@ -225,8 +227,7 @@ public class CollectionHandler {
 	/**
 	 * 증분색인후 호출하는 메소드이다. 1. 이전 세그먼트에 삭제 문서를 적용한다. 2. 해당 segment reader 재로딩 및 대체하기.
 	 * */
-	public void updateCollection(CollectionContext collectionContext, SegmentInfo segmentInfo, File segmentDir, DeleteIdSet deleteSet)
-			throws IOException, IRException {
+	public void updateCollection(CollectionContext collectionContext, SegmentInfo segmentInfo, File segmentDir, DeleteIdSet deleteSet) throws IOException, IRException {
 
 		this.collectionContext = collectionContext;
 
@@ -274,11 +275,11 @@ public class CollectionHandler {
 			File prevRevisionDir = new File(segmentDir, oldSegmentReader.segmentInfo().getRevisionName());
 			File targetRevisionDir = new File(segmentDir, segmentInfo.getRevisionName());
 			logger.debug("#rev Dir : prev={}, tar={}", prevRevisionDir.getPath(), targetRevisionDir.getPath());
-			
+
 			if (revisionInfo.getInsertCount() == 0 && revisionInfo.getDeleteCount() > 0) {
 				// 추가문서없이 삭제문서만 존재시 이전 rev에서 pk를 복사해온다.
 				copyPrimaryKeyAndDeleteTemp(prevRevisionDir, targetRevisionDir);
-			} else if (revisionInfo.getInsertCount() > 0){
+			} else if (revisionInfo.getInsertCount() > 0) {
 				mergePrimaryKeyWithPrevRevision(segmentId, prevRevisionDir, targetRevisionDir);
 			}
 
@@ -334,8 +335,8 @@ public class CollectionHandler {
 
 	// 이전 세그먼트가 존재하면 delete.set을 업데이트하여 segment reader 에 적용시켜준다.
 	// 최근 색인작업으로 추가된 newSegmentInfo 세그먼트의 문서는 최신이므로 delete.set을 따로 적용할 필요가없다.
-	private int[] makeDeleteSetWithSegments(SegmentInfo segmentInfo, File segmentDir, List<SegmentReader> prevSegmentReaderList,
-			DeleteIdSet deleteSet, BitSet[] deleteSetList) throws IOException {
+	private int[] makeDeleteSetWithSegments(SegmentInfo segmentInfo, File segmentDir, List<SegmentReader> prevSegmentReaderList, DeleteIdSet deleteSet, BitSet[] deleteSetList)
+			throws IOException {
 		String segmentId = segmentInfo.getId();
 		int prevSegmentSize = prevSegmentReaderList.size();
 
@@ -356,11 +357,10 @@ public class CollectionHandler {
 	}
 
 	/*
-	 * Indexing작업으로 생성된 pk와 delete list 를 이전 segment들과 비교해보면서 세그먼트별 delete.set.#들을 업데이트한다. delete.set.# 파일들은 최종 revision디렉토리안에
-	 * 존재한다.
+	 * Indexing작업으로 생성된 pk와 delete list 를 이전 segment들과 비교해보면서 세그먼트별 delete.set.#들을 업데이트한다. delete.set.# 파일들은 최종 revision디렉토리안에 존재한다.
 	 */
-	private int[] updateDeleteSetWithSegments(String segmentId, File targetRevisionDir, DeleteIdSet deleteIdSet,
-			List<SegmentReader> prevSegmentReaderList, BitSet[] prevDeleteSetList) throws IOException {
+	private int[] updateDeleteSetWithSegments(String segmentId, File targetRevisionDir, DeleteIdSet deleteIdSet, List<SegmentReader> prevSegmentReaderList,
+			BitSet[] prevDeleteSetList) throws IOException {
 		int[] updateAndDelete = new int[] { 0, 0 };
 		// 첨자 i는 세그먼터 id와 일치해야한다.
 		int prevSegmentSize = prevSegmentReaderList.size();
@@ -414,11 +414,11 @@ public class CollectionHandler {
 		String indexFilename = IndexFileNames.getIndexFileName(IndexFileNames.primaryKeyMap);
 		FileUtils.copyFile(new File(sourceDir, IndexFileNames.primaryKeyMap), new File(targetDir, IndexFileNames.primaryKeyMap));
 		FileUtils.copyFile(new File(sourceDir, indexFilename), new File(targetDir, indexFilename));
-		
+
 		String tempPkFilename = IndexFileNames.getTempFileName(IndexFileNames.primaryKeyMap);
 		new File(targetDir, tempPkFilename).delete();
 		new File(targetDir, IndexFileNames.getIndexFileName(tempPkFilename)).delete();
-		
+
 	}
 
 	/*
@@ -492,8 +492,8 @@ public class CollectionHandler {
 	/*
 	 * 색인시 수집된 삭제문서리스트 deleteIdSet를 각 deleteSet에 적용한다. pk파일에 들어있다면 문서가 존재하는 것이므로 deleteSet에 업데이트해준다.
 	 */
-	private int applyDeleteIdSetToAllSegments(String segmentId, File targetRevisionDir, DeleteIdSet deleteIdSet,
-			PrimaryKeyIndexReader[] prevPkReaderList, BitSet[] prevDeleteSetList) throws IOException {
+	private int applyDeleteIdSetToAllSegments(String segmentId, File targetRevisionDir, DeleteIdSet deleteIdSet, PrimaryKeyIndexReader[] prevPkReaderList,
+			BitSet[] prevDeleteSetList) throws IOException {
 
 		int deleteDocumentSize = 0;
 
@@ -560,17 +560,16 @@ public class CollectionHandler {
 	}
 
 	public void setQueryCounter(Counter queryCounter) {
-		if(queryCounter != null){
+		if (queryCounter != null) {
 			this.queryCounter = queryCounter;
 			logger.debug("[{}] Collection set Query counter {}", collectionId, queryCounter);
-		}else{
+		} else {
 			logger.debug("[{}] Collection Query counter Not Found!", collectionId);
 		}
 	}
-	
-	public Counter queryCounter(){
+
+	public Counter queryCounter() {
 		return queryCounter;
 	}
 
-	
 }

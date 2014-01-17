@@ -48,7 +48,6 @@
 
 	<logger name="INDEXING_LOG" level="INFO" additivity="false">
 		<appender-ref ref="systemlog" />
-		<appender-ref ref="STDOUT" />
 		<appender-ref ref="indexinglog" />
 	</logger>
 

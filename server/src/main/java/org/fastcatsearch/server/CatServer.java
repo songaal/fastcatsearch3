@@ -156,12 +156,11 @@ public class CatServer {
 		if(fileLock == null){
 			System.err.println("Error! Another instance of CatServer is running at home path = " + serverHome);
 			System.exit(1);
-		}else{
-			System.out.println("File lock > "+ fileLock + ", "+lockFile.getAbsolutePath());
 		}
 		
 		Environment environment = new Environment(serverHome).init();
 		logger = LoggerFactory.getLogger(CatServer.class);
+		logger.info("File lock > {}", lockFile.getAbsolutePath());
 		
 		this.serviceManager = new ServiceManager(environment);
 		serviceManager.asSingleton();

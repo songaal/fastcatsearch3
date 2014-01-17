@@ -23,7 +23,7 @@ SERVER_HOME=`pwd`
 CONF=$SERVER_HOME/conf
 LIB=$SERVER_HOME/lib
 LOGS=$SERVER_HOME/logs
-SERVER_LOG=$LOGS/server.log
+OUTPUT_LOG=$LOGS/output.log
 
 # make log directory if not exists
 mkdir -p $LOGS
@@ -57,26 +57,30 @@ fi
 
 
 if [ "$1" = "run" ] ; then
-
-	exec java -Dserver.home=$SERVER_HOME $JVM_OPTS $JAVA_OPTS -classpath $LIB/fastcatsearch-server-bootstrap.jar org.fastcatsearch.server.Bootstrap start
+	exec < $LOGS/system.log
+	java -Dserver.home=$SERVER_HOME $JVM_OPTS $JAVA_OPTS -classpath $LIB/fastcatsearch-server-bootstrap.jar org.fastcatsearch.server.Bootstrap start
 
 elif [ "$1" = "start" ] || [ "$1" = "debug" ] || [ "$1" = "profile" ] ; then
-
-	nohup java -Dserver.home=$SERVER_HOME $JVM_OPTS $JAVA_OPTS $ADDITIONAL_OPTS -classpath $LIB/fastcatsearch-server-bootstrap.jar org.fastcatsearch.server.Bootstrap start >> $SERVER_LOG &
+	
+	# prevent killed by Hup, ctrl-c
+	trap '' 1 2
+	java -Dserver.home=$SERVER_HOME $JVM_OPTS $JAVA_OPTS $ADDITIONAL_OPTS -classpath $LIB/fastcatsearch-server-bootstrap.jar org.fastcatsearch.server.Bootstrap start > $OUTPUT_LOG 2>&1 &
 	PID=`echo "$!"`
 	sleep 1
 	if ps -p $PID > /dev/null
 	then
-		echo "################################"
 		echo $PID > ".pid"
-		echo "Start server PID = $PID"
-		echo "nohup java -Dserver.home=$SERVER_HOME $JVM_OPTS $JAVA_OPTS $ADDITIONAL_OPTS -classpath $LIB/fastcatsearch-server-bootstrap.jar org.fastcatsearch.server.Bootstrap start >> $SERVER_LOG &"
 		echo "################################"
+		echo "Start server PID = $PID"
+		echo "java -Dserver.home=$SERVER_HOME $JVM_OPTS $JAVA_OPTS $ADDITIONAL_OPTS -classpath $LIB/fastcatsearch-server-bootstrap.jar org.fastcatsearch.server.Bootstrap start > $OUTPUT_LOG 2>&1 &"
+		echo "################################"
+		#tail can be got signal ctrl-c
+		trap - 2
 		tail -f $LOGS/system.log
 	else
-		echo "[ERROR] Fail to start server. Check details at logs/server.log file."
+		echo "[ERROR] Fail to start server. Check details at logs/output.log file."
 		echo "---------------------------"
-		tail -1 $LOGS/server.log
+		tail -1 $OUTPUT_LOG
 		echo "---------------------------"
 	fi
 
@@ -89,8 +93,8 @@ elif [ "$1" = "stop" ] ; then
 			echo "Stop Daemon PID = $PID"
 			ps -p "$PID"
 			echo "kill $PID"
-			kill "$PID"
 			echo "################################"
+			kill "$PID"
 			tail -f $LOGS/system.log
 		else
 			echo "Cannot find pid $PID"
@@ -121,6 +125,6 @@ elif [ "$1" = "kill" ] ; then
 	
 elif [ -z "$1" ] ; then
 	
-	echo "usage: $0 run | start | stop | debug | profile"
+	echo "usage: $0 run | start | stop | kill | debug | profile"
 	
 fi

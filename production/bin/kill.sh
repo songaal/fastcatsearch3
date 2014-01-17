@@ -17,4 +17,4 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #-------------------------------------------------------------------------------
 cd `dirname $0`
-sh ./daemon.sh stop
+sh ./daemon.sh kill

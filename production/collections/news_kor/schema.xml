@@ -35,10 +35,8 @@
 	</index-list>
 
 	<analyzer-list>
-		<analyzer id="korean" corePoolSize="10" maximumPoolSize="100">org.fastcatsearch.plugin.analysis.ko.standard.StandardKoreanAnalyzer
-		</analyzer>
-		<analyzer id="keyword" corePool_size="10" maximumPoolSize="100">org.apache.lucene.analysis.core.KeywordAnalyzer
-		</analyzer>
+		<analyzer id="korean" corePoolSize="10" maximumPoolSize="100" className="org.fastcatsearch.plugin.analysis.ko.standard.StandardKoreanAnalyzer" />
+		<analyzer id="keyword" corePool_size="10" maximumPoolSize="100" className="org.apache.lucene.analysis.core.KeywordAnalyzer" /> 
 	</analyzer-list>
 
 	<field-index-list>
