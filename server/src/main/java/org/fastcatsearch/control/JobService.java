@@ -89,7 +89,7 @@ public class JobService extends AbstractService implements JobExecutor {
 		// int otherJobMaxSize = 100;
 
 //		jobExecutor = ThreadPoolFactory.newCachedThreadPool("JobService.jobExecutor", executorMaxPoolSize);
-		jobExecutor = ThreadPoolFactory.newUnlimitedCachedThreadPool("JobService.jobExecutor");
+		jobExecutor = ThreadPoolFactory.newUnlimitedCachedDaemonThreadPool("JobService.jobExecutor");
 
 		worker = new JobConsumer();
 		worker.start();

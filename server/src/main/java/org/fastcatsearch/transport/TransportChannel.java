@@ -44,7 +44,7 @@ public class TransportChannel {
         this.channel = channel;
         this.requestId = requestId;
     }
-
+    
     public void sendResponse(Object obj) throws IOException {
     	byte type = 0;
     	type = TransportOption.setTypeMessage(type);

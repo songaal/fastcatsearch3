@@ -73,7 +73,7 @@ public class CollectionQueryCountService extends AbstractService {
 
 			aggregateModule.load();
 
-			aggregateTimer = new Timer();
+			aggregateTimer = new Timer("CollectionQueryCountAggregateTimer", true);
 			// 1초단위로 취합하는 timertask를 시작한다.
 			aggregateCountResult = new HashMap<String, Integer>();// 처음에 빈 객체.
 			aggregateTimer.scheduleAtFixedRate(new AggregateCountTask(), cal.getTime(), period);
@@ -81,7 +81,7 @@ public class CollectionQueryCountService extends AbstractService {
 
 		if (isSearchNode) {
 			// 1초 단위로 report하는 timertask를 시작한다.
-			reportTimer = new Timer();
+			reportTimer = new Timer("CollectionQueryCountReportTimer", true);
 			reportTimer.scheduleAtFixedRate(new ReportCountTask(), cal.getTime(), period);
 		}
 		return true;

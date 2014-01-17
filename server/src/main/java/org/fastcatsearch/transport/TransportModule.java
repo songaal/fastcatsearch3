@@ -381,11 +381,16 @@ public class TransportModule extends AbstractModule {
     	}
         final long requestId = newRequestId();
         try {
-        	ResultFuture resultFuture = new ResultFuture(requestId, resultFutureMap);
-            resultFutureMap.put(requestId, resultFuture);
-            sendMessageRequest(node, requestId, job);
-            
-            return resultFuture;
+        	if (job.isNoResult()) {
+        		sendMessageRequest(node, requestId, job);
+        		return null;
+        	}else{
+	        	ResultFuture resultFuture = new ResultFuture(requestId, resultFutureMap);
+	            resultFutureMap.put(requestId, resultFuture);
+	            sendMessageRequest(node, requestId, job);
+	            
+	            return resultFuture;
+        	}
         } catch (final Exception e) {
             resultFutureMap.remove(requestId);
            logger.error("", e);
@@ -451,6 +456,8 @@ public class TransportModule extends AbstractModule {
         BytesStreamOutput stream = cachedEntry.bytes();
         stream.skip(MessageProtocol.HEADER_SIZE);
         stream.writeString(request.getClass().getName());
+        stream.writeBoolean(request.isNoResult());
+        stream.writeBoolean(request.isScheduled());
 //        logger.debug("write class {}", request.getClass().getName());
         if(request instanceof Streamable){
         	Streamable streamable = (Streamable) request;
