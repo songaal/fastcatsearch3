@@ -61,9 +61,11 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 
 	public void setIgnoreCase(){
 		this.isIgnoreCase = true;
+		hash = 0;
 	}
 	public void unsetIgnoreCase(){
 		this.isIgnoreCase = false;
+		hash = 0;
 	}
 	public boolean isIgnoreCase(){
 		return isIgnoreCase;
