@@ -116,8 +116,8 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
 
 	@Override
 	public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-		super.channelClosed(ctx, e);
 		logger.debug("CLOSED! {} {}", id, ctx.getChannel(), ctx.getChannel());
+		super.channelClosed(ctx, e);
 	}
 
 	@Override

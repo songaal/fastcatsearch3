@@ -14,7 +14,6 @@ public abstract class HttpAction implements Runnable, Cloneable {
 	private ActionMethod[] method; //허용 http 메소드.
 	
 	private ActionRequest request;
-	private HttpChannel httpChannel;
 	private ActionResponse response;
 	protected Environment environment;
 	protected HttpSession session;
@@ -24,11 +23,10 @@ public abstract class HttpAction implements Runnable, Cloneable {
 	}
 	
 	public HttpAction clone(){
-		HttpAction action;
+		HttpAction action = null;
 		try {
 			action = (HttpAction) super.clone();
 			action.request = null;
-			action.httpChannel = null;
 			action.response = null;
 			return action;
 		} catch (CloneNotSupportedException e) {
@@ -37,13 +35,11 @@ public abstract class HttpAction implements Runnable, Cloneable {
 		return null;
 	}
 	
-	public void init(Type resultType, ActionRequest request, ActionResponse response, HttpSession session, HttpChannel httpChannel){
+	public void init(Type resultType, ActionRequest request, ActionResponse response, HttpSession session){
 		this.resultType = resultType;
 		this.request = request;
 		this.response = response;
 		this.session = session;
-		this.httpChannel = httpChannel;
-		response.init();
 		
 	}
 	
@@ -54,10 +50,11 @@ public abstract class HttpAction implements Runnable, Cloneable {
 		
 		try {
 			runAction(request, response);
-			httpChannel.sendResponse(response);
+			response.done();
 		} catch (Throwable e) {
 			logger.error("Action수행중 에러발생.", e);
-			httpChannel.sendError(HttpResponseStatus.INTERNAL_SERVER_ERROR, e);
+			response.error(e);
+//			response.getChannel().sendError(HttpResponseStatus.INTERNAL_SERVER_ERROR, e);
 		}
 		
 	}

@@ -1,6 +1,7 @@
 package org.fastcatsearch.http;
 
 import java.net.InetSocketAddress;
+import java.nio.channels.ClosedChannelException;
 import java.util.concurrent.Executors;
 
 import org.fastcatsearch.env.Environment;
@@ -170,8 +171,8 @@ public class HttpTransportModule extends AbstractModule {
 		httpServerAdapter.dispatchRequest(request, httpChannel);
 	}
 
-	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
-		e.getCause().printStackTrace();
+	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
+//		logger.error("exceptionCaught", e.getCause());
 		if (e.getCause() instanceof ReadTimeoutException) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Connection timeout [{}]", ctx.getChannel().getRemoteAddress());
@@ -183,13 +184,14 @@ public class HttpTransportModule extends AbstractModule {
 				return;
 			}
 			if (!NetworkExceptionHelper.isCloseConnectionException(e.getCause())) {
-				logger.warn("Caught exception while handling client http traffic, closing connection {}", e.getCause(), ctx.getChannel());
+//				logger.warn("Caught exception while handling client http traffic, closing connection {}", e.getCause(), ctx.getChannel());
 				ctx.getChannel().close();
 			} else {
-				logger.debug("Caught exception while handling client http traffic, closing connection {}", e.getCause(), ctx.getChannel());
+//				logger.debug("Caught exception while handling client http traffic, closing connection {}", e.getCause(), ctx.getChannel());
 				ctx.getChannel().close();
 			}
 		}
+		
 	}
 
 }

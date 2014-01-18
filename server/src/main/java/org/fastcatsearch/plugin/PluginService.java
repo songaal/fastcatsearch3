@@ -35,6 +35,7 @@ import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting;
 import org.fastcatsearch.plugin.analysis.AnalyzerInfo;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.util.DynamicClassLoader;
 
@@ -43,10 +44,10 @@ public class PluginService extends AbstractService implements AnalyzerProvider {
 	private static final String pluginActionPrefix = "/_plugin/";
 	private Map<String, Plugin> pluginMap;
 	private PluginAnalyzerFactoryManager pluginAnalyzerFactoryManager;
-	
+
 	public PluginService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
-		pluginAnalyzerFactoryManager = new PluginAnalyzerFactoryManager(); //irservice에 전달되는 객체이므로 삭제하지 말고 계속사용한다.
+		pluginAnalyzerFactoryManager = new PluginAnalyzerFactoryManager(); // irservice에 전달되는 객체이므로 삭제하지 말고 계속사용한다.
 	}
 
 	@Override
@@ -96,7 +97,7 @@ public class PluginService extends AbstractService implements AnalyzerProvider {
 			Unmarshaller analysisUnmarshaller = analysisJc.createUnmarshaller();
 			for (File dir : pluginDirList) {
 				boolean isAnalysis = dir.getAbsolutePath().contains("analysis");
-				File pluginConfigFile = new File(dir, "plugin.xml");
+				File pluginConfigFile = new File(dir, SettingFileNames.pluginConfig);
 				if (!pluginConfigFile.exists()) {
 					continue;
 				}
@@ -122,18 +123,17 @@ public class PluginService extends AbstractService implements AnalyzerProvider {
 						plugin.load(environment.isMasterNode());
 						logger.debug("PLUGIN {} >> {}", setting.getId(), plugin.getClass().getName());
 						pluginMap.put(setting.getId(), plugin);
-						
-						if(plugin instanceof AnalysisPlugin){
+
+						if (plugin instanceof AnalysisPlugin) {
 							AnalysisPlugin analysisPlugin = (AnalysisPlugin) plugin;
 							Map<String, AnalyzerInfo> map = analysisPlugin.analyzerFactoryMap();
-							for(Entry<String, AnalyzerInfo> entry : map.entrySet()){
-								pluginAnalyzerFactoryManager.addAnalyzerFactory(pluginId + "." +entry.getKey(), entry.getValue().factory());
+							for (Entry<String, AnalyzerInfo> entry : map.entrySet()) {
+								pluginAnalyzerFactoryManager.addAnalyzerFactory(pluginId + "." + entry.getKey(), entry.getValue().factory());
 							}
 						}
 						// } else {
 						// plugin = new Plugin(dir, setting);
 					}
-					
 
 				} catch (FileNotFoundException e) {
 					logger.error("{} plugin 설정파일을 읽을수 없음.", dir.getName());
@@ -163,7 +163,7 @@ public class PluginService extends AbstractService implements AnalyzerProvider {
 		for (File file : files) {
 			if (file.isDirectory()) {
 				logger.debug("check dir {}", file.getAbsolutePath());
-				if (new File(file, "plugin.xml").exists()) {
+				if (new File(file, SettingFileNames.pluginConfig).exists()) {
 					pluginList.add(file);
 				}
 				findPluginDirectory(file, pluginList);
@@ -187,17 +187,17 @@ public class PluginService extends AbstractService implements AnalyzerProvider {
 	@Override
 	protected boolean doStop() throws FastcatSearchException {
 		if (pluginMap != null) {
-			for(Plugin plugin : pluginMap.values()){
-				try{
+			for (Plugin plugin : pluginMap.values()) {
+				try {
 					plugin.unload();
-				}catch(Exception ignore){
+				} catch (Exception ignore) {
 				}
 			}
 			pluginMap.clear();
 			pluginMap = null;
 		}
-		
-		if(pluginAnalyzerFactoryManager != null){
+
+		if (pluginAnalyzerFactoryManager != null) {
 			pluginAnalyzerFactoryManager.clear();
 		}
 		return true;
@@ -220,14 +220,14 @@ public class PluginService extends AbstractService implements AnalyzerProvider {
 
 	public void loadAction() {
 		HttpRequestService httpRequestService = ServiceManager.getInstance().getService(HttpRequestService.class);
-				
+
 		for (Plugin plugin : getPlugins()) {
 			String pluginId = plugin.pluginId().toUpperCase();
 			List<Action> pluginActionList = plugin.getPluginSetting().getActionList();
 			if (pluginActionList != null && pluginActionList.size() > 0) {
 				for (Action pluginAction : pluginActionList) {
 					String className = pluginAction.getClassName();
-					if(className == null || className.length() == 0){
+					if (className == null || className.length() == 0) {
 						logger.warn("Plugin {} action class name is empty.", pluginId);
 						continue;
 					}
@@ -237,6 +237,7 @@ public class PluginService extends AbstractService implements AnalyzerProvider {
 			}
 		}
 	}
+
 	public void loadSchedule() {
 		if (environment.isMasterNode()) {
 			JobService jobService = serviceManager.getService(JobService.class);
