@@ -82,6 +82,8 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 
 		//자기자신은 active하다.
 		myNode.setActive();
+		int servicePort = environment.settingManager().getIdSettings().getInt("servicePort");
+		myNode.setServicePort(servicePort);
 		
 		transportModule = new TransportModule(environment, settings.getSubSettings("transport"), myNode.port(), jobService);
 //		if (myNode.port() > 0) {
@@ -91,13 +93,15 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 		if (!transportModule.load()) {
 			throw new FastcatSearchException("ERR-00305");
 		}
+		
+		NodeHandshakeJob nodeHandshakeJob = new NodeHandshakeJob(myNode.id(), servicePort);
 
 		for (Node node : nodeMap.values()) {
 			if (node!=null && node.isEnabled() && !node.equals(myNode)) {
 				try {
 					transportModule.connectToNode(node);
 					node.setActive();
-					transportModule.sendRequest(node, new NodeHandshakeJob(myNode.id()));
+					transportModule.sendRequest(node, nodeHandshakeJob);
 				} catch (TransportException e) {
 					logger.error("Cannot connect to {}", node);
 					node.setInactive();

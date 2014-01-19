@@ -31,7 +31,8 @@ public class GetServerInfoListAction extends AuthAction {
 			.key("id").value(node.id())
 			.key("name").value(node.name())
 			.key("host").value(node.address().getHostName())
-			.key("port").value(node.address().getPort())
+			.key("port").value(node.port())
+			.key("servicePort").value(node.servicePort())
 			.key("enabled").value(node.isEnabled())
 			.key("active").value(node.isActive())
 			.endObject();
