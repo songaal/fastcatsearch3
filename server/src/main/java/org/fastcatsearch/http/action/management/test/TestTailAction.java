@@ -14,6 +14,11 @@ import org.fastcatsearch.http.action.StreamWriter;
 import org.fastcatsearch.ir.util.Formatter;
 
 /*
+ * 파일을 지속적으로 read line하여 전달해주는 action.
+ * tail를 system.log파일에 걸 경우, 이 action에서 system.log에 기록을 하는 코드가 있으면 무한루프에 빠지기 때문에 여기서는 로거를 사용하지 않는다.
+ * 
+ * tail할 파일의 데이터가 작을 경우 http write시 버퍼크기에 미치지 못해 client쪽에서 데이터가 안보일수 있지만, 차후 로그파일에 몇라인이 기록되면 그때 보인다. 
+ * 이 액션만 http response에 버퍼를 사용하지 않도록 하면 통일성이 깨지므로, 이 현상은 그대로 놔둔다.   
  * */
 @ActionMapping("/management/test/tail")
 public class TestTailAction extends AuthAction {
@@ -33,8 +38,7 @@ public class TestTailAction extends AuthAction {
 
 		}
 		File f = new File(filepath);
-		logger.debug("Tail file = {}", f.getAbsolutePath());
-
+		System.out.println("TestTailAction "+this+" Started!");
 		if (!f.exists()) {
 			return;
 		}
@@ -56,6 +60,7 @@ public class TestTailAction extends AuthAction {
 			while (true) {
 				if ((line = input.readLine()) != null) {
 					byte[] data = (line + linefeed).getBytes(encoding);
+					System.out.println("TestTailAction "+this+" "+line);
 					streamWriter.write(data, 0, data.length);
 				} else {
 					try {
@@ -67,7 +72,7 @@ public class TestTailAction extends AuthAction {
 				}
 			}
 		} catch (IOException e) {
-			logger.error("TestTailAction 에러발생. ", e.getMessage());
+			System.err.println("TestTailAction 에러발생 "+this);
 			return;
 		} finally {
 			if (input != null) {
@@ -78,7 +83,7 @@ public class TestTailAction extends AuthAction {
 			}
 		}
 
-		logger.debug("TestTailAction Finished!");
+		System.out.println("TestTailAction "+this+" Finished!");
 	}
 
 	private void printTailInfoHeader(StreamWriter streamWriter, File f) throws IOException {
