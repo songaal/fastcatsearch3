@@ -170,7 +170,7 @@ public class CollectionSearcher {
 			logger.warn("Collection {} is not indexed!", collectionHandler.collectionId());
 		}
 
-		logger.debug("searchInternal incrementCount > {} ", q);
+//		logger.debug("searchInternal incrementCount > {} ", q);
 		collectionHandler.queryCounter().incrementCount();
 		
 		Schema schema = collectionHandler.schema();

@@ -77,7 +77,7 @@ public class IRService extends AbstractService {
 
 	private AnalyzerFactoryManager analyzerFactoryManager;
 	
-	private Set<String> searchNodeCollectionIdSet; //이 노드가 검색노드인 컬렉션세트.
+	private Set<String> dataNodeCollectionIdSet; //이 노드가 데이터노드인 컬렉션세트. 쿼리 count집계시 사용된다.
 	
 	public IRService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
@@ -103,7 +103,7 @@ public class IRService extends AbstractService {
 			logger.error("[ERROR] 컬렉션리스트 로딩실패. " + e.getMessage(), e);
 		}
 
-		searchNodeCollectionIdSet = new HashSet<String>();
+		dataNodeCollectionIdSet = new HashSet<String>();
 		
 		for (Collection collection : collectionsConfig.getCollectionList()) {
 			try {
@@ -124,9 +124,9 @@ public class IRService extends AbstractService {
 				} else {
 					collectionHandler = new CollectionHandler(collectionContext, analyzerFactoryManager);
 					
-					if(collectionContext.collectionConfig().getSearchNodeList() != null 
-						&& collectionContext.collectionConfig().getSearchNodeList().contains(environment.myNodeId())){
-						searchNodeCollectionIdSet.add(collectionId);
+					if(collectionContext.collectionConfig().getDataNodeList() != null 
+						&& collectionContext.collectionConfig().getDataNodeList().contains(environment.myNodeId())){
+						dataNodeCollectionIdSet.add(collectionId);
 					}
 				}
 
@@ -376,8 +376,8 @@ public class IRService extends AbstractService {
 		}
 	}
 
-	public Set<String> getSearchNodeCollectionIdSet(){
-		return searchNodeCollectionIdSet;
+	public Set<String> getDataNodeCollectionIdS(){
+		return dataNodeCollectionIdSet;
 	}
 	// 모든 컬렉션들의 검색노드들을 모아서 리턴한다.
 	public List<String> getSearchNodeList() {
