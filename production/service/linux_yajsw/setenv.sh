@@ -35,10 +35,10 @@ export conf_file
 conf_default_file="$yajsw_home"/wrapper.conf.default
 export conf_default_file
 
-source ../../exec/searchenv.sh
+source ../../bin/searchenv.sh
 
 confPath=`pwd`
 
-java -classpath ../yajsw_conf.jar com.websqrd.fastcat.yajsw.ConfWriter "$confPath"/wrapper.conf ../../ "$yajsw_java_options" "$yajsw_account_user" "$yajsw_account_password"
+java -classpath ../fastcatsearch-yajsw.jar org.fastcatsearch.yajsw.ConfWriter "$confPath"/wrapper.conf ../../ "$yajsw_java_options" "$yajsw_account_user" "$yajsw_account_password"
 
 chmod +x wrapper.sh

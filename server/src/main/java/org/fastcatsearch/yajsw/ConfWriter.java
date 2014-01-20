@@ -108,7 +108,7 @@ public class ConfWriter {
 			}
 		}
 		//-Dserver.home은 homeDir으로 설정해준다.
-		p.setProperty("wrapper.java.additional."+inx, "-Dserver.home="+homeDirPath);
+		p.setProperty("wrapper.app.parameter."+inx, homeDirPath);
 		inx++;
 		//-Dderby.stream.error.file은 logs/db.log로 설정해준다.
 		p.setProperty("wrapper.java.additional."+inx, "-Dderby.stream.error.file="+homeDirPath+FS+"logs"+FS+"db.log");
