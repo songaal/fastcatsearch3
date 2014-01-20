@@ -62,15 +62,14 @@ public class CollectionQueryCountService extends AbstractService {
 	protected boolean doStart() throws FastcatSearchException {
 
 		IRService irService = serviceManager.getService(IRService.class);
-		Set<String> collectionIdSet = irService.getSearchNodeCollectionIdSet();
-		boolean isSearchNode = collectionIdSet.size() > 0;
+		Set<String> collectionIdSet = irService.getDataNodeCollectionIdS();
+		boolean isDataNode = collectionIdSet.size() > 0;
 
 		int period = 1000; // 1초.
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.MILLISECOND, 0);
 		cal.add(Calendar.SECOND, 1);
 		if (environment.isMasterNode()) {
-
 			aggregateModule.load();
 
 			aggregateTimer = new Timer("CollectionQueryCountAggregateTimer", true);
@@ -79,7 +78,8 @@ public class CollectionQueryCountService extends AbstractService {
 			aggregateTimer.scheduleAtFixedRate(new AggregateCountTask(), cal.getTime(), period);
 		}
 
-		if (isSearchNode) {
+		if (isDataNode) {
+			logger.info("This is data node for {}", collectionIdSet);
 			// 1초 단위로 report하는 timertask를 시작한다.
 			reportTimer = new Timer("CollectionQueryCountReportTimer", true);
 			reportTimer.scheduleAtFixedRate(new ReportCountTask(), cal.getTime(), period);
@@ -117,22 +117,26 @@ public class CollectionQueryCountService extends AbstractService {
 
 		@Override
 		public void run() {
-			// logger.debug("RUN ReportCountTask");
 			NodeService nodeService = serviceManager.getService(NodeService.class);
 			IRService irService = serviceManager.getService(IRService.class);
 
 			RealtimeQueryCountModule module = irService.queryCountModule();
-			Set<String> collectionIdSet = irService.getSearchNodeCollectionIdSet();
+			Set<String> collectionIdSet = irService.getDataNodeCollectionIdS();
 
 			Map<String, Integer> result = new HashMap<String, Integer>(collectionIdSet.size());
 			for (String collectionId : collectionIdSet) {
 				int count = module.getQueryCount(collectionId);
-				result.put(collectionId, count);
-				// logger.debug("##[REPORT] search count {} > {}", collectionId, count);
+				if(count > 0){
+					result.put(collectionId, count);
+//					logger.debug("##[REPORT] search count {} > {}", collectionId, count);
+				}
 			}
-			ReportQueryCountJob job = new ReportQueryCountJob(result);
-			job.setNoResult();
-			nodeService.sendRequestToMaster(job);
+			//모두 0이면 보내지 않는다.
+			if(result.size() > 0){
+				ReportQueryCountJob job = new ReportQueryCountJob(result);
+				job.setNoResult();
+				nodeService.sendRequestToMaster(job);
+			}
 		}
 
 	}
@@ -173,6 +177,7 @@ public class CollectionQueryCountService extends AbstractService {
 
 		@Override
 		public JobResult doRun() throws FastcatSearchException {
+			logger.info("ReportQueryCountJob > {}", args);
 			Map<String, Integer> result = (Map<String, Integer>) args;
 			CollectionQueryCountService collectionQueryCountService = ServiceManager.getInstance().getService(CollectionQueryCountService.class);
 			for (Entry<String, Integer> entry : result.entrySet()) {

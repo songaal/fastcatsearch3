@@ -25,8 +25,6 @@ public class AsynchronousCounter implements Counter {
 	@Override
 	public void incrementCount(){
 		int c = runningCount.incrementAndGet();
-		logger.debug("##search count >> {}", c);
-		
 	}
 	
 	public void addCount(int count){

@@ -108,6 +108,7 @@ public class ClusterSearchJob extends Job {
 				if (dataNode == null) {
 					// 적합한 살아있는 노드를 찾지못함.
 					logger.error("Not Found Node for {}", id);
+					continue;
 				}
 				selectedNodeList[i] = dataNode;
 
