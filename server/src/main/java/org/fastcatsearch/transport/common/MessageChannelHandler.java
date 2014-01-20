@@ -132,7 +132,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
 			String jobName = input.readString();
 			boolean isNoResult = input.readBoolean();
 			boolean isScheduled = input.readBoolean();
-			// logger.debug("#### READ job = {}", jobName);
+			 logger.debug("#### READ job = {}", jobName);
 			Job requestJob = DynamicClassLoader.loadObject(jobName, Job.class);
 			requestJob.setEnvironment(environment);
 			if (isNoResult) {
