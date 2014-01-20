@@ -57,7 +57,6 @@ fi
 
 
 if [ "$1" = "run" ] ; then
-	exec < $LOGS/system.log
 	java -Dserver.home=$SERVER_HOME $JVM_OPTS $JAVA_OPTS -classpath $LIB/fastcatsearch-server-bootstrap.jar org.fastcatsearch.server.Bootstrap start
 
 elif [ "$1" = "start" ] || [ "$1" = "debug" ] || [ "$1" = "profile" ] ; then
