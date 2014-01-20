@@ -49,9 +49,10 @@ public class GetPluginAnalyzerList extends AuthAction {
 				.key("analyzer").array();
 				
 				for(Analyzer analyzer : analyzerList) {
-					responseWriter
+					responseWriter.object()
 						.key("id").value(analyzer.getId())
-						.key("name").value(analyzer.getName());
+						.key("name").value(analyzer.getName())
+						.endObject();
 				}
 				responseWriter.endArray();
 				responseWriter.endObject();

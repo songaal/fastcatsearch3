@@ -13,8 +13,6 @@ import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.management.JvmCpuInfo;
-import org.fastcatsearch.management.JvmMemoryInfo;
 import org.fastcatsearch.management.SystemInfoService;
 import org.fastcatsearch.notification.NotificationService;
 import org.fastcatsearch.service.AbstractService;
@@ -38,24 +36,29 @@ public class GetModuleStateAction extends AuthAction {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
-		
-		ServiceManager serviceManager = ServiceManager.getInstance();
-		
-		AbstractService service = null;
-		
-		Writer writer = response.getWriter();
-		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
-		resultWriter.object().array();
-		for(Class<? extends AbstractService> cls : classes) {
-			String[] fqdn = cls.getName().split("[.]");
-			String className = fqdn[fqdn.length-1];
-			service = serviceManager.getService(cls);
-			resultWriter
-				.key("name").value(className)
-				.key("status").value(service.isRunning());
+		try {
+			
+			ServiceManager serviceManager = ServiceManager.getInstance();
+			
+			AbstractService service = null;
+			
+			Writer writer = response.getWriter();
+			ResponseWriter resultWriter = getDefaultResponseWriter(writer);
+			resultWriter.object().key("moduleState").array();
+			for(Class<? extends AbstractService> cls : classes) {
+				String[] fqdn = cls.getName().split("[.]");
+				String className = fqdn[fqdn.length-1];
+				service = serviceManager.getService(cls);
+				resultWriter.object()
+					.key("name").value(className)
+					.key("status").value(service.isRunning())
+					.endObject();
+			}
+			resultWriter .endArray()
+			.endObject()
+			.done();
+		} catch (Exception e) {
+			logger.error("", e);
 		}
-		resultWriter .endArray()
-		.endObject()
-		.done();
 	}
 }

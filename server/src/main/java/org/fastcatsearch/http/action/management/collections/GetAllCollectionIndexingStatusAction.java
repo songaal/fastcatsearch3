@@ -71,7 +71,7 @@ public class GetAllCollectionIndexingStatusAction extends AuthAction {
 		
 		responseWriter.key("nodeId").value(nodeId);
 		
-		responseWriter.key("dataNode").array();
+		responseWriter.key("indexingState").array();
 		for (int i = 0; i < indexingDataInfoList.size(); i++) {
 			
 			String collectionId = collectionList.get(i).getId();
