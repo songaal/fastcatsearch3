@@ -177,7 +177,7 @@ public class CollectionQueryCountService extends AbstractService {
 
 		@Override
 		public JobResult doRun() throws FastcatSearchException {
-			logger.info("ReportQueryCountJob > {}", args);
+//			logger.debug("ReportQueryCountJob > {}", args);
 			Map<String, Integer> result = (Map<String, Integer>) args;
 			CollectionQueryCountService collectionQueryCountService = ServiceManager.getInstance().getService(CollectionQueryCountService.class);
 			for (Entry<String, Integer> entry : result.entrySet()) {
