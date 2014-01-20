@@ -2,6 +2,7 @@ package org.fastcatsearch.service;
 
 import java.lang.reflect.Constructor;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.fastcatsearch.env.Environment;
@@ -64,5 +65,8 @@ public class ServiceManager {
 			return false;
 		}
 	}
-
+	
+	public Set<Class<?>> getServiceClasses() {
+		return serviceMap.keySet();
+	}
 }
