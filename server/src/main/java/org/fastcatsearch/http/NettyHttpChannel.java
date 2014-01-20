@@ -32,6 +32,7 @@ import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.slf4j.Logger;
@@ -44,23 +45,28 @@ public class NettyHttpChannel implements HttpChannel {
 	private static final Logger logger = LoggerFactory.getLogger(NettyHttpChannel.class);
 
 	private final Channel channel;
-	private final org.jboss.netty.handler.codec.http.HttpRequest request;
+	private final HttpRequest request;
 
-	public NettyHttpChannel(Channel channel, org.jboss.netty.handler.codec.http.HttpRequest request) {
+	public NettyHttpChannel(Channel channel, HttpRequest request) {
 		this.channel = channel;
 		this.request = request;
 	}
 
-	public void sendResponse(ActionResponse response) {
+	@Override
+	public Channel channel() {
+		return channel;
+	}
 
+	@Override
+	public void sendHeader(ActionResponse response) {
 		// Decide whether to close the connection or not.
 		boolean http10 = request.getProtocolVersion().equals(HttpVersion.HTTP_1_0);
 		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.CONNECTION))
 				|| (http10 && !HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.CONNECTION)));
 
 		// Build the response object.
-		HttpResponseStatus status = response.status();
-		org.jboss.netty.handler.codec.http.HttpResponse resp;
+		HttpResponseStatus status = HttpResponseStatus.OK;
+		HttpResponse resp = null;
 		if (http10) {
 			resp = new DefaultHttpResponse(HttpVersion.HTTP_1_0, status);
 			if (!close) {
@@ -70,13 +76,54 @@ public class NettyHttpChannel implements HttpChannel {
 			resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1, status);
 		}
 
-		if(response.responseCookie() != null){
+		if (response.responseCookie() != null) {
 			resp.addHeader(HttpHeaders.Names.COOKIE, response.responseCookie());
 		}
-		if(response.responseSetCookie() != null){
+		if (response.responseSetCookie() != null) {
 			resp.addHeader(HttpHeaders.Names.SET_COOKIE, response.responseSetCookie());
 		}
+		resp.setHeader(HttpHeaders.Names.CONTENT_TYPE, response.contentType());
+	}
+
+	@Override
+	public void close() {
+		boolean http10 = request.getProtocolVersion().equals(HttpVersion.HTTP_1_0);
+		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.CONNECTION))
+				|| (http10 && !HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.CONNECTION)));
+		logger.debug("netty http close = {}", close);
 		
+		if (close) {
+			channel.close();
+		}
+	}
+
+	@Override
+	public void sendResponse(ActionResponse response) {
+
+		// Decide whether to close the connection or not.
+		boolean http10 = request.getProtocolVersion().equals(HttpVersion.HTTP_1_0);
+		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.CONNECTION))
+				|| (http10 && !HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.CONNECTION)));
+
+		// Build the response object.
+		HttpResponseStatus status = response.status();
+		HttpResponse resp = null;
+		if (http10) {
+			resp = new DefaultHttpResponse(HttpVersion.HTTP_1_0, status);
+			if (!close) {
+				resp.addHeader(HttpHeaders.Names.CONNECTION, "Keep-Alive");
+			}
+		} else {
+			resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1, status);
+		}
+
+		if (response.responseCookie() != null) {
+			resp.addHeader(HttpHeaders.Names.COOKIE, response.responseCookie());
+		}
+		if (response.responseSetCookie() != null) {
+			resp.addHeader(HttpHeaders.Names.SET_COOKIE, response.responseSetCookie());
+		}
+
 		if (!response.isEmpty()) {
 			ChannelBuffer buf = null;
 			if (response.contentThreadSafe()) {
@@ -99,6 +146,7 @@ public class NettyHttpChannel implements HttpChannel {
 		}
 	}
 
+	@Override
 	public void sendError(HttpResponseStatus status, Throwable throwable) {
 		// Decide whether to close the connection or not.
 		boolean http10 = request.getProtocolVersion().equals(HttpVersion.HTTP_1_0);
@@ -106,7 +154,7 @@ public class NettyHttpChannel implements HttpChannel {
 				|| (http10 && !HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.CONNECTION)));
 
 		// Build the response object.
-		org.jboss.netty.handler.codec.http.HttpResponse resp;
+		HttpResponse resp = null;
 		if (http10) {
 			resp = new DefaultHttpResponse(HttpVersion.HTTP_1_0, status);
 			if (!close) {
@@ -134,25 +182,16 @@ public class NettyHttpChannel implements HttpChannel {
 
 	private String getErrorHtml(HttpResponseStatus status, Throwable throwable) {
 		String stackTrace = null;
-		if(throwable != null){
+		if (throwable != null) {
 			StringWriter sw = new StringWriter();
 			PrintWriter s = new PrintWriter(sw);
 			throwable.printStackTrace(s);
 			stackTrace = sw.toString();
 		}
-		return "<html>\n" + 
-				"<head>\n" + 
-				"<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"/>\n" + 
-				"<title>Error "+status.toString()+"</title>\n" + 
-				"</head>\n" + 
-				"<body>\n" + 
-				"<h2>HTTP ERROR: "+status.getCode()+"</h2>\n" + 
-				"<p>Problem accessing ["+request.getMethod()+"]"+request.getUri()+". Reason:\n" + 
-				"<pre>    "+status.getReasonPhrase() +
-				(stackTrace != null ? "\n\n"+stackTrace : "")+"</pre></p>\n" + 
-				"<hr /><i><small>Powered by FastcatSearch</small></i>\n" + 
-				"</body>\n" + 
-				"</html>";
+		return "<html>\n" + "<head>\n" + "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"/>\n" + "<title>Error " + status.toString() + "</title>\n"
+				+ "</head>\n" + "<body>\n" + "<h2>HTTP ERROR: " + status.getCode() + "</h2>\n" + "<p>Problem accessing [" + request.getMethod() + "]" + request.getUri()
+				+ ". Reason:\n" + "<pre>    " + status.getReasonPhrase() + (stackTrace != null ? "\n\n" + stackTrace : "") + "</pre></p>\n"
+				+ "<hr /><i><small>Powered by FastcatSearch</small></i>\n" + "</body>\n" + "</html>";
 	}
 
 }

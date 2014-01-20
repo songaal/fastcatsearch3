@@ -1,11 +1,13 @@
 package org.fastcatsearch.http.action;
 
 import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
 
+import org.fastcatsearch.http.HttpChannel;
 import org.fastcatsearch.ir.io.ByteRefArrayOutputStream;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
@@ -17,14 +19,19 @@ public class ActionResponse {
 	private ByteRefArrayOutputStream baos;
 	private boolean isEmpty;
 
+	private HttpChannel httpChannel;
+	
 	private String responseCookie;
 	private String responseSetCookie;
 
-	public ActionResponse() {
-	}
-
-	public void init() {
-		baos = new ByteRefArrayOutputStream();
+	//스트림연결인지.
+	private boolean isStreamResult;
+	//객체유지용.
+	private Writer writer;
+	private StreamWriter streamWriter;
+	
+	public ActionResponse(HttpChannel httpChannel) {
+		this.httpChannel = httpChannel;
 	}
 
 	public void setContentType(String contentType) {
@@ -60,12 +67,33 @@ public class ActionResponse {
 	}
 
 	public OutputStream getOutputStream() {
+		if(baos == null){
+			baos = new ByteRefArrayOutputStream();
+		}
 		return baos;
 	}
 
+	public HttpChannel getChannel(){
+		return httpChannel;
+	}
+	
 	public Writer getWriter() {
-		return new BufferedWriter(new OutputStreamWriter(baos, charset));
+		if(writer == null){
+			if(baos == null){
+				baos = new ByteRefArrayOutputStream();
+			}
+			writer = new BufferedWriter(new OutputStreamWriter(baos, charset));
+		}
+		
+		return writer;
+	}
 
+	public StreamWriter getStreamWriter() {
+		if(streamWriter == null){
+			streamWriter = new StreamWriter(httpChannel);
+		}
+		isStreamResult = true;
+		return streamWriter;
 	}
 
 	public byte[] content() {
@@ -96,4 +124,20 @@ public class ActionResponse {
 		return false;
 	}
 
+	public void done() throws IOException{
+		if(isStreamResult) {
+			streamWriter.close();
+		}else{
+			httpChannel.sendResponse(this);
+		}
+	}
+	
+	public void error(Throwable e){
+		if(isStreamResult) {
+			httpChannel.channel().write(e.toString());
+			httpChannel.channel().close();
+		}else{
+			httpChannel.sendError(HttpResponseStatus.INTERNAL_SERVER_ERROR, e);
+		}
+	}
 }

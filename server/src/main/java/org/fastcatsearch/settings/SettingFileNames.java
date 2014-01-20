@@ -2,14 +2,14 @@ package org.fastcatsearch.settings;
 
 public class SettingFileNames {
 	
-	/*
+	/**
 	 * conf/ 하위 setting들.
 	 * */
 	public static final String idProperties = "id.properties";
 	public static final String systemProperties = "system.properties";
 	public static final String nodeListSettings = "node-list.xml";
 	
-	/*
+	/**
 	 * collection하위 setting들.
 	 * */
 	public static final String collections = "collections.xml";
@@ -26,4 +26,10 @@ public class SettingFileNames {
 	public static final String scheduleConfig = "schedule.xml";
 	public static final String statisticsConfig = "statistics.xml";
 	public static final String keywordServiceConfig = "keyword-service.xml";
+	
+	/**
+	 * plugin 하위 setting들.
+	 * 
+	 * */
+	public static final String pluginConfig = "plugin.xml";
 }

@@ -64,7 +64,9 @@ public class TaskStateService extends AbstractService {
 
 	@Override
 	protected boolean doClose() throws FastcatSearchException {
-		map.clear();
+		if (map != null) {
+			map.clear();
+		}
 		reportTimer = null;
 		return true;
 	}

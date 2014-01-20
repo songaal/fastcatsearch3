@@ -53,8 +53,7 @@ public abstract class Job implements Runnable, Serializable {
 	}
 
 	public String toString() {
-		return "[Job] jobId = " + jobId + ", " + getClass().getSimpleName() + ", args = " + args + ", isScheduled=" + isScheduled + ", noResult="
-				+ noResult;
+		return "[Job] jobId = " + jobId + ", " + getClass().getSimpleName() + ", args = " + args + ", isScheduled=" + isScheduled + ", noResult=" + noResult;
 	}
 
 	public void setId(long jobId) {
@@ -125,30 +124,32 @@ public abstract class Job implements Runnable, Serializable {
 		startTime = System.currentTimeMillis();
 		JobResult jobResult = null;
 		try {
-			if(this instanceof MasterNodeJob){
-				if(!environment.isMasterNode()){
-					//실행하면 안된다.
+			if (this instanceof MasterNodeJob) {
+				if (!environment.isMasterNode()) {
+					// 실행하면 안된다.
 					throw new RuntimeException("Cannot execute MasterNodeJob on other node : " + environment.myNodeId());
 				}
 			}
 			jobResult = doRun();
 
-			if (jobId != -1) {
+			if (!isNoResult()) {
+				if (jobId != -1) {
 
-				// logger.debug("Job#{} result = {}", jobId, jobResult);
-				jobExecutor.result(this, jobResult.result, jobResult.isSuccess);
+					// logger.debug("Job#{} result = {}", jobId, jobResult);
+					jobExecutor.result(this, jobResult.result, jobResult.isSuccess);
 
-				Object result = jobResult.result;
-				if (result != null && result instanceof Throwable) {
-					// 다른 서버에서 발생한 에러의 경우는 예외가 result에 담겨있다.
-					throw (Throwable) result;
+					Object result = jobResult.result;
+					if (result != null && result instanceof Throwable) {
+						// 다른 서버에서 발생한 에러의 경우는 예외가 result에 담겨있다.
+						throw (Throwable) result;
+					}
+				} else {
+					logger.error("## 결과에 jobId가 없습니다. job={}, result={}", this, jobResult);
+					throw new FastcatSearchException("ERR-00110");
 				}
-			} else {
-				logger.error("## 결과에 jobId가 없습니다. job={}, result={}", this, jobResult);
-				throw new FastcatSearchException("ERR-00110");
 			}
 		} catch (Throwable e) {
-			logger.error("", e);
+			logger.error("error at " + getClass().getName() + " " + args, e);
 			ClusterAlertService clusterAlertService = ServiceManager.getInstance().getService(ClusterAlertService.class);
 			clusterAlertService.alert(e);
 			jobExecutor.result(this, e, false);

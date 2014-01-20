@@ -42,8 +42,8 @@ public class HttpActionCloneTest {
 		long st = System.nanoTime();
 		TestAction action = new TestAction();
 		ActionRequest req = new ActionRequest("", new DefaultHttpRequest(HttpVersion.HTTP_1_0, HttpMethod.POST, "aaa"));
-		ActionResponse res = new ActionResponse();
-		action.init(Type.xml, req, res, null, null);
+		ActionResponse res = new ActionResponse(null);
+		action.init(Type.xml, req, res, null);
 		for (int i = 0; i < count; i++) {
 			TestAction a2= (TestAction) action.clone();
 		}

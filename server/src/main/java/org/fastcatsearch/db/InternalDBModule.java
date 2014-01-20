@@ -104,14 +104,14 @@ public class InternalDBModule extends AbstractModule {
 	
 	@Override
 	protected boolean doUnload() throws ModuleException {
-		try {
+//		try {
 			logger.info(getClass().getSimpleName()+"[{}] Unloaded!, sqlSessionFactory = {}", dbPath, sqlSessionFactory);
-			DriverManager.getConnection(dbPath+";shutdown=true", "","");
-		} catch (SQLException e) {
+//			DriverManager.getConnection(dbPath+";shutdown=true", "","");
+//		} catch (SQLException e) {
 			//shutdown되면 SQLException을 던지므로 OK.
-			logger.error("{}", e.getMessage());
-			return true;
-		}
+//			logger.info("{}", e.getMessage());
+//			return true;
+//		}
 		return true;
 	}
 

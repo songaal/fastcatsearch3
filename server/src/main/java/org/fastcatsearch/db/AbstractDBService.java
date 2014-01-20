@@ -31,16 +31,16 @@ public abstract class AbstractDBService extends AbstractService {
 
 	protected InternalDBModule internalDBModule;
 	private Class<?>[] mapperList;
-	
+
 	public AbstractDBService(String dbPath, Class<?>[] mapperList, Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
 		this.mapperList = mapperList;
 		String absoluteDbPath = environment.filePaths().file(dbPath).getAbsolutePath();
-		//system관련 mapper설정.
+		// system관련 mapper설정.
 		List<URL> mapperFileList = new ArrayList<URL>();
-		for(Class<?> mapperDAO : mapperList){
+		for (Class<?> mapperDAO : mapperList) {
 			try {
-				String mapperFilePath = mapperDAO.getName().replace('.', '/') +".xml";
+				String mapperFilePath = mapperDAO.getName().replace('.', '/') + ".xml";
 				URL mapperFile = Resources.getResourceURL(mapperFilePath);
 				mapperFileList.add(mapperFile);
 			} catch (IOException e) {
@@ -48,58 +48,64 @@ public abstract class AbstractDBService extends AbstractService {
 			}
 		}
 		internalDBModule = new InternalDBModule(absoluteDbPath, mapperFileList, environment, settings);
-		
+
 	}
-	
-	public InternalDBModule internalDBModule(){
+
+	public InternalDBModule internalDBModule() {
 		return internalDBModule;
 	}
-	public <T> MapperSession<T> getMapperSession(Class<T> type){
+
+	public <T> MapperSession<T> getMapperSession(Class<T> type) {
 		SqlSession session = internalDBModule.openSession();
 		return new MapperSession<T>(session, session.getMapper(type));
-		
+
 	}
-	
+
 	@Override
 	protected boolean doStart() throws FastcatSearchException {
 		internalDBModule.load();
-		for(Class<?> mapperDAO : mapperList){
+		for (Class<?> mapperDAO : mapperList) {
 			Class<? extends ManagedMapper> clazz = (Class<? extends ManagedMapper>) mapperDAO;
 			MapperSession<? extends ManagedMapper> mapperSession = (MapperSession<? extends ManagedMapper>) getMapperSession(clazz);
-			ManagedMapper managedMapper = mapperSession.getMapper();
-			try{
-				logger.debug("valiadte {}", clazz.getSimpleName());
-				managedMapper.validateTable();
-			}catch(Exception e){
-				try{
-					logger.debug("drop {}", clazz.getSimpleName());
-					managedMapper.dropTable();
-					mapperSession.commit();
-				}catch(Exception ignore){
+			try {
+				ManagedMapper managedMapper = mapperSession.getMapper();
+				try {
+					logger.debug("valiadte {}", clazz.getSimpleName());
+					managedMapper.validateTable();
+				} catch (Exception e) {
+					try {
+						logger.debug("drop {}", clazz.getSimpleName());
+						managedMapper.dropTable();
+						mapperSession.commit();
+					} catch (Exception ignore) {
+					}
+					try {
+						logger.debug("create table {}", clazz.getSimpleName());
+						managedMapper.createTable();
+						mapperSession.commit();
+						logger.debug("create index {}", clazz.getSimpleName());
+						managedMapper.createIndex();
+						mapperSession.commit();
+
+						initMapper(managedMapper);
+
+					} catch (Exception e2) {
+						logger.error("", e2);
+					}
 				}
-				try{
-					logger.debug("create table {}", clazz.getSimpleName());
-					managedMapper.createTable();
-					mapperSession.commit();
-					logger.debug("create index {}", clazz.getSimpleName());
-					managedMapper.createIndex();
-					mapperSession.commit();
-					
-					initMapper(managedMapper);
-					
-				}catch(Exception e2){
-					logger.error("", e2);
+			} finally {
+				if (mapperSession != null) {
+					mapperSession.closeSession();
 				}
 			}
-			mapperSession.closeSession();
-			
+
 		}
-		
+
 		return true;
 	}
 
 	protected abstract void initMapper(ManagedMapper managedMapper) throws Exception;
-	
+
 	@Override
 	protected boolean doStop() throws FastcatSearchException {
 		try {
@@ -110,7 +116,6 @@ public abstract class AbstractDBService extends AbstractService {
 		}
 		return true;
 	}
-
 
 	@Override
 	protected boolean doClose() throws FastcatSearchException {

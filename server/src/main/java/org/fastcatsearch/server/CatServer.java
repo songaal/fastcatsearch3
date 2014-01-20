@@ -36,7 +36,6 @@ import org.fastcatsearch.service.ServiceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class CatServer {
 
 	private ServiceManager serviceManager;
@@ -54,13 +53,13 @@ public class CatServer {
 	private static volatile CountDownLatch keepAliveLatch;
 	private FileLock fileLock;
 	private File lockFile;
-	
+
 	public static void main(String... args) throws FastcatSearchException {
 		if (args.length < 1) {
 			usage();
 			return;
 		}
-		
+
 		CatServer server = new CatServer(args[0]);
 		if (server.load(args)) {
 			server.start();
@@ -90,15 +89,16 @@ public class CatServer {
 		this.serverHome = serverHome;
 	}
 
-	public boolean load(){
+	public boolean load() {
 		return load(null);
 	}
+
 	public boolean load(String[] args) {
 
 		boolean isConfig = false;
 
-		//load 파라미터는 없을수도 있다.
-		if(args != null){
+		// load 파라미터는 없을수도 있다.
+		if (args != null) {
 			for (int i = 0; i < args.length; i++) {
 				if (isConfig) {
 					isConfig = false;
@@ -110,7 +110,7 @@ public class CatServer {
 				}
 			}
 		}
-		
+
 		setKeepAlive(true);
 		return true;
 
@@ -118,12 +118,9 @@ public class CatServer {
 
 	protected static void usage() {
 
-        System.out.println
-            ("usage: java "+ CatServer.class.getName()
-             + " [ -help -config ]"
-             + " {HomePath}");
+		System.out.println("usage: java " + CatServer.class.getName() + " [ -help -config ]" + " {HomePath}");
 
-    }
+	}
 
 	public void start() throws FastcatSearchException {
 		// 초기화 및 서비스시작을 start로 옮김.
@@ -144,29 +141,30 @@ public class CatServer {
 			System.exit(1);
 		}
 
-		lockFile = new File(serverHome, ".lock");
-		try {
-			FileChannel channel = new RandomAccessFile(lockFile, "rw").getChannel();
-			fileLock = channel.tryLock();
-		} catch (IOException e) {
-			System.err.println("Error! Cannot create lock file \"" + lockFile.getAbsolutePath() + "\".");
-			System.exit(1);
+		if (fileLock == null) {
+			lockFile = new File(serverHome, ".lock");
+			try {
+				FileChannel channel = new RandomAccessFile(lockFile, "rw").getChannel();
+				fileLock = channel.tryLock();
+			} catch (IOException e) {
+				System.err.println("Error! Cannot create lock file \"" + lockFile.getAbsolutePath() + "\".");
+				System.exit(1);
+			}
+
+			if (fileLock == null) {
+				System.err.println("Error! Another instance of CatServer is running at home path = " + serverHome);
+				System.exit(1);
+			}
 		}
-		
-		if(fileLock == null){
-			System.err.println("Error! Another instance of CatServer is running at home path = " + serverHome);
-			System.exit(1);
-		}
-		
 		Environment environment = new Environment(serverHome).init();
 		logger = LoggerFactory.getLogger(CatServer.class);
 		logger.info("File lock > {}", lockFile.getAbsolutePath());
-		
+
 		this.serviceManager = new ServiceManager(environment);
 		serviceManager.asSingleton();
 
 		PluginService pluginService = serviceManager.createService("plugin", PluginService.class);
-		
+
 		DBService dbService = serviceManager.createService("db", DBService.class);
 		dbService.asSingleton();
 		JobService jobService = serviceManager.createService("job", JobService.class);
@@ -183,51 +181,50 @@ public class CatServer {
 		ProcessLoggerService processLoggerService = serviceManager.createService("processlogger", ProcessLoggerService.class);
 		TaskStateService taskStateService = serviceManager.createService("taskstate", TaskStateService.class);
 		CollectionQueryCountService collectionQueryCountService = serviceManager.createService("query_count", CollectionQueryCountService.class);
-		
+
 		logger.info("ServerHome = {}", serverHome);
 		try {
-			
-			//plugin은 여타service보다 먼저 시작되어야한다.
+
+			// plugin은 여타service보다 먼저 시작되어야한다.
 			pluginService.start();
 			dbService.start();
-			
+
 			jobService.start();
 			nodeService.start();
-			
+
 			irService.start();
 			systemInfoService.start();
-			
+
 			httpRequestService.start();
-			
+
 			notificationService.start();
 			clusterAlertService.start();
 			processLoggerService.start();
 			taskStateService.start();
-			
+
 			collectionQueryCountService.start();
-			
-			//서비스가 모두 뜬 상태에서 후속작업.
-			if(environment.isMasterNode()){
+
+			// 서비스가 모두 뜬 상태에서 후속작업.
+			if (environment.isMasterNode()) {
 				pluginService.loadAction();
 				pluginService.loadSchedule();
 			}
-			//색인 스케쥴등록.
-			if(environment.isMasterNode()){
+			// 색인 스케쥴등록.
+			if (environment.isMasterNode()) {
 				irService.reloadAllSchedule();
 			}
-			
+
 		} catch (FastcatSearchException e) {
 			logger.error("CatServer 시작에 실패했습니다.", e);
 			stop();
 		}
 
 		irService.registerLoadBanlancer(nodeService);
-		
-		
+
 		if (shutdownHook == null) {
 			shutdownHook = new ServerShutdownHook();
+			Runtime.getRuntime().addShutdownHook(shutdownHook);
 		}
-		Runtime.getRuntime().addShutdownHook(shutdownHook);
 
 		startTime = System.currentTimeMillis();
 
@@ -240,64 +237,74 @@ public class CatServer {
 	}
 
 	private void setKeepAlive() {
-		keepAliveLatch = new CountDownLatch(1);
+		// keepAliveLatch 가 null일때만 실행되면, restart의 경우 이미 keep alive이므로 재실행하지 않는다.
+		if (keepAliveLatch == null) {
+			keepAliveLatch = new CountDownLatch(1);
 
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				keepAliveLatch.countDown();
-			}
-		});
-
-		keepAliveThread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					keepAliveLatch.await();
-				} catch (InterruptedException e) {
-					// bail out
+			keepAliveThread = new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						keepAliveLatch.await();
+					} catch (InterruptedException e) {
+						// bail out
+					}
 				}
+			}, "CatServer[keepAlive]");
+			keepAliveThread.setDaemon(false);
+			keepAliveThread.start();
+		}
+	}
+
+	public void restart() throws FastcatSearchException {
+		logger.info("Restart CatServer!");
+
+		stop();
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException ignore) {
+			// Thread가 인터럽트 걸리므로 한번더 시도.
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException ignore2) {
 			}
-		}, "CatServer[keepAlive]");
-		keepAliveThread.setDaemon(false);
-		keepAliveThread.start();
+		}
+		start();
 
 	}
 
 	public void stop() throws FastcatSearchException {
-		
 		serviceManager.stopService(CollectionQueryCountService.class);
-		
+
 		serviceManager.stopService(TaskStateService.class);
 		serviceManager.stopService(NotificationService.class);
 		serviceManager.stopService(ClusterAlertService.class);
 		serviceManager.stopService(ProcessLoggerService.class);
 
 		serviceManager.stopService(HttpRequestService.class);
-		
+
 		serviceManager.stopService(PluginService.class);
 		serviceManager.stopService(NodeService.class);
 		serviceManager.stopService(SystemInfoService.class);
 		serviceManager.stopService(IRService.class);
 		serviceManager.stopService(JobService.class);
 		serviceManager.stopService(DBService.class);
+
 		logger.info("CatServer shutdown!");
 		isRunning = false;
-
-		// Runtime.getRuntime().removeShutdownHook(shutdownHook);
 	}
 
 	public void close() throws FastcatSearchException {
-		
+
 		serviceManager.closeService(CollectionQueryCountService.class);
-		
+
 		serviceManager.closeService(TaskStateService.class);
 		serviceManager.closeService(NotificationService.class);
 		serviceManager.closeService(ClusterAlertService.class);
 		serviceManager.closeService(ProcessLoggerService.class);
-		
+
 		serviceManager.closeService(HttpRequestService.class);
-		
+
 		serviceManager.closeService(PluginService.class);
 		serviceManager.closeService(NodeService.class);
 		serviceManager.closeService(SystemInfoService.class);
@@ -305,20 +312,20 @@ public class CatServer {
 		serviceManager.closeService(JobService.class);
 		serviceManager.closeService(DBService.class);
 		
-		if(fileLock != null){
+		if (fileLock != null) {
 			try {
 				fileLock.release();
 				logger.info("CatServer Lock Release! {}", fileLock);
 			} catch (IOException e) {
 				logger.error("", e);
 			}
-			
+
 			try {
 				fileLock.channel().close();
 			} catch (Exception e) {
 				logger.error("", e);
 			}
-			
+
 			try {
 				lockFile.delete();
 				logger.info("Remove .lock file >> {}", lockFile.getAbsolutePath());
@@ -326,6 +333,7 @@ public class CatServer {
 				logger.error("", e);
 			}
 		}
+
 	}
 
 	protected class ServerShutdownHook extends Thread {
@@ -336,6 +344,9 @@ public class CatServer {
 				logger.info("Server Shutdown Requested!");
 				CatServer.this.stop();
 				CatServer.this.close();
+				if (keepAliveLatch != null) {
+					keepAliveLatch.countDown();
+				}
 			} catch (Throwable ex) {
 				logger.error("CatServer.shutdownHookFail", ex);
 			} finally {

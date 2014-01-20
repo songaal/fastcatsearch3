@@ -16,14 +16,19 @@ public class NodeHandshakeJob extends Job implements Streamable {
 	private String nodeId;
 	private boolean isRequest;
 	
+	//서비스 포트정보도 함께 전달한다.
+	private int servicePort;
+	
 	public NodeHandshakeJob(){
 	}
-	public NodeHandshakeJob(String nodeId) {
-		this(nodeId, true);
+	public NodeHandshakeJob(String nodeId, int servicePort) {
+		this(nodeId, true, servicePort);
 	}
-	private NodeHandshakeJob(String nodeId, boolean isRequest) {
+	
+	private NodeHandshakeJob(String nodeId, boolean isRequest, int servicePort) {
 		this.nodeId = nodeId;
 		this.isRequest = isRequest;
+		this.servicePort = servicePort;
 	}
 
 	@Override
@@ -37,8 +42,14 @@ public class NodeHandshakeJob extends Job implements Streamable {
 					//make connection if not exist.
 					logger.info("Node {} is set Active!", node);
 					node.setActive();
-					nodeService.sendRequest(node, new NodeHandshakeJob(nodeId, false));
+					node.setServicePort(servicePort);
+					
+					int myServicePort = environment.settingManager().getIdSettings().getInt("servicePort");
+					nodeService.sendRequest(node, new NodeHandshakeJob(nodeId, false, myServicePort));
+				}else{
+					node.setServicePort(servicePort);
 				}
+				
 			}else{
 				logger.info("Node {} is disabled! Cannot accept node request.", node);
 			}
@@ -50,11 +61,13 @@ public class NodeHandshakeJob extends Job implements Streamable {
 	public void readFrom(DataInput input) throws IOException {
 		nodeId = input.readString();
 		isRequest = input.readBoolean();
+		servicePort = input.readInt();
 	}
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
 		output.writeString(nodeId);
 		output.writeBoolean(isRequest);
+		output.writeInt(servicePort);
 	}
 
 	

@@ -81,14 +81,14 @@ public class HttpServiceController {
 			//허용 method가 아니면 null
 			return null;
 		}
-		ActionResponse actionResponse = new ActionResponse();
+		ActionResponse actionResponse = new ActionResponse(httpChannel);
 		HttpSession httpSession = null;
 		if(actionObj instanceof AuthAction || actionObj instanceof LoginAction){
 			//관리용 action일때에만 세션을 확인하고 serviceaction은 세션확인없음.
 			httpSession = httpSessionManager.handleCookie(request, actionResponse);
 		}
 		HttpAction action = actionObj.clone();
-		action.init(contenType, new ActionRequest(uri, request), actionResponse, httpSession, httpChannel);
+		action.init(contenType, new ActionRequest(uri, request), actionResponse, httpSession);
 		return action;
 	}
 

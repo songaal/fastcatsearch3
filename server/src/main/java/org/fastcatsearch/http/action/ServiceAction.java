@@ -26,12 +26,12 @@ public abstract class ServiceAction extends HttpAction {
 		try {
 			doAction(request, response);
 		} catch (Throwable t) {
-			logger.error("", t);
+			logger.error("ServiceAction Error!", t);
 			writeHeader(response);
 			Writer writer = response.getWriter();
 			try {
 				ResponseWriter resultWriter = getDefaultResponseWriter(writer);
-				resultWriter.object().key("success").value(false).key("errorMessage").value(t.getMessage() + ": " + t.getCause()).endObject();
+				resultWriter.object().key("success").value(false).key("errorMessage").value(t.toString()).endObject();
 				resultWriter.done();
 			} finally {
 				writer.close();
