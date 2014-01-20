@@ -12,40 +12,43 @@ import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping(value = "/management/common/modules-running-state", authority = ActionAuthority.Servers, authorityLevel = ActionAuthorityLevel.NONE)
-public class GetModuleStateAction extends AuthAction {
+@ActionMapping(value = "/management/common/update-modules-state", authority = ActionAuthority.Servers, authorityLevel = ActionAuthorityLevel.WRITABLE)
+public class UpdateModuleStateAction extends AuthAction {
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
+		
+		boolean isSuccess = true;
+		
 		try {
-			
+			String action = request.getParameter("action");
 			ServiceManager serviceManager = ServiceManager.getInstance();
-			
 			AbstractService service = null;
 			
-			Writer writer = response.getWriter();
-			
 			String[] classNames = request.getParameter("services","").split(",");
-			ResponseWriter resultWriter = getDefaultResponseWriter(writer);
-			resultWriter.object().key("moduleState").array();
 			for(String className : classNames) {
 				@SuppressWarnings("rawtypes")
 				Class cls = Class.forName(className.trim());
-				String[] fqdn = cls.getName().split("[.]");
-				String serviceName = fqdn[fqdn.length-1];
 				service = serviceManager.getService(cls);
-				resultWriter.object()
-					.key("serviceName").value(serviceName)
-					.key("serviceClass").value(className)
-					.key("status").value(service.isRunning())
-					.endObject();
+				
+				if("stop".equals(action) || "restart".equals(action)) {
+					service.stop();
+				}
+				
+				
+				if("start".equals(action) || "restart".equals(action)) {
+					service.start();
+				}
 			}
-			resultWriter .endArray()
-			.endObject()
-			.done();
 		} catch (Exception e) {
 			logger.error("", e);
+			isSuccess = false;
 		}
+		ResponseWriter responseWriter = getDefaultResponseWriter(response.getWriter());
+		responseWriter.object();
+		responseWriter.key("success").value(isSuccess);
+		responseWriter.endObject();
+		responseWriter.done();
 	}
 }
