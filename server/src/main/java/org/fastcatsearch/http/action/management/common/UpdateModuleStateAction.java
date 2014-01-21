@@ -1,14 +1,15 @@
 package org.fastcatsearch.http.action.management.common;
 
-import java.io.Writer;
-
+import org.fastcatsearch.cluster.Node;
+import org.fastcatsearch.cluster.NodeService;
+import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
-import org.fastcatsearch.service.AbstractService;
+import org.fastcatsearch.job.management.UpdateModuleStateJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
@@ -19,32 +20,30 @@ public class UpdateModuleStateAction extends AuthAction {
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
 		
-		boolean isSuccess = true;
+		boolean isSuccess = false;
+		String nodeId = request.getParameter("nodeId");
+		String action = request.getParameter("action");
+		String classNames = request.getParameter("services","");
 		
-		try {
-			String action = request.getParameter("action");
-			ServiceManager serviceManager = ServiceManager.getInstance();
-			AbstractService service = null;
+		UpdateModuleStateJob job = new UpdateModuleStateJob();
+		
+		job.setAction(action);
+		job.setServiceClasses(classNames);
+		
+		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
+		Node node = nodeService.getNodeById(nodeId);
+		ResultFuture resultFuture = nodeService.sendRequest(node, job);
+		
+		
+		if(resultFuture!=null) {
+		
+			Object obj = resultFuture.take();
 			
-			String[] classNames = request.getParameter("services","").split(",");
-			for(String className : classNames) {
-				@SuppressWarnings("rawtypes")
-				Class cls = Class.forName(className.trim());
-				service = serviceManager.getService(cls);
-				
-				if("stop".equals(action) || "restart".equals(action)) {
-					service.stop();
-				}
-				
-				
-				if("start".equals(action) || "restart".equals(action)) {
-					service.start();
-				}
+			if(Boolean.TRUE.equals(obj)) {
+				isSuccess = true;
 			}
-		} catch (Exception e) {
-			logger.error("", e);
-			isSuccess = false;
 		}
+		
 		ResponseWriter responseWriter = getDefaultResponseWriter(response.getWriter());
 		responseWriter.object();
 		responseWriter.key("success").value(isSuccess);

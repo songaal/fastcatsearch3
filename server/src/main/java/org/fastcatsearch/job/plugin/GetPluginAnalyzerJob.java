@@ -9,6 +9,7 @@ import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.Job;
+import org.fastcatsearch.job.result.BasicStringResult;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.plugin.PluginSetting;
@@ -58,7 +59,7 @@ public class GetPluginAnalyzerJob extends Job implements Streamable {
 				}
 			}
 			stringer.endArray().endObject();
-			PluginAnalyzerResult result = new PluginAnalyzerResult();
+			BasicStringResult result = new BasicStringResult();
 			result.setResult(stringer.toString());
 			
 			return new JobResult(result);
@@ -66,7 +67,6 @@ public class GetPluginAnalyzerJob extends Job implements Streamable {
 			
 		} catch (JSONException e) {
 			logger.debug("error orrurs : {}",e.getMessage());
-			
 		} finally {
 		}
 		return new JobResult(false);
@@ -77,29 +77,4 @@ public class GetPluginAnalyzerJob extends Job implements Streamable {
 
 	@Override
 	public void writeTo(DataOutput output) throws IOException { }
-	
-	public static class PluginAnalyzerResult implements Streamable {
-		
-		private String result;
-		public PluginAnalyzerResult() { }
-		
-		public void setResult(String result) {
-			this.result = result;
-		}
-		
-		public String getResult() {
-			return result;
-		}
-	
-		@Override
-		public void readFrom(DataInput input) throws IOException {
-			result = input.readString();
-		}
-	
-		@Override
-		public void writeTo(DataOutput output) throws IOException {
-			output.writeString(result);
-			
-		}
-	}
 }
