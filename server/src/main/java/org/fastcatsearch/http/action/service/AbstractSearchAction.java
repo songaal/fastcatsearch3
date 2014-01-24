@@ -15,8 +15,12 @@ import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractSearchAction extends ServiceAction {
+	
+	private static final Logger requestLogger = LoggerFactory.getLogger("REQUEST_LOG");
 
 	private static AtomicLong taskSeq = new AtomicLong();
 	
@@ -56,13 +60,14 @@ public abstract class AbstractSearchAction extends ServiceAction {
 
 	@Override
 	public void doAction(ActionRequest request, ActionResponse response) throws Exception {
+		long requestId = getRequestId();
+		requestLogger.info("request id:{} uri:{} param:{}", requestId, request.uri(), request.getParameterString());
 		logger.debug("request.getParameterMap() >> {}", request.getParameterMap());
 		QueryMap queryMap = new QueryMap(request.getParameterMap());
 		logger.debug("queryMap tostring>> {}", queryMap);
 		Integer timeout = request.getIntParameter("timeout", DEFAULT_TIMEOUT);
 		String responseCharset = request.getParameter("responseCharset", DEFAULT_CHARSET);
 		writeHeader(response, responseCharset);
-		long requestId = getRequestId();
 
 		logger.debug("queryMap = {}", queryMap);
 		logger.debug("timeout = {} s", timeout);
@@ -75,6 +80,7 @@ public abstract class AbstractSearchAction extends ServiceAction {
 			doSearch(requestId, queryMap, timeout, writer);
 		} finally {
 			writer.close();
+			requestLogger.info("end request id:{}",requestId);
 		}
 
 	}
