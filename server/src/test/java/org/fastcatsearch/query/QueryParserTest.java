@@ -17,10 +17,37 @@
 package org.fastcatsearch.query;
 
 import org.fastcatsearch.ir.query.Query;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import junit.framework.TestCase;
+import ch.qos.logback.classic.Level;
 
-public class QueryParserTest extends TestCase{
+import static junit.framework.TestCase.*;
+
+public class QueryParserTest {
+	
+	private static final Logger logger = LoggerFactory.getLogger(QueryParserTest.class);
+	
+	@Before
+	public void init() {
+		assertTrue(true);
+		String LOG_LEVEL = System.getProperty("LOG_LEVEL");
+		if (LOG_LEVEL == null || "".equals(LOG_LEVEL)) {
+			LOG_LEVEL = "DEBUG";
+		}
+
+		((ch.qos.logback.classic.Logger) LoggerFactory
+				.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME))
+				.setLevel(Level.toLevel("DEBUG"));
+		((ch.qos.logback.classic.Logger) LoggerFactory
+				.getLogger(QueryParser.class)).setLevel(Level
+				.toLevel(LOG_LEVEL));
+		logger.debug("--------------------------------------------------------------------------------");
+	}
+
+	@Test
 	public void test1() throws QueryParseException{
 		QueryParser parser = QueryParser.getInstance();
 		String queryString = "cn=allgoods&ht=<a>:</a>&sn=0&ln=10" +
@@ -33,7 +60,19 @@ public class QueryParserTest extends TestCase{
 		System.out.println(queryString);
 		parser.parseQuery(queryString);
 	}
-	
+
+	@Test
+	public void test3() throws QueryParseException{
+		Query query = new Query();
+		//String queryString = "{{{{Title:cc:200:15}AND{Title:aa:200:15}}AND{NOT{{{Title:bb:200:15}OR{Content:cc:100:15}}OR{Content2:cc:100:15}}}}}";
+		String queryString = "{test:cc}AND{NOT{test:bb}}";
+		//String queryString = "{test:cc}NOT{test:bb}";
+		QueryParser parser = QueryParser.getInstance();
+		Object obj = parser.makeClause(queryString,query);
+		System.out.println(obj);
+	}
+
+	@Test
 	public void test2() throws QueryParseException{
 		/*
 		 * String queryString = "{" +
@@ -61,5 +100,4 @@ public class QueryParserTest extends TestCase{
 		Object obj = parser.makeClause(queryString,query);
 		System.out.println(obj);
 	}
-	
 }

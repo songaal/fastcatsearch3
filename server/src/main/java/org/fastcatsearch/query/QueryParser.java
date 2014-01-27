@@ -55,12 +55,12 @@ public class QueryParser {
 
 	private static QueryParser instance = new QueryParser();
 
-	private String SECTION_SEPARATOR = "(?<!\\\\)&";
-	private String VALUE_SEPARATOR = "(?<!\\\\)=";
-	private String COMMA_SEPARATOR = "(?<!\\\\),";
-	private String COLON_SEPARATOR = "(?<!\\\\):";
-	private String SEMICOLON_SEPARATOR = "(?<!\\\\);";
-	private String RANGE_SEPARATOR = "(?<!\\\\)~";
+	private static final String SECTION_SEPARATOR = "(?<!\\\\)&";
+	private static final String VALUE_SEPARATOR = "(?<!\\\\)=";
+	private static final String COMMA_SEPARATOR = "(?<!\\\\),";
+	private static final String COLON_SEPARATOR = "(?<!\\\\):";
+	private static final String SEMICOLON_SEPARATOR = "(?<!\\\\);";
+	private static final String RANGE_SEPARATOR = "(?<!\\\\)~";
 
 	private QueryParser() {
 	}
@@ -355,7 +355,7 @@ public class QueryParser {
 	// TODO 괄호없이 A or B and C 형태도 가능토록, escapse 문자 '\' 적용필요.
 	//
 	protected Object makeClause(String value, Query query) throws QueryParseException {
-		logger.debug("makeClause = {}", value);
+		logger.trace("makeClause = {}", value);
 		try {
 			if (value.charAt(0) == '{') {
 				int pos = findMatchBrace(value, 1);
@@ -365,20 +365,33 @@ public class QueryParser {
 
 				// logger.debug("pos={}, value={}",pos, value);
 				Object operand1 = makeClause(value.substring(1, pos), query);
-				if (value.regionMatches(true, pos + 1, "OR", 0, 2)) {
+				if (value.regionMatches(true, pos + 1, Clause.Operator.OR.name(), 0, 2)) {
 					int end = findMatchBrace(value, pos + 4);// value.indexOf('}', pos + 4);
 					Object operand2 = makeClause(value.substring(pos + 4, end), query);
-					// logger.debug("OR!");
+					logger.trace("OR!");
+					if(operand2 instanceof Clause) {
+						Clause innerClause = (Clause)operand2;
+						if(innerClause.operator() == Clause.Operator.NOT && innerClause.operand1() == null) {
+							logger.info("OR-NOT Clause detected : [{}]OR[NOT[{}]]", operand1, innerClause.operand2());
+						}
+					}
+					
 					return new Clause(operand1, Clause.Operator.OR, operand2);
-				} else if (value.regionMatches(true, pos + 1, "AND", 0, 3)) {
+				} else if (value.regionMatches(true, pos + 1, Clause.Operator.AND.name(), 0, 3)) {
 					int end = findMatchBrace(value, pos + 5);// value.indexOf('}', pos + 5);
 					Object operand2 = makeClause(value.substring(pos + 5, end), query);
-					// logger.debug("AND!");
+					logger.trace("AND!");
+					if(operand2 instanceof Clause) {
+						Clause innerClause = (Clause)operand2;
+						if(innerClause.operator() == Clause.Operator.NOT && innerClause.operand1() == null) {
+							return new Clause(operand1, Clause.Operator.NOT, innerClause.operand2());
+						}
+					}
 					return new Clause(operand1, Clause.Operator.AND, operand2);
-				} else if (value.regionMatches(true, pos + 1, "NOT", 0, 3)) {
+				} else if (value.regionMatches(true, pos + 1, Clause.Operator.NOT.name(), 0, 3)) {
 					int end = findMatchBrace(value, pos + 5);// value.indexOf('}', pos + 5);
 					Object operand2 = makeClause(value.substring(pos + 5, end), query);
-					// logger.debug("NOT!");
+					logger.trace("NOT!");
 					return new Clause(operand1, Clause.Operator.NOT, operand2);
 				} else {
 					// operator가 없거나 잘못되었으면 뒤는 무시하고 operand1 이 term으로 간주된다.
@@ -392,20 +405,12 @@ public class QueryParser {
 				/*
 				 * Unary NOT을 지원하기위함. 예) NOT{title,body:AND(방송):100:32}
 				 */
-				if (value.startsWith("NOT{")) {
+				if (value.startsWith(Clause.Operator.NOT.name()+"{")) {
 					int end = findMatchBrace(value, 4);
 					Object operand2 = makeClause(value.substring(4, end), query);
 					return new Clause(null, Clause.Operator.NOT, operand2);
 				} else {
 					Term term = makeTerm(value);
-
-//					for (String field : term.indexFieldId()) {
-//						// FIXME:fl 구문이 se구문보다 뒤에 나올 경우의 처리가 필요함.
-//						// View가 생성이 되지 않은 상태에서의 하이라이팅 처리...
-//						ViewContainer views = query.getViews();
-//						views.setSummarized(field, term.option().useSummary());
-//						views.setHighlighted(field, term.option().useHighlight());
-//					}
 					return term;
 				}
 			}
