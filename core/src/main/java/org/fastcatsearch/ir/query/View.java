@@ -28,7 +28,7 @@ public class View {
 		this(fieldId, snippetSize, 1);
 	}
 	public View(String fieldId, int snippetSize, int fragmentSize){
-		this.fieldId = fieldId.toUpperCase();
+		this.fieldId = fieldId.trim().toUpperCase();
 		this.snippetSize = snippetSize;
 		this.fragmentSize = fragmentSize;
 	}

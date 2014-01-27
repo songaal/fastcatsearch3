@@ -162,9 +162,9 @@ public class QueryParser {
 			for (int k = 0; k < list.length; k++) {
 				String[] str = list[k].split(COLON_SEPARATOR);
 				if (str.length > 2) {
-					views.add(new View(str[0], Integer.parseInt(str[1]), Integer.parseInt(str[2])));
+					views.add(new View(str[0].trim(), Integer.parseInt(str[1].trim()), Integer.parseInt(str[2].trim())));
 				} else if (str.length > 1) {
-					views.add(new View(str[0], Integer.parseInt(str[1])));
+					views.add(new View(str[0].trim(), Integer.parseInt(str[1].trim())));
 				} else {
 					views.add(new View(list[k]));
 				}
@@ -196,7 +196,7 @@ public class QueryParser {
 					continue;
 				}
 
-				String field = items[0];
+				String field = items[0].trim();
 				// String shortFunctionName = items[1];
 				int limit = -1;
 				int sortOrder = 0;
@@ -208,10 +208,10 @@ public class QueryParser {
 				if (items.length > 2) {
 					if (items.length > 3) {
 						// 마지막은 limit이다.
-						limit = Integer.parseInt(items[3]);
+						limit = Integer.parseInt(items[3].trim());
 					}
 					// items[2]는 정렬옵션
-					sortOrder = getGroupSortOrder(items[2]);
+					sortOrder = getGroupSortOrder(items[2].trim());
 				}
 
 				GroupFunction[] groupFunctions = new GroupFunction[functionList.length];
@@ -450,19 +450,19 @@ public class QueryParser {
 				throw new QueryParseException("Term field syntax error. No Search keyword => " + value);
 			} else if (list.length == 2) {
 				// field:term
-				String[] fieldList = list[0].split(COMMA_SEPARATOR);
+				String[] fieldList = list[0].replaceAll(" ", "").split(COMMA_SEPARATOR);
 				String[] term = new String[1];
 				Term.Type type = getType(list[1], term);
 				return new Term(fieldList, removeEscape(term[0]), type);
 			} else if (list.length == 3) {
 				// field:term:score
-				String[] fieldList = list[0].split(COMMA_SEPARATOR);
+				String[] fieldList = list[0].replaceAll(" ", "").split(COMMA_SEPARATOR);
 				String[] term = new String[1];
 				Term.Type type = getType(list[1], term);
 				return new Term(fieldList, removeEscape(term[0]), Float.parseFloat(list[2]), type);
 			} else if (list.length == 4) {
 				// field:term:score:option
-				String[] fieldList = list[0].split(COMMA_SEPARATOR);
+				String[] fieldList = list[0].replaceAll(" ", "").split(COMMA_SEPARATOR);
 				String[] term = new String[1];
 				Term.Type type = getType(list[1], term);
 				return new Term(fieldList, removeEscape(term[0]), Float.parseFloat(list[2]), type, new Option(Integer.parseInt(list[3])));
