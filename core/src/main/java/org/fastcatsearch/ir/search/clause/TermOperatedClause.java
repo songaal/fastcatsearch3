@@ -39,6 +39,7 @@ public class TermOperatedClause implements OperatedClause {
 
 	public boolean next(RankInfo docInfo) {
 		if (postingReader == null) {
+			docInfo.init(-1, -1, -1);
 			return false;
 		}
 		if (postingReader.hasNext()) {
