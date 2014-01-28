@@ -29,6 +29,18 @@
 			<MaxHistory>7</MaxHistory>
 		</rollingPolicy>
 	</appender>
+	
+	<appender name="requestlog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${log.path}/request.log</file>
+
+		<encoder>
+			<pattern>[%date] %m%n</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>${log.path}/request.%d{yyyy-MM-dd}.log</FileNamePattern>
+			<MaxHistory>7</MaxHistory>
+		</rollingPolicy>
+	</appender>
 
 	<appender name="indexinglog" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<file>${log.path}/indexing.log</file>
@@ -44,6 +56,10 @@
 	
 	<logger name="SEARCH_LOG" level="INFO" additivity="false">
 		<appender-ref ref="searchlog" />
+	</logger>
+	
+	<logger name="REQUEST_LOG" level="INFO" additivity="false">
+		<appender-ref ref="requestlog" />
 	</logger>
 
 	<logger name="INDEXING_LOG" level="INFO" additivity="false">
