@@ -41,7 +41,7 @@ import org.fastcatsearch.util.DynamicClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DBReader extends SingleSourceReader {
+public class DBReader extends SingleSourceReader<Map<String, Object>> {
 
 	private static Logger logger = LoggerFactory.getLogger(DBReader.class);
 	private int BULK_SIZE;
