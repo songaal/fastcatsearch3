@@ -10,29 +10,31 @@ import org.fastcatsearch.ir.io.CharVector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CommonDictionary<E> {
+public class CommonDictionary<E, P> {
 	protected static final Logger logger = LoggerFactory.getLogger(CommonDictionary.class);
 	private Date createTime;
 	
-	private Dictionary<E> systemDictionary;
+	private Dictionary<E, P> systemDictionary;
 	
 	private Map<String, Object> dictionaryMap;
 	
-	public CommonDictionary(Dictionary<E> systemDictionary){
+	public CommonDictionary(Dictionary<E, P> systemDictionary){
 		this.systemDictionary = systemDictionary;
 		dictionaryMap = new HashMap<String, Object>();
 		createTime = new Date();
 	}
 	
 	//systemDictionary를 재설정한다. dictionaryMap은 따로 외부에서 해주어야함.
-	public void reset(CommonDictionary<E> dictionary){
+	public void reset(CommonDictionary<E, P> dictionary){
 		this.systemDictionary = dictionary.systemDictionary;
 		this.createTime = dictionary.createTime;
 	}
 	public List<E> find(CharVector token) {
 		return systemDictionary.find(token);
 	}
-	
+	public P findPreResult(CharVector token) {
+		return systemDictionary.findPreResult(token);
+	}
 	public int size(){
 		return systemDictionary.size();
 	}

@@ -33,7 +33,7 @@ import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting.Type;
 
-public abstract class AnalysisPlugin<T> extends Plugin {
+public abstract class AnalysisPlugin<T, P> extends Plugin {
 
 	protected static String dictionaryPath = "dict/";
 	protected static String dictionarySuffix = ".dict";
@@ -46,7 +46,7 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 	protected DictionaryStatusDAO dictionaryStatusDAO;
 	protected DictionaryStatusMapper dictionaryStatusMapper;
 	
-	protected CommonDictionary<T> commonDictionary;
+	protected CommonDictionary<T, P> commonDictionary;
 	protected Map<String, AnalyzerInfo> analyzerFactoryMap;
 	
 	public AnalysisPlugin(File pluginDir, PluginSetting pluginSetting) {
@@ -150,21 +150,21 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 		
 	}
 
-	protected abstract Dictionary<T> loadSystemDictionary(DictionarySetting dictionarySetting);
+	protected abstract Dictionary<T, P> loadSystemDictionary(DictionarySetting dictionarySetting);
 		
-	protected CommonDictionary<T> loadDictionary(){
+	protected CommonDictionary<T, P> loadDictionary(){
 		AnalysisPluginSetting setting = (AnalysisPluginSetting) pluginSetting;
 		List<DictionarySetting> list = setting.getDictionarySettingList();
 		
-		Dictionary<T> dictionary = null;
-		CommonDictionary<T> commonDictionary = null;
+		Dictionary<T, P> dictionary = null;
+		CommonDictionary<T, P> commonDictionary = null;
 		
 		if (list != null) {
 			for (DictionarySetting dictionarySetting : list) {
 				Type type = dictionarySetting.getType();
 				if(type == Type.SYSTEM){
 					dictionary = loadSystemDictionary(dictionarySetting);
-					commonDictionary = new CommonDictionary<T>(dictionary);
+					commonDictionary = new CommonDictionary<T, P>(dictionary);
 					break;
 				}
 			}
@@ -229,7 +229,7 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 	
 	public void reloadDictionary(){
 		long st = System.nanoTime();
-		CommonDictionary<T> newCommonDictionary = loadDictionary();
+		CommonDictionary<T, P> newCommonDictionary = loadDictionary();
 		
 		//1. commonDictionary에 systemdictinary셋팅.
 		commonDictionary.reset(newCommonDictionary);
@@ -295,7 +295,7 @@ public abstract class AnalysisPlugin<T> extends Plugin {
 		return analyzerFactoryMap;
 	}
 	
-	public CommonDictionary<T> getDictionary(){
+	public CommonDictionary<T, P> getDictionary(){
 		return commonDictionary;
 	}
 

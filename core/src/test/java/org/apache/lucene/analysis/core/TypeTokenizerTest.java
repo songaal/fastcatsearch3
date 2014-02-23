@@ -70,14 +70,14 @@ public class TypeTokenizerTest {
 		
 	}
 	@Test
-	public void tesSpeed() throws IRException {
+	public void testSpeed() throws IRException {
 		TypeTokenizer tokenizer = new TypeTokenizer(null);
 		TokenizerTestBase testBase = new TokenizerTestBase();
 		testBase.testTokenizerSpeed(tokenizer, true);
 	}
 	
 	@Test
-	public void tesSpeedWithFile() throws IRException {
+	public void testSpeedWithFile() throws IRException {
 //		File file = new File("/Users/swsong/Desktop/prodExtV1_9_sample.txt");
 		File file = new File("/Users/swsong/tmp/prod.txt");
 		TypeTokenizer tokenizer = new TypeTokenizer(null);
