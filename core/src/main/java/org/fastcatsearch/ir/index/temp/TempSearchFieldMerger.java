@@ -118,12 +118,12 @@ public class TempSearchFieldMerger {
 				
 				//2. Write Lexicon
 				long lexiconPosition = lexiconOutput.position();
-				lexiconOutput.writeUString(term.array, term.start, term.length);
+				lexiconOutput.writeUString(term.array(), term.start(), term.length());
 				lexiconOutput.writeLong(postingPosition);
 				
 				//3. Write Index
 				if (indexInterval > 0 && (termCount % indexInterval) == 0) {
-					indexOutput.writeUString(term.array, term.start, term.length);
+					indexOutput.writeUString(term.array(), term.start(), term.length());
 					indexOutput.writeLong(lexiconPosition);
 					indexOutput.writeLong(postingPosition);
 					indexTermCount++;
@@ -226,7 +226,7 @@ public class TempSearchFieldMerger {
 				}
 
 				termMade = true;
-				term.init(cvOld.array, cvOld.start, cvOld.length);
+				term.init(cvOld.array(), cvOld.start(), cvOld.length());
 
 				bufferCount = 0;
 
@@ -372,19 +372,13 @@ public class TempSearchFieldMerger {
 		else if (term2 == null)
 			return -1;
 
-		int len = (term1.length < term2.length) ? term1.length : term2.length;
-
-		int aoff = term1.start;
-		int boff = term2.start;
+		int len = (term1.length() < term2.length()) ? term1.length() : term2.length();
 
 		for (int i = 0; i < len; i++) {
-			if (term1.array[aoff + i] != term2.array[boff + i])
-				return term1.array[aoff + i] - term2.array[boff + i];
+			if (term1.charAt(i) != term2.charAt(i))
+				return term1.charAt(i) - term2.charAt(i);
 		}
 
-		if (term1.length != term2.length)
-			return term1.length - term2.length;
-
-		return term1.length - term2.length;
+		return term1.length() - term2.length();
 	}
 }

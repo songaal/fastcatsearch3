@@ -31,14 +31,14 @@ public class ExtToken {
 	}
 
 	public static ExtToken getExtToken(CharVector token) {
-		int lastIndex = token.start + token.length - 1;
-		if(lastIndex > 0 && token.array[lastIndex] == '*'){
+		int lastIndex = token.start() + token.length() - 1;
+		if(lastIndex > 0 && token.array()[lastIndex] == '*'){
 			//마지막이 *로 끝나는 단어면 길이를 하나줄인다.
-			token.length--;
+			token.setLength(token.length() - 1);
 			return new ExtToken(Prefix, token);
-		}else if(token.length > 0 && token.array[token.start] == '*'){
+		}else if(token.length() > 0 && token.charAt(0) == '*'){
 			//처음이 *로 시작하는 단어면 시작위치를 하나 증가시킨다.
-			token.start++;
+			token.setStart(token.start() + 1);
 			return new ExtToken(Suffix, token);
 		}
 		

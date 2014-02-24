@@ -40,12 +40,12 @@ public abstract class AbstractSearchMethod implements SearchMethod {
 	protected int compareKey(char[] t, CharVector term) {
 
 		int len1 = t.length;
-		int len2 = term.length;
+		int len2 = term.length();
 
 		int len = len1 < len2 ? len1 : len2;
 
 		for (int i = 0; i < len; i++) {
-			char ch = term.array[term.start + i];
+			char ch = term.charAt(i);
 
 			if (t[i] != ch) {
 				return t[i] - ch;

@@ -37,7 +37,7 @@ public class CharVectorTest extends TestCase{
 		c[5] = new CharVector(ca,14,2);
 		
 		for(int i =0;i<c.length;i++)
-			System.out.println(new String(c[i].array,c[i].start,c[i].length) +" : "+c[i].hashCode());
+			System.out.println(new String(c[i].array(),c[i].start(),c[i].length()) +" : "+c[i].hashCode());
 		
 		HashMap map = new HashMap();
 		int i=0;

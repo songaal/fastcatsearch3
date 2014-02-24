@@ -203,7 +203,7 @@ public class SynonymDictionary extends MapDictionary {
 		Iterator<CharVector> synonymIter = wordSet.iterator();
 		for (; synonymIter.hasNext();) {
 			CharVector value = synonymIter.next();
-			output.writeUString(value.array, value.start, value.length);
+			output.writeUString(value.array(), value.start(), value.length());
 		}
 	}
 

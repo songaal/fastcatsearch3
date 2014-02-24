@@ -11,9 +11,9 @@ public class CharVectorTokenizer {
 	private int limit;
 	
 	public CharVectorTokenizer(CharVector charVector){
-		this.buffer = charVector.array;
-		this.cursor = charVector.start;
-		this.limit = charVector.start + charVector.length;
+		this.buffer = charVector.array();
+		this.cursor = charVector.start();
+		this.limit = charVector.start() + charVector.length();
 		resultVector = charVector.clone();
 	}
 	
@@ -38,8 +38,7 @@ public class CharVectorTokenizer {
 	}
 	
 	public CharVector next(){
-		resultVector.start = offset;
-		resultVector.length = length;
+		resultVector.init(offset, length);
 		length = 0;
 		return resultVector;
 	}

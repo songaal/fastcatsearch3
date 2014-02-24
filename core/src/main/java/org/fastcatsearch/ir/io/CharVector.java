@@ -23,9 +23,9 @@ import java.io.Serializable;
 public class CharVector implements ElementVector, CharSequence, Comparable<CharSequence>, Serializable {
 	private static final long serialVersionUID = -7987933270331385376L;
 	
-	public char[] array;
-	public int start;
-	public int length;
+	private char[] array;
+	private int start;
+	private int length;
 	protected int hash;
 
 	private boolean isIgnoreCase;
@@ -58,7 +58,22 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 		this.length = length;
 		this.hash = 0;
 	}
+	
+	public void init(int start, int length) {
+		this.start = start;
+		this.length = length;
+		this.hash = 0;
+	}
 
+	public void setStart(int start) {
+		this.start = start;
+		this.hash = 0;
+	}
+	
+	public void setLength(int length){
+		this.length = length;
+		this.hash = 0;
+	}
 	public void setIgnoreCase(){
 		this.isIgnoreCase = true;
 		hash = 0;
@@ -81,9 +96,7 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 
 		for (int i = 0; i < length; i++) {
 			int ch = array[off++];
-			if(ch >= 'a' && ch <= 'z'){
-				ch -= 32;//to upper case 
-			}
+			ch = toUpperChar(ch);
 			h = 31 * h + ch;
 		}
 		hash = h;
@@ -117,32 +130,21 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 			CharVector anotherArray = (CharVector) anObject;
 			int n = length;
 			if (n == anotherArray.length) {
-				char v1[] = array;
-				char v2[] = anotherArray.array;
-				int i = start;
-				int j = anotherArray.start;
 				
 				if(isIgnoreCase || anotherArray.isIgnoreCase){
 					//둘중 하나라도 ignorecase이면 ignorecase로 비교한다.
-					while (n-- != 0) {
-						if (v1[i] != v2[j]){
-							if(((v1[i] <= 'z' && v1[i] >= 'a') || (v1[i] <= 'Z' && v1[i] >= 'A')) //v1이 영문자이거나.
-									|| 
-								((v2[j] <= 'z' && v2[j] >= 'a') || (v2[j] <= 'Z' && v2[j] >= 'A'))){ //v2가 영문자이면..
-								if(Math.abs(v1[i] - v2[j]) != 32){
-									return false;
-								}
-								//OK 대소문자 구분 없이 동일함.
-							}else{
-								return false;
-							}
-						}
-						i++;j++;
-					}
-				}else{
-					while (n-- != 0) {
-						if (v1[i++] != v2[j++])
+					for (int i = 0; i < length; i++) {
+						if (toUpperChar(charAt(i)) != toUpperChar(anotherArray.charAt(i))) {
 							return false;
+						}
+					}
+					
+					
+				}else{
+					for (int i = 0; i < length; i++) {
+						if (charAt(i) != anotherArray.charAt(i)) {
+							return false;
+						}
 					}
 				}
 				return true;
@@ -151,32 +153,10 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 		return false;
 	}
 	
-//	public boolean equalsIgnoreCase(Object anObject) {
-//		if (anObject instanceof CharVector) {
-//			CharVector anotherArray = (CharVector) anObject;
-//			int n = length;
-//			if (n == anotherArray.length) {
-//				char v1[] = array;
-//				char v2[] = anotherArray.array;
-//				int i = start;
-//				int j = anotherArray.start;
-//				while (n-- != 0) {
-//					int v1v=v1[i++];
-//					int v2v=v2[j++];
-//					if ( !(v1v==v2v || Math.abs(v1v-v2v)== 32) ) {
-//						return false;
-//					}
-//				}
-//				return true;
-//			}
-//		}
-//		return false;
-//	}
-
 	// share array reference
 	@Override
 	public CharVector clone() {
-		CharVector c = new CharVector(array, start, length);
+		CharVector c = new CharVector(array, start, length, isIgnoreCase);
 		c.hash = hash;
 		return c;
 	}
@@ -194,68 +174,101 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 	public CharVector duplicate() {
 		char[] buffer = new char[length];
 		copy(buffer);
-		return new CharVector(buffer, 0, length);
+		return new CharVector(buffer, 0, length, isIgnoreCase);
 	}
 
-	public CharVector toUpperCase() {
-		for (int i = start, end = start + length; i < end; i++) {
-			if ('a' <= array[i] && array[i] <= 'z') {
-				array[i] = (char) (array[i] - 32);
-			}
-		}
-		hash = 0;
-		return this;
-	}
-
-	public CharVector toLowerCase() {
-		for (int i = start, end = start + length; i < end; i++) {
-			if ('A' <= array[i] && array[i] <= 'Z') {
-				array[i] = (char) (array[i] + 32);
-			}
-		}
-		hash = 0;
-		return this;
-	}
+//	public CharVector toUpperCase() {
+//		for (int i = start, end = start + length; i < end; i++) {
+//			if ('a' <= array[i] && array[i] <= 'z') {
+//				array[i] = (char) (array[i] - 32);
+//			}
+//		}
+//		hash = 0;
+//		return this;
+//	}
+//
+//	public CharVector toLowerCase() {
+//		for (int i = start, end = start + length; i < end; i++) {
+//			if ('A' <= array[i] && array[i] <= 'Z') {
+//				array[i] = (char) (array[i] + 32);
+//			}
+//		}
+//		hash = 0;
+//		return this;
+//	}
 
 	@Override
 	public int compareTo(CharSequence cs) {
-		
+
 		int len1 = this.length;
 		int len2 = cs.length();
-		
+
 		int minlen = len1;
-		
-		if(minlen > len2) {
+
+		if (minlen > len2) {
 			minlen = len2;
 		}
-		
-		for(int cinx=0;cinx<minlen;cinx++) {
+
+		for (int cinx = 0; cinx < minlen; cinx++) {
 			char c1 = this.charAt(cinx);
 			char c2 = cs.charAt(cinx);
-			
-			if(c1 == c2) {
-				
-			} else if(c1 > c2) {
+
+			if (c1 == c2) {
+
+			} else if (c1 > c2) {
 				return 1;
-			} else if(c1 < c2) {
+			} else if (c1 < c2) {
 				return -1;
 			}
 		}
-		
-		if(len1 == len2) {
+
+		if (len1 == len2) {
 			return 0;
-		} else if(len1 > len2) {
+		} else if (len1 > len2) {
 			return 1;
-		} else if(len1 < len2) {
+		} else if (len1 < len2) {
 			return -1;
 		}
 		return 0;
 	}
+	
+	public int compareTo(char[] key, int offset, int length) {
+
+		int len1 = this.length;
+		int len2 = length;
+
+		int len = len1 < len2 ? len1 : len2;
+
+		for (int i = 0; i < len; i++) {
+			char ch = charAt(i);
+
+			if (ch != key[offset + i]) {
+				return ch - key[offset + i];
+			}
+		}
+
+		return len1 - len2;
+	}
 
 	@Override
 	public char charAt(int inx) {
-		return array[start+inx];
+		char ch = array[start + inx];
+		if (isIgnoreCase) {
+			if ((ch <= 'z' && ch >= 'a')) { // 소문자이면..
+				ch -= 32;
+			}
+
+		}
+		return ch;
 	}
+	
+	private char toUpperChar(int ch){
+		if ((ch <= 'z' && ch >= 'a')) { // 소문자이면..
+			ch -= 32;
+		}
+		return (char) ch;
+	}
+	
 	public void setChar(int inx, char ch){
 		array[start+inx] = ch;
 		hash = 0;
@@ -276,7 +289,7 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 	
 	@Override
 	public int elementAt(int inx) {
-		return array[start+inx];
+		return charAt(inx);
 	}
 
 	@Override

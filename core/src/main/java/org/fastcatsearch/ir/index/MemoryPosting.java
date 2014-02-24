@@ -249,9 +249,9 @@ public class MemoryPosting {
 			len = keyPos[id+1] - pos;
 		
 //		logger.debug(term+" , term.length="+term.length+", len="+len);
-		if(term.length == len){
+		if(term.length() == len){
 			for (int i = 0; i < len; i++) {
-				if(term.array[term.start+i] != keyArray[pos+i])
+				if(term.charAt(i) != keyArray[pos+i])
 					return false;
 			}
 			return true;
@@ -286,7 +286,7 @@ public class MemoryPosting {
 			//new term
 			idx = getNextIdx();
 			
-			if (keyUseLength + term.length >= keyArrayLength) {
+			if (keyUseLength + term.length() >= keyArrayLength) {
 				keyArrayLength *= 1.2;
 				char[] newArray = new char[keyArrayLength];
 				System.arraycopy(keyArray, 0, newArray, 0, keyUseLength);
@@ -294,8 +294,8 @@ public class MemoryPosting {
 			}
 			keyPos[idx] = keyUseLength;
 			
-			for (int i=0; i < term.length; i++) {
-				keyArray[keyUseLength++] = term.array[term.start + i];
+			for (int i=0; i < term.length(); i++) {
+				keyArray[keyUseLength++] = term.charAt(i);
 			}
 			
 			nextIdx[idx] = -1;

@@ -46,13 +46,13 @@ public class AStringMvField extends AStringField implements MultiValueFieldType 
 			for (int i = 0; i < list.size(); i++) {
 				CharVector charVector = (CharVector) list.get(i);
 				output.writeVInt(size);
-				output.writeAChars(charVector.array, charVector.start, size);
+				output.writeAChars(charVector.array(), charVector.start(), size);
 			}
 		} else {
 			// 가변길이
 			for (int i = 0; i < multiValueCount; i++) {
 				CharVector charVector = (CharVector) list.get(i);
-				output.writeAString(charVector.array, charVector.start, charVector.length);
+				output.writeAString(charVector.array(), charVector.start(), charVector.length());
 			}
 		}
 
@@ -71,7 +71,7 @@ public class AStringMvField extends AStringField implements MultiValueFieldType 
 			List<CharVector> list = (List<CharVector>) fieldsData;
 			for (int i = 0; i < list.size(); i++) {
 				CharVector charVector = (CharVector) list.get(i);
-				output.writeAChars(charVector.array, charVector.start, size, upperCase);
+				output.writeAChars(charVector.array(), charVector.start(), size, upperCase);
 			}
 		} else {
 			throw new IOException("가변길이필드는 지원하지 않습니다.");
@@ -86,7 +86,7 @@ public class AStringMvField extends AStringField implements MultiValueFieldType 
 			List<CharVector> list = (List<CharVector>) fieldsData;
 			for (int i = 0; i < list.size(); i++) {
 				CharVector charVector = (CharVector) list.get(i);
-				output.writeAChars(charVector.array, charVector.start, charVector.length, upperCase);
+				output.writeAChars(charVector.array(), charVector.start(), charVector.length(), upperCase);
 			}
 		}
 
@@ -100,10 +100,10 @@ public class AStringMvField extends AStringField implements MultiValueFieldType 
 			protected void writeEachData(Object object, DataOutput output) throws IOException {
 				CharVector charVector = (CharVector) object;
 				if (size > 0) {
-					output.writeAChars(charVector.array, charVector.start, size, upperCase);
+					output.writeAChars(charVector.array(), charVector.start(), size, upperCase);
 				} else {
 					// 가변길이.
-					output.writeAChars(charVector.array, charVector.start, charVector.length, upperCase);
+					output.writeAChars(charVector.array(), charVector.start(), charVector.length(), upperCase);
 				}
 			}
 		};

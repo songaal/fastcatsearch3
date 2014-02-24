@@ -171,9 +171,9 @@ public class HashSetDictionary {
 		else
 			len = keyPos[id+1] - pos;
 		
-		if(term.length == len){
+		if(term.length() == len){
 			for (int i = 0; i < len; i++) {
-				if(term.array[term.start+i] != keyArray[pos+i])
+				if(term.charAt(i) != keyArray[pos+i])
 					return false;
 			}
 			return true;
@@ -209,7 +209,7 @@ public class HashSetDictionary {
 			//new term
 			idx = getNextIdx();
 //			logger.debug("NextIdx = "+idx+" , term.length="+term.length);
-			if (keyUseLength + term.length >= keyArrayLength) {
+			if (keyUseLength + term.length() >= keyArrayLength) {
 				keyArrayLength *= 1.2;
 				char[] newArray = new char[keyArrayLength];
 				System.arraycopy(keyArray, 0, newArray, 0, keyUseLength);
@@ -217,8 +217,8 @@ public class HashSetDictionary {
 			}
 			keyPos[idx] = keyUseLength;
 			
-			for (int i=0; i < term.length; i++) {
-				keyArray[keyUseLength++] = term.array[term.start + i];
+			for (int i=0; i < term.length(); i++) {
+				keyArray[keyUseLength++] = term.charAt(i);
 //				logger.debug("t = "+keyArray[keyUseLength - 1]);
 			}
 			

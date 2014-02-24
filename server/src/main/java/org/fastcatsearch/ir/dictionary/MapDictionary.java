@@ -106,12 +106,12 @@ public class MapDictionary extends SourceDictionary {
 		for (; keySet.hasNext();) {
 			// write key
 			CharVector key = keySet.next();
-			output.writeUString(key.array, key.start, key.length);
+			output.writeUString(key.array(), key.start(), key.length());
 			// write values
 			CharVector[] values = map.get(key);
 			output.writeVInt(values.length);
 			for (CharVector value : values) {
-				output.writeUString(value.array, value.start, value.length);
+				output.writeUString(value.array(), value.start(), value.length());
 			}
 		}
 

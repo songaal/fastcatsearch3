@@ -105,6 +105,10 @@ public class BooleanClause implements OperatedClause {
 					token = new CharVector(charTermAttribute.buffer(), 0, charTermAttribute.length());
 				}
 
+				if (indexSetting.isIgnoreCase()){
+					token.setIgnoreCase();
+				}
+logger.debug("token > {}, isIgnoreCase = {}", token, token.isIgnoreCase());
 				int queryPosition = positionAttribute != null ? positionAttribute.getPositionIncrement() : 0;
 //				logger.debug("token = {} : {}", token, queryPosition);
 

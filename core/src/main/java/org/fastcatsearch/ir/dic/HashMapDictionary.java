@@ -163,7 +163,7 @@ public class HashMapDictionary {
 				//key has N entry
 				output.writeVInt(termArray[i].length);
 				for (int k = 0; k < termArray[i].length; k++) {
-					output.writeUString(termArray[i][k].array, termArray[i][k].start, termArray[i][k].length);
+					output.writeUString(termArray[i][k].array(), termArray[i][k].start(), termArray[i][k].length());
 				}
 //				output.writeVariableByte(termArray[i].length);
 //				int totalSize = 0;
@@ -214,9 +214,9 @@ public class HashMapDictionary {
 			len = keyPos[id+1] - pos;
 		
 //		logger.debug("{} , term.length={}, len={}", term, term.length, len);
-		if(term.length == len){
+		if(term.length() == len){
 			for (int i = 0; i < len; i++) {
-				if(term.array[term.start+i] != keyArray[pos+i])
+				if(term.charAt(i) != keyArray[pos+i])
 					return false;
 			}
 			return true;
@@ -254,7 +254,7 @@ public class HashMapDictionary {
 			//new term
 			idx = getNextIdx();
 			
-			if (keyUseLength + term.length >= keyArrayLength) {
+			if (keyUseLength + term.length() >= keyArrayLength) {
 				keyArrayLength *= 1.2;
 				char[] newArray = new char[keyArrayLength];
 				System.arraycopy(keyArray, 0, newArray, 0, keyUseLength);
@@ -262,8 +262,8 @@ public class HashMapDictionary {
 			}
 			keyPos[idx] = keyUseLength;
 			
-			for (int i=0; i < term.length; i++) {
-				keyArray[keyUseLength++] = term.array[term.start + i];
+			for (int i=0; i < term.length(); i++) {
+				keyArray[keyUseLength++] = term.charAt(i);
 			}
 			
 			nextIdx[idx] = -1;
@@ -322,7 +322,7 @@ public class HashMapDictionary {
 		int size = 0;
 		for (int i = 0; i < termArray.length; i++)
 			if(termArray[i] != null)
-				size += (termArray[i].length * 12 + termArray[i][0].array.length * 2 + 12);
+				size += (termArray[i].length * 12 + termArray[i][0].array().length * 2 + 12);
 		
 		size += keyArrayLength * 2;
 		size += bucket.length * 4;

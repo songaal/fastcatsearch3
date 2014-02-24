@@ -149,7 +149,7 @@ public class SearchIndexReader implements Cloneable {
 			return null;
 		}
 		
-		if (singleTerm.length == 0){
+		if (singleTerm.length() == 0){
 			return null;
 		}
 
@@ -242,32 +242,32 @@ public class SearchIndexReader implements Cloneable {
 	protected PostingDocs getExtendedPosting(int indexFieldSequence, CharVector singleTerm) throws IOException {
 
 		// SUFFIX SEARCH
-		if (singleTerm.array.length > 0 && singleTerm.array[0] == '*') {
+		if (singleTerm.array().length > 0 && singleTerm.array()[0] == '*') {
 			// 2012-02-09 swsong
 			// 여러필드에 걸쳐서 prefix검색을 할때 두번째 필드부터는 singleTerm의 length가 변경된 상태여서 문제가
 			// 생김.
 			// 새로운 charVector를 만들어서 처리하는 것을 수정.
 			CharVector cloneVector = singleTerm.clone();
-			cloneVector.start++;
-			cloneVector.length--;
+			cloneVector.setStart(cloneVector.start() + 1);
+			cloneVector.setLength(cloneVector.length() - 1);
 			return getSuffixPosting(cloneVector);
 			// PREFIX SEARCH
-		} else if (singleTerm.array[singleTerm.start + singleTerm.length - 1] == '*') {
+		} else if (singleTerm.charAt(singleTerm.length() - 1) == '*') {
 			// remove last one
 			CharVector cloneVector = singleTerm.clone();
-			cloneVector.length--;
+			cloneVector.setLength(cloneVector.length() - 1);
 			return getPrefixPosting(cloneVector);
 		} else {
 			// RANGE SEARCH
 			int pos = 0;
-			for (int i = singleTerm.start; i < singleTerm.length; i++, pos++) {
-				char ch = singleTerm.array[i];
+			for (int i = singleTerm.start(); i < singleTerm.length(); i++, pos++) {
+				char ch = singleTerm.array()[i];
 				if (ch == '~') {
 					CharVector startTerm = (CharVector) singleTerm.clone();
-					startTerm.length = pos;
+					startTerm.setLength(pos);
 					CharVector endTerm = (CharVector) singleTerm.clone();
-					endTerm.length -= (pos + 1);
-					endTerm.start = i + 1;
+					endTerm.setLength(endTerm.length() - (pos + 1));
+					endTerm.setStart(i + 1);
 					// logger.debug("startCV = "+new String(startCV.array,
 					// startCV.start, startCV.length));
 					// logger.debug("endCV = "+new String(endCV.array,
@@ -342,8 +342,8 @@ public class SearchIndexReader implements Cloneable {
 
 		boolean isIncludSearch = false;
 
-		if (singleTerm.array[singleTerm.start + singleTerm.length - 1] == '*') {
-			singleTerm.length--;
+		if (singleTerm.charAt(singleTerm.length() - 1) == '*') {
+			singleTerm.setLength(singleTerm.length() - 1);
 			isIncludSearch = true;
 		}
 
@@ -381,8 +381,8 @@ public class SearchIndexReader implements Cloneable {
 		logger.debug("Range : {} ~ {}", startTerm, endTerm);
 
 		int cmpValid = 0;
-		char[] startTermChars = new char[startTerm.length];
-		System.arraycopy(startTerm.array, startTerm.start, startTermChars, 0, startTerm.length);
+		char[] startTermChars = new char[startTerm.length()];
+		System.arraycopy(startTerm.array(), startTerm.start(), startTermChars, 0, startTerm.length());
 		cmpValid = compareKey(startTermChars, endTerm);
 		// ensure startTerm <= endTerm
 		if (cmpValid > 0) {
@@ -566,12 +566,12 @@ public class SearchIndexReader implements Cloneable {
 	private int compareKey(char[] t, CharVector term) {
 
 		int len1 = t.length;
-		int len2 = term.length;
+		int len2 = term.length();
 
 		int len = len1 < len2 ? len1 : len2;
 
 		for (int i = 0; i < len; i++) {
-			char ch = term.array[term.start + i];
+			char ch = term.charAt(i);
 
 			if (t[i] != ch) {
 				return t[i] - ch;
@@ -583,12 +583,12 @@ public class SearchIndexReader implements Cloneable {
 
 	private int comparePrefixKey(char[] t, CharVector term) {
 		int len1 = t.length;
-		int len2 = term.length;
+		int len2 = term.length();
 
 		int len = len1 < len2 ? len1 : len2;
 
 		for (int i = 0; i < len; i++) {
-			char ch = term.array[term.start + i];
+			char ch = term.charAt(i);
 
 			if (t[i] != ch) {
 				return t[i] - ch;
@@ -607,13 +607,13 @@ public class SearchIndexReader implements Cloneable {
 	private int compareSuffixKey(char[] t, CharVector term) {
 
 		// enable to include term
-		if (t.length >= term.length) {
+		if (t.length >= term.length()) {
 			for (int i = 0, j = 0; i < t.length; i++) {
 				if ((t.length - i) < j) {
 					break;
 				}
-				if (t[t.length - 1 - i] == term.array[term.start + term.length - 1 - j]) {
-					if (++j == term.length) {
+				if (t[t.length - 1 - i] == term.charAt(term.length() - 1 - j)) {
+					if (++j == term.length()) {
 						return 0;
 					}
 				} else {
@@ -628,13 +628,13 @@ public class SearchIndexReader implements Cloneable {
 	private int compareIncludingKey(char[] t, CharVector term) {
 
 		// enable to include term
-		if (t.length >= term.length) {
+		if (t.length >= term.length()) {
 			for (int i = 0, j = 0; i < t.length; i++) {
 				if ((t.length - i) < j) {
 					break;
 				}
-				if (t[i] == term.array[term.start + j]) {
-					if (++j == term.length) {
+				if (t[i] == term.charAt(j)) {
+					if (++j == term.length()) {
 						return 0;
 					}
 				} else {

@@ -16,7 +16,7 @@ public class NormalSearchMethod extends AbstractSearchMethod {
 			return null;
 		}
 
-		if (term.length == 0) {
+		if (term.length() == 0) {
 			return null;
 		}
 

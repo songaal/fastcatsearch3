@@ -84,7 +84,7 @@ public class CustomDictionary extends SourceDictionary {
 			if(keyObject instanceof CharVector) {
 				CharVector key = (CharVector)keyObject;
 				output.writeByte(TYPE_CHAR);
-				output.writeUString(key.array, key.start, key.length);
+				output.writeUString(key.array(), key.start(), key.length());
 			} else if(keyObject instanceof Integer) {
 				Integer key = (Integer) keyObject;
 				output.writeByte(TYPE_INTEGER);
@@ -98,11 +98,11 @@ public class CustomDictionary extends SourceDictionary {
 				if(valueObject instanceof String) {
 					CharVector value = new CharVector((String) valueObject);
 					output.writeByte(TYPE_CHAR);
-					output.writeUString(value.array, value.start, value.length);
+					output.writeUString(value.array(), value.start(), value.length());
 				} else if(valueObject instanceof CharVector) {
 					CharVector value = (CharVector) valueObject;
 					output.writeByte(TYPE_CHAR);
-					output.writeUString(value.array, value.start, value.length);
+					output.writeUString(value.array(), value.start(), value.length());
 				} else if(valueObject instanceof Integer) {
 					Integer value = (Integer) valueObject;
 					output.writeByte(TYPE_INTEGER);

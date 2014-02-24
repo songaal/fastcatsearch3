@@ -137,7 +137,7 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 					postingOutput.writeVInt(newFirstDocNo);
 					postingOutput.writeBytes(tempPostingOutput.array(), sz2, len2);
 
-					lexiconOutput.writeUString(term.array, term.start, term.length);
+					lexiconOutput.writeUString(term.array(), term.start(), term.length());
 					lexiconOutput.writeLong(position);
 
 					term1 = readNextOldLexicon(lexiconInput1);
@@ -159,7 +159,7 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 					postingOutput.writeBytes(buffer, 0, len);
 
 					// write lexicon
-					lexiconOutput.writeUString(term.array, term.start, term.length);
+					lexiconOutput.writeUString(term.array(), term.start(), term.length());
 					lexiconOutput.writeLong(position);
 
 					term1 = readNextOldLexicon(lexiconInput1);
@@ -188,7 +188,7 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 					postingOutput.writeBytes(tempPostingOutput.array(), sz, len);
 
 					// write term
-					lexiconOutput.writeUString(term.array, term.start, term.length);
+					lexiconOutput.writeUString(term.array(), term.start(), term.length());
 					lexiconOutput.writeLong(position);
 
 					hasNext = readNextTempIndex(term2);
@@ -196,7 +196,7 @@ public class TempSearchFieldAppender extends TempSearchFieldMerger {
 				}
 
 				if (indexInterval > 0 && (termCount % indexInterval) == 0) {
-					indexOutput.writeUString(term.array, term.start, term.length);
+					indexOutput.writeUString(term.array(), term.start(), term.length());
 					indexOutput.writeLong(pointer);
 					indexOutput.writeLong(position);
 					indexTermCount++;

@@ -209,24 +209,18 @@ public class TempSearchFieldMergerTest {
 			return -1;
 		
 		if(isNumeric){
-			if(term1.length != term2.length)
-				return term1.length - term2.length;
+			if(term1.length() != term2.length())
+				return term1.length() - term2.length();
 		}
 		
-		int len = (term1.length < term2.length) ? term1.length : term2.length;
+		int len = (term1.length() < term2.length()) ? term1.length() : term2.length();
 				
-		int aoff = term1.start;
-		int boff = term2.start;
-		
 		for (int i = 0; i < len; i++) {
-			if(term1.array[aoff + i] != term2.array[boff + i])
-				return term1.array[aoff + i] - term2.array[boff + i];
+			if(term1.charAt(i) != term2.charAt(i))
+				return term1.charAt(i) - term2.charAt(i);
 		}
 		
-		if(term1.length != term2.length)
-			return term1.length - term2.length;
-		
-		return term1.length - term2.length;
+		return term1.length() - term2.length();
 	}
 
 }

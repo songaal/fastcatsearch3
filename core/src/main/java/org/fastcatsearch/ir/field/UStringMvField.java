@@ -46,13 +46,13 @@ public class UStringMvField extends UStringField implements MultiValueFieldType 
 			for (int i = 0; i < list.size(); i++) {
 				CharVector charVector = (CharVector) list.get(i);
 				output.writeVInt(size);
-				output.writeUChars(charVector.array, charVector.start, size);
+				output.writeUChars(charVector.array(), charVector.start(), size);
 			}
 		} else {
 			// 가변길이
 			for (int i = 0; i < multiValueCount; i++) {
 				CharVector charVector = (CharVector) list.get(i);
-				output.writeUString(charVector.array, charVector.start, charVector.length);
+				output.writeUString(charVector.array(), charVector.start(), charVector.length());
 			}
 		}
 
@@ -71,7 +71,7 @@ public class UStringMvField extends UStringField implements MultiValueFieldType 
 			List<CharVector> list = (List<CharVector>) fieldsData;
 			for (int i = 0; i < list.size(); i++) {
 				CharVector charVector = (CharVector) list.get(i);
-				output.writeUChars(charVector.array, charVector.start, size, upperCase);
+				output.writeUChars(charVector.array(), charVector.start(), size, upperCase);
 			}
 		} else {
 			throw new IOException("가변길이필드는 지원하지 않습니다.");
@@ -86,7 +86,7 @@ public class UStringMvField extends UStringField implements MultiValueFieldType 
 			List<CharVector> list = (List<CharVector>) fieldsData;
 			for (int i = 0; i < list.size(); i++) {
 				CharVector charVector = (CharVector) list.get(i);
-				output.writeUChars(charVector.array, charVector.start, charVector.length, upperCase);
+				output.writeUChars(charVector.array(), charVector.start(), charVector.length(), upperCase);
 			}
 		}
 
@@ -101,10 +101,10 @@ public class UStringMvField extends UStringField implements MultiValueFieldType 
 				CharVector charVector = (CharVector) object;
 				if (size > 0) {
 
-					output.writeUChars(charVector.array, charVector.start, size, upperCase);
+					output.writeUChars(charVector.array(), charVector.start(), size, upperCase);
 				} else {
 					// 가변길이.
-					output.writeUChars(charVector.array, charVector.start, charVector.length, upperCase);
+					output.writeUChars(charVector.array(), charVector.start(), charVector.length(), upperCase);
 				}
 			}
 		};

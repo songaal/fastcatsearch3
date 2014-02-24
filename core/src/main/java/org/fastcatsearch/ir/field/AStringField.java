@@ -49,7 +49,7 @@ public class AStringField extends StringField {
 			output.writeVInt(size);
 			writeFixedDataTo(output, 0, false);
 		}else{
-			output.writeAString(charVector.array, charVector.start, charVector.length);
+			output.writeAString(charVector.array(), charVector.start(), charVector.length());
 		}
 	}
 
@@ -65,7 +65,7 @@ public class AStringField extends StringField {
 				}
 			}else{
 				CharVector charVector = (CharVector) fieldsData;
-				output.writeAChars(charVector.array, charVector.start, size, upperCase);
+				output.writeAChars(charVector.array(), charVector.start(), size, upperCase);
 			}
 		}else{
 			throw new IOException("가변길이필드는 지원하지 않습니다.");
@@ -78,7 +78,7 @@ public class AStringField extends StringField {
 		if(size > 0){
 			writeFixedDataTo(output, 0, upperCase);
 		}else{
-			output.writeAChars(charVector.array, charVector.start, charVector.length, upperCase);
+			output.writeAChars(charVector.array(), charVector.start(), charVector.length(), upperCase);
 		}
 		
 	}

@@ -151,12 +151,12 @@ public class MemoryLexicon {
 	private int compareKey(char[] t, CharVector term){
 //    	logger.info("compareKey => "+new String(t)+" , "+term);
     	int len1 = t.length;
-    	int len2 = term.length;
+    	int len2 = term.length();
     	
     	int len = len1 < len2 ? len1 : len2;
     	
     	for (int i = 0; i < len; i++) {
-    		char ch = term.array[term.start + i];
+    		char ch = term.charAt(i);
     		
     		if(t[i] != ch){
     			return t[i] - ch;
@@ -168,13 +168,13 @@ public class MemoryLexicon {
     
 	private int compareNumericKey(char[] t, CharVector term){
     	int len1 = t.length;
-    	int len2 = term.length;
+    	int len2 = term.length();
     	
     	if(len1 != len2)
     		return len1 - len2;
     	
     	for (int i = 0; i < len1; i++) {
-    		char ch = term.array[term.start + i];
+    		char ch = term.charAt(i);
     		
     		if(t[i] != ch){
     			return t[i] - ch;
