@@ -104,7 +104,7 @@ public class PhraseClause implements OperatedClause {
 							token = new CharVector(termAttribute.buffer(), indexSetting.isIgnoreCase());
 						}
 					} else {
-						token = new CharVector(charTermAttribute.buffer(), 0, charTermAttribute.length());
+						token = new CharVector(charTermAttribute.buffer(), 0, charTermAttribute.length(), indexSetting.isIgnoreCase());
 					}
 
 					// logger.debug("token = {}", token);

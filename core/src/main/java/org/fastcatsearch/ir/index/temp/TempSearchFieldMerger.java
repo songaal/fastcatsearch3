@@ -190,7 +190,6 @@ public class TempSearchFieldMerger {
 		while (true) {
 			int idx = heap[1];
 			cv = reader[idx].term();
-logger.debug("cv = {}", cv);
 			if (cv == null && cvOld == null) {
 				// if cv and cvOld are null, it's done
 				return false;
