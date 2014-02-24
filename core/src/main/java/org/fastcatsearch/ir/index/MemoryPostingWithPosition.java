@@ -24,6 +24,9 @@ public class MemoryPostingWithPosition extends MemoryPosting {
 	public MemoryPostingWithPosition(int size) {
 		super(size);
 	}
+	public MemoryPostingWithPosition(int size, boolean isIgnoreCase) {
+		super(size, isIgnoreCase);
+	}
 	
 	@Override
 	protected PostingBufferWithPosition newPostingBuffer(){

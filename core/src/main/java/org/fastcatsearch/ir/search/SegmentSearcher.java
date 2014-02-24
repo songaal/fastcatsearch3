@@ -147,6 +147,7 @@ public class SegmentSearcher {
 					break;
 				}
 			}
+			boolean dd= false;
 //			searchTime += (System.nanoTime() - st);st = System.nanoTime();
 			if (filters != null && hitFilter != null) {
 				nread = hitFilter.filtering(rankInfoList, nread);

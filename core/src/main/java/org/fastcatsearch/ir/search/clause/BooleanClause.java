@@ -97,18 +97,15 @@ public class BooleanClause implements OperatedClause {
 					if (charRef != null) {
 						char[] buffer = new char[charRef.length()];
 						System.arraycopy(charRef.chars, charRef.offset, buffer, 0, charRef.length);
-						token = new CharVector(buffer, 0, buffer.length);
+						token = new CharVector(buffer, 0, buffer.length, indexSetting.isIgnoreCase());
 					} else if (termAttribute != null && termAttribute.buffer() != null) {
-						token = new CharVector(termAttribute.buffer());
+						token = new CharVector(termAttribute.buffer(), indexSetting.isIgnoreCase());
 					}
 				} else {
 					token = new CharVector(charTermAttribute.buffer(), 0, charTermAttribute.length());
 				}
-
-				if (indexSetting.isIgnoreCase()){
-					token.setIgnoreCase();
-				}
-logger.debug("token > {}, isIgnoreCase = {}", token, token.isIgnoreCase());
+				
+				logger.debug("token > {}, isIgnoreCase = {}", token, token.isIgnoreCase());
 				int queryPosition = positionAttribute != null ? positionAttribute.getPositionIncrement() : 0;
 //				logger.debug("token = {} : {}", token, queryPosition);
 

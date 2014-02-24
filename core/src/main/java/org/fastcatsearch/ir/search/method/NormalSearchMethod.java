@@ -32,7 +32,6 @@ public class NormalSearchMethod extends AbstractSearchMethod {
 				lexiconInput.seek(posInfo[0]);
 				while (lexiconInput.position() < lexiconFileLimit) {
 					char[] term2 = lexiconInput.readUString();
-
 					int cmp = compareKey(term2, term);
 
 					if (cmp == 0) {

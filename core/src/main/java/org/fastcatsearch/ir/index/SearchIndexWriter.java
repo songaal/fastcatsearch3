@@ -94,10 +94,10 @@ public class SearchIndexWriter {
 
 		fieldIndexOption = new IndexFieldOption();
 		if (indexSetting.isStorePosition()) {
-			memoryPosting = new MemoryPostingWithPosition(indexBucketSize);
+			memoryPosting = new MemoryPostingWithPosition(indexBucketSize, ignoreCase);
 			fieldIndexOption.setStorePosition();
 		} else {
-			memoryPosting = new MemoryPosting(indexBucketSize);
+			memoryPosting = new MemoryPosting(indexBucketSize, ignoreCase);
 		}
 
 		List<RefSetting> refList = indexSetting.getFieldList();
@@ -135,7 +135,7 @@ public class SearchIndexWriter {
 		count++;
 	}
 
-	private void write(int docNo, Field field, boolean upperCase, int positionIncrementGap) throws IRException, IOException {
+	private void write(int docNo, Field field, boolean isIgnoreCase, int positionIncrementGap) throws IRException, IOException {
 		if (field == null) {
 			return;
 		}
@@ -145,17 +145,17 @@ public class SearchIndexWriter {
 			Iterator<Object> iterator = field.getMultiValueIterator();
 			if (iterator != null) {
 				while (iterator.hasNext()) {
-					indexValue(docNo, iterator.next(), upperCase, positionIncrementGap);
+					indexValue(docNo, iterator.next(), isIgnoreCase, positionIncrementGap);
 					// 멀티밸류도 positionIncrementGap을 증가시킨다. 즉, 필드가 다를때처럼 position거리가 멀어진다.
 					positionIncrementGap += positionIncrementGap;
 				}
 			}
 		} else {
-			indexValue(docNo, field.getValue(), upperCase, positionIncrementGap);
+			indexValue(docNo, field.getValue(), isIgnoreCase, positionIncrementGap);
 		}
 	}
 
-	private void indexValue(int docNo, Object value, boolean upperCase, int positionIncrementGap) throws IOException, IRException {
+	private void indexValue(int docNo, Object value, boolean isIgnoreCase, int positionIncrementGap) throws IOException, IRException {
 		if(value == null){
 			return;
 		}
@@ -183,15 +183,11 @@ public class SearchIndexWriter {
 				key = new CharVector(charTermAttribute.buffer(), 0, charTermAttribute.length());
 			}
 			
-			if (upperCase) {
-//				key.toUpperCase();
-				key.setIgnoreCase();
-			}
 			int position = -1;
 			if (positionAttribute != null) {
 				position = positionAttribute.getPositionIncrement() + positionIncrementGap;
 			}
-			// logger.debug("FIELD#{}: {} >> {} ({})", indexFieldNum, key, docNo, position);
+//			logger.debug("FIELD#{}: {} >> {} ({})", indexId, key, docNo, position);
 			
 			memoryPosting.add(key, docNo, position);
 		}

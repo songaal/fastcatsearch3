@@ -41,6 +41,9 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 	public CharVector(char[] array){
 		this(array, 0, array.length);
 	}
+	public CharVector(char[] array, boolean isIgnoreCase){
+		this(array, 0, array.length, isIgnoreCase);
+	}
 	public CharVector(char[] array, int start, int length) {
 		this(array, start, length, false);
 	}
@@ -75,12 +78,16 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 		this.hash = 0;
 	}
 	public void setIgnoreCase(){
-		this.isIgnoreCase = true;
-		hash = 0;
+		if(!isIgnoreCase){
+			this.isIgnoreCase = true;
+			hash = 0;
+		}
 	}
 	public void unsetIgnoreCase(){
-		this.isIgnoreCase = false;
-		hash = 0;
+		if(isIgnoreCase){
+			this.isIgnoreCase = false;
+			hash = 0;
+		}
 	}
 	public boolean isIgnoreCase(){
 		return isIgnoreCase;

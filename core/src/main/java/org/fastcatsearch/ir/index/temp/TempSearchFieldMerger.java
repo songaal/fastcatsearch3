@@ -40,7 +40,7 @@ public class TempSearchFieldMerger {
 	protected int flushCount;
 	protected BytesDataOutput tempPostingOutput;
 	
-	private int bufferCount = 0;
+	private int bufferCount;
 	private CharVector cv;
 	private CharVector cvOld;
 	protected int totalCount;
@@ -190,7 +190,7 @@ public class TempSearchFieldMerger {
 		while (true) {
 			int idx = heap[1];
 			cv = reader[idx].term();
-
+logger.debug("cv = {}", cv);
 			if (cv == null && cvOld == null) {
 				// if cv and cvOld are null, it's done
 				return false;
@@ -232,13 +232,17 @@ public class TempSearchFieldMerger {
 
 			}
 
-			try {
-				buffers[bufferCount++] = reader[idx].buffer();
-			} catch (ArrayIndexOutOfBoundsException e) {
+			if(bufferCount < buffers.length){
+				try {
+					buffers[bufferCount++] = reader[idx].buffer();
+				} catch (ArrayIndexOutOfBoundsException e) {
+					logger.info("### bufferCount= {}, buffers.len={}, idx={}, reader={}", bufferCount, buffers.length, idx, reader.length);
+					logger.error("dup terms", e);
+				}
+			}else{
+				logger.warn("wrong! {}", cv);
 				logger.info("### bufferCount= {}, buffers.len={}, idx={}, reader={}", bufferCount, buffers.length, idx, reader.length);
-				throw e;
 			}
-
 			// backup cv to old
 			cvOld = cv;
 
