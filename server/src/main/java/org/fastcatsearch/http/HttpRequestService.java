@@ -6,7 +6,6 @@ import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -19,10 +18,6 @@ import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.http.action.HttpAction;
 import org.fastcatsearch.http.action.ServiceAction;
-import org.fastcatsearch.plugin.Plugin;
-import org.fastcatsearch.plugin.PluginService;
-import org.fastcatsearch.plugin.PluginSetting;
-import org.fastcatsearch.plugin.PluginSetting.Action;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
@@ -33,7 +28,8 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 
 	private HttpTransportModule transportModule;
 	private HttpServiceController serviceController;
-
+	private HttpSessionManager httpSessionManager;
+	
 	public HttpRequestService(Environment environment, Settings settings, ServiceManager serviceManager) throws FastcatSearchException {
 		super(environment, settings, serviceManager);
 	}
@@ -44,8 +40,7 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 		transportModule = new HttpTransportModule(environment, settings, servicePort);
 		transportModule.httpServerAdapter(this);
 		ExecutorService executorService = ThreadPoolFactory.newCachedDaemonThreadPool("http-execute-pool", 300);
-		HttpSessionManager httpSessionManager = new HttpSessionManager();
-		httpSessionManager.setExpireTimeInHour(settings.getInt("session_expire_hour", 24)); // 24시간.
+		httpSessionManager = new HttpSessionManager(settings.getInt("session_expire_hour", 1));
 		serviceController = new HttpServiceController(executorService, httpSessionManager);
 		if (!transportModule.load()) {
 			throw new FastcatSearchException("can not load transport module!");
@@ -206,6 +201,7 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 	@Override
 	protected boolean doStop() throws FastcatSearchException {
 		transportModule.doUnload();
+		httpSessionManager.close();
 		return true;
 	}
 
@@ -213,6 +209,7 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 	protected boolean doClose() throws FastcatSearchException {
 		serviceController = null;
 		transportModule = null;
+		httpSessionManager = null;
 		return true;
 	}
 

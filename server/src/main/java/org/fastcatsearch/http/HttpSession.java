@@ -1,24 +1,26 @@
 package org.fastcatsearch.http;
 
+import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class HttpSession {
-	private ConcurrentHashMap<String, Object> map;
+	private Map<String, Object> map;
 	private String id;
-	private long createTime;
+	private long lastTime;
 	
 	public HttpSession(String id){
 		this.id = id;
-		map = new ConcurrentHashMap<String, Object>();
-		createTime = System.currentTimeMillis();
+		map = new ConcurrentHashMap<String, Object>(1, 1.0f);
+		lastTime = System.currentTimeMillis();
 	}
 	
 	public String getId(){
 		return id;
 	}
 	
-	public long getCreationTime(){
-		return createTime;
+	public long getLastTime(){
+		return lastTime;
 	}
 	
 	public Object getAttribute(String name){
@@ -37,7 +39,15 @@ public class HttpSession {
 		map.clear();
 	}
 	
-	public ConcurrentHashMap<String, Object> map(){
+	public Map<String, Object> map(){
 		return map;
+	}
+
+	public void update() {
+		lastTime = System.currentTimeMillis();
+	}
+	
+	public String toString() {
+		return "[HttpSession] " + id + " : " + new Date(lastTime);
 	}
 }

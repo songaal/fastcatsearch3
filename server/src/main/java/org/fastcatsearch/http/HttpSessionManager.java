@@ -1,7 +1,9 @@
 package org.fastcatsearch.http;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,11 +21,19 @@ public class HttpSessionManager {
 	
 	public final static String DefaultSessionCookie = "JSESSIONID";
 
-	private final Map<String, HttpSession> sessionObjMap;
-	private int expireTimeInHour;
+	private Map<String, HttpSession> sessionObjMap;
+	private int expireTimeInMiliseconds;
+	private Timer timer;
 	
 	public HttpSessionManager() {
+		this(1);
+	}
+	
+	public HttpSessionManager(int expireTimeInHour) {
 		sessionObjMap = new ConcurrentHashMap<String, HttpSession>();
+		timer = new Timer("HttpSessionManager-timer", true);
+		timer.scheduleAtFixedRate(new SessionExpireTask(), 60 * 1000, 300 * 1000); ///5분에 한번 체크. 
+		setExpireTimeInHour(expireTimeInHour);
 	}
 
 	public HttpSession getSessionObj(String sessionId) {
@@ -81,6 +91,7 @@ public class HttpSessionManager {
 		if (responseCookie.length() > 0) {
 			actionResponse.setResponseCookie(responseCookie);
 		}
+		
 		if (!hasSessionCookie) {
 			// cookie가 없거나, 쿠키내에 JSESSIONID가 없다면 생성해서 Set-Cookie로 돌려준다.JSESSIONID=1bqe4dww377gy1c3pwqjzxbedj;Path=/admin
 			//TODO expireTimeInHour를 날짜로 바꿔서 추가. ; Expires=Wed, 09 Jun 2021 10:18:14 GMT
@@ -90,7 +101,10 @@ public class HttpSessionManager {
 			logger.debug("New Session Created! {} >> {}", newSessionId, sessionObj);
 			actionResponse.setResponseSetCookie(DefaultSessionCookie + "=" + newSessionId +";Path=/"); //경로구분없이 모두 동일한 session을 타도록 함.
 		}
-
+		
+		if(sessionObj != null){
+			sessionObj.update();
+		}
 		return sessionObj;
 	}
 
@@ -103,6 +117,28 @@ public class HttpSessionManager {
 	}
 
 	public void setExpireTimeInHour(int expireTimeInHour) {
-		this.expireTimeInHour = expireTimeInHour;
+		this.expireTimeInMiliseconds = expireTimeInHour * 3600 * 1000;
+	}
+	
+	public void close(){
+		timer.cancel();
+		timer = null;
+		sessionObjMap.clear();
+		sessionObjMap = null;
+	}
+	
+	class SessionExpireTask extends TimerTask {
+
+		@Override
+		public void run() {
+			long now = System.currentTimeMillis();
+			for(Entry<String, HttpSession> entry : sessionObjMap.entrySet()){
+//				logger.debug("entry > {}", entry.getValue());
+				if(now - entry.getValue().getLastTime() > expireTimeInMiliseconds){
+					sessionObjMap.remove(entry.getKey());
+				}
+			}
+		}
+		
 	}
 }
