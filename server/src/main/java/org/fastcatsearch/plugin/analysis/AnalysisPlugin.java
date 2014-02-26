@@ -204,7 +204,7 @@ public abstract class AnalysisPlugin<T, P> extends Plugin {
 						logger.debug("SPACE > {}", spaceDictionary.getWordSet());
 						dictionary.appendAdditionalNounEntry(spaceDictionary.getWordSet(), tokenType);
 					}
-//					sourceDictionary = spaceDictionary;
+					sourceDictionary = spaceDictionary;
 					Map map = new HashMap<CharVector, PreResult<CharVector>>();
 					for(Entry<CharVector, CharVector[]> e : spaceDictionary.map().entrySet()){
 						PreResult preResult = new PreResult<T>();
