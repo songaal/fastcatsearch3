@@ -19,6 +19,7 @@ import org.fastcatsearch.db.vo.DictionaryStatusVO;
 import org.fastcatsearch.ir.analysis.AnalyzerFactory;
 import org.fastcatsearch.ir.dic.CommonDictionary;
 import org.fastcatsearch.ir.dic.Dictionary;
+import org.fastcatsearch.ir.dic.PreResult;
 import org.fastcatsearch.ir.dictionary.CustomDictionary;
 import org.fastcatsearch.ir.dictionary.DAOSourceDictionaryCompiler;
 import org.fastcatsearch.ir.dictionary.MapDictionary;
@@ -26,6 +27,7 @@ import org.fastcatsearch.ir.dictionary.SetDictionary;
 import org.fastcatsearch.ir.dictionary.SourceDictionary;
 import org.fastcatsearch.ir.dictionary.SpaceDictionary;
 import org.fastcatsearch.ir.dictionary.SynonymDictionary;
+import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginSetting;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.Analyzer;
@@ -199,9 +201,19 @@ public abstract class AnalysisPlugin<T, P> extends Plugin {
 				}else if(type == Type.SPACE){
 					SpaceDictionary spaceDictionary = new SpaceDictionary(dictFile, isIgnoreCase);
 					if(tokenType != null){
+						logger.debug("SPACE > {}", spaceDictionary.getWordSet());
 						dictionary.appendAdditionalNounEntry(spaceDictionary.getWordSet(), tokenType);
 					}
-					sourceDictionary = spaceDictionary;
+//					sourceDictionary = spaceDictionary;
+					Map map = new HashMap<CharVector, PreResult<CharVector>>();
+					for(Entry<CharVector, CharVector[]> e : spaceDictionary.map().entrySet()){
+						PreResult preResult = new PreResult<T>();
+						preResult.setResult(e.getValue());
+						map.put(e.getKey(), preResult);
+						
+						logger.debug("PreResult {} > {}", e.getKey(), e.getValue());
+					}
+					commonDictionary.setPreDictionary(map);
 				}else if(type == Type.CUSTOM){
 					CustomDictionary customDictionary = new CustomDictionary(dictFile, isIgnoreCase);
 					if(tokenType != null){

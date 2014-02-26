@@ -53,6 +53,7 @@ public class SpaceDictionary extends MapDictionary {
 	@Override
 	public void addEntry(String word, Object[] values) {
 		String keyword = word.replaceAll(DELIMITER, "");
+		wordSet.add(new CharVector(keyword));
 		String[] list = word.split(DELIMITER);
 		super.addEntry(keyword, list);
 		

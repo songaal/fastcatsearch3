@@ -10,11 +10,14 @@ public class CharVectorHashMap<V> extends HashMap<CharVector, V> {
 	private boolean isIgnoreCase;
 
 	public CharVectorHashMap() {
-		this(false);
+		super();
 	}
 
 	public CharVectorHashMap(boolean isIgnoreCase) {
-		super();
+		this(2, isIgnoreCase);
+	}
+	public CharVectorHashMap(int initialCapacity, boolean isIgnoreCase) {
+		super(initialCapacity);
 		this.isIgnoreCase = isIgnoreCase;
 	}
 	public CharVectorHashMap(Map<CharVector, V> m, boolean isIgnoreCase) {
