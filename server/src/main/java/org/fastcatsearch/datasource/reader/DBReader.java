@@ -93,7 +93,7 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 				throw new IRException("JDBC driver is empty!");
 			}
 			if (sourceModifier != null) {
-				sourceModifier.init(con);
+				sourceModifier.init(this);
 			}
 			doBeforeQuery();
 

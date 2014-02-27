@@ -53,37 +53,37 @@ public abstract class SingleSourceReader<SourceType> {
 		this.deleteIdList = deleteIdList;
 	}
 	
-	protected String getConfigValue(String key){
+	public String getConfigValue(String key){
 		return singleSourceConfig.getProperties().get(key);
 	}
 	
-	protected String getConfigString(String key){
+	public String getConfigString(String key){
 		return getConfigString(key, null);
 	}
-	protected String getConfigString(String key, String defaultValue){
+	public String getConfigString(String key, String defaultValue){
 		String value = getConfigValue(key);
 		return value == null ? defaultValue : value;
 	}
-	protected boolean getConfigBoolean(String key){
+	public boolean getConfigBoolean(String key){
 		return getConfigBoolean(key, false);
 	}
-	protected boolean getConfigBoolean(String key, boolean defaultValue){
+	public boolean getConfigBoolean(String key, boolean defaultValue){
 		return "true".equalsIgnoreCase(getConfigValue(key));
 	}
-	protected int getConfigInt(String key){
+	public int getConfigInt(String key){
 		return getConfigInt(key, 0);
 	}
-	protected int getConfigInt(String key, int defaultValue){
+	public int getConfigInt(String key, int defaultValue){
 		try{
 			return Integer.parseInt(getConfigValue(key));
 		}catch(NumberFormatException e){
 			return defaultValue;
 		}
 	}
-	protected long getConfigLong(String key){
+	public long getConfigLong(String key){
 		return getConfigLong(key, 0L);
 	}
-	protected long getConfigLong(String key, long defaultValue){
+	public long getConfigLong(String key, long defaultValue){
 		try{
 			return Long.parseLong(getConfigValue(key));
 		}catch(NumberFormatException e){
