@@ -35,6 +35,10 @@ public class CommonDictionary<E, P> {
 	public P findPreResult(CharVector token) {
 		return systemDictionary.findPreResult(token);
 	}
+	
+	public void setPreDictionary(Map<CharVector, P> map){
+		systemDictionary.setPreDictionary(map);
+	}
 	public int size(){
 		return systemDictionary.size();
 	}

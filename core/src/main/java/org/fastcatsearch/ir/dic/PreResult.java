@@ -8,6 +8,14 @@ public class PreResult<T> {
 	private T[] addition;
 	private T[] result;
 	
+	public PreResult(){
+	}
+	
+	public PreResult(T[] result, T[] addition){
+		this.result = result;
+		this.addition = addition;
+	}
+	
 	public T[] getAddition() {
 		return addition;
 	}
