@@ -61,42 +61,33 @@ public class ResponseWriterTest {
 	}
 
 	@Test
-	public void testArrayValues() throws Exception {
+	public void testSingle() throws Exception {
 		StringWriter writer = new StringWriter();
 		ResponseWriter rs = new XMLResponseWriter(writer, "response",true);
 		
-		//rs = new JSONResultStringer();
+		//rs = new JSONResponseWriter(writer, true);
 		
 		rs.object()
-		.key("status").value(0)
-		.key("time").value("4ms")
-		.key("total_count").value(5)
-		.key("field_count").value(3)
-		.key("fieldname_list")
-		.array("name")
-			.value("_no_")
-			.value("title")
-			.value("body")
-			.value("_score_")
-		.endArray()
-		.key("result")
-		.array("item")
+		.key("collectionId").value("vol1")
+		.key("indexNode")
 			.object()
-				.key("no").value(1)
-				.key("name").value("name1")
-				.key("data").value("data1")
-				.endObject()
+			.key("nodeId").value("node2")
+			.key("nodeName").value("My node2")
+			.endObject()
+		.key("dataNode")
+			.array()
 			.object()
-				.key("no").value(2)
-				.key("name").value("name2")
-				.key("data").value("data2")
-				.endObject()
-			.object()
-				.key("no").value(3)
-				.key("name").value("name3")
-				.key("data").value("data3")
-				.endObject()
-		.endArray()
+				.key("nodeId").value("node1")
+				.key("nodeName").value("My node1")
+				.key("segmentSize").value(1)
+				.key("revisionUUID").value("adec2d3d03ce48ebb8c897df2f45a233")
+				.key("sequence").value(1)
+				.key("dataPath").value("data/index1")
+				.key("diskSize").value("1GB")
+				.key("documentSize").value("3315826")
+				.key("createTime").value("2013.12.20 18:06:33")
+			.endObject()
+			.endArray()
 		.endObject();
 		
 		rs.done();

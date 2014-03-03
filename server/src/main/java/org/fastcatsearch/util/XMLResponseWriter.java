@@ -57,6 +57,7 @@ public class XMLResponseWriter implements ResponseWriter {
 		if(types.size()>0 && types.get(types.size()-1)==NODE_TYPE.ARRAY) {
 			types.add(NODE_TYPE.OBJECT);
 			currentElement = currentElement.addElement(arrayName.get(arrayName.size()-1));
+		} else {
 		}
 		return this;
 	}
@@ -65,6 +66,8 @@ public class XMLResponseWriter implements ResponseWriter {
 	public ResponseWriter endObject() throws ResultWriterException {
 		if(types.size()>1 && types.get(types.size()-2)==NODE_TYPE.ARRAY) {
 			types.remove(types.size()-1);
+			currentElement = currentElement.getParent();
+		} else {
 			currentElement = currentElement.getParent();
 		}
 		return this;
