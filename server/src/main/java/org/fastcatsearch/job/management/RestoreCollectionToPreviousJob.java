@@ -42,7 +42,10 @@ public class RestoreCollectionToPreviousJob extends Job implements Streamable {
 			CollectionContext collectionContext = irService.collectionContext(collectionId);
 			int sequence = collectionContext.getPreviousDataSequence();
 			if (sequenceString != null) {
-				sequence = Integer.parseInt(sequenceString);
+				try{
+					sequence = Integer.parseInt(sequenceString);
+				}catch(Exception ignore){ 
+				}
 			}
 
 			collectionContext.indexStatus().setSequence(sequence);
