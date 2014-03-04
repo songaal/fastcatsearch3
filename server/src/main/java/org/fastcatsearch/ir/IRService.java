@@ -108,33 +108,34 @@ public class IRService extends AbstractService {
 		for (Collection collection : collectionsConfig.getCollectionList()) {
 			try {
 				String collectionId = collection.getId();
-				realtimeQueryStatisticsModule.registerQueryCount(collectionId);
-				
-				CollectionContext collectionContext = null;
-				CollectionHandler collectionHandler = null;
-				logger.info("Load Collection [{}]", collectionId);
-				try {
-					collectionContext = loadCollectionContext(collection);
-				} catch (SettingException e) {
-					logger.error("컬렉션context 로드실패 " + collectionId, e);
-					continue;
-				}
-				if (collectionContext == null) {
-					continue;
-				} else {
-					collectionHandler = new CollectionHandler(collectionContext, analyzerFactoryManager);
-					
-					if(collectionContext.collectionConfig().getDataNodeList() != null 
-						&& collectionContext.collectionConfig().getDataNodeList().contains(environment.myNodeId())){
-						dataNodeCollectionIdSet.add(collectionId);
-					}
-				}
-
-				collectionHandlerMap.put(collectionId, collectionHandler);
-				collectionHandler.setQueryCounter(realtimeQueryStatisticsModule.getQueryCounter(collectionId));
-				
-				// active하지 않은 컬렉션은 map에 설정만 넣어두고 로드하지 않는다.
-				collectionHandler.load();
+//				realtimeQueryStatisticsModule.registerQueryCount(collectionId);
+//				
+//				CollectionContext collectionContext = null;
+//				CollectionHandler collectionHandler = null;
+//				logger.info("Load Collection [{}]", collectionId);
+//				try {
+//					collectionContext = loadCollectionContext(collection);
+//				} catch (SettingException e) {
+//					logger.error("컬렉션context 로드실패 " + collectionId, e);
+//					continue;
+//				}
+//				if (collectionContext == null) {
+//					continue;
+//				} else {
+//					collectionHandler = new CollectionHandler(collectionContext, analyzerFactoryManager);
+//					collectionHandler.setQueryCounter(realtimeQueryStatisticsModule.getQueryCounter(collectionId));
+//					
+//					if(collectionContext.collectionConfig().getDataNodeList() != null 
+//						&& collectionContext.collectionConfig().getDataNodeList().contains(environment.myNodeId())){
+//						dataNodeCollectionIdSet.add(collectionId);
+//					}
+//				}
+//
+//				collectionHandlerMap.put(collectionId, collectionHandler);
+//				
+//				// active하지 않은 컬렉션은 map에 설정만 넣어두고 로드하지 않는다.
+//				collectionHandler.load();
+				loadCollectionHandler(collectionId, collection);
 
 			} catch (IRException e) {
 				logger.error("[ERROR] " + e.getMessage(), e);
@@ -164,7 +165,55 @@ public class IRService extends AbstractService {
 		
 		return true;
 	}
+	public CollectionHandler loadCollectionHandler(String collectionId) throws IRException, SettingException {
+		return loadCollectionHandler(collectionId, null);
+	}
+	
+	public CollectionHandler loadCollectionHandler(String collectionId, Collection collection) throws IRException, SettingException {
+		realtimeQueryStatisticsModule.registerQueryCount(collectionId);
+		
+		CollectionContext collectionContext = null;
+		CollectionHandler collectionHandler = null;
+		logger.info("Load Collection [{}]", collectionId);
+		if(collection == null){
+			for (Collection col : collectionsConfig.getCollectionList()) {
+				if(col.getId().equalsIgnoreCase(collectionId)){
+					collection = col;
+					break;
+				}
+			}
+		}
+		try {
+			collectionContext = loadCollectionContext(collection);
+		} catch (SettingException e) {
+			logger.error("컬렉션context 로드실패 " + collectionId, e);
+			return null;
+		}
+		if (collectionContext == null) {
+			return null;
+		} else {
+			collectionHandler = new CollectionHandler(collectionContext, analyzerFactoryManager);
+			collectionHandler.setQueryCounter(realtimeQueryStatisticsModule.getQueryCounter(collectionId));
+			
+			if(collectionContext.collectionConfig().getDataNodeList() != null 
+				&& collectionContext.collectionConfig().getDataNodeList().contains(environment.myNodeId())){
+				dataNodeCollectionIdSet.add(collectionId);
+			}
+		}
 
+		CollectionHandler previousCollectionHandler = collectionHandlerMap.put(collectionId, collectionHandler);
+		if(previousCollectionHandler != null){
+			try {
+				previousCollectionHandler.close();
+			} catch (IOException e) {
+				logger.error("", e);
+			}
+		}
+		// active하지 않은 컬렉션은 map에 설정만 넣어두고 로드하지 않는다.
+		collectionHandler.load();
+		
+		return collectionHandler;
+	}
 	
 	public CollectionHandler collectionHandler(String collectionId) {
 		return collectionHandlerMap.get(collectionId);
