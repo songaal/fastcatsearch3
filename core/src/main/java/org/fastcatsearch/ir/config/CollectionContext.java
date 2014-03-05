@@ -161,6 +161,16 @@ public class CollectionContext {
 		return nextDataSequence;
 	}
 	
+	public int getPreviousDataSequence(){
+		int currentDataSequence = collectionIndexStatus.getSequence();
+		int dataSequenceCycle = collectionConfig.getDataPlanConfig().getDataSequenceCycle();
+		if(currentDataSequence == 0){
+			return dataSequenceCycle - 1;
+		}else{
+			return currentDataSequence - 1;
+		}
+	}
+	
 	public int getIndexSequence(){
 		return collectionIndexStatus.getSequence();
 	}
