@@ -27,6 +27,6 @@ set FASTCAT_CLASSPATH=.
 
 for /f "tokens=*" %%x in ('dir /s /b %LIB%\*.jar') do (set FASTCAT_CLASSPATH=!FASTCAT_CLASSPATH!;%%x)
 
-java -Dserver.home=%IR_HOME% -Xmx512m -Dlogback.configurationFile=%CONF%\logback.xml -Dderby.stream.error.file=logs/db.log -classpath %FASTCAT_CLASSPATH% com.fastcatsearch.server.CatServer
+java -Dserver.home=%IR_HOME% -Xmx512m -Dlogback.configurationFile=%CONF%\logback.xml -Dderby.stream.error.file=logs/db.log -classpath %FASTCAT_CLASSPATH% org.fastcatsearch.server.CatServer
 
 endlocal
