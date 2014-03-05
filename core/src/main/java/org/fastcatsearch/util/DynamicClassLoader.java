@@ -235,10 +235,13 @@ public class DynamicClassLoader {
 	public static List<Class<?>> findChildrenClass(String packageName, final Class<?> parentCls) {
 		ClassScanner<Class<?>> scanner = new ClassScanner<Class<?>>() {
 			@Override
-			public Class<?> done(String ename, String pkg, Object param) {
-				Class<?> cls = DynamicClassLoader.loadClass(ename);
-				if(cls.isAssignableFrom(parentCls)) {
-					return cls;
+			public Class<?> done(String className, String pkg, Object param) {
+				Class<?> cls = DynamicClassLoader.loadClass(className);
+				if(parentCls.isAssignableFrom(cls)) {
+					if(!parentCls.equals(cls)){
+						//자기자신은 포함하지 않는다.
+						return cls;
+					}
 				}
 				return null;
 			}
@@ -247,17 +250,15 @@ public class DynamicClassLoader {
 	}
 
 	//특정패키지에서 특정 어노테이션 클래스 얻어오기
-	public static List<Class<?>> findClassByAnnotation(String packageName, final Class<?> anonClass) {
+	public static List<Class<?>> findClassByAnnotation(String packageName, final Class<? extends Annotation> anonClass) {
 		ClassScanner<Class<?>> scanner = new ClassScanner<Class<?>>() {
 			@Override
-			public Class<?> done(String classNname, String pkg, Object param) {
-				Class<?> cls = DynamicClassLoader.loadClass(classNname);
+			public Class<?> done(String className, String pkg, Object param) {
+				Class<?> cls = DynamicClassLoader.loadClass(className);
 				if(cls!=null) {
-					Annotation[] annotations = cls.getAnnotations();
-					for(Annotation have : annotations) {
-						if(have.getClass().isAssignableFrom(anonClass)) {
-							return cls;
-						}
+					Annotation annotation = cls.getAnnotation(anonClass);
+					if(annotation != null){
+						return cls;
 					}
 				}
 				return null;
