@@ -102,5 +102,11 @@ public class StoredDocumentSourceReader extends AbstractDataSourceReader<Documen
 			reader.close();
 		}
 
+		@Override
+		protected void initParameters() {
+			// TODO Auto-generated method stub
+			
+		}
+
 	}
 }

@@ -258,4 +258,12 @@ public class DumpFileSourceReader extends SingleSourceReader<Map<String, Object>
 		}
 	}
 
+	@Override
+	protected void initParameters() {
+		registerParameter(new SourceReaderParameter("filepath", "File Path", "Filepath for indexing."
+				, SourceReaderParameter.TYPE_STRING_LONG, true, null));
+		registerParameter(new SourceReaderParameter("encoding", "Encoding", "File encoding"
+				, SourceReaderParameter.TYPE_STRING, true, null));
+	}
+
 }
