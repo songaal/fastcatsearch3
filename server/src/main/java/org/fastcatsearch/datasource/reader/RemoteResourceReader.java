@@ -65,4 +65,9 @@ public class RemoteResourceReader extends SingleSourceReader {
 		// TODO Auto-generated method stub
 		
 	}
+	@Override
+	protected void initParameters() {
+		// TODO Auto-generated method stub
+		
+	}
 }

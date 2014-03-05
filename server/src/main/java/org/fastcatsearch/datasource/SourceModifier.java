@@ -16,18 +16,26 @@
 
 package org.fastcatsearch.datasource;
 
-import java.util.Map;
-
+import org.fastcatsearch.datasource.reader.SingleSourceReader;
 import org.fastcatsearch.ir.common.IRException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public abstract class SourceModifier<DateType> {
+public abstract class SourceModifier<DataType> {
 	
 	protected static Logger logger = LoggerFactory.getLogger(SourceModifier.class);
-			
-	public abstract void modify(DateType data) throws IRException;
+	
+	protected SingleSourceReader<DataType> singleSourceReader;
+	
+	public SourceModifier(){
+	}
+	
+	public SourceModifier(SingleSourceReader<DataType> singleSourceReader){
+		this.singleSourceReader = singleSourceReader;
+	}
+	
+	public abstract void modify(DataType data) throws IRException;
 	
 	public abstract void init(Object obj);
 }

@@ -63,6 +63,26 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 		super(filePath, dataSourceConfig, singleSourceConfig, sourceModifier, lastIndexTime);
 	}
 
+
+	@Override
+	protected void initParameters() {
+		registerParameter(new SourceReaderParameter("jdbcSourceId", "JDBC ID", "Select jdbc connection", "JDBC", true, null));
+		registerParameter(new SourceReaderParameter("bulkSize", "Bulk Size"
+				, "DBReader reads BulkSize amount of data in advance on memory, then provides to consumer."
+				, SourceReaderParameter.TYPE_NUMBER, true, "100"));
+		registerParameter(new SourceReaderParameter("fetchSize", "Fetch Size"
+				, "JDBC statement fetch-size. if this value is 0, JDBC uses read-only cursor."
+				, SourceReaderParameter.TYPE_NUMBER, true, "1000"));
+		registerParameter(new SourceReaderParameter("dataSQL", "Data SQL", "Query for indexing."
+				, SourceReaderParameter.TYPE_TEXT, true, null));
+		registerParameter(new SourceReaderParameter("deleteIdSQL", "Delete SQL", "Query for delete documents while indexing."
+				, SourceReaderParameter.TYPE_TEXT, false, null));
+		registerParameter(new SourceReaderParameter("beforeSQL", "Before SQL", "Query before indexing."
+				, SourceReaderParameter.TYPE_TEXT, false, null));
+		registerParameter(new SourceReaderParameter("afterSQL", "After SQL", "Query after indexing."
+				, SourceReaderParameter.TYPE_TEXT, false, null));
+	}
+	
 	@Override
 	public void init() throws IRException {
 		this.BULK_SIZE = getConfigInt("bulkSize");
