@@ -87,15 +87,6 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 			logger.warn("Cannot register action class name >> {} : {}", className, pathPrefix);
 			return;
 		}
-		if (isFile) {
-			if (className.endsWith(".class")) {
-				className = className.substring(0, className.length() - 6);
-				className = className.replaceAll("/", ".");
-			} else {
-				// file인데 class로 끝나지 않으면 무시.
-				return;
-			}
-		}
 
 		try {
 			Class<?> actionClass = DynamicClassLoader.loadClass(className);
