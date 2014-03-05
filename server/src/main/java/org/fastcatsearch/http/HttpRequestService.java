@@ -67,12 +67,12 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 	private void scanActions(final Map<String, HttpAction> actionMap, String actionBasePackage) {
 		ClassScanner<HttpAction> scanner = new ClassScanner<HttpAction>() {
 			@Override
-			public HttpAction done(String ename, String pkg) {
+			public HttpAction done(String ename, String pkg, Object param) {
 				registerAction(actionMap, ename, true);
 				return null;
 			}
 		};
-		scanner.scanClass(actionBasePackage, null);
+		scanner.scanClass(actionBasePackage, null, null);
 	}
 	
 	public void registerAction(String className, String pathPrefix) {

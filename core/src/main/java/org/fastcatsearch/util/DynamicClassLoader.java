@@ -217,7 +217,7 @@ public class DynamicClassLoader {
 	}
 	
 	public static abstract class ClassScanner<E> {
-		public List<E> scanClass(String pkg, ClassLoader classLoader) {
+		public List<E> scanClass(String pkg, ClassLoader classLoader, Object param) {
 			List<E> classes = new ArrayList<E>();
 			String path = pkg.replace(".", "/");
 			if (!path.endsWith("/")) {
@@ -244,7 +244,7 @@ public class DynamicClassLoader {
 								JarEntry je = jee.nextElement();
 								String ename = je.getName();
 								if (ename.startsWith(entryPath)) {
-									E ar = done(ename,pkg);
+									E ar = done(ename, pkg, param);
 									if(ar!=null) { classes.add(ar); }
 								}
 							}
@@ -265,7 +265,7 @@ public class DynamicClassLoader {
 						for(File f : fileSet){
 							String classPath = f.toURI().toURL().toString()
 								.substring(5).substring(prefixLength);
-							E ar = done(classPath,pkg);
+							E ar = done(classPath, pkg, param);
 							if(ar!=null) { classes.add(ar); }
 						}
 					}
@@ -285,6 +285,6 @@ public class DynamicClassLoader {
 				}
 			}
 		}
-		public abstract E done(String ename, String pkg);
+		public abstract E done(String ename, String pkg, Object param);
 	}
 }
