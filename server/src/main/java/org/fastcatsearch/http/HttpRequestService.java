@@ -13,8 +13,8 @@ import org.fastcatsearch.http.action.ServiceAction;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
+import org.fastcatsearch.util.ClassScanner;
 import org.fastcatsearch.util.DynamicClassLoader;
-import org.fastcatsearch.util.DynamicClassLoader.ClassScanner;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 
 public class HttpRequestService extends AbstractService implements HttpServerAdapter {

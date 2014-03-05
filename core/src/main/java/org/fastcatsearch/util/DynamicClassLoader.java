@@ -201,7 +201,7 @@ public class DynamicClassLoader {
 				URLClassLoader l = (URLClassLoader)iter.next();
 				e = l.getResources(name);
 				
-				logger.trace("getResources {} >> {}, {}", l, e, e.hasMoreElements());
+				logger.debug("getResources {} >> {}, {}", l, e, e.hasMoreElements());
 				if(e != null && e.hasMoreElements()){
 					compoundEnumeration.add(e);
 				}
@@ -250,11 +250,15 @@ public class DynamicClassLoader {
 	public static List<Class<?>> findClassByAnnotation(String packageName, final Class<?> anonClass) {
 		ClassScanner<Class<?>> scanner = new ClassScanner<Class<?>>() {
 			@Override
-			public Class<?> done(String classNname, String pkg, Object param) {
-				Class<?> cls = DynamicClassLoader.loadClass(classNname);
+			public Class<?> done(String className, String pkg, Object param) {
+				Class<?> cls = DynamicClassLoader.loadClass(className);
 				if(cls!=null) {
 					Annotation[] annotations = cls.getAnnotations();
 					for(Annotation have : annotations) {
+String teststr = have.getClass().getName();
+if(className.startsWith("org.fastcatsearch")) {
+logger.debug("cls:{} / have:{}", className, have.getClass().getName()+":"+anonClass);
+}
 						if(have.getClass().isAssignableFrom(anonClass)) {
 							return cls;
 						}

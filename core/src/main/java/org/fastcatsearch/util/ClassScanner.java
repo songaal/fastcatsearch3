@@ -52,12 +52,12 @@ public abstract class ClassScanner<E> {
 								JarEntry jarEntry = jee.nextElement();
 								String className = jarEntry.getName();
 								if (className.startsWith(entryPath)) {
-									if(className.endsWith(".class")) {
-										className = className.substring(0,className.length() - 6);
-										className = className.replaceAll("/", ".");
+//									if(className.endsWith(".class")) {
+//										className = className.substring(0,className.length() - 6);
+//										className = className.replaceAll("/", ".");
 										E args = done(className, packageName, param);
 										if(args!=null && !ret.contains(args)) { ret.add(args); }
-									}
+//									}
 								}
 							}
 						} finally{
@@ -77,12 +77,12 @@ public abstract class ClassScanner<E> {
 						for (File file : fileSet) {
 							String classPath = file.toURI().toURL().toString()
 								.substring(5).substring(prefixLength);
-							if(classPath.endsWith(".class")) {
-								classPath = classPath.substring(0,classPath.length() - 6);
-								classPath = classPath.replaceAll("/", ".");
+//							if(classPath.endsWith(".class")) {
+//								classPath = classPath.substring(0,classPath.length() - 6);
+//								classPath = classPath.replaceAll("/", ".");
 								E args = done(classPath, packageName, param);
 								if(args!=null && !ret.contains(args)) { ret.add(args); }
-							}
+//							}
 						}
 					}
 				}

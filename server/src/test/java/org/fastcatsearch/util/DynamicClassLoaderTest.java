@@ -16,6 +16,6 @@ public class DynamicClassLoaderTest {
 	@Test
 	public void dynamicClassLoaderTest() {
 		
-		DynamicClassLoader.findClassByAnnotation("", SourceReader.class);
+		DynamicClassLoader.findClassByAnnotation("org.fastcatsearch", SourceReader.class);
 	}
 }
