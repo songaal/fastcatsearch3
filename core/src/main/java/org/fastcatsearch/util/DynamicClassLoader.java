@@ -23,7 +23,6 @@ import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,8 +32,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +62,7 @@ public class DynamicClassLoader {
 	}
 	
 	public static boolean add(String tag, List<File> jarFiles) {
-		URL[] jarUrls = new URL[jarFiles.size()];
+		//URL[] jarUrls = new URL[jarFiles.size()];
 		return add(tag, jarFiles.toArray(new File[0]));
 	}
 	public static boolean add(String tag, File[] jarFiles) {
@@ -82,7 +79,7 @@ public class DynamicClassLoader {
 		URLClassLoader l = new URLClassLoader(jarUrls, Thread.currentThread().getContextClassLoader());
 		try{
 			lock.writeLock().lock();
-			logger.debug("Add Classpath {}:{}", tag, sb.toString());
+			logger.trace("Add Classpath {}:{}", tag, sb.toString());
 			classLoaderList.put(tag, l);
 		}finally{
 			lock.writeLock().unlock();
@@ -121,6 +118,7 @@ public class DynamicClassLoader {
 		
 		return null;
 	}
+	@SuppressWarnings("unchecked")
 	public static <T> T loadObject(String className, Class<T> type){
 		try {
 			Class<?> clazz = loadClass(className);
@@ -134,6 +132,7 @@ public class DynamicClassLoader {
 		return null;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public static <T> T loadObject(String className, Class<T> type, Class<?>[] paramTypes ,Object[] initargs) {
 		try {
 			Class<?> clazz = loadClass(className);
@@ -160,9 +159,9 @@ public class DynamicClassLoader {
 				return clazz;
 			}
 		}catch(ClassNotFoundException ignore){
-			
+		}catch(NoClassDefFoundError ignore){
 		}
-//		logger.debug("basic cl {}, {}", clazz, className);
+		logger.trace("basic cl {}, {}", clazz, className);
 		try{
 			lock.readLock().lock();
 			Iterator<URLClassLoader> iter = classLoaderList.values().iterator();
@@ -170,9 +169,9 @@ public class DynamicClassLoader {
 				URLClassLoader l = (URLClassLoader)iter.next();
 				try {
 					clazz = Class.forName(className, true, l);
-//					logger.debug("{} cl {} : {}", l, clazz, className);
+					logger.trace("{} cl {} : {}", l, clazz, className);
 				} catch (ClassNotFoundException e) {
-//					logger.debug("{} cl {} : {}", l, clazz, className);
+					logger.trace("{} cl {} : {}", l, clazz, className);
 					continue;
 				}
 				
@@ -184,7 +183,7 @@ public class DynamicClassLoader {
 			lock.readLock().unlock();
 		}
 		
-		logger.warn("Classloader cannot find {}", className);
+//		logger.warn("Classloader cannot find {}", className);
 		return null;
 	}
 	
@@ -202,7 +201,7 @@ public class DynamicClassLoader {
 				URLClassLoader l = (URLClassLoader)iter.next();
 				e = l.getResources(name);
 				
-				logger.debug("getResources {} >> {}, {}", l, e, e.hasMoreElements());
+				logger.trace("getResources {} >> {}, {}", l, e, e.hasMoreElements());
 				if(e != null && e.hasMoreElements()){
 					compoundEnumeration.add(e);
 				}
@@ -216,75 +215,55 @@ public class DynamicClassLoader {
 		return compoundEnumeration;
 	}
 	
-	public static abstract class ClassScanner<E> {
-		public List<E> scanClass(String pkg, ClassLoader classLoader, Object param) {
-			List<E> classes = new ArrayList<E>();
-			String path = pkg.replace(".", "/");
-			if (!path.endsWith("/")) {
-				path = path + "/";
-			}
-			try {
-				Enumeration<URL> em = null;
-				if(classLoader!=null) {
-					em = classLoader.getResources(path);
-				} else {
-					em = DynamicClassLoader.getResources(path);
+	public static Set<String> getPackageList() {
+		Set<String> ret = new HashSet<String>();
+		new ClassLoader() {
+			public void init(Set<String> set) {
+				Package[] packages = super.getPackages();
+				for(Package pkg : packages) {
+					String pkgName = pkg.getName();
+					if(!set.contains(pkgName)) {
+						set.add(pkgName);
+					}
 				}
-				while(em.hasMoreElements()) {
-					String urlstr = em.nextElement().toString();
-					if(urlstr.startsWith("jar:file:")) {
-						String jpath = urlstr.substring(9);
-						int st = jpath.indexOf("!/");
-						String jarPath = jpath.substring(0, st);
-						String entryPath = jpath.substring(st + 2);
-						JarFile jf = new JarFile(jarPath);
-						try {
-							Enumeration<JarEntry>jee = jf.entries();
-							while(jee.hasMoreElements()) {
-								JarEntry je = jee.nextElement();
-								String ename = je.getName();
-								if (ename.startsWith(entryPath)) {
-									E ar = done(ename, pkg, param);
-									if(ar!=null) { classes.add(ar); }
-								}
-							}
-						} finally{
-							jf.close();
-						}
-					} else  if(urlstr.startsWith("file:")) {
-						String rootPath = urlstr.substring(5);
-						int prefixLength = rootPath.indexOf(path);
-						File file = new File(rootPath);
-						
-						Set<File> fileSet = new HashSet<File>();
-						if(file.isDirectory()){
-							addDirectory(fileSet, file);
-						}else{
-							fileSet.add(file);
-						}
-						for(File f : fileSet){
-							String classPath = f.toURI().toURL().toString()
-								.substring(5).substring(prefixLength);
-							E ar = done(classPath, pkg, param);
-							if(ar!=null) { classes.add(ar); }
+			}
+		}.init(ret);
+		return ret;
+	}
+	
+	//특정패키지에서 특정클래스의 하위클래스 얻어오기
+	public static List<Class<?>> findChildrenClass(String packageName, final Class<?> parentCls) {
+		ClassScanner<Class<?>> scanner = new ClassScanner<Class<?>>() {
+			@Override
+			public Class<?> done(String ename, String pkg, Object param) {
+				Class<?> cls = DynamicClassLoader.loadClass(ename);
+				if(cls.isAssignableFrom(parentCls)) {
+					return cls;
+				}
+				return null;
+			}
+		};
+		return scanner.scanClass(packageName, null);
+	}
+
+	//특정패키지에서 특정 어노테이션 클래스 얻어오기
+	public static List<Class<?>> findClassByAnnotation(String packageName, final Class<?> anonClass) {
+		ClassScanner<Class<?>> scanner = new ClassScanner<Class<?>>() {
+			@Override
+			public Class<?> done(String classNname, String pkg, Object param) {
+				Class<?> cls = DynamicClassLoader.loadClass(classNname);
+				if(cls!=null) {
+					Annotation[] annotations = cls.getAnnotations();
+					for(Annotation have : annotations) {
+						if(have.getClass().isAssignableFrom(anonClass)) {
+							return cls;
 						}
 					}
 				}
-				return classes;
-			} catch (IOException e) { }
-			return null;
-		}
-		
-		private void addDirectory(Set<File> set, File d){
-			File[] files = d.listFiles();
-			for (int i = 0; i < files.length; i++) {
-				if(files[i].isDirectory()){
-					addDirectory(set, files[i]);
-				}else{
-					set.add(files[i]);
-				}
+				return null;
 			}
-		}
-		public abstract E done(String ename, String pkg, Object param);
+		};
+		return scanner.scanClass(packageName, null);
+		
 	}
 }

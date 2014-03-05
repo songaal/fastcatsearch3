@@ -21,7 +21,8 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
 
-@ActionMapping(value = "/management/collections/all-node-indexing-status", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.READABLE)
+//@ActionMapping(value = "/management/collections/all-node-indexing-status", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.READABLE)
+@ActionMapping(value = "/management/collections/all-node-indexing-status", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.NONE)
 public class GetAllNodeIndexingStatusAction extends AuthAction {
 
 	@Override

@@ -72,7 +72,7 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 				return null;
 			}
 		};
-		scanner.scanClass(actionBasePackage, null, null);
+		scanner.scanClass(actionBasePackage, null);
 	}
 	
 	public void registerAction(String className, String pathPrefix) {
