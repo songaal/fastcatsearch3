@@ -18,17 +18,23 @@ package org.fastcatsearch.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -210,4 +216,75 @@ public class DynamicClassLoader {
 		return compoundEnumeration;
 	}
 	
+	public static abstract class ClassScanner<E> {
+		public List<E> scanClass(String pkg, ClassLoader classLoader, Object param) {
+			List<E> classes = new ArrayList<E>();
+			String path = pkg.replace(".", "/");
+			if (!path.endsWith("/")) {
+				path = path + "/";
+			}
+			try {
+				Enumeration<URL> em = null;
+				if(classLoader!=null) {
+					em = classLoader.getResources(path);
+				} else {
+					em = DynamicClassLoader.getResources(path);
+				}
+				while(em.hasMoreElements()) {
+					String urlstr = em.nextElement().toString();
+					if(urlstr.startsWith("jar:file:")) {
+						String jpath = urlstr.substring(9);
+						int st = jpath.indexOf("!/");
+						String jarPath = jpath.substring(0, st);
+						String entryPath = jpath.substring(st + 2);
+						JarFile jf = new JarFile(jarPath);
+						try {
+							Enumeration<JarEntry>jee = jf.entries();
+							while(jee.hasMoreElements()) {
+								JarEntry je = jee.nextElement();
+								String ename = je.getName();
+								if (ename.startsWith(entryPath)) {
+									E ar = done(ename, pkg, param);
+									if(ar!=null) { classes.add(ar); }
+								}
+							}
+						} finally{
+							jf.close();
+						}
+					} else  if(urlstr.startsWith("file:")) {
+						String rootPath = urlstr.substring(5);
+						int prefixLength = rootPath.indexOf(path);
+						File file = new File(rootPath);
+						
+						Set<File> fileSet = new HashSet<File>();
+						if(file.isDirectory()){
+							addDirectory(fileSet, file);
+						}else{
+							fileSet.add(file);
+						}
+						for(File f : fileSet){
+							String classPath = f.toURI().toURL().toString()
+								.substring(5).substring(prefixLength);
+							E ar = done(classPath, pkg, param);
+							if(ar!=null) { classes.add(ar); }
+						}
+					}
+				}
+				return classes;
+			} catch (IOException e) { }
+			return null;
+		}
+		
+		private void addDirectory(Set<File> set, File d){
+			File[] files = d.listFiles();
+			for (int i = 0; i < files.length; i++) {
+				if(files[i].isDirectory()){
+					addDirectory(set, files[i]);
+				}else{
+					set.add(files[i]);
+				}
+			}
+		}
+		public abstract E done(String ename, String pkg, Object param);
+	}
 }

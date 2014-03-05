@@ -1,16 +1,8 @@
 package org.fastcatsearch.http;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 import org.fastcatsearch.common.ThreadPoolFactory;
 import org.fastcatsearch.env.Environment;
@@ -22,6 +14,7 @@ import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.util.DynamicClassLoader;
+import org.fastcatsearch.util.DynamicClassLoader.ClassScanner;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 
 public class HttpRequestService extends AbstractService implements HttpServerAdapter {
@@ -70,68 +63,18 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 		}
 	}
 
-	private void addDirectory(Set<File> set, File d){
-		File[] files = d.listFiles();
-		for (int i = 0; i < files.length; i++) {
-			if(files[i].isDirectory()){
-				addDirectory(set, files[i]);
-			}else{
-				set.add(files[i]);
+	// 하위패키지까지 모두 포함되도록 한다.
+	private void scanActions(final Map<String, HttpAction> actionMap, String actionBasePackage) {
+		ClassScanner<HttpAction> scanner = new ClassScanner<HttpAction>() {
+			@Override
+			public HttpAction done(String ename, String pkg, Object param) {
+				registerAction(actionMap, ename, true);
+				return null;
 			}
-		}
+		};
+		scanner.scanClass(actionBasePackage, null, null);
 	}
 	
-	// 하위패키지까지 모두 포함되도록 한다.
-	private void scanActions(Map<String, HttpAction> actionMap, String actionBasePackage) {
-		String path = actionBasePackage.replace(".", "/");
-		if (!path.endsWith("/")) {
-			path = path + "/";
-		}
-		try {
-			String findPath = path;// +"**/*.class";
-			Enumeration<URL> em = DynamicClassLoader.getResources(findPath);
-			// logger.debug("findPath >> {}, {}", findPath, em);
-			while (em.hasMoreElements()) {
-				String urlstr = em.nextElement().toString();
-				// logger.debug("urlstr >> {}", urlstr);
-				if (urlstr.startsWith("jar:file:")) {
-					String jpath = urlstr.substring(9);
-					int st = jpath.indexOf("!/");
-					String jarPath = jpath.substring(0, st);
-					String entryPath = jpath.substring(st + 2);
-					JarFile jf = new JarFile(jarPath);
-					Enumeration<JarEntry> jee = jf.entries();
-					while (jee.hasMoreElements()) {
-						JarEntry je = jee.nextElement();
-						String ename = je.getName();
-						if(ename.startsWith(entryPath)){
-							registerAction(actionMap, ename, true);
-						}
-					}
-				} else if (urlstr.startsWith("file:")) {
-					// logger.debug("urlstr >> {}", urlstr);
-					String rootPath = urlstr.substring(5);
-					int prefixLength = rootPath.indexOf(path);
-					File file = new File(rootPath);
-					
-					Set<File> actionFileSet = new HashSet<File>();
-					if(file.isDirectory()){
-						addDirectory(actionFileSet, file);
-					}else{
-						actionFileSet.add(file);
-					}
-					for(File f : actionFileSet){
-						String classPath = f.toURI().toURL().toString().substring(5)
-								.substring(prefixLength);
-						//logger.debug("file >> {}", classPath);
-						registerAction(actionMap, classPath, true);
-					}
-				}
-			}
-		} catch (IOException e) {
-			logger.error("action load error!", e);
-		}
-	}
 	public void registerAction(String className, String pathPrefix) {
 		registerAction(serviceController.getActionMap(), className, pathPrefix, false);
 	}
