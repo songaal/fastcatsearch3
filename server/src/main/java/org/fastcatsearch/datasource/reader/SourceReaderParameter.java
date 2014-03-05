@@ -2,10 +2,10 @@ package org.fastcatsearch.datasource.reader;
 
 public class SourceReaderParameter {
 
-	public static String TYPE_STRING; //single-line short
-	public static String TYPE_STRING_LONG; //single-line long
-	public static String TYPE_TEXT; //multi-line
-	public static String TYPE_NUMBER;
+	public static final String TYPE_STRING = "STRING"; //single-line short
+	public static final String TYPE_STRING_LONG = "STRING_LONG"; //single-line long
+	public static final String TYPE_TEXT = "TEXT"; //multi-line
+	public static final String TYPE_NUMBER = "NUMBER"; //숫자형.
 	
 	private String id;
 	private String name;
