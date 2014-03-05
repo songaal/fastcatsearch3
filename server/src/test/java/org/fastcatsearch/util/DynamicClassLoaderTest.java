@@ -1,12 +1,11 @@
 package org.fastcatsearch.util;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 
 import java.util.List;
 
-import org.fastcatsearch.datasource.reader.SingleSourceReader;
 import org.fastcatsearch.datasource.reader.annotation.SourceReader;
-import org.fastcatsearch.util.DynamicClassLoader;
+import org.fastcatsearch.job.MasterNodeJob;
 import org.junit.Test;
 
 public class DynamicClassLoaderTest {
@@ -28,7 +27,7 @@ public class DynamicClassLoaderTest {
 	@Test
 	public void testChildrenClass() {
 		
-		List<Class<?>> classList = DynamicClassLoader.findChildrenClass("org.fastcatsearch", SingleSourceReader.class);
+		List<Class<?>> classList = DynamicClassLoader.findChildrenClass("org.fastcatsearch", MasterNodeJob.class);
 		for(Class<?> clazz : classList){
 			System.out.println(clazz);
 		}

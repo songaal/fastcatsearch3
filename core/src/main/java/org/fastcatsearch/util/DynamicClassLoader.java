@@ -201,7 +201,7 @@ public class DynamicClassLoader {
 				URLClassLoader l = (URLClassLoader)iter.next();
 				e = l.getResources(name);
 				
-				logger.trace("getResources {} >> {}, {}", l, e, e.hasMoreElements());
+				logger.debug("getResources {} >> {}, {}", l, e, e.hasMoreElements());
 				if(e != null && e.hasMoreElements()){
 					compoundEnumeration.add(e);
 				}
@@ -259,6 +259,7 @@ public class DynamicClassLoader {
 					Annotation annotation = cls.getAnnotation(anonClass);
 					if(annotation != null){
 						return cls;
+
 					}
 				}
 				return null;
