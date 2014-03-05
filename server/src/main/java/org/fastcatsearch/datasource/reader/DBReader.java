@@ -42,7 +42,7 @@ import org.fastcatsearch.util.DynamicClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SourceReader
+@SourceReader(name="DBMS")
 public class DBReader extends SingleSourceReader<Map<String, Object>> {
 
 	private static Logger logger = LoggerFactory.getLogger(DBReader.class);
