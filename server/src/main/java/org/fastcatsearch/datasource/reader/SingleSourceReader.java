@@ -70,19 +70,22 @@ public abstract class SingleSourceReader<SourceType> {
 
 	private void fillParameters(Map<String, String> map) {
 		// xml에서 읽어들인 파리미터들을 객체에 채워넣는다.
-		for (Entry<String, String> entry : map.entrySet()) {
-			String key = entry.getKey();
-			for (SourceReaderParameter parameter : sourceReaderParameterList) {
-				if (key.equalsIgnoreCase(parameter.getId())) {
-					// 해당 parameter에 값을 넣어준다.
-					String value = entry.getValue();
-					parameter.setValue(value);
-
-					if (parameterMap == null) {
-						parameterMap = new HashMap<String, String>();
+		logger.debug("map:{}", map);
+		if(map!=null) {
+			for (Entry<String, String> entry : map.entrySet()) {
+				String key = entry.getKey();
+				for (SourceReaderParameter parameter : sourceReaderParameterList) {
+					if (key.equalsIgnoreCase(parameter.getId())) {
+						// 해당 parameter에 값을 넣어준다.
+						String value = entry.getValue();
+						parameter.setValue(value);
+	
+						if (parameterMap == null) {
+							parameterMap = new HashMap<String, String>();
+						}
+						parameterMap.put(key, value);
+						break;
 					}
-					parameterMap.put(key, value);
-					break;
 				}
 			}
 		}

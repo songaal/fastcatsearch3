@@ -55,8 +55,11 @@ public abstract class ClassScanner<E> {
 									if(className.endsWith(".class")) {
 										className = className.substring(0,className.length() - 6);
 										className = className.replaceAll("/", ".");
-										E args = done(className, packageName, param);
-										if(args!=null && !ret.contains(args)) { ret.add(args); }
+										//in-a class 는 인정하지 않는다.
+										if(!className.contains("$")) {
+											E args = done(className, packageName, param);
+											if(args!=null && !ret.contains(args)) { ret.add(args); }
+										}
 									}
 								}
 							}
@@ -80,8 +83,11 @@ public abstract class ClassScanner<E> {
 							if(classPath.endsWith(".class")) {
 								classPath = classPath.substring(0,classPath.length() - 6);
 								classPath = classPath.replaceAll("/", ".");
-								E args = done(classPath, packageName, param);
-								if(args!=null && !ret.contains(args)) { ret.add(args); }
+								//in-a class 는 인정하지 않는다.
+								if(!classPath.contains("$")) {
+									E args = done(classPath, packageName, param);
+									if(args!=null && !ret.contains(args)) { ret.add(args); }
+								}
 							}
 						}
 					}

@@ -237,7 +237,7 @@ public class DynamicClassLoader {
 			@Override
 			public Class<?> done(String className, String pkg, Object param) {
 				Class<?> cls = DynamicClassLoader.loadClass(className);
-				if(parentCls.isAssignableFrom(cls)) {
+				if(cls!=null && parentCls.isAssignableFrom(cls)) {
 					if(!parentCls.equals(cls)){
 						//자기자신은 포함하지 않는다.
 						return cls;
@@ -259,7 +259,6 @@ public class DynamicClassLoader {
 					Annotation annotation = cls.getAnnotation(anonClass);
 					if(annotation != null){
 						return cls;
-
 					}
 				}
 				return null;
