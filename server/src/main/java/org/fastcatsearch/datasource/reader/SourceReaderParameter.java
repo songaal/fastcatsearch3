@@ -13,7 +13,6 @@ public class SourceReaderParameter {
 	private String type;
 	private boolean required;
 	private String defaultValue;
-	private boolean isMultiLine;
 	
 	private String value;
 	
@@ -61,11 +60,5 @@ public class SourceReaderParameter {
 	public String getDefaultValue() {
 		return defaultValue;
 	}
-
-	public boolean isMultiLine() {
-		return isMultiLine;
-	}
-	
-	
 	
 }

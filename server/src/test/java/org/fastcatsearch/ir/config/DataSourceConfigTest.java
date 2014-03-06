@@ -74,15 +74,15 @@ public class DataSourceConfigTest {
 			System.out.println(config.isActive());
 		}
 		
-		List<JDBCSourceInfo> sourceInfoList = dataSourceConfig.getJdbcSourceInfoList();
-		for(JDBCSourceInfo jdbcSourceInfo : sourceInfoList){
-			System.out.println(jdbcSourceInfo.getId());
-			System.out.println(jdbcSourceInfo.getName());
-			System.out.println(jdbcSourceInfo.getDriver());
-			System.out.println(jdbcSourceInfo.getUrl());
-			System.out.println(jdbcSourceInfo.getUser());
-			System.out.println(jdbcSourceInfo.getPassword());
-		}
+//		List<JDBCSourceInfo> sourceInfoList = dataSourceConfig.getJdbcSourceInfoList();
+//		for(JDBCSourceInfo jdbcSourceInfo : sourceInfoList){
+//			System.out.println(jdbcSourceInfo.getId());
+//			System.out.println(jdbcSourceInfo.getName());
+//			System.out.println(jdbcSourceInfo.getDriver());
+//			System.out.println(jdbcSourceInfo.getUrl());
+//			System.out.println(jdbcSourceInfo.getUser());
+//			System.out.println(jdbcSourceInfo.getPassword());
+//		}
 	}
 
 	
@@ -153,7 +153,7 @@ public class DataSourceConfigTest {
 			jdbc1.setUser("sa");
 			jdbc1.setPassword("sa1234567");
 			jdbcSourceInfoList.add(jdbc1);
-			dataSourceConfig.setJdbcSourceInfoList(jdbcSourceInfoList);
+//			dataSourceConfig.setJdbcSourceInfoList(jdbcSourceInfoList);
 		}
 		
 		

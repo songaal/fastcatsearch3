@@ -36,7 +36,7 @@ public class GetSourceReaderListAction extends AuthAction {
 		
 		responseWriter.object().key("sourceReaderList").array();
 		for(Class<?> sourceReader : sourceReaderList) {
-			logger.debug("class:{}", sourceReader);
+			logger.trace("class:{}", sourceReader);
 			
 			SourceReader annotation = sourceReader.getAnnotation(SourceReader.class);
 			if(annotation!=null && annotation.name() != null) {
@@ -62,7 +62,6 @@ public class GetSourceReaderListAction extends AuthAction {
 						.key("value").value(param.getValue())
 						.key("type").value(param.getType())
 						.key("required").value(param.isRequired())
-						.key("multiLine").value(param.isMultiLine())
 						.key("description").value(param.getDescription())
 						.key("defaultValue").value(param.getDefaultValue())
 						.endObject();

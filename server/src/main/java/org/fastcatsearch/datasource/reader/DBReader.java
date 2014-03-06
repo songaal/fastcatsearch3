@@ -28,16 +28,19 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.datasource.reader.annotation.SourceReader;
+import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.JDBCSourceInfo;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.util.Formatter;
+import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.DynamicClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +93,12 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 		dataSet = new Map[BULK_SIZE];
 		String jdbcSourceId = getConfigString("jdbcSourceId");
 		JDBCSourceInfo jdbcSourceInfo = null;
-		for(JDBCSourceInfo info : dataSourceConfig.getJdbcSourceInfoList()){
+		
+		IRService irService = ServiceManager.getInstance().getService(IRService.class);
+		
+		List<JDBCSourceInfo> jdbcSourceInfoList = irService.getJDBCSourceConfig().getJdbcSourceInfoList();
+		
+		for(JDBCSourceInfo info : jdbcSourceInfoList){
 			if(info.getId().equals(jdbcSourceId)){
 				jdbcSourceInfo = info;
 				break;

@@ -41,6 +41,7 @@ import org.fastcatsearch.ir.config.CollectionsConfig;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.ir.config.IndexingScheduleConfig;
 import org.fastcatsearch.ir.config.IndexingScheduleConfig.IndexingSchedule;
+import org.fastcatsearch.ir.config.JDBCSourceConfig;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.query.InternalSearchResult;
@@ -71,6 +72,8 @@ public class IRService extends AbstractService {
 	private QueryCacheModule<String, GroupsData> groupingDataCache;
 	private QueryCacheModule<String, Result> documentCache;
 	private CollectionsConfig collectionsConfig;
+	private JDBCSourceConfig jdbcSourceConfig;
+	
 	private File collectionsRoot;
 
 	private RealtimeQueryCountModule realtimeQueryStatisticsModule;
@@ -102,40 +105,32 @@ public class IRService extends AbstractService {
 		} catch (JAXBException e) {
 			logger.error("[ERROR] 컬렉션리스트 로딩실패. " + e.getMessage(), e);
 		}
+		
+		try {
+			jdbcSourceConfig = JAXBConfigs.readConfig(new File(collectionsRoot, SettingFileNames.jdbcSourceConfig), JDBCSourceConfig.class);
+		} catch (JAXBException e) {
+			logger.error("[ERROR] JDBC 소스리스트 로딩실패. " + e.getMessage(), e);
+		}
+		
+		if(jdbcSourceConfig == null) {
+			jdbcSourceConfig = new JDBCSourceConfig();
+		}
 
 		dataNodeCollectionIdSet = new HashSet<String>();
 		
-		for (Collection collection : collectionsConfig.getCollectionList()) {
+		//for (Collection collection : collectionsConfig.getCollectionList()) {
+		List<Collection> collectionList = collectionsConfig.getCollectionList();
+		for (int collectionInx = 0 ; collectionInx < collectionList.size(); collectionInx++) {
+			Collection collection = collectionList.get(collectionInx);
 			try {
 				String collectionId = collection.getId();
-//				realtimeQueryStatisticsModule.registerQueryCount(collectionId);
-//				
-//				CollectionContext collectionContext = null;
-//				CollectionHandler collectionHandler = null;
-//				logger.info("Load Collection [{}]", collectionId);
-//				try {
-//					collectionContext = loadCollectionContext(collection);
-//				} catch (SettingException e) {
-//					logger.error("컬렉션context 로드실패 " + collectionId, e);
-//					continue;
-//				}
-//				if (collectionContext == null) {
-//					continue;
-//				} else {
-//					collectionHandler = new CollectionHandler(collectionContext, analyzerFactoryManager);
-//					collectionHandler.setQueryCounter(realtimeQueryStatisticsModule.getQueryCounter(collectionId));
-//					
-//					if(collectionContext.collectionConfig().getDataNodeList() != null 
-//						&& collectionContext.collectionConfig().getDataNodeList().contains(environment.myNodeId())){
-//						dataNodeCollectionIdSet.add(collectionId);
-//					}
-//				}
-//
-//				collectionHandlerMap.put(collectionId, collectionHandler);
-//				
-//				// active하지 않은 컬렉션은 map에 설정만 넣어두고 로드하지 않는다.
-//				collectionHandler.load();
-				loadCollectionHandler(collectionId, collection);
+				//임시파일인 경우 시작하지 않고 지워준다.
+				if(collectionId.startsWith(".")) {
+					//TODO:삭제코드. 디렉토리도 삭제 해야 한다.
+					collectionList.remove(collectionInx);
+				} else {
+					loadCollectionHandler(collectionId, collection);
+				}
 
 			} catch (IRException e) {
 				logger.error("[ERROR] " + e.getMessage(), e);
@@ -144,6 +139,14 @@ public class IRService extends AbstractService {
 			} catch (Exception e) {
 				logger.error("[ERROR] " + e.getMessage(), e);
 			}
+		}
+		try {
+			//가공된 컬렉션 xml 을 저장한다.
+			JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.collections), 
+					collectionsConfig, CollectionsConfig.class);
+		} catch (JAXBException e) {
+			logger.error("", e);
+		} finally {
 		}
 
 		searchCache = new QueryCacheModule<String, Result>(environment, settings);
@@ -213,6 +216,16 @@ public class IRService extends AbstractService {
 		collectionHandler.load();
 		
 		return collectionHandler;
+	}
+	
+	public JDBCSourceConfig getJDBCSourceConfig() {
+		return jdbcSourceConfig;
+	}
+	
+	public void updateJDBCSourceConfig(JDBCSourceConfig jdbcSourceConfig) throws JAXBException {
+		//가공된 컬렉션 xml 을 저장한다.
+		JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.jdbcSourceConfig), 
+				jdbcSourceConfig, JDBCSourceConfig.class);
 	}
 	
 	public CollectionHandler collectionHandler(String collectionId) {

@@ -18,7 +18,6 @@ import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.config.IndexingScheduleConfig;
 import org.fastcatsearch.ir.config.IndexingScheduleConfig.IndexingSchedule;
-import org.fastcatsearch.ir.config.JDBCSourceInfo;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
@@ -44,7 +43,6 @@ public class CollectionContextUtil {
 			DataSourceConfig dataSourceConfig = new DataSourceConfig();
 			dataSourceConfig.setFullIndexingSourceConfig(new ArrayList<SingleSourceConfig>());
 			dataSourceConfig.setAddIndexingSourceConfig(new ArrayList<SingleSourceConfig>());
-			dataSourceConfig.setJdbcSourceInfoList(new ArrayList<JDBCSourceInfo>());
 			JAXBConfigs.writeConfig(collectionDir.file(SettingFileNames.datasourceConfig), dataSourceConfig, DataSourceConfig.class);
 			//status.xml
 			CollectionIndexStatus collectionStatus = new CollectionIndexStatus();

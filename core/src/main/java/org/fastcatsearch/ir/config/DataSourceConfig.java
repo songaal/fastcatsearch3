@@ -11,7 +11,6 @@ public class DataSourceConfig {
 	
 	private List<SingleSourceConfig> fullIndexingSourceConfig;
 	private List<SingleSourceConfig> addIndexingSourceConfig;
-	private List<JDBCSourceInfo> jdbcSourceInfoList; 
 	
 	@XmlElementWrapper(name="full-indexing")
 	@XmlElement(name="source")
@@ -30,14 +29,4 @@ public class DataSourceConfig {
 	public void setAddIndexingSourceConfig(List<SingleSourceConfig> addIndexingSourceConfig) {
 		this.addIndexingSourceConfig = addIndexingSourceConfig;
 	}
-	
-	@XmlElementWrapper(name="jdbc-sources")
-	@XmlElement(name="jdbc-source")
-	public List<JDBCSourceInfo> getJdbcSourceInfoList() {
-		return jdbcSourceInfoList;
-	}
-	public void setJdbcSourceInfoList(List<JDBCSourceInfo> jdbcSourceInfoList) {
-		this.jdbcSourceInfoList = jdbcSourceInfoList;
-	}
-	
 }

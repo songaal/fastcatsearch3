@@ -13,6 +13,7 @@ public class SettingFileNames {
 	 * collection하위 setting들.
 	 * */
 	public static final String collections = "collections.xml";
+	public static final String jdbcSourceConfig = "datasource-jdbc-sources.xml";
 	public static final String collectionConfig = "config.xml";
 	public static final String indexConfig = "index-config.xml";
 	public static final String schema = "schema.xml";

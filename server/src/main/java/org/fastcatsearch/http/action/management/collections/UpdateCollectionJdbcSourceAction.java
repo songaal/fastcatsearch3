@@ -13,6 +13,7 @@ import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataSourceConfig;
+import org.fastcatsearch.ir.config.JDBCSourceConfig;
 import org.fastcatsearch.ir.config.JDBCSourceInfo;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.SettingFileNames;
@@ -42,18 +43,16 @@ public class UpdateCollectionJdbcSourceAction extends AuthAction {
 			
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			
-			CollectionContext collectionContext = irService.collectionContext(collectionId);
-			DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
-			List<JDBCSourceInfo> sourceList = dataSourceConfig.getJdbcSourceInfoList();
+			List<JDBCSourceInfo> sourceList = irService.getJDBCSourceConfig().getJdbcSourceInfoList();
 			JDBCSourceInfo source = null;
 			
-			File dataSourceConfigFile = collectionContext.collectionFilePaths().file(
-					SettingFileNames.datasourceConfig);
+			
+			File jdbcSourceConfigFile = (new File("",SettingFileNames.jdbcSourceConfig));
 			
 			if(sourceIndex==-1) {
 				if(sourceList==null) {
 					sourceList = new ArrayList<JDBCSourceInfo>();
-					dataSourceConfig.setJdbcSourceInfoList(sourceList);
+					irService.getJDBCSourceConfig().setJdbcSourceInfoList(sourceList);
 				}
 				source = new JDBCSourceInfo();
 				sourceList.add(source);
@@ -78,9 +77,9 @@ public class UpdateCollectionJdbcSourceAction extends AuthAction {
 					source.setPassword(password);
 				}
 			}
-		
-			JAXBConfigs.writeConfig(dataSourceConfigFile, dataSourceConfig, DataSourceConfig.class);
 			
+			irService.updateJDBCSourceConfig(irService.getJDBCSourceConfig());
+		
 			isSuccess = true;
 			
 		} catch (Exception e) {
