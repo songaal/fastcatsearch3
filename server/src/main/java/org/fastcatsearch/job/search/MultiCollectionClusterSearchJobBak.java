@@ -80,7 +80,7 @@ public class MultiCollectionClusterSearchJobBak extends Job {
 		String collectionId = q.getMeta().collectionId();
 		Groups groups = q.getGroups();
 		
-		String[] shardIdList = q.getMeta().getSharIdList();
+		String[] shardIdList = null;//q.getMeta().getSharIdList();
 		//TODO 동일 collection의 shard끼리만 병합검색이 가능토록 한다.
 		// 컬렉션 명으로 검색시 하위 shard를 모두 검색해준다.
 		

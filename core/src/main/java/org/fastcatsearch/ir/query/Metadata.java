@@ -30,7 +30,8 @@ public class Metadata {
 	private Map<String, String> userData;
 	private String[] highlightTags;
 	private String collectionId;
-	private String shardId;
+//	private String shardId;
+	private String modifier;
 	
 	public Metadata(){ }
 			
@@ -130,23 +131,30 @@ public class Metadata {
 	public void setCollectionId(String collectionId){
 		this.collectionId = collectionId;
 	}
-
-	public String shardId(){
-		return shardId;
-	}
-	public void setShardId(String shardId) {
-		this.shardId = shardId;
-	}
 	
-	public String[] getSharIdList(){
-		String[] list = null;
-		if(shardId != null){
-			String[] tmp = shardId.split(",");
-			list = new String[tmp.length];
-			for (int i = 0; i < tmp.length; i++) {
-				list[i] = tmp[i].trim();
-			}
-		}
-		return list;
+	public String modifier(){
+		return modifier;
 	}
+	public void setModifier(String modifier){
+		this.modifier = modifier;
+	}
+
+//	public String shardId(){
+//		return shardId;
+//	}
+//	public void setShardId(String shardId) {
+//		this.shardId = shardId;
+//	}
+//	
+//	public String[] getSharIdList(){
+//		String[] list = null;
+//		if(shardId != null){
+//			String[] tmp = shardId.split(",");
+//			list = new String[tmp.length];
+//			for (int i = 0; i < tmp.length; i++) {
+//				list[i] = tmp[i].trim();
+//			}
+//		}
+//		return list;
+//	}
 }
