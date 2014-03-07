@@ -105,13 +105,13 @@ public class IRService extends AbstractService {
 		try {
 			collectionsConfig = JAXBConfigs.readConfig(new File(collectionsRoot, SettingFileNames.collections), CollectionsConfig.class);
 		} catch (JAXBException e) {
-			logger.error("[ERROR] 컬렉션리스트 로딩실패. " + e.getMessage(), e);
+			logger.error("[ERROR] fail to read collection config. " + e.getMessage(), e);
 		}
 		
 		try {
 			jdbcSourceConfig = JAXBConfigs.readConfig(new File(collectionsRoot, SettingFileNames.jdbcSourceConfig), JDBCSourceConfig.class);
 		} catch (JAXBException e) {
-			logger.error("[ERROR] JDBC 소스리스트 로딩실패. " + e.getMessage(), e);
+			logger.error("[ERROR] fail to read jdbc source list. " + e.getMessage(), e);
 		}
 		
 		if(jdbcSourceConfig == null) {
@@ -121,7 +121,7 @@ public class IRService extends AbstractService {
 		try {
 			jdbcSupportConfig = JAXBConfigs.readConfig(new File(collectionsRoot, SettingFileNames.jdbcSupportConfig), JDBCSupportConfig.class);
 		} catch (JAXBException e) {
-			logger.error("[ERROR] JDBC 서포트리스트 로딩실패. " + e.getMessage(), e);
+			logger.error("[ERROR] fail to read jdbc support. " + e.getMessage(), e);
 		}
 		
 		if(jdbcSupportConfig == null) {
