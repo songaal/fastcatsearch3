@@ -53,6 +53,8 @@ public class GetSourceReaderListAction extends AuthAction {
 				responseWriter.object()
 					.key("name")
 					.value(annotation.name())
+					.key("reader")
+					.value(sreader.getClass().getName())
 					.key("parameters").array();
 				for(SourceReaderParameter param: parameterList) {
 					logger.trace("[{}/{}:{}]", param.getId(), param.getName(), param.getValue());

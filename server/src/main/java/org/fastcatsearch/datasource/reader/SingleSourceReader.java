@@ -13,6 +13,7 @@ import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.index.DeleteIdSet;
+import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +42,8 @@ public abstract class SingleSourceReader<SourceType> {
 
 	// reader에서 사용하는 파라미터를 정의한다.
 	protected abstract void initParameters();
+	
+	public abstract SchemaSetting surmiseSchema();
 
 	public SingleSourceReader() {
 		initParameters();

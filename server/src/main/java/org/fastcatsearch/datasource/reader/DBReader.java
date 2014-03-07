@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -27,6 +28,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +41,15 @@ import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.JDBCSourceInfo;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
+import org.fastcatsearch.ir.settings.AnalyzerSetting;
+import org.fastcatsearch.ir.settings.FieldIndexSetting;
+import org.fastcatsearch.ir.settings.FieldSetting;
+import org.fastcatsearch.ir.settings.FieldSetting.Type;
+import org.fastcatsearch.ir.settings.GroupIndexSetting;
+import org.fastcatsearch.ir.settings.IndexSetting;
+import org.fastcatsearch.ir.settings.PrimaryKeySetting;
+import org.fastcatsearch.ir.settings.RefSetting;
+import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.DynamicClassLoader;
@@ -106,22 +117,7 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 		}
 		
 		try {
-			if (jdbcSourceInfo.getDriver() != null && jdbcSourceInfo.getDriver().length() > 0) {
-				Object object = DynamicClassLoader.loadObject(jdbcSourceInfo.getDriver());
-				if (object == null) {
-					throw new IRException("Cannot find sql driver = " + jdbcSourceInfo.getDriver());
-				} else {
-					Driver driver = (Driver) object;
-					DriverManager.registerDriver(driver);
-					Properties info = new Properties();
-					info.put("user", jdbcSourceInfo.getUser());
-					info.put("password", jdbcSourceInfo.getPassword());
-					con = driver.connect(jdbcSourceInfo.getUrl(), info);
-					con.setAutoCommit(true);
-				}
-			} else {
-				throw new IRException("JDBC driver is empty!");
-			}
+			con = getConnection(jdbcSourceInfo);
 			if (sourceModifier != null) {
 				sourceModifier.init(this);
 			}
@@ -202,6 +198,27 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 
 			throw new IRException(e);
 		}
+	}
+
+	private Connection getConnection(JDBCSourceInfo jdbcSourceInfo) throws IRException, SQLException {
+		Connection con = null;
+		if (jdbcSourceInfo.getDriver() != null && jdbcSourceInfo.getDriver().length() > 0) {
+			Object object = DynamicClassLoader.loadObject(jdbcSourceInfo.getDriver());
+			if (object == null) {
+				throw new IRException("Cannot find sql driver = " + jdbcSourceInfo.getDriver());
+			} else {
+				Driver driver = (Driver) object;
+				DriverManager.registerDriver(driver);
+				Properties info = new Properties();
+				info.put("user", jdbcSourceInfo.getUser());
+				info.put("password", jdbcSourceInfo.getPassword());
+				con = driver.connect(jdbcSourceInfo.getUrl(), info);
+				con.setAutoCommit(true);
+			}
+		} else {
+			throw new IRException("JDBC driver is empty!");
+		}
+		return con;
 	}
 
 	private String q(String query) {
@@ -504,4 +521,138 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 		}
 	}
 
+	@Override
+	public SchemaSetting surmiseSchema() {
+		Map<String, String> properties = singleSourceConfig.getProperties();
+		String jdbcSourceId = properties.get("jdbcSourceId");
+		String dataSQL = properties.get("dataSQL");
+		IRService service = ServiceManager.getInstance().getService(IRService.class);
+		List<JDBCSourceInfo> jdbcList = service.getJDBCSourceConfig().getJdbcSourceInfoList();
+		Connection con = null;
+		PreparedStatement pst = null;
+		ResultSet res = null;
+		ResultSetMetaData meta = null;
+		try {
+			for (JDBCSourceInfo jdbcInfo : jdbcList) {
+				if(jdbcSourceId.equals(jdbcInfo.getId())) {
+					con = getConnection(jdbcInfo);
+					break;
+				}
+			}
+			logger.trace("get jdbc connection : {}", con);
+			
+			if (con != null) {
+				logger.trace("executing sql :{}", dataSQL);
+				pst = con.prepareStatement(dataSQL);
+				pst.setFetchSize(1);
+				res = pst.executeQuery();
+				res.next();
+				meta = res.getMetaData();
+				
+				SchemaSetting setting = new SchemaSetting();
+				PrimaryKeySetting primaryKeySetting = new PrimaryKeySetting();
+				List<RefSetting> primaryFieldList = new ArrayList<RefSetting>();
+				List<FieldSetting> fieldSettingList = new ArrayList<FieldSetting>();
+				List<AnalyzerSetting> analyzerSetting = new ArrayList<AnalyzerSetting>();
+				List<GroupIndexSetting> groupIndexSetting = new ArrayList<GroupIndexSetting>();
+				List<IndexSetting> indexSetting = new ArrayList<IndexSetting>();
+				List<FieldIndexSetting> fieldIndexSetting = new ArrayList<FieldIndexSetting>();
+				
+				logger.trace("columnCount:{}", meta.getColumnCount());
+				
+				String tableName = null;
+				
+				for(int inx=0;inx<meta.getColumnCount(); inx++) {
+					if(tableName == null) {
+						tableName = meta.getTableName(inx + 1);
+					}
+					FieldSetting field = new FieldSetting();
+					Type type = null;
+					int size = 0;
+					switch (meta.getColumnType(inx + 1)) {
+					case Types.INTEGER:
+					case Types.TINYINT:
+					case Types.SMALLINT:
+					case Types.NUMERIC:
+						type = Type.INT;
+						size = 4;
+						break;
+					case Types.BIGINT:
+						type = Type.LONG;
+						size = 8;
+						break;
+					case Types.FLOAT:
+						type = Type.FLOAT;
+						size = 4;
+						break;
+					case Types.DOUBLE:
+						type = Type.DOUBLE;
+						size = 8;
+						break;
+					case Types.DATE:
+					case Types.TIME:
+					case Types.TIMESTAMP:
+						type = Type.DATETIME;
+						size = 8;
+						break;
+					case Types.CHAR:
+					case Types.VARCHAR:
+					case Types.LONGVARCHAR:
+						type = Type.STRING;
+						size = 0;
+						break;
+					default:
+						type = Type.STRING;
+						size = 0;
+						break;
+					}
+					field.setId(meta.getColumnLabel(inx + 1));
+					field.setName(field.getId());
+					field.setType(type);
+					field.setSize(size);
+					logger.trace("field add {}", field);
+					fieldSettingList.add(field);
+				}
+				
+				DatabaseMetaData dm = con.getMetaData( );
+				ResultSet rs = dm.getExportedKeys( "" , "" , tableName );
+				while (rs.next()) {
+					String pkey = rs.getString("PKCOLUMN_NAME");
+					for(int inx=0;inx < fieldSettingList.size(); inx++) {
+						if(fieldSettingList.get(inx).getId().equals(pkey)) {
+							RefSetting ref = new RefSetting();
+							ref.setRef(fieldSettingList.get(inx).getId());
+							primaryFieldList.add(ref);
+							break;
+						}
+					}
+				}
+				primaryKeySetting.setFieldList(primaryFieldList);
+				setting.setFieldSettingList(fieldSettingList);
+				setting.setPrimaryKeySetting(primaryKeySetting);
+				setting.setFieldIndexSettingList(fieldIndexSetting);
+				setting.setAnalyzerSettingList(analyzerSetting);
+				setting.setGroupIndexSettingList(groupIndexSetting);
+				setting.setIndexSettingList(indexSetting);
+				
+				con.getMetaData();
+				return setting;
+			}
+		} catch (IRException e) {
+			logger.error("",e);
+		} catch (SQLException e) {
+			logger.error("",e);
+		} finally {
+			if(res!=null) try {
+				res.close();
+			} catch (SQLException ignore){}
+			if(pst!=null) try {
+				pst.close();
+			} catch (SQLException ignore){}
+			if(con!=null) try {
+				con.close();
+			} catch (SQLException ignore){}
+		}
+		return null;
+	}
 }

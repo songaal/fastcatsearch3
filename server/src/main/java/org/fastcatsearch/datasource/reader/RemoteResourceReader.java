@@ -7,6 +7,7 @@ import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
+import org.fastcatsearch.ir.settings.SchemaSetting;
 
 /**
  * nsf 와 ftp등을 이용할수 없는 원격파일등에 대해서 
@@ -69,5 +70,9 @@ public class RemoteResourceReader extends SingleSourceReader {
 	protected void initParameters() {
 		// TODO Auto-generated method stub
 		
+	}
+	@Override
+	public SchemaSetting surmiseSchema() {
+		return null;
 	}
 }

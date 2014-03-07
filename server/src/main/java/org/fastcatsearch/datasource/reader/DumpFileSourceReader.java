@@ -30,6 +30,7 @@ import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.index.PrimaryKeys;
 import org.fastcatsearch.ir.io.DirBufferedReader;
+import org.fastcatsearch.ir.settings.SchemaSetting;
 
 public class DumpFileSourceReader extends SingleSourceReader<Map<String, Object>> {
 
@@ -264,6 +265,11 @@ public class DumpFileSourceReader extends SingleSourceReader<Map<String, Object>
 				, SourceReaderParameter.TYPE_STRING_LONG, true, null));
 		registerParameter(new SourceReaderParameter("encoding", "Encoding", "File encoding"
 				, SourceReaderParameter.TYPE_STRING, true, null));
+	}
+
+	@Override
+	public SchemaSetting surmiseSchema() {
+		return null;
 	}
 
 }

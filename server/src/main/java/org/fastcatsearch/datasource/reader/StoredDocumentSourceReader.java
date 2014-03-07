@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.Enumeration;
 
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.search.SegmentIndexableDocumentReader;
 import org.fastcatsearch.ir.settings.SchemaSetting;
@@ -106,6 +107,11 @@ public class StoredDocumentSourceReader extends AbstractDataSourceReader<Documen
 		protected void initParameters() {
 			// TODO Auto-generated method stub
 			
+		}
+
+		@Override
+		public SchemaSetting surmiseSchema() {
+			return null;
 		}
 
 	}

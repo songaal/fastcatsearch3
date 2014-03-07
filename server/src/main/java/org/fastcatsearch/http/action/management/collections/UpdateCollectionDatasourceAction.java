@@ -39,6 +39,8 @@ public class UpdateCollectionDatasourceAction extends AuthAction {
 			
 			Map<String,String> properties = new HashMap<String,String>();
 			
+			logger.trace("parameters:{}", properties);
+			
 			for(String key : keySet) {
 				Matcher matcher = keyPattern.matcher(key);
 				if(matcher.find()) {

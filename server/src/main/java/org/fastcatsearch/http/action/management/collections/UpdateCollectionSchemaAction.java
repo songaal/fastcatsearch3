@@ -1,9 +1,12 @@
 package org.fastcatsearch.http.action.management.collections;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.List;
 
+import org.fastcatsearch.datasource.SourceModifier;
+import org.fastcatsearch.datasource.reader.SingleSourceReader;
 import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
@@ -12,7 +15,10 @@ import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.config.DataSourceConfig;
+import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.settings.AnalyzerSetting;
+import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaInvalidateException;
 import org.fastcatsearch.ir.settings.SchemaSetting;
@@ -23,6 +29,7 @@ import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.Analyzer;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.SettingFileNames;
+import org.fastcatsearch.util.DynamicClassLoader;
 import org.fastcatsearch.util.FilePaths;
 import org.fastcatsearch.util.JAXBConfigs;
 import org.fastcatsearch.util.ResponseWriter;
@@ -41,15 +48,62 @@ public class UpdateCollectionSchemaAction extends AuthAction {
 		String collectionId = request.getParameter("collectionId");
 		String type = request.getParameter("type");
 		String schemaJSONString = request.getParameter("schemaObject");
-		JSONObject schemaObject = new JSONObject(schemaJSONString);
+		boolean makeAutoSchema = "y".equals(request.getParameter("autoSchema"));
 		
-		logger.debug("schemaObject > {}", schemaObject.toString(4));
 		boolean isSuccess = true;
 		String errorMessage = "";
 		
 		try{
-			// schema json string으로	 SchemaSetting을 만든다.
-			SchemaSetting schemaSetting = SchemaSettingUtil.convertSchemaSetting(schemaObject);
+			
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+			
+			CollectionContext collectionContext = irService.collectionContext(collectionId);
+			FilePaths collectionFilePaths = collectionContext.collectionFilePaths();
+			File collectionDir = collectionFilePaths.file();
+			File schemaFile = null;
+			
+			SchemaSetting schemaSetting = null;
+			
+			if(makeAutoSchema) {
+				DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
+				List<SingleSourceConfig> sourceConfigs = dataSourceConfig.getFullIndexingSourceConfig();
+				if(sourceConfigs.size() > 0) {
+					SingleSourceConfig config = sourceConfigs.get(0);
+					config.getSourceReader();
+					
+					try {
+						Class<?> readerClass = DynamicClassLoader.loadClass(config.getSourceReader());
+						Constructor<?> constructor = readerClass.getConstructor(
+							File.class, DataSourceConfig.class,
+								SingleSourceConfig.class, SourceModifier.class,
+								String.class);
+							SingleSourceReader<?> sreader = (SingleSourceReader<?>)constructor.newInstance(null,dataSourceConfig,config,null,null);
+							SchemaSetting tempSchema = sreader.surmiseSchema();
+							if(tempSchema!=null) {
+								schemaSetting = tempSchema;
+								List<FieldSetting> fieldSettingList = tempSchema.getFieldSettingList();
+								if(logger.isTraceEnabled()) {
+									logger.trace("- field setting list -");
+									for(FieldSetting fs : fieldSettingList) {
+										logger.trace("fs:{}[{}]/{}", fs.getId(), fs.getName(), fs.getSize());
+									}
+								}
+								schemaFile = new File(collectionDir, SettingFileNames.workSchema);
+								JAXBConfigs.writeConfig(schemaFile, schemaSetting, SchemaSetting.class);
+							}
+					} finally {
+					}
+				}
+				//dataSourceConfig.getFullIndexingSourceConfig().
+			} else {
+			
+				JSONObject schemaObject = new JSONObject(schemaJSONString);
+				
+				logger.debug("schemaObject > {}", schemaObject.toString(4));
+				
+				// schema json string으로	 SchemaSetting을 만든다.
+				schemaSetting = SchemaSettingUtil.convertSchemaSetting(schemaObject);
+			}
 			
 			//일단 json object를 schema validation체크수행한다.
 			schemaSetting.isValid();
@@ -58,13 +112,6 @@ public class UpdateCollectionSchemaAction extends AuthAction {
 			
 			schemaSetting.getAnalyzerSettingList();
 			
-			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-	
-			CollectionContext collectionContext = irService.collectionContext(collectionId);
-			FilePaths collectionFilePaths = collectionContext.collectionFilePaths();
-			File collectionDir = collectionFilePaths.file();
-			
-			File schemaFile = null;
 			if ("workSchema".equalsIgnoreCase(type)) {
 				schemaFile = new File(collectionDir, SettingFileNames.workSchema);
 			}else{
