@@ -42,6 +42,7 @@ import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.ir.config.IndexingScheduleConfig;
 import org.fastcatsearch.ir.config.IndexingScheduleConfig.IndexingSchedule;
 import org.fastcatsearch.ir.config.JDBCSourceConfig;
+import org.fastcatsearch.ir.config.JDBCSupportConfig;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.query.InternalSearchResult;
@@ -73,6 +74,7 @@ public class IRService extends AbstractService {
 	private QueryCacheModule<String, Result> documentCache;
 	private CollectionsConfig collectionsConfig;
 	private JDBCSourceConfig jdbcSourceConfig;
+	private JDBCSupportConfig jdbcSupportConfig;
 	
 	private File collectionsRoot;
 
@@ -114,6 +116,16 @@ public class IRService extends AbstractService {
 		
 		if(jdbcSourceConfig == null) {
 			jdbcSourceConfig = new JDBCSourceConfig();
+		}
+		
+		try {
+			jdbcSupportConfig = JAXBConfigs.readConfig(new File(collectionsRoot, SettingFileNames.jdbcSupportConfig), JDBCSupportConfig.class);
+		} catch (JAXBException e) {
+			logger.error("[ERROR] JDBC 서포트리스트 로딩실패. " + e.getMessage(), e);
+		}
+		
+		if(jdbcSupportConfig == null) {
+			jdbcSupportConfig = new JDBCSupportConfig();
 		}
 
 		dataNodeCollectionIdSet = new HashSet<String>();
@@ -220,6 +232,10 @@ public class IRService extends AbstractService {
 	
 	public JDBCSourceConfig getJDBCSourceConfig() {
 		return jdbcSourceConfig;
+	}
+	
+	public JDBCSupportConfig getJDBCSupportConfig() {
+		return jdbcSupportConfig;
 	}
 	
 	public void updateJDBCSourceConfig(JDBCSourceConfig jdbcSourceConfig) throws JAXBException {

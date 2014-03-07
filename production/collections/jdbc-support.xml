@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<jdbc-support>
+	<jdbc-drivers>
+		<jdbc-driver id="mysql" name="MySQL Driver" driver="com.mysql.jdbc.Driver" urlTemplate="jdbc:mysql://${host}:${port:3306}/${dbname}"/>
+		<jdbc-driver id="oracle-thin" name="Oracle Thin Driver" driver="oracle.jdbc.driver.OracleDriver" urlTemplate="jdbc:oracle:thin:${host}:${port:1521}:${dbname}"/>
+		<jdbc-driver id="jtds-mssql" name="jTDS Microsoft SQL" driver="net.sourceforge.jtds.jdbc.Driver" urlTemplate="jdbc:jtds:sqlserver://${host}:${port:1433}/${dbname}"/>
+		<jdbc-driver id="cubrid" name="CUBRID Driver" driver="cubrid.jdbc.driver.CUBRIDDriver" urlTemplate="jdbc:cubrid:${host}:${port:33000}:${dbname}:::"/>
+	</jdbc-drivers>
+</jdbc-support>
