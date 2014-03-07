@@ -1,17 +1,45 @@
 # Fastcatsearch
 
-Fastcatsearch is a tool for managing fastcatsearch. You can make collections on fastcatsearch, edit configs, and index documents.
+Fastcatsearch is an open-source distributed search engine. 
+
+## Feature List
+
+### System 
+
+* Distributed index and search
+* Support search broker - merge sub-search results
+* Manage config files as XML
+* RESTFul search API
+* Search result provides JSON, XML format
+* Running on Java JVM
+* Support QPS maximum 200 queries / seconds
+* Index data can be restored to previous time
+
+### Search
+
+* Boolean search, natual languae search
+* Support synonym, stopword
+* Search result summary, and highlight.
+* Multiple filed searching
+* Multiple field sorting
+* Multiple field filtering
+* Multiple field grouping
+* Support various dbms data importing
+* Support custom file data importing
+* Support MS Office, PDF document indexing
+* Indexing schduling
+* Full indexing, increment indexing
 
 
 ## License
 
-The license is GNU GPL v2.
+The license is GNU LGPL v2.1
 
 It's free and you can use it however you want it wharever way.
 
 You don't need to open your closed source unless you distribute derived works to others.
 
-For more information, see <http://www.gnu.org/licenses/gpl-2.0.html>
+For more information, see <http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html>
 
 
 
