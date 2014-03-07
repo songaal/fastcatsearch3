@@ -621,9 +621,9 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 					}
 				}
 				while (res.next()) {
-					logger.trace("pk column:{}", res.getString("COLUMN_NAME"));
-					String pkey = res.getString("COLUMN_NAME");
+					String pkey = res.getString("COLUMN_NAME").toUpperCase();
 					for(int inx=0;inx < fieldSettingList.size(); inx++) {
+						//logger.trace("matching pk column:{}:{}", pkey, fieldSettingList.get(inx).getId());
 						if(fieldSettingList.get(inx).getId().equals(pkey)) {
 							RefSetting ref = new RefSetting();
 							ref.setRef(fieldSettingList.get(inx).getId());
