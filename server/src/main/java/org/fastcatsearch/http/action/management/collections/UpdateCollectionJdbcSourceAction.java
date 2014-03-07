@@ -30,7 +30,6 @@ public class UpdateCollectionJdbcSourceAction extends AuthAction {
 		
 		try {
 			
-			String collectionId = request.getParameter("collectionId");
 			int sourceIndex = request.getIntParameter("sourceIndex",-1);
 			
 			String id = request.getParameter("id");
