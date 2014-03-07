@@ -25,6 +25,8 @@ set CONF=%IR_HOME%\conf
 set LIB=%IR_HOME%\lib
 set FASTCAT_CLASSPATH=.
 
+echo fastcatsearch start. see log at logs/system.log
+
 for /f "tokens=*" %%x in ('dir /s /b %LIB%\*.jar') do (set FASTCAT_CLASSPATH=!FASTCAT_CLASSPATH!;%%x)
 
 java -Xmx512m -Dlogback.configurationFile=%CONF%\logback.xml -Dderby.stream.error.file=logs/db.log -classpath %FASTCAT_CLASSPATH% org.fastcatsearch.server.CatServer %IR_HOME%
