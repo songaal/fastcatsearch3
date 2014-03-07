@@ -42,6 +42,7 @@ import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.ir.config.IndexingScheduleConfig;
 import org.fastcatsearch.ir.config.IndexingScheduleConfig.IndexingSchedule;
 import org.fastcatsearch.ir.config.JDBCSourceConfig;
+import org.fastcatsearch.ir.config.JDBCSourceInfo;
 import org.fastcatsearch.ir.config.JDBCSupportConfig;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupsData;
@@ -232,6 +233,17 @@ public class IRService extends AbstractService {
 	
 	public JDBCSourceConfig getJDBCSourceConfig() {
 		return jdbcSourceConfig;
+	}
+	
+	public JDBCSourceInfo getJDBCSourceInfo(String jdbcId) {
+		List<JDBCSourceInfo> jdbcList = jdbcSourceConfig.getJdbcSourceInfoList();
+		for (JDBCSourceInfo jdbcInfo : jdbcList) {
+			logger.trace("jdbc-id:{}", jdbcInfo.getId());
+			if(jdbcId.equals(jdbcInfo.getId())) {
+				return jdbcInfo;
+			}
+		}
+		return null;
 	}
 	
 	public JDBCSupportConfig getJDBCSupportConfig() {

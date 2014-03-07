@@ -527,17 +527,14 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 		String jdbcSourceId = properties.get("jdbcSourceId");
 		String dataSQL = properties.get("dataSQL");
 		IRService service = ServiceManager.getInstance().getService(IRService.class);
-		List<JDBCSourceInfo> jdbcList = service.getJDBCSourceConfig().getJdbcSourceInfoList();
 		Connection con = null;
 		PreparedStatement pst = null;
 		ResultSet res = null;
 		ResultSetMetaData meta = null;
 		try {
-			for (JDBCSourceInfo jdbcInfo : jdbcList) {
-				if(jdbcSourceId.equals(jdbcInfo.getId())) {
-					con = getConnection(jdbcInfo);
-					break;
-				}
+			JDBCSourceInfo jdbcInfo = service.getJDBCSourceInfo(jdbcSourceId);
+			if (jdbcInfo != null) {
+				con = getConnection(jdbcInfo);
 			}
 			logger.trace("get jdbc connection : {}", con);
 			
@@ -545,6 +542,7 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 				logger.trace("executing sql :{}", dataSQL);
 				pst = con.prepareStatement(dataSQL);
 				pst.setFetchSize(1);
+				pst.setMaxRows(1);
 				res = pst.executeQuery();
 				res.next();
 				meta = res.getMetaData();
@@ -613,11 +611,18 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 					logger.trace("field add {}", field);
 					fieldSettingList.add(field);
 				}
-				
+				res.close();
 				DatabaseMetaData dm = con.getMetaData( );
-				ResultSet rs = dm.getExportedKeys( "" , "" , tableName );
-				while (rs.next()) {
-					String pkey = rs.getString("PKCOLUMN_NAME");
+				res = dm.getPrimaryKeys( "" , "" , tableName );
+				meta = res.getMetaData();
+				if(logger.isTraceEnabled()) {
+					for (int inx = 0; inx < meta.getColumnCount(); inx++) {
+						logger.trace("get meta :{}", meta.getColumnName(inx + 1));
+					}
+				}
+				while (res.next()) {
+					logger.trace("pk column:{}", res.getString("COLUMN_NAME"));
+					String pkey = res.getString("COLUMN_NAME");
 					for(int inx=0;inx < fieldSettingList.size(); inx++) {
 						if(fieldSettingList.get(inx).getId().equals(pkey)) {
 							RefSetting ref = new RefSetting();
@@ -627,6 +632,8 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 						}
 					}
 				}
+				res.close();
+				
 				primaryKeySetting.setFieldList(primaryFieldList);
 				setting.setFieldSettingList(fieldSettingList);
 				setting.setPrimaryKeySetting(primaryKeySetting);

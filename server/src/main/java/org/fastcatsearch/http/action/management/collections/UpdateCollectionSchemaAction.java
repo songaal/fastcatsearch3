@@ -88,7 +88,10 @@ public class UpdateCollectionSchemaAction extends AuthAction {
 										logger.trace("fs:{}[{}]/{}", fs.getId(), fs.getName(), fs.getSize());
 									}
 								}
+								//schemaFile = new File(collectionDir, SettingFileNames.workSchema);
 								schemaFile = new File(collectionDir, SettingFileNames.workSchema);
+								collectionContext.setWorkSchemaSetting(schemaSetting);
+								
 								JAXBConfigs.writeConfig(schemaFile, schemaSetting, SchemaSetting.class);
 							}
 					} finally {
