@@ -71,8 +71,4 @@ public class RemoteResourceReader extends SingleSourceReader {
 		// TODO Auto-generated method stub
 		
 	}
-	@Override
-	public SchemaSetting surmiseSchema() {
-		return null;
-	}
 }
