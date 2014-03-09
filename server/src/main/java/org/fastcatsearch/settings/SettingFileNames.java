@@ -29,6 +29,8 @@ public class SettingFileNames {
 	public static final String statisticsConfig = "statistics.xml";
 	public static final String keywordServiceConfig = "keyword-service.xml";
 	
+	public static final String searchPageSettings = "search-page-settings.xml";
+	
 	/**
 	 * plugin 하위 setting들.
 	 * 

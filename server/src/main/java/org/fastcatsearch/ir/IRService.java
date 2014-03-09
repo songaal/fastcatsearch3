@@ -57,6 +57,7 @@ import org.fastcatsearch.job.indexing.MasterCollectionFullIndexingJob;
 import org.fastcatsearch.module.ModuleException;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.settings.SearchPageSettings;
 import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.util.CollectionContextUtil;
@@ -77,6 +78,7 @@ public class IRService extends AbstractService {
 	private JDBCSourceConfig jdbcSourceConfig;
 	private JDBCSupportConfig jdbcSupportConfig;
 	
+	private SearchPageSettings searchPageSettings;
 	private File collectionsRoot;
 
 	private RealtimeQueryCountModule realtimeQueryStatisticsModule;
@@ -127,6 +129,18 @@ public class IRService extends AbstractService {
 		
 		if(jdbcSupportConfig == null) {
 			jdbcSupportConfig = new JDBCSupportConfig();
+		}
+		
+		File file = environment.filePaths().configPath().file(SettingFileNames.searchPageSettings);
+		SearchPageSettings searchPageSettings = null;
+		if(file.exists()){
+			try {
+				searchPageSettings = JAXBConfigs.readConfig(file, SearchPageSettings.class);
+			} catch (JAXBException e) {
+				logger.error("[ERROR] fail to read search page settings. " + e.getMessage(), e);
+			}
+		}else{
+			searchPageSettings = new SearchPageSettings();
 		}
 
 		dataNodeCollectionIdSet = new HashSet<String>();
@@ -487,5 +501,13 @@ public class IRService extends AbstractService {
 		AnalyzerPoolManager analyzerPoolManager = new AnalyzerPoolManager();
 		analyzerPoolManager.register(analyzerSettingList, analyzerFactoryManager);
 		return analyzerPoolManager;
+	}
+	
+	public SearchPageSettings getSearchPageSettings(){
+		return searchPageSettings;
+	}
+	
+	public void updateSearchPageSettings(SearchPageSettings searchPageSettings){
+		this.searchPageSettings = searchPageSettings;
 	}
 }
