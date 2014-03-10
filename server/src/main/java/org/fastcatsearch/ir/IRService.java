@@ -333,11 +333,16 @@ public class IRService extends AbstractService {
 			File newFile = environment.filePaths().collectionFilePaths(collectionId).file();
 			collectionHandlerMap.remove(collectionHandler.collectionId());
 			collectionHandler.close();
-			prevFile.renameTo(newFile);
-			collectionHandler = loadCollectionHandler(collectionId);
+			
 			collectionsConfig.removeCollection(collectionTmp);
+			collectionsConfig.addCollection(collectionId);
+			logger.trace("remove ok. {}", collectionTmp);
 			JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.collections), collectionsConfig, CollectionsConfig.class);
-			logger.trace("ok collection promoted {}:{}", collectionId, newFile.getAbsoluteFile());
+			logger.trace("ok collection promoted {}->{}:{}", collectionTmp, collectionId, newFile.getAbsoluteFile());
+			prevFile.renameTo(newFile);
+			logger.trace("rename ok. {}", newFile);
+			collectionHandler = loadCollectionHandler(collectionId);
+			logger.trace("load ok. {}", collectionId);
 			return collectionHandler;
 		} catch (IOException e) { ex = e;
 		} catch (JAXBException e) { ex = e;
