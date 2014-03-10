@@ -109,10 +109,5 @@ public class StoredDocumentSourceReader extends AbstractDataSourceReader<Documen
 			
 		}
 
-		@Override
-		public SchemaSetting surmiseSchema() {
-			return null;
-		}
-
 	}
 }

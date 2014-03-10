@@ -267,9 +267,5 @@ public class DumpFileSourceReader extends SingleSourceReader<Map<String, Object>
 				, SourceReaderParameter.TYPE_STRING, true, null));
 	}
 
-	@Override
-	public SchemaSetting surmiseSchema() {
-		return null;
-	}
 
 }
