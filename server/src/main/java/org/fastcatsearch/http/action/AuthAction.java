@@ -63,7 +63,10 @@ public abstract class AuthAction extends ServiceAction {
 				
 			}
 		} finally {
-			response.getWriter().close();
+			Writer writer = response.getExistWriter();
+			if(writer != null) {
+				writer.close();
+			}
 		}
 	}
 
@@ -72,6 +75,7 @@ public abstract class AuthAction extends ServiceAction {
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		resultWriter.object().key("error").value("Not Authenticated.").endObject();
 		resultWriter.done();
+		writer.close();
 	}
 
 	public void setAuthority(ActionAuthority authority, ActionAuthorityLevel authorityLevel) {

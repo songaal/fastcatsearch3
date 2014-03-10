@@ -98,6 +98,9 @@ public class GetAnalizedBasicResultAction extends AuthAction {
 				responseWriter.key("success").value(true);
 			}
 			responseWriter.endObject().done();
+			if (writer != null) {
+				writer.close();
+			}
 		}
 	}
 	

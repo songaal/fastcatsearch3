@@ -11,5 +11,7 @@ public interface ResponseWriter {
 	public ResponseWriter endArray() throws ResultWriterException;
 	public ResponseWriter key (String key) throws ResultWriterException;
 	public ResponseWriter value (Object obj) throws ResultWriterException;
+	
+	//마무리 조치만 취하면 backed writer를 close하지는 않는다.
 	public void done();
 }

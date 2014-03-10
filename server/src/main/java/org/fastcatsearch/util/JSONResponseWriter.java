@@ -101,7 +101,7 @@ public class JSONResponseWriter implements ResponseWriter {
 	public void done() {
 		if(w != null){
 			try {
-				w.close();
+				w.flush();
 			} catch (IOException e) {
 				logger.error("close error", e);
 			}

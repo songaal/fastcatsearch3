@@ -88,6 +88,10 @@ public class ActionResponse {
 		return writer;
 	}
 
+	public Writer getExistWriter() {
+		return writer;
+	}
+	
 	public StreamWriter getStreamWriter() {
 		if(streamWriter == null){
 			streamWriter = new StreamWriter(httpChannel);

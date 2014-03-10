@@ -47,6 +47,9 @@ public class GetAnalysisPluginList extends AuthAction {
 		}
 		responseWriter.endArray().endObject();
 		responseWriter.done();
+		if (writer != null) {
+			writer.close();
+		}
 	}
 
 }

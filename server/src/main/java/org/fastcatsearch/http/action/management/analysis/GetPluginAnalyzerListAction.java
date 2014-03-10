@@ -53,5 +53,6 @@ public class GetPluginAnalyzerListAction extends AuthAction {
 			}
 		}
 		responseWriter.done();
+		
 	}
 }

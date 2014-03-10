@@ -65,12 +65,21 @@ public class SearchPageSettings {
 
 
 	public static class SearchCategorySetting {
+		private String order;
 		private String name;
 		private String id;
 		private String searchQuery;
 		private String titleFieldId;
 		private String bodyFieldId;
 		private List<String> etcFieldIdList;
+		
+		@XmlAttribute
+		public String getOrder() {
+			return order;
+		}
+		public void setOrder(String order) {
+			this.order = order;
+		}
 		
 		@XmlAttribute
 		public String getName() {

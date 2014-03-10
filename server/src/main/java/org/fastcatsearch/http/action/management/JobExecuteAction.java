@@ -58,6 +58,9 @@ public class JobExecuteAction extends ServiceAction {
 		
 		
 		resultWriter.done();
+		if (writer != null) {
+			writer.close();
+		}
 	}
 
 }

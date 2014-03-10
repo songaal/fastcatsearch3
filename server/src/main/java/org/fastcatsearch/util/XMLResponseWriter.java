@@ -144,6 +144,7 @@ public class XMLResponseWriter implements ResponseWriter {
 		return "";
 	}
 
+	///FIXME : done을 여러번 호출시 결과가 여러번 기록되는 버그가 존재한다.
 	@Override
 	public void done() {
 		if(w != null){
@@ -152,9 +153,9 @@ public class XMLResponseWriter implements ResponseWriter {
 			} catch (IOException e) {
 				logger.error("write error", e);
 			}
-		
+			
 			try {
-				w.close();
+				w.flush();
 			} catch (IOException e) {
 				logger.error("close error", e);
 			}
