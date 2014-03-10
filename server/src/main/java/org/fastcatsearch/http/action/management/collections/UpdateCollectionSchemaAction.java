@@ -48,6 +48,7 @@ public class UpdateCollectionSchemaAction extends AuthAction {
 		String collectionId = request.getParameter("collectionId");
 		String type = request.getParameter("type");
 		String schemaJSONString = request.getParameter("schemaObject");
+		int validationLevel = request.getIntParameter("validationLevel",1);
 		boolean makeAutoSchema = "y".equals(request.getParameter("autoSchema"));
 		
 		boolean isSuccess = true;
@@ -65,6 +66,7 @@ public class UpdateCollectionSchemaAction extends AuthAction {
 			SchemaSetting schemaSetting = null;
 			
 			if(makeAutoSchema) {
+				validationLevel = 0;
 				DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
 				List<SingleSourceConfig> sourceConfigs = dataSourceConfig.getFullIndexingSourceConfig();
 				if(sourceConfigs.size() > 0) {
@@ -105,15 +107,16 @@ public class UpdateCollectionSchemaAction extends AuthAction {
 				logger.debug("schemaObject > {}", schemaObject.toString(4));
 				
 				// schema json string으로	 SchemaSetting을 만든다.
-				schemaSetting = SchemaSettingUtil.convertSchemaSetting(schemaObject);
+				schemaSetting = SchemaSettingUtil.convertSchemaSetting(schemaObject, validationLevel);
 			}
 			
 			//일단 json object를 schema validation체크수행한다.
-			schemaSetting.isValid();
+			schemaSetting.isValid(validationLevel);
 			
-			isValidPlugin(schemaSetting);
-			
-			schemaSetting.getAnalyzerSettingList();
+			if(validationLevel > 0) {
+				isValidPlugin(schemaSetting);
+				schemaSetting.getAnalyzerSettingList();
+			}
 			
 			if ("workSchema".equalsIgnoreCase(type)) {
 				schemaFile = new File(collectionDir, SettingFileNames.workSchema);

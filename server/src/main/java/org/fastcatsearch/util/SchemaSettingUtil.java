@@ -166,16 +166,19 @@ public class SchemaSettingUtil {
 	private static final Logger logger = LoggerFactory.getLogger(SchemaSettingUtil.class);
 	
 	public static SchemaSetting convertSchemaSetting(
-			JSONObject object) throws SchemaInvalidateException {
+			JSONObject object, int validationLevel) throws SchemaInvalidateException {
 		
 		SchemaSetting schemaSetting = new SchemaSetting();
 		
 		schemaSetting.setFieldSettingList(parseFieldSettingList(object.optJSONArray("field-list")));
 		schemaSetting.setPrimaryKeySetting(parsePrimaryKeySetting(object.optJSONArray("primary-key")));
-		schemaSetting.setAnalyzerSettingList(parseAnalyzerSettingList(object.optJSONArray("analyzer-list")));
-		schemaSetting.setIndexSettingList(parseIndexSettingList(object.optJSONArray("index-list")));
-		schemaSetting.setFieldIndexSettingList(parseFieldIndexSettingList(object.optJSONArray("field-index-list")));
-		schemaSetting.setGroupIndexSettingList(parseGroupSettingList(object.optJSONArray("group-index-list")));
+		
+		if(validationLevel > 0) {
+			schemaSetting.setAnalyzerSettingList(parseAnalyzerSettingList(object.optJSONArray("analyzer-list")));
+			schemaSetting.setIndexSettingList(parseIndexSettingList(object.optJSONArray("index-list")));
+			schemaSetting.setFieldIndexSettingList(parseFieldIndexSettingList(object.optJSONArray("field-index-list")));
+			schemaSetting.setGroupIndexSettingList(parseGroupSettingList(object.optJSONArray("group-index-list")));
+		}
 		
 		return schemaSetting;
 	}

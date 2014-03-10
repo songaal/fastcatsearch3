@@ -611,27 +611,34 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 					logger.trace("field add {}", field);
 					fieldSettingList.add(field);
 				}
-				res.close();
 				DatabaseMetaData dm = con.getMetaData( );
-				res = dm.getPrimaryKeys( "" , "" , tableName );
-				meta = res.getMetaData();
+				ResultSet tres = dm.getPrimaryKeys( "" , "" , tableName );
+				ResultSetMetaData tmeta = res.getMetaData();
 				if(logger.isTraceEnabled()) {
-					for (int inx = 0; inx < meta.getColumnCount(); inx++) {
-						logger.trace("get meta :{}", meta.getColumnName(inx + 1));
+					for (int inx = 0; inx < tmeta.getColumnCount(); inx++) {
+						logger.trace("get tmeta :{} / size:{}", tmeta.getColumnName(inx + 1), tmeta.getColumnDisplaySize(inx + 1));
 					}
 				}
-				while (res.next()) {
-					String pkey = res.getString("COLUMN_NAME").toUpperCase();
+				while (tres.next()) {
+					String pkey = tres.getString("COLUMN_NAME").toUpperCase();
 					for(int inx=0;inx < fieldSettingList.size(); inx++) {
 						//logger.trace("matching pk column:{}:{}", pkey, fieldSettingList.get(inx).getId());
 						if(fieldSettingList.get(inx).getId().equals(pkey)) {
 							RefSetting ref = new RefSetting();
 							ref.setRef(fieldSettingList.get(inx).getId());
 							primaryFieldList.add(ref);
+							//칼럼사이즈 세팅
+							for (int inxSub = 0; inxSub < meta.getColumnCount(); inxSub++) {
+								if(meta.getColumnName(inxSub + 1).toUpperCase().equals(pkey)) {
+									fieldSettingList.get(inx).setSize(meta.getColumnDisplaySize(inxSub + 1));
+									break;
+								}
+							}
 							break;
 						}
 					}
 				}
+				tres.close();
 				res.close();
 				
 				primaryKeySetting.setFieldList(primaryFieldList);
