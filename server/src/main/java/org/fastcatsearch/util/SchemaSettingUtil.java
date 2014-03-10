@@ -15,6 +15,8 @@ import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.ir.settings.FieldSetting.Type;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * JSON형 스키마 셋팅의 예제 모습은 다음과 같다.
  * 
@@ -161,6 +163,8 @@ import org.json.JSONObject;
  * */
 public class SchemaSettingUtil {
 	
+	private static final Logger logger = LoggerFactory.getLogger(SchemaSettingUtil.class);
+	
 	public static SchemaSetting convertSchemaSetting(
 			JSONObject object) throws SchemaInvalidateException {
 		
@@ -203,6 +207,8 @@ public class SchemaSettingUtil {
 		} catch (NullPointerException e) { ex = e; // json object null
 		} finally {
 			if(ex!=null) {
+				logger.debug("fieldName:{}, value:{}", fieldName, value);
+				logger.error("",ex);
 				throw new SchemaInvalidateException("fieldSetting",fieldName+"_"+inx,value,ex.getMessage());
 			}
 		}
