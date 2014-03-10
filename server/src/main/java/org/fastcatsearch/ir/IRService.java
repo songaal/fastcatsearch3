@@ -132,7 +132,6 @@ public class IRService extends AbstractService {
 		}
 		
 		File file = environment.filePaths().configPath().file(SettingFileNames.searchPageSettings);
-		SearchPageSettings searchPageSettings = null;
 		if(file.exists()){
 			try {
 				searchPageSettings = JAXBConfigs.readConfig(file, SearchPageSettings.class);

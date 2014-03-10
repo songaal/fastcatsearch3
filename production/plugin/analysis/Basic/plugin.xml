@@ -1,0 +1,5 @@
+<plugin id="Basic" namespace="Analysis" class="org.fastcatsearch.plugin.analysis.basic.BasicAnalysisPlugin">
+	<name>Basic Analysis Plugin</name>
+	<version>1.0</version>
+	<description>provide basic analyzers</description>
+</plugin>
