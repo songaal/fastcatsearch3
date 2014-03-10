@@ -38,6 +38,19 @@ public class CollectionsConfig {
 		}
 		collectionList.add(new Collection(id));
 	}
+	
+	public boolean removeCollection(String id) {
+		if (collectionList != null) {
+			for(int inx=0; inx < collectionList.size(); inx++) {
+				Collection collection  = collectionList.get(inx);
+				if(collection.id.equals(id)) {
+					collectionList.remove(inx);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
 	public static class Collection {
 		private String id;

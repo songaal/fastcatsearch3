@@ -7,8 +7,11 @@ import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.config.CollectionConfig;
+import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.ResponseWriter;
 
 @ActionMapping(value = "/management/collections/operate", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.WRITABLE)
@@ -18,6 +21,7 @@ public class OperateCollectionAction extends AuthAction {
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
 
 		String collectionId = request.getParameter("collectionId");
+		String collectionTmp = "."+collectionId+".tmp";
 		String command = request.getParameter("command");
 
 		boolean isSuccess = false;
@@ -27,7 +31,14 @@ public class OperateCollectionAction extends AuthAction {
 
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 
-			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
+			CollectionHandler collectionHandler = null;
+			
+			if("PROMOTE".equalsIgnoreCase(command)) {
+				collectionHandler = irService.collectionHandler(collectionTmp);
+			} else {
+				collectionHandler = irService.collectionHandler(collectionId);
+			}
+			
 
 			if (collectionHandler == null) {
 				errorMessage = "Collection [" + collectionId + "] is not exist.";
@@ -46,6 +57,14 @@ public class OperateCollectionAction extends AuthAction {
 					return;
 				}
 				collectionHandler.close();
+			} else if ("PROMOTE".equalsIgnoreCase(command)) {
+				//CollectionContext collectionContext = irService.collectionContext(collectionTmp);
+				//collectionContext.schema()
+				
+				CollectionHandler promoteCollection = irService.promoteCollection(collectionHandler, collectionId);
+				CollectionConfig collectionConfig = promoteCollection.collectionContext().collectionConfig();
+				CollectionContextUtil.updateConfig(collectionConfig, promoteCollection.indexFilePaths());
+				
 			} else {
 				isSuccess = false;
 				errorMessage = "Cannot understand command > " + command;

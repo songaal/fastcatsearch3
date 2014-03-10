@@ -282,7 +282,7 @@ public class IRService extends AbstractService {
 			return null;
 		}
 	}
-
+	
 	public List<Collection> getCollectionList() {
 		return collectionsConfig.getCollectionList();
 	}
@@ -324,6 +324,33 @@ public class IRService extends AbstractService {
 			return null;
 		}
 		return CollectionContextUtil.load(collection, collectionFilePaths);
+	}
+	
+	public CollectionHandler promoteCollection(CollectionHandler collectionHandler, String collectionId) throws IRException {
+		Exception ex = null;
+		try {
+			String collectionTmp = collectionHandler.collectionId();
+			File prevFile = collectionHandler.indexFilePaths().file();
+			File newFile = environment.filePaths().collectionFilePaths(collectionId).file();
+			collectionHandlerMap.remove(collectionHandler.collectionId());
+			collectionHandler.close();
+			prevFile.renameTo(newFile);
+			collectionHandler = loadCollectionHandler(collectionId);
+			collectionsConfig.removeCollection(collectionTmp);
+			JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.collections), collectionsConfig, CollectionsConfig.class);
+			logger.trace("ok collection promoted {}:{}", collectionId, newFile.getAbsoluteFile());
+			return collectionHandler;
+		} catch (IOException e) { ex = e;
+		} catch (JAXBException e) { ex = e;
+		} catch (SettingException e) { ex = e;
+		} finally {
+			
+			if(ex!=null) {
+				logger.error("",ex);
+				throw new IRException(ex);
+			}
+		}
+		return null;
 	}
 
 	public CollectionHandler removeCollectionHandler(String collectionId) {
