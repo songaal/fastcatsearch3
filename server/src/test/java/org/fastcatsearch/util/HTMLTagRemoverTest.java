@@ -11,42 +11,61 @@
 
 package org.fastcatsearch.util;
 
-import org.fastcatsearch.ir.common.IRException;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 
 import junit.framework.TestCase;
+
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.protocol.HTTP;
+import org.fastcatsearch.ir.common.IRException;
+import org.junit.Test;
 
 
 public class HTMLTagRemoverTest extends TestCase {
 	public void test1(){
-//		HttpClient httpclient = new DefaultHttpClient();
-//		ResponseHandler<String> responseHandler = new BasicResponseHandler();
-//		HttpPost httpost = new HttpPost("http://www.naver.com/");
-//
-//		List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-//		
-//
-//		try {
-//			httpost.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
-//			
-//			String responseBody = httpclient.execute(httpost,responseHandler);
-//			
-//            
-//			System.out.println(HTMLTagRemover.clean(responseBody));
-//            
-//            
-//		} catch (UnsupportedEncodingException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (ClientProtocolException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (IRException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		HttpClient httpclient = new DefaultHttpClient();
+		ResponseHandler<String> responseHandler = new BasicResponseHandler();
+		HttpPost httpost = new HttpPost("http://www.fastcatsearch.org/");
+		HttpGet httpGet = new HttpGet("http://www.fastcatsearch.org/");
+		List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+		
+
+		try {
+			httpost.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
+			
+			String responseBody = httpclient.execute(httpGet, responseHandler);
+			
+            
+			System.out.println(HTMLTagRemover.clean(responseBody));
+            
+            
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClientProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IRException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	public void test2(){
 		
@@ -59,5 +78,25 @@ public class HTMLTagRemoverTest extends TestCase {
             
          
 		
+	}
+	
+	@Test
+	public void testfile() throws Exception {
+		String strFilePath="/Users/swsong/Desktop/a.html";
+		
+		StringBuilder sb = new StringBuilder();
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(strFilePath), "UTF-8") );
+			String line = null;
+			while((line = reader.readLine()) != null){
+				sb.append(line).append("\r");
+			}			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		String str = HTMLTagRemover.clean(sb.toString());
+		System.out.println(str);
 	}
 }
