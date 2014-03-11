@@ -68,7 +68,7 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 		ClassScanner<HttpAction> scanner = new ClassScanner<HttpAction>() {
 			@Override
 			public HttpAction done(String ename, String pkg, Object param) {
-				registerAction(actionMap, ename, true);
+				registerAction(actionMap, ename);
 				return null;
 			}
 		};
@@ -76,13 +76,13 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 	}
 	
 	public void registerAction(String className, String pathPrefix) {
-		registerAction(serviceController.getActionMap(), className, pathPrefix, false);
+		registerAction(serviceController.getActionMap(), className, pathPrefix);
 	}
 	
-	private void registerAction(Map<String, HttpAction> actionMap, String className, boolean isFile) {
-		registerAction(actionMap, className, null, isFile);
+	private void registerAction(Map<String, HttpAction> actionMap, String className) {
+		registerAction(actionMap, className, null);
 	}
-	private void registerAction(Map<String, HttpAction> actionMap, String className, String pathPrefix, boolean isFile) {
+	private void registerAction(Map<String, HttpAction> actionMap, String className, String pathPrefix) {
 		if(className == null){
 			logger.warn("Cannot register action class name >> {} : {}", className, pathPrefix);
 			return;

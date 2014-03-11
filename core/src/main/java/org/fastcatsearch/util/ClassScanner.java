@@ -40,17 +40,22 @@ public abstract class ClassScanner<E> {
 				classEnumeration = DynamicClassLoader.getResources(path);
 				while(classEnumeration.hasMoreElements()) {
 					String urlString = classEnumeration.nextElement().toString();
+					logger.trace("find class url > {}", urlString);
 					if(urlString.startsWith("jar:file:")) {
 						String jpath = urlString.substring(9);
 						int st = jpath.indexOf("!/");
 						String jarPath = jpath.substring(0, st);
 						String entryPath = jpath.substring(st + 2);
+						
+						logger.trace("jarPath > {}, {}", jarPath, entryPath);
 						JarFile jarFile = new JarFile(jarPath);
 						try {
 							Enumeration<JarEntry>jee = jarFile.entries();
 							while(jee.hasMoreElements()) {
 								JarEntry jarEntry = jee.nextElement();
 								String className = jarEntry.getName();
+								logger.trace("jar entry > {}, {}", className, entryPath);
+								
 								if (className.startsWith(entryPath)) {
 									if(className.endsWith(".class")) {
 										className = className.substring(0,className.length() - 6);
