@@ -89,11 +89,17 @@ public class CollectionDocumentStoreFullIndexingJob extends IndexingJob {
 			 */
 			//////////////////////////////////////////////////////////////////////////////////////////
 			
+			boolean isIndexed = false; 
 			CollectionFullDocumentStorer collectionFullDocumentStorer = new CollectionFullDocumentStorer(collectionContext);
 			indexer = collectionFullDocumentStorer;
 			collectionFullDocumentStorer.setState(indexingTaskState);
-			collectionFullDocumentStorer.doIndexing();
-			boolean isIndexed = collectionFullDocumentStorer.close();
+			try {
+				indexer.doIndexing();
+			} finally {
+				if (indexer != null) {
+					isIndexed = indexer.close();
+				}
+			}
 			if(!isIndexed && stopRequested){
 				//여기서 끝낸다.
 				throw new IndexingStopException();

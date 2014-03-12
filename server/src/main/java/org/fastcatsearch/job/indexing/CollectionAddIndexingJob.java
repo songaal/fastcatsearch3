@@ -94,11 +94,17 @@ public class CollectionAddIndexingJob extends IndexingJob {
 			}
 			String lastRevisionUUID = lastSegmentInfo.getRevisionInfo().getUuid();
 			
+			boolean isIndexed = false;
 			CollectionAddIndexer collectionIndexer = new CollectionAddIndexer(collectionHandler);
 			indexer = collectionIndexer;
 			collectionIndexer.setState(indexingTaskState);
-			collectionIndexer.doIndexing();
-			boolean isIndexed = collectionIndexer.close();
+			try {
+				indexer.doIndexing();
+			} finally {
+				if (indexer != null) {
+					isIndexed = indexer.close();
+				}
+			}
 			if(!isIndexed && stopRequested){
 				//여기서 끝낸다.
 				throw new IndexingStopException();

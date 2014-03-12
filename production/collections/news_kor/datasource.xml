@@ -4,7 +4,7 @@
 	<full-indexing>
 		<source id="file1" name="file1" active="true">
 			<modifier></modifier>
-			<reader>org.fastcatsearch.datasource.reader.FSFileSourceReader</reader>
+			<reader>org.fastcatsearch.datasource.reader.DumpFileSourceReader</reader>
 			
 			<properties>
 				<property key="encoding">utf-8</property>

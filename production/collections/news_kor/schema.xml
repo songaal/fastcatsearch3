@@ -20,23 +20,30 @@
 	</primary-key>
 
 	<index-list>
-		<index id="Title" indexAnalyzer="korean" queryAnalyzer="korean">
+		<index id="Title" name="제목" indexAnalyzer="korean" queryAnalyzer="korean">
 			<field ref="Title" />
 		</index>
-		<index id="Content" indexAnalyzer="korean" queryAnalyzer="korean"
+		<index id="Content" name="기사내용" indexAnalyzer="korean" queryAnalyzer="korean"
 			storePosition="true" positionIncrementGap="100">
 			<field ref="Content" />
 		</index>
-		<index id="TitleContent" indexAnalyzer="korean" queryAnalyzer="korean"
+		<index id="TitleContent" name="제목 및 기사내용" indexAnalyzer="korean" queryAnalyzer="korean"
 			storePosition="true" positionIncrementGap="100">
 			<field ref="Title" />
 			<field ref="Content" />
+		</index>
+		
+		<index id="UserID" name="사용자아이디" indexAnalyzer="keyword" queryAnalyzer="keyword">
+			<field ref="UserID" />
+		</index>
+		<index id="UserName" name="사용자이름" indexAnalyzer="keyword" queryAnalyzer="keyword">
+			<field ref="UserName" />
 		</index>
 	</index-list>
 
 	<analyzer-list>
-		<analyzer id="korean" corePoolSize="10" maximumPoolSize="100" className="org.fastcatsearch.plugin.analysis.ko.standard.StandardKoreanAnalyzer" />
-		<analyzer id="keyword" corePool_size="10" maximumPoolSize="100" className="org.apache.lucene.analysis.core.KeywordAnalyzer" /> 
+		<analyzer id="korean" corePoolSize="1" maximumPoolSize="5" className="KOREAN.STANDARD" />
+		<analyzer id="keyword" corePool_size="1" maximumPoolSize="5" className="BASIC.KEYWORD" /> 
 	</analyzer-list>
 
 	<field-index-list>

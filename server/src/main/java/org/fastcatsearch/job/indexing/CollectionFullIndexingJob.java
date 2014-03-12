@@ -97,11 +97,17 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			 */
 			//////////////////////////////////////////////////////////////////////////////////////////
 			
+			boolean isIndexed = false; 
 			CollectionFullIndexer collectionFullIndexer = new CollectionFullIndexer(collectionContext, analyzerPoolManager);
 			indexer = collectionFullIndexer;
 			collectionFullIndexer.setState(indexingTaskState);
-			collectionFullIndexer.doIndexing();
-			boolean isIndexed = collectionFullIndexer.close();
+			try {
+				collectionFullIndexer.doIndexing();
+			} finally {
+				if (collectionFullIndexer != null) {
+					isIndexed = collectionFullIndexer.close();
+				}
+			}
 			if(!isIndexed && stopRequested){
 				//여기서 끝낸다.
 				throw new IndexingStopException();

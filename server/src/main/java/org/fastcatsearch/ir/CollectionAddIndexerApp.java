@@ -61,8 +61,13 @@ public class CollectionAddIndexerApp {
 			
 			CollectionAddIndexer indexer = new CollectionAddIndexer(collectionHandler);
 
-			indexer.doIndexing();
-			indexer.close();
+			try {
+				indexer.doIndexing();
+			} finally {
+				if (indexer != null) {
+					indexer.close();
+				}
+			}
 			
 			
 		} catch (Exception e) {
