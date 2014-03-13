@@ -167,6 +167,10 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 				pstmt.setFetchSize(getConfigInt("fetchSize"));
 			}
 
+			if(maxRows > 0){
+				pstmt.setMaxRows(maxRows);
+			}
+			
 			r = pstmt.executeQuery();
 
 			ResultSetMetaData rsMetadata = r.getMetaData();

@@ -44,6 +44,8 @@ public class TestSourceReaderAction extends AuthAction {
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		resultWriter.object();
 		
+		int maxRows = 10;
+		
 		try {
 			resultWriter.key("mappingResult").array();
 			if(singleSourceConfigList.size() > 0) {
@@ -56,13 +58,16 @@ public class TestSourceReaderAction extends AuthAction {
 				@SuppressWarnings("unchecked")
 				SingleSourceReader<Map<String, Object>> sreader = (SingleSourceReader<Map<String, Object>>) constructor
 						.newInstance(null, dataSourceConfig, singleSourceConfig, null, null);
+				
+				sreader.setMaxRows(maxRows);
+				
 				SchemaSetting workSchemaSetting = collectionContext.workSchemaSetting();
 				List<FieldSetting> fieldSettingList = workSchemaSetting.getFieldSettingList();
 				dataReader = new DefaultDataSourceReader(workSchemaSetting);
 				dataReader.addSourceReader(sreader);
 				dataReader.init();
 				
-				for (int inx = 0; inx < 10 && dataReader.hasNext(); inx++) {
+				while (dataReader.hasNext()) {
 					Document document = dataReader.nextDocument();
 					resultWriter.array();
 					for (int finx = 0; finx < fieldSettingList.size(); finx++) {

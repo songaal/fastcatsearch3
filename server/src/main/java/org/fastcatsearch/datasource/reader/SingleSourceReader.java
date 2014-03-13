@@ -32,6 +32,8 @@ public abstract class SingleSourceReader<SourceType> {
 	private List<SourceReaderParameter> sourceReaderParameterList;
 	private Map<String, String> parameterMap;
 
+	protected int maxRows;
+	
 	public abstract void init() throws IRException; // 초기화. 파일을 여는등의 작업.
 
 	public abstract boolean hasNext() throws IRException;
@@ -42,6 +44,10 @@ public abstract class SingleSourceReader<SourceType> {
 
 	// reader에서 사용하는 파라미터를 정의한다.
 	protected abstract void initParameters();
+	
+	public void setMaxRows(int maxRows){
+		//not implemented.
+	}
 	
 	// reader에서 소스셋팅을 기반으로 기본 스키마 셋팅을 자동으로 만들어준다.
 	// 자동스키마 생성을 제공하지 않을시는 구현하지 않고, null을 리턴하도록한다.
