@@ -18,6 +18,7 @@ import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.query.Term;
 import org.fastcatsearch.ir.query.Term.Option;
+import org.fastcatsearch.ir.query.Term.Type;
 import org.fastcatsearch.ir.search.PostingDocs;
 import org.fastcatsearch.ir.search.PostingReader;
 import org.fastcatsearch.ir.search.SearchIndexReader;
@@ -127,7 +128,11 @@ public class BooleanClause implements OperatedClause {
 				if (operatedClause == null) {
 					operatedClause = clause;
 				} else {
-					operatedClause = new AndOperatedClause(operatedClause, clause);
+					if(term.type() == Type.ALL){
+						operatedClause = new AndOperatedClause(operatedClause, clause);
+					}else if(term.type() == Type.ANY){
+						operatedClause = new OrOperatedClause(operatedClause, clause);
+					}
 				}
 
 

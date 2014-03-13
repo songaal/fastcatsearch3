@@ -166,9 +166,7 @@ public class Term {
 	public OperatedClause createOperatedClause(SearchIndexReader searchIndexReader, HighlightInfo highlightInfo) {
 		
 		//TODO FIXME 현재는 모두 boolean clause로 생성.
-		if(type == Type.ALL){
-			return new BooleanClause(searchIndexReader, this, highlightInfo);
-		}else if(type == Type.ANY){
+		if(type == Type.ALL || type == Type.ANY){
 			return new BooleanClause(searchIndexReader, this, highlightInfo);
 		}else if(type == Type.PHRASE){
 			return new PhraseClause(searchIndexReader, this, highlightInfo);
