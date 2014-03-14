@@ -63,11 +63,19 @@ public abstract class AbstractDataSourceReader<DataType> implements DataSourceRe
 	}
 
 	private void nextReader() {
-		if (readerPos < singleSourceReaderList.size()) {
+		while (readerPos < singleSourceReaderList.size()) {
 			currentReader = singleSourceReaderList.get(readerPos++);
-		} else {
-			currentReader = null;
+			if (!currentReader.isActive()) {
+				continue;
+			}
+			if (currentReader != null) {
+				return;
+			}else{
+				break;
+			}
 		}
+		
+		currentReader = null;
 	}
 
 	public final DeleteIdSet getDeleteList() {
