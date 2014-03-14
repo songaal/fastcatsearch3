@@ -36,7 +36,7 @@ public class DefaultDataSourceReaderFactory {
 				if(!singleSourceConfig.isActive()){
 					continue;
 				}
-				SingleSourceReader<Map<String, Object>> sourceReader = createSingleSourceReader(filePath, dataSourceConfig, singleSourceConfig, null);
+				SingleSourceReader<Map<String, Object>> sourceReader = createSingleSourceReader(filePath, singleSourceConfig, null);
 				dataSourceReader.addSourceReader(sourceReader);
 			}
 		} else {
@@ -56,7 +56,7 @@ public class DefaultDataSourceReaderFactory {
 				if(!singleSourceConfig.isActive()){
 					continue;
 				}
-				SingleSourceReader<Map<String, Object>> sourceReader = createSingleSourceReader(filePath, dataSourceConfig, singleSourceConfig, lastIndexTime);
+				SingleSourceReader<Map<String, Object>> sourceReader = createSingleSourceReader(filePath, singleSourceConfig, lastIndexTime);
 				dataSourceReader.addSourceReader(sourceReader);
 			}
 		} else {
@@ -66,7 +66,7 @@ public class DefaultDataSourceReaderFactory {
 		return dataSourceReader;
 	}
 
-	private static SingleSourceReader<Map<String, Object>> createSingleSourceReader(File filePath, DataSourceConfig dataSourceConfig, SingleSourceConfig singleSourceConfig, String lastIndexTime) throws IRException {
+	private static SingleSourceReader<Map<String, Object>> createSingleSourceReader(File filePath, SingleSourceConfig singleSourceConfig, String lastIndexTime) throws IRException {
 		String sourceReaderType = singleSourceConfig.getSourceReader();
 		String sourceModifierType = singleSourceConfig.getSourceModifier();
 		SourceModifier<Map<String, Object>> sourceModifier = null;
@@ -75,7 +75,7 @@ public class DefaultDataSourceReaderFactory {
 		}
 
 		SingleSourceReader<Map<String, Object>> sourceReader = DynamicClassLoader.loadObject(sourceReaderType, SingleSourceReader.class, new Class[] { File.class,
-			DataSourceConfig.class, SingleSourceConfig.class, SourceModifier.class, String.class }, new Object[] { filePath, dataSourceConfig, 
+			SingleSourceConfig.class, SourceModifier.class, String.class }, new Object[] { filePath, 
 				singleSourceConfig, sourceModifier, lastIndexTime });
 		logger.debug("Loading sourceReader : {} >> {}, modifier:{} / lastIndexTime:{}", sourceReaderType, sourceReader, sourceModifier, lastIndexTime);
 		// dataSourceReader가 null일 수 있다.

@@ -38,7 +38,6 @@ import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.datasource.reader.annotation.SourceReader;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.JDBCSourceInfo;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.settings.AnalyzerSetting;
@@ -72,9 +71,9 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 	private int bulkCount;
 	private int readCount;
 
-	public DBReader(File filePath, DataSourceConfig dataSourceConfig, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime)
+	public DBReader(File filePath, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime)
 			throws IRException {
-		super(filePath, dataSourceConfig, singleSourceConfig, sourceModifier, lastIndexTime);
+		super(filePath, singleSourceConfig, sourceModifier, lastIndexTime);
 	}
 
 
@@ -85,8 +84,8 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 				, "DBReader reads BulkSize amount of data in advance on memory, then provides to consumer."
 				, SourceReaderParameter.TYPE_NUMBER, true, "100"));
 		registerParameter(new SourceReaderParameter("fetchSize", "Fetch Size"
-				, "JDBC statement fetch-size. if this value is 0, JDBC uses read-only cursor."
-				, SourceReaderParameter.TYPE_NUMBER, true, "1000"));
+				, "JDBC statement fetch-size. if this values is 0, the JDBC driver ignores the value and is free to make its own best guess as to what the fetch size should be. If this value is -1, the JDBC driver uses read-only cursor."
+				, SourceReaderParameter.TYPE_NUMBER, true, "-1"));
 		registerParameter(new SourceReaderParameter("dataSQL", "Data SQL", "Query for indexing."
 				, SourceReaderParameter.TYPE_TEXT, true, null));
 		registerParameter(new SourceReaderParameter("deleteIdSQL", "Delete SQL", "Query for delete documents while indexing."
@@ -158,13 +157,17 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 			} else {
 				logger.debug("Data query = {}", dataSQL);
 			}
-			if (getConfigInt("fetchSize") <= 0){
+			
+			int fetchSize = getConfigInt("fetchSize");
+			if (fetchSize < 0){
 				//in mysql, fetch data row by row 
 				pstmt = con.prepareStatement(q(dataSQL), ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				pstmt.setFetchSize(Integer.MIN_VALUE);
 			} else {
 				pstmt = con.prepareStatement(q(dataSQL));
-				pstmt.setFetchSize(getConfigInt("fetchSize"));
+				if (fetchSize > 0){
+					pstmt.setFetchSize(fetchSize);
+				}
 			}
 
 			if(maxRows > 0){
@@ -182,23 +185,7 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 				logger.info("Column-{} [{}]:[{}]", new Object[] { i + 1, columnName[i], typeName });
 			}
 		} catch (Exception e) {
-			try {
-				if (r != null)
-					r.close();
-			} catch (SQLException e1) {
-			}
-
-			try {
-				if (pstmt != null)
-					pstmt.close();
-			} catch (SQLException e1) {
-			}
-
-			try {
-				if (con != null && !con.isClosed())
-					con.close();
-			} catch (SQLException e1) {
-			}
+			closeConnection();
 
 			throw new IRException(e);
 		}
@@ -247,6 +234,12 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 			logger.error("After Query Error => " + e.getMessage(), e);
 		}
 
+		closeConnection();
+
+	}
+	
+	private void closeConnection() throws IRException {
+
 		try {
 			if (r != null)
 				r.close();
@@ -266,6 +259,7 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 		}
 
 	}
+	
 
 	private int executeUpdateQuery(String query) throws SQLException {
 		if (query == null || query.length() == 0)
@@ -321,10 +315,9 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 	int totalCnt = 0;
 
 	private void fill() throws IRException {
+		
 		bulkCount = 0;
 		try {
-
-
 			ResultSetMetaData rsMeta = null;
 
 			try {
@@ -577,35 +570,28 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 					case Types.SMALLINT:
 					case Types.NUMERIC:
 						type = Type.INT;
-						size = 4;
 						break;
 					case Types.BIGINT:
 						type = Type.LONG;
-						size = 8;
 						break;
 					case Types.FLOAT:
 						type = Type.FLOAT;
-						size = 4;
 						break;
 					case Types.DOUBLE:
 						type = Type.DOUBLE;
-						size = 8;
 						break;
 					case Types.DATE:
 					case Types.TIME:
 					case Types.TIMESTAMP:
 						type = Type.DATETIME;
-						size = 8;
 						break;
 					case Types.CHAR:
 					case Types.VARCHAR:
 					case Types.LONGVARCHAR:
 						type = Type.STRING;
-						size = 0;
 						break;
 					default:
 						type = Type.STRING;
-						size = 0;
 						break;
 					}
 					field.setId(meta.getColumnLabel(inx + 1));

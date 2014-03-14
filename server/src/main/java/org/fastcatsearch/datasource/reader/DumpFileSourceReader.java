@@ -45,8 +45,8 @@ public class DumpFileSourceReader extends SingleSourceReader<Map<String, Object>
 	private Pattern OPAT;
 	private Pattern CPAT;
 
-	public DumpFileSourceReader(File filePath, DataSourceConfig dataSourceConfig, SingleSourceConfig singleSourceConfig, SourceModifier<Map<String, Object>> sourceModifier, String lastIndexTime) throws IRException {
-		super(filePath, dataSourceConfig, singleSourceConfig, sourceModifier, lastIndexTime);
+	public DumpFileSourceReader(File filePath, SingleSourceConfig singleSourceConfig, SourceModifier<Map<String, Object>> sourceModifier, String lastIndexTime) throws IRException {
+		super(filePath, singleSourceConfig, sourceModifier, lastIndexTime);
 	}
 
 	@Override

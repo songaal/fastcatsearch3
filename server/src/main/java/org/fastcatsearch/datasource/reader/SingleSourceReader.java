@@ -22,7 +22,7 @@ public abstract class SingleSourceReader<SourceType> {
 	protected static Logger logger = LoggerFactory.getLogger(SingleSourceReader.class);
 
 	protected Path filePath;
-	protected DataSourceConfig dataSourceConfig;
+//	protected DataSourceConfig dataSourceConfig;
 	protected SingleSourceConfig singleSourceConfig;
 	protected String lastIndexTime; // 마지막 수집시작.(시작시각)
 
@@ -46,7 +46,7 @@ public abstract class SingleSourceReader<SourceType> {
 	protected abstract void initParameters();
 	
 	public void setMaxRows(int maxRows){
-		//not implemented.
+		this.maxRows = maxRows;
 	}
 	
 	// reader에서 소스셋팅을 기반으로 기본 스키마 셋팅을 자동으로 만들어준다.
@@ -59,10 +59,9 @@ public abstract class SingleSourceReader<SourceType> {
 		initParameters();
 	}
 
-	public SingleSourceReader(File filePath, DataSourceConfig dataSourceConfig, SingleSourceConfig singleSourceConfig, SourceModifier<SourceType> sourceModifier,
+	public SingleSourceReader(File filePath, SingleSourceConfig singleSourceConfig, SourceModifier<SourceType> sourceModifier,
 			String lastIndexTime) {
 		this.filePath = new Path(filePath);
-		this.dataSourceConfig = dataSourceConfig;
 		this.singleSourceConfig = singleSourceConfig;
 		this.lastIndexTime = lastIndexTime;
 		this.sourceModifier = sourceModifier;
@@ -81,6 +80,10 @@ public abstract class SingleSourceReader<SourceType> {
 		return sourceReaderParameterList;
 	}
 
+	public boolean isActive(){
+		return singleSourceConfig.isActive();
+	}
+	
 	private void fillParameters(Map<String, String> map) {
 		// xml에서 읽어들인 파리미터들을 객체에 채워넣는다.
 		logger.debug("map:{}", map);
