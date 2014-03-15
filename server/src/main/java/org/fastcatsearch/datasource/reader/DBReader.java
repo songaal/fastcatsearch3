@@ -79,7 +79,7 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 
 	@Override
 	protected void initParameters() {
-		registerParameter(new SourceReaderParameter("jdbcSourceId", "JDBC ID", "Select jdbc connection", "JDBC", true, null));
+		registerParameter(new SourceReaderParameter("jdbcSourceId", "JDBC", "Select jdbc connection", "JDBC", true, null));
 		registerParameter(new SourceReaderParameter("bulkSize", "Bulk Size"
 				, "DBReader reads BulkSize amount of data in advance on memory, then provides to consumer."
 				, SourceReaderParameter.TYPE_NUMBER, true, "100"));

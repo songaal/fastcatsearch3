@@ -15,7 +15,6 @@ import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
-import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.util.DynamicClassLoader;
 import org.fastcatsearch.util.ResponseWriter;
@@ -24,49 +23,33 @@ import org.fastcatsearch.util.ResponseWriter;
 public class GetSourceReaderListAction extends AuthAction {
 
 	@Override
-	public void doAuthAction(ActionRequest request, ActionResponse response)
-			throws Exception {
-		
+	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
+
 		Writer writer = response.getWriter();
 		ResponseWriter responseWriter = getDefaultResponseWriter(writer);
-		
-		//FIXME:org.fastcatsearch 패키지로 일단 고정
-		//패키지 안정화 이후 프로퍼티 등으로 교체 요망
+
+		// FIXME:org.fastcatsearch 패키지로 일단 고정
+		// 패키지 안정화 이후 프로퍼티 등으로 교체 요망
 		List<Class<?>> sourceReaderList = DynamicClassLoader.findChildrenClass("org", SingleSourceReader.class);
-		
+
 		responseWriter.object().key("sourceReaderList").array();
-		for(Class<?> sourceReader : sourceReaderList) {
+		for (Class<?> sourceReader : sourceReaderList) {
 			logger.trace("class:{}", sourceReader);
-			
+
 			SourceReader annotation = sourceReader.getAnnotation(SourceReader.class);
-			if(annotation!=null && annotation.name() != null) {
-				
-				Constructor<?> constructor = sourceReader.getConstructor(
-						File.class, DataSourceConfig.class,
-						SingleSourceConfig.class, SourceModifier.class,
-						String.class);
-				
+			if (annotation != null && annotation.name() != null) {
+
+				Constructor<?> constructor = sourceReader.getConstructor(File.class, SingleSourceConfig.class, SourceModifier.class, String.class);
+
 				SingleSourceConfig singleSourceConfig = new SingleSourceConfig();
-				DataSourceConfig dataSourceConfig = new DataSourceConfig();
-				SingleSourceReader<?> sreader = (SingleSourceReader<?>)constructor.newInstance(null,dataSourceConfig,singleSourceConfig,null,null);
+				SingleSourceReader<?> sreader = (SingleSourceReader<?>) constructor.newInstance(null, singleSourceConfig, null, null);
 				List<SourceReaderParameter> parameterList = sreader.getParameterList();
-				responseWriter.object()
-					.key("name")
-					.value(annotation.name())
-					.key("reader")
-					.value(sreader.getClass().getName())
-					.key("parameters").array();
-				for(SourceReaderParameter param: parameterList) {
+				responseWriter.object().key("name").value(annotation.name()).key("reader").value(sreader.getClass().getName()).key("parameters").array();
+				for (SourceReaderParameter param : parameterList) {
 					logger.trace("[{}/{}:{}]", param.getId(), param.getName(), param.getValue());
-					responseWriter.object()
-						.key("id").value(param.getId())
-						.key("name").value(param.getName())
-						.key("value").value(param.getValue())
-						.key("type").value(param.getType())
-						.key("required").value(param.isRequired())
-						.key("description").value(param.getDescription())
-						.key("defaultValue").value(param.getDefaultValue())
-						.endObject();
+					responseWriter.object().key("id").value(param.getId()).key("name").value(param.getName()).key("value").value(param.getValue()).key("type")
+							.value(param.getType()).key("required").value(param.isRequired()).key("description").value(param.getDescription()).key("defaultValue")
+							.value(param.getDefaultValue()).endObject();
 				}
 				responseWriter.endArray().endObject();
 			}

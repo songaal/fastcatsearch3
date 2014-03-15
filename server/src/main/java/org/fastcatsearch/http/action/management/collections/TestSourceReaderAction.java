@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.fastcatsearch.datasource.SourceModifier;
+import org.fastcatsearch.datasource.reader.DBReader;
 import org.fastcatsearch.datasource.reader.DefaultDataSourceReader;
 import org.fastcatsearch.datasource.reader.SingleSourceReader;
 import org.fastcatsearch.http.ActionAuthority;
@@ -38,7 +39,7 @@ public class TestSourceReaderAction extends AuthAction {
 		CollectionContext collectionContext = irService.collectionContext(collectionId);
 		DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
 		List<SingleSourceConfig> singleSourceConfigList = dataSourceConfig.getFullIndexingSourceConfig();
-		DefaultDataSourceReader  dataReader = null;
+		DefaultDataSourceReader dataReader = null;
 		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
@@ -52,13 +53,11 @@ public class TestSourceReaderAction extends AuthAction {
 				SingleSourceConfig singleSourceConfig = singleSourceConfigList.get(0);
 				Class<?> sourceReaderCls = DynamicClassLoader.loadClass(singleSourceConfig.getSourceReader());
 				Constructor<?> constructor = sourceReaderCls.getConstructor(
-						File.class, DataSourceConfig.class,
-						SingleSourceConfig.class, SourceModifier.class,
+						File.class, SingleSourceConfig.class, SourceModifier.class,
 						String.class);
 				@SuppressWarnings("unchecked")
 				SingleSourceReader<Map<String, Object>> sreader = (SingleSourceReader<Map<String, Object>>) constructor
-						.newInstance(null, dataSourceConfig, singleSourceConfig, null, null);
-				
+						.newInstance(null, singleSourceConfig, null, null);
 				sreader.setMaxRows(maxRows);
 				
 				SchemaSetting workSchemaSetting = collectionContext.workSchemaSetting();
