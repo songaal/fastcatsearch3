@@ -31,7 +31,7 @@ public class UpdateCollectionDatasourceAction extends AuthAction {
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
 		
 		boolean isSuccess = false;
-		
+		String message = "";
 		try {
 		
 			Pattern keyPattern = Pattern.compile("^key([0-9]+)$");
@@ -66,8 +66,7 @@ public class UpdateCollectionDatasourceAction extends AuthAction {
 			DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
 			
 			
-			File dataSourceConfigFile = collectionContext.collectionFilePaths().file(
-					SettingFileNames.datasourceConfig);
+			File dataSourceConfigFile = collectionContext.collectionFilePaths().file(SettingFileNames.datasourceConfig);
 			
 			List<SingleSourceConfig> configList = null;
 			SingleSourceConfig config = null;
@@ -78,48 +77,63 @@ public class UpdateCollectionDatasourceAction extends AuthAction {
 				configList = dataSourceConfig.getAddIndexingSourceConfig();
 			}
 			
-			if(sourceIndex==-1) {
-				if(configList==null) {
+			
+			if("delete".equals(mode)) {
+				if(configList != null && sourceIndex != -1){
+					configList.remove(sourceIndex);
+					isSuccess = true;
+				}else{
+					isSuccess = false;
+					message = "Cannot find config to delete. sourceIndex[" + sourceIndex + "] configList size[" + (configList == null ? 0 : configList.size()) + "]";
+				}
+			} else {
+				
+				if (configList == null) {
 					configList = new ArrayList<SingleSourceConfig>();
-					if("full".equals(indexType)) {
+					if ("full".equals(indexType)) {
 						dataSourceConfig.setFullIndexingSourceConfig(configList);
-					} else if("add".equals(indexType)) {
+					} else if ("add".equals(indexType)) {
 						dataSourceConfig.setAddIndexingSourceConfig(configList);
 					}
 				}
-				config = new SingleSourceConfig();
-				configList.add(config);
-			} else {
-				if(configList!=null && configList.size() > sourceIndex) {
+				
+				if(sourceIndex == -1 || configList.size() == 0) {
+					config = new SingleSourceConfig();
+					configList.add(config);
+				} else if(sourceIndex < configList.size()) {
 					config = configList.get(sourceIndex);
+				} else {
+					message = "Invalid request. sourceIndex[" + sourceIndex + "] configList size[" + (configList == null ? 0 : configList.size()) + "]";
+					isSuccess = false;
 				}
-			}
-			
-			if("delete".equals(mode)) {
-				configList.remove(sourceIndex);
-			} else {
-				if(config!=null) {
+				
+				if (config != null) {
 					config.setName(name);
 					config.setActive(active);
 					config.setSourceReader(readerClass);
 					config.setSourceModifier(modifierClass);
 					config.setProperties(properties);
+					
+					isSuccess = true;
+				}else{
+					isSuccess = false;
 				}
 			}
 		
-			JAXBConfigs.writeConfig(dataSourceConfigFile, dataSourceConfig, DataSourceConfig.class);
-			
-			isSuccess = true;
+			if(isSuccess) {
+				JAXBConfigs.writeConfig(dataSourceConfigFile, dataSourceConfig, DataSourceConfig.class);
+			}
 			
 		} catch (Exception e) {
 			logger.error("",e);
 			isSuccess = false;
+		} finally {
+			ResponseWriter responseWriter = getDefaultResponseWriter(response.getWriter());
+			responseWriter.object();
+			responseWriter.key("success").value(isSuccess);
+			responseWriter.key("message").value(message);
+			responseWriter.endObject();
+			responseWriter.done();
 		}
-		
-		ResponseWriter responseWriter = getDefaultResponseWriter(response.getWriter());
-		responseWriter.object();
-		responseWriter.key("success").value(isSuccess);
-		responseWriter.endObject();
-		responseWriter.done();
 	}
 }

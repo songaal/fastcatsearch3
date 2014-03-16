@@ -5,28 +5,27 @@ public class SchemaInvalidateException extends Exception {
 	private static final long serialVersionUID = -3011452458081007220L;
 	
 	private String section;
-	private String field;
-	private String data;
+	private String fieldId;
+	private String attributeId;
+	private String value;
 	private String type;
 
 	public SchemaInvalidateException(String message){
 		super(message);
 	}
 	
-	public SchemaInvalidateException(String section, String field, String data, String type) {
+	public SchemaInvalidateException(String section, String fieldId, String attributeId, String value, String type) {
 		this.section = section;
-		this.field = field;
-		this.data = data;
+		this.fieldId = fieldId;
+		this.attributeId = attributeId;
+		this.value = value;
 		this.type = type;
 	}
 	
 	@Override
 	public String getMessage() {
-		return "Schema Setting Exception at "+field+" in "+section+" / data : "+data+" / message : "+type;
+		return "["+section + "] " + fieldId + " " + attributeId + " \"" +value+ "\" " + type + ".";
+		
 	}
 
-	public String section() { return section; }
-	public String field() { return field; }
-	public String data() { return data; }
-	public String type() { return type; }
 }

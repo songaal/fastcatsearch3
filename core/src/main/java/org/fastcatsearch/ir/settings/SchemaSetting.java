@@ -21,7 +21,7 @@ public class SchemaSetting {
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaSetting.class);
 
-	private static final Integer MAXIMUM_PRIMARY_SIZE = 255;
+	private static final Integer MAXIMUM_PRIMARY_SIZE = 128;
 
 	private List<FieldSetting> fieldSettingList;
 	private PrimaryKeySetting primaryKeySetting;
@@ -105,54 +105,49 @@ public class SchemaSetting {
 		this.primaryKeySetting = primaryKeySetting;
 	}
 
-	public static final String NULL_OR_BLANK = "NULL_OR_BLANK";
-	public static final String DUPLICATED = "DUPLICATED";
-	public static final String UNDERFLOW = "UNDERFLOW";
-	public static final String NO_PRIMARY_KEY = "NO_PRIMARY_KEY";
-	public static final String FIELD_NOT_FOUND = "FIELD_NOT_FOUND";
-	public static final String NO_CLASS = "NO_CLASS";
-	public static final String OVERFLOW = "OVERFLOW";
-	public static final String NO_DATA = "NO_DATA";
-	private static final String NO_SUCH_VALUE = "NO_SUCH_VALUE";
-	private static final String NOT_SUITABLE = "NOT_SUITABLE";
+	public static final String NULL_OR_EMPTY = "is empty";
+	public static final String DUPLICATED = "is duplicated";
+	public static final String NEGATIVE = "must be 0 or positive number";
+	public static final String NOT_POSITIVE = "must be positive number";
+	public static final String FIELD_NOT_FOUND = "is not found field";
+	private static final String NO_SUCH_VALUE = "is not found value";
+	private static final String NOT_SUITABLE = "is not suitable";
 
-	public void isValid(int validationLevel) throws SchemaInvalidateException {
+	public void isValid() throws SchemaInvalidateException {
 
 		String section = "";
-		String fieldName = "";
+		String fieldId = "";
+		String attributeId = "";
+		
 		String value = "";
-		String message = null;
+		String type = null;
 		Exception ex = null;
 		int inx = 0;
 
 		// field-list : 1. field type이 올바른지 확인. 2. 옵션이 올바른지 확인.
 		try {
-			section = FieldSetting.class.getName();
+			section = "Fields";
 			Set<String> idDupCheckSet = new HashSet<String>();
 
-			if (fieldSettingList == null || fieldSettingList.size() == 0) {
-				message = NO_DATA;
-			}
-
-			for (inx = 0; message == null && inx < fieldSettingList.size(); inx++) {
+			for (inx = 0; fieldSettingList != null && inx < fieldSettingList.size(); inx++) {
 				FieldSetting setting = fieldSettingList.get(inx);
-
-				fieldName = "id";
+				fieldId = setting.getId();
+				attributeId = "ID";
 				value = setting.getId();
 				if (value == null || "".equals(value)) {
-					message = NULL_OR_BLANK;
+					type = NULL_OR_EMPTY;
 					break;
 				} else if (idDupCheckSet.contains(value)) {
-					message = DUPLICATED;
+					type = DUPLICATED;
 					break;
 				} else {
 					idDupCheckSet.add(value);
 				}
 
-				fieldName = "name";
+				attributeId = "Name";
 				value = setting.getName();
 				if (value == null || "".equals(value)) {
-					message = NULL_OR_BLANK;
+					type = NULL_OR_EMPTY;
 					break;
 				}
 
@@ -160,49 +155,50 @@ public class SchemaSetting {
 
 				// size 는 null 이 아닌 경우에만 체크. (null, 0 은 제한없음)
 				if (setting.getSize() != null && setting.getSize() != 0) {
-					fieldName = "size";
+					attributeId = "size";
 					value = String.valueOf(setting.getSize());
-					if (setting.getSize() != 0 && setting.getSize() < 1) {
-						message = UNDERFLOW;
+					if (setting.getSize() < 0) {
+						type = NEGATIVE;
+						break;
 					}
 				}
 
 				// isStore / isRemoveTag / isMultiValue 등 불리언 필드는 체크할 필요가 없음.
 
 				if (setting.isMultiValue()) {
-					fieldName = "multiValueDelimiter";
+					attributeId = "multiValueDelimiter";
 					value = setting.getMultiValueDelimiter();
 
 					if (value == null || "".equals(value)) {
-						message = NULL_OR_BLANK;
+						type = NULL_OR_EMPTY;
 						break;
 					}
 				}
 
 			}
 		} finally {
-			if (message != null || ex != null) {
-				if (message == null) {
-					message = ex.getMessage();
+			if (type != null || ex != null) {
+				if (type == null) {
+					type = ex.getMessage();
 				}
-				throw new SchemaInvalidateException(section, fieldName + "_" + inx, value, message);
+				throw new SchemaInvalidateException(section, fieldId, attributeId, value, type);
 			}
 		}
 
 		// primary-key : 1. ref가 field list에 존재하는지 확인. 2. field type이 고정길이가 맞는지
 		// 확인.
 		try {
-			section = PrimaryKeySetting.class.getName();
+			section = "Primary Keys";
 			List<RefSetting> fieldList = primaryKeySetting.getFieldList();
 
 			if (fieldList != null && fieldList.size() > 0) {
-				// message = NO_PRIMARY_KEY;
-				for (inx = 0; message == null && inx < fieldList.size(); inx++) {
+				fieldId = "PRIMARY KEY";
+				for (inx = 0; type == null && inx < fieldList.size(); inx++) {
 					RefSetting setting = fieldList.get(inx);
-					fieldName = "ref";
+					attributeId = "field";
 					value = setting.getRef();
 					if (value == null || "".equals(value)) {
-						message = NULL_OR_BLANK;
+						type = NULL_OR_EMPTY;
 						break;
 					} else {
 						// check field exists..
@@ -212,25 +208,27 @@ public class SchemaSetting {
 							if (value.equals(fieldSetting.getId())) {
 
 								if (fieldSetting.getType() == Type.BLOB){
-									message = NOT_SUITABLE;
+									type = NOT_SUITABLE;
 									break;
 								}
 								//string일때만 길이체크를 한다.
 								if (fieldSetting.getType() == Type.STRING || fieldSetting.getType() == Type.ASTRING) {
-									if (fieldSetting.getSize() != null && fieldSetting.getSize() > 0 && fieldSetting.getSize() < MAXIMUM_PRIMARY_SIZE) {
-										found = true;
-										break;
-									} else {
-										if (fieldSetting.getSize() != null) {
-											if (fieldSetting.getSize() < 1) {
-												message = UNDERFLOW;
+									if (fieldSetting.getSize() != null) {
+										
+										if(fieldSetting.getSize() > 0) {
+											if(fieldSetting.getSize() <= MAXIMUM_PRIMARY_SIZE) {
+												found = true;
 												break;
-											} else {
-												message = OVERFLOW;
+											}else{
+												type = "is larger than maximum primary key field size " + MAXIMUM_PRIMARY_SIZE;
 												break;
 											}
+										}else if(fieldSetting.getSize() == 0) {
+											//가변길이.
+											type = "must be fixed size field";
+											break;
 										} else {
-											message = UNDERFLOW;
+											type = NOT_POSITIVE;
 											break;
 										}
 									}
@@ -241,11 +239,11 @@ public class SchemaSetting {
 							}
 
 						}
-						if (message != null) {
+						if (type != null) {
 							break;
 						}
 						if (!found) {
-							message = FIELD_NOT_FOUND;
+							type = FIELD_NOT_FOUND;
 							break;
 						}
 					}
@@ -253,296 +251,318 @@ public class SchemaSetting {
 
 			}
 		} finally {
-			if (message != null || ex != null) {
-				if (message == null) {
-					message = ex.getMessage();
+			if (type != null || ex != null) {
+				if (type == null) {
+					type = ex.getMessage();
 				}
-				throw new SchemaInvalidateException(section, fieldName + "_" + inx, value, message);
+				throw new SchemaInvalidateException(section, fieldId, attributeId, value, type);
 			}
 		}
 		
-		if(validationLevel > 0) {
 
-			// analyzer-list : 1. 값이 올바른지 확인.
-			try {
-				section = AnalyzerSetting.class.getName();
-				Set<String> idDupCheckSet = new HashSet<String>();
-	
-				if (analyzerSettingList == null || analyzerSettingList.size() == 0) {
-					message = NO_DATA;
+		// analyzer-list : 1. 값이 올바른지 확인.
+		try {
+			section = "Analyzers";
+			Set<String> idDupCheckSet = new HashSet<String>();
+
+			for (inx = 0; analyzerSettingList != null && inx < analyzerSettingList.size(); inx++) {
+				AnalyzerSetting setting = analyzerSettingList.get(inx);
+				fieldId = setting.getId();
+				attributeId = "ID";
+				value = setting.getId();
+				if (value == null || "".equals(value)) {
+					type = NULL_OR_EMPTY;
+					break;
+				} else if (idDupCheckSet.contains(value)) {
+					type = DUPLICATED;
+					break;
+				} else {
+					idDupCheckSet.add(value);
 				}
-	
-				for (inx = 0; message == null && inx < analyzerSettingList.size(); inx++) {
-					AnalyzerSetting setting = analyzerSettingList.get(inx);
-	
-					fieldName = "id";
-					value = setting.getId();
-					if (value == null || "".equals(value)) {
-						message = NULL_OR_BLANK;
-						break;
-					} else if (idDupCheckSet.contains(value)) {
-						message = DUPLICATED;
-						break;
-					} else {
-						idDupCheckSet.add(value);
-					}
-	
-					//className validation 은 server 패키지에서만 수행할 수 있다.
-	
-					fieldName = "maximumPoolSize";
-					value = String.valueOf(setting.getMaximumPoolSize());
-	
-					if (setting.getMaximumPoolSize() != 0 && setting.getMaximumPoolSize() < 1) {
-						message = UNDERFLOW;
-						break;
-					}
-	
-					fieldName = "corePoolSize";
-					value = String.valueOf(setting.getCorePoolSize());
-	
-					if (setting.getCorePoolSize() != 0 && setting.getCorePoolSize() < 1) {
-						message = UNDERFLOW;
-						break;
-					} else if (setting.getCorePoolSize() > setting.getMaximumPoolSize()) {
-						message = OVERFLOW;
-						break;
-					}
-	
+
+				//className validation 은 server 패키지에서만 수행할 수 있다.
+
+				attributeId = "maximumPoolSize";
+				value = String.valueOf(setting.getMaximumPoolSize());
+
+				if (setting.getMaximumPoolSize() < 0) {
+					type = NEGATIVE;
+					break;
 				}
-			} finally {
-				if (message != null || ex != null) {
-					if (message == null) {
-						message = ex.getMessage();
-					}
-					throw new SchemaInvalidateException(section, fieldName + "_" + inx, value, message);
+
+				attributeId = "corePoolSize";
+				value = String.valueOf(setting.getCorePoolSize());
+
+				if (setting.getCorePoolSize() < 0) {
+					type = NEGATIVE;
+					break;
+				} else if (setting.getCorePoolSize() > setting.getMaximumPoolSize()) {
+					type = "is larger than maximum pool size";
+					break;
 				}
+
 			}
-	
-			// index-list : 1.ref 가 field list에 존재하는지. 2. indexAnalyzer가
-			// analyzer-list 에 존재하는지.
-			try {
-				section = IndexSetting.class.getName();
-				Set<String> idDupCheckSet = new HashSet<String>();
-	
-				if (indexSettingList == null || indexSettingList.size() == 0) {
-					message = NO_DATA;
+		} finally {
+			if (type != null || ex != null) {
+				if (type == null) {
+					type = ex.getMessage();
 				}
-	
-				OUTTER: for (inx = 0; message == null && inx < indexSettingList.size(); inx++) {
-					IndexSetting setting = indexSettingList.get(inx);
-	
-					fieldName = "id";
-					value = setting.getId();
+				throw new SchemaInvalidateException(section, fieldId, attributeId, value, type);
+			}
+		}
+
+		// index-list : 1.ref 가 field list에 존재하는지. 2. indexAnalyzer가
+		// analyzer-list 에 존재하는지.
+		try {
+			section = "Search Indexes";
+			Set<String> idDupCheckSet = new HashSet<String>();
+
+			OUTTER: for (inx = 0; indexSettingList != null && inx < indexSettingList.size(); inx++) {
+				IndexSetting setting = indexSettingList.get(inx);
+				fieldId = setting.getId();
+				attributeId = "ID";
+				value = setting.getId();
+				if (value == null || "".equals(value)) {
+					type = NULL_OR_EMPTY;
+					break;
+				} else if (idDupCheckSet.contains(value)) {
+					type = DUPLICATED;
+					break;
+				} else {
+					idDupCheckSet.add(value);
+				}
+
+				attributeId = "name";
+				value = setting.getName();
+				if (value == null || "".equals(value)) {
+					type = NULL_OR_EMPTY;
+					break;
+				}
+
+				attributeId = "fieldList";
+				List<RefSetting> fieldList = setting.getFieldList();
+				for (int i = 0; fieldList != null && i < fieldList.size(); i++) {
+					RefSetting refSetting = fieldList.get(i);
+//					attributeId += ">ref";
+					value = refSetting.getRef();
 					if (value == null || "".equals(value)) {
-						message = NULL_OR_BLANK;
+						type = NULL_OR_EMPTY;
 						break;
-					} else if (idDupCheckSet.contains(value)) {
-						message = DUPLICATED;
-						break;
-					} else {
-						idDupCheckSet.add(value);
-					}
-	
-					fieldName = "name";
-					value = setting.getName();
-					if (value == null || "".equals(value)) {
-						message = NULL_OR_BLANK;
-						break;
-					}
-	
-					fieldName = "fieldList";
-					List<RefSetting> fieldList = setting.getFieldList();
-					for (int i = 0; fieldList != null && i < fieldList.size(); i++) {
-						RefSetting refSetting = fieldList.get(i);
-						fieldName += ">ref";
-						value = refSetting.getRef();
-						if (value == null || "".equals(value)) {
-							message = NULL_OR_BLANK;
-							break;
-						}else{
-							boolean found = false;
-							for (int inx2 = 0; inx2 < fieldSettingList.size(); inx2++) {
-								FieldSetting fieldSetting = fieldSettingList.get(inx2);
-								if (value.equals(fieldSetting.getId())) {
-									found = true;
-								}
-							}
-							if (!found) {
-								message = FIELD_NOT_FOUND;
-								break OUTTER;
+					}else{
+						boolean found = false;
+						for (int inx2 = 0; inx2 < fieldSettingList.size(); inx2++) {
+							FieldSetting fieldSetting = fieldSettingList.get(inx2);
+							if (value.equals(fieldSetting.getId())) {
+								found = true;
 							}
 						}
+						if (!found) {
+							type = FIELD_NOT_FOUND;
+							break OUTTER;
+						}
 					}
-						
-						
-					fieldName = "indexAnalyzer";
-					value = setting.getIndexAnalyzer();
+				}
+					
+					
+				attributeId = "indexAnalyzer";
+				value = setting.getIndexAnalyzer();
+				boolean found = false;
+				for (int inx2 = 0; inx2 < analyzerSettingList.size(); inx2++) {
+					AnalyzerSetting analyzer = analyzerSettingList.get(inx2);
+					if (analyzer != null && value.equalsIgnoreCase(analyzer.getId())) {
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					type = NO_SUCH_VALUE;
+					break;
+				}
+
+				attributeId = "queryAnalyzer";
+				value = setting.getQueryAnalyzer();
+				found = false;
+				for (int inx2 = 0; inx2 < analyzerSettingList.size(); inx2++) {
+					AnalyzerSetting analyzer = analyzerSettingList.get(inx2);
+					if (analyzer != null && value.equalsIgnoreCase(analyzer.getId())) {
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					type = NO_SUCH_VALUE;
+					break;
+				}
+
+				attributeId = "positionIncrementGap";
+				value = String.valueOf(setting.getPositionIncrementGap());
+
+				if (setting.getPositionIncrementGap() != null && setting.getPositionIncrementGap() < 0) {
+					type = NEGATIVE;
+					break;
+				}
+
+			}
+		} finally {
+			if (type != null || ex != null) {
+				if (type == null) {
+					type = ex.getMessage();
+				}
+				throw new SchemaInvalidateException(section, fieldId, attributeId, value, type);
+			}
+		}
+
+		// field-index-list : 1. ref가 field list에 존재하는지
+		try {
+			section = "Field Indexes";
+			Set<String> idDupCheckSet = new HashSet<String>();
+
+			// fieldindex는 반드시 존재할 필요는 없음.
+			for (inx = 0; type == null && fieldIndexSettingList != null && inx < fieldIndexSettingList.size(); inx++) {
+				FieldIndexSetting setting = fieldIndexSettingList.get(inx);
+				fieldId = setting.getId();
+				attributeId = "ID";
+				value = setting.getId();
+				if (value == null || "".equals(value)) {
+					type = NULL_OR_EMPTY;
+					break;
+				} else if (idDupCheckSet.contains(value)) {
+					type = DUPLICATED;
+					break;
+				} else {
+					idDupCheckSet.add(value);
+				}
+
+				attributeId = "name";
+				value = setting.getName();
+				if (value == null || "".equals(value)) {
+					type = NULL_OR_EMPTY;
+					break;
+				}
+
+				attributeId = "field";
+				value = setting.getRef();
+				if (value == null || "".equals(value)) {
+					type = NULL_OR_EMPTY;
+					break;
+				} else {
 					boolean found = false;
-					for (int inx2 = 0; inx2 < analyzerSettingList.size(); inx2++) {
-						AnalyzerSetting analyzer = analyzerSettingList.get(inx2);
-						if (analyzer != null && value.equalsIgnoreCase(analyzer.getId())) {
+					for (int inx2 = 0; inx2 < fieldSettingList.size(); inx2++) {
+						if (value.equals(fieldSettingList.get(inx2).getId())) {
 							found = true;
 							break;
 						}
 					}
 					if (!found) {
-						message = NO_SUCH_VALUE;
+						type = FIELD_NOT_FOUND;
 						break;
 					}
-	
-					fieldName = "queryAnalyzer";
-					value = setting.getQueryAnalyzer();
-					found = false;
-					for (int inx2 = 0; inx2 < analyzerSettingList.size(); inx2++) {
-						AnalyzerSetting analyzer = analyzerSettingList.get(inx2);
-						if (analyzer != null && value.equalsIgnoreCase(analyzer.getId())) {
+				}
+
+				//1. 길이를 설정하지 않았다면 field 셋팅에 길이가 설정되어 있는지 확인 .
+				Integer fieldIndexSize = setting.getSize();
+				if(fieldIndexSize == 0){
+					for (int inx2 = 0; inx2 < fieldSettingList.size(); inx2++) {
+						FieldSetting fieldSetting = fieldSettingList.get(inx2);
+						if (fieldSetting.getId().equals(value)) {
+							if(fieldSetting.getSize() == null || fieldSetting.getSize() <= 0){
+								type = "must be fixed size field or please set field index size";
+							}
+							break;
+						}
+					}
+				}else if(fieldIndexSize > 0){
+					//2. 길이가 넘치치 않는지.
+					for (int inx2 = 0; inx2 < fieldSettingList.size(); inx2++) {
+						FieldSetting fieldSetting = fieldSettingList.get(inx2);
+						if (fieldSetting.getId().equals(value)) {
+							//0(가변길이)가 아닐때만 비교.
+							if(fieldSetting.getSize() != null && fieldSetting.getSize() != 0 && fieldIndexSize > fieldSetting.getSize()){
+								type = "is larger than field size " + fieldSetting.getSize();
+							}
+							break;
+						}
+					}
+				}
+				
+				if (type != null) {
+					break;
+				}
+				
+				attributeId = "size";
+				value = String.valueOf(setting.getSize());
+				if (setting.getSize() < 0) {
+					type = NEGATIVE;
+					break;
+				}
+				
+			}
+
+		} finally {
+			if (type != null || ex != null) {
+				if (type == null) {
+					type = ex.getMessage();
+				}
+				throw new SchemaInvalidateException(section, fieldId, attributeId, value, type);
+			}
+		}
+
+		// group-index-list : 1. ref가 field list에 존재하는지
+		try {
+			section = "Group Indexes";
+			Set<String> idDupCheckSet = new HashSet<String>();
+
+			// groupindex는 반드시 존재할 필요는 없음.
+			for (inx = 0; type == null && groupIndexSettingList != null && inx < groupIndexSettingList.size(); inx++) {
+
+				GroupIndexSetting setting = groupIndexSettingList.get(inx);
+				fieldId = setting.getId();
+				attributeId = "ID";
+				value = setting.getId();
+
+				if (value == null || "".equals(value)) {
+					type = NULL_OR_EMPTY;
+					break;
+				} else if (idDupCheckSet.contains(value)) {
+					type = DUPLICATED;
+					break;
+				} else {
+					idDupCheckSet.add(value);
+				}
+
+				attributeId = "name";
+				value = setting.getName();
+				if (value == null || "".equals(value)) {
+					type = NULL_OR_EMPTY;
+					break;
+				}
+
+				attributeId = "field";
+				value = setting.getRef();
+				if (value == null || "".equals(value)) {
+					type = NULL_OR_EMPTY;
+					break;
+				} else {
+					boolean found = false;
+					for (int inx2 = 0; inx2 < fieldSettingList.size(); inx2++) {
+						if (value.equals(fieldSettingList.get(inx2).getId())) {
 							found = true;
 							break;
 						}
 					}
 					if (!found) {
-						message = NO_SUCH_VALUE;
+						type = FIELD_NOT_FOUND;
 						break;
 					}
-	
-					fieldName = "positionIncrementGap";
-					value = String.valueOf(setting.getPositionIncrementGap());
-	
-					if (setting.getPositionIncrementGap() != null && setting.getPositionIncrementGap() != 0 && setting.getPositionIncrementGap() < 1) {
-						message = UNDERFLOW;
-						break;
-					}
-	
-				}
-			} finally {
-				if (message != null || ex != null) {
-					if (message == null) {
-						message = ex.getMessage();
-					}
-					throw new SchemaInvalidateException(section, fieldName + "_" + inx, value, message);
 				}
 			}
-	
-			// field-index-list : 1. ref가 field list에 존재하는지
-			try {
-				section = FieldIndexSetting.class.getName();
-				Set<String> idDupCheckSet = new HashSet<String>();
-	
-				// fieldindex는 반드시 존재할 필요는 없음.
-				for (inx = 0; message == null && fieldIndexSettingList != null && inx < fieldIndexSettingList.size(); inx++) {
-					FieldIndexSetting setting = fieldIndexSettingList.get(inx);
-	
-					fieldName = "id";
-					value = setting.getId();
-					if (value == null || "".equals(value)) {
-						message = NULL_OR_BLANK;
-						break;
-					} else if (idDupCheckSet.contains(value)) {
-						message = DUPLICATED;
-						break;
-					} else {
-						idDupCheckSet.add(value);
-					}
-	
-					fieldName = "name";
-					value = setting.getName();
-					if (value == null || "".equals(value)) {
-						message = NULL_OR_BLANK;
-						break;
-					}
-	
-					fieldName = "ref";
-					value = setting.getRef();
-					if (value == null || "".equals(value)) {
-						message = NULL_OR_BLANK;
-					} else {
-						boolean found = false;
-						for (int inx2 = 0; inx2 < fieldSettingList.size(); inx2++) {
-							if (value.equals(fieldSettingList.get(inx2).getId())) {
-								found = true;
-								break;
-							}
-						}
-						if (!found) {
-							message = FIELD_NOT_FOUND;
-							break;
-						}
-					}
-	
-					fieldName = "size";
-					value = String.valueOf(setting.getSize());
-					if (setting.getSize() != null && setting.getSize() != 0 && setting.getSize() < 1) {
-						message = UNDERFLOW;
-						break;
-					}
+
+		} finally {
+			if (type != null || ex != null) {
+				if (type == null) {
+					type = ex.getMessage();
 				}
-	
-			} finally {
-				if (message != null || ex != null) {
-					if (message == null) {
-						message = ex.getMessage();
-					}
-					throw new SchemaInvalidateException(section, fieldName + "_" + inx, value, message);
-				}
-			}
-	
-			// group-index-list : 1. ref가 field list에 존재하는지
-			try {
-				section = GroupIndexSetting.class.getName();
-				Set<String> idDupCheckSet = new HashSet<String>();
-	
-				// groupindex는 반드시 존재할 필요는 없음.
-				for (inx = 0; message == null && groupIndexSettingList != null && inx < groupIndexSettingList.size(); inx++) {
-	
-					GroupIndexSetting setting = groupIndexSettingList.get(inx);
-	
-					fieldName = "id";
-					value = setting.getId();
-	
-					if (value == null || "".equals(value)) {
-						message = NULL_OR_BLANK;
-						break;
-					} else if (idDupCheckSet.contains(value)) {
-						message = DUPLICATED;
-						break;
-					} else {
-						idDupCheckSet.add(value);
-					}
-	
-					fieldName = "name";
-					value = setting.getName();
-					if (value == null || "".equals(value)) {
-						message = NULL_OR_BLANK;
-						break;
-					}
-	
-					fieldName = "ref";
-					value = setting.getRef();
-					if (value == null || "".equals(value)) {
-						message = NULL_OR_BLANK;
-						break;
-					} else {
-						boolean found = false;
-						for (int inx2 = 0; inx2 < fieldSettingList.size(); inx2++) {
-							if (value.equals(fieldSettingList.get(inx2).getId())) {
-								found = true;
-								break;
-							}
-						}
-						if (!found) {
-							message = FIELD_NOT_FOUND;
-							break;
-						}
-					}
-				}
-	
-			} finally {
-				if (message != null || ex != null) {
-					if (message == null) {
-						message = ex.getMessage();
-					}
-					throw new SchemaInvalidateException(section, fieldName + "_" + inx, value, message);
-				}
+				throw new SchemaInvalidateException(section, fieldId, attributeId, value, type);
 			}
 		}
 		logger.debug("Schema is valid!");
