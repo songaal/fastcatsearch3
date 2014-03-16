@@ -21,7 +21,6 @@ public class OperateCollectionAction extends AuthAction {
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
 
 		String collectionId = request.getParameter("collectionId");
-		String collectionTmp = "."+collectionId+".tmp";
 		String command = request.getParameter("command");
 
 		boolean isSuccess = false;
@@ -31,15 +30,8 @@ public class OperateCollectionAction extends AuthAction {
 
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 
-			CollectionHandler collectionHandler = null;
+			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
 			
-			if("PROMOTE".equalsIgnoreCase(command)) {
-				collectionHandler = irService.collectionHandler(collectionTmp);
-			} else {
-				collectionHandler = irService.collectionHandler(collectionId);
-			}
-			
-
 			if (collectionHandler == null) {
 				errorMessage = "Collection [" + collectionId + "] is not exist.";
 				return;
@@ -57,13 +49,13 @@ public class OperateCollectionAction extends AuthAction {
 					return;
 				}
 				collectionHandler.close();
-			} else if ("PROMOTE".equalsIgnoreCase(command)) {
-				//CollectionContext collectionContext = irService.collectionContext(collectionTmp);
-				//collectionContext.schema()
-				
-				CollectionHandler promoteCollection = irService.promoteCollection(collectionHandler, collectionId);
-				CollectionConfig collectionConfig = promoteCollection.collectionContext().collectionConfig();
-				CollectionContextUtil.updateConfig(collectionConfig, promoteCollection.indexFilePaths());
+//			} else if ("PROMOTE".equalsIgnoreCase(command)) {
+//				//CollectionContext collectionContext = irService.collectionContext(collectionTmp);
+//				//collectionContext.schema()
+//				
+//				CollectionHandler promoteCollection = irService.promoteCollection(collectionHandler, collectionId);
+//				CollectionConfig collectionConfig = promoteCollection.collectionContext().collectionConfig();
+//				CollectionContextUtil.updateConfig(collectionConfig, promoteCollection.indexFilePaths());
 				
 			} else {
 				isSuccess = false;

@@ -38,9 +38,7 @@ public class GetCollectionInfoListAction extends AuthAction {
 		List<String> collections = null;
 		
 		if(!"".equals(collectionListStr)) {
-			collections = Arrays.asList(
-					collectionListStr.replaceAll(" ", "")
-					.split(","));
+			collections = Arrays.asList(collectionListStr.replaceAll(" ", "").split(","));
 		}
 	
 		List<Collection> collectionList = irService.getCollectionList();

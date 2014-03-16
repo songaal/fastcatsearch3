@@ -73,7 +73,7 @@ public class TestSourceReaderAction extends AuthAction {
 						FieldSetting fieldSetting = fieldSettingList.get(finx);
 						Field field = document.get(finx);
 						resultWriter.object().key("field").value(fieldSetting.getName())
-							.key("value").value(field.getValue()).endObject();
+							.key("value").value(field.getDataString()).endObject();
 					}
 					resultWriter.endArray();
 					logger.trace("document:{}", document);

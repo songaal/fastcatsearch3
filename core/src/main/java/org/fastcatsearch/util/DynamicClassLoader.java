@@ -112,8 +112,8 @@ public class DynamicClassLoader {
 			if(clazz != null){
 				return clazz.newInstance();
 			}
-		} catch (Exception ignore){
-			ignore.printStackTrace();
+		} catch (Exception e){
+			logger.warn("loadObject error > {}", e.getMessage());
 		}
 		
 		return null;
@@ -125,8 +125,8 @@ public class DynamicClassLoader {
 			if(clazz != null){
 				return (T) clazz.newInstance();
 			}
-		} catch (Exception ignore){
-			ignore.printStackTrace();
+		} catch (Exception e){
+			logger.warn("loadObject error > {}", e.getMessage());
 		}
 		
 		return null;
@@ -144,8 +144,8 @@ public class DynamicClassLoader {
 					logger.trace("해당 생성자가 없습니다. {} >> {} {} {} {} {} {} {}", className, paramTypes);
 				}
 			}
-		} catch (Exception ignore){
-			ignore.printStackTrace();
+		} catch (Exception e){
+			logger.warn("loadObject error > {}", e.getMessage());
 		}
 		return null;
 	}

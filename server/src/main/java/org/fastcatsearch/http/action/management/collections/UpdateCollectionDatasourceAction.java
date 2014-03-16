@@ -9,6 +9,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.fastcatsearch.datasource.reader.SingleSourceReader;
+import org.fastcatsearch.datasource.reader.SourceReaderParameter;
 import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
@@ -21,6 +23,7 @@ import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.SettingFileNames;
+import org.fastcatsearch.util.DynamicClassLoader;
 import org.fastcatsearch.util.JAXBConfigs;
 import org.fastcatsearch.util.ResponseWriter;
 
@@ -34,22 +37,6 @@ public class UpdateCollectionDatasourceAction extends AuthAction {
 		String message = "";
 		try {
 		
-			Pattern keyPattern = Pattern.compile("^key([0-9]+)$");
-			Set<String> keySet = request.getParameterMap().keySet();
-			
-			Map<String,String> properties = new HashMap<String,String>();
-			
-			logger.trace("parameters:{}", properties);
-			
-			for(String key : keySet) {
-				Matcher matcher = keyPattern.matcher(key);
-				if(matcher.find()) {
-					int inx = Integer.parseInt(matcher.group(1));
-					properties.put( request.getParameter(key),
-							request.getParameter("value"+inx));
-				}
-			}
-			
 			String collectionId = request.getParameter("collectionId");
 			int sourceIndex = request.getIntParameter("sourceIndex",-1);
 			
@@ -59,6 +46,21 @@ public class UpdateCollectionDatasourceAction extends AuthAction {
 			String readerClass = request.getParameter("readerClass");
 			String modifierClass = request.getParameter("modifierClass");
 			String mode = request.getParameter("mode");
+			
+			//각 SingleSourceReader 에서 정의된  parameterList 를 가져와서 key를 얻는다.
+			SingleSourceReader singleSourceReader = DynamicClassLoader.loadObject(readerClass, SingleSourceReader.class);
+			List<SourceReaderParameter> parameterList = singleSourceReader.getParameterList();
+			
+			Map<String,String> properties = new HashMap<String,String>();
+			
+			
+			for(SourceReaderParameter parameter : parameterList) {
+				String key = parameter.getId();
+				String value = request.getParameter(key);
+				logger.trace("SingleSourceReader parameters {} : {}", key, value);
+				properties.put(key, value);
+			}
+			
 			
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			

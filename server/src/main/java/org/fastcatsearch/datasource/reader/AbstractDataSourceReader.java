@@ -54,7 +54,7 @@ public abstract class AbstractDataSourceReader<DataType> implements DataSourceRe
 		fieldSettingList = schemaSetting.getFieldSettingList();
 
 		PrimaryKeySetting primaryKeySetting = schemaSetting.getPrimaryKeySetting();
-		if (primaryKeySetting != null && primaryKeySetting.getFieldList().size() > 0) {
+		if (primaryKeySetting != null && primaryKeySetting.getFieldList() != null && primaryKeySetting.getFieldList().size() > 0) {
 			int pkFieldSize = primaryKeySetting.getFieldList().size();
 			deleteIdList = new DeleteIdSet(pkFieldSize);
 		}

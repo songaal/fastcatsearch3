@@ -71,11 +71,14 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 	private int bulkCount;
 	private int readCount;
 
+	public DBReader() {
+		super();
+	}
+	
 	public DBReader(File filePath, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime)
 			throws IRException {
 		super(filePath, singleSourceConfig, sourceModifier, lastIndexTime);
 	}
-
 
 	@Override
 	protected void initParameters() {
@@ -534,7 +537,7 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 				con = getConnection(jdbcInfo);
 			}
 			logger.trace("get jdbc connection : {}", con);
-			
+
 			if (con != null) {
 				logger.trace("executing sql :{}", dataSQL);
 				pst = con.prepareStatement(dataSQL);
@@ -543,22 +546,22 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 				res = pst.executeQuery();
 				res.next();
 				meta = res.getMetaData();
-				
+
 				SchemaSetting setting = new SchemaSetting();
 				PrimaryKeySetting primaryKeySetting = new PrimaryKeySetting();
-				List<RefSetting> primaryFieldList = new ArrayList<RefSetting>();
+//				List<RefSetting> primaryFieldList = new ArrayList<RefSetting>();
 				List<FieldSetting> fieldSettingList = new ArrayList<FieldSetting>();
 				List<AnalyzerSetting> analyzerSetting = new ArrayList<AnalyzerSetting>();
 				List<GroupIndexSetting> groupIndexSetting = new ArrayList<GroupIndexSetting>();
 				List<IndexSetting> indexSetting = new ArrayList<IndexSetting>();
 				List<FieldIndexSetting> fieldIndexSetting = new ArrayList<FieldIndexSetting>();
-				
+
 				logger.trace("columnCount:{}", meta.getColumnCount());
-				
+
 				String tableName = null;
-				
-				for(int inx=0;inx<meta.getColumnCount(); inx++) {
-					if(tableName == null) {
+
+				for (int inx = 0; inx < meta.getColumnCount(); inx++) {
+					if (tableName == null) {
 						tableName = meta.getTableName(inx + 1);
 					}
 					FieldSetting field = new FieldSetting();
@@ -601,61 +604,68 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 					logger.trace("field add {}", field);
 					fieldSettingList.add(field);
 				}
-				DatabaseMetaData dm = con.getMetaData( );
-				ResultSet tres = dm.getPrimaryKeys( "" , "" , tableName );
-				ResultSetMetaData tmeta = res.getMetaData();
-				if(logger.isTraceEnabled()) {
-					for (int inx = 0; inx < tmeta.getColumnCount(); inx++) {
-						logger.trace("get tmeta :{} / size:{}", tmeta.getColumnName(inx + 1), tmeta.getColumnDisplaySize(inx + 1));
-					}
-				}
-				while (tres.next()) {
-					String pkey = tres.getString("COLUMN_NAME").toUpperCase();
-					for(int inx=0;inx < fieldSettingList.size(); inx++) {
-						//logger.trace("matching pk column:{}:{}", pkey, fieldSettingList.get(inx).getId());
-						if(fieldSettingList.get(inx).getId().equals(pkey)) {
-							RefSetting ref = new RefSetting();
-							ref.setRef(fieldSettingList.get(inx).getId());
-							primaryFieldList.add(ref);
-							//칼럼사이즈 세팅
-							for (int inxSub = 0; inxSub < meta.getColumnCount(); inxSub++) {
-								if(meta.getColumnName(inxSub + 1).toUpperCase().equals(pkey)) {
-									fieldSettingList.get(inx).setSize(meta.getColumnDisplaySize(inxSub + 1));
-									break;
-								}
-							}
-							break;
-						}
-					}
-				}
-				tres.close();
-				res.close();
 				
-				primaryKeySetting.setFieldList(primaryFieldList);
+				//primary key 추천은 join의 경우 아이디명이 중복 되어,schema validation이 통과하지 못할수도 있으므로, 정확한 추천 방법을 만들기 전까지는 제공하지 않는다.  
+//				DatabaseMetaData dm = con.getMetaData();
+//				ResultSet tres = dm.getPrimaryKeys("", "", tableName);
+//				ResultSetMetaData tmeta = res.getMetaData();
+//				if (logger.isTraceEnabled()) {
+//					for (int inx = 0; inx < tmeta.getColumnCount(); inx++) {
+//						logger.trace("get tmeta :{} / size:{}", tmeta.getColumnName(inx + 1), tmeta.getColumnDisplaySize(inx + 1));
+//					}
+//				}
+//				while (tres.next()) {
+//					String pkey = tres.getString("COLUMN_NAME").toUpperCase();
+//					for (int inx = 0; inx < fieldSettingList.size(); inx++) {
+//						// logger.trace("matching pk column:{}:{}", pkey, fieldSettingList.get(inx).getId());
+//						if (fieldSettingList.get(inx).getId().equals(pkey)) {
+//							RefSetting ref = new RefSetting();
+//							ref.setRef(fieldSettingList.get(inx).getId());
+//							primaryFieldList.add(ref);
+//							// 칼럼사이즈 세팅
+//							for (int inxSub = 0; inxSub < meta.getColumnCount(); inxSub++) {
+//								if (meta.getColumnName(inxSub + 1).toUpperCase().equals(pkey)) {
+//									fieldSettingList.get(inx).setSize(meta.getColumnDisplaySize(inxSub + 1));
+//									break;
+//								}
+//							}
+//							break;
+//						}
+//					}
+//				}
+//				tres.close();
+//				res.close();
+//				primaryKeySetting.setFieldList(primaryFieldList);
+				
 				setting.setFieldSettingList(fieldSettingList);
 				setting.setPrimaryKeySetting(primaryKeySetting);
 				setting.setFieldIndexSettingList(fieldIndexSetting);
 				setting.setAnalyzerSettingList(analyzerSetting);
 				setting.setGroupIndexSettingList(groupIndexSetting);
 				setting.setIndexSettingList(indexSetting);
-				
-				con.getMetaData();
+
 				return setting;
 			}
 		} catch (IRException e) {
-			logger.error("",e);
+			logger.error("", e);
 		} catch (SQLException e) {
-			logger.error("",e);
+			logger.error("", e);
 		} finally {
-			if(res!=null) try {
-				res.close();
-			} catch (SQLException ignore){}
-			if(pst!=null) try {
-				pst.close();
-			} catch (SQLException ignore){}
-			if(con!=null) try {
-				con.close();
-			} catch (SQLException ignore){}
+			if (res != null)
+				try {
+					res.close();
+				} catch (SQLException ignore) {
+				}
+			if (pst != null)
+				try {
+					pst.close();
+				} catch (SQLException ignore) {
+				}
+			if (con != null)
+				try {
+					con.close();
+				} catch (SQLException ignore) {
+				}
 		}
 		return null;
 	}
