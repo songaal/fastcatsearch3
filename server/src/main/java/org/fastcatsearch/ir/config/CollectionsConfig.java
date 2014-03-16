@@ -29,21 +29,29 @@ public class CollectionsConfig {
 	}
 
 	public boolean contains(String collectionId) {
-		return collectionList.contains(collectionId);
+		if (collectionList != null) {
+			for (int inx = 0; inx < collectionList.size(); inx++) {
+				Collection collection = collectionList.get(inx);
+				if (collection.getId().equals(collectionId)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
-	public void addCollection(String id) {
+	public void addCollection(String collectionId) {
 		if (collectionList == null) {
 			collectionList = new ArrayList<Collection>();
 		}
-		collectionList.add(new Collection(id));
+		collectionList.add(new Collection(collectionId));
 	}
-	
-	public boolean removeCollection(String id) {
+
+	public boolean removeCollection(String collectionId) {
 		if (collectionList != null) {
-			for(int inx=0; inx < collectionList.size(); inx++) {
-				Collection collection  = collectionList.get(inx);
-				if(collection.id.equals(id)) {
+			for (int inx = 0; inx < collectionList.size(); inx++) {
+				Collection collection = collectionList.get(inx);
+				if (collection.getId().equals(collectionId)) {
 					collectionList.remove(inx);
 					return true;
 				}
@@ -59,7 +67,8 @@ public class CollectionsConfig {
 
 		public Collection() {
 		}
-		public Collection(String id){
+
+		public Collection(String id) {
 			this.id = id;
 		}
 

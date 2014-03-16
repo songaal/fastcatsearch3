@@ -26,6 +26,7 @@ import java.util.Set;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.cluster.NodeLoadBalancable;
 import org.fastcatsearch.common.QueryCacheModule;
 import org.fastcatsearch.control.JobService;
@@ -323,6 +324,29 @@ public class IRService extends AbstractService {
 			return null;
 		}
 		return CollectionContextUtil.load(collection, collectionFilePaths);
+	}
+	
+	public boolean removeCollection(String collectionId) throws SettingException {
+
+		if (!collectionsConfig.contains(collectionId)) {
+			return false;
+		} else {
+			try {
+				CollectionHandler collectionHandler = collectionHandlerMap.remove(collectionId);
+				if(collectionHandler != null){
+					collectionHandler.close();
+				}
+				collectionsConfig.removeCollection(collectionId);
+				JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.collections), collectionsConfig, CollectionsConfig.class);
+				
+				FilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
+				FileUtils.deleteDirectory(collectionFilePaths.file());
+				return true;
+			} catch (Exception e) {
+				logger.error("Error while remove collection", e);
+				throw new SettingException(e);
+			}
+		}
 	}
 	
 //	public CollectionHandler promoteCollection(CollectionHandler collectionHandler, String collectionId) throws IRException {

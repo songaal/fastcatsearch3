@@ -57,7 +57,7 @@ public class UpdateCollectionDatasourceAction extends AuthAction {
 			for(SourceReaderParameter parameter : parameterList) {
 				String key = parameter.getId();
 				String value = request.getParameter(key);
-				logger.trace("SingleSourceReader parameters {} : {}", key, value);
+				logger.debug("SingleSourceReader parameters {} : {}", key, value);
 				properties.put(key, value);
 			}
 			

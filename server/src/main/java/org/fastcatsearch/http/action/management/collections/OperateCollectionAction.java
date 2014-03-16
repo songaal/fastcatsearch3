@@ -7,11 +7,8 @@ import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.config.CollectionConfig;
-import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.ResponseWriter;
 
 @ActionMapping(value = "/management/collections/operate", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.WRITABLE)
@@ -56,7 +53,9 @@ public class OperateCollectionAction extends AuthAction {
 //				CollectionHandler promoteCollection = irService.promoteCollection(collectionHandler, collectionId);
 //				CollectionConfig collectionConfig = promoteCollection.collectionContext().collectionConfig();
 //				CollectionContextUtil.updateConfig(collectionConfig, promoteCollection.indexFilePaths());
-				
+			} else if ("REMOVE".equalsIgnoreCase(command)) {
+				isSuccess = irService.removeCollection(collectionId);
+				return;
 			} else {
 				isSuccess = false;
 				errorMessage = "Cannot understand command > " + command;
