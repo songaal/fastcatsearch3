@@ -53,7 +53,7 @@ public class GetSourceReaderListAction extends AuthAction {
 					}
 					responseWriter.endArray().endObject();
 				} catch (NoSuchMethodException e) {
-					logger.error("no constructor : {}", sourceReader);
+					logger.warn("no constructor : {}", sourceReader);
 				}
 			}
 		}
