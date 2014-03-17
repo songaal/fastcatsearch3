@@ -236,12 +236,16 @@ public class DynamicClassLoader {
 		ClassScanner<Class<?>> scanner = new ClassScanner<Class<?>>() {
 			@Override
 			public Class<?> done(String className, String pkg, Object param) {
-				Class<?> cls = DynamicClassLoader.loadClass(className);
-				if(cls!=null && parentCls.isAssignableFrom(cls)) {
-					if(!parentCls.equals(cls)){
-						//자기자신은 포함하지 않는다.
-						return cls;
+				try {
+					Class<?> cls = DynamicClassLoader.loadClass(className);
+					if(cls!=null && parentCls.isAssignableFrom(cls)) {
+						if(!parentCls.equals(cls)){
+							//자기자신은 포함하지 않는다.
+							return cls;
+						}
 					}
+				} catch (NoClassDefFoundError e) {
+					logger.warn("class not found : {}", className);
 				}
 				return null;
 			}
@@ -254,12 +258,16 @@ public class DynamicClassLoader {
 		ClassScanner<Class<?>> scanner = new ClassScanner<Class<?>>() {
 			@Override
 			public Class<?> done(String className, String pkg, Object param) {
-				Class<?> cls = DynamicClassLoader.loadClass(className);
-				if(cls!=null) {
-					Annotation annotation = cls.getAnnotation(anonClass);
-					if(annotation != null){
-						return cls;
+				try {
+					Class<?> cls = DynamicClassLoader.loadClass(className);
+					if(cls!=null) {
+						Annotation annotation = cls.getAnnotation(anonClass);
+						if(annotation != null){
+							return cls;
+						}
 					}
+				} catch (NoClassDefFoundError e) {
+					logger.warn("class not found : {}", className);
 				}
 				return null;
 			}
