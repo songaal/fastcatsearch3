@@ -207,10 +207,6 @@ public class SchemaSetting {
 							FieldSetting fieldSetting = fieldSettingList.get(inx2);
 							if (value.equals(fieldSetting.getId())) {
 
-								if (fieldSetting.getType() == Type.BLOB){
-									type = NOT_SUITABLE;
-									break;
-								}
 								//string일때만 길이체크를 한다.
 								if (fieldSetting.getType() == Type.STRING || fieldSetting.getType() == Type.ASTRING) {
 									if (fieldSetting.getSize() != null) {

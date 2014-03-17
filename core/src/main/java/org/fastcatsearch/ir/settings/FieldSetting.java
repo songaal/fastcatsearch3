@@ -58,7 +58,7 @@ public class FieldSetting {
 	private String multiValueDelimiter;
 
 	public static enum Type {
-		UNKNOWN, ASTRING, STRING, INT, LONG, FLOAT, DOUBLE, DATETIME, BLOB, _SCORE, _HIT, _DOCNO
+		UNKNOWN, ASTRING, STRING, INT, LONG, FLOAT, DOUBLE, DATETIME, _SCORE, _HIT, _DOCNO
 	}
 
 	// JAXB를 위해서는 default 생성자가 꼭 필요하다.
