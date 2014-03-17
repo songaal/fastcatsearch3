@@ -14,9 +14,13 @@ import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.DataPlanConfig;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.util.CollectionContextUtil;
+import org.fastcatsearch.util.FilePaths;
 import org.fastcatsearch.util.ResponseWriter;
-
-@ActionMapping(value = "/management/collections/create", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.WRITABLE)
+/**
+ * 관리도구 컬렉션 생성 위자드 step1 에서 사용될 액션.   
+ * */
+@ActionMapping(value = "/management/collections/create-update", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.WRITABLE)
 public class CreateCollectionAction extends AuthAction {
 
 	@Override
@@ -53,12 +57,24 @@ public class CreateCollectionAction extends AuthAction {
 
 		try {
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-
-			CollectionConfig collectionConfig = new CollectionConfig(collectionName, indexNode, searchNodeList, dataNodeList, DataPlanConfig.DefaultDataPlanConfig);
-
-			CollectionHandler collectionHandler = irService.createCollection(collectionId, collectionConfig);
 			
-			isSuccess = true;
+			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
+			if(collectionHandler == null) {
+				CollectionConfig collectionConfig = new CollectionConfig(collectionName, indexNode, searchNodeList, dataNodeList, DataPlanConfig.DefaultDataPlanConfig);
+	
+				collectionHandler = irService.createCollection(collectionId, collectionConfig);
+				
+				isSuccess = (collectionHandler != null);
+			}else{
+				CollectionConfig collectionConfig = collectionHandler.collectionContext().collectionConfig();
+				collectionConfig.setName(collectionName);
+				collectionConfig.setIndexNode(indexNode);
+				collectionConfig.setSearchNodeList(searchNodeList);
+				collectionConfig.setDataNodeList(dataNodeList);
+				FilePaths collectionFilePaths = collectionHandler.collectionContext().collectionFilePaths();
+				isSuccess = CollectionContextUtil.updateConfig(collectionConfig, collectionFilePaths);
+			}
+			
 		} catch (Exception e) {
 			isSuccess = false;
 			errorMessage = e.getMessage();

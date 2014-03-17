@@ -465,8 +465,10 @@ public class SchemaSetting {
 					for (int inx2 = 0; inx2 < fieldSettingList.size(); inx2++) {
 						FieldSetting fieldSetting = fieldSettingList.get(inx2);
 						if (fieldSetting.getId().equals(value)) {
-							if(fieldSetting.getSize() == null || fieldSetting.getSize() <= 0){
-								type = "must be fixed size field or please set field index size";
+							if(fieldSetting.isVariableField()){
+								if(fieldSetting.getSize() == null || fieldSetting.getSize() <= 0){
+									type = "must be fixed size field or please set field index size";
+								}
 							}
 							break;
 						}
@@ -477,7 +479,9 @@ public class SchemaSetting {
 						FieldSetting fieldSetting = fieldSettingList.get(inx2);
 						if (fieldSetting.getId().equals(value)) {
 							//0(가변길이)가 아닐때만 비교.
-							if(fieldSetting.getSize() != null && fieldSetting.getSize() != 0 && fieldIndexSize > fieldSetting.getSize()){
+							if(fieldSetting.isNumericField()){
+								type = "size cannot be set to numeric field";
+							}else if(fieldSetting.getSize() != null && fieldSetting.getSize() != 0 && fieldIndexSize > fieldSetting.getSize()){
 								type = "is larger than field size " + fieldSetting.getSize();
 							}
 							break;
