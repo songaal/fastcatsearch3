@@ -158,6 +158,8 @@ public class DynamicClassLoader {
 			if(clazz != null){
 				return clazz;
 			}
+		}catch(NoSuchMethodError ignore){
+		}catch(NoSuchFieldError ignore){
 		}catch(ClassNotFoundException ignore){
 		}catch(NoClassDefFoundError ignore){
 		}
