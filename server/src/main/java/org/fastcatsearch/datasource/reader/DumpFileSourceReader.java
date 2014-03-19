@@ -110,13 +110,15 @@ public class DumpFileSourceReader extends SingleSourceReader<Map<String, Object>
 				if (line.length() > 1 && line.charAt(0) == '<' && line.charAt(1) != '/') {
 					Matcher m = OPAT.matcher(line);
 					if (m.matches()) {
-						String tag = m.group(1);
-						openTag = tag;
-						isOpened = true;
-//						if (logger.isTraceEnabled()) {
-//							logger.trace("OpenTag [{}]", tag);
-//						}
-						continue;
+						if(!isOpened){
+							String tag = m.group(1);
+							openTag = tag;
+							isOpened = true;
+	//						if (logger.isTraceEnabled()) {
+	//							logger.trace("OpenTag [{}]", tag);
+	//						}
+							continue;
+						}
 					}
 				}
 

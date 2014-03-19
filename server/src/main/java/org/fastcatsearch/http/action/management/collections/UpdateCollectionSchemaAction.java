@@ -58,7 +58,7 @@ public class UpdateCollectionSchemaAction extends AuthAction {
 
 			JSONObject schemaObject = new JSONObject(schemaJSONString);
 
-			logger.debug("schemaObject > {}", schemaObject.toString(4));
+//			logger.debug("schemaObject > {}", schemaObject.toString(4));
 
 			// schema json string으로 SchemaSetting을 만든다.
 			schemaSetting = SchemaSettingUtil.convertSchemaSetting(schemaObject);

@@ -67,7 +67,7 @@ public class DemoSearchAction extends ServiceAction {
 			}
 			
 			responseWriter.key("category-list").array();
-			for (SearchCategorySetting s : searchCategorySettingList) {
+			for (SearchCategorySetting s : map.values()) {
 				responseWriter.object().key("id").value(s.getId())
 				.key("name").value(s.getName()).endObject();
 			}
