@@ -72,6 +72,7 @@ public class SearchPageSettings {
 		private String titleFieldId;
 		private String bodyFieldId;
 		private List<String> etcFieldIdList;
+		private String clickLink;
 		
 		@XmlAttribute
 		public String getOrder() {
@@ -128,6 +129,15 @@ public class SearchPageSettings {
 		}
 		public void setEtcFieldIdList(List<String> etcFieldIdList) {
 			this.etcFieldIdList = etcFieldIdList;
+		}
+		
+		@XmlElement(name="click-link")
+		public String getClickLink() {
+			return clickLink;
+		}
+		
+		public void setClickLink(String clickLink) {
+			this.clickLink = clickLink;
 		}
 		
 	}

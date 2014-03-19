@@ -21,6 +21,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.field.AStringField;
 import org.fastcatsearch.ir.field.AStringMvField;
 import org.fastcatsearch.ir.field.DatetimeField;
@@ -37,6 +38,7 @@ import org.fastcatsearch.ir.field.LongMvField;
 import org.fastcatsearch.ir.field.UStringField;
 import org.fastcatsearch.ir.field.UStringMvField;
 import org.fastcatsearch.ir.io.IOUtil;
+import org.fastcatsearch.util.HTMLTagRemover;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -238,7 +240,19 @@ public class FieldSetting {
 	public Field createIndexableField(Object dataObject, String multiValueDelimiter) throws FieldDataParseException {
 		String data = null;
 		if (dataObject != null) {
-			data = dataObject.toString();
+			if(dataObject instanceof String){
+				data = (String) dataObject;
+			}else{
+				data = dataObject.toString();
+			}
+			
+			if(removeTag){
+				try{
+					data = HTMLTagRemover.clean(data);
+				}catch(IRException e){
+					throw new FieldDataParseException(e);
+				}
+			}
 		}
 
 		Field field = null;

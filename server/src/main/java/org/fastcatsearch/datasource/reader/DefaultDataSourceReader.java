@@ -23,6 +23,7 @@ import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.SchemaSetting;
+import org.fastcatsearch.util.HTMLTagRemover;
 
 /**
  * 데이터소스 리더.
@@ -53,6 +54,15 @@ public class DefaultDataSourceReader extends AbstractDataSourceReader<Map<String
 //				logger.debug("Get {} : {}", key, data);
 				String multiValueDelimiter = fs.getMultiValueDelimiter();
 				
+				/*
+				 * HTML Tag remover
+				 */
+				boolean isRemoveTag = fs.isRemoveTag();
+				if(isRemoveTag && data != null){
+					if(!(data instanceof String)){
+						data = HTMLTagRemover.clean(data.toString());
+					}
+				}
 				Field f = fs.createIndexableField(data, multiValueDelimiter);
 				document.set(i, f);
 //				logger.debug("doc [{}]{}:{}", i, fs.getId(), f);
