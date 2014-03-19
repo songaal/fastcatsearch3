@@ -113,7 +113,7 @@ public class DynamicClassLoader {
 				return clazz.newInstance();
 			}
 		} catch (Exception e){
-			logger.warn("loadObject error > {}", e.getMessage());
+			logger.debug("loadObject error > {}", e.getMessage());
 		}
 		
 		return null;
@@ -126,7 +126,7 @@ public class DynamicClassLoader {
 				return (T) clazz.newInstance();
 			}
 		} catch (Exception e){
-			logger.warn("loadObject error > {}", e.getMessage());
+			logger.debug("loadObject error > {}", e.getMessage());
 		}
 		
 		return null;
@@ -145,7 +145,7 @@ public class DynamicClassLoader {
 				}
 			}
 		} catch (Exception e){
-			logger.warn("loadObject error > {}", e.getMessage());
+			logger.debug("loadObject error > {}", e.getMessage());
 		}
 		return null;
 	}
@@ -185,7 +185,7 @@ public class DynamicClassLoader {
 			lock.readLock().unlock();
 		}
 		
-//		logger.warn("Classloader cannot find {}", className);
+		//logger.debug("Classloader cannot find {}", className);
 		return null;
 	}
 	
@@ -247,7 +247,7 @@ public class DynamicClassLoader {
 						}
 					}
 				} catch (NoClassDefFoundError e) {
-					logger.warn("class not found : {}", className);
+					logger.debug("class not found : {}", className);
 				}
 				return null;
 			}
@@ -269,7 +269,7 @@ public class DynamicClassLoader {
 						}
 					}
 				} catch (NoClassDefFoundError e) {
-					logger.warn("class not found : {}", className);
+					logger.debug("class not found : {}", className);
 				}
 				return null;
 			}
