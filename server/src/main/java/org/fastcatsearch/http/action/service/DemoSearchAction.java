@@ -49,10 +49,6 @@ public class DemoSearchAction extends ServiceAction {
 			String realtimePopularKeywordURL = searchPageSettings.getRealtimePopularKeywordURL();
 			String relateKeywordURL = searchPageSettings.getRelateKeywordURL();
 			
-			if(realtimePopularKeywordURL != null){
-				realtimePopularKeywordURL = replaceKeyword(realtimePopularKeywordURL, keyword);	
-			}
-			
 			if(relateKeywordURL != null){
 				relateKeywordURL = replaceKeyword(relateKeywordURL, keyword);
 			}
@@ -134,7 +130,7 @@ public class DemoSearchAction extends ServiceAction {
 		Object result = resultFuture.take();
 		long searchTime = (System.nanoTime() - st) / 1000000;
 		responseWriter.object();
-		responseWriter.key("id").value(setting.getId().toUpperCase());
+		responseWriter.key("id").value(setting.getId());
 		responseWriter.key("name").value(setting.getName().toUpperCase());
 		responseWriter.key("titleField").value(setting.getTitleFieldId().toUpperCase());
 		responseWriter.key("bodyField").value(setting.getBodyFieldId().toUpperCase());
@@ -144,6 +140,13 @@ public class DemoSearchAction extends ServiceAction {
 			responseWriter.value(fieldId.toUpperCase());
 		}
 		responseWriter.endArray();
+		
+		String clickList = setting.getClickLink();
+		if(clickList == null){
+			clickList = "";
+		}
+		responseWriter.key("clickLink").value(clickList);
+		responseWriter.key("searchListSize").value(searchListSize);
 		
 		responseWriter.key("result");
 		SearchResultWriter searchResultWriter = new SearchResultWriter(responseWriter);
@@ -159,6 +162,7 @@ public class DemoSearchAction extends ServiceAction {
 		return tagetString.replaceAll("#keyword", keyword);
 		
 	}
+	
 	
 	private QueryMap parse(String queryString) {
 		

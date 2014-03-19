@@ -73,11 +73,16 @@ public class UpdateSearchPageConfigAction extends AuthAction {
 				String[] list = value.split(",");
 				List<String> valueList = new ArrayList<String>();
 				for (String v : list) {
-					valueList.add(v.trim());
+					v = v.trim();
+					if(v.length() > 0){
+						valueList.add(v.trim());
+					}
 				}
 				setting.setEtcFieldIdList(valueList);
 			} else if ((setting = getSetting(categoryMap, key, "searchQuery")) != null) {
 				setting.setSearchQuery(value);
+			} else if ((setting = getSetting(categoryMap, key, "clickLink")) != null) {
+				setting.setClickLink(value);
 			}
 
 		}
