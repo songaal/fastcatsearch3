@@ -23,6 +23,7 @@ import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -238,6 +239,7 @@ public class DynamicClassLoader {
 		ClassScanner<Class<?>> scanner = new ClassScanner<Class<?>>() {
 			@Override
 			public Class<?> done(String className, String pkg, Object param) {
+				logger.debug("testing class:{}", className);
 				try {
 					Class<?> cls = DynamicClassLoader.loadClass(className);
 					if(cls!=null && parentCls.isAssignableFrom(cls)) {
@@ -252,7 +254,17 @@ public class DynamicClassLoader {
 				return null;
 			}
 		};
-		return scanner.scanClass(packageName, null);
+		
+		List<Class<?>> ret = new ArrayList<Class<?>>();
+		String[] packageNameArray = packageName.split(",");
+		for(String packageNameStr : packageNameArray) {
+			try {
+				ret.addAll(scanner.scanClass(packageNameStr, null));
+			} catch (Throwable t) {
+				logger.error("", t);
+			}
+		}
+		return ret;
 	}
 
 	//특정패키지에서 특정 어노테이션 클래스 얻어오기
@@ -274,7 +286,15 @@ public class DynamicClassLoader {
 				return null;
 			}
 		};
-		return scanner.scanClass(packageName, null);
-		
+		List<Class<?>> ret = new ArrayList<Class<?>>();
+		String[] packageNameArray = packageName.split(",");
+		for(String packageNameStr : packageNameArray) {
+			try {
+				ret.addAll(scanner.scanClass(packageNameStr, null));
+			} catch (Throwable t) {
+				logger.error("", t);
+			}
+		}
+		return ret;
 	}
 }

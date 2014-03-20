@@ -16,6 +16,7 @@ import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
+import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.util.DynamicClassLoader;
 import org.fastcatsearch.util.ResponseWriter;
 
@@ -28,9 +29,9 @@ public class GetSourceReaderListAction extends AuthAction {
 		Writer writer = response.getWriter();
 		ResponseWriter responseWriter = getDefaultResponseWriter(writer);
 
-		// FIXME:org.fastcatsearch 패키지로 일단 고정
-		// 패키지 안정화 이후 프로퍼티 등으로 교체 요망
-		List<Class<?>> sourceReaderList = DynamicClassLoader.findChildrenClass("org", SingleSourceReader.class);
+		Settings setting = environment.settingManager().getSystemSettings();
+		String packages = setting.getString("source-reader-package");
+		List<Class<?>> sourceReaderList = DynamicClassLoader.findChildrenClass(packages, SingleSourceReader.class);
 
 		responseWriter.object().key("sourceReaderList").array();
 		for (Class<?> sourceReader : sourceReaderList) {
