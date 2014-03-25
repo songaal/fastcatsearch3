@@ -42,6 +42,7 @@ public class StreamInputRef extends DataRef {
 		if(read >= count) {
 			return false;
 		}
+//		logger.debug("next seek {} read {}", input.position(), dataSize);
 		input.readBytes(bytesRef.bytes, 0, dataSize);
 		read++;
 		return true;

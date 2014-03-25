@@ -140,6 +140,7 @@ public class GroupIndexWriter implements WriteInfoLoggable {
 					keyBuffer.reset();
 					while (writer.write(keyBuffer)) {
 						BytesRef bytesRef = keyBuffer.bytesRef();
+//						logger.debug("key > {}", bytesRef.toStringValue());
 						groupNo = writeGroupKey(bytesRef);
 						multiValueOutput.writeInt(groupNo);
 						keyBuffer.reset();
@@ -177,6 +178,7 @@ public class GroupIndexWriter implements WriteInfoLoggable {
 		if (groupNo == -1) {
 			groupNo = groupNumber++;
 			// write key index
+			logger.debug("group key > {} = {}", new String(keyBuffer.array()), groupNo);
 			memoryKeyIndex.put(keyBuffer, groupNo);
 			keyOutput.writeBytes(keyBuffer);
 		}

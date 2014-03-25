@@ -3,8 +3,11 @@ package org.fastcatsearch.ir.io;
 import java.io.IOException;
 
 import org.apache.lucene.util.BytesRef;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DataRef {
+	protected static Logger logger = LoggerFactory.getLogger(DataRef.class);
 	
 	protected BytesRef bytesRef;
 	protected int read;

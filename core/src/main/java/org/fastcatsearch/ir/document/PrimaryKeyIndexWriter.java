@@ -141,8 +141,7 @@ public class PrimaryKeyIndexWriter {
 			output.writeInt(intValueArray[id]);
 		}
 		
-		logger.debug("pk index count = {}", idxCount);
-		logger.debug("filesize = {} bytes", output.position());
+		logger.debug("{} pk index count = {}, filesize = {} bytes", output.toString(), idxCount, output.position());
 	
 		//write idxCount
 //		long p = indexOutput.position();
