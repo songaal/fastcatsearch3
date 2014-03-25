@@ -10,7 +10,6 @@ import java.util.Map.Entry;
 import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.env.Path;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.settings.SchemaSetting;
@@ -22,7 +21,6 @@ public abstract class SingleSourceReader<SourceType> {
 	protected static Logger logger = LoggerFactory.getLogger(SingleSourceReader.class);
 
 	protected Path filePath;
-//	protected DataSourceConfig dataSourceConfig;
 	protected SingleSourceConfig singleSourceConfig;
 	protected String lastIndexTime; // 마지막 수집시작.(시작시각)
 
@@ -40,7 +38,11 @@ public abstract class SingleSourceReader<SourceType> {
 
 	protected abstract SourceType next() throws IRException;
 
-	public abstract void close() throws IRException;
+	public void close() throws IRException {
+		if(sourceModifier != null){
+			sourceModifier.close();
+		}
+	}
 
 	// reader에서 사용하는 파라미터를 정의한다.
 	protected abstract void initParameters();
@@ -65,6 +67,10 @@ public abstract class SingleSourceReader<SourceType> {
 		this.singleSourceConfig = singleSourceConfig;
 		this.lastIndexTime = lastIndexTime;
 		this.sourceModifier = sourceModifier;
+		if(sourceModifier != null){
+			sourceModifier.setSourceReader(this);
+			sourceModifier.init();
+		}
 		initParameters();
 		fillParameters(singleSourceConfig.getProperties());
 	}
@@ -168,5 +174,9 @@ public abstract class SingleSourceReader<SourceType> {
 		} catch (NumberFormatException e) {
 			return defaultValue;
 		}
+	}
+	
+	public Path filePath(){
+		return filePath;
 	}
 }

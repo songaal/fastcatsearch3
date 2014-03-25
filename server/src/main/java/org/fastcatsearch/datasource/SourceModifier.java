@@ -31,11 +31,13 @@ public abstract class SourceModifier<DataType> {
 	public SourceModifier(){
 	}
 	
-	public SourceModifier(SingleSourceReader<DataType> singleSourceReader){
+	public void setSourceReader(SingleSourceReader<DataType> singleSourceReader){
 		this.singleSourceReader = singleSourceReader;
 	}
 	
 	public abstract void modify(DataType data) throws IRException;
 	
-	public abstract void init(Object obj);
+	public abstract void init();
+	
+	public abstract void close();
 }

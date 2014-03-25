@@ -120,9 +120,9 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 		
 		try {
 			con = getConnection(jdbcSourceInfo);
-			if (sourceModifier != null) {
-				sourceModifier.init(this);
-			}
+//			if (sourceModifier != null) {
+//				sourceModifier.init();
+//			}
 			doBeforeQuery();
 
 			String deleteIdSQL = getConfigString("deleteIdSQL");
