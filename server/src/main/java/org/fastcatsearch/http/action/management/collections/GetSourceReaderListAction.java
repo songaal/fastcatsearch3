@@ -30,7 +30,7 @@ public class GetSourceReaderListAction extends AuthAction {
 		ResponseWriter responseWriter = getDefaultResponseWriter(writer);
 
 		Settings setting = environment.settingManager().getSystemSettings();
-		String packages = setting.getString("source-reader-package");
+		String packages = setting.getString("source-reader-package", "org.fastcatsearch");
 		List<Class<?>> sourceReaderList = DynamicClassLoader.findChildrenClass(packages, SingleSourceReader.class);
 
 		responseWriter.object().key("sourceReaderList").array();
