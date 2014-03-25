@@ -3,7 +3,7 @@
     <realtime-popular-keyword-url></realtime-popular-keyword-url>
     <relate-keyword-url></relate-keyword-url>
     <search-category-list>
-        <search-category order="1" name="뉴스" id="news">
+        <search-category order="1" name="News" id="news">
             <body-field>content</body-field>
             <click-link></click-link>
             <etc-field-list>
