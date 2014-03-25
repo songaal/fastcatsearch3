@@ -98,11 +98,23 @@ public class CollectionAddIndexingJob extends IndexingJob {
 			CollectionAddIndexer collectionIndexer = new CollectionAddIndexer(collectionHandler);
 			indexer = collectionIndexer;
 			collectionIndexer.setState(indexingTaskState);
+			Throwable indexingThrowable = null;
 			try {
 				indexer.doIndexing();
+			}catch(Throwable e){
+				indexingThrowable = e;
 			} finally {
-				if (indexer != null) {
-					isIndexed = indexer.close();
+				if (collectionIndexer != null) {
+					try{
+						isIndexed = collectionIndexer.close();
+					}catch(Throwable closeThrowable){
+						//이전에 이미 발생한 에러가 있다면 close 중에 발생한 에러보다 이전 에러를 throw한다.
+						if(indexingThrowable != null){
+							throw indexingThrowable;
+						}else{
+							throw closeThrowable;
+						}
+					}
 				}
 			}
 			if(!isIndexed && stopRequested){

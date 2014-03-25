@@ -101,11 +101,23 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			CollectionFullIndexer collectionFullIndexer = new CollectionFullIndexer(collectionContext, analyzerPoolManager);
 			indexer = collectionFullIndexer;
 			collectionFullIndexer.setState(indexingTaskState);
+			Throwable indexingThrowable = null;
 			try {
 				collectionFullIndexer.doIndexing();
+			}catch(Throwable e){
+				indexingThrowable = e;
 			} finally {
 				if (collectionFullIndexer != null) {
-					isIndexed = collectionFullIndexer.close();
+					try{
+						isIndexed = collectionFullIndexer.close();
+					}catch(Throwable closeThrowable){
+						//이전에 이미 발생한 에러가 있다면 close 중에 발생한 에러보다 이전 에러를 throw한다.
+						if(indexingThrowable != null){
+							throw indexingThrowable;
+						}else{
+							throw closeThrowable;
+						}
+					}
 				}
 			}
 			if(!isIndexed && stopRequested){
