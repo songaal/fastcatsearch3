@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
@@ -51,16 +52,35 @@ public abstract class Field implements Cloneable {
 		parseIndexable(null);
 		return this;
 	}
+
 	public void parseIndexable(String multiValueDelimiter) throws FieldDataParseException {
 		if (rawString != null) {
 			if (multiValue) {
 				if(multiValueDelimiter == null){
 					multiValueDelimiter = DEFAULT_MULTI_VALUE_DELIMITER;
 				}
-				StringTokenizer tokenizer = new StringTokenizer(rawString.trim(), multiValueDelimiter);
-				while (tokenizer.hasMoreElements()) {
-					addValue(tokenizer.nextToken().trim());
-				}
+//				StringTokenizer tokenizer = new StringTokenizer(rawString.trim(), multiValueDelimiter);
+//				while (tokenizer.hasMoreElements()) {
+//					addValue(tokenizer.nextToken().trim());
+//				}
+				int index = 0;
+				Matcher matcher = Pattern.compile(multiValueDelimiter).matcher(rawString);
+				while(matcher.find()) {
+//					System.out.println(index + " : "+ matcher.start());
+					if(index != matcher.start()){
+						addValue(rawString.substring(index, matcher.start()));
+					}
+					index = matcher.end();
+		        }
+		        if (index == 0){
+		        	addValue(rawString);
+		        }else{
+//		        	System.out.println(index + " ::: "+ rawString.length());
+		        	if(index != rawString.length()){
+		        		addValue(rawString.substring(index, rawString.length()));
+		        	}
+		        }
+					
 			} else {
 				fieldsData = parseData(rawString);
 			}
@@ -87,6 +107,7 @@ public abstract class Field implements Cloneable {
 		}
 		Object v = parseData(value);
 		((List<Object>) fieldsData).add(v);
+//		logger.debug(">>> {}", v);
 
 	}
 
