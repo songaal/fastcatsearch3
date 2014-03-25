@@ -183,7 +183,7 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 			columnCount = rsMetadata.getColumnCount();
 			columnName = new String[columnCount];
 			for (int i = 0; i < columnCount; i++) {
-				columnName[i] = rsMetadata.getColumnName(i + 1).toUpperCase();
+				columnName[i] = rsMetadata.getColumnLabel(i + 1).toUpperCase();
 				String typeName = rsMetadata.getColumnTypeName(i + 1);
 				logger.info("Column-{} [{}]:[{}]", new Object[] { i + 1, columnName[i], typeName });
 			}
