@@ -30,7 +30,7 @@ public class Clause {
 	private static Logger logger = LoggerFactory.getLogger(Clause.class);
 
 	public static enum Operator {
-		OR, AND, NOT
+		OR, AND, NOT, BOOST
 	};
 
 	private Object operand1;
@@ -139,6 +139,8 @@ public class Clause {
 			return new OrOperatedClause(clause1, clause2);
 		else if (operator == Operator.NOT)
 			return new NotOperatedClause(clause1, clause2);
+		else if (operator == Operator.BOOST)
+			return new BoostOperatedClause(clause1, clause2);
 
 		throw new ClauseException("Unknown operator =" + operator);
 	}

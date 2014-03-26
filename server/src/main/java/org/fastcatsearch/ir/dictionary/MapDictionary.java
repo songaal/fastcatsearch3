@@ -94,6 +94,15 @@ public class MapDictionary extends SourceDictionary {
 	public void setMap(Map<CharVector, CharVector[]> map) {
 		this.map = map;
 	}
+	
+	
+	public boolean containsKey(CharVector key){
+		return map.containsKey(key);
+	}
+	
+	public CharVector[] get(CharVector key){
+		return map.get(key);
+	}
 
 	@Override
 	public void writeTo(OutputStream out) throws IOException {

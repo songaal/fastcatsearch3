@@ -7,6 +7,7 @@ import org.fastcatsearch.ir.settings.AnalyzerSetting;
 import org.fastcatsearch.ir.settings.FieldIndexSetting;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.GroupIndexSetting;
+import org.fastcatsearch.ir.settings.IndexRefSetting;
 import org.fastcatsearch.ir.settings.IndexSetting;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
 import org.fastcatsearch.ir.settings.RefSetting;
@@ -37,26 +38,26 @@ import org.slf4j.LoggerFactory;
     "index-list": [
         {
             "id": "TITLE",
-            "index_analyzer": "korean",
             "name": "1",
-            "query_analyzer": "korean",
-            "ref_list": "TITLE"
+            "queryAnalyzer": "korean",
+            "refList": "TITLE",
+            "indexAnalyzer" : "korean"
         },
         {
             "id": "CONTENT",
-            "index_analyzer": "korean",
             "name": "2",
-            "query_analyzer": "korean",
-            "ref_list": "CONTENT",
+            "queryAnalyzer": "korean",
+            "refList": "CONTENT",
+            "indexAnalyzer" : "korean"
             "storePosition": "true",
             "pig": "100"
         },
         {
             "id": "TITLECONTENT",
-            "index_analyzer": "korean",
             "name": "3",
-            "query_analyzer": "korean",
-            "ref_list": "TITLE,    CONTENT",
+            "queryAnalyzer": "korean",
+            "refList": "TITLE\nCONTENT",
+            "indexAnalyzer" : "korean\nkorean"
             "storePosition": "true",
             "pig": "100"
         }
@@ -263,21 +264,21 @@ public class SchemaSettingUtil {
 
 				setting.setId(data.optString("id"));
 				setting.setName(data.optString("name"));
-				setting.setIndexAnalyzer(data.optString("indexAnalyzer"));
 				setting.setQueryAnalyzer(data.optString("queryAnalyzer"));
 
 				setting.setStorePosition("true".equals(data.optString("storePosition")));
 				setting.setIgnoreCase("true".equals(data.optString("ignoreCase")));
 				setting.setPositionIncrementGap(data.optInt("pig"));
 
-				List<RefSetting> fieldList = new ArrayList<RefSetting>();
-				String[] refArray = data.optString("refList").split(",");
+				List<IndexRefSetting> fieldList = new ArrayList<IndexRefSetting>();
+				String[] refArray = data.optString("refList").split("\n");
+				String[] indexAnalyzerArray = data.optString("indexAnalyzer").split("\n");
 
 				for (int refInx = 0; refInx < refArray.length; refInx++) {
-					RefSetting ref = new RefSetting();
-					ref.setRef(refArray[refInx].trim());
+					IndexRefSetting ref = new IndexRefSetting(refArray[refInx].trim(), indexAnalyzerArray[refInx].trim());
 					fieldList.add(ref);
 				}
+				
 				setting.setFieldList(fieldList);
 
 				indexSettingList.add(setting);

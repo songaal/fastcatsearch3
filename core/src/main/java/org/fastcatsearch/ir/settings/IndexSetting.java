@@ -24,15 +24,14 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-@XmlType(propOrder = { "positionIncrementGap", "storePosition", "ignoreCase", "queryAnalyzer", "indexAnalyzer", "fieldList", "name", "id"} )
+@XmlType(propOrder = { "positionIncrementGap", "storePosition", "ignoreCase", "queryAnalyzer", "fieldList", "name", "id"} )
 @XmlRootElement(name = "index")
 public class IndexSetting {
 
 	private String id;
 	private String name;
 	//index필드는 여러개의 필드를 받을 수 있다.
-	private List<RefSetting> fieldList;
-	private String indexAnalyzer;
+	private List<IndexRefSetting> fieldList;
 	private String queryAnalyzer;
 	private boolean ignoreCase;
 	private boolean storePosition;
@@ -44,14 +43,13 @@ public class IndexSetting {
 		this.id = id.toUpperCase();
 	}
 	
-	public IndexSetting(String id, String indexAnalyzer, String queryAnalyzer){
+	public IndexSetting(String id, String queryAnalyzer){
 		this.id = id.toUpperCase();
-		this.indexAnalyzer = indexAnalyzer;
-		this.queryAnalyzer = (queryAnalyzer == null) ? queryAnalyzer : indexAnalyzer;
+		this.queryAnalyzer = queryAnalyzer;
 	}
 	
 	public String toString(){
-		return "[index="+id+":"+name+":"+fieldList+":"+indexAnalyzer+":"+queryAnalyzer+":"+ignoreCase+":"+storePosition+"]";
+		return "[index="+id+":"+name+":"+fieldList+":"+queryAnalyzer+":"+ignoreCase+":"+storePosition+"]";
 	}
 
 	@XmlAttribute(required = true)
@@ -73,26 +71,15 @@ public class IndexSetting {
 	}
 
 	@XmlElement(name="field")
-	public List<RefSetting> getFieldList() {
+	public List<IndexRefSetting> getFieldList() {
 		return fieldList;
 	}
 
-	public void setFieldList(List<RefSetting> fieldList) {
+	public void setFieldList(List<IndexRefSetting> fieldList) {
 		this.fieldList = fieldList;
 	}
 
 	@XmlAttribute
-	@XmlJavaTypeAdapter(OptionalStringAdapter.class)
-	public String getIndexAnalyzer() {
-		return indexAnalyzer;
-	}
-
-	public void setIndexAnalyzer(String indexAnalyzer) {
-		this.indexAnalyzer = indexAnalyzer;
-	}
-
-	@XmlAttribute
-	@XmlJavaTypeAdapter(OptionalStringAdapter.class)
 	public String getQueryAnalyzer() {
 		return queryAnalyzer;
 	}

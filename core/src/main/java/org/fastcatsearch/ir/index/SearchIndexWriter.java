@@ -42,8 +42,8 @@ import org.fastcatsearch.ir.index.temp.TempSearchFieldMerger;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.IndexOutput;
+import org.fastcatsearch.ir.settings.IndexRefSetting;
 import org.fastcatsearch.ir.settings.IndexSetting;
-import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,13 +51,11 @@ import org.slf4j.LoggerFactory;
 public class SearchIndexWriter {
 	private static Logger logger = LoggerFactory.getLogger(SearchIndexWriter.class);
 	
-	private static Logger testLogger = LoggerFactory.getLogger("TEST_LOG");
-	
 	private String indexId;
 	private MemoryPosting memoryPosting;
 	private IndexFieldOption fieldIndexOption;
-	private AnalyzerPool analyzerPool;
-	private Analyzer analyzer;
+	private AnalyzerPool[] indexAnalyzerPoolList;
+	private Analyzer[] indexAnalyzerList;
 	private File baseDir;
 
 	private boolean ignoreCase;
@@ -82,16 +80,6 @@ public class SearchIndexWriter {
 		ignoreCase = indexSetting.isIgnoreCase();
 		int indexBucketSize = indexConfig.getIndexWorkBucketSize();
 
-		String indexAnalyzerId = indexSetting.getIndexAnalyzer();
-		analyzerPool = analyzerPoolManager.getPool(indexAnalyzerId);
-
-		if (analyzerPool == null) {
-			// 분석기 못찾음.
-			throw new IRException("분석기를 찾을 수 없습니다. " + indexAnalyzerId);
-		}
-
-		analyzer = analyzerPool.getFromPool();
-
 		fieldIndexOption = new IndexFieldOption();
 		if (indexSetting.isStorePosition()) {
 			memoryPosting = new MemoryPostingWithPosition(indexBucketSize, ignoreCase);
@@ -100,14 +88,28 @@ public class SearchIndexWriter {
 			memoryPosting = new MemoryPosting(indexBucketSize, ignoreCase);
 		}
 
-		List<RefSetting> refList = indexSetting.getFieldList();
+		List<IndexRefSetting> refList = indexSetting.getFieldList();
 		indexFieldSequence = new int[refList.size()];
-		int cursor = 0;
-		for (RefSetting refSetting : refList) {
+		indexAnalyzerPoolList = new AnalyzerPool[refList.size()];
+		indexAnalyzerList = new Analyzer[refList.size()];
+		
+		for (int i = 0; i < refList.size(); i++) {
+			IndexRefSetting refSetting = refList.get(i);
 			String fieldId = refSetting.getRef();
-			indexFieldSequence[cursor++] = schema.getFieldSequence(fieldId);
-		}
+			String indexAnalyzerId = refSetting.getIndexAnalyzer();
+			
+			AnalyzerPool analyzerPool = analyzerPoolManager.getPool(indexAnalyzerId);
 
+			if (analyzerPool == null) {
+				// 분석기 못찾음.
+				throw new IRException("분석기를 찾을 수 없습니다. " + indexAnalyzerId);
+			}
+			
+			indexFieldSequence[i] = schema.getFieldSequence(fieldId);
+			indexAnalyzerPoolList[i] = analyzerPool;
+			indexAnalyzerList[i] = analyzerPool.getFromPool();
+		}
+		
 		positionIncrementGap = indexSetting.getPositionIncrementGap();
 
 		flushPosition = new ArrayList<Long>();
@@ -123,11 +125,12 @@ public class SearchIndexWriter {
 	public void write(Document doc, int docNo) throws IRException, IOException {
 
 		int[] sequenceList = indexFieldSequence;
-		for (int sequence : sequenceList) {
+		for (int i = 0; i < sequenceList.length; i++) {
+			int sequence = sequenceList[i];
 			if(sequence < 0){
 				continue;
 			}
-			write(docNo, doc.get(sequence), ignoreCase, positionIncrementGap);
+			write(docNo, i, doc.get(sequence), ignoreCase, positionIncrementGap);
 			// positionIncrementGap은 필드가 증가할때마다 동일량으로 증가. 예) 0, 100, 200, 300...
 			positionIncrementGap += positionIncrementGap;
 		}
@@ -135,7 +138,7 @@ public class SearchIndexWriter {
 		count++;
 	}
 
-	private void write(int docNo, Field field, boolean isIgnoreCase, int positionIncrementGap) throws IRException, IOException {
+	private void write(int docNo, int i, Field field, boolean isIgnoreCase, int positionIncrementGap) throws IRException, IOException {
 		if (field == null) {
 			return;
 		}
@@ -145,22 +148,22 @@ public class SearchIndexWriter {
 			Iterator<Object> iterator = field.getMultiValueIterator();
 			if (iterator != null) {
 				while (iterator.hasNext()) {
-					indexValue(docNo, iterator.next(), isIgnoreCase, positionIncrementGap);
+					indexValue(docNo, i, iterator.next(), isIgnoreCase, positionIncrementGap);
 					// 멀티밸류도 positionIncrementGap을 증가시킨다. 즉, 필드가 다를때처럼 position거리가 멀어진다.
 					positionIncrementGap += positionIncrementGap;
 				}
 			}
 		} else {
-			indexValue(docNo, field.getValue(), isIgnoreCase, positionIncrementGap);
+			indexValue(docNo, i, field.getValue(), isIgnoreCase, positionIncrementGap);
 		}
 	}
 
-	private void indexValue(int docNo, Object value, boolean isIgnoreCase, int positionIncrementGap) throws IOException, IRException {
+	private void indexValue(int docNo, int i, Object value, boolean isIgnoreCase, int positionIncrementGap) throws IOException, IRException {
 		if(value == null){
 			return;
 		}
 		char[] fieldValue = value.toString().toCharArray();
-		TokenStream tokenStream = analyzer.tokenStream(indexId, new CharArrayReader(fieldValue));
+		TokenStream tokenStream = indexAnalyzerList[i].tokenStream(indexId, new CharArrayReader(fieldValue));
 		tokenStream.reset();
 		CharsRefTermAttribute termAttribute = null;
 		PositionIncrementAttribute positionAttribute = null;
@@ -226,8 +229,12 @@ public class SearchIndexWriter {
 	public void close() throws IRException, IOException {
 
 		// Analyzer 리턴.
-		analyzerPool.releaseToPool(analyzer);
-
+		for (int i = 0; i < indexAnalyzerPoolList.length; i++) {
+			if(indexAnalyzerPoolList[i] != null && indexAnalyzerList[i] != null){
+				indexAnalyzerPoolList[i].releaseToPool(indexAnalyzerList[i]);
+			}
+		}
+		
 		try {
 			flush();
 		} finally {

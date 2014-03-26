@@ -368,7 +368,6 @@ public class QueryParser {
 				if (value.regionMatches(true, pos + 1, Clause.Operator.OR.name(), 0, 2)) {
 					int end = findMatchBrace(value, pos + 4);// value.indexOf('}', pos + 4);
 					Object operand2 = makeClause(value.substring(pos + 4, end), query);
-					logger.trace("OR!");
 					if(operand2 instanceof Clause) {
 						Clause innerClause = (Clause)operand2;
 						if(innerClause.operator() == Clause.Operator.NOT && innerClause.operand1() == null) {
@@ -380,7 +379,6 @@ public class QueryParser {
 				} else if (value.regionMatches(true, pos + 1, Clause.Operator.AND.name(), 0, 3)) {
 					int end = findMatchBrace(value, pos + 5);// value.indexOf('}', pos + 5);
 					Object operand2 = makeClause(value.substring(pos + 5, end), query);
-					logger.trace("AND!");
 					if(operand2 instanceof Clause) {
 						Clause innerClause = (Clause)operand2;
 						if(innerClause.operator() == Clause.Operator.NOT && innerClause.operand1() == null) {
@@ -391,7 +389,6 @@ public class QueryParser {
 				} else if (value.regionMatches(true, pos + 1, Clause.Operator.NOT.name(), 0, 3)) {
 					int end = findMatchBrace(value, pos + 5);// value.indexOf('}', pos + 5);
 					Object operand2 = makeClause(value.substring(pos + 5, end), query);
-					logger.trace("NOT!");
 					return new Clause(operand1, Clause.Operator.NOT, operand2);
 				} else {
 					// operator가 없거나 잘못되었으면 뒤는 무시하고 operand1 이 term으로 간주된다.

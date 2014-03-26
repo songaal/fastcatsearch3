@@ -42,6 +42,7 @@ import org.fastcatsearch.ir.settings.AnalyzerSetting;
 import org.fastcatsearch.ir.settings.FieldIndexSetting;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.GroupIndexSetting;
+import org.fastcatsearch.ir.settings.IndexRefSetting;
 import org.fastcatsearch.ir.settings.IndexSetting;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
 import org.fastcatsearch.ir.settings.RefSetting;
@@ -306,9 +307,9 @@ public class DocumentWriteReadTest extends TestCase{
 //		setting.getPrimaryKeySettingList().add(new PrimaryKeySetting("regdate"));
 		
 		setting.setIndexSettingList(new ArrayList<IndexSetting>());
-		IndexSetting indexSetting = new IndexSetting("title_index", "korean","org.fastcatsearch.ir.analysis.KoreanTokenizer");
-		indexSetting.setFieldList(new ArrayList<RefSetting>());
-		indexSetting.getFieldList().add(new RefSetting("title"));
+		IndexSetting indexSetting = new IndexSetting("title_index", "korean");
+		indexSetting.setFieldList(new ArrayList<IndexRefSetting>());
+		indexSetting.getFieldList().add(new IndexRefSetting("title", "korean"));
 		setting.getIndexSettingList().add(indexSetting);
 		
 		List<FieldIndexSetting> fieldIndexSettingList = new ArrayList<FieldIndexSetting>();

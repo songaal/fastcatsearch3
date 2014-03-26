@@ -49,7 +49,7 @@ public class SchemaSettingTest {
 		indexFieldSettingList.add(indexFieldSetting);
 		
 		List<IndexSetting> indexSettingList = new ArrayList<IndexSetting>();
-		IndexSetting indexSetting = new IndexSetting("title_index","korean","korean");
+		IndexSetting indexSetting = new IndexSetting("title_index","korean");
 		indexSettingList.add(indexSetting);
 		setting.setIndexSettingList(indexSettingList);
 		
@@ -78,7 +78,7 @@ public class SchemaSettingTest {
 	
 	@Test
 	public void testSettingUnmarshall() throws JAXBException, IOException {
-		InputStream is = new FileInputStream("src/test/resources/schema.xml");
+		InputStream is = new FileInputStream("/Users/swsong/TEST_HOME/danawa1022/node1/collections/vol1/schema.xml");
 		InputStreamReader r = new InputStreamReader(is);
 		CharBuffer buf = CharBuffer.allocate(1024 * 1024);
 		r.read(buf);

@@ -127,7 +127,7 @@ public class DynamicClassLoader {
 				return (T) clazz.newInstance();
 			}
 		} catch (Exception e){
-			logger.debug("loadObject error > {}", e.getMessage());
+			logger.error("loadObject error > {}", e);
 		}
 		
 		return null;
@@ -146,7 +146,7 @@ public class DynamicClassLoader {
 				}
 			}
 		} catch (Exception e){
-			logger.debug("loadObject error > {}", e.getMessage());
+			logger.debug("loadObject error > {}", e);
 		}
 		return null;
 	}
@@ -239,7 +239,7 @@ public class DynamicClassLoader {
 		ClassScanner<Class<?>> scanner = new ClassScanner<Class<?>>() {
 			@Override
 			public Class<?> done(String className, String pkg, Object param) {
-				logger.debug("testing class:{}", className);
+				logger.trace("testing class:{}", className);
 				try {
 					Class<?> cls = DynamicClassLoader.loadClass(className);
 					if(cls!=null && parentCls.isAssignableFrom(cls)) {

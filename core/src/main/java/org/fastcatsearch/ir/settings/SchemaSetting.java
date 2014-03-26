@@ -335,10 +335,10 @@ public class SchemaSetting {
 					break;
 				}
 
-				attributeId = "fieldList";
-				List<RefSetting> fieldList = setting.getFieldList();
+				attributeId = "field";
+				List<IndexRefSetting> fieldList = setting.getFieldList();
 				for (int i = 0; fieldList != null && i < fieldList.size(); i++) {
-					RefSetting refSetting = fieldList.get(i);
+					IndexRefSetting refSetting = fieldList.get(i);
 //					attributeId += ">ref";
 					value = refSetting.getRef();
 					if (value == null || "".equals(value)) {
@@ -357,23 +357,39 @@ public class SchemaSetting {
 							break OUTTER;
 						}
 					}
-				}
 					
 					
-				attributeId = "indexAnalyzer";
-				value = setting.getIndexAnalyzer();
-				boolean found = false;
-				for (int inx2 = 0; inx2 < analyzerSettingList.size(); inx2++) {
-					AnalyzerSetting analyzer = analyzerSettingList.get(inx2);
-					if (analyzer != null && value.equalsIgnoreCase(analyzer.getId())) {
-						found = true;
+					value = refSetting.getIndexAnalyzer();
+					boolean found = false;
+					for (int inx2 = 0; inx2 < analyzerSettingList.size(); inx2++) {
+						AnalyzerSetting analyzer = analyzerSettingList.get(inx2);
+						if (analyzer != null && value.equalsIgnoreCase(analyzer.getId())) {
+							found = true;
+							break;
+						}
+					}
+					if (!found) {
+						attributeId = "field>indexAnalyzer";
+						type = NO_SUCH_VALUE;
 						break;
 					}
 				}
-				if (!found) {
-					type = NO_SUCH_VALUE;
-					break;
-				}
+					
+				boolean found = false;
+					
+//				attributeId = "indexAnalyzer";
+//				value = setting.getIndexAnalyzer();
+//				for (int inx2 = 0; inx2 < analyzerSettingList.size(); inx2++) {
+//					AnalyzerSetting analyzer = analyzerSettingList.get(inx2);
+//					if (analyzer != null && value.equalsIgnoreCase(analyzer.getId())) {
+//						found = true;
+//						break;
+//					}
+//				}
+//				if (!found) {
+//					type = NO_SUCH_VALUE;
+//					break;
+//				}
 
 				attributeId = "queryAnalyzer";
 				value = setting.getQueryAnalyzer();

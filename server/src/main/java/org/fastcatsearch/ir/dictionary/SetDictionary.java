@@ -81,6 +81,10 @@ public class SetDictionary extends SourceDictionary {
 		this.set = set;
 	}
 	
+	public boolean contains(CharVector key){
+		return set.contains(key);
+	}
+	
 	@Override
 	public void writeTo(OutputStream out) throws IOException {
 		

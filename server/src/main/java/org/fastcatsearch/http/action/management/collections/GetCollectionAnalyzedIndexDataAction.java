@@ -26,6 +26,7 @@ import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentReader;
 import org.fastcatsearch.ir.search.SegmentSearcher;
+import org.fastcatsearch.ir.settings.IndexRefSetting;
 import org.fastcatsearch.ir.settings.IndexSetting;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
 import org.fastcatsearch.ir.settings.RefSetting;
@@ -86,7 +87,7 @@ public class GetCollectionAnalyzedIndexDataAction extends AuthAction {
 		List<IndexSetting> indexSettingList = schemaSetting.getIndexSettingList();
 		
 		//per index field id
-		List<Analyzer> analyzerList = new ArrayList<Analyzer>();
+//		List<Analyzer> analyzerList = new ArrayList<Analyzer>();
 		
 //		for (int i = 0; i < indexSettingList.size(); i++) {
 //			IndexSetting indexSetting = indexSettingList.get(i);
@@ -127,13 +128,13 @@ public class GetCollectionAnalyzedIndexDataAction extends AuthAction {
 				for (int i = 0; i < indexSettingList.size(); i++) {
 					IndexSetting indexSetting = indexSettingList.get(i);
 					String indexId = indexSetting.getId();
-					indexSetting.getFieldList();
-					String indexAnalyzer = indexSetting.getIndexAnalyzer();
-					indexSetting.isIgnoreCase();
-					
-					AnalyzerPool pool = collectionHandler.getAnalyzerPool(indexAnalyzer);
-					Analyzer analyzer = pool.getFromPool();
-					analyzerList.add(analyzer); 
+//					indexSetting.getFieldList();
+//					String indexAnalyzer = indexSetting.getIndexAnalyzer();
+//					indexSetting.isIgnoreCase();
+//					
+//					AnalyzerPool pool = collectionHandler.getAnalyzerPool(indexAnalyzer);
+//					Analyzer analyzer = pool.getFromPool();
+//					analyzerList.add(analyzer); 
 					
 					resultWriter.value(indexId);
 				}
@@ -178,21 +179,21 @@ public class GetCollectionAnalyzedIndexDataAction extends AuthAction {
 						resultWriter.key("row").object();
 						
 						for (int k = 0; k < indexSettingList.size(); k++) {
-							Analyzer analyzer = analyzerList.get(k);
-							
 							StringBuffer analyzedBuffer = new StringBuffer();
 							
 							IndexSetting indexSetting = indexSettingList.get(k);
 							String indexId = indexSetting.getId();
-							List<RefSetting> refList = indexSetting.getFieldList();
+							List<IndexRefSetting> refList = indexSetting.getFieldList();
 							boolean isIgnoreCase = indexSetting.isIgnoreCase();
 							boolean isStorePosition = indexSetting.isStorePosition();
 							int positionIncrementGap = indexSetting.getPositionIncrementGap();
 							int gapOffset = 0;
 							
 							StringBuffer allFieldData = new StringBuffer();
-							for(RefSetting refSetting : refList){
+							for (int m = 0; m < refList.size(); m++) {
+								IndexRefSetting refSetting = refList.get(m);
 								String fieldId = refSetting.getRef();
+								String indexAnalyzerId = refSetting.getIndexAnalyzer();
 								int fieldSequence = schema.getFieldSequence(fieldId);
 								Field field = document.get(fieldSequence);
 								String fieldData = field.toString();
@@ -201,39 +202,46 @@ public class GetCollectionAnalyzedIndexDataAction extends AuthAction {
 								}
 								
 								allFieldData.append(fieldData);
-								TokenStream tokenStream = analyzer.tokenStream(fieldId, new StringReader(fieldData));
-								CharTermAttribute termAttribute = tokenStream.getAttribute(CharTermAttribute.class);
-								CharsRefTermAttribute refTermAttribute = null;
-								PositionIncrementAttribute positionAttribute = null;
-								if(tokenStream.hasAttribute(CharsRefTermAttribute.class)){
-									refTermAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
-								}
-								if (tokenStream.hasAttribute(PositionIncrementAttribute.class)) {
-									positionAttribute = tokenStream.getAttribute(PositionIncrementAttribute.class);
-								}
 								
-								
-								while(tokenStream.incrementToken()){
-									String value = null;
-									if (refTermAttribute != null) {
-										value = refTermAttribute.charsRef().toString();
-									} else {
-										value = termAttribute.toString();
+								AnalyzerPool analyzerPool = collectionHandler.getAnalyzerPool(indexAnalyzerId);
+								Analyzer analyzer = analyzerPool.getFromPool();
+								try{
+									TokenStream tokenStream = analyzer.tokenStream(fieldId, new StringReader(fieldData));
+									tokenStream.reset();
+									CharTermAttribute termAttribute = tokenStream.getAttribute(CharTermAttribute.class);
+									CharsRefTermAttribute refTermAttribute = null;
+									PositionIncrementAttribute positionAttribute = null;
+									if(tokenStream.hasAttribute(CharsRefTermAttribute.class)){
+										refTermAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
 									}
-									int position = -1;
-									if (isStorePosition && positionAttribute != null) {
-										position = positionAttribute.getPositionIncrement() + gapOffset;
+									if (tokenStream.hasAttribute(PositionIncrementAttribute.class)) {
+										positionAttribute = tokenStream.getAttribute(PositionIncrementAttribute.class);
 									}
 									
-									if(analyzedBuffer.length() > 0){
-										analyzedBuffer.append(", ");
+									while(tokenStream.incrementToken()){
+										String value = null;
+										if (refTermAttribute != null) {
+											value = refTermAttribute.charsRef().toString();
+										} else {
+											value = termAttribute.toString();
+										}
+										int position = -1;
+										if (isStorePosition && positionAttribute != null) {
+											position = positionAttribute.getPositionIncrement() + gapOffset;
+										}
+										
+										if(analyzedBuffer.length() > 0){
+											analyzedBuffer.append(", ");
+										}
+										analyzedBuffer.append(value);
+										if(position != -1){
+											analyzedBuffer.append(" [");
+											analyzedBuffer.append(position);
+											analyzedBuffer.append("]");
+										}
 									}
-									analyzedBuffer.append(value);
-									if(position != -1){
-										analyzedBuffer.append(" [");
-										analyzedBuffer.append(position);
-										analyzedBuffer.append("]");
-									}
+								}finally{
+									analyzerPool.releaseToPool(analyzer);
 								}
 								
 								//필드가 바뀌면 positionIncrementGap 만큼 포지션이 증가한다.
@@ -258,14 +266,14 @@ public class GetCollectionAnalyzedIndexDataAction extends AuthAction {
 			
 			resultWriter.done();
 		}finally{
-			for (int i = 0; i < indexSettingList.size(); i++) {
-				IndexSetting indexSetting = indexSettingList.get(i);
-				String indexAnalyzer = indexSetting.getIndexAnalyzer();
-				
-				AnalyzerPool pool = collectionHandler.getAnalyzerPool(indexAnalyzer);
-				pool.releaseToPool(analyzerList.get(i));
-			}
-			analyzerList.clear();
+//			for (int i = 0; i < indexSettingList.size(); i++) {
+//				IndexSetting indexSetting = indexSettingList.get(i);
+//				String indexAnalyzer = indexSetting.getIndexAnalyzer();
+//				
+//				AnalyzerPool pool = collectionHandler.getAnalyzerPool(indexAnalyzer);
+//				pool.releaseToPool(analyzerList.get(i));
+//			}
+//			analyzerList.clear();
 		}
 	}
 	

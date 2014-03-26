@@ -143,7 +143,9 @@ public class SearchIndexesWriter {
 	public void close() throws IRException, IOException {
 		
 		for (int i = 0; i < indexSize; i++) {
-			searchIndexWriterList[i].close();
+			if(searchIndexWriterList[i] != null){
+				searchIndexWriterList[i].close();
+			}
 		}
 	
 	}
