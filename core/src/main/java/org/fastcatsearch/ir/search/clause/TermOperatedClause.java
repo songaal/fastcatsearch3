@@ -24,7 +24,6 @@ import org.fastcatsearch.ir.search.PostingReader;
 
 public class TermOperatedClause implements OperatedClause {
 	private PostingReader postingReader;
-	// private boolean ignoreTermFreq;
 	private int segmentDF;
 	private int documentCount;
 
