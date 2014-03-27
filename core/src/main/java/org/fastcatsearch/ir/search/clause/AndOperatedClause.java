@@ -41,23 +41,24 @@ public class AndOperatedClause implements OperatedClause {
 		if(hasNext1 && hasNext2){
 			int doc1 = docInfo1.docNo();
 			int doc2 = docInfo2.docNo();
-			float score1 = docInfo1.score();
-			float score2 = docInfo2.score();
+//			float score1 = docInfo1.score();
+//			float score2 = docInfo2.score();
 			while(hasNext1 && hasNext2 && (doc1 != doc2)){
 				while(hasNext1 && (doc1 < doc2)){
 					hasNext1 = clause1.next(docInfo1);
 					doc1 = docInfo1.docNo();
-					score1 = docInfo1.score();
+//					score1 = docInfo1.score();
 				}
 				while(hasNext2 && (doc1 > doc2)){
 					hasNext2 = clause2.next(docInfo2);
 					doc2 = docInfo2.docNo();
-					score2 = docInfo2.score();
+//					score2 = docInfo2.score();
 				}
 			}
 			
 			if(hasNext1 && hasNext2 && (doc1 == doc2)){
-				docInfo.init(doc1, score1 + score2);
+//				docInfo.init(doc1, score1 + score2);
+				docInfo.init(doc1, docInfo1.score() + docInfo2.score(), docInfo1.hit() + docInfo2.hit());
 				return true; 
 			}
 			

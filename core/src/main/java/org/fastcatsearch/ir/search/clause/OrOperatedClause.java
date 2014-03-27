@@ -41,18 +41,16 @@ public class OrOperatedClause implements OperatedClause {
 		if(hasNext1 || hasNext2){
 			int doc1 = docInfo1.docNo();
 			int doc2 = docInfo2.docNo();
-			float score1 = docInfo1.score();
-			float score2 = docInfo2.score();
-
+			
 			if(hasNext1 && hasNext2){
 				if(doc1 < doc2){
-					docInfo.init(doc1, score1);
+					docInfo.init(doc1, docInfo1.score(), docInfo1.hit());
 					hasNext1 = clause1.next(docInfo1);
 				}else if(doc1 > doc2){
-					docInfo.init(doc2, score2);
+					docInfo.init(doc2, docInfo2.score(), docInfo2.hit());
 					hasNext2 = clause2.next(docInfo2);
 				}else{
-					docInfo.init(doc1, score1 + score2);
+					docInfo.init(doc1, docInfo1.score() + docInfo2.score(), docInfo1.hit() + docInfo2.hit());
 					hasNext1 = clause1.next(docInfo1);
 					hasNext2 = clause2.next(docInfo2);
 				}
@@ -60,13 +58,13 @@ public class OrOperatedClause implements OperatedClause {
 			}
 			
 			if(hasNext1){
-				docInfo.init(doc1, score1);
+				docInfo.init(doc1, docInfo1.score(), docInfo1.hit());
 				hasNext1 = clause1.next(docInfo1);
 				return true;
 			}
 		
 			if(hasNext2){
-				docInfo.init(doc2, score2);
+				docInfo.init(doc2, docInfo2.score(), docInfo2.hit());
 				hasNext2 = clause2.next(docInfo2);
 				return true;
 			}
