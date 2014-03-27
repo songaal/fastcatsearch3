@@ -157,6 +157,15 @@ public class SearchIndexesReader implements Cloneable {
 		return totalClause;
 
 	}
+	
+	public SearchIndexReader getSearchIndexReader(String indexFieldId) throws IOException, IRException {
+		int indexFieldSequence = schema.getSearchIndexSequence(indexFieldId);
+		logger.debug("getSearchIndexSequence {} > {}", indexFieldId, indexFieldSequence);
+		if (indexFieldSequence < 0) {
+			return null;
+		}
+		return readerList.get(indexFieldSequence);
+	}
 
 	public void close() throws IOException {
 		if (readerList != null) {

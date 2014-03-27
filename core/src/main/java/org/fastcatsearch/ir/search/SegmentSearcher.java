@@ -73,6 +73,12 @@ public class SegmentSearcher {
 	}
 
 	public Hit searchHit(Query query) throws ClauseException, IOException, IRException {
+		// TODO
+		// String str = query.getStoredProcedure();
+		// StoredProcedure sp = ...
+		// Clause clause = sp.makeClause();
+		// 
+		//
 		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), query.getGroupFilters(), query.getSorts());
 		return new Hit(rankHitList(), makeGroupData(), totalCount, highlightInfo);
 	}

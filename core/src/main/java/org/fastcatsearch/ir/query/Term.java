@@ -122,6 +122,9 @@ public class Term {
 	public static class Option {
 		private int optionValue;
 		
+		public Option(){
+		}
+		
 		public Option(int optionValue){
 			this.optionValue = optionValue;
 		}
