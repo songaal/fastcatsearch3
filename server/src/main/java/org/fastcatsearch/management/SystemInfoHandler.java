@@ -105,47 +105,51 @@ public class SystemInfoHandler {
 	}
 
 	private SystemInfoHandler() {
-		MEGABITE_UNIT = 1024 * 1024;
-		String vmVendor = runtimeMXBean.getVmVendor();
-		String vmVersionStr = runtimeMXBean.getVmVersion();
-		isWindows = osMXBean.getName().startsWith("Windows");
-
-		Pattern pat = Pattern.compile("\\d*(\\.?\\d*)");
-		Matcher matcher = pat.matcher(vmVersionStr);
-		if (matcher.find()) {
-			vmVersionStr = matcher.group();
-		}
-		float vmVersion = Float.parseFloat(vmVersionStr);
-
-		logger.debug("VmVendor() = " + vmVendor);
-		logger.debug("VmVersion() = " + vmVersionStr);
-
-		// OperatingSystemMXBean은 벤더와 버전에 제약이 있다.
-		// if ((vmVendor.startsWith("Oracle") || vmVendor.startsWith("Sun")) &&
-		// vmVersion < 21.0f) {
-		if (vmVersion < 21.0f && ManagementFactory.getOperatingSystemMXBean() instanceof com.sun.management.OperatingSystemMXBean) {
-			// sun MXBean에서는 getCpuTime을 제공하여 1.5과 1.6에서는 cpu사용률을 직접구현해야한다.
-			isSunVmLowVersion = true;
-			sunOsMXBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-			initCpuForSunLowVersion();
-			isJvmCpuInfoSupported = true;
-			// 1.7이상일 경우 표준 OperatingSystemMXBean을 사용한다.
-
-			totalPhysicalMemorySize = (int) (sunOsMXBean.getTotalPhysicalMemorySize() / MEGABITE_UNIT);
-		}
-
-		// 1.7이상에서는 cpu사용률을 지원한다.
-		// 1.6이상에서는 SystemLoadAverage를 지원한다.
-		if (vmVersion >= 21.0f) {
-			// jvm 1.7
-			isVmVersionHigh = true;
-			isLoadAvgInfoSupported = true;
-			prepareJvm17Method();
-			prepareJvm16Method();
-		} else if (vmVersion >= 20.0f) {
-			isLoadAvgInfoSupported = true;
-			// 1.6 method 생성
-			prepareJvm16Method();
+		try {
+			MEGABITE_UNIT = 1024 * 1024;
+			String vmVendor = runtimeMXBean.getVmVendor();
+			String vmVersionStr = runtimeMXBean.getVmVersion();
+			isWindows = osMXBean.getName().startsWith("Windows");
+	
+			Pattern pat = Pattern.compile("\\d*(\\.?\\d*)");
+			Matcher matcher = pat.matcher(vmVersionStr);
+			if (matcher.find()) {
+				vmVersionStr = matcher.group();
+			}
+			float vmVersion = Float.parseFloat(vmVersionStr);
+	
+			logger.debug("VmVendor() = " + vmVendor);
+			logger.debug("VmVersion() = " + vmVersionStr);
+	
+			// OperatingSystemMXBean은 벤더와 버전에 제약이 있다.
+			// if ((vmVendor.startsWith("Oracle") || vmVendor.startsWith("Sun")) &&
+			// vmVersion < 21.0f) {
+			if (vmVersion < 21.0f && ManagementFactory.getOperatingSystemMXBean() instanceof com.sun.management.OperatingSystemMXBean) {
+				// sun MXBean에서는 getCpuTime을 제공하여 1.5과 1.6에서는 cpu사용률을 직접구현해야한다.
+				isSunVmLowVersion = true;
+				sunOsMXBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+				initCpuForSunLowVersion();
+				isJvmCpuInfoSupported = true;
+				// 1.7이상일 경우 표준 OperatingSystemMXBean을 사용한다.
+	
+				totalPhysicalMemorySize = (int) (sunOsMXBean.getTotalPhysicalMemorySize() / MEGABITE_UNIT);
+			}
+	
+			// 1.7이상에서는 cpu사용률을 지원한다.
+			// 1.6이상에서는 SystemLoadAverage를 지원한다.
+			if (vmVersion >= 21.0f) {
+				// jvm 1.7
+				isVmVersionHigh = true;
+				isLoadAvgInfoSupported = true;
+				prepareJvm17Method();
+				prepareJvm16Method();
+			} else if (vmVersion >= 20.0f) {
+				isLoadAvgInfoSupported = true;
+				// 1.6 method 생성
+				prepareJvm16Method();
+			}
+		} catch (Throwable t) {
+			logger.error("", t);
 		}
 	}
 
