@@ -2,8 +2,12 @@ package org.fastcatsearch.ir.query;
 
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.search.clause.Clause;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class QueryModifier extends Query {
+	protected static Logger logger = LoggerFactory.getLogger(QueryModifier.class);
+	
 	protected Query query;
 	
 	public QueryModifier(){
