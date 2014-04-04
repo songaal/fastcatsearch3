@@ -16,8 +16,6 @@
 
 package org.fastcatsearch.ir.query;
 
-import java.util.List;
-
 import org.fastcatsearch.ir.search.clause.Clause;
 
 /**
@@ -32,19 +30,22 @@ import org.fastcatsearch.ir.search.clause.Clause;
 	&gr=sellprice:freq:key_desc,goodkind:section_freq:5:freq_asc
 	&gc={sellprice:12345:0}
 	&ra=_score_,price:asc,point:desc
+	&sp=com.mydomain.sp.SampleStoredProdure  >> stored procedure 
+	&qm=com.mydomain.modifier.SampleQueryModifier >> query modifier
+	&rm=com.mydomain.modifier.SampleResultModifier >> result modifier
+	
 */
 public class Query {
 	public static int SEARCH_OPT_NOCACHE = 1 << 0;
 	
 	public static enum EL {
-		cn, sd, ht, sn, ln, so, ud, fl, se, ft, gr, gf, ra
+		cn, sd, ht, sn, ln, so, ud, fl, se, ft, gr, gf, ra, sp, qm, rm;
 	};
 	
 	private Clause clause;
 	private ViewContainer views;
 	private Filters filters;
 	private Groups groups;
-	private Clause groupClause;
 	private Filters groupFilters;
 	private Sorts sorts;
 	private Metadata meta;
@@ -58,7 +59,6 @@ public class Query {
 		if(clause != null) sb.append("\n[Clause]").append(clause);
 		if(filters != null) sb.append("\n[Filters]").append(filters);
 		if(groups != null) sb.append("\n[Groups]").append(groups);
-		if(groupClause != null) sb.append("\n[GroupCluase]").append(groupClause);
 		if(groupFilters != null) sb.append("\n[GroupFilter]").append(groupFilters);
 		if(sorts != null) sb.append("\n[Sorts]").append(sorts);
 		
@@ -103,14 +103,6 @@ public class Query {
 		this.groups = groups;
 	}
 	
-	public void setGroupClause(Clause groupClause){
-		this.groupClause = groupClause;
-	}
-	
-	public Clause getGroupClause(){
-		return groupClause;
-	}
-
 	public Sorts getSorts() {
 		return sorts;
 	}
