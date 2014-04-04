@@ -22,6 +22,7 @@ import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
+import org.fastcatsearch.ir.query.QueryModifier;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.query.ViewContainer;
@@ -34,13 +35,11 @@ import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.internal.InternalDocumentSearchJob;
 import org.fastcatsearch.job.internal.InternalSearchJob;
 import org.fastcatsearch.query.QueryMap;
-import org.fastcatsearch.query.QueryModifier;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableDocumentResult;
 import org.fastcatsearch.transport.vo.StreamableInternalSearchResult;
-import org.fastcatsearch.util.DynamicClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,11 +66,9 @@ public class ClusterSearchJob extends Job {
 		}
 
 		Metadata meta = q.getMeta();
-		String modifier = meta.modifier();
-		QueryModifier queryModifier = null;
+		QueryModifier queryModifier = meta.queryModifier();
 		//쿼리모디파이.
-		if (modifier != null && modifier.length() > 0) {
-			queryModifier = DynamicClassLoader.loadObject(modifier, QueryModifier.class);
+		if (queryModifier != null) {
 			q = queryModifier.modify(q);
 		}
 		

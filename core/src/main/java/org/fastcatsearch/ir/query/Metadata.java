@@ -19,6 +19,8 @@ package org.fastcatsearch.ir.query;
 import java.util.Map;
 import java.util.Set;
 
+import org.fastcatsearch.ir.search.StoredProcedure;
+
 public class Metadata {
 	
 	public final static String UD_KEYWORD = "KEYWORD";
@@ -30,8 +32,9 @@ public class Metadata {
 	private Map<String, String> userData;
 	private String[] highlightTags;
 	private String collectionId;
-//	private String shardId;
-	private String modifier;
+	private QueryModifier queryModifier;
+	private String resultModifier;
+	private StoredProcedure storedProcedure;
 	
 	public Metadata(){ }
 			
@@ -132,29 +135,25 @@ public class Metadata {
 		this.collectionId = collectionId;
 	}
 	
-	public String modifier(){
-		return modifier;
+	public QueryModifier queryModifier(){
+		return queryModifier;
 	}
-	public void setModifier(String modifier){
-		this.modifier = modifier;
+	public void setQueryModifier(QueryModifier queryModifier){
+		this.queryModifier = queryModifier;
+	}
+	
+	public String resultModifier(){
+		return resultModifier;
+	}
+	public void setResultModifier(String resultModifier){
+		this.resultModifier = resultModifier;
 	}
 
-//	public String shardId(){
-//		return shardId;
-//	}
-//	public void setShardId(String shardId) {
-//		this.shardId = shardId;
-//	}
-//	
-//	public String[] getSharIdList(){
-//		String[] list = null;
-//		if(shardId != null){
-//			String[] tmp = shardId.split(",");
-//			list = new String[tmp.length];
-//			for (int i = 0; i < tmp.length; i++) {
-//				list[i] = tmp[i].trim();
-//			}
-//		}
-//		return list;
-//	}
+	public StoredProcedure storedProcedure(){
+		return storedProcedure;
+	}
+	public void setStoredProcedure(StoredProcedure storedProcedure) {
+		this.storedProcedure = storedProcedure;
+	}
+
 }

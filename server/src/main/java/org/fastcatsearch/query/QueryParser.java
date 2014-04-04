@@ -28,12 +28,14 @@ import org.fastcatsearch.ir.query.Group;
 import org.fastcatsearch.ir.query.Groups;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
+import org.fastcatsearch.ir.query.QueryModifier;
 import org.fastcatsearch.ir.query.Sort;
 import org.fastcatsearch.ir.query.Sorts;
 import org.fastcatsearch.ir.query.Term;
 import org.fastcatsearch.ir.query.Term.Option;
 import org.fastcatsearch.ir.query.View;
 import org.fastcatsearch.ir.query.ViewContainer;
+import org.fastcatsearch.ir.search.StoredProcedure;
 import org.fastcatsearch.ir.search.clause.Clause;
 import org.fastcatsearch.util.DynamicClassLoader;
 import org.slf4j.Logger;
@@ -263,6 +265,17 @@ public class QueryParser {
 
 			}
 			query.setSorts(s);
+		} else if (Query.EL.qm == el) {
+			Metadata m = query.getMeta();
+			QueryModifier queryModifier = (QueryModifier) DynamicClassLoader.loadObject(value);
+			m.setQueryModifier(queryModifier);
+		} else if (Query.EL.rm == el) {
+			Metadata m = query.getMeta();
+			m.setResultModifier(value);
+		} else if (Query.EL.sp == el) {
+			Metadata m = query.getMeta();
+			StoredProcedure sp = (StoredProcedure) DynamicClassLoader.loadObject(value);
+			m.setStoredProcedure(sp);
 		}
 	}
 

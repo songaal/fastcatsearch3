@@ -19,6 +19,7 @@ import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.HitFilter;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
+import org.fastcatsearch.ir.query.QueryModifier;
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.query.Sorts;
 import org.fastcatsearch.ir.search.clause.AllDocumentOperatedClause;
@@ -68,17 +69,14 @@ public class SegmentSearcher {
 			documentReader = segmentReader.newDocumentReader();
 		}
 		Document document = documentReader.readDocument(docNo, fieldSelectOption);
-//		document.setDocId(docNo + segmentReader.segmentInfo().getBaseNumber());
 		return document;
 	}
 
 	public Hit searchHit(Query query) throws ClauseException, IOException, IRException {
-		// TODO
-		// String str = query.getStoredProcedure();
-		// StoredProcedure sp = ...
-		// Clause clause = sp.makeClause();
-		// 
-		//
+		QueryModifier queryModifier = query.getMeta().queryModifier();
+		if(queryModifier != null){
+			query = queryModifier.modify(query);
+		}
 		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), query.getGroupFilters(), query.getSorts());
 		return new Hit(rankHitList(), makeGroupData(), totalCount, highlightInfo);
 	}
