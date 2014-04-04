@@ -19,6 +19,7 @@ package org.fastcatsearch.ir.query;
 import org.fastcatsearch.ir.filter.FilterException;
 import org.fastcatsearch.ir.filter.FilterFunction;
 import org.fastcatsearch.ir.filter.NotSupportedFilterFunctionException;
+import org.fastcatsearch.ir.filter.function.BoostFilter;
 import org.fastcatsearch.ir.filter.function.ExcludeFilter;
 import org.fastcatsearch.ir.filter.function.MatchFilter;
 import org.fastcatsearch.ir.filter.function.PrefixFilter;
@@ -43,6 +44,7 @@ public class Filter {
 	public static final int SUFFIX_BOOST = 1 << 7; // 0x0080
 	public static final int EXCLUDE = 1 << 8; // 0x0100
 	public static final int EXCLUDE_BOOST = 1 << 9;
+	public static final int BOOST = 1 << 10;
 
 	private String fieldIndexId;
 	private int function;
@@ -118,6 +120,8 @@ public class Filter {
 			return new ExcludeFilter(this, fieldIndexSetting, fieldSetting);
 		case EXCLUDE_BOOST:
 			return new ExcludeFilter(this, fieldIndexSetting, fieldSetting, true);
+		case BOOST:
+			return new BoostFilter(this, fieldIndexSetting, fieldSetting);
 
 		}
 		throw new NotSupportedFilterFunctionException("지원하지 않는 필터기능입니다. function=" + function);
