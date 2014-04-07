@@ -38,16 +38,6 @@ public class BoostFilter extends FilterFunction {
 
 	public BoostFilter(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting) throws FilterException {
 		super(filter, fieldIndexSetting, fieldSetting, true);
-		
-		if(fieldSetting.getType() == Type.INT){
-			
-		}else if(fieldSetting.getType() == Type.LONG){
-			
-		}else if(fieldSetting.getType() == Type.FLOAT){
-			
-		}else if(fieldSetting.getType() == Type.DOUBLE){
-			
-		}
 	}
 
 	@Override

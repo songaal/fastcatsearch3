@@ -28,7 +28,7 @@ import org.fastcatsearch.ir.search.PostingDocs;
 import org.fastcatsearch.ir.search.posting.PostingDocsTreeNode;
 
 public class MultiTermOperatedClause implements OperatedClause {
-
+	private static final int SCORE_BASE = 10000;
 	private TermDocTreeReader termDocTreeReader;
 	private int termCount;
 	private TermDocCollector termDocCollector;
@@ -91,7 +91,6 @@ public class MultiTermOperatedClause implements OperatedClause {
 			} else {
 				// logger.debug(">> phrase doc={}, term size={}", docNo,
 				// totalTermDocList.size());
-				float score = 0f;
 				// 쿼리와 비교한 여러단어에 대한 점수계산.
 				if (storePosition) {
 					float proximityScore = 0f;
@@ -216,7 +215,7 @@ public class MultiTermOperatedClause implements OperatedClause {
 						float nomalizedDocScore = ((float)documentScore / (float)termCount) * 2.0f;
 						// Okapi점수를 계산하여 tpi점수와 더해야 최종 점수가 계산됨.
 						proximityScore = 2.2f * sumOfTPI / (2.0f + sumOfTPI);
-						score = nomalizedDocScore + proximityScore;
+						int score = (int) ((nomalizedDocScore + proximityScore) * SCORE_BASE);
 //						logger.debug("nomalize {} = {} / {} * 2 => {} + {}", score, documentScore, termCount, nomalizedDocScore, proximityScore); 
 						docInfo.init(docNo, score);
 						break;
@@ -224,10 +223,12 @@ public class MultiTermOperatedClause implements OperatedClause {
 				} else {
 					// 위치정보가 없으면 tf를 점수로 만든다.
 					// Okapi 점수 계산
+					float s = 0.0f;
 					for (int i = 0; i < termDocCollector.size(); i++) {
 						PostingDoc termDoc = termDocCollector.get(i).termDoc();
-						score += (2.2f * (float) termDoc.tf() / (2.0f + (float) termDoc.tf()));
+						s += (2.2f * (float) termDoc.tf() / (2.0f + (float) termDoc.tf()));
 					}
+					int score = (int) (s * SCORE_BASE);
 					logger.debug("추가2 >> docNo={} : {}", docNo, score);
 					docInfo.init(docNo, score);
 					break;

@@ -23,6 +23,7 @@ import org.fastcatsearch.ir.search.PostingDoc;
 import org.fastcatsearch.ir.search.PostingReader;
 
 public class TermOperatedClause implements OperatedClause {
+	private static final int SCORE_BASE = 10000;
 	private PostingReader postingReader;
 	private int segmentDF;
 	private int documentCount;
@@ -43,9 +44,13 @@ public class TermOperatedClause implements OperatedClause {
 		}
 		if (postingReader.hasNext()) {
 			PostingDoc postingDoc = postingReader.next();
-			float tf = 2.2f * postingDoc.tf() / (2.0f + postingDoc.tf());
-			float idf = (float) Math.log(documentCount / segmentDF);
-			docInfo.init(postingDoc.docNo(), tf * idf * postingReader.weight(), 1);
+			int score = 0;
+			if(postingReader.weight() > 0){
+				float tf = 2.2f * postingDoc.tf() / (2.0f + postingDoc.tf());
+				float idf = (float) Math.log(documentCount / segmentDF);
+				score = (int) ((tf * idf * postingReader.weight()) * SCORE_BASE);
+			}
+			docInfo.init(postingDoc.docNo(), score, 1);
 			return true;
 		} else {
 			docInfo.init(-1, -1, -1);

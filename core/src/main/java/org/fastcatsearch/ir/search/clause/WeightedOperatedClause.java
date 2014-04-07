@@ -41,8 +41,8 @@ public class WeightedOperatedClause implements OperatedClause {
 		if (hasNext1) {
 			int doc1 = docInfo1.docNo();
 			int doc2 = docInfo2.docNo();
-			float score1 = docInfo1.score();
-			float score2 = docInfo2.score();
+			int score1 = docInfo1.score();
+			int score2 = docInfo2.score();
 			while (hasNext1 && hasNext2 && (doc1 != doc2)) {
 				while (hasNext1 && (doc1 < doc2)) {
 					docInfo.init(doc1, score1);

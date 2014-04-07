@@ -31,9 +31,9 @@ public class WeightedOperatedClauseTest extends TestCase{
 	
 	public void testFixed(){
 		int[] docs1 = new int[]{3,5,7,9,10};
-		float[] docs1Score = new float[]{2,5,7,9,10};
+		int[] docs1Score = new int[]{2,5,7,9,10};
 		int[] docs2 = new int[]{3,7,8};
-		float[] docs2Score = new float[]{3,7,8};
+		int[] docs2Score = new int[]{3,7,8};
 		UserOperatedClause c1 = new UserOperatedClause(docs1.length, docs1, docs1Score);
 		UserOperatedClause c2 = new UserOperatedClause(docs2.length, docs2, docs2Score);
 		
@@ -50,9 +50,9 @@ public class WeightedOperatedClauseTest extends TestCase{
 	
 	public void testEmpty(){
 		int[] docs1 = new int[]{};
-		float[] docs1Score = new float[]{};
+		int[] docs1Score = new int[]{};
 		int[] docs2 = new int[]{3,7,8};
-		float[] docs2Score = new float[]{3,7,8};
+		int[] docs2Score = new int[]{3,7,8};
 		UserOperatedClause c1 = new UserOperatedClause(docs1.length, docs1, docs1Score);
 		UserOperatedClause c2 = new UserOperatedClause(docs2.length, docs2, docs2Score);
 		
@@ -71,12 +71,12 @@ public class WeightedOperatedClauseTest extends TestCase{
 	public void testRandom(){
 		int count1 = 100;
 		int[] docs1 = new int[count1];
-		float[] score1 = new float[count1];
+		int[] score1 = new int[count1];
 		makeDocs(count1, docs1, score1);
 		
 		int count2 = 100;
 		int[] docs2 = new int[count2];
-		float[] score2 = new float[count2];
+		int[] score2 = new int[count2];
 		makeDocs(count2, docs2, score2);
 		
 		UserOperatedClause c1 = new UserOperatedClause(count1, docs1, score1);
@@ -96,7 +96,7 @@ public class WeightedOperatedClauseTest extends TestCase{
 	
 	private Random r = new Random(System.currentTimeMillis());
 	
-	private void makeDocs(int count, int[] docs, float[] score){
+	private void makeDocs(int count, int[] docs, int[] score){
 		int d = 0;
 		int prev = 0;
 		for(int i=0; i<count;i++){

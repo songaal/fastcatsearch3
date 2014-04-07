@@ -29,9 +29,9 @@ public class UserOperatedClause implements OperatedClause {
 	private int pos;
 	private int count;
 	private int[] docs;
-	private float[] weight;
+	private int[] weight;
 	
-	public UserOperatedClause(int count, int[] docs, float[] weight) {
+	public UserOperatedClause(int count, int[] docs, int[] weight) {
 		this.count = count;
 		this.docs = docs;
 		this.weight = weight;

@@ -43,7 +43,7 @@ public class NotOperatedClause implements OperatedClause {
 		
 		int doc1 = docInfo1.docNo();
 		int doc2 = docInfo2.docNo();
-		float score1 = docInfo1.score();
+		int score1 = docInfo1.score();
 		
 		do{
 			while(hasNext1 && hasNext2 && (doc1 == doc2)){

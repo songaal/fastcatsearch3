@@ -37,7 +37,7 @@ public class BoostOperatedClause implements OperatedClause {
 
 	public boolean next(RankInfo docInfo) {
 		
-		float newScore = 0;
+		int newScore = 0;
 		while(mainClause.next(docInfo1)){
 			int doc1 = docInfo1.docNo();
 			newScore = docInfo1.score();

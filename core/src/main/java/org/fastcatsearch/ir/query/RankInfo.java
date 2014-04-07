@@ -25,17 +25,17 @@ package org.fastcatsearch.ir.query;
  */
 public class RankInfo {
 	private int docNo;
-	private float score;
+	private int score;
 	private int hit; // 매칭횟수.
 
 	public RankInfo() {
 	}
 
-	public void init(int docNo, float score) {
+	public void init(int docNo, int score) {
 		init(docNo, score, 1);
 	}
 
-	public void init(int docNo, float score, int hit) {
+	public void init(int docNo, int score, int hit) {
 		this.docNo = docNo;
 		this.score = score;
 		this.hit = hit;
@@ -45,7 +45,7 @@ public class RankInfo {
 		return docNo;
 	}
 
-	public float score() {
+	public int score() {
 		return score;
 	}
 
@@ -65,7 +65,7 @@ public class RankInfo {
 		score *= mul;
 	}
 
-	public void score(float score) {
+	public void score(int score) {
 		this.score = score;
 	}
 

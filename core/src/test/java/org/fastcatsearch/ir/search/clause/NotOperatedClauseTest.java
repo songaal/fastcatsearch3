@@ -31,10 +31,10 @@ public class NotOperatedClauseTest extends TestCase{
 	
 	public void testFixed(){
 		int[] docs1 = new int[]{2,5,7,9,13,18,27,31,37,45};
-		float[] weight1 = new float[]{100,200,100,200,100,200,100,200,300,100};
+		int[] weight1 = new int[]{100,200,100,200,100,200,100,200,300,100};
 		
 		int[] docs2 = new int[]{4,5,6,7,8,9};
-		float[] weight2 = new float[]{300,400,300,300,400,500};
+		int[] weight2 = new int[]{300,400,300,300,400,500};
 		
 		UserOperatedClause c1 = new UserOperatedClause(docs1.length, docs1, weight1);
 		UserOperatedClause c2 = new UserOperatedClause(docs2.length, docs2, weight2);
