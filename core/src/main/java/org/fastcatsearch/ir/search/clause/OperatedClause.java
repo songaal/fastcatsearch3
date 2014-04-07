@@ -73,10 +73,8 @@ public abstract class OperatedClause {
 				explanation.set(docInfo.score(), docInfo.hit());
 				explanation.addTime(System.nanoTime() - start);
 				explanation.addRow();
-//				logger.debug("1> \n{}",explanation);
 				return true;
 			}else{
-//				logger.debug("2> \n{}",explanation);
 				explanation.set(0, 0);
 				explanation.addTime(System.nanoTime() - start);
 				return false;

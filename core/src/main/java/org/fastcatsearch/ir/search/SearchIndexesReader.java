@@ -120,7 +120,6 @@ public class SearchIndexesReader implements Cloneable {
 		String[] indexFieldIdList = term.indexFieldId();
 
 		OperatedClause totalClause = null;
-		ClauseExplanation exp = null;
 		for (int i = 0; i < indexFieldIdList.length; i++) {
 			String indexFieldId = indexFieldIdList[i];
 			logger.debug("getOperatedClause [{}] >> [{}]", indexFieldId, term);
