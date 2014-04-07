@@ -6,20 +6,16 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.FeatureAttribute;
-import org.apache.lucene.analysis.tokenattributes.FeatureAttribute.FeatureType;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.analysis.tokenattributes.StopwordAttribute;
-import org.apache.lucene.analysis.tokenattributes.SynonymAttribute;
+import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 import org.apache.lucene.util.CharsRef;
 import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.ir.io.CharVectorTokenizer;
 import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.query.Term;
 import org.fastcatsearch.ir.query.Term.Option;
 import org.fastcatsearch.ir.query.Term.Type;
-import org.fastcatsearch.ir.search.PostingDocs;
 import org.fastcatsearch.ir.search.PostingReader;
 import org.fastcatsearch.ir.search.SearchIndexReader;
 import org.fastcatsearch.ir.search.method.NormalSearchMethod;
@@ -32,6 +28,9 @@ public class BooleanClause implements OperatedClause {
 	private OperatedClause operatedClause;
 
 	public BooleanClause(SearchIndexReader searchIndexReader, Term term, HighlightInfo highlightInfo) {
+		this(searchIndexReader, term, highlightInfo, null);
+	}
+	public BooleanClause(SearchIndexReader searchIndexReader, Term term, HighlightInfo highlightInfo, String requestTypeAttribute) {
 		String indexId = searchIndexReader.indexId();
 		String termString = term.termString();
 		float weight = term.weight();
@@ -50,13 +49,17 @@ public class BooleanClause implements OperatedClause {
 			CharTermAttribute termAttribute = null;
 			CharsRefTermAttribute refTermAttribute = null;
 			PositionIncrementAttribute positionAttribute = null;
-			SynonymAttribute synonymAttribute = null;
 			StopwordAttribute stopwordAttribute = null;
-			FeatureAttribute featureAttribute = null;
-
+			TypeAttribute typeAttribute = null;
+			
+//			SynonymAttribute synonymAttribute = null;
+//			FeatureAttribute featureAttribute = null;
+			
 			TokenStream tokenStream = analyzer.tokenStream(indexId, fullTerm.getReader());
 			tokenStream.reset();
 
+			CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
+			
 			if (tokenStream.hasAttribute(CharsRefTermAttribute.class)) {
 				refTermAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
 			}
@@ -66,21 +69,29 @@ public class BooleanClause implements OperatedClause {
 			if (tokenStream.hasAttribute(PositionIncrementAttribute.class)) {
 				positionAttribute = tokenStream.getAttribute(PositionIncrementAttribute.class);
 			}
-			CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
-
-			if (tokenStream.hasAttribute(SynonymAttribute.class)) {
-				synonymAttribute = tokenStream.getAttribute(SynonymAttribute.class);
-			}
 			if (tokenStream.hasAttribute(StopwordAttribute.class)) {
 				stopwordAttribute = tokenStream.getAttribute(StopwordAttribute.class);
 			}
-			if (tokenStream.hasAttribute(FeatureAttribute.class)) {
-				featureAttribute = tokenStream.getAttribute(FeatureAttribute.class);
+			if (tokenStream.hasAttribute(TypeAttribute.class)) {
+				typeAttribute = tokenStream.getAttribute(TypeAttribute.class);
 			}
+			
+//			if (tokenStream.hasAttribute(SynonymAttribute.class)) {
+//				synonymAttribute = tokenStream.getAttribute(SynonymAttribute.class);
+//			}
+//			if (tokenStream.hasAttribute(FeatureAttribute.class)) {
+//				featureAttribute = tokenStream.getAttribute(FeatureAttribute.class);
+//			}
 
 			CharVector token = null;
 			while (tokenStream.incrementToken()) {
 
+				//요청 타입이 존재할때 타입이 다르면 단어무시.
+				if(requestTypeAttribute != null && typeAttribute != null){
+					if(requestTypeAttribute != typeAttribute.type()){
+						continue;
+					}
+				}
 				/* 
 				 * stopword 
 				 * */

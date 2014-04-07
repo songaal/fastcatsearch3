@@ -47,6 +47,7 @@ public class Term {
 	private float weight;
 	private Type type; //set AND between terms
 	protected Option option;
+	protected String typeAttribute; 
 	
 	public Term(){}
 	public Term(String indexFieldId, String termString){
@@ -117,6 +118,14 @@ public class Term {
 	
 	public Option option(){
 		return option;
+	}
+	
+	public String typeAttribute(){
+		return typeAttribute;
+	}
+	
+	public void setTypeAttribute(String typeAttribute){
+		this.typeAttribute = typeAttribute;
 	}
 	
 	public static class Option {
