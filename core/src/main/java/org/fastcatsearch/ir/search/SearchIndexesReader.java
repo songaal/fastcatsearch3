@@ -113,10 +113,6 @@ public class SearchIndexesReader implements Cloneable {
 	}
 	
 	public OperatedClause getOperatedClause(Term term, HighlightInfo highlightInfo) throws IOException, IRException {
-		return getOperatedClause(term, highlightInfo, null);
-	}
-	
-	public OperatedClause getOperatedClause(Term term, HighlightInfo highlightInfo, ClauseExplanation explanation) throws IOException, IRException {
 		String[] indexFieldIdList = term.indexFieldId();
 
 		OperatedClause totalClause = null;
