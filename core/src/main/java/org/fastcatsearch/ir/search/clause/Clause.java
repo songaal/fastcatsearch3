@@ -55,6 +55,8 @@ public class Clause {
 			str += "AND";
 		} else if (operator == Operator.NOT) {
 			str += "NOT";
+		} else if (operator == Operator.BOOST) {
+			str += "BOOST";
 		}
 
 		str += operand2.toString() + "}";

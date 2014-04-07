@@ -403,6 +403,16 @@ public class QueryParser {
 					int end = findMatchBrace(value, pos + 5);// value.indexOf('}', pos + 5);
 					Object operand2 = makeClause(value.substring(pos + 5, end), query);
 					return new Clause(operand1, Clause.Operator.NOT, operand2);
+				} else if (value.regionMatches(true, pos + 1, Clause.Operator.BOOST.name(), 0, 5)) {
+					int end = findMatchBrace(value, pos + 7);
+					Object operand2 = makeClause(value.substring(pos + 7, end), query);
+					if(operand2 instanceof Clause) {
+						Clause innerClause = (Clause)operand2;
+						if(innerClause.operator() == Clause.Operator.NOT && innerClause.operand1() == null) {
+							throw new QueryParseException("BOOST-uni NOT is not supported.");
+						}
+					}
+					return new Clause(operand1, Clause.Operator.BOOST, operand2);
 				} else {
 					// operator가 없거나 잘못되었으면 뒤는 무시하고 operand1 이 term으로 간주된다.
 					if (operand1 instanceof Term)
