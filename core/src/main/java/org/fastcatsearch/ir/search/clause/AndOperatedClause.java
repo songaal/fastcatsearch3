@@ -18,20 +18,19 @@ package org.fastcatsearch.ir.search.clause;
 
 import org.fastcatsearch.ir.query.RankInfo;
 
-
-
-public class AndOperatedClause implements OperatedClause {
+public class AndOperatedClause extends OperatedClause {
 	private OperatedClause clause1;
 	private OperatedClause clause2;
 	private boolean hasNext1 = true;
 	private boolean hasNext2 = true;
 	
 	public AndOperatedClause(OperatedClause clause1, OperatedClause clause2) {
+		super("AND");
 		this.clause1 = clause1;
 		this.clause2 = clause2;
 	}
 
-	public boolean next(RankInfo docInfo) {
+	protected boolean nextDoc(RankInfo docInfo) {
 		RankInfo docInfo1 = new RankInfo();
 		RankInfo docInfo2 = new RankInfo();
 		
@@ -83,6 +82,22 @@ public class AndOperatedClause implements OperatedClause {
 		}
 		if(clause2 != null){
 			clause2.close();
+		}
+	}
+
+	@Override
+	protected void initClause() {
+		clause1.initClause();
+		clause2.initClause();
+	}
+
+	@Override
+	protected void initExplanation() {
+		if(clause1 != null) {
+			clause1.setExplanation(explanation.createSub1());
+		}
+		if(clause2 != null) {
+			clause2.setExplanation(explanation.createSub2());
 		}
 	}
 

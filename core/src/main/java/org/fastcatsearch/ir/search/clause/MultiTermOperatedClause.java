@@ -27,7 +27,7 @@ import org.fastcatsearch.ir.search.TermDocTreeReader;
 import org.fastcatsearch.ir.search.PostingDocs;
 import org.fastcatsearch.ir.search.posting.PostingDocsTreeNode;
 
-public class MultiTermOperatedClause implements OperatedClause {
+public class MultiTermOperatedClause extends OperatedClause {
 	private static final int SCORE_BASE = 10000;
 	private TermDocTreeReader termDocTreeReader;
 	private int termCount;
@@ -35,10 +35,11 @@ public class MultiTermOperatedClause implements OperatedClause {
 	private boolean storePosition;
 
 	public MultiTermOperatedClause() {
-		this(false);
+		this(null, false);
 	}
 
-	public MultiTermOperatedClause(boolean storePosition) {
+	public MultiTermOperatedClause(String indexId, boolean storePosition) {
+		super(indexId);
 		this.storePosition = storePosition;
 		termDocTreeReader = new TermDocTreeReader();
 	}
@@ -69,7 +70,7 @@ public class MultiTermOperatedClause implements OperatedClause {
 
 	}
 
-	public boolean next(RankInfo docInfo) {
+	protected boolean nextDoc(RankInfo docInfo) {
 		if (termDocCollector == null) {
 			termDocCollector = new TermDocCollector(termCount);
 		}
@@ -244,6 +245,14 @@ public class MultiTermOperatedClause implements OperatedClause {
 	@Override
 	public void close() {
 		termDocTreeReader.close();
+	}
+
+	@Override
+	protected void initClause() {
+	}
+
+	@Override
+	protected void initExplanation() {
 	}
 
 }

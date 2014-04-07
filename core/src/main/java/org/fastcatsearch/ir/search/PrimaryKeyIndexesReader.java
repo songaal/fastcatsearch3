@@ -123,7 +123,7 @@ public class PrimaryKeyIndexesReader implements Cloneable {
 
 		OperatedClause idOperatedClause = null;
 		if (m > 0) {
-			idOperatedClause = new TermOperatedClause(new DataPostingReader(new CharVector(termString), 0, weight, termDocList, m));
+			idOperatedClause = new TermOperatedClause("_PK", new DataPostingReader(new CharVector(termString), 0, weight, termDocList, m));
 		}
 
 		return idOperatedClause;

@@ -24,18 +24,19 @@ import org.fastcatsearch.ir.query.RankInfo;
  * 결과 set은 mainClause의 것이 그대로 유지되며, boostClause는 점수에만 영향을 준다.
  * 
  * */
-public class BoostOperatedClause implements OperatedClause {
+public class BoostOperatedClause extends OperatedClause {
 	private OperatedClause mainClause;
 	private OperatedClause boostClause;
 	private RankInfo docInfo1 = new RankInfo();
 	private RankInfo docInfo2 = new RankInfo();
 	
 	public BoostOperatedClause(OperatedClause mainClause, OperatedClause boostClause) {
+		super("BOOST");
 		this.mainClause = mainClause;
 		this.boostClause = boostClause;
 	}
 
-	public boolean next(RankInfo docInfo) {
+	protected boolean nextDoc(RankInfo docInfo) {
 		
 		int newScore = 0;
 		while(mainClause.next(docInfo1)){
@@ -70,6 +71,22 @@ public class BoostOperatedClause implements OperatedClause {
 		}
 		if(boostClause != null){
 			boostClause.close();
+		}
+	}
+
+	@Override
+	protected void initClause() {
+		mainClause.initClause();
+		boostClause.initClause();
+	}
+
+	@Override
+	protected void initExplanation() {
+		if(mainClause != null) {
+			mainClause.setExplanation(explanation.createSub1());
+		}
+		if(boostClause != null) {
+			boostClause.setExplanation(explanation.createSub2());
 		}
 	}
 

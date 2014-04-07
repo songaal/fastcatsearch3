@@ -20,7 +20,7 @@ import org.fastcatsearch.ir.query.RankInfo;
 
 
 
-public class NotOperatedClause implements OperatedClause {
+public class NotOperatedClause extends OperatedClause {
 	private OperatedClause clause1;
 	private OperatedClause clause2;
 	private boolean hasNext1 = true;
@@ -30,14 +30,12 @@ public class NotOperatedClause implements OperatedClause {
 	private RankInfo docInfo2 = new RankInfo();
 	
 	public NotOperatedClause(OperatedClause clause1, OperatedClause clause2) {
+		super("NOT");
 		this.clause1 = clause1;
 		this.clause2 = clause2;
-		
-		hasNext1 = clause1.next(docInfo1);
-		hasNext2 = clause2.next(docInfo2);
 	}
 
-	public boolean next(RankInfo docInfo) {
+	protected boolean nextDoc(RankInfo docInfo) {
 		if(!hasNext1)
 			return false;
 		
@@ -79,6 +77,24 @@ public class NotOperatedClause implements OperatedClause {
 		if(clause2 != null){
 			clause2.close();
 		}		
+	}
+
+	@Override
+	protected void initClause() {
+		clause1.initClause();
+		clause2.initClause();
+		hasNext1 = clause1.next(docInfo1);
+		hasNext2 = clause2.next(docInfo2);		
+	}
+
+	@Override
+	protected void initExplanation() {
+		if(clause1 != null) {
+			clause1.setExplanation(explanation.createSub1());
+		}
+		if(clause2 != null) {
+			clause2.setExplanation(explanation.createSub2());
+		}
 	}
 
 }

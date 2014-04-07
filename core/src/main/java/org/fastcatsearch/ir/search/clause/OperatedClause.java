@@ -17,18 +17,84 @@
 package org.fastcatsearch.ir.search.clause;
 
 import org.fastcatsearch.ir.query.RankInfo;
+import org.fastcatsearch.ir.search.ClauseExplanation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public interface OperatedClause {
-	public static Logger logger = LoggerFactory.getLogger(OperatedClause.class);
+public abstract class OperatedClause {
+	protected static Logger logger = LoggerFactory.getLogger(OperatedClause.class);
+	
+	protected String id;
+	protected ClauseExplanation explanation;
+	private boolean isReady;
+	
+	public OperatedClause(String id){
+		this.id = id;
+	}
+	
+	// 사용하기전에 호출한다.
+	public void init() {
+		init(null);
+	}
+	
+	public void init(ClauseExplanation explanation) {
+		if(isReady){
+			return;
+		}
+		if(explanation != null){
+			setExplanation(explanation);
+		}
+		
+		initClause();
+		isReady = true;
+	}
+	
+	protected abstract void initClause();
+
+	public void setExplanation(ClauseExplanation explanation) {
+		this.explanation = explanation;
+		if(explanation != null) {
+			explanation.setId(id);
+		}
+		initExplanation();
+	}
+	
+	protected abstract void initExplanation();
+	
 	/**
 	 * @param docInfo
 	 * @return RankInfo를 올바로 읽었는지 여부. 
 	 */
-	public boolean next(RankInfo docInfo);
+	public boolean next(RankInfo docInfo) {
+		if(explanation != null){
+			long start = System.nanoTime();
+			if(nextDoc(docInfo)){
+				explanation.set(docInfo.score(), docInfo.hit());
+				explanation.addTime(System.nanoTime() - start);
+				explanation.addRow();
+//				logger.debug("1> \n{}",explanation);
+				return true;
+			}else{
+//				logger.debug("2> \n{}",explanation);
+				explanation.set(0, 0);
+				explanation.addTime(System.nanoTime() - start);
+				return false;
+			}
+		}else{
+			return nextDoc(docInfo);
+		}
+	}
 	
+	protected abstract boolean nextDoc(RankInfo docInfo);
 	
-	public void close();
+	public abstract void close();
+	
+	public String id(){
+		return id;
+	}
+	
+	public String term() {
+		return null;
+	}
 }

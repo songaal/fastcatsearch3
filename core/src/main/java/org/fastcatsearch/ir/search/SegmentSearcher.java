@@ -90,11 +90,11 @@ public class SegmentSearcher {
 			IOException, IRException {
 		FieldIndexesReader fieldIndexesReader = null;
 		int sortMaxSize = meta.start() + meta.rows() - 1;
-
+		
 		int docCount = segmentReader.docCount();
 		// Search
 		OperatedClause operatedClause = null;
-
+		
 		if (clause == null) {
 			operatedClause = new AllDocumentOperatedClause(docCount);
 		} else {
@@ -136,7 +136,13 @@ public class SegmentSearcher {
 		RankInfo[] rankInfoList = new RankInfo[BULK_SIZE];
 		boolean exausted = false;
 		BitSet localDeleteSet = segmentReader.deleteSet();
-
+		
+		ClauseExplanation clauseExplanation = null;
+		if(meta.isSearchOption(Query.SEARCH_OPT_EXPLAIN)) {
+			clauseExplanation = new ClauseExplanation();
+		}
+		
+		operatedClause.init(clauseExplanation);
 //		int searchTime = 0, sortTime = 0, groupTime = 0, filterTime = 0;
 		while (!exausted) {
 			int nread = 0;
@@ -145,13 +151,13 @@ public class SegmentSearcher {
 			for (nread = 0; nread < BULK_SIZE; nread++) {
 				RankInfo rankInfo = new RankInfo();
 				if (operatedClause.next(rankInfo)) {
+//					logger.debug("rankInfo > {}, {}",clauseExplanation.getTf(), rankInfo);
 					rankInfoList[nread] = rankInfo;
 				} else {
 					exausted = true;
 					break;
 				}
 			}
-			boolean dd= false;
 //			searchTime += (System.nanoTime() - st);st = System.nanoTime();
 			if (filters != null && hitFilter != null) {
 				nread = hitFilter.filtering(rankInfoList, nread);
@@ -207,6 +213,8 @@ public class SegmentSearcher {
 //			sortTime += (System.nanoTime() - st);
 			totalCount += nread;
 		}
+		
+		logger.debug("clauseExplanation >> {}\n{}", meta.isSearchOption(Query.SEARCH_OPT_EXPLAIN), clauseExplanation);
 
 //		 logger.debug("#### time = se:{}ms, ft:{}ms, gr:{}ms, so:{}ms", searchTime / 1000000, filterTime / 1000000, groupTime / 1000000, sortTime / 1000000);
 	}

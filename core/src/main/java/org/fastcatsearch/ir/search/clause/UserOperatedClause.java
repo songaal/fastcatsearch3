@@ -24,7 +24,7 @@ import org.fastcatsearch.ir.query.RankInfo;
  * @author sangwook.song
  *
  */
-public class UserOperatedClause implements OperatedClause {
+public class UserOperatedClause extends OperatedClause {
 	
 	private int pos;
 	private int count;
@@ -32,12 +32,13 @@ public class UserOperatedClause implements OperatedClause {
 	private int[] weight;
 	
 	public UserOperatedClause(int count, int[] docs, int[] weight) {
+		super(null);
 		this.count = count;
 		this.docs = docs;
 		this.weight = weight;
 	}
 
-	public boolean next(RankInfo docInfo) {
+	protected boolean nextDoc(RankInfo docInfo) {
 		if(pos < count){
 			docInfo.init(docs[pos], weight[pos]);
 			pos++;
@@ -49,6 +50,14 @@ public class UserOperatedClause implements OperatedClause {
 
 	@Override
 	public void close() {
+	}
+
+	@Override
+	protected void initClause() {
+	}
+
+	@Override
+	protected void initExplanation() {
 	}
 
 }

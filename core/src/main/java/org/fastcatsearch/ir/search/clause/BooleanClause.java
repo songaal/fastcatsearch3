@@ -23,16 +23,19 @@ import org.fastcatsearch.ir.search.method.SearchMethod;
 import org.fastcatsearch.ir.settings.IndexSetting;
 import org.fastcatsearch.ir.settings.RefSetting;
 
-public class BooleanClause implements OperatedClause {
+public class BooleanClause extends OperatedClause {
 
+	private String termString;
 	private OperatedClause operatedClause;
 
 	public BooleanClause(SearchIndexReader searchIndexReader, Term term, HighlightInfo highlightInfo) {
 		this(searchIndexReader, term, highlightInfo, null);
 	}
 	public BooleanClause(SearchIndexReader searchIndexReader, Term term, HighlightInfo highlightInfo, String requestTypeAttribute) {
+		super(searchIndexReader.indexId());
 		String indexId = searchIndexReader.indexId();
 		String termString = term.termString();
+		this.termString = termString;
 		float weight = term.weight();
 		Option option = term.option();
 		CharVector fullTerm = new CharVector(termString);
@@ -133,7 +136,7 @@ public class BooleanClause implements OperatedClause {
 //						clause = new AppendOperatedClause(operatedClause, clause);
 //					}
 //				}else{
-					clause = new TermOperatedClause(postingReader);
+					clause = new TermOperatedClause(indexId, postingReader);
 //				}
 				
 				if (operatedClause == null) {
@@ -156,7 +159,7 @@ public class BooleanClause implements OperatedClause {
 	}
 
 	@Override
-	public boolean next(RankInfo docInfo) {
+	protected boolean nextDoc(RankInfo docInfo) {
 		if (operatedClause == null) {
 			return false;
 		}
@@ -168,6 +171,15 @@ public class BooleanClause implements OperatedClause {
 		if (operatedClause != null) {
 			operatedClause.close();
 		}
+	}
+	@Override
+	protected void initClause() {
+		operatedClause.initClause();
+	}
+	
+	@Override
+	protected void initExplanation() {
+		explanation.setTerm(termString);
 	}
 
 }

@@ -22,24 +22,24 @@ import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.search.PostingDoc;
 import org.fastcatsearch.ir.search.PostingReader;
 
-public class TermOperatedClause implements OperatedClause {
+public class TermOperatedClause extends OperatedClause {
 	private static final int SCORE_BASE = 10000;
 	private PostingReader postingReader;
 	private int segmentDF;
 	private int documentCount;
 
-	public TermOperatedClause(PostingReader postingReader) throws IOException {
+	public TermOperatedClause(String indexId, PostingReader postingReader) throws IOException {
+		super(indexId);
 		if (postingReader != null) {
 			this.postingReader = postingReader;
-			// this.ignoreTermFreq = ignoreTermFreq;
 			this.segmentDF = postingReader.size();
 			this.documentCount = postingReader.documentCount();
 		}
 	}
 
-	public boolean next(RankInfo docInfo) {
+	protected boolean nextDoc(RankInfo docInfo) {
 		if (postingReader == null) {
-			docInfo.init(-1, -1, -1);
+			docInfo.init(-1, 0, 0);
 			return false;
 		}
 		if (postingReader.hasNext()) {
@@ -50,10 +50,10 @@ public class TermOperatedClause implements OperatedClause {
 				float idf = (float) Math.log(documentCount / segmentDF);
 				score = (int) ((tf * idf * postingReader.weight()) * SCORE_BASE);
 			}
-			docInfo.init(postingDoc.docNo(), score, 1);
+			docInfo.init(postingDoc.docNo(), score, postingDoc.tf());
 			return true;
 		} else {
-			docInfo.init(-1, -1, -1);
+			docInfo.init(-1, 0, 0);
 			return false;
 		}
 	}
@@ -72,6 +72,15 @@ public class TermOperatedClause implements OperatedClause {
 		if (postingReader == null) {
 			postingReader.close();
 		}
+	}
+
+	@Override
+	protected void initClause() {
+	}
+
+	@Override
+	protected void initExplanation() {
+		explanation.setTerm(postingReader.term().toString());
 	}
 
 }

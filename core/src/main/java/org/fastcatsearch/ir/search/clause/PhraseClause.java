@@ -18,6 +18,7 @@ import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.query.Term;
 import org.fastcatsearch.ir.query.Term.Option;
+import org.fastcatsearch.ir.search.ClauseExplanation;
 import org.fastcatsearch.ir.search.PostingReader;
 import org.fastcatsearch.ir.search.SearchIndexReader;
 import org.fastcatsearch.ir.search.method.NormalSearchMethod;
@@ -25,11 +26,12 @@ import org.fastcatsearch.ir.search.method.SearchMethod;
 import org.fastcatsearch.ir.settings.IndexSetting;
 import org.fastcatsearch.ir.settings.RefSetting;
 
-public class PhraseClause implements OperatedClause {
+public class PhraseClause extends OperatedClause {
 
 	private MultiTermOperatedClause operatedClause;
 
 	public PhraseClause(SearchIndexReader searchIndexReader, Term term, HighlightInfo highlightInfo) {
+		super(searchIndexReader.indexId());
 		String indexId = searchIndexReader.indexId();
 		String termString = term.termString();
 		float weight = term.weight();
@@ -47,7 +49,7 @@ public class PhraseClause implements OperatedClause {
 		}
 		
 		
-		operatedClause = new MultiTermOperatedClause(searchIndexReader.indexFieldOption().isStorePosition());
+		operatedClause = new MultiTermOperatedClause(indexId, searchIndexReader.indexFieldOption().isStorePosition());
 		
 		try {
 			CharVectorTokenizer charVectorTokenizer = new CharVectorTokenizer(fullTerm);
@@ -164,7 +166,7 @@ public class PhraseClause implements OperatedClause {
 	}
 
 	@Override
-	public boolean next(RankInfo docInfo) {
+	protected boolean nextDoc(RankInfo docInfo) {
 		if (operatedClause == null) {
 			return false;
 		}
@@ -175,6 +177,18 @@ public class PhraseClause implements OperatedClause {
 	public void close() {
 		if(operatedClause != null){
 			operatedClause.close();
+		}
+	}
+
+	@Override
+	protected void initClause() {
+		operatedClause.initClause();
+	}
+
+	@Override
+	protected void initExplanation() {
+		if(operatedClause != null) {
+			operatedClause.setExplanation(explanation.createSub1());
 		}
 	}
 

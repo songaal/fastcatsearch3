@@ -16,7 +16,9 @@
 
 package org.fastcatsearch.ir.query;
 
+import org.fastcatsearch.ir.search.ClauseExplanation;
 import org.fastcatsearch.ir.search.SearchIndexReader;
+import org.fastcatsearch.ir.search.SearchIndexesReader;
 import org.fastcatsearch.ir.search.clause.BooleanClause;
 import org.fastcatsearch.ir.search.clause.OperatedClause;
 import org.fastcatsearch.ir.search.clause.PhraseClause;
@@ -79,12 +81,12 @@ public class Term {
 	
 	public String toString(){
 		String fieldList = "";
-		for(int i=0;i<indexFieldId.length;i++){
+		for (int i = 0; i < indexFieldId.length; i++) {
 			fieldList += indexFieldId[i];
-			if(i < indexFieldId.length - 1){
-				if(fieldConcat){
+			if (i < indexFieldId.length - 1) {
+				if (fieldConcat) {
 					fieldList += "+";
-				}else{
+				} else {
 					fieldList += ",";
 				}
 			}
@@ -177,14 +179,14 @@ public class Term {
 
 	public OperatedClause createOperatedClause(SearchIndexReader searchIndexReader, HighlightInfo highlightInfo) {
 		
-		//TODO FIXME 현재는 모두 boolean clause로 생성.
 		if(type == Type.ALL || type == Type.ANY){
-			return new BooleanClause(searchIndexReader, this, highlightInfo);
+			return new BooleanClause(searchIndexReader, this, highlightInfo, null);
 		}else if(type == Type.PHRASE){
 			return new PhraseClause(searchIndexReader, this, highlightInfo);
 		}
 		
-		return new BooleanClause(searchIndexReader, this, highlightInfo);
+		return new BooleanClause(searchIndexReader, this, highlightInfo, null);
 	}
+	
 }
 

@@ -22,6 +22,7 @@ import java.util.Map;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.Term;
+import org.fastcatsearch.ir.search.ClauseExplanation;
 import org.fastcatsearch.ir.search.SearchIndexesReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,8 +92,7 @@ public class Clause {
 
 	}
 
-	public OperatedClause getOperatedClause(int docCount, SearchIndexesReader reader, HighlightInfo highlightInfo) throws ClauseException, IOException,
-			IRException {
+	public OperatedClause getOperatedClause(int docCount, SearchIndexesReader reader, HighlightInfo highlightInfo) throws ClauseException, IOException, IRException {
 		OperatedClause clause1 = null;
 		OperatedClause clause2 = null;
 
@@ -106,8 +106,9 @@ public class Clause {
 		}
 
 		// if operator is not exist, use only operand1
-		if (operator == null)
+		if (operator == null) {
 			return clause1;
+		}
 
 		/*
 		 * NOT 혼자 쓰이는 연산지원! operand1 이 null일 경우는 Not 연산만 들어올 경우이므로, 전체 문서에서 빼주는 방법으로 연산을 변경한다.
@@ -118,34 +119,34 @@ public class Clause {
 
 		if (operand2 instanceof Term) {
 			Term term = (Term) operand2;
-			if (operator == Operator.NOT){
-				//NOT은 하이라이팅을 하지 않는다.
+			if (operator == Operator.NOT) {
+				// NOT은 하이라이팅을 하지 않는다.
 				clause2 = reader.getOperatedClause(term, null);
-			}else{
+			} else {
 				clause2 = reader.getOperatedClause(term, highlightInfo);
 			}
-		
+
 		} else {
 			// unary NOT 필드는 두번째 항에 들어올수도 있으므로 docCount를 넣어주도록 한다.
-			if (operator == Operator.NOT){
-				//NOT은 하이라이팅을 하지 않는다.
+			if (operator == Operator.NOT) {
+				// NOT은 하이라이팅을 하지 않는다.
 				clause2 = ((Clause) operand2).getOperatedClause(docCount, reader, null);
-			}else{
+			} else {
 				clause2 = ((Clause) operand2).getOperatedClause(docCount, reader, highlightInfo);
 			}
 		}
 
-		if (operator == Operator.AND)
+		if (operator == Operator.AND) {
 			return new AndOperatedClause(clause1, clause2);
-		else if (operator == Operator.OR)
+		} else if (operator == Operator.OR) {
 			return new OrOperatedClause(clause1, clause2);
-		else if (operator == Operator.NOT)
+		} else if (operator == Operator.NOT) {
 			return new NotOperatedClause(clause1, clause2);
-		else if (operator == Operator.BOOST)
+		} else if (operator == Operator.BOOST) {
 			return new BoostOperatedClause(clause1, clause2);
-
+		}
+		
 		throw new ClauseException("Unknown operator =" + operator);
 	}
-
 
 }

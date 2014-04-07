@@ -17,8 +17,6 @@
 package org.fastcatsearch.ir.search.clause;
 
 import org.fastcatsearch.ir.query.RankInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -26,16 +24,16 @@ import org.slf4j.LoggerFactory;
  * @author sangwook.song
  *
  */
-public class AllDocumentOperatedClause implements OperatedClause {
-	private static Logger logger = LoggerFactory.getLogger(AllDocumentOperatedClause.class);
+public class AllDocumentOperatedClause extends OperatedClause {
 	private int docCount;
 	private int pos;
 	
-	public AllDocumentOperatedClause(int docCount) {
+	public AllDocumentOperatedClause(int docCount){
+		super("ALL");
 		this.docCount = docCount;
 	}
 
-	public boolean next(RankInfo docInfo) {
+	protected boolean nextDoc(RankInfo docInfo) {
 		if(pos < docCount){
 			docInfo.init(pos, 0);
 //			logger.debug(">>"+ docInfo.docNo());
@@ -49,6 +47,14 @@ public class AllDocumentOperatedClause implements OperatedClause {
 	@Override
 	public void close() {
 		
+	}
+
+	@Override
+	protected void initClause() {
+	}
+
+	@Override
+	public void initExplanation() {
 	}
 
 }

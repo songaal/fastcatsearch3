@@ -1,23 +1,23 @@
 package org.fastcatsearch.ir.search.clause;
 
 import org.fastcatsearch.ir.query.RankInfo;
-import org.fastcatsearch.ir.search.clause.OperatedClause;
 
 /**
  * 검색된 posting에 대해서 hit수와 상관없이 동일한 점수(score)를 부여한다.
  * */
-public class ScoreOperatedClause implements OperatedClause {
+public class ScoreOperatedClause extends OperatedClause {
 	
 	private OperatedClause operatedClause;
 	private int score;
 	
 	public ScoreOperatedClause(OperatedClause operatedClause, int score) {
+		super("SCORE");
 		this.operatedClause = operatedClause;
 		this.score = score;
 	}
-
+	
 	@Override
-	public boolean next(RankInfo docInfo) {
+	protected boolean nextDoc(RankInfo docInfo) {
 		if(operatedClause == null){
 			return false;
 		}
@@ -34,6 +34,18 @@ public class ScoreOperatedClause implements OperatedClause {
 		if(operatedClause != null){
 			operatedClause.close();
 		}
+	}
+
+	@Override
+	protected void initClause() {
+		operatedClause.initClause();		
+	}
+
+	@Override
+	protected void initExplanation() {
+		if(operatedClause != null) {
+			operatedClause.setExplanation(explanation.createSub1());
+		}		
 	}
 
 }

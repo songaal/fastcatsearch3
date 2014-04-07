@@ -20,8 +20,12 @@ import java.util.Map;
 import java.util.Set;
 
 import org.fastcatsearch.ir.search.StoredProcedure;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class Metadata {
+	private static Logger logger = LoggerFactory.getLogger(Metadata.class);
 	
 	public final static String UD_KEYWORD = "KEYWORD";
 	
@@ -100,8 +104,11 @@ public class Metadata {
 		return option;
 	}
 	public void setSearchOptions(String value){
-		if (value.contains("nocache")){
+		if (value.contains("nocache")) {
 			option |= Query.SEARCH_OPT_NOCACHE;
+		}
+		if (value.contains("explain")) {
+			option |= Query.SEARCH_OPT_EXPLAIN;
 		}
 	}
 	public boolean isSearchOption(int value){

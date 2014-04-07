@@ -17,24 +17,27 @@
 package org.fastcatsearch.ir.search.clause;
 
 import org.fastcatsearch.ir.query.RankInfo;
+import org.fastcatsearch.ir.search.ClauseExplanation;
 
-public class WeightedOperatedClause implements OperatedClause {
+public class WeightedOperatedClause extends OperatedClause {
 	private OperatedClause mainClause;
-	private OperatedClause wieghtClause;
+	private OperatedClause weightClause;
 	private boolean hasNext1 = true;
 	private boolean hasNext2 = true;
 
 	private RankInfo docInfo1 = new RankInfo();
 	private RankInfo docInfo2 = new RankInfo();
 	
-	public WeightedOperatedClause(OperatedClause mainClause, OperatedClause wieghtClause) {
+	public WeightedOperatedClause(OperatedClause mainClause, OperatedClause weightClause) {
+		this(mainClause, weightClause, null);
+	}
+	public WeightedOperatedClause(OperatedClause mainClause, OperatedClause weightClause, ClauseExplanation explanation) {
+		super("WEIGHT");
 		this.mainClause = mainClause;
-		this.wieghtClause = wieghtClause;
-		
-		hasNext2 = wieghtClause.next(docInfo2);
+		this.weightClause = weightClause;
 	}
 
-	public boolean next(RankInfo docInfo) {
+	protected boolean nextDoc(RankInfo docInfo) {
 		
 		hasNext1 = mainClause.next(docInfo1);
 		
@@ -49,7 +52,7 @@ public class WeightedOperatedClause implements OperatedClause {
 					return true;
 				}
 				while (hasNext2 && (doc1 > doc2)) {
-					hasNext2 = wieghtClause.next(docInfo2);
+					hasNext2 = weightClause.next(docInfo2);
 					doc2 = docInfo2.docNo();
 					score2 = docInfo2.score();
 				}
@@ -57,7 +60,7 @@ public class WeightedOperatedClause implements OperatedClause {
 
 			if (hasNext1 && hasNext2 && (doc1 == doc2)) {
 				docInfo.init(doc1, score1 + score2);
-				hasNext2 = wieghtClause.next(docInfo2);
+				hasNext2 = weightClause.next(docInfo2);
 				return true;
 			}
 			if (hasNext1){
@@ -73,7 +76,7 @@ public class WeightedOperatedClause implements OperatedClause {
 
 	@Override
 	public String toString() {
-		return "[" + getClass().getSimpleName() + "]" + (mainClause != null ? mainClause.toString() : "null") + " / " + (wieghtClause != null ? wieghtClause.toString() : "null");
+		return "[" + getClass().getSimpleName() + "]" + (mainClause != null ? mainClause.toString() : "null") + " / " + (weightClause != null ? weightClause.toString() : "null");
 	}
 
 	@Override
@@ -81,8 +84,25 @@ public class WeightedOperatedClause implements OperatedClause {
 		if(mainClause != null){
 			mainClause.close();
 		}
-		if(wieghtClause != null){
-			wieghtClause.close();
+		if(weightClause != null){
+			weightClause.close();
+		}		
+	}
+	
+	@Override
+	protected void initClause() {
+		mainClause.initClause();
+		weightClause.initClause();
+		hasNext2 = weightClause.next(docInfo2);
+	}
+	
+	@Override
+	protected void initExplanation() {
+		if(mainClause != null) {
+			mainClause.setExplanation(explanation.createSub1());
+		}
+		if(weightClause != null) {
+			weightClause.setExplanation(explanation.createSub2());
 		}		
 	}
 

@@ -111,15 +111,18 @@ public class SearchIndexesReader implements Cloneable {
 		
 		return reader;
 	}
-
+	
 	public OperatedClause getOperatedClause(Term term, HighlightInfo highlightInfo) throws IOException, IRException {
+		return getOperatedClause(term, highlightInfo, null);
+	}
+	
+	public OperatedClause getOperatedClause(Term term, HighlightInfo highlightInfo, ClauseExplanation explanation) throws IOException, IRException {
 		String[] indexFieldIdList = term.indexFieldId();
 
 		OperatedClause totalClause = null;
-
+		ClauseExplanation exp = null;
 		for (int i = 0; i < indexFieldIdList.length; i++) {
 			String indexFieldId = indexFieldIdList[i];
-
 			logger.debug("getOperatedClause [{}] >> [{}]", indexFieldId, term);
 
 			boolean isPrimaryKeyField = false;
@@ -131,19 +134,16 @@ public class SearchIndexesReader implements Cloneable {
 				if (indexFieldId.equals(primaryKeyId)) {
 					isPrimaryKeyField = true;
 				} else {
-					throw new IRException("Unknown Search Fieldname = " + indexFieldId);
+					throw new IRException("Unknown Search index field id = " + indexFieldId);
 				}
 			}
 
 			OperatedClause oneFieldClause = null;
-
 			if (isPrimaryKeyField) {
 				oneFieldClause = primaryKeyIndexesReader.getOperatedClause(term);
 			} else {
 				SearchIndexReader searchIndexReader = readerList.get(indexFieldSequence);
-				
 				oneFieldClause = term.createOperatedClause(searchIndexReader, highlightInfo);
-//				oneFieldClause = searchIndexReader.getOperatedClause(term, highlightInfo);
 			}
 
 			if (totalClause == null) {

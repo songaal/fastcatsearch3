@@ -19,7 +19,7 @@ package org.fastcatsearch.ir.search.clause;
 import org.fastcatsearch.ir.query.RankInfo;
 
 
-public class OrOperatedClause implements OperatedClause {
+public class OrOperatedClause extends OperatedClause {
 	private OperatedClause clause1;
 	private OperatedClause clause2;
 	private boolean hasNext1 = true;
@@ -29,19 +29,16 @@ public class OrOperatedClause implements OperatedClause {
 	private RankInfo docInfo2 = new RankInfo();
 	
 	public OrOperatedClause(OperatedClause clause1, OperatedClause clause2) {
+		super("OR");
 		this.clause1 = clause1;
 		this.clause2 = clause2;
-		
-		hasNext1 = clause1.next(docInfo1);
-		hasNext2 = clause2.next(docInfo2);
 	}
-
-	public boolean next(RankInfo docInfo) {
+	
+	protected boolean nextDoc(RankInfo docInfo) {
 		
 		if(hasNext1 || hasNext2){
 			int doc1 = docInfo1.docNo();
 			int doc2 = docInfo2.docNo();
-			
 			if(hasNext1 && hasNext2){
 				if(doc1 < doc2){
 					docInfo.init(doc1, docInfo1.score(), docInfo1.hit());
@@ -81,6 +78,24 @@ public class OrOperatedClause implements OperatedClause {
 		}
 		if(clause2 != null){
 			clause2.close();
+		}		
+	}
+
+	@Override
+	protected void initClause() {
+		clause1.initClause();
+		clause2.initClause();
+		hasNext1 = clause1.next(docInfo1);
+		hasNext2 = clause2.next(docInfo2);
+	}
+
+	@Override
+	protected void initExplanation() {
+		if(clause1 != null) {
+			clause1.setExplanation(explanation.createSub1());
+		}
+		if(clause2 != null) {
+			clause2.setExplanation(explanation.createSub2());
 		}		
 	}
 
