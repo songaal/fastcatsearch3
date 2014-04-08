@@ -26,8 +26,8 @@ public class NotOperatedClause extends OperatedClause {
 	private boolean hasNext1 = true;
 	private boolean hasNext2 = true;
 	
-	private RankInfo docInfo1 = new RankInfo();
-	private RankInfo docInfo2 = new RankInfo();
+	private RankInfo docInfo1;
+	private RankInfo docInfo2;
 	
 	public NotOperatedClause(OperatedClause clause1, OperatedClause clause2) {
 		super("NOT");
@@ -35,14 +35,14 @@ public class NotOperatedClause extends OperatedClause {
 		this.clause2 = clause2;
 	}
 
-	protected boolean nextDoc(RankInfo docInfo) {
+	protected boolean nextDoc(RankInfo rankInfo) {
 		if(!hasNext1)
 			return false;
 		
 		int doc1 = docInfo1.docNo();
 		int doc2 = docInfo2.docNo();
 		int score1 = docInfo1.score();
-		
+
 		do{
 			while(hasNext1 && hasNext2 && (doc1 == doc2)){
 				hasNext1 = clause1.next(docInfo1);
@@ -60,7 +60,8 @@ public class NotOperatedClause extends OperatedClause {
 		} while(doc1 >= 0 && doc1 == doc2); //2012-02-03 문서리스트가 끝나, 번호가 -1이면 루프를 끝낸다.
 		
 		if(hasNext1){
-			docInfo.init(doc1, score1);
+			rankInfo.init(doc1, score1);
+			rankInfo.explain(docInfo1);
 			hasNext1 = clause1.next(docInfo1);
 			return true;
 		}else{
@@ -81,8 +82,12 @@ public class NotOperatedClause extends OperatedClause {
 
 	@Override
 	protected void initClause() {
+		docInfo1 = new RankInfo();
+		docInfo2 = new RankInfo();
+		
 		clause1.initClause();
 		clause2.initClause();
+		
 		hasNext1 = clause1.next(docInfo1);
 		hasNext2 = clause2.next(docInfo2);		
 	}

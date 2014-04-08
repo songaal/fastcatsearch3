@@ -16,6 +16,12 @@
 
 package org.fastcatsearch.ir.query;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * RankInfo는 포스팅을 검색한 결과로 OperatedClause의 next메소드를 통해 만들어 진다. RankInfo는 docNo와
  * score정보만 가지고 있으며 SortGenerator를 통해 소트필드정보를 가지는 HitElement를 만들게 된다.
@@ -24,10 +30,15 @@ package org.fastcatsearch.ir.query;
  * 
  */
 public class RankInfo {
+	protected static Logger logger = LoggerFactory.getLogger(RankInfo.class);
+	
 	private int docNo;
 	private int score;
 	private int hit; // 매칭횟수.
 
+	private boolean explain;
+	private List<RowExplanation> rowExplanations;
+	
 	public RankInfo() {
 	}
 
@@ -41,6 +52,10 @@ public class RankInfo {
 		this.hit = hit;
 	}
 
+	public boolean explain(){
+		return explain;
+	}
+	
 	public int docNo() {
 		return docNo;
 	}
@@ -75,5 +90,34 @@ public class RankInfo {
 
 	public String toString() {
 		return "docNo=" + docNo + ",score=" + score + ",hit=" + hit;
+	}
+
+	public List<RowExplanation> rowExplanations(){
+		return rowExplanations;
+	}
+	
+	public void explain(String id, int score, String description) {
+		if(rowExplanations == null){
+			rowExplanations = new ArrayList<RowExplanation>();
+		}
+		
+		rowExplanations.add(new RowExplanation(id, score, description));
+	}
+	
+	public void explain(RankInfo rankInfo) {
+		if(rankInfo.rowExplanations() != null){
+			if(rowExplanations == null){
+				rowExplanations = new ArrayList<RowExplanation>();
+			}
+			for(RowExplanation exp : rankInfo.rowExplanations()){
+				rowExplanations.add(exp);
+			}
+		}
+	}
+
+	public void reset() {
+		if(rowExplanations != null){
+			rowExplanations.clear();
+		}
 	}
 }

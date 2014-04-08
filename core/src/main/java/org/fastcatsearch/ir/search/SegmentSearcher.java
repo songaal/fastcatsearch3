@@ -136,7 +136,7 @@ public class SegmentSearcher {
 		RankInfo[] rankInfoList = new RankInfo[BULK_SIZE];
 		boolean exausted = false;
 		BitSet localDeleteSet = segmentReader.deleteSet();
-		
+
 		ClauseExplanation clauseExplanation = null;
 		if(meta.isSearchOption(Query.SEARCH_OPT_EXPLAIN)) {
 			clauseExplanation = new ClauseExplanation();
@@ -151,7 +151,6 @@ public class SegmentSearcher {
 			for (nread = 0; nread < BULK_SIZE; nread++) {
 				RankInfo rankInfo = new RankInfo();
 				if (operatedClause.next(rankInfo)) {
-//					logger.debug("rankInfo > {}, {}",clauseExplanation.getTf(), rankInfo);
 					rankInfoList[nread] = rankInfo;
 				} else {
 					exausted = true;
@@ -200,7 +199,7 @@ public class SegmentSearcher {
 			if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
 				// if sort is not set, rankdata is null
 				for (int i = 0; i < nread; i++) {
-					ranker.push(new HitElement(rankInfoList[i].docNo(), rankInfoList[i].score()));
+					ranker.push(new HitElement(rankInfoList[i].docNo(), rankInfoList[i].score(), rankInfoList[i].rowExplanations()));
 				}
 			} else {
 				// if sort set
@@ -210,6 +209,8 @@ public class SegmentSearcher {
 					ranker.push(e[i]);
 				}
 			}
+			
+			
 //			sortTime += (System.nanoTime() - st);
 			totalCount += nread;
 		}
@@ -234,10 +235,11 @@ public class SegmentSearcher {
 			//여기에서 segment번호를 셋팅해준다. 
 			el.setDocNo(segmentSequence, el.docNo());
 			
-//			logger.debug("rank hit seg#{} {} ", segmentSequence, el.docNo());
+			logger.debug("rank hit seg#{} {}:{} > {}", segmentSequence, el.docNo(), el.score(), el.rowExplanations());
 			hitStack.push(el);
 
 		}
+		
 		return hitStack;
 	}
 

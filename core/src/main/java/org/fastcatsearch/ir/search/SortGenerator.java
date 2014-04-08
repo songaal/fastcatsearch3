@@ -103,7 +103,7 @@ public class SortGenerator {
 			indexRef.read(ri.docNo());
 			
 			BytesRef[] rankData = readRankData(ri);
-			result[i] = new HitElement(ri.docNo(), ri.score(), rankData);
+			result[i] = new HitElement(ri.docNo(), ri.score(), rankData, rankInfoList[i].rowExplanations());
 		}
 		
 		return result;

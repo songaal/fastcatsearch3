@@ -159,11 +159,11 @@ public class BooleanClause extends OperatedClause {
 	}
 
 	@Override
-	protected boolean nextDoc(RankInfo docInfo) {
+	protected boolean nextDoc(RankInfo rankInfo) {
 		if (operatedClause == null) {
 			return false;
 		}
-		return operatedClause.next(docInfo);
+		return operatedClause.next(rankInfo);
 	}
 
 	@Override
@@ -179,7 +179,15 @@ public class BooleanClause extends OperatedClause {
 	
 	@Override
 	protected void initExplanation() {
+		if(operatedClause != null){
+			operatedClause.setExplanation(explanation.createSub1());
+		}
 		explanation.setTerm(termString);
+	}
+	
+	@Override
+	public String term() {
+		return termString;
 	}
 
 }

@@ -172,11 +172,11 @@ public class ClusterSearchJob extends Job {
 			DocIdList[] docIdList = new DocIdList[collectionIdList.length];
 			int[] collectionTags = new int[realSize]; // 해당 문서가 어느 collection에 속하는지 알려주는 항목.
 			// int[] eachDocIds = new int[realSize];
-			ArrayDeque<Float>[] eachScores = new ArrayDeque[collectionIdList.length];
+			ArrayDeque<Integer>[] eachScores = new ArrayDeque[collectionIdList.length];
 
 			for (int i = 0; i < collectionIdList.length; i++) {
 				docIdList[i] = new DocIdList(realSize);
-				eachScores[i] = new ArrayDeque<Float>(realSize);
+				eachScores[i] = new ArrayDeque<Integer>(realSize);
 			}
 
 			int idx = 0;

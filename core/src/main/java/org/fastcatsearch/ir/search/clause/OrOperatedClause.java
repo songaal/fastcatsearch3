@@ -34,20 +34,23 @@ public class OrOperatedClause extends OperatedClause {
 		this.clause2 = clause2;
 	}
 	
-	protected boolean nextDoc(RankInfo docInfo) {
-		
+	protected boolean nextDoc(RankInfo rankInfo) {
 		if(hasNext1 || hasNext2){
 			int doc1 = docInfo1.docNo();
 			int doc2 = docInfo2.docNo();
 			if(hasNext1 && hasNext2){
 				if(doc1 < doc2){
-					docInfo.init(doc1, docInfo1.score(), docInfo1.hit());
+					rankInfo.init(doc1, docInfo1.score(), docInfo1.hit());
+					rankInfo.explain(docInfo1);
 					hasNext1 = clause1.next(docInfo1);
 				}else if(doc1 > doc2){
-					docInfo.init(doc2, docInfo2.score(), docInfo2.hit());
+					rankInfo.init(doc2, docInfo2.score(), docInfo2.hit());
+					rankInfo.explain(docInfo2);
 					hasNext2 = clause2.next(docInfo2);
 				}else{
-					docInfo.init(doc1, docInfo1.score() + docInfo2.score(), docInfo1.hit() + docInfo2.hit());
+					rankInfo.init(doc1, docInfo1.score() + docInfo2.score(), docInfo1.hit() + docInfo2.hit());
+					rankInfo.explain(docInfo1);
+					rankInfo.explain(docInfo2);
 					hasNext1 = clause1.next(docInfo1);
 					hasNext2 = clause2.next(docInfo2);
 				}
@@ -55,13 +58,15 @@ public class OrOperatedClause extends OperatedClause {
 			}
 			
 			if(hasNext1){
-				docInfo.init(doc1, docInfo1.score(), docInfo1.hit());
+				rankInfo.init(doc1, docInfo1.score(), docInfo1.hit());
+				rankInfo.explain(docInfo1);
 				hasNext1 = clause1.next(docInfo1);
 				return true;
 			}
 		
 			if(hasNext2){
-				docInfo.init(doc2, docInfo2.score(), docInfo2.hit());
+				rankInfo.init(doc2, docInfo2.score(), docInfo2.hit());
+				rankInfo.explain(docInfo2);
 				hasNext2 = clause2.next(docInfo2);
 				return true;
 			}
@@ -83,6 +88,9 @@ public class OrOperatedClause extends OperatedClause {
 
 	@Override
 	protected void initClause() {
+		docInfo1 = new RankInfo();
+		docInfo2 = new RankInfo();
+		
 		clause1.initClause();
 		clause2.initClause();
 		hasNext1 = clause1.next(docInfo1);

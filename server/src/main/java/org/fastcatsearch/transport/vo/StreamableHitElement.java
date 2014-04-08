@@ -1,11 +1,14 @@
 package org.fastcatsearch.transport.vo;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
+import org.fastcatsearch.ir.query.RowExplanation;
 import org.fastcatsearch.ir.search.HitElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +39,7 @@ public class StreamableHitElement implements Streamable {
 		for (int hitElementInx = 0; hitElementInx < count; hitElementInx++) {
 			int segmentSequence = input.readInt();
 			int docNo = input.readInt();
-			float score = input.readFloat();
+			int score = input.readInt();
 			int rankDataSize = input.readInt();
 //			logger.debug("read dataLength = {},{}", dataOffset, dataLength);
 			BytesRef[] rankData = new BytesRef[rankDataSize];
@@ -44,7 +47,16 @@ public class StreamableHitElement implements Streamable {
 				rankData[rankDataInx] = new BytesRef(input.readVInt());
 				input.readBytes(rankData[rankDataInx]);
 			}
-			hitElements[hitElementInx] = new HitElement(segmentSequence, docNo, score, rankData);
+			int explanationSize = input.readVInt();
+			List<RowExplanation> explanations = null;
+			if (explanationSize > 0) {
+				explanations = new ArrayList<RowExplanation>();
+				for (int i = 0; i < explanationSize; i++) {
+					explanations.add(new RowExplanation(input.readString(), input.readVInt(), input.readString()));
+				}
+			}
+			
+			hitElements[hitElementInx] = new HitElement(segmentSequence, docNo, score, rankData, explanations);
 		}
 	}
 
@@ -57,11 +69,22 @@ public class StreamableHitElement implements Streamable {
 			BytesRef[] rankData = hitElement.rankData();
 			output.writeInt(hitElement.segmentSequence());
 			output.writeInt(hitElement.docNo());
-			output.writeFloat(hitElement.score());
+			output.writeInt(hitElement.score());
 			output.writeInt(hitElement.rankDataSize());
 			for (int i = 0; i < hitElement.rankDataSize(); i++) {
 				output.writeVInt(rankData[i].length());
 				output.writeBytes(rankData[i]);
+			}
+			if(hitElement.rowExplanations() != null){
+				output.writeVInt(hitElement.rowExplanations().size());
+				for(RowExplanation exp : hitElement.rowExplanations()){
+					output.writeString(exp.getId());
+					output.writeVInt(exp.getScore());
+					output.writeString(exp.getDescription());
+				}
+				
+			}else{
+				output.writeVInt(0);
 			}
 		}
 	}

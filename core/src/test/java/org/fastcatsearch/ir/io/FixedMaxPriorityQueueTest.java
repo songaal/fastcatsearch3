@@ -40,7 +40,7 @@ public class FixedMaxPriorityQueueTest extends TestCase{
 		for(int i=0;i<ELEMENT_MAX;i++){
 			byte[] rankdata = new byte[4]; 
 			r.nextBytes(rankdata);
-			els[i] = new HitElement(i, r.nextInt(1000), new BytesRef[]{new BytesRef(rankdata)});
+			els[i] = new HitElement(i, r.nextInt(1000), new BytesRef[]{new BytesRef(rankdata)}, null);
 			queue.push(els[i]);
 			System.out.println(">>"+els[i]);
 		}

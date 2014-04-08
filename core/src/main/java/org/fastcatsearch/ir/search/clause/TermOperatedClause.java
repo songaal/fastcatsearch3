@@ -28,6 +28,8 @@ public class TermOperatedClause extends OperatedClause {
 	private int segmentDF;
 	private int documentCount;
 
+	private String termString;
+	
 	public TermOperatedClause(String indexId, PostingReader postingReader) throws IOException {
 		super(indexId);
 		if (postingReader != null) {
@@ -35,11 +37,12 @@ public class TermOperatedClause extends OperatedClause {
 			this.segmentDF = postingReader.size();
 			this.documentCount = postingReader.documentCount();
 		}
+		termString = postingReader.term().toString();
 	}
 
-	protected boolean nextDoc(RankInfo docInfo) {
+	protected boolean nextDoc(RankInfo rankInfo) {
 		if (postingReader == null) {
-			docInfo.init(-1, 0, 0);
+			rankInfo.init(-1, 0, 0);
 			return false;
 		}
 		if (postingReader.hasNext()) {
@@ -50,10 +53,13 @@ public class TermOperatedClause extends OperatedClause {
 				float idf = (float) Math.log(documentCount / segmentDF);
 				score = (int) ((tf * idf * postingReader.weight()) * SCORE_BASE);
 			}
-			docInfo.init(postingDoc.docNo(), score, postingDoc.tf());
+			rankInfo.init(postingDoc.docNo(), score, postingDoc.tf());
+			if(isExplain()){
+				rankInfo.explain(id, score, postingReader.term().toString());
+			}
 			return true;
 		} else {
-			docInfo.init(-1, 0, 0);
+			rankInfo.init(-1, 0, 0);
 			return false;
 		}
 	}
@@ -83,4 +89,8 @@ public class TermOperatedClause extends OperatedClause {
 		explanation.setTerm(postingReader.term().toString());
 	}
 
+	@Override
+	public String term() {
+		return termString;
+	}
 }

@@ -52,6 +52,10 @@ public abstract class OperatedClause {
 	
 	protected abstract void initClause();
 
+	public boolean isExplain(){
+		return explanation != null;
+	}
+	
 	public void setExplanation(ClauseExplanation explanation) {
 		this.explanation = explanation;
 		if(explanation != null) {
@@ -63,14 +67,17 @@ public abstract class OperatedClause {
 	protected abstract void initExplanation();
 	
 	/**
-	 * @param docInfo
+	 * @param rankInfo
 	 * @return RankInfo를 올바로 읽었는지 여부. 
 	 */
-	public boolean next(RankInfo docInfo) {
+	public boolean next(RankInfo rankInfo) {
+		
+		//explain정보를 채우기전에 clear한다. 
 		if(explanation != null){
+			rankInfo.reset();
 			long start = System.nanoTime();
-			if(nextDoc(docInfo)){
-				explanation.set(docInfo.score(), docInfo.hit());
+			if(nextDoc(rankInfo)){
+				explanation.set(rankInfo.score(), rankInfo.hit());
 				explanation.addTime(System.nanoTime() - start);
 				explanation.addRow();
 				return true;
@@ -80,7 +87,7 @@ public abstract class OperatedClause {
 				return false;
 			}
 		}else{
-			return nextDoc(docInfo);
+			return nextDoc(rankInfo);
 		}
 	}
 	

@@ -16,7 +16,10 @@
 
 package org.fastcatsearch.ir.search;
 
+import java.util.List;
+
 import org.apache.lucene.util.BytesRef;
+import org.fastcatsearch.ir.query.RowExplanation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,19 +35,21 @@ public class HitElement implements Comparable<HitElement> {
 	
 	private int segmentSequence;
 	private int docNo;
-	private float score; //매칭점수
+	private int score; //매칭점수
 	private BytesRef[] rankData; //필드값으로 정렬할 경우 필드값 데이터
+	private List<RowExplanation> list;
 	
-	public HitElement(int docNo, float score){
-		this(-1, docNo, score, null);
+	public HitElement(int docNo, int score, List<RowExplanation> list){
+		this(-1, docNo, score, null, list);
 	}
-	public HitElement(int docNo, float score, BytesRef[] dataList){
-		this(-1, docNo, score, dataList);
+	public HitElement(int docNo, int score, BytesRef[] dataList, List<RowExplanation> list){
+		this(-1, docNo, score, dataList, list);
 	}
-	public HitElement(int segmentSequence, int docNo, float score, BytesRef[] dataList){
+	public HitElement(int segmentSequence, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list){
 		this.docNo = docNo;
 		this.score = score;
 		this.rankData = dataList;
+		this.list = list;
 	}
 	public String collectionId(){
 		return collectionId;
@@ -62,7 +67,7 @@ public class HitElement implements Comparable<HitElement> {
 		this.segmentSequence = segmentSequence;
 		this.docNo = docNo;
 	}
-	public float score(){
+	public int score(){
 		return score;
 	}
 	
@@ -79,6 +84,10 @@ public class HitElement implements Comparable<HitElement> {
 			return 0;
 		}
 		return rankData.length;
+	}
+	
+	public List<RowExplanation> rowExplanations(){
+		return list;
 	}
 	
 //	public HitElement addBaseDocNo(int baseDocNo){

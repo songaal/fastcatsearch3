@@ -32,22 +32,41 @@ public class ClauseExplanation {
 	}
 	
 	public String toString(){
-		return getString(0);
+		return getResultInfo(0);
 	}
-	public String getString(int depth){
+	public String getResultInfo(int depth){
 		StringBuffer sb = new StringBuffer();
 		String indent = "";
 		for (int i = 0; i < depth; i++) {
 			indent += "      ";
 		}
-		sb.append("[").append(id).append("]").append(term != null ? term : "").append(" score[").append(score).append("] weight[").append(weight).append("] rows[").append(rows).append("] time[").append(time).append("]");
+		sb.append("<").append(id).append(">").append(term != null ? term : "").append(" rows[").append(rows).append("] time[").append(time).append("]");
 		if (sub1 != null) {
 			sb.append("\n").append(indent).append("   |--");
-			sb.append(sub1.getString(depth + 1));
+			sb.append(sub1.getResultInfo(depth + 1));
 		}
 		if (sub2 != null) {
 			sb.append("\n").append(indent).append("   |--");
-			sb.append(sub2.getString(depth + 1));
+			sb.append(sub2.getResultInfo(depth + 1));
+		}
+		
+		return sb.toString();
+	}
+	
+	public String getRowInfo(int depth){
+		StringBuffer sb = new StringBuffer();
+		String indent = "";
+		for (int i = 0; i < depth; i++) {
+			indent += "      ";
+		}
+		sb.append("[").append(id).append("]").append(term != null ? term : "").append(" score[").append(score).append("] weight[").append(weight).append("]");
+		if (sub1 != null) {
+			sb.append("\n").append(indent).append("   |--");
+			sb.append(sub1.getRowInfo(depth + 1));
+		}
+		if (sub2 != null) {
+			sb.append("\n").append(indent).append("   |--");
+			sb.append(sub2.getRowInfo(depth + 1));
 		}
 		
 		return sb.toString();
