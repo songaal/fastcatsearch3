@@ -9,7 +9,6 @@ import java.util.Map;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.ResultFuture;
-import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
@@ -41,7 +40,6 @@ import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableDocumentResult;
 import org.fastcatsearch.transport.vo.StreamableInternalSearchResult;
-import org.fastcatsearch.util.DynamicClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -266,9 +264,8 @@ public class ClusterSearchJob extends Job {
 
 			searchResult = new Result(rows, groupResults, fieldIdList, realSize, totalSize, meta.start());
 
-			String resultModifierId = meta.resultModifier();
-			if(resultModifierId != null && resultModifierId.length() > 0){
-				ResultModifier resultModifier = DynamicClassLoader.loadObject(resultModifierId, ResultModifier.class);
+			ResultModifier resultModifier = meta.resultModifier();
+			if(resultModifier != null){
 				searchResult = resultModifier.modify(searchResult);
 			}
 			

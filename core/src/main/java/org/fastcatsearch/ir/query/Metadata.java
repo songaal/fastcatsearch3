@@ -37,7 +37,7 @@ public class Metadata {
 	private String[] highlightTags;
 	private String collectionId;
 	private QueryModifier queryModifier;
-	private String resultModifier;
+	private ResultModifier resultModifier;
 	private StoredProcedure storedProcedure;
 	
 	public Metadata(){ }
@@ -149,10 +149,10 @@ public class Metadata {
 		this.queryModifier = queryModifier;
 	}
 	
-	public String resultModifier(){
+	public ResultModifier resultModifier(){
 		return resultModifier;
 	}
-	public void setResultModifier(String resultModifier){
+	public void setResultModifier(ResultModifier resultModifier){
 		this.resultModifier = resultModifier;
 	}
 

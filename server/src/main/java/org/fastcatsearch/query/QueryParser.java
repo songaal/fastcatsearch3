@@ -29,6 +29,7 @@ import org.fastcatsearch.ir.query.Groups;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.QueryModifier;
+import org.fastcatsearch.ir.query.ResultModifier;
 import org.fastcatsearch.ir.query.Sort;
 import org.fastcatsearch.ir.query.Sorts;
 import org.fastcatsearch.ir.query.Term;
@@ -271,7 +272,8 @@ public class QueryParser {
 			m.setQueryModifier(queryModifier);
 		} else if (Query.EL.rm == el) {
 			Metadata m = query.getMeta();
-			m.setResultModifier(value);
+			ResultModifier resultModifier = (ResultModifier) DynamicClassLoader.loadObject(value);
+			m.setResultModifier(resultModifier);
 		} else if (Query.EL.sp == el) {
 			Metadata m = query.getMeta();
 			StoredProcedure sp = (StoredProcedure) DynamicClassLoader.loadObject(value);
