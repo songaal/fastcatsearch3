@@ -33,14 +33,16 @@ public class AllDocumentOperatedClause extends OperatedClause {
 		this.docCount = docCount;
 	}
 
-	protected boolean nextDoc(RankInfo docInfo) {
+	protected boolean nextDoc(RankInfo rankInfo) {
 		if(pos < docCount){
-			docInfo.init(pos, 0);
-//			logger.debug(">>"+ docInfo.docNo());
+			if(isExplain()){
+				rankInfo.explain(id, 0, "");
+			}
+			rankInfo.init(pos, 0);
 			pos++;
 			return true;
 		}
-		docInfo.init(-1,-1);
+		rankInfo.init(-1,-1);
 		return false;
 	}
 
