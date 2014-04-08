@@ -24,6 +24,7 @@ import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.QueryModifier;
 import org.fastcatsearch.ir.query.Result;
+import org.fastcatsearch.ir.query.ResultModifier;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.query.ViewContainer;
 import org.fastcatsearch.ir.search.DocIdList;
@@ -40,6 +41,7 @@ import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableDocumentResult;
 import org.fastcatsearch.transport.vo.StreamableInternalSearchResult;
+import org.fastcatsearch.util.DynamicClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,40 +59,44 @@ public class ClusterSearchJob extends Job {
 		long st = System.nanoTime();
 		QueryMap queryMap = (QueryMap) getArgs();
 		boolean noCache = false;
-
+		String collectionId = null;
+		String searchKeyword = null;
 		Query q = null;
-		try {
-			q = QueryParser.getInstance().parseQuery(queryMap);
-		} catch (QueryParseException e) {
-			throw new FastcatSearchException("[Query Parsing Error] " + e.getMessage());
-		}
-
-		Metadata meta = q.getMeta();
-		QueryModifier queryModifier = meta.queryModifier();
-		//쿼리모디파이.
-		if (queryModifier != null) {
-			q = queryModifier.modify(q);
-		}
-		
-		String collectionId = meta.collectionId();
-		String searchKeyword = meta.getUserData("KEYWORD");
-		// no cache 옵션이 없으면 캐시를 확인한다.
-		if (meta.isSearchOption(Query.SEARCH_OPT_NOCACHE)) {
-			noCache = true;
-		}
-
-		IRService irService = ServiceManager.getInstance().getService(IRService.class);
-		if (!noCache) {
-			Result result = irService.searchCache().get(queryMap.queryString());
-			// logger.debug("CACHE_GET result>>{}, qr >>{}", result, queryMap.queryString());
-			if (result != null) {
-				writeSearchLog(collectionId, searchKeyword, result, (System.nanoTime() - st) / 1000000, true);
-				return new JobResult(result);
-			}
-		}
-
+		boolean isCache = false;
 		Result searchResult = null;
 		try {
+			
+			try {
+				q = QueryParser.getInstance().parseQuery(queryMap);
+			} catch (QueryParseException e) {
+				throw new FastcatSearchException("[Query Parsing Error] " + e.getMessage());
+			}
+	
+			Metadata meta = q.getMeta();
+			QueryModifier queryModifier = meta.queryModifier();
+			//쿼리모디파이.
+			if (queryModifier != null) {
+				q = queryModifier.modify(q);
+				meta = q.getMeta();
+			}
+			
+			collectionId = meta.collectionId();
+			searchKeyword = meta.getUserData("KEYWORD");
+			// no cache 옵션이 없으면 캐시를 확인한다.
+			if (meta.isSearchOption(Query.SEARCH_OPT_NOCACHE)) {
+				noCache = true;
+			}
+	
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+			if (!noCache) {
+				Result result = irService.searchCache().get(queryMap.queryString());
+				// logger.debug("CACHE_GET result>>{}, qr >>{}", result, queryMap.queryString());
+				if (result != null) {
+					isCache = true;
+					return new JobResult(result);
+				}
+			}
+			
 			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 
 			Groups groups = q.getGroups();
@@ -238,7 +244,7 @@ public class ClusterSearchJob extends Job {
 				int collectionNo = collectionTags[i];
 				DocumentResult documentResult = docResultList[collectionNo];
 				rows[i] = documentResult.next();
-				float score = eachScores[collectionNo].pop();
+				int score = eachScores[collectionNo].pop();
 				rows[i].setScore(score);
 			}
 
@@ -260,6 +266,12 @@ public class ClusterSearchJob extends Job {
 
 			searchResult = new Result(rows, groupResults, fieldIdList, realSize, totalSize, meta.start());
 
+			String resultModifierId = meta.resultModifier();
+			if(resultModifierId != null && resultModifierId.length() > 0){
+				ResultModifier resultModifier = DynamicClassLoader.loadObject(resultModifierId, ResultModifier.class);
+				searchResult = resultModifier.modify(searchResult);
+			}
+			
 			if(!noCache && realSize > 0){
 				irService.searchCache().put(queryMap.queryString(), searchResult);
 			}
@@ -267,9 +279,11 @@ public class ClusterSearchJob extends Job {
 
 //			logger.debug("ClusterSearchJob 수행시간 : {}", Strings.getHumanReadableTimeInterval((System.nanoTime() - st) / 1000000));
 			return new JobResult(searchResult);
+		}catch(Throwable t){
+			throw new FastcatSearchException(t);
 		} finally {
 			//로깅은 반드시 수행한다.
-			writeSearchLog(collectionId, searchKeyword, searchResult, (System.nanoTime() - st) / 1000000, false);
+			writeSearchLog(collectionId, searchKeyword, searchResult, (System.nanoTime() - st) / 1000000, isCache);
 		}
 	}
 

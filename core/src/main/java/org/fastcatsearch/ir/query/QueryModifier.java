@@ -1,5 +1,6 @@
 package org.fastcatsearch.ir.query;
 
+import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.search.clause.Clause;
 import org.slf4j.Logger;
@@ -7,22 +8,22 @@ import org.slf4j.LoggerFactory;
 
 public abstract class QueryModifier extends Query {
 	protected static Logger logger = LoggerFactory.getLogger(QueryModifier.class);
-	
+
 	protected Query query;
-	
-	public QueryModifier(){
+
+	public QueryModifier() {
 	}
-	
-	public QueryModifier modify(Query query){
+
+	public QueryModifier modify(Query query) throws IRException {
 		this.query = query;
 		init0();
 		return this;
 	}
-	
-	protected abstract void init0();	
-	
+
+	protected abstract void init0();
+
 	@Override
-	public Clause getClause(){
+	public Clause getClause() {
 		return query.getClause();
 	}
 
@@ -40,7 +41,7 @@ public abstract class QueryModifier extends Query {
 	public Groups getGroups() {
 		return query.getGroups();
 	}
-	
+
 	@Override
 	public Sorts getSorts() {
 		return query.getSorts();
