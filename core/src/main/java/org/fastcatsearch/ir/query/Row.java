@@ -21,7 +21,7 @@ public class Row {
 	private static char[] EMPTY_ROW = new char[0];
 	private char[][] row;
 	private int fieldCount;
-	private float score;
+	private int score;
 	//원문조회기능에서필요.
 	private boolean isDeleted;
 	private String rowTag;
@@ -79,11 +79,11 @@ public class Row {
 		this.rowTag = rowTag;
 	}
 
-	public float getScore(){
+	public int getScore(){
 		return score;
 	}
 	
-	public void setScore(float score) {
+	public void setScore(int score) {
 		this.score = score;
 	}
 }
