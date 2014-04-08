@@ -38,6 +38,7 @@ public class BoostFilter extends FilterFunction {
 
 	public BoostFilter(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting) throws FilterException {
 		super(filter, fieldIndexSetting, fieldSetting, true);
+		logger.debug("BoostFilter >> {}", filter);
 	}
 
 	@Override
@@ -48,12 +49,24 @@ public class BoostFilter extends FilterFunction {
 			
 			if(fieldSetting.getType() == Type.INT){
 				rankInfo.addScore(bytesRef.toIntValue());
+				if(rankInfo.isExplain()) {
+					rankInfo.explain(fieldIndexId, bytesRef.toIntValue(), "BOOST_FILTER");
+				}
 			}else if(fieldSetting.getType() == Type.LONG){
 				rankInfo.addScore(bytesRef.toLongValue());
+				if(rankInfo.isExplain()) {
+					rankInfo.explain(fieldIndexId, (int) bytesRef.toLongValue(), "BOOST_FILTER");
+				}
 			}else if(fieldSetting.getType() == Type.FLOAT){
 				rankInfo.addScore(Float.intBitsToFloat(bytesRef.toIntValue()));
+				if(rankInfo.isExplain()) {
+					rankInfo.explain(fieldIndexId, (int) Float.intBitsToFloat(bytesRef.toIntValue()), "BOOST_FILTER");
+				}
 			}else if(fieldSetting.getType() == Type.DOUBLE){
-				rankInfo.addScore((float) Double.longBitsToDouble(bytesRef.toLongValue()));
+				rankInfo.addScore((int) Double.longBitsToDouble(bytesRef.toLongValue()));
+				if(rankInfo.isExplain()) {
+					rankInfo.explain(fieldIndexId, (int) Double.longBitsToDouble(bytesRef.toLongValue()), "BOOST_FILTER");
+				}
 			}
 			return true;
 		}

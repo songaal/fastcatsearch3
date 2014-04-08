@@ -1,5 +1,8 @@
 package org.fastcatsearch.ir.search;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class ClauseExplanation {
 	
@@ -16,19 +19,23 @@ public class ClauseExplanation {
 	private int rows;
 	private long time;
 	
-	private ClauseExplanation sub1;
-	private ClauseExplanation sub2;
+	private List<ClauseExplanation> subExplanations;
 	
 	public ClauseExplanation(){
 	}
 	
-//	public ClauseExplanation(String id){
-//		this.id = id;
-//	}
-	
 	public ClauseExplanation(String id, String term){
 		this.id = id;
 		this.term = term;
+	}
+	
+	public ClauseExplanation createSubExplanation(){
+		if(subExplanations == null){
+			subExplanations = new ArrayList<ClauseExplanation>(2);
+		}
+		ClauseExplanation sub = new ClauseExplanation();
+		subExplanations.add(sub);
+		return sub;
 	}
 	
 	public String toString(){
@@ -41,15 +48,12 @@ public class ClauseExplanation {
 			indent += "      ";
 		}
 		sb.append("<").append(id).append(">").append(term != null ? term : "").append(" rows[").append(rows).append("] time[").append(time).append("]");
-		if (sub1 != null) {
-			sb.append("\n").append(indent).append("   |--");
-			sb.append(sub1.getResultInfo(depth + 1));
+		if (subExplanations != null) {
+			for(ClauseExplanation exp : subExplanations){
+				sb.append("\n").append(indent).append("   |--");
+				sb.append(exp.getResultInfo(depth + 1));
+			}
 		}
-		if (sub2 != null) {
-			sb.append("\n").append(indent).append("   |--");
-			sb.append(sub2.getResultInfo(depth + 1));
-		}
-		
 		return sb.toString();
 	}
 	
@@ -60,15 +64,12 @@ public class ClauseExplanation {
 			indent += "      ";
 		}
 		sb.append("[").append(id).append("]").append(term != null ? term : "").append(" score[").append(score).append("] weight[").append(weight).append("]");
-		if (sub1 != null) {
-			sb.append("\n").append(indent).append("   |--");
-			sb.append(sub1.getRowInfo(depth + 1));
+		if (subExplanations != null) {
+			for(ClauseExplanation exp : subExplanations){
+				sb.append("\n").append(indent).append("   |--");
+				sb.append(exp.getRowInfo(depth + 1));
+			}
 		}
-		if (sub2 != null) {
-			sb.append("\n").append(indent).append("   |--");
-			sb.append(sub2.getRowInfo(depth + 1));
-		}
-		
 		return sb.toString();
 	}
 	
@@ -124,28 +125,6 @@ public class ClauseExplanation {
 	}
 	public void setTime(long time) {
 		this.time = time;
-	}
-	public ClauseExplanation getSub1() {
-		return sub1;
-	}
-	public void setSub1(ClauseExplanation sub1) {
-		this.sub1 = sub1;
-	}
-	public ClauseExplanation getSub2() {
-		return sub2;
-	}
-	public void setSub2(ClauseExplanation sub2) {
-		this.sub2 = sub2;
-	}
-
-	public ClauseExplanation createSub1() {
-		sub1 = new ClauseExplanation();
-		return sub1; 
-	}
-	
-	public ClauseExplanation createSub2() {
-		sub2 = new ClauseExplanation();
-		return sub2; 
 	}
 	
 }

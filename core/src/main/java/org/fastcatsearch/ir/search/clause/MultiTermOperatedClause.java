@@ -248,11 +248,11 @@ public class MultiTermOperatedClause extends OperatedClause {
 	}
 
 	@Override
-	protected void initClause() {
+	protected void initClause(boolean explain) {
 	}
 
-	@Override
-	protected void initExplanation() {
-	}
+//	@Override
+//	protected void initExplanation() {
+//	}
 
 }

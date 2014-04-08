@@ -75,19 +75,19 @@ public class BoostOperatedClause extends OperatedClause {
 	}
 
 	@Override
-	protected void initClause() {
-		mainClause.initClause();
-		boostClause.initClause();
+	protected void initClause(boolean explain) {
+		mainClause.init(explanation != null ? explanation.createSubExplanation() : null);
+		boostClause.init(explanation != null ? explanation.createSubExplanation() : null);
 	}
 
-	@Override
-	protected void initExplanation() {
-		if(mainClause != null) {
-			mainClause.setExplanation(explanation.createSub1());
-		}
-		if(boostClause != null) {
-			boostClause.setExplanation(explanation.createSub2());
-		}
-	}
+//	@Override
+//	protected void initExplanation() {
+//		if(mainClause != null) {
+//			mainClause.setExplanation(explanation.createSub1());
+//		}
+//		if(boostClause != null) {
+//			boostClause.setExplanation(explanation.createSub2());
+//		}
+//	}
 
 }

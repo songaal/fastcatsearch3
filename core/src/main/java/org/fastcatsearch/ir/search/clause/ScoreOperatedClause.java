@@ -37,15 +37,15 @@ public class ScoreOperatedClause extends OperatedClause {
 	}
 
 	@Override
-	protected void initClause() {
-		operatedClause.initClause();		
+	protected void initClause(boolean explain) {
+		operatedClause.init(explanation != null ? explanation.createSubExplanation() : null);
 	}
 
-	@Override
-	protected void initExplanation() {
-		if(operatedClause != null) {
-			operatedClause.setExplanation(explanation.createSub1());
-		}		
-	}
+//	@Override
+//	protected void initExplanation() {
+//		if(operatedClause != null) {
+//			operatedClause.setExplanation(explanation.createSub1());
+//		}		
+//	}
 
 }

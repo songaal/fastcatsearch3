@@ -52,11 +52,11 @@ public class AllDocumentOperatedClause extends OperatedClause {
 	}
 
 	@Override
-	protected void initClause() {
+	protected void initClause(boolean explain) {
 	}
 
-	@Override
-	public void initExplanation() {
-	}
+//	@Override
+//	public void initExplanation() {
+//	}
 
 }

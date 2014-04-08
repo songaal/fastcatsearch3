@@ -41,6 +41,10 @@ public class RankInfo {
 	
 	public RankInfo() {
 	}
+	
+	public RankInfo(boolean explain) {
+		this.explain = explain;
+	}
 
 	public void init(int docNo, int score) {
 		init(docNo, score, 1);
@@ -52,7 +56,7 @@ public class RankInfo {
 		this.hit = hit;
 	}
 
-	public boolean explain(){
+	public boolean isExplain(){
 		return explain;
 	}
 	

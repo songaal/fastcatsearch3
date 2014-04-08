@@ -90,20 +90,20 @@ public class WeightedOperatedClause extends OperatedClause {
 	}
 	
 	@Override
-	protected void initClause() {
-		mainClause.initClause();
-		weightClause.initClause();
+	protected void initClause(boolean explain) {
+		mainClause.init(explanation != null ? explanation.createSubExplanation() : null);
+		weightClause.init(explanation != null ? explanation.createSubExplanation() : null);
 		hasNext2 = weightClause.next(docInfo2);
 	}
 	
-	@Override
-	protected void initExplanation() {
-		if(mainClause != null) {
-			mainClause.setExplanation(explanation.createSub1());
-		}
-		if(weightClause != null) {
-			weightClause.setExplanation(explanation.createSub2());
-		}		
-	}
+//	@Override
+//	protected void initExplanation() {
+//		if(mainClause != null) {
+//			mainClause.setExplanation(explanation.createSub1());
+//		}
+//		if(weightClause != null) {
+//			weightClause.setExplanation(explanation.createSub2());
+//		}		
+//	}
 
 }

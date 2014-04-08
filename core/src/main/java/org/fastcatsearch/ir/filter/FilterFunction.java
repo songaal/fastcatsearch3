@@ -41,8 +41,10 @@ public abstract class FilterFunction {
 	protected BytesRef[] endPatternList;
 	protected int boostScore;
 	protected boolean isBoostFunction;
+	protected String fieldIndexId;
 	
 	public FilterFunction(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting, boolean isBoostFunction) throws FilterException{
+		this.fieldIndexId = filter.fieldIndexId();
 		this.fieldSetting = fieldSetting;
 		this.isBoostFunction = isBoostFunction;
 		patternCount = filter.patternLength();

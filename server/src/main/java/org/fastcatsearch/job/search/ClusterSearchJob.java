@@ -242,6 +242,13 @@ public class ClusterSearchJob extends Job {
 				rows[i].setScore(score);
 			}
 
+			//TODO row별과 통합 explain결과 포함시킨다.
+			
+			
+			
+			
+			
+			
 			/*
 			 * Group Result
 			 */

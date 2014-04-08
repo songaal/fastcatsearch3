@@ -52,6 +52,10 @@ public class Filter {
 	private String[] endPatternList;
 	private int boostScore;
 
+	public Filter(String fieldIndexId, int function) {
+		this(fieldIndexId, function, "");
+	}
+	
 	public Filter(String fieldIndexId, int function, String pattern) {
 		this(fieldIndexId, function, pattern, null, 0);
 	}

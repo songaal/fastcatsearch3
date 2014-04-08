@@ -138,7 +138,8 @@ public class SegmentSearcher {
 		BitSet localDeleteSet = segmentReader.deleteSet();
 
 		ClauseExplanation clauseExplanation = null;
-		if(meta.isSearchOption(Query.SEARCH_OPT_EXPLAIN)) {
+		boolean isExplain = meta.isSearchOption(Query.SEARCH_OPT_EXPLAIN);
+		if(isExplain) {
 			clauseExplanation = new ClauseExplanation();
 		}
 		
@@ -149,7 +150,7 @@ public class SegmentSearcher {
 //			long st = System.nanoTime();
 			// search
 			for (nread = 0; nread < BULK_SIZE; nread++) {
-				RankInfo rankInfo = new RankInfo();
+				RankInfo rankInfo = new RankInfo(isExplain);
 				if (operatedClause.next(rankInfo)) {
 					rankInfoList[nread] = rankInfo;
 				} else {
@@ -158,7 +159,7 @@ public class SegmentSearcher {
 				}
 			}
 //			searchTime += (System.nanoTime() - st);st = System.nanoTime();
-			if (filters != null && hitFilter != null) {
+			if (filters != null && filters.size() > 0 && hitFilter != null) {
 				nread = hitFilter.filtering(rankInfoList, nread);
 			}
 //			filterTime += (System.nanoTime() - st);st = System.nanoTime();

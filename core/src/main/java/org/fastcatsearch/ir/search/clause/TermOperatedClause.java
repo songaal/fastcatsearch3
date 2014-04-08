@@ -81,13 +81,16 @@ public class TermOperatedClause extends OperatedClause {
 	}
 
 	@Override
-	protected void initClause() {
+	protected void initClause(boolean explain) {
+		if(explanation != null) {
+			explanation.setTerm(postingReader.term().toString());
+		}
 	}
 
-	@Override
-	protected void initExplanation() {
-		explanation.setTerm(postingReader.term().toString());
-	}
+//	@Override
+//	protected void initExplanation() {
+//		explanation.setTerm(postingReader.term().toString());
+//	}
 
 	@Override
 	public String term() {

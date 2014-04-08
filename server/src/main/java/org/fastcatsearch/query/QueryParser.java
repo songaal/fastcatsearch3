@@ -528,14 +528,18 @@ public class QueryParser {
 			if (str.length <= 1) {
 				logger.error("Filter grammar error. >> {}", value);
 				return f;
-			} else if (str.length <= 2) {
-				logger.error("Filter pattern string is empty. >> {}", value);
-				return f;
-			}
+			} 
+//				else if (str.length <= 2) {
+//				logger.error("Filter pattern string is empty. >> {}", value);
+//				return f;
+//			}
 			String field = str[0];
 			String method = str[1];
-			String[] patternList = str[2].split(SEMICOLON_SEPARATOR);
-			removeEscape(patternList);
+			String[] patternList = null;
+			if(str.length > 2){
+				patternList = str[2].split(SEMICOLON_SEPARATOR);
+				removeEscape(patternList);
+			}
 			if (method.equalsIgnoreCase("MATCH")) {
 				f.add(new Filter(field, Filter.MATCH, patternList));
 			} else if (method.equalsIgnoreCase("SECTION")) {
@@ -593,6 +597,8 @@ public class QueryParser {
 			} else if (method.equalsIgnoreCase("EXCLUDE_BOOST")) {
 				int boostScore = Integer.parseInt(str[3]);
 				f.add(new Filter(field, Filter.EXCLUDE_BOOST, patternList, boostScore));
+			} else if (method.equalsIgnoreCase("BOOST")) {
+				f.add(new Filter(field, Filter.BOOST));
 			} else {
 				logger.error("Unknown Filter method = {}", method);
 			}

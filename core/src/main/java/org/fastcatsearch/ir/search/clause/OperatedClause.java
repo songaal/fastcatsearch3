@@ -43,28 +43,32 @@ public abstract class OperatedClause {
 			return;
 		}
 		if(explanation != null){
-			setExplanation(explanation);
+//			ClauseExplanation exp = explanation.createSubExplanation();
+//			exp.setId(id);
+//			this.explanation = exp;
+			explanation.setId(id);
+			this.explanation = explanation;
+			
 		}
-		
-		initClause();
+		initClause(explanation != null);
 		isReady = true;
 	}
 	
-	protected abstract void initClause();
+	protected abstract void initClause(boolean explain);
 
 	public boolean isExplain(){
 		return explanation != null;
 	}
 	
-	public void setExplanation(ClauseExplanation explanation) {
-		this.explanation = explanation;
-		if(explanation != null) {
-			explanation.setId(id);
-		}
-		initExplanation();
-	}
+//	public void setExplanation(ClauseExplanation explanation) {
+//		this.explanation = explanation;
+//		if(explanation != null) {
+//			explanation.setId(id);
+//		}
+//		initExplanation();
+//	}
 	
-	protected abstract void initExplanation();
+//	protected abstract void initExplanation();
 	
 	/**
 	 * @param rankInfo

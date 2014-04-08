@@ -82,21 +82,21 @@ public class AndOperatedClause extends OperatedClause {
 	}
 
 	@Override
-	protected void initClause() {
-		docInfo1 = new RankInfo();
-		docInfo2 = new RankInfo();
-		clause1.initClause();
-		clause2.initClause();
+	protected void initClause(boolean explain) {
+		docInfo1 = new RankInfo(explain);
+		docInfo2 = new RankInfo(explain);
+		clause1.init(explanation != null ? explanation.createSubExplanation() : null);
+		clause2.init(explanation != null ? explanation.createSubExplanation() : null);
 	}
 
-	@Override
-	protected void initExplanation() {
-		if(clause1 != null) {
-			clause1.setExplanation(explanation.createSub1());
-		}
-		if(clause2 != null) {
-			clause2.setExplanation(explanation.createSub2());
-		}
-	}
+//	@Override
+//	protected void initExplanation() {
+//		if(clause1 != null) {
+//			clause1.setExplanation(explanation.createSub1());
+//		}
+//		if(clause2 != null) {
+//			clause2.setExplanation(explanation.createSub2());
+//		}
+//	}
 
 }
