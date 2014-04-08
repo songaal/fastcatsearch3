@@ -31,7 +31,7 @@ public class LongField extends NumericField {
 		if (fieldsData != null) {
 			output.writeLong(((Long) fieldsData).longValue());
 		} else {
-			output.writeLong(Long.MIN_VALUE);
+			output.writeLong(0);
 		}
 	}
 

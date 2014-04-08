@@ -31,7 +31,7 @@ public class DoubleField extends NumericField {
 		if (fieldsData != null) {
 			output.writeLong(Double.doubleToLongBits((Double) fieldsData));
 		} else {
-			output.writeLong(Long.MIN_VALUE);
+			output.writeLong(0);
 		}
 	}
 

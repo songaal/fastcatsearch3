@@ -31,7 +31,7 @@ public class IntField extends NumericField {
 		if(fieldsData != null){
 			output.writeInt(((Integer)fieldsData).intValue());
 		}else{
-			output.writeInt(Integer.MIN_VALUE);
+			output.writeInt(0);
 		}
 	}
 
