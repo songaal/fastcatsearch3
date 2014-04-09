@@ -25,9 +25,11 @@ import org.fastcatsearch.ir.query.QueryModifier;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.ResultModifier;
 import org.fastcatsearch.ir.query.Row;
+import org.fastcatsearch.ir.query.RowExplanation;
 import org.fastcatsearch.ir.query.ViewContainer;
 import org.fastcatsearch.ir.search.DocIdList;
 import org.fastcatsearch.ir.search.DocumentResult;
+import org.fastcatsearch.ir.search.Explanation;
 import org.fastcatsearch.ir.search.HitElement;
 import org.fastcatsearch.ir.search.SearchResultAggregator;
 import org.fastcatsearch.ir.settings.Schema;
@@ -151,6 +153,7 @@ public class ClusterSearchJob extends Job {
 
 				StreamableInternalSearchResult obj2 = (StreamableInternalSearchResult) obj;
 				InternalSearchResult internalSearchResult = obj2.getInternalSearchResult();
+				internalSearchResult.setNodeId(selectedNodeList[i].id());
 				resultList.add(internalSearchResult);
 
 				// TODO highlightInfo 들을 머지해야하나?
@@ -166,6 +169,7 @@ public class ClusterSearchJob extends Job {
 			SearchResultAggregator aggregator = new SearchResultAggregator(q, schema);
 			InternalSearchResult aggregatedSearchResult = aggregator.aggregate(resultList);
 			int totalSize = aggregatedSearchResult.getTotalCount();
+			List<Explanation> explanations = aggregatedSearchResult.getExplanations();
 
 			// /
 			// / 컬렉션별 도큐먼트를 가져와서 완전한 결과객체를 만든다.
@@ -175,9 +179,12 @@ public class ClusterSearchJob extends Job {
 			int realSize = aggregatedSearchResult.getCount();
 			DocIdList[] docIdList = new DocIdList[collectionIdList.length];
 			int[] collectionTags = new int[realSize]; // 해당 문서가 어느 collection에 속하는지 알려주는 항목.
-			// int[] eachDocIds = new int[realSize];
 			ArrayDeque<Integer>[] eachScores = new ArrayDeque[collectionIdList.length];
-
+			List<RowExplanation>[] rowExplanationsList = null;
+			if(explanations != null){
+				rowExplanationsList = new List[realSize];
+			}
+			
 			for (int i = 0; i < collectionIdList.length; i++) {
 				docIdList[i] = new DocIdList(realSize);
 				eachScores[i] = new ArrayDeque<Integer>(realSize);
@@ -191,7 +198,9 @@ public class ClusterSearchJob extends Job {
 				docIdList[collectionNo].add(el.segmentSequence(), el.docNo());
 				eachScores[collectionNo].add(el.score());
 				collectionTags[idx] = collectionNo;
-				// eachDocIds[idx] = el.docNo();
+				if(rowExplanationsList != null){
+					rowExplanationsList[idx] = el.rowExplanations();
+				}
 				idx++;
 			}
 
@@ -262,7 +271,7 @@ public class ClusterSearchJob extends Job {
 				groupResults = groups.getGroupResultsGenerator().generate(groupsData);
 			}
 
-			searchResult = new Result(rows, groupResults, fieldIdList, realSize, totalSize, meta.start());
+			searchResult = new Result(rows, groupResults, fieldIdList, realSize, totalSize, meta.start(), explanations, rowExplanationsList);
 
 			ResultModifier resultModifier = meta.resultModifier();
 			if(resultModifier != null){

@@ -57,7 +57,7 @@ public class SearchResultWriterTest {
 		int count = 2;
 		int totalCount = 100;
 		Metadata meta = new Metadata(1, count);
-		result = new Result(data, null, fieldNameList, count, totalCount, 0);
+		result = new Result(data, null, fieldNameList, count, totalCount, 0, null, null);
 		result.setGroupResult(groupResults);
 		
 		

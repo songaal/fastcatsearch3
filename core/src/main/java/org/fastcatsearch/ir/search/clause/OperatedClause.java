@@ -81,12 +81,12 @@ public abstract class OperatedClause {
 			rankInfo.reset();
 			long start = System.nanoTime();
 			if(nextDoc(rankInfo)){
-				explanation.set(rankInfo.score(), rankInfo.hit());
+//				explanation.set(rankInfo.score(), rankInfo.hit());
 				explanation.addTime(System.nanoTime() - start);
 				explanation.addRow();
 				return true;
 			}else{
-				explanation.set(0, 0);
+//				explanation.set(0, 0);
 				explanation.addTime(System.nanoTime() - start);
 				return false;
 			}

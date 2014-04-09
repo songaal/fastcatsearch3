@@ -16,14 +16,15 @@
 
 package org.fastcatsearch.ir.query;
 
+import java.util.List;
+
 import org.fastcatsearch.ir.group.GroupResults;
-import org.fastcatsearch.ir.group.GroupResult;
+import org.fastcatsearch.ir.search.Explanation;
 
 public class Result {
 
 	private int count;
 	private int totalCount;
-//	private int fieldCount;
 	private String[] fieldNameList;
 	private Row[] rows;
 	private GroupResults groupResults;
@@ -33,19 +34,21 @@ public class Result {
 	private int docCount;
 	private int deletedDocCount;
 	private int segmentCount;
+	private List<Explanation> explanations;
+	private List<RowExplanation>[] rowExplanationsList;
 	
-	public Result(){}
-//	public Result(Row[] data, GroupResults groupResults, String[] fieldNameList, int count, int totalCount, int start){
-//		this(data, groupResults, fieldNameList, count, totalCount, start);
-//	}
-	public Result(Row[] data, GroupResults groupResults, String[] fieldNameList, int count, int totalCount, int start){
+	public Result(){
+	}
+	
+	public Result(Row[] data, GroupResults groupResults, String[] fieldNameList, int count, int totalCount, int start, List<Explanation> explanations, List<RowExplanation>[] rowExplanationsList){
 		this.rows = data;
 		this.groupResults = groupResults;
-//		this.fieldCount = fieldCount;
 		this.fieldNameList = fieldNameList;
 		this.count = count;
 		this.totalCount = totalCount;
 		this.start = start;
+		this.explanations = explanations;
+		this.rowExplanationsList = rowExplanationsList;
 	}
 	
 	public int getTotalCount(){
@@ -80,6 +83,10 @@ public class Result {
 		return start;
 	}
 	
+	public List<Explanation> getExplanations() {
+		return explanations;
+	}
+	
 	public String toString(){
 		if(groupResults != null){
 			return "[Result]count = "+count+", totalCount = "+totalCount+", fieldCount = "+fieldNameList.length+", groupResult.length = "+groupResults.groupSize();
@@ -106,5 +113,7 @@ public class Result {
 	public void setSegmentCount(int segmentCount) {
 		this.segmentCount = segmentCount;
 	}
-	
+	public List<RowExplanation>[] getRowExplanationsList(){
+		return rowExplanationsList;
+	}
 }

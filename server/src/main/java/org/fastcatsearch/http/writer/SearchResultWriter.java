@@ -1,12 +1,15 @@
 package org.fastcatsearch.http.writer;
 
 import java.io.IOException;
-import java.text.DecimalFormat;
+import java.util.List;
 
 import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
+import org.fastcatsearch.ir.query.RowExplanation;
+import org.fastcatsearch.ir.search.ClauseExplanation;
+import org.fastcatsearch.ir.search.Explanation;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
@@ -51,19 +54,18 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 				resultWriter.value(fieldNames[i]);
 			}
 			resultWriter.endArray();
-			writeBody(result,resultWriter, searchTime);
+			writeBody(result, resultWriter, searchTime);
 			resultWriter.endObject();
 			
 			resultWriter.done();
 		}
 		
 	}
-	DecimalFormat decimalFormat = new DecimalFormat("#0.0");
 	public void writeBody(Result result, ResponseWriter resultWriter, long searchTime) throws ResultWriterException {
 		resultWriter.key("result");
 		//data
 		Row[] rows = result.getData();
-		//int start = result.getStart();
+		List<RowExplanation>[] rowExplanationsList = result.getRowExplanationsList();
 
 		if(rows.length == 0){
 			resultWriter.array("item").endArray();
@@ -71,20 +73,31 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 			resultWriter.array("item");
 			for (int i = 0; i < rows.length; i++) {
 				Row row = rows[i];
-
+				
 				resultWriter.object();
-//				.key("_no_").value(String.valueOf(start+i));
 
 				for(int k = 0; k < fieldNames.length; k++) {
 					String fdata = null;
 					if(fieldNames[k].equalsIgnoreCase(ScoreField.fieldName)){
-						fdata = decimalFormat.format(row.getScore());
+						fdata = String.valueOf(row.getScore());
 					}else{
 						char[] f = row.get(k);
 						fdata = new String(f).trim();
 					}
 					resultWriter.key(fieldNames[k]).value(fdata);
 				}
+				if(rowExplanationsList != null) {
+					resultWriter.key("_explain");
+					resultWriter.array("item");
+					List<RowExplanation> explanations = rowExplanationsList[i];
+					for(RowExplanation exp : explanations){
+						resultWriter.object()
+						.key("id").value(exp.getId()).key("score").value(exp.getScore()).key("detail").value(exp.getDescription())
+						.endObject();
+					}
+					resultWriter.endArray();
+				}
+				
 				resultWriter.endObject();
 			}
 			resultWriter.endArray();
@@ -92,6 +105,41 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 			GroupResults groupResult = result.getGroupResult();
 			
 			new GroupResultWriter(null).writeBody(groupResult, resultWriter);
+			
+			
 		}
+		
+		List<Explanation> explanations = result.getExplanations();
+		if(explanations != null) {
+			resultWriter.key("_explain");
+			resultWriter.array("item");
+			for(Explanation exp : explanations) {
+				resultWriter.object();
+				resultWriter.key("nodeId").value(exp.getNodeId());
+				resultWriter.key("collectionId").value(exp.getCollectionId());
+				resultWriter.key("segmentId").value(exp.getSegmentId());
+				
+				ClauseExplanation clauseExplanation = exp.clauseExplanation();
+				resultWriter.key("clause");
+				writeClauseExplanation(clauseExplanation, resultWriter);
+				resultWriter.endObject();
+			}
+			resultWriter.endArray();
+		}
+	}
+	
+	private void writeClauseExplanation(ClauseExplanation clauseExplanation, ResponseWriter resultWriter) throws ResultWriterException {
+		resultWriter.object()
+		.key("id").value(clauseExplanation.getId()).key("term").value(clauseExplanation.getTerm())
+		.key("rows").value(clauseExplanation.getRows()).key("time").value(clauseExplanation.getTime());
+		List<ClauseExplanation> list = clauseExplanation.getSubExplanations();
+		resultWriter.key("sub-explanation").array("item");
+		if(list != null){
+			for(ClauseExplanation exp : list) {
+				writeClauseExplanation(exp, resultWriter);
+			}
+		}
+		resultWriter.endArray();
+		resultWriter.endObject();
 	}
 }

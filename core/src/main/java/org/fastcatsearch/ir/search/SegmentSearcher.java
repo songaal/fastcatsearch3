@@ -49,7 +49,8 @@ public class SegmentSearcher {
 	private int totalCount;
 
 	private HighlightInfo highlightInfo;
-
+	private Explanation explanation;
+	
 	public SegmentSearcher(SegmentReader segmentReader) {
 		this.segmentReader = segmentReader;
 		this.schema = segmentReader.schema();
@@ -78,7 +79,7 @@ public class SegmentSearcher {
 			query = queryModifier.modify(query);
 		}
 		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), query.getGroupFilters(), query.getSorts());
-		return new Hit(rankHitList(), makeGroupData(), totalCount, highlightInfo);
+		return new Hit(rankHitList(), makeGroupData(), totalCount, highlightInfo, explanation);
 	}
 
 	public GroupHit searchGroupHit(Query query) throws ClauseException, IOException, IRException {
@@ -137,10 +138,15 @@ public class SegmentSearcher {
 		boolean exausted = false;
 		BitSet localDeleteSet = segmentReader.deleteSet();
 
+
+		/**
+		 * Explanation 객체들.
+		 */
 		ClauseExplanation clauseExplanation = null;
 		boolean isExplain = meta.isSearchOption(Query.SEARCH_OPT_EXPLAIN);
 		if(isExplain) {
-			clauseExplanation = new ClauseExplanation();
+			explanation = new Explanation();
+			clauseExplanation = explanation.createClauseExplanation();
 		}
 		
 		operatedClause.init(clauseExplanation);
@@ -216,7 +222,7 @@ public class SegmentSearcher {
 			totalCount += nread;
 		}
 		
-		logger.debug("clauseExplanation >> {}\n{}", meta.isSearchOption(Query.SEARCH_OPT_EXPLAIN), clauseExplanation);
+//		logger.debug("clauseExplanation >> {}\n{}",isExplain, clauseExplanation);
 
 //		 logger.debug("#### time = se:{}ms, ft:{}ms, gr:{}ms, so:{}ms", searchTime / 1000000, filterTime / 1000000, groupTime / 1000000, sortTime / 1000000);
 	}
@@ -235,10 +241,8 @@ public class SegmentSearcher {
 			
 			//여기에서 segment번호를 셋팅해준다. 
 			el.setDocNo(segmentSequence, el.docNo());
-			
-			logger.debug("rank hit seg#{} {}:{} > {}", segmentSequence, el.docNo(), el.score(), el.rowExplanations());
+//			logger.debug("rank hit seg#{} {}:{} > {}", segmentSequence, el.docNo(), el.score(), el.rowExplanations());
 			hitStack.push(el);
-
 		}
 		
 		return hitStack;
@@ -250,6 +254,10 @@ public class SegmentSearcher {
 			return new GroupsData(null, totalCount);
 
 		return groupGenerator.generate();
+	}
+	
+	public Explanation explanation(){
+		return explanation;
 	}
 
 }

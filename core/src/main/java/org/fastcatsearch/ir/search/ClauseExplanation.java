@@ -6,16 +6,8 @@ import java.util.List;
 
 public class ClauseExplanation {
 	
-	//공통정보.
 	private String id; //필드아이디.또는 Operator
 	private String term; //검색어 full term
-	private float weight;
-	
-	//결과 1건씩 통계. 매번변경.
-	private int score; //점수.
-	private int tf; // tf
-	
-	//전체통계.
 	private int rows;
 	private long time;
 	
@@ -38,6 +30,10 @@ public class ClauseExplanation {
 		return sub;
 	}
 	
+	public List<ClauseExplanation> getSubExplanations() {
+		return subExplanations;
+	}
+	
 	public String toString(){
 		return getResultInfo(0);
 	}
@@ -57,21 +53,21 @@ public class ClauseExplanation {
 		return sb.toString();
 	}
 	
-	public String getRowInfo(int depth){
-		StringBuffer sb = new StringBuffer();
-		String indent = "";
-		for (int i = 0; i < depth; i++) {
-			indent += "      ";
-		}
-		sb.append("[").append(id).append("]").append(term != null ? term : "").append(" score[").append(score).append("] weight[").append(weight).append("]");
-		if (subExplanations != null) {
-			for(ClauseExplanation exp : subExplanations){
-				sb.append("\n").append(indent).append("   |--");
-				sb.append(exp.getRowInfo(depth + 1));
-			}
-		}
-		return sb.toString();
-	}
+//	public String getRowInfo(int depth){
+//		StringBuffer sb = new StringBuffer();
+//		String indent = "";
+//		for (int i = 0; i < depth; i++) {
+//			indent += "      ";
+//		}
+//		sb.append("[").append(id).append("]").append(term != null ? term : "").append(" score[").append(score).append("] weight[").append(weight).append("]");
+//		if (subExplanations != null) {
+//			for(ClauseExplanation exp : subExplanations){
+//				sb.append("\n").append(indent).append("   |--");
+//				sb.append(exp.getRowInfo(depth + 1));
+//			}
+//		}
+//		return sb.toString();
+//	}
 	
 	public void addTime(long t){
 		time += t;
@@ -80,10 +76,10 @@ public class ClauseExplanation {
 		rows += 1;
 	}
 	
-	public void set(int score, int tf){
-		this.score = score;
-		this.tf = tf;
-	}
+//	public void set(int score, int tf){
+//		this.score = score;
+//		this.tf = tf;
+//	}
 	public String getId() {
 		return id;
 	}
@@ -96,24 +92,24 @@ public class ClauseExplanation {
 	public void setTerm(String term) {
 		this.term = term;
 	}
-	public float getWeight() {
-		return weight;
-	}
-	public void setTerm(float weight) {
-		this.weight = weight;
-	}
-	public int getScore() {
-		return score;
-	}
-	public void setScore(int score) {
-		this.score = score;
-	}
-	public int getTf() {
-		return tf;
-	}
-	public void setTf(int tf) {
-		this.tf = tf;
-	}
+//	public float getWeight() {
+//		return weight;
+//	}
+//	public void setTerm(float weight) {
+//		this.weight = weight;
+//	}
+//	public int getScore() {
+//		return score;
+//	}
+//	public void setScore(int score) {
+//		this.score = score;
+//	}
+//	public int getTf() {
+//		return tf;
+//	}
+//	public void setTf(int tf) {
+//		this.tf = tf;
+//	}
 	public int getRows() {
 		return rows;
 	}

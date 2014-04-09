@@ -130,28 +130,28 @@ public class CollectionSearcher {
 		return documentList;
 	}
 
-	public Result search(Query q) throws IRException, IOException, SettingException {
-		collectionHandler.queryCounter().incrementCount();
-		
-		InternalSearchResult internalSearchResult = searchInternal(q);
-		DocIdList hitList = internalSearchResult.getDocIdList();
-		
-		
-		int realSize = internalSearchResult.getCount();
-		HighlightInfo highlightInfo = internalSearchResult.getHighlightInfo();
-		DocumentResult documentResult = searchDocument(hitList, q.getViews(), q.getMeta().tags(), highlightInfo);
-		int fieldSize = q.getViews().size();
-		int totalSize = internalSearchResult.getTotalCount();
-		int start = q.getMeta().start();
-		//groups
-		Groups groups =  q.getGroups();
-		GroupResults groupResults = null; 
-		if(groups != null){
-			GroupsData groupsData = internalSearchResult.getGroupsData();
-			groupResults = groups.getGroupResultsGenerator().generate(groupsData);
-		}
-		return new Result(documentResult.rows(), groupResults, documentResult.fieldIdList(), realSize, totalSize, start);
-	}
+//	public Result search(Query q) throws IRException, IOException, SettingException {
+//		collectionHandler.queryCounter().incrementCount();
+//		
+//		InternalSearchResult internalSearchResult = searchInternal(q);
+//		DocIdList hitList = internalSearchResult.getDocIdList();
+//		
+//		
+//		int realSize = internalSearchResult.getCount();
+//		HighlightInfo highlightInfo = internalSearchResult.getHighlightInfo();
+//		DocumentResult documentResult = searchDocument(hitList, q.getViews(), q.getMeta().tags(), highlightInfo);
+//		int fieldSize = q.getViews().size();
+//		int totalSize = internalSearchResult.getTotalCount();
+//		int start = q.getMeta().start();
+//		//groups
+//		Groups groups =  q.getGroups();
+//		GroupResults groupResults = null; 
+//		if(groups != null){
+//			GroupsData groupsData = internalSearchResult.getGroupsData();
+//			groupResults = groups.getGroupResultsGenerator().generate(groupsData);
+//		}
+//		return new Result(documentResult.rows(), groupResults, documentResult.fieldIdList(), realSize, totalSize, start);
+//	}
 	
 	public InternalSearchResult searchInternal(Query q) throws IRException, IOException, SettingException {
 		return searchInternal(null, q);
@@ -204,6 +204,7 @@ public class CollectionSearcher {
 		HighlightInfo highlightInfo = null;
 
 		int totalSize = 0;
+		List<Explanation> explanationList = null;
 		try {
 			for (int i = 0; i < segmentSize; i++) {
 				Hit hit = collectionHandler.segmentSearcher(i).searchHit(q);
@@ -224,6 +225,15 @@ public class CollectionSearcher {
 
 				if (dataMerger != null) {
 					dataMerger.put(groupData);
+				}
+				
+				if(hit.explanation() != null){
+					if(explanationList == null){
+						explanationList = new ArrayList<Explanation>();
+					}
+					hit.explanation().setSegmentId(i);
+					hit.explanation().setCollectionId(collectionId);
+					explanationList.add(hit.explanation());
 				}
 			}
 		} catch (IOException e) {
@@ -269,7 +279,7 @@ public class CollectionSearcher {
 			groupData = dataMerger.merge();
 		}
 		HitElement[] hitElementList = totalHit.getHitElementList();
-		return new InternalSearchResult(collectionId, hitElementList, totalHit.size(), totalSize, groupData, highlightInfo);
+		return new InternalSearchResult(collectionId, hitElementList, totalHit.size(), totalSize, groupData, highlightInfo, explanationList);
 	}
 
 	public DocumentResult searchDocument(DocIdList list, ViewContainer views, String[] tags, HighlightInfo highlightInfo) throws IOException {
@@ -474,7 +484,7 @@ public class CollectionSearcher {
 
 		// //////////////////////////////////////
 
-		result = new Result(row, null, fieldNameList, row.length, row.length, start);
+		result = new Result(row, null, fieldNameList, row.length, row.length, start, null, null);
 		result.setSegmentCount(segmentSize);
 		result.setDeletedDocCount(deletedDocCount);
 		result.setDocCount(totalSize);
@@ -587,7 +597,7 @@ public class CollectionSearcher {
 
 		// //////////////////////////////////////
 
-		result = new Result(row, null, fieldNameList, row.length, row.length, 1);
+		result = new Result(row, null, fieldNameList, row.length, row.length, 1, null, null);
 		result.setSegmentCount(segmentSize);
 		result.setDeletedDocCount(deletedDocCount);
 		result.setDocCount(totalSize);

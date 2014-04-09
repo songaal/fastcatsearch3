@@ -1,6 +1,7 @@
 package org.fastcatsearch.ir.search;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.fastcatsearch.ir.group.GroupsData;
@@ -68,6 +69,7 @@ public class SearchResultAggregator {
 				hitMerger = new FixedMinHeap<FixedHitReader>(mergeSize);
 			}
 			
+			List<Explanation> explanationList = null;
 			for (int i = 0; i < resultList.size(); i++) {
 				InternalSearchResult result = resultList.get(i);
 				totalCount += result.getTotalCount();
@@ -82,6 +84,16 @@ public class SearchResultAggregator {
 				if(groupData != null){
 					//Put GroupResult
 					dataMerger.put(groupData);
+				}
+				
+				if(result.getExplanations() != null){
+					if(explanationList == null){
+						explanationList = new ArrayList<Explanation>();
+					}
+					for(Explanation exp : result.getExplanations()){
+						exp.setNodeId(result.getNodeId());
+						explanationList.add(exp);
+					}
 				}
 			}
 			
@@ -114,7 +126,7 @@ public class SearchResultAggregator {
 				groupData = dataMerger.merge();
 			}
 
-			return new InternalSearchResult(totalHit.getHitElementList(), count, totalCount, groupData);
+			return new InternalSearchResult(totalHit.getHitElementList(), count, totalCount, groupData, explanationList);
 		}
 		
 	}

@@ -16,50 +16,58 @@
 
 package org.fastcatsearch.ir.query;
 
+import java.util.List;
+
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.FixedHitReader;
 import org.fastcatsearch.ir.search.DocIdList;
+import org.fastcatsearch.ir.search.Explanation;
 import org.fastcatsearch.ir.search.HitElement;
 
 public class InternalSearchResult {
 
 	private String collectionId;
-	
+
 	private int count;
 	private int totalCount;
 	private HitElement[] rows;
 	private GroupsData groupData;
 	private HighlightInfo highlightInfo;
+	private List<Explanation> explanations;
+
+	private String nodeId;
 	
-	public InternalSearchResult(HitElement[] rows, int count, int totalCount, GroupsData groupData){
-		this(null, rows, count, totalCount, groupData, null);
+	public InternalSearchResult(HitElement[] rows, int count, int totalCount, GroupsData groupData, List<Explanation> explanations) {
+		this(null, rows, count, totalCount, groupData, null, explanations);
 	}
-	public InternalSearchResult(String collectionId, HitElement[] rows, int count, int totalCount, GroupsData groupData, HighlightInfo highlightInfo){
+
+	public InternalSearchResult(String collectionId, HitElement[] rows, int count, int totalCount, GroupsData groupData, HighlightInfo highlightInfo, List<Explanation> explanations) {
 		this.collectionId = collectionId;
 		this.rows = rows;
 		this.count = count;
 		this.totalCount = totalCount;
 		this.groupData = groupData;
 		this.highlightInfo = highlightInfo;
+		this.explanations = explanations;
 	}
-	
-	public String collectionId(){
+
+	public String collectionId() {
 		return collectionId;
 	}
-	
-	public int getTotalCount(){
+
+	public int getTotalCount() {
 		return totalCount;
 	}
-	
-	public int getCount(){
+
+	public int getCount() {
 		return count;
 	}
-	
-	public HitElement[] getHitElementList(){
+
+	public HitElement[] getHitElementList() {
 		return rows;
 	}
-	
-	public DocIdList getDocIdList(){
+
+	public DocIdList getDocIdList() {
 		DocIdList docIdList = new DocIdList(count);
 		for (int i = 0; i < count; i++) {
 			HitElement el = rows[i];
@@ -67,27 +75,46 @@ public class InternalSearchResult {
 		}
 		return docIdList;
 	}
-	public void setGroupData(GroupsData groupData){
+
+	public void setGroupData(GroupsData groupData) {
 		this.groupData = groupData;
 	}
-	
-	public GroupsData getGroupsData(){
+
+	public GroupsData getGroupsData() {
 		return groupData;
 	}
-	
-	public HighlightInfo getHighlightInfo(){
+
+	public HighlightInfo getHighlightInfo() {
 		return highlightInfo;
 	}
-	public FixedHitReader getFixedHitReader(){
+
+	public FixedHitReader getFixedHitReader() {
 		return new FixedHitReader(collectionId, rows, 0, count);
 	}
-	
-	public String toString(){
-		if(groupData != null){
-			return "[Result]collectionId="+collectionId+", count = "+count+", totalCount = "+totalCount+", groupResult.length = "+groupData.groupSize()+", highlightInfo = "+highlightInfo;
-		}else{
-			return "[Result]collectionId="+collectionId+", count = "+count+", totalCount = "+totalCount+", highlightInfo = "+highlightInfo;
-		}
+
+	public List<Explanation> getExplanations() {
+		return explanations;
 	}
 	
+	public void setExplanations(List<Explanation> explanations) {
+		this.explanations = explanations;
+	}
+	
+	public String getNodeId() {
+		return nodeId;
+	}
+
+	public void setNodeId(String nodeId) {
+		this.nodeId = nodeId;
+	}
+	
+	public String toString() {
+		if (groupData != null) {
+			return "[Result]collectionId=" + collectionId + ", count = " + count + ", totalCount = " + totalCount + ", groupResult.length = " + groupData.groupSize()
+					+ ", highlightInfo = " + highlightInfo + ", explanations = " + explanations;
+		} else {
+			return "[Result]collectionId=" + collectionId + ", count = " + count + ", totalCount = " + totalCount + ", highlightInfo = " + highlightInfo + ", explanations = " + explanations;
+		}
+	}
+
 }

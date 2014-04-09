@@ -1,6 +1,8 @@
 package org.fastcatsearch.transport.vo;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.fastcatsearch.common.io.Streamable;
@@ -8,6 +10,7 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.InternalSearchResult;
+import org.fastcatsearch.ir.search.Explanation;
 
 public class StreamableInternalSearchResult implements Streamable {
 	private InternalSearchResult internalSearchResult;
@@ -42,8 +45,14 @@ public class StreamableInternalSearchResult implements Streamable {
 		if(input.readBoolean()){
 			highlightInfo = new HighlightInfo((Map<String, String>) input.readGenericValue(), (Map<String, String>) input.readGenericValue(), (Map<String, Boolean>) input.readGenericValue());
 		}
+		List<Explanation> explanations = null;
+		if(input.readBoolean()){
+			int size = input.readVInt();
+			explanations = new ArrayList<Explanation>(size);
+		}
+		
 		this.internalSearchResult = new InternalSearchResult(collectionId, sHitElement.getHitElementList(), count, totalCount,
-				sGroupData.groupData(), highlightInfo);
+				sGroupData.groupData(), highlightInfo, explanations);
 
 	}
 
@@ -70,6 +79,16 @@ public class StreamableInternalSearchResult implements Streamable {
 			output.writeGenericValue(internalSearchResult.getHighlightInfo().fieldAnalyzerMap());
 			output.writeGenericValue(internalSearchResult.getHighlightInfo().fieldQueryMap());
 			output.writeGenericValue(internalSearchResult.getHighlightInfo().fieldHighlightMap());
+		}else{
+			output.writeBoolean(false);
+		}
+		
+		if(internalSearchResult.getExplanations() != null) {
+			output.writeBoolean(true);
+			output.writeVInt(internalSearchResult.getExplanations().size());
+			for(Explanation explanation : internalSearchResult.getExplanations()){
+				new StreamableExplanation(explanation).writeTo(output);
+			}
 		}else{
 			output.writeBoolean(false);
 		}
