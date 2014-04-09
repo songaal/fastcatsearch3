@@ -2,12 +2,9 @@ package org.fastcatsearch.http.action.management.analysis;
 
 import java.io.CharArrayReader;
 import java.io.Writer;
-import java.util.List;
-import java.util.Map;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.core.AnalyzerOption;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
 import org.fastcatsearch.http.ActionAuthority;
@@ -16,21 +13,19 @@ import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
-import org.fastcatsearch.ir.analysis.AnalyzerFactory;
-import org.fastcatsearch.ir.settings.AnalyzerFactoryLoader;
+import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.plugin.analysis.AnalysisPlugin;
-import org.fastcatsearch.plugin.analysis.AnalyzerInfo;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ActionMapping(value = "/management/analysis/analysis-tools", authority = ActionAuthority.Analysis, authorityLevel = ActionAuthorityLevel.READABLE)
-public class GetAnalizedBasicResultAction extends AuthAction {
+public class GetBasicAnalizedResultAction extends AuthAction {
 
-	private static final Logger logger = LoggerFactory.getLogger(GetAnalizedBasicResultAction.class);
+	private static final Logger logger = LoggerFactory.getLogger(GetBasicAnalizedResultAction.class);
 
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
@@ -49,20 +44,24 @@ public class GetAnalizedBasicResultAction extends AuthAction {
 		responseWriter.key("query").value(queryWords);
 		
 		try {
-			
-			AnalyzerFactory factory = pluginService.getAnalyzerFactoryManager().getAnalyzerFactory(pluginId+"."+analyzerId);
-			if(factory == null){
-				throw new Exception("Cannot find analyzer >> "+ (pluginId+"."+analyzerId));
+//			AnalyzerFactory factory = pluginService.getAnalyzerFactoryManager().getAnalyzerFactory(pluginId+"."+analyzerId);
+			Plugin plugin = pluginService.getPlugin(pluginId);
+			if (plugin == null) {
+				throw new Exception("Cannot find plugin >> " + (pluginId + "." + analyzerId));
 			}
-			AnalyzerOption option = new AnalyzerOption();
-			option.useStopword(true);
-			option.useSynonym(true);
-			Analyzer analyzer = factory.create(option);
+			AnalysisPlugin analysisPlugin = (AnalysisPlugin) plugin;
+			AnalyzerPool analyzerPool = analysisPlugin.getAnalyzerPool(analyzerId);
 			
-			responseWriter.key("result").array("terms");
+			if (analyzerPool == null) {
+				throw new Exception("Cannot find analyzer >> " + (pluginId + "." + analyzerId));
+			}
 			
-			if (analyzer != null) {
-				
+			Analyzer analyzer = null;
+			try{
+				analyzer = analyzerPool.getFromPool();
+			
+				responseWriter.key("result").array("terms");
+					
 				char[] fieldValue = queryWords.toCharArray();
 				TokenStream tokenStream = analyzer.tokenStream("", new CharArrayReader(fieldValue));
 				tokenStream.reset();
@@ -81,11 +80,10 @@ public class GetAnalizedBasicResultAction extends AuthAction {
 					}
 					responseWriter.value(key);
 				}
-			}else{
-				throw new Exception("Analyzer create error >> "+factory.getAnalyzerClass().getName());
+				responseWriter.endArray();
+			}finally{
+				analyzerPool.releaseToPool(analyzer);
 			}
-			responseWriter.endArray();
-				
 		} catch (Throwable t) {
 			errorMessage = t.toString();
 			logger.error("", t);

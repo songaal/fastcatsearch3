@@ -17,6 +17,8 @@ import org.fastcatsearch.db.dao.SynonymDictionaryDAO;
 import org.fastcatsearch.db.mapper.DictionaryStatusMapper;
 import org.fastcatsearch.db.vo.DictionaryStatusVO;
 import org.fastcatsearch.ir.analysis.AnalyzerFactory;
+import org.fastcatsearch.ir.analysis.AnalyzerPool;
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.dic.CommonDictionary;
 import org.fastcatsearch.ir.dic.Dictionary;
 import org.fastcatsearch.ir.dic.PreResult;
@@ -51,8 +53,11 @@ public abstract class AnalysisPlugin<T, P> extends Plugin {
 	protected CommonDictionary<T, P> commonDictionary;
 	protected Map<String, AnalyzerInfo> analyzerFactoryMap;
 	
+	protected AnalyzerPoolManager analyzerPoolManager;
+	
 	public AnalysisPlugin(File pluginDir, PluginSetting pluginSetting) {
 		super(pluginDir, pluginSetting);
+		analyzerPoolManager = new AnalyzerPoolManager();
 	}
 
 	@Override
@@ -386,6 +391,16 @@ public abstract class AnalysisPlugin<T, P> extends Plugin {
 		}
 		
 		return count;
+	}
+	
+	protected void registerAnalyzer(Map<String, AnalyzerInfo> analyzerFactoryMap, String key, String description, AnalyzerFactory analyzerFactory){
+		analyzerFactoryMap.put(key, new AnalyzerInfo(description, analyzerFactory));
+		//기본으로 plugin에서 가지고 있는 analyzer. max는 2이다.
+		analyzerPoolManager.registerAnalyzer(key.toUpperCase(), analyzerFactory, 0, 2);
+	}
+	
+	public AnalyzerPool getAnalyzerPool(String analyzerId){
+		return analyzerPoolManager.getPool(analyzerId);
 	}
 
 }

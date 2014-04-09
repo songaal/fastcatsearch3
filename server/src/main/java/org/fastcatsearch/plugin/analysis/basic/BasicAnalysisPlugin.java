@@ -26,13 +26,13 @@ public class BasicAnalysisPlugin extends AnalysisPlugin<CharVector, PreResult<Ch
 	@Override
 	protected void loadAnalyzerFactory(Map<String, AnalyzerInfo> analyzerFactoryMap) {
 		//extract entire word 
-		analyzerFactoryMap.put("keyword", new AnalyzerInfo("Keyword Analyzer", new DefaultAnalyzerFactory(KeywordAnalyzer.class)));
+		registerAnalyzer(analyzerFactoryMap, "keyword", "Keyword Analyzer", new DefaultAnalyzerFactory(KeywordAnalyzer.class));
 		//lucene StandardAnalyzer
-		analyzerFactoryMap.put("standard", new AnalyzerInfo("Standard Analyzer", new DefaultAnalyzerFactory(StandardAnalyzer.class)));
+		registerAnalyzer(analyzerFactoryMap, "standard", "Standard Analyzer", new DefaultAnalyzerFactory(StandardAnalyzer.class));
 		
-		analyzerFactoryMap.put("primary", new AnalyzerInfo("Primary Word Analyzer", new DefaultAnalyzerFactory(PrimaryWordAnalyzer.class)));
+		registerAnalyzer(analyzerFactoryMap, "primary", "Primary Word Analyzer", new DefaultAnalyzerFactory(PrimaryWordAnalyzer.class));
 		
-		analyzerFactoryMap.put("whitespace", new AnalyzerInfo("Whitespace Analyzer", new DefaultAnalyzerFactory(WhitespaceAnalyzer.class)));
+		registerAnalyzer(analyzerFactoryMap, "whitespace", "Whitespace Analyzer", new DefaultAnalyzerFactory(WhitespaceAnalyzer.class));
 	}
 
 	@Override
