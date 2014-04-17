@@ -2,6 +2,7 @@ package org.fastcatsearch.ir.search;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.document.Document;
@@ -23,6 +24,7 @@ import org.fastcatsearch.ir.query.QueryModifier;
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.query.Sorts;
 import org.fastcatsearch.ir.search.clause.AllDocumentOperatedClause;
+import org.fastcatsearch.ir.search.clause.BoostOperatedClause;
 import org.fastcatsearch.ir.search.clause.Clause;
 import org.fastcatsearch.ir.search.clause.ClauseException;
 import org.fastcatsearch.ir.search.clause.OperatedClause;
@@ -73,21 +75,21 @@ public class SegmentSearcher {
 		return document;
 	}
 
-	public Hit searchHit(Query query) throws ClauseException, IOException, IRException {
+	public Hit searchHit(Query query, List<PkScore> boostList) throws ClauseException, IOException, IRException {
 		QueryModifier queryModifier = query.getMeta().queryModifier();
 		if(queryModifier != null){
 			query = queryModifier.modify(query);
 		}
-		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), query.getGroupFilters(), query.getSorts());
+		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), query.getGroupFilters(), query.getSorts(), boostList);
 		return new Hit(rankHitList(), makeGroupData(), totalCount, highlightInfo, explanation);
 	}
 
 	public GroupHit searchGroupHit(Query query) throws ClauseException, IOException, IRException {
-		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), null, null);
+		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), null, null, null);
 		return new GroupHit(makeGroupData(), totalCount);
 	}
 
-	public void search(Metadata meta, Clause clause, Filters filters, Groups groups, Filters groupFilters, Sorts sorts) throws ClauseException,
+	public void search(Metadata meta, Clause clause, Filters filters, Groups groups, Filters groupFilters, Sorts sorts, List<PkScore> boostList) throws ClauseException,
 			IOException, IRException {
 		FieldIndexesReader fieldIndexesReader = null;
 		int sortMaxSize = meta.start() + meta.rows() - 1;
@@ -101,7 +103,12 @@ public class SegmentSearcher {
 		} else {
 			operatedClause = clause.getOperatedClause(docCount, segmentReader.newSearchIndexesReader(), highlightInfo);
 		}
-
+		//BOOST
+		if(boostList != null) {
+			//TODO pk를 내부 docNo로 바뀐 opclause가 리턴된다.
+			OperatedClause boostClause = new PkScoreOperatedClause(boostList, segmentReader.newSearchIndexesReader());
+			operatedClause = new BoostOperatedClause(operatedClause, boostClause);
+		}
 		// filter
 		if (filters != null) {
 			//schema를 통해 field index setting을 알아야 필터링시 ignorecase등의 정보를 활용가능하다.

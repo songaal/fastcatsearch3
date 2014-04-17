@@ -27,7 +27,7 @@ public class Document {
 	
 	private List<Field> fields;
 	private int docId; //검색결과로 채워진다. 색인시에는 아무연관이 없다.
-	private float score; //after search, this has cetain value.
+	private int score; //after search, this has cetain value.
 	
 	public Document(int size){
 		fields = new ArrayList<Field>(size);
@@ -57,11 +57,11 @@ public class Document {
 		return docId;
 	}
 	
-	public void setScore(float score){
+	public void setScore(int score){
 		this.score = score;
 	}
 	
-	public float getScore(){
+	public int getScore(){
 		return score;
 	}
 	
