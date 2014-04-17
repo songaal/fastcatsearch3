@@ -1,15 +1,19 @@
 package org.fastcatsearch.job.internal;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.search.CollectionSearcher;
+import org.fastcatsearch.ir.search.HitElement;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.query.QueryParseException;
@@ -55,8 +59,18 @@ public class InternalSearchJob extends Job implements Streamable {
 				if(collectionHandler == null){
 					throw new FastcatSearchException("ERR-00520", collectionId);
 				}
-				
-				result = collectionHandler.searcher().searchInternal(collectionId, q, forMerging);
+				Query boostQuery = q.getBoostQuery();
+				String boostCollectionId= boostQuery.getMeta().collectionId();
+				CollectionHandler boostCollectionHandler = irService.collectionHandler(boostCollectionId);
+				CollectionSearcher boostCollectionSearcher = boostCollectionHandler.searcher();
+				InternalSearchResult r = boostCollectionSearcher.searchInternal(boostQuery, forMerging);
+				List<PkScore> pkScoreList = null;
+				for(HitElement e : r.getHitElementList()) {
+					String id = boostCollectionSearcher.requestDocument(e.docNo()).get(0).toString();
+					int score = e.score();
+					pkScoreList.add(new PkScore(id, score));
+				}
+				result = collectionHandler.searcher().searchInternal(q, forMerging, pkScoreList);
 			}
 
 			return new JobResult(new StreamableInternalSearchResult(result));

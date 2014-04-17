@@ -41,17 +41,20 @@ import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.summary.BasicHighlightAndSummary;
+import org.fastcatsearch.job.internal.PkScore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CollectionSearcher {
 	private static Logger logger = LoggerFactory.getLogger(CollectionSearcher.class);
 
+	private String collectionId;
 	private CollectionHandler collectionHandler;
 
 	private HighlightAndSummary has;
 
 	public CollectionSearcher(CollectionHandler collectionHandler) {
+		this.collectionId = collectionHandler.collectionId();
 		this.collectionHandler = collectionHandler;
 		has = new BasicHighlightAndSummary();
 	}
@@ -129,6 +132,18 @@ public class CollectionSearcher {
 
 		return documentList;
 	}
+	
+	public Document requestDocument(int docNo) throws IOException {
+
+		int segmentSize = collectionHandler.segmentSize();
+		// make doc number lists to send each columns
+		for (int m = segmentSize - 1; m >= 0; m--) {
+			if (docNo >= collectionHandler.segmentReader(m).segmentInfo().getBaseNumber()) {
+				return collectionHandler.segmentReader(m).segmentSearcher().getDocument(docNo);
+			}
+		}
+		return null;
+	}
 
 //	public Result search(Query q) throws IRException, IOException, SettingException {
 //		collectionHandler.queryCounter().incrementCount();
@@ -154,20 +169,15 @@ public class CollectionSearcher {
 //	}
 	
 	public InternalSearchResult searchInternal(Query q) throws IRException, IOException, SettingException {
-		return searchInternal(null, q);
+		return searchInternal(q, false, null);
 	}
-	
-	public InternalSearchResult searchInternal(String collectionId, Query q) throws IRException, IOException, SettingException {
-		return searchInternal(null, q, false);
-	}
-	
 	/**
 	 * @param forMerging : 머징용도이면 start + length 만큼을 앞에서부터 모두 가져온다. 
 	 * */
-	public InternalSearchResult searchInternal(String collectionId, Query q, boolean forMerging) throws IRException, IOException, SettingException {
+	public InternalSearchResult searchInternal(Query q, boolean forMerging, List<PkScore> boostList) throws IRException, IOException, SettingException {
 		int segmentSize = collectionHandler.segmentSize();
 		if (segmentSize == 0) {
-			logger.warn("Collection {} is not indexed!", collectionHandler.collectionId());
+			logger.warn("Collection {} is not indexed!", collectionId);
 		}
 
 //		logger.debug("searchInternal incrementCount > {} ", q);
@@ -183,9 +193,9 @@ public class CollectionSearcher {
 			rows += start;
 		}
 		
-		if(collectionId == null){
-			collectionId = meta.collectionId();
-		}
+//		if(collectionId == null){
+//			collectionId = meta.collectionId();
+//		}
 		Groups groups = q.getGroups();
 
 		Sorts sorts = q.getSorts();
@@ -207,7 +217,7 @@ public class CollectionSearcher {
 		List<Explanation> explanationList = null;
 		try {
 			for (int i = 0; i < segmentSize; i++) {
-				Hit hit = collectionHandler.segmentSearcher(i).searchHit(q);
+				Hit hit = collectionHandler.segmentSearcher(i).searchHit(q, boostList);
 				if (highlightInfo == null) {
 					highlightInfo = hit.highlightInfo();
 				}
@@ -403,6 +413,7 @@ public class CollectionSearcher {
 	}
 
 	// 원문조회기능.
+	/*
 	public Result listDocument(String collectionId, int start, int rows) throws IRException, IOException, SettingException {
 		if (collectionHandler.segmentSize() == 0) {
 			logger.warn("Collection {} is not indexed!", collectionId);
@@ -491,8 +502,9 @@ public class CollectionSearcher {
 
 		return result;
 	}
-
+	*/
 	// 원문조회기능.
+	/*
 	public Result findDocument(String collectionId, String primaryKey) throws IRException, IOException, SettingException {
 		if (collectionHandler.segmentSize() == 0) {
 			logger.warn("Collection {} is not indexed!", collectionId);
@@ -604,7 +616,7 @@ public class CollectionSearcher {
 
 		return result;
 	}
-
+	*/
 	// segEndNums는 세그먼트별로 총 문서갯수-1 이 들어있다.
 	// 즉, 세그먼트-0에 5개 세그먼트-1에 5개가 들어있다면, {4,9}와 같이 들어온다.
 	private int[][] matchSegment(int[] segEndNums, int start, int rows) {
