@@ -6,10 +6,13 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.util.Enumeration;
 import java.util.Locale;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.ResourceBundle.Control;
+
+import org.fastcatsearch.util.DynamicClassLoader;
 
 public class ResourceBundleControl extends Control {
 	
@@ -26,17 +29,18 @@ public class ResourceBundleControl extends Control {
 		String resourceName = toResourceName(bundleName, "txt");
 		ResourceBundle bundle = null;
 		InputStream stream = null;
-		if (reload) {
-			URL url = loader.getResource(resourceName);
+		Enumeration<URL> resources = DynamicClassLoader.getResources(resourceName);
+		URL url = null;
+		for(;resources.hasMoreElements();) {
+			url = resources.nextElement();
 			if (url != null) {
 				URLConnection connection = url.openConnection();
 				if (connection != null) {
 					connection.setUseCaches(false);
 					stream = connection.getInputStream();
+					break;
 				}
 			}
-		} else {
-			stream = loader.getResourceAsStream(resourceName);
 		}
 		if (stream != null) {
 			try {
