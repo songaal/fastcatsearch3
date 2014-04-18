@@ -153,6 +153,10 @@ public class SearchIndexesReader implements Cloneable {
 
 	}
 	
+	public PrimaryKeyIndexesReader getPrimaryKeyIndexesReader() {
+		return primaryKeyIndexesReader; 
+	}
+	
 	public SearchIndexReader getSearchIndexReader(String indexFieldId) throws IOException, IRException {
 		int indexFieldSequence = schema.getSearchIndexSequence(indexFieldId);
 		logger.debug("getSearchIndexSequence {} > {}", indexFieldId, indexFieldSequence);

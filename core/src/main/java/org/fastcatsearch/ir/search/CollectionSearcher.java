@@ -41,7 +41,6 @@ import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.summary.BasicHighlightAndSummary;
-import org.fastcatsearch.job.internal.PkScore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -171,10 +170,15 @@ public class CollectionSearcher {
 	public InternalSearchResult searchInternal(Query q) throws IRException, IOException, SettingException {
 		return searchInternal(q, false, null);
 	}
+	
 	/**
 	 * @param forMerging : 머징용도이면 start + length 만큼을 앞에서부터 모두 가져온다. 
 	 * */
-	public InternalSearchResult searchInternal(Query q, boolean forMerging, List<PkScore> boostList) throws IRException, IOException, SettingException {
+	public InternalSearchResult searchInternal(Query q, boolean forMerging) throws IRException, IOException, SettingException {
+		return searchInternal(q, forMerging, null);
+	}
+	
+	public InternalSearchResult searchInternal(Query q, boolean forMerging, PkScoreList boostList) throws IRException, IOException, SettingException {
 		int segmentSize = collectionHandler.segmentSize();
 		if (segmentSize == 0) {
 			logger.warn("Collection {} is not indexed!", collectionId);

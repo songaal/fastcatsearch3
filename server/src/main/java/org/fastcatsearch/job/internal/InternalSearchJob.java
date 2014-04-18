@@ -14,6 +14,8 @@ import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.CollectionSearcher;
 import org.fastcatsearch.ir.search.HitElement;
+import org.fastcatsearch.ir.search.PkScore;
+import org.fastcatsearch.ir.search.PkScoreList;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.query.QueryParseException;
@@ -60,15 +62,20 @@ public class InternalSearchJob extends Job implements Streamable {
 					throw new FastcatSearchException("ERR-00520", collectionId);
 				}
 				Query boostQuery = q.getBoostQuery();
-				String boostCollectionId= boostQuery.getMeta().collectionId();
-				CollectionHandler boostCollectionHandler = irService.collectionHandler(boostCollectionId);
-				CollectionSearcher boostCollectionSearcher = boostCollectionHandler.searcher();
-				InternalSearchResult r = boostCollectionSearcher.searchInternal(boostQuery, forMerging);
-				List<PkScore> pkScoreList = null;
-				for(HitElement e : r.getHitElementList()) {
-					String id = boostCollectionSearcher.requestDocument(e.docNo()).get(0).toString();
-					int score = e.score();
-					pkScoreList.add(new PkScore(id, score));
+				PkScoreList pkScoreList = null;
+				if(boostQuery != null) {
+					String boostKeyword = boostQuery.getMeta().getUserData("keyword");
+					pkScoreList = new PkScoreList(boostKeyword);
+					String boostCollectionId= boostQuery.getMeta().collectionId();
+					CollectionHandler boostCollectionHandler = irService.collectionHandler(boostCollectionId);
+					CollectionSearcher boostCollectionSearcher = boostCollectionHandler.searcher();
+					InternalSearchResult r = boostCollectionSearcher.searchInternal(boostQuery, forMerging);
+					for(HitElement e : r.getHitElementList()) {
+						//첫번째 필드가 id이다.
+						String id = boostCollectionSearcher.requestDocument(e.docNo()).get(0).toString();
+						int score = e.score();
+						pkScoreList.add(new PkScore(id, score));
+					}
 				}
 				result = collectionHandler.searcher().searchInternal(q, forMerging, pkScoreList);
 			}

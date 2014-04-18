@@ -28,6 +28,7 @@ import org.fastcatsearch.ir.search.clause.BoostOperatedClause;
 import org.fastcatsearch.ir.search.clause.Clause;
 import org.fastcatsearch.ir.search.clause.ClauseException;
 import org.fastcatsearch.ir.search.clause.OperatedClause;
+import org.fastcatsearch.ir.search.clause.PkScoreOperatedClause;
 import org.fastcatsearch.ir.settings.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +76,10 @@ public class SegmentSearcher {
 		return document;
 	}
 
-	public Hit searchHit(Query query, List<PkScore> boostList) throws ClauseException, IOException, IRException {
+	public Hit searchHit(Query query) throws ClauseException, IOException, IRException {
+		return searchHit(query, null);
+	}
+	public Hit searchHit(Query query, PkScoreList boostList) throws ClauseException, IOException, IRException {
 		QueryModifier queryModifier = query.getMeta().queryModifier();
 		if(queryModifier != null){
 			query = queryModifier.modify(query);
@@ -89,7 +93,7 @@ public class SegmentSearcher {
 		return new GroupHit(makeGroupData(), totalCount);
 	}
 
-	public void search(Metadata meta, Clause clause, Filters filters, Groups groups, Filters groupFilters, Sorts sorts, List<PkScore> boostList) throws ClauseException,
+	public void search(Metadata meta, Clause clause, Filters filters, Groups groups, Filters groupFilters, Sorts sorts, PkScoreList boostList) throws ClauseException,
 			IOException, IRException {
 		FieldIndexesReader fieldIndexesReader = null;
 		int sortMaxSize = meta.start() + meta.rows() - 1;
@@ -105,8 +109,8 @@ public class SegmentSearcher {
 		}
 		//BOOST
 		if(boostList != null) {
-			//TODO pk를 내부 docNo로 바뀐 opclause가 리턴된다.
-			OperatedClause boostClause = new PkScoreOperatedClause(boostList, segmentReader.newSearchIndexesReader());
+			// pk를 내부 docNo로 바뀐 opclause가 리턴된다.
+			OperatedClause boostClause = new PkScoreOperatedClause("pk boost", boostList, segmentReader.newSearchIndexesReader());
 			operatedClause = new BoostOperatedClause(operatedClause, boostClause);
 		}
 		// filter

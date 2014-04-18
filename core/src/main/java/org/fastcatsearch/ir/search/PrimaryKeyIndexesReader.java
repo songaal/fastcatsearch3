@@ -27,6 +27,7 @@ import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.field.FieldDataParseException;
 import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.io.CharVector;
+import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.query.Term;
 import org.fastcatsearch.ir.search.clause.OperatedClause;
 import org.fastcatsearch.ir.search.clause.TermOperatedClause;
@@ -130,6 +131,25 @@ public class PrimaryKeyIndexesReader implements Cloneable {
 
 	}
 
+	public int getDocNo(String pkValue, BytesDataOutput pkOutput) throws FieldDataParseException, IOException {
+		pkOutput.reset();
+		String[] pkValues = null;
+		if (pkFieldSettingList.length > 1) {
+			// 결합 pk일경우 값들은 ';'로 구분되어있다.
+			pkValues = pkValue.split(";");
+		} else {
+			pkValues = new String[] { pkValue };
+		}
+		for (int j = 0; j < pkFieldSettingList.length; j++) {
+			FieldSetting fieldSetting = pkFieldSettingList[j];
+			Field field = fieldSetting.createIndexableField(pkValues[j]);
+			field.writeTo(pkOutput);
+		}
+
+		return pkReader.get(pkOutput.array(), 0, (int) pkOutput.position());
+	}
+	
+	
 	public void close() throws IOException {
 		pkReader.close();
 	}

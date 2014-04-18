@@ -50,6 +50,7 @@ public class Query {
 	private Filters groupFilters;
 	private Sorts sorts;
 	private Metadata meta;
+	private Query boostQuery;
 	
 	public Query(){ 
 		meta = new Metadata();
@@ -126,5 +127,13 @@ public class Query {
 	
 	public void setGroupFilters(Filters groupFilters) {
 		this.groupFilters = groupFilters;
+	}
+
+	public Query getBoostQuery() {
+		return boostQuery;
+	}
+
+	public void setBoostQuery(Query boostQuery) {
+		this.boostQuery = boostQuery;
 	}
 }
