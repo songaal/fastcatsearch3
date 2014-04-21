@@ -56,4 +56,9 @@ public abstract class QueryModifier extends Query {
 	public Filters getGroupFilters() {
 		return query.getGroupFilters();
 	}
+	
+	@Override
+	public Query getBoostQuery() {
+		return query.getBoostQuery();
+	}
 }

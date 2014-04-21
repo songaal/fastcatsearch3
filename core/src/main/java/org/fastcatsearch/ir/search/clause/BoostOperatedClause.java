@@ -42,13 +42,16 @@ public class BoostOperatedClause extends OperatedClause {
 		while(mainClause.next(docInfo1)){
 			int doc1 = docInfo1.docNo();
 			newScore = docInfo1.score();
-			while(boostClause.next(docInfo2)){
-				if(doc1 == docInfo2.docNo()){
-					newScore += docInfo2.score();
-					break;
-				}else if(doc1 < docInfo2.docNo()){
+			
+			while(docInfo2.docNo() != -1 && docInfo2.docNo() < doc1){
+				if(!boostClause.next(docInfo2)){
+					//끝이면 탈출.
 					break;
 				}
+			}
+			
+			if(doc1 == docInfo2.docNo()){
+				newScore += docInfo2.score();
 			}
 			
 			docInfo.init(doc1, newScore);
@@ -78,6 +81,7 @@ public class BoostOperatedClause extends OperatedClause {
 	protected void initClause(boolean explain) {
 		mainClause.init(explanation != null ? explanation.createSubExplanation() : null);
 		boostClause.init(explanation != null ? explanation.createSubExplanation() : null);
+		boostClause.next(docInfo2);
 	}
 
 //	@Override

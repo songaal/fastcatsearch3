@@ -33,7 +33,11 @@ public class PkScoreOperatedClause extends OperatedClause {
 		BytesDataOutput tempOutput = new BytesDataOutput();
 		for(int i = 0; i < boostList.size(); i++) {
 			PkScore pkScore = boostList.get(i);
-			docNoList.add(new IntPair(r.getDocNo(pkScore.getPk(), tempOutput), pkScore.getScore()));
+			int docNo = r.getDocNo(pkScore.getPk(), tempOutput);
+			if(docNo != -1) {
+				docNoList.add(new IntPair(r.getDocNo(pkScore.getPk(), tempOutput), pkScore.getScore()));
+				logger.debug("conv {} > {}", pkScore.getPk(), docNoList.get(docNoList.size() -1).getKey());
+			}
 		}
 		//docNo 오름차순으로 정렬한다.
 		Collections.sort(docNoList);
@@ -48,9 +52,11 @@ public class PkScoreOperatedClause extends OperatedClause {
 		if(cursor < docNoList.size()){
 			IntPair intPair = docNoList.get(cursor);
 			rankInfo.init(intPair.getKey(), intPair.getValue(), 1);
+			logger.debug("pk boost {} : {}", intPair.getKey(), intPair.getValue());
 			if(isExplain()){
 				rankInfo.explain(id, intPair.getValue(), keyword);
 			}
+			cursor++;
 			return true;
 		}else{
 			rankInfo.init(-1, 0);

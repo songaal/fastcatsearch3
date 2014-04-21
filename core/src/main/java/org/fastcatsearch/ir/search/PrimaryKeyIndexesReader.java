@@ -143,7 +143,7 @@ public class PrimaryKeyIndexesReader implements Cloneable {
 		for (int j = 0; j < pkFieldSettingList.length; j++) {
 			FieldSetting fieldSetting = pkFieldSettingList[j];
 			Field field = fieldSetting.createIndexableField(pkValues[j]);
-			field.writeTo(pkOutput);
+			field.writeFixedDataTo(pkOutput);
 		}
 
 		return pkReader.get(pkOutput.array(), 0, (int) pkOutput.position());

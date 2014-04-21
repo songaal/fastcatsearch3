@@ -80,10 +80,10 @@ public class SegmentSearcher {
 		return searchHit(query, null);
 	}
 	public Hit searchHit(Query query, PkScoreList boostList) throws ClauseException, IOException, IRException {
-		QueryModifier queryModifier = query.getMeta().queryModifier();
-		if(queryModifier != null){
-			query = queryModifier.modify(query);
-		}
+//		QueryModifier queryModifier = query.getMeta().queryModifier();
+//		if(queryModifier != null){
+//			query = queryModifier.modify(query);
+//		}
 		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), query.getGroupFilters(), query.getSorts(), boostList);
 		return new Hit(rankHitList(), makeGroupData(), totalCount, highlightInfo, explanation);
 	}
