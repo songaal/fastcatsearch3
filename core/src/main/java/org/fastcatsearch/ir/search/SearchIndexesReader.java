@@ -29,6 +29,8 @@ import org.fastcatsearch.ir.query.Term;
 import org.fastcatsearch.ir.search.clause.OperatedClause;
 import org.fastcatsearch.ir.search.clause.OrOperatedClause;
 import org.fastcatsearch.ir.settings.IndexSetting;
+import org.fastcatsearch.ir.settings.PrimaryKeySetting;
+import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,8 +87,10 @@ public class SearchIndexesReader implements Cloneable {
 			}
 			readerList.add(reader);
 		}
-
-		primaryKeyIndexesReader = new PrimaryKeyIndexesReader(schema, dir, revision);
+		PrimaryKeySetting primaryKeySetting = schema.schemaSetting().getPrimaryKeySetting();
+		if(primaryKeySetting.getFieldList() != null && primaryKeySetting.getFieldList().size() > 0) {
+			primaryKeyIndexesReader = new PrimaryKeyIndexesReader(schema, dir, revision);
+		}
 	}
 
 	@Override
@@ -107,7 +111,9 @@ public class SearchIndexesReader implements Cloneable {
 				reader.readerList.add(newReader);
 			}
 		}
-		reader.primaryKeyIndexesReader = primaryKeyIndexesReader.clone();
+		if(primaryKeyIndexesReader != null) {
+			reader.primaryKeyIndexesReader = primaryKeyIndexesReader.clone();
+		}
 		
 		return reader;
 	}
@@ -135,7 +141,11 @@ public class SearchIndexesReader implements Cloneable {
 
 			OperatedClause oneFieldClause = null;
 			if (isPrimaryKeyField) {
-				oneFieldClause = primaryKeyIndexesReader.getOperatedClause(term);
+				if(primaryKeyIndexesReader != null) {
+					oneFieldClause = primaryKeyIndexesReader.getOperatedClause(term);
+				}else{
+					continue;
+				}
 			} else {
 				SearchIndexReader searchIndexReader = readerList.get(indexFieldSequence);
 				oneFieldClause = term.createOperatedClause(searchIndexReader, highlightInfo);
@@ -174,6 +184,8 @@ public class SearchIndexesReader implements Cloneable {
 				}
 			}
 		}
-		primaryKeyIndexesReader.close();
+		if(primaryKeyIndexesReader != null) {
+			primaryKeyIndexesReader.close();
+		}
 	}
 }
