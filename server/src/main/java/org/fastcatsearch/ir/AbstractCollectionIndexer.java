@@ -136,7 +136,10 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
 		
 		logger.debug("##Indexer close {}", revisionInfo);
 		deleteIdSet = dataSourceReader.getDeleteList();
-		int deleteCount = deleteIdSet.size();
+		int deleteCount = 0;
+		if(deleteIdSet != null) {
+			deleteCount = deleteIdSet.size();
+		}
 		
 		revisionInfo.setDeleteCount(deleteCount);
 		

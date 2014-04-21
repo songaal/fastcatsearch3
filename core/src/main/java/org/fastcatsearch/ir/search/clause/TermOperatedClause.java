@@ -36,8 +36,8 @@ public class TermOperatedClause extends OperatedClause {
 			this.postingReader = postingReader;
 			this.segmentDF = postingReader.size();
 			this.documentCount = postingReader.documentCount();
+			termString = postingReader.term().toString();
 		}
-		termString = postingReader.term().toString();
 	}
 
 	protected boolean nextDoc(RankInfo rankInfo) {
