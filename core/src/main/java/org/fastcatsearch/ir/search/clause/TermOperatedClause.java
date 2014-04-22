@@ -83,7 +83,9 @@ public class TermOperatedClause extends OperatedClause {
 	@Override
 	protected void initClause(boolean explain) {
 		if(explanation != null) {
-			explanation.setTerm(postingReader.term().toString());
+			if(postingReader != null) {
+				explanation.setTerm(postingReader.term().toString());
+			}
 		}
 	}
 
