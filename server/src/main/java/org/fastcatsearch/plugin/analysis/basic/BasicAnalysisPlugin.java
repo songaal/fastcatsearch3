@@ -3,6 +3,7 @@ package org.fastcatsearch.plugin.analysis.basic;
 import java.io.File;
 import java.util.Map;
 
+import org.apache.lucene.analysis.core.CSVAnalyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
