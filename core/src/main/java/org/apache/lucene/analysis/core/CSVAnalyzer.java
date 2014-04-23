@@ -17,31 +17,15 @@ package org.apache.lucene.analysis.core;
  * limitations under the License.
  */
 
+import java.io.IOException;
 import java.io.Reader;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.util.CharTokenizer;
 import org.apache.lucene.util.AttributeSource;
-import org.apache.lucene.util.AttributeSource.AttributeFactory;
 
-/**
- * An Analyzer that uses {@link CSVTokenizer}.
- * <p>
- * <a name="version">You must specify the required {@link Version} compatibility
- * when creating {@link CharTokenizer}:
- * <ul>
- * <li>As of 3.1, {@link CSVTokenizer} uses an int based API to normalize and
- * detect token codepoints. See {@link CharTokenizer#isTokenChar(int)} and
- * {@link CharTokenizer#normalize(int)} for details.</li>
- * </ul>
- * <p>
- **/
 public final class CSVAnalyzer extends Analyzer {
   
-  /**
-   * Creates a new {@link CSVAnalyzer}
-   * @param matchVersion Lucene version to match See {@link <a href="#version">above</a>}
-   */
   public CSVAnalyzer() {
   }
   
@@ -52,6 +36,9 @@ public final class CSVAnalyzer extends Analyzer {
   }
 }
 
+/*
+ * 사용시 주의 : 컴마 뒤의 공백은 없어지나, 컴마 앞의 공백 즉, 단어 뒤에 공백이 있을시 사라지지 않음.    
+ * */
 final class CSVTokenizer extends CharTokenizer {
 	  
 	  public CSVTokenizer(Reader in) {
@@ -66,8 +53,27 @@ final class CSVTokenizer extends CharTokenizer {
 	    super(factory, in);
 	  }
 	  
+	  boolean trailingWhitespace = false;
 	  @Override
 	  protected boolean isTokenChar(int c) {
-		  return c != ',';
+		  if(c == ',' ){
+			  trailingWhitespace = true;
+			  return false;
+		  }else if(c == ' '){
+			  if(trailingWhitespace){
+				  return false;
+			  }else{
+				  return true;
+			  }
+		  }else{
+			  trailingWhitespace = false;
+			  return true;
+		  }
+	  }
+	  
+	  @Override
+	  public void reset() throws IOException {
+	    super.reset();
+	    trailingWhitespace = false;
 	  }
 	}

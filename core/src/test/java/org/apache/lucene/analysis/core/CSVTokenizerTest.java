@@ -12,7 +12,7 @@ public class CSVTokenizerTest {
 
 	@Test
 	public void testCSV() throws IOException{
-		String str ="abc, sdf, 1234, 한글이다. , ㅁㅁㅁ";
+		String str ="abc, sdf, 1234, 한글 이다. , ㅁㅁㅁ";
 		CSVAnalyzer a = new CSVAnalyzer();
 		Reader reader = new StringReader(str);
 		TokenStream tokenStream = a.tokenStream("", reader);
