@@ -25,7 +25,7 @@ public class GetAllTaskStateAction extends AuthAction {
 		TaskStateService taskStateService = ServiceManager.getInstance().getService(TaskStateService.class);
 		
 		List<Entry<TaskKey, TaskState>> taskEntryList = taskStateService.getTaskEntryList(null);
-		
+		String state = request.getParameter("state", TaskState.STATE_RUNNING);
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		resultWriter.object().key("taskState").array();
@@ -34,6 +34,13 @@ public class GetAllTaskStateAction extends AuthAction {
 			for(Entry<TaskKey, TaskState> entry : taskEntryList){
 				TaskKey taskKey = entry.getKey();
 				TaskState taskState = entry.getValue();
+				
+				if(state.equalsIgnoreCase("ALL")) {
+					//모두 허용.
+				} else if(!state.equalsIgnoreCase(taskState.getState())) {
+					continue;
+				}
+				
 				resultWriter.object()
 				.key("summary").value(taskKey.getSummary() + " " + taskState.getSummary())
 				.key("isScheduled").value(taskState.isScheduled())

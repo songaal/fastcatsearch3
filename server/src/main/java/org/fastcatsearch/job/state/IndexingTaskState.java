@@ -7,13 +7,13 @@ import org.fastcatsearch.ir.io.DataOutput;
 
 public class IndexingTaskState extends TaskState {
 
-	public static final String STATE_INITIALIZE = "INITIALIZE";
-	public static final String STATE_INDEXING = "INDEXING";
-	public static final String STATE_FILECOPY = "COPY FILE TO REMOTE NODE";
-	public static final String STATE_FINALIZE = "FINALIZE";
-	public static final String STATE_STOP_REQUESTED = "STOP REQUESTED";
-
-	public static final String STATE_DOCUMENT_STORE = "DOCUMENT STORE"; // 문서저장 색인작업.
+	public static final String STEP_INITIALIZE = "INITIALIZE";
+	public static final String STEP_INDEXING = "INDEXING";
+	public static final String STEP_FILECOPY = "COPY FILE TO REMOTE NODE";
+	public static final String STEP_FINALIZE = "FINALIZE";
+	public static final String STEP_END = "INDEXING END";
+	
+	public static final String STEP_DOCUMENT_STORE = "DOCUMENT STORE"; // 문서저장 색인작업.
 
 	public IndexingTaskState() {
 	}

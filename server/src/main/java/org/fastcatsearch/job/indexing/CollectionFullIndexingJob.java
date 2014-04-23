@@ -37,6 +37,7 @@ import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.util.Counter;
 import org.fastcatsearch.job.CacheServiceRestartJob;
+import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.job.cluster.NodeCollectionReloadJob;
 import org.fastcatsearch.job.cluster.NodeDirectoryCleanJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
@@ -90,7 +91,11 @@ public class CollectionFullIndexingJob extends IndexingJob {
 				throw new RuntimeException("Invalid index node collection[" + collectionId + "] node[" + indexNodeId + "]");
 			}
 
-			updateIndexingStatusStart();
+			if(!updateIndexingStatusStart()) {
+				logger.error("Cannot start indexing job. {} : {}", collectionId, indexNodeId);
+				resultStatus = ResultStatus.CANCEL;
+				return new JobResult();
+			}
 
 			/*
 			 * Do indexing!!
@@ -128,7 +133,7 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			/*
 			 * 색인파일 원격복사.
 			 */
-			indexingTaskState.setState(IndexingTaskState.STATE_FILECOPY);
+			indexingTaskState.setStep(IndexingTaskState.STEP_FILECOPY);
 			
 			SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
 			if (segmentInfo != null) {
@@ -210,7 +215,7 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			/*
 			 * 데이터노드가 리로드 완료되었으면 인덱스노드도 리로드 시작.
 			 * */
-			indexingTaskState.setState(IndexingTaskState.STATE_FINALIZE);
+			indexingTaskState.setStep(IndexingTaskState.STEP_FINALIZE);
 			
 			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
 			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
@@ -237,7 +242,7 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			
 			result = new IndexingJobResult(collectionId, indexStatus, duration);
 			resultStatus = ResultStatus.SUCCESS;
-
+			indexingTaskState.setStep(IndexingTaskState.STEP_END);
 			return new JobResult(result);
 
 		} catch (IndexingStopException e){

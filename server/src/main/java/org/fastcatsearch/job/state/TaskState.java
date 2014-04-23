@@ -9,48 +9,94 @@ import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.util.Formatter;
 
 public abstract class TaskState implements Streamable {
-	public static final String STATE_STARTED = "STARTED";
-	public static final String STATE_FINISHED = "FINISHED";
+	public static final String STATE_NOT_STARTED = "NOT STARTED";
+	public static final String STATE_RUNNING = "RUNNING";
+	public static final String STATE_SUCCESS = "SUCCESS";
+	public static final String STATE_FAIL = "FAIL";
+	public static final String STATE_CANCEL = "CANCEL";
+	public static final String STATE_STOP_REQUESTED = "STOP REQUESTED";
 	
 	protected boolean isScheduled;
-	protected String state;
+	
+	protected String state; //상태변수. 시작,종료,실패 여부.
+	protected String step; //실제 진행 상황. 어떤 작업을 하고 있는지.
+	
 	private long startTime;
+	private long endTime;
 	private String startTimeString;
 	protected int progressRate; // 100이하.
 
-	public TaskState(){
+	public TaskState() {
+		state = STATE_NOT_STARTED;
 	}
-	
-	public TaskState(boolean isScheduled){
+
+	public TaskState(boolean isScheduled) {
+		this();
 		this.isScheduled = isScheduled;
 	}
-	
-	public boolean isScheduled(){
+
+	public boolean isScheduled() {
 		return isScheduled;
 	}
 
 	public String getElapsedTime() {
-		return Formatter.getFormatTime((System.nanoTime() - startTime) / 1000000);
+		if (isRunning()) {
+			return Formatter.getFormatTime((System.nanoTime() - startTime) / 1000000);
+		} else if (isFinished()) {
+			return Formatter.getFormatTime((endTime - startTime) / 1000000);
+		} else {
+			return "";
+		}
 	}
 	
-	public String getStartTime(){
+	public String getStartTime() {
 		return startTimeString;
+	}
+
+	public boolean isRunning() {
+		return state == STATE_RUNNING;
+	}
+	
+	public boolean isFinished() {
+		return state == STATE_SUCCESS || state == STATE_FAIL || state == STATE_CANCEL;
+	}
+
+	public void setStep(String step) {
+		this.step = step;
+	}
+	
+	public String getStep() {
+		return step;
 	}
 	
 	public void start() {
-		if (state == null) {
-			state = STATE_STARTED;
+		if (!isRunning()) {
+			state = STATE_RUNNING;
 			startTime = System.nanoTime();
 			startTimeString = Formatter.formatDate(new Date(System.currentTimeMillis()));
+		}else {
+			throw new IllegalStateException("Task is already started state.");
 		}
 	}
 
-	public void finish() {
-		if (state != null) {
-			state = STATE_FINISHED;
-		}
+	public void finishSuccess() {
+		endTime = System.nanoTime();
+		this.state = STATE_SUCCESS;
 	}
 	
+	public void finishFail() {
+		endTime = System.nanoTime();
+		this.state = STATE_FAIL;
+	}
+	
+	public void finishCancel() {
+		endTime = System.nanoTime();
+		this.state = STATE_CANCEL;
+	}
+	
+	public void requestStopState() {
+		this.state = STATE_STOP_REQUESTED;
+	}
 	public String getState() {
 		return state;
 	}

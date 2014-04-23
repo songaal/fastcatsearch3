@@ -20,7 +20,6 @@ public class GetIndexingTaskStateAction extends AuthAction {
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
 		String collectionId = request.getParameter("collectionId");
-		
 		TaskStateService taskStateService = ServiceManager.getInstance().getService(TaskStateService.class);
 		IndexingTaskKey indexingTaskKey = new IndexingTaskKey(collectionId, IndexingType.FULL);
 		IndexingTaskState indexingTaskState = (IndexingTaskState) taskStateService.get(indexingTaskKey);

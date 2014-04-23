@@ -27,6 +27,7 @@ import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.index.SelectedIndexList;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
+import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.service.ServiceManager;
@@ -85,7 +86,10 @@ public class CollectionIndexBuildFullIndexingJob extends IndexingJob {
 				throw new RuntimeException("Invalid index node collection[" + collectionId + "] node[" + indexNodeId + "]");
 			}
 
-			updateIndexingStatusStart();
+			if(!updateIndexingStatusStart()) {
+				resultStatus = ResultStatus.CANCEL;
+				return new JobResult();
+			}
 
 			/*
 			 * Do Document Store!!

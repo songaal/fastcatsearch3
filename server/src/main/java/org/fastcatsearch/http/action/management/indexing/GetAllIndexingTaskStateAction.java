@@ -26,7 +26,7 @@ public class GetAllIndexingTaskStateAction extends AuthAction {
 		TaskStateService taskStateService = ServiceManager.getInstance().getService(TaskStateService.class);
 		
 		List<Entry<TaskKey, TaskState>> taskEntryList = taskStateService.getTaskEntryList(IndexingTaskState.class);
-		
+		String state = request.getParameter("state", TaskState.STATE_RUNNING);
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		resultWriter.object().key("indexingState").array();
@@ -35,6 +35,12 @@ public class GetAllIndexingTaskStateAction extends AuthAction {
 			for(Entry<TaskKey, TaskState> taskEntry : taskEntryList){
 				IndexingTaskKey indexingTaskKey = (IndexingTaskKey) taskEntry.getKey();
 				IndexingTaskState indexingTaskState = (IndexingTaskState) taskEntry.getValue();
+				logger.debug("indexingTaskState.getState()>> {}", indexingTaskState.getState());
+				if(state.equalsIgnoreCase("ALL")) {
+					//모두 허용.
+				} else if(!state.equalsIgnoreCase(indexingTaskState.getState())) {
+					continue;
+				}
 				
 				resultWriter.object()
 				.key("collectionId").value(indexingTaskKey.collectionId())

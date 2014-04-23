@@ -40,6 +40,7 @@ public class GetTaskStateJob extends Job implements Streamable {
 					TaskState taskState = entry.getValue();
 					stringer.object()
 					.key("summary").value(taskKey.getSummary() + " " + taskState.getSummary())
+					.key("state").value(taskState.getState())
 					.key("isScheduled").value(taskState.isScheduled())
 					.key("progress").value(taskState.getProgressRate())
 					.key("startTime").value(taskState.getStartTime())

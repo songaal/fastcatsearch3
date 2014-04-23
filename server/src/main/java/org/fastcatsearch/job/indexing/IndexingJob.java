@@ -11,6 +11,7 @@ import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.state.IndexingTaskKey;
 import org.fastcatsearch.job.state.IndexingTaskState;
+import org.fastcatsearch.job.state.TaskState;
 import org.fastcatsearch.job.state.TaskStateService;
 import org.fastcatsearch.notification.NotificationService;
 import org.fastcatsearch.notification.message.IndexingCancelNotification;
@@ -57,7 +58,7 @@ public abstract class IndexingJob extends Job implements Streamable {
 		if (indexer != null) {
 			indexer.requestStop();
 		}
-		indexingTaskState.addState(IndexingTaskState.STATE_STOP_REQUESTED);
+		indexingTaskState.requestStopState();
 	}
 
 	public void prepare(IndexingType indexingType) {
@@ -70,14 +71,19 @@ public abstract class IndexingJob extends Job implements Streamable {
 		taskStateService = serviceManager.getService(TaskStateService.class);
 	}
 
-	protected void updateIndexingStatusStart() {
+	protected boolean updateIndexingStatusStart() {
 		indexingLogger.info("[{}] {} Indexing Start! {}, schedule={}", collectionId, indexingType.name(), getClass().getSimpleName(), isScheduled());
 		indexingStartTime = System.currentTimeMillis();
 		processLoggerService.log(IndexingProcessLogger.class, new IndexingStartProcessLog(collectionId, indexingType, jobStartTime(), isScheduled()));
 		notificationService.sendNotification(new IndexingStartNotification(collectionId, indexingType, jobStartTime(), isScheduled()));
 		indexingTaskKey = new IndexingTaskKey(collectionId, indexingType);
 		indexingTaskState = (IndexingTaskState) taskStateService.register(indexingTaskKey, isScheduled);
-		indexingTaskState.start();
+		if(indexingTaskState != null) {
+			indexingTaskState.start();
+			return true;
+		}else{
+			return false;
+		}
 	}
 
 	protected void updateIndexingStatusFinish(ResultStatus resultStatus, Streamable streamableResult) {
@@ -94,11 +100,21 @@ public abstract class IndexingJob extends Job implements Streamable {
 			indexingFinishNotification = new IndexingCancelNotification(collectionId, indexingType, resultStatus, indexingStartTime, endTime, streamableResult);
 		}
 		
+		if(indexingTaskState != null) {
+			if (resultStatus == ResultStatus.SUCCESS) {
+				indexingTaskState.finishSuccess();
+			} else if (resultStatus == ResultStatus.FAIL) {
+				indexingTaskState.finishFail();
+			} else if (resultStatus == ResultStatus.CANCEL) {
+				indexingTaskState.finishCancel();
+			}
+		}
+		
 		if(indexingFinishNotification != null){
 			notificationService.sendNotification(indexingFinishNotification);
 		}
-		indexingTaskState.finish();
-		taskStateService.remove(indexingTaskKey);
+		
+//		taskStateService.remove(indexingTaskKey);
 		indexingLogger.info("[{}] {} Indexing Finish!", collectionId, indexingType.name());
 	}
 

@@ -79,7 +79,11 @@ public class CollectionAddIndexingJob extends IndexingJob {
 				throw new RuntimeException("Invalid index node collection[" + collectionId + "] node[" + indexNodeId + "]");
 			}
 			
-			updateIndexingStatusStart();
+			if(!updateIndexingStatusStart()) {
+				logger.error("Cannot start indexing job. {} : {}", collectionId, indexNodeId);
+				resultStatus = ResultStatus.CANCEL;
+				return new JobResult();
+			}
 
 			//증분색인은 collection handler자체를 수정하므로 copy하지 않는다.
 //			collectionContext = collectionContext.copy();
@@ -125,7 +129,7 @@ public class CollectionAddIndexingJob extends IndexingJob {
 			/*
 			 * 색인파일 원격복사.
 			 */
-			indexingTaskState.setState(IndexingTaskState.STATE_FILECOPY);
+			indexingTaskState.setStep(IndexingTaskState.STEP_FILECOPY);
 			
 			IndexWriteInfoList indexWriteInfoList = collectionIndexer.indexWriteInfoList();
 			SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
@@ -268,7 +272,7 @@ public class CollectionAddIndexingJob extends IndexingJob {
 				}
 			}
 			
-			indexingTaskState.setState(IndexingTaskState.STATE_FINALIZE);
+			indexingTaskState.setStep(IndexingTaskState.STEP_FINALIZE);
 			int duration = (int) (System.currentTimeMillis() - startTime);
 			
 			/*
@@ -284,7 +288,7 @@ public class CollectionAddIndexingJob extends IndexingJob {
 			
 			result = new IndexingJobResult(collectionId, indexStatus, duration);
 			resultStatus = ResultStatus.SUCCESS;
-
+			indexingTaskState.setStep(IndexingTaskState.STEP_END);
 			return new JobResult(result);
 			
 		} catch (IndexingStopException e){
