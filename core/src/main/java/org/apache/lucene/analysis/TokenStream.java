@@ -89,7 +89,7 @@ public abstract class TokenStream extends AttributeSource implements Closeable {
    */
   protected TokenStream() {
     super();
-    assert assertFinal();
+//    assert assertFinal();
   }
   
   /**
@@ -97,7 +97,7 @@ public abstract class TokenStream extends AttributeSource implements Closeable {
    */
   protected TokenStream(AttributeSource input) {
     super(input);
-    assert assertFinal();
+//    assert assertFinal();
   }
   
   /**
@@ -105,7 +105,7 @@ public abstract class TokenStream extends AttributeSource implements Closeable {
    */
   protected TokenStream(AttributeFactory factory) {
     super(factory);
-    assert assertFinal();
+//    assert assertFinal();
   }
   
   private boolean assertFinal() {

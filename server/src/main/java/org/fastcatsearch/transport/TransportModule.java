@@ -574,6 +574,9 @@ public class TransportModule extends AbstractModule {
 		    		logger.info("File Write Done filesize={}, file={}", writeSize, sourceFilePath);
 		    	}
     		}
+        }catch(Throwable t){
+        	logger.error("", t);
+        	throw new IOException(t);
         }finally{
         	if(enumeration != null){
         		enumeration.close();

@@ -103,7 +103,7 @@ public class IndexFileTransfer {
 			File relativeFile = environment.filePaths().relativise(sourceFile);
 			logger.info("[{} / {}]파일 {} 전송시작! ", new Object[] { fileCount, totalFileCount, sourceFile.getPath() });
 
-			SendFileResultFuture sendFileResultFuture;
+			SendFileResultFuture sendFileResultFuture = null;
 			try {
 				sendFileResultFuture = nodeService.sendFile(node, sourceFile, relativeFile);
 			} catch (TransportException e) {
@@ -111,7 +111,9 @@ public class IndexFileTransfer {
 				throw e;
 			}
 			if (sendFileResultFuture != null) {
+				logger.debug("파일전송 결과대기.");
 				Object result = sendFileResultFuture.take();
+				logger.debug("파일전송 결과받음 >> {}", result);
 				if (sendFileResultFuture.isSuccess()) {
 					logger.info("[{} / {}]파일 {} 전송완료!", new Object[] { fileCount, totalFileCount, relativeFile.getPath() });
 				} else {

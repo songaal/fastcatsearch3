@@ -109,7 +109,15 @@ public class FileTransportHandler {
 			fos.flush();
 			fos.close();
 		}
-
+		
+		public long wroteBytes(){
+			return wroteBytes;
+		}
+		
+		public long fileSize(){
+			return fileSize;
+		}
+		
 		public boolean isDone() {
 //			logger.debug("isDone wrote = {}/ {}", wroteBytes, fileSize);
 			if(wroteBytes == fileSize){

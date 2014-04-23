@@ -38,7 +38,7 @@ public class FileSendToNodeJob extends Job {
 		if(resultFuture == null){
 			throw new FastcatSearchException("ERR-00700", filepath);
 		}
-		
+		logger.debug("파일전송 결과대기.");
 		Object result = resultFuture.take();
 		logger.debug("파일전송 결과받음 >> {}", result);
 		return new JobResult(resultFuture.get());
