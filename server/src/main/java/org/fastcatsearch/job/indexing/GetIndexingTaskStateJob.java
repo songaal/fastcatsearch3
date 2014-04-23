@@ -1,7 +1,6 @@
-package org.fastcatsearch.job.management;
+package org.fastcatsearch.job.indexing;
 
 import java.io.IOException;
-
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -11,17 +10,19 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.result.BasicStringResult;
+import org.fastcatsearch.job.state.IndexingTaskKey;
 import org.fastcatsearch.job.state.TaskKey;
 import org.fastcatsearch.job.state.TaskState;
 import org.fastcatsearch.job.state.TaskStateService;
 import org.fastcatsearch.service.ServiceManager;
 import org.json.JSONException;
 import org.json.JSONStringer;
+
 //삭제예정.
 @Deprecated
-public class GetTaskStateJob extends Job implements Streamable {
+public class GetIndexingTaskStateJob extends Job implements Streamable {
 	
-	private static final long serialVersionUID = -8722236286852984006L;
+	private static final long serialVersionUID = -1622828261008438014L;
 
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
@@ -31,8 +32,7 @@ public class GetTaskStateJob extends Job implements Streamable {
 			
 			TaskStateService taskStateService = ServiceManager.getInstance().getService(TaskStateService.class);
 			
-			List<Entry<TaskKey, TaskState>> taskEntryList = null;//taskStateService.getTaskEntryList(null);
-			
+			List<Entry<TaskKey, TaskState>> taskEntryList = null;//taskStateService.getTaskEntryList(IndexingTaskKey.class);
 			
 			stringer.object().key("taskState").array();
 			
@@ -47,6 +47,7 @@ public class GetTaskStateJob extends Job implements Streamable {
 					.key("isScheduled").value(taskState.isScheduled())
 					.key("progress").value(taskState.getProgressRate())
 					.key("startTime").value(taskState.getStartTime())
+					.key("endTime").value(taskState.getStartTime())
 					.key("elapsed").value(taskState.getElapsedTime())
 					.endObject();
 				}

@@ -23,9 +23,17 @@ public class GetAllIndexingTaskStateAction extends AuthAction {
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
 		
+		
+		
+		//TODO
+		// 컬렉션별 index node를 찾아서 해당 노드에서 task state를 받아온다.
+		//
+		
+		
+		
 		TaskStateService taskStateService = ServiceManager.getInstance().getService(TaskStateService.class);
 		
-		List<Entry<TaskKey, TaskState>> taskEntryList = taskStateService.getTaskEntryList(IndexingTaskState.class);
+		List<Entry<TaskKey, TaskState>> taskEntryList = taskStateService.getTaskEntryList(IndexingTaskKey.class);
 		String state = request.getParameter("state", TaskState.STATE_RUNNING);
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
@@ -35,7 +43,6 @@ public class GetAllIndexingTaskStateAction extends AuthAction {
 			for(Entry<TaskKey, TaskState> taskEntry : taskEntryList){
 				IndexingTaskKey indexingTaskKey = (IndexingTaskKey) taskEntry.getKey();
 				IndexingTaskState indexingTaskState = (IndexingTaskState) taskEntry.getValue();
-				logger.debug("indexingTaskState.getState()>> {}", indexingTaskState.getState());
 				if(state.equalsIgnoreCase("ALL")) {
 					//모두 허용.
 				} else if(!state.equalsIgnoreCase(indexingTaskState.getState())) {
@@ -47,8 +54,10 @@ public class GetAllIndexingTaskStateAction extends AuthAction {
 				.key("indexingType").value(indexingTaskKey.indexingType())
 				.key("isScheduled").value(indexingTaskState.isScheduled())
 				.key("state").value(indexingTaskState.getState()) //색인, 전파등...
+				.key("step").value(indexingTaskState.getStep())
 				.key("count").value(indexingTaskState.getDocumentCount())
 				.key("startTime").value(indexingTaskState.getStartTime())
+				.key("endTime").value(indexingTaskState.getStartTime())
 				.key("elapsed").value(indexingTaskState.getElapsedTime())
 				.endObject();
 			}

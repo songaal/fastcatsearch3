@@ -22,18 +22,18 @@ public class UpdateNodeTaskStateJob extends MasterNodeJob implements Streamable 
 
 	private static final long serialVersionUID = -5476946471506917337L;
 
+	private String originNodeId;
 	private Map<TaskKey, TaskState> runningTaskMap;
-	private TaskKey[] removeTaskKeyList;
 
 	public UpdateNodeTaskStateJob() {
+	}
+	
+	public UpdateNodeTaskStateJob(String originNodeId) {
+		this.originNodeId = originNodeId;
 	}
 
 	public void setRunningTaskMap(Map<TaskKey, TaskState> runningTaskMap) {
 		this.runningTaskMap = runningTaskMap;
-	}
-
-	public void setRemoveTaskKeyList(TaskKey[] taskKeyList) {
-		this.removeTaskKeyList = taskKeyList;
 	}
 
 	@Override
@@ -42,19 +42,15 @@ public class UpdateNodeTaskStateJob extends MasterNodeJob implements Streamable 
 		TaskStateService taskStateService = ServiceManager.getInstance().getService(TaskStateService.class);
 
 		if (runningTaskMap != null && runningTaskMap.size() > 0) {
-			taskStateService.putAllTasks(runningTaskMap);
+			taskStateService.putAllTasks(originNodeId, runningTaskMap);
 		}
 
-		if (removeTaskKeyList != null && removeTaskKeyList.length > 0) {
-			for (TaskKey taskKey : removeTaskKeyList) {
-				taskStateService.remove(taskKey);
-			}
-		}
 		return new JobResult(true);
 	}
 
 	@Override
 	public void readFrom(DataInput input) throws IOException {
+		this.originNodeId = input.readString();
 		int size = input.readVInt();
 		if (size > 0) {
 			runningTaskMap = new HashMap<TaskKey, TaskState>(size);
@@ -68,20 +64,12 @@ public class UpdateNodeTaskStateJob extends MasterNodeJob implements Streamable 
 				runningTaskMap.put(taskKey, taskState);
 			}
 		}
-		
-		size = input.readVInt();
-		if (size > 0) {
-			removeTaskKeyList = new TaskKey[size];
-			for (int i = 0; i < size; i++) {
-				String taskKeyClass = input.readString();
-				removeTaskKeyList[i] = (TaskKey) DynamicClassLoader.loadObject(taskKeyClass);
-				removeTaskKeyList[i].readFrom(input);
-			}
-		}
 	}
 
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
+		output.writeString(originNodeId);
+		
 		if (runningTaskMap != null && runningTaskMap.size() > 0) {
 			output.writeVInt(runningTaskMap.size());
 			for (Map.Entry<TaskKey, TaskState> entry : runningTaskMap.entrySet()) {
@@ -94,14 +82,5 @@ public class UpdateNodeTaskStateJob extends MasterNodeJob implements Streamable 
 			output.writeVInt(0);
 		}
 
-		if (removeTaskKeyList != null && removeTaskKeyList.length > 0) {
-			output.writeVInt(removeTaskKeyList.length);
-			for (TaskKey taskKey : removeTaskKeyList) {
-				output.writeString(taskKey.getClass().getName());
-				taskKey.writeTo(output);
-			}
-		} else {
-			output.writeVInt(0);
-		}
 	}
 }

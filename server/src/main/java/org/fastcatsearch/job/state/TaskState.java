@@ -23,7 +23,6 @@ public abstract class TaskState implements Streamable {
 	
 	private long startTime;
 	private long endTime;
-	private String startTimeString;
 	protected int progressRate; // 100이하.
 
 	public TaskState() {
@@ -41,16 +40,24 @@ public abstract class TaskState implements Streamable {
 
 	public String getElapsedTime() {
 		if (isRunning()) {
-			return Formatter.getFormatTime((System.nanoTime() - startTime) / 1000000);
+			return Formatter.getFormatTime(System.currentTimeMillis() - startTime);
 		} else if (isFinished()) {
-			return Formatter.getFormatTime((endTime - startTime) / 1000000);
+			return Formatter.getFormatTime(endTime - startTime);
 		} else {
 			return "";
 		}
 	}
 	
 	public String getStartTime() {
-		return startTimeString;
+		return Formatter.formatDate(new Date(startTime));
+	}
+	
+	public String getEndTime() {
+		if (endTime > 0) {
+			return Formatter.formatDate(new Date(endTime));
+		} else {
+			return "";
+		}
 	}
 
 	public boolean isRunning() {
@@ -72,25 +79,24 @@ public abstract class TaskState implements Streamable {
 	public void start() {
 		if (!isRunning()) {
 			state = STATE_RUNNING;
-			startTime = System.nanoTime();
-			startTimeString = Formatter.formatDate(new Date(System.currentTimeMillis()));
+			startTime = System.currentTimeMillis();
 		}else {
 			throw new IllegalStateException("Task is already started state.");
 		}
 	}
 
 	public void finishSuccess() {
-		endTime = System.nanoTime();
+		endTime = System.currentTimeMillis();
 		this.state = STATE_SUCCESS;
 	}
 	
 	public void finishFail() {
-		endTime = System.nanoTime();
+		endTime = System.currentTimeMillis();
 		this.state = STATE_FAIL;
 	}
 	
 	public void finishCancel() {
-		endTime = System.nanoTime();
+		endTime = System.currentTimeMillis();
 		this.state = STATE_CANCEL;
 	}
 	
@@ -127,8 +133,9 @@ public abstract class TaskState implements Streamable {
 	public void readFrom(DataInput input) throws IOException {
 		isScheduled = input.readBoolean();
 		state = input.readString();
+		step = input.readString();
 		startTime = input.readLong();
-		startTimeString = input.readString();
+		endTime = input.readLong();
 		progressRate = input.readInt();
 		
 	}
@@ -137,8 +144,9 @@ public abstract class TaskState implements Streamable {
 	public void writeTo(DataOutput output) throws IOException {
 		output.writeBoolean(isScheduled);
 		output.writeString(state);
+		output.writeString(step);
 		output.writeLong(startTime);
-		output.writeString(startTimeString);
+		output.writeLong(endTime);
 		output.writeInt(progressRate);
 	}
 }

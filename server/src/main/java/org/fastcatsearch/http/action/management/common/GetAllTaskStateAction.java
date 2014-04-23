@@ -20,12 +20,12 @@ public class GetAllTaskStateAction extends AuthAction {
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
 		
-		//TODO admin node인지 확인하고 해당 노드가 아니면 전달하여 받아온다.
+		String state = request.getParameter("state", TaskState.STATE_RUNNING);
+		
 		//해당노드이면 그대로 수행한다.
 		TaskStateService taskStateService = ServiceManager.getInstance().getService(TaskStateService.class);
 		
 		List<Entry<TaskKey, TaskState>> taskEntryList = taskStateService.getTaskEntryList(null);
-		String state = request.getParameter("state", TaskState.STATE_RUNNING);
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		resultWriter.object().key("taskState").array();
@@ -45,7 +45,10 @@ public class GetAllTaskStateAction extends AuthAction {
 				.key("summary").value(taskKey.getSummary() + " " + taskState.getSummary())
 				.key("isScheduled").value(taskState.isScheduled())
 				.key("progress").value(taskState.getProgressRate())
+				.key("state").value(taskState.getState())
+				.key("step").value(taskState.getStep())
 				.key("startTime").value(taskState.getStartTime())
+				.key("endTime").value(taskState.getStartTime())
 				.key("elapsed").value(taskState.getElapsedTime())
 				.endObject();
 			}

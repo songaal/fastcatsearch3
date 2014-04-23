@@ -34,7 +34,7 @@ public class IndexingTaskState extends TaskState {
 
 	@Override
 	public String getSummary() {
-		return (isScheduled ? "scheduled" : "manually") + " indexing " + documentCount + "..";
+		return (isScheduled ? "scheduled" : "manually") + " indexing " + documentCount + (step != null ? " : " + step : "");
 	}
 
 	@Override

@@ -1,18 +1,18 @@
 package org.fastcatsearch.job.state;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.job.cluster.ClearNodeTaskStateJob;
 import org.fastcatsearch.job.cluster.UpdateNodeTaskStateJob;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
@@ -22,8 +22,7 @@ public class TaskStateService extends AbstractService {
 
 	private NodeService nodeService;
 	private boolean isMasterNode;
-	private Map<TaskKey, TaskState> map;
-	private Queue<TaskKey> removeTaskQueue; // 종료된 task를 master에 알릴때 사용된다.
+	private Map<String, Map<TaskKey, TaskState>> nodeTaskMap;
 
 	private Timer reportTimer; // master노드로 현 task를 주기적으로 보낸다.
 
@@ -33,14 +32,14 @@ public class TaskStateService extends AbstractService {
 
 	@Override
 	protected boolean doStart() throws FastcatSearchException {
-		map = new ConcurrentHashMap<TaskKey, TaskState>();
-
+		nodeTaskMap = new ConcurrentHashMap<String, Map<TaskKey, TaskState>>();
+		nodeTaskMap.put(environment.myNodeId(), newTaskMap());
+		
 		nodeService = serviceManager.getService(NodeService.class);
 		isMasterNode = nodeService.isMaster();
 
 		// master가 아니면 현 task 상태를 주기적으로 master에 보낸다.
 		if (!isMasterNode) {
-			removeTaskQueue = new ConcurrentLinkedQueue<TaskKey>();
 			reportTimer = new Timer("TaskStateReportTimer", true);
 			reportTimer.schedule(new TaskStateReportTask(), 1000, 1000);
 		}
@@ -49,29 +48,28 @@ public class TaskStateService extends AbstractService {
 
 	@Override
 	protected boolean doStop() throws FastcatSearchException {
-		if (!isMasterNode && map.size() > 0) {
+		if (!isMasterNode) {
 			// master에 현 노드의 모든 task를 remove하도록한다.
-			UpdateNodeTaskStateJob reportJob = new UpdateNodeTaskStateJob();
-			reportJob.setRemoveTaskKeyList(map.keySet().toArray(new TaskKey[0]));
-			nodeService.sendRequestToMaster(reportJob);
+			ClearNodeTaskStateJob clearJob = new ClearNodeTaskStateJob();
+			nodeService.sendRequestToMaster(clearJob);
 		}
+		
 		if (reportTimer != null) {
 			reportTimer.cancel();
 		}
-		map.clear();
+		nodeTaskMap.clear();
 		return true;
 	}
 
 	@Override
 	protected boolean doClose() throws FastcatSearchException {
-		if (map != null) {
-			map.clear();
-		}
+		nodeTaskMap = null;
 		reportTimer = null;
 		return true;
 	}
 
 	public TaskState register(TaskKey key, boolean isScheduled) {
+		Map<TaskKey, TaskState> map = getMyNodeTaskMap();
 		TaskState prevTaskState = map.get(key);
 		if(prevTaskState != null) {
 			//이전 상태가 남아있을때, 종료 상태가 아니면 동일한 작업을 시작하지 못한다.
@@ -85,37 +83,65 @@ public class TaskStateService extends AbstractService {
 		return taskState;
 	}
 
-	public void remove(TaskKey key) {
-		map.remove(key);
-		if (removeTaskQueue != null) {
-			removeTaskQueue.add(key);
+	public void clearTaskMap(String nodeId) {
+		nodeTaskMap.remove(nodeId);
+	}
+	
+	public TaskState getTaskState(TaskKey key) {
+		Iterator<Map.Entry<String,Map<TaskKey,TaskState>>> iterator = nodeTaskMap.entrySet().iterator();
+		while(iterator.hasNext()) {
+			Entry<String,Map<TaskKey,TaskState>> entry = iterator.next();
+			TaskState taskState =  entry.getValue().get(key);
+			if(taskState != null) {
+				return taskState;
+			}
 		}
+		return null;
 	}
 
-	public TaskState get(TaskKey key) {
-		return map.get(key);
-	}
-
-	public void putAllTasks(Map<TaskKey, TaskState> taskMap) {
+	//각 노드에서 전달된 변경사항들이 master의 상태 map에 머징된다.
+	public void putAllTasks(String nodeId, Map<TaskKey, TaskState> taskMap) {
+		Map<TaskKey, TaskState> map = nodeTaskMap.get(nodeId);
+		if(map == null) {
+			map = newTaskMap();
+			nodeTaskMap.put(nodeId, map);
+		}
 		map.putAll(taskMap);
 	}
+	
+	private Map<TaskKey, TaskState> newTaskMap() {
+		return new ConcurrentHashMap<TaskKey, TaskState>();
+	}
 
+	private Map<TaskKey, TaskState> getMyNodeTaskMap() {
+		return nodeTaskMap.get(environment.myNodeId());
+	}
+	
+	public Map<TaskKey, TaskState> getNodeTaskMap(String nodeId) {
+		return nodeTaskMap.get(nodeId);
+	}
+	
 	// clazz 에 해당하는 task 들을 넘겨준다.
-	public List<Entry<TaskKey, TaskState>> getTaskEntryList(Class<? extends TaskState> clazz) {
+	public List<Entry<TaskKey, TaskState>> getTaskEntryList(Class<? extends TaskKey> clazz) {
 		List<Entry<TaskKey, TaskState>> list = null;
-		for (Entry<TaskKey, TaskState> entry : map.entrySet()) {
-			if (clazz != null) {
-				if (clazz.isInstance(entry.getValue())) {
+		
+		Iterator<Map<TaskKey, TaskState>> iterator = nodeTaskMap.values().iterator();
+		while(iterator.hasNext()){
+			Map<TaskKey, TaskState> taskMap = iterator.next();
+			for (Entry<TaskKey, TaskState> entry : taskMap.entrySet()) {
+				if (clazz != null) {
+					if (clazz.isInstance(entry.getKey())) {
+						if (list == null) {
+							list = new ArrayList<Entry<TaskKey, TaskState>>();
+						}
+						list.add(entry);
+					}
+				} else {
 					if (list == null) {
 						list = new ArrayList<Entry<TaskKey, TaskState>>();
 					}
 					list.add(entry);
 				}
-			} else {
-				if (list == null) {
-					list = new ArrayList<Entry<TaskKey, TaskState>>();
-				}
-				list.add(entry);
 			}
 		}
 		return list;
@@ -125,21 +151,24 @@ public class TaskStateService extends AbstractService {
 
 		@Override
 		public void run() {
-
-			if (map.size() > 0 || removeTaskQueue.size() > 0) {
+			//my node의 task를 master node 로 보낸다.
+			Map<TaskKey, TaskState> taskMap = getMyNodeTaskMap();
+			if (taskMap.size() > 0) {
 				UpdateNodeTaskStateJob reportJob = new UpdateNodeTaskStateJob();
-				if (map.size() > 0) {
-					reportJob.setRunningTaskMap(map);
-				}
-
-				if (removeTaskQueue.size() > 0) {
-					TaskKey[] removeTaskKeyList = removeTaskQueue.toArray(new TaskKey[0]);
-					removeTaskQueue.clear();
-					reportJob.setRemoveTaskKeyList(removeTaskKeyList);
-				}
-
+				reportJob.setRunningTaskMap(taskMap);
 				nodeService.sendRequestToMaster(reportJob);
+				
+				//finished 된 task는 목록에서 비운다.
+				//다음부터는 running상태의 task만 전달된다.
+				Iterator<Entry<TaskKey, TaskState>> iterator = taskMap.entrySet().iterator();
+				while(iterator.hasNext()) {
+					if(iterator.next().getValue().isFinished()){
+						iterator.remove();
+					}
+				}
 			}
+			
+			
 		}
 
 	}

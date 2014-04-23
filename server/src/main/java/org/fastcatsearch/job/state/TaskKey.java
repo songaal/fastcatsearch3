@@ -7,6 +7,7 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 
 public abstract class TaskKey implements Streamable {
+	private String nodeId;
 	protected String key;
 
 	public TaskKey() {
