@@ -1,6 +1,7 @@
 package org.fastcatsearch.http.action.management.collections;
 
 import java.io.Writer;
+import java.util.Date;
 import java.util.List;
 
 import org.fastcatsearch.db.DBService;
@@ -48,8 +49,8 @@ public class GetIndexingResultAction extends AuthAction {
 						.key("updateSize").value(vo.updateSize)
 						.key("deleteSize").value(vo.deleteSize)
 						.key("isScheduled").value(vo.isScheduled ? "Scheduled" : "Manual")
-						.key("startTime").value(vo.startTime)
-						.key("endTime").value(vo.endTime)
+						.key("startTime").value(Formatter.formatDate(new Date(vo.startTime.getTime())))
+						.key("endTime").value(Formatter.formatDate(new Date(vo.endTime.getTime())))
 						.key("duration").value(Formatter.getFormatTime(vo.duration))
 					.endObject();
 				}
