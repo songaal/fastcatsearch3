@@ -33,6 +33,8 @@ public class BasicAnalysisPlugin extends AnalysisPlugin<CharVector, PreResult<Ch
 		registerAnalyzer(analyzerFactoryMap, "primary", "Primary Word Analyzer", new DefaultAnalyzerFactory(PrimaryWordAnalyzer.class));
 		
 		registerAnalyzer(analyzerFactoryMap, "whitespace", "Whitespace Analyzer", new DefaultAnalyzerFactory(WhitespaceAnalyzer.class));
+		
+		registerAnalyzer(analyzerFactoryMap, "csv", "Comma separated value Analyzer", new DefaultAnalyzerFactory(CSVAnalyzer.class));
 	}
 
 	@Override

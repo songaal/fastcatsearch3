@@ -63,6 +63,10 @@ public class DefaultDataSourceReader extends AbstractDataSourceReader<Map<String
 						data = HTMLTagRemover.clean(data.toString());
 					}
 				}
+				//null이면 공백문자로 치환.
+				if(data == null) {
+					data = "";
+				}
 				Field f = fs.createIndexableField(data, multiValueDelimiter);
 				document.set(i, f);
 //				logger.debug("doc [{}]{}:{}", i, fs.getId(), f);

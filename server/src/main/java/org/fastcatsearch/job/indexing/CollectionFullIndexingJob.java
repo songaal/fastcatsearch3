@@ -117,12 +117,13 @@ public class CollectionFullIndexingJob extends IndexingJob {
 						isIndexed = collectionFullIndexer.close();
 					}catch(Throwable closeThrowable){
 						//이전에 이미 발생한 에러가 있다면 close 중에 발생한 에러보다 이전 에러를 throw한다.
-						if(indexingThrowable != null){
-							throw indexingThrowable;
-						}else{
-							throw closeThrowable;
+						if(indexingThrowable == null){
+							indexingThrowable = closeThrowable;
 						}
 					}
+				}
+				if(indexingThrowable != null){
+					throw indexingThrowable;
 				}
 			}
 			if(!isIndexed && stopRequested){
