@@ -11,17 +11,18 @@ public class IndexingCancelNotification extends IndexingFinishNotification {
 	public IndexingCancelNotification(){
 	}
 	
-	public IndexingCancelNotification(String collectionId, IndexingType indexingType, ResultStatus resultStatus, long startTime, long finishTime, Streamable result) {
-		super("MSG-01003", collectionId, indexingType, resultStatus, startTime, finishTime, result);
+	public IndexingCancelNotification(String collectionId, IndexingType indexingType, String indexingStep, ResultStatus resultStatus, long startTime, long finishTime, Streamable result) {
+		super("MSG-01003", collectionId, indexingType, indexingStep, resultStatus, startTime, finishTime, result);
 	}
 
 	@Override
 	public String toMessageString() {
-		Object[] params = new Object[4];
+		Object[] params = new Object[5];
 		params[0] = collectionId;
 		params[1] = indexingType.toString();
-		params[2] = new Timestamp(startTime).toString();
-		params[3] = new Timestamp(finishTime).toString();
+		params[2] = indexingStep;
+		params[3] = new Timestamp(startTime).toString();
+		params[4] = new Timestamp(finishTime).toString();
 		
 		return getFormattedMessage(params);
 	}

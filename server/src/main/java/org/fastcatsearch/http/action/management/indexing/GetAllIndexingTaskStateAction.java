@@ -23,14 +23,6 @@ public class GetAllIndexingTaskStateAction extends AuthAction {
 	@Override
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
 		
-		
-		
-		//TODO
-		// 컬렉션별 index node를 찾아서 해당 노드에서 task state를 받아온다.
-		//
-		
-		
-		
 		TaskStateService taskStateService = ServiceManager.getInstance().getService(TaskStateService.class);
 		
 		List<Entry<TaskKey, TaskState>> taskEntryList = taskStateService.getTaskEntryList(IndexingTaskKey.class);
@@ -51,7 +43,7 @@ public class GetAllIndexingTaskStateAction extends AuthAction {
 				
 				resultWriter.object()
 				.key("collectionId").value(indexingTaskKey.collectionId())
-				.key("indexingType").value(indexingTaskKey.indexingType())
+				.key("indexingType").value(indexingTaskState.getIndexingType().name())
 				.key("isScheduled").value(indexingTaskState.isScheduled())
 				.key("state").value(indexingTaskState.getState()) //색인, 전파등...
 				.key("step").value(indexingTaskState.getStep())

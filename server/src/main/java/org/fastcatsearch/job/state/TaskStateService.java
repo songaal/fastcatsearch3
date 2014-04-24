@@ -68,19 +68,18 @@ public class TaskStateService extends AbstractService {
 		return true;
 	}
 
-	public TaskState register(TaskKey key, boolean isScheduled) {
+	public void register(TaskKey key, TaskState taskState) {
 		Map<TaskKey, TaskState> map = getMyNodeTaskMap();
 		TaskState prevTaskState = map.get(key);
 		if(prevTaskState != null) {
 			//이전 상태가 남아있을때, 종료 상태가 아니면 동일한 작업을 시작하지 못한다.
 			if(!prevTaskState.isFinished()){
-				return null;
+				return;
 			}
 		}
 		
-		TaskState taskState = key.createState(isScheduled);
+//		TaskState taskState = key.createState(isScheduled);
 		map.put(key, taskState);
-		return taskState;
 	}
 
 	public void clearTaskMap(String nodeId) {

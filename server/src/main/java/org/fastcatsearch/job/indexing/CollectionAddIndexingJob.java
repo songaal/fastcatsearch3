@@ -56,7 +56,7 @@ public class CollectionAddIndexingJob extends IndexingJob {
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
 		
-		prepare(IndexingType.ADD);
+		prepare(IndexingType.ADD, "ALL");
 		
 		Throwable throwable = null;
 		ResultStatus resultStatus = ResultStatus.RUNNING;
@@ -101,7 +101,7 @@ public class CollectionAddIndexingJob extends IndexingJob {
 			boolean isIndexed = false;
 			CollectionAddIndexer collectionIndexer = new CollectionAddIndexer(collectionHandler);
 			indexer = collectionIndexer;
-			collectionIndexer.setState(indexingTaskState);
+			collectionIndexer.setTaskState(indexingTaskState);
 			Throwable indexingThrowable = null;
 			try {
 				indexer.doIndexing();

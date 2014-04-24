@@ -10,6 +10,7 @@
 		id int GENERATED ALWAYS AS IDENTITY,
 		collectionId varchar(30),
 		type varchar(30),
+		step varchar(30),
 		status varchar(30),
 		docSize int,
 		insertSize int,
@@ -29,7 +30,7 @@
 	
 
 	<select id="validateTable" parameterType="map" resultType="map">
-		select id, collectionId
+		select id, collectionId, type, step, status, docSize
 		from IndexingHistory
 		fetch first 1 rows only
 	</select>
@@ -66,10 +67,10 @@
 
 	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.IndexingStatusVO" useGeneratedKeys="true">
 		insert into IndexingHistory ( 
-		collectionId, type, status, docSize, insertSize, updateSize, deleteSize, isScheduled,
+		collectionId, type, step, status, docSize, insertSize, updateSize, deleteSize, isScheduled,
 		startTime, endTime, duration) 
 		values (
-		#{collectionId}, #{type}, #{status}, #{docSize}, #{insertSize}
+		#{collectionId}, #{type}, #{step}, #{status}, #{docSize}, #{insertSize}
 		, #{updateSize}, #{deleteSize}, #{isScheduled}, #{startTime}, #{endTime}, #{duration}
 		)
 	</insert>

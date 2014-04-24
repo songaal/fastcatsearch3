@@ -7,8 +7,6 @@ import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
-import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.job.state.IndexingTaskKey;
 import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.job.state.TaskStateService;
@@ -22,18 +20,10 @@ public class GetIndexingTaskStateAction extends AuthAction {
 	public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
 		String collectionId = request.getParameter("collectionId");
 		
-		IRService irService = ServiceManager.getInstance().getService(IRService.class);
-		String indexNodeId = irService.collectionContext(collectionId).collectionConfig().getIndexNode();
-		
-		
 		TaskStateService taskStateService = ServiceManager.getInstance().getService(TaskStateService.class);
-		IndexingTaskKey indexingTaskKey = new IndexingTaskKey(collectionId, IndexingType.FULL);
+		IndexingTaskKey indexingTaskKey = new IndexingTaskKey(collectionId);
 		IndexingTaskState indexingTaskState = (IndexingTaskState) taskStateService.getTaskState(indexingTaskKey);
 //		logger.debug("indexingTaskState1 > {}",indexingTaskState);
-		if(indexingTaskState == null){
-			indexingTaskKey = new IndexingTaskKey(collectionId, IndexingType.ADD);
-			indexingTaskState = (IndexingTaskState) taskStateService.getTaskState(indexingTaskKey);
-		}
 //		logger.debug("indexingTaskState2 > {}",indexingTaskState);
 		
 		Writer writer = response.getWriter();
@@ -45,7 +35,7 @@ public class GetIndexingTaskStateAction extends AuthAction {
 		if(indexingTaskState != null){
 			resultWriter
 			.key("collectionId").value(collectionId)
-			.key("indexingType").value(indexingTaskKey.indexingType())
+			.key("indexingType").value(indexingTaskState.getIndexingType().name())
 			.key("isScheduled").value(indexingTaskState.isScheduled())
 			.key("state").value(indexingTaskState.getState()) //색인, 전파등...
 			.key("step").value(indexingTaskState.getStep())

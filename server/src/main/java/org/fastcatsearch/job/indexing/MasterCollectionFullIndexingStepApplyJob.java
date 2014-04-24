@@ -19,10 +19,12 @@ import org.fastcatsearch.processlogger.IndexingProcessLogger;
 import org.fastcatsearch.processlogger.ProcessLoggerService;
 import org.fastcatsearch.processlogger.log.IndexingFinishProcessLog;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.transport.vo.StreamableThrowable;
 import org.fastcatsearch.util.CollectionContextUtil;
 
-public class MasterCollectionFullIndexingJob extends MasterNodeJob {
+/**
+ * build index 후 전파 및 적용하는 작업.
+ * */
+public class MasterCollectionFullIndexingStepApplyJob extends MasterNodeJob {
 
 	private static final long serialVersionUID = -9030366773507675894L;
 
@@ -41,55 +43,33 @@ public class MasterCollectionFullIndexingJob extends MasterNodeJob {
 			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 			Node indexNode = nodeService.getNodeById(indexNodeId);
 
-			// 전체색인용 context를 준비한다.
-			CollectionContext newCollectionContext = collectionContext.copy();
-			if (newCollectionContext.workSchemaSetting() != null) {
-				newCollectionContext.setSchema(new Schema(newCollectionContext.workSchemaSetting()));
-			}
-			CollectionFullIndexingJob collectionIndexingJob = new CollectionFullIndexingJob(newCollectionContext);
+			//
+			//index node에서 색인만 수행.
+			//
+			CollectionFullIndexingStepApplyJob collectionIndexingJob = new CollectionFullIndexingStepApplyJob(collectionContext);
 			collectionIndexingJob.setArgs(collectionId);
 			collectionIndexingJob.setScheduled(isScheduled);
-			logger.info("Request full indexing job to index node[{}] >> {}, isScheduled={}", indexNodeId, indexNode, isScheduled);
+			logger.info("Request full indexing step job to index node[{}] >> {}, isScheduled={}", indexNodeId, indexNode, isScheduled);
 			ResultFuture jobResult = nodeService.sendRequest(indexNode, collectionIndexingJob);
 			if (jobResult != null) {
 				Object obj = jobResult.take();
-				logger.debug("CollectionFullIndexingJob result = {}", obj);
-				if (obj != null && obj instanceof IndexingJobResult) {
-					IndexingJobResult indexingJobResult = (IndexingJobResult) obj;
-					if (indexingJobResult.isSuccess) {
-						try {
-							CollectionContextUtil.saveCollectionAfterIndexing(newCollectionContext);
-						} catch (SettingException e) {
-							throw new FastcatSearchException(e);
-						}
-					}
-				}
-
+				logger.debug("CollectionFullIndexingStepJob result = {}", obj);
 			} else {
 //				throw new FastcatSearchException("Cannot send indexing job of "+collectionId+" to "+indexNodeId);
 				long endTime = System.currentTimeMillis();
 				Streamable result = null;//new StreamableThrowable(t);
 				ProcessLoggerService processLoggerService = ServiceManager.getInstance().getService(ProcessLoggerService.class);
-				processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId, IndexingType.FULL, "ALL", ResultStatus.FAIL, indexingStartTime, endTime,
+				processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId, IndexingType.FULL, "APPLY-INDEX", ResultStatus.FAIL, indexingStartTime, endTime,
 						isScheduled(), result));
 
 				NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
-				IndexingFailNotification indexingFinishNotification = new IndexingFailNotification(collectionId, IndexingType.FULL, "ALL", ResultStatus.FAIL, indexingStartTime, endTime, result);
+				IndexingFailNotification indexingFinishNotification = new IndexingFailNotification(collectionId, IndexingType.FULL, "APPLY-INDEX", ResultStatus.FAIL, indexingStartTime, endTime, result);
 				notificationService.sendNotification(indexingFinishNotification);
 				
 			}
 
 		} catch (Throwable t) {
 			logger.error("", t);
-//			long endTime = System.currentTimeMillis();
-//			Streamable result = new StreamableThrowable(t);
-//			ProcessLoggerService processLoggerService = ServiceManager.getInstance().getService(ProcessLoggerService.class);
-//			processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId, IndexingType.FULL, ResultStatus.FAIL, indexingStartTime, endTime,
-//					isScheduled(), result));
-//
-//			NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
-//			IndexingFailNotification indexingFinishNotification = new IndexingFailNotification(collectionId, IndexingType.FULL, ResultStatus.FAIL, indexingStartTime, endTime, result);
-//			notificationService.sendNotification(indexingFinishNotification);
 		}
 		return new JobResult();
 	}

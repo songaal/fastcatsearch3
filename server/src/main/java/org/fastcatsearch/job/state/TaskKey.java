@@ -7,7 +7,6 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 
 public abstract class TaskKey implements Streamable {
-	private String nodeId;
 	protected String key;
 
 	public TaskKey() {
@@ -21,11 +20,11 @@ public abstract class TaskKey implements Streamable {
 		return key;
 	}
 
-	public TaskState createState() {
-		return createState(false);
-	}
-
-	public abstract TaskState createState(boolean isScheduled);
+//	public TaskState createState() {
+//		return createState(false);
+//	}
+//
+//	public abstract TaskState createState(boolean isScheduled);
 
 	@Override
 	public int hashCode() {

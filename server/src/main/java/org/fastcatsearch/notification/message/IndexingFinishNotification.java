@@ -14,6 +14,7 @@ public abstract class IndexingFinishNotification extends Notification {
 
 	protected String collectionId;
 	protected IndexingType indexingType;
+	protected String indexingStep;
 	protected ResultStatus resultStatus;
 	protected long startTime;
 	protected long finishTime;
@@ -21,11 +22,12 @@ public abstract class IndexingFinishNotification extends Notification {
 
 	public IndexingFinishNotification() { }
 	
-	public IndexingFinishNotification(String messageCode, String collection, IndexingType indexingType, ResultStatus resultStatus, long startTime, long finishTime,
+	public IndexingFinishNotification(String messageCode, String collection, IndexingType indexingType, String indexingStep, ResultStatus resultStatus, long startTime, long finishTime,
 			Streamable result) {
 		super(messageCode);
 		this.collectionId = collection;
 		this.indexingType = indexingType;
+		this.indexingStep = indexingStep;
 		this.resultStatus = resultStatus;
 		this.startTime = startTime;
 		this.finishTime = finishTime;
@@ -37,6 +39,7 @@ public abstract class IndexingFinishNotification extends Notification {
 		super.readFrom(input);
 		collectionId = input.readString();
 		indexingType = IndexingType.valueOf(input.readString());
+		indexingStep = input.readString();
 		resultStatus = ResultStatus.valueOf(input.readString());
 		startTime = input.readLong();
 		finishTime = input.readLong();
@@ -55,6 +58,7 @@ public abstract class IndexingFinishNotification extends Notification {
 		super.writeTo(output);
 		output.writeString(collectionId);
 		output.writeString(indexingType.name());
+		output.writeString(indexingStep);
 		output.writeString(resultStatus.name());
 		output.writeLong(startTime);
 		output.writeLong(finishTime);
@@ -68,7 +72,7 @@ public abstract class IndexingFinishNotification extends Notification {
 
 	@Override
 	public String toString() {
-		return "Indexing Finished : resultStatus["+resultStatus+"] collectionId["+collectionId+"] type[" + indexingType+ "] start["+startTime+"] finish["+finishTime+"]";
+		return "Indexing Finished : resultStatus["+resultStatus+"] collectionId["+collectionId+"] type[" + indexingType+ "] step[" + indexingStep+ "] start["+startTime+"] finish["+finishTime+"]";
 	}
 
 

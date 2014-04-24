@@ -12,23 +12,24 @@ public class IndexingFailNotification extends IndexingFinishNotification {
 	public IndexingFailNotification() {
 	}
 
-	public IndexingFailNotification(String collectionId, IndexingType indexingType, ResultStatus resultStatus, long startTime, long finishTime, Streamable result) {
-		super("MSG-01002", collectionId, indexingType, resultStatus, startTime, finishTime, result);
+	public IndexingFailNotification(String collectionId, IndexingType indexingType, String indexingStep, ResultStatus resultStatus, long startTime, long finishTime, Streamable result) {
+		super("MSG-01002", collectionId, indexingType, indexingStep, resultStatus, startTime, finishTime, result);
 	}
 
 	@Override
 	public String toMessageString() {
-		Object[] params = new Object[5];
+		Object[] params = new Object[6];
 		params[0] = collectionId;
 		params[1] = indexingType.toString();
-		params[2] = new Timestamp(startTime).toString();
-		params[3] = new Timestamp(finishTime).toString();
+		params[2] = indexingStep;
+		params[3] = new Timestamp(startTime).toString();
+		params[4] = new Timestamp(finishTime).toString();
 
 		if (result instanceof StreamableThrowable) {
 			StreamableThrowable throwable = (StreamableThrowable) result;
-			params[4] = "에러내역: " + throwable.getThrowable().toString();
+			params[5] = "Error: " + throwable.getThrowable().toString();
 		} else {
-			params[4] = "실패결과: " + result.toString();
+			params[5] = "Fail result: " + result.toString();
 		}
 		return getFormattedMessage(params);
 	}

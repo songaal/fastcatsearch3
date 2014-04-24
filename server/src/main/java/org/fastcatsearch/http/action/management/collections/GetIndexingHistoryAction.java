@@ -54,6 +54,7 @@ public class GetIndexingHistoryAction extends AuthAction {
 						.key("id").value(vo.id)
 						.key("collectionId").value(vo.collectionId)
 						.key("type").value(vo.type.name())
+						.key("step").value(vo.step)
 						.key("status").value(vo.status.name())
 						.key("docSize").value(vo.docSize)
 						.key("insertSize").value(vo.insertSize)

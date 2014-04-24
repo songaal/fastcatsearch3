@@ -18,6 +18,7 @@ public class IndexingFinishProcessLog implements ProcessLog, IndexingLoggable {
 
 	private String collectionId;
 	private IndexingType indexingType;
+	private String indexingStep;
 	private ResultStatus resultStatus;
 	private long startTime;
 	private long endTime;
@@ -26,10 +27,11 @@ public class IndexingFinishProcessLog implements ProcessLog, IndexingLoggable {
 
 	public IndexingFinishProcessLog() { }
 	
-	public IndexingFinishProcessLog(String collectionId, IndexingType indexingType, ResultStatus resultStatus, long startTime, long endTime,
+	public IndexingFinishProcessLog(String collectionId, IndexingType indexingType, String indexingStep, ResultStatus resultStatus, long startTime, long endTime,
 			boolean isScheduled, Streamable result) {
 		this.collectionId = collectionId;
 		this.indexingType = indexingType;
+		this.indexingStep = indexingStep;
 		this.resultStatus = resultStatus;
 		this.startTime = startTime;
 		this.endTime = endTime;
@@ -45,6 +47,10 @@ public class IndexingFinishProcessLog implements ProcessLog, IndexingLoggable {
 		return indexingType;
 	}
 
+	public String getIndexingStep() {
+		return indexingStep;
+	}
+	
 	public ResultStatus getResultStatus() {
 		return resultStatus;
 	}
@@ -85,6 +91,7 @@ public class IndexingFinishProcessLog implements ProcessLog, IndexingLoggable {
 	public void readFrom(DataInput input) throws IOException {
 		collectionId = input.readString();
 		indexingType = IndexingType.valueOf(input.readString());
+		indexingStep = input.readString();
 		resultStatus = ResultStatus.valueOf(input.readString());
 		startTime = input.readLong();
 		endTime = input.readLong();
@@ -103,6 +110,7 @@ public class IndexingFinishProcessLog implements ProcessLog, IndexingLoggable {
 	public void writeTo(DataOutput output) throws IOException {
 		output.writeString(collectionId);
 		output.writeString(indexingType.name());
+		output.writeString(indexingStep);
 		output.writeString(resultStatus.name());
 		output.writeLong(startTime);
 		output.writeLong(endTime);
@@ -126,6 +134,7 @@ public class IndexingFinishProcessLog implements ProcessLog, IndexingLoggable {
 			IndexingJobResult indexingJobResult = (IndexingJobResult) getResult();
 			vo.collectionId = getCollectionId();
 			vo.type = getIndexingType();
+			vo.step = getIndexingStep();
 			vo.status = getResultStatus();
 			vo.isScheduled = isScheduled();
 			if(indexingJobResult.indexStatus != null){
@@ -144,6 +153,7 @@ public class IndexingFinishProcessLog implements ProcessLog, IndexingLoggable {
 			//
 			vo.collectionId = getCollectionId();
 			vo.type = getIndexingType();
+			vo.step = getIndexingStep();
 			vo.status = getResultStatus();
 			vo.isScheduled = isScheduled();
 			vo.startTime = new Timestamp(getStartTime());

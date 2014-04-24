@@ -11,7 +11,6 @@ import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.state.IndexingTaskKey;
 import org.fastcatsearch.job.state.IndexingTaskState;
-import org.fastcatsearch.job.state.TaskState;
 import org.fastcatsearch.job.state.TaskStateService;
 import org.fastcatsearch.notification.NotificationService;
 import org.fastcatsearch.notification.message.IndexingCancelNotification;
@@ -34,6 +33,7 @@ public abstract class IndexingJob extends Job implements Streamable {
 
 	protected String collectionId;
 	protected IndexingType indexingType;
+	protected String indexingStep;
 
 	private ProcessLoggerService processLoggerService;
 	private NotificationService notificationService;
@@ -61,10 +61,10 @@ public abstract class IndexingJob extends Job implements Streamable {
 		indexingTaskState.requestStopState();
 	}
 
-	public void prepare(IndexingType indexingType) {
+	public void prepare(IndexingType indexingType, String indexingStep) {
 		collectionId = getStringArgs();
 		this.indexingType = indexingType;
-
+		this.indexingStep = indexingStep;
 		ServiceManager serviceManager = ServiceManager.getInstance();
 		processLoggerService = serviceManager.getService(ProcessLoggerService.class);
 		notificationService = serviceManager.getService(NotificationService.class);
@@ -75,29 +75,27 @@ public abstract class IndexingJob extends Job implements Streamable {
 		indexingLogger.info("[{}] {} Indexing Start! {}, schedule={}", collectionId, indexingType.name(), getClass().getSimpleName(), isScheduled());
 		indexingStartTime = System.currentTimeMillis();
 		processLoggerService.log(IndexingProcessLogger.class, new IndexingStartProcessLog(collectionId, indexingType, jobStartTime(), isScheduled()));
-		notificationService.sendNotification(new IndexingStartNotification(collectionId, indexingType, jobStartTime(), isScheduled()));
-		indexingTaskKey = new IndexingTaskKey(collectionId, indexingType);
-		indexingTaskState = (IndexingTaskState) taskStateService.register(indexingTaskKey, isScheduled);
-		if(indexingTaskState != null) {
-			indexingTaskState.start();
-			return true;
-		}else{
-			return false;
-		}
+		notificationService.sendNotification(new IndexingStartNotification(collectionId, indexingType, indexingStep, jobStartTime(), isScheduled()));
+		indexingTaskKey = new IndexingTaskKey(collectionId);
+		indexingTaskState = new IndexingTaskState(indexingType, isScheduled);
+		taskStateService.register(indexingTaskKey, indexingTaskState);
+		indexingTaskState.start();
+		indexingTaskState.setStep(IndexingTaskState.STEP_INITIALIZE);
+		return true;
 	}
 
 	protected void updateIndexingStatusFinish(ResultStatus resultStatus, Streamable streamableResult) {
 		long endTime = System.currentTimeMillis();
 
-		processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId, indexingType, resultStatus, indexingStartTime, endTime, isScheduled(),
+		processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId, indexingType, indexingStep, resultStatus, indexingStartTime, endTime, isScheduled(),
 				streamableResult));
 		IndexingFinishNotification indexingFinishNotification = null;
 		if (resultStatus == ResultStatus.SUCCESS) {
-			indexingFinishNotification = new IndexingSuccessNotification(collectionId, indexingType, resultStatus, indexingStartTime, endTime, streamableResult);
+			indexingFinishNotification = new IndexingSuccessNotification(collectionId, indexingType, indexingStep, resultStatus, indexingStartTime, endTime, streamableResult);
 		} else if (resultStatus == ResultStatus.FAIL) {
-			indexingFinishNotification = new IndexingFailNotification(collectionId, indexingType, resultStatus, indexingStartTime, endTime, streamableResult);
+			indexingFinishNotification = new IndexingFailNotification(collectionId, indexingType, indexingStep, resultStatus, indexingStartTime, endTime, streamableResult);
 		} else if (resultStatus == ResultStatus.CANCEL) {
-			indexingFinishNotification = new IndexingCancelNotification(collectionId, indexingType, resultStatus, indexingStartTime, endTime, streamableResult);
+			indexingFinishNotification = new IndexingCancelNotification(collectionId, indexingType, indexingStep, resultStatus, indexingStartTime, endTime, streamableResult);
 		}
 		
 		if(indexingTaskState != null) {
@@ -114,7 +112,6 @@ public abstract class IndexingJob extends Job implements Streamable {
 			notificationService.sendNotification(indexingFinishNotification);
 		}
 		
-//		taskStateService.remove(indexingTaskKey);
 		indexingLogger.info("[{}] {} Indexing Finish!", collectionId, indexingType.name());
 	}
 

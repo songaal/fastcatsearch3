@@ -64,7 +64,7 @@ public class CollectionDocumentStoreFullIndexingJob extends IndexingJob {
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
 		
-		prepare(IndexingType.FULL_DOCUMENT_STORE);
+		prepare(IndexingType.FULL_DOCUMENT_STORE, "ALL");
 		
 		
 		Throwable throwable = null;
@@ -96,7 +96,7 @@ public class CollectionDocumentStoreFullIndexingJob extends IndexingJob {
 			boolean isIndexed = false; 
 			CollectionFullDocumentStorer collectionFullDocumentStorer = new CollectionFullDocumentStorer(collectionContext);
 			indexer = collectionFullDocumentStorer;
-			collectionFullDocumentStorer.setState(indexingTaskState);
+			collectionFullDocumentStorer.setTaskState(indexingTaskState);
 			try {
 				indexer.doIndexing();
 			} finally {

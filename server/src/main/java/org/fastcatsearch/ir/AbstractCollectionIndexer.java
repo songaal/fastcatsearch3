@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 
-import org.fastcatsearch.datasource.reader.AbstractDataSourceReader;
 import org.fastcatsearch.datasource.reader.DataSourceReader;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
@@ -69,7 +68,7 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
 	}
 	
 	public void init(Schema schema) throws IRException {
-		
+
 		prepare();
 		
 		FilePaths dataFilePaths = collectionContext.collectionFilePaths().dataPaths();
@@ -161,6 +160,9 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
 	}
 	@Override
 	public void doIndexing() throws IRException, IOException {
+		
+		indexingTaskState.setStep(IndexingTaskState.STEP_INDEXING);
+		
 		lapTime = System.currentTimeMillis();
 		while (dataSourceReader.hasNext()) {
 			if(stopRequested){
@@ -177,7 +179,7 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
 		return deleteIdSet;
 	}
 	
-	public void setState(IndexingTaskState indexingTaskState) {
+	public void setTaskState(IndexingTaskState indexingTaskState) {
 		this.indexingTaskState = indexingTaskState;
 	}
 }

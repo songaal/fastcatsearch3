@@ -19,10 +19,9 @@ import org.fastcatsearch.processlogger.IndexingProcessLogger;
 import org.fastcatsearch.processlogger.ProcessLoggerService;
 import org.fastcatsearch.processlogger.log.IndexingFinishProcessLog;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.transport.vo.StreamableThrowable;
 import org.fastcatsearch.util.CollectionContextUtil;
 
-public class MasterCollectionFullIndexingJob extends MasterNodeJob {
+public class MasterCollectionFullIndexingStepBuildJob extends MasterNodeJob {
 
 	private static final long serialVersionUID = -9030366773507675894L;
 
@@ -46,14 +45,18 @@ public class MasterCollectionFullIndexingJob extends MasterNodeJob {
 			if (newCollectionContext.workSchemaSetting() != null) {
 				newCollectionContext.setSchema(new Schema(newCollectionContext.workSchemaSetting()));
 			}
-			CollectionFullIndexingJob collectionIndexingJob = new CollectionFullIndexingJob(newCollectionContext);
+			
+			//
+			//index node에서 색인만 수행.
+			//
+			CollectionFullIndexingStepBuildJob collectionIndexingJob = new CollectionFullIndexingStepBuildJob(newCollectionContext);
 			collectionIndexingJob.setArgs(collectionId);
 			collectionIndexingJob.setScheduled(isScheduled);
-			logger.info("Request full indexing job to index node[{}] >> {}, isScheduled={}", indexNodeId, indexNode, isScheduled);
+			logger.info("Request full indexing step job to index node[{}] >> {}, isScheduled={}", indexNodeId, indexNode, isScheduled);
 			ResultFuture jobResult = nodeService.sendRequest(indexNode, collectionIndexingJob);
 			if (jobResult != null) {
 				Object obj = jobResult.take();
-				logger.debug("CollectionFullIndexingJob result = {}", obj);
+				logger.debug("CollectionFullIndexingStepJob result = {}", obj);
 				if (obj != null && obj instanceof IndexingJobResult) {
 					IndexingJobResult indexingJobResult = (IndexingJobResult) obj;
 					if (indexingJobResult.isSuccess) {
@@ -70,26 +73,17 @@ public class MasterCollectionFullIndexingJob extends MasterNodeJob {
 				long endTime = System.currentTimeMillis();
 				Streamable result = null;//new StreamableThrowable(t);
 				ProcessLoggerService processLoggerService = ServiceManager.getInstance().getService(ProcessLoggerService.class);
-				processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId, IndexingType.FULL, "ALL", ResultStatus.FAIL, indexingStartTime, endTime,
+				processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId, IndexingType.FULL, "BUILD-INDEX", ResultStatus.FAIL, indexingStartTime, endTime,
 						isScheduled(), result));
 
 				NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
-				IndexingFailNotification indexingFinishNotification = new IndexingFailNotification(collectionId, IndexingType.FULL, "ALL", ResultStatus.FAIL, indexingStartTime, endTime, result);
+				IndexingFailNotification indexingFinishNotification = new IndexingFailNotification(collectionId, IndexingType.FULL, "BUILD-INDEX", ResultStatus.FAIL, indexingStartTime, endTime, result);
 				notificationService.sendNotification(indexingFinishNotification);
 				
 			}
 
 		} catch (Throwable t) {
 			logger.error("", t);
-//			long endTime = System.currentTimeMillis();
-//			Streamable result = new StreamableThrowable(t);
-//			ProcessLoggerService processLoggerService = ServiceManager.getInstance().getService(ProcessLoggerService.class);
-//			processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId, IndexingType.FULL, ResultStatus.FAIL, indexingStartTime, endTime,
-//					isScheduled(), result));
-//
-//			NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
-//			IndexingFailNotification indexingFinishNotification = new IndexingFailNotification(collectionId, IndexingType.FULL, ResultStatus.FAIL, indexingStartTime, endTime, result);
-//			notificationService.sendNotification(indexingFinishNotification);
 		}
 		return new JobResult();
 	}

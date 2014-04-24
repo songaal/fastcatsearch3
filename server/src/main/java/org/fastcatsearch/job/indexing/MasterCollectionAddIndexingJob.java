@@ -41,20 +41,31 @@ public class MasterCollectionAddIndexingJob extends MasterNodeJob {
 			if (jobResult != null) {
 				Object obj = jobResult.take();
 			} else {
-				throw new FastcatSearchException("Cannot send indexing job of " + collectionId + " to " + indexNodeId);
+//				throw new FastcatSearchException("Cannot send indexing job of " + collectionId + " to " + indexNodeId);
+				long endTime = System.currentTimeMillis();
+				Streamable result = null;//new StreamableThrowable(t);
+				ProcessLoggerService processLoggerService = ServiceManager.getInstance().getService(ProcessLoggerService.class);
+				processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId, IndexingType.ADD, "ALL", ResultStatus.FAIL, indexingStartTime, endTime,
+						isScheduled(), result));
+	
+				NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
+				IndexingFailNotification indexingFinishNotification = new IndexingFailNotification(collectionId, IndexingType.ADD, "ALL", ResultStatus.FAIL, indexingStartTime, endTime,
+						result);
+				notificationService.sendNotification(indexingFinishNotification);
 			}
 
 		} catch (Throwable t) {
-			long endTime = System.currentTimeMillis();
-			Streamable result = new StreamableThrowable(t);
-			ProcessLoggerService processLoggerService = ServiceManager.getInstance().getService(ProcessLoggerService.class);
-			processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId, IndexingType.ADD, ResultStatus.FAIL, indexingStartTime, endTime,
-					isScheduled(), result));
-
-			NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
-			IndexingFailNotification indexingFinishNotification = new IndexingFailNotification(collectionId, IndexingType.ADD, ResultStatus.FAIL, indexingStartTime, endTime,
-					result);
-			notificationService.sendNotification(indexingFinishNotification);
+			logger.error("", t);
+//			long endTime = System.currentTimeMillis();
+//			Streamable result = new StreamableThrowable(t);
+//			ProcessLoggerService processLoggerService = ServiceManager.getInstance().getService(ProcessLoggerService.class);
+//			processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId, IndexingType.ADD, ResultStatus.FAIL, indexingStartTime, endTime,
+//					isScheduled(), result));
+//
+//			NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
+//			IndexingFailNotification indexingFinishNotification = new IndexingFailNotification(collectionId, IndexingType.ADD, ResultStatus.FAIL, indexingStartTime, endTime,
+//					result);
+//			notificationService.sendNotification(indexingFinishNotification);
 		}
 		return new JobResult();
 	}

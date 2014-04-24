@@ -37,7 +37,6 @@ import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.util.Counter;
 import org.fastcatsearch.job.CacheServiceRestartJob;
-import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.job.cluster.NodeCollectionReloadJob;
 import org.fastcatsearch.job.cluster.NodeDirectoryCleanJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
@@ -49,27 +48,28 @@ import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.FilePaths;
 
 /**
- * 특정 collection의 index node에서 수행되는 job.
+ * 특정 collection의 index node에서 수행되는 전파 및 적용 job.
+ * 
  * index node가 아닌 노드에 전달되면 색인을 수행하지 않는다.
  *  
  * */
-public class CollectionFullIndexingJob extends IndexingJob {
+public class CollectionFullIndexingStepApplyJob extends IndexingJob {
 
 	private static final long serialVersionUID = 7898036370433248984L;
 
 	private CollectionContext collectionContext; 
 	
-	public CollectionFullIndexingJob(){
+	public CollectionFullIndexingStepApplyJob(){
 	}
 	
-	public CollectionFullIndexingJob(CollectionContext collectionContext){
+	public CollectionFullIndexingStepApplyJob(CollectionContext collectionContext){
 		this.collectionContext = collectionContext;
 	}
 	
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
 		
-		prepare(IndexingType.FULL, "ALL");
+		prepare(IndexingType.FULL, "APPLY-INDEX");
 		
 		
 		Throwable throwable = null;
@@ -78,9 +78,7 @@ public class CollectionFullIndexingJob extends IndexingJob {
 		long startTime = System.currentTimeMillis();
 		try {
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-			AnalyzerPoolManager analyzerPoolManager = irService.createAnalyzerPoolManager(collectionContext.schema().schemaSetting().getAnalyzerSettingList());			
 			//find index node
-//			CollectionContext collectionContext = irService.collectionContext(collectionId);
 			String indexNodeId = collectionContext.collectionConfig().getIndexNode();
 			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 			Node indexNode = nodeService.getNodeById(indexNodeId);
@@ -97,40 +95,6 @@ public class CollectionFullIndexingJob extends IndexingJob {
 				return new JobResult();
 			}
 
-			/*
-			 * Do indexing!!
-			 */
-			//////////////////////////////////////////////////////////////////////////////////////////
-			
-			boolean isIndexed = false; 
-			CollectionFullIndexer collectionFullIndexer = new CollectionFullIndexer(collectionContext, analyzerPoolManager);
-			indexer = collectionFullIndexer;
-			collectionFullIndexer.setTaskState(indexingTaskState);
-			Throwable indexingThrowable = null;
-			try {
-				collectionFullIndexer.doIndexing();
-			}catch(Throwable e){
-				indexingThrowable = e;
-			} finally {
-				if (collectionFullIndexer != null) {
-					try{
-						isIndexed = collectionFullIndexer.close();
-					}catch(Throwable closeThrowable){
-						//이전에 이미 발생한 에러가 있다면 close 중에 발생한 에러보다 이전 에러를 throw한다.
-						if(indexingThrowable == null){
-							indexingThrowable = closeThrowable;
-						}
-					}
-				}
-				if(indexingThrowable != null){
-					throw indexingThrowable;
-				}
-			}
-			if(!isIndexed && stopRequested){
-				//여기서 끝낸다.
-				throw new IndexingStopException();
-			}
-			
 			/*
 			 * 색인파일 원격복사.
 			 */
@@ -213,30 +177,36 @@ public class CollectionFullIndexingJob extends IndexingJob {
 //					throw new FastcatSearchException("Node Collection Reload Failed!");
 //				}
 			}
+			
+			
+			///이미 build-index에서 리로드 했으므로 리로드 스킵. 
 			/*
 			 * 데이터노드가 리로드 완료되었으면 인덱스노드도 리로드 시작.
 			 * */
-			indexingTaskState.setStep(IndexingTaskState.STEP_FINALIZE);
-			
-			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
-			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
-			Counter queryCounter = irService.queryCountModule().getQueryCounter(collectionId);
-			collectionHandler.setQueryCounter(queryCounter);
-			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
-			if (oldCollectionHandler != null) {
-				logger.info("## [{}] Close Previous Collection Handler", collectionContext.collectionId());
-				oldCollectionHandler.close();
-			}
+//			indexingTaskState.setStep(IndexingTaskState.STEP_FINALIZE);
+//			
+//			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
+//			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
+//			Counter queryCounter = irService.queryCountModule().getQueryCounter(collectionId);
+//			collectionHandler.setQueryCounter(queryCounter);
+//			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
+//			if (oldCollectionHandler != null) {
+//				logger.info("## [{}] Close Previous Collection Handler", collectionContext.collectionId());
+//				oldCollectionHandler.close();
+//			}
 			
 			int duration = (int) (System.currentTimeMillis() - startTime);
 			
 			/*
 			 * 캐시 클리어.
 			 */
-			getJobExecutor().offer(new CacheServiceRestartJob());
+//			getJobExecutor().offer(new CacheServiceRestartJob());
 
+			
+			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
+			
 			IndexStatus indexStatus = collectionContext.indexStatus().getFullIndexStatus();
-			indexingLogger.info("[{}] Collection Full Indexing Finished! {} time = {}", collectionId, indexStatus, duration);
+			indexingLogger.info("[{}] Collection Full Indexing apply index Finished! {} time = {}", collectionId, indexStatus, duration);
 			logger.info("== SegmentStatus ==");
 			collectionHandler.printSegmentStatus();
 			logger.info("===================");
