@@ -26,21 +26,20 @@ public abstract class SelectableIndexesReader<T extends ReferencableIndexReader,
 
 		for (int i = 0; i < fieldList.length; i++) {
 			String fieldId = fieldList[i];
-			if (fieldId == null) {
-				continue;
-			}
 			T reader = null;
-			for (int j = 0; j < indexSettingList.size(); j++) {
-				S setting = indexSettingList.get(j);
-				String indexFieldId = setting.getId();
-				// 동일필드명을 찾는다.
-				if (indexFieldId.equalsIgnoreCase(fieldId)) {
-					reader = cloneReader(j);
-					break;
+			if (fieldId != null) {
+			
+				for (int j = 0; j < indexSettingList.size(); j++) {
+					S setting = indexSettingList.get(j);
+					String indexFieldId = setting.getId();
+					// 동일필드명을 찾는다.
+					if (indexFieldId.equalsIgnoreCase(fieldId)) {
+						reader = cloneReader(j);
+						break;
+					}
+	
 				}
-
 			}
-
 			indexRef.add(fieldId, reader);
 
 			if (reader == null) {
