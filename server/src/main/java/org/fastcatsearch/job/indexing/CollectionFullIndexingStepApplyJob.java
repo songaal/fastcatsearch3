@@ -12,7 +12,6 @@
 package org.fastcatsearch.job.indexing;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,26 +24,18 @@ import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.db.mapper.IndexingResultMapper.ResultStatus;
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.ir.CollectionFullIndexer;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
-import org.fastcatsearch.ir.io.DataInput;
-import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.ir.util.Counter;
-import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.cluster.NodeCollectionReloadJob;
 import org.fastcatsearch.job.cluster.NodeDirectoryCleanJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.transport.vo.StreamableCollectionContext;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
-import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.FilePaths;
 
 /**
@@ -57,13 +48,7 @@ public class CollectionFullIndexingStepApplyJob extends IndexingJob {
 
 	private static final long serialVersionUID = 7898036370433248984L;
 
-	private CollectionContext collectionContext; 
-	
 	public CollectionFullIndexingStepApplyJob(){
-	}
-	
-	public CollectionFullIndexingStepApplyJob(CollectionContext collectionContext){
-		this.collectionContext = collectionContext;
 	}
 	
 	@Override
@@ -79,6 +64,9 @@ public class CollectionFullIndexingStepApplyJob extends IndexingJob {
 		try {
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			//find index node
+			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
+			CollectionContext collectionContext = irService.collectionContext(collectionId);
+			
 			String indexNodeId = collectionContext.collectionConfig().getIndexNode();
 			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 			Node indexNode = nodeService.getNodeById(indexNodeId);
@@ -202,9 +190,6 @@ public class CollectionFullIndexingStepApplyJob extends IndexingJob {
 			 */
 //			getJobExecutor().offer(new CacheServiceRestartJob());
 
-			
-			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
-			
 			IndexStatus indexStatus = collectionContext.indexStatus().getFullIndexStatus();
 			indexingLogger.info("[{}] Collection Full Indexing apply index Finished! {} time = {}", collectionId, indexStatus, duration);
 			logger.info("== SegmentStatus ==");
@@ -240,21 +225,6 @@ public class CollectionFullIndexingStepApplyJob extends IndexingJob {
 			updateIndexingStatusFinish(resultStatus, streamableResult);
 		}
 
-	}
-	
-	@Override
-	public void readFrom(DataInput input) throws IOException {
-		super.readFrom(input);
-		StreamableCollectionContext streamableCollectionContext = new StreamableCollectionContext(environment);
-		streamableCollectionContext.readFrom(input);
-		this.collectionContext = streamableCollectionContext.collectionContext();
-	}
-
-	@Override
-	public void writeTo(DataOutput output) throws IOException {
-		super.writeTo(output);
-		StreamableCollectionContext streamableCollectionContext = new StreamableCollectionContext(collectionContext);
-		streamableCollectionContext.writeTo(output);
 	}
 
 }
