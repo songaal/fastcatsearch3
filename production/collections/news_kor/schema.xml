@@ -1,62 +1,49 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<schema name="news_kor" version="2.0">
-
-	<field-list>
-		<field id="Code" name="코드" type="ASTRING" size="17" />
-		<field id="SectionCode" name="섹션코드" type="ASTRING" size="1" />
-		<field id="Category" name="카테고리" type="STRING" size="-1" />
-		<field id="Title" name="제목" type="STRING" size="-1" />
-		<field id="UserID" name="사용자아이디" type="STRING" size="-1" />
-		<field id="UserName" name="사용자이름" type="STRING" size="-1" />
-		<field id="Content" name="기사내용" type="STRING" size="-1"
-			removeTag="true" />
-		<field id="RegDate" name="등록일" type="DATETIME" />
-		<field id="UpdateDate" name="수정일" type="DATETIME" />
-		<field id="FileName" name="파일명" type="ASTRING" size="-1" />
-	</field-list>
-
-	<primary-key>
-		<field ref="Code" />
-	</primary-key>
-
-	<index-list>
-		<index id="Title" name="제목" indexAnalyzer="korean" queryAnalyzer="korean">
-			<field ref="Title" />
-		</index>
-		<index id="Content" name="기사내용" indexAnalyzer="korean" queryAnalyzer="korean"
-			storePosition="true" positionIncrementGap="100">
-			<field ref="Content" />
-		</index>
-		<index id="TitleContent" name="제목 및 기사내용" indexAnalyzer="korean" queryAnalyzer="korean"
-			storePosition="true" positionIncrementGap="100">
-			<field ref="Title" />
-			<field ref="Content" />
-		</index>
-		
-		<index id="UserID" name="사용자아이디" indexAnalyzer="keyword" queryAnalyzer="keyword">
-			<field ref="UserID" />
-		</index>
-		<index id="UserName" name="사용자이름" indexAnalyzer="keyword" queryAnalyzer="keyword">
-			<field ref="UserName" />
-		</index>
-	</index-list>
-
-	<analyzer-list>
-		<analyzer id="korean" corePoolSize="1" maximumPoolSize="5" className="KOREAN.STANDARD" />
-		<analyzer id="keyword" corePool_size="1" maximumPoolSize="5" className="BASIC.KEYWORD" /> 
-	</analyzer-list>
-
-	<field-index-list>
-		<field-index id="SectionCode" name="SectionCode_index"
-			ref="SectionCode" />
-		<field-index id="RegDate" name="RegDate_index" ref="RegDate" />
-		<field-index id="UpdateDate" name="UpdateDate_index" ref="UpdateDate" />
-	</field-index-list>
-
-	<group-index-list>
-		<group-index id="Category" name="Category_group" ref="Category" />
-		<group-index id="UserID" name="UserID_group" ref="UserID" />
-	</group-index-list>
-
-
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<schema>
+    <field-list>
+        <field id="CODE" type="ASTRING" name="코드" size="17" multiValueDelimiter=""/>
+        <field id="SECTIONCODE" type="ASTRING" name="섹션코드" size="1" multiValueDelimiter=""/>
+        <field id="CATEGORY" type="STRING" name="카테고리" multiValueDelimiter=""/>
+        <field id="TITLE" type="STRING" name="제목" multiValueDelimiter=""/>
+        <field id="USERID" type="STRING" name="사용자아이디" multiValueDelimiter=""/>
+        <field id="USERNAME" type="STRING" name="사용자이름" multiValueDelimiter=""/>
+        <field id="CONTENT" type="STRING" name="기사내용" removeTag="true" multiValueDelimiter=""/>
+        <field id="REGDATE" type="DATETIME" name="등록일" multiValueDelimiter=""/>
+        <field id="UPDATEDATE" type="DATETIME" name="수정일" multiValueDelimiter=""/>
+        <field id="FILENAME" type="ASTRING" name="파일명" multiValueDelimiter=""/>
+    </field-list>
+    <primary-key>
+        <field ref="CODE"/>
+    </primary-key>
+    <index-list>
+        <index id="TITLE" name="제목" queryAnalyzer="KOREAN" ignoreCase="true">
+            <field indexAnalyzer="KOREAN" ref="TITLE"/>
+        </index>
+        <index id="CONTENT" name="기사내용" queryAnalyzer="KOREAN" ignoreCase="true" storePosition="true" positionIncrementGap="100">
+            <field indexAnalyzer="KOREAN" ref="CONTENT"/>
+        </index>
+        <index id="TITLECONTENT" name="제목 및 기사내용" queryAnalyzer="KOREAN" ignoreCase="true" storePosition="true" positionIncrementGap="100">
+            <field indexAnalyzer="KOREAN" ref="TITLE"/>
+            <field indexAnalyzer="KOREAN" ref="CONTENT"/>
+        </index>
+        <index id="USERID" name="사용자아이디" queryAnalyzer="KOREAN" ignoreCase="true">
+            <field indexAnalyzer="KOREAN" ref="USERID"/>
+        </index>
+        <index id="USERNAME" name="사용자이름" queryAnalyzer="KOREAN">
+            <field indexAnalyzer="KOREAN" ref="USERNAME"/>
+        </index>
+    </index-list>
+    <analyzer-list>
+        <analyzer id="KOREAN" corePoolSize="1" maximumPoolSize="5" className="KOREAN.STANDARD"/>
+        <analyzer id="KEYWORD" corePoolSize="0" maximumPoolSize="5" className="BASIC.KEYWORD"/>
+    </analyzer-list>
+    <field-index-list>
+        <field-index id="SECTIONCODE" name="SectionCode_index" ref="SECTIONCODE"/>
+        <field-index id="REGDATE" name="RegDate_index" ref="REGDATE"/>
+        <field-index id="UPDATEDATE" name="UpdateDate_index" ref="UPDATEDATE"/>
+    </field-index-list>
+    <group-index-list>
+        <group-index id="CATEGORY" name="Category_group" ref="CATEGORY"/>
+        <group-index id="USERID" name="UserID_group" ref="USERID"/>
+    </group-index-list>
 </schema>
