@@ -120,6 +120,10 @@ public class PluginService extends AbstractService implements AnalyzerProvider {
 					Plugin plugin = null;
 					if (className != null && className.length() > 0) {
 						plugin = DynamicClassLoader.loadObject(className, Plugin.class, new Class<?>[] { File.class, PluginSetting.class }, new Object[] { dir, setting });
+						if(plugin == null){
+							logger.error("Cannot load plugin {} : {}", pluginId, className);
+							continue;
+						}
 						plugin.load(environment.isMasterNode());
 						logger.debug("PLUGIN {} >> {}", setting.getId(), plugin.getClass().getName());
 						pluginMap.put(setting.getId(), plugin);
