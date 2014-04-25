@@ -29,7 +29,7 @@ public class IndexingFailNotification extends IndexingFinishNotification {
 			StreamableThrowable throwable = (StreamableThrowable) result;
 			params[5] = "Error: " + throwable.getThrowable().toString();
 		} else {
-			params[5] = "Fail result: " + result.toString();
+			params[5] = "Fail result: " + (result != null ? result.toString() : "");
 		}
 		return getFormattedMessage(params);
 	}
