@@ -1,0 +1,67 @@
+#
+# 사용하기에 앞서 env.sh를 설정해주어야 한다.
+#
+#
+
+###################
+# 공통 설정 파일
+# env.sh
+###################
+server_ip_list : 타 노드 리스트. 자신은 포함하지 않는다.
+ssh_port : 서버의 ssh 포트. 기본 22
+ssh_user : ssh 접속 계정.
+this_home : local 노드의 엔진 홈. 파일전송시 이 경로를 기준으로 전송됨.
+target_home : 타 노드들의 엔진 홈. 모두 동일해야 한다. 파일전송시 이 경로를 기준으로 전송됨.
+
+###################
+# 파일복사
+# syncfile.sh
+###################
+
+1. fastcatsearch 디렉토리를 타 노드로 통째로 복사할때.
+
+./syncfile.sh .
+
+2. fastcatsearch 하위의 특정파일을 복사할때.
+
+./syncfile.sh plugin/analysis/Product/*.jar plugin/analysis/Product/
+
+3. 특정위치의 파일을 복사할때.
+
+ i) 동일디렉토리의 동일이름으로 복사
+ ./syncfile.sh /data/export/abc.txt 
+
+ ii) 경로변경.
+ ./syncfile.sh /data/export/abc.txt /data2/
+  
+ iii) 이름변경
+ ./syncfile.sh /data/export/abc.txt /data/export/123.txt
+
+
+###################
+# lib 파일 동기화
+# syncfile-lib.sh
+###################
+
+1. 변경된 lib/ 내의 jar 파일을 내 노드를 기준으로 동기화
+
+./syncfile-lib.sh
+
+
+###################
+# 클러스터내 노드 관리
+# daemon-cluster.sh
+###################
+
+1. 클러스터 내의 모든 노드 시작.
+ 
+./daemon-cluster.sh start
+
+
+2. 클러스터 내의 모든 노드 정지.
+ 
+./daemon-cluster.sh stop
+
+
+
+

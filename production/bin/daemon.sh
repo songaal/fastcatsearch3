@@ -55,12 +55,7 @@ elif [ "$1" = "profile" ] ; then
 	
 fi
 
-
-if [ "$1" = "run" ] ; then
-	java -Dserver.home=$SERVER_HOME $JVM_OPTS $JAVA_OPTS -classpath $LIB/fastcatsearch-server-bootstrap.jar org.fastcatsearch.server.Bootstrap start
-
-elif [ "$1" = "start" ] || [ "$1" = "debug" ] || [ "$1" = "profile" ] ; then
-	
+start_daemon() {
 	# prevent killed by Hup, ctrl-c
 	trap '' 1 2
 	java -Dserver.home=$SERVER_HOME $JVM_OPTS $JAVA_OPTS $ADDITIONAL_OPTS -classpath $LIB/fastcatsearch-server-bootstrap.jar org.fastcatsearch.server.Bootstrap start > $OUTPUT_LOG 2>&1 &
@@ -75,15 +70,17 @@ elif [ "$1" = "start" ] || [ "$1" = "debug" ] || [ "$1" = "profile" ] ; then
 		echo "################################"
 		#tail can be got signal ctrl-c
 		trap - 2
-		tail -f $LOGS/system.log
+		return 0
 	else
 		echo "[ERROR] Fail to start server. Check details at logs/output.log file."
 		echo "---------------------------"
 		tail -1 $OUTPUT_LOG
 		echo "---------------------------"
 	fi
+	return 1
+}
 
-elif [ "$1" = "stop" ] ; then
+stop_daemon() {
 	if [ -f ".pid" ] ; then
 		PID=`cat ".pid"`
 		if ps -p $PID > /dev/null
@@ -94,15 +91,47 @@ elif [ "$1" = "stop" ] ; then
 			echo "kill $PID"
 			echo "################################"
 			kill "$PID"
-			tail -f $LOGS/system.log
+			return 0
 		else
-			echo "Cannot find pid $PID"
+			echo "Cannot find pid $PID to stop"
 		fi
 	else
 		echo "Cannot stop daemon: .pid file not found"
 		ps -ef|grep org.fastcatsearch.server.Bootstrap|grep -v grep
 	fi
-	
+	return 1
+}
+
+print_option() {
+	echo "usage: $0 run | start | stop | restart | kill | debug | profile"
+}
+
+if [ "$1" = "run" ] ; then
+	java -Dserver.home=$SERVER_HOME $JVM_OPTS $JAVA_OPTS -classpath $LIB/fastcatsearch-server-bootstrap.jar org.fastcatsearch.server.Bootstrap start
+
+elif [ "$1" = "start" ] || [ "$1" = "debug" ] || [ "$1" = "profile" ] ; then
+	if(start_daemon)
+	then 
+		if [ "$2" != "notail" ] ; then
+			tail -f $LOGS/system.log
+		fi
+	fi
+elif [ "$1" = "stop" ] ; then
+	if(stop_daemon) 
+	then 
+		if [ "$2" != "notail" ] ; then
+			tail -f $LOGS/system.log
+		fi
+	fi
+elif [ "$1" = "restart" ] ; then
+		stop_daemon
+		sleep 1
+		if(start_daemon)
+		then 
+			if [ "$2" != "notail" ] ; then
+				tail -f $LOGS/system.log
+			fi
+		fi
 elif [ "$1" = "kill" ] ; then
 	if [ -f ".pid" ] ; then
 		PID=`cat ".pid"`
@@ -123,7 +152,12 @@ elif [ "$1" = "kill" ] ; then
 	fi
 	
 elif [ -z "$1" ] ; then
+	print_option
 	
-	echo "usage: $0 run | start | stop | kill | debug | profile"
-	
+else
+	echo "Unknown command : $1"
+	print_option
 fi
+
+
+
