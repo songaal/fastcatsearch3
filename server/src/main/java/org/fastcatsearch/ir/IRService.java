@@ -387,6 +387,15 @@ public class IRService extends AbstractService {
 	}
 
 	public CollectionHandler putCollectionHandler(String collectionId, CollectionHandler collectionHandler) {
+		//write config file if not exists
+		if(!collectionHandlerMap.containsKey(collectionId)) {
+			collectionsConfig.addCollection(collectionId);
+			try {
+				JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.collections), collectionsConfig, CollectionsConfig.class);
+			} catch (JAXBException e) {
+				logger.error("", e);
+			}
+		}
 		return collectionHandlerMap.put(collectionId, collectionHandler);
 	}
 
