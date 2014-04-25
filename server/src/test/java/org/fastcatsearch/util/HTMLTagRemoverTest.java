@@ -81,6 +81,18 @@ public class HTMLTagRemoverTest extends TestCase {
 	}
 	
 	@Test
+	public void test3() {
+		String str = "김치냉장고_스탠드형|232L|2룸|소비전력:17.4kwh(월)|나노항균|냉장+냉동겸용|야채,과일보관|색상:함연주화이트|<IMG src=\"http://office.danawa.com/prod_img/500000/975/502/img/1502975_1.jpg?time=1348054028\" style=\"FILTER: RevealTrans(duration=0,transition=X)\" OnmouseOver=\"this.filters[0].apply(); this.src='http:";
+		
+		try {
+			str = HTMLTagRemover.clean(str);
+			System.out.println(str);
+		} catch (IRException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
 	public void testfile() throws Exception {
 		String strFilePath="/Users/swsong/Desktop/a.html";
 		
