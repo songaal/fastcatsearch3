@@ -46,7 +46,7 @@ public class MasterCollectionFullIndexingStepApplyJob extends MasterNodeJob {
 			//
 			//index node에서 색인만 수행.
 			//
-			CollectionFullIndexingStepApplyJob collectionIndexingJob = new CollectionFullIndexingStepApplyJob(collectionContext);
+			CollectionFullIndexingStepApplyJob collectionIndexingJob = new CollectionFullIndexingStepApplyJob();
 			collectionIndexingJob.setArgs(collectionId);
 			collectionIndexingJob.setScheduled(isScheduled);
 			logger.info("Request full indexing step job to index node[{}] >> {}, isScheduled={}", indexNodeId, indexNode, isScheduled);
