@@ -15,6 +15,8 @@ public class SearchPageSettings {
 	private String relateKeywordURL;
 	private String realtimePopularKeywordURL;
 	private List<SearchCategorySetting> searchCategorySettingList;
+	private String javascript;
+	private String css;
 	
 	@XmlElement(name="total-search-list-size")
 	public int getTotalSearchListSize() {
@@ -63,16 +65,32 @@ public class SearchPageSettings {
 		this.searchCategorySettingList = searchCategorySettingList;
 	}
 
+	@XmlElement
+	public String getJavascript() {
+		return javascript;
+	}
+
+	public void setJavascript(String javascript) {
+		this.javascript = javascript;
+	}
+	
+	@XmlElement
+	public String getCss() {
+		return css;
+	}
+
+	public void setCss(String css) {
+		this.css = css;
+	}
+
 
 	public static class SearchCategorySetting {
 		private String order;
 		private String name;
 		private String id;
 		private String searchQuery;
-		private String titleFieldId;
-		private String bodyFieldId;
-		private List<String> etcFieldIdList;
-		private String clickLink;
+		private String titleField;
+		private String bodyField;
 		
 		@XmlAttribute
 		public String getOrder() {
@@ -107,38 +125,19 @@ public class SearchPageSettings {
 		}
 		
 		@XmlElement(name="title-field")
-		public String getTitleFieldId() {
-			return titleFieldId;
+		public String getTitleField() {
+			return titleField;
 		}
-		public void setTitleFieldId(String titleFieldId) {
-			this.titleFieldId = titleFieldId;
+		public void setTitleField(String titleField) {
+			this.titleField = titleField;
 		}
 		
 		@XmlElement(name="body-field")
-		public String getBodyFieldId() {
-			return bodyFieldId;
+		public String getBodyField() {
+			return bodyField;
 		}
-		public void setBodyFieldId(String bodyFieldId) {
-			this.bodyFieldId = bodyFieldId;
+		public void setBodyField(String bodyField) {
+			this.bodyField = bodyField;
 		}
-		
-		@XmlElementWrapper(name="etc-field-list")
-		@XmlElement(name="etc-field")
-		public List<String> getEtcFieldIdList() {
-			return etcFieldIdList;
-		}
-		public void setEtcFieldIdList(List<String> etcFieldIdList) {
-			this.etcFieldIdList = etcFieldIdList;
-		}
-		
-		@XmlElement(name="click-link")
-		public String getClickLink() {
-			return clickLink;
-		}
-		
-		public void setClickLink(String clickLink) {
-			this.clickLink = clickLink;
-		}
-		
 	}
 }

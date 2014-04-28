@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <index-config>
-    <term-interval>64</term-interval>
-    <work-bucket-size>256</work-bucket-size>
+    <term-interval>128</term-interval>
+    <work-bucket-size>65536</work-bucket-size>
     <work-memory-size>134217728</work-memory-size>
     <pk-bucket-size>65536</pk-bucket-size>
-    <pk-term-interval>64</pk-term-interval>
+    <pk-term-interval>128</pk-term-interval>
 </index-config>

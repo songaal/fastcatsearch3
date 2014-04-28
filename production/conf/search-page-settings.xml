@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <search-page>
+    <css></css>
+    <javascript></javascript>
     <realtime-popular-keyword-url></realtime-popular-keyword-url>
     <relate-keyword-url></relate-keyword-url>
     <search-category-list>
-        <search-category order="1" name="News" id="news">
-            <body-field>content</body-field>
-            <click-link></click-link>
-            <etc-field-list>
-                <etc-field>regdate</etc-field>
-                <etc-field>username</etc-field>
-            </etc-field-list>
-            <search-query>cn=news_kor&amp;fl=title,content:150,regdate,username&amp;se={title,content:#keyword:10:16}&amp;ht=&lt;b&gt;:&lt;/b&gt;</search-query>
-            <title-field>title</title-field>
+        <search-category order="1" name="FILM" id="film">
+            <body-field>&lt;div&gt;$description&lt;/div&gt;
+&lt;div&gt;$price | $rating&lt;/div&gt;
+&lt;div&gt;Actors: $actors&lt;/div&gt;</body-field>
+            <search-query>cn=film&amp;fl=fid,title,description:150,category,price,length,rating,actors&amp;se={total_index:#keyword:10:16}&amp;ht=&lt;b&gt;:&lt;/b&gt;&amp;ud=keyword:#keyword</search-query>
+            <title-field>&lt;a href="#$fid"&gt;$title&lt;/a&gt;</title-field>
         </search-category>
     </search-category-list>
     <search-list-size>10</search-list-size>

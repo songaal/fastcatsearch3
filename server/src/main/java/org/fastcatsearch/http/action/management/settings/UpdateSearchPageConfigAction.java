@@ -37,10 +37,10 @@ public class UpdateSearchPageConfigAction extends AuthAction {
 		Map<String, SearchCategorySetting> categoryMap = new TreeMap<String, SearchCategorySetting>();
 
 		SearchPageSettings searchPageSettings = irService.getSearchPageSettings();
-		int i = 1;
 		SearchCategorySetting setting = null;
+		int i = 0;
 		for (Entry<String, String> e : request.getParameterMap().entrySet()) {
-//			logger.debug("[{}] key {} > {}", i++, e.getKey(), e.getValue());
+			logger.debug("[{}] key {} > {}", i++, e.getKey(), e.getValue());
 
 			String key = e.getKey();
 			String value = e.getValue();
@@ -58,7 +58,10 @@ public class UpdateSearchPageConfigAction extends AuthAction {
 				searchPageSettings.setRelateKeywordURL(value);
 			} else if (key.equals("realtimePopularKeywordURL")) {
 				searchPageSettings.setRealtimePopularKeywordURL(value);
-				
+			} else if (key.equals("css")) {
+				searchPageSettings.setCss(value);
+			} else if (key.equals("js")) {
+				searchPageSettings.setJavascript(value);
 			} else if ((setting = getSetting(categoryMap, key, "order")) != null) {
 				setting.setOrder(value);
 			} else if ((setting = getSetting(categoryMap, key, "categoryId")) != null) {
@@ -66,23 +69,11 @@ public class UpdateSearchPageConfigAction extends AuthAction {
 			} else if ((setting = getSetting(categoryMap, key, "categoryName")) != null) {
 				setting.setName(value);
 			} else if ((setting = getSetting(categoryMap, key, "titleField")) != null) {
-				setting.setTitleFieldId(value);
+				setting.setTitleField(value);
 			} else if ((setting = getSetting(categoryMap, key, "bodyField")) != null) {
-				setting.setBodyFieldId(value);
-			} else if ((setting = getSetting(categoryMap, key, "etcField")) != null) {
-				String[] list = value.split(",");
-				List<String> valueList = new ArrayList<String>();
-				for (String v : list) {
-					v = v.trim();
-					if(v.length() > 0){
-						valueList.add(v.trim());
-					}
-				}
-				setting.setEtcFieldIdList(valueList);
+				setting.setBodyField(value);
 			} else if ((setting = getSetting(categoryMap, key, "searchQuery")) != null) {
 				setting.setSearchQuery(value);
-			} else if ((setting = getSetting(categoryMap, key, "clickLink")) != null) {
-				setting.setClickLink(value);
 			}
 
 		}

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<schema>
+    <field-list>
+        <field id="FID" type="INT" name="FID" multiValueDelimiter=""/>
+        <field id="TITLE" type="STRING" name="TITLE" multiValueDelimiter=""/>
+        <field id="DESCRIPTION" type="STRING" name="DESCRIPTION" multiValueDelimiter=""/>
+        <field id="CATEGORY" type="STRING" name="CATEGORY" multiValueDelimiter=""/>
+        <field id="PRICE" type="FLOAT" name="PRICE" multiValueDelimiter=""/>
+        <field id="LENGTH" type="INT" name="LENGTH" multiValueDelimiter=""/>
+        <field id="RATING" type="STRING" name="RATING" multiValueDelimiter=""/>
+        <field id="ACTORS" type="STRING" name="ACTORS" multiValue="true" multiValueDelimiter=","/>
+    </field-list>
+    <primary-key>
+        <field ref="FID"/>
+    </primary-key>
+    <index-list>
+        <index id="TITLE" name="TITLE" queryAnalyzer="STANDARD" ignoreCase="true">
+            <field indexAnalyzer="STANDARD" ref="TITLE"/>
+        </index>
+        <index id="DESCRIPTION" name="DESCRIPTION" queryAnalyzer="STANDARD" ignoreCase="true">
+            <field indexAnalyzer="STANDARD" ref="DESCRIPTION"/>
+        </index>
+        <index id="ACTORS" name="ACTORS" queryAnalyzer="STANDARD" ignoreCase="true">
+            <field indexAnalyzer="STANDARD" ref="ACTORS"/>
+        </index>
+        <index id="TOTAL_INDEX" name="TOTAL_INDEX" queryAnalyzer="STANDARD" ignoreCase="true">
+            <field indexAnalyzer="STANDARD" ref="TITLE"/>
+            <field indexAnalyzer="STANDARD" ref="DESCRIPTION"/>
+            <field indexAnalyzer="STANDARD" ref="CATEGORY"/>
+            <field indexAnalyzer="STANDARD" ref="ACTORS"/>
+        </index>
+    </index-list>
+    <analyzer-list>
+        <analyzer id="STANDARD" corePoolSize="1" maximumPoolSize="5" className="BASIC.STANDARD"/>
+    </analyzer-list>
+    <field-index-list>
+        <field-index id="CATEGORY" name="CATEGORY" ref="CATEGORY" size="15"/>
+        <field-index id="PRICE" name="PRICE" ref="PRICE"/>
+        <field-index id="LENGTH" name="LENGTH" ref="LENGTH"/>
+    </field-index-list>
+    <group-index-list>
+        <group-index id="ACTORS" name="ACTORS" ref="ACTORS"/>
+        <group-index id="CATEGORY" name="CATEGORY" ref="CATEGORY"/>
+        <group-index id="RATING" name="RATING" ref="RATING"/>
+    </group-index-list>
+</schema>

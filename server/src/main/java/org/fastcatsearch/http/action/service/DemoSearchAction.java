@@ -13,8 +13,10 @@ import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.ServiceAction;
+import org.fastcatsearch.http.writer.DemoSearchResultWriter;
 import org.fastcatsearch.http.writer.SearchResultWriter;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.search.ClusterSearchJob;
 import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.service.ServiceManager;
@@ -55,8 +57,9 @@ public class DemoSearchAction extends ServiceAction {
 			
 			responseWriter.key("realtimePopularKeywordURL").value(realtimePopularKeywordURL != null ? realtimePopularKeywordURL : "");
 			responseWriter.key("relateKeywordURL").value(relateKeywordURL != null ? relateKeywordURL : "");
-			
-			
+			responseWriter.key("javascript").value(searchPageSettings.getJavascript());
+			responseWriter.key("css").value(searchPageSettings.getCss());
+			logger.debug(">>> css > {}", searchPageSettings.getCss());
 			List<SearchCategorySetting> searchCategorySettingList = searchPageSettings.getSearchCategorySettingList();
 			
 			TreeMap<Integer, SearchCategorySetting> map = new TreeMap<Integer, SearchCategorySetting>();
@@ -132,24 +135,10 @@ public class DemoSearchAction extends ServiceAction {
 		responseWriter.object();
 		responseWriter.key("id").value(setting.getId());
 		responseWriter.key("name").value(setting.getName().toUpperCase());
-		responseWriter.key("titleField").value(setting.getTitleFieldId().toUpperCase());
-		responseWriter.key("bodyField").value(setting.getBodyFieldId().toUpperCase());
-		
-		responseWriter.key("etcField").array();
-		for(String fieldId : setting.getEtcFieldIdList()){
-			responseWriter.value(fieldId.toUpperCase());
-		}
-		responseWriter.endArray();
-		
-		String clickList = setting.getClickLink();
-		if(clickList == null){
-			clickList = "";
-		}
-		responseWriter.key("clickLink").value(clickList);
 		responseWriter.key("searchListSize").value(searchListSize);
 		
 		responseWriter.key("result");
-		SearchResultWriter searchResultWriter = new SearchResultWriter(responseWriter);
+		DemoSearchResultWriter searchResultWriter = new DemoSearchResultWriter(responseWriter, setting);
 		searchResultWriter.writeResult(result, searchTime, resultFuture.isSuccess());
 		responseWriter.endObject();
 	}

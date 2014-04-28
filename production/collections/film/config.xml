@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <collection-config>
-    <name>news_kor</name>
+    <name>film</name>
     <index-node>node1</index-node>
     <search-node-list>
         <node>node1</node>

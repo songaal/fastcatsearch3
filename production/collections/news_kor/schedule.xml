@@ -1,4 +1,0 @@
-<schedule>
-	<full-indexing-schedule active="true" scheduleType="REGULAR_PERIOD" start="2013-10-22 15:05:00" periodInSecond="3600" />
-	<add-indexing-schedule active="true" scheduleType="REGULAR_PERIOD" start="2013-10-22 15:05:00" periodInSecond="3600" />
-</schedule>

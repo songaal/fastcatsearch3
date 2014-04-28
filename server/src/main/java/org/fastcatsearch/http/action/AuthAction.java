@@ -32,7 +32,7 @@ public abstract class AuthAction extends ServiceAction {
 			
 			if (obj == null) {
 				// 인증 안되어 있음.
-				doNotAuthenticatedResult(request, response);
+				doNotAuthenticatedResult(request, response, "Not Authenticated.");
 			} else {
 				
 				SessionInfo sessionInfo = (SessionInfo)obj;
@@ -58,7 +58,7 @@ public abstract class AuthAction extends ServiceAction {
 					logger.trace("authorized");					
 					doAuthAction(request, response);
 				} else {
-					doNotAuthenticatedResult(request, response);
+					doNotAuthenticatedResult(request, response, "Not Authorized.");
 				}
 				
 			}
@@ -70,10 +70,10 @@ public abstract class AuthAction extends ServiceAction {
 		}
 	}
 
-	private void doNotAuthenticatedResult(ActionRequest request, ActionResponse response) throws Exception {
+	private void doNotAuthenticatedResult(ActionRequest request, ActionResponse response, String message) throws Exception {
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
-		resultWriter.object().key("error").value("Not Authenticated.").endObject();
+		resultWriter.object().key("error").value(message).endObject();
 		resultWriter.done();
 		writer.close();
 	}

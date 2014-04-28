@@ -174,7 +174,9 @@ public class BooleanClause extends OperatedClause {
 	}
 	@Override
 	protected void initClause(boolean explain) {
-		operatedClause.init(explanation != null ? explanation.createSubExplanation() : null);
+		if (operatedClause != null) {
+			operatedClause.init(explanation != null ? explanation.createSubExplanation() : null);
+		}
 	}
 	
 //	@Override
