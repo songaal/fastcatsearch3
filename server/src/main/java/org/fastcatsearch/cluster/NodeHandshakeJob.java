@@ -43,9 +43,9 @@ public class NodeHandshakeJob extends Job implements Streamable {
 					logger.info("Node {} is set Active!", node);
 					node.setActive();
 					node.setServicePort(servicePort);
-					
 					int myServicePort = environment.settingManager().getIdSettings().getInt("servicePort");
-					nodeService.sendRequest(node, new NodeHandshakeJob(nodeId, false, myServicePort));
+					//나의 정보를 답신으로 보낸다.
+					nodeService.sendRequest(node, new NodeHandshakeJob(environment.myNodeId(), false, myServicePort));
 				}else{
 					node.setServicePort(servicePort);
 				}
