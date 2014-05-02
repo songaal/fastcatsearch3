@@ -265,6 +265,7 @@ public class IRService extends AbstractService {
 	}
 	
 	public void updateJDBCSourceConfig(JDBCSourceConfig jdbcSourceConfig) throws JAXBException {
+		this.jdbcSourceConfig = jdbcSourceConfig;
 		//가공된 컬렉션 xml 을 저장한다.
 		JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.jdbcSourceConfig), 
 				jdbcSourceConfig, JDBCSourceConfig.class);

@@ -2,8 +2,13 @@ package org.fastcatsearch.http.action.management.collections;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import org.fastcatsearch.cluster.Node;
+import org.fastcatsearch.cluster.NodeService;
+import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
@@ -11,13 +16,12 @@ import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.DataSourceConfig;
+import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.ir.config.JDBCSourceConfig;
 import org.fastcatsearch.ir.config.JDBCSourceInfo;
+import org.fastcatsearch.job.management.SyncJDBCSettingFileObjectJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.SettingFileNames;
-import org.fastcatsearch.util.JAXBConfigs;
 import org.fastcatsearch.util.ResponseWriter;
 
 @ActionMapping(value = "/management/collections/update-jdbc-source", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.WRITABLE)
@@ -44,9 +48,6 @@ public class UpdateCollectionJdbcSourceAction extends AuthAction {
 			
 			List<JDBCSourceInfo> sourceList = irService.getJDBCSourceConfig().getJdbcSourceInfoList();
 			JDBCSourceInfo source = null;
-			
-			
-			File jdbcSourceConfigFile = (new File("",SettingFileNames.jdbcSourceConfig));
 			
 			if(sourceIndex==-1) {
 				if(sourceList==null) {
@@ -78,7 +79,30 @@ public class UpdateCollectionJdbcSourceAction extends AuthAction {
 			}
 			
 			irService.updateJDBCSourceConfig(irService.getJDBCSourceConfig());
-		
+			
+			/*
+			 *  index 서버에 설정파일을 전송한다.
+			 */
+			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
+			Object settingObj = irService.getJDBCSourceConfig();
+			
+			//
+			// 어느 색인노드가 jdbc를 사용할지 모르므로, 다 보낸다.
+			//
+			Set<String> indexNodeSet = new HashSet<String>();
+			for(Collection collection : irService.getCollectionList()) {
+				String collectionId = collection.getId();
+				String indexNodeId = irService.collectionContext(collectionId).collectionConfig().getIndexNode();
+				indexNodeSet.add(indexNodeId);
+			}
+			
+			for(String nodeId : indexNodeSet) {
+				SyncJDBCSettingFileObjectJob job = new SyncJDBCSettingFileObjectJob(settingObj);
+				Node node = nodeService.getNodeById(nodeId);
+				ResultFuture resultFuture = nodeService.sendRequest(node, job);
+				resultFuture.take();
+			}
+			
 			isSuccess = true;
 			
 		} catch (Exception e) {

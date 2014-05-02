@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -47,7 +46,6 @@ import org.fastcatsearch.ir.settings.FieldSetting.Type;
 import org.fastcatsearch.ir.settings.GroupIndexSetting;
 import org.fastcatsearch.ir.settings.IndexSetting;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
-import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.service.ServiceManager;
@@ -75,7 +73,7 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 		super();
 	}
 	
-	public DBReader(File filePath, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime)
+	public DBReader(File filePath, SingleSourceConfig singleSourceConfig, SourceModifier<Map<String, Object>> sourceModifier, String lastIndexTime)
 			throws IRException {
 		super(filePath, singleSourceConfig, sourceModifier, lastIndexTime);
 	}
@@ -110,7 +108,6 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		
 		List<JDBCSourceInfo> jdbcSourceInfoList = irService.getJDBCSourceConfig().getJdbcSourceInfoList();
-		
 		for(JDBCSourceInfo info : jdbcSourceInfoList){
 			if(info.getId().equals(jdbcSourceId)){
 				jdbcSourceInfo = info;
@@ -120,9 +117,6 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 		
 		try {
 			con = getConnection(jdbcSourceInfo);
-//			if (sourceModifier != null) {
-//				sourceModifier.init();
-//			}
 			doBeforeQuery();
 
 			String deleteIdSQL = getConfigString("deleteIdSQL");
@@ -196,6 +190,7 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 
 	private Connection getConnection(JDBCSourceInfo jdbcSourceInfo) throws IRException, SQLException {
 		Connection con = null;
+		logger.debug(">>>>>>>>>>>>>> jdbcSourceInfo > {}", jdbcSourceInfo);
 		if (jdbcSourceInfo.getDriver() != null && jdbcSourceInfo.getDriver().length() > 0) {
 			Object object = DynamicClassLoader.loadObject(jdbcSourceInfo.getDriver());
 			if (object == null) {
