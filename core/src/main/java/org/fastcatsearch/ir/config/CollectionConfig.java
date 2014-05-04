@@ -1,7 +1,9 @@
 package org.fastcatsearch.ir.config;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -97,6 +99,30 @@ public class CollectionConfig {
 	
 	public void setDataPlanConfig(DataPlanConfig dataPlanConfig) {
 		this.dataPlanConfig = dataPlanConfig;
+	}
+
+	public Set<String> getCollectionNodeIDSet() {
+		Set<String> nodeIdSet = new HashSet<String>();
+		if(indexNode != null) {
+			nodeIdSet.add(indexNode);
+		}
+		if (searchNodeList != null) {
+			for (String nodeStr : searchNodeList) {
+				nodeStr = nodeStr.trim();
+				if (nodeStr.length() > 0) {
+					nodeIdSet.add(nodeStr);
+				}
+			}
+		}
+		if (dataNodeList != null) {
+			for (String nodeStr : dataNodeList) {
+				nodeStr = nodeStr.trim();
+				if (nodeStr.length() > 0) {
+					nodeIdSet.add(nodeStr);
+				}
+			}
+		}
+		return nodeIdSet;
 	}
 
 }

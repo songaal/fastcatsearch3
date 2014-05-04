@@ -1,5 +1,12 @@
 package org.fastcatsearch.http.action.management.collections;
 
+import java.util.Set;
+
+import org.fastcatsearch.cluster.ClusterUtils;
+import org.fastcatsearch.cluster.NodeJobResult;
+import org.fastcatsearch.cluster.NodeService;
+import org.fastcatsearch.control.JobService;
+import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
@@ -8,6 +15,7 @@ import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.job.management.collections.OperateCollectionJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
@@ -24,7 +32,8 @@ public class OperateCollectionAction extends AuthAction {
 		String errorMessage = null;
 
 		try {
-
+			OperateCollectionJob operateCollectionJob = new OperateCollectionJob(collectionId, command);
+			
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 
 			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
@@ -33,36 +42,18 @@ public class OperateCollectionAction extends AuthAction {
 				errorMessage = "Collection [" + collectionId + "] is not exist.";
 				return;
 			}
-
-			if ("START".equalsIgnoreCase(command)) {
-				if(collectionHandler.isLoaded()){
-					errorMessage = "Collection [" + collectionId + "] is already started.";
-					return;
-				}
-				collectionHandler.load();
-			} else if ("STOP".equalsIgnoreCase(command)) {
-				if(!collectionHandler.isLoaded()){
-					errorMessage = "Collection [" + collectionId + "] is already stoped.";
-					return;
-				}
-				collectionHandler.close();
-//			} else if ("PROMOTE".equalsIgnoreCase(command)) {
-//				//CollectionContext collectionContext = irService.collectionContext(collectionTmp);
-//				//collectionContext.schema()
-//				
-//				CollectionHandler promoteCollection = irService.promoteCollection(collectionHandler, collectionId);
-//				CollectionConfig collectionConfig = promoteCollection.collectionContext().collectionConfig();
-//				CollectionContextUtil.updateConfig(collectionConfig, promoteCollection.indexFilePaths());
-			} else if ("REMOVE".equalsIgnoreCase(command)) {
-				isSuccess = irService.removeCollection(collectionId);
-				return;
-			} else {
-				isSuccess = false;
-				errorMessage = "Cannot understand command > " + command;
-				return;
+			ResultFuture resultFuture = JobService.getInstance().offer(operateCollectionJob);
+			Object object = resultFuture.take();
+			if(object instanceof Boolean) {
+				isSuccess = (Boolean) object;
+			}
+			Set<String> nodeIdSet = collectionHandler.collectionContext().collectionConfig().getCollectionNodeIDSet();
+			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
+			NodeJobResult[] resultList = ClusterUtils.sendJobToNodeIdSet(operateCollectionJob, nodeService, nodeIdSet, true);
+			for(NodeJobResult r : resultList) {
+				isSuccess = (isSuccess && r.isSuccess());
 			}
 
-			isSuccess = true;
 		} catch (Exception e) {
 			isSuccess = false;
 			errorMessage = e.getMessage();
@@ -78,5 +69,7 @@ public class OperateCollectionAction extends AuthAction {
 		}
 
 	}
+	
+	
 
 }
