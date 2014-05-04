@@ -7,14 +7,12 @@ import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.SettingManager;
-import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
-import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.cluster.NodeListUpdateJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.NodeListSettings;
@@ -76,7 +74,7 @@ public class UpdateServerInfoAction extends AuthAction {
 			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 			List<Node> nodeList = nodeService.getNodeArrayList();
 			
-			ClusterUtils.sendJobToNodeList(job, nodeService, nodeList, false);
+			ClusterUtils.sendJobToNodeList(job, nodeService, nodeList, true);
 			
 			isSuccess = true;
 			

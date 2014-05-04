@@ -2,6 +2,7 @@ package org.fastcatsearch.cluster;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.job.Job;
@@ -12,6 +13,11 @@ public class ClusterUtils {
 	
 	private static Logger logger = LoggerFactory.getLogger(ClusterUtils.class);
 	
+	public static NodeJobResult[] sendJobToNodeIdSet(Job job, NodeService nodeService, Set<String> nodeIdSet, boolean includeMyNode) {
+		List<String> list = new ArrayList<String>();
+		list.addAll(nodeIdSet);
+		return sendJobToNodeIdList(job, nodeService, list, includeMyNode);
+	}
 	public static NodeJobResult[] sendJobToNodeIdList(Job job, NodeService nodeService, List<String> nodeIdList, boolean includeMyNode) {
 		return ClusterUtils.sendJobToNodeList(job, nodeService, nodeService.getNodeById(nodeIdList), includeMyNode);
 	}
