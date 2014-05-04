@@ -2,7 +2,7 @@
 
 source env.sh
 
-if [ -z "$@" ] ; then
+if [ "$#" -eq 0 ] ; then
 	echo "Run command at all nodes"
 	echo "Usage $0 \"[command]\""
 	exit 0;
