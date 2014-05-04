@@ -199,14 +199,14 @@ public abstract class AnalysisPlugin<T, P> extends Plugin {
 				}else if(type == Type.SYNONYM || type == Type.SYNONYM_2WAY){
 					SynonymDictionary synonymDictionary = new SynonymDictionary(dictFile, isIgnoreCase);
 					if(tokenType != null){
-						logger.debug("synonym word set > {}", synonymDictionary.getWordSet());
+//						logger.debug("synonym word set > {}", synonymDictionary.getWordSet());
 						dictionary.appendAdditionalNounEntry(synonymDictionary.getWordSet(), tokenType);
 					}
 					sourceDictionary = synonymDictionary;
 				}else if(type == Type.SPACE){
 					SpaceDictionary spaceDictionary = new SpaceDictionary(dictFile, isIgnoreCase);
 					if(tokenType != null){
-						logger.debug("SPACE > {}", spaceDictionary.getWordSet());
+//						logger.debug("SPACE > {}", spaceDictionary.getWordSet());
 						dictionary.appendAdditionalNounEntry(spaceDictionary.getWordSet(), tokenType);
 					}
 					sourceDictionary = spaceDictionary;
@@ -216,7 +216,7 @@ public abstract class AnalysisPlugin<T, P> extends Plugin {
 						preResult.setResult(e.getValue());
 						map.put(e.getKey(), preResult);
 						
-						logger.debug("PreResult {} > {}", e.getKey(), e.getValue());
+//						logger.debug("PreResult {} > {}", e.getKey(), e.getValue());
 					}
 					commonDictionary.setPreDictionary(map);
 				}else if(type == Type.CUSTOM){

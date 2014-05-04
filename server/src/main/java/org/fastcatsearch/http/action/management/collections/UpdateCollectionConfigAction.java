@@ -74,7 +74,7 @@ public class UpdateCollectionConfigAction extends AuthAction {
 		
 		
 		if(isSuccess){
-			logger.error("[{}] Master Update collection config success!", collectionId);
+			logger.info("[{}] Master Update collection config success!", collectionId);
 			Set<String> nodeSet = new HashSet<String>();
 			nodeSet.addAll(searchNodeListObj);
 			nodeSet.addAll(dataNodeListObj);

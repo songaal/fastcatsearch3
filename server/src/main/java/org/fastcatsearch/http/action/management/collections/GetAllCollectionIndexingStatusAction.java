@@ -92,8 +92,8 @@ public class GetAllCollectionIndexingStatusAction extends AuthAction {
 		
 		responseWriter.object();
 		responseWriter
-		.key("nodeId").value(collectionId)
-		.key("nodeName").value(collectionName);
+		.key("collectionId").value(collectionId)
+		.key("collectionName").value(collectionName);
 		
 		if(indexingDataInfo != null){
 			responseWriter

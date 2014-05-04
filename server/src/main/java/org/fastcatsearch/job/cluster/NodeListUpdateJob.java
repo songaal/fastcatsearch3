@@ -62,7 +62,7 @@ public class NodeListUpdateJob extends Job implements Streamable {
 	public void writeTo(DataOutput output) throws IOException {
 		if(args!=null && args instanceof NodeListSettings) {
 			NodeListSettings nodeListSettings = (NodeListSettings)args;
-			List<NodeSettings>settings = nodeListSettings.getNodeList();
+			List<NodeSettings> settings = nodeListSettings.getNodeList();
 			output.writeInt(settings.size());
 			for(int inx=0;inx< settings.size(); inx++) {
 				NodeSettings setting = settings.get(inx);
