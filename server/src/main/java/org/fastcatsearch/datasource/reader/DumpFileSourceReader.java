@@ -24,6 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.fastcatsearch.datasource.SourceModifier;
+import org.fastcatsearch.datasource.reader.annotation.SourceReader;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.DataSourceConfig;
@@ -32,6 +33,7 @@ import org.fastcatsearch.ir.index.PrimaryKeys;
 import org.fastcatsearch.ir.io.DirBufferedReader;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 
+@SourceReader(name="File")
 public class DumpFileSourceReader extends SingleSourceReader<Map<String, Object>> {
 
 	private DirBufferedReader br;
