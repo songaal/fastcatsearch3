@@ -6,9 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import org.fastcatsearch.cluster.ClusterUtils;
+import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.datasource.reader.SingleSourceReader;
 import org.fastcatsearch.datasource.reader.SourceReaderParameter;
 import org.fastcatsearch.http.ActionAuthority;
@@ -21,6 +21,7 @@ import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
+import org.fastcatsearch.job.management.UpdateDataSourceConfigJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.util.DynamicClassLoader;
@@ -124,6 +125,11 @@ public class UpdateCollectionDatasourceAction extends AuthAction {
 		
 			if(isSuccess) {
 				JAXBConfigs.writeConfig(dataSourceConfigFile, dataSourceConfig, DataSourceConfig.class);
+				
+				Set<String> nodeIdSet = collectionContext.collectionConfig().getCollectionNodeIDSet();
+				UpdateDataSourceConfigJob updateDataSourceConfigJob = new UpdateDataSourceConfigJob(collectionId, dataSourceConfig);
+				NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
+				ClusterUtils.sendJobToNodeIdSet(updateDataSourceConfigJob, nodeService, nodeIdSet, false);
 			}
 			
 		} catch (Exception e) {

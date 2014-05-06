@@ -100,7 +100,7 @@ public class CreateCollectionJob extends Job implements Streamable {
 				collectionConfig.setSearchNodeList(searchNodeList);
 				collectionConfig.setDataNodeList(dataNodeList);
 				FilePaths collectionFilePaths = collectionHandler.collectionContext().collectionFilePaths();
-				isSuccess = CollectionContextUtil.updateConfig(collectionConfig, collectionFilePaths);
+				isSuccess = CollectionContextUtil.writeConfigFile(collectionConfig, collectionFilePaths);
 			}
 			
 			return new JobResult(isSuccess);

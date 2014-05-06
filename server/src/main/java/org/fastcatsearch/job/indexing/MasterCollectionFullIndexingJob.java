@@ -59,6 +59,7 @@ public class MasterCollectionFullIndexingJob extends MasterNodeJob {
 					if (indexingJobResult.isSuccess) {
 						try {
 							CollectionContextUtil.saveCollectionAfterIndexing(newCollectionContext);
+							collectionContext.setSchema(newCollectionContext.schema());
 						} catch (SettingException e) {
 							throw new FastcatSearchException(e);
 						}

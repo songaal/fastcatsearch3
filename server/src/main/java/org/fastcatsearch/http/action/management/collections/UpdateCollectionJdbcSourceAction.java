@@ -92,15 +92,16 @@ public class UpdateCollectionJdbcSourceAction extends AuthAction {
 			Set<String> indexNodeSet = new HashSet<String>();
 			for(Collection collection : irService.getCollectionList()) {
 				String collectionId = collection.getId();
-				String indexNodeId = irService.collectionContext(collectionId).collectionConfig().getIndexNode();
-				indexNodeSet.add(indexNodeId);
+				indexNodeSet.addAll(irService.collectionContext(collectionId).collectionConfig().getCollectionNodeIDSet());
 			}
 			
 			for(String nodeId : indexNodeSet) {
 				SyncJDBCSettingFileObjectJob job = new SyncJDBCSettingFileObjectJob(settingObj);
 				Node node = nodeService.getNodeById(nodeId);
 				ResultFuture resultFuture = nodeService.sendRequest(node, job);
-				resultFuture.take();
+				if(resultFuture != null) {
+					resultFuture.take();
+				}
 			}
 			
 			isSuccess = true;

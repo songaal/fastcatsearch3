@@ -104,6 +104,10 @@ public class CollectionContext {
 		return dataSourceConfig;
 	}
 	
+	public void setDataSourceConfig(DataSourceConfig config){
+		this.dataSourceConfig = config;
+	}
+	
 	public CollectionIndexStatus indexStatus(){
 		return collectionIndexStatus;
 	}

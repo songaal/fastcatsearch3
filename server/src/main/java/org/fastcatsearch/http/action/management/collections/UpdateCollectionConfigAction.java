@@ -1,7 +1,6 @@
 package org.fastcatsearch.http.action.management.collections;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -17,7 +16,6 @@ import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.management.UpdateCollectionConfigJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.CollectionContextUtil;
@@ -66,24 +64,20 @@ public class UpdateCollectionConfigAction extends AuthAction {
 		}
 		collectionConfig.setDataNodeList(dataNodeListObj);
 		
-		//master노드의 컬렉션셋팅 업데이트가 성공했다면 나머지 노드에 수행한다.
-		boolean isSuccess = CollectionContextUtil.updateConfig(collectionConfig, collectionContext.collectionFilePaths());
+		boolean isSuccess = CollectionContextUtil.writeConfigFile(collectionConfig, collectionContext.collectionFilePaths());
 		
 		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 		nodeService.updateLoadBalance(collectionId, dataNodeListObj);
 		
 		
+		//master노드의 컬렉션셋팅 업데이트가 성공했다면 나머지 노드에 수행한다.
 		if(isSuccess){
 			logger.info("[{}] Master Update collection config success!", collectionId);
-			Set<String> nodeSet = new HashSet<String>();
-			nodeSet.addAll(searchNodeListObj);
-			nodeSet.addAll(dataNodeListObj);
-			List<String> nodeIdList = new ArrayList<String>();
-			nodeIdList.addAll(nodeSet);
+			Set<String> nodeSet = collectionConfig.getCollectionNodeIDSet();
 			
 			UpdateCollectionConfigJob job = new UpdateCollectionConfigJob(collectionId, collectionConfig);
 			
-			NodeJobResult[] resultList = ClusterUtils.sendJobToNodeIdList(job, nodeService, nodeIdList, false);
+			NodeJobResult[] resultList = ClusterUtils.sendJobToNodeIdSet(job, nodeService, nodeSet, false);
 			for(NodeJobResult result : resultList){
 				logger.debug("[{}] [{}] [{}] Node Update collection config.", result.isSuccess(), result.node(), collectionId);
 			}

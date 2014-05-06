@@ -71,13 +71,15 @@ public class CollectionContextUtil {
 	}
 	
 
-	public static boolean updateConfig(Object configObject, FilePaths collectionFilePaths) {
+	public static boolean writeConfigFile(Object configObject, FilePaths collectionFilePaths) {
 		Path collectionDir = new Path(collectionFilePaths.file());
 		try {
 			if (configObject instanceof CollectionConfig) {
 				CollectionConfig collectionConfig = (CollectionConfig) configObject;
 				JAXBConfigs.writeConfig(collectionDir.file(SettingFileNames.collectionConfig), collectionConfig, CollectionConfig.class);
-
+			}else if (configObject instanceof DataSourceConfig) {
+				DataSourceConfig dataSourceConfig = (DataSourceConfig) configObject;
+				JAXBConfigs.writeConfig(collectionDir.file(SettingFileNames.datasourceConfig), dataSourceConfig, DataSourceConfig.class);
 			}
 		} catch (JAXBException e) {
 			logger.error("", e);

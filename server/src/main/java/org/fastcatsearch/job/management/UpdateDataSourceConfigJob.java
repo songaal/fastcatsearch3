@@ -4,10 +4,11 @@ import java.io.IOException;
 
 import javax.xml.bind.JAXBException;
 
-import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.ir.config.CollectionConfig;
+import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.Job;
@@ -17,28 +18,28 @@ import org.fastcatsearch.util.FilePaths;
 import org.fastcatsearch.util.JAXBConfigs;
 
 /**
- * 각 노드에 컬렉션 셋팅을 전송 및 반영한다.
+ * 각 노드에 데이터소스설정을 전송 및 반영한다.
  * */
-public class UpdateCollectionConfigJob extends Job implements Streamable {
+public class UpdateDataSourceConfigJob extends Job implements Streamable {
 
-	private static final long serialVersionUID = 526201580792091177L;
-
-	private String collectionId;
-	private CollectionConfig collectionConfig;
+	private static final long serialVersionUID = -7927522045710504365L;
 	
-	public UpdateCollectionConfigJob(){
+	private String collectionId;
+	private DataSourceConfig dataSourceConfig;
+	
+	public UpdateDataSourceConfigJob(){
 	}
 	
-	public UpdateCollectionConfigJob(String collectionId, CollectionConfig collectionConfig){
+	public UpdateDataSourceConfigJob(String collectionId, DataSourceConfig dataSourceConfig){
 		this.collectionId = collectionId;
-		this.collectionConfig = collectionConfig;
+		this.dataSourceConfig = dataSourceConfig;
 	}
 	
 	@Override
 	public void readFrom(DataInput input) throws IOException {
 		try {
 			this.collectionId = input.readString();
-			this.collectionConfig = JAXBConfigs.readFrom(input, CollectionConfig.class);
+			this.dataSourceConfig = JAXBConfigs.readFrom(input, DataSourceConfig.class);
 		} catch (JAXBException e) {
 			throw new IOException(e);
 		}
@@ -48,7 +49,7 @@ public class UpdateCollectionConfigJob extends Job implements Streamable {
 	public void writeTo(DataOutput output) throws IOException {
 		try {
 			output.writeString(collectionId);
-			JAXBConfigs.writeTo(output, this.collectionConfig, CollectionConfig.class);
+			JAXBConfigs.writeTo(output, this.dataSourceConfig, DataSourceConfig.class);
 		} catch (JAXBException e) {
 			throw new IOException(e);
 		}
@@ -58,11 +59,16 @@ public class UpdateCollectionConfigJob extends Job implements Streamable {
 	public JobResult doRun() throws FastcatSearchException {
 		FilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(this.collectionId);		
 		
-		boolean isSuccess = CollectionContextUtil.writeConfigFile(this.collectionConfig, collectionFilePaths);
-		
-		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
-		nodeService.updateLoadBalance(collectionId, collectionConfig.getDataNodeList());
-		
+		boolean isSuccess = CollectionContextUtil.writeConfigFile(this.dataSourceConfig, collectionFilePaths);
+		if(isSuccess) {
+			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+			CollectionContext collectionContext = irService.collectionContext(collectionId);
+			if(collectionContext != null) {
+				collectionContext.setDataSourceConfig(dataSourceConfig);
+			}else{
+				isSuccess = false;
+			}
+		}
 		return new JobResult(isSuccess);
 	}
 
