@@ -50,18 +50,20 @@ public class MasterUpdateAllNodeDictionaryJob extends MasterNodeJob {
 			CheckPluginExistsJob checkPluginExistsJob = new CheckPluginExistsJob();
 			checkPluginExistsJob.setArgs(pluginId);
 			ResultFuture resultFuture = nodeService.sendRequest(node, checkPluginExistsJob);
-			Object result = resultFuture.take();
-			if(resultFuture.isSuccess() && result != null){
-				if((Boolean) result){
-					transferNodeList.add(node);
+			if (resultFuture != null) {
+				Object result = resultFuture.take();
+				if(resultFuture.isSuccess() && result != null){
+					if((Boolean) result){
+						transferNodeList.add(node);
+					}
 				}
 			}
-			
 		}
 		
-		if(transferNodeList.size() == 0){
-			return new JobResult(false);
-		}
+		//FIXME:살아있는노드가 1개 (자기자신) 인경우 검사를 하지 않는 방향으로..
+		//if(transferNodeList.size() == 0){
+		//	return new JobResult(false);
+		//}
 		
 		File directory = analysisPlugin.getDictionaryDirectory();
 		indexFileTransfer.transferDirectory(directory, nodeService, transferNodeList);
@@ -83,11 +85,6 @@ public class MasterUpdateAllNodeDictionaryJob extends MasterNodeJob {
 				}
 			}
 		}
-		
-		
-		
-		
-		
 		return new JobResult(isSuccess);
 	}
 
