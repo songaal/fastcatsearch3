@@ -12,8 +12,8 @@ public class CollectionIndexData implements Streamable {
 
 	private String collectionId;
 	private int documentSize;
-	private List<String> fieldList;
-	private List<RowData> indexData;
+	protected List<String> fieldList;
+	protected List<RowData> indexData;
 
 	public CollectionIndexData() {
 	}
