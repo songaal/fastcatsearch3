@@ -93,6 +93,7 @@ public class ClusterSearchJob extends Job {
 				// logger.debug("CACHE_GET result>>{}, qr >>{}", result, queryMap.queryString());
 				if (result != null) {
 					isCache = true;
+					searchResult = result;
 					return new JobResult(result);
 				}
 			}
