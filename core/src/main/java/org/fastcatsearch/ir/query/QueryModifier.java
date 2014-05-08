@@ -9,12 +9,14 @@ import org.slf4j.LoggerFactory;
 public abstract class QueryModifier extends Query {
 	protected static Logger logger = LoggerFactory.getLogger(QueryModifier.class);
 
+	protected String collectionId;
 	protected Query query;
 
 	public QueryModifier() {
 	}
 
-	public QueryModifier modify(Query query) throws IRException {
+	public QueryModifier modify(String collectionId, Query query) throws IRException {
+		this.collectionId = collectionId;
 		this.query = query;
 		init0();
 		return this;

@@ -56,7 +56,7 @@ public class InternalSearchJob extends Job implements Streamable {
 			QueryModifier queryModifier = meta.queryModifier();
 			//쿼리모디파이.
 			if (queryModifier != null) {
-				q = queryModifier.modify(q);
+				q = queryModifier.modify(collectionId, q);
 				meta = q.getMeta();
 			}
 			

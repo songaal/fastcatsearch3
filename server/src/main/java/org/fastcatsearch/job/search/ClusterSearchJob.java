@@ -76,7 +76,7 @@ public class ClusterSearchJob extends Job {
 			QueryModifier queryModifier = meta.queryModifier();
 			//쿼리모디파이.
 			if (queryModifier != null) {
-				q = queryModifier.modify(q);
+				q = queryModifier.modify(meta.collectionId(), q);
 				meta = q.getMeta();
 			}
 			
