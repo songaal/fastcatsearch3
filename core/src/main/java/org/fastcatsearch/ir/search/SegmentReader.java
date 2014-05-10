@@ -145,7 +145,7 @@ public class SegmentReader {
 		return documentReader.getBaseNumber();
 	}
 	
-	protected BitSet deleteSet(){
+	public BitSet deleteSet(){
 		return deleteSet;
 	}
 	

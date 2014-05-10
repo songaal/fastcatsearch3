@@ -30,6 +30,7 @@ public class GetCollectionAnalyzedIndexDataAction extends AuthAction {
 		String collectionId = request.getParameter("collectionId");
 		int start = Integer.parseInt(request.getParameter("start", "0"));
 		int end = Integer.parseInt(request.getParameter("end", "0"));
+		String pkValue = request.getParameter("pkValue");
 		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
@@ -42,7 +43,7 @@ public class GetCollectionAnalyzedIndexDataAction extends AuthAction {
 		Node indexNode = nodeService.getNodeById(indexNodeId);
 		
 		
-		GetCollectionAnalyzedIndexDataJob job = new GetCollectionAnalyzedIndexDataJob(collectionId, start, end);
+		GetCollectionAnalyzedIndexDataJob job = new GetCollectionAnalyzedIndexDataJob(collectionId, start, end, pkValue);
 		ResultFuture resultFuture = nodeService.sendRequest(indexNode, job);
 
 		CollectionAnalyzedIndexData data = null;

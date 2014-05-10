@@ -3,7 +3,9 @@ package org.fastcatsearch.job.management;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
@@ -17,7 +19,9 @@ import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.document.Document;
+import org.fastcatsearch.ir.document.DocumentReader;
 import org.fastcatsearch.ir.field.Field;
+import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
@@ -41,13 +45,15 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 	private String collectionId;
 	private int start;
 	private int end;
+	private String pkValue;
 	
 	public GetCollectionAnalyzedIndexDataJob() {}
 	
-	public GetCollectionAnalyzedIndexDataJob(String collectionId, int start, int end) {
+	public GetCollectionAnalyzedIndexDataJob(String collectionId, int start, int end, String pkValue) {
 		this.collectionId = collectionId;
 		this.start = start;
 		this.end = end;
+		this.pkValue = pkValue;
 	}
 	
 
@@ -61,27 +67,17 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 			return new JobResult(data);
 		}
 		
+		int segmentSize = collectionHandler.segmentSize();
+		
 		List<String> fieldList = new ArrayList<String>();
 		List<RowData> pkDataList = new ArrayList<RowData>();
 		List<RowData> indexDataList = new ArrayList<RowData>();
 		List<RowData> analyzedDataList = new ArrayList<RowData>();
+		List<Boolean> isDeletedList = new ArrayList<Boolean>();
 		
 		int documentSize = 0;
 		try{
-			documentSize = collectionHandler.collectionContext().dataInfo().getDocuments();
 			
-			int segmentSize = collectionHandler.segmentSize();
-			//이 배열의 index번호는 세그먼트번호.
-			int[] segmentEndNumbers = new int[segmentSize];
-			for (int segmentNumber = 0; segmentNumber < segmentSize; segmentNumber++) {
-				SegmentReader reader = collectionHandler.segmentReader(segmentNumber);
-				SegmentInfo segmentInfo = reader.segmentInfo();
-				RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
-				segmentEndNumbers[segmentNumber] = segmentInfo.getBaseNumber() + revisionInfo.getDocumentCount() - 1;
-			}
-			
-			//여러세그먼트에 걸쳐있을 경우를 고려한다.
-			int[][] matchSegmentList = matchSegment(segmentEndNumbers, start, end - start + 1);
 
 			Schema schema = collectionHandler.schema();
 			SchemaSetting schemaSetting = collectionHandler.schema().schemaSetting();
@@ -95,138 +91,201 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 				fieldList.add(indexId);
 			}
 			
-			for (int i = 0; i < matchSegmentList.length; i++) {
-				int segmentNumber = matchSegmentList[i][0];
-				int startNo = matchSegmentList[i][1];
-				int endNo = matchSegmentList[i][2];
-				
-				SegmentReader segmentReader = collectionHandler.segmentReader(segmentNumber);
-				
-				if (segmentReader != null) {
-					SegmentInfo segmentInfo = segmentReader.segmentInfo();
-					String segmentId = segmentInfo.getId();
-					SegmentSearcher segmentSearcher = segmentReader.segmentSearcher();
-					
-					for (int docNo = startNo; docNo <= endNo; docNo++) {
-						Document document = segmentSearcher.getDocument(docNo);
-						if(document == null){
-							//문서의 끝에 다다름.
-							break;
-						}
-						
-						int pkSize = (primaryKeyIdList != null && primaryKeyIdList.size() > 0) ? primaryKeyIdList.size() : 0;
-						String[][] pkData = new String[pkSize][];
-						for (int index = 0; index < pkSize; index++) {
-							RefSetting refSetting = primaryKeyIdList.get(index);
-							String fieldId = refSetting.getRef();
-							int pkFieldSequence = schema.getFieldSequence(fieldId);
-							Field field = document.get(pkFieldSequence);
-							String fieldData = field.toString();
-							pkData[index] = new String[] { fieldId, fieldData };
-						}
-						RowData pkRowData = new RowData(segmentId, pkData);
-						pkDataList.add(pkRowData);
-						
-						String[][] indexData = new String[indexSettingList.size()][];
-						String[][] analyzedData = new String[indexSettingList.size()][];
-						
-						for (int k = 0; k < indexSettingList.size(); k++) {
-							StringBuffer analyzedBuffer = new StringBuffer();
-							
-							IndexSetting indexSetting = indexSettingList.get(k);
-							String indexId = indexSetting.getId();
-							List<IndexRefSetting> refList = indexSetting.getFieldList();
-							boolean isIgnoreCase = indexSetting.isIgnoreCase();
-							boolean isStorePosition = indexSetting.isStorePosition();
-							int positionIncrementGap = indexSetting.getPositionIncrementGap();
-							int gapOffset = 0;
-							
-							StringBuffer allFieldData = new StringBuffer();
-							for (int m = 0; m < refList.size(); m++) {
-								IndexRefSetting refSetting = refList.get(m);
-								String fieldId = refSetting.getRef();
-								String indexAnalyzerId = refSetting.getIndexAnalyzer();
-								int fieldSequence = schema.getFieldSequence(fieldId);
-								Field field = document.get(fieldSequence);
-								String data = field.toString();
-								if(isIgnoreCase){
-									data = data.toUpperCase();
-								}
-								
-								allFieldData.append(data);
-								
-								AnalyzerPool analyzerPool = collectionHandler.getAnalyzerPool(indexAnalyzerId);
-								Analyzer analyzer = analyzerPool.getFromPool();
-								try{
-									TokenStream tokenStream = analyzer.tokenStream(fieldId, new StringReader(data));
-									tokenStream.reset();
-									CharTermAttribute termAttribute = tokenStream.getAttribute(CharTermAttribute.class);
-									CharsRefTermAttribute refTermAttribute = null;
-									PositionIncrementAttribute positionAttribute = null;
-									if(tokenStream.hasAttribute(CharsRefTermAttribute.class)){
-										refTermAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
-									}
-									if (tokenStream.hasAttribute(PositionIncrementAttribute.class)) {
-										positionAttribute = tokenStream.getAttribute(PositionIncrementAttribute.class);
-									}
-									
-									while(tokenStream.incrementToken()){
-										String value = null;
-										if (refTermAttribute != null) {
-											value = refTermAttribute.charsRef().toString();
-										} else {
-											value = termAttribute.toString();
-										}
-										int position = -1;
-										if (isStorePosition && positionAttribute != null) {
-											position = positionAttribute.getPositionIncrement() + gapOffset;
-										}
-										
-										if(analyzedBuffer.length() > 0){
-											analyzedBuffer.append(", ");
-										}
-										analyzedBuffer.append(value);
-										if(position != -1){
-											analyzedBuffer.append(" [");
-											analyzedBuffer.append(position);
-											analyzedBuffer.append("]");
-										}
-									}
-								} catch (IOException e) {
-									logger.error("", e);
-								}finally{
-									analyzerPool.releaseToPool(analyzer);
-								}
-								
-								//필드가 바뀌면 positionIncrementGap 만큼 포지션이 증가한다.
-								gapOffset += positionIncrementGap;
-							}
-							
-							indexData[k] = new String[] {indexId, allFieldData.toString()};
-							analyzedData[k] = new String[] {indexId, analyzedBuffer.toString()};
-							
-						}//for
-						
-						RowData indexRowData = new RowData(segmentId, indexData);
-						indexDataList.add(indexRowData);
-						
-						RowData analyzedRowData = new RowData(segmentId, analyzedData);
-						analyzedDataList.add(analyzedRowData);
-						
+			if(pkValue != null && pkValue.length() > 0) {
+				String[] pkList = pkValue.split("\\W");
+				BytesDataOutput tempOutput = new BytesDataOutput();
+				int count = 0;
+				Set<String> dupSet = new HashSet<String>();
+				for(String pk : pkList) {
+					pk = pk.trim();
+					if(pk.length() == 0) {
+						continue;
 					}
-				} else {
-					logger.debug("segmentReader is NULL");
+					if(dupSet.contains(pk)){
+						continue;
+					}else{
+						dupSet.add(pk);
+					}
+					logger.debug(">>> {}", pk);
+					for (int m = segmentSize - 1; m >= 0; m--) {
+						int docNo = collectionHandler.segmentReader(m).newSearchIndexesReader().getPrimaryKeyIndexesReader().getDocNo(pk, tempOutput);
+//						logger.debug(">>>docNo = {}", docNo);
+						if (docNo != -1) {
+//							logger.debug(">>> {} , doc={}~ {}", count, start, end);
+							if(count >= start && count <= end) {
+								Document document = collectionHandler.segmentReader(m).segmentSearcher().getDocument(docNo);
+								if(document != null) {
+									isDeletedList.add(false);
+									add(document, primaryKeyIdList, schema, collectionHandler, String.valueOf(m), indexSettingList, pkDataList, indexDataList, analyzedDataList);
+								}
+							}
+							documentSize++;
+							count++;
+						}
+					}
 				}
+			} else {
+//				documentSize = collectionHandler.collectionContext().dataInfo().getDocuments();
+				
+				//이 배열의 index번호는 세그먼트번호.
+				int[] segmentEndNumbers = new int[segmentSize];
+				for (int segmentNumber = 0; segmentNumber < segmentSize; segmentNumber++) {
+					SegmentReader reader = collectionHandler.segmentReader(segmentNumber);
+					DocumentReader documentReader = reader.newDocumentReader();
+					int count = documentReader.getDocumentCount();
+					documentSize += count;
+//					SegmentInfo segmentInfo = reader.segmentInfo();
+//					RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
+					segmentEndNumbers[segmentNumber] = documentReader.getBaseNumber() + documentReader.getDocumentCount() - 1;
+					logger.debug("segmentEndNumbers[{}]={}", segmentNumber, segmentEndNumbers[segmentNumber]);
+				}
+				
+				//여러세그먼트에 걸쳐있을 경우를 고려한다.
+				int[][] matchSegmentList = matchSegment(segmentEndNumbers, start, end - start + 1);
+				
+				for (int i = 0; i < matchSegmentList.length; i++) {
+					int segmentNumber = matchSegmentList[i][0];
+					int startNo = matchSegmentList[i][1];
+					int endNo = matchSegmentList[i][2];
+					
+					SegmentReader segmentReader = collectionHandler.segmentReader(segmentNumber);
+					
+					if (segmentReader != null) {
+						SegmentInfo segmentInfo = segmentReader.segmentInfo();
+						String segmentId = segmentInfo.getId();
+						SegmentSearcher segmentSearcher = segmentReader.segmentSearcher();
+						
+						for (int docNo = startNo; docNo <= endNo; docNo++) {
+							Document document = segmentSearcher.getDocument(docNo);
+							if(document == null){
+								//문서의 끝에 다다름.
+								break;
+							}
+							isDeletedList.add(segmentReader.deleteSet().isSet(docNo));
+							add(document, primaryKeyIdList, schema, collectionHandler, segmentId, indexSettingList, pkDataList, indexDataList, analyzedDataList);
+						}
+					} else {
+						logger.debug("segmentReader is NULL");
+					}
+				}
+				
 			}
-			
-		} catch (IOException e) {
+		} catch (Throwable e) {
 			logger.error("", e);
 		}
+		
+		
+		//TODO  isDeletedList
+		
+		
 		
 		CollectionAnalyzedIndexData data = new CollectionAnalyzedIndexData(collectionId, documentSize, fieldList, pkDataList, indexDataList, analyzedDataList);
 		return new JobResult(data);
 	}
 	
+	private void add(Document document, List<RefSetting> primaryKeyIdList, Schema schema, CollectionHandler collectionHandler, String segmentId, List<IndexSetting> indexSettingList, List<RowData> pkDataList, List<RowData> indexDataList, List<RowData> analyzedDataList){
+		
+		
+		int pkSize = (primaryKeyIdList != null && primaryKeyIdList.size() > 0) ? primaryKeyIdList.size() : 0;
+		String[][] pkData = new String[pkSize][];
+		for (int index = 0; index < pkSize; index++) {
+			RefSetting refSetting = primaryKeyIdList.get(index);
+			String fieldId = refSetting.getRef();
+			int pkFieldSequence = schema.getFieldSequence(fieldId);
+			Field field = document.get(pkFieldSequence);
+			String fieldData = field.toString();
+//			logger.debug("PK {} > {} > {}", refSetting, pkFieldSequence, field);
+			pkData[index] = new String[] { fieldId, fieldData };
+		}
+		RowData pkRowData = new RowData(segmentId, pkData);
+		pkDataList.add(pkRowData);
+		
+		String[][] indexData = new String[indexSettingList.size()][];
+		String[][] analyzedData = new String[indexSettingList.size()][];
+		
+		for (int k = 0; k < indexSettingList.size(); k++) {
+			StringBuffer analyzedBuffer = new StringBuffer();
+			
+			IndexSetting indexSetting = indexSettingList.get(k);
+			String indexId = indexSetting.getId();
+			List<IndexRefSetting> refList = indexSetting.getFieldList();
+			boolean isIgnoreCase = indexSetting.isIgnoreCase();
+			boolean isStorePosition = indexSetting.isStorePosition();
+			int positionIncrementGap = indexSetting.getPositionIncrementGap();
+			int gapOffset = 0;
+			
+			StringBuffer allFieldData = new StringBuffer();
+			for (int m = 0; m < refList.size(); m++) {
+				IndexRefSetting refSetting = refList.get(m);
+				String fieldId = refSetting.getRef();
+				String indexAnalyzerId = refSetting.getIndexAnalyzer();
+				int fieldSequence = schema.getFieldSequence(fieldId);
+				Field field = document.get(fieldSequence);
+				String data = field.toString();
+				if(isIgnoreCase){
+					data = data.toUpperCase();
+				}
+				
+				allFieldData.append(data);
+				
+				AnalyzerPool analyzerPool = collectionHandler.getAnalyzerPool(indexAnalyzerId);
+				Analyzer analyzer = analyzerPool.getFromPool();
+				try{
+					TokenStream tokenStream = analyzer.tokenStream(fieldId, new StringReader(data));
+					tokenStream.reset();
+					CharTermAttribute termAttribute = tokenStream.getAttribute(CharTermAttribute.class);
+					CharsRefTermAttribute refTermAttribute = null;
+					PositionIncrementAttribute positionAttribute = null;
+					if(tokenStream.hasAttribute(CharsRefTermAttribute.class)){
+						refTermAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
+					}
+					if (tokenStream.hasAttribute(PositionIncrementAttribute.class)) {
+						positionAttribute = tokenStream.getAttribute(PositionIncrementAttribute.class);
+					}
+					
+					while(tokenStream.incrementToken()){
+						String value = null;
+						if (refTermAttribute != null) {
+							value = refTermAttribute.charsRef().toString();
+						} else {
+							value = termAttribute.toString();
+						}
+						int position = -1;
+						if (isStorePosition && positionAttribute != null) {
+							position = positionAttribute.getPositionIncrement() + gapOffset;
+						}
+						
+						if(analyzedBuffer.length() > 0){
+							analyzedBuffer.append(", ");
+						}
+						analyzedBuffer.append(value);
+						if(position != -1){
+							analyzedBuffer.append(" [");
+							analyzedBuffer.append(position);
+							analyzedBuffer.append("]");
+						}
+					}
+				} catch (IOException e) {
+					logger.error("", e);
+				}finally{
+					analyzerPool.releaseToPool(analyzer);
+				}
+				
+				//필드가 바뀌면 positionIncrementGap 만큼 포지션이 증가한다.
+				gapOffset += positionIncrementGap;
+			}
+			
+			indexData[k] = new String[] {indexId, allFieldData.toString()};
+			analyzedData[k] = new String[] {indexId, analyzedBuffer.toString()};
+			
+		}//for
+		
+		RowData indexRowData = new RowData(segmentId, indexData);
+		indexDataList.add(indexRowData);
+		
+		RowData analyzedRowData = new RowData(segmentId, analyzedData);
+		analyzedDataList.add(analyzedRowData);
+	}
 	private int[][] matchSegment(int[] segEndNums, int start, int rows) {
 		// [][세그먼트번호,시작번호,끝번호]
 		ArrayList<int[]> list = new ArrayList<int[]>();
@@ -267,6 +326,7 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 		collectionId = input.readString();
 		start = input.readInt();
 		end = input.readInt();
+		pkValue = input.readString();
 	}
 
 	@Override
@@ -274,6 +334,7 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 		output.writeString(collectionId);
 		output.writeInt(start);
 		output.writeInt(end);
+		output.writeString(pkValue);
 	}
 
 }
