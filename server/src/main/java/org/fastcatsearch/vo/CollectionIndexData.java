@@ -14,15 +14,17 @@ public class CollectionIndexData implements Streamable {
 	private int documentSize;
 	protected List<String> fieldList;
 	protected List<RowData> indexData;
-
+	protected List<Boolean> isDeletedList;
+	
 	public CollectionIndexData() {
 	}
 
-	public CollectionIndexData(String collectionId, int documentSize, List<String> fieldList, List<RowData> indexData) {
+	public CollectionIndexData(String collectionId, int documentSize, List<String> fieldList, List<RowData> indexData, List<Boolean> isDeletedList) {
 		this.collectionId = collectionId;
 		this.documentSize = documentSize;
 		this.fieldList = fieldList;
 		this.indexData = indexData;
+		this.isDeletedList = isDeletedList;
 	}
 
 	public String getCollectionId() {
@@ -39,6 +41,10 @@ public class CollectionIndexData implements Streamable {
 
 	public List<RowData> getIndexData() {
 		return indexData;
+	}
+
+	public List<Boolean> getIsDeletedList() {
+		return isDeletedList;
 	}
 
 	@Override
@@ -61,6 +67,12 @@ public class CollectionIndexData implements Streamable {
 			}
 			RowData rowData = new RowData(segmentId, fieldData);
 			indexData.add(rowData);
+		}
+		
+		rowSize = input.readVInt();
+		isDeletedList = new ArrayList<Boolean>(rowSize);
+		for (int r = 0; r < rowSize; r++) {
+			isDeletedList.add(input.readBoolean());
 		}
 	}
 
@@ -89,6 +101,15 @@ public class CollectionIndexData implements Streamable {
 			}
 		}else{
 			output.writeVInt(0);			
+		}
+		
+		if(isDeletedList != null) {
+			output.writeVInt(isDeletedList.size());
+			for(Boolean b : isDeletedList) {
+				output.writeBoolean(b);
+			}
+		}else{
+			output.writeVInt(0);
 		}
 	}
 

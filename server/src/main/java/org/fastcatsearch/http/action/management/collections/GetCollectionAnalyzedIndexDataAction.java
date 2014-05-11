@@ -75,6 +75,7 @@ public class GetCollectionAnalyzedIndexDataAction extends AuthAction {
 			List<RowData> indexDataList = data.getIndexData();
 			List<RowData> pkDataList = data.getPkData();
 			List<RowData> analyzedDataList = data.getAnalyzedData();
+			List<Boolean> isDeletedList = data.getIsDeletedList();
 			
 			for(int i = 0; i < indexDataList.size(); i++) {
 				RowData pkData = null;
@@ -104,6 +105,7 @@ public class GetCollectionAnalyzedIndexDataAction extends AuthAction {
 						resultWriter.key(fieldData[k][0]).value(fieldData[k][1]);
 						resultWriter.key(analyzedFieldData[k][0]+"-ANALYZED").value(analyzedFieldData[k][1]);
 					}
+					resultWriter.key("isDeleted").value(isDeletedList.get(i));
 					resultWriter.endObject();
 				resultWriter.endObject();
 			}

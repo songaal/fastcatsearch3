@@ -1,6 +1,7 @@
 package org.fastcatsearch.http.action.management.collections;
 
 import java.io.Writer;
+import java.util.List;
 
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
@@ -28,7 +29,8 @@ public class GetCollectionIndexDataAction extends AuthAction {
 		String collectionId = request.getParameter("collectionId");
 		int start = Integer.parseInt(request.getParameter("start", "0"));
 		int end = Integer.parseInt(request.getParameter("end", "0"));
-
+		String pkValue = request.getParameter("pkValue");
+		
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 
@@ -39,7 +41,7 @@ public class GetCollectionIndexDataAction extends AuthAction {
 		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 		Node indexNode = nodeService.getNodeById(indexNodeId);
 
-		GetCollectionIndexDataJob job = new GetCollectionIndexDataJob(collectionId, start, end);
+		GetCollectionIndexDataJob job = new GetCollectionIndexDataJob(collectionId, start, end, pkValue);
 		ResultFuture resultFuture = nodeService.sendRequest(indexNode, job);
 
 		CollectionIndexData data = null;
@@ -58,6 +60,9 @@ public class GetCollectionIndexDataAction extends AuthAction {
 			.key("fieldList").array().endArray()
 			.key("indexData").array().endArray();
 		} else {
+			List<RowData> indexDataList = data.getIndexData();
+			List<Boolean> isDeletedList = data.getIsDeletedList();
+			
 			resultWriter.key("documentSize").value(data.getDocumentSize());
 			resultWriter.key("fieldList").array();
 			for(String fieldId : data.getFieldList()) {
@@ -66,14 +71,16 @@ public class GetCollectionIndexDataAction extends AuthAction {
 			resultWriter.endArray();
 			
 			resultWriter.key("indexData").array();
-			for(RowData rowData : data.getIndexData()) {
+			for(int i = 0; i < indexDataList.size(); i++) {
+				RowData rowData = indexDataList.get(i);
 				resultWriter.object();
 					resultWriter.key("segmentId").value(rowData.getSegmentId());
 					resultWriter.key("row").object();
 					String[][] fieldData = rowData.getFieldData();
-					for(int i = 0; i < fieldData.length; i++) {
-						resultWriter.key(fieldData[i][0]).value(fieldData[i][1]);
+					for(int k = 0; k < fieldData.length; k++) {
+						resultWriter.key(fieldData[k][0]).value(fieldData[k][1]);
 					}
+					resultWriter.key("isDeleted").value(isDeletedList.get(i));
 					resultWriter.endObject();
 				resultWriter.endObject();
 			}

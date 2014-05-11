@@ -16,7 +16,6 @@ import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
-import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.document.DocumentReader;
@@ -63,7 +62,7 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 
 		CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
 		if(collectionHandler == null || !collectionHandler.isLoaded()){
-			CollectionAnalyzedIndexData data = new CollectionAnalyzedIndexData(collectionId, 0, null, null, null, null);
+			CollectionAnalyzedIndexData data = new CollectionAnalyzedIndexData(collectionId, 0, null, null, null, null, null);
 			return new JobResult(data);
 		}
 		
@@ -77,7 +76,6 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 		
 		int documentSize = 0;
 		try{
-			
 
 			Schema schema = collectionHandler.schema();
 			SchemaSetting schemaSetting = collectionHandler.schema().schemaSetting();
@@ -106,17 +104,17 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 					}else{
 						dupSet.add(pk);
 					}
-					logger.debug(">>> {}", pk);
-					for (int m = segmentSize - 1; m >= 0; m--) {
-						int docNo = collectionHandler.segmentReader(m).newSearchIndexesReader().getPrimaryKeyIndexesReader().getDocNo(pk, tempOutput);
+					for (int segmentNumber = segmentSize - 1; segmentNumber >= 0; segmentNumber--) {
+						SegmentReader segmentReader = collectionHandler.segmentReader(segmentNumber);
+						int docNo = segmentReader.newSearchIndexesReader().getPrimaryKeyIndexesReader().getDocNo(pk, tempOutput);
 //						logger.debug(">>>docNo = {}", docNo);
 						if (docNo != -1) {
 //							logger.debug(">>> {} , doc={}~ {}", count, start, end);
 							if(count >= start && count <= end) {
-								Document document = collectionHandler.segmentReader(m).segmentSearcher().getDocument(docNo);
+								Document document = collectionHandler.segmentReader(segmentNumber).segmentSearcher().getDocument(docNo);
 								if(document != null) {
-									isDeletedList.add(false);
-									add(document, primaryKeyIdList, schema, collectionHandler, String.valueOf(m), indexSettingList, pkDataList, indexDataList, analyzedDataList);
+									isDeletedList.add(segmentReader.deleteSet().isSet(docNo));
+									add(document, primaryKeyIdList, schema, collectionHandler, String.valueOf(segmentNumber), indexSettingList, pkDataList, indexDataList, analyzedDataList);
 								}
 							}
 							documentSize++;
@@ -125,7 +123,6 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 					}
 				}
 			} else {
-//				documentSize = collectionHandler.collectionContext().dataInfo().getDocuments();
 				
 				//이 배열의 index번호는 세그먼트번호.
 				int[] segmentEndNumbers = new int[segmentSize];
@@ -134,16 +131,13 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 					DocumentReader documentReader = reader.newDocumentReader();
 					int count = documentReader.getDocumentCount();
 					documentSize += count;
-//					SegmentInfo segmentInfo = reader.segmentInfo();
-//					RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 					segmentEndNumbers[segmentNumber] = documentReader.getBaseNumber() + documentReader.getDocumentCount() - 1;
 					logger.debug("segmentEndNumbers[{}]={}", segmentNumber, segmentEndNumbers[segmentNumber]);
 				}
 				
 				//여러세그먼트에 걸쳐있을 경우를 고려한다.
 				int[][] matchSegmentList = matchSegment(segmentEndNumbers, start, end - start + 1);
-				
-				for (int i = 0; i < matchSegmentList.length; i++) {
+				for (int i = matchSegmentList.length - 1; i >= 0; i--) {
 					int segmentNumber = matchSegmentList[i][0];
 					int startNo = matchSegmentList[i][1];
 					int endNo = matchSegmentList[i][2];
@@ -174,12 +168,7 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 			logger.error("", e);
 		}
 		
-		
-		//TODO  isDeletedList
-		
-		
-		
-		CollectionAnalyzedIndexData data = new CollectionAnalyzedIndexData(collectionId, documentSize, fieldList, pkDataList, indexDataList, analyzedDataList);
+		CollectionAnalyzedIndexData data = new CollectionAnalyzedIndexData(collectionId, documentSize, fieldList, pkDataList, indexDataList, analyzedDataList, isDeletedList);
 		return new JobResult(data);
 	}
 	

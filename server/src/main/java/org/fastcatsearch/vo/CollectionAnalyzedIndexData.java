@@ -13,8 +13,8 @@ public class CollectionAnalyzedIndexData extends CollectionIndexData {
 	
 	public CollectionAnalyzedIndexData() {}
 	
-	public CollectionAnalyzedIndexData(String collectionId, int documentSize, List<String> fieldList, List<RowData> pkData, List<RowData> indexData, List<RowData> analyzedData) {
-		super(collectionId, documentSize, fieldList, indexData);
+	public CollectionAnalyzedIndexData(String collectionId, int documentSize, List<String> fieldList, List<RowData> pkData, List<RowData> indexData, List<RowData> analyzedData, List<Boolean> isDeletedList) {
+		super(collectionId, documentSize, fieldList, indexData, isDeletedList);
 		this.pkData = pkData;
 		this.analyzedData = analyzedData;
 	}
