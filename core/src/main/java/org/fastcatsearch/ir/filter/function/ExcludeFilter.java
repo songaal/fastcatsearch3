@@ -104,6 +104,9 @@ public class ExcludeFilter extends FilterFunction {
 		if (isBoostFunction) {
 			// boost옵션이 있다면 점수를 올려주고 리턴한다.
 			rankInfo.addScore(boostScore);
+			if(rankInfo.isExplain()) {
+				rankInfo.explain(fieldIndexId, boostScore, "EXCLUDE_BOOST_FILTER");
+			}
 		}
 		return true;
 

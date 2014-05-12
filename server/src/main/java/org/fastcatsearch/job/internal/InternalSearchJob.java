@@ -26,6 +26,7 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableInternalSearchResult;
 
 public class InternalSearchJob extends Job implements Streamable {
+	private static final long serialVersionUID = 4998297114497342795L;
 	private QueryMap queryMap;
 	private boolean forMerging;
 	
