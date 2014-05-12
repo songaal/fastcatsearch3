@@ -68,7 +68,6 @@ public class PrimaryKeyIndexMultipleMerger {
 
 		output.writeInt(termCount);// termCount
 		indexOutput.writeInt(indexTermCount);// indexTermCount
-		int idxCount = 0;
 		KeyValue keyValue = new KeyValue();
 		while (readNextTempIndex(keyValue)) {
 			// logger.debug("####keyValue > {}", keyValue);
@@ -78,7 +77,7 @@ public class PrimaryKeyIndexMultipleMerger {
 				indexOutput.writeVInt(key.length);
 				indexOutput.writeBytes(key.bytes, key.offset, key.length);
 				indexOutput.writeLong(output.position());
-				idxCount++;
+				indexTermCount++;
 			}
 
 			output.writeVInt(key.length);
@@ -88,7 +87,7 @@ public class PrimaryKeyIndexMultipleMerger {
 			termCount++;
 		}
 
-		logger.debug("pk index count = {}", idxCount);
+		logger.debug("pk index count = {}", indexTermCount);
 		logger.debug("filesize = {} bytes", output.position());
 
 		// write idxCount
