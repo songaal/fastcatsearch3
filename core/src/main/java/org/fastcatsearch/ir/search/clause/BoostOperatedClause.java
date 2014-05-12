@@ -36,7 +36,7 @@ public class BoostOperatedClause extends OperatedClause {
 		this.boostClause = boostClause;
 	}
 
-	protected boolean nextDoc(RankInfo docInfo) {
+	protected boolean nextDoc(RankInfo rankInfo) {
 		
 		int newScore = 0;
 		while(mainClause.next(docInfo1)){
@@ -52,9 +52,11 @@ public class BoostOperatedClause extends OperatedClause {
 			
 			if(doc1 == docInfo2.docNo()){
 				newScore += docInfo2.score();
+				rankInfo.explain(docInfo2);
 			}
 			
-			docInfo.init(doc1, newScore);
+			rankInfo.init(doc1, newScore);
+			rankInfo.explain(docInfo1);
 			return true; 
 			
 		}
