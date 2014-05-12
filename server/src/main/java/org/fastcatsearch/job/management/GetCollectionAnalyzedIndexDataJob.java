@@ -90,35 +90,37 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 			}
 			
 			if(pkValue != null && pkValue.length() > 0) {
-				String[] pkList = pkValue.split("\\W");
-				BytesDataOutput tempOutput = new BytesDataOutput();
-				int count = 0;
-				Set<String> dupSet = new HashSet<String>();
-				for(String pk : pkList) {
-					pk = pk.trim();
-					if(pk.length() == 0) {
-						continue;
-					}
-					if(dupSet.contains(pk)){
-						continue;
-					}else{
-						dupSet.add(pk);
-					}
-					for (int segmentNumber = segmentSize - 1; segmentNumber >= 0; segmentNumber--) {
-						SegmentReader segmentReader = collectionHandler.segmentReader(segmentNumber);
-						int docNo = segmentReader.newSearchIndexesReader().getPrimaryKeyIndexesReader().getDocNo(pk, tempOutput);
-//						logger.debug(">>>docNo = {}", docNo);
-						if (docNo != -1) {
-//							logger.debug(">>> {} , doc={}~ {}", count, start, end);
-							if(count >= start && count <= end) {
-								Document document = collectionHandler.segmentReader(segmentNumber).segmentSearcher().getDocument(docNo);
-								if(document != null) {
-									isDeletedList.add(segmentReader.deleteSet().isSet(docNo));
-									add(document, primaryKeyIdList, schema, collectionHandler, String.valueOf(segmentNumber), indexSettingList, pkDataList, indexDataList, analyzedDataList);
+				if(primaryKeyIdList != null && primaryKeyIdList.size() > 0) {
+					String[] pkList = pkValue.split("\\W");
+					BytesDataOutput tempOutput = new BytesDataOutput();
+					int count = 0;
+					Set<String> dupSet = new HashSet<String>();
+					for(String pk : pkList) {
+						pk = pk.trim();
+						if(pk.length() == 0) {
+							continue;
+						}
+						if(dupSet.contains(pk)){
+							continue;
+						}else{
+							dupSet.add(pk);
+						}
+						for (int segmentNumber = segmentSize - 1; segmentNumber >= 0; segmentNumber--) {
+							SegmentReader segmentReader = collectionHandler.segmentReader(segmentNumber);
+							int docNo = segmentReader.newSearchIndexesReader().getPrimaryKeyIndexesReader().getDocNo(pk, tempOutput);
+	//						logger.debug(">>>docNo = {}", docNo);
+							if (docNo != -1) {
+	//							logger.debug(">>> {} , doc={}~ {}", count, start, end);
+								if(count >= start && count <= end) {
+									Document document = collectionHandler.segmentReader(segmentNumber).segmentSearcher().getDocument(docNo);
+									if(document != null) {
+										isDeletedList.add(segmentReader.deleteSet().isSet(docNo));
+										add(document, primaryKeyIdList, schema, collectionHandler, String.valueOf(segmentNumber), indexSettingList, pkDataList, indexDataList, analyzedDataList);
+									}
 								}
+								documentSize++;
+								count++;
 							}
-							documentSize++;
-							count++;
 						}
 					}
 				}
