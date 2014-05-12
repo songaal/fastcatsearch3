@@ -216,6 +216,7 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 		collectionId = input.readString();
 		start = input.readInt();
 		end = input.readInt();
+		pkValue = input.readString();
 	}
 
 	@Override
@@ -223,6 +224,7 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 		output.writeString(collectionId);
 		output.writeInt(start);
 		output.writeInt(end);
+		output.writeString(pkValue);
 	}
 
 }
