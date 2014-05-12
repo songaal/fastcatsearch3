@@ -508,7 +508,7 @@ public class TransportModule extends AbstractModule {
 	    		}
 	    		
 	    		BytesReference bytesRef = enumeration.nextElement();
-	    		logger.debug("write file seq ={}, length={}", seq, bytesRef.length());
+//	    		logger.debug("write file seq ={}, length={}", seq, bytesRef.length());
 	    		
 	    		writeSize += bytesRef.length();
 	    		
