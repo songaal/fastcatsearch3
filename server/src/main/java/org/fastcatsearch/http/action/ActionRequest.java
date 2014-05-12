@@ -37,7 +37,13 @@ public class ActionRequest {
 			} else {
 
 			}
-			logger.debug("action {}, param={}", uri, queryString);
+			if(logger.isDebugEnabled()) {
+				String debugQueryString = null;
+				if(queryString != null) {
+					debugQueryString = queryString.length() > 100 ? queryString.substring(0, 100) + "..." : queryString;
+				}
+				logger.debug("action {}, param={}", uri, debugQueryString);
+			}
 	
 			parameterMap = new HashMap<String, String>();
 			if (queryString != null) {

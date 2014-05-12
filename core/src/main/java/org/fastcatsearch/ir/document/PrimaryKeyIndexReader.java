@@ -38,13 +38,13 @@ public class PrimaryKeyIndexReader implements BytesToIntReader, Cloneable {
 	private PrimaryKeyIndexReader() {
 	}
 
-	public PrimaryKeyIndexReader(IndexInput input, byte[][] keys, long[] pos, int count, long limit) {
-		this.input = input;
-		this.keys = keys;
-		this.pos = pos;
-		this.count = count;
-		this.limit = limit;
-	}
+//	public PrimaryKeyIndexReader(IndexInput input, byte[][] keys, long[] pos, int count, long limit) {
+//		this.input = input;
+//		this.keys = keys;
+//		this.pos = pos;
+//		this.count = count;
+//		this.limit = limit;
+//	}
 
 	public PrimaryKeyIndexReader(File dir, String filename) throws IOException {
 		String pkIndexFilename = IndexFileNames.getIndexFileName(filename);
