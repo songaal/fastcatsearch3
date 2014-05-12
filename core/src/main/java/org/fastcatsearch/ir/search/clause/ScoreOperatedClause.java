@@ -28,7 +28,9 @@ public class ScoreOperatedClause extends OperatedClause {
 		boolean b = operatedClause.next(docInfo);
 		if(b){
 			docInfo.score(score);
-			docInfo.rowExplanations().add(new RowExplanation(id, score, description));
+			if(docInfo.rowExplanations() != null) {
+				docInfo.rowExplanations().add(new RowExplanation(id, score, description));
+			}
 		}
 		return b;
 	}
