@@ -25,9 +25,11 @@ import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.AdditionalTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
+import org.apache.lucene.analysis.tokenattributes.SynonymAttribute;
 import org.apache.lucene.util.CharsRef;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
@@ -167,13 +169,25 @@ public class SearchIndexWriter {
 		tokenStream.reset();
 		CharsRefTermAttribute termAttribute = null;
 		PositionIncrementAttribute positionAttribute = null;
+		SynonymAttribute synonymAttribute = null;
+		AdditionalTermAttribute additionalTermAttribute = null;
+		
 		if (tokenStream.hasAttribute(CharsRefTermAttribute.class)) {
 			termAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
 		}
 		if (tokenStream.hasAttribute(PositionIncrementAttribute.class)) {
 			positionAttribute = tokenStream.getAttribute(PositionIncrementAttribute.class);
 		}
+		if (tokenStream.hasAttribute(AdditionalTermAttribute.class)) {
+			additionalTermAttribute = tokenStream.getAttribute(AdditionalTermAttribute.class);
+		}
+		if (tokenStream.hasAttribute(SynonymAttribute.class)) {
+			synonymAttribute = tokenStream.getAttribute(SynonymAttribute.class);
+		}
+		
 		CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
+		
+		int lastPosition = 0;
 	
 		while (tokenStream.incrementToken()) {
 			CharVector key = null;
@@ -189,10 +203,29 @@ public class SearchIndexWriter {
 			int position = -1;
 			if (positionAttribute != null) {
 				position = positionAttribute.getPositionIncrement() + positionIncrementGap;
+				lastPosition = position;
 			}
 //			logger.debug("FIELD#{}: {} >> {} ({})", indexId, key, docNo, position);
 			
 			memoryPosting.add(key, docNo, position);
+			
+			if(synonymAttribute != null) {
+				CharVector[] synonym = synonymAttribute.getSynonym();
+				if(synonym != null) {
+					for(CharVector token : synonym) {
+						memoryPosting.add(token, docNo, position);
+					}
+				}
+			}
+		}
+		if(additionalTermAttribute!=null) {
+			Iterator<String[]> iterator = additionalTermAttribute.iterateAdditionalTerms();
+			while(iterator.hasNext()) {
+				String[] str = iterator.next();
+				
+				CharVector token = new CharVector(str[0].toCharArray());
+				memoryPosting.add(token, docNo, lastPosition);
+			}
 		}
 	}
 

@@ -9,7 +9,7 @@ public interface AdditionalTermAttribute extends Attribute {
 	
 	public void init(TokenStream tokenStream);
 
-	public void addAdditionalTerm(String additionalTerm, int start, int end);
+	public void addAdditionalTerm(String additionalTerm, String type, int start, int end);
 	
-	public Iterator<String> iterateAdditionalTerms();
+	public Iterator<String[]> iterateAdditionalTerms();
 }

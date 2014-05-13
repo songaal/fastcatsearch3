@@ -1,13 +1,16 @@
 package org.fastcatsearch.ir.search.clause;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.AdditionalTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.analysis.tokenattributes.StopwordAttribute;
+import org.apache.lucene.analysis.tokenattributes.SynonymAttribute;
 import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 import org.apache.lucene.util.CharsRef;
 import org.fastcatsearch.ir.io.CharVector;
@@ -54,8 +57,9 @@ public class BooleanClause extends OperatedClause {
 			PositionIncrementAttribute positionAttribute = null;
 			StopwordAttribute stopwordAttribute = null;
 			TypeAttribute typeAttribute = null;
+			AdditionalTermAttribute additionalTermAttribute = null;
 			
-//			SynonymAttribute synonymAttribute = null;
+			SynonymAttribute synonymAttribute = null;
 //			FeatureAttribute featureAttribute = null;
 			
 			TokenStream tokenStream = analyzer.tokenStream(indexId, fullTerm.getReader());
@@ -78,10 +82,12 @@ public class BooleanClause extends OperatedClause {
 			if (tokenStream.hasAttribute(TypeAttribute.class)) {
 				typeAttribute = tokenStream.getAttribute(TypeAttribute.class);
 			}
-			
-//			if (tokenStream.hasAttribute(SynonymAttribute.class)) {
-//				synonymAttribute = tokenStream.getAttribute(SynonymAttribute.class);
-//			}
+			if (tokenStream.hasAttribute(AdditionalTermAttribute.class)) {
+				additionalTermAttribute = tokenStream.getAttribute(AdditionalTermAttribute.class);
+			}
+			if (tokenStream.hasAttribute(SynonymAttribute.class)) {
+				synonymAttribute = tokenStream.getAttribute(SynonymAttribute.class);
+			}
 //			if (tokenStream.hasAttribute(FeatureAttribute.class)) {
 //				featureAttribute = tokenStream.getAttribute(FeatureAttribute.class);
 //			}
@@ -129,6 +135,31 @@ public class BooleanClause extends OperatedClause {
 
 				OperatedClause clause = null;
 				
+				//동의어.
+				if(synonymAttribute != null) {
+					CharVector[] synonym = synonymAttribute.getSynonym();
+					OperatedClause synonymClause = null;
+					if(synonym != null) {
+						for(CharVector localToken : synonym) {
+							localToken.setIgnoreCase();
+							SearchMethod localSearchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
+							PostingReader localPostingReader = searchMethod.search(indexId, localToken, queryPosition, weight);
+							OperatedClause localClause = null;
+							localClause = new TermOperatedClause(indexId, postingReader);
+							
+							if(synonymClause == null) {
+								synonymClause = localClause;
+							} else {
+								synonymClause = new OrOperatedClause(synonymClause, clause);
+							}
+						}
+						
+						if(synonymClause != null) {
+							clause = new OrOperatedClause(clause, synonymClause);
+						}
+					}
+				}
+				
 //				if (featureAttribute != null && featureAttribute.type() == FeatureType.APPEND) {
 //					//TODO append 한다.
 //					clause = new TermOperatedClause(postingReader);
@@ -148,9 +179,38 @@ public class BooleanClause extends OperatedClause {
 						operatedClause = new OrOperatedClause(operatedClause, clause);
 					}
 				}
-
-
 			}
+
+			//추가 확장 단어들.
+			if(additionalTermAttribute != null) {
+				Iterator<String[]> iterator = additionalTermAttribute.iterateAdditionalTerms();
+				OperatedClause additionalClause = null;
+				
+				if(iterator != null) {
+					while(iterator.hasNext()) {
+						String[] str = iterator.next();
+						
+						CharVector localToken = new CharVector(str[0].toCharArray(), indexSetting.isIgnoreCase());
+						
+						int queryPosition = positionAttribute != null ? positionAttribute.getPositionIncrement() : 0;
+						SearchMethod searchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
+						PostingReader postingReader = searchMethod.search(indexId, localToken, queryPosition, weight);
+						OperatedClause clause = null;
+						clause = new TermOperatedClause(indexId, postingReader);
+						
+						if(additionalClause == null) {
+							additionalClause = clause;
+						} else {
+							additionalClause = new OrOperatedClause(additionalClause, clause);
+						}
+					}
+					
+					if(additionalClause != null) {
+						operatedClause = new OrOperatedClause(operatedClause, additionalClause);
+					}
+				}
+			}
+			
 		} catch (IOException e) {
 			logger.error("", e);
 		} finally {

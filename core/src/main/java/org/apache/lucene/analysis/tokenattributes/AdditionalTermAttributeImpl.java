@@ -14,7 +14,7 @@ public class AdditionalTermAttributeImpl extends AttributeImpl implements
 	
 	private static final Logger logger = LoggerFactory.getLogger(AdditionalTermAttributeImpl.class);
 	
-	private List<String> additionalTerms;
+	private List<String[]> additionalTerms;
 	private List<int[]> offsets;
 	private OffsetAttribute offsetAttribute;
 	
@@ -23,7 +23,7 @@ public class AdditionalTermAttributeImpl extends AttributeImpl implements
 		if(tokenStream!=null && tokenStream.hasAttribute(OffsetAttribute.class)) {
 			this.offsetAttribute = tokenStream.getAttribute(OffsetAttribute.class);
 		}
-		this.additionalTerms = new ArrayList<String>();
+		this.additionalTerms = new ArrayList<String[]>();
 		this.offsets = new ArrayList<int[]>();
 	}
 	
@@ -55,22 +55,22 @@ public class AdditionalTermAttributeImpl extends AttributeImpl implements
 	public void copyTo(AttributeImpl target) {
 		AdditionalTermAttribute t = (AdditionalTermAttribute) target;
 		for(int inx=0;inx < additionalTerms.size(); inx++) {
-			String term = additionalTerms.get(inx);
+			String[] term = additionalTerms.get(inx);
 			int[] offset = offsets.get(inx);
-			t.addAdditionalTerm(term, offset[0], offset[1]);
+			t.addAdditionalTerm(term[0], term[1], offset[0], offset[1]);
 		}
 	}
 	
 	@Override
-	public void addAdditionalTerm(String additionalTerm, int start, int end) {
+	public void addAdditionalTerm(String additionalTerm, String type, int start, int end) {
 		logger.trace("add additional {}", additionalTerm);
-		this.additionalTerms.add(additionalTerm);
+		this.additionalTerms.add(new String[] { additionalTerm, type });
 		this.offsets.add(new int[] { start, end } );
 	}
 
 	@Override
-	public Iterator<String> iterateAdditionalTerms() {
-		return new Iterator<String>() {
+	public Iterator<String[]> iterateAdditionalTerms() {
+		return new Iterator<String[]>() {
 
 			@Override
 			public boolean hasNext() {
@@ -78,8 +78,8 @@ public class AdditionalTermAttributeImpl extends AttributeImpl implements
 			}
 
 			@Override
-			public String next() {
-				String term = additionalTerms.remove(0);
+			public String[] next() {
+				String[] term = additionalTerms.remove(0);
 				int[] offset = offsets.remove(0);
 				if(offsetAttribute!=null) {
 					offsetAttribute.setOffset(offset[0], offset[1]);
