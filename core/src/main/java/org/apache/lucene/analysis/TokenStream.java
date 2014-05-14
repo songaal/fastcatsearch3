@@ -24,6 +24,7 @@ import java.lang.reflect.Modifier;
 //import org.apache.lucene.document.Document;
 //import org.apache.lucene.document.Field;
 //import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.analysis.core.AnalyzerOption;
 import org.apache.lucene.util.Attribute;
 import org.apache.lucene.util.AttributeImpl;
 import org.apache.lucene.util.AttributeSource;
@@ -83,7 +84,7 @@ import org.apache.lucene.util.AttributeSource;
  * assertions are enabled.
  */
 public abstract class TokenStream extends AttributeSource implements Closeable {
-
+	protected AnalyzerOption analyzerOption;
   /**
    * A TokenStream using the default attribute factory.
    */
@@ -178,5 +179,9 @@ public abstract class TokenStream extends AttributeSource implements Closeable {
   /** Releases resources associated with this stream. */
   @Override
   public void close() throws IOException {}
+
+	public void setAnalyzerOption(AnalyzerOption analyzerOption) {
+		this.analyzerOption = analyzerOption;
+	}
   
 }

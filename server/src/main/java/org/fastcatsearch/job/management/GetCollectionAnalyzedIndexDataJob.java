@@ -9,6 +9,7 @@ import java.util.Set;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.core.AnalyzerOption;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
@@ -46,6 +47,8 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 	private int end;
 	private String pkValue;
 	
+	private AnalyzerOption indexingAnalyzerOption;
+	
 	public GetCollectionAnalyzedIndexDataJob() {}
 	
 	public GetCollectionAnalyzedIndexDataJob(String collectionId, int start, int end, String pkValue) {
@@ -58,6 +61,11 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
+		
+		//색인시는 stopword만 본다.
+		indexingAnalyzerOption = new AnalyzerOption();
+		indexingAnalyzerOption.useStopword(true);
+				
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 
 		CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
@@ -222,7 +230,7 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 				AnalyzerPool analyzerPool = collectionHandler.getAnalyzerPool(indexAnalyzerId);
 				Analyzer analyzer = analyzerPool.getFromPool();
 				try{
-					TokenStream tokenStream = analyzer.tokenStream(fieldId, new StringReader(data));
+					TokenStream tokenStream = analyzer.tokenStream(fieldId, new StringReader(data), indexingAnalyzerOption);
 					tokenStream.reset();
 					CharTermAttribute termAttribute = tokenStream.getAttribute(CharTermAttribute.class);
 					CharsRefTermAttribute refTermAttribute = null;

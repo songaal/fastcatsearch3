@@ -72,7 +72,6 @@ import java.util.Map;
 public abstract class Analyzer implements Closeable {
 
   private final ReuseStrategy reuseStrategy;
-  protected AnalyzerOption analyzerOption;
 
   /**
    * Create a new Analyzer, reusing the same set of components per-thread
@@ -136,7 +135,6 @@ public abstract class Analyzer implements Closeable {
   public final TokenStream tokenStream(final String fieldName,
                                        final Reader reader, AnalyzerOption analyzerOption) throws IOException {
     TokenStreamComponents components = reuseStrategy.getReusableComponents(fieldName);
-    this.analyzerOption = analyzerOption;
     
     final Reader r = initReader(fieldName, reader);
     if (components == null) {
@@ -145,6 +143,8 @@ public abstract class Analyzer implements Closeable {
     } else {
       components.setReader(r);
     }
+    components.setAnalyzerOption(analyzerOption);
+    
     return components.getTokenStream();
   }
   
@@ -272,6 +272,10 @@ public abstract class Analyzer implements Closeable {
      */
     public Tokenizer getTokenizer() {
       return source;
+    }
+    
+    public void setAnalyzerOption(AnalyzerOption analyzerOption) {
+    	sink.setAnalyzerOption(analyzerOption);
     }
   }
 
