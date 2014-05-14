@@ -74,7 +74,7 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		
 		Formatter formatter = new SimpleHTMLFormatter(tags[0], tags[1]);
 		
-		logger.debug("query : {}", query);
+		logger.trace("query : {}", query);
 		//
 		// tokenize query and make weighted terms
 		//
@@ -111,6 +111,8 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 				termString = termAttribute.charsRef().toString();
 			}
 			
+			logger.trace("termString:{}", termString);
+			
 			float score = 0f;
 			
 			if(featureAttribute!=null) {
@@ -131,7 +133,7 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 				score = 1.0f;
 			}
 			
-			logger.debug("termString:{} / score:{}", termString, score);
+			logger.trace("termString:{} / score:{}", termString, score);
 			
 			if(score > 0) {
 				if(!termString.equals(prevTermString)){
@@ -186,6 +188,7 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 			}
 			text = pText.substring(0, len);
 		}
+		logger.trace("highlighted:{}",text);
 		return text;
 	}
 	
