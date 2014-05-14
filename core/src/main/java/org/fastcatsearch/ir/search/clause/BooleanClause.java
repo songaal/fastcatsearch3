@@ -24,8 +24,8 @@ import org.fastcatsearch.ir.search.PostingReader;
 import org.fastcatsearch.ir.search.SearchIndexReader;
 import org.fastcatsearch.ir.search.method.NormalSearchMethod;
 import org.fastcatsearch.ir.search.method.SearchMethod;
+import org.fastcatsearch.ir.settings.IndexRefSetting;
 import org.fastcatsearch.ir.settings.IndexSetting;
-import org.fastcatsearch.ir.settings.RefSetting;
 
 public class BooleanClause extends OperatedClause {
 
@@ -47,9 +47,9 @@ public class BooleanClause extends OperatedClause {
 
 		IndexSetting indexSetting = searchIndexReader.indexSetting();
 		if (highlightInfo != null) {
-			String queryAnalyzerName = indexSetting.getQueryAnalyzer();
-			for (RefSetting refSetting : indexSetting.getFieldList()) {
-				highlightInfo.add(refSetting.getRef(), queryAnalyzerName, term.termString(), term.option().useHighlight());
+			String queryAnalyzerId = indexSetting.getQueryAnalyzer();
+			for (IndexRefSetting refSetting : indexSetting.getFieldList()) {
+				highlightInfo.add(refSetting.getRef(), refSetting.getIndexAnalyzer(), queryAnalyzerId, term.termString(), searchOption.value());
 			}
 		}
 		try {

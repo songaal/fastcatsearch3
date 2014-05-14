@@ -18,13 +18,12 @@ import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.query.Term;
 import org.fastcatsearch.ir.query.Term.Option;
-import org.fastcatsearch.ir.search.ClauseExplanation;
 import org.fastcatsearch.ir.search.PostingReader;
 import org.fastcatsearch.ir.search.SearchIndexReader;
 import org.fastcatsearch.ir.search.method.NormalSearchMethod;
 import org.fastcatsearch.ir.search.method.SearchMethod;
+import org.fastcatsearch.ir.settings.IndexRefSetting;
 import org.fastcatsearch.ir.settings.IndexSetting;
-import org.fastcatsearch.ir.settings.RefSetting;
 
 public class PhraseClause extends OperatedClause {
 
@@ -42,12 +41,11 @@ public class PhraseClause extends OperatedClause {
 
 		IndexSetting indexSetting = searchIndexReader.indexSetting();
 		if (highlightInfo != null) {
-			String queryAnalyzerName = indexSetting.getQueryAnalyzer();
-			for (RefSetting refSetting : indexSetting.getFieldList()) {
-				highlightInfo.add(refSetting.getRef(), queryAnalyzerName, term.termString(),term.option().useHighlight());
+			String queryAnalyzerId = indexSetting.getQueryAnalyzer();
+			for (IndexRefSetting refSetting : indexSetting.getFieldList()) {
+				highlightInfo.add(refSetting.getRef(), refSetting.getIndexAnalyzer(), queryAnalyzerId, term.termString(),term.option().value());
 			}
 		}
-		
 		
 		operatedClause = new MultiTermOperatedClause(indexId, searchIndexReader.indexFieldOption().isStorePosition());
 		

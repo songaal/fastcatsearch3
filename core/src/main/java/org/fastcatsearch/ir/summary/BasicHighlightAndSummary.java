@@ -12,6 +12,8 @@ import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.FeatureAttribute;
 import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
+import org.apache.lucene.analysis.tokenattributes.StopwordAttribute;
+import org.apache.lucene.analysis.tokenattributes.SynonymAttribute;
 import org.apache.lucene.search.highlight.Formatter;
 import org.apache.lucene.search.highlight.Fragmenter;
 import org.apache.lucene.search.highlight.Highlighter;
@@ -21,6 +23,8 @@ import org.apache.lucene.search.highlight.SimpleFragmenter;
 import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
 import org.apache.lucene.search.highlight.WeightedTerm;
 import org.apache.lucene.util.CharsRef;
+import org.fastcatsearch.ir.io.CharVector;
+import org.fastcatsearch.ir.query.Term.Option;
 import org.fastcatsearch.ir.search.HighlightAndSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +35,10 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 	
 	private static final String FRAGMENT_SEPARATOR = "...";
 
+	
 	@Override
-	public String highlight(Analyzer analyzer, String pText, String query, 
-			String[] tags, int len, int maxFragments) throws IOException {
+	public String highlight(String fieldId, Analyzer indexAnalyzer, Analyzer queryAnalyzer, String pText, String query, 
+			String[] tags, int len, int maxFragments, Option searchOption) throws IOException {
 
 		//
 		// initialize tags ( if null or blank )
@@ -80,10 +85,11 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		//
 		List<WeightedTerm> terms = new ArrayList<WeightedTerm>();
 		
-		AnalyzerOption option = new AnalyzerOption();
-		option.useStopword(true);
-		option.useSynonym(true);
-		tokenStream = analyzer.tokenStream("", new StringReader(query), option);
+		AnalyzerOption queryAnalyzerOption = new AnalyzerOption();
+		queryAnalyzerOption.useStopword(searchOption.useStopword());
+		queryAnalyzerOption.useSynonym(searchOption.useSynonym());
+		
+		tokenStream = queryAnalyzer.tokenStream(fieldId, new StringReader(query), queryAnalyzerOption);
 		
 		CharsRefTermAttribute termAttribute = null;
 		if(tokenStream.hasAttribute(CharsRefTermAttribute.class)){
@@ -96,6 +102,11 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 			featureAttribute = tokenStream.getAttribute(FeatureAttribute.class);
 		}
 		
+		StopwordAttribute stopwordAttribute = null;
+		if(tokenStream.hasAttribute(StopwordAttribute.class)) {
+			stopwordAttribute = tokenStream.getAttribute(StopwordAttribute.class);
+		}
+		
 		CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
 		OffsetAttribute offsetAttribute = tokenStream.getAttribute(OffsetAttribute.class);
 		
@@ -103,6 +114,13 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		
 		String prevTermString = null;
 		while(tokenStream.incrementToken()) {
+			
+			//불용어면 하이라이팅에서 제외.
+			if(stopwordAttribute != null){
+				if(stopwordAttribute.isStopword()){
+					continue;
+				}
+			}
 			
 			String termString = new String(charTermAttribute.buffer(), 0, charTermAttribute.length());
 			
@@ -160,6 +178,26 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 			}
 		}
 		
+		SynonymAttribute synonymAttribute = null;
+		if(tokenStream.hasAttribute(SynonymAttribute.class)) {
+			synonymAttribute = tokenStream.getAttribute(SynonymAttribute.class);
+		}
+
+		if(synonymAttribute != null) {
+			CharVector[] synoyms = synonymAttribute.getSynonym();
+			float score = 1.0f;
+			if(synoyms != null) {
+				for(CharVector cv : synoyms) {
+					String termString = cv.toString();
+					if(!termString.equals(prevTermString)){
+						terms.add(new WeightedTerm(score, termString));
+						logger.trace("++ charTermAttribute : {}", termString);
+					}
+					prevTermString = termString;
+				}
+			}
+		}
+		
 		WeightedTerm[] weightedTerms = new WeightedTerm[terms.size()];
 		weightedTerms = terms.toArray(weightedTerms);
 		
@@ -168,8 +206,7 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		Fragmenter fragmenter = new SimpleFragmenter(len);
 		highlighter.setTextFragmenter(fragmenter);
 		
-		tokenStream = //analyzer.tokenStream("", new StringReader(pText));
-				new WrappedTokenStream(analyzer.tokenStream("", new StringReader(pText)), pText);
+		tokenStream = new WrappedTokenStream(indexAnalyzer.tokenStream(fieldId, new StringReader(pText)), pText);
 		
 		String text = pText;
 
@@ -191,6 +228,7 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		logger.trace("highlighted:{}",text);
 		return text;
 	}
+	
 	
 	class WrappedTokenStream extends TokenStream {
 		

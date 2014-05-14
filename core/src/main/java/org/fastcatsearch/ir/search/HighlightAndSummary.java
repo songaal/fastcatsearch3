@@ -19,9 +19,10 @@ package org.fastcatsearch.ir.search;
 import java.io.IOException;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.fastcatsearch.ir.query.Term.Option;
 
 public interface HighlightAndSummary {
 	
-	public String highlight(Analyzer analyzer, String pText, String query, String[] tags, int len, int maxFragments) throws IOException;
+	public String highlight(String fieldId, Analyzer indexAnalyzer, Analyzer queryAnalyzer, String pText, String query, String[] tags, int len, int maxFragments, Option searchOption) throws IOException;
 	    
 }

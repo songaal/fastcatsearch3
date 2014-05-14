@@ -34,6 +34,7 @@ import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.query.Sorts;
+import org.fastcatsearch.ir.query.Term.Option;
 import org.fastcatsearch.ir.query.View;
 import org.fastcatsearch.ir.query.ViewContainer;
 import org.fastcatsearch.ir.search.clause.ClauseException;
@@ -367,12 +368,14 @@ public class CollectionSearcher {
 					if (has != null && text != null && highlightInfo != null) {
 						//하이라이팅만 수행하거나, 또는 view.snippetSize 가 존재하면 summary까지 수행될수 있다.
 						String fieldId = view.fieldId();
-						if(highlightInfo.useHighlight(fieldId)) {
-							String analyzerId = highlightInfo.getAnalyzer(fieldId);
-							String queryString = highlightInfo.getQueryString(fieldId);
-							if (analyzerId != null && queryString != null) {
+						Option searchOption = highlightInfo.getOption(fieldId);
+						if(searchOption.useHighlight()) {
+							String indexAnalyzerId = highlightInfo.getIndexAnalyzerId(fieldId);
+							String queryAnalyzerId = highlightInfo.getQueryAnalyzerId(fieldId);
+							String queryTerm = highlightInfo.getQueryTerm(fieldId);
+							if (indexAnalyzerId != null && queryAnalyzerId != null && queryTerm != null) {
 	//							a = System.nanoTime();
-								text = getHighlightedSnippet(text, analyzerId, queryString, tags, view);
+								text = getHighlightedSnippet(fieldId, text, indexAnalyzerId, queryAnalyzerId, queryTerm, tags, view, searchOption);
 	//							b += (System.nanoTime() - a);
 								isHighlightSummary = true;
 							}
@@ -401,265 +404,40 @@ public class CollectionSearcher {
 		return new DocumentResult(row, fieldIdList);
 	}
 
-	private String getHighlightedSnippet(String text, String analyzerId, String queryString, String[] tags, View view) throws IOException {
-		AnalyzerPool analyzerPool = collectionHandler.analyzerPoolManager().getPool(analyzerId);
-		if (analyzerPool != null) {
-			Analyzer analyzer = analyzerPool.getFromPool();
-			if (analyzer != null) {
+	private String getHighlightedSnippet(String fieldId, String text, String indexAnalyzerId, String queryAnalyzerId, String queryString, String[] tags, View view, Option searchOption) throws IOException {
+		AnalyzerPool queryAnalyzerPool = collectionHandler.analyzerPoolManager().getPool(queryAnalyzerId);
+		//analyzer id 가 같으면 하나만 공통으로 사용한다.
+		boolean isSamePool = queryAnalyzerId.equals(indexAnalyzerId);
+		AnalyzerPool indexAnalyzerPool = null;
+		
+		if(isSamePool){
+			indexAnalyzerPool = queryAnalyzerPool;
+		}else{
+			indexAnalyzerPool = collectionHandler.analyzerPoolManager().getPool(indexAnalyzerId);
+		}
+		
+		if (queryAnalyzerPool != null) {
+			Analyzer queryAnalyzer = queryAnalyzerPool.getFromPool();
+			Analyzer indexAnalyzer = null;
+			if(isSamePool){
+				indexAnalyzer = queryAnalyzer;
+			}else{
+				indexAnalyzer = indexAnalyzerPool.getFromPool();
+			}
+			
+			if (indexAnalyzer != null && queryAnalyzer != null) {
 				try {
-					text = has.highlight(analyzer, text, queryString, tags, view.snippetSize(), view.fragmentSize());
+					text = has.highlight(fieldId, indexAnalyzer, queryAnalyzer, text, queryString, tags, view.snippetSize(), view.fragmentSize(), searchOption);
 				} finally {
-					analyzerPool.releaseToPool(analyzer);
+					if(!isSamePool){
+						indexAnalyzerPool.releaseToPool(indexAnalyzer);
+					}
+					queryAnalyzerPool.releaseToPool(queryAnalyzer);
 				}
 			}
 		}
 		return text;
 	}
 
-	// 원문조회기능.
-	/*
-	public Result listDocument(String collectionId, int start, int rows) throws IRException, IOException, SettingException {
-		if (collectionHandler.segmentSize() == 0) {
-			logger.warn("Collection {} is not indexed!", collectionId);
-		}
-
-		Result result = new Result();
-
-		Metadata meta = new Metadata();
-		meta.setStart(start + 1);
-
-		int fieldSize = collectionHandler.schema().getFieldSize();
-		String[] fieldNameList = new String[fieldSize];
-		List<FieldSetting> fieldSettingList = collectionHandler.schema().schemaSetting().getFieldSettingList();
-		int[] fieldNumList = new int[fieldSize];
-		for (int i = 0; i < fieldNumList.length; i++) {
-			fieldNumList[i] = i;
-			fieldNameList[i] = fieldSettingList.get(i).getId();
-		}
-
-		// /////////////////////////////////////
-		int totalSize = 0;
-		int segmentSize = collectionHandler.segmentSize();
-		int pageIndex = 1;
-		int deletedDocCount = 0;
-		// 이 배열의 index번호는 세그먼트번호.
-		int[] segEndNums = new int[segmentSize];
-		ArrayList<Row> rowList = new ArrayList<Row>();
-
-		for (int i = 0; i < segmentSize; i++) {
-			int docCount = collectionHandler.segmentReader(i).segmentInfo().getRevisionInfo().getDocumentCount();
-			totalSize += docCount;
-			segEndNums[i] = totalSize - 1;
-		}
-
-		SegmentInfo lastSegInfo = collectionHandler.segmentReader(segmentSize - 1).segmentInfo();
-		if (lastSegInfo == null) {
-			logger.error("There is no indexed data.");
-			throw new IRException("색인된 데이터가 없습니다.");
-		}
-		// 총문서갯수와 시작번호에 근거해서 이 시작번호가 어느 세그먼트에 속하고 이 세그먼트의 어느 위치에서 시작되는지를 구한다.
-		// [세스머튼번호,시작번호,끝번호][2] = matchSegment(int[][], 조회시작변수);
-		int[][] matchSeg = matchSegment(segEndNums, start, rows);
-		// 해당 세그먼트의 deleteSet객체를 얻는다.
-		for (int i = 0; i < matchSeg.length; i++) {
-			int segNo = matchSeg[i][0];
-			int startNo = matchSeg[i][1];
-			int endNo = matchSeg[i][2];
-			// logger.debug("segNo: "+segNo+"startNo "+startNo+"endNo "+endNo);
-			SegmentReader segmentReader = collectionHandler.segmentReader(segNo);
-			// File targetDir = segmentReader.getSegmentDir();
-			// int lastRevision = segmentReader.getLastRevision();
-			String segmentId = segmentReader.segmentInfo().getId();
-			int revision = segmentReader.segmentInfo().getRevision();
-			DocumentReader reader = new DocumentReader(collectionHandler.schema().schemaSetting(), segmentReader.segmentDir());
-			BitSet deleteSet = null;
-			deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentId));
-
-			for (int j = startNo; j <= endNo; j++) {
-				Document document = reader.readDocument(j);
-				Row row = new Row(fieldSize);
-				row.setRowTag(segNo + "-" + revision + "-" + j);
-				for (int m = 0; m < fieldSize; m++) {
-					int fieldNum = fieldNumList[m];
-					Field field = document.get(fieldNum);
-					row.put(m, field.toString().toCharArray());
-				}
-				if (deleteSet.isSet(j)) {
-					row.setDeleted(true);
-					deletedDocCount++;
-				}
-				rowList.add(row);
-			}
-		}
-
-		Row[] row = new Row[rowList.size()];
-		for (int i = 0; i < rowList.size(); i++) {
-			row[i] = rowList.get(i);
-		}
-
-		// //////////////////////////////////////
-
-		result = new Result(row, null, fieldNameList, row.length, row.length, start, null, null);
-		result.setSegmentCount(segmentSize);
-		result.setDeletedDocCount(deletedDocCount);
-		result.setDocCount(totalSize);
-
-		return result;
-	}
-	*/
-	// 원문조회기능.
-	/*
-	public Result findDocument(String collectionId, String primaryKey) throws IRException, IOException, SettingException {
-		if (collectionHandler.segmentSize() == 0) {
-			logger.warn("Collection {} is not indexed!", collectionId);
-		}
-
-		Result result = new Result();
-
-		Metadata meta = new Metadata();
-		meta.setStart(1);
-
-		int fieldSize = collectionHandler.schema().getFieldSize();
-		String[] fieldNameList = new String[fieldSize];
-		List<FieldSetting> fieldSettingList = collectionHandler.schema().schemaSetting().getFieldSettingList();
-		int[] fieldNumList = new int[fieldSize];
-		for (int i = 0; i < fieldNumList.length; i++) {
-			fieldNumList[i] = i;
-			fieldNameList[i] = fieldSettingList.get(i).getId();
-		}
-
-		List<FieldSetting> pkFieldSettingList = new ArrayList<FieldSetting>(3);
-
-		for (RefSetting pkRefSetting : collectionHandler.schema().schemaSetting().getPrimaryKeySetting().getFieldList()) {
-			pkFieldSettingList.add(collectionHandler.schema().getFieldSetting(pkRefSetting.getRef()));
-		}
-		// /////////////////////////////////////
-		int totalSize = 0;
-		int segmentSize = collectionHandler.segmentSize();
-		int deletedDocCount = 0;
-		// 이 배열의 index번호는 세그먼트번호.
-		ArrayList<Row> rowList = new ArrayList<Row>();
-
-		// SegmentInfo lastSegInfo = shardHandler.getSegmentInfo(segmentSize - 1);
-		// File lastSegDir = lastSegInfo.getSegmentDir();
-		// int lastSegRevision = lastSegInfo.getLastRevision();
-
-		for (int i = 0; i < segmentSize; i++) {
-			SegmentReader segmentReader = collectionHandler.segmentReader(i);
-			// File targetDir = segmentReader.getSegmentDir();
-			// int lastRevision = segmentReader.getLastRevision();
-
-			String segmentId = segmentReader.segmentInfo().getId();
-			int revision = segmentReader.segmentInfo().getRevision();
-			// DocumentReader reader = new DocumentReader(shardHandler.schema(), segmentReader.segmentDir());
-			BitSet deleteSet = null;
-			deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentId));
-			// if (i < segmentSize - 1) {
-			// deleteSet = new BitSet(segmentReader.revisionDir(),
-			// IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, Integer.toString(i)));
-			// } else {
-			// deleteSet = new BitSet(segmentReader.revisionDir(), IndexFileNames.docDeleteSet);
-			// }
-			logger.debug("DELETE-{} {} >> {}", new Object[] { i, deleteSet, deleteSet.getEntry() });
-
-			BytesDataOutput pkOutput = new BytesDataOutput();
-
-			String[] pkValues = null;
-
-			if (pkFieldSettingList.size() > 1) {
-				// 결합 pk일경우 값들은 ';'로 구분되어있다.
-				pkValues = primaryKey.split(";");
-			} else {
-				pkValues = new String[] { primaryKey };
-			}
-
-			int docNo = -1;
-
-			for (int j = 0; j < pkFieldSettingList.size(); j++) {
-				FieldSetting fieldSetting = pkFieldSettingList.get(j);
-				Field field = fieldSetting.createIndexableField(pkValues[j]);
-				field.writeTo(pkOutput);
-			}
-
-			// FIXME segmentReader내부의 PrimaryKeyIndexReader를 사용해야한다.
-			PrimaryKeyIndexReader pkReader = new PrimaryKeyIndexReader(segmentReader.revisionDir(), IndexFileNames.primaryKeyMap);
-			docNo = pkReader.get(pkOutput.array(), 0, (int) pkOutput.position());
-			pkReader.close();
-
-			if (docNo != -1) {
-
-				Document document = segmentReader.newDocumentReader().readDocument(docNo);
-				Row row = new Row(fieldSize);
-				row.setRowTag(i + "-" + revision + "-" + docNo);
-				for (int m = 0; m < fieldSize; m++) {
-					int fieldNum = fieldNumList[m];
-					Field field = document.get(fieldNum);
-					row.put(m, field.toString().toCharArray());
-				}
-				// 현재 삭제리스트는 이전 리비전 문서들의 번호도 함께 저장되어 있으므로, 이전 삭제리스트까지 확인해볼 필요는 없이 deleteSet 만 사용하도록 한다.
-				if (deleteSet.isSet(docNo)) {
-					row.setDeleted(true);
-					deletedDocCount++;
-				}
-				rowList.add(row);
-			}
-
-		}
-
-		Row[] row = new Row[rowList.size()];
-		for (int i = 0; i < rowList.size(); i++) {
-			row[i] = rowList.get(i);
-		}
-
-		// //////////////////////////////////////
-
-		result = new Result(row, null, fieldNameList, row.length, row.length, 1, null, null);
-		result.setSegmentCount(segmentSize);
-		result.setDeletedDocCount(deletedDocCount);
-		result.setDocCount(totalSize);
-
-		return result;
-	}
-	*/
-	// segEndNums는 세그먼트별로 총 문서갯수-1 이 들어있다.
-	// 즉, 세그먼트-0에 5개 세그먼트-1에 5개가 들어있다면, {4,9}와 같이 들어온다.
-	private int[][] matchSegment(int[] segEndNums, int start, int rows) {
-		if (rows <= 0) {
-			return new int[0][0];
-		}
-
-		// [][세그먼트번호,시작번호,끝번호]
-		ArrayList<int[]> list = new ArrayList<int[]>();
-
-		for (int i = 0; i < segEndNums.length; i++) {
-			if (start <= segEndNums[i]) {
-				int prevEnd = i == 0 ? -1 : segEndNums[i - 1];
-				if (start + rows - 1 <= segEndNums[i]) {
-					// start, end가 모두 한 세그먼트내에 들어오면 추가하고 바로 종료.
-					int newStart = start - prevEnd - 1;
-					list.add(new int[] { i, newStart, newStart + rows - 1 });
-					// 끝.
-					break;
-				} else {
-					// 나누어 질경우.
-					list.add(new int[] { i, start - prevEnd - 1, segEndNums[i] - prevEnd - 1 });
-					// 읽은 수만큼 빼준다.
-					rows -= (segEndNums[i] - start + 1);
-					// 다음세그먼트의 시작으로 변경한다.
-					start = segEndNums[i] + 1;
-					// System.out.println("new " + start + ", " + rows);
-				}
-			}
-		}
-		int[][] result = new int[list.size()][3];
-		for (int i = 0; i < list.size(); i++) {
-			int[] tmp = list.get(i);
-			result[i][0] = tmp[0];
-			result[i][1] = tmp[1];
-			result[i][2] = tmp[2];
-		}
-
-		return result;
-	}
 
 }

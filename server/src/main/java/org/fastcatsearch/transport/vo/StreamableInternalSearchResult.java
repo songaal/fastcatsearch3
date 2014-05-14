@@ -43,7 +43,7 @@ public class StreamableInternalSearchResult implements Streamable {
 		}
 		HighlightInfo highlightInfo = null;
 		if(input.readBoolean()){
-			highlightInfo = new HighlightInfo((Map<String, String>) input.readGenericValue(), (Map<String, String>) input.readGenericValue(), (Map<String, Boolean>) input.readGenericValue());
+			highlightInfo = new HighlightInfo((Map<String, String>) input.readGenericValue(), (Map<String, String>) input.readGenericValue(), (Map<String, String>) input.readGenericValue(), (Map<String, Integer>) input.readGenericValue());
 		}
 		List<Explanation> explanations = null;
 		if(input.readBoolean()){
@@ -76,9 +76,10 @@ public class StreamableInternalSearchResult implements Streamable {
 		}
 		if(internalSearchResult.getHighlightInfo() != null){
 			output.writeBoolean(true);
-			output.writeGenericValue(internalSearchResult.getHighlightInfo().fieldAnalyzerMap());
-			output.writeGenericValue(internalSearchResult.getHighlightInfo().fieldQueryMap());
-			output.writeGenericValue(internalSearchResult.getHighlightInfo().fieldHighlightMap());
+			output.writeGenericValue(internalSearchResult.getHighlightInfo().fieldIndexAnalyzerMap());
+			output.writeGenericValue(internalSearchResult.getHighlightInfo().fieldQueryAnalyzerMap());
+			output.writeGenericValue(internalSearchResult.getHighlightInfo().fieldQueryTermMap());
+			output.writeGenericValue(internalSearchResult.getHighlightInfo().fieldSearchOptionMap());
 		}else{
 			output.writeBoolean(false);
 		}

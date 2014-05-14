@@ -19,65 +19,93 @@ package org.fastcatsearch.ir.query;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.fastcatsearch.ir.query.Term.Option;
+
 
 /**
  * Contains information that used when making summary result. 
  * */
 public class HighlightInfo {
 	
-	private Map<String, String> fieldAnalyzerMap;
-	private Map<String, String> fieldQueryMap;
-	private Map<String, Boolean> fieldHighlightMap;
+	private Map<String, String> fieldIndexAnalyzerMap;
+	private Map<String, String> fieldQueryAnalyzerMap;
+	private Map<String, String> fieldQueryTermMap;
+	private Map<String, Integer> fieldSearchOptionMap;
 	
 	public HighlightInfo() {
-		this.fieldAnalyzerMap = new HashMap<String, String>();
-		this.fieldQueryMap = new HashMap<String, String>();
-		this.fieldHighlightMap = new HashMap<String, Boolean>();
 	}
 	
-	public HighlightInfo(Map<String, String> fieldAnalyzerMap, Map<String, String> fieldQueryMap, Map<String, Boolean> fieldHighlightMap) {
-		this.fieldAnalyzerMap = fieldAnalyzerMap;
-		this.fieldQueryMap = fieldQueryMap;
-		this.fieldHighlightMap = fieldHighlightMap;
+	public HighlightInfo(Map<String, String> fieldIndexAnalyzerMap, Map<String, String> fieldQueryAnalyzerMap, Map<String, String> fieldQueryTermMap, Map<String, Integer> fieldSearchOptionMap) {
+		this.fieldIndexAnalyzerMap = fieldIndexAnalyzerMap;
+		this.fieldQueryAnalyzerMap = fieldQueryAnalyzerMap;
+		this.fieldQueryTermMap = fieldQueryTermMap;
+		this.fieldSearchOptionMap = fieldSearchOptionMap;
 	}
-	public void add(String fieldId, String analyzer, String termString, boolean b){
-		fieldAnalyzerMap.put(fieldId, analyzer);
-		String value = fieldQueryMap.get(fieldId);
-		if(value != null){
-			value += (" " + termString);
-		}else{
-			value = termString;
+	
+	private void prepareMap(){
+		this.fieldIndexAnalyzerMap = new HashMap<String, String>();
+		this.fieldQueryAnalyzerMap = new HashMap<String, String>();
+		this.fieldQueryTermMap = new HashMap<String, String>();
+		this.fieldSearchOptionMap = new HashMap<String, Integer>();
+	}
+	public void add(String fieldId, String indexAnalyzerId, String queryAnalyzerId, String queryTerm, int searchOption){
+		if(fieldQueryTermMap == null) {
+			prepareMap();
 		}
-		fieldQueryMap.put(fieldId, value);
-		fieldHighlightMap.put(fieldId, b);
+		fieldIndexAnalyzerMap.put(fieldId, indexAnalyzerId);
+		fieldQueryAnalyzerMap.put(fieldId, queryAnalyzerId);
+		String value = fieldQueryTermMap.get(fieldId);
+		if(value != null){
+			value += (" " + queryTerm);
+		}else{
+			value = queryTerm;
+		}
+		fieldQueryTermMap.put(fieldId, value);
+		fieldSearchOptionMap.put(fieldId, searchOption);
 	}
 	
-	public String getAnalyzer(String fieldId){
-		return fieldAnalyzerMap.get(fieldId);
+	public String getQueryAnalyzerId(String fieldId){
+		return fieldQueryAnalyzerMap.get(fieldId);
 	}
 	
-	public String getQueryString(String fieldId){
-		return fieldQueryMap.get(fieldId);
+	public String getIndexAnalyzerId(String fieldId){
+		return fieldIndexAnalyzerMap.get(fieldId);
 	}
 	
-	public Map<String, String> fieldAnalyzerMap(){
-		return fieldAnalyzerMap;
+	public String getQueryTerm(String fieldId){
+		return fieldQueryTermMap.get(fieldId);
 	}
 	
-	public Map<String, String> fieldQueryMap(){
-		return fieldQueryMap;
+	public Map<String, String> fieldIndexAnalyzerMap(){
+		return fieldIndexAnalyzerMap;
 	}
 	
-	public Map<String, Boolean> fieldHighlightMap(){
-		return fieldHighlightMap;
+	public Map<String, String> fieldQueryAnalyzerMap(){
+		return fieldQueryAnalyzerMap;
+	}
+	
+	public Map<String, String> fieldQueryTermMap(){
+		return fieldQueryTermMap;
+	}
+	
+	public Map<String, Integer> fieldSearchOptionMap(){
+		return fieldSearchOptionMap;
 	}
 
-	public boolean useHighlight(String fieldId) {
-		
-		if(fieldHighlightMap.containsKey(fieldId)) {
-			return fieldHighlightMap.get(fieldId);
+//	public boolean useHighlight(String fieldId) {
+//		
+//		if(fieldSearchOptionMap.containsKey(fieldId)) {
+//			return fieldSearchOptionMap.get(fieldId);
+//		} else {
+//			return false;
+//		}
+//	}
+	
+	public Option getOption(String fieldId) {
+		if(fieldSearchOptionMap.containsKey(fieldId)) {
+			return new Option(fieldSearchOptionMap.get(fieldId));
 		} else {
-			return false;
+			return new Option();
 		}
 	}
 }
