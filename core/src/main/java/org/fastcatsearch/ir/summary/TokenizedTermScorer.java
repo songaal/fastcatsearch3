@@ -10,6 +10,7 @@ import org.apache.lucene.search.highlight.Scorer;
 import org.apache.lucene.search.highlight.TextFragment;
 import org.apache.lucene.search.highlight.WeightedTerm;
 import org.apache.lucene.util.CharsRef;
+import org.fastcatsearch.ir.io.CharVector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,13 +23,13 @@ public class TokenizedTermScorer implements Scorer {
 
 	float totalScore = 0;
 	float maxTermWeight = 0;
-	private HashMap<String,WeightedTerm> termsToFind;
+	private HashMap<CharVector,WeightedTerm> termsToFind;
 
 	private CharTermAttribute termAtt;
 	private CharsRefTermAttribute refTermAtt;
 
 	public TokenizedTermScorer(WeightedTerm[] weightedTerms) {
-		termsToFind = new HashMap<String,WeightedTerm>();
+		termsToFind = new HashMap<CharVector,WeightedTerm>();
 		for (int i = 0; i < weightedTerms.length; i++) {
 			WeightedTerm existingTerm = termsToFind
 					.get(weightedTerms[i].getTerm());
@@ -36,7 +37,9 @@ public class TokenizedTermScorer implements Scorer {
 					|| (existingTerm.getWeight() < weightedTerms[i].getWeight())) {
 				// if a term is defined more than once, always use the highest scoring
 				// weight
-				termsToFind.put(weightedTerms[i].getTerm(), weightedTerms[i]);
+				CharVector cv =  new CharVector(weightedTerms[i].getTerm());
+				cv.setIgnoreCase();
+				termsToFind.put(cv, weightedTerms[i]);
 				maxTermWeight = Math.max(maxTermWeight, weightedTerms[i].getWeight());
 			}
 		}
@@ -77,10 +80,11 @@ public class TokenizedTermScorer implements Scorer {
 	@Override
 	public float getTokenScore() {
 		
-		String termText = "";
+		CharVector termText = null;
 		WeightedTerm queryTerm = null;
 		
-		termText = termAtt.toString();
+		termText = new CharVector(termAtt.toString());
+		termText.setIgnoreCase();
 		
 		//logger.trace("termAtt : {} in {}",termText, uniqueTermsInFragment);
 		
@@ -95,7 +99,10 @@ public class TokenizedTermScorer implements Scorer {
 		if (refTermAtt != null) {
 			CharsRef charRef = refTermAtt.charsRef();
 			if(charRef!=null) {
-				queryTerm = termsToFind.get(charRef.toString());
+				
+				CharVector cv = new CharVector(charRef.toString());
+				cv.setIgnoreCase();
+				queryTerm = termsToFind.get(cv);
 				if (queryTerm != null && !(charRef.offset > 0 && charRef.length == 1)) {
 					logger.trace("matched refTermText {}",termText);
 					totalScore += queryTerm.getWeight();
