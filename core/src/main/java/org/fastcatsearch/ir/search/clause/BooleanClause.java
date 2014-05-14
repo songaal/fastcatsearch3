@@ -133,7 +133,7 @@ public class BooleanClause extends OperatedClause {
 				SearchMethod searchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
 				PostingReader postingReader = searchMethod.search(indexId, token, queryPosition, weight);
 
-				OperatedClause clause = null;
+				OperatedClause clause = new TermOperatedClause(indexId, postingReader);
 				
 				//동의어.
 				if(synonymAttribute != null) {
@@ -144,8 +144,7 @@ public class BooleanClause extends OperatedClause {
 							localToken.setIgnoreCase();
 							SearchMethod localSearchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
 							PostingReader localPostingReader = localSearchMethod.search(indexId, localToken, queryPosition, weight);
-							OperatedClause localClause = null;
-							localClause = new TermOperatedClause(indexId, localPostingReader);
+							OperatedClause localClause = new TermOperatedClause(indexId, localPostingReader);
 							
 							if(synonymClause == null) {
 								synonymClause = localClause;
@@ -167,7 +166,7 @@ public class BooleanClause extends OperatedClause {
 //						clause = new AppendOperatedClause(operatedClause, clause);
 //					}
 //				}else{
-					clause = new TermOperatedClause(indexId, postingReader);
+//					clause = new TermOperatedClause(indexId, postingReader);
 //				}
 				
 				if (operatedClause == null) {
@@ -195,8 +194,7 @@ public class BooleanClause extends OperatedClause {
 						int queryPosition = positionAttribute != null ? positionAttribute.getPositionIncrement() : 0;
 						SearchMethod searchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
 						PostingReader postingReader = searchMethod.search(indexId, localToken, queryPosition, weight);
-						OperatedClause clause = null;
-						clause = new TermOperatedClause(indexId, postingReader);
+						OperatedClause clause = new TermOperatedClause(indexId, postingReader);
 						
 						if(additionalClause == null) {
 							additionalClause = clause;
