@@ -143,14 +143,14 @@ public class BooleanClause extends OperatedClause {
 						for(CharVector localToken : synonym) {
 							localToken.setIgnoreCase();
 							SearchMethod localSearchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
-							PostingReader localPostingReader = searchMethod.search(indexId, localToken, queryPosition, weight);
+							PostingReader localPostingReader = localSearchMethod.search(indexId, localToken, queryPosition, weight);
 							OperatedClause localClause = null;
-							localClause = new TermOperatedClause(indexId, postingReader);
+							localClause = new TermOperatedClause(indexId, localPostingReader);
 							
 							if(synonymClause == null) {
 								synonymClause = localClause;
 							} else {
-								synonymClause = new OrOperatedClause(synonymClause, clause);
+								synonymClause = new OrOperatedClause(synonymClause, localClause);
 							}
 						}
 						
