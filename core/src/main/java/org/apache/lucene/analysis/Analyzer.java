@@ -17,6 +17,7 @@ package org.apache.lucene.analysis;
  * limitations under the License.
  */
 
+import org.apache.lucene.analysis.core.AnalyzerOption;
 import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.util.CloseableThreadLocal;
 
@@ -71,6 +72,7 @@ import java.util.Map;
 public abstract class Analyzer implements Closeable {
 
   private final ReuseStrategy reuseStrategy;
+  protected AnalyzerOption analyzerOption;
 
   /**
    * Create a new Analyzer, reusing the same set of components per-thread
@@ -127,8 +129,15 @@ public abstract class Analyzer implements Closeable {
    * @throws IOException if an i/o error occurs.
    */
   public final TokenStream tokenStream(final String fieldName,
-                                       final Reader reader) throws IOException {
+          final Reader reader) throws IOException {
+	  return tokenStream(fieldName, reader, AnalyzerOption.DEFAULT_OPTION);
+  }
+  
+  public final TokenStream tokenStream(final String fieldName,
+                                       final Reader reader, AnalyzerOption analyzerOption) throws IOException {
     TokenStreamComponents components = reuseStrategy.getReusableComponents(fieldName);
+    this.analyzerOption = analyzerOption;
+    
     final Reader r = initReader(fieldName, reader);
     if (components == null) {
       components = createComponents(fieldName, r);

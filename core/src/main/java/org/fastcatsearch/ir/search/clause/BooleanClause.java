@@ -5,6 +5,7 @@ import java.util.Iterator;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.core.AnalyzerOption;
 import org.apache.lucene.analysis.tokenattributes.AdditionalTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
@@ -40,7 +41,7 @@ public class BooleanClause extends OperatedClause {
 		String termString = term.termString();
 		this.termString = termString;
 		float weight = term.weight();
-		Option option = term.option();
+		Option searchOption = term.option();
 		CharVector fullTerm = new CharVector(termString);
 		Analyzer analyzer = searchIndexReader.getQueryAnalyzerFromPool();
 
@@ -62,7 +63,12 @@ public class BooleanClause extends OperatedClause {
 			SynonymAttribute synonymAttribute = null;
 //			FeatureAttribute featureAttribute = null;
 			
-			TokenStream tokenStream = analyzer.tokenStream(indexId, fullTerm.getReader());
+			//검색옵션에 따라 analyzerOption도 수정.
+			AnalyzerOption analyzerOption = new AnalyzerOption();
+			analyzerOption.useStopword(searchOption.useStopword());
+			analyzerOption.useSynonym(searchOption.useSynonym());
+			
+			TokenStream tokenStream = analyzer.tokenStream(indexId, fullTerm.getReader(), analyzerOption);
 			tokenStream.reset();
 
 			CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
@@ -104,7 +110,7 @@ public class BooleanClause extends OperatedClause {
 				/* 
 				 * stopword 
 				 * */
-				if (option.useStopword() && stopwordAttribute != null && stopwordAttribute.isStopword()) {
+				if (stopwordAttribute != null && stopwordAttribute.isStopword()) {
 //					logger.debug("stopword");
 					continue;
 				}
@@ -135,11 +141,14 @@ public class BooleanClause extends OperatedClause {
 
 				OperatedClause clause = new TermOperatedClause(indexId, postingReader);
 				
-				//동의어.
+				// 유사어 처리
+				// analyzerOption에 synonym확장여부가 들어가 있으므로, 여기서는 option을 확인하지 않고,
+				// 있으면 그대로 색인하고 유사어가 없으면 색인되지 않는다.
+				//
 				if(synonymAttribute != null) {
 					CharVector[] synonym = synonymAttribute.getSynonym();
-					OperatedClause synonymClause = null;
 					if(synonym != null) {
+						OperatedClause synonymClause = null;
 						for(CharVector localToken : synonym) {
 							localToken.setIgnoreCase();
 							SearchMethod localSearchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());

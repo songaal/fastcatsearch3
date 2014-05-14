@@ -33,11 +33,6 @@ public class DefaultAnalyzerFactory implements AnalyzerFactory {
 	}
 
 	@Override
-	public Analyzer create(Object option) {
-		return create();
-	}
-
-	@Override
 	public Class<? extends Analyzer> getAnalyzerClass() {
 		return analyzerClass;
 	}

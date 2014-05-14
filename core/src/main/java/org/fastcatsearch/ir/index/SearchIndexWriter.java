@@ -25,11 +25,12 @@ import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.core.AnalyzerOption;
 import org.apache.lucene.analysis.tokenattributes.AdditionalTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
-import org.apache.lucene.analysis.tokenattributes.SynonymAttribute;
+import org.apache.lucene.analysis.tokenattributes.StopwordAttribute;
 import org.apache.lucene.util.CharsRef;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
@@ -71,6 +72,7 @@ public class SearchIndexWriter {
 	private int positionIncrementGap;
 
 	private RevisionInfo revisionInfo;
+	private AnalyzerOption indexingAnalyzerOption;
 	
 	public SearchIndexWriter(IndexSetting indexSetting, Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager) throws IOException,
 			IRException {
@@ -118,6 +120,10 @@ public class SearchIndexWriter {
 
 		tempFile = new File(dir, IndexFileNames.getSearchTempFileName(indexId));
 		tempOutput = new BufferedFileOutput(tempFile, false);
+		
+		//색인시는 stopword만 본다.
+		indexingAnalyzerOption = new AnalyzerOption();
+		indexingAnalyzerOption.useStopword(true);
 	}
 
 	public void write(Document doc) throws IRException, IOException {
@@ -165,12 +171,13 @@ public class SearchIndexWriter {
 			return;
 		}
 		char[] fieldValue = value.toString().toCharArray();
-		TokenStream tokenStream = indexAnalyzerList[i].tokenStream(indexId, new CharArrayReader(fieldValue));
+		TokenStream tokenStream = indexAnalyzerList[i].tokenStream(indexId, new CharArrayReader(fieldValue), indexingAnalyzerOption);
 		tokenStream.reset();
 		CharsRefTermAttribute termAttribute = null;
 		PositionIncrementAttribute positionAttribute = null;
-		SynonymAttribute synonymAttribute = null;
+		StopwordAttribute stopwordAttribute = null;
 		AdditionalTermAttribute additionalTermAttribute = null;
+		//색인시는 유사어확장을 하지 않는다.
 		
 		if (tokenStream.hasAttribute(CharsRefTermAttribute.class)) {
 			termAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
@@ -181,8 +188,10 @@ public class SearchIndexWriter {
 		if (tokenStream.hasAttribute(AdditionalTermAttribute.class)) {
 			additionalTermAttribute = tokenStream.getAttribute(AdditionalTermAttribute.class);
 		}
-		if (tokenStream.hasAttribute(SynonymAttribute.class)) {
-			synonymAttribute = tokenStream.getAttribute(SynonymAttribute.class);
+		
+		// stopword 처리.
+		if (tokenStream.hasAttribute(StopwordAttribute.class)) {
+			stopwordAttribute = tokenStream.getAttribute(StopwordAttribute.class);
 		}
 		
 		CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
@@ -206,17 +215,19 @@ public class SearchIndexWriter {
 				lastPosition = position;
 			}
 //			logger.debug("FIELD#{}: {} >> {} ({})", indexId, key, docNo, position);
-			
-			memoryPosting.add(key, docNo, position);
-			
-			if(synonymAttribute != null) {
-				CharVector[] synonym = synonymAttribute.getSynonym();
-				if(synonym != null) {
-					for(CharVector token : synonym) {
-						memoryPosting.add(token, docNo, position);
-					}
-				}
+			if(stopwordAttribute != null && stopwordAttribute.isStopword()){
+				//ignore
+			}else{
+				memoryPosting.add(key, docNo, position);
 			}
+//			if(synonymAttribute != null) {
+//				CharVector[] synonym = synonymAttribute.getSynonym();
+//				if(synonym != null) {
+//					for(CharVector token : synonym) {
+//						memoryPosting.add(token, docNo, position);
+//					}
+//				}
+//			}
 		}
 		if(additionalTermAttribute!=null) {
 			Iterator<String[]> iterator = additionalTermAttribute.iterateAdditionalTerms();

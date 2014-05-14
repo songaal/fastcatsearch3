@@ -8,7 +8,5 @@ public interface AnalyzerFactory {
 	
 	public Analyzer create();
 	
-	public Analyzer create(Object option);
-	
 	public Class<? extends Analyzer> getAnalyzerClass();
 }

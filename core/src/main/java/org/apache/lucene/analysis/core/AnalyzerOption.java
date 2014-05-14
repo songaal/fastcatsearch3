@@ -4,6 +4,7 @@ public class AnalyzerOption {
 	private boolean useStopword;
 	private boolean useSynonym;
 	
+	public static final AnalyzerOption DEFAULT_OPTION = new AnalyzerOption();
 	
 	public boolean useStopword(){
 		return useStopword;
