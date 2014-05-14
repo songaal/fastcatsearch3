@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.core.AnalyzerOption;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.FeatureAttribute;
@@ -73,11 +74,16 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		
 		Formatter formatter = new SimpleHTMLFormatter(tags[0], tags[1]);
 		
+		logger.debug("query : {}", query);
 		//
 		// tokenize query and make weighted terms
 		//
 		List<WeightedTerm> terms = new ArrayList<WeightedTerm>();
-		tokenStream = analyzer.tokenStream("", new StringReader(query));
+		
+		AnalyzerOption option = new AnalyzerOption();
+		option.useStopword(true);
+		option.useSynonym(true);
+		tokenStream = analyzer.tokenStream("", new StringReader(query), option);
 		
 		CharsRefTermAttribute termAttribute = null;
 		if(tokenStream.hasAttribute(CharsRefTermAttribute.class)){
@@ -93,10 +99,17 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
 		OffsetAttribute offsetAttribute = tokenStream.getAttribute(OffsetAttribute.class);
 		
+		tokenStream.reset();
+		
 		String prevTermString = null;
 		while(tokenStream.incrementToken()) {
 			
 			String termString = new String(charTermAttribute.buffer(), 0, charTermAttribute.length());
+			
+			if (termString == null || "".equals(termString)
+					&& termAttribute != null) {
+				termString = termAttribute.charsRef().toString();
+			}
 			
 			float score = 0f;
 			
@@ -117,6 +130,8 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 			} else {
 				score = 1.0f;
 			}
+			
+			logger.debug("termString:{} / score:{}", termString, score);
 			
 			if(score > 0) {
 				if(!termString.equals(prevTermString)){
