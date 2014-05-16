@@ -99,22 +99,28 @@ public class RankInfo {
 		return "docNo=" + docNo + ",score=" + score + ",hit=" + hit;
 	}
 
-	//매칭된 위치를 or 해준다.
-	//위치는 bit flag를 사용한다. Int는 총 32개 위치 사용가능.
-//	public void addMatch(int sequence) {
-//		matchFlag |= (1 << sequence);
-//	}
 	public int matchFlag() {
 		return matchFlag;
 	}
+
+	//매칭된 위치를 or 해준다.
+	//위치는 bit flag를 사용한다. Int는 총 32개 위치 사용가능.
+	public void addMatchSequence(int sequence) {
+		//부호비트 이상의 범위는 셋팅불가.
+		if(sequence < 32) {
+			matchFlag |= (1 << sequence);
+		}
+	}
+	
 	public void addMatchFlag(int flag) {
 		matchFlag |= flag;
 	}
 	public boolean isMatchContains(int flag) {
-		if(matchFlag <=0 || flag <= 0){
+		if(matchFlag == 0 || flag == 0){
 			return false;
 		}
-		return matchFlag - flag >= 0;
+		//둘의 OR 결과가 matchFlag 와 동일하다면 matchFlag가 flag를 모두 포함한 것이다.
+		return (matchFlag | flag) == matchFlag;
 	}
 	
 	public List<RowExplanation> rowExplanations(){

@@ -59,7 +59,7 @@ public class TermOperatedClause extends OperatedClause {
 				score = (int) ((tf * idf * postingReader.weight()) * SCORE_BASE);
 			}
 			rankInfo.init(postingDoc.docNo(), score, postingDoc.tf());
-			rankInfo.addMatchFlag(1 << termSequence);
+			rankInfo.addMatchSequence(termSequence);
 			if(isExplain()){
 				rankInfo.explain(id, score, postingReader.term().toString());
 			}
