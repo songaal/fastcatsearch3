@@ -10,6 +10,7 @@ import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.ir.dic.PreResult;
+import org.fastcatsearch.ir.dictionary.CustomDictionary;
 import org.fastcatsearch.ir.dictionary.MapDictionary;
 import org.fastcatsearch.ir.dictionary.SetDictionary;
 import org.fastcatsearch.ir.io.CharVector;
@@ -73,6 +74,10 @@ public class GetSystemDictionaryWordListAction extends AuthAction {
 							sb.append(value[i]);
 						}
 						resultWriter.value(dictionaryName + " : " + sb.toString());
+					}
+				} else if (dictionaryObj instanceof CustomDictionary) {
+					if(((CustomDictionary) dictionaryObj).getWordSet().contains(token)){
+						resultWriter.value(dictionaryName + " : FOUND");
 					}
 				}
 			}
