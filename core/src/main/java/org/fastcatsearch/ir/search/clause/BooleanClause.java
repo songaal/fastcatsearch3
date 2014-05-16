@@ -99,6 +99,7 @@ public class BooleanClause extends OperatedClause {
 //			}
 
 			CharVector token = null;
+			int termSequence = 0;
 			while (tokenStream.incrementToken()) {
 
 				//요청 타입이 존재할때 타입이 다르면 단어무시.
@@ -139,7 +140,7 @@ public class BooleanClause extends OperatedClause {
 				SearchMethod searchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
 				PostingReader postingReader = searchMethod.search(indexId, token, queryPosition, weight);
 
-				OperatedClause clause = new TermOperatedClause(indexId, postingReader);
+				OperatedClause clause = new TermOperatedClause(indexId, postingReader, termSequence++);
 				
 				// 유사어 처리
 				// analyzerOption에 synonym확장여부가 들어가 있으므로, 여기서는 option을 확인하지 않고,
@@ -153,7 +154,7 @@ public class BooleanClause extends OperatedClause {
 							localToken.setIgnoreCase();
 							SearchMethod localSearchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
 							PostingReader localPostingReader = localSearchMethod.search(indexId, localToken, queryPosition, weight);
-							OperatedClause localClause = new TermOperatedClause(indexId, localPostingReader);
+							OperatedClause localClause = new TermOperatedClause(indexId, localPostingReader, termSequence++);
 							
 							if(synonymClause == null) {
 								synonymClause = localClause;
@@ -203,7 +204,7 @@ public class BooleanClause extends OperatedClause {
 						int queryPosition = positionAttribute != null ? positionAttribute.getPositionIncrement() : 0;
 						SearchMethod searchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
 						PostingReader postingReader = searchMethod.search(indexId, localToken, queryPosition, weight);
-						OperatedClause clause = new TermOperatedClause(indexId, postingReader);
+						OperatedClause clause = new TermOperatedClause(indexId, postingReader, termSequence++);
 						
 						if(additionalClause == null) {
 							additionalClause = clause;

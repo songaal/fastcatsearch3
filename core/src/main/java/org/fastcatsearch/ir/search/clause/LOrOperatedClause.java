@@ -18,8 +18,11 @@ package org.fastcatsearch.ir.search.clause;
 
 import org.fastcatsearch.ir.query.RankInfo;
 
-
-public class OrOperatedClause extends OperatedClause {
+/**
+ * 왼쪽 op에서 일치한 단어(matchFlag기반) 가 우측 op에서 출현시는 문서를 포함하지 않는다.
+ * 우측 op가 우선적인 선택적 OR이다.
+ * */
+public class LOrOperatedClause extends OperatedClause {
 	private OperatedClause clause1;
 	private OperatedClause clause2;
 	private boolean hasNext1 = true;
@@ -28,8 +31,8 @@ public class OrOperatedClause extends OperatedClause {
 	private RankInfo docInfo1;
 	private RankInfo docInfo2;
 	
-	public OrOperatedClause(OperatedClause clause1, OperatedClause clause2) {
-		super("OR");
+	public LOrOperatedClause(OperatedClause clause1, OperatedClause clause2) {
+		super("LOR");
 		this.clause1 = clause1;
 		this.clause2 = clause2;
 	}
@@ -50,13 +53,21 @@ public class OrOperatedClause extends OperatedClause {
 					rankInfo.explain(docInfo2);
 					hasNext2 = clause2.next(docInfo2);
 				}else{
-					rankInfo.init(doc1, docInfo1.score() + docInfo2.score(), docInfo1.hit() + docInfo2.hit());
-					rankInfo.addMatchFlag(docInfo1.matchFlag());
-					rankInfo.addMatchFlag(docInfo2.matchFlag());
-					rankInfo.explain(docInfo1);
-					rankInfo.explain(docInfo2);
+					//우측 단어가 왼쪽에 모두 포함이면 버린다. 
+					if(docInfo1.isMatchContains(docInfo2.matchFlag())){
+						rankInfo.init(doc1, docInfo1.score(), docInfo1.hit());
+						rankInfo.addMatchFlag(docInfo1.matchFlag());
+						rankInfo.explain(docInfo1);
+					} else {
+						rankInfo.init(doc1, docInfo1.score() + docInfo2.score(), docInfo1.hit() + docInfo2.hit());
+						rankInfo.addMatchFlag(docInfo1.matchFlag());
+						rankInfo.addMatchFlag(docInfo2.matchFlag());
+						rankInfo.explain(docInfo1);
+						rankInfo.explain(docInfo2);
+					}
 					hasNext1 = clause1.next(docInfo1);
 					hasNext2 = clause2.next(docInfo2);
+						
 				}
 				return true;
 			}

@@ -29,14 +29,19 @@ public class TermOperatedClause extends OperatedClause {
 	private int documentCount;
 
 	private String termString;
+	private int termSequence;
 	
 	public TermOperatedClause(String indexId, PostingReader postingReader) throws IOException {
+		this(indexId, postingReader, 0);
+	}
+	public TermOperatedClause(String indexId, PostingReader postingReader, int termSequence) throws IOException {
 		super(indexId);
 		if (postingReader != null) {
 			this.postingReader = postingReader;
 			this.segmentDF = postingReader.size();
 			this.documentCount = postingReader.documentCount();
 			termString = postingReader.term().toString();
+			this.termSequence = termSequence;
 		}
 	}
 
@@ -54,6 +59,7 @@ public class TermOperatedClause extends OperatedClause {
 				score = (int) ((tf * idf * postingReader.weight()) * SCORE_BASE);
 			}
 			rankInfo.init(postingDoc.docNo(), score, postingDoc.tf());
+			rankInfo.addMatchFlag(1 << termSequence);
 			if(isExplain()){
 				rankInfo.explain(id, score, postingReader.term().toString());
 			}

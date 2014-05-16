@@ -36,6 +36,8 @@ public class RankInfo {
 	private int score;
 	private int hit; // 매칭횟수.
 
+	private int matchFlag;
+	
 	private boolean explain;
 	private List<RowExplanation> rowExplanations;
 	
@@ -54,6 +56,7 @@ public class RankInfo {
 		this.docNo = docNo;
 		this.score = score;
 		this.hit = hit;
+		this.matchFlag = 0;
 	}
 
 	public boolean isExplain(){
@@ -96,6 +99,24 @@ public class RankInfo {
 		return "docNo=" + docNo + ",score=" + score + ",hit=" + hit;
 	}
 
+	//매칭된 위치를 or 해준다.
+	//위치는 bit flag를 사용한다. Int는 총 32개 위치 사용가능.
+//	public void addMatch(int sequence) {
+//		matchFlag |= (1 << sequence);
+//	}
+	public int matchFlag() {
+		return matchFlag;
+	}
+	public void addMatchFlag(int flag) {
+		matchFlag |= flag;
+	}
+	public boolean isMatchContains(int flag) {
+		if(matchFlag <=0 || flag <= 0){
+			return false;
+		}
+		return matchFlag - flag >= 0;
+	}
+	
 	public List<RowExplanation> rowExplanations(){
 		return rowExplanations;
 	}
