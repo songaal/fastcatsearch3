@@ -52,6 +52,10 @@ public abstract class SourceDictionary implements ReloadableDictionary, Writable
 		}
 	}
 	
+	public void addEntry(String keyword, Object[] values) {
+		addEntry(keyword, values, null);
+	}
+	
 	public abstract void addEntry(String keyword, Object[] values, List<ColumnSetting> columnSettingList);
 	
 	public abstract void addSourceLineEntry(String line);
