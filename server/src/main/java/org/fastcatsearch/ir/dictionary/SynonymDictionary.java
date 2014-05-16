@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.lucene.store.InputStreamDataInput;
@@ -16,6 +17,7 @@ import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.util.CharVectorHashSet;
+import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
 
 public class SynonymDictionary extends MapDictionary {
 
@@ -31,10 +33,12 @@ public class SynonymDictionary extends MapDictionary {
 
 	public SynonymDictionary(File file, boolean isIgnoreCase) {
 		super(file, isIgnoreCase);
+		wordSet = new CharVectorHashSet(isIgnoreCase);
 	}
 
 	public SynonymDictionary(InputStream is, boolean isIgnoreCase) {
 		super(is, isIgnoreCase);
+		wordSet = new CharVectorHashSet(isIgnoreCase);
 	}
 
 	public Set<CharVector> getWordSet() {
@@ -51,7 +55,7 @@ public class SynonymDictionary extends MapDictionary {
 
 	// key가 null일수 있다. 양방향의 경우.
 	@Override
-	public void addEntry(String keyword, Object[] values) {
+	public void addEntry(String keyword, Object[] values, List<ColumnSetting> columnSettingList) {
 
 		ArrayList<CharVector> list = new ArrayList<CharVector>(4);
 

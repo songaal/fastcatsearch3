@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.lucene.store.InputStreamDataInput;
@@ -15,6 +16,7 @@ import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.util.CharVectorHashSet;
+import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
 
 public class SetDictionary extends SourceDictionary {
 	
@@ -61,7 +63,7 @@ public class SetDictionary extends SourceDictionary {
 	}
 	
 	@Override
-	public void addEntry(String keyword, Object[] value) {
+	public void addEntry(String keyword, Object[] value, List<ColumnSetting> columnList) {
 		keyword = keyword.trim();
 		if (keyword.length() > 0) {
 			CharVector cv = new CharVector(keyword);
@@ -114,7 +116,7 @@ public class SetDictionary extends SourceDictionary {
 
 	@Override
 	public void addSourceLineEntry(String line) {
-		addEntry(line, null);
+		addEntry(line, null, null);
 	}
 
 	@Override

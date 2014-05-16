@@ -222,8 +222,7 @@ public abstract class AnalysisPlugin<T, P> extends Plugin {
 				}else if(type == Type.CUSTOM){
 					CustomDictionary customDictionary = new CustomDictionary(dictFile, isIgnoreCase);
 					if(tokenType != null){
-						//FIXME:
-						//dictionary.appendAdditionalNounEntry(customDictionary.map().keySet(), tokenType);
+						dictionary.appendAdditionalNounEntry(customDictionary.getWordSet(), tokenType);
 					}
 					sourceDictionary = customDictionary;
 					

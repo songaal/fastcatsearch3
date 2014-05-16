@@ -31,12 +31,13 @@ public class DAOSourceDictionaryCompiler {
 
 		String keyColumnName = null;
 		List<String> valueColumnNames = new ArrayList<String>();
-		
+		List<ColumnSetting> columnSettingList = new ArrayList<ColumnSetting>();
 		// key는 설정안해도 무조건 isCompilable이다.
 		for (int i = 0; i < columnList.size(); i++) {
 			ColumnSetting columnSetting = columnList.get(i);
 			if (columnSetting.isCompilable() && !columnSetting.isKey()) {
 				valueColumnNames.add(columnSetting.getName().toUpperCase());
+				columnSettingList.add(columnSetting);
 			}
 			if (columnSetting.isKey()) {
 				keyColumnName = columnSetting.getName().toUpperCase();
@@ -65,7 +66,7 @@ public class DAOSourceDictionaryCompiler {
 					
 					values[j] = vo.get(columnName);
 				}
-				dictionaryType.addEntry(key, values);
+				dictionaryType.addEntry(key, values, columnSettingList);
 			}
 
 			if (result.size() < BULK_SIZE) {

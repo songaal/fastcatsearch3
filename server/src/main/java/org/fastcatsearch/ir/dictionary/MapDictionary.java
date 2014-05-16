@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.lucene.store.InputStreamDataInput;
@@ -15,6 +16,7 @@ import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.util.CharVectorHashMap;
+import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
 
 /*
  * map 범용 사전. 
@@ -68,7 +70,7 @@ public class MapDictionary extends SourceDictionary {
 	}
 
 	@Override
-	public void addEntry(String keyword, Object[] values) {
+	public void addEntry(String keyword, Object[] values, List<ColumnSetting> columnList) {
 		if (keyword == null || keyword.length() == 0) {
 			return;
 		}
@@ -153,11 +155,11 @@ public class MapDictionary extends SourceDictionary {
 		String[] kv = line.split("\t");
 		if (kv.length == 1) {
 			String value = kv[0].trim();
-			addEntry(null, new String[] { value });
+			addEntry(null, new String[] { value }, null);
 		} else if (kv.length == 2) {
 			String keyword = kv[0].trim();
 			String value = kv[1].trim();
-			addEntry(keyword, new String[] { value });
+			addEntry(keyword, new String[] { value }, null);
 		}
 	}
 

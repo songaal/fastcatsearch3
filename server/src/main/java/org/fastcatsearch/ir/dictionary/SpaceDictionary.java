@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.lucene.store.InputStreamDataInput;
@@ -15,6 +16,7 @@ import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.util.CharVectorHashSet;
+import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
 
 public class SpaceDictionary extends MapDictionary {
 
@@ -51,11 +53,11 @@ public class SpaceDictionary extends MapDictionary {
 	}
 
 	@Override
-	public void addEntry(String word, Object[] values) {
+	public void addEntry(String word, Object[] values, List<ColumnSetting> columnList) {
 		String keyword = word.replaceAll(DELIMITER, "");
 		wordSet.add(new CharVector(keyword));
 		String[] list = word.split(DELIMITER);
-		super.addEntry(keyword, list);
+		super.addEntry(keyword, list, columnList);
 		
 		for (int i = 0; i < list.length; i++) {
 			wordSet.add(new CharVector(list[i].trim()));

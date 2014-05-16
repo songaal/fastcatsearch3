@@ -82,7 +82,7 @@ public class BulkPutDictionaryWordAction extends AuthAction {
 							values[i] = entries[i];
 							
 							
-							logger.debug("put column {}", values[i]);
+//							logger.debug("put column {}", values[i]);
 						}
 					}
 					count += dictionaryDAO.putRawEntry(mapperSession, columns, values);
