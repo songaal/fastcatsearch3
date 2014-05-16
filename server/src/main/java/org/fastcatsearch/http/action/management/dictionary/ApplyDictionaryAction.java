@@ -71,7 +71,7 @@ public class ApplyDictionaryAction extends AuthAction {
 		
 		if(successList.size() > 0){
 			//1. 로컬 사전리로드 
-			analysisPlugin.reloadDictionary();
+//			analysisPlugin.reloadDictionary();
 			
 			//2. 타 서버 전파 및 리로드 요청.
 			//해당 plugin의 모든 파일을 전송하고 업데이트 한다. 
