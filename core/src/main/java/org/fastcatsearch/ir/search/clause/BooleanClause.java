@@ -1,7 +1,9 @@
 package org.fastcatsearch.ir.search.clause;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
@@ -61,7 +63,6 @@ public class BooleanClause extends OperatedClause {
 			AnalyzerOption analyzerOption = new AnalyzerOption();
 			analyzerOption.useStopword(searchOption.useStopword());
 			analyzerOption.useSynonym(searchOption.useSynonym());
-			
 			operatedClause = search(indexId, fullTerm, term.type(), indexSetting, analyzer, analyzerOption, requestTypeAttribute);
 			
 		} catch (IOException e) {
@@ -70,7 +71,6 @@ public class BooleanClause extends OperatedClause {
 			searchIndexReader.releaseQueryAnalyzerToPool(analyzer);
 		}
 	}
-
 	
 	private OperatedClause search(String indexId, CharVector fullTerm, Type type, IndexSetting indexSetting, Analyzer analyzer, AnalyzerOption analyzerOption, String requestTypeAttribute) throws IOException {
 		logger.debug("############ search Term > {}", fullTerm);
@@ -161,28 +161,53 @@ public class BooleanClause extends OperatedClause {
 			// 있으면 그대로 색인하고 유사어가 없으면 색인되지 않는다.
 			//
 			//isSynonym 일 경우 다시한번 유사어확장을 하지 않는다.
-			if(synonymAttribute != null) {
-				CharVector[] synonyms = synonymAttribute.getSynonym();
-				if(synonyms != null) {
-					OperatedClause synonymClause = null;
-					for(CharVector synonym : synonyms) {
-						logger.debug("############ synonym > {}", synonym);
-						SearchMethod localSearchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
-						PostingReader localPostingReader = localSearchMethod.search(indexId, synonym, queryPosition, weight);
-						OperatedClause localClause = new TermOperatedClause(indexId, localPostingReader, termSequence++);
-//						OperatedClause localClause = search(indexId, synonym, type, indexSetting, analyzer, analyzerOption, requestTypeAttribute, true);
-						if(synonymClause == null) {
-							synonymClause = localClause;
-						} else {
-							synonymClause = new OrOperatedClause(synonymClause, localClause);
+				if(synonymAttribute != null) {
+					List<Object> synonymObj = synonymAttribute.getSynonyms();
+					if(synonymObj != null) {
+						OperatedClause synonymClause = null;
+						for(Object obj : synonymObj) {
+							if(obj instanceof CharVector) {
+								CharVector localToken = (CharVector)obj;
+								localToken.setIgnoreCase();
+								SearchMethod localSearchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
+								PostingReader localPostingReader = localSearchMethod.search(indexId, localToken, queryPosition, weight);
+								OperatedClause localClause = new TermOperatedClause(indexId, localPostingReader, termSequence++);
+								
+								if(synonymClause == null) {
+									synonymClause = localClause;
+								} else {
+									synonymClause = new OrOperatedClause(synonymClause, localClause);
+								}
+								
+							} else if(obj instanceof List) {
+								@SuppressWarnings("unchecked")
+								List<CharVector>synonyms = (List<CharVector>)obj; 
+								OperatedClause extractedClause = null;
+								for(CharVector localToken : synonyms) {
+									localToken.setIgnoreCase();
+									SearchMethod localSearchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
+									PostingReader localPostingReader = localSearchMethod.search(indexId, localToken, queryPosition, weight);
+									OperatedClause localClause = new TermOperatedClause(indexId, localPostingReader, termSequence++);
+									
+									if(extractedClause == null) {
+										extractedClause = localClause;
+									} else {
+										extractedClause = new AndOperatedClause(extractedClause, localClause);
+									}
+								}
+								if(synonymClause == null) {
+									synonymClause = extractedClause;
+								} else {
+									synonymClause = new OrOperatedClause(synonymClause, extractedClause);
+								}
+							}
+						}
+						
+						if(synonymClause != null) {
+							clause = new OrOperatedClause(clause, synonymClause);
 						}
 					}
-					
-					if(synonymClause != null) {
-						clause = new OrOperatedClause(clause, synonymClause);
-					}
 				}
-			}
 			
 			if (operatedClause == null) {
 				operatedClause = clause;

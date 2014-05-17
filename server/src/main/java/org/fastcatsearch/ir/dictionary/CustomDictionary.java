@@ -166,7 +166,7 @@ public class CustomDictionary extends SourceDictionary {
 			return;
 		}
 		CharVector cv = new CharVector(keyword);
-		wordSet.add(cv);
+
 		Object[] list = new Object[values.length];
 		for (int i = 0; i < values.length; i++) {
 			String value = values[i].toString();

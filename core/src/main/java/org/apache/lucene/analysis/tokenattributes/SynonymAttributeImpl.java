@@ -1,15 +1,17 @@
 package org.apache.lucene.analysis.tokenattributes;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.lucene.util.AttributeImpl;
-import org.fastcatsearch.ir.io.CharVector;
 
 public class SynonymAttributeImpl extends AttributeImpl implements SynonymAttribute, Cloneable {
-	private CharVector[] synonym;
+	private List synonym;
 	
 	public SynonymAttributeImpl() {
 	}
 
-	public SynonymAttributeImpl(CharVector[] synonym) {
+	public SynonymAttributeImpl(List synonym) {
 		this.synonym = synonym;
 	}
 
@@ -40,16 +42,23 @@ public class SynonymAttributeImpl extends AttributeImpl implements SynonymAttrib
 	@Override
 	public void copyTo(AttributeImpl target) {
 		SynonymAttribute t = (SynonymAttribute) target;
-		t.setSynonym(synonym);
+		t.setSynonyms(synonym);
 	}
 
 	@Override
-	public void setSynonym(CharVector[] synonym) {
-		this.synonym = synonym;
+	public void setSynonyms(List synonym) {
+		if(synonym == null || synonym.size() == 0) {
+			this.synonym = null;
+		} else {
+			this.synonym = synonym;
+		}
 	}
 
 	@Override
-	public CharVector[] getSynonym() {
+	public List getSynonyms() {
+		if(synonym==null || synonym.size() == 0) {
+			return null;
+		}
 		return synonym;
 	}
 }

@@ -184,16 +184,29 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		}
 
 		if(synonymAttribute != null) {
-			CharVector[] synoyms = synonymAttribute.getSynonym();
-			float score = 1.0f;
-			if(synoyms != null) {
-				for(CharVector cv : synoyms) {
-					String termString = cv.toString();
-					if(!termString.equals(prevTermString)){
-						terms.add(new WeightedTerm(score, termString));
-						logger.trace("++ charTermAttribute : {}", termString);
+			List<Object> synonymObj = synonymAttribute.getSynonyms();
+			if(synonymObj !=null) {
+				float score = 1.0f;
+				for(Object obj : synonymObj) {
+					if(obj instanceof CharVector) {
+						String termString = obj.toString();
+						if(!termString.equals(prevTermString)){
+							terms.add(new WeightedTerm(score, termString));
+							logger.trace("++ charTermAttribute : {}", termString);
+						}
+						prevTermString = termString;
+					} else if (obj instanceof List) {
+						@SuppressWarnings("unchecked")
+						List<CharVector> synonyms = (List<CharVector>)obj;
+						for(CharVector cv : synonyms) {
+							String termString = cv.toString();
+							if(!termString.equals(prevTermString)){
+								terms.add(new WeightedTerm(score, termString));
+								logger.trace("++ charTermAttribute : {}", termString);
+							}
+							prevTermString = termString;
+						}
 					}
-					prevTermString = termString;
 				}
 			}
 		}
