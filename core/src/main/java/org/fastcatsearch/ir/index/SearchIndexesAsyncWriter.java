@@ -20,23 +20,29 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
+import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
+import org.fastcatsearch.ir.index.async.IndexWriteTask;
+import org.fastcatsearch.ir.index.async.IndexWriteTaskPoolWriter;
 import org.fastcatsearch.ir.settings.IndexSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SearchIndexesWriter {
-	private static Logger logger = LoggerFactory.getLogger(SearchIndexesWriter.class);
+public class SearchIndexesAsyncWriter {
+	private static Logger logger = LoggerFactory.getLogger(SearchIndexesAsyncWriter.class);
 
 	private List<IndexSetting> indexSettingList;
 	private SearchIndexWriter[] searchIndexWriterList;
+	IndexWriteTaskPoolWriter poolWriter;
+	
 	private int indexSize;
 	
 	// limit memory use. if exeed this value, flush.
@@ -45,12 +51,12 @@ public class SearchIndexesWriter {
 
 	private int count;
 
-	public SearchIndexesWriter(Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager) throws IOException, IRException {
-		this(schema, dir, revisionInfo, indexConfig, analyzerPoolManager, null);
+	public SearchIndexesAsyncWriter(Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager, BlockingQueue<IndexWriteTask> taskQueue) throws IOException, IRException {
+		this(schema, dir, revisionInfo, indexConfig, analyzerPoolManager, taskQueue, null);
 	}
 
-	public SearchIndexesWriter(Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager,
-			List<String> indexIdList) throws IOException, IRException {
+	public SearchIndexesAsyncWriter(Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager,
+			BlockingQueue<IndexWriteTask> taskQueue, List<String> indexIdList) throws IOException, IRException {
 		this.indexSettingList = schema.schemaSetting().getIndexSettingList();
 		
 		int totalSize = indexSettingList == null ? 0 : indexSettingList.size();
@@ -64,23 +70,25 @@ public class SearchIndexesWriter {
 				list.add(searchIndexWriter);
 			}
 		}
-		
 		searchIndexWriterList = list.toArray(new SearchIndexWriter[0]);
 		indexSize = searchIndexWriterList.length;
 		
 		workMemoryLimit = indexConfig.getIndexWorkMemorySize();
-		
+		poolWriter = new IndexWriteTaskPoolWriter(taskQueue, searchIndexWriterList);
 	}
 
 	public void write(Document doc) throws IRException, IOException {
 		write(doc, count);
 	}
 
+	
 	public void write(Document doc, int docNo) throws IRException, IOException {
-		for (int i = 0; i < indexSize; i++) {
-			searchIndexWriterList[i].write(doc, docNo);
-		}
-		
+//		for (int i = 0; i < indexSize; i++) {
+//			searchIndexWriterList[i].write(doc, docNo);
+//		}
+//		logger.debug("#######write > {}", docNo);
+		poolWriter.write(doc, docNo);
+//		logger.debug("#######write done> {}", docNo);
 		if ((count + 1) % workMemoryCheck == 0) {
 			int workingMemorySize = checkWorkingMemorySize();
 			logger.debug("SearchField Memory = {}, limit = {}", Formatter.getFormatSize(workingMemorySize), Formatter.getFormatSize(workMemoryLimit));
@@ -97,8 +105,13 @@ public class SearchIndexesWriter {
 			}
 		}
 		count++;
+//		logger.debug("#######write end> {}, count = {}", docNo, count);
 	}
 
+//	public boolean writeJoin() {
+//		
+//	}
+	
 	private int checkWorkingMemorySize() {
 		int totalMemorySize = 0;
 		for (int i = 0; i < indexSize; i++) {

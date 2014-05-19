@@ -51,7 +51,7 @@ import org.fastcatsearch.ir.settings.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SearchIndexWriter {
+public class SearchIndexWriter implements SingleIndexWriter {
 	private static Logger logger = LoggerFactory.getLogger(SearchIndexWriter.class);
 	
 	private String indexId;
@@ -74,6 +74,10 @@ public class SearchIndexWriter {
 	private RevisionInfo revisionInfo;
 	private AnalyzerOption indexingAnalyzerOption;
 	
+	@Override
+	public String toString(){
+		return indexId;
+	}
 	public SearchIndexWriter(IndexSetting indexSetting, Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager) throws IOException,
 			IRException {
 		this.indexId = indexSetting.getId();
@@ -130,6 +134,7 @@ public class SearchIndexWriter {
 		write(doc, count);
 	}
 
+	@Override
 	public void write(Document doc, int docNo) throws IRException, IOException {
 
 		int[] sequenceList = indexFieldSequence;

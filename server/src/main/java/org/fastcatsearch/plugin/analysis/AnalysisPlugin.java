@@ -278,6 +278,7 @@ public abstract class AnalysisPlugin<T, P> extends Plugin {
 				CustomDictionary customDictionary = (CustomDictionary) dictionary;
 				CustomDictionary newDictionary = (CustomDictionary) newCommonDictionary.getDictionary(dictionaryId);
 				customDictionary.setMap(newDictionary.map());
+				customDictionary.setWordSet(newDictionary.getWordSet());
 			}
 			logger.info("Dictionary {} is updated!", dictionaryId);
 			

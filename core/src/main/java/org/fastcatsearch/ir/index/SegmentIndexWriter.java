@@ -8,8 +8,8 @@ import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
-import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
+import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexesWriter;
 import org.fastcatsearch.ir.settings.Schema;
@@ -25,6 +25,7 @@ public class SegmentIndexWriter implements IndexWritable {
 
 	protected SelectedIndexList selectedIndexList;// 색인필드 선택사항.
 	protected PrimaryKeyIndexesWriter primaryKeyIndexesWriter;
+//	protected SearchIndexesAsyncWriter searchIndexesWriter;
 	protected SearchIndexesWriter searchIndexesWriter;
 	protected FieldIndexesWriter fieldIndexesWriter;
 	protected GroupIndexesWriter groupIndexesWriter;
@@ -32,7 +33,8 @@ public class SegmentIndexWriter implements IndexWritable {
 	protected String segmentId;
 	protected File targetDir;
 	protected RevisionInfo revisionInfo;
-
+//	ThreadPoolExecutor threadPoolExecutor;
+	
 	public SegmentIndexWriter(Schema schema, File targetDir, RevisionInfo revisionInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager,
 			SelectedIndexList selectedIndexList) throws IRException {
 		init(schema, targetDir, revisionInfo, indexConfig, analyzerPoolManager, selectedIndexList);
@@ -41,6 +43,12 @@ public class SegmentIndexWriter implements IndexWritable {
 	public void init(Schema schema, File targetDir, RevisionInfo revisionInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager, SelectedIndexList selectedIndexList)
 			throws IRException {
 		try {
+//			int poolSize = 10;
+//			threadPoolExecutor = new ThreadPoolExecutor(0, poolSize, 60L, TimeUnit.SECONDS,new SynchronousQueue<Runnable>(), new ThreadPoolExecutor.AbortPolicy());
+//			IndexWriteTaskPool pool = new IndexWriteTaskPool(threadPoolExecutor, 10);
+//			pool.start();
+//			BlockingQueue<IndexWriteTask> taskQueue = pool.taskQueue();
+			
 			this.segmentId = targetDir.getName();
 			this.targetDir = targetDir;
 			this.revisionInfo = revisionInfo;
@@ -50,6 +58,7 @@ public class SegmentIndexWriter implements IndexWritable {
 
 			if (selectedIndexList == null) {
 				primaryKeyIndexesWriter = new PrimaryKeyIndexesWriter(schema, targetDir, revisionInfo, indexConfig);
+//				searchIndexesWriter = new SearchIndexesAsyncWriter(schema, targetDir, revisionInfo, indexConfig, analyzerPoolManager, taskQueue);
 				searchIndexesWriter = new SearchIndexesWriter(schema, targetDir, revisionInfo, indexConfig, analyzerPoolManager);
 				fieldIndexesWriter = new FieldIndexesWriter(schema, targetDir, revisionInfo);
 				groupIndexesWriter = new GroupIndexesWriter(schema, targetDir, revisionInfo, indexConfig);
@@ -59,8 +68,8 @@ public class SegmentIndexWriter implements IndexWritable {
 				}
 
 				List<String> searchIndexList = selectedIndexList.getSearchIndexList();
+//				searchIndexesWriter = new SearchIndexesAsyncWriter(schema, targetDir, revisionInfo, indexConfig, analyzerPoolManager, taskQueue, searchIndexList);
 				searchIndexesWriter = new SearchIndexesWriter(schema, targetDir, revisionInfo, indexConfig, analyzerPoolManager, searchIndexList);
-
 				List<String> fieldIndexList = selectedIndexList.getFieldIndexList();
 				fieldIndexesWriter = new FieldIndexesWriter(schema, targetDir, revisionInfo, fieldIndexList);
 				
@@ -183,6 +192,10 @@ public class SegmentIndexWriter implements IndexWritable {
 			File revisionDir = IndexFileNames.getRevisionDir(targetDir, revisionInfo.getId());
 			FileUtils.deleteDirectory(revisionDir);
 			throw new IRException(e);
+		} finally {
+//			if(threadPoolExecutor != null) {
+//				threadPoolExecutor.shutdown();
+//			}
 		}
 
 	}

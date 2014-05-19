@@ -217,4 +217,8 @@ public class CustomDictionary extends SourceDictionary {
 			throw new IllegalArgumentException("Reload dictionary argument error. argument = " + object);
 		}
 	}
+	
+	public void setWordSet(Set<CharVector> wordSet) {
+		this.wordSet = wordSet;
+	}
 }
