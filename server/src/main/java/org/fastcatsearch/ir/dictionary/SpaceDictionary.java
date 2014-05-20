@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.lucene.store.InputStreamDataInput;
 import org.apache.lucene.store.OutputStreamDataOutput;
@@ -51,6 +52,8 @@ public class SpaceDictionary extends MapDictionary {
 	public Set<CharVector> getUnmodifiableWordSet() {
 		return Collections.unmodifiableSet(wordSet);
 	}
+	
+	private static final Pattern ptn = Pattern.compile("^[\\x00-\\x7F]*$");
 
 	@Override
 	public void addEntry(String word, Object[] values, List<ColumnSetting> columnList) {
@@ -58,9 +61,12 @@ public class SpaceDictionary extends MapDictionary {
 		wordSet.add(new CharVector(keyword));
 		String[] list = word.split(DELIMITER);
 		super.addEntry(keyword, list, columnList);
-		
 		for (int i = 0; i < list.length; i++) {
-			wordSet.add(new CharVector(list[i].trim()));
+			String str = list[i].trim();
+			//ASCII 골라내기
+			if(!ptn.matcher(str).find()) {
+				wordSet.add(new CharVector(list[i].trim()));
+			}
 		}
 	}
 
