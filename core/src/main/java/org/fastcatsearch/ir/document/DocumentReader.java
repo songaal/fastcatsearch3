@@ -172,7 +172,7 @@ public class DocumentReader implements Cloneable {
 				f = fs.createEmptyField();
 //				logger.debug("fill {} >> empty", i);
 			}
-			if(indexable){
+			if(f != null && indexable){
 				String multiValueDelimiter = fs.getMultiValueDelimiter();
 				try {
 					f.parseIndexable(multiValueDelimiter);

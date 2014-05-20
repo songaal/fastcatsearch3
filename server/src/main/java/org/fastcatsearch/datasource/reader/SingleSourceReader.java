@@ -87,7 +87,11 @@ public abstract class SingleSourceReader<SourceType> {
 	}
 
 	public boolean isActive(){
-		return singleSourceConfig.isActive();
+		if(singleSourceConfig != null) {
+			return singleSourceConfig.isActive();
+		} else {
+			return true;
+		}
 	}
 	
 	private void fillParameters(Map<String, String> map) {
