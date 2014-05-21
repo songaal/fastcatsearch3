@@ -242,7 +242,7 @@ public class BooleanClause extends OperatedClause {
 				}
 				
 				if(additionalClause != null) {
-					operatedClause = new AndOperatedClause(operatedClause, additionalClause);
+					operatedClause = new OrOperatedClause(operatedClause, additionalClause);
 				}
 			}
 		}
