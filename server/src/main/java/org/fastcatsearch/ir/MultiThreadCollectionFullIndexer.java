@@ -202,15 +202,10 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 	//색인취소(0건)이면 false;
 	@Override
 	public boolean close() throws IRException, SettingException, IndexingStopException {
-		RevisionInfo revisionInfo = null;
+		RevisionInfo revisionInfo = new RevisionInfo();
 		
 		for (int inx = 0; inx < segmentSize; inx++) {
-			RevisionInfo subRevisionInfo = workingSegmentInfoList.get(inx).getRevisionInfo();
-			if(revisionInfo == null) {
-				revisionInfo = subRevisionInfo;
-			}else{
-				revisionInfo.add(subRevisionInfo);
-			}
+			
 			try {
 				IndexWritable indexWriter = consumerList.get(inx).getWriter();
 				indexWriter.close();
@@ -219,6 +214,10 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 			} catch (IOException e) {
 				throw new IRException(e);
 			}
+			
+			RevisionInfo subRevisionInfo = workingSegmentInfoList.get(inx).getRevisionInfo();
+			revisionInfo.add(subRevisionInfo);
+			logger.debug("revisionInfo#{} > {}", inx, revisionInfo);
 		}
 
 		dataSourceReader.close();
