@@ -95,6 +95,10 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 			SegmentInfo workingSegmentInfo = null;
 			for (int inx = 0; inx < segmentSize; inx++) {
 				workingSegmentInfo = workingSegmentInfoList.get(inx);
+				//문서수가 스레드 수보다 작은경우 발생할 수 있는 오류 제어.
+				if(workingSegmentInfo.getRevisionInfo().getDocumentCount() == 0) {
+					break;
+				}
 				workingSegmentInfo.setBaseNumber(baseNumber);
 				//update index#/info.xml file
 				//addindexing의 updateCollection대신 호출.
