@@ -27,7 +27,6 @@ public class SegmentIndexWriteConsumer extends Thread {
 	}
 
 	public void requestDone(){
-		q.notifyAll();
 		this.requestDone = true;
 	}
 	
