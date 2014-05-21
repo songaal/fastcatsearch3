@@ -14,7 +14,7 @@ import javax.xml.bind.annotation.XmlType;
  * 각 컬렉션별 셋팅을 가지고 있다.
  * collections/컬렉션명/config.xml
  * 
- <collection-config id="sample">
+ <collection-config>
 	<name>샘플</name>
 	<index-node>node1</index-node>
 	<search-node-list>
@@ -46,7 +46,6 @@ public class CollectionConfig {
 	public CollectionConfig(){
 		searchNodeList = new ArrayList<String>();
 		dataNodeList = new ArrayList<String>();
-		this.fullIndexingSegmentSize = 1;
 	}
 	
 	public CollectionConfig(String name, String indexNode, List<String> searchNodeList, List<String> dataNodeList, DataPlanConfig dataPlanConfig){
@@ -127,14 +126,14 @@ public class CollectionConfig {
 		}
 		return nodeIdSet;
 	}
+	
+	@XmlElement(name="full-indexing-segment-size")
+	public Integer getFullIndexingSegmentSize() {
+		return fullIndexingSegmentSize != null ? fullIndexingSegmentSize : 1;
+	}
 
 	public void setFullIndexingSegmentSize(Integer fullIndexingSegmentSize) {
 		this.fullIndexingSegmentSize = fullIndexingSegmentSize;
-	}
-	
-	@XmlElement(name="fullIndexingSegmentSize")
-	public int getFullIndexingSegmentSize() {
-		return fullIndexingSegmentSize != null ? fullIndexingSegmentSize : 1;
 	}
 
 }
