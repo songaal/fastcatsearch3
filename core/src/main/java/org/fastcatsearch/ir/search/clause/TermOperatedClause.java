@@ -123,6 +123,10 @@ public class TermOperatedClause extends OperatedClause {
 				}
 			}
 		}
-		os.println(indent+"[TERM]:"+termString+" count["+postingReader.size()+"/"+documentCount+"]");
+		int size = 0;
+		if(postingReader!=null) {
+			size = postingReader.size();
+		}
+		os.println(indent+"[TERM]:"+termString+" count["+size+"/"+documentCount+"]");
 	}
 }
