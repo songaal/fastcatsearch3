@@ -126,9 +126,9 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 				}
 			}
 		} catch (InstantiationException e) {
-			logger.error("action load error!", e);
+			logger.error("action load error! " + className, e);
 		} catch (IllegalAccessException e) {
-			logger.error("action load error!", e);
+			logger.error("action load error! " + className, e);
 		}
 	}
 

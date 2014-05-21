@@ -7,8 +7,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.document.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SegmentIndexWriteConsumer extends Thread {
+	protected static Logger logger = LoggerFactory.getLogger(SegmentIndexWriteConsumer.class);
+	
 	String segmentId;
 	IndexWritable w;
 	BlockingQueue<Document> q;
@@ -39,18 +43,15 @@ public class SegmentIndexWriteConsumer extends Thread {
 			while (true) {
 				Document document = q.poll(500, TimeUnit.MILLISECONDS);
 				if(document != null) {
+//					logger.debug("############### {} / q={}", document.get(0).toString(), q.size());
 					w.addDocument(document);
 				}
-				if(requestDone) {
+				if(requestDone && q.size() == 0) {
 					break;
 				}
 			}
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} catch (IRException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Throwable e) {
+			logger.error("", e);
 		}
 		latch.countDown();
 	}

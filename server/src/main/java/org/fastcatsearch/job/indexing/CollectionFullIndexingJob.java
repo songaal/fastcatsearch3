@@ -26,6 +26,7 @@ import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.db.mapper.IndexingResultMapper.ResultStatus;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.CollectionFullIndexer;
+import org.fastcatsearch.ir.CollectionIndexerable;
 import org.fastcatsearch.ir.MultiThreadCollectionFullIndexer;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
@@ -104,7 +105,13 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			//////////////////////////////////////////////////////////////////////////////////////////
 			
 			boolean isIndexed = false; 
-			MultiThreadCollectionFullIndexer collectionFullIndexer = new MultiThreadCollectionFullIndexer(collectionContext, analyzerPoolManager);
+			int segmentSize = collectionContext.collectionConfig().getFullIndexingSegmentSize();
+			CollectionIndexerable collectionFullIndexer = null;
+			if(segmentSize <= 1){
+				collectionFullIndexer = new CollectionFullIndexer(collectionContext, analyzerPoolManager);
+			}else{
+				collectionFullIndexer = new MultiThreadCollectionFullIndexer(collectionContext, analyzerPoolManager);	
+			}
 			indexer = collectionFullIndexer;
 			collectionFullIndexer.setTaskState(indexingTaskState);
 			Throwable indexingThrowable = null;
