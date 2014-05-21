@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -178,7 +180,7 @@ public abstract class AbstractCollectionIndexer2 implements CollectionIndexerabl
 		
 		indexingTaskState.setStep(IndexingTaskState.STEP_INDEXING);
 		
-		final LinkedBlockingQueue<Document> documentQueue = new LinkedBlockingQueue<Document>();
+		final SynchronousQueue<Document> documentQueue = new SynchronousQueue<Document>();
 		final boolean[] finished = {false};
 		
 		lapTime = System.currentTimeMillis();
@@ -196,7 +198,7 @@ public abstract class AbstractCollectionIndexer2 implements CollectionIndexerabl
 							continue;
 						}
 						
-						documentQueue.add(dataSourceReader.nextDocument());
+						documentQueue.put(dataSourceReader.nextDocument());
 					}
 				} catch (InterruptedException e) {
 					logger.error("", e);
@@ -211,6 +213,7 @@ public abstract class AbstractCollectionIndexer2 implements CollectionIndexerabl
 		producer.start();
 		
 		final List<Thread> consumerList = new ArrayList<Thread>();
+		final CountDownLatch doneSignal = new CountDownLatch(indexWriterList.size());
 		
 		for (int inx = 0; inx < indexWriterList.size(); inx++) {
 			final int consumerInx = inx;
@@ -235,24 +238,16 @@ public abstract class AbstractCollectionIndexer2 implements CollectionIndexerabl
 						logger.error("", e);
 						throw new RuntimeException(e);
 					}
+					doneSignal.countDown();
 				}
 			};
 			consumerList.add(consumer);
 			consumer.start();
 		}
 		
-		while(consumerList.size() > 0) {
-			for(int inx=0;inx<consumerList.size();inx++) {
-				if(!consumerList.get(inx).isAlive()) {
-					consumerList.remove(inx);
-					inx--;
-				}
-			}
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException ignore) {
-			}
-		}
+		try {
+			doneSignal.await();
+		} catch (InterruptedException ignore) { }
 	}
 	
 	public DeleteIdSet deleteIdSet() {
