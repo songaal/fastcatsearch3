@@ -16,6 +16,8 @@
 
 package org.fastcatsearch.ir.search.clause;
 
+import java.io.PrintStream;
+
 import org.fastcatsearch.ir.query.RankInfo;
 
 
@@ -59,4 +61,23 @@ public class AllDocumentOperatedClause extends OperatedClause {
 //	public void initExplanation() {
 //	}
 
+	@Override
+	public void printTrace(PrintStream os, int depth) {
+		int indentSize = 4;
+		String indent = "";
+		if(depth > 0){
+			for (int i = 0; i < (depth - 1) * indentSize; i++) {
+				indent += " ";
+			}
+			
+			for (int i = (depth - 1) * indentSize, p = 0; i < depth * indentSize; i++, p++) {
+				if(p == 0){
+					indent += "|";
+				}else{
+					indent += "-";
+				}
+			}
+		}
+		os.println(indent+"[ALL] count["+docCount+"]");
+	}
 }

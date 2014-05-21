@@ -17,6 +17,7 @@
 package org.fastcatsearch.ir.search.clause;
 
 import java.io.IOException;
+import java.io.PrintStream;
 
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.search.PostingDoc;
@@ -103,5 +104,25 @@ public class TermOperatedClause extends OperatedClause {
 	@Override
 	public String term() {
 		return termString;
+	}
+	
+	@Override
+	public void printTrace(PrintStream os, int depth) {
+		int indentSize = 4;
+		String indent = "";
+		if(depth > 0){
+			for (int i = 0; i < (depth - 1) * indentSize; i++) {
+				indent += " ";
+			}
+			
+			for (int i = (depth - 1) * indentSize, p = 0; i < depth * indentSize; i++, p++) {
+				if(p == 0){
+					indent += "|";
+				}else{
+					indent += "-";
+				}
+			}
+		}
+		os.println(indent+"[TERM]:"+termString+" count["+postingReader.size()+"/"+documentCount+"]");
 	}
 }

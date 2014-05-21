@@ -1,6 +1,7 @@
 package org.fastcatsearch.ir.search.clause;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -67,6 +68,12 @@ public class PkScoreOperatedClause extends OperatedClause {
 	@Override
 	public void close() {
 		docNoList = null;
+	}
+
+	@Override
+	public void printTrace(PrintStream os, int depth) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

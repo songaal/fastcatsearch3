@@ -1,5 +1,7 @@
 package org.fastcatsearch.ir.search.clause;
 
+import java.io.PrintStream;
+
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.query.RowExplanation;
 
@@ -45,6 +47,12 @@ public class ScoreOperatedClause extends OperatedClause {
 	@Override
 	protected void initClause(boolean explain) {
 		operatedClause.init(explanation != null ? explanation.createSubExplanation() : null);
+	}
+
+	@Override
+	public void printTrace(PrintStream os, int depth) {
+		// TODO Auto-generated method stub
+		
 	}
 
 //	@Override

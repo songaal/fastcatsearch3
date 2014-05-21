@@ -1,6 +1,6 @@
 package org.apache.lucene.analysis.tokenattributes;
 
-import java.util.Iterator;
+import java.util.List;
 
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.util.Attribute;
@@ -11,5 +11,5 @@ public interface AdditionalTermAttribute extends Attribute {
 
 	public void addAdditionalTerm(String additionalTerm, String type, int start, int end);
 	
-	public Iterator<String[]> iterateAdditionalTerms();
+	public List<String[]> additionalTermsList();
 }

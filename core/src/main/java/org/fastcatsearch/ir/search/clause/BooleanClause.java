@@ -1,8 +1,8 @@
 package org.fastcatsearch.ir.search.clause;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Iterator;
+import java.io.PrintStream;
 import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -208,7 +208,6 @@ public class BooleanClause extends OperatedClause {
 						}
 					}
 				}
-			
 			if (operatedClause == null) {
 				operatedClause = clause;
 			} else {
@@ -222,12 +221,11 @@ public class BooleanClause extends OperatedClause {
 
 		//추가 확장 단어들.
 		if(additionalTermAttribute != null) {
-			Iterator<String[]> iterator = additionalTermAttribute.iterateAdditionalTerms();
+			List<String[]> additionalTerms = additionalTermAttribute.additionalTermsList();
 			OperatedClause additionalClause = null;
 			
-			if(iterator != null) {
-				while(iterator.hasNext()) {
-					String[] str = iterator.next();
+			if(additionalTerms != null) {
+				for(String[] str : additionalTerms) {
 					
 					CharVector localToken = new CharVector(str[0].toCharArray(), indexSetting.isIgnoreCase());
 					
@@ -244,11 +242,16 @@ public class BooleanClause extends OperatedClause {
 				}
 				
 				if(additionalClause != null) {
-					operatedClause = new OrOperatedClause(operatedClause, additionalClause);
+					operatedClause = new AndOperatedClause(operatedClause, additionalClause);
 				}
 			}
 		}
-		
+		if(logger.isDebugEnabled()) {
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			PrintStream traceStream = new PrintStream(baos);
+			operatedClause.printTrace(traceStream, 0);
+			logger.debug("OperatedClause stack >> \n{}", baos.toString());
+		}
 		return operatedClause;
 	}
 	@Override
@@ -276,5 +279,6 @@ public class BooleanClause extends OperatedClause {
 	public String term() {
 		return termString;
 	}
-
+	@Override
+	public void printTrace(PrintStream os, int depth) { }
 }

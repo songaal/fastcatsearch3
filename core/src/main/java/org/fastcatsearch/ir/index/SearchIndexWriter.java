@@ -235,10 +235,7 @@ public class SearchIndexWriter implements SingleIndexWriter {
 //			}
 		}
 		if(additionalTermAttribute!=null) {
-			Iterator<String[]> iterator = additionalTermAttribute.iterateAdditionalTerms();
-			while(iterator.hasNext()) {
-				String[] str = iterator.next();
-				
+			for(String[] str : additionalTermAttribute.additionalTermsList()) {
 				CharVector token = new CharVector(str[0].toCharArray());
 				memoryPosting.add(token, docNo, lastPosition);
 			}

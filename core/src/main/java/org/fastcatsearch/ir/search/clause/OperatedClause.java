@@ -16,6 +16,8 @@
 
 package org.fastcatsearch.ir.search.clause;
 
+import java.io.PrintStream;
+
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.search.ClauseExplanation;
 import org.slf4j.Logger;
@@ -106,4 +108,6 @@ public abstract class OperatedClause {
 	public String term() {
 		return null;
 	}
+	
+	abstract public void printTrace(PrintStream os, int depth);
 }

@@ -16,6 +16,8 @@
 
 package org.fastcatsearch.ir.search.clause;
 
+import java.io.PrintStream;
+
 import org.fastcatsearch.ir.query.RankInfo;
 
 
@@ -54,6 +56,12 @@ public class UserOperatedClause extends OperatedClause {
 
 	@Override
 	protected void initClause(boolean explain) {
+	}
+
+	@Override
+	public void printTrace(PrintStream os, int depth) {
+		// TODO Auto-generated method stub
+		
 	}
 
 //	@Override

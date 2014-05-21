@@ -16,6 +16,8 @@
 
 package org.fastcatsearch.ir.search.clause;
 
+import java.io.PrintStream;
+
 import org.fastcatsearch.ir.query.RankInfo;
 
 /**
@@ -114,4 +116,29 @@ public class LOrOperatedClause extends OperatedClause {
 		hasNext2 = clause2.next(docInfo2);
 	}
 
+	@Override
+	public void printTrace(PrintStream os, int depth) {
+		int indentSize = 4;
+		String indent = "";
+		if(depth > 0){
+			for (int i = 0; i < (depth - 1) * indentSize; i++) {
+				indent += " ";
+			}
+			
+			for (int i = (depth - 1) * indentSize, p = 0; i < depth * indentSize; i++, p++) {
+				if(p == 0){
+					indent += "|";
+				}else{
+					indent += "-";
+				}
+			}
+		}
+		os.println(indent+"[LOR]");
+		if(clause1 != null){
+			clause1.printTrace(os, depth + 1);
+		}
+		if(clause2 != null){
+			clause2.printTrace(os, depth + 1);
+		}
+	}
 }

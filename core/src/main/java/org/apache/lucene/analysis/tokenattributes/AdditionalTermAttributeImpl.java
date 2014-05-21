@@ -69,28 +69,7 @@ public class AdditionalTermAttributeImpl extends AttributeImpl implements
 	}
 
 	@Override
-	public Iterator<String[]> iterateAdditionalTerms() {
-		return new Iterator<String[]>() {
-
-			@Override
-			public boolean hasNext() {
-				return additionalTerms.size() > 0;
-			}
-
-			@Override
-			public String[] next() {
-				String[] term = additionalTerms.remove(0);
-				int[] offset = offsets.remove(0);
-				if(offsetAttribute!=null) {
-					offsetAttribute.setOffset(offset[0], offset[1]);
-				}
-				return term;
-			}
-
-			@Override
-			public void remove() { 
-				additionalTerms.remove(0);
-			}
-		};
+	public List<String[]> additionalTermsList() {
+		return additionalTerms;
 	}
 }

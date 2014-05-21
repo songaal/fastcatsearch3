@@ -1,6 +1,7 @@
 package org.fastcatsearch.ir.search.clause;
 
 import java.io.IOException;
+import java.io.PrintStream;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
@@ -181,6 +182,11 @@ public class PhraseClause extends OperatedClause {
 	@Override
 	protected void initClause(boolean explain) {
 		operatedClause.init(explanation != null ? explanation.createSubExplanation() : null);
+	}
+
+	@Override
+	public void printTrace(PrintStream os, int depth) {
+		// TODO Auto-generated method stub
 	}
 
 //	@Override
