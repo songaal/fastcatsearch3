@@ -28,7 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class AbstractCollectionDocumentStorer implements CollectionIndexerable {
-	protected static final Logger logger = LoggerFactory.getLogger(CollectionFullIndexer.class);
+	protected static final Logger logger = LoggerFactory.getLogger(AbstractCollectionDocumentStorer.class);
 	protected CollectionContext collectionContext;
 	
 	protected AbstractDataSourceReader dataSourceReader;
