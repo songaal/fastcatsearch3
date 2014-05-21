@@ -144,7 +144,7 @@ public class CollectionFullIndexingJob extends IndexingJob {
 
 				FilePaths indexFilePaths = collectionContext.indexFilePaths();
 				File indexDir = indexFilePaths.file();
-				File segmentDir = indexFilePaths.file(segmentId);
+//				File segmentDir = indexFilePaths.file(segmentId);
 
 				List<Node> nodeList = new ArrayList<Node>(nodeService.getNodeById(collectionContext.collectionConfig().getDataNodeList()));
 				//색인노드가 data node에 추가되어있다면 제거한다.
@@ -169,7 +169,7 @@ public class CollectionFullIndexingJob extends IndexingJob {
 					}
 				}
 				// 색인된 Segment 파일전송.
-				TransferIndexFileMultiNodeJob transferJob = new TransferIndexFileMultiNodeJob(segmentDir, nodeList);
+				TransferIndexFileMultiNodeJob transferJob = new TransferIndexFileMultiNodeJob(indexDir, nodeList);
 				ResultFuture resultFuture = JobService.getInstance().offer(transferJob);
 				Object obj = resultFuture.take();
 				if(resultFuture.isSuccess() && obj != null){
