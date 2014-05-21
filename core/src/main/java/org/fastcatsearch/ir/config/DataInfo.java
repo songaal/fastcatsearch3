@@ -267,7 +267,11 @@ public class DataInfo {
 		}
 
 		public int getNextBaseNumber() {
-			return baseNumber + revisionInfo.documentCount;
+			if(revisionInfo.documentCount > 0) {
+				return baseNumber + revisionInfo.documentCount;
+			} else {
+				return -1;
+			}
 		}
 
 		public SegmentInfo getNextSegmentInfo() {
