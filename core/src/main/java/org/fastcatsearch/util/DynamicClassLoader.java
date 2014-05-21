@@ -176,6 +176,9 @@ public class DynamicClassLoader {
 				} catch (ClassNotFoundException e) {
 					logger.trace("{} cl {} : {}", l, clazz, className);
 					continue;
+				} catch (NoClassDefFoundError e) {
+					logger.trace("{} cl {} : {}", l, clazz, className);
+					continue;
 				}
 				
 				if(clazz != null){
