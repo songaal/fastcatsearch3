@@ -102,7 +102,7 @@ public class HighlightInfo {
 //	}
 	
 	public Option getOption(String fieldId) {
-		if(fieldSearchOptionMap.containsKey(fieldId)) {
+		if(fieldSearchOptionMap != null && fieldSearchOptionMap.containsKey(fieldId)) {
 			return new Option(fieldSearchOptionMap.get(fieldId));
 		} else {
 			return new Option();
