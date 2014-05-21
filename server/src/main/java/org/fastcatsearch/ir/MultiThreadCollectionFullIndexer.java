@@ -41,8 +41,8 @@ import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CollectionFullIndexer2 implements CollectionIndexerable {
-	protected static final Logger logger = LoggerFactory.getLogger(CollectionFullIndexer2.class);
+public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
+	protected static final Logger logger = LoggerFactory.getLogger(MultiThreadCollectionFullIndexer.class);
 	protected CollectionContext collectionContext;
 	protected AnalyzerPoolManager analyzerPoolManager;
 	
@@ -68,10 +68,10 @@ public class CollectionFullIndexer2 implements CollectionIndexerable {
 	private List<SegmentIndexWriteConsumer> consumerList;
 	
 	
-	public CollectionFullIndexer2(CollectionContext collectionContext, AnalyzerPoolManager analyzerPoolManager) throws IRException {
+	public MultiThreadCollectionFullIndexer(CollectionContext collectionContext, AnalyzerPoolManager analyzerPoolManager) throws IRException {
 		this(collectionContext, analyzerPoolManager, null);
 	}
-	public CollectionFullIndexer2(CollectionContext collectionContext, AnalyzerPoolManager analyzerPoolManager, SelectedIndexList selectedIndexList) throws IRException {
+	public MultiThreadCollectionFullIndexer(CollectionContext collectionContext, AnalyzerPoolManager analyzerPoolManager, SelectedIndexList selectedIndexList) throws IRException {
 		this.collectionContext = collectionContext;
 		this.analyzerPoolManager = analyzerPoolManager;
 		this.selectedIndexList = selectedIndexList;
@@ -204,7 +204,7 @@ public class CollectionFullIndexer2 implements CollectionIndexerable {
 	public boolean close() throws IRException, SettingException, IndexingStopException {
 		RevisionInfo revisionInfo = null;
 		
-		for (int inx = 1; inx < segmentSize; inx++) {
+		for (int inx = 0; inx < segmentSize; inx++) {
 			RevisionInfo subRevisionInfo = workingSegmentInfoList.get(inx).getRevisionInfo();
 			if(revisionInfo == null) {
 				revisionInfo = subRevisionInfo;
@@ -257,6 +257,7 @@ public class CollectionFullIndexer2 implements CollectionIndexerable {
 			consumer.start();
 		}
 		try {
+			lapTime = System.currentTimeMillis();
 			while (dataSourceReader.hasNext()) {
 				if (stopRequested) {
 					break;
