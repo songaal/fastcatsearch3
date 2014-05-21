@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
 
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.datasource.reader.DataSourceReader;
@@ -75,7 +74,7 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 		this.collectionContext = collectionContext;
 		this.analyzerPoolManager = analyzerPoolManager;
 		this.selectedIndexList = selectedIndexList;
-		this.segmentSize = 3;
+		this.segmentSize = collectionContext.collectionConfig().getFullIndexingSegmentSize();
 		init(collectionContext.schema());
 	}
 	

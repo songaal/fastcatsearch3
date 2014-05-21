@@ -33,7 +33,7 @@ import javax.xml.bind.annotation.XmlType;
  * */
 
 @XmlRootElement(name = "collection-config")
-@XmlType(propOrder = { "name", "indexNode", "searchNodeList", "dataNodeList", "dataPlanConfig" })
+@XmlType(propOrder = { "name", "indexNode", "searchNodeList", "dataNodeList", "dataPlanConfig", "fullIndexingSegmentSize" })
 public class CollectionConfig {
 
 	private String name;
@@ -41,10 +41,12 @@ public class CollectionConfig {
 	private List<String> searchNodeList;
 	private List<String> dataNodeList;
 	private DataPlanConfig dataPlanConfig;
+	private Integer fullIndexingSegmentSize;
 	
 	public CollectionConfig(){
 		searchNodeList = new ArrayList<String>();
 		dataNodeList = new ArrayList<String>();
+		this.fullIndexingSegmentSize = 1;
 	}
 	
 	public CollectionConfig(String name, String indexNode, List<String> searchNodeList, List<String> dataNodeList, DataPlanConfig dataPlanConfig){
@@ -53,6 +55,7 @@ public class CollectionConfig {
 		this.searchNodeList = searchNodeList;
 		this.dataNodeList = dataNodeList;
 		this.dataPlanConfig = dataPlanConfig;
+		this.fullIndexingSegmentSize = 1;
 	}
 	
 
@@ -123,6 +126,15 @@ public class CollectionConfig {
 			}
 		}
 		return nodeIdSet;
+	}
+
+	public void setFullIndexingSegmentSize(Integer fullIndexingSegmentSize) {
+		this.fullIndexingSegmentSize = fullIndexingSegmentSize;
+	}
+	
+	@XmlElement(name="fullIndexingSegmentSize")
+	public int getFullIndexingSegmentSize() {
+		return fullIndexingSegmentSize != null ? fullIndexingSegmentSize : 1;
 	}
 
 }

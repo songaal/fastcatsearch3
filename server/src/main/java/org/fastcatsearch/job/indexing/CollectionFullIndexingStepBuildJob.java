@@ -20,6 +20,7 @@ import org.fastcatsearch.db.mapper.IndexingResultMapper.ResultStatus;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.CollectionFullIndexer;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.MultiThreadCollectionFullIndexer;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
@@ -92,7 +93,7 @@ public class CollectionFullIndexingStepBuildJob extends IndexingJob {
 			//////////////////////////////////////////////////////////////////////////////////////////
 			
 			boolean isIndexed = false; 
-			CollectionFullIndexer collectionFullIndexer = new CollectionFullIndexer(collectionContext, analyzerPoolManager);
+			MultiThreadCollectionFullIndexer collectionFullIndexer = new MultiThreadCollectionFullIndexer(collectionContext, analyzerPoolManager);
 			indexer = collectionFullIndexer;
 			collectionFullIndexer.setTaskState(indexingTaskState);
 			Throwable indexingThrowable = null;
