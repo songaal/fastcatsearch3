@@ -35,6 +35,7 @@ public class UpdateCollectionConfigAction extends AuthAction {
 		int dataSequenceCycle = request.getIntParameter("dataSequenceCycle");
 		int segmentRevisionBackupSize = request.getIntParameter("segmentRevisionBackupSize");
 		int segmentDocumentLimit = request.getIntParameter("segmentDocumentLimit");
+		int fullIndexingSegmentSize = request.getIntParameter("fullIndexingSegmentSize");
 		
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		
@@ -45,6 +46,7 @@ public class UpdateCollectionConfigAction extends AuthAction {
 		collectionConfig.getDataPlanConfig().setDataSequenceCycle(dataSequenceCycle);
 		collectionConfig.getDataPlanConfig().setSegmentRevisionBackupSize(segmentRevisionBackupSize);
 		collectionConfig.getDataPlanConfig().setSegmentDocumentLimit(segmentDocumentLimit);
+		collectionConfig.setFullIndexingSegmentSize(fullIndexingSegmentSize);
 		
 		List<String> searchNodeListObj = new ArrayList<String>();
 		for(String nodeStr : searchNodeList.split(",")){
