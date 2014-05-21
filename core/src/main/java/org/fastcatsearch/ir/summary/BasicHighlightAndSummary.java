@@ -219,7 +219,11 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		Fragmenter fragmenter = new SimpleFragmenter(len);
 		highlighter.setTextFragmenter(fragmenter);
 		
-		tokenStream = new WrappedTokenStream(indexAnalyzer.tokenStream(fieldId, new StringReader(pText)), pText);
+		AnalyzerOption indexAnalyzerOption = new AnalyzerOption();
+		indexAnalyzerOption.useStopword();
+		indexAnalyzerOption.useSynonym(false);
+		
+		tokenStream = new WrappedTokenStream(indexAnalyzer.tokenStream(fieldId, new StringReader(pText), indexAnalyzerOption), pText);
 		
 		String text = pText;
 
