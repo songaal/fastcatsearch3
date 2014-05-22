@@ -46,6 +46,7 @@ public class HitElement implements Comparable<HitElement> {
 		this(-1, docNo, score, dataList, list);
 	}
 	public HitElement(int segmentSequence, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list){
+		this.segmentSequence = segmentSequence;
 		this.docNo = docNo;
 		this.score = score;
 		this.rankData = dataList;
