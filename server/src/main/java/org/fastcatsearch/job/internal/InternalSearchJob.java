@@ -84,7 +84,7 @@ public class InternalSearchJob extends Job implements Streamable {
 						if(e == null) {
 							continue;
 						}
-						//첫번째 필드가 id이다.
+						//FIXME 첫번째 필드가 id이다.
 						logger.debug("e.docNo() > {}", e.docNo());
 						logger.debug("field > {}", boostCollectionSearcher.requestDocument(e.docNo()).get(1));
 						String id = boostCollectionSearcher.requestDocument(e.docNo()).get(1).toString();

@@ -115,8 +115,11 @@ public class SegmentSearcher {
 		}
 		// filter
 		if (filters != null) {
+			if(fieldIndexesReader == null){
+				fieldIndexesReader = segmentReader.newFieldIndexesReader();
+			}
 			//schema를 통해 field index setting을 알아야 필터링시 ignorecase등의 정보를 활용가능하다.
-			hitFilter = filters.getHitFilter(schema, segmentReader.newFieldIndexesReader(), BULK_SIZE);
+			hitFilter = filters.getHitFilter(schema, fieldIndexesReader, BULK_SIZE);
 		}
 
 		//group

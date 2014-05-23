@@ -1,7 +1,9 @@
 package org.fastcatsearch.transport;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.net.InetSocketAddress;
+import java.util.Collection;
 
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.control.JobExecutor;
@@ -12,6 +14,7 @@ import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.TestJob;
 import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.transport.common.SendFileResultFuture;
+import org.fastcatsearch.util.FileUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,9 +50,11 @@ public class TransportModuleTest {
 	};
 	
 	public static void main(String[] args) throws FastcatSearchException, TransportException {
-		Environment environment = new Environment("testHome/fastcatsearch");
+		String sourceDirPath = args[0];
+		String targetDirPath = args[1];
+		Environment environment = new Environment(targetDirPath);
 //		new TransportServiceTest().testSendMessage(environment);
-		new TransportModuleTest().testSendFile(environment);
+		new TransportModuleTest().testSendDir(environment, sourceDirPath, targetDirPath);
 	}
 	
 	public void testSendMessage(Environment environment) throws FastcatSearchException, TransportException {
@@ -78,8 +83,7 @@ public class TransportModuleTest {
 		transportService2.unload();
 	}
 
-	
-	public void testSendFile(Environment environment) throws FastcatSearchException, TransportException {
+	public void testSendDir(Environment environment, String sourceDirPath, String targetDirPath) throws FastcatSearchException, TransportException {
 		Settings settings = new Settings();
 		Settings settings2 = new Settings();
 		
@@ -90,14 +94,31 @@ public class TransportModuleTest {
 		
 		Node node1 = new Node("node-1", "", "localhost", 9100);
 		Node node2 = new Node("node-2", "", "localhost", 9200);
+		node1.setActive();
+		node1.setEnabled();
+		node2.setActive();
+		node2.setEnabled();
 		//미리 접속이 안되었을 경우를 가정.
 //		transportService1.connectToNode(node2);
 //		transportService2.connectToNode(node1);
 		
-		String filePath = "/Users/swsong/Downloads/git-1.8.1.3-intel-universal-snow-leopard.dmg";
-		File sourceFile = new File(filePath);
-		File tartgetFile = new File("collection/a.dmg");
-		SendFileResultFuture future = transportService1.sendFile(node2, sourceFile, tartgetFile);
+		
+		File f = new File(sourceDirPath);
+		System.out.println("sourceDirPath > " + sourceDirPath);
+		Collection<File> fileList = FileUtils.listFiles(f, null, true);
+		int totalCount = fileList.size();
+		System.out.println("fileList > " + fileList.size());
+		int i = 1;
+		for(File sf : fileList) {
+			String name = sf.getName();
+			System.out.println("File " + i + " / "  + totalCount);
+			sendFile(environment, sf, new File(name), transportService1, node2);
+			i++;
+		}
+	}
+	public void sendFile(Environment environment, File sourceFile, File targetFile, TransportModule transportService, Node node) throws FastcatSearchException, TransportException {
+		
+		SendFileResultFuture future = transportService.sendFile(node, sourceFile, targetFile);
 		Object obj = future.take();
 		logger.debug("result >> {}", obj);
 		
