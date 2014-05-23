@@ -153,7 +153,7 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 		return myNode;
 	}
 
-	public Node getMaserNode() {
+	public Node getMasterNode() {
 		return masterNode;
 	}
 

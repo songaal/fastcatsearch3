@@ -18,6 +18,12 @@ public class ClusterUtils {
 		list.addAll(nodeIdSet);
 		return sendJobToNodeIdList(job, nodeService, list, includeMyNode);
 	}
+	public static NodeJobResult[] sendJobToNodeSet(Job job, NodeService nodeService, Set<Node> nodeSet, boolean includeMyNode) {
+		List<Node> list = new ArrayList<Node>();
+		list.addAll(nodeSet);
+		return sendJobToNodeList(job, nodeService, list, includeMyNode);
+	}
+	
 	public static NodeJobResult[] sendJobToNodeIdList(Job job, NodeService nodeService, List<String> nodeIdList, boolean includeMyNode) {
 		return ClusterUtils.sendJobToNodeList(job, nodeService, nodeService.getNodeById(nodeIdList), includeMyNode);
 	}

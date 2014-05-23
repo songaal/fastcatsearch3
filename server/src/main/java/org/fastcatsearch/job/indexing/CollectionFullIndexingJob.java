@@ -14,7 +14,9 @@ package org.fastcatsearch.job.indexing;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.fastcatsearch.cluster.ClusterUtils;
 import org.fastcatsearch.cluster.Node;
@@ -27,8 +29,8 @@ import org.fastcatsearch.db.mapper.IndexingResultMapper.ResultStatus;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.CollectionFullIndexer;
 import org.fastcatsearch.ir.CollectionIndexerable;
-import org.fastcatsearch.ir.MultiThreadCollectionFullIndexer;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.MultiThreadCollectionFullIndexer;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
@@ -39,7 +41,6 @@ import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.util.Counter;
 import org.fastcatsearch.job.CacheServiceRestartJob;
-import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.job.cluster.NodeCollectionReloadJob;
 import org.fastcatsearch.job.cluster.NodeDirectoryCleanJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
@@ -147,7 +148,7 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
 			if (segmentInfo != null) {
 				String segmentId = segmentInfo.getId();
-				logger.debug("Transfer index data collection[{}] >> {}", collectionId, segmentInfo);
+				logger.debug("Transfer index data collection[{}] >> {}", collectionId);
 
 				FilePaths indexFilePaths = collectionContext.indexFilePaths();
 				File indexDir = indexFilePaths.file();
@@ -202,15 +203,23 @@ public class CollectionFullIndexingJob extends IndexingJob {
 					throw new IndexingStopException();
 				}
 				
-				//nodeList 에 자기자신과 마스터노드 (관리도구에 보여지기 위함) 추가
-				nodeList.add(nodeService.getMyNode());
-				nodeList.add(nodeService.getMaserNode());
+				Set<Node> reloadNodeSet = new HashSet<Node>();
+				//데이터노드
+				reloadNodeSet.addAll(nodeList);
+				//인덱스노드
+				reloadNodeSet.add(indexNode);
+				//마스터노드 (관리도구에 보여지기 위함) 추가
+				reloadNodeSet.add(nodeService.getMasterNode());
+				// 
+				for(String nodeId : collectionContext.collectionConfig().getSearchNodeList()){
+					reloadNodeSet.add(nodeService.getNodeById(nodeId));
+				}
 				
 				/*
 				 * 데이터노드에 컬렉션 리로드 요청.
 				 */
 				NodeCollectionReloadJob reloadJob = new NodeCollectionReloadJob(collectionContext);
-				nodeResultList = ClusterUtils.sendJobToNodeList(reloadJob, nodeService, nodeList, true);
+				nodeResultList = ClusterUtils.sendJobToNodeSet(reloadJob, nodeService, reloadNodeSet, true);
 				for (int i = 0; i < nodeResultList.length; i++) {
 					NodeJobResult r = nodeResultList[i];
 					logger.debug("node#{} >> {}", i, r);
@@ -225,33 +234,12 @@ public class CollectionFullIndexingJob extends IndexingJob {
 //					throw new FastcatSearchException("Node Collection Reload Failed!");
 //				}
 			}
-			/*
-			 * 데이터노드가 리로드 완료되었으면 인덱스노드도 리로드 시작.
-			 * */
+			
 			indexingTaskState.setStep(IndexingTaskState.STEP_FINALIZE);
-			
-			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
-			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
-			Counter queryCounter = irService.queryCountModule().getQueryCounter(collectionId);
-			collectionHandler.setQueryCounter(queryCounter);
-			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
-			if (oldCollectionHandler != null) {
-				logger.info("## [{}] Close Previous Collection Handler", collectionContext.collectionId());
-				oldCollectionHandler.close();
-			}
-			
 			int duration = (int) (System.currentTimeMillis() - startTime);
 			
-			/*
-			 * 캐시 클리어.
-			 */
-			getJobExecutor().offer(new CacheServiceRestartJob());
-
 			IndexStatus indexStatus = collectionContext.indexStatus().getFullIndexStatus();
-			indexingLogger.info("[{}] Collection Full Indexing Finished! {} time = {}", collectionId, indexStatus, duration);
-			logger.info("== SegmentStatus ==");
-			collectionHandler.printSegmentStatus();
-			logger.info("===================");
+			indexingLogger.info("[{}] Collection Full Indexing Finished! time = {}", collectionId, duration);
 			
 			result = new IndexingJobResult(collectionId, indexStatus, duration);
 			resultStatus = ResultStatus.SUCCESS;
