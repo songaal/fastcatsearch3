@@ -6,21 +6,21 @@ import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.util.Counter;
 import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableCollectionContext;
 import org.fastcatsearch.util.CollectionContextUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class NodeCollectionReloadJob extends Job implements Streamable {
-	private static final long serialVersionUID = 7222232821891387399L;
-	private static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 
+	private static final long serialVersionUID = -3825918267667946370L;
+	
 	private CollectionContext collectionContext;
 
 	public NodeCollectionReloadJob() {
@@ -34,16 +34,26 @@ public class NodeCollectionReloadJob extends Job implements Streamable {
 	public JobResult doRun() throws FastcatSearchException {
 
 		try {
-			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			String collectionId = collectionContext.collectionId();
+			
+			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
 			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
+			Counter queryCounter = irService.queryCountModule().getQueryCounter(collectionId);
+			collectionHandler.setQueryCounter(queryCounter);
+			
 			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
 			if (oldCollectionHandler != null) {
 				logger.info("## [{}] Close Previous Collection Handler", collectionId);
 				oldCollectionHandler.close();
 			}
 
+			logger.info("== [{}] SegmentStatus ==", collectionId);
+			collectionHandler.printSegmentStatus();
+			logger.info("===================");
+			IndexStatus indexStatus = collectionContext.indexStatus().getFullIndexStatus();
+			logger.info("[{}] Collection Index Status > {}", collectionId, indexStatus);
+			
 			/*
 			 * 캐시 클리어.
 			 */
