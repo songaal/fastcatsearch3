@@ -89,6 +89,8 @@ public class TransportModule extends AbstractModule {
 	private int sendFileChunkSize;
     private JobExecutor jobExecutor;
     
+    private int cachedQueueSize;
+    
     private final ReadWriteLock globalLock = new ReentrantReadWriteLock();
     private FileTransportHandler fileTransportHandler;
     private BlockingCachedStreamOutput fileStreamOutputCache;
@@ -113,10 +115,10 @@ public class TransportModule extends AbstractModule {
         this.tcpNoDelay = settings.getBoolean("tcp_no_delay", true);
         this.tcpKeepAlive = settings.getBoolean("tcp_keep_alive", true);
         this.reuseAddress = settings.getBoolean("reuse_address", true);
-        this.tcpSendBufferSize = settings.getInt("tcp_send_buffer_size", 8192);
-        this.tcpReceiveBufferSize = settings.getInt("tcp_receive_buffer_size", 8192);
+        this.tcpSendBufferSize = settings.getInt("tcp_send_buffer_size", 1048576);
+        this.tcpReceiveBufferSize = settings.getInt("tcp_receive_buffer_size", 1048576);
         this.sendFileChunkSize = (int) settings.getByteSize("send_file_chunk_size", 3 * 1024 * 1024);
-        
+        this.cachedQueueSize = (int) settings.getInt("send_file_cache_queue_size", 10);
         logger.debug("Transport setting worker_count[{}], port[{}], connect_timeout[{}]",
                 new Object[]{workerCount, port, connectTimeout});
         
@@ -194,7 +196,7 @@ public class TransportModule extends AbstractModule {
         connectedNodes = new ConcurrentHashMap<Node, NodeChannels>();
         resultFutureMap = new ConcurrentHashMap<Long, ResultFuture>();
         
-        fileStreamOutputCache = new BlockingCachedStreamOutput(10, sendFileChunkSize + 3 * 1024);
+        fileStreamOutputCache = new BlockingCachedStreamOutput(cachedQueueSize, sendFileChunkSize + 3 * 1024);
         return true;
 	}
 	
