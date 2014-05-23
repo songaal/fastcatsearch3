@@ -194,7 +194,7 @@ public class DocumentReader implements Cloneable {
 		reader.fields = fields;
 		reader.docInput = docInput.clone();
 		reader.positionInput = positionInput.clone();
-		// reader.baseDocNo = baseDocNo;
+		reader.baseDocNo = baseDocNo;
 		reader.documentCount = documentCount;
 
 		reader.inflaterOutput = new ByteRefArrayOutputStream(3 * 1024 * 1024); // 자동 증가됨.
