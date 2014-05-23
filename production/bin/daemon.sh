@@ -40,7 +40,8 @@ PROFILE_PORT=10001
 HEAP_MEMORY_SIZE=512m
 JVM_OPTS="-Xms$HEAP_MEMORY_SIZE -Xmx$HEAP_MEMORY_SIZE -XX:+HeapDumpOnOutOfMemoryError"
 JAVA_OPTS="-server -Dfile.encoding=UTF-8 -Dlogback.configurationFile=$CONF/logback.xml -Dderby.stream.error.file=logs/db.log"
-DEBUG_OPT="-verbosegc -XX:+PrintGCDetails -Dcom.sun.management.jmxremote"
+DEBUG_OPT="-agentlib:jdwp=transport=dt_socket,suspend=n,server=y,address=localhost:59090"
+PROFILE_OPT_JMX="-verbosegc -XX:+PrintGCDetails -Dcom.sun.management.jmxremote"
 PROFILE_OPT="-agentpath:$PROFILE_AGENT=port=$PROFILE_PORT"
 
 ADDITIONAL_OPTS=
