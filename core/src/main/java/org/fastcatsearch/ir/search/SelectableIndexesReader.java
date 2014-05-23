@@ -42,7 +42,7 @@ public abstract class SelectableIndexesReader<T extends ReferencableIndexReader,
 			}
 			indexRef.add(fieldId, reader);
 
-			if (reader == null) {
+			if (reader == null && fieldId !=null) {
 				logger.error("색인된 필드를 찾지못함.>>{}", fieldId);
 			}
 		}
