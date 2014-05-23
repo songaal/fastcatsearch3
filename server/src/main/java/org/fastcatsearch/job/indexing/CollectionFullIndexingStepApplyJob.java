@@ -30,12 +30,14 @@ import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.util.Counter;
 import org.fastcatsearch.job.cluster.NodeCollectionReloadJob;
 import org.fastcatsearch.job.cluster.NodeDirectoryCleanJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
+import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.FilePaths;
 
 /**
@@ -144,11 +146,15 @@ public class CollectionFullIndexingStepApplyJob extends IndexingJob {
 					throw new IndexingStopException();
 				}
 				
+				//nodeList 에 자기자신과 마스터노드 (관리도구에 보여지기 위함) 추가
+				nodeList.add(nodeService.getMyNode());
+				nodeList.add(nodeService.getMaserNode());
+				
 				/*
 				 * 데이터노드에 컬렉션 리로드 요청.
 				 */
 				NodeCollectionReloadJob reloadJob = new NodeCollectionReloadJob(collectionContext);
-				nodeResultList = ClusterUtils.sendJobToNodeList(reloadJob, nodeService, nodeList, false);
+				nodeResultList = ClusterUtils.sendJobToNodeList(reloadJob, nodeService, nodeList, true);
 				for (int i = 0; i < nodeResultList.length; i++) {
 					NodeJobResult r = nodeResultList[i];
 					logger.debug("node#{} >> {}", i, r);
@@ -165,14 +171,12 @@ public class CollectionFullIndexingStepApplyJob extends IndexingJob {
 			}
 			
 			
-			///이미 build-index에서 리로드 했으므로 리로드 스킵. 
 			/*
 			 * 데이터노드가 리로드 완료되었으면 인덱스노드도 리로드 시작.
 			 * */
-//			indexingTaskState.setStep(IndexingTaskState.STEP_FINALIZE);
-//			
-//			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
-//			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
+			indexingTaskState.setStep(IndexingTaskState.STEP_FINALIZE);
+			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
+			///이미 build-index에서 리로드 했으므로 리로드 스킵. 
 //			Counter queryCounter = irService.queryCountModule().getQueryCounter(collectionId);
 //			collectionHandler.setQueryCounter(queryCounter);
 //			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);

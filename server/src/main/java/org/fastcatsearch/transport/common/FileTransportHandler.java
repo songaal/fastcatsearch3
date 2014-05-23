@@ -130,7 +130,10 @@ public class FileTransportHandler {
 		
 		public void doChecksumValidation() throws IOException{
 			//checksumCRC32
-			long actualChecksum = FileUtils.checksumCRC32(file);
+			long actualChecksum = 0;
+			if(checksumCRC32 != 0) {
+				actualChecksum = FileUtils.checksumCRC32(file);
+			}
 			if(actualChecksum != checksumCRC32){
 				throw new IOException("파일의 checksum이 일치하지 않습니다.expected="+checksumCRC32+", actual="+actualChecksum+", file="+filePath);
 			}else{

@@ -493,8 +493,12 @@ public class TransportModule extends AbstractModule {
         	if(!sourcefile.exists()){
         		throw new IOException("파일을 찾을수 없습니다.file = " + sourcefile.getAbsolutePath());
         	}
+        	boolean useChecksum = environment.settingManager().getSystemSettings().getBoolean("node.send_file_validate");
         	enumeration = new FileChunkEnumeration(sourcefile, sendFileChunkSize);
-	    	long checksumCRC32 = FileUtils.checksumCRC32(sourcefile);//checksum 생성은 시간이 조금 소요되는 작업. 3G => 10초.
+	    	long checksumCRC32 = 0;
+	    	if (useChecksum) {
+	    		checksumCRC32 = FileUtils.checksumCRC32(sourcefile);//checksum 생성은 시간이 조금 소요되는 작업. 3G => 10초.
+	    	}
 	        long fileSize = sourcefile.length();
 	        long writeSize = 0;
 	        String sourceFilePath = sourcefile.getAbsolutePath();

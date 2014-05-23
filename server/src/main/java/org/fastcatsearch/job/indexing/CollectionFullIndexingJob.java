@@ -202,11 +202,15 @@ public class CollectionFullIndexingJob extends IndexingJob {
 					throw new IndexingStopException();
 				}
 				
+				//nodeList 에 자기자신과 마스터노드 (관리도구에 보여지기 위함) 추가
+				nodeList.add(nodeService.getMyNode());
+				nodeList.add(nodeService.getMaserNode());
+				
 				/*
 				 * 데이터노드에 컬렉션 리로드 요청.
 				 */
 				NodeCollectionReloadJob reloadJob = new NodeCollectionReloadJob(collectionContext);
-				nodeResultList = ClusterUtils.sendJobToNodeList(reloadJob, nodeService, nodeList, false);
+				nodeResultList = ClusterUtils.sendJobToNodeList(reloadJob, nodeService, nodeList, true);
 				for (int i = 0; i < nodeResultList.length; i++) {
 					NodeJobResult r = nodeResultList[i];
 					logger.debug("node#{} >> {}", i, r);
