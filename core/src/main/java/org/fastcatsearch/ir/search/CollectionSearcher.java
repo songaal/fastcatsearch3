@@ -113,6 +113,7 @@ public class CollectionSearcher {
 	}
 
 	// id리스트에 해당하는 document자체를 읽어서 리스트로 리턴한다.
+	@Deprecated
 	public List<Document> requestDocument(int[] docIdList) throws IOException {
 		// eachDocList에 해당하는 문서리스트를 리턴한다.
 		List<Document> documentList = new ArrayList<Document>(docIdList.length);
@@ -145,29 +146,6 @@ public class CollectionSearcher {
 		return null;
 	}
 
-//	public Result search(Query q) throws IRException, IOException, SettingException {
-//		collectionHandler.queryCounter().incrementCount();
-//		
-//		InternalSearchResult internalSearchResult = searchInternal(q);
-//		DocIdList hitList = internalSearchResult.getDocIdList();
-//		
-//		
-//		int realSize = internalSearchResult.getCount();
-//		HighlightInfo highlightInfo = internalSearchResult.getHighlightInfo();
-//		DocumentResult documentResult = searchDocument(hitList, q.getViews(), q.getMeta().tags(), highlightInfo);
-//		int fieldSize = q.getViews().size();
-//		int totalSize = internalSearchResult.getTotalCount();
-//		int start = q.getMeta().start();
-//		//groups
-//		Groups groups =  q.getGroups();
-//		GroupResults groupResults = null; 
-//		if(groups != null){
-//			GroupsData groupsData = internalSearchResult.getGroupsData();
-//			groupResults = groups.getGroupResultsGenerator().generate(groupsData);
-//		}
-//		return new Result(documentResult.rows(), groupResults, documentResult.fieldIdList(), realSize, totalSize, start);
-//	}
-	
 	public InternalSearchResult searchInternal(Query q) throws IRException, IOException, SettingException {
 		return searchInternal(q, false, null);
 	}
@@ -326,16 +304,31 @@ public class CollectionSearcher {
 		}
 
 		Document[] eachDocList = new Document[realSize];
-
+		SegmentSearcher[] segmentSearcherList = new SegmentSearcher[5];
+		
 		int idx = 0;
 		for (int i = 0; i < list.size(); i++) {
 
 			int segmentSequence = list.segmentSequence(i);
 			int docNo = list.docNo(i);
+			
+			int size = segmentSearcherList.length;
+			if(i >= size){
+				while(i >= size){
+					size += 5;
+				}
+				SegmentSearcher[] newSegmentSearcherList = new SegmentSearcher[size];
+				System.arraycopy(segmentSearcherList, 0, newSegmentSearcherList, 0, segmentSearcherList.length);
+				segmentSearcherList = newSegmentSearcherList;
+			}
+			
+			if(segmentSearcherList[i] == null) {
+				segmentSearcherList[i] = collectionHandler.segmentReader(segmentSequence).segmentSearcher();
+			}
 			// 문서번호는 segmentSequence+docNo 에 유일하며, docNo만으로는 세그먼트끼리는 중복된다.
 //			logger.debug("FOUND [segment seq#{}] docNo={}", segmentSequence, docNo);
 
-			Document doc = collectionHandler.segmentReader(segmentSequence).segmentSearcher().getDocument(docNo, fieldSelectOption);
+			Document doc = segmentSearcherList[i].getDocument(docNo, fieldSelectOption);
 			eachDocList[idx++] = doc;
 		}
 //long a, b = 0, c = System.nanoTime();
