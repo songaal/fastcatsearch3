@@ -75,19 +75,17 @@ public class CopyApplyIndexDataJob extends Job implements Streamable {
 			
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			CollectionContext collectionContext = irService.collectionContext(collectionId);
+			FilePaths indexFilePaths = collectionContext.indexFilePaths();
+			File indexDir = indexFilePaths.file();
 			
-			
-			SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
-			if (segmentInfo != null) {
+//			SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
+//			if (segmentInfo != null) {
 				NodeJobResult[] nodeResultList = null;
-				String segmentId = segmentInfo.getId();
-				logger.debug("Transfer index data collection[{}] >> {}", collectionId, segmentInfo);
+//				String segmentId = segmentInfo.getId();
+				logger.debug("Transfer index data collection[{}] >> {}", collectionId, indexDir.getAbsolutePath());
 
-				FilePaths indexFilePaths = collectionContext.indexFilePaths();
-				File indexDir = indexFilePaths.file();
-				File segmentDir = indexFilePaths.file(segmentId);
 				// 색인된 Segment 파일전송.
-				TransferIndexFileMultiNodeJob transferJob = new TransferIndexFileMultiNodeJob(segmentDir, destNodeList);
+				TransferIndexFileMultiNodeJob transferJob = new TransferIndexFileMultiNodeJob(indexDir, destNodeList);
 				ResultFuture resultFuture = JobService.getInstance().offer(transferJob);
 				Object obj = resultFuture.take();
 				if(resultFuture.isSuccess() && obj != null){
@@ -122,7 +120,7 @@ public class CopyApplyIndexDataJob extends Job implements Streamable {
 						logger.warn("{} Collection reload Fail.", r.node());
 					}
 				}
-			}
+//			}
 			
 			
 		}else{
