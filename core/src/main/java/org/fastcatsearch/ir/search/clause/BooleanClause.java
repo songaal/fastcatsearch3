@@ -3,6 +3,7 @@ package org.fastcatsearch.ir.search.clause;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -221,29 +222,26 @@ public class BooleanClause extends OperatedClause {
 
 		//추가 확장 단어들.
 		if(additionalTermAttribute != null) {
-			List<String[]> additionalTerms = additionalTermAttribute.additionalTermsList();
+			Iterator<String> termIter = additionalTermAttribute.iterateAdditionalTerms();
 			OperatedClause additionalClause = null;
-			
-			if(additionalTerms != null) {
-				for(String[] str : additionalTerms) {
-					
-					CharVector localToken = new CharVector(str[0].toCharArray(), indexSetting.isIgnoreCase());
-					
-					int queryPosition = positionAttribute != null ? positionAttribute.getPositionIncrement() : 0;
-					SearchMethod searchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
-					PostingReader postingReader = searchMethod.search(indexId, localToken, queryPosition, weight);
-					OperatedClause clause = new TermOperatedClause(indexId, postingReader, termSequence++);
-					
-					if(additionalClause == null) {
-						additionalClause = clause;
-					} else {
-						additionalClause = new OrOperatedClause(additionalClause, clause);
-					}
-				}
+			while(termIter.hasNext()) {
 				
-				if(additionalClause != null) {
-					operatedClause = new OrOperatedClause(operatedClause, additionalClause);
+				CharVector localToken = new CharVector(termIter.next().toCharArray(), indexSetting.isIgnoreCase());
+				
+				int queryPosition = positionAttribute != null ? positionAttribute.getPositionIncrement() : 0;
+				SearchMethod searchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
+				PostingReader postingReader = searchMethod.search(indexId, localToken, queryPosition, weight);
+				OperatedClause clause = new TermOperatedClause(indexId, postingReader, termSequence++);
+				
+				if(additionalClause == null) {
+					additionalClause = clause;
+				} else {
+					additionalClause = new OrOperatedClause(additionalClause, clause);
 				}
+			}
+			
+			if(additionalClause != null) {
+				operatedClause = new OrOperatedClause(operatedClause, additionalClause);
 			}
 		}
 		if(logger.isDebugEnabled()) {

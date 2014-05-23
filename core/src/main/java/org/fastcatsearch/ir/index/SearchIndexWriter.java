@@ -233,11 +233,12 @@ public class SearchIndexWriter implements SingleIndexWriter {
 //					}
 //				}
 //			}
-		}
-		if(additionalTermAttribute!=null) {
-			for(String[] str : additionalTermAttribute.additionalTermsList()) {
-				CharVector token = new CharVector(str[0].toCharArray());
-				memoryPosting.add(token, docNo, lastPosition);
+			if(additionalTermAttribute!=null && additionalTermAttribute.size() > 0) {
+				Iterator<String> iter = additionalTermAttribute.iterateAdditionalTerms();
+				while(iter.hasNext()) {
+					CharVector token = new CharVector(iter.next().toCharArray());
+					memoryPosting.add(token, docNo, lastPosition);
+				}
 			}
 		}
 	}
