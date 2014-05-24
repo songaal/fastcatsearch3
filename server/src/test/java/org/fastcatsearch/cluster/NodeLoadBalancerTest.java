@@ -16,6 +16,49 @@ import org.junit.Test;
 public class NodeLoadBalancerTest {
 
 	@Test
+	public void testOne() {
+
+		NodeLoadBalancer nodeLoadBalancer = new NodeLoadBalancer();
+
+		List<Node> list = new ArrayList<Node>();
+		String id1 = "col1";
+		list.add(makeNode(0));
+		list.add(makeNode(1));
+		list.add(makeNode(2));
+		nodeLoadBalancer.update(id1, list);
+
+		List<Node> list2 = new ArrayList<Node>();
+		String id2 = "col2";
+		list2.add(makeNode(0));
+		list2.add(makeNode(1));
+		list2.add(makeNode(2));
+		nodeLoadBalancer.update(id2, list2);
+		
+		List<Node> list3 = new ArrayList<Node>();
+		String id3 = "col3";
+		list3.add(makeNode(0));
+		list3.add(makeNode(1));
+		list3.add(makeNode(2));
+		nodeLoadBalancer.update(id3, list3);
+
+		
+		Node node = null;
+		
+		node = nodeLoadBalancer.getBalancedNode(id1);
+		System.out.println("> "+ id1 + " > " + node);
+		node = nodeLoadBalancer.getBalancedNode(id2);
+		System.out.println("> "+ id2 + " > " + node);
+		node = nodeLoadBalancer.getBalancedNode(id3);
+		System.out.println("> "+ id3 + " > " + node);
+		node = nodeLoadBalancer.getBalancedNode(id1);
+		System.out.println("> "+ id1 + " > " + node);
+		node = nodeLoadBalancer.getBalancedNode(id2);
+		System.out.println("> "+ id2 + " > " + node);
+		node = nodeLoadBalancer.getBalancedNode(id3);
+		System.out.println("> "+ id3 + " > " + node);
+	}
+	
+	@Test
 	public void test() {
 
 		int COUNT = 100000;

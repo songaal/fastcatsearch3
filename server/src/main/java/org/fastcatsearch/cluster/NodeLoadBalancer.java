@@ -2,6 +2,7 @@ package org.fastcatsearch.cluster;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -36,8 +37,10 @@ public class NodeLoadBalancer {
 	 * round-robin방식으로 노드를 선택한다. node.isActive()를 확인하여 false일 경우 모든 노드를 확인해본다.
 	 * active한 노드가 없을 경우 null을 리턴한다.
 	 * */
+	Random r = new Random(System.currentTimeMillis());
 	public Node getBalancedNode(String id) {
-		long seq = rrSequence.getAndIncrement();
+//		long seq = rrSequence.getAndIncrement();
+		int seq = r.nextInt(1024);
 //		AtomicLong l = sequenceMap.get(id);
 		List<Node> list = map.get(id);
 //		if(l == null || list == null){
