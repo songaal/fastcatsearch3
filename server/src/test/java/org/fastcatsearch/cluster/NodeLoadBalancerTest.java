@@ -1,8 +1,11 @@
 package org.fastcatsearch.cluster;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
@@ -97,18 +100,22 @@ public class NodeLoadBalancerTest {
 		list6.add(makeNode(2));
 		nodeLoadBalancer.update(id6, list6);
 
-		int count = 1000;
-		Thread t1 = new TestThread("test-1", count, nodeLoadBalancer);
-		Thread t2 = new TestThread("test-2", count, nodeLoadBalancer);
-		Thread t3 = new TestThread("test-3", count, nodeLoadBalancer);
+		
+		Map<String, AtomicInteger[]> collectionHitMap = new ConcurrentHashMap<String, AtomicInteger[]>();
+		
+		
+		int count = 100000;
+		Thread t1 = new TestThread("test-1", count, nodeLoadBalancer, collectionHitMap);
+		Thread t2 = new TestThread("test-2", count, nodeLoadBalancer, collectionHitMap);
+		Thread t3 = new TestThread("test-3", count, nodeLoadBalancer, collectionHitMap);
 		t1.start();
 		t2.start();
 		t3.start();
 
 		try {
 			t1.join();
-//			t2.join();
-//			t3.join();
+			t2.join();
+			t3.join();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -116,21 +123,43 @@ public class NodeLoadBalancerTest {
 		for (int i = 0; i < totalHit.length; i++) {
 			System.out.println("Total node #" +i + " > hit=" + totalHit[i]);
 		}
+		
+		
+		for (int j = 0; j < 6; j++) {
+			String collectionId = "col" + j;
+			System.out.println("==== " + collectionId + " ====");
+			System.out.println(">> "+ collectionId);
+			AtomicInteger[] list = collectionHitMap.get(collectionId);
+			for(int k=0;k<list.length; k++) {
+				System.out.print(list[k].get() + ", ");
+			}
+			System.out.println();
+		}
 	}
 
 	class TestThread extends Thread {
 		String name;
 		int count;
 		NodeLoadBalancer nodeLoadBalancer;
-
-		public TestThread(String name, int count, NodeLoadBalancer nodeLoadBalancer) {
+		Map<String, AtomicInteger[]> collectionHitMap;
+		public TestThread(String name, int count, NodeLoadBalancer nodeLoadBalancer, Map<String, AtomicInteger[]> collectionHitMap) {
 			this.name = name;
 			this.count = count;
 			this.nodeLoadBalancer = nodeLoadBalancer;
+			this.collectionHitMap = collectionHitMap;
 		}
 
 		@Override
 		public void run() {
+			
+			//초기화.
+			for (int j = 0; j < 6; j++) {
+				String collectionId = "col" + j;
+				AtomicInteger[] totalHit = new AtomicInteger[]{ new AtomicInteger(), new AtomicInteger(), new AtomicInteger() };
+				collectionHitMap.put(collectionId, totalHit);
+			}
+			
+			
 			int[] hit = new int[] { 0, 0, 0 };
 			for (int i = 0; i < count; i++) {
 //				randomSleep();
@@ -138,12 +167,15 @@ public class NodeLoadBalancerTest {
 					System.out.println(name+" "+ i+".. ");
 				}
 				for (int j = 0; j < 6; j++) {
+					String collectionId = "col" + j;
 					Node selectedNode = nodeLoadBalancer.getBalancedNode("col" + j);
 					String idStr = selectedNode.id();
 					
 //					System.out.println("col" +j +" >> " + idStr);
-					String seq = idStr.substring(idStr.length() - 1, idStr.length());
-					hit[Integer.parseInt(seq)]++;
+					String seqStr = idStr.substring(idStr.length() - 1, idStr.length());
+					int seq = Integer.parseInt(seqStr);
+					hit[seq]++;
+					collectionHitMap.get(collectionId)[seq].incrementAndGet();
 				}
 			}
 
@@ -152,6 +184,8 @@ public class NodeLoadBalancerTest {
 				System.out.println("node #" +i + " > hit=" + hit[i]);
 				totalHit[i].addAndGet(hit[i]);
 			}
+			
+			
 		}
 	}
 
