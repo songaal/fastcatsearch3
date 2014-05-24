@@ -100,8 +100,13 @@ public class NodeLoadBalancerTest {
 		list6.add(makeNode(2));
 		nodeLoadBalancer.update(id6, list6);
 
-		
+		//초기화.
 		Map<String, AtomicInteger[]> collectionHitMap = new ConcurrentHashMap<String, AtomicInteger[]>();
+		for (int j = 0; j < 6; j++) {
+			String collectionId = "col" + j;
+			AtomicInteger[] totalHit = new AtomicInteger[]{ new AtomicInteger(), new AtomicInteger(), new AtomicInteger() };
+			collectionHitMap.put(collectionId, totalHit);
+		}
 		
 		
 		int count = 100000;
@@ -151,13 +156,6 @@ public class NodeLoadBalancerTest {
 
 		@Override
 		public void run() {
-			
-			//초기화.
-			for (int j = 0; j < 6; j++) {
-				String collectionId = "col" + j;
-				AtomicInteger[] totalHit = new AtomicInteger[]{ new AtomicInteger(), new AtomicInteger(), new AtomicInteger() };
-				collectionHitMap.put(collectionId, totalHit);
-			}
 			
 			
 			int[] hit = new int[] { 0, 0, 0 };
