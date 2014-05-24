@@ -325,10 +325,13 @@ public class CollectionSearcher {
 			if(segmentSearcherList[i] == null) {
 				segmentSearcherList[i] = collectionHandler.segmentReader(segmentSequence).segmentSearcher();
 			}
+			Document doc = segmentSearcherList[i].getDocument(docNo, fieldSelectOption);
+			
+//			Document doc = collectionHandler.segmentReader(segmentSequence).segmentSearcher().getDocument(docNo, fieldSelectOption);
+			
 			// 문서번호는 segmentSequence+docNo 에 유일하며, docNo만으로는 세그먼트끼리는 중복된다.
 //			logger.debug("FOUND [segment seq#{}] docNo={}", segmentSequence, docNo);
 
-			Document doc = segmentSearcherList[i].getDocument(docNo, fieldSelectOption);
 			eachDocList[idx++] = doc;
 		}
 //long a, b = 0, c = System.nanoTime();
