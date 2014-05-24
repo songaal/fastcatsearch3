@@ -161,9 +161,9 @@ public class NodeLoadBalancerTest {
 			int[] hit = new int[] { 0, 0, 0 };
 			for (int i = 0; i < count; i++) {
 //				randomSleep();
-				if(i % 100 == 0){
-					System.out.println(name+" "+ i+".. ");
-				}
+//				if(i % 100 == 0){
+//					System.out.println(name+" "+ i+".. ");
+//				}
 				for (int j = 0; j < 6; j++) {
 					String collectionId = "col" + j;
 					Node selectedNode = nodeLoadBalancer.getBalancedNode("col" + j);
