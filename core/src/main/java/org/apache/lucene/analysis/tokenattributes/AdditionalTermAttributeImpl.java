@@ -22,6 +22,7 @@ public class AdditionalTermAttributeImpl extends AttributeImpl implements
 	private OffsetAttribute offsetAttribute;
 	private TypeAttribute typeAttribute;
 	private SynonymAttribute synonymAttribute;
+	private int subLength;
 	
 	@Override
 	public void init(TokenStream tokenStream) {
@@ -74,18 +75,20 @@ public class AdditionalTermAttributeImpl extends AttributeImpl implements
 			@SuppressWarnings("rawtypes")
 			List synonyms = this.synonyms;
 			int[] offset = offsets.get(inx);
-			t.addAdditionalTerm(term, type, synonyms, offset[0], offset[1]);
+			int subLength = this.subLength;
+			t.addAdditionalTerm(term, type, synonyms, subLength, offset[0], offset[1]);
 		}
 	}
 	
 	@Override
 	public void addAdditionalTerm(String additionalTerm, String type,
-			@SuppressWarnings("rawtypes") List synonyms, int start, int end) {
+			@SuppressWarnings("rawtypes") List synonyms, int subLength, int start, int end) {
 		logger.trace("add additional {}", additionalTerm);
 		this.additionalTerms.add(additionalTerm);
 		this.types.add(type);
 		this.synonyms = synonyms;
 		this.offsets.add(new int[] { start, end } );
+		this.subLength = subLength;
 	}
 
 	@Override
@@ -124,5 +127,10 @@ public class AdditionalTermAttributeImpl extends AttributeImpl implements
 	@Override
 	public int size() {
 		return additionalTerms.size();
+	}
+
+	@Override
+	public int subSize() {
+		return subLength;
 	}
 }

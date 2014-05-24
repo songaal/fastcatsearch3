@@ -3,6 +3,7 @@ package org.fastcatsearch.ir.search.clause;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -115,6 +116,9 @@ public class BooleanClause extends OperatedClause {
 
 		CharVector token = null;
 		int termSequence = 0;
+		
+		List<OperatedClause> andClauseStack = new ArrayList<OperatedClause>();
+		
 		while (tokenStream.incrementToken()) {
 
 			//요청 타입이 존재할때 타입이 다르면 단어무시.
@@ -162,93 +166,120 @@ public class BooleanClause extends OperatedClause {
 			// 있으면 그대로 색인하고 유사어가 없으면 색인되지 않는다.
 			//
 			//isSynonym 일 경우 다시한번 유사어확장을 하지 않는다.
-				if(synonymAttribute != null) {
-					List<Object> synonymObj = synonymAttribute.getSynonyms();
-					if(synonymObj != null) {
-						OperatedClause synonymClause = null;
-						for(Object obj : synonymObj) {
-							if(obj instanceof CharVector) {
-								CharVector localToken = (CharVector)obj;
+			if(synonymAttribute != null) {
+				List<Object> synonymObj = synonymAttribute.getSynonyms();
+				if(synonymObj != null) {
+					OperatedClause synonymClause = null;
+					for(Object obj : synonymObj) {
+						if(obj instanceof CharVector) {
+							CharVector localToken = (CharVector)obj;
+							localToken.setIgnoreCase();
+							SearchMethod localSearchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
+							PostingReader localPostingReader = localSearchMethod.search(indexId, localToken, queryPosition, weight);
+							OperatedClause localClause = new TermOperatedClause(indexId, localPostingReader, termSequence++);
+							
+							if(synonymClause == null) {
+								synonymClause = localClause;
+							} else {
+								synonymClause = new OrOperatedClause(synonymClause, localClause);
+							}
+							
+						} else if(obj instanceof List) {
+							@SuppressWarnings("unchecked")
+							List<CharVector>synonyms = (List<CharVector>)obj; 
+							OperatedClause extractedClause = null;
+							for(CharVector localToken : synonyms) {
 								localToken.setIgnoreCase();
 								SearchMethod localSearchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
 								PostingReader localPostingReader = localSearchMethod.search(indexId, localToken, queryPosition, weight);
 								OperatedClause localClause = new TermOperatedClause(indexId, localPostingReader, termSequence++);
 								
-								if(synonymClause == null) {
-									synonymClause = localClause;
+								if(extractedClause == null) {
+									extractedClause = localClause;
 								} else {
-									synonymClause = new OrOperatedClause(synonymClause, localClause);
-								}
-								
-							} else if(obj instanceof List) {
-								@SuppressWarnings("unchecked")
-								List<CharVector>synonyms = (List<CharVector>)obj; 
-								OperatedClause extractedClause = null;
-								for(CharVector localToken : synonyms) {
-									localToken.setIgnoreCase();
-									SearchMethod localSearchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
-									PostingReader localPostingReader = localSearchMethod.search(indexId, localToken, queryPosition, weight);
-									OperatedClause localClause = new TermOperatedClause(indexId, localPostingReader, termSequence++);
-									
-									if(extractedClause == null) {
-										extractedClause = localClause;
-									} else {
-										extractedClause = new AndOperatedClause(extractedClause, localClause);
-									}
-								}
-								if(synonymClause == null) {
-									synonymClause = extractedClause;
-								} else {
-									synonymClause = new OrOperatedClause(synonymClause, extractedClause);
+									extractedClause = new AndOperatedClause(extractedClause, localClause);
 								}
 							}
-						}
-						
-						if(synonymClause != null) {
-							clause = new OrOperatedClause(clause, synonymClause);
+							if(synonymClause == null) {
+								synonymClause = extractedClause;
+							} else {
+								synonymClause = new OrOperatedClause(synonymClause, extractedClause);
+							}
 						}
 					}
+					
+					if(synonymClause != null) {
+						clause = new OrOperatedClause(clause, synonymClause);
+					}
 				}
+			}
 			if (operatedClause == null) {
 				operatedClause = clause;
 			} else {
 				if(type == Type.ALL){
+					andClauseStack.add(operatedClause);
+					andClauseStack.add(clause);
 					operatedClause = new AndOperatedClause(operatedClause, clause);
 				}else if(type == Type.ANY){
+					andClauseStack.clear();
 					operatedClause = new OrOperatedClause(operatedClause, clause);
 				}
 			}
+			
+			//추가 확장 단어들.
+			if(additionalTermAttribute != null) {
+				Iterator<String> termIter = additionalTermAttribute.iterateAdditionalTerms();
+				OperatedClause additionalClause = null;
+				while(termIter.hasNext()) {
+					
+					CharVector localToken = new CharVector(termIter.next().toCharArray(), indexSetting.isIgnoreCase());
+					
+					queryPosition = positionAttribute != null ? positionAttribute.getPositionIncrement() : 0;
+					searchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
+					postingReader = searchMethod.search(indexId, localToken, queryPosition, weight);
+					clause = new TermOperatedClause(indexId, postingReader, termSequence++);
+					
+					if(additionalClause == null) {
+						additionalClause = clause;
+					} else {
+						additionalClause = new OrOperatedClause(additionalClause, clause);
+					}
+				}
+//logger.debug("--------------------------------------------------------------------------------");
+//logger.debug("additional:{}", additionalTermAttribute.subSize());
+				
+				if(additionalClause != null) {
+					if(additionalTermAttribute.subSize() > 0) {
+						//추가텀이 가진 서브텀의 갯수만큼 거슬러 올라가야 한다.
+//logger.debug("andClause:{}", andClauseStack);
+						for(int inx=0;inx<additionalTermAttribute.subSize(); inx++) {
+							if(andClauseStack.size() > 2) {
+								OperatedClause clause1 = andClauseStack.remove(andClauseStack.size()-1);
+								andClauseStack.remove(andClauseStack.size()-1);//묶인것은 버린다.
+								OperatedClause clause2 = andClauseStack.remove(andClauseStack.size()-1);
+								andClauseStack.add(new AndOperatedClause(clause1, clause2));
+							}
+						}
+						if(andClauseStack.size() > 1) {
+							OperatedClause clause1 = andClauseStack.remove(andClauseStack.size()-1);
+							OperatedClause clause2 = andClauseStack.remove(andClauseStack.size()-1);
+							
+							clause1 = new OrOperatedClause(clause1, additionalClause);
+							operatedClause = new AndOperatedClause(clause2, clause1);
+						}
+					} else {
+						operatedClause = new OrOperatedClause(operatedClause, additionalClause);
+					}
+				}
+				andClauseStack.clear();
+			}
 		}
 
-		//추가 확장 단어들.
-		if(additionalTermAttribute != null) {
-			Iterator<String> termIter = additionalTermAttribute.iterateAdditionalTerms();
-			OperatedClause additionalClause = null;
-			while(termIter.hasNext()) {
-				
-				CharVector localToken = new CharVector(termIter.next().toCharArray(), indexSetting.isIgnoreCase());
-				
-				int queryPosition = positionAttribute != null ? positionAttribute.getPositionIncrement() : 0;
-				SearchMethod searchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
-				PostingReader postingReader = searchMethod.search(indexId, localToken, queryPosition, weight);
-				OperatedClause clause = new TermOperatedClause(indexId, postingReader, termSequence++);
-				
-				if(additionalClause == null) {
-					additionalClause = clause;
-				} else {
-					additionalClause = new OrOperatedClause(additionalClause, clause);
-				}
-			}
-			
-			if(additionalClause != null) {
-				operatedClause = new OrOperatedClause(operatedClause, additionalClause);
-			}
-		}
-		if(logger.isDebugEnabled()) {
+		if(logger.isDebugEnabled() && operatedClause!=null) {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			PrintStream traceStream = new PrintStream(baos);
 			operatedClause.printTrace(traceStream, 0);
-			logger.debug("OperatedClause stack >> \n{}", baos.toString());
+//			logger.debug("OperatedClause stack >> \n{}", baos.toString());
 		}
 		return operatedClause;
 	}
