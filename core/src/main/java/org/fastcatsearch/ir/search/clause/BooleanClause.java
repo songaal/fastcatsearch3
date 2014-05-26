@@ -3,7 +3,6 @@ package org.fastcatsearch.ir.search.clause;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -117,8 +116,6 @@ public class BooleanClause extends OperatedClause {
 		CharVector token = null;
 		int termSequence = 0;
 		
-		List<OperatedClause> andClauseStack = new ArrayList<OperatedClause>();
-		
 		while (tokenStream.incrementToken()) {
 
 			//요청 타입이 존재할때 타입이 다르면 단어무시.
@@ -217,11 +214,8 @@ public class BooleanClause extends OperatedClause {
 				operatedClause = clause;
 			} else {
 				if(type == Type.ALL){
-					andClauseStack.add(operatedClause);
-					andClauseStack.add(clause);
 					operatedClause = new AndOperatedClause(operatedClause, clause);
 				}else if(type == Type.ANY){
-					andClauseStack.clear();
 					operatedClause = new OrOperatedClause(operatedClause, clause);
 				}
 			}
@@ -245,41 +239,47 @@ public class BooleanClause extends OperatedClause {
 						additionalClause = new OrOperatedClause(additionalClause, clause);
 					}
 				}
-//logger.debug("--------------------------------------------------------------------------------");
-//logger.debug("additional:{}", additionalTermAttribute.subSize());
 				
 				if(additionalClause != null) {
-					if(additionalTermAttribute.subSize() > 0) {
+					int subSize = additionalTermAttribute.subSize();
+					if( subSize > 0) {
 						//추가텀이 가진 서브텀의 갯수만큼 거슬러 올라가야 한다.
-//logger.debug("andClause:{}", andClauseStack);
-						for(int inx=0;inx<additionalTermAttribute.subSize(); inx++) {
-							if(andClauseStack.size() > 2) {
-								OperatedClause clause1 = andClauseStack.remove(andClauseStack.size()-1);
-								andClauseStack.remove(andClauseStack.size()-1);//묶인것은 버린다.
-								OperatedClause clause2 = andClauseStack.remove(andClauseStack.size()-1);
-								andClauseStack.add(new AndOperatedClause(clause1, clause2));
+						for(int inx=0;inx<subSize; inx++) {
+							OperatedClause[] subClause = operatedClause.children();
+							
+							if(subClause!=null && subClause.length == 2 && 
+									operatedClause instanceof AndOperatedClause ) {
+								OperatedClause clause1 = subClause[0]; //
+								OperatedClause clause2 = subClause[1];
+								if(clause1 instanceof AndOperatedClause) {
+									OperatedClause[] subClause2 = clause1.children();
+									OperatedClause clause3 = subClause2[0]; //
+									OperatedClause clause4 = subClause2[1];
+									operatedClause = new AndOperatedClause(
+											clause3, new AndOperatedClause(clause4, clause2));
+								}
 							}
 						}
-						if(andClauseStack.size() > 1) {
-							OperatedClause clause1 = andClauseStack.remove(andClauseStack.size()-1);
-							OperatedClause clause2 = andClauseStack.remove(andClauseStack.size()-1);
-							
-							clause1 = new OrOperatedClause(clause1, additionalClause);
-							operatedClause = new AndOperatedClause(clause2, clause1);
+						
+						if(operatedClause instanceof AndOperatedClause) {
+							OperatedClause[] subClause = operatedClause.children();
+							OperatedClause clause1 = subClause[0];
+							OperatedClause clause2 = subClause[1];
+							clause2 = new OrOperatedClause(clause2, additionalClause);
+							operatedClause = new AndOperatedClause(clause1, clause2);
 						}
 					} else {
 						operatedClause = new OrOperatedClause(operatedClause, additionalClause);
 					}
 				}
-				andClauseStack.clear();
 			}
 		}
-
-		if(logger.isDebugEnabled() && operatedClause!=null) {
+		
+		if(logger.isTraceEnabled() && operatedClause!=null) {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			PrintStream traceStream = new PrintStream(baos);
 			operatedClause.printTrace(traceStream, 0);
-//			logger.debug("OperatedClause stack >> \n{}", baos.toString());
+			logger.trace("OperatedClause stack >> \n{}", baos.toString());
 		}
 		return operatedClause;
 	}

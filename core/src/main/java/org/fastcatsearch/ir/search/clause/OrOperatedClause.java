@@ -104,6 +104,14 @@ public class OrOperatedClause extends OperatedClause {
 		hasNext1 = clause1.next(docInfo1);
 		hasNext2 = clause2.next(docInfo2);
 	}
+	
+	@Override
+	public OperatedClause[] children() {
+		return new OperatedClause[] {
+			clause1,
+			clause2
+		};
+	}
 
 	@Override
 	public void printTrace(PrintStream os, int depth) {
