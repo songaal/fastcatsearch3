@@ -97,7 +97,7 @@ public class AdditionalTermAttributeImpl extends AttributeImpl implements
 
 			@Override
 			public boolean hasNext() {
-				return additionalTerms.size() > 0;
+				return additionalTerms != null && additionalTerms.size() > 0;
 			}
 
 			@Override
