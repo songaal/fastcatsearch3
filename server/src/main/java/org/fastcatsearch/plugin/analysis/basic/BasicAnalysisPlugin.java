@@ -8,6 +8,7 @@ import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.fastcatsearch.ir.analysis.DefaultAnalyzerFactory;
+import org.fastcatsearch.ir.analysis.NGramWordAnalyzer;
 import org.fastcatsearch.ir.analysis.PrimaryWordAnalyzer;
 import org.fastcatsearch.ir.dic.Dictionary;
 import org.fastcatsearch.ir.dic.PreResult;
@@ -30,6 +31,8 @@ public class BasicAnalysisPlugin extends AnalysisPlugin<CharVector, PreResult<Ch
 		registerAnalyzer(analyzerFactoryMap, "keyword", "Keyword Analyzer", new DefaultAnalyzerFactory(KeywordAnalyzer.class));
 		//lucene StandardAnalyzer
 		registerAnalyzer(analyzerFactoryMap, "standard", "Standard Analyzer", new DefaultAnalyzerFactory(StandardAnalyzer.class));
+		
+		registerAnalyzer(analyzerFactoryMap, "ngram", "NGram Analyzer", new DefaultAnalyzerFactory(NGramWordAnalyzer.class));
 		
 		registerAnalyzer(analyzerFactoryMap, "primary", "Primary Word Analyzer", new DefaultAnalyzerFactory(PrimaryWordAnalyzer.class));
 		
