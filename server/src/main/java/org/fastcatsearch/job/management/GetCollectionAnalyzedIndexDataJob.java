@@ -232,14 +232,17 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 				try{
 					TokenStream tokenStream = analyzer.tokenStream(fieldId, new StringReader(data), indexingAnalyzerOption);
 					tokenStream.reset();
-					CharTermAttribute termAttribute = tokenStream.getAttribute(CharTermAttribute.class);
 					CharsRefTermAttribute refTermAttribute = null;
 					PositionIncrementAttribute positionAttribute = null;
+					CharTermAttribute termAttribute = null;
 					if(tokenStream.hasAttribute(CharsRefTermAttribute.class)){
 						refTermAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
 					}
 					if (tokenStream.hasAttribute(PositionIncrementAttribute.class)) {
 						positionAttribute = tokenStream.getAttribute(PositionIncrementAttribute.class);
+					}
+					if (tokenStream.hasAttribute(CharTermAttribute.class)) {
+						termAttribute = tokenStream.getAttribute(CharTermAttribute.class);
 					}
 					
 					while(tokenStream.incrementToken()){

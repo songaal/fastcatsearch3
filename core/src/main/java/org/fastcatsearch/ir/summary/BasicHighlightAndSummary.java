@@ -92,24 +92,27 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		tokenStream = queryAnalyzer.tokenStream(fieldId, new StringReader(query), queryAnalyzerOption);
 		
 		CharsRefTermAttribute termAttribute = null;
+		CharTermAttribute charTermAttribute = null;
 		if(tokenStream.hasAttribute(CharsRefTermAttribute.class)){
 			termAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
 		}
+		if(tokenStream.hasAttribute(CharTermAttribute.class)) {
+			charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
+		}
 		
 		FeatureAttribute featureAttribute = null;
+		StopwordAttribute stopwordAttribute = null;
+		OffsetAttribute offsetAttribute = null;
 		
 		if(tokenStream.hasAttribute(FeatureAttribute.class)) {
 			featureAttribute = tokenStream.getAttribute(FeatureAttribute.class);
 		}
-		
-		StopwordAttribute stopwordAttribute = null;
 		if(tokenStream.hasAttribute(StopwordAttribute.class)) {
 			stopwordAttribute = tokenStream.getAttribute(StopwordAttribute.class);
 		}
-		
-		CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
-		OffsetAttribute offsetAttribute = tokenStream.getAttribute(OffsetAttribute.class);
-		
+		if(tokenStream.hasAttribute(OffsetAttribute.class)) {
+			offsetAttribute = tokenStream.getAttribute(OffsetAttribute.class);
+		}
 		tokenStream.reset();
 		
 		String prevTermString = null;
@@ -122,7 +125,10 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 				}
 			}
 			
-			String termString = new String(charTermAttribute.buffer(), 0, charTermAttribute.length());
+			String termString = null;
+			if(charTermAttribute != null) {
+				termString = new String(charTermAttribute.buffer(), 0, charTermAttribute.length());
+			}
 			
 			if (termString == null || "".equals(termString)
 					&& termAttribute != null) {
@@ -263,8 +269,12 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		public WrappedTokenStream(TokenStream tokenStream, String pText) {
 			this.pText = pText;
 			this.tokenStream = tokenStream;
-			offsetAttribute = tokenStream.getAttribute(OffsetAttribute.class);
-			charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
+			if(tokenStream.hasAttribute(CharTermAttribute.class)) {
+				charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
+			}
+			if(tokenStream.hasAttribute(OffsetAttribute.class)) {
+				offsetAttribute = tokenStream.getAttribute(OffsetAttribute.class);
+			}
 			if(tokenStream.hasAttribute(CharsRefTermAttribute.class)) {
 				charsRefTermAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
 			}
@@ -281,6 +291,11 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		public void close() throws IOException { tokenStream.close(); }
 		@Override
 		public boolean incrementToken() throws IOException {
+			//CharTermAttribute나 offsetAttribute가 제공안되면 하이라이팅 불가. 
+			if(offsetAttribute == null || charTermAttribute == null) {
+				return false;
+			}
+			
 			boolean ret = tokenStream.incrementToken();
 	
 			char[] buffer;

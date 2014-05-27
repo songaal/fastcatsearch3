@@ -182,6 +182,7 @@ public class SearchIndexWriter implements SingleIndexWriter {
 		PositionIncrementAttribute positionAttribute = null;
 		StopwordAttribute stopwordAttribute = null;
 		AdditionalTermAttribute additionalTermAttribute = null;
+		CharTermAttribute charTermAttribute = null;
 		//색인시는 유사어확장을 하지 않는다.
 		
 		if (tokenStream.hasAttribute(CharsRefTermAttribute.class)) {
@@ -198,8 +199,9 @@ public class SearchIndexWriter implements SingleIndexWriter {
 		if (tokenStream.hasAttribute(StopwordAttribute.class)) {
 			stopwordAttribute = tokenStream.getAttribute(StopwordAttribute.class);
 		}
-		
-		CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
+		if (tokenStream.hasAttribute(CharTermAttribute.class)) {
+			charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
+		}
 		
 		int lastPosition = 0;
 	
