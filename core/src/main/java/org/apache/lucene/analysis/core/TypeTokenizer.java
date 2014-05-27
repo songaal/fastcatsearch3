@@ -40,7 +40,7 @@ public class TypeTokenizer extends Tokenizer {
 	private final TypeAttribute typeAttribute = addAttribute(TypeAttribute.class);
 	private int positionIncrement;
 	// note: bufferIndex is -1 here to best-effort AIOOBE consumers that don't call reset()
-	private int offset = 0, bufferIndex = -1, dataLen = 0, finalOffset = 0;
+	private int offset, bufferIndex, dataLen, finalOffset;
 	private static final int MAX_WORD_LEN = 255;
 	private static final int IO_BUFFER_SIZE = 4096;
 
@@ -205,7 +205,6 @@ public class TypeTokenizer extends Tokenizer {
 				bufferIndex = 0;
 			}
 			// use CharacterUtils here to support < 3.1 UTF-16 code unit behavior if the char based methods are gone
-			
 			int c = -1;
 			String type = null;
 			if(nextChar == -1){
@@ -305,7 +304,8 @@ public class TypeTokenizer extends Tokenizer {
 	}
 
 	@Override
-	public void reset() throws IOException {
+	 public void setReader(Reader input) throws IOException {
+		super.setReader(input);
 		positionIncrement = 0;
 		bufferIndex = 0;
 		offset = 0;

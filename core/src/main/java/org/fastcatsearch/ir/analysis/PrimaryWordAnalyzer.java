@@ -26,11 +26,11 @@ public class PrimaryWordAnalyzer extends Analyzer {
 	protected TokenStreamComponents createComponents(String fieldName, Reader reader) {
 
 		final TypeTokenizer tokenizer = new TypeTokenizer(reader);
-		try {
-			tokenizer.reset();
-		} catch (IOException e) {
-			logger.error("tokenizer reset error", e);
-		}
+//		try {
+//			tokenizer.reset();
+//		} catch (IOException e) {
+//			logger.error("tokenizer reset error", e);
+//		}
 		// 분리된 어절을 하나씩 처리한다.
 
 		final CharTermAttribute charTermAttribute = tokenizer.getAttribute(CharTermAttribute.class);

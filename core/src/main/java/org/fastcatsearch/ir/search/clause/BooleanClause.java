@@ -29,6 +29,7 @@ import org.fastcatsearch.ir.search.method.NormalSearchMethod;
 import org.fastcatsearch.ir.search.method.SearchMethod;
 import org.fastcatsearch.ir.settings.IndexRefSetting;
 import org.fastcatsearch.ir.settings.IndexSetting;
+import org.fastcatsearch.util.CallStackTraceUtil;
 
 public class BooleanClause extends OperatedClause {
 
@@ -87,9 +88,7 @@ public class BooleanClause extends OperatedClause {
 		SynonymAttribute synonymAttribute = null;
 		
 		TokenStream tokenStream = analyzer.tokenStream(indexId, fullTerm.getReader(), analyzerOption);
-		tokenStream.reset();
-
-		CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
+//		tokenStream.reset();
 		
 		if (tokenStream.hasAttribute(CharsRefTermAttribute.class)) {
 			refTermAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
@@ -146,10 +145,10 @@ public class BooleanClause extends OperatedClause {
 					token = new CharVector(termAttribute.buffer(), indexSetting.isIgnoreCase());
 				}
 			} else {
-				token = new CharVector(charTermAttribute.buffer(), 0, charTermAttribute.length(), indexSetting.isIgnoreCase());
+				token = new CharVector(termAttribute.buffer(), 0, termAttribute.length(), indexSetting.isIgnoreCase());
 			}
 			
-			logger.debug("token > {}, isIgnoreCase = {}", token, token.isIgnoreCase());
+			logger.debug("token > {}, isIgnoreCase = {} analyzer= {}", token, token.isIgnoreCase(), analyzer.getClass().getSimpleName());
 			int queryPosition = positionAttribute != null ? positionAttribute.getPositionIncrement() : 0;
 //			logger.debug("token = {} : {}", token, queryPosition);
 
