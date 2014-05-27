@@ -2,6 +2,7 @@ package org.fastcatsearch.job.search;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
@@ -24,6 +25,8 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableGroupsData;
 
 public class ClusterGroupSearchJob extends Job {
+
+	private static final long serialVersionUID = -1051204900646595240L;
 
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
@@ -59,10 +62,10 @@ public class ClusterGroupSearchJob extends Job {
 		String collectionId = q.getMeta().collectionId();
 		Groups groups = q.getGroups();
 		
-		//TODO collectionId가 collectionGroup명인지 확인하여 그룹이면 여러컬렉션 검
-		String[] collectionIdList = new String[]{ collectionId };
-		
-		CollectionContext collectionContext = irService.collectionContext(collectionId);
+		String[] collectionIdList = collectionId.split(",");
+		if(collectionIdList.length > 1) {
+			shuffleCollectionList(collectionIdList);
+		}
 		
 		ResultFuture[] resultFutureList = new ResultFuture[collectionIdList.length];
 		
@@ -111,5 +114,16 @@ public class ClusterGroupSearchJob extends Job {
 		logger.debug("ClusterGroupSearchJob 수행시간 : {}", Strings.getHumanReadableTimeInterval(System.currentTimeMillis() - st));
 		return new JobResult(groupResults);
 	}
-
+	
+	// Fisher-Yates shuffle
+	Random random = new Random(System.nanoTime());
+	private void shuffleCollectionList(String[] collectionId) {
+		for (int i = collectionId.length - 1; i > 0; i--) {
+			int index = random.nextInt(i + 1);
+			// Simple swap
+			String t = collectionId[index];
+			collectionId[index] = collectionId[i];
+			collectionId[i] = t;
+		}
+	}
 }

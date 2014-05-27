@@ -22,6 +22,7 @@ import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.Job;
+import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
@@ -29,14 +30,15 @@ import org.fastcatsearch.service.ServiceManager;
 
 public class GroupSearchJob extends Job {
 	
+	private static final long serialVersionUID = 3171817565336360699L;
+
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
-		String[] args = getStringArrayArgs();
-		String queryString = args[0];
+		QueryMap queryMap = (QueryMap) getArgs();
 		
 		Query q = null;
 		try {
-			q = QueryParser.getInstance().parseQuery(queryString);
+			q = QueryParser.getInstance().parseQuery(queryMap);
 		} catch (QueryParseException e) {
 			throw new FastcatSearchException("[Query Parsing Error] "+e.getMessage());
 		}
@@ -57,7 +59,7 @@ public class GroupSearchJob extends Job {
 			}
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			if(!noCache)
-				groupResults = irService.groupingCache().get(queryString);
+				groupResults = irService.groupingCache().get(queryMap.queryString());
 			
 			//Not Exist in Cache
 			if(groupResults == null){
@@ -67,15 +69,11 @@ public class GroupSearchJob extends Job {
 					throw new FastcatSearchException("ERR-00520", collection);
 				}
 				
-				
-				
-				//FIXME
-				GroupsData groupData = null;//collectionHandler.searcher().doGrouping(q);
+				GroupsData groupData = collectionHandler.searcher().doGrouping(q);
 				Groups groups =q.getGroups();
 				groupResults = groups.getGroupResultsGenerator().generate(groupData);
 				if(groupResults != null){
-					irService.groupingCache().put(queryString, groupResults);
-					logger.debug("CACHE_PUT result>>{}, qr >>{}", groupResults, queryString);
+					irService.groupingCache().put(queryMap.queryString(), groupResults);
 				}
 			}
 			
