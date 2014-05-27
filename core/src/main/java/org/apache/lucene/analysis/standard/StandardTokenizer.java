@@ -138,9 +138,17 @@ public final class StandardTokenizer extends Tokenizer {
 
 	private final void init() {
 		// best effort NPE if you dont call reset
-		this.scanner = new StandardTokenizerImpl(null);
+		this.scanner = new StandardTokenizerImpl(input);
+		
+//		scanner.yyreset(input);
 	}
-
+	
+	@Override
+	public void setReader(Reader input) throws IOException {
+		super.setReader(input);
+		scanner.yyreset(input);
+	}
+	
 	// this tokenizer generates three attributes:
 	// term offset, positionIncrement and type
 	private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
