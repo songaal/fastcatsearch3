@@ -116,6 +116,14 @@ public class AndOperatedClause extends OperatedClause {
 			clause2.printTrace(os, depth + 1);
 		}
 	}
+	
+	@Override
+	public OperatedClause[] children() {
+		return new OperatedClause[] { 
+			clause1,
+			clause2
+		};
+	}
 
 //	@Override
 //	protected void initExplanation() {

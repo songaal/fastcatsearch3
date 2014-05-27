@@ -109,5 +109,9 @@ public abstract class OperatedClause {
 		return null;
 	}
 	
+	public OperatedClause[] children() {
+		return null;
+	}
+	
 	abstract public void printTrace(PrintStream os, int depth);
 }
