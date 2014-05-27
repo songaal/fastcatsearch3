@@ -297,17 +297,16 @@ public class ClusterSearchJob extends Job {
 	}
 
 	// Fisher-Yates shuffle
-	Random random = new Random(System.currentTimeMillis());
+	Random random = new Random(System.nanoTime());
 	private void shuffleCollectionList(String[] collectionId) {
-	    for (int i = collectionId.length - 1; i > 0; i--)
-	    {
-	      int index = random.nextInt(i + 1);
-	      // Simple swap
-	      String t = collectionId[index];
-	      collectionId[index] = collectionId[i];
-	      collectionId[i] = t;
-	    }
-	  }
+		for (int i = collectionId.length - 1; i > 0; i--) {
+			int index = random.nextInt(i + 1);
+			// Simple swap
+			String t = collectionId[index];
+			collectionId[index] = collectionId[i];
+			collectionId[i] = t;
+		}
+	}
 	
 	private static String LOG_DELIMITER = "\t";
 	private static String CACHE = "[cache]";
