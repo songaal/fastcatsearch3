@@ -10,13 +10,12 @@ public interface AdditionalTermAttribute extends Attribute {
 	
 	public void init(TokenStream tokenStream);
 	
-	void addAdditionalTerm(String additionalTerm, String type,
+	public void addAdditionalTerm(String additionalTerm, String type,
 			@SuppressWarnings("rawtypes") List synonyms, int subSize, int start, int end);
 	
-	int subSize();
+	public int subSize();
 	
-	int size();
+	public int size();
 
-	Iterator<String> iterateAdditionalTerms();
-
+	public Iterator<String> iterateAdditionalTerms();
 }
