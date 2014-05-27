@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
@@ -102,10 +103,11 @@ public class ClusterSearchJob extends Job {
 
 			Groups groups = q.getGroups();
 
-			// TODO collectionId가 collectionGroup명인지 확인하여 그룹이면 여러컬렉션 검색.
-
-			String[] collectionIdList = collectionId.split(",");// new String[]{ collectionId };
-
+			String[] collectionIdList = collectionId.split(",");
+			if(collectionIdList.length > 1) {
+				shuffleCollectionList(collectionIdList);
+			}
+			
 			// CollectionContext collectionContext = irService.collectionContext(collectionId);
 			// 무조건 첫번째 context사용. 모든 컬렉션이 동일하다고 가정.
 			CollectionContext collectionContext = irService.collectionContext(collectionIdList[0]);
@@ -294,6 +296,19 @@ public class ClusterSearchJob extends Job {
 		}
 	}
 
+	// Fisher-Yates shuffle
+	Random random = new Random(System.currentTimeMillis());
+	private void shuffleCollectionList(String[] collectionId) {
+	    for (int i = collectionId.length - 1; i > 0; i--)
+	    {
+	      int index = random.nextInt(i + 1);
+	      // Simple swap
+	      String t = collectionId[index];
+	      collectionId[index] = collectionId[i];
+	      collectionId[i] = t;
+	    }
+	  }
+	
 	private static String LOG_DELIMITER = "\t";
 	private static String CACHE = "[cache]";
 	private static String NOCACHE = "[nocache]";
