@@ -275,6 +275,7 @@ public abstract class Analyzer implements Closeable {
     }
     
     public void setAnalyzerOption(AnalyzerOption analyzerOption) {
+    	source.setAnalyzerOption(analyzerOption);
     	sink.setAnalyzerOption(analyzerOption);
     }
   }

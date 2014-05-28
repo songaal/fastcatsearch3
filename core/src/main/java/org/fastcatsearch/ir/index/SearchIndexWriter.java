@@ -128,6 +128,7 @@ public class SearchIndexWriter implements SingleIndexWriter {
 		//색인시는 stopword만 본다.
 		indexingAnalyzerOption = new AnalyzerOption();
 		indexingAnalyzerOption.useStopword(true);
+		indexingAnalyzerOption.setForDocument();
 	}
 
 	public void write(Document doc) throws IRException, IOException {

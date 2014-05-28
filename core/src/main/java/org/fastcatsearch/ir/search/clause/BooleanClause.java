@@ -65,6 +65,7 @@ public class BooleanClause extends OperatedClause {
 			AnalyzerOption analyzerOption = new AnalyzerOption();
 			analyzerOption.useStopword(searchOption.useStopword());
 			analyzerOption.useSynonym(searchOption.useSynonym());
+			analyzerOption.setForQuery();
 			operatedClause = search(indexId, fullTerm, term.type(), indexSetting, analyzer, analyzerOption, requestTypeAttribute);
 			
 		} catch (IOException e) {
