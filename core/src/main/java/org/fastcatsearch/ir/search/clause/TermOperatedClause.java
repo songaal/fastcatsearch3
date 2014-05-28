@@ -54,11 +54,15 @@ public class TermOperatedClause extends OperatedClause {
 		if (postingReader.hasNext()) {
 			PostingDoc postingDoc = postingReader.next();
 			int score = 0;
-			if(postingReader.weight() > 0){
+			
+			if(postingReader.weight() > 0) {
+				score = postingReader.weight();
+			} else if(postingReader.weight() == -1) {
 				float tf = 2.2f * postingDoc.tf() / (2.0f + postingDoc.tf());
 				float idf = (float) Math.log(documentCount / segmentDF);
-				score = (int) ((tf * idf * postingReader.weight()) * SCORE_BASE);
-			}
+				score = (int) (tf * idf * SCORE_BASE);
+			}			
+			
 			rankInfo.init(postingDoc.docNo(), score, postingDoc.tf());
 			rankInfo.addMatchSequence(termSequence);
 			if(isExplain()){

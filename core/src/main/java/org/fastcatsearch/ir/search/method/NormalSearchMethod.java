@@ -10,7 +10,7 @@ import org.fastcatsearch.ir.search.PostingReader;
 public class NormalSearchMethod extends AbstractSearchMethod {
 
 	@Override
-	public PostingReader doSearch(String indexId, CharVector term, int termPosition, float weight, int segmentDocumentCount) {
+	public PostingReader doSearch(String indexId, CharVector term, int termPosition, int weight, int segmentDocumentCount) {
 
 		if (memoryLexicon.size() == 0) {
 			return null;

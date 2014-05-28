@@ -12,7 +12,7 @@ public interface PostingReader {
 	
 	public int size();
 
-	public float weight();
+	public int weight();
 	
 	public boolean hasNext();
 

@@ -481,13 +481,13 @@ public class QueryParser {
 				String[] fieldList = list[0].replaceAll(" ", "").split(COMMA_SEPARATOR);
 				String[] term = new String[1];
 				Term.Type type = getType(list[1], term);
-				return new Term(fieldList, removeEscape(term[0]), Float.parseFloat(list[2]), type);
+				return new Term(fieldList, removeEscape(term[0]), Integer.parseInt(list[2]), type);
 			} else if (list.length == 4) {
 				// field:term:score:option
 				String[] fieldList = list[0].replaceAll(" ", "").split(COMMA_SEPARATOR);
 				String[] term = new String[1];
 				Term.Type type = getType(list[1], term);
-				return new Term(fieldList, removeEscape(term[0]), Float.parseFloat(list[2]), type, new Option(Integer.parseInt(list[3])));
+				return new Term(fieldList, removeEscape(term[0]), Integer.parseInt(list[2]), type, new Option(Integer.parseInt(list[3])));
 			} else {
 				throw new QueryParseException("Term field syntax error. Too many options => " + value);
 			}

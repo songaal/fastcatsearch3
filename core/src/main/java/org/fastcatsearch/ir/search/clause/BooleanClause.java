@@ -36,7 +36,7 @@ public class BooleanClause extends OperatedClause {
 	private String termString;
 	private SearchIndexReader searchIndexReader;
 	private OperatedClause operatedClause;
-	private float weight;
+	private int weight;
 	
 	public BooleanClause(SearchIndexReader searchIndexReader, Term term, HighlightInfo highlightInfo) {
 		this(searchIndexReader, term, highlightInfo, null);

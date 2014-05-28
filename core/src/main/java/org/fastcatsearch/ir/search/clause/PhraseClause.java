@@ -34,7 +34,7 @@ public class PhraseClause extends OperatedClause {
 		super(searchIndexReader.indexId());
 		String indexId = searchIndexReader.indexId();
 		String termString = term.termString();
-		float weight = term.weight();
+		int weight = term.weight();
 		Option option = term.option();
 
 		CharVector fullTerm = new CharVector(termString);

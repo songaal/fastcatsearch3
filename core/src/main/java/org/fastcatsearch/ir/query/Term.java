@@ -46,28 +46,28 @@ public class Term {
 	private String[] indexFieldId;
 	private boolean fieldConcat; //필드결합 검색인지..
 	private String termString;
-	private float weight;
+	private int weight;
 	private Type type; //set AND between terms
 	protected Option option;
 	protected String typeAttribute; 
 	
 	public Term(){}
 	public Term(String indexFieldId, String termString){
-		this(new String[]{indexFieldId}, termString, 1.0f, Type.ALL);
+		this(new String[]{indexFieldId}, termString, -1, Type.ALL);
 	}
-	public Term(String indexFieldId, String termString, float weight, Type type){
+	public Term(String indexFieldId, String termString, int weight, Type type){
 		this(new String[]{indexFieldId}, termString, weight, type);
 	}
 	public Term(String[] indexFieldId, String termString){
-		this(indexFieldId, termString, 1.0f, Type.ALL);
+		this(indexFieldId, termString, -1, Type.ALL);
 	}
 	public Term(String[] indexFieldId, String termString, Type type){
-		this(indexFieldId, termString, 1.0f, type);
+		this(indexFieldId, termString, -1, type);
 	}
-	public Term(String[] indexFieldId, String termString, float weight, Type type){
+	public Term(String[] indexFieldId, String termString, int weight, Type type){
 		this(indexFieldId, termString, weight, type, OPTION_DEFAULT);
 	}
-	public Term(String[] indexFieldId, String termString, float weight, Type type, Option option){
+	public Term(String[] indexFieldId, String termString, int weight, Type type, Option option){
 		this.indexFieldId = indexFieldId;
 		for (int i = 0; i < indexFieldId.length; i++) {
 			indexFieldId[i] = indexFieldId[i].toUpperCase();
@@ -100,7 +100,7 @@ public class Term {
 	public String termString(){
 		return termString;
 	}
-	public float weight(){
+	public int weight(){
 		return weight;
 	}
 	public Type type(){

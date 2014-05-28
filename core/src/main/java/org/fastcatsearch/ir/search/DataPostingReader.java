@@ -8,10 +8,10 @@ public class DataPostingReader extends AbstractPostingReader {
 	private PostingDoc[] dataList;
 	private int dataLength;
 	
-	public DataPostingReader(CharVector term, int termPosition, float weight, PostingDoc[] dataList, int dataLength){
+	public DataPostingReader(CharVector term, int termPosition, int weight, PostingDoc[] dataList, int dataLength){
 		this(term, termPosition, weight, dataList, dataLength, 0);
 	}
-	public DataPostingReader(CharVector term, int termPosition, float weight, PostingDoc[] dataList, int dataLength, int segmentDocumentCount){
+	public DataPostingReader(CharVector term, int termPosition, int weight, PostingDoc[] dataList, int dataLength, int segmentDocumentCount){
 		super(term, termPosition, weight, segmentDocumentCount);
 		this.dataList = dataList;
 		this.dataLength = dataList != null ? dataList.length : 0;

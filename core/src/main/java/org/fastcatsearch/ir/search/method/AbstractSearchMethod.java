@@ -55,10 +55,10 @@ public abstract class AbstractSearchMethod implements SearchMethod {
 		return len1 - len2;
 	}
 	
-	protected abstract PostingReader doSearch(String indexId, CharVector term, int termPosition, float weight, int segmentDocumentCount);
+	protected abstract PostingReader doSearch(String indexId, CharVector term, int termPosition, int weight, int segmentDocumentCount);
 		
 	@Override
-	public PostingReader search(String indexId, CharVector term, int termPosition, float weight) {
+	public PostingReader search(String indexId, CharVector term, int termPosition, int weight) {
 		try{
 			return doSearch(indexId, term, termPosition, weight, segmentDocumentCount);
 		}finally{
