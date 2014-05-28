@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.StringReader;
 
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.core.AnalyzerOption;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
 import org.junit.Test;
 
@@ -29,7 +30,7 @@ public class NGramAnalyzerTest {
 	}
 
 	@Test
-	public void testAnalyzer() throws IOException, InterruptedException {
+	public void testAnalyzerForDocument() throws IOException, InterruptedException {
 		String str = "대형폐가전제품무상방문 수거사업";
 		NGramWordAnalyzer analyzer = new NGramWordAnalyzer();
 		StringReader reader = new StringReader(str);
@@ -47,6 +48,39 @@ public class NGramAnalyzerTest {
 		StringReader reader2 = new StringReader(str);
 		
 		TokenStream tokenStream2 = analyzer.tokenStream("2", reader2);
+		CharsRefTermAttribute charTermAttribute2 = tokenStream2.getAttribute(CharsRefTermAttribute.class);
+		
+		int i2 = 1;
+		while(tokenStream2.incrementToken()) {
+			System.out.println(i2++ +">>>"+charTermAttribute2.toString()+"<");
+		}
+		
+	}
+	
+	@Test
+	public void testAnalyzerForQuery() throws IOException, InterruptedException {
+		AnalyzerOption analyzerOption = new AnalyzerOption();
+		analyzerOption.setForQuery();
+		
+		String str = "대형 폐가전 제품무상방문 수거사업";
+		NGramWordAnalyzer analyzer = new NGramWordAnalyzer();
+		StringReader reader = new StringReader(str);
+		TokenStream tokenStream = analyzer.tokenStream("1", reader, analyzerOption);
+		tokenStream.reset();
+		
+		CharsRefTermAttribute charTermAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
+		
+		int i = 1;
+		while(tokenStream.incrementToken()) {
+			System.out.println(i++ +">"+charTermAttribute.toString()+"<");
+		}
+		
+		System.out.println("==============================================");
+		
+		StringReader reader2 = new StringReader(str);
+		
+		TokenStream tokenStream2 = analyzer.tokenStream("2", reader2, analyzerOption);
+		tokenStream2.reset();
 		CharsRefTermAttribute charTermAttribute2 = tokenStream2.getAttribute(CharsRefTermAttribute.class);
 		
 		int i2 = 1;
