@@ -88,7 +88,7 @@ public class BooleanClause extends OperatedClause {
 		SynonymAttribute synonymAttribute = null;
 		
 		TokenStream tokenStream = analyzer.tokenStream(indexId, fullTerm.getReader(), analyzerOption);
-//		tokenStream.reset();
+		tokenStream.reset();
 		
 		if (tokenStream.hasAttribute(CharsRefTermAttribute.class)) {
 			refTermAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
