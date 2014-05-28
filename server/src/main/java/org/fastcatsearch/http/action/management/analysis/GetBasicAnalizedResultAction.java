@@ -5,6 +5,7 @@ import java.io.Writer;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.core.AnalyzerOption;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
 import org.fastcatsearch.http.ActionAuthority;
@@ -35,6 +36,7 @@ public class GetBasicAnalizedResultAction extends AuthAction {
 		String pluginId = request.getParameter("pluginId");
 		String analyzerId = request.getParameter("analyzerId");
 		String queryWords = request.getParameter("queryWords");
+		String forQuery = request.getParameter("forQuery");
 
 		String errorMessage = null;
 		
@@ -55,6 +57,10 @@ public class GetBasicAnalizedResultAction extends AuthAction {
 			if (analyzerPool == null) {
 				throw new Exception("Cannot find analyzer >> " + (pluginId + "." + analyzerId));
 			}
+			AnalyzerOption analyzerOption = new AnalyzerOption();
+			if ("true".equalsIgnoreCase(forQuery)) {
+				analyzerOption.setForQuery();
+			}
 			
 			Analyzer analyzer = null;
 			try{
@@ -63,19 +69,21 @@ public class GetBasicAnalizedResultAction extends AuthAction {
 				responseWriter.key("result").array("terms");
 					
 				char[] fieldValue = queryWords.toCharArray();
-				TokenStream tokenStream = analyzer.tokenStream("", new CharArrayReader(fieldValue));
+				TokenStream tokenStream = analyzer.tokenStream("", new CharArrayReader(fieldValue), analyzerOption);
 				tokenStream.reset();
 				CharsRefTermAttribute termAttribute = null;
 				if (tokenStream.hasAttribute(CharsRefTermAttribute.class)) {
 					termAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
 				}
-				CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
-
+				CharTermAttribute charTermAttribute = null;
+				if (tokenStream.hasAttribute(CharTermAttribute.class)) {
+					charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
+				}
 				while (tokenStream.incrementToken()) {
 					String key = "";
 					if (termAttribute != null) {
 						key = termAttribute.toString();
-					} else {
+					} else if (charTermAttribute != null) {
 						key = charTermAttribute.toString();
 					}
 					responseWriter.value(key);
