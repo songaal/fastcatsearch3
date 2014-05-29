@@ -32,16 +32,17 @@ public class TermOperatedClause extends OperatedClause {
 	private String termString;
 	private int termSequence;
 	
-	public TermOperatedClause(String indexId, PostingReader postingReader) throws IOException {
-		this(indexId, postingReader, 0);
+	public TermOperatedClause(String indexId, String termString, PostingReader postingReader) throws IOException {
+		this(indexId, termString, postingReader, 0);
 	}
-	public TermOperatedClause(String indexId, PostingReader postingReader, int termSequence) throws IOException {
+	public TermOperatedClause(String indexId, String termString, PostingReader postingReader, int termSequence) throws IOException {
 		super(indexId);
+		this.termString = termString;
 		if (postingReader != null) {
 			this.postingReader = postingReader;
 			this.segmentDF = postingReader.size();
 			this.documentCount = postingReader.documentCount();
-			termString = postingReader.term().toString();
+			//termString = postingReader.term().toString();
 			this.termSequence = termSequence;
 		}
 	}

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
@@ -12,6 +13,7 @@ import org.apache.lucene.analysis.core.AnalyzerOption;
 import org.apache.lucene.analysis.tokenattributes.AdditionalTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
+import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.analysis.tokenattributes.StopwordAttribute;
 import org.apache.lucene.analysis.tokenattributes.SynonymAttribute;
@@ -78,6 +80,7 @@ public class BooleanClause extends OperatedClause {
 	private OperatedClause search(String indexId, CharVector fullTerm, Type type, IndexSetting indexSetting, Analyzer analyzer, AnalyzerOption analyzerOption, String requestTypeAttribute) throws IOException {
 		logger.debug("############ search Term > {}", fullTerm);
 		OperatedClause operatedClause = null;
+		OperatedClause finalClause = null;
 		
 		CharTermAttribute termAttribute = null;
 		CharsRefTermAttribute refTermAttribute = null;
@@ -87,6 +90,7 @@ public class BooleanClause extends OperatedClause {
 		AdditionalTermAttribute additionalTermAttribute = null;
 		
 		SynonymAttribute synonymAttribute = null;
+		OffsetAttribute offsetAttribute = null;
 		
 		TokenStream tokenStream = analyzer.tokenStream(indexId, fullTerm.getReader(), analyzerOption);
 		tokenStream.reset();
@@ -112,9 +116,15 @@ public class BooleanClause extends OperatedClause {
 		if (tokenStream.hasAttribute(SynonymAttribute.class)) {
 			synonymAttribute = tokenStream.getAttribute(SynonymAttribute.class);
 		}
+		
+		if (tokenStream.hasAttribute(OffsetAttribute.class)) {
+			offsetAttribute = tokenStream.getAttribute(OffsetAttribute.class);
+		}
 
 		CharVector token = null;
-		int termSequence = 0;
+		AtomicInteger termSequence = new AtomicInteger();
+		
+		int queryPosition = 0;
 		
 		while (tokenStream.incrementToken()) {
 
@@ -150,13 +160,13 @@ public class BooleanClause extends OperatedClause {
 			}
 			
 			logger.debug("token > {}, isIgnoreCase = {} analyzer= {}", token, token.isIgnoreCase(), analyzer.getClass().getSimpleName());
-			int queryPosition = positionAttribute != null ? positionAttribute.getPositionIncrement() : 0;
+			queryPosition = positionAttribute != null ? positionAttribute.getPositionIncrement() : 0;
 //			logger.debug("token = {} : {}", token, queryPosition);
 
 			SearchMethod searchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
 			PostingReader postingReader = searchMethod.search(indexId, token, queryPosition, weight);
 
-			OperatedClause clause = new TermOperatedClause(indexId, postingReader, termSequence++);
+			OperatedClause clause = new TermOperatedClause(indexId, token.toString(), postingReader, termSequence.getAndIncrement());
 			
 			// 유사어 처리
 			// analyzerOption에 synonym확장여부가 들어가 있으므로, 여기서는 option을 확인하지 않고,
@@ -164,51 +174,7 @@ public class BooleanClause extends OperatedClause {
 			//
 			//isSynonym 일 경우 다시한번 유사어확장을 하지 않는다.
 			if(synonymAttribute != null) {
-				List<Object> synonymObj = synonymAttribute.getSynonyms();
-				if(synonymObj != null) {
-					OperatedClause synonymClause = null;
-					for(Object obj : synonymObj) {
-						if(obj instanceof CharVector) {
-							CharVector localToken = (CharVector)obj;
-							localToken.setIgnoreCase();
-							SearchMethod localSearchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
-							PostingReader localPostingReader = localSearchMethod.search(indexId, localToken, queryPosition, weight);
-							OperatedClause localClause = new TermOperatedClause(indexId, localPostingReader, termSequence++);
-							
-							if(synonymClause == null) {
-								synonymClause = localClause;
-							} else {
-								synonymClause = new OrOperatedClause(synonymClause, localClause);
-							}
-							
-						} else if(obj instanceof List) {
-							@SuppressWarnings("unchecked")
-							List<CharVector>synonyms = (List<CharVector>)obj; 
-							OperatedClause extractedClause = null;
-							for(CharVector localToken : synonyms) {
-								localToken.setIgnoreCase();
-								SearchMethod localSearchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
-								PostingReader localPostingReader = localSearchMethod.search(indexId, localToken, queryPosition, weight);
-								OperatedClause localClause = new TermOperatedClause(indexId, localPostingReader, termSequence++);
-								
-								if(extractedClause == null) {
-									extractedClause = localClause;
-								} else {
-									extractedClause = new AndOperatedClause(extractedClause, localClause);
-								}
-							}
-							if(synonymClause == null) {
-								synonymClause = extractedClause;
-							} else {
-								synonymClause = new OrOperatedClause(synonymClause, extractedClause);
-							}
-						}
-					}
-					
-					if(synonymClause != null) {
-						clause = new OrOperatedClause(clause, synonymClause);
-					}
-				}
+				clause = applySynonym(clause, searchIndexReader, synonymAttribute, indexId, queryPosition, termSequence);
 			}
 			if (operatedClause == null) {
 				operatedClause = clause;
@@ -220,23 +186,34 @@ public class BooleanClause extends OperatedClause {
 				}
 			}
 			
+			int currentOffset = offsetAttribute.endOffset();
 			//추가 확장 단어들.
 			if(additionalTermAttribute != null) {
 				Iterator<String> termIter = additionalTermAttribute.iterateAdditionalTerms();
 				OperatedClause additionalClause = null;
 				while(termIter.hasNext()) {
-					
 					CharVector localToken = new CharVector(termIter.next().toCharArray(), indexSetting.isIgnoreCase());
-					
 					queryPosition = positionAttribute != null ? positionAttribute.getPositionIncrement() : 0;
 					searchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
 					postingReader = searchMethod.search(indexId, localToken, queryPosition, weight);
-					clause = new TermOperatedClause(indexId, postingReader, termSequence++);
+					clause = new TermOperatedClause(indexId, localToken.toString(), postingReader, termSequence.getAndIncrement());
 					
-					if(additionalClause == null) {
-						additionalClause = clause;
+					if(synonymAttribute!=null) {
+						clause = this.applySynonym(clause, searchIndexReader, synonymAttribute, indexId, queryPosition, termSequence); 
+					}
+					
+					if (offsetAttribute.startOffset() == 0 &&
+						offsetAttribute.endOffset() == currentOffset) {
+						//전체단어동의어 확장어
+						finalClause = clause;
 					} else {
-						additionalClause = new OrOperatedClause(additionalClause, clause);
+						//일반확장단어들
+					
+						if(additionalClause == null) {
+							additionalClause = clause;
+						} else {
+								additionalClause = new OrOperatedClause(additionalClause, clause);
+						}
 					}
 				}
 				
@@ -275,6 +252,10 @@ public class BooleanClause extends OperatedClause {
 			}
 		}
 		
+		if(finalClause!=null) {
+			operatedClause = new OrOperatedClause(operatedClause, finalClause);
+		}
+		
 		if(logger.isTraceEnabled() && operatedClause!=null) {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			PrintStream traceStream = new PrintStream(baos);
@@ -310,4 +291,59 @@ public class BooleanClause extends OperatedClause {
 	}
 	@Override
 	public void printTrace(PrintStream os, int depth) { }
+	
+
+	private OperatedClause applySynonym(OperatedClause clause, 
+			SearchIndexReader searchIndexReader,
+			SynonymAttribute synonymAttribute, String indexId, int queryPosition, 
+			AtomicInteger termSequence ) throws IOException {
+		
+		@SuppressWarnings("unchecked")
+		List<Object> synonymObj = synonymAttribute.getSynonyms();
+		if(synonymObj != null) {
+			OperatedClause synonymClause = null;
+			for(Object obj : synonymObj) {
+				if(obj instanceof CharVector) {
+					CharVector localToken = (CharVector)obj;
+					localToken.setIgnoreCase();
+					SearchMethod localSearchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
+					PostingReader localPostingReader = localSearchMethod.search(indexId, localToken, queryPosition, weight);
+					OperatedClause localClause = new TermOperatedClause(indexId, localToken.toString(), localPostingReader, termSequence.getAndIncrement());
+					
+					if(synonymClause == null) {
+						synonymClause = localClause;
+					} else {
+						synonymClause = new OrOperatedClause(synonymClause, localClause);
+					}
+					
+				} else if(obj instanceof List) {
+					@SuppressWarnings("unchecked")
+					List<CharVector>synonyms = (List<CharVector>)obj; 
+					OperatedClause extractedClause = null;
+					for(CharVector localToken : synonyms) {
+						localToken.setIgnoreCase();
+						SearchMethod localSearchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
+						PostingReader localPostingReader = localSearchMethod.search(indexId, localToken, queryPosition, weight);
+						OperatedClause localClause = new TermOperatedClause(indexId, localToken.toString(), localPostingReader, termSequence.getAndIncrement());
+						
+						if(extractedClause == null) {
+							extractedClause = localClause;
+						} else {
+							extractedClause = new AndOperatedClause(extractedClause, localClause);
+						}
+					}
+					if(synonymClause == null) {
+						synonymClause = extractedClause;
+					} else {
+						synonymClause = new OrOperatedClause(synonymClause, extractedClause);
+					}
+				}
+			}
+			if(synonymClause != null) {
+				clause = new OrOperatedClause(clause, synonymClause);
+			}
+		}
+		
+		return clause;
+	}
 }
