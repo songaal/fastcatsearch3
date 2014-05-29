@@ -1,6 +1,7 @@
 ### 01000
 
 MSG-00100: OutOfMemory error
+MSG-00101: Disk usage high warning
 
 MSG-01000: Collection indexing start
 MSG-01001: Collection indexing finish successfully 

@@ -28,7 +28,7 @@ import org.fastcatsearch.http.HttpRequestService;
 import org.fastcatsearch.ir.CollectionQueryCountService;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.job.state.TaskStateService;
-import org.fastcatsearch.management.SystemInfoService;
+import org.fastcatsearch.management.SystemWatchService;
 import org.fastcatsearch.notification.NotificationService;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.processlogger.ProcessLoggerService;
@@ -171,7 +171,7 @@ public class CatServer {
 		jobService.asSingleton();
 		IRService irService = serviceManager.createService("ir", IRService.class);
 		irService.setAnalyzerFactoryManager(pluginService);
-		SystemInfoService systemInfoService = serviceManager.createService("system_info", SystemInfoService.class);
+		SystemWatchService systemInfoService = serviceManager.createService("system", SystemWatchService.class);
 		NodeService nodeService = serviceManager.createService("node", NodeService.class);
 
 		HttpRequestService httpRequestService = serviceManager.createService("http", HttpRequestService.class);
@@ -285,7 +285,7 @@ public class CatServer {
 
 		serviceManager.stopService(PluginService.class);
 		serviceManager.stopService(NodeService.class);
-		serviceManager.stopService(SystemInfoService.class);
+		serviceManager.stopService(SystemWatchService.class);
 		serviceManager.stopService(IRService.class);
 		serviceManager.stopService(JobService.class);
 		serviceManager.stopService(DBService.class);
@@ -307,7 +307,7 @@ public class CatServer {
 
 		serviceManager.closeService(PluginService.class);
 		serviceManager.closeService(NodeService.class);
-		serviceManager.closeService(SystemInfoService.class);
+		serviceManager.closeService(SystemWatchService.class);
 		serviceManager.closeService(IRService.class);
 		serviceManager.closeService(JobService.class);
 		serviceManager.closeService(DBService.class);

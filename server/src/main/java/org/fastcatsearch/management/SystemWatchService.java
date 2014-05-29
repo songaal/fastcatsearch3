@@ -16,15 +16,18 @@ import java.util.TimerTask;
 
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.notification.NotificationService;
+import org.fastcatsearch.notification.message.DiskUsageNotification;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
 
-public class SystemInfoService extends AbstractService {
+public class SystemWatchService extends AbstractService {
 
-	private static long PERIOD = 1000; // 1초마다 InfoCheckerTask를 수행한다.
-	private static long START_DELAY = 1000;
-
+	private static long START_DELAY = 1000L;
+	private static long INFO_CHECK_PERIOD = 1000L; // 1초마다 InfoCheckerTask를 수행한다.
+	private static long DISK_CHECK_PERIOD = 10 * 1000L;
+	
 	private SystemInfoHandler handler;
 	private Timer timer;
 
@@ -32,14 +35,16 @@ public class SystemInfoService extends AbstractService {
 	private JvmMemoryInfo jvmMemoryInfoPerSecond = new JvmMemoryInfo();
 	private SystemDiskInfo systemDiskInfo = new SystemDiskInfo();
 	
-	private static SystemInfoService instance;
+	private static SystemWatchService instance;
 
-	public static SystemInfoService getInstance() {
+	public static SystemWatchService getInstance() {
 		return instance;
 	}
 
-	public SystemInfoService(Environment environment, Settings settings, ServiceManager serviceManager) {
+	public SystemWatchService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
+		
+		
 	}
 
 	public boolean isJvmCpuInfoSupported() {
@@ -80,6 +85,36 @@ public class SystemInfoService extends AbstractService {
 		}
 	}
 
+	class DiskWatchTask extends TimerTask {
+
+		private int diskUsageThreshold;
+		private long lastReportTime;
+		private int lastDiskUsage;
+		
+		public DiskWatchTask() {
+			diskUsageThreshold = settings.getInt("disk_usage_warning");
+		}
+		
+		@Override
+		public void run() {
+			
+			if(diskUsageThreshold > 0) {
+				int diskUsage = (int) (((float) systemDiskInfo.usedDiskSize / (float) systemDiskInfo.totalDiskSize) * 100);
+//				logger.debug("check >> {} / {}", diskUsage, diskUsageThreshold);
+				if(diskUsage >= diskUsageThreshold) {
+					//동일한 usage는 1시간 이후에 재 알림한다. 동일하지 않으면 바로 리포팅. 
+					if(lastDiskUsage != diskUsage || lastReportTime - System.currentTimeMillis() > 60 * 60 * 1000) {
+						NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
+						notificationService.sendNotification(new DiskUsageNotification(diskUsage));
+						lastReportTime = System.currentTimeMillis();
+					}
+				}
+				lastDiskUsage = diskUsage;
+			}
+		}
+	}
+	
+	
 	@Override
 	protected boolean doStart() throws FastcatSearchException {
 
@@ -87,8 +122,10 @@ public class SystemInfoService extends AbstractService {
 		logger.info("isCpuInfoSupported = {}", isJvmCpuInfoSupported() || isSystemCpuInfoSupported());
 		logger.info("isLoadAvgInfoSupported = {}", isLoadAvgInfoSupported());
 
-		timer = new Timer(true);
-		timer.schedule(new SystemInfoCheckTask(), START_DELAY, PERIOD);
+		timer = new Timer("SystemWatchServiceTimer", true);
+		
+		timer.schedule(new SystemInfoCheckTask(), START_DELAY, INFO_CHECK_PERIOD);
+		timer.schedule(new DiskWatchTask(), START_DELAY, DISK_CHECK_PERIOD);
 		return true;
 	}
 

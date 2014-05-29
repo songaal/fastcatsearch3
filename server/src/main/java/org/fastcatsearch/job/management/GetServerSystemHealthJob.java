@@ -10,7 +10,7 @@ import org.fastcatsearch.job.Job;
 import org.fastcatsearch.management.JvmCpuInfo;
 import org.fastcatsearch.management.JvmMemoryInfo;
 import org.fastcatsearch.management.SystemDiskInfo;
-import org.fastcatsearch.management.SystemInfoService;
+import org.fastcatsearch.management.SystemWatchService;
 import org.fastcatsearch.service.ServiceManager;
 
 public class GetServerSystemHealthJob extends Job {
@@ -20,7 +20,7 @@ public class GetServerSystemHealthJob extends Job {
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
 		
-		SystemInfoService systemInfoService = ServiceManager.getInstance().getService(SystemInfoService.class);
+		SystemWatchService systemInfoService = ServiceManager.getInstance().getService(SystemWatchService.class);
 		JvmCpuInfo jvmCpuInfo = systemInfoService.getJvmCpuInfo();
 		JvmMemoryInfo jvmMemoryInfo = systemInfoService.getJvmMemoryInfo();
 		SystemDiskInfo systemDiskInfo = systemInfoService.getSystemDiskInfo();
