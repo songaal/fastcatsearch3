@@ -30,7 +30,7 @@ public class GetNodeTaskStateAction extends AuthAction {
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 		resultWriter.object().key("taskState")
-		.object();
+		.array();
 		
 		if(taskMap != null) {
 			Iterator<Map.Entry<TaskKey,TaskState>> iterator = taskMap.entrySet().iterator();
@@ -38,7 +38,7 @@ public class GetNodeTaskStateAction extends AuthAction {
 				Entry<TaskKey,TaskState> entry = iterator.next();
 				TaskKey taskKey = entry.getKey();
 				TaskState taskState = entry.getValue();
-				resultWriter
+				resultWriter.object()
 				.key("summary").value(taskKey.getSummary())
 				.key("isScheduled").value(taskState.isScheduled())
 				.key("state").value(taskState.getState())
@@ -46,11 +46,12 @@ public class GetNodeTaskStateAction extends AuthAction {
 				.key("startTime").value(taskState.getStartTime())
 				.key("endTime").value(taskState.getEndTime())
 				.key("elapsed").value(taskState.getElapsedTime());
+				resultWriter.endObject();
 				
 			}
 		}
 		
-		resultWriter.endObject().endObject();
+		resultWriter.endArray().endObject();
 		
 		resultWriter.done();
 		
