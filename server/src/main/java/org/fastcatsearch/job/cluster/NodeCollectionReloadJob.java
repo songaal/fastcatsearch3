@@ -1,11 +1,14 @@
 package org.fastcatsearch.job.cluster;
 
 import java.io.IOException;
+import java.util.List;
 
+import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.config.CollectionIndexStatus;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
@@ -34,10 +37,29 @@ public class NodeCollectionReloadJob extends Job implements Streamable {
 	public JobResult doRun() throws FastcatSearchException {
 
 		try {
-			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+			ServiceManager serviceManager = ServiceManager.getInstance();
+			IRService irService = serviceManager.getService(IRService.class);
 			String collectionId = collectionContext.collectionId();
+			NodeService nodeService = serviceManager.getService(NodeService.class);
 			
-			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
+			
+			List<String> dataNodeList = collectionContext.collectionConfig().getDataNodeList();
+			
+			//데이터노드만 업데이트 한다.
+			String myNodeId = nodeService.getMyNode().id();
+			if (dataNodeList.contains(myNodeId) || 
+					collectionContext.collectionConfig().getIndexNode().equals(myNodeId)) {
+				CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
+				
+			} else {
+				//TODO:새로만든 컬렉션인 경우, 혹은 컬렉션 디렉토리가 없는 경우에만 저장하도록 한다.
+				//단. 데이터를 로딩하지 않기 위해 색인상태는 모두 지운다.
+				if(!collectionContext.dataFilePaths().dataFile().exists()) {
+					collectionContext.clearDataInfoAndStatus();
+					CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
+				}
+			}
+			
 			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
 			Counter queryCounter = irService.queryCountModule().getQueryCounter(collectionId);
 			collectionHandler.setQueryCounter(queryCounter);
@@ -47,13 +69,13 @@ public class NodeCollectionReloadJob extends Job implements Streamable {
 				logger.info("## [{}] Close Previous Collection Handler", collectionId);
 				oldCollectionHandler.close();
 			}
-
+			
 			logger.info("== [{}] SegmentStatus ==", collectionId);
 			collectionHandler.printSegmentStatus();
 			logger.info("===================");
 			IndexStatus indexStatus = collectionContext.indexStatus().getFullIndexStatus();
 			logger.info("[{}] Collection Index Status > {}", collectionId, indexStatus);
-			
+
 			/*
 			 * 캐시 클리어.
 			 */
