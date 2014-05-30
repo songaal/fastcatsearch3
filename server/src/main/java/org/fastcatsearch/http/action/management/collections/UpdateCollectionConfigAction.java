@@ -76,7 +76,7 @@ public class UpdateCollectionConfigAction extends AuthAction {
 		if(isSuccess){
 			logger.info("[{}] Master Update collection config success!", collectionId);
 			Set<String> nodeSet = collectionConfig.getCollectionNodeIDSet();
-			
+			nodeSet.remove(environment.myNodeId());
 			UpdateCollectionConfigJob job = new UpdateCollectionConfigJob(collectionId, collectionConfig);
 			
 			NodeJobResult[] resultList = ClusterUtils.sendJobToNodeIdSet(job, nodeService, nodeSet, false);

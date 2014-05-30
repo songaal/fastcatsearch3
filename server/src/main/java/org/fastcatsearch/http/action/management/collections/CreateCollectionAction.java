@@ -34,7 +34,7 @@ public class CreateCollectionAction extends AuthAction {
 		String dataNodeListString = request.getParameter("dataNodeList");
 
 		boolean isSuccess = false;
-		String errorMessage = null;
+		String errorMessage = "";
 
 		try {
 
@@ -63,10 +63,19 @@ public class CreateCollectionAction extends AuthAction {
 						}
 					}
 
+					//자신을 제외하고 보낸다.
+					nodeIdSet.remove(environment.myNodeId());
 					NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 					NodeJobResult[] resultList = ClusterUtils.sendJobToNodeIdSet(createCollectionJob, nodeService, nodeIdSet, false);
 					for (NodeJobResult r : resultList) {
-						isSuccess = (isSuccess && r.isSuccess());
+						
+						if(!r.isSuccess()) {
+							isSuccess &= false;
+							if(errorMessage.length() > 0){
+								errorMessage += ", ";
+							}
+							errorMessage += (r.node() + ": collection create fail.");
+						}
 					}
 
 				}
