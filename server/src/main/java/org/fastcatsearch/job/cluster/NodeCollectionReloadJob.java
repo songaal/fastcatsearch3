@@ -42,25 +42,16 @@ public class NodeCollectionReloadJob extends Job implements Streamable {
 			String collectionId = collectionContext.collectionId();
 			NodeService nodeService = serviceManager.getService(NodeService.class);
 			
-			
-			List<String> dataNodeList = collectionContext.collectionConfig().getDataNodeList();
-			
-			//데이터노드만 업데이트 한다.
 			String myNodeId = nodeService.getMyNode().id();
-			if (dataNodeList.contains(myNodeId) || 
-					collectionContext.collectionConfig().getIndexNode().equals(myNodeId)) {
-				CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
-				
-			} else {
-				//TODO:새로만든 컬렉션인 경우, 혹은 컬렉션 디렉토리가 없는 경우에만 저장하도록 한다.
-				//단. 데이터를 로딩하지 않기 위해 색인상태는 모두 지운다.
-				if(!collectionContext.dataFilePaths().dataFile().exists()) {
-					collectionContext.clearDataInfoAndStatus();
-					CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
-				}
+			List<String> dataNodeList = collectionContext.collectionConfig().getDataNodeList();
+			String indexNodeId = collectionContext.collectionConfig().getIndexNode();
+			if(!dataNodeList.contains(myNodeId) && !(indexNodeId.equalsIgnoreCase(myNodeId))){
+				//데이터 노드와 색인노드에 속하지 않았다면, 색인data가 없으므로, dataInfo를 비우고 저장한다. 
+				collectionContext.clearDataInfoAndStatus();
 			}
 			
-			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionContext);
+			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
+			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionId);
 			Counter queryCounter = irService.queryCountModule().getQueryCounter(collectionId);
 			collectionHandler.setQueryCounter(queryCounter);
 			
