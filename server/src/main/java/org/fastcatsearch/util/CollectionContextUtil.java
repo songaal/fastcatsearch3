@@ -72,6 +72,10 @@ public class CollectionContextUtil {
 	
 
 	public static boolean writeConfigFile(Object configObject, FilePaths collectionFilePaths) {
+		if(!collectionFilePaths.file().exists()) {
+			collectionFilePaths.file().mkdirs();
+		}
+		
 		Path collectionDir = new Path(collectionFilePaths.file());
 		try {
 			if (configObject instanceof CollectionConfig) {
