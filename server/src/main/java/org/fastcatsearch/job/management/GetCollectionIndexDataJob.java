@@ -52,7 +52,7 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 
 		CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
 		if(collectionHandler == null || !collectionHandler.isLoaded()){
-			CollectionIndexData data = new CollectionIndexData(collectionId, 0, null, null, null);
+			CollectionIndexData data = new CollectionIndexData(collectionId, 0, new ArrayList<String>(), new ArrayList<RowData>(), new ArrayList<Boolean>());
 			return new JobResult(data);
 		}
 		
