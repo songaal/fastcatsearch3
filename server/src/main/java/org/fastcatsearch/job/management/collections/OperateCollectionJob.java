@@ -47,18 +47,28 @@ public class OperateCollectionJob extends Job implements Streamable {
 
 			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
 			
+
+			if ("START".equalsIgnoreCase(command)) {
+				if(collectionHandler == null) {
+					irService.loadCollectionHandler(collectionId);
+					return new JobResult(true);
+				}else{
+					if(collectionHandler.isLoaded()){
+						errorMessage = "Collection [" + collectionId + "] is already started.";
+						return new JobResult(errorMessage);
+					}else{
+						collectionHandler.load();
+						return new JobResult(true);
+					}
+				}
+			}
+			
 			if (collectionHandler == null) {
 				errorMessage = "Collection [" + collectionId + "] is not exist.";
 				return new JobResult(errorMessage);
 			}
 
-			if ("START".equalsIgnoreCase(command)) {
-				if(collectionHandler.isLoaded()){
-					errorMessage = "Collection [" + collectionId + "] is already started.";
-					return new JobResult(errorMessage);
-				}
-				collectionHandler.load();
-			} else if ("STOP".equalsIgnoreCase(command)) {
+			if ("STOP".equalsIgnoreCase(command)) {
 				if(!collectionHandler.isLoaded()){
 					errorMessage = "Collection [" + collectionId + "] is already stoped.";
 					return new JobResult(errorMessage);

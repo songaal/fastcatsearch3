@@ -151,14 +151,7 @@ public class IRService extends AbstractService {
 			Collection collection = collectionList.get(collectionInx);
 			try {
 				String collectionId = collection.getId();
-				//임시파일인 경우 시작하지 않고 지워준다.
-				if(collectionId.startsWith(".")) {
-					//TODO:삭제코드. 디렉토리도 삭제 해야 한다.
-					collectionList.remove(collectionInx);
-				} else {
-					loadCollectionHandler(collectionId, collection);
-				}
-
+				loadCollectionHandler(collectionId, collection);
 			} catch (IRException e) {
 				logger.error("[ERROR] " + e.getMessage(), e);
 			} catch (SettingException e) {

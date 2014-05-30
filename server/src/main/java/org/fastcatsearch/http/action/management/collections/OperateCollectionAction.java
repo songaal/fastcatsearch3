@@ -48,9 +48,11 @@ public class OperateCollectionAction extends AuthAction {
 				isSuccess = (Boolean) object;
 			}
 			Set<String> nodeIdSet = collectionHandler.collectionContext().collectionConfig().getCollectionNodeIDSet();
+			nodeIdSet.remove(environment.myNodeId());
 			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 			NodeJobResult[] resultList = ClusterUtils.sendJobToNodeIdSet(operateCollectionJob, nodeService, nodeIdSet, true);
 			for(NodeJobResult r : resultList) {
+				logger.debug("Operation {} >> {} : {}", command, r.node(), r.result());
 				isSuccess = (isSuccess && r.isSuccess());
 			}
 
