@@ -186,7 +186,11 @@ public class BooleanClause extends OperatedClause {
 				}
 			}
 			
-			int currentOffset = offsetAttribute.endOffset();
+			int currentOffset = 0;
+			
+			if(offsetAttribute!=null) {
+				offsetAttribute.endOffset();
+			}
 			//추가 확장 단어들.
 			if(additionalTermAttribute != null) {
 				Iterator<String> termIter = additionalTermAttribute.iterateAdditionalTerms();

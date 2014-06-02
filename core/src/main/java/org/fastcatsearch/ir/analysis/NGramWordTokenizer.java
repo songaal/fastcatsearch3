@@ -64,7 +64,12 @@ public class NGramWordTokenizer extends Tokenizer {
 			}
 		}
 		
-		length = charBuffer.length; 
+		
+		if(charBuffer!=null) {
+			length = charBuffer.length; 
+		} else {
+			length = 0;
+		}
 		pos = 0;
 		nGram = minGram;
 	}
