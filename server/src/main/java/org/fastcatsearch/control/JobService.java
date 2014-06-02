@@ -145,6 +145,17 @@ public class JobService extends AbstractService implements JobExecutor {
 		return null;
 	}
 	
+	public Job findRunningJob(Class<? extends Job> clazz, Object args){
+		for(Job job : runningJobList.values()){
+			if(clazz.isAssignableFrom(job.getClass())){
+				if(job.getArgs().equals(args)){
+					return job;
+				}
+			}
+		}
+		return null;
+	}
+	
 	public Collection<ScheduledJob> getScheduledJobs() {
 		return scheduleMap.values();
 	}

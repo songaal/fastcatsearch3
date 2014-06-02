@@ -22,15 +22,7 @@ public class CollectionIndexingStopJob extends Job implements Streamable {
 		String collectionId = getStringArgs();
 		boolean isRequested = false;
 		//전체색인.
-		CollectionFullIndexingJob job1 = new CollectionFullIndexingJob();
-		job1.setArgs(collectionId);
-		IndexingJob indexingJob = (IndexingJob) JobService.getInstance().findRunningJob(job1);
-		if(indexingJob == null){
-			CollectionAddIndexingJob job2 = new CollectionAddIndexingJob();
-			job2.setArgs(collectionId);
-			indexingJob = (IndexingJob) JobService.getInstance().findRunningJob(job2);
-		}
-		
+		IndexingJob indexingJob = (IndexingJob) JobService.getInstance().findRunningJob(IndexingJob.class, collectionId);
 		if(indexingJob != null){
 			indexingJob.requestStop();
 			isRequested = true;
