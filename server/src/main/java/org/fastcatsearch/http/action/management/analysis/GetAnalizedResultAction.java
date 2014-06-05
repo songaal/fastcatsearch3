@@ -44,6 +44,15 @@ public class GetAnalizedResultAction extends AuthAction {
 
 		String pluginId = request.getParameter("pluginId");
 		String analyzerId = request.getParameter("analyzerId");
+		String optionValues = request.getParameter("optionValues");
+		String[] optionValueArray;
+		
+		if(optionValues==null) {
+			optionValues="";
+		}
+		
+		optionValueArray = optionValues.split(",");
+		
 		Map<String, String> parameterMap = request.getParameterMap();
 
 		String errorMessage = null;
@@ -73,15 +82,19 @@ public class GetAnalizedResultAction extends AuthAction {
 				for(Entry<String, String> entry : parameterMap.entrySet()) {
 					
 					String key = entry.getKey();
-					if(key.equals("pluginId") || key.equals("analyzerId")){
+					if(key.equals("pluginId") || key.equals("analyzerId") || key.equals("optionValues")){
 						continue;
 					}
 					responseWriter.key(key).array("e");
 					char[] fieldValue = entry.getValue().toCharArray();
 					
 					AnalyzerOption options = new AnalyzerOption();
-					options.useStopword(true);
-					options.useSynonym(true);
+					if(optionValueArray.length > 0) {
+						options.useStopword("y".equalsIgnoreCase(optionValueArray[0]));
+					}
+					if(optionValueArray.length > 1) {
+						options.useSynonym("y".equalsIgnoreCase(optionValueArray[1]));
+					}
 					TokenStream tokenStream = analyzer.tokenStream("", new CharArrayReader(fieldValue), options);
 					tokenStream.reset();
 					CharsRefTermAttribute termAttribute = null;
