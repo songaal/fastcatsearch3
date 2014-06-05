@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.core.AnalyzerOption;
 import org.apache.lucene.analysis.tokenattributes.AdditionalTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
@@ -78,7 +79,10 @@ public class GetAnalizedResultAction extends AuthAction {
 					responseWriter.key(key).array("e");
 					char[] fieldValue = entry.getValue().toCharArray();
 					
-					TokenStream tokenStream = analyzer.tokenStream("", new CharArrayReader(fieldValue));
+					AnalyzerOption options = new AnalyzerOption();
+					options.useStopword(true);
+					options.useSynonym(true);
+					TokenStream tokenStream = analyzer.tokenStream("", new CharArrayReader(fieldValue), options);
 					tokenStream.reset();
 					CharsRefTermAttribute termAttribute = null;
 					if (tokenStream.hasAttribute(CharsRefTermAttribute.class)) {
