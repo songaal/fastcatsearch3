@@ -51,12 +51,16 @@ public class NodeCollectionReloadJob extends Job implements Streamable {
 			}
 			
 			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
+			
+			CollectionHandler oldCollectionHandler = irService.collectionHandler(collectionId);
+			
+			
 			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionId);
 			Counter queryCounter = irService.queryCountModule().getQueryCounter(collectionId);
 			collectionHandler.setQueryCounter(queryCounter);
 			
-			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
-			if (oldCollectionHandler != null) {
+			collectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
+			if (oldCollectionHandler != null && collectionHandler!=null) {
 				logger.info("## [{}] Close Previous Collection Handler", collectionId);
 				oldCollectionHandler.close();
 			}

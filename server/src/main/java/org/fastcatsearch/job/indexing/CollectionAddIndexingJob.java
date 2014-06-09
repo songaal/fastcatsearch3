@@ -13,7 +13,9 @@ package org.fastcatsearch.job.indexing;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.fastcatsearch.cluster.ClusterUtils;
 import org.fastcatsearch.cluster.Node;
@@ -35,13 +37,11 @@ import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.index.IndexWriteInfoList;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.CacheServiceRestartJob;
-import org.fastcatsearch.job.Job.JobResult;
+import org.fastcatsearch.job.cluster.NodeCollectionReloadJob;
 import org.fastcatsearch.job.cluster.NodeDirectoryCleanJob;
-import org.fastcatsearch.job.cluster.NodeSegmentUpdateJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.task.IndexFileTransfer;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
 
 /**
@@ -256,10 +256,22 @@ public class CollectionAddIndexingJob extends IndexingJob {
 						throw new IndexingStopException();
 					}
 					
+					Set<Node> reloadNodeSet = new HashSet<Node>();
+					//데이터노드
+					reloadNodeSet.addAll(nodeList);
+					//인덱스노드
+					reloadNodeSet.add(indexNode);
+					//마스터노드 (관리도구에 보여지기 위함) 추가
+					reloadNodeSet.add(nodeService.getMasterNode());
+					// 
+					for(String nodeId : collectionContext.collectionConfig().getSearchNodeList()){
+						reloadNodeSet.add(nodeService.getNodeById(nodeId));
+					}
+					
 					/*
 					 * 데이터노드에 컬렉션 리로드 요청.
 					 */
-					NodeSegmentUpdateJob reloadJob = new NodeSegmentUpdateJob(collectionContext);
+					NodeCollectionReloadJob reloadJob = new NodeCollectionReloadJob(collectionContext);
 					nodeResultList = ClusterUtils.sendJobToNodeList(reloadJob, nodeService, nodeList, false);
 					for (int i = 0; i < nodeResultList.length; i++) {
 						NodeJobResult r = nodeResultList[i];
