@@ -52,15 +52,6 @@ public class NodeCollectionReloadJob extends Job implements Streamable {
 			
 			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
 			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionId);
-			Counter queryCounter = irService.queryCountModule().getQueryCounter(collectionId);
-			collectionHandler.setQueryCounter(queryCounter);
-			
-			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
-			if (oldCollectionHandler != null) {
-				logger.info("## [{}] Close Previous Collection Handler", collectionId);
-				oldCollectionHandler.close();
-			}
-			
 			logger.info("== [{}] SegmentStatus ==", collectionId);
 			collectionHandler.printSegmentStatus();
 			logger.info("===================");

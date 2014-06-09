@@ -119,6 +119,9 @@ public class ClusterSearchJob extends Job {
 			boolean forMerging = collectionIdList.length > 1;
 			for (int i = 0; i < collectionIdList.length; i++) {
 				String id = collectionIdList[i];
+				if(irService.collectionHandler(id) == null) {
+					throw new FastcatSearchException("Collection Not Found: " + id);
+				}
 				collectionNumberMap.put(id, i);
 
 				Node dataNode = nodeService.getBalancedNode(id);

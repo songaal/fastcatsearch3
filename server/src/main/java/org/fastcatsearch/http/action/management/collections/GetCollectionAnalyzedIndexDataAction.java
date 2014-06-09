@@ -57,7 +57,7 @@ public class GetCollectionAnalyzedIndexDataAction extends AuthAction {
 		
 		resultWriter.object()
 		.key("collectionId").value(collectionId);
-		if (data == null) {
+		if (data == null || data.getAnalyzedData() == null) {
 			resultWriter.key("documentSize").value(0)
 			.key("fieldList").array().endArray()
 			.key("indexData").array().endArray();

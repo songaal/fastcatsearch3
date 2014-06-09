@@ -57,7 +57,7 @@ public class OperateCollectionJob extends Job implements Streamable {
 						errorMessage = "Collection [" + collectionId + "] is already started.";
 						return new JobResult(errorMessage);
 					}else{
-						collectionHandler.load();
+						irService.loadCollectionHandler(collectionId);
 						return new JobResult(true);
 					}
 				}

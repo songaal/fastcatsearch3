@@ -224,6 +224,9 @@ public class IRService extends AbstractService {
 			}
 		}
 
+		/*
+		 * 이전 컬렉션 handler가 있다면 닫아준다. 
+		 */
 		CollectionHandler previousCollectionHandler = collectionHandlerMap.put(collectionId, collectionHandler);
 		if(previousCollectionHandler != null){
 			try {
