@@ -186,8 +186,6 @@ public class BooleanClause extends OperatedClause {
 				}
 			}
 			
-			int currentOffset = 0;
-			
 			if(offsetAttribute!=null) {
 				offsetAttribute.endOffset();
 			}
@@ -205,9 +203,8 @@ public class BooleanClause extends OperatedClause {
 					if(synonymAttribute!=null) {
 						clause = this.applySynonym(clause, searchIndexReader, synonymAttribute, indexId, queryPosition, termSequence); 
 					}
-					
 					if (offsetAttribute.startOffset() == 0 &&
-						offsetAttribute.endOffset() == currentOffset) {
+						offsetAttribute.endOffset() == fullTerm.length()) {
 						//전체단어동의어 확장어
 						finalClause = clause;
 					} else {
@@ -221,23 +218,31 @@ public class BooleanClause extends OperatedClause {
 					}
 				}
 				
+				if(logger.isTraceEnabled()) {
+					logger.trace("clause:{}", dumpClause(operatedClause));
+				}
 				if(additionalClause != null) {
 					int subSize = additionalTermAttribute.subSize();
 					if( subSize > 0) {
 						//추가텀이 가진 서브텀의 갯수만큼 거슬러 올라가야 한다.
-						for(int inx=0;inx<subSize; inx++) {
+						for(int inx=0;inx<subSize-1; inx++) {
 							OperatedClause[] subClause = operatedClause.children();
 							
-							if(subClause!=null && subClause.length == 2 && 
-									operatedClause instanceof AndOperatedClause ) {
+							if(subClause!=null && subClause.length == 2) {
 								OperatedClause clause1 = subClause[0]; //
 								OperatedClause clause2 = subClause[1];
-								if(clause1 instanceof AndOperatedClause) {
-									OperatedClause[] subClause2 = clause1.children();
-									OperatedClause clause3 = subClause2[0]; //
-									OperatedClause clause4 = subClause2[1];
-									operatedClause = new AndOperatedClause(
-											clause3, new AndOperatedClause(clause4, clause2));
+								if( operatedClause instanceof AndOperatedClause ) {
+									if(clause1 instanceof AndOperatedClause) {
+										OperatedClause[] subClause2 = clause1.children();
+										OperatedClause clause3 = subClause2[0]; //
+										OperatedClause clause4 = subClause2[1];
+										
+										operatedClause = new AndOperatedClause(
+												clause3, new AndOperatedClause(clause4, clause2));
+										if(logger.isTraceEnabled()) {
+											logger.trace("clause:{}", dumpClause(operatedClause));
+										}
+									}
 								}
 							}
 						}
@@ -248,9 +253,21 @@ public class BooleanClause extends OperatedClause {
 							OperatedClause clause2 = subClause[1];
 							clause2 = new OrOperatedClause(clause2, additionalClause);
 							operatedClause = new AndOperatedClause(clause1, clause2);
+							if(logger.isTraceEnabled()) {
+								logger.trace("clause:{}", dumpClause(operatedClause));
+							}
+						} else if(operatedClause instanceof OrOperatedClause) {
+							//simply append in or-operated clause.
+							operatedClause = new OrOperatedClause(operatedClause, additionalClause);
+							if(logger.isTraceEnabled()) {
+								logger.trace("clause:{}", dumpClause(operatedClause));
+							}
 						}
 					} else {
 						operatedClause = new OrOperatedClause(operatedClause, additionalClause);
+						if(logger.isTraceEnabled()) {
+							logger.trace("clause:{}", dumpClause(operatedClause));
+						}
 					}
 				}
 			}
@@ -267,6 +284,46 @@ public class BooleanClause extends OperatedClause {
 			logger.trace("OperatedClause stack >> \n{}", baos.toString());
 		}
 		return operatedClause;
+	}
+	private String dumpClause(OperatedClause clause) {
+		StringBuilder sb = new StringBuilder();
+		OperatedClause[] children = clause.children();
+		if(children != null && children.length == 2) {
+			if(clause instanceof AndOperatedClause) {
+				sb.append("(");
+				if(children[0] instanceof TermOperatedClause) {
+					sb.append(((TermOperatedClause)children[0]).term());
+				} else if(children[0].children()!=null) {
+					sb.append(dumpClause(children[0]));
+				}
+				sb.append(" and ");
+				if(children[1] instanceof TermOperatedClause) {
+					sb.append(((TermOperatedClause)children[1]).term());
+				} else if(children[1].children()!=null) {
+					sb.append(dumpClause(children[1]));
+				}
+				sb.append(")");
+			} else if(clause instanceof OrOperatedClause) {
+				sb.append("(");
+				if(children[0] instanceof TermOperatedClause) {
+					sb.append(((TermOperatedClause)children[0]).term());
+				} else if(children[0].children()!=null) {
+					sb.append(dumpClause(children[0]));
+				}
+				sb.append(" or ");
+				if(children[1] instanceof TermOperatedClause) {
+					sb.append(((TermOperatedClause)children[1]).term());
+				} else if(children[1].children()!=null) {
+					sb.append(dumpClause(children[1]));
+				}
+				sb.append(")");
+				
+			}
+		} else if(clause instanceof TermOperatedClause) {
+			sb.append(((TermOperatedClause)clause).term());
+		}
+		
+		return sb.toString();
 	}
 	@Override
 	protected boolean nextDoc(RankInfo rankInfo) {
