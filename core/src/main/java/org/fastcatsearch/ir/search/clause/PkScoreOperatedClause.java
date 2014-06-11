@@ -72,7 +72,23 @@ public class PkScoreOperatedClause extends OperatedClause {
 
 	@Override
 	public void printTrace(PrintStream os, int depth) {
-		// TODO Auto-generated method stub
+		int indentSize = 4;
+		String indent = "";
+		if(depth > 0){
+			for (int i = 0; i < (depth - 1) * indentSize; i++) {
+				indent += " ";
+			}
+			
+			for (int i = (depth - 1) * indentSize, p = 0; i < depth * indentSize; i++, p++) {
+				if(p == 0){
+					indent += "|";
+				}else{
+					indent += "-";
+				}
+			}
+		}
+		
+		os.println(indent+"[PkScore] "+keyword+" [" + docNoList.size() + "] " + id);
 		
 	}
 

@@ -213,7 +213,7 @@ public class BooleanClause extends OperatedClause {
 						if(additionalClause == null) {
 							additionalClause = clause;
 						} else {
-								additionalClause = new OrOperatedClause(additionalClause, clause);
+							additionalClause = new OrOperatedClause(additionalClause, clause);
 						}
 					}
 				}
@@ -273,12 +273,12 @@ public class BooleanClause extends OperatedClause {
 			logger.trace("clause:{}", dumpClause(operatedClause));
 		}
 		
-		if(logger.isTraceEnabled() && operatedClause!=null) {
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			PrintStream traceStream = new PrintStream(baos);
-			operatedClause.printTrace(traceStream, 0);
-			logger.trace("OperatedClause stack >> \n{}", baos.toString());
-		}
+//		if(logger.isTraceEnabled() && operatedClause!=null) {
+//			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//			PrintStream traceStream = new PrintStream(baos);
+//			operatedClause.printTrace(traceStream, 0);
+//			logger.trace("OperatedClause stack >> \n{}", baos.toString());
+//		}
 		return operatedClause;
 	}
 	private String dumpClause(OperatedClause clause) {
@@ -347,7 +347,26 @@ public class BooleanClause extends OperatedClause {
 		return termString;
 	}
 	@Override
-	public void printTrace(PrintStream os, int depth) { }
+	public void printTrace(PrintStream os, int depth) { 
+		int indentSize = 4;
+		String indent = "";
+		if(depth > 0){
+			for (int i = 0; i < (depth - 1) * indentSize; i++) {
+				indent += " ";
+			}
+			
+			for (int i = (depth - 1) * indentSize, p = 0; i < depth * indentSize; i++, p++) {
+				if(p == 0){
+					indent += "|";
+				}else{
+					indent += "-";
+				}
+			}
+		}
+		os.println(indent+"[OR]");
+		operatedClause.printTrace(os, depth + 1);
+		
+	}
 	
 
 	private OperatedClause applySynonym(OperatedClause clause, 

@@ -96,12 +96,24 @@ public class BoostOperatedClause extends OperatedClause {
 			for (int i = 0; i < (depth - 1) * indentSize; i++) {
 				indent += " ";
 			}
+			
+			for (int i = (depth - 1) * indentSize, p = 0; i < depth * indentSize; i++, p++) {
+				if(p == 0){
+					indent += "|";
+				}else{
+					indent += "-";
+				}
+			}
 		}
 		
-		os.println(indent+"[MAIN]:");
-		mainClause.printTrace(os, depth);
-		os.println(indent+"[BOOST]:");
-		boostClause.printTrace(os, depth);
+		os.println(indent+"[MAIN]");
+		if(mainClause != null) {
+			mainClause.printTrace(os, depth + 1);
+		}
+		os.println(indent+"[BOOST]");
+		if(boostClause != null) {
+			boostClause.printTrace(os, depth + 1);
+		}
 	}
 
 //	@Override
