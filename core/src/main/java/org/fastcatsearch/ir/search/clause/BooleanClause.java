@@ -174,7 +174,7 @@ public class BooleanClause extends OperatedClause {
 			//
 			//isSynonym 일 경우 다시한번 유사어확장을 하지 않는다.
 			if(synonymAttribute != null) {
-				clause = applySynonym(clause, searchIndexReader, synonymAttribute, indexId, queryPosition, termSequence);
+				clause = applySynonym(clause, searchIndexReader, synonymAttribute, indexId, queryPosition, termSequence, type);
 			}
 			if (operatedClause == null) {
 				operatedClause = clause;
@@ -201,7 +201,7 @@ public class BooleanClause extends OperatedClause {
 					clause = new TermOperatedClause(indexId, localToken.toString(), postingReader, termSequence.getAndIncrement());
 					
 					if(synonymAttribute!=null) {
-						clause = this.applySynonym(clause, searchIndexReader, synonymAttribute, indexId, queryPosition, termSequence); 
+						clause = this.applySynonym(clause, searchIndexReader, synonymAttribute, indexId, queryPosition, termSequence, type); 
 					}
 					if (offsetAttribute.startOffset() == 0 &&
 						offsetAttribute.endOffset() == fullTerm.length()) {
@@ -340,7 +340,7 @@ public class BooleanClause extends OperatedClause {
 	private OperatedClause applySynonym(OperatedClause clause, 
 			SearchIndexReader searchIndexReader,
 			SynonymAttribute synonymAttribute, String indexId, int queryPosition, 
-			AtomicInteger termSequence ) throws IOException {
+			AtomicInteger termSequence, Type type) throws IOException {
 		
 		@SuppressWarnings("unchecked")
 		List<Object> synonymObj = synonymAttribute.getSynonyms();
@@ -364,6 +364,7 @@ public class BooleanClause extends OperatedClause {
 					@SuppressWarnings("unchecked")
 					List<CharVector>synonyms = (List<CharVector>)obj; 
 					OperatedClause extractedClause = null;
+					//유사어가 여러단어로 분석될경우
 					for(CharVector localToken : synonyms) {
 						localToken.setIgnoreCase();
 						SearchMethod localSearchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
@@ -373,7 +374,12 @@ public class BooleanClause extends OperatedClause {
 						if(extractedClause == null) {
 							extractedClause = localClause;
 						} else {
-							extractedClause = new AndOperatedClause(extractedClause, localClause);
+							//원본 term의 Type을 보고 ANY 또는 ALL로 동일하게 사용한다.
+							if(type == Type.ALL){
+								extractedClause = new AndOperatedClause(extractedClause, localClause);
+							}else if(type == Type.ANY){
+								extractedClause = new OrOperatedClause(extractedClause, localClause);
+							}
 						}
 					}
 					if(synonymClause == null) {
