@@ -247,7 +247,17 @@ public class BooleanClause extends OperatedClause {
 							}
 						}
 						
-						operatedClause = new OrOperatedClause(operatedClause, additionalClause);
+						if(operatedClause instanceof AndOperatedClause) {
+							OperatedClause[] subClause = operatedClause.children();
+							OperatedClause clause1 = subClause[0];
+							OperatedClause clause2 = subClause[1];
+							clause2 = new OrOperatedClause(clause2, additionalClause);
+							operatedClause = new AndOperatedClause(clause1, clause2);
+						} else if(operatedClause instanceof OrOperatedClause) {
+							//simply append in or-operated clause.
+							operatedClause = new OrOperatedClause(operatedClause, additionalClause);
+						}
+						
 						if(logger.isTraceEnabled()) {
 							logger.trace("clause:{}", dumpClause(operatedClause));
 						}
@@ -258,6 +268,9 @@ public class BooleanClause extends OperatedClause {
 		
 		if(finalClause!=null) {
 			operatedClause = new OrOperatedClause(operatedClause, finalClause);
+		}
+		if(logger.isTraceEnabled()) {
+			logger.trace("clause:{}", dumpClause(operatedClause));
 		}
 		
 		if(logger.isTraceEnabled() && operatedClause!=null) {
