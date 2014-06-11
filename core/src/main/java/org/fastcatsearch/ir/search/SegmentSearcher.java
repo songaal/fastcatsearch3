@@ -1,16 +1,15 @@
 package org.fastcatsearch.ir.search;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
+import java.io.PrintStream;
 
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.document.DocumentReader;
-import org.fastcatsearch.ir.filter.FilterException;
-import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.group.GroupDataGenerator;
 import org.fastcatsearch.ir.group.GroupHit;
+import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.io.FixedHitStack;
 import org.fastcatsearch.ir.io.FixedMaxPriorityQueue;
@@ -20,7 +19,6 @@ import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.HitFilter;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
-import org.fastcatsearch.ir.query.QueryModifier;
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.query.Sorts;
 import org.fastcatsearch.ir.search.clause.AllDocumentOperatedClause;
@@ -162,6 +160,14 @@ public class SegmentSearcher {
 			explanation = new Explanation();
 			clauseExplanation = explanation.createClauseExplanation();
 		}
+		
+		if (logger.isTraceEnabled() && operatedClause != null) {
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			PrintStream traceStream = new PrintStream(baos);
+			operatedClause.printTrace(traceStream, 0);
+			logger.trace("SegmentSearcher[seg#{}] stack >> \n{}", segmentReader.segmentInfo().getId(), baos.toString());
+		}
+		
 		
 		operatedClause.init(clauseExplanation);
 //		int searchTime = 0, sortTime = 0, groupTime = 0, filterTime = 0;

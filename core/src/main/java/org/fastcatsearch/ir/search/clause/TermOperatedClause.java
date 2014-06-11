@@ -132,6 +132,6 @@ public class TermOperatedClause extends OperatedClause {
 		if(postingReader!=null) {
 			size = postingReader.size();
 		}
-		os.println(indent+"[TERM]:"+termString+" count["+size+"/"+documentCount+"]");
+		os.println(indent+"[TERM] "+termString+" ["+size+"] " + id);
 	}
 }

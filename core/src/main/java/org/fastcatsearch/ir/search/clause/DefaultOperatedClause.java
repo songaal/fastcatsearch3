@@ -48,7 +48,7 @@ public class DefaultOperatedClause extends OperatedClause {
 
 	@Override
 	public void printTrace(PrintStream os, int depth) {
-		
+		operatedClause.printTrace(os, depth);
 	}
 
 }
