@@ -51,4 +51,12 @@ public class DefaultOperatedClause extends OperatedClause {
 		operatedClause.printTrace(os, depth);
 	}
 
+	@Override
+	public OperatedClause[] children() {
+		return new OperatedClause[] { this.operatedClause };
+	}
+	
+	public DefaultOperatedClause clone(OperatedClause clause) {
+		return new DefaultOperatedClause(clause, this.description);
+	}
 }

@@ -1,6 +1,5 @@
 package org.fastcatsearch.ir.search.clause;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Iterator;
@@ -31,7 +30,6 @@ import org.fastcatsearch.ir.search.method.NormalSearchMethod;
 import org.fastcatsearch.ir.search.method.SearchMethod;
 import org.fastcatsearch.ir.settings.IndexRefSetting;
 import org.fastcatsearch.ir.settings.IndexSetting;
-import org.fastcatsearch.util.CallStackTraceUtil;
 
 public class BooleanClause extends OperatedClause {
 
@@ -186,9 +184,6 @@ public class BooleanClause extends OperatedClause {
 				}
 			}
 			
-			if(offsetAttribute!=null) {
-				offsetAttribute.endOffset();
-			}
 			//추가 확장 단어들.
 			if(additionalTermAttribute != null) {
 				Iterator<String> termIter = additionalTermAttribute.iterateAdditionalTerms();
@@ -281,42 +276,63 @@ public class BooleanClause extends OperatedClause {
 //		}
 		return operatedClause;
 	}
-	private String dumpClause(OperatedClause clause) {
+	public static String dumpClause(OperatedClause clause) {
 		StringBuilder sb = new StringBuilder();
 		OperatedClause[] children = clause.children();
-		if(children != null && children.length == 2) {
-			if(clause instanceof AndOperatedClause) {
-				sb.append("(");
-				if(children[0] instanceof TermOperatedClause) {
-					sb.append(((TermOperatedClause)children[0]).term());
-				} else if(children[0].children()!=null) {
-					sb.append(dumpClause(children[0]));
+		if(children!=null) {
+			if(children.length == 2) {
+				if(clause instanceof AndOperatedClause) {
+					sb.append("(");
+					if(children[0] instanceof TermOperatedClause) {
+						sb.append(((TermOperatedClause)children[0]).term());
+					} else if(children[0].children()!=null) {
+						sb.append(dumpClause(children[0]));
+					}
+					sb.append(" and ");
+					if(children[1] instanceof TermOperatedClause) {
+						sb.append(((TermOperatedClause)children[1]).term());
+					} else if(children[1].children()!=null) {
+						sb.append(dumpClause(children[1]));
+					}
+					sb.append(")");
+				} else if(clause instanceof OrOperatedClause) {
+					sb.append("(");
+					if(children[0] instanceof TermOperatedClause) {
+						sb.append(((TermOperatedClause)children[0]).term());
+					} else if(children[0].children()!=null) {
+						sb.append(dumpClause(children[0]));
+					}
+					sb.append(" or ");
+					if(children[1] instanceof TermOperatedClause) {
+						sb.append(((TermOperatedClause)children[1]).term());
+					} else if(children[1].children()!=null) {
+						sb.append(dumpClause(children[1]));
+					}
+					sb.append(")");
+					
+				} else {
+					sb.append("(");
+					if(children[0] instanceof TermOperatedClause) {
+						sb.append(((TermOperatedClause)children[0]).term());
+					} else if(children[0].children()!=null) {
+						sb.append(dumpClause(children[0]));
+					}
+					sb.append(" ? ");
+					if(children[1] instanceof TermOperatedClause) {
+						sb.append(((TermOperatedClause)children[1]).term());
+					} else if(children[1].children()!=null) {
+						sb.append(dumpClause(children[1]));
+					}
+					sb.append(")");
 				}
-				sb.append(" and ");
-				if(children[1] instanceof TermOperatedClause) {
-					sb.append(((TermOperatedClause)children[1]).term());
-				} else if(children[1].children()!=null) {
-					sb.append(dumpClause(children[1]));
-				}
-				sb.append(")");
-			} else if(clause instanceof OrOperatedClause) {
-				sb.append("(");
-				if(children[0] instanceof TermOperatedClause) {
-					sb.append(((TermOperatedClause)children[0]).term());
-				} else if(children[0].children()!=null) {
-					sb.append(dumpClause(children[0]));
-				}
-				sb.append(" or ");
-				if(children[1] instanceof TermOperatedClause) {
-					sb.append(((TermOperatedClause)children[1]).term());
-				} else if(children[1].children()!=null) {
-					sb.append(dumpClause(children[1]));
-				}
-				sb.append(")");
+			} else if(children.length == 1) {
 				
+				if(clause instanceof TermOperatedClause) {
+					sb.append(((TermOperatedClause)clause).term());
+				} else {
+					sb.append("[").append(dumpClause(children[0])).append("]");
+				}
 			}
-		} else if(clause instanceof TermOperatedClause) {
-			sb.append(((TermOperatedClause)clause).term());
 		}
 		
 		return sb.toString();
@@ -427,5 +443,9 @@ public class BooleanClause extends OperatedClause {
 		}
 		
 		return clause;
+	}
+	@Override
+	public OperatedClause[] children() {
+		return new OperatedClause[] { operatedClause };
 	}
 }

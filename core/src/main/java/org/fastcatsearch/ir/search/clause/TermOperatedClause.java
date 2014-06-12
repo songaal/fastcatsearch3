@@ -87,7 +87,7 @@ public class TermOperatedClause extends OperatedClause {
 
 	@Override
 	public void close() {
-		if (postingReader == null) {
+		if (postingReader != null) {
 			postingReader.close();
 		}
 	}
