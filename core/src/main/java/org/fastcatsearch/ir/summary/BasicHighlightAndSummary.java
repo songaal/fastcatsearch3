@@ -88,6 +88,8 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		AnalyzerOption queryAnalyzerOption = new AnalyzerOption();
 		queryAnalyzerOption.useStopword(searchOption.useStopword());
 		queryAnalyzerOption.useSynonym(searchOption.useSynonym());
+		queryAnalyzerOption.setForQuery();
+		//queryAnalyzerOption.setForDocument();
 		
 		tokenStream = queryAnalyzer.tokenStream(fieldId, new StringReader(query), queryAnalyzerOption);
 		
@@ -302,13 +304,24 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 			int offset;
 			int length;
 			
-			if(charTermAttributeLocal.buffer().length < charTermAttribute.buffer().length ) {
-				charTermAttributeLocal.resizeBuffer(charTermAttribute.buffer().length);
+			if(charsRefTermAttributeLocal!=null) {
+				buffer = charsRefTermAttribute.charsRef().chars;
+				offset = charsRefTermAttribute.charsRef().offset;
+				length = charsRefTermAttribute.charsRef().length;
+				charsRefTermAttributeLocal.setBuffer(buffer, offset, length);
+				charTermAttributeLocal.copyBuffer(buffer, offset, length);
+				charTermAttributeLocal.setLength(length);
+				
+			} else {
+				if(charTermAttributeLocal.buffer().length < charTermAttribute.buffer().length ) {
+					charTermAttributeLocal.resizeBuffer(charTermAttribute.buffer().length);
+				}
+				buffer = charTermAttribute.buffer();
+				length = charTermAttribute.length();
+				charTermAttributeLocal.copyBuffer(buffer, 0, length);
+				charTermAttributeLocal.setLength(length);
 			}
-			buffer = charTermAttribute.buffer();
-			length = charTermAttribute.length();
-			charTermAttributeLocal.copyBuffer(buffer, 0, length);
-			charTermAttributeLocal.setLength(length);
+			
 			
 			if( charTermAttribute.length() > 0 
 					&& offsetAttribute.startOffset() + length <= pText.length()
@@ -320,13 +333,6 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 				offsetAttributeLocal.setOffset(offsetAttribute.startOffset(),
 						offsetAttribute.endOffset());
 			}			
-			
-			if(charsRefTermAttribute!=null) {
-				buffer = charsRefTermAttribute.charsRef().chars;
-				offset = charsRefTermAttribute.charsRef().offset;
-				length = charsRefTermAttribute.charsRef().length;
-				charsRefTermAttributeLocal.setBuffer(buffer, offset, length);
-			}
 			return ret;
 		}
 		
