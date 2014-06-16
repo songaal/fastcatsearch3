@@ -304,7 +304,7 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 			int offset;
 			int length;
 			
-			if(charsRefTermAttributeLocal!=null) {
+			if(charsRefTermAttributeLocal!=null && charsRefTermAttributeLocal.charsRef() != null) {
 				buffer = charsRefTermAttribute.charsRef().chars;
 				offset = charsRefTermAttribute.charsRef().offset;
 				length = charsRefTermAttribute.charsRef().length;
