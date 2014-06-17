@@ -22,19 +22,21 @@ import java.util.Random;
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.search.clause.NotOperatedClause;
 import org.fastcatsearch.ir.search.clause.UserOperatedClause;
+import org.junit.Test;
 
 
 
 import junit.framework.TestCase;
 
-public class NotOperatedClauseTest extends TestCase{
+public class NotOperatedClauseTest {
 	
+	@Test
 	public void testFixed(){
 		int[] docs1 = new int[]{2,5,7,9,13,18,27,31,37,45};
 		int[] weight1 = new int[]{100,200,100,200,100,200,100,200,300,100};
 		
-		int[] docs2 = new int[]{4,5,6,7,8,9};
-		int[] weight2 = new int[]{300,400,300,300,400,500};
+		int[] docs2 = new int[]{4,5,6,7,8,45,46};
+		int[] weight2 = new int[]{300,400,300,300,400,500,100};
 		
 		UserOperatedClause c1 = new UserOperatedClause(docs1.length, docs1, weight1);
 		UserOperatedClause c2 = new UserOperatedClause(docs2.length, docs2, weight2);
@@ -42,7 +44,7 @@ public class NotOperatedClauseTest extends TestCase{
 		RankInfo docInfo = new RankInfo();
 		
 		NotOperatedClause notClause = new NotOperatedClause(c1, c2);
-		
+		notClause.init();
 		
 		int i = 0;
 		while(notClause.next(docInfo)){
@@ -51,8 +53,8 @@ public class NotOperatedClauseTest extends TestCase{
 		}
 	}
 	
-	
-	public void __testRandom(){
+	@Test
+	public void testRandom(){
 		int count1 = 100;
 		int[] docs1 = new int[count1];
 		makeDocs(count1, docs1);
@@ -67,7 +69,7 @@ public class NotOperatedClauseTest extends TestCase{
 		RankInfo docInfo = new RankInfo();
 		
 		NotOperatedClause notClause = new NotOperatedClause(c1, c2);
-		
+		notClause.init();
 		
 		int i = 0;
 		while(notClause.next(docInfo)){

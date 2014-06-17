@@ -42,7 +42,11 @@ public class UserOperatedClause extends OperatedClause {
 
 	protected boolean nextDoc(RankInfo docInfo) {
 		if(pos < count){
-			docInfo.init(docs[pos], weight[pos]);
+			if(weight == null) {
+				docInfo.init(docs[pos], 0);
+			} else {
+				docInfo.init(docs[pos], weight[pos]);
+			}
 			pos++;
 			return true;
 		}

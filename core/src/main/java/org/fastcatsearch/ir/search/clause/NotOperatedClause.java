@@ -59,7 +59,9 @@ public class NotOperatedClause extends OperatedClause {
 				doc2 = docInfo2.docNo();
 			}
 			
-		} while(doc1 >= 0 && doc1 == doc2); //2012-02-03 문서리스트가 끝나, 번호가 -1이면 루프를 끝낸다.
+			//2012-02-03 문서리스트가 끝나, 번호가 -1이면 루프를 끝낸다.
+			//2014-6-17 swsong: -1로 셋팅되지 않은 경우도 있으므로, hasNext1가 false이면 루프를 끝내도록 수정.
+		} while(hasNext1 && doc1 == doc2); 
 		
 		if(hasNext1){
 			rankInfo.init(doc1, score1);
