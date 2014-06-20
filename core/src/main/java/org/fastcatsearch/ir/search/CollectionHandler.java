@@ -307,7 +307,8 @@ public class CollectionHandler {
 		File lastRevisionDir = new File(segmentDir, segmentInfo.getRevisionName());
 		// 삭제문서는 마지막 세그먼트의 마지막 리비전에 최신 업데이트 파일이 있으므로, 그것을 로딩한다.
 		for (int i = 0; i < segmentReaderList.size(); i++) {
-			BitSet deleteSet = new BitSet(lastRevisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
+			SegmentInfo prevSegmentInfo = segmentReaderList.get(i).segmentInfo();
+			BitSet deleteSet = new BitSet(lastRevisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, prevSegmentInfo.getId()));
 			segmentReaderList.get(i).setDeleteSet(deleteSet);
 		}
 		addSegmentReader(new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager));
@@ -324,7 +325,8 @@ public class CollectionHandler {
 		logger.debug("updateSegmentApplyShard segId={}, reader={}, size={}", segmentId, oldSegmentReader, segmentReaderList.size());
 		List<SegmentReader> prevSegmentReaderList = segmentReaderList.subList(0, segmentReaderList.size() - 1);
 		for (int i = 0; i < prevSegmentReaderList.size(); i++) {
-			BitSet deleteSet = new BitSet(lastRevisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
+			SegmentInfo prevSegmentInfo = prevSegmentReaderList.get(i).segmentInfo();
+			BitSet deleteSet = new BitSet(lastRevisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, prevSegmentInfo.getId()));
 			prevSegmentReaderList.get(i).setDeleteSet(deleteSet);
 		}
 		// 새 revison을 읽는 segmentReader를 만들어서 기존것과 바꾼다.
