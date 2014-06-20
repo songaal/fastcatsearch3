@@ -64,14 +64,20 @@ public class DirectoryPathReader extends SingleSourceReader<Map<String,Object>> 
 		if (skipPatternStr != null) {
 			skipPatterns = new Pattern[skipPatternStr.length];
 			for (int inx = 0; inx < skipPatternStr.length; inx++) {
-				skipPatterns[inx] = Pattern.compile(skipPatternStr[inx]);
+				if (skipPatternStr[inx] != null
+						&& !"".equals(skipPatternStr[inx])) {
+					skipPatterns[inx] = Pattern.compile(skipPatternStr[inx]);
+				}
 			}
 		}
 		
 		if (acceptPatternStr != null) {
 			acceptPatterns = new Pattern[acceptPatternStr.length];
 			for (int inx = 0; inx < acceptPatternStr.length; inx++) {
-				acceptPatterns[inx] = Pattern.compile(acceptPatternStr[inx]);
+				if (acceptPatternStr[inx] != null
+						&& !"".equals(acceptPatternStr[inx])) {
+					acceptPatterns[inx] = Pattern.compile(acceptPatternStr[inx]);
+				}
 			}
 		}
 		
