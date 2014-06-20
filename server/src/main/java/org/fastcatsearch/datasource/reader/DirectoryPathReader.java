@@ -177,11 +177,9 @@ public class DirectoryPathReader extends SingleSourceReader<Map<String,Object>> 
 				if (skipPatterns != null && skipPatterns.length > 0) {
 					for (int inx = 0; inx < skipPatterns.length; inx++) {
 						try {
-							if(skipPatterns[inx]!=null && !"".equals(skipPatterns[inx])) {
-								if(skipPatterns[inx].matcher(path).find()) {
-									logger.trace("Skip Pattern Found In : {}", path);
-									return false;
-								}
+							if(skipPatterns[inx].matcher(path).find()) {
+								logger.trace("Skip Pattern Found In : {}", path);
+								return false;
 							}
 						} catch (IllegalArgumentException ignore) { }
 					}
@@ -190,11 +188,9 @@ public class DirectoryPathReader extends SingleSourceReader<Map<String,Object>> 
 				if(acceptPatterns != null && acceptPatterns.length > 0) {
 					for (int inx = 0; inx < acceptPatterns.length; inx++) {
 						try {
-							if(acceptPatterns[inx]!=null && !"".equals(acceptPatterns[inx])) {
-								if(!acceptPatterns[inx].matcher(path).find()) {
-									logger.trace("Not Accepted Pattern Found In : {}", path);
-									return false;
-								}
+							if(!acceptPatterns[inx].matcher(path).find()) {
+								logger.trace("Not Accepted Pattern Found In : {}", path);
+								return false;
 							}
 						} catch (IllegalArgumentException ignore) { }
 					}
