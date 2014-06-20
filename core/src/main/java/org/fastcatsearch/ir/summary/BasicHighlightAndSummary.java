@@ -159,7 +159,7 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 				score = 1.0f;
 			}
 			
-			logger.trace("termString:{} / score:{}", termString, score);
+			logger.trace("termString:{} / score:{} / prev:{}", termString, score, prevTermString);
 			
 			if(score > 0) {
 				if(!termString.equals(prevTermString)){
@@ -321,18 +321,28 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 				charTermAttributeLocal.copyBuffer(buffer, 0, length);
 				charTermAttributeLocal.setLength(length);
 			}
+			offsetAttributeLocal.setOffset(offsetAttribute.startOffset(), offsetAttribute.endOffset());
 			
-			
-			if( charTermAttribute.length() > 0 
-					&& offsetAttribute.startOffset() + length <= pText.length()
-					&& charTermAttribute.buffer()[0] == 
+			if(logger.isTraceEnabled()) {
+				logger.trace("text:{} / {}", charTermAttributeLocal, pText
+						.substring(offsetAttributeLocal.startOffset(), offsetAttributeLocal.endOffset()));
+			}
+			if( charTermAttributeLocal.length() > 0 
+					&& offsetAttributeLocal.startOffset() + length <= pText.length()
+					&& charTermAttributeLocal.buffer()[0] == 
 						pText.charAt(offsetAttribute.startOffset())) {
 				offsetAttributeLocal.setOffset(offsetAttribute.startOffset(),
 						offsetAttribute.startOffset() + length);
 			} else {
 				offsetAttributeLocal.setOffset(offsetAttribute.startOffset(),
 						offsetAttribute.endOffset());
-			}			
+			}
+			
+			if(logger.isTraceEnabled()) {
+				logger.trace("text:{} / {}", charTermAttributeLocal, pText
+						.substring(offsetAttributeLocal.startOffset(),offsetAttributeLocal.endOffset()));
+			}
+			
 			return ret;
 		}
 		
