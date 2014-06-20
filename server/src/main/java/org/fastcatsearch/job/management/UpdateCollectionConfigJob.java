@@ -7,7 +7,9 @@ import javax.xml.bind.JAXBException;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionConfig;
+import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.Job;
@@ -57,8 +59,19 @@ public class UpdateCollectionConfigJob extends Job implements Streamable {
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
 		FilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(this.collectionId);		
+		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		
-		boolean isSuccess = CollectionContextUtil.writeConfigFile(this.collectionConfig, collectionFilePaths);
+		//객체도 함께 즉시 업데이트 해준다.
+		CollectionContext collectionContext = irService.collectionContext(collectionId);
+		CollectionConfig collectionConfig = collectionContext.collectionConfig();
+		collectionConfig.setName(this.collectionConfig.getName());
+		collectionConfig.setIndexNode(this.collectionConfig.getIndexNode());
+		collectionConfig.setSearchNodeList(this.collectionConfig.getSearchNodeList());
+		collectionConfig.setDataNodeList(this.collectionConfig.getDataNodeList());
+		collectionConfig.setDataPlanConfig(this.collectionConfig.getDataPlanConfig());
+		collectionConfig.setFullIndexingSegmentSize(this.collectionConfig.getFullIndexingSegmentSize());
+		
+		boolean isSuccess = CollectionContextUtil.writeConfigFile(collectionConfig, collectionFilePaths);
 		
 		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 		nodeService.updateLoadBalance(collectionId, collectionConfig.getDataNodeList());
