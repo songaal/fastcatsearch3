@@ -26,7 +26,7 @@ public class SystemWatchService extends AbstractService {
 
 	private static long START_DELAY = 1000L;
 	private static long INFO_CHECK_PERIOD = 1000L; // 1초마다 InfoCheckerTask를 수행한다.
-	private static long DISK_CHECK_PERIOD = 10 * 1000L;
+	private static long DISK_CHECK_PERIOD = 5 * 60 * 1000L; //5분마다 확인. 
 	
 	private SystemInfoHandler handler;
 	private Timer timer;
@@ -103,7 +103,7 @@ public class SystemWatchService extends AbstractService {
 //				logger.debug("check >> {} / {}", diskUsage, diskUsageThreshold);
 				if(diskUsage >= diskUsageThreshold) {
 					//동일한 usage는 1시간 이후에 재 알림한다. 동일하지 않으면 바로 리포팅. 
-					if(lastDiskUsage != diskUsage || lastReportTime - System.currentTimeMillis() > 60 * 60 * 1000) {
+					if(lastDiskUsage != diskUsage || System.currentTimeMillis() - lastReportTime >= 60 * 60 * 1000) {
 						NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
 						notificationService.sendNotification(new DiskUsageNotification(diskUsage));
 						lastReportTime = System.currentTimeMillis();
