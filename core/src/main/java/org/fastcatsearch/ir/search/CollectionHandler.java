@@ -17,6 +17,7 @@ import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
+import org.fastcatsearch.ir.config.DataPlanConfig;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexBulkReader;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexReader;
 import org.fastcatsearch.ir.document.merge.PrimaryKeyIndexMerger;
@@ -212,6 +213,35 @@ public class CollectionHandler {
 		segmentReaderList.add(segmentReader);
 		// info.xml 파일업데이트용.
 		collectionContext.updateSegmentInfo(segmentReader.segmentInfo());
+		
+		/*
+		 * 불필요한 revision 디렉토리 삭제.
+		 * */
+		DataPlanConfig dataPlanConfig = collectionContext.collectionConfig().getDataPlanConfig();
+		int revisionBackupSize = dataPlanConfig.getSegmentRevisionBackupSize();
+		if(revisionBackupSize > 0) {
+			//삭제가 필요한 revision은 삭제한다.
+			SegmentInfo segmentInfo = segmentReader.segmentInfo();
+			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
+			int revisionId = revisionInfo.getId();
+			//TODO 일단 REF는 무시하지만, 추가문서없이 delete만 계속 될경우 원본이 삭제될수 있는 잠재적 버그존재.
+//			int revisionRefId = revisionInfo.getRef();
+			
+			//targetRevisionId는 삭제할 id 
+			int targetRevisionId = revisionId - revisionBackupSize - 1;
+			if(targetRevisionId >= 0){
+				File segmentDir = segmentReader.segmentDir();
+				File deleteRevisionDir = new File(segmentDir, String.valueOf(targetRevisionId));
+				try {
+					FileUtils.deleteDirectory(deleteRevisionDir);
+					logger.debug("Delete backup revision directory = {}", deleteRevisionDir.getAbsolutePath());
+				} catch (IOException e) {
+					logger.error("Error while delete backup revision directory = " + deleteRevisionDir.getAbsolutePath(), e);
+				}
+			}
+		
+		}
+		
 	}
 
 	// SegmentReader 찾기.
