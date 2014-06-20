@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.fastcatsearch.datasource.SourceModifier;
@@ -30,7 +29,8 @@ public class DirectoryPathReader extends SingleSourceReader<Map<String,Object>> 
 	String rootPath;
 	//String encoding;
 	String fieldId;
-	String[] skipPatterns;
+	Pattern[] skipPatterns;
+	Pattern[] acceptPatterns;
 	List<String> filePaths;
 	boolean finished;
 	int bufferSize;
@@ -45,7 +45,8 @@ public class DirectoryPathReader extends SingleSourceReader<Map<String,Object>> 
 		rootPath = getConfigString("rootPath","/");
 		//encoding = getConfigString("encoding",null);
 		fieldId = getConfigString("fieldId").trim().toUpperCase();
-		skipPatterns = getConfigString("skipPatterns", "").trim().split("\n");
+		String[] skipPatternStr = getConfigString("skipPatterns", "").trim().split("\n");
+		String[] acceptPatternStr = getConfigString("acceptPatterns", "").trim().split("\n");
 		maxDepth = getConfigInt("maxDepth");
 		maxCount = getConfigInt("maxCount");
 		bufferSize = getConfigInt("bufferSize");
@@ -59,6 +60,21 @@ public class DirectoryPathReader extends SingleSourceReader<Map<String,Object>> 
 		if(bufferSize < 100) {
 			bufferSize = 100;
 		}
+		
+		if (skipPatternStr != null) {
+			skipPatterns = new Pattern[skipPatternStr.length];
+			for (int inx = 0; inx < skipPatternStr.length; inx++) {
+				skipPatterns[inx] = Pattern.compile(skipPatternStr[inx]);
+			}
+		}
+		
+		if (acceptPatternStr != null) {
+			acceptPatterns = new Pattern[acceptPatternStr.length];
+			for (int inx = 0; inx < acceptPatternStr.length; inx++) {
+				acceptPatterns[inx] = Pattern.compile(acceptPatternStr[inx]);
+			}
+		}
+		
 		finished = false;
 		filePaths = new ArrayList<String>();
 		currentDepth = 0;
@@ -77,6 +93,8 @@ public class DirectoryPathReader extends SingleSourceReader<Map<String,Object>> 
 		registerParameter(new SourceReaderParameter("maxDepth", "Max Depth", "Maximum Depth For File Exploring"
 				, SourceReaderParameter.TYPE_NUMBER, false, "10"));
 		registerParameter(new SourceReaderParameter("skipPatterns", "Skip Patterns", "Skip Patterns (in regex)"
+				, SourceReaderParameter.TYPE_TEXT, false, ""));
+		registerParameter(new SourceReaderParameter("acceptPatterns", "Accept Only Patterns", "Describe Accept Only Patterns ( blank = accept all ) "
 				, SourceReaderParameter.TYPE_TEXT, false, ""));
 		registerParameter(new SourceReaderParameter("bufferSize", "Buffer Size", "Reading Buffer Size"
 				, SourceReaderParameter.TYPE_NUMBER, false, "100"));
@@ -105,8 +123,9 @@ public class DirectoryPathReader extends SingleSourceReader<Map<String,Object>> 
 	}
 	
 	private Map<String, Object> fill() throws IRException {
-		while (!finished) {
+		while (true) {
 			if (filePaths.size() > 0) {
+				logger.trace("fetch record..");
 				Map<String, Object> record = new HashMap<String, Object>();
 				String path = filePaths.remove(0);
 				record.put(fieldId, path);
@@ -117,8 +136,12 @@ public class DirectoryPathReader extends SingleSourceReader<Map<String,Object>> 
 				return record;
 			} else {
 				try {
+					logger.trace("waiting..");
 					Thread.sleep(100);
 				} catch (InterruptedException ignore) { }
+				if(finished) {
+					break;
+				}
 				continue;
 			}
 		}
@@ -127,6 +150,7 @@ public class DirectoryPathReader extends SingleSourceReader<Map<String,Object>> 
 	
 
 	public boolean accept(File file) {
+		logger.trace("finished:{} / file:{}", finished, file);
 		int currentDepth = this.currentDepth;
 		while(!finished) {
 			if(filePaths.size() > bufferSize) {
@@ -135,28 +159,9 @@ public class DirectoryPathReader extends SingleSourceReader<Map<String,Object>> 
 				} catch (InterruptedException ignore) { }
 				continue;
 			}
-			if(file.isFile()) {
-				String path = file.getAbsolutePath();
-				
-				if (skipPatterns != null && skipPatterns.length > 0) {
-					for (int inx = 0; inx < skipPatterns.length; inx++) {
-						try {
-							if(skipPatterns[inx]!=null && !"".equals(skipPatterns[inx])) {
-								Pattern pattern = Pattern.compile(skipPatterns[inx]);
-								Matcher matcher = pattern.matcher(path);
-								if(matcher.find()) {
-									logger.trace("Skip Pattern Found In : {}", file);
-									return false;
-								}
-							}
-						} catch (IllegalArgumentException ignore) {
-						}
-					}
-				}
-				
-				
-				filePaths.add(path);
-			} else if(file.isDirectory()) {
+			
+			if(file.isDirectory()) {
+				logger.trace("dir current:{} / max:{}", currentDepth, maxDepth);
 				if (currentDepth + 1 <= maxDepth) {
 					//싱글스레드 이기 때문에 가능.
 					this.currentDepth++;
@@ -165,10 +170,39 @@ public class DirectoryPathReader extends SingleSourceReader<Map<String,Object>> 
 				} else {
 					logger.trace("Max Depth Over In Exploring..{}", file);
 				}
+			} else if(file.isFile()) {
+				logger.trace("file : {}", file);
+				String path = file.getAbsolutePath();
+				
+				if (skipPatterns != null && skipPatterns.length > 0) {
+					for (int inx = 0; inx < skipPatterns.length; inx++) {
+						try {
+							if(skipPatterns[inx]!=null && !"".equals(skipPatterns[inx])) {
+								if(skipPatterns[inx].matcher(path).find()) {
+									logger.trace("Skip Pattern Found In : {}", path);
+									return false;
+								}
+							}
+						} catch (IllegalArgumentException ignore) { }
+					}
+				}
+				
+				if(acceptPatterns != null && acceptPatterns.length > 0) {
+					for (int inx = 0; inx < acceptPatterns.length; inx++) {
+						try {
+							if(acceptPatterns[inx]!=null && !"".equals(acceptPatterns[inx])) {
+								if(!acceptPatterns[inx].matcher(path).find()) {
+									logger.trace("Not Accepted Pattern Found In : {}", path);
+									return false;
+								}
+							}
+						} catch (IllegalArgumentException ignore) { }
+					}
+				}
+				filePaths.add(path);
 			}
 			break;
 		}
-			
 		return false;
 	}
 	
