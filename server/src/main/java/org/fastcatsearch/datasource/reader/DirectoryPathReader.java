@@ -154,7 +154,7 @@ public class DirectoryPathReader extends SingleSourceReader<Map<String,Object>> 
 		return null;
 	}
 	
-
+	@Override
 	public boolean accept(File file) {
 		logger.trace("finished:{} / file:{}", finished, file);
 		int currentDepth = this.currentDepth;
@@ -208,6 +208,7 @@ public class DirectoryPathReader extends SingleSourceReader<Map<String,Object>> 
 		return false;
 	}
 	
+	@Override
 	public void run() {
 		File rootFile = new File(rootPath);
 		rootFile.listFiles(this);

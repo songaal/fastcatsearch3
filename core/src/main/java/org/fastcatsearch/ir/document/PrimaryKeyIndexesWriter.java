@@ -130,8 +130,11 @@ public class PrimaryKeyIndexesWriter {
 			}
 			
 			int preDocNo = indexWriter.put(pkbaos.array(), 0, (int) pkbaos.position(), localDocNo);
+			
 			if (preDocNo >= 0) {
-				 logger.warn("PK duplicate and deleted! >> newDocNo[{}] docNo[{}] pk[{}]", localDocNo, preDocNo, new String(pkbaos.array(), 0, (int) pkbaos.position()));
+				if(logger.isDebugEnabled()) {
+					logger.debug("PK updated! >> newDocNo[{}] docNo[{}] pk[{}]", localDocNo, preDocNo, new String(pkbaos.array(), 0, (int) pkbaos.position()));
+				}
 				deleteSet.set(preDocNo);
 				updateDocCount++;// 수집시 데이터내에 서로 중복된 문서가 발견된 경우 count증가.
 			}
