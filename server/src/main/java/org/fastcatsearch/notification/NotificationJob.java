@@ -10,6 +10,7 @@ import java.util.Properties;
 import org.fastcatsearch.common.EmailSender;
 import org.fastcatsearch.common.EmailSender.MailProperties;
 import org.fastcatsearch.common.SMSSender;
+import org.fastcatsearch.common.Sendmail;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.InternalDBModule.MapperSession;
@@ -24,6 +25,7 @@ import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.notification.message.Notification;
 import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.util.DynamicClassLoader;
 
 public class NotificationJob extends Job implements Streamable {
@@ -135,32 +137,54 @@ public class NotificationJob extends Job implements Streamable {
 		}
 
 		// 보낸다.
+		Settings systemSettings = environment.settingManager().getSystemSettings();
 		if (emailToList.size() > 0) {
-			Properties properties = environment.settingManager().getSystemSettings().getStartsWith("smtp-config");
-			String idKey = "id";
-			String passwordKey = "password";
-			String id = properties.getProperty(idKey);
-			String password = properties.getProperty(passwordKey);
-
-			if (id != null && password != null) {
-				try {
-					properties.remove(idKey);
-					properties.remove(passwordKey);
-					MailProperties mailProperties = new MailProperties(properties);
-					mailProperties.setAuthentication(id, password);
-					EmailSender emailSender = new EmailSender(mailProperties);
-					emailSender.sendText("FastcatSearch", emailToList, "FastcatSearch Notification", messageString);
-					logger.debug("EmailSender sent notification message successfully {} to {}", notification.messageCode(), emailToList);
-				} catch (Exception e) {
-					logger.error("error while sending email", e);
+			String mailSender = systemSettings.getString("system.mail.sender");
+			if(mailSender != null) {
+				
+				if(mailSender.equalsIgnoreCase("sendmail")) {
+					String sendmailExecPath = systemSettings.getString("sendmail.path");
+					if(sendmailExecPath == null) {
+						sendmailExecPath = "sendmail";
+					}
+					Sendmail sendmail = new Sendmail(sendmailExecPath);
+					try {
+						sendmail.sendText("FastcatSearch", emailToList, "FastcatSearch Notification", messageString);
+						logger.debug("EmailSender sent notification message successfully {} to {}", notification.messageCode(), emailToList);
+					} catch (Exception e) {
+						logger.error("error while sending email", e);
+					}
+				}else if(mailSender.equalsIgnoreCase("smtp")) {
+					
+					Properties properties = systemSettings.getStartsWith("smtp-config");
+					String idKey = "id";
+					String passwordKey = "password";
+					String id = properties.getProperty(idKey);
+					String password = properties.getProperty(passwordKey);
+					
+					if (id != null && password != null) {
+						try {
+							properties.remove(idKey);
+							properties.remove(passwordKey);
+							MailProperties mailProperties = new MailProperties(properties);
+							mailProperties.setAuthentication(id, password);
+							EmailSender emailSender = new EmailSender(mailProperties);
+							emailSender.sendText("FastcatSearch", emailToList, "FastcatSearch Notification", messageString);
+							logger.debug("EmailSender sent notification message successfully {} to {}", notification.messageCode(), emailToList);
+						} catch (Exception e) {
+							logger.error("error while sending email", e);
+						}
+					} else {
+						logger.error("Please check smtp id, password. id={}, password={}", id, password);
+					}
+					
 				}
-			} else {
-				logger.error("Please check smtp id, password. id={}, password={}", id, password);
 			}
+			
 		}
 
 		if (smsToList.size() > 0) {
-			Properties properties = environment.settingManager().getSystemSettings().getStartsWith("sms-config");
+			Properties properties = systemSettings.getStartsWith("sms-config");
 			try {
 				String className = properties.getProperty("class");
 				if (className != null) {
