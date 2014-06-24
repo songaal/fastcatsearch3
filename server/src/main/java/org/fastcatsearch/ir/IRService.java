@@ -224,6 +224,8 @@ public class IRService extends AbstractService {
 			}
 		}
 
+		collectionHandler.load();
+		
 		/*
 		 * 이전 컬렉션 handler가 있다면 닫아준다. 
 		 */
@@ -235,8 +237,6 @@ public class IRService extends AbstractService {
 				logger.error("", e);
 			}
 		}
-		// active하지 않은 컬렉션은 map에 설정만 넣어두고 로드하지 않는다.
-		collectionHandler.load();
 		
 		return collectionHandler;
 	}
