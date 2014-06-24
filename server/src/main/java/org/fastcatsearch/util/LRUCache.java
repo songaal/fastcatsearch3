@@ -87,21 +87,23 @@ public class LRUCache<K, V> {
 		CacheKey<K> cacheKey = new CacheKey<K>(key);
 //		lock.lock();
 		try{
-		SoftReference<CachedEntry<CacheKey<K>, V>> ref = map.get(cacheKey);
-		if (ref != null) {
-			CachedEntry<CacheKey<K>, V> entry = ref.get();
-			if (entry != null) {
-				
-				if(lruQueue.remove(cacheKey)){
-					//시간 업데이트.
-					lruQueue.offer(cacheKey);
-//					boolean b = lruQueue.offer(cacheKey);
-//					logger.debug("get update {} > {}", b, cacheKey);
+			if(map.containsKey(cacheKey)) {
+				SoftReference<CachedEntry<CacheKey<K>, V>> ref = map.get(cacheKey);
+				if (ref != null) {
+					CachedEntry<CacheKey<K>, V> entry = ref.get();
+					if (entry != null) {
+						
+						if(lruQueue.remove(cacheKey)){
+							//시간 업데이트.
+							lruQueue.offer(cacheKey);
+							//boolean b = lruQueue.offer(cacheKey);
+							//logger.debug("get update {} > {}", b, cacheKey);
+						}
+						// 아직 회수안된 객체이다.
+						return entry.value();
+					}
 				}
-				// 아직 회수안된 객체이다.
-				return entry.value();
 			}
-		}
 		}finally{
 //			lock.unlock();
 		}
