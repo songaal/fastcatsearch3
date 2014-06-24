@@ -35,6 +35,15 @@ public class LOrOperatedClause extends OperatedClause {
 	
 	public LOrOperatedClause(OperatedClause clause1, OperatedClause clause2) {
 		super("LOR");
+		
+		if(clause1 == null) {
+			clause1 = NullClause.getOperatedClause();
+		}
+		
+		if(clause2 == null) {
+			clause2 = NullClause.getOperatedClause();
+		}
+		
 		this.clause1 = clause1;
 		this.clause2 = clause2;
 	}
