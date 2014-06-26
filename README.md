@@ -94,7 +94,7 @@ For more information, see <http://www.gnu.org/licenses/old-licenses/lgpl-2.1.htm
 
 To manage search engine, you need manager tool - fastcatsearch-console.
 
-See <https://github.com/fastcatgroup/fastcatsearch-console>
+See <https://github.com/fastcatsearch/fastcatsearch-console>
 
 You can make collections on fastcatsearch, edit configs, and index documents using fastcatsearch-console.
 
