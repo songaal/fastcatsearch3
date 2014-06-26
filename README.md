@@ -101,4 +101,6 @@ You can make collections on fastcatsearch, edit configs, and index documents usi
 
 ## Need Help?
 
-You can find manuals and tutorials on the <http://fastcatsearch.org> site.
+* Resources : You can find manuals and tutorials on the <http://fastcatsearch.org> site.
+
+* Support : Google groups - <https://groups.google.com/forum/#!forum/fastcatsearch> . Join and get free support.
