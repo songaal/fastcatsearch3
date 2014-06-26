@@ -2,6 +2,8 @@
 
 Fastcatsearch is an open-source distributed search engine. 
 
+문의사항이나 Support요청은 Google groups - https://groups.google.com/d/forum/fastcatsearch 를 이용해주시기 바랍니다.
+
 ## Feature List
 
 ### System 
@@ -94,11 +96,13 @@ For more information, see <http://www.gnu.org/licenses/old-licenses/lgpl-2.1.htm
 
 To manage search engine, you need manager tool - fastcatsearch-console.
 
-See <https://github.com/fastcatgroup/fastcatsearch-console>
+See <https://github.com/fastcatsearch/fastcatsearch-console>
 
 You can make collections on fastcatsearch, edit configs, and index documents using fastcatsearch-console.
 
 
 ## Need Help?
 
-You can find manuals and tutorials on the <http://fastcatsearch.org> site.
+* Resources : You can find manuals and tutorials on the <http://fastcatsearch.org> site.
+
+* Support : Google groups - <https://groups.google.com/d/forum/fastcatsearch>. Join and get free support.
