@@ -178,4 +178,18 @@ public class PrimaryKeyIndexTest extends TestCase{
 		System.out.println("write time = "+(System.currentTimeMillis() -st));
 	}
 	
+	public void testEmptyString() throws IOException{
+		///write
+		File testDir = new File("/Users/swsong/tmp");
+		String filename = "group.PRODUCTBRAND.pk";
+		byte[] key2 = new byte[0];
+		
+		
+		///read
+		PrimaryKeyIndexReader reader = new PrimaryKeyIndexReader(testDir, filename);
+		
+		int num = reader.get(key2);
+		System.out.println("key2 > " + num);
+		reader.close();
+	}
 }

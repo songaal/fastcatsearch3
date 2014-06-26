@@ -327,6 +327,9 @@ public final class BytesRef extends BytesBuffer implements Comparable<BytesRef>,
 			return 1;
 		
 		int l = (length < other.length) ? length : other.length;
+		if(l == 0){
+			return length - other.length;
+		}
 		//오름차순.
 		for (int i = 0; i < l; i++) {
 			if(bytes[offset + i] != other.bytes[other.offset + i]){
@@ -346,6 +349,9 @@ public final class BytesRef extends BytesBuffer implements Comparable<BytesRef>,
 			return 1;
 		
 		int l = (length < other.length) ? length : other.length;
+		if(l == 0){
+			return length - other.length;
+		}
 		//오름차순.
 		if(bytes[offset] >= 0 && other.bytes[other.offset] < 0){
 			return 1;

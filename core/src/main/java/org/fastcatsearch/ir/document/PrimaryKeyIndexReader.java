@@ -137,7 +137,7 @@ public class PrimaryKeyIndexReader implements BytesToIntReader, Cloneable {
 			input.readBytes(test, 0, len);
 			int docNo = input.readInt();
 			int ret = compare(test, len, data, offset, length);
-			// logger.debug("compare = "+new String(test, 0, len)+" : "+new String(data, offset, length)+" docNo="+docNo+", ret="+ret);
+//			logger.debug("compare = "+new String(test, 0, len)+" : "+new String(data, offset, length)+" docNo="+docNo+", ret="+ret);
 			if (ret == 0)
 				return docNo;
 			else if (ret > 0)
@@ -184,6 +184,11 @@ public class PrimaryKeyIndexReader implements BytesToIntReader, Cloneable {
 
 	private int compare(byte[] key, int keyLen, byte[] data, int offset, int length) {
 		int len = keyLen < length ? keyLen : length;
+		
+		//둘중하나 길이가 0이면 비교없이 길이로 승부한다.
+		if(len == 0) {
+			return keyLen - length;
+		}
 		// logger.debug("keyLen={}, length={}", keyLen, length);
 		for (int i = 0; i < len; i++) {
 			if (key[i] != data[offset + i]) {
