@@ -54,6 +54,29 @@ public class NotOperatedClauseTest {
 	}
 	
 	@Test
+	public void testFixedEmptyClause2(){
+		int[] docs1 = new int[]{2,5,7,9,13,18,27,31,37,45};
+		int[] weight1 = new int[]{100,200,100,200,100,200,100,200,300,100};
+		
+		int[] docs2 = new int[]{45};
+		int[] weight2 = new int[]{100};
+		
+		UserOperatedClause c1 = new UserOperatedClause(docs1.length, docs1, weight1);
+		UserOperatedClause c2 = new UserOperatedClause(docs2.length, docs2, weight2);
+		
+		RankInfo docInfo = new RankInfo();
+		
+		NotOperatedClause notClause = new NotOperatedClause(c1, c2);
+		notClause.init();
+		
+		int i = 0;
+		while(notClause.next(docInfo)){
+			System.out.println((i+1)+" : "+docInfo.docNo()+" : "+docInfo.score());
+			i++;
+		}
+	}
+	
+	@Test
 	public void testRandom(){
 		int count1 = 100;
 		int[] docs1 = new int[count1];

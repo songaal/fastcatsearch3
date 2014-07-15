@@ -50,7 +50,7 @@ public class UserOperatedClause extends OperatedClause {
 			pos++;
 			return true;
 		}
-		docInfo.init(-1,-1);
+		docInfo.init(-1, 0);
 		return false;
 	}
 
