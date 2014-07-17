@@ -68,6 +68,9 @@ public class CollectionAddIndexingJob extends IndexingJob {
 			//find index node
 			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
 			CollectionContext collectionContext = irService.collectionContext(collectionId);
+			if(collectionContext == null) {
+				throw new FastcatSearchException("Collection [" + collectionId + "] is not exist.");
+			}
 			String indexNodeId = collectionContext.collectionConfig().getIndexNode();
 			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 			Node indexNode = nodeService.getNodeById(indexNodeId);

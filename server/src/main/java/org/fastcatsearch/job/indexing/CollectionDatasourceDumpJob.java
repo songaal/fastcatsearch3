@@ -45,6 +45,9 @@ public class CollectionDatasourceDumpJob extends Job implements Streamable {
 
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		CollectionContext collectionContext = irService.collectionContext(collectionId);
+		if(collectionContext == null) {
+			throw new FastcatSearchException("Collection [" + collectionId + "] is not exist.");
+		}
 		String indexNodeId = collectionContext.collectionConfig().getIndexNode();
 		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 		Node indexNode = nodeService.getNodeById(indexNodeId);

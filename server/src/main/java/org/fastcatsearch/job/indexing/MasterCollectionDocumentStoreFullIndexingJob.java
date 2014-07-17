@@ -22,6 +22,9 @@ public class MasterCollectionDocumentStoreFullIndexingJob extends MasterNodeJob 
 
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		CollectionContext collectionContext = irService.collectionContext(collectionId);
+		if(collectionContext == null) {
+			throw new FastcatSearchException("Collection [" + collectionId + "] is not exist.");
+		}
 		String indexNodeId = collectionContext.collectionConfig().getIndexNode();
 
 		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
