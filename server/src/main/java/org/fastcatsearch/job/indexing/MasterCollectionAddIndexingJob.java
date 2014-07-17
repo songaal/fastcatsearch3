@@ -26,47 +26,32 @@ public class MasterCollectionAddIndexingJob extends MasterNodeJob {
 	public JobResult doRun() throws FastcatSearchException {
 		long indexingStartTime = System.currentTimeMillis();
 		String collectionId = getStringArgs();
-		try {
-			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-			CollectionContext collectionContext = irService.collectionContext(collectionId);
-			String indexNodeId = collectionContext.collectionConfig().getIndexNode();
+		IRService irService = ServiceManager.getInstance().getService(IRService.class);
+		CollectionContext collectionContext = irService.collectionContext(collectionId);
+		String indexNodeId = collectionContext.collectionConfig().getIndexNode();
 
-			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
-			Node indexNode = nodeService.getNodeById(indexNodeId);
+		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
+		Node indexNode = nodeService.getNodeById(indexNodeId);
 
-			CollectionAddIndexingJob collectionIndexingJob = new CollectionAddIndexingJob();
-			collectionIndexingJob.setArgs(collectionId);
-			logger.info("Request add indexing job to index node[{}] >> {}", indexNodeId, indexNode);
-			ResultFuture jobResult = nodeService.sendRequest(indexNode, collectionIndexingJob);
-			if (jobResult != null) {
-				Object obj = jobResult.take();
-			} else {
-//				throw new FastcatSearchException("Cannot send indexing job of " + collectionId + " to " + indexNodeId);
-				long endTime = System.currentTimeMillis();
-				Streamable result = null;//new StreamableThrowable(t);
-				ProcessLoggerService processLoggerService = ServiceManager.getInstance().getService(ProcessLoggerService.class);
-				processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId, IndexingType.ADD, "ALL", ResultStatus.FAIL, indexingStartTime, endTime,
-						isScheduled(), result));
-	
-				NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
-				IndexingFailNotification indexingFinishNotification = new IndexingFailNotification(collectionId, IndexingType.ADD, "ALL", ResultStatus.FAIL, indexingStartTime, endTime,
-						result);
-				notificationService.sendNotification(indexingFinishNotification);
-			}
+		CollectionAddIndexingJob collectionIndexingJob = new CollectionAddIndexingJob();
+		collectionIndexingJob.setArgs(collectionId);
+		logger.info("Request add indexing job to index node[{}] >> {}", indexNodeId, indexNode);
+		ResultFuture jobResult = nodeService.sendRequest(indexNode, collectionIndexingJob);
+		if (jobResult != null) {
+			Object obj = jobResult.take();
+		} else {
+			long endTime = System.currentTimeMillis();
+			Streamable result = null;//new StreamableThrowable(t);
+			ProcessLoggerService processLoggerService = ServiceManager.getInstance().getService(ProcessLoggerService.class);
+			processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId, IndexingType.ADD, "ALL", ResultStatus.FAIL, indexingStartTime, endTime,
+					isScheduled(), result));
 
-		} catch (Throwable t) {
-			logger.error("", t);
-//			long endTime = System.currentTimeMillis();
-//			Streamable result = new StreamableThrowable(t);
-//			ProcessLoggerService processLoggerService = ServiceManager.getInstance().getService(ProcessLoggerService.class);
-//			processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId, IndexingType.ADD, ResultStatus.FAIL, indexingStartTime, endTime,
-//					isScheduled(), result));
-//
-//			NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
-//			IndexingFailNotification indexingFinishNotification = new IndexingFailNotification(collectionId, IndexingType.ADD, ResultStatus.FAIL, indexingStartTime, endTime,
-//					result);
-//			notificationService.sendNotification(indexingFinishNotification);
+			NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
+			IndexingFailNotification indexingFinishNotification = new IndexingFailNotification(collectionId, IndexingType.ADD, "ALL", ResultStatus.FAIL, indexingStartTime, endTime,
+					result);
+			notificationService.sendNotification(indexingFinishNotification);
 		}
+		
 		return new JobResult();
 	}
 

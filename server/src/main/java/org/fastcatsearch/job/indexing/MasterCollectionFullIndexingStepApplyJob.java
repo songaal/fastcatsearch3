@@ -34,43 +34,40 @@ public class MasterCollectionFullIndexingStepApplyJob extends MasterNodeJob {
 		long indexingStartTime = System.currentTimeMillis();
 
 		String collectionId = getStringArgs();
-		try {
 
-			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-			CollectionContext collectionContext = irService.collectionContext(collectionId);
-			String indexNodeId = collectionContext.collectionConfig().getIndexNode();
+		IRService irService = ServiceManager.getInstance().getService(IRService.class);
+		CollectionContext collectionContext = irService.collectionContext(collectionId);
+		String indexNodeId = collectionContext.collectionConfig().getIndexNode();
 
-			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
-			Node indexNode = nodeService.getNodeById(indexNodeId);
+		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
+		Node indexNode = nodeService.getNodeById(indexNodeId);
 
-			//
-			//index node에서 색인만 수행.
-			//
-			CollectionFullIndexingStepApplyJob collectionIndexingJob = new CollectionFullIndexingStepApplyJob();
-			collectionIndexingJob.setArgs(collectionId);
-			collectionIndexingJob.setScheduled(isScheduled);
-			logger.info("Request full indexing step job to index node[{}] >> {}, isScheduled={}", indexNodeId, indexNode, isScheduled);
-			ResultFuture jobResult = nodeService.sendRequest(indexNode, collectionIndexingJob);
-			if (jobResult != null) {
-				Object obj = jobResult.take();
-				logger.debug("CollectionFullIndexingStepJob result = {}", obj);
-			} else {
+		//
+		//index node에서 색인만 수행.
+		//
+		CollectionFullIndexingStepApplyJob collectionIndexingJob = new CollectionFullIndexingStepApplyJob();
+		collectionIndexingJob.setArgs(collectionId);
+		collectionIndexingJob.setScheduled(isScheduled);
+		logger.info("Request full indexing step job to index node[{}] >> {}, isScheduled={}", indexNodeId, indexNode, isScheduled);
+		ResultFuture jobResult = nodeService.sendRequest(indexNode, collectionIndexingJob);
+		if (jobResult != null) {
+			Object obj = jobResult.take();
+			logger.debug("CollectionFullIndexingStepJob result = {}", obj);
+		} else {
 //				throw new FastcatSearchException("Cannot send indexing job of "+collectionId+" to "+indexNodeId);
-				long endTime = System.currentTimeMillis();
-				Streamable result = null;//new StreamableThrowable(t);
-				ProcessLoggerService processLoggerService = ServiceManager.getInstance().getService(ProcessLoggerService.class);
-				processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId, IndexingType.FULL, "APPLY-INDEX", ResultStatus.FAIL, indexingStartTime, endTime,
-						isScheduled(), result));
+			long endTime = System.currentTimeMillis();
+			Streamable result = null;//new StreamableThrowable(t);
+			ProcessLoggerService processLoggerService = ServiceManager.getInstance().getService(ProcessLoggerService.class);
+			processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId, IndexingType.FULL, "APPLY-INDEX", ResultStatus.FAIL, indexingStartTime, endTime,
+					isScheduled(), result));
 
-				NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
-				IndexingFailNotification indexingFinishNotification = new IndexingFailNotification(collectionId, IndexingType.FULL, "APPLY-INDEX", ResultStatus.FAIL, indexingStartTime, endTime, result);
-				notificationService.sendNotification(indexingFinishNotification);
-				
-			}
-
-		} catch (Throwable t) {
-			logger.error("", t);
+			NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
+			IndexingFailNotification indexingFinishNotification = new IndexingFailNotification(collectionId, IndexingType.FULL, "APPLY-INDEX", ResultStatus.FAIL, indexingStartTime, endTime, result);
+			notificationService.sendNotification(indexingFinishNotification);
+			
 		}
+
+		
 		return new JobResult();
 	}
 
