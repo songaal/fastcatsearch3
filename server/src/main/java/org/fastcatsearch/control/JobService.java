@@ -220,17 +220,15 @@ public class JobService extends AbstractService implements JobExecutor {
 
 	public void result(Job job, Object result, boolean isSuccess) {
 		long jobId = job.getId();
-		ResultFuture resultFuture = resultFutureMap.remove(jobId);
 		runningJobList.remove(jobId);
-		if (logger.isDebugEnabled()) {
-//			logger.debug("### ResultFuture = {} / map={} / job={} / result={} / success= {}", new Object[] { resultFuture, resultFutureMap.size(),
-//					job.getClass().getSimpleName(), result, isSuccess });
-		}
 
+		//색인작업 락을 풀어준다.
 		if (job instanceof IndexingJob) {
 			indexingMutex.release(jobId);
 		}
 
+		//noresult 작업의 경우 resultFuture 가 null이므로 결과 셋팅을 하지 않게 된다.
+		ResultFuture resultFuture = resultFutureMap.remove(jobId);
 		if (resultFuture != null) {
 			resultFuture.put(result, isSuccess);
 		} else {

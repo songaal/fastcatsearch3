@@ -122,7 +122,8 @@ public abstract class Job implements Runnable, Serializable {
 
 	public final void run() {
 		startTime = System.currentTimeMillis();
-		JobResult jobResult = null;
+		Object result = null;
+		boolean isSuccess = false;
 		try {
 			if (this instanceof MasterNodeJob) {
 				if (!environment.isMasterNode()) {
@@ -130,30 +131,32 @@ public abstract class Job implements Runnable, Serializable {
 					throw new RuntimeException("Cannot execute MasterNodeJob on other node : " + environment.myNodeId());
 				}
 			}
-			jobResult = doRun();
-
-			if (!isNoResult()) {
-				if (jobId != -1) {
-
-					// logger.debug("Job#{} result = {}", jobId, jobResult);
-					jobExecutor.result(this, jobResult.result, jobResult.isSuccess);
-
-					Object result = jobResult.result;
-					if (result != null && result instanceof Throwable) {
-						// 다른 서버에서 발생한 에러의 경우는 예외가 result에 담겨있다.
-						throw (Throwable) result;
-					}
-				} else {
-					logger.error("## 결과에 jobId가 없습니다. job={}, result={}", this, jobResult);
-					throw new FastcatSearchException("ERR-00110");
+			
+			JobResult jobResult = doRun();
+			
+			if(jobResult != null) {
+				result = jobResult.result;
+				isSuccess = jobResult.isSuccess;
+				if (result != null && result instanceof Throwable) {
+					// 다른 서버에서 발생한 에러의 경우는 예외가 result에 담겨있다.
+					throw (Throwable) result;
 				}
 			}
+			
+			if (jobId == -1) {
+				logger.error("## 결과에 jobId가 없습니다. job={}, result={}", this, jobResult);
+				throw new FastcatSearchException("ERR-00110");
+			}
 		} catch (Throwable e) {
+			result = e;
+			isSuccess = false;
+			
 			logger.error("error at " + getClass().getName() + " " + args, e);
 			ClusterAlertService clusterAlertService = ServiceManager.getInstance().getService(ClusterAlertService.class);
 			clusterAlertService.alert(e);
-			jobExecutor.result(this, e, false);
 		} finally {
+			//결과셋팅.
+			jobExecutor.result(this, result, isSuccess);
 			endTime = System.currentTimeMillis();
 		}
 
