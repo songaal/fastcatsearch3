@@ -27,6 +27,7 @@ import java.util.Set;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.io.FileUtils;
+import org.fastcatsearch.alert.ClusterAlertService;
 import org.fastcatsearch.cluster.NodeLoadBalancable;
 import org.fastcatsearch.common.QueryCacheModule;
 import org.fastcatsearch.control.JobService;
@@ -56,6 +57,8 @@ import org.fastcatsearch.job.ScheduledJobEntry;
 import org.fastcatsearch.job.indexing.MasterCollectionAddIndexingJob;
 import org.fastcatsearch.job.indexing.MasterCollectionFullIndexingJob;
 import org.fastcatsearch.module.ModuleException;
+import org.fastcatsearch.notification.NotificationService;
+import org.fastcatsearch.notification.message.CollectionLoadErrorNotification;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.SearchPageSettings;
@@ -100,8 +103,11 @@ public class IRService extends AbstractService {
 	
 	protected boolean doStart() throws FastcatSearchException {
 
-		realtimeQueryStatisticsModule.load();
-		
+		try{
+			realtimeQueryStatisticsModule.load();
+		}catch(Throwable t){
+			ClusterAlertService.getInstance().alert(t);
+		}
 		collectionHandlerMap = new HashMap<String, CollectionHandler>();
 		// collections 셋팅을 읽어온다.
 		collectionsRoot = environment.filePaths().getCollectionsRoot().file();
@@ -110,12 +116,14 @@ public class IRService extends AbstractService {
 			collectionsConfig = JAXBConfigs.readConfig(new File(collectionsRoot, SettingFileNames.collections), CollectionsConfig.class);
 		} catch (JAXBException e) {
 			logger.error("[ERROR] fail to read collection config. " + e.getMessage(), e);
+			ClusterAlertService.getInstance().alert(e);
 		}
 		
 		try {
 			jdbcSourceConfig = JAXBConfigs.readConfig(new File(collectionsRoot, SettingFileNames.jdbcSourceConfig), JDBCSourceConfig.class);
 		} catch (JAXBException e) {
 			logger.error("[ERROR] fail to read jdbc source list. " + e.getMessage(), e);
+			ClusterAlertService.getInstance().alert(e);
 		}
 		
 		if(jdbcSourceConfig == null) {
@@ -126,6 +134,7 @@ public class IRService extends AbstractService {
 			jdbcSupportConfig = JAXBConfigs.readConfig(new File(collectionsRoot, SettingFileNames.jdbcSupportConfig), JDBCSupportConfig.class);
 		} catch (JAXBException e) {
 			logger.error("[ERROR] fail to read jdbc support. " + e.getMessage(), e);
+			ClusterAlertService.getInstance().alert(e);
 		}
 		
 		if(jdbcSupportConfig == null) {
@@ -138,6 +147,7 @@ public class IRService extends AbstractService {
 				searchPageSettings = JAXBConfigs.readConfig(file, SearchPageSettings.class);
 			} catch (JAXBException e) {
 				logger.error("[ERROR] fail to read search page settings. " + e.getMessage(), e);
+				ClusterAlertService.getInstance().alert(e);
 			}
 		}else{
 			searchPageSettings = new SearchPageSettings();
@@ -145,18 +155,13 @@ public class IRService extends AbstractService {
 
 		dataNodeCollectionIdSet = new HashSet<String>();
 		
-		//for (Collection collection : collectionsConfig.getCollectionList()) {
 		List<Collection> collectionList = collectionsConfig.getCollectionList();
 		for (int collectionInx = 0 ; collectionInx < collectionList.size(); collectionInx++) {
 			Collection collection = collectionList.get(collectionInx);
 			try {
 				String collectionId = collection.getId();
 				loadCollectionHandler(collectionId, collection);
-			} catch (IRException e) {
-				logger.error("[ERROR] " + e.getMessage(), e);
-			} catch (SettingException e) {
-				logger.error("[ERROR] " + e.getMessage(), e);
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				logger.error("[ERROR] " + e.getMessage(), e);
 			}
 		}
@@ -166,7 +171,7 @@ public class IRService extends AbstractService {
 					collectionsConfig, CollectionsConfig.class);
 		} catch (JAXBException e) {
 			logger.error("", e);
-		} finally {
+			ClusterAlertService.getInstance().alert(e);
 		}
 
 		searchCache = new QueryCacheModule<String, Result>(environment, settings);
@@ -181,64 +186,80 @@ public class IRService extends AbstractService {
 			groupingDataCache.load();
 			documentCache.load();
 		} catch (ModuleException e) {
+			ClusterAlertService.getInstance().alert(e);
 			throw new FastcatSearchException("ERR-00320");
 		}
 
-		
-		
 		return true;
 	}
+	
 	public CollectionHandler loadCollectionHandler(String collectionId) throws IRException, SettingException {
 		return loadCollectionHandler(collectionId, null);
 	}
 	
 	public CollectionHandler loadCollectionHandler(String collectionId, Collection collection) throws IRException, SettingException {
-		realtimeQueryStatisticsModule.registerQueryCount(collectionId);
-		
-		CollectionContext collectionContext = null;
-		CollectionHandler collectionHandler = null;
-		logger.info("Load Collection [{}]", collectionId);
-		if(collection == null){
-			for (Collection col : collectionsConfig.getCollectionList()) {
-				if(col.getId().equalsIgnoreCase(collectionId)){
-					collection = col;
-					break;
+		Throwable t = null;
+		try {
+			realtimeQueryStatisticsModule.registerQueryCount(collectionId);
+			
+			CollectionContext collectionContext = null;
+			CollectionHandler collectionHandler = null;
+			logger.info("Load Collection [{}]", collectionId);
+			if(collection == null){
+				for (Collection col : collectionsConfig.getCollectionList()) {
+					if(col.getId().equalsIgnoreCase(collectionId)){
+						collection = col;
+						break;
+					}
 				}
 			}
-		}
-		try {
-			collectionContext = loadCollectionContext(collection);
-		} catch (SettingException e) {
-			logger.error("컬렉션context 로드실패 " + collectionId, e);
-			return null;
-		}
-		if (collectionContext == null) {
-			return null;
-		} else {
-			collectionHandler = new CollectionHandler(collectionContext, analyzerFactoryManager);
-			collectionHandler.setQueryCounter(realtimeQueryStatisticsModule.getQueryCounter(collectionId));
-			
-			if(collectionContext.collectionConfig().getDataNodeList() != null 
-				&& collectionContext.collectionConfig().getDataNodeList().contains(environment.myNodeId())){
-				dataNodeCollectionIdSet.add(collectionId);
-			}
-		}
-
-		collectionHandler.load();
-		
-		/*
-		 * 이전 컬렉션 handler가 있다면 닫아준다. 
-		 */
-		CollectionHandler previousCollectionHandler = collectionHandlerMap.put(collectionId, collectionHandler);
-		if(previousCollectionHandler != null){
 			try {
-				previousCollectionHandler.close();
-			} catch (IOException e) {
-				logger.error("", e);
+				collectionContext = loadCollectionContext(collection);
+			} catch (SettingException e) {
+				logger.error("컬렉션context 로드실패 " + collectionId);
+				throw e;
+			}
+			if (collectionContext == null) {
+				return null;
+			} else {
+				collectionHandler = new CollectionHandler(collectionContext, analyzerFactoryManager);
+				collectionHandler.setQueryCounter(realtimeQueryStatisticsModule.getQueryCounter(collectionId));
+				
+				if(collectionContext.collectionConfig().getDataNodeList() != null 
+					&& collectionContext.collectionConfig().getDataNodeList().contains(environment.myNodeId())){
+					dataNodeCollectionIdSet.add(collectionId);
+				}
+			}
+	
+			collectionHandler.load();
+			
+			/*
+			 * 이전 컬렉션 handler가 있다면 닫아준다. 
+			 */
+			CollectionHandler previousCollectionHandler = collectionHandlerMap.put(collectionId, collectionHandler);
+			if(previousCollectionHandler != null){
+				try {
+					previousCollectionHandler.close();
+				} catch (IOException e) {
+					throw new IRException(e);
+				}
+			}
+			
+			return collectionHandler;
+			
+		} catch(IRException e) {
+			t = e;
+			throw e;
+		} catch(SettingException e) {
+			t = e;
+			throw e;
+		} finally {
+			if(t != null) {
+				ClusterAlertService.getInstance().alert(t);
+				NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
+				notificationService.sendNotification(new CollectionLoadErrorNotification(collection.getId(), t));
 			}
 		}
-		
-		return collectionHandler;
 	}
 	
 	public JDBCSourceConfig getJDBCSourceConfig() {

@@ -1,10 +1,11 @@
 package org.fastcatsearch.util;
 
+import java.io.IOException;
 import java.util.List;
 
 
 public class ClassScannerTool {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		if(args.length == 0){
 			
 			System.out.println("java ClassScannerTool [package]");
@@ -20,7 +21,7 @@ public class ClassScannerTool {
 		
 	}
 	
-	public List<String> scan(String clazz){
+	public List<String> scan(String clazz) throws IOException{
 		ClassScanner<String> scanner = new ClassScanner<String>() {
 			@Override
 			public String done(String ename, String pkg, Object param) {

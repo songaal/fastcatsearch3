@@ -18,6 +18,7 @@ import java.util.List;
 
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
+import org.fastcatsearch.alert.ClusterAlertService;
 import org.fastcatsearch.db.InternalDBModule.MapperSession;
 import org.fastcatsearch.db.mapper.ManagedMapper;
 import org.fastcatsearch.env.Environment;
@@ -91,6 +92,7 @@ public abstract class AbstractDBService extends AbstractService {
 
 					} catch (Exception e2) {
 						logger.error("", e2);
+						ClusterAlertService.getInstance().alert(e);
 					}
 				}
 			} finally {

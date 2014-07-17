@@ -23,6 +23,7 @@ import org.fastcatsearch.db.vo.ExceptionVO;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.notification.NotificationService;
+import org.fastcatsearch.notification.message.CollectionLoadErrorNotification;
 import org.fastcatsearch.notification.message.OutOfMemoryNotification;
 import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
@@ -131,7 +132,6 @@ public class ClusterAlertService extends AbstractService {
 
 		if (e instanceof OutOfMemoryError) {
 			NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
-			
 			notificationService.sendNotification(new OutOfMemoryNotification(e));
 		}
 

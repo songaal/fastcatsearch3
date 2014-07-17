@@ -1,9 +1,11 @@
 package org.fastcatsearch.http;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
+import org.fastcatsearch.alert.ClusterAlertService;
 import org.fastcatsearch.common.ThreadPoolFactory;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
@@ -72,7 +74,12 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 				return null;
 			}
 		};
-		scanner.scanClass(actionBasePackage, null);
+		try {
+			scanner.scanClass(actionBasePackage, null);
+		} catch (IOException e) {
+			logger.error("", e);
+			ClusterAlertService.getInstance().alert(e);
+		}
 	}
 	
 	public void registerAction(String className, String pathPrefix) {

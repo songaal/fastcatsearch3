@@ -184,24 +184,27 @@ public class CatServer {
 
 		logger.info("ServerHome = {}", serverHome);
 		try {
-
-			// plugin은 여타service보다 먼저 시작되어야한다.
-			pluginService.start();
-			dbService.start();
-
+			//모든 작업풀의 기반이므로 제일먼저 시작.
 			jobService.start();
+			//분산시스템의 기반이므로 두번째로 시작.
 			nodeService.start();
-
-			irService.start();
+			//문제발생시 알림통로이므로 그 다음으로 시작.
+			clusterAlertService.start();
+			
+			dbService.start();
+			//notification서비스는 db서비스를 이용하므로 db가 먼저로딩.
+			notificationService.start();
+			
+			pluginService.start();
+			
 			systemInfoService.start();
 
 			httpRequestService.start();
 
-			notificationService.start();
-			clusterAlertService.start();
 			processLoggerService.start();
 			taskStateService.start();
 
+			irService.start();
 			collectionQueryCountService.start();
 
 			// 서비스가 모두 뜬 상태에서 후속작업.

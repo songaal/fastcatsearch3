@@ -24,7 +24,6 @@ import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.http.HttpRequestService;
 import org.fastcatsearch.ir.AnalyzerProvider;
-import org.fastcatsearch.ir.analysis.AnalyzerFactory;
 import org.fastcatsearch.ir.analysis.AnalyzerFactoryManager;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.Job;
@@ -141,11 +140,13 @@ public class PluginService extends AbstractService implements AnalyzerProvider {
 
 				} catch (FileNotFoundException e) {
 					logger.error("{} plugin 설정파일을 읽을수 없음.", dir.getName());
-					ClusterAlertService.getInstance().alert(new FastcatSearchException());
+					ClusterAlertService.getInstance().alert(e);
 				} catch (JAXBException e) {
 					logger.error("plugin 설정파일을 읽는중 에러. {}", e);
+					ClusterAlertService.getInstance().alert(e);
 				} catch (IOException e) {
 					logger.error("{}", e);
+					ClusterAlertService.getInstance().alert(e);
 				}
 
 			}

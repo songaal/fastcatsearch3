@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.fastcatsearch.alert.ClusterAlertService;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.db.DBService;
@@ -48,6 +49,7 @@ public class NotificationService extends AbstractService {
 				}
 			} catch (Exception e) {
 				logger.error("", e);
+				ClusterAlertService.getInstance().alert(e);
 			} finally {
 				if (mapperSession != null) {
 					mapperSession.closeSession();
