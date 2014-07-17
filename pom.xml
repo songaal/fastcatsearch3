@@ -12,7 +12,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.fastcatgroup</groupId>
 	<artifactId>fastcatsearch</artifactId>
-	<version>2.14.3</version>
+	<version>2.14.7</version>
 	<name>fastcatsearch</name>
 	<description>fastcatsearch package</description>
 	<url>http://fastcatsearch.org</url>
