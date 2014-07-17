@@ -76,10 +76,12 @@ public class GetAllCollectionIndexingStatusAction extends AuthAction {
 			
 			String collectionId = collectionList.get(i).getId();
 			CollectionContext collectionContext = irService.collectionContext(collectionId);
-			CollectionConfig collectionConfig = collectionContext.collectionConfig();
-			String collectionName = collectionConfig.getName();
-			IndexingDataInfo indexingDataInfo2 = indexingDataInfoList.get(i);
-			writeIndexingDataInfo(collectionId, collectionName, responseWriter, indexingDataInfo2);
+			if(collectionContext != null) {
+				CollectionConfig collectionConfig = collectionContext.collectionConfig();
+				String collectionName = collectionConfig.getName();
+				IndexingDataInfo indexingDataInfo2 = indexingDataInfoList.get(i);
+				writeIndexingDataInfo(collectionId, collectionName, responseWriter, indexingDataInfo2);
+			}
 		}
 		responseWriter.endArray();
 		
