@@ -67,6 +67,7 @@ public class ActionResponse {
 	}
 
 	public OutputStream getOutputStream() {
+		isEmpty = false;
 		if(baos == null){
 			baos = new ByteRefArrayOutputStream();
 		}
@@ -78,6 +79,7 @@ public class ActionResponse {
 	}
 	
 	public Writer getWriter() {
+		isEmpty = false;
 		if(writer == null){
 			if(baos == null){
 				baos = new ByteRefArrayOutputStream();
@@ -125,7 +127,7 @@ public class ActionResponse {
 	}
 
 	public boolean isEmpty() {
-		return false;
+		return isEmpty;
 	}
 
 	public void done() throws IOException{

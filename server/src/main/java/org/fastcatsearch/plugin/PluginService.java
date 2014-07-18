@@ -220,6 +220,9 @@ public class PluginService extends AbstractService implements AnalyzerProvider {
 	}
 
 	public Plugin getPlugin(String pluginId) {
+		if(pluginId == null) {
+			return null;
+		}
 		return pluginMap.get(pluginId.toUpperCase());
 	}
 
