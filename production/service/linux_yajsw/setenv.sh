@@ -39,6 +39,6 @@ source ../../bin/searchenv.sh
 
 confPath=`pwd`
 
-java -classpath ../fastcatsearch-yajsw.jar org.fastcatsearch.yajsw.ConfWriter "$confPath"/wrapper.conf ../../ "$yajsw_java_options" "$yajsw_account_user" "$yajsw_account_password"
+#java -classpath ../fastcatsearch-yajsw.jar org.fastcatsearch.yajsw.ConfWriter "$confPath"/wrapper.conf ../../ "$yajsw_java_options" "$yajsw_account_user" "$yajsw_account_password"
 
 chmod +x wrapper.sh
