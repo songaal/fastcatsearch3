@@ -26,12 +26,12 @@ rem 모든 배치파일에서 참조되는 wrapper.conf 파일
 set conf_file="%wrapper_home%wrapper.conf"
 
 rem 검색엔진 설정을 읽어온다.
-echo call %wrapper_home%..\..\exec\searchenv.bat
-call %wrapper_home%..\..\exec\searchenv.bat
+echo call %wrapper_home%..\..\bin\searchenv.bat
+call %wrapper_home%..\..\bin\searchenv.bat
 
 rem wrapper.conf 파일을 설정에 자동 Generate해준다.
 rem 사용법: ConfWriter [기록할 wrapper.conf파일위치] [검색엔진홈] [검색엔진java옵션] [OS사용자아이디] [사용자비밀번호]
-java -classpath ..\yajsw_conf.jar com.websqrd.fastcat.yajsw.ConfWriter wrapper.conf ..\..\ %yajsw_java_options% %yajsw_account_user% %yajsw_account_password%
+rem java -classpath ..\yajsw_conf.jar com.websqrd.fastcat.yajsw.ConfWriter wrapper.conf ..\..\ %yajsw_java_options% %yajsw_account_user% %yajsw_account_password%
 
 
 

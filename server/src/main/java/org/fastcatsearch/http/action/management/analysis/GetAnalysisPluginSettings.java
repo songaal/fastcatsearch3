@@ -28,23 +28,22 @@ public class GetAnalysisPluginSettings extends AuthAction {
 		
 		Plugin plugin = pluginService.getPlugin(pluginId);
 		
-		PluginSetting pluginSetting = plugin.getPluginSetting();
-		
-		if(pluginSetting instanceof AnalysisPluginSetting){
+		if(plugin != null) {
+			PluginSetting pluginSetting = plugin.getPluginSetting();
 			
-			OutputStream ostream = null;
-			
-			try {
-			
-				ostream = response.getOutputStream();
-	
-				JAXBConfigs.writeRawConfig(ostream, pluginSetting, AnalysisPluginSetting.class);
-				
-			} finally {
-				
-				if(ostream!=null) try {
-					ostream.close();
-				} catch (IOException e) { }
+			if (pluginSetting instanceof AnalysisPluginSetting) {
+				OutputStream ostream = null;
+				try {
+					ostream = response.getOutputStream();
+					JAXBConfigs.writeRawConfig(ostream, pluginSetting, AnalysisPluginSetting.class);
+				} finally {
+					if (ostream != null) {
+						try {
+							ostream.close();
+						} catch (IOException e) {
+						}
+					}
+				}
 			}
 		}
 	}
