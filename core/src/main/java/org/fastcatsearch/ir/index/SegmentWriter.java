@@ -93,7 +93,8 @@ public class SegmentWriter extends SegmentIndexWriter implements WriteInfoLoggab
 			closeWriter();
 		} catch (Exception e) {
 			File revisionDir = IndexFileNames.getRevisionDir(targetDir, revisionInfo.getId());
-			FileUtils.deleteDirectory(revisionDir);
+			//FileUtils.deleteDirectory(revisionDir);
+			FileUtils.forceDelete(revisionDir);
 			throw new IRException(e);
 		} finally {
 			super.close();

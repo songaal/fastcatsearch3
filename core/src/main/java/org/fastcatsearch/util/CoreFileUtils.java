@@ -7,7 +7,8 @@ import org.apache.commons.io.FileUtils;
 
 public class CoreFileUtils {
 	public static void removeDirectoryCascade(File dirNumber) throws IOException {
-		FileUtils.deleteDirectory(dirNumber);
+		//FileUtils.deleteDirectory(dirNumber);
+		FileUtils.forceDelete(dirNumber);
 		try {
 			File dir = dirNumber.getParentFile();
 			String num = dirNumber.getName();
@@ -15,7 +16,8 @@ public class CoreFileUtils {
 			while (i <= Integer.MAX_VALUE) {
 				File f = new File(dir, Integer.toString(i));
 				if (f.exists()) {
-					FileUtils.deleteDirectory(f);
+					//FileUtils.deleteDirectory(f);
+					FileUtils.forceDelete(f);
 					i++;
 				} else {
 					// 순차번호이므로 없으면 loop 탈출.

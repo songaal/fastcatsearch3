@@ -358,7 +358,8 @@ public class IRService extends AbstractService {
 				JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.collections), collectionsConfig, CollectionsConfig.class);
 				
 				FilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
-				FileUtils.deleteDirectory(collectionFilePaths.file());
+				//FileUtils.deleteDirectory(collectionFilePaths.file());
+				FileUtils.forceDelete(collectionFilePaths.file());
 				return true;
 			} catch (Exception e) {
 				logger.error("Error while remove collection", e);

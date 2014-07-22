@@ -126,7 +126,8 @@ public class DocumentWriteReadTest extends TestCase{
 		
 		reader.close();
 		
-		FileUtils.deleteDirectory(targetDir);
+		//FileUtils.deleteDirectory(targetDir);
+		FileUtils.forceDelete(targetDir);
 	}
 	
 	public void testWriteAndReadMultiField() throws IRException, IOException, SettingException{
@@ -175,7 +176,8 @@ public class DocumentWriteReadTest extends TestCase{
 		
 		System.out.println(actualDocument);
 		
-		FileUtils.deleteDirectory(targetDir);
+		//FileUtils.deleteDirectory(targetDir);
+		FileUtils.forceDelete(targetDir);
 	}
 	
 	
@@ -211,7 +213,8 @@ public class DocumentWriteReadTest extends TestCase{
 			System.out.println(actualDocument);
 		}
 		
-		FileUtils.deleteDirectory(targetDir);
+		//FileUtils.deleteDirectory(targetDir);
+		FileUtils.forceDelete(targetDir);
 	}
 	
 	

@@ -33,7 +33,8 @@ public class MirrorIndexMaker {
 		//상위의 mirror디렉토리에 미러색인파일을 기록한다.
 		if(mirrorDir.exists()){
 			try {
-				FileUtils.deleteDirectory(mirrorDir);
+				//FileUtils.deleteDirectory(mirrorDir);
+				FileUtils.forceDelete(mirrorDir);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

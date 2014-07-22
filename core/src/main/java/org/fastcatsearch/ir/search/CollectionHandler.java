@@ -233,7 +233,8 @@ public class CollectionHandler {
 				File segmentDir = segmentReader.segmentDir();
 				File deleteRevisionDir = new File(segmentDir, String.valueOf(targetRevisionId));
 				try {
-					FileUtils.deleteDirectory(deleteRevisionDir);
+					//FileUtils.deleteDirectory(deleteRevisionDir);
+					FileUtils.forceDelete(deleteRevisionDir);
 					logger.debug("Delete backup revision directory = {}", deleteRevisionDir.getAbsolutePath());
 				} catch (IOException e) {
 					logger.error("Error while delete backup revision directory = " + deleteRevisionDir.getAbsolutePath(), e);

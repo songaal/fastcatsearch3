@@ -44,7 +44,8 @@ public class MakeIndexFileTask extends Task {
 //			throw new TaskException("컬렉션 스키마에 주키(Primary Key)를 설정해야합니다.");
 //		}
 		
-		FileUtils.deleteDirectory(collectionDataDir);
+		//FileUtils.deleteDirectory(collectionDataDir);
+		FileUtils.forceDelete(collectionDataDir);
 		
 		
 		indexingLogger.info("Segment Dir = "+segmentDir.getAbsolutePath());

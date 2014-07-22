@@ -119,7 +119,8 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
 						// 색인후 문서가 0건이고 delete문서가 존재하면 이전 세그먼트의 다음 리비전으로 변경해주는 작업필요.
 						// 세그먼트가 다르면, 즉 증가했으면 다시 원래의 세그먼트로 돌리고, rev를 증가시킨다.
 						File segmentDir = indexFilePaths.file(workingSegmentInfo.getId());
-						FileUtils.deleteDirectory(segmentDir);
+						//FileUtils.deleteDirectory(segmentDir);
+						FileUtils.forceDelete(segmentDir);
 
 						logger.debug("# 추가문서가 없으므로, segment를 삭제합니다. {}", segmentDir.getAbsolutePath());
 						workingSegmentInfo = workingSegmentInfo.copy();

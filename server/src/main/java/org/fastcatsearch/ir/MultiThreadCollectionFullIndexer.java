@@ -173,7 +173,8 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 		// 디렉토리 초기화.
 		File indexDataDir = collectionContext.collectionFilePaths().dataPaths().indexDirFile(newDataSequence);
 		try {
-			FileUtils.deleteDirectory(indexDataDir);
+			//FileUtils.deleteDirectory(indexDataDir);
+			FileUtils.forceDelete(indexDataDir);
 		} catch (IOException e) {
 			throw new IRException(e);
 		}

@@ -190,7 +190,8 @@ public class SegmentIndexWriter implements IndexWritable {
 
 		} catch (Exception e) {
 			File revisionDir = IndexFileNames.getRevisionDir(targetDir, revisionInfo.getId());
-			FileUtils.deleteDirectory(revisionDir);
+			//FileUtils.deleteDirectory(revisionDir);
+			FileUtils.forceDelete(revisionDir);
 			throw new IRException(e);
 		} finally {
 //			if(threadPoolExecutor != null) {
