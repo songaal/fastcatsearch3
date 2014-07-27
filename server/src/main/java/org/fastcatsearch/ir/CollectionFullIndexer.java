@@ -47,9 +47,7 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 		File indexDataDir = collectionContext.collectionFilePaths().dataPaths().indexDirFile(newDataSequence);
 		try {
 			//FileUtils.deleteDirectory(indexDataDir);
-			if(indexDataDir.exists()) {
-				FileUtils.forceDelete(indexDataDir);
-			}
+			FileUtils.forceDelete(indexDataDir);
 		} catch (IOException e) {
 			throw new IRException(e);
 		}
