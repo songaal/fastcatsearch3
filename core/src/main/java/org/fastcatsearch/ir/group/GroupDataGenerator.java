@@ -219,7 +219,7 @@ public class GroupDataGenerator {
 								groupFunction.addValue(groupNo, value);
 							}
 						}else{
-							logger.debug("doc {} add group value groupNo={} val={}", docNo, groupNo, value);
+//							logger.debug("doc {} add group value groupNo={} val={}", docNo, groupNo, value);
 							groupFunction.addValue(groupNo, value);
 						}
 					}
@@ -284,7 +284,7 @@ public class GroupDataGenerator {
 					if(groupIndexReader.readKey(groupNo, keyBuffer)){
 						key = FieldDataStringer.parse(fieldType, keyBuffer);
 					}
-					logger.debug("groupEntryList.add {}, {}, {}", groupNo, key, valueList);
+//					logger.debug("groupEntryList.add {}, {}, {}", groupNo, key, valueList);
 					groupEntryList.add(new GroupEntry(key, valueList));
 				}
 				
