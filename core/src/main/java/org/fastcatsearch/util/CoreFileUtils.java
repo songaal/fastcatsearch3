@@ -1,6 +1,7 @@
 package org.fastcatsearch.util;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
@@ -8,8 +9,8 @@ import org.apache.commons.io.FileUtils;
 public class CoreFileUtils {
 	public static void removeDirectoryCascade(File dirNumber) throws IOException {
 		//FileUtils.deleteDirectory(dirNumber);
-		FileUtils.forceDelete(dirNumber);
 		try {
+			FileUtils.forceDelete(dirNumber);
 			File dir = dirNumber.getParentFile();
 			String num = dirNumber.getName();
 			int i = Integer.parseInt(num) + 1;
@@ -24,6 +25,7 @@ public class CoreFileUtils {
 					break;
 				}
 			}
+		} catch (FileNotFoundException ignore) {
 		} catch (NumberFormatException ignore) {
 		}
 	}
