@@ -9,6 +9,7 @@ import org.fastcatsearch.ir.group.GroupDataMerger;
 import org.fastcatsearch.ir.io.FixedHitQueue;
 import org.fastcatsearch.ir.io.FixedHitReader;
 import org.fastcatsearch.ir.io.FixedMinHeap;
+import org.fastcatsearch.ir.query.Bundle;
 import org.fastcatsearch.ir.query.Groups;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;

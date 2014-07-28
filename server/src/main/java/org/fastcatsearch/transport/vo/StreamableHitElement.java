@@ -9,6 +9,7 @@ import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.query.RowExplanation;
+import org.fastcatsearch.ir.search.DocIdList;
 import org.fastcatsearch.ir.search.HitElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,8 +56,16 @@ public class StreamableHitElement implements Streamable {
 					explanations.add(new RowExplanation(input.readString(), input.readVInt(), input.readString()));
 				}
 			}
+			int bundleDocIdSize = input.readVInt();
+			DocIdList bundleDocIdList = null;
+			if(bundleDocIdSize > 0) {
+				bundleDocIdList = new DocIdList(bundleDocIdSize);
+				for (int i = 0; i < bundleDocIdSize; i++) {
+					bundleDocIdList.add(input.readVInt(), input.readVInt());
+				}
+			}
 			
-			hitElements[hitElementInx] = new HitElement(segmentSequence, docNo, score, rankData, explanations);
+			hitElements[hitElementInx] = new HitElement(segmentSequence, docNo, score, rankData, explanations, bundleDocIdList);
 		}
 	}
 
@@ -82,7 +91,17 @@ public class StreamableHitElement implements Streamable {
 					output.writeVInt(exp.getScore());
 					output.writeString(exp.getDescription());
 				}
-				
+			}else{
+				output.writeVInt(0);
+			}
+			
+			if(hitElement.getBundleDocIdList() != null){
+				DocIdList bundleDocIdList = hitElement.getBundleDocIdList();
+				output.writeVInt(bundleDocIdList.size());
+				for (int i = 0; i < bundleDocIdList.size(); i++) {
+					output.writeVInt(bundleDocIdList.segmentSequence(i));
+					output.writeVInt(bundleDocIdList.docNo(i));
+				}
 			}else{
 				output.writeVInt(0);
 			}

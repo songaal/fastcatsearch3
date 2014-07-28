@@ -20,12 +20,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fastcatsearch.ir.search.BundleSortGenerator;
 import org.fastcatsearch.ir.search.FieldIndexesReader;
 import org.fastcatsearch.ir.search.HitMerger;
 import org.fastcatsearch.ir.search.HitRanker;
 import org.fastcatsearch.ir.search.SortGenerator;
 import org.fastcatsearch.ir.settings.Schema;
-import org.fastcatsearch.ir.settings.SchemaSetting;
 
 
 
@@ -57,8 +57,12 @@ public class Sorts {
 		return sortList;
 	}
 	
-	public SortGenerator getSortGenerator(Schema schema, FieldIndexesReader fieldIndexesReader) throws IOException {
-		return new SortGenerator(sortList, schema, fieldIndexesReader);
+	public SortGenerator getSortGenerator(Schema schema, FieldIndexesReader fieldIndexesReader, Bundle bundle) throws IOException {
+		if(bundle == null) {
+			return new SortGenerator(sortList, schema, fieldIndexesReader);
+		} else {
+			return new BundleSortGenerator(bundle, sortList, schema, fieldIndexesReader);
+		}
 	}
 
 	public HitRanker createRanker(Schema schema, int sortMaxSize) throws IOException {

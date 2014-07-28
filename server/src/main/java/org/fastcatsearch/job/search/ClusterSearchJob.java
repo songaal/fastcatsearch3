@@ -201,13 +201,26 @@ public class ClusterSearchJob extends Job {
 			while (hitReader.next()) {
 				HitElement el = hitReader.read();
 				int collectionNo = collectionNumberMap.get(el.collectionId());
-				docIdList[collectionNo].add(el.segmentSequence(), el.docNo());
+//				logger.debug("## {}", el.docNo());
+				
+				if(el.getBundleDocIdList() != null) {
+					logger.debug("--bundle---");
+					DocIdList list = el.getBundleDocIdList();
+					for(int i=0;i<list.size(); i++) {
+						logger.debug("  >>> [{}] {}", list.segmentSequence(i), list.docNo(i));
+					}
+				}
+				
+				docIdList[collectionNo].add(el.segmentSequence(), el.docNo(), el.getBundleDocIdList());
 				eachScores[collectionNo].add(el.score());
 				collectionTags[idx] = collectionNo;
 				if(rowExplanationsList != null){
 					rowExplanationsList[idx] = el.rowExplanations();
 				}
 				idx++;
+				
+				//TODO el의 group size가 2이상이것은 타 노드로 요청하여 group key id list를 전부받아서 병합한다.
+				//이때 el객체로 받아서 group의 하위 재정렬을 수행하도록 한다. 
 			}
 
 			// document 요청을 보낸다.
@@ -220,6 +233,7 @@ public class ClusterSearchJob extends Job {
 
 				logger.debug("collection [{}] search at {}", cid, dataNode);
 
+				//TODO group 이 있는 문서는 하위 id리스트까지 보내서 하위 문서까지 받도록 한다.
 				InternalDocumentSearchJob job = new InternalDocumentSearchJob(cid, docIdList[i], views, tags, highlightInfo);
 				resultFutureList[i] = nodeService.sendRequest(dataNode, job);
 			}

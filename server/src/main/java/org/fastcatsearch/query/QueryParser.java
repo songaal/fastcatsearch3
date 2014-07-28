@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 
 import org.fastcatsearch.ir.group.GroupFunction;
 import org.fastcatsearch.ir.group.function.CountGroupFunction;
+import org.fastcatsearch.ir.query.Bundle;
 import org.fastcatsearch.ir.query.Filter;
 import org.fastcatsearch.ir.query.Filters;
 import org.fastcatsearch.ir.query.Group;
@@ -278,6 +279,37 @@ public class QueryParser {
 			Metadata m = query.getMeta();
 			StoredProcedure sp = (StoredProcedure) DynamicClassLoader.loadObject(value);
 			m.setStoredProcedure(sp);
+		} else if (Query.EL.bd == el) {
+			String[] list = value.split(SEMICOLON_SEPARATOR);
+			String[] list1 = list[0].split(COLON_SEPARATOR);
+			
+			Bundle b = new Bundle(list1[0].trim());
+			if(list1.length > 1) {
+				int bundleRows = 5; //default 5개.
+				try{
+					bundleRows = Integer.parseInt(list1[1].trim());
+				}catch(NumberFormatException e) {
+					//ignore
+				}
+				b.setRows(bundleRows);
+			}
+			
+			if(list.length > 1) {
+				Sorts s = new Sorts();
+				String[] sortList = list[1].split(COMMA_SEPARATOR);
+				for (int k = 0; k < sortList.length; k++) {
+					String[] str = sortList[k].split(COLON_SEPARATOR);
+					if (str.length > 1) {
+						boolean isAsc = str[1].equalsIgnoreCase("asc");
+						s.add(new Sort(str[0], isAsc));
+					} else {
+						s.add(new Sort(sortList[k]));
+					}
+
+				}
+				b.setSorts(s);
+			}
+			query.setBundle(b);
 		}
 	}
 

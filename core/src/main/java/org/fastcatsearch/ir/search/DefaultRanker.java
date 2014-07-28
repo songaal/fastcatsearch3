@@ -16,6 +16,7 @@
 
 package org.fastcatsearch.ir.search;
 
+import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.io.FixedMaxPriorityQueue;
 
 /**
@@ -28,6 +29,22 @@ import org.fastcatsearch.ir.io.FixedMaxPriorityQueue;
 public class DefaultRanker extends FixedMaxPriorityQueue<HitElement>{
 	public DefaultRanker(int maxSize){
 		super(maxSize);
+	}
+	
+	@Override
+	public boolean push(HitElement e){
+		if(e.getBundleKey() != null) {
+			BytesRef bundleKey = e.getBundleKey();
+			for (int i = 1; i <= size; i++) {
+				if(bundleKey.equals(((HitElement) heap[i]).getBundleKey())){
+					//동일 bundle 이 존재하면 또다시 push하지 않는다.
+					logger.debug("동일 Bundle found > {}", e.docNo());
+					return false;
+				}
+			}
+		}
+		//bundle을 사용하지 않거나 동일 bundle이 없으면 push한다. 
+		return super.push(e);	
 	}
 	
 	@Override

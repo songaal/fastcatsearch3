@@ -109,7 +109,7 @@ public class SortGenerator {
 		return result;
 	}
 	
-	public BytesRef[] readRankData(RankInfo ri) {
+	protected BytesRef[] readRankData(RankInfo ri) {
 		BytesRef[] rankData = new BytesRef[sortSize];
 		for (int j = 0; j < sortSize; j++) {
 			//정렬은 멀티밸류를 지원하지 않으며, 싱글밸류이기 때문에 즉시 bytesRef로 읽도록 한다.
