@@ -391,21 +391,21 @@ public class CollectionSearcher {
 		}
 
 		Document[] eachDocList = new Document[realSize];
+		
+		//SegmentSearcher를 재사용하기 위한 array. Lazy-loading되며, segmentSequence가 array 첨자가 된다.
+		//처음에는 길이 5로 만들어놓고 나중에 더 필요하면, grow시킨다.
 		SegmentSearcher[] segmentSearcherList = new SegmentSearcher[5];
 		
 		int idx = 0;
 		for (int i = 0; i < list.size(); i++) {
-
-			
-			//TODO 무언가 이상하다. SegmentSearcher 를 재사용하는것 같은데, 다시한번 확인필요.
-			
-			
 			int segmentSequence = list.segmentSequence(i);
 			int docNo = list.docNo(i);
 			DocIdList bundleDocIdList = list.bundleDocIdList(i);
 			int size = segmentSearcherList.length;
-			if(i >= size){
-				while(i >= size){
+			
+			//기존 범위를 벗어나는 세그먼트 요청이 있을 때 grow한다. 
+			if(segmentSequence >= size){
+				while(segmentSequence >= size){
 					size += 5;
 				}
 				SegmentSearcher[] newSegmentSearcherList = new SegmentSearcher[size];
@@ -413,10 +413,10 @@ public class CollectionSearcher {
 				segmentSearcherList = newSegmentSearcherList;
 			}
 			
-			if(segmentSearcherList[i] == null) {
-				segmentSearcherList[i] = collectionHandler.segmentReader(segmentSequence).segmentSearcher();
+			if(segmentSearcherList[segmentSequence] == null) {
+				segmentSearcherList[segmentSequence] = collectionHandler.segmentReader(segmentSequence).segmentSearcher();
 			}
-			Document doc = segmentSearcherList[i].getDocument(docNo, fieldSelectOption);
+			Document doc = segmentSearcherList[segmentSequence].getDocument(docNo, fieldSelectOption);
 			
 			if(bundleDocIdList != null) {
 				for(int j =0 ;j < bundleDocIdList.size(); j++) {
