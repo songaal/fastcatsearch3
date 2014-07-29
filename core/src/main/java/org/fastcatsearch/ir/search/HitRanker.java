@@ -19,7 +19,6 @@ package org.fastcatsearch.ir.search;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.field.HitField;
 import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.io.FixedMaxPriorityQueue;
@@ -69,23 +68,6 @@ public class HitRanker extends FixedMaxPriorityQueue<HitElement>{
 			logger.debug("sortFunctions[{}]=[{}]=", i, sortFunctions[i]);
 		}
 	}
-	
-	@Override
-	public boolean push(HitElement e){
-		if(e.getBundleKey() != null) {
-			BytesRef bundleKey = e.getBundleKey();
-			for (int i = 1; i <= size; i++) {
-				if(bundleKey.equals(((HitElement) heap[i]).getBundleKey())){
-					//동일 bundle 이 존재하면 또다시 push하지 않는다.
-					logger.debug("동일 Bundle found > {}", e.docNo());
-					return false;
-				}
-			}
-		}
-		//bundle을 사용하지 않거나 동일 bundle이 없으면 push한다. 
-		return super.push(e);	
-	}
-	
 	
 	@Override
 	protected int compare(HitElement one, HitElement two) {

@@ -55,7 +55,6 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 			if (collectionHandler == null) {
 				throw new FastcatSearchException("ERR-00520", collectionId);
 			}
-			
 			DocumentResult documentResult = collectionHandler.searcher().searchDocument(docIdList, views, tags, highlightInfo);
 
 			return new JobResult(new StreamableDocumentResult(documentResult));
@@ -76,20 +75,7 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 		int size = input.readVInt();
 		docIdList = new DocIdList(size);
 		for (int i = 0; i < size; i++) {
-			int segmentSequence = input.readVInt();
-			int docNo = input.readVInt();
-			
-			//하위 묶음문서
-			int bundleSize = input.readVInt();
-			if(bundleSize > 0) {
-				DocIdList bundleDocIdList = new DocIdList(bundleSize);
-				for (int j = 0; j < bundleSize; j++) {
-					bundleDocIdList.add(input.readVInt(), input.readVInt());
-				}
-				docIdList.add(segmentSequence, docNo, bundleDocIdList);	
-			} else {
-				docIdList.add(segmentSequence, docNo);	
-			}
+			docIdList.add(input.readVInt(), input.readVInt());
 		}
 
 		// List<View>
@@ -120,19 +106,6 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 		for (int i = 0; i < docIdList.size(); i++) {
 			output.writeVInt(docIdList.segmentSequence(i));
 			output.writeVInt(docIdList.docNo(i));
-			
-			//하위 묶음문서
-			DocIdList bundleDocIdList = docIdList.bundleDocIdList(i);
-			if(bundleDocIdList == null) {
-				output.writeVInt(0);
-			} else {
-				output.writeVInt(bundleDocIdList.size());
-				for (int j = 0; j < bundleDocIdList.size(); j++) {
-					output.writeVInt(bundleDocIdList.segmentSequence(i));
-					output.writeVInt(bundleDocIdList.docNo(i));
-				}
-				
-			}
 		}
 
 		// List<View>

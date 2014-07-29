@@ -33,7 +33,6 @@ import org.fastcatsearch.ir.search.clause.Clause;
 	&sp=com.mydomain.sp.SampleStoredProdure  >> stored procedure 
 	&qm=com.mydomain.modifier.SampleQueryModifier >> query modifier
 	&rm=com.mydomain.modifier.SampleResultModifier >> result modifier
-	&bd=bundlekey:5;price:desc,popular:desc
 	
 */
 public class Query {
@@ -41,7 +40,7 @@ public class Query {
 	public static int SEARCH_OPT_EXPLAIN = 1 << 1;
 	
 	public static enum EL {
-		cn, sd, ht, sn, ln, so, ud, fl, se, ft, gr, gf, ra, sp, qm, rm, bd;
+		cn, sd, ht, sn, ln, so, ud, fl, se, ft, gr, gf, ra, sp, qm, rm;
 	};
 	
 	private Clause clause;
@@ -52,7 +51,6 @@ public class Query {
 	private Sorts sorts;
 	private Metadata meta;
 	private Query boostQuery;
-	private Bundle bundle;
 	
 	public Query(){ 
 		meta = new Metadata();
@@ -65,7 +63,7 @@ public class Query {
 		if(groups != null) sb.append("\n[Groups]").append(groups);
 		if(groupFilters != null) sb.append("\n[GroupFilter]").append(groupFilters);
 		if(sorts != null) sb.append("\n[Sorts]").append(sorts);
-		if(bundle != null) sb.append("\n[Bundle]").append(bundle);
+		
 		if(views != null){
 			sb.append("\n[Views]");
 			for(int i=0;i<views.size();i++){
@@ -138,13 +136,4 @@ public class Query {
 	public void setBoostQuery(Query boostQuery) {
 		this.boostQuery = boostQuery;
 	}
-
-	public Bundle getBundle() {
-		return bundle;
-	}
-
-	public void setBundle(Bundle bundle) {
-		this.bundle = bundle;
-	}
-	
 }

@@ -70,7 +70,6 @@ public class FixedHitReader implements Comparable<FixedHitReader>{
 		return list[head];
 	}
 
-	@Override
 	public int compareTo(FixedHitReader r) {
 		//HitElement는 HitRanker를 통해 비교를 해야하나 정렬을 지정하지 않으면 기본적으로 최신문서를 보여준다.
 		HitElement one = read();

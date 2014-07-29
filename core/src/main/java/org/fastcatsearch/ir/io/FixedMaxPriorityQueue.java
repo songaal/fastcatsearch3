@@ -20,14 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Java의 PriorityQueue 를 사용할수 없는 이유는 아래와 같다.
- * 제일 큰 이유는 java의 PriorityQueue는 고정길이가 아니므로 원소가 계속늘어난다.
- * 그리고 새로운 원소가 들어오면 일단 insert후 정렬을 시도하므로 메모리소비가 많다.
- * Fastcat의 FixedMaxPriorityQueue 는 최소원소 K개를 유지하는 것이 목적이므로, 원소들중 가장 큰 원소가 항상 root에 존재한다.
- * 새로운 원소가 들어오면 root의 원소와 비교함으로써 추가할지 여부가 바로 판단된다. 새 원소가 root보다 크면 즉시 reject이다.
- * java의 PQ에서는 제일 큰 원소가 어떤것이지 알수 없으므로, 
- * 이것이 max heap을 사용하는 이유다. 
- * 
  * Max Heap을 유지하면서 최소원소 top K개를 보관한다.
  * 원소입력이 다 끝나면 최소원소를 내림차순으로 pop할수 있다.
  * 이 원소들을 차례대로 리스트에 거꾸로 입력하면 오름차순으로 정렬된 리스트를 얻을수 있다.
@@ -40,9 +32,9 @@ import org.slf4j.LoggerFactory;
 public abstract class FixedMaxPriorityQueue<T> {
 	protected static Logger logger = LoggerFactory.getLogger(FixedMaxPriorityQueue.class);
 	
-	protected Object[] heap;
-	protected int maxsize;
-	protected int size;
+	private Object[] heap;
+	private int maxsize;
+	private int size;
 	
 	public FixedMaxPriorityQueue(int maxsize){
 		this.maxsize = maxsize;
@@ -57,7 +49,7 @@ public abstract class FixedMaxPriorityQueue<T> {
 	// one과 two는 heapify하면서 한번이상 사용될 것이므로 내부속성이 바뀌어서는 안된다.
 	//
 	protected abstract int compare(T one, T two);
-	
+		
 	public boolean push(T e){
 		
 		if (size < maxsize) {
@@ -67,38 +59,13 @@ public abstract class FixedMaxPriorityQueue<T> {
 		} else if (size > 0 && compare(peek(), e) > 0) {
 			heap[1] = e;
 			downHeap();
+		} else{
+			//reject
+//			logger.debug("REJECT = "+e);
 		}
-		//else reject
 		
 		return true;
 	}
-	
-	public T remove(T e) {
-		for (int i = 1; i <= size; i++) {
-			if(compare((T) heap[i], e) == 0){
-				return remove(i);
-			}
-		}
-		return null;
-	}
-	protected T remove(int i) {
-		Object removed = heap[i];
-		if(size == i) {
-			heap[size] = null;
-			size--;
-		} else {
-			T last = (T) heap[size];
-			heap[size] = null;
-			size--;
-            downHeap(i, last);
-            //새 원소가 움직이지 않았다면.
-            if (heap[i] == last) {
-                upHeap(i, last);
-            }
-		}
-		return (T) removed;
-	}
-	
 	
 	public T pop(){
 		if (size > 0) {
@@ -134,75 +101,56 @@ public abstract class FixedMaxPriorityQueue<T> {
 			logger.info("{}", heap[i + 1]);
 		}
 	}
+	
 	private void upHeap() {
 		int idx = size;
 		Object node = heap[idx];
-		upHeap(idx, node);
-	}
-	private void upHeap(int idx, Object node) {
-		while(idx > 0) {
-			int parent = idx >> 1;
-			
-			if(parent == 0 || compare((T) node, (T) heap[parent]) <= 0) {
-				break;
-			}
+		int parent = idx >> 1;
+		while ((parent > 0) && compare((T)node, (T)heap[parent]) > 0) {
 			heap[idx] = heap[parent];
 			idx = parent;
+			parent = parent >> 1;
 		}
-		heap[idx] = node;
-		
-	}
-	private void downHeap(){
-		int idx = 1;
-		downHeap(idx, heap[idx]);
-	}
-	private void downHeap(int idx, Object node){
-		
-		int child = -1;
-		
-		//leaf 노드이면 down heap이 필요없다.
-		int leafLimit = size >>> 1;
-		while(idx <= leafLimit) {
-			
-			/*
-			 * 1. 자식노드 두개중 더 큰걸 고른다.
-			 * */
-			int left = idx << 1;
-			int right = left + 1;
-			
-			if(right <= size){
-				if(compare((T) heap[left], (T) heap[right]) > 0) {
-					child = left;
-				} else {
-					child = right;
-				}
-			}else{
-				//if there is no right el.
-				child = left;
-			}
-			
-			/*
-			 * 2. 자식노드중 큰 것과 나의 노드를 비교해서 자식이 더 작으면 종료.
-			 * 내가 더 크면 바꿈.
-			 * */
-			if(compare((T) heap[child], (T) node) <= 0){
-				//같거나 정렬되어 있으면 child를 확인하지 않는다.
-				break;
-			}
-			
-			heap[idx] = heap[child];
-            idx = child;
-		}
-		
 		heap[idx] = node;
 	}
 	
-	public void printHeap(String label) {
-		System.out.println("-- "+ label +" -------------");
-		for(int i=1;i<=size;i++){
-			System.out.print(heap[i]);
-			System.out.print(" ");
+	private void downHeap(){
+		
+		int child = -1;
+		int idx = 1;
+		
+		while(idx <= size){
+			int left = idx * 2;
+			int right = left + 1;
+			
+			if(left <= size){
+				if(right <= size){
+					if(compare((T)heap[left], (T)heap[right]) > 0)
+						child = left;
+					else
+						child = right;
+				}else{
+					//if there is no right el.
+					child = left;
+				}
+			}else{
+				//no children
+				break;
+			}
+			
+			//현재 노드와 child와 비교해서 swap한다.
+			if(compare((T)heap[child], (T)heap[idx]) > 0){
+				Object temp = heap[child];
+				heap[child] = heap[idx];
+				heap[idx] = temp;
+				idx = child;
+			}else{
+				//같거나 정렬되어 있으면 child를 확인하지 않는다.
+				break;
+			}
+					
 		}
-		System.out.println();
 	}
+	
+	
 }
