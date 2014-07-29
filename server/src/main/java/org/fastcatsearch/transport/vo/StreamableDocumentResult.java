@@ -7,9 +7,11 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.ir.search.DocumentResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StreamableDocumentResult implements Streamable {
-
+	private static Logger logger = LoggerFactory.getLogger(StreamableDocumentResult.class);
 	private DocumentResult documentResult;
 
 	public StreamableDocumentResult() {
@@ -32,14 +34,16 @@ public class StreamableDocumentResult implements Streamable {
 			}
 		}
 		
+		Row[][] bundleRowList = null;
 		int bundleDocsize = input.readVInt();
 		if(bundleDocsize > 0) {
-			Row[][] bundleRowList = new Row[bundleDocsize][];
+			bundleRowList = new Row[bundleDocsize][];
 			for (int i = 0; i < bundleDocsize; i++) {
 				int rowSize = input.readVInt();
 				if(rowSize > 0) {
 					bundleRowList[i] = new Row[rowSize];
-					for (int j = 0; j < rowSize; i++) {
+					
+					for (int j = 0; j < rowSize; j++) {
 						int fieldCount = input.readVInt();
 						bundleRowList[i][j] = new Row(fieldCount);
 						for (int k = 0; k < fieldCount; k++) {
@@ -58,7 +62,7 @@ public class StreamableDocumentResult implements Streamable {
 			fieldIdList[i] = input.readString();
 		}
 		
-		documentResult = new DocumentResult(rows, fieldIdList);
+		documentResult = new DocumentResult(rows, bundleRowList, fieldIdList);
 	}
 
 	@Override

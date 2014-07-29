@@ -40,8 +40,6 @@ public class DocIdList {
 				System.arraycopy(bundleDocIdListArray, 0, newBundleDocIdListArray, 0, size);
 				bundleDocIdListArray = newBundleDocIdListArray;
 			}
-			
-			size = newSize;
 		}
 		
 		segmentSequenceList[size] = segmentSequence;
