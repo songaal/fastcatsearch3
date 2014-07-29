@@ -62,7 +62,7 @@ public class CollectionQueryCountService extends AbstractService {
 	protected boolean doStart() throws FastcatSearchException {
 
 		IRService irService = serviceManager.getService(IRService.class);
-		Set<String> collectionIdSet = irService.getDataNodeCollectionIdS();
+		Set<String> collectionIdSet = irService.getDataNodeCollectionIdSet();
 		boolean isDataNode = collectionIdSet.size() > 0;
 
 		int period = 1000; // 1초.
@@ -121,7 +121,7 @@ public class CollectionQueryCountService extends AbstractService {
 			IRService irService = serviceManager.getService(IRService.class);
 
 			RealtimeQueryCountModule module = irService.queryCountModule();
-			Set<String> collectionIdSet = irService.getDataNodeCollectionIdS();
+			Set<String> collectionIdSet = irService.getDataNodeCollectionIdSet();
 
 			Map<String, Integer> result = new HashMap<String, Integer>(collectionIdSet.size());
 			for (String collectionId : collectionIdSet) {

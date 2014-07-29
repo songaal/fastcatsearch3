@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.bind.JAXBException;
 
@@ -108,7 +109,7 @@ public class IRService extends AbstractService {
 		}catch(Throwable t){
 			ClusterAlertService.getInstance().alert(t);
 		}
-		collectionHandlerMap = new HashMap<String, CollectionHandler>();
+		collectionHandlerMap = new ConcurrentHashMap<String, CollectionHandler>();
 		// collections 셋팅을 읽어온다.
 		collectionsRoot = environment.filePaths().getCollectionsRoot().file();
 
@@ -563,7 +564,7 @@ public class IRService extends AbstractService {
 		}
 	}
 
-	public Set<String> getDataNodeCollectionIdS(){
+	public Set<String> getDataNodeCollectionIdSet(){
 		return dataNodeCollectionIdSet;
 	}
 	// 모든 컬렉션들의 검색노드들을 모아서 리턴한다.
