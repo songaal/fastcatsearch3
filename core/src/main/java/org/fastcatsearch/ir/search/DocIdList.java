@@ -67,6 +67,9 @@ public class DocIdList {
 	}
 	
 	public DocIdList bundleDocIdList(int i) {
+		if(bundleDocIdListArray == null) {
+			return null;
+		}
 		return bundleDocIdListArray[i];
 	}
 }
