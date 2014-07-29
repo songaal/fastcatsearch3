@@ -56,9 +56,6 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 				throw new FastcatSearchException("ERR-00520", collectionId);
 			}
 			
-			//TODO  하위 번들문서를 처리한다.
-			
-			
 			DocumentResult documentResult = collectionHandler.searcher().searchDocument(docIdList, views, tags, highlightInfo);
 
 			return new JobResult(new StreamableDocumentResult(documentResult));
@@ -82,7 +79,7 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 			int segmentSequence = input.readVInt();
 			int docNo = input.readVInt();
 			
-			
+			//하위 묶음문서
 			int bundleSize = input.readVInt();
 			if(bundleSize > 0) {
 				DocIdList bundleDocIdList = new DocIdList(bundleSize);
@@ -123,6 +120,8 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 		for (int i = 0; i < docIdList.size(); i++) {
 			output.writeVInt(docIdList.segmentSequence(i));
 			output.writeVInt(docIdList.docNo(i));
+			
+			//하위 묶음문서
 			DocIdList bundleDocIdList = docIdList.bundleDocIdList(i);
 			if(bundleDocIdList == null) {
 				output.writeVInt(0);

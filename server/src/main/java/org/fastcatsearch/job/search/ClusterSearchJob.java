@@ -202,7 +202,7 @@ public class ClusterSearchJob extends Job {
 				HitElement el = hitReader.read();
 				int collectionNo = collectionNumberMap.get(el.collectionId());
 //				logger.debug("## {}", el.docNo());
-				
+
 				if(el.getBundleDocIdList() != null) {
 					logger.debug("--bundle---");
 					DocIdList list = el.getBundleDocIdList();
@@ -211,6 +211,7 @@ public class ClusterSearchJob extends Job {
 					}
 				}
 				
+				//묶음 문서 존재시 같이 넣어준다.
 				docIdList[collectionNo].add(el.segmentSequence(), el.docNo(), el.getBundleDocIdList());
 				eachScores[collectionNo].add(el.score());
 				collectionTags[idx] = collectionNo;
@@ -218,9 +219,6 @@ public class ClusterSearchJob extends Job {
 					rowExplanationsList[idx] = el.rowExplanations();
 				}
 				idx++;
-				
-				//TODO el의 group size가 2이상이것은 타 노드로 요청하여 group key id list를 전부받아서 병합한다.
-				//이때 el객체로 받아서 group의 하위 재정렬을 수행하도록 한다. 
 			}
 
 			// document 요청을 보낸다.
