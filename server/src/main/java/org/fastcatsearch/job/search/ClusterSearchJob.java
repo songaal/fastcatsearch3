@@ -265,20 +265,25 @@ public class ClusterSearchJob extends Job {
 			}
 			String[] fieldIdList = docResultList[0].fieldIdList();
 			Row[] rows = new Row[realSize];
+			Row[][] bundleRows = null;
 			for (int i = 0; i < realSize; i++) {
 				int collectionNo = collectionTags[i];
 				DocumentResult documentResult = docResultList[collectionNo];
-				rows[i] = documentResult.next();
+				rows[i] = documentResult.row();
+				Row[] bundleRow = documentResult.bundleRow();
+				if(bundleRow != null) {
+					if(bundleRows == null) {
+						bundleRows = new Row[realSize][];
+					}
+					bundleRows[i] = bundleRow;
+				}
 				int score = eachScores[collectionNo].pop();
 				rows[i].setScore(score);
+				
+				documentResult.next();
 			}
 
 			//TODO row별과 통합 explain결과 포함시킨다.
-			
-			
-			
-			
-			
 			
 			/*
 			 * Group Result
@@ -289,7 +294,7 @@ public class ClusterSearchJob extends Job {
 				groupResults = groups.getGroupResultsGenerator().generate(groupsData);
 			}
 
-			searchResult = new Result(rows, groupResults, fieldIdList, realSize, totalSize, meta.start(), explanations, rowExplanationsList);
+			searchResult = new Result(rows, bundleRows, groupResults, fieldIdList, realSize, totalSize, meta.start(), explanations, rowExplanationsList);
 
 			ResultModifier resultModifier = meta.resultModifier();
 			if(resultModifier != null){

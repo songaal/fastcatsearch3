@@ -365,6 +365,7 @@ public class CollectionSearcher {
 	public DocumentResult searchDocument(DocIdList list, ViewContainer views, String[] tags, HighlightInfo highlightInfo) throws IOException {
 		int realSize = list.size();
 		Row[] row = new Row[realSize];
+		Row[][] bundleRow = null;
 
 		int fieldSize = collectionHandler.schema().getFieldSize();
 		int viewSize = views.size();
@@ -391,7 +392,7 @@ public class CollectionSearcher {
 		}
 
 		Document[] eachDocList = new Document[realSize];
-		Document[][] eachBundleDocList = new Document[realSize][];
+		Document[][] eachBundleDocList = null;
 		
 		//SegmentSearcher를 재사용하기 위한 array. Lazy-loading되며, segmentSequence가 array 첨자가 된다.
 		//처음에는 길이 5로 만들어놓고 나중에 더 필요하면, grow시킨다.
@@ -421,6 +422,10 @@ public class CollectionSearcher {
 			eachDocList[idx] = doc;
 			
 			if(bundleDocIdList != null) {
+				//묶음문서 존재시에만 생성한다.
+				if(eachBundleDocList == null) {
+					eachBundleDocList = new Document[realSize][];
+				}
 				Document[] bundleDoclist = new Document[bundleDocIdList.size()];
 				for (int j = 0; j < bundleDocIdList.size(); j++) {
 					int bundleSegmentSequence = bundleDocIdList.segmentSequence(i);
@@ -436,90 +441,41 @@ public class CollectionSearcher {
 		
 		
 		for (int i = 0; i < realSize; i++) {
-			Document document = eachDocList[i];
-			row[i] = new Row(viewSize);
-			for (int j = 0; j < viewSize; j++) {
-				View view = views.get(j);
-
-				int fieldSequence = fieldSequenceList[j];
-				if (fieldSequence == ScoreField.fieldNumber) {
-					//여기서는 score를 알수가 없으므로 공백처리.
-					//float score = document.getScore();
-					row[i].put(j, null);
-				} else if (fieldSequence == DocNoField.fieldNumber) {
-					row[i].put(j, Integer.toString(document.getDocId()).toCharArray());
-				} else if (fieldSequence == UnknownField.fieldNumber) {
-					row[i].put(j, UnknownField.value().toCharArray());
-				} else {
-					Field field = document.get(fieldSequence);
-//					logger.debug("field#{} >> {}", j, field);
-					String text = null;
-					if (field != null) {
-						text = field.toString();
+			row[i] = makeRowFromDocument(eachDocList[i], views, fieldSequenceList, tags, highlightInfo);
+			
+			//bundle document
+			if(eachBundleDocList != null) {
+				Document[] bundleDocList = eachBundleDocList[i];
+				if(bundleDocList != null) {
+					///묶음문서 존재시에만 bundleRow를 생성한다.
+					if(bundleRow == null) {
+						bundleRow = new Row[realSize][];
 					}
-
-					boolean isHighlightSummary = false;
-					if (has != null && text != null && highlightInfo != null) {
-						//하이라이팅만 수행하거나, 또는 view.snippetSize 가 존재하면 summary까지 수행될수 있다.
-						String fieldId = view.fieldId();
-						Option searchOption = highlightInfo.getOption(fieldId);
-						if(searchOption.useHighlight()) {
-							String indexAnalyzerId = highlightInfo.getIndexAnalyzerId(fieldId);
-							String queryAnalyzerId = highlightInfo.getQueryAnalyzerId(fieldId);
-							String queryTerm = highlightInfo.getQueryTerm(fieldId);
-							if (indexAnalyzerId != null && queryAnalyzerId != null && queryTerm != null) {
-	//							a = System.nanoTime();
-								text = getHighlightedSnippet(fieldId, text, indexAnalyzerId, queryAnalyzerId, queryTerm, tags, view, searchOption);
-	//							b += (System.nanoTime() - a);
-								isHighlightSummary = true;
-							}
-						}
+					bundleRow[i] = new Row[bundleDocList.length];
+					for (int j = 0; j < bundleDocList.length; j++) {
+						bundleRow[i][j] = makeRowFromDocument(bundleDocList[j], views, fieldSequenceList, tags, highlightInfo);
 					}
-					
-					if(!isHighlightSummary && view.isSummarize()){
-						//검색필드가 아니라서 하이라이팅이 불가능한경우는 앞에서부터 잘라 summary 해준다.
-						if(text != null){
-							if(text.length() > view.snippetSize()){
-								text = text.substring(0, view.snippetSize());
-							}
-						}
-					}
-
-					if (text != null) {
-						row[i].put(j, text.toCharArray());
-					} else {
-						row[i].put(j, null);
-					}
-
 				}
 			}
 			
-			
-			//bundle document
-			
-			Document[] bundleDocList = eachBundleDocList[i];
-			for()
-			
-			
 		}
-//		logger.debug("time > {}, {}", (System.nanoTime() - c) / 1000000, b / 1000000);
-		return new DocumentResult(row, fieldIdList);
+		return new DocumentResult(row, bundleRow, fieldIdList);
 	}
 
-	private Row fromDocumentToRow(Document document) {
-		Row rows = new Row(viewSize);
-		for (int j = 0; j < viewSize; j++) {
+	private Row makeRowFromDocument(Document document, ViewContainer views, int[] fieldSequenceList, String[] tags, HighlightInfo highlightInfo) throws IOException {
+		Row rows = new Row(views.size());
+		for (int j = 0; j < views.size(); j++) {
 			View view = views.get(j);
 
 			int fieldSequence = fieldSequenceList[j];
 			if (fieldSequence == ScoreField.fieldNumber) {
 				//여기서는 score를 알수가 없으므로 공백처리.
 				//float score = document.getScore();
-				row[i].put(j, null);
+				rows.put(j, null);
 			} else if (fieldSequence == DocNoField.fieldNumber) {
-				row[i].put(j, Integer.toString(document.getDocId()).toCharArray());
+				rows.put(j, Integer.toString(document.getDocId()).toCharArray());
 			} else if (fieldSequence == UnknownField.fieldNumber) {
-				row[i].put(j, UnknownField.value().toCharArray());
+				rows.put(j, UnknownField.value().toCharArray());
 			} else {
 				Field field = document.get(fieldSequence);
 //				logger.debug("field#{} >> {}", j, field);
@@ -556,9 +512,9 @@ public class CollectionSearcher {
 				}
 
 				if (text != null) {
-					row[i].put(j, text.toCharArray());
+					rows.put(j, text.toCharArray());
 				} else {
-					row[i].put(j, null);
+					rows.put(j, null);
 				}
 
 			}

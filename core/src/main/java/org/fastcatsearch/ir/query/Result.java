@@ -27,6 +27,7 @@ public class Result {
 	private int totalCount;
 	private String[] fieldNameList;
 	private Row[] rows;
+	private Row[][] bundleRows;
 	private GroupResults groupResults;
 	private int start;
 	
@@ -40,8 +41,9 @@ public class Result {
 	public Result(){
 	}
 	
-	public Result(Row[] data, GroupResults groupResults, String[] fieldNameList, int count, int totalCount, int start, List<Explanation> explanations, List<RowExplanation>[] rowExplanationsList){
+	public Result(Row[] data, Row[][] bundleData, GroupResults groupResults, String[] fieldNameList, int count, int totalCount, int start, List<Explanation> explanations, List<RowExplanation>[] rowExplanationsList){
 		this.rows = data;
+		this.bundleRows = bundleData;
 		this.groupResults = groupResults;
 		this.fieldNameList = fieldNameList;
 		this.count = count;
@@ -65,6 +67,10 @@ public class Result {
 	
 	public Row[] getData(){
 		return rows;
+	}
+	
+	public Row[][] getBundleData(){
+		return bundleRows;
 	}
 	
 	public String[] getFieldNameList(){

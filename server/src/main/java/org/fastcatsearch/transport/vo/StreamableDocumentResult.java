@@ -32,6 +32,27 @@ public class StreamableDocumentResult implements Streamable {
 			}
 		}
 		
+		int bundleDocsize = input.readVInt();
+		if(bundleDocsize > 0) {
+			Row[][] bundleRowList = new Row[bundleDocsize][];
+			for (int i = 0; i < bundleDocsize; i++) {
+				int rowSize = input.readVInt();
+				if(rowSize > 0) {
+					bundleRowList[i] = new Row[rowSize];
+					for (int j = 0; j < rowSize; i++) {
+						int fieldCount = input.readVInt();
+						bundleRowList[i][j] = new Row(fieldCount);
+						for (int k = 0; k < fieldCount; k++) {
+							char[] chars =  input.readUString();
+							bundleRowList[i][j].put(k, chars);
+						}
+					}
+				}
+				
+			}
+			
+		}
+		
 		String[] fieldIdList = new String[input.readVInt()];
 		for (int i = 0; i < fieldIdList.length; i++) {
 			fieldIdList[i] = input.readString();
@@ -54,6 +75,30 @@ public class StreamableDocumentResult implements Streamable {
 				output.writeUString(chars, 0, chars.length);
 			}
 		}
+		
+		if(documentResult.bundleRows() != null) {
+			Row[][] bundleRowList = documentResult.bundleRows();
+			output.writeVInt(bundleRowList.length);
+			for(Row[] bundleRow : bundleRowList) {
+				if(bundleRow != null) {
+					output.writeVInt(bundleRow.length);
+					for(Row row : bundleRow) {
+						int fieldCount = row.getFieldCount();
+						output.writeVInt(fieldCount);
+						for (int j = 0; j < fieldCount; j++) {
+							char[] chars = row.get(j);
+							output.writeUString(chars, 0, chars.length);
+						}
+					}
+				} else{
+					output.writeVInt(0);		
+				}
+			}
+		}else {
+			output.writeVInt(0);
+		}
+		
+		
 		String[] fieldIdList = documentResult.fieldIdList();
 		output.writeVInt(fieldIdList.length);
 		for (int i = 0; i < fieldIdList.length; i++) {
