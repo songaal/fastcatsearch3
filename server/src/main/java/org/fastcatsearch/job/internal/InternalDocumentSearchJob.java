@@ -78,7 +78,6 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 		for (int i = 0; i < size; i++) {
 			int segmentSequence = input.readVInt();
 			int docNo = input.readVInt();
-			
 			//하위 묶음문서
 			int bundleSize = input.readVInt();
 			if(bundleSize > 0) {

@@ -333,7 +333,7 @@ public class CollectionSearcher {
 						
 						if (c >= bundleStart) {
 							bundleDocIdList.add(el.segmentSequence(), el.docNo());
-							logger.debug("[{}] {}", el.segmentSequence() ,el.docNo());
+//							logger.debug("[{}] {}", el.segmentSequence() ,el.docNo());
 						}
 						c++;
 
@@ -428,8 +428,8 @@ public class CollectionSearcher {
 				}
 				Document[] bundleDoclist = new Document[bundleDocIdList.size()];
 				for (int j = 0; j < bundleDocIdList.size(); j++) {
-					int bundleSegmentSequence = bundleDocIdList.segmentSequence(i);
-					int bundleDocNo = bundleDocIdList.docNo(i);
+					int bundleSegmentSequence = bundleDocIdList.segmentSequence(j);
+					int bundleDocNo = bundleDocIdList.docNo(j);
 					Document bundleDoc = collectionHandler.segmentReader(bundleSegmentSequence).segmentSearcher().getDocument(bundleDocNo, fieldSelectOption);
 					bundleDoclist[j] = bundleDoc;
 				}

@@ -203,13 +203,13 @@ public class ClusterSearchJob extends Job {
 				int collectionNo = collectionNumberMap.get(el.collectionId());
 //				logger.debug("## {}", el.docNo());
 
-				if(el.getBundleDocIdList() != null) {
-					logger.debug("--bundle---");
-					DocIdList list = el.getBundleDocIdList();
-					for(int i=0;i<list.size(); i++) {
-						logger.debug("  >>> [{}] {}", list.segmentSequence(i), list.docNo(i));
-					}
-				}
+//				if(el.getBundleDocIdList() != null) {
+//					logger.debug("--bundle---");
+//					DocIdList list = el.getBundleDocIdList();
+//					for(int i=0;i<list.size(); i++) {
+//						logger.debug("  >>> [{}] {}", list.segmentSequence(i), list.docNo(i));
+//					}
+//				}
 				
 				//묶음 문서 존재시 같이 넣어준다.
 				docIdList[collectionNo].add(el.segmentSequence(), el.docNo(), el.getBundleDocIdList());
@@ -231,7 +231,6 @@ public class ClusterSearchJob extends Job {
 
 				logger.debug("collection [{}] search at {}", cid, dataNode);
 
-				//TODO group 이 있는 문서는 하위 id리스트까지 보내서 하위 문서까지 받도록 한다.
 				InternalDocumentSearchJob job = new InternalDocumentSearchJob(cid, docIdList[i], views, tags, highlightInfo);
 				resultFutureList[i] = nodeService.sendRequest(dataNode, job);
 			}

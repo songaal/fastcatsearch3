@@ -77,7 +77,7 @@ public class HitRanker extends FixedMaxPriorityQueue<HitElement>{
 			for (int i = 1; i <= size; i++) {
 				if(bundleKey.equals(((HitElement) heap[i]).getBundleKey())){
 					//동일 bundle 이 존재하면 또다시 push하지 않는다.
-					logger.debug("동일 Bundle found > {}", e.docNo());
+//					logger.debug("동일 Bundle found > {}", e.docNo());
 					return false;
 				}
 			}
