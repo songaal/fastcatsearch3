@@ -127,8 +127,8 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 			} else {
 				output.writeVInt(bundleDocIdList.size());
 				for (int j = 0; j < bundleDocIdList.size(); j++) {
-					output.writeVInt(bundleDocIdList.segmentSequence(i));
-					output.writeVInt(bundleDocIdList.docNo(i));
+					output.writeVInt(bundleDocIdList.segmentSequence(j));
+					output.writeVInt(bundleDocIdList.docNo(j));
 				}
 				
 			}

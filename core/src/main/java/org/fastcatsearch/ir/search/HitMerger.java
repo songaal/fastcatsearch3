@@ -78,22 +78,6 @@ public class HitMerger extends FixedMinHeap<FixedHitReader> {
 	}
 	
 	@Override
-	public boolean push(FixedHitReader e){
-		if(e.read().getBundleKey() != null) {
-			BytesRef bundleKey = e.read().getBundleKey();
-			for (int i = 1; i <= size; i++) {
-				if(bundleKey.equals(((HitElement) ((FixedHitReader) heap[i]).read()).getBundleKey())){
-					//동일 bundle 이 존재하면 또다시 push하지 않는다.
-					logger.debug("동일 Bundle found!!!");
-					return false;
-				}
-			}
-		}
-		//bundle을 사용하지 않거나 동일 bundle이 없으면 push한다. 
-		return super.push(e);	
-	}
-	
-	@Override
 	protected int compareTo(FixedHitReader r1, FixedHitReader r2) {
 		
 		HitElement one = r1.read();

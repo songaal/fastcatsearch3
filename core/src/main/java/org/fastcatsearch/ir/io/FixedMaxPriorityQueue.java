@@ -98,6 +98,25 @@ public abstract class FixedMaxPriorityQueue<T> {
 		}
 		return (T) removed;
 	}
+	public boolean replace(T oldEl, T newEl) {
+		for (int i = 1; i <= size; i++) {
+			if(compare((T) heap[i], oldEl) == 0){
+				replaceEl(i, newEl);
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	protected T replaceEl(int i, T newEl) {
+		Object removed = heap[i];
+        downHeap(i, newEl);
+        //새 원소가 움직이지 않았다면.
+        if (heap[i] == newEl) {
+            upHeap(i, newEl);
+        }
+		return (T) removed;
+	}
 	
 	
 	public T pop(){

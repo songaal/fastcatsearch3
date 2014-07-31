@@ -91,6 +91,7 @@ public class SearchPageSettings {
 		private String searchQuery;
 		private String titleField;
 		private String bodyField;
+		private String bundleField;
 		
 		@XmlAttribute
 		public String getOrder() {
@@ -138,6 +139,14 @@ public class SearchPageSettings {
 		}
 		public void setBodyField(String bodyField) {
 			this.bodyField = bodyField;
+		}
+		
+		@XmlElement(name="bundle-field")
+		public String getBundleField() {
+			return bundleField;
+		}
+		public void setBundleField(String bundleField) {
+			this.bundleField = bundleField;
 		}
 	}
 }

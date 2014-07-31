@@ -45,13 +45,7 @@ public class PriorityQueueTest {
 		}
 		timeEnd("Fastcat", a);
 		
-		int prev = Integer.MAX_VALUE;
-		while(q.size() > 0) {
-			int i = q.pop();
-			System.out.println(">>"+i);
-			assertTrue(i <= prev);
-			prev =i;
-		}
+		validateQueue(q);
 	}
 	
 	
@@ -128,9 +122,54 @@ public class PriorityQueueTest {
 		q.push(20);
 		timeEnd("FastcatRemove", a);
 		
+		validateQueue(q);
 		
+	}
+	
+	
+	private void validateQueue(FixedMaxPriorityQueue<Integer> q) {
+		int prev = Integer.MAX_VALUE;
 		while(q.size() > 0) {
-			System.out.println(q.pop());
+			int i = q.pop();
+			System.out.println(">>"+i);
+			assertTrue(i <= prev);
+			prev =i;
 		}
+	}
+
+
+	@Test
+	public void testFastcatReplace() {
+		int maxSize = 20;
+		FixedMaxPriorityQueue<Integer> q = new FixedMaxPriorityQueue<Integer>(maxSize) {
+
+			@Override
+			protected int compare(Integer x, Integer y) {
+				return (x < y) ? -1 : ((x == y) ? 0 : 1);
+			}
+		};
+		long a = timeStart("FastcatRemove");
+		for(int i=0; i < maxSize ; i++) {
+			q.push(i+1);
+		}
+		System.out.println("rm "+ q.remove(5));
+		q.push(5);
+		System.out.println("rm "+ q.remove(7));
+//		q.printHeap("remove7");
+		q.push(7);
+//		q.printHeap("push7");
+		System.out.println("rm "+ q.remove(10));
+		q.push(10);
+		System.out.println("rm "+ q.remove(15));
+		q.push(15);
+		q.push(19);
+		for(int i=0; i < maxSize ; i++) {
+			q.replace(i+1, i);
+		}
+		q.push(20);
+		timeEnd("FastcatRemove", a);
+		
+		
+		validateQueue(q);
 	}
 }

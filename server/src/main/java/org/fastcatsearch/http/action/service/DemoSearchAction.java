@@ -59,7 +59,7 @@ public class DemoSearchAction extends ServiceAction {
 			responseWriter.key("relateKeywordURL").value(relateKeywordURL != null ? relateKeywordURL : "");
 			responseWriter.key("javascript").value(searchPageSettings.getJavascript());
 			responseWriter.key("css").value(searchPageSettings.getCss());
-			logger.debug(">>> css > {}", searchPageSettings.getCss());
+//			logger.debug(">>> css > {}", searchPageSettings.getCss());
 			List<SearchCategorySetting> searchCategorySettingList = searchPageSettings.getSearchCategorySettingList();
 			
 			TreeMap<Integer, SearchCategorySetting> map = new TreeMap<Integer, SearchCategorySetting>();
@@ -77,7 +77,7 @@ public class DemoSearchAction extends ServiceAction {
 			responseWriter.endArray();
 			
 			responseWriter.key("result-list").array();
-			logger.debug("category > [{}], map[{}]", category, map);
+//			logger.debug("category > [{}], map[{}]", category, map);
 			if (category != null && category.length() > 0) {
 				//개별 검색시 보여줄 리스트갯수.
 				int searchListSize = searchPageSettings.getSearchListSize();
@@ -89,7 +89,7 @@ public class DemoSearchAction extends ServiceAction {
 						break;
 					}
 				}
-				logger.debug("SearchCategorySetting > {}", setting);
+//				logger.debug("SearchCategorySetting > {}", setting);
 				if(setting != null) {
 					writeSettingSearchResult(setting, keyword, page, searchListSize, responseWriter);
 				}
@@ -97,7 +97,7 @@ public class DemoSearchAction extends ServiceAction {
 				//통합검색시 보여줄 리스트갯수.
 				int totalSearchListSize = searchPageSettings.getTotalSearchListSize();
 				for (SearchCategorySetting setting : map.values()) {
-					logger.debug("SearchCategorySetting2 > {}, {}", setting.getId(), setting);
+//					logger.debug("SearchCategorySetting2 > {}, {}", setting.getId(), setting);
 					writeSettingSearchResult(setting, keyword, page, totalSearchListSize, responseWriter);
 				}
 			}

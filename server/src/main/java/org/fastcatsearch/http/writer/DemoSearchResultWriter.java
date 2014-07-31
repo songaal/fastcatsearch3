@@ -80,13 +80,17 @@ public class DemoSearchResultWriter extends AbstractSearchResultWriter {
 		
 		String titleField = setting.getTitleField();
 		String bodyField = setting.getBodyField();
+		String bundleField = setting.getBundleField();
+		
 		
 		Set<String> titleIdSet = findIdList(titleField);
 		Set<String> bodyIdSet = findIdList(bodyField);
+		Set<String> bundleIdSet = findIdList(bundleField);
 		
 		resultWriter.key("result");
 		//data
 		Row[] rows = result.getData();
+		Row[][] bundleRowsList = result.getBundleData();
 
 		if(rows.length == 0){
 			resultWriter.array("item").endArray();
@@ -94,6 +98,10 @@ public class DemoSearchResultWriter extends AbstractSearchResultWriter {
 			resultWriter.array("item");
 			for (int i = 0; i < rows.length; i++) {
 				Row row = rows[i];
+				Row[] bundleRows = null;
+				if(bundleRowsList != null) {
+					bundleRows = bundleRowsList[i];
+				}
 				
 				resultWriter.object();
 
@@ -122,6 +130,26 @@ public class DemoSearchResultWriter extends AbstractSearchResultWriter {
 					bodyData = bodyData.replaceAll("\\$"+fieldId, fieldData);
 				}
 				resultWriter.value(bodyData);
+				
+				
+				/*
+				 * 3. bundle
+				 * */
+				if(bundleRows != null) {
+					resultWriter.key("bundle").array("item");
+					for(Row bundleRow : bundleRows) {
+						String bundleData = bundleField;
+						iter = bundleIdSet.iterator();
+						while(iter.hasNext()) {
+							String fieldId = iter.next();
+							String fieldData = getFieldData(fieldId, bundleRow, fieldNames);
+							bundleData = bundleData.replaceAll("\\$"+fieldId, fieldData);
+						}
+						resultWriter.value(bundleData);
+					}
+					resultWriter.endArray();
+				}
+				
 				resultWriter.endObject();
 			}
 			resultWriter.endArray();

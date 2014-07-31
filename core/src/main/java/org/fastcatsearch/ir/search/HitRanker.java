@@ -34,6 +34,8 @@ import org.fastcatsearch.ir.sort.SortFunction;
  * 쿼리에서 요청한 Sorts조건에 따라 정렬해주는 랭커.
  * HitElement 에는 byte[] 데이터만 있기 때문에 비교시에는 sort조건에 따라 동작하는 SortFunction이 사용된다.  
  * 이 heap에서 pop한 결과는 역순으로 이용된다.
+ * 
+ * 2014-7-30 bundle key가 동일하면 push하지 않는 기능추가됨. 
  * @see HitMerger
  * @author swsong
  *
@@ -76,12 +78,22 @@ public class HitRanker extends FixedMaxPriorityQueue<HitElement>{
 			BytesRef bundleKey = e.getBundleKey();
 			for (int i = 1; i <= size; i++) {
 				if(bundleKey.equals(((HitElement) heap[i]).getBundleKey())){
-					//동일 bundle 이 존재하면 또다시 push하지 않는다.
-//					logger.debug("동일 Bundle found > {}", e.docNo());
+					/*
+					 * 동일 bundle 이 존재하면 어느것이 더 적합한지 체크한다.
+					 */
+					if(compare(e, (HitElement) heap[i]) < 0 ) {
+						//크거나 같으면 그냥 패스.
+						//작으면 바꾼다.
+						replaceEl(i, e);
+						break;
+					}
+					
+//					logger.debug("Do no push > {}", e.docNo());
 					return false;
 				}
 			}
 		}
+//		logger.debug("Continue to push > {}", e.docNo());
 		//bundle을 사용하지 않거나 동일 bundle이 없으면 push한다. 
 		return super.push(e);	
 	}

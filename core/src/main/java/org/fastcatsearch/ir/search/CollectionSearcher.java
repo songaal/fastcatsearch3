@@ -232,6 +232,11 @@ public class CollectionSearcher {
 
 		// 각 세그먼트의 결과들을 rankdata를 기준으로 재정렬한다.
 		FixedHitQueue totalHit = new FixedHitQueue(rows);
+		List<BytesRef> bundleKeyDedupList = null;
+		//번들키 중복확인 리스트는 bundle 쿼리일때만 사용한다. 
+		if (q.getBundle() != null) { 
+			bundleKeyDedupList = new ArrayList<BytesRef>(rows);
+		}
 		int c = 1, n = 0;
 
 		// 이미 각 세그먼트의 결과들은 정렬이되어서 전달이 된다.
@@ -240,16 +245,29 @@ public class CollectionSearcher {
 			FixedHitReader r = hitMerger.peek();
 			HitElement el = r.read();
 			
-			if (forMerging) {
-				//머징용도는 처음부터 모두 넣는다.
-				totalHit.push(el);
-				n++;
-			}else if (c >= start) {
-				//차후 머징용도가 아니라면 start이후 부터만 가져온다. 
-				totalHit.push(el);
-				n++;
+			boolean skip = false;
+			if(bundleKeyDedupList != null && el.getBundleKey() != null) {
+				if(bundleKeyDedupList.contains(el.getBundleKey())) {
+					//중복 번들키가 존재하면, 입력하지 않고 패스. 
+					skip = true;
+				}else{
+					bundleKeyDedupList.add(el.getBundleKey());
+				}
 			}
-			c++;
+			
+			if(!skip) {
+				if (forMerging) {
+					//머징용도는 처음부터 모두 넣는다.
+					//번들키가 없거나 totalHit에 존재하지 않을때만 추가하고 나머지는 버린다.
+					totalHit.push(el);
+					n++;
+				}else if (c >= start) {
+					//차후 머징용도가 아니라면 start이후 부터만 가져온다. 
+					totalHit.push(el);
+					n++;
+				}
+				c++;
+			}
 
 			// 결과가 만들어졌으면 일찍 끝낸다.
 			if (n == rows)
