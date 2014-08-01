@@ -43,6 +43,7 @@ public abstract class FixedMaxPriorityQueue<T> {
 	protected Object[] heap;
 	protected int maxsize;
 	protected int size;
+	protected int totalSize;
 	
 	public FixedMaxPriorityQueue(int maxsize){
 		this.maxsize = maxsize;
@@ -51,6 +52,10 @@ public abstract class FixedMaxPriorityQueue<T> {
 	//원소갯수
 	public int size(){
 		return size;
+	}
+	
+	public int totalSize(){
+		return totalSize;
 	}
 	
 	//
@@ -69,7 +74,7 @@ public abstract class FixedMaxPriorityQueue<T> {
 			downHeap();
 		}
 		//else reject
-		
+		totalSize++;
 		return true;
 	}
 	

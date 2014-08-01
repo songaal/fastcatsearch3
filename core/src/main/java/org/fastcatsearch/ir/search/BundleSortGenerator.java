@@ -45,6 +45,7 @@ public class BundleSortGenerator extends SortGenerator {
 		data = bundleIndexRef.getDataRef(0).bytesRef();
 	}
 	
+	@Override
 	public HitElement[] getHitElement(RankInfo[] rankInfoList, int n) throws IOException{
 		HitElement[] result = super.getHitElement(rankInfoList, n);
 		///번들 데이터를 채워준다.
@@ -57,6 +58,16 @@ public class BundleSortGenerator extends SortGenerator {
 		return result;
 	}
 	
+	@Override
+	public void getHitElement(RankInfo[] rankInfoList, HitElement[] result, int n) throws IOException{
+		super.getHitElement(rankInfoList, result, n);
+		for (int i = 0; i < n; i++) {
+			RankInfo ri = rankInfoList[i];
+			bundleIndexRef.read(ri.docNo());
+			BytesRef bundleKey = data.duplicate();
+			result[i].setBundleKey(bundleKey);
+		}
+	}
 }
 
 

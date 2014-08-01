@@ -86,6 +86,14 @@ public class SegmentSearcher {
 		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), query.getGroupFilters(), query.getSorts(), query.getBundle(), boostList);
 		return new Hit(rankHitList(), makeGroupData(), totalCount, highlightInfo, explanation);
 	}
+	public HitReader searchHitReader(Query query, PkScoreList boostList) throws ClauseException, IOException, IRException {
+//		QueryModifier queryModifier = query.getMeta().queryModifier();
+//		if(queryModifier != null){
+//			query = queryModifier.modify(query);
+//		}
+		return searchHitReader(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), query.getGroupFilters(), query.getSorts(), query.getBundle(), boostList);
+	}
+	
 
 	public GroupHit searchGroupHit(Query query) throws ClauseException, IOException, IRException {
 		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), null, null, null, null);
@@ -231,7 +239,9 @@ public class SegmentSearcher {
 			if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
 				// if sort is not set, rankdata is null
 				for (int i = 0; i < nread; i++) {
-					ranker.push(new HitElement(rankInfoList[i].docNo(), rankInfoList[i].score(), rankInfoList[i].rowExplanations()));
+					if(ranker.push(new HitElement(rankInfoList[i].docNo(), rankInfoList[i].score(), rankInfoList[i].rowExplanations()))){
+						totalCount++;
+					}
 				}
 			} else {
 				// if sort set
@@ -243,18 +253,25 @@ public class SegmentSearcher {
 				
 				HitElement[] e = sortGenerator.getHitElement(rankInfoList, nread);
 				for (int i = 0; i < nread; i++) {
-					ranker.push(e[i]);
+					if(ranker.push(e[i])) {
+						totalCount++;
+					}
 				}
 			}
 			
 			
 //			sortTime += (System.nanoTime() - st);
-			totalCount += nread;
+//			totalCount += nread;
 		}
 		
 //		logger.debug("clauseExplanation >> {}\n{}",isExplain, clauseExplanation);
 
 //		 logger.debug("#### time = se:{}ms, ft:{}ms, gr:{}ms, so:{}ms", searchTime / 1000000, filterTime / 1000000, groupTime / 1000000, sortTime / 1000000);
+	}
+	
+	public HitReader searchHitReader(Metadata meta, Clause clause, Filters filters, Groups groups, Filters groupFilters, Sorts sorts, Bundle bundle, PkScoreList boostList) throws ClauseException,
+	IOException, IRException {
+		return new HitReader(segmentReader, meta, clause, filters, groups, groupFilters, sorts, bundle, boostList);
 	}
 
 	public Hit searchIndex(Clause clause, Sorts sorts, int start, int length) throws ClauseException,

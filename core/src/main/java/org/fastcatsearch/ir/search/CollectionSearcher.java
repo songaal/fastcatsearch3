@@ -2,7 +2,9 @@ package org.fastcatsearch.ir.search;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.util.BytesRef;
@@ -19,6 +21,8 @@ import org.fastcatsearch.ir.group.GroupHit;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.FixedHitQueue;
 import org.fastcatsearch.ir.io.FixedHitReader;
+import org.fastcatsearch.ir.io.FixedHitStack;
+import org.fastcatsearch.ir.io.FixedMaxPriorityQueue;
 import org.fastcatsearch.ir.io.FixedMinHeap;
 import org.fastcatsearch.ir.query.Bundle;
 import org.fastcatsearch.ir.query.Groups;
@@ -34,7 +38,6 @@ import org.fastcatsearch.ir.query.View;
 import org.fastcatsearch.ir.query.ViewContainer;
 import org.fastcatsearch.ir.search.clause.Clause;
 import org.fastcatsearch.ir.search.clause.ClauseException;
-import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.summary.BasicHighlightAndSummary;
 import org.slf4j.Logger;
@@ -152,7 +155,7 @@ public class CollectionSearcher {
 		return searchInternal(q, forMerging, null);
 	}
 	
-	public InternalSearchResult searchInternal(Query q, boolean forMerging, PkScoreList boostList) throws IRException, IOException, SettingException {
+	public InternalSearchResult searchInternal2(Query q, boolean forMerging, PkScoreList boostList) throws IRException, IOException, SettingException {
 		int segmentSize = collectionHandler.segmentSize();
 		if (segmentSize == 0) {
 			logger.warn("Collection {} is not indexed!", collectionId);
@@ -295,6 +298,157 @@ public class CollectionSearcher {
 			fillBundleResult(schema, segmentSize, hitElementList, size, bundle);
 		}
 		return new InternalSearchResult(collectionId, hitElementList, size, totalSize, groupData, highlightInfo, explanationList);
+	}
+	
+	public InternalSearchResult searchInternal(Query q, boolean forMerging, PkScoreList boostList) throws IRException, IOException, SettingException {
+		int segmentSize = collectionHandler.segmentSize();
+		if (segmentSize == 0) {
+			logger.warn("Collection {} is not indexed!", collectionId);
+		}
+
+//		logger.debug("searchInternal incrementCount > {} ", q);
+		collectionHandler.queryCounter().incrementCount();
+		
+		Schema schema = collectionHandler.schema();
+		
+		Metadata meta = q.getMeta();
+		int start = meta.start();
+		int rows = meta.rows();
+
+		int sortMaxSize = start + rows - 1;
+		int resultRows = rows;
+		if (forMerging) {// 앞에서 부터 모두.
+			resultRows = sortMaxSize;
+		}
+		
+		
+//		if(collectionId == null){
+//			collectionId = meta.collectionId();
+//		}
+		Groups groups = q.getGroups();
+
+		Sorts sorts = q.getSorts();
+//		FixedMinHeap<FixedHitReader> hitMerger = null;
+		FixedMaxPriorityQueue<HitElement> ranker = null;
+		if (sorts == null) {
+//			hitMerger = sorts.createMerger(schema, segmentSize);
+			//TODO 
+			//BundleDefaultRanker (fieldIndexesReader, bundle)
+			ranker = new DefaultRanker(sortMaxSize);
+		} else {
+//			hitMerger = new FixedMinHeap<FixedHitReader>(segmentSize);
+			// ranker에 정렬 로직이 담겨있다.
+			// ranker 안에는 필드타입과 정렬옵션을 확인하여 적합한 byte[] 비교를 수행한다.
+			ranker = sorts.createRanker(schema, sortMaxSize);
+		}
+
+		GroupDataMerger dataMerger = null;
+		if (groups != null) {
+			dataMerger = new GroupDataMerger(groups, segmentSize);
+		}
+
+		HighlightInfo highlightInfo = null;
+
+		int totalSize = 0;
+		//
+		//TODO 차후 disk 기반 hashset으로 바꾼다. 메모리문제...
+		//
+		Set<BytesRef> bundleKeySet = new HashSet<BytesRef>();
+		List<Explanation> explanationList = null;
+		try {
+			for (int i = 0; i < segmentSize; i++) {
+				// segment 의 모든 결과를 보아야 중복체크가 가능하므로 reader를 받아오도록 한다.
+				HitReader hitReader = collectionHandler.segmentSearcher(i).searchHitReader(q, boostList);
+				//
+				//
+				//FIXME highlightInfo 계속 덮어쓰나?
+				//
+				if (highlightInfo == null) {
+					highlightInfo = hitReader.highlightInfo();
+				}
+
+//				GroupsData groupData = hitReader.groupData();
+				
+				// posting data
+				HitElement e = null;
+				while ((e = hitReader.next()) != null) {
+					if (e.getBundleKey() != null) {
+						if(bundleKeySet.add(e.getBundleKey())) {
+							totalSize++;
+						}
+					} else {
+						totalSize++;
+					}
+					ranker.push(e);
+//					logger.debug("heap insert hit > {}", e.docNo());
+				}
+				
+				// Put GroupResult
+				if (dataMerger != null) {
+					dataMerger.put(hitReader.makeGroupData());
+				}
+				
+				if(hitReader.explanation() != null){
+					if(explanationList == null){
+						explanationList = new ArrayList<Explanation>();
+					}
+					hitReader.explanation().setSegmentId(i);
+					hitReader.explanation().setCollectionId(collectionId);
+					explanationList.add(hitReader.explanation());
+				}
+			}
+			
+		} catch (IOException e) {
+			throw new IRException(e);
+		} catch (ClauseException e) {
+			throw new IRException(e);
+		}
+
+
+		int rankerSize = ranker.size();
+		logger.debug("PAGE start={}, size={}", start, rankerSize);
+		
+		FixedHitStack hitStack = new FixedHitStack(rankerSize);
+		for (int i = 1; i <= rankerSize; i++) {
+			HitElement el = ranker.pop();
+			hitStack.push(el);
+		}
+		
+		int c = 1;
+		FixedHitReader fixedHitReader = hitStack.getReader();
+		FixedHitQueue totalHit = new FixedHitQueue(resultRows);
+		while(fixedHitReader.next()) {
+			HitElement el = fixedHitReader.read();
+			logger.debug("{} rank hit seg#{} {}", c, el.segmentSequence(), el.docNo(), el.score(), el.rowExplanations());
+			
+			if (forMerging) {
+				//머징용도는 처음부터 모두 넣는다.
+				//번들키가 없거나 totalHit에 존재하지 않을때만 추가하고 나머지는 버린다.
+				totalHit.push(el);
+			} else if (c >= start) {
+				//차후 머징용도가 아니라면 start이후 부터만 가져온다. 
+				logger.debug("insert#{} > {}", c, el.docNo());
+				totalHit.push(el);
+			}
+			c++;
+		}
+		
+
+		GroupsData groupData = null;
+		if (dataMerger != null) {
+			groupData = dataMerger.merge();
+		}
+		
+		HitElement[] hitElementList = totalHit.getHitElementList();
+		int realSize = totalHit.size();
+		/*
+		 * 번들 요청이 있으면 하위 묶음문서를 찾아온다.
+		 * */
+		Bundle bundle = q.getBundle();
+		if(bundle != null) {
+			fillBundleResult(schema, segmentSize, hitElementList, realSize, bundle);
+		}
+		return new InternalSearchResult(collectionId, hitElementList, realSize, totalSize, groupData, highlightInfo, explanationList);
 	}
 	
 	/*

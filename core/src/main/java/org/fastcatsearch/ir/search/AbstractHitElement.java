@@ -63,6 +63,10 @@ public abstract class AbstractHitElement<T> implements Comparable<T> {
 	public int docNo(){
 		return docNo;
 	}
+	public void setSegmentSequence(int sequence){
+		segmentSequence = sequence;
+	}
+	
 	public void setDocNo(int segmentSequence, int docNo){
 		this.segmentSequence = segmentSequence;
 		this.docNo = docNo;

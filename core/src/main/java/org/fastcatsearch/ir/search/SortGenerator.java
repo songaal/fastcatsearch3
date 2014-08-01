@@ -109,6 +109,17 @@ public class SortGenerator {
 		return result;
 	}
 	
+	public void getHitElement(RankInfo[] rankInfoList, HitElement[] result, int n) throws IOException{
+		
+		for (int i = 0; i < n; i++) {
+			RankInfo ri = rankInfoList[i];
+			indexRef.read(ri.docNo());
+			
+			BytesRef[] rankData = readRankData(ri);
+			result[i] = new HitElement(ri.docNo(), ri.score(), rankData, rankInfoList[i].rowExplanations());
+		}
+	}
+	
 	protected BytesRef[] readRankData(RankInfo ri) {
 		BytesRef[] rankData = new BytesRef[sortSize];
 		for (int j = 0; j < sortSize; j++) {
