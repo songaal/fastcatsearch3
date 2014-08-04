@@ -406,7 +406,7 @@ public class CollectionSearcher {
 
 
 		int rankerSize = ranker.size();
-		logger.debug("PAGE start={}, size={}", start, rankerSize);
+//		logger.debug("PAGE start={}, size={}", start, rankerSize);
 		
 		FixedHitStack hitStack = new FixedHitStack(rankerSize);
 		for (int i = 1; i <= rankerSize; i++) {
@@ -419,7 +419,7 @@ public class CollectionSearcher {
 		FixedHitQueue totalHit = new FixedHitQueue(resultRows);
 		while(fixedHitReader.next()) {
 			HitElement el = fixedHitReader.read();
-			logger.debug("{} rank hit seg#{} {}", c, el.segmentSequence(), el.docNo(), el.score(), el.rowExplanations());
+//			logger.debug("{} rank hit seg#{} {}", c, el.segmentSequence(), el.docNo(), el.score(), el.rowExplanations());
 			
 			if (forMerging) {
 				//머징용도는 처음부터 모두 넣는다.
@@ -427,7 +427,7 @@ public class CollectionSearcher {
 				totalHit.push(el);
 			} else if (c >= start) {
 				//차후 머징용도가 아니라면 start이후 부터만 가져온다. 
-				logger.debug("insert#{} > {}", c, el.docNo());
+//				logger.debug("insert#{} > {}", c, el.docNo());
 				totalHit.push(el);
 			}
 			c++;
@@ -446,6 +446,13 @@ public class CollectionSearcher {
 		 * */
 		Bundle bundle = q.getBundle();
 		if(bundle != null) {
+			
+			
+			//
+			//TODO 검색결과의 hit내에서만 검색되도록 해야하므로, bitSet등으로 filtering 로직이  필요하다.
+			//
+			//
+			//
 			fillBundleResult(schema, segmentSize, hitElementList, realSize, bundle);
 		}
 		return new InternalSearchResult(collectionId, hitElementList, realSize, totalSize, groupData, highlightInfo, explanationList);
