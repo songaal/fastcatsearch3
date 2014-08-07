@@ -210,13 +210,17 @@ public class Highlighter {
 					tokenText = text.substring(startOffset, endOffset);
 					
 					String markedUpText = formatter.highlightTerm(encoder.encodeText(tokenText), tokenGroup);
+					logger.trace("text:{} / newText:{} / token:{} / markedUp:{} / startOffset:{} / lastEndOffset:{}", text, newText, tokenText, markedUpText, startOffset, lastEndOffset);
 					// store any whitespace etc from between this and last group
-					if (startOffset > lastEndOffset)
+					if (startOffset > lastEndOffset) {
 						newText.append(encoder.encodeText(text.substring(lastEndOffset, startOffset)));
+					} else if(startOffset < lastEndOffset){
+						newText.setLength(startOffset);
+					}
 					newText.append(markedUpText);
 					lastEndOffset = Math.max(endOffset, lastEndOffset);
 					tokenGroup.clear();
-
+					logger.trace("newText:{}", newText);
 					// check if current token marks the start of a new fragment
 					if (textFragmenter.isNewFragment()) {
 						currentFrag.setScore(fragmentScorer.getFragmentScore());

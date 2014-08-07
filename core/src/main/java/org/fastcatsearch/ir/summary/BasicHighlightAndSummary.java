@@ -137,7 +137,7 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 				termString = termAttribute.charsRef().toString();
 			}
 			
-			logger.trace("termString:{}", termString);
+			logger.trace("termString:{} [{}~{}]", termString, offsetAttribute.startOffset(), offsetAttribute.endOffset());
 			
 			float score = 0f;
 			
@@ -322,7 +322,6 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 				charTermAttributeLocal.setLength(length);
 			}
 			offsetAttributeLocal.setOffset(offsetAttribute.startOffset(), offsetAttribute.endOffset());
-			
 			if(logger.isTraceEnabled()) {
 				logger.trace("text:{} / {}", charTermAttributeLocal, pText
 						.substring(offsetAttributeLocal.startOffset(), offsetAttributeLocal.endOffset()));
