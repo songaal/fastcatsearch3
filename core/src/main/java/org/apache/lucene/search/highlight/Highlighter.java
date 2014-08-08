@@ -216,6 +216,7 @@ public class Highlighter {
 						newText.append(encoder.encodeText(text.substring(lastEndOffset, startOffset)));
 					} else if(startOffset < lastEndOffset){
 						newText.setLength(startOffset);
+						markedUpText = tokenText;
 					}
 					newText.append(markedUpText);
 					lastEndOffset = Math.max(endOffset, lastEndOffset);
