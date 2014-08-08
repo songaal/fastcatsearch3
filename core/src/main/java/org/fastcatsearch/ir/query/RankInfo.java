@@ -75,7 +75,7 @@ public class RankInfo {
 		return hit;
 	}
 
-	public void addScore(float add) {
+	public void addScore(int add) {
 		score += add;
 	}
 
