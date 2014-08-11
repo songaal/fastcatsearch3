@@ -14,9 +14,9 @@ public class AdditionalTermAttributeImpl extends AttributeImpl implements
 	
 	private static final Logger logger = LoggerFactory.getLogger(AdditionalTermAttributeImpl.class);
 	
-	private List<String> additionalTerms;
-	private List<String> types;
-	private List<int[]> offsets;
+	private List<String> additionalTerms = new ArrayList<String>();
+	private List<String> types = new ArrayList<String>();
+	private List<int[]> offsets = new ArrayList<int[]>();
 	@SuppressWarnings("rawtypes")
 	private List synonyms;
 	private OffsetAttribute offsetAttribute;
@@ -37,14 +37,17 @@ public class AdditionalTermAttributeImpl extends AttributeImpl implements
 				this.synonymAttribute = tokenStream.getAttribute(SynonymAttribute.class);
 			}
 		}
-		this.additionalTerms = new ArrayList<String>();
-		this.types = new ArrayList<String>();
-		this.offsets = new ArrayList<int[]>();
+		
+		this.additionalTerms.clear();
+		this.types.clear();
+		this.offsets.clear();
 	}
 	
 	@Override
 	public void clear() {
-		//additionalTerms.clear();
+		this.additionalTerms.clear();
+		this.types.clear();
+		this.offsets.clear();
 	}
 
 	@Override
@@ -132,5 +135,20 @@ public class AdditionalTermAttributeImpl extends AttributeImpl implements
 	@Override
 	public int subSize() {
 		return subLength;
+	}
+	
+	public void cloneTo(AdditionalTermAttributeImpl target) {
+		target.additionalTerms = this.additionalTerms;
+		target.types = this.types;
+		target.offsets = this.offsets;
+		target.synonyms = this.synonyms;
+		//target.offsetAttribute = offsetAttribute;
+		//target.typeAttribute = typeAttribute;
+		//target.synonymAttribute = this.synonymAttribute;
+	}
+	
+	@Override
+	public String toString() {
+		return additionalTerms.toString();
 	}
 }

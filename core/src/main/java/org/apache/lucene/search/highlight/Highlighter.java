@@ -20,12 +20,16 @@ package org.apache.lucene.search.highlight;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.AdditionalTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
+import org.apache.lucene.util.Attribute;
 import org.apache.lucene.util.PriorityQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +48,8 @@ public class Highlighter {
 	private Encoder encoder;
 	private Fragmenter textFragmenter = new SimpleFragmenter();
 	private Scorer fragmentScorer = null;
+	
+	private Map<Integer, Integer> deltaList;
 
 	public Highlighter(Scorer fragmentScorer) {
 		this(new SimpleHTMLFormatter(), fragmentScorer);
@@ -57,6 +63,7 @@ public class Highlighter {
 		this.formatter = formatter;
 		this.encoder = encoder;
 		this.fragmentScorer = fragmentScorer;
+		this.deltaList = new HashMap<Integer, Integer>();
 	}
 
 	/**
@@ -174,6 +181,7 @@ public class Highlighter {
 
 		CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
 		OffsetAttribute offsetAtt = tokenStream.addAttribute(OffsetAttribute.class);
+		AdditionalTermAttribute addAtt = tokenStream.addAttribute(AdditionalTermAttribute.class);
 		tokenStream.reset();
 		TextFragment currentFrag = new TextFragment(newText, newText.length(), docFrags.size());
 
@@ -188,81 +196,58 @@ public class Highlighter {
 
 		try {
 
-			String tokenText;
-			int startOffset;
-			int endOffset;
-			int lastEndOffset = 0;
+			String[] tokenText = new String[1];
+			int[] startOffset = new int[1];
+			int[] endOffset = new int[1];
+			int[] lastEndOffset = new int[] { 0 };
+			int[] tagLengthDelta = new int[] { 0 };
 			textFragmenter.start(text, tokenStream);
 
 			TokenGroup tokenGroup = new TokenGroup(tokenStream);
 
 			for (boolean next = tokenStream.incrementToken(); next && (offsetAtt.startOffset() < maxDocCharsToAnalyze); next = tokenStream
 					.incrementToken()) {
-
-				if ((offsetAtt.endOffset() > text.length()) || (offsetAtt.startOffset() > text.length())) {
-					throw new InvalidTokenOffsetsException("Token " + termAtt.toString() + " exceeds length of provided text sized " + text.length());
-				}
-				if ((tokenGroup.numTokens > 0) && (tokenGroup.isDistinct())) {
-					// the current token is distinct from previous tokens -
-					// markup the cached token group info
-					startOffset = tokenGroup.matchStartOffset;
-					endOffset = tokenGroup.matchEndOffset;
-					tokenText = text.substring(startOffset, endOffset);
-					
-					String markedUpText = formatter.highlightTerm(encoder.encodeText(tokenText), tokenGroup);
-					logger.trace("text:{} / newText:{} / token:{} / markedUp:{} / startOffset:{} / lastEndOffset:{}", text, newText, tokenText, markedUpText, startOffset, lastEndOffset);
-					// store any whitespace etc from between this and last group
-					if (startOffset > lastEndOffset) {
-						newText.append(encoder.encodeText(text.substring(lastEndOffset, startOffset)));
-					} else if(startOffset < lastEndOffset){
-						newText.setLength(startOffset);
-						markedUpText = tokenText;
-					}
-					newText.append(markedUpText);
-					lastEndOffset = Math.max(endOffset, lastEndOffset);
-					tokenGroup.clear();
-					logger.trace("newText:{}", newText);
-					// check if current token marks the start of a new fragment
-					if (textFragmenter.isNewFragment()) {
-						currentFrag.setScore(fragmentScorer.getFragmentScore());
-						// record stats for a new fragment
-						currentFrag.textEndPos = newText.length();
-						currentFrag = new TextFragment(newText, newText.length(), docFrags.size());
-						fragmentScorer.startFragment(currentFrag);
-						docFrags.add(currentFrag);
+				
+				logger.trace("termAtt : {} [{}~{}]", termAtt, offsetAtt.startOffset(), offsetAtt.endOffset());
+				
+				currentFrag = markUp(offsetAtt, termAtt, tokenGroup, text, tokenText,
+						startOffset, endOffset, lastEndOffset, tagLengthDelta, newText,
+						docFrags, currentFrag);
+				
+				//for additional-terms
+				if(addAtt != null && addAtt.size() > 0) {
+					Iterator<String> iter = addAtt.iterateAdditionalTerms();
+					while(iter.hasNext()) {
+						String str = iter.next();
+						currentFrag = markUp(offsetAtt, str, tokenGroup, text, tokenText,
+						startOffset, endOffset, lastEndOffset, tagLengthDelta, newText,
+						docFrags, currentFrag);
 					}
 				}
-
-				tokenGroup.addToken(fragmentScorer.getTokenScore());
-
-				// if(lastEndOffset>maxDocBytesToAnalyze)
-				// {
-				// break;
-				// }
 			}
 			currentFrag.setScore(fragmentScorer.getFragmentScore());
 
 			if (tokenGroup.numTokens > 0) {
 				// flush the accumulated text (same code as in above loop)
-				startOffset = tokenGroup.matchStartOffset;
-				endOffset = tokenGroup.matchEndOffset;
-				tokenText = text.substring(startOffset, endOffset);
-				String markedUpText = formatter.highlightTerm(encoder.encodeText(tokenText), tokenGroup);
+				startOffset[0] = tokenGroup.matchStartOffset;
+				endOffset[0] = tokenGroup.matchEndOffset;
+				tokenText[0] = text.substring(startOffset[0], endOffset[0]);
+				String markedUpText = formatter.highlightTerm(encoder.encodeText(tokenText[0]), tokenGroup);
 				// store any whitespace etc from between this and last group
-				if (startOffset > lastEndOffset)
-					newText.append(encoder.encodeText(text.substring(lastEndOffset, startOffset)));
+				if (startOffset[0] > lastEndOffset[0])
+					newText.append(encoder.encodeText(text.substring(lastEndOffset[0], startOffset[0])));
 				newText.append(markedUpText);
-				lastEndOffset = Math.max(lastEndOffset, endOffset);
+				lastEndOffset[0] = Math.max(lastEndOffset[0], endOffset[0]);
 			}
 
 			// Test what remains of the original text beyond the point where we stopped analyzing
 			if (
 			// if there is text beyond the last token considered..
-			(lastEndOffset < text.length()) &&
+			(lastEndOffset[0] < text.length()) &&
 			// and that text is not too large...
 					(text.length() <= maxDocCharsToAnalyze)) {
 				// append it to the last fragment
-				newText.append(encoder.encodeText(text.substring(lastEndOffset)));
+				newText.append(encoder.encodeText(text.substring(lastEndOffset[0])));
 			}
 
 			currentFrag.textEndPos = newText.length();
@@ -316,6 +301,70 @@ public class Highlighter {
 				}
 			}
 		}
+	}
+
+	public TextFragment markUp(OffsetAttribute offsetAtt, Object termAtt,
+			TokenGroup tokenGroup, String text, String[] tokenText,
+			int[] startOffset, int[] endOffset, int[] lastEndOffset,
+			int[] tagLengthDelta, StringBuilder newText,
+			ArrayList<TextFragment> docFrags, TextFragment currentFrag)
+			throws InvalidTokenOffsetsException {
+		
+		logger.trace("text:{}", termAtt);
+		
+		if ((offsetAtt.endOffset() > text.length()) || (offsetAtt.startOffset() > text.length())) {
+			throw new InvalidTokenOffsetsException("Token " + termAtt.toString() + " exceeds length of provided text sized " + text.length());
+		}
+		if ((tokenGroup.numTokens > 0) && (tokenGroup.isDistinct())) {
+			// the current token is distinct from previous tokens -
+			// markup the cached token group info
+			startOffset[0] = tokenGroup.matchStartOffset;
+			endOffset[0] = tokenGroup.matchEndOffset;
+			tokenText[0] = text.substring(startOffset[0], endOffset[0]);
+			
+			String markedUpText = formatter.highlightTerm(encoder.encodeText(tokenText[0]), tokenGroup);
+		
+			//차후 하이라이팅 태그에 대한 오프셋 밀림에 대한 차이값을 가지고 있는 테이블
+			logger.trace("tokenText:{} / markedUpText:{}", tokenText[0], markedUpText);
+			if(tokenText[0].length() != markedUpText.length()) {
+				logger.trace("tokenText:{} / markedUp:{} / tagLength:{}", tokenText[0], markedUpText, tagLengthDelta[0]);
+				deltaList.put(startOffset[0], tagLengthDelta[0]);
+				tagLengthDelta[0] += markedUpText.length() - tokenText[0].length();
+			}
+			
+			logger.trace("text:{} / newText:{} / token:{} / markedUp:{} / startOffset:{} / lastEndOffset:{}", text, newText, tokenText, markedUpText, startOffset, lastEndOffset);
+			// store any whitespace etc from between this and last group
+			if (startOffset[0] > lastEndOffset[0]) {
+				newText.append(encoder.encodeText(text.substring(lastEndOffset[0], startOffset[0])));
+			} else if(startOffset[0] < lastEndOffset[0]){
+				if(deltaList.containsKey(startOffset[0])) {
+					logger.trace("offset:{} / {}", startOffset[0], deltaList.get(startOffset[0]));
+					newText.setLength(startOffset[0] + deltaList.get(startOffset[0]));
+				}
+			}
+			newText.append(markedUpText);
+			lastEndOffset[0] = Math.max(endOffset[0], lastEndOffset[0]);
+			tokenGroup.clear();
+			logger.trace("newText:{}", newText);
+			// check if current token marks the start of a new fragment
+			if (textFragmenter.isNewFragment()) {
+				currentFrag.setScore(fragmentScorer.getFragmentScore());
+				// record stats for a new fragment
+				currentFrag.textEndPos = newText.length();
+				currentFrag = new TextFragment(newText, newText.length(), docFrags.size());
+				fragmentScorer.startFragment(currentFrag);
+				docFrags.add(currentFrag);
+			}
+		}
+
+		tokenGroup.addToken(fragmentScorer.getTokenScore());
+
+		// if(lastEndOffset>maxDocBytesToAnalyze)
+		// {
+		// break;
+		// }
+		
+		return currentFrag;
 	}
 
 	/**

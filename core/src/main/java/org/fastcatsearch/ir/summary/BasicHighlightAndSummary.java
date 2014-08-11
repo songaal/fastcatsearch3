@@ -8,6 +8,8 @@ import java.util.List;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.core.AnalyzerOption;
+import org.apache.lucene.analysis.tokenattributes.AdditionalTermAttribute;
+import org.apache.lucene.analysis.tokenattributes.AdditionalTermAttributeImpl;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.FeatureAttribute;
@@ -22,6 +24,7 @@ import org.apache.lucene.search.highlight.Scorer;
 import org.apache.lucene.search.highlight.SimpleFragmenter;
 import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
 import org.apache.lucene.search.highlight.WeightedTerm;
+import org.apache.lucene.util.AttributeImpl;
 import org.apache.lucene.util.CharsRef;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.query.Term.Option;
@@ -230,6 +233,8 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		AnalyzerOption indexAnalyzerOption = new AnalyzerOption();
 		indexAnalyzerOption.useStopword();
 		indexAnalyzerOption.useSynonym(false);
+		//indexAnalyzerOption.setForQuery();
+		indexAnalyzerOption.setForDocument();
 		
 		tokenStream = new WrappedTokenStream(indexAnalyzer.tokenStream(fieldId, new StringReader(pText), indexAnalyzerOption), pText);
 		
@@ -263,10 +268,12 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		private OffsetAttribute offsetAttribute;
 		private CharTermAttribute charTermAttribute;
 		private CharsRefTermAttribute charsRefTermAttribute;
+		private AdditionalTermAttribute additionalTermAttribute;
 		
 		private OffsetAttribute offsetAttributeLocal;
 		private CharTermAttribute charTermAttributeLocal;
 		private CharsRefTermAttribute charsRefTermAttributeLocal;
+		private AdditionalTermAttribute additionalTermAttributeLocal;
 
 		public WrappedTokenStream(TokenStream tokenStream, String pText) {
 			this.pText = pText;
@@ -281,9 +288,14 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 				charsRefTermAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
 			}
 			
+			if(tokenStream.hasAttribute(AdditionalTermAttribute.class)) {
+				additionalTermAttribute = tokenStream.getAttribute(AdditionalTermAttribute.class);
+			}
+			
 			offsetAttributeLocal = this.addAttribute(OffsetAttribute.class);
 			charTermAttributeLocal = this.addAttribute(CharTermAttribute.class);
 			charsRefTermAttributeLocal = this.addAttribute(CharsRefTermAttribute.class);
+			additionalTermAttributeLocal = this.addAttribute(AdditionalTermAttribute.class);
 		}
 		@Override
 		public void end() throws IOException { tokenStream.end(); }
@@ -326,15 +338,19 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 				logger.trace("text:{} / {}", charTermAttributeLocal, pText
 						.substring(offsetAttributeLocal.startOffset(), offsetAttributeLocal.endOffset()));
 			}
-			if( charTermAttributeLocal.length() > 0 
-					&& offsetAttributeLocal.startOffset() + length <= pText.length()
-					&& charTermAttributeLocal.buffer()[0] == 
-						pText.charAt(offsetAttribute.startOffset())) {
-				offsetAttributeLocal.setOffset(offsetAttribute.startOffset(),
-						offsetAttribute.startOffset() + length);
-			} else {
+			//if( charTermAttributeLocal.length() > 0 
+			//		&& offsetAttributeLocal.startOffset() + length <= pText.length()
+			//		&& charTermAttributeLocal.buffer()[0] == 
+			//			pText.charAt(offsetAttribute.startOffset())) {
+			//	offsetAttributeLocal.setOffset(offsetAttribute.startOffset(),
+			//			offsetAttribute.startOffset() + length);
+			//} else {
 				offsetAttributeLocal.setOffset(offsetAttribute.startOffset(),
 						offsetAttribute.endOffset());
+			//}
+			
+			if(additionalTermAttribute != null) {
+				((AdditionalTermAttributeImpl)additionalTermAttribute).cloneTo((AdditionalTermAttributeImpl) additionalTermAttributeLocal);
 			}
 			
 			if(logger.isTraceEnabled()) {
