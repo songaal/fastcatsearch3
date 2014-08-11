@@ -78,9 +78,11 @@ public class DemoSearchResultWriter extends AbstractSearchResultWriter {
 	public void writeBody(Result result, ResponseWriter resultWriter, long searchTime) throws ResultWriterException {
 		String[] fieldNames = result.getFieldNameList();
 		
+		String thumbnailField = setting.getThumbnailField();
 		String titleField = setting.getTitleField();
 		String bodyField = setting.getBodyField();
 		
+		Set<String> thumbnailIdSet = findIdList(thumbnailField);
 		Set<String> titleIdSet = findIdList(titleField);
 		Set<String> bodyIdSet = findIdList(bodyField);
 		
@@ -100,8 +102,21 @@ public class DemoSearchResultWriter extends AbstractSearchResultWriter {
 				/*
 				 * 1. title
 				 * */
+				resultWriter.key("thumbnail");
+				Iterator<String> iter = thumbnailIdSet.iterator();
+				String thumbnailData = thumbnailField;
+				while(iter.hasNext()) {
+					String fieldId = iter.next();
+					String fieldData = getFieldData(fieldId, row, fieldNames);
+					thumbnailData = thumbnailData.replaceAll("\\$"+fieldId, fieldData);
+				}
+				resultWriter.value(thumbnailData);
+				
+				/*
+				 * 2. title
+				 * */
 				resultWriter.key("title");
-				Iterator<String> iter = titleIdSet.iterator();
+				iter = titleIdSet.iterator();
 				String titleData = titleField;
 				while(iter.hasNext()) {
 					String fieldId = iter.next();
@@ -111,7 +126,7 @@ public class DemoSearchResultWriter extends AbstractSearchResultWriter {
 				resultWriter.value(titleData);
 				
 				/*
-				 * 2. body
+				 * 3. body
 				 * */
 				String bodyData = bodyField;
 				resultWriter.key("body");

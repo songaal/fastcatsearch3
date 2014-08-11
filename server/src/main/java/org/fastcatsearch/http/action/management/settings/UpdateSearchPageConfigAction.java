@@ -68,6 +68,8 @@ public class UpdateSearchPageConfigAction extends AuthAction {
 				setting.setId(value);
 			} else if ((setting = getSetting(categoryMap, key, "categoryName")) != null) {
 				setting.setName(value);
+			} else if ((setting = getSetting(categoryMap, key, "thumbnailField")) != null) {
+				setting.setThumbnailField(value);
 			} else if ((setting = getSetting(categoryMap, key, "titleField")) != null) {
 				setting.setTitleField(value);
 			} else if ((setting = getSetting(categoryMap, key, "bodyField")) != null) {

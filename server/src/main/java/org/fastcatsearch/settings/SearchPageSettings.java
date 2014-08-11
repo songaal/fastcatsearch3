@@ -89,6 +89,7 @@ public class SearchPageSettings {
 		private String name;
 		private String id;
 		private String searchQuery;
+		private String thumbnailField;
 		private String titleField;
 		private String bodyField;
 		
@@ -122,6 +123,14 @@ public class SearchPageSettings {
 		}
 		public void setSearchQuery(String searchQuery) {
 			this.searchQuery = searchQuery;
+		}
+		
+		@XmlElement(name="thumbnail-field")
+		public String getThumbnailField() {
+			return thumbnailField;
+		}
+		public void setThumbnailField(String thumbnailField) {
+			this.thumbnailField = thumbnailField;
 		}
 		
 		@XmlElement(name="title-field")
