@@ -352,7 +352,8 @@ public class CollectionSearcher {
 
 		int totalSize = 0;
 		//
-		//TODO 차후 disk 기반 hashset으로 바꾼다. 메모리문제...
+		//TODO 차후 disk를 보조로 사용하는 hybrid기반 hashset으로 바꾼다. 메모리문제.. 
+		// 예를 들어 결과가 1억건이라면.. OOM발생. 처음엔 메모리로 가다가 1만건 넘어가면, 파일로 flush해서 사용하는 hybrid방식이 필요..   
 		//
 		Set<BytesRef> bundleKeySet = new HashSet<BytesRef>();
 		List<Explanation> explanationList = null;
@@ -451,14 +452,7 @@ public class CollectionSearcher {
 		 * */
 		Bundle bundle = q.getBundle();
 		if(bundle != null) {
-			
-			
-			//
-			//TODO 검색결과의 hit내에서만 검색되도록 해야하므로, bitSet등으로 filtering 로직이  필요하다.
-			//
-			//
-			//
-//			BitSet[] segmentDocHitSetList
+			//검색결과의 hit내에서만 검색되도록 해야하므로, bitSet으로 filtering한다.
 			fillBundleResult(schema, segmentSize, hitElementList, realSize, bundle, segmentDocHitSetList);
 		}
 		return new InternalSearchResult(collectionId, hitElementList, realSize, totalSize, groupData, highlightInfo, explanationList);
