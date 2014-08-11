@@ -274,7 +274,11 @@ public class SegmentSearcher {
 		return new HitReader(segmentReader, meta, clause, filters, groups, groupFilters, sorts, bundle, boostList);
 	}
 
-	public Hit searchIndex(Clause clause, Sorts sorts, int start, int length) throws ClauseException,
+	/**
+	 * @param docFilter 결과 문서를 제한하기 위한 필터로써, 한번 검색된 필터를 가지고 있다가 전달해주면, 이 필터내의 문서에서만 결과를 만들도록 한다.
+	 * 
+	 * */
+	public Hit searchIndex(Clause clause, Sorts sorts, int start, int length, BitSet docFilter) throws ClauseException,
 		IOException, IRException {
 		
 		int totalCount = 0;
@@ -318,8 +322,28 @@ public class SegmentSearcher {
 				continue;
 			}
 		
-			// check delete documents
+			//
+			//check filtered list
+			//
 			int count = 0;
+			if(docFilter != null) {
+				for (int i = 0; i < nread; i++) {
+					RankInfo rankInfo = rankInfoList[i];
+					// Check deleted list
+					if (docFilter.isSet(rankInfo.docNo())) {
+						rankInfoList[count] = rankInfo;
+						count++;
+						logger.debug("ok docNo = {}", rankInfo.docNo());
+					} else {
+			//			logger.debug("deleted docNo = {}", rankInfo.docNo());
+					}
+			
+				}
+				nread = count;
+			}
+			
+			// check delete documents
+			count = 0;
 			for (int i = 0; i < nread; i++) {
 				RankInfo rankInfo = rankInfoList[i];
 				// Check deleted list

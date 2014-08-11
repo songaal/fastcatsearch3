@@ -19,6 +19,7 @@ import org.fastcatsearch.ir.field.UnknownField;
 import org.fastcatsearch.ir.group.GroupDataMerger;
 import org.fastcatsearch.ir.group.GroupHit;
 import org.fastcatsearch.ir.group.GroupsData;
+import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.io.FixedHitQueue;
 import org.fastcatsearch.ir.io.FixedHitReader;
 import org.fastcatsearch.ir.io.FixedHitStack;
@@ -295,7 +296,7 @@ public class CollectionSearcher {
 		 * */
 		Bundle bundle = q.getBundle();
 		if(bundle != null) {
-			fillBundleResult(schema, segmentSize, hitElementList, size, bundle);
+			fillBundleResult(schema, segmentSize, hitElementList, size, bundle, null);
 		}
 		return new InternalSearchResult(collectionId, hitElementList, size, totalSize, groupData, highlightInfo, explanationList);
 	}
@@ -355,7 +356,9 @@ public class CollectionSearcher {
 		//
 		Set<BytesRef> bundleKeySet = new HashSet<BytesRef>();
 		List<Explanation> explanationList = null;
+		BitSet[] segmentDocHitSetList = null;
 		try {
+			segmentDocHitSetList = new BitSet[segmentSize];
 			for (int i = 0; i < segmentSize; i++) {
 				// segment 의 모든 결과를 보아야 중복체크가 가능하므로 reader를 받아오도록 한다.
 				HitReader hitReader = collectionHandler.segmentSearcher(i).searchHitReader(q, boostList);
@@ -369,10 +372,12 @@ public class CollectionSearcher {
 
 //				GroupsData groupData = hitReader.groupData();
 				
+				segmentDocHitSetList[i] = new BitSet();
 				// posting data
 				HitElement e = null;
 				while ((e = hitReader.next()) != null) {
 					if (e.getBundleKey() != null) {
+						segmentDocHitSetList[i].set(e.docNo());
 						if(bundleKeySet.add(e.getBundleKey())) {
 							totalSize++;
 						}
@@ -453,7 +458,8 @@ public class CollectionSearcher {
 			//
 			//
 			//
-			fillBundleResult(schema, segmentSize, hitElementList, realSize, bundle);
+//			BitSet[] segmentDocHitSetList
+			fillBundleResult(schema, segmentSize, hitElementList, realSize, bundle, segmentDocHitSetList);
 		}
 		return new InternalSearchResult(collectionId, hitElementList, realSize, totalSize, groupData, highlightInfo, explanationList);
 	}
@@ -461,7 +467,7 @@ public class CollectionSearcher {
 	/*
 	 * 번들 문서를 찾아온다.
 	 * */
-	private void fillBundleResult(Schema schema, int segmentSize, HitElement[] hitElementList, int size, Bundle bundle) throws IRException{
+	private void fillBundleResult(Schema schema, int segmentSize, HitElement[] hitElementList, int size, Bundle bundle, BitSet[] segmentDocFilterList) throws IRException{
 		/*
 		 * el의 bundlekey를 보고 하위 묶음문서가 몇개가 있는지 확인한다.
 		 * 2개 이상일 경우만 저장하고 나머지는 버린다.
@@ -481,7 +487,7 @@ public class CollectionSearcher {
 				
 				for (int i = 0; i < segmentSize; i++) {
 					//bundle key 별로 결과를 모은다.
-					segmentHitList[i] = collectionHandler.segmentSearcher(i).searchIndex(bundleClause, bundleSorts, bundleStart, bundleRows);
+					segmentHitList[i] = collectionHandler.segmentSearcher(i).searchIndex(bundleClause, bundleSorts, bundleStart, bundleRows, segmentDocFilterList[i]);
 					totalSize += segmentHitList[i].totalCount();
 				}
 				
