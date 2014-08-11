@@ -53,12 +53,12 @@ public class BoostFilter extends FilterFunction {
 					rankInfo.explain(fieldIndexId, bytesRef.toIntValue(), "BOOST_FILTER");
 				}
 			}else if(fieldSetting.getType() == Type.LONG){
-				rankInfo.addScore(bytesRef.toLongValue());
+				rankInfo.addScore((int) bytesRef.toLongValue());
 				if(rankInfo.isExplain()) {
 					rankInfo.explain(fieldIndexId, (int) bytesRef.toLongValue(), "BOOST_FILTER");
 				}
 			}else if(fieldSetting.getType() == Type.FLOAT){
-				rankInfo.addScore(Float.intBitsToFloat(bytesRef.toIntValue()));
+				rankInfo.addScore((int) Float.intBitsToFloat(bytesRef.toIntValue()));
 				if(rankInfo.isExplain()) {
 					rankInfo.explain(fieldIndexId, (int) Float.intBitsToFloat(bytesRef.toIntValue()), "BOOST_FILTER");
 				}
