@@ -1,0 +1,22 @@
+On Windows:
+===========
+
+<profiler installation directory>\bin\attach.bat
+or 
+<profiler installation directory>\bin\attach.bat PID
+or 
+<profiler installation directory>\bin\attach.bat PID startup_options
+
+
+On other platforms:
+===================
+
+<directory with unpacked content>/bin/yjp.sh -attach
+or 
+<directory with unpacked content>/bin/yjp.sh -attach PID
+or 
+<directory with unpacked content>/bin/yjp.sh -attach PID startup_options
+
+
+====
+reference : http://yourkit.com/docs/95/help/attach_wizard.jsp
