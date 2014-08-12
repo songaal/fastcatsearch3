@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.Notification;
@@ -44,6 +45,8 @@ public class ClusterAlertService extends AbstractService {
 
 	private Timer alertServiceTimer;
 
+	private Object lock = new Object();
+	
 	public ClusterAlertService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
 	}
@@ -63,7 +66,7 @@ public class ClusterAlertService extends AbstractService {
 		isMasterNode = nodeService.isMaster();
 
 		if(isMasterNode){
-			exceptionMap = new HashMap<NodeExceptionInfo, NodeExceptionInfo>();
+			exceptionMap = new ConcurrentHashMap<NodeExceptionInfo, NodeExceptionInfo>();
 			exceptionList = new ArrayList<NodeExceptionInfo>();
 			
 			// 1초이내에 들어오는 중복에러는 모아서 처리한다.
@@ -95,31 +98,35 @@ public class ClusterAlertService extends AbstractService {
 		}
 		
 		NodeExceptionInfo key = new NodeExceptionInfo(node, e);
-		NodeExceptionInfo value = exceptionMap.get(key);
+		
 		int count = 0;
-		if (value != null) {
-			// 이미 발생한 에러면.
-			count = value.incrementCount();
-			logger.debug("handleException1 > {} : {}", count, e.toString());
-		} else {
-			exceptionMap.put(key, key);
-			key.setTime();
-			count = key.getCount();
-			//새로추가.
-			exceptionList.add(key);
-			logger.debug("handleException2 > {} : {}", count, e.toString());
+		synchronized (lock) {
+			NodeExceptionInfo value = exceptionMap.get(key);
+			if (value != null) {
+				// 이미 발생한 에러면.
+				count = value.incrementCount();
+				logger.debug("handleException1 > {} : {}", count, e);
+			} else {
+				exceptionMap.put(key, key);
+				key.setTime();
+				count = key.getCount();
+				//새로추가.
+				exceptionList.add(key);
+				
+				logger.debug("handleException2 > {} : {}", count, e);
+			}
 		}
-
+		
 		if (count > 1) {
 			// 두번째부터는 최종스택만 출력한다.
 			if (e instanceof FastcatSearchException) {
-				logger.error("[{}] [{}] {}", node, count, e.toString());
+				logger.error("[{}] [{}] {}", node, count, e);
 			} else {
 				StackTraceElement[] els = e.getStackTrace();
 				if(els.length > 0){
-					logger.error("[{}] [{}] {} {}", node, count, e.toString(), els[0]);
+					logger.error("[{}] [{}] {} {}", node, count, e, els[0]);
 				}else{
-					logger.error("[{}] [{}] {}", node, count, e.toString());
+					logger.error("[{}] [{}] {}", node, count, e);
 				}
 			}
 		} else {
@@ -142,9 +149,13 @@ public class ClusterAlertService extends AbstractService {
 		@Override
 		public void run() {
 			if (exceptionList.size() > 0) {
-				List<NodeExceptionInfo> oldList = exceptionList;
-				exceptionList = new ArrayList<NodeExceptionInfo>();
-				exceptionMap = new HashMap<NodeExceptionInfo, NodeExceptionInfo>();
+				
+				List<NodeExceptionInfo> oldList = null;
+				synchronized (lock) {
+					oldList = exceptionList;
+					exceptionList = new ArrayList<NodeExceptionInfo>();
+					exceptionMap = new HashMap<NodeExceptionInfo, NodeExceptionInfo>();
+				}
 				
 				// 지워준다.
 				MapperSession<ExceptionHistoryMapper> mapperSession = DBService.getInstance().getMapperSession(ExceptionHistoryMapper.class);
