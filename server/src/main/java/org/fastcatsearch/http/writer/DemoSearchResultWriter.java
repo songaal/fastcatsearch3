@@ -66,7 +66,11 @@ public class DemoSearchResultWriter extends AbstractSearchResultWriter {
 	
 	Pattern patt = Pattern.compile("\\$[a-zA-Z_-]+");
 	private Set<String> findIdList(String source) {
+		if(source == null) {
+			return new HashSet<String>();
+		}
 		Set<String> set = new HashSet<String>();
+		logger.debug("source > {}", source);
 		Matcher matcher = patt.matcher(source);
 		while(matcher.find()){
 			String g = matcher.group();
