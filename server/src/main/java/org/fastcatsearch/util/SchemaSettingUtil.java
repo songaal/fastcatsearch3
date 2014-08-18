@@ -195,7 +195,7 @@ public class SchemaSettingUtil {
 					FieldSetting setting = new FieldSetting();
 					fieldId = setting.getId();
 					JSONObject data = array.optJSONObject(inx);
-					setting.setId(value = data.optString(attributeId = "id"));
+					setting.setId(value = data.optString(attributeId = "id").trim());
 					setting.setName(value = data.optString(attributeId = "name"));
 					setting.setType(Type.valueOf(value = data.optString(attributeId = "type", "").toUpperCase()));
 					setting.setSize(data.optInt(attributeId = "size", 0));
@@ -230,7 +230,7 @@ public class SchemaSettingUtil {
 			for (int inx = 0; inx < array.length(); inx++) {
 				JSONObject data = array.optJSONObject(inx);
 				RefSetting ref = new RefSetting();
-				ref.setRef(data.optString("ref"));
+				ref.setRef(data.optString("ref").trim());
 				fieldList.add(ref);
 			}
 			setting.setFieldList(fieldList);
@@ -245,7 +245,7 @@ public class SchemaSettingUtil {
 			for (int inx = 0; inx < array.length(); inx++) {
 				AnalyzerSetting setting = new AnalyzerSetting();
 				JSONObject data = array.optJSONObject(inx);
-				setting.setId(data.optString("id"));
+				setting.setId(data.optString("id").trim());
 				setting.setClassName(data.optString("class"));
 				setting.setMaximumPoolSize(data.optInt("maximumPoolSize"));
 				setting.setCorePoolSize(data.optInt("corePoolSize"));
@@ -262,7 +262,7 @@ public class SchemaSettingUtil {
 				IndexSetting setting = new IndexSetting();
 				JSONObject data = array.optJSONObject(inx);
 
-				setting.setId(data.optString("id"));
+				setting.setId(data.optString("id").trim());
 				setting.setName(data.optString("name"));
 				setting.setQueryAnalyzer(data.optString("queryAnalyzer"));
 
@@ -298,7 +298,7 @@ public class SchemaSettingUtil {
 			for (int inx = 0; inx < array.length(); inx++) {
 				FieldIndexSetting setting = new FieldIndexSetting();
 				JSONObject data = array.optJSONObject(inx);
-				setting.setId(data.optString("id"));
+				setting.setId(data.optString("id").trim());
 				setting.setName(data.optString("name"));
 				setting.setRef(data.optString("field"));
 				setting.setSize(data.optInt("size"));
@@ -320,7 +320,7 @@ public class SchemaSettingUtil {
 			for (int inx = 0; inx < array.length(); inx++) {
 				GroupIndexSetting setting = new GroupIndexSetting();
 				JSONObject data = array.optJSONObject(inx);
-				setting.setId(data.optString("id"));
+				setting.setId(data.optString("id").trim());
 				setting.setName(data.optString("name"));
 				setting.setRef(data.optString("ref"));
 				setting.setIgnoreCase("true".equals(data.optString("ignoreCase")));
