@@ -243,6 +243,9 @@ public class QueryParser {
 								new Object[] { sortOrder, param });
 					}
 					groupFunctions[j] = groupFunction;
+					if(groupFunction == null) {
+						throw new QueryParseException("Unknown group function \""+functionName+"\"");
+					}
 				}
 
 				g.add(new Group(field, groupFunctions, sortOrder, limit));

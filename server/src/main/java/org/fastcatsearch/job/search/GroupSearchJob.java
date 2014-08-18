@@ -40,7 +40,7 @@ public class GroupSearchJob extends Job {
 		try {
 			q = QueryParser.getInstance().parseQuery(queryMap);
 		} catch (QueryParseException e) {
-			throw new FastcatSearchException("[Query Parsing Error] "+e.getMessage());
+			throw new FastcatSearchException("ERR-01000", e, queryMap.queryString());
 		}
 		
 		Metadata meta = q.getMeta();

@@ -135,7 +135,7 @@ public class SearchIndexesReader implements Cloneable {
 				if (indexFieldId.equals(primaryKeyId)) {
 					isPrimaryKeyField = true;
 				} else {
-					throw new IRException("Unknown Search index field id = " + indexFieldId);
+					throw new IRException("Unknown Search index field id \"" + indexFieldId + "\"");
 				}
 			}
 

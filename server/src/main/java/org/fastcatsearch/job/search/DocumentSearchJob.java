@@ -57,7 +57,7 @@ public class DocumentSearchJob extends Job {
 		try {
 			q = QueryParser.getInstance().parseQuery(queryString);
 		} catch (QueryParseException e) {
-			throw new FastcatSearchException("[Query Parsing Error] "+e.getMessage());
+			throw new FastcatSearchException("ERR-01000", e, queryString);
 		} 
 		
 		Metadata meta = q.getMeta();

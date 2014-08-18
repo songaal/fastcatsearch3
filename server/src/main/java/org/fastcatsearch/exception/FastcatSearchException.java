@@ -19,7 +19,7 @@ public class FastcatSearchException extends Exception {
 	public FastcatSearchException(Throwable cause){
 		this(null, cause);
 	}
-			
+	
 	public FastcatSearchException(String errorCode, Object... params) {
 		this(errorCode, null, params);
 	}
@@ -35,7 +35,7 @@ public class FastcatSearchException extends Exception {
 //		}
 		
 		
-		ResourceBundle resourceBundle = ResourceBundle.getBundle("org.fastcatsearch.exception.FastcatSearchErrorCode_ko_KR", new ResourceBundleControl(Charset.forName("UTF-8")));
+		ResourceBundle resourceBundle = ResourceBundle.getBundle("org.fastcatsearch.exception.FastcatSearchErrorCode", new ResourceBundleControl(Charset.forName("UTF-8")));
 		if (resourceBundle != null) {
 			
 			if(errorCode != null){
@@ -70,6 +70,19 @@ public class FastcatSearchException extends Exception {
 
 	@Override
 	public String toString(){
-		return getClass().getName() + ": " +errorMessage + " [Cause]" + (cause != null ? cause.getMessage() : null);
+		StringBuffer causeString = null;
+		Throwable cause = this.cause;
+		int i = 0;
+		while(cause != null) {
+			if(causeString == null) {
+				causeString = new StringBuffer();
+			}
+			if(i++ > 0) {
+				causeString.append(" >> ");	
+			}
+			causeString.append(cause.getMessage());
+			cause = cause.getCause();
+		}
+		return getClass().getName() + ": " +errorMessage + (causeString != null ? " [Cause]" + causeString : "");
 	}
 }

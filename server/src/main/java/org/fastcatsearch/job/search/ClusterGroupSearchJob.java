@@ -41,7 +41,7 @@ public class ClusterGroupSearchJob extends Job {
 		try {
 			q = QueryParser.getInstance().parseQuery(queryMap);
 		} catch (QueryParseException e) {
-			throw new FastcatSearchException("[Query Parsing Error] "+e.getMessage());
+			throw new FastcatSearchException("ERR-01000", e, queryMap.queryString());
 		}
 		
 		//no cache 옵션이 없으면 캐시를 확인한다.

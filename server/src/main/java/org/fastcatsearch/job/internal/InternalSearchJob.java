@@ -48,7 +48,7 @@ public class InternalSearchJob extends Job implements Streamable {
 		try {
 			q = QueryParser.getInstance().parseQuery(queryMap);
 		} catch (QueryParseException e) {
-			throw new FastcatSearchException("ERR-01000", e.getMessage());
+			throw new FastcatSearchException("ERR-01000", e.getMessage(), queryMap.queryString());
 		}
 		
 		String collectionId = queryMap.collectionId();

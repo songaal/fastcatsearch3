@@ -230,7 +230,7 @@ public class CollectionSearcher {
 				}
 			}
 		} catch (IOException e) {
-			throw new IRException(e);
+			throw e;
 		} catch (ClauseException e) {
 			throw new IRException(e);
 		}

@@ -70,7 +70,7 @@ public class ClusterSearchJob extends Job {
 			try {
 				q = QueryParser.getInstance().parseQuery(queryMap);
 			} catch (QueryParseException e) {
-				throw new FastcatSearchException("[Query Parsing Error] " + e.getMessage());
+				throw new FastcatSearchException("ERR-01000", e, queryMap.queryString());
 			}
 	
 			Metadata meta = q.getMeta();
@@ -120,7 +120,7 @@ public class ClusterSearchJob extends Job {
 			for (int i = 0; i < collectionIdList.length; i++) {
 				String id = collectionIdList[i];
 				if(irService.collectionHandler(id) == null) {
-					throw new FastcatSearchException("Collection Not Found: " + id);
+					throw new FastcatSearchException("ERR-00520", id);
 				}
 				collectionNumberMap.put(id, i);
 
@@ -144,16 +144,17 @@ public class ClusterSearchJob extends Job {
 			HighlightInfo highlightInfo = null;
 
 			for (int i = 0; i < collectionIdList.length; i++) {
-				// TODO 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
 				if (resultFutureList[i] == null) {
-					throw new FastcatSearchException("요청메시지 전송불가에러.");
+					throw new FastcatSearchException("ERR-00600", selectedNodeList[i]);
 				}
 				Object obj = resultFutureList[i].take();
 				if (!resultFutureList[i].isSuccess()) {
-					if (obj instanceof Throwable) {
-						throw new FastcatSearchException("검색수행중 에러발생.", (Throwable) obj);
+					if (obj instanceof FastcatSearchException) {
+						throw (FastcatSearchException) obj;
+					} else if (obj instanceof Throwable) {
+						throw (Throwable) obj;
 					} else {
-						throw new FastcatSearchException("검색수행중 에러발생.");
+						throw new Exception();
 					}
 				}
 
@@ -231,15 +232,17 @@ public class ClusterSearchJob extends Job {
 				String shardId = collectionIdList[i];
 				// 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
 				if (resultFutureList[i] == null) {
-					throw new FastcatSearchException("요청메시지 전송불가에러.");
+					throw new FastcatSearchException("ERR-00600", selectedNodeList[i]);
 				}
 
 				Object obj = resultFutureList[i].take();
 				if (!resultFutureList[i].isSuccess()) {
-					if (obj instanceof Throwable) {
-						throw new FastcatSearchException("검색수행중 에러발생.", (Throwable) obj);
+					if (obj instanceof FastcatSearchException) {
+						throw (FastcatSearchException) obj;
+					} else if (obj instanceof Throwable) {
+						throw (Throwable) obj;
 					} else {
-						throw new FastcatSearchException("검색수행중 에러발생.");
+						throw new Exception();
 					}
 				}
 
@@ -291,8 +294,10 @@ public class ClusterSearchJob extends Job {
 
 //			logger.debug("ClusterSearchJob 수행시간 : {}", Strings.getHumanReadableTimeInterval((System.nanoTime() - st) / 1000000));
 			return new JobResult(searchResult);
+		}catch(FastcatSearchException t){
+			throw t;
 		}catch(Throwable t){
-			throw new FastcatSearchException(t);
+			throw new FastcatSearchException("ERR-00556", t);
 		} finally {
 			//로깅은 반드시 수행한다.
 			writeSearchLog(collectionId, searchKeyword, searchResult, (System.nanoTime() - st) / 1000000, isCache);

@@ -71,7 +71,7 @@ public class HitFilter {
 			FieldIndexSetting fieldIndexSetting = schema.getFieldIndexSetting(fieldIndexId);
 			if(fieldIndexSetting == null){
 				//잘못된 필드명.
-				throw new IRException("색인되지 않은 필드입니다. "+fieldIndexId);
+				throw new IRException("\"" + fieldIndexId + "\" is not a field index or not indexed.");
 			}
 			
 			String fieldId = fieldIndexSetting.getRef();
