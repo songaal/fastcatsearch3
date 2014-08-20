@@ -246,7 +246,7 @@ public class SchemaSettingUtil {
 				AnalyzerSetting setting = new AnalyzerSetting();
 				JSONObject data = array.optJSONObject(inx);
 				setting.setId(data.optString("id").trim());
-				setting.setClassName(data.optString("class"));
+				setting.setClassName(data.optString("class").trim());
 				setting.setMaximumPoolSize(data.optInt("maximumPoolSize"));
 				setting.setCorePoolSize(data.optInt("corePoolSize"));
 				analyzerSettingList.add(setting);
@@ -300,7 +300,7 @@ public class SchemaSettingUtil {
 				JSONObject data = array.optJSONObject(inx);
 				setting.setId(data.optString("id").trim());
 				setting.setName(data.optString("name"));
-				setting.setRef(data.optString("field"));
+				setting.setRef(data.optString("field").trim());
 				setting.setSize(data.optInt("size"));
 				setting.setIgnoreCase("true".equals(data.optString("ignoreCase")));
 				fieldIndexSettingList.add(setting);
@@ -322,7 +322,7 @@ public class SchemaSettingUtil {
 				JSONObject data = array.optJSONObject(inx);
 				setting.setId(data.optString("id").trim());
 				setting.setName(data.optString("name"));
-				setting.setRef(data.optString("ref"));
+				setting.setRef(data.optString("ref").trim());
 				setting.setIgnoreCase("true".equals(data.optString("ignoreCase")));
 				groupIndexesSettingList.add(setting);
 			}
