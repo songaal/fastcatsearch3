@@ -4,6 +4,7 @@
 .svn
 .svn/*
 fastcatsearch.iml
+.idea
 .idea/.name
 .idea/compiler.xml
 .idea/encodings.xml
@@ -14,3 +15,4 @@ fastcatsearch.iml
 .idea/copyright/profiles_settings.xml
 .idea/scopes/scope_settings.xml
 core/fastcatsearch-core.iml
+package/fastcatsearch-package.iml
