@@ -11,14 +11,14 @@
 
 package org.fastcatsearch.cli;
 
+import org.fastcatsearch.env.Environment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import org.fastcatsearch.env.Environment;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public abstract class Command {
-	
+
 	public static final String SESSION_KEY_USING_COLLECTION = "org.fastcatsearch.cli.Command@session";
 	
 	private static final Logger logger = LoggerFactory.getLogger(Command.class);

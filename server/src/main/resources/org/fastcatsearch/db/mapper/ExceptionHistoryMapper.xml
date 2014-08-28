@@ -5,7 +5,7 @@
 <!-- default field : id, keyword -->
 <mapper namespace="org.fastcatsearch.db.mapper.ExceptionHistoryMapper">
 
-	<update id="createTable">
+    <update id="createTable">
 		create table ExceptionHistory (
 		id int GENERATED ALWAYS AS IDENTITY,
 		node varchar(50),
@@ -15,11 +15,11 @@
 		primary key (id)
 		)
 	</update>
-	
-	<update id="createIndex" >
+
+    <update id="createIndex" >
 		create index node_ExceptionHistory_index on ExceptionHistory(node)
 	</update>
-	
+
 	<select id="validateTable" parameterType="map" resultType="map">
 		select id, node, message, trace, regtime
 		from ExceptionHistory
@@ -38,13 +38,13 @@
 	<select id="getEntryList" parameterType="map" resultType="org.fastcatsearch.db.vo.ExceptionVO">
 
 		<if test="start &gt;= 0 and end &gt;= 0">
-			select tmp2.* 
+			select tmp2.*
 			from (
-				select row_number() over() as rownum, tmp.* 
-				from ( 
+				select row_number() over() as rownum, tmp.*
+				from (
 					select * from ExceptionHistory
-					order by id desc 
-			    ) as tmp 
+					order by id desc
+			    ) as tmp
 			) tmp2
 			where rownum &gt;= #{start} and rownum &lt;= #{end}
 		</if>
