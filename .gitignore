@@ -3,3 +3,5 @@
 /testHome
 .svn
 .svn/*
+*.iml
+.idea/
