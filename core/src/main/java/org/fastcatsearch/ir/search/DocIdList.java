@@ -6,7 +6,7 @@ public class DocIdList {
 	private int size;
 	
 	private DocIdList[] bundleDocIdListArray;
-	
+
 	public DocIdList(){
 		this(32);
 	}
@@ -25,7 +25,7 @@ public class DocIdList {
 				bundleDocIdListArray = new DocIdList[segmentSequenceList.length];
 			}
 		}
-		
+
 		if(docNoList.length == size){
 			int newSize = size * 2;
 			int[] newSegmentSequenceList = new int[newSize];
@@ -70,4 +70,5 @@ public class DocIdList {
 		}
 		return bundleDocIdListArray[i];
 	}
+
 }
