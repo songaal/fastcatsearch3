@@ -1,11 +1,5 @@
 package org.fastcatsearch.ir.search;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
@@ -19,30 +13,21 @@ import org.fastcatsearch.ir.field.UnknownField;
 import org.fastcatsearch.ir.group.GroupDataMerger;
 import org.fastcatsearch.ir.group.GroupHit;
 import org.fastcatsearch.ir.group.GroupsData;
-import org.fastcatsearch.ir.io.BitSet;
-import org.fastcatsearch.ir.io.FixedHitQueue;
-import org.fastcatsearch.ir.io.FixedHitReader;
-import org.fastcatsearch.ir.io.FixedHitStack;
-import org.fastcatsearch.ir.io.FixedMaxPriorityQueue;
-import org.fastcatsearch.ir.io.FixedMinHeap;
-import org.fastcatsearch.ir.query.Bundle;
-import org.fastcatsearch.ir.query.Groups;
-import org.fastcatsearch.ir.query.HighlightInfo;
-import org.fastcatsearch.ir.query.InternalSearchResult;
-import org.fastcatsearch.ir.query.Metadata;
-import org.fastcatsearch.ir.query.Query;
-import org.fastcatsearch.ir.query.Row;
-import org.fastcatsearch.ir.query.Sorts;
-import org.fastcatsearch.ir.query.Term;
+import org.fastcatsearch.ir.io.*;
+import org.fastcatsearch.ir.query.*;
 import org.fastcatsearch.ir.query.Term.Option;
-import org.fastcatsearch.ir.query.View;
-import org.fastcatsearch.ir.query.ViewContainer;
 import org.fastcatsearch.ir.search.clause.Clause;
 import org.fastcatsearch.ir.search.clause.ClauseException;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.summary.BasicHighlightAndSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class CollectionSearcher {
 	private static Logger logger = LoggerFactory.getLogger(CollectionSearcher.class);
@@ -474,6 +459,7 @@ public class CollectionSearcher {
 			for (int k = 0; k < size; k++) {
 				int totalSize = 0;
 				//bundleKey로 clause생성한다.
+                int mainDocNo = hitElementList[k].docNo();
 				BytesRef bundleKey = hitElementList[k].getBundleKey();
 				String bundleStringKey = bundleKey.toAlphaString();
 				Clause bundleClause = new Clause(new Term(fieldIndexId, bundleStringKey));
@@ -509,16 +495,23 @@ public class CollectionSearcher {
 					while (hitMerger.size() > 0) {
 						FixedHitReader r = hitMerger.peek();
 						HitElement el = r.read();
-						
-						if (c >= bundleStart) {
-							bundleDocIdList.add(el.segmentSequence(), el.docNo());
-//							logger.debug("[{}] {}", el.segmentSequence() ,el.docNo());
-						}
-						c++;
 
-						// 결과가 만들어졌으면 일찍 끝낸다.
-						if (n == bundleRows)
-							break;
+                        //mainDocNo 와 동일한 문서는 제외한다.
+                        //group 문서들에서 그룹대표 문서와 동일한 것은 보여주지 않는다.
+						if(el.docNo() != mainDocNo) {
+                            if (c >= bundleStart) {
+                                bundleDocIdList.add(el.segmentSequence(), el.docNo());
+                                n++;
+                                //logger.debug("[{}] {}", el.segmentSequence() ,el.docNo());
+                            }
+                            c++;
+
+                        }
+
+                        // 결과가 만들어졌으면 일찍 끝낸다.
+                        if (n == bundleRows) {
+                            break;
+                        }
 
 						if (!r.next()) {
 							// 다 읽은 것은 버린다.
@@ -528,6 +521,7 @@ public class CollectionSearcher {
 					}
 					
 					hitElementList[k].setBundleDocIdList(bundleDocIdList);
+                    hitElementList[k].setTotalBundleSize(totalSize);
 				}
 				
 				
