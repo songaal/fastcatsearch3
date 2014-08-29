@@ -16,10 +16,10 @@
 
 package org.fastcatsearch.ir.search;
 
-import java.util.List;
-
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.query.RowExplanation;
+
+import java.util.List;
 
 /**
  * Hit리스트를 구성하는 문서번호와 정렬정보 데이터  
@@ -32,7 +32,8 @@ public class HitElement extends AbstractHitElement<HitElement> {
 	private BytesRef bundleKey;
 	
 	private DocIdList bundleDocIdList;
-	
+	private int totalBundleSize;
+
 	public HitElement(int docNo, int score, List<RowExplanation> list){
 		this(-1, docNo, score, null, list);
 	}
@@ -46,10 +47,12 @@ public class HitElement extends AbstractHitElement<HitElement> {
 	public HitElement(int segmentSequence, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list){
 		super(segmentSequence, docNo, score, dataList, list);
 	}
-	public HitElement(int segmentSequence, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list, DocIdList bundleDocIdList){
+	public HitElement(int segmentSequence, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list, DocIdList bundleDocIdList, int totalBundleSize){
 		super(segmentSequence, docNo, score, dataList, list);
 		this.bundleDocIdList = bundleDocIdList;
+        this.totalBundleSize = totalBundleSize;
 	}
+
 	//bundle
 	public HitElement(int segmentSequence, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list, BytesRef bundleKey){
 		super(segmentSequence, docNo, score, dataList, list);
@@ -59,7 +62,7 @@ public class HitElement extends AbstractHitElement<HitElement> {
 	@Override
 	public String toString(){
 		if(bundleKey != null) {
-			return super.toString() + ":" + bundleKey;
+			return super.toString() + ":" + bundleKey + ":" + totalBundleSize;
 		} else {
 			return super.toString();
 		}
@@ -92,4 +95,12 @@ public class HitElement extends AbstractHitElement<HitElement> {
 	public DocIdList getBundleDocIdList() {
 		return bundleDocIdList;
 	}
+
+    public void setTotalBundleSize(int totalBundleSize) {
+        this.totalBundleSize = totalBundleSize;
+    }
+
+    public int getTotalBundleSize() {
+        return totalBundleSize;
+    }
 }

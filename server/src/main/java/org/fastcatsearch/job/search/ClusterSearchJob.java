@@ -1,12 +1,5 @@
 package org.fastcatsearch.job.search;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.ResultFuture;
@@ -17,22 +10,8 @@ import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.FixedHitReader;
-import org.fastcatsearch.ir.query.Groups;
-import org.fastcatsearch.ir.query.HighlightInfo;
-import org.fastcatsearch.ir.query.InternalSearchResult;
-import org.fastcatsearch.ir.query.Metadata;
-import org.fastcatsearch.ir.query.Query;
-import org.fastcatsearch.ir.query.QueryModifier;
-import org.fastcatsearch.ir.query.Result;
-import org.fastcatsearch.ir.query.ResultModifier;
-import org.fastcatsearch.ir.query.Row;
-import org.fastcatsearch.ir.query.RowExplanation;
-import org.fastcatsearch.ir.query.ViewContainer;
-import org.fastcatsearch.ir.search.DocIdList;
-import org.fastcatsearch.ir.search.DocumentResult;
-import org.fastcatsearch.ir.search.Explanation;
-import org.fastcatsearch.ir.search.HitElement;
-import org.fastcatsearch.ir.search.SearchResultAggregator;
+import org.fastcatsearch.ir.query.*;
+import org.fastcatsearch.ir.search.*;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.internal.InternalDocumentSearchJob;
@@ -45,6 +24,8 @@ import org.fastcatsearch.transport.vo.StreamableDocumentResult;
 import org.fastcatsearch.transport.vo.StreamableInternalSearchResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 /**
  * 검색을 수행하여 병합까지 마치는 broker 검색작업.
@@ -185,15 +166,18 @@ public class ClusterSearchJob extends Job {
 			int realSize = aggregatedSearchResult.getCount();
 			DocIdList[] docIdList = new DocIdList[collectionIdList.length];
 			int[] collectionTags = new int[realSize]; // 해당 문서가 어느 collection에 속하는지 알려주는 항목.
-			ArrayDeque<Integer>[] eachScores = new ArrayDeque[collectionIdList.length];
+//			ArrayDeque<Integer>[] eachScores = new ArrayDeque[collectionIdList.length];
+            int[] eachScores = new int[realSize];
+            int[] bundleTotalSizeList = new int[realSize];
 			List<RowExplanation>[] rowExplanationsList = null;
+
 			if(explanations != null){
 				rowExplanationsList = new List[realSize];
 			}
 			
 			for (int i = 0; i < collectionIdList.length; i++) {
 				docIdList[i] = new DocIdList(realSize);
-				eachScores[i] = new ArrayDeque<Integer>(realSize);
+//				eachScores[i] = new ArrayDeque<Integer>(realSize);
 			}
 
 			int idx = 0;
@@ -213,7 +197,10 @@ public class ClusterSearchJob extends Job {
 				
 				//묶음 문서 존재시 같이 넣어준다.
 				docIdList[collectionNo].add(el.segmentSequence(), el.docNo(), el.getBundleDocIdList());
-				eachScores[collectionNo].add(el.score());
+//				eachScores[collectionNo].add(el.score());
+                eachScores[idx] = el.score();
+                bundleTotalSizeList[idx] = el.getTotalBundleSize();
+
 				collectionTags[idx] = collectionNo;
 				if(rowExplanationsList != null){
 					rowExplanationsList[idx] = el.rowExplanations();
@@ -239,7 +226,7 @@ public class ClusterSearchJob extends Job {
 			DocumentResult[] docResultList = new DocumentResult[collectionIdList.length];
 
 			for (int i = 0; i < collectionIdList.length; i++) {
-				String shardId = collectionIdList[i];
+				String cid = collectionIdList[i];
 				// 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
 				if (resultFutureList[i] == null) {
 					throw new FastcatSearchException("요청메시지 전송불가에러.");
@@ -259,7 +246,7 @@ public class ClusterSearchJob extends Job {
 				if (documentResult != null) {
 					docResultList[i] = documentResult;
 				} else {
-					logger.warn("{}의 documentList가 null입니다.", shardId);
+					logger.warn("{}의 documentList가 null입니다.", cid);
 				}
 			}
 			String[] fieldIdList = docResultList[0].fieldIdList();
@@ -276,7 +263,8 @@ public class ClusterSearchJob extends Job {
 					}
 					bundleRows[i] = bundleRow;
 				}
-				int score = eachScores[collectionNo].pop();
+//				int score = eachScores[collectionNo].pop();
+                int score = eachScores[i];
 				rows[i].setScore(score);
 				
 				documentResult.next();
@@ -293,7 +281,7 @@ public class ClusterSearchJob extends Job {
 				groupResults = groups.getGroupResultsGenerator().generate(groupsData);
 			}
 
-			searchResult = new Result(rows, bundleRows, groupResults, fieldIdList, realSize, totalSize, meta.start(), explanations, rowExplanationsList);
+			searchResult = new Result(rows, bundleRows, bundleTotalSizeList, groupResults, fieldIdList, realSize, totalSize, meta.start(), explanations, rowExplanationsList);
 
 			ResultModifier resultModifier = meta.resultModifier();
 			if(resultModifier != null){

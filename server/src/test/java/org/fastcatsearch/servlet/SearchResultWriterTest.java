@@ -1,15 +1,10 @@
 package org.fastcatsearch.servlet;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.Date;
-
 import org.fastcatsearch.http.writer.SearchResultWriter;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.value.IntGroupingValue;
-import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.util.JSONResponseWriter;
@@ -18,6 +13,10 @@ import org.fastcatsearch.util.ResultWriterException;
 import org.fastcatsearch.util.XMLResponseWriter;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.Date;
 
 public class SearchResultWriterTest {
 	
@@ -58,7 +57,7 @@ public class SearchResultWriterTest {
 		String[] fieldNameList = new String[]{"title", "body"};
 		int count = 2;
 		int totalCount = 100;
-		result = new Result(data, bundleData, null, fieldNameList, count, totalCount, 0, null, null);
+		result = new Result(data, bundleData, null, null, fieldNameList, count, totalCount, 0, null, null);
 		result.setGroupResult(groupResults);
 		
 	}

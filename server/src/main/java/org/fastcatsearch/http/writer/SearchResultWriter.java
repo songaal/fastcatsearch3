@@ -1,9 +1,5 @@
 package org.fastcatsearch.http.writer;
 
-import java.io.IOException;
-import java.util.List;
-
-import org.apache.derby.iapi.services.i18n.BundleFinder;
 import org.fastcatsearch.ir.field.BundleSizeField;
 import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.group.GroupResults;
@@ -15,6 +11,9 @@ import org.fastcatsearch.ir.search.Explanation;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
+
+import java.io.IOException;
+import java.util.List;
 
 public class SearchResultWriter extends AbstractSearchResultWriter {
 	
@@ -68,7 +67,7 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 		//data
 		Row[] rows = result.getData();
 		Row[][] bundleRowsList = result.getBundleData();
-		
+        int[] bundleTotalSizeList = result.getBundleTotalSizeList();
 		List<RowExplanation>[] rowExplanationsList = result.getRowExplanationsList();
 
 		if(rows.length == 0){
@@ -83,8 +82,9 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 				writeRowObject(row, (bundleRowsList != null && bundleRowsList[i] != null) ? bundleRowsList[i].length : 0);
 				
 				if(bundleRowsList != null && bundleRowsList[i] != null) {
+					resultWriter.key("_bundleSize").value(bundleTotalSizeList[i]);
 					resultWriter.key("_bundle");
-					resultWriter.array("item");
+                    resultWriter.array("item");
 					for(Row bundleRow : bundleRowsList[i]){
 						resultWriter.object();
 						writeRowObject(bundleRow);

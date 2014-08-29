@@ -1,9 +1,5 @@
 package org.fastcatsearch.transport.vo;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.ir.io.DataInput;
@@ -13,6 +9,10 @@ import org.fastcatsearch.ir.search.DocIdList;
 import org.fastcatsearch.ir.search.HitElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class StreamableHitElement implements Streamable {
 
@@ -58,14 +58,16 @@ public class StreamableHitElement implements Streamable {
 			}
 			int bundleDocIdSize = input.readVInt();
 			DocIdList bundleDocIdList = null;
+            int totalBundleSize = 0;
 			if(bundleDocIdSize > 0) {
 				bundleDocIdList = new DocIdList(bundleDocIdSize);
 				for (int i = 0; i < bundleDocIdSize; i++) {
 					bundleDocIdList.add(input.readVInt(), input.readVInt());
 				}
+                totalBundleSize = input.readVInt();
 			}
 			
-			hitElements[hitElementInx] = new HitElement(segmentSequence, docNo, score, rankData, explanations, bundleDocIdList);
+			hitElements[hitElementInx] = new HitElement(segmentSequence, docNo, score, rankData, explanations, bundleDocIdList, totalBundleSize);
 		}
 	}
 
@@ -102,6 +104,7 @@ public class StreamableHitElement implements Streamable {
 					output.writeVInt(bundleDocIdList.segmentSequence(i));
 					output.writeVInt(bundleDocIdList.docNo(i));
 				}
+                output.writeVInt(hitElement.getTotalBundleSize());
 			}else{
 				output.writeVInt(0);
 			}
