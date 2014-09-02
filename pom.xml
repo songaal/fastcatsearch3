@@ -167,24 +167,11 @@
 	</dependencies>
 
 
-	<repositories>
-		<repository>
-			<id>fastcatsearch</id>
-			<url>${fastcatsearchRepository}</url>
-		</repository>
-	</repositories>
-	<distributionManagement>
-		<repository>
-			<id>fastcatsearch</id>
-			<name>websqrd local</name>
-			<url>${fastcatsearchRepository}</url>
-		</repository>
-	</distributionManagement>
-
 	<modules>
 		<module>core</module>
 		<module>server</module>
 		<module>package</module>
+        <module>sample</module>
 	</modules>
 
 	<build>
