@@ -238,11 +238,11 @@
 	</build>
 
     <scm>
-        <connection>scm:git:https://github.com/fastcatsearch/fastcatsearch/master</connection>
-        <developerConnection>scm:git:https://github.com/fastcatsearch/fastcatsearch/master</developerConnection>
+        <connection>scm:git:https://github.com/fastcatsearch/fastcatsearch</connection>
+        <developerConnection>scm:git:https://github.com/fastcatsearch/fastcatsearch</developerConnection>
         <url>scm:git:https://github.com/fastcatsearch/fastcatsearch</url>
       <tag>fastcatsearch-3.0.0</tag>
-  </scm>
+    </scm>
 
     <ciManagement>
         <system>Atlassian Bamboo</system>
