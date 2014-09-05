@@ -6,8 +6,11 @@
         <version>3.0.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
+    <groupId>org.fastcatsearch.fastcatsearch</groupId>
     <artifactId>fastcatsearch-sample</artifactId>
+    <name>fastcatsearch-server</name>
+    <description>fastcatsearch/server</description>
+    <url>http://fastcatsearch.org</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
