@@ -1,0 +1,29 @@
+#############
+# Windows
+#############
+
+[Installation]
+
+
+
+[StartUp]
+
+
+
+[Uninstallation]
+
+
+
+#############
+# Linux
+#############
+
+[Installation]
+
+
+
+[StartUp]
+
+
+
+[Uninstallation]
