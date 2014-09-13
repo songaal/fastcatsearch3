@@ -3,19 +3,18 @@
 	GNU Public License v2.0 which accompanies this distribution, and is available 
 	at http://www.gnu.org/licenses/old-licenses/gpl-2.0.html Contributors: swsong 
 	- initial API and implementation -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.fastcatgroup.fastcatsearch</groupId>
+	<groupId>org.fastcatsearch.fastcatsearch</groupId>
 	<artifactId>fastcatsearch-server</artifactId>
 	<name>fastcatsearch-server</name>
 	<description>fastcatsearch/server</description>
 	<url>fastcatsearch.org</url>
 	<packaging>jar</packaging>
 	<parent>
-		<groupId>org.fastcatgroup</groupId>
+		<groupId>org.fastcatsearch</groupId>
 		<artifactId>fastcatsearch</artifactId>
-		<version>2.16</version>
+		<version>2.17-SNAPSHOT</version>
 	</parent>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -23,7 +22,7 @@
 	
 	<dependencies>
 		<dependency>
-			<groupId>org.fastcatgroup.fastcatsearch</groupId>
+			<groupId>org.fastcatsearch.fastcatsearch</groupId>
 			<artifactId>fastcatsearch-core</artifactId>
 		</dependency>
 		<dependency>
