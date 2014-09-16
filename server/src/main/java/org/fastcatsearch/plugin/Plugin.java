@@ -65,8 +65,8 @@ public abstract class Plugin {
     * To be override for license validation
     * @Param licenseInputStream License file inputstream. It can be null if file is not exist.
     * */
-    protected boolean validateLicense(InputStream licenseInputStream) throws LicenseInvalidException {
-        return true;
+    protected void validateLicense(InputStream licenseInputStream) throws LicenseInvalidException {
+
     }
 
 	public final void unload(){
