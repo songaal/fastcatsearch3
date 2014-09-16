@@ -13,6 +13,7 @@ import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.io.FixedHitStack;
 import org.fastcatsearch.ir.io.FixedMaxPriorityQueue;
+import org.fastcatsearch.ir.query.Bundle;
 import org.fastcatsearch.ir.query.Filters;
 import org.fastcatsearch.ir.query.Groups;
 import org.fastcatsearch.ir.query.HighlightInfo;
@@ -82,16 +83,24 @@ public class SegmentSearcher {
 //		if(queryModifier != null){
 //			query = queryModifier.modify(query);
 //		}
-		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), query.getGroupFilters(), query.getSorts(), boostList);
+		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), query.getGroupFilters(), query.getSorts(), query.getBundle(), boostList);
 		return new Hit(rankHitList(), makeGroupData(), totalCount, highlightInfo, explanation);
 	}
+	public HitReader searchHitReader(Query query, PkScoreList boostList) throws ClauseException, IOException, IRException {
+//		QueryModifier queryModifier = query.getMeta().queryModifier();
+//		if(queryModifier != null){
+//			query = queryModifier.modify(query);
+//		}
+		return searchHitReader(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), query.getGroupFilters(), query.getSorts(), query.getBundle(), boostList);
+	}
+	
 
 	public GroupHit searchGroupHit(Query query) throws ClauseException, IOException, IRException {
-		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), null, null, null);
+		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), null, null, null, null);
 		return new GroupHit(makeGroupData(), totalCount);
 	}
 
-	public void search(Metadata meta, Clause clause, Filters filters, Groups groups, Filters groupFilters, Sorts sorts, PkScoreList boostList) throws ClauseException,
+	public void search(Metadata meta, Clause clause, Filters filters, Groups groups, Filters groupFilters, Sorts sorts, Bundle bundle, PkScoreList boostList) throws ClauseException,
 			IOException, IRException {
 		FieldIndexesReader fieldIndexesReader = null;
 		int sortMaxSize = meta.start() + meta.rows() - 1;
@@ -135,12 +144,16 @@ public class SegmentSearcher {
 		// Sorts sorts = q.getSorts();
 		SortGenerator sortGenerator = null;
 		if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
+			
+			
+			//TODO 
+			//BundleDefaultRanker (fieldIndexesReader, bundle)
 			ranker = new DefaultRanker(sortMaxSize);
 		} else {
 			if(fieldIndexesReader == null){
 				fieldIndexesReader = segmentReader.newFieldIndexesReader();
 			}
-			sortGenerator = sorts.getSortGenerator(schema, fieldIndexesReader);
+			sortGenerator = sorts.getSortGenerator(schema, fieldIndexesReader, bundle);
 			// ranker에 정렬 로직이 담겨있다.
 			// ranker 안에는 필드타입과 정렬옵션을 확인하여 적합한 byte[] 비교를 수행한다.
 			ranker = sorts.createRanker(schema, sortMaxSize);
@@ -226,6 +239,129 @@ public class SegmentSearcher {
 			if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
 				// if sort is not set, rankdata is null
 				for (int i = 0; i < nread; i++) {
+					if(ranker.push(new HitElement(rankInfoList[i].docNo(), rankInfoList[i].score(), rankInfoList[i].rowExplanations()))){
+						totalCount++;
+					}
+				}
+			} else {
+				// if sort set
+				// sortGenerator 는 단순히 데이터를 읽어서 HitElement에 넣어주고 실제 정렬로직은 ranker에 push하면서 수행된다.
+				
+				//TODO 여기에서 groupkey의 그룹키를 읽어서 넣어주도록 한다. 길이 32의 md5키로 비교하기 때문에, Field index로 색인해도 될듯한데..
+				// 동일그룹여부확인시는 group no 즉, int로 비교가 가능하므로 좋긴한데, 세그먼트를 벗어나는 순간 key자체로 비교해야한다. 그러므로 group index는 의미가 없다.
+				
+				
+				HitElement[] e = sortGenerator.getHitElement(rankInfoList, nread);
+				for (int i = 0; i < nread; i++) {
+					if(ranker.push(e[i])) {
+						totalCount++;
+					}
+				}
+			}
+			
+			
+//			sortTime += (System.nanoTime() - st);
+//			totalCount += nread;
+		}
+		
+//		logger.debug("clauseExplanation >> {}\n{}",isExplain, clauseExplanation);
+
+//		 logger.debug("#### time = se:{}ms, ft:{}ms, gr:{}ms, so:{}ms", searchTime / 1000000, filterTime / 1000000, groupTime / 1000000, sortTime / 1000000);
+	}
+	
+	public HitReader searchHitReader(Metadata meta, Clause clause, Filters filters, Groups groups, Filters groupFilters, Sorts sorts, Bundle bundle, PkScoreList boostList) throws ClauseException,
+	IOException, IRException {
+		return new HitReader(segmentReader, meta, clause, filters, groups, groupFilters, sorts, bundle, boostList);
+	}
+
+	/**
+	 * @param docFilter 결과 문서를 제한하기 위한 필터로써, 한번 검색된 필터를 가지고 있다가 전달해주면, 이 필터내의 문서에서만 결과를 만들도록 한다.
+	 * 
+	 * */
+	public Hit searchIndex(Clause clause, Sorts sorts, int start, int length, BitSet docFilter) throws ClauseException,
+		IOException, IRException {
+		
+		int totalCount = 0;
+		FieldIndexesReader fieldIndexesReader = null;
+		int sortMaxSize = start + length - 1;
+		
+		OperatedClause operatedClause = clause.getOperatedClause(0, segmentReader.newSearchIndexesReader(), null);
+		// sort
+		SortGenerator sortGenerator = null;
+		FixedMaxPriorityQueue<HitElement> ranker = null;
+		if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
+			ranker = new DefaultRanker(sortMaxSize);
+		} else {
+			if(fieldIndexesReader == null){
+				fieldIndexesReader = segmentReader.newFieldIndexesReader();
+			}
+			sortGenerator = sorts.getSortGenerator(schema, fieldIndexesReader, null);
+			// ranker에 정렬 로직이 담겨있다.
+			// ranker 안에는 필드타입과 정렬옵션을 확인하여 적합한 byte[] 비교를 수행한다.
+			ranker = sorts.createRanker(schema, sortMaxSize);
+		}
+		
+		RankInfo[] rankInfoList = new RankInfo[BULK_SIZE];
+		boolean exausted = false;
+		BitSet localDeleteSet = segmentReader.deleteSet();
+		
+		//int searchTime = 0, sortTime = 0, groupTime = 0, filterTime = 0;
+		while (!exausted) {
+			int nread = 0;
+			// search
+			for (nread = 0; nread < BULK_SIZE; nread++) {
+				RankInfo rankInfo = new RankInfo();
+				if (operatedClause.next(rankInfo)) {
+					rankInfoList[nread] = rankInfo;
+				} else {
+					exausted = true;
+					break;
+				}
+			}
+			if (!exausted && nread == 0) {
+				continue;
+			}
+		
+			//
+			//check filtered list
+			//
+			int count = 0;
+			if(docFilter != null) {
+				for (int i = 0; i < nread; i++) {
+					RankInfo rankInfo = rankInfoList[i];
+					// Check deleted list
+					if (docFilter.isSet(rankInfo.docNo())) {
+						rankInfoList[count] = rankInfo;
+						count++;
+						logger.debug("ok docNo = {}", rankInfo.docNo());
+					} else {
+			//			logger.debug("deleted docNo = {}", rankInfo.docNo());
+					}
+			
+				}
+				nread = count;
+			}
+			
+			// check delete documents
+			count = 0;
+			for (int i = 0; i < nread; i++) {
+				RankInfo rankInfo = rankInfoList[i];
+				// Check deleted list
+				if (!localDeleteSet.isSet(rankInfo.docNo())) {
+					rankInfoList[count] = rankInfo;
+					count++;
+		//			logger.debug("ok docNo = {}", rankInfo.docNo());
+				} else {
+		//			logger.debug("deleted docNo = {}", rankInfo.docNo());
+				}
+		
+			}
+		//	logger.debug("check delete docs {} => {}", nread, count);
+			nread = count;
+		//	st = System.nanoTime();
+			if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
+				// if sort is not set, rankdata is null
+				for (int i = 0; i < nread; i++) {
 					ranker.push(new HitElement(rankInfoList[i].docNo(), rankInfoList[i].score(), rankInfoList[i].rowExplanations()));
 				}
 			} else {
@@ -236,17 +372,22 @@ public class SegmentSearcher {
 					ranker.push(e[i]);
 				}
 			}
-			
-			
-//			sortTime += (System.nanoTime() - st);
 			totalCount += nread;
 		}
 		
-//		logger.debug("clauseExplanation >> {}\n{}",isExplain, clauseExplanation);
-
-//		 logger.debug("#### time = se:{}ms, ft:{}ms, gr:{}ms, so:{}ms", searchTime / 1000000, filterTime / 1000000, groupTime / 1000000, sortTime / 1000000);
+		int segmentSequence = segmentReader.sequence();
+		int size = ranker.size();
+		FixedHitStack hitStack = new FixedHitStack(size);
+		for (int i = 0; i < size; i++) {
+			HitElement el = ranker.pop();
+			//여기에서 segment번호를 셋팅해준다. 
+			el.setDocNo(segmentSequence, el.docNo());
+			hitStack.push(el);
+		}
+		
+		return new Hit(hitStack, null, totalCount, null);
 	}
-
+	
 	/**
 	 * Top K개의 HIT들을 리턴한다.
 	 * 

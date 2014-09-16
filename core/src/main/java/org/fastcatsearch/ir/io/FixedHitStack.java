@@ -34,6 +34,16 @@ public class FixedHitStack {
 		head = tail;
 	}
 	
+	public HitElement[] getHitElementList(){
+		if(head > 0) {
+			HitElement[] newList = new HitElement[tail - head];
+			System.arraycopy(list, head, newList, 0, tail - head);
+			return newList;
+		}else{
+			return list;
+		}
+	}
+	
 	public boolean push(HitElement e){
 		list[--head] = e;
 		return true;

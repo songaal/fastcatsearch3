@@ -16,103 +16,58 @@
 
 package org.fastcatsearch.ir.search;
 
-import java.util.List;
-
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.query.RowExplanation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * Hit리스트를 구성하는 문서번호와 정렬정보 데이터  
  * @author sangwook.song
  *
  */
-public class HitElement implements Comparable<HitElement> {
-	protected static Logger logger = LoggerFactory.getLogger(HitElement.class);
+public class HitElement extends AbstractHitElement<HitElement> {
 	
-	private String collectionId; //transient. ShardSearchResult에서 정보를 가지고 있음. 
+	//bundleKey는 타 노드로 전송할 필요없음. 즉, 한 컬렉션 내에서만 묶고, 컬렉션끼리의 병합시에는 묶지 않음. 
+	private BytesRef bundleKey;
 	
-	private int segmentSequence;
-	private int docNo;
-	private int score; //매칭점수
-	private BytesRef[] rankData; //필드값으로 정렬할 경우 필드값 데이터
-	private List<RowExplanation> list;
-	
+	private DocIdList bundleDocIdList;
+	private int totalBundleSize;
+
 	public HitElement(int docNo, int score, List<RowExplanation> list){
 		this(-1, docNo, score, null, list);
 	}
 	public HitElement(int docNo, int score, BytesRef[] dataList, List<RowExplanation> list){
 		this(-1, docNo, score, dataList, list);
 	}
+	//bundle
+	public HitElement(int docNo, int score, BytesRef[] dataList, List<RowExplanation> list, BytesRef bundleKey){
+		this(-1, docNo, score, dataList, list, bundleKey);
+	}
 	public HitElement(int segmentSequence, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list){
-		this.segmentSequence = segmentSequence;
-		this.docNo = docNo;
-		this.score = score;
-		this.rankData = dataList;
-		this.list = list;
+		super(segmentSequence, docNo, score, dataList, list);
 	}
-	public String collectionId(){
-		return collectionId;
+	public HitElement(int segmentSequence, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list, DocIdList bundleDocIdList, int totalBundleSize){
+		super(segmentSequence, docNo, score, dataList, list);
+		this.bundleDocIdList = bundleDocIdList;
+        this.totalBundleSize = totalBundleSize;
 	}
-	public void setCollectionId(String collectionId){
-		this.collectionId = collectionId;
-	}
-	public int segmentSequence(){
-		return segmentSequence;
-	}
-	public int docNo(){
-		return docNo;
-	}
-	public void setDocNo(int segmentSequence, int docNo){
-		this.segmentSequence = segmentSequence;
-		this.docNo = docNo;
-	}
-	public int score(){
-		return score;
+
+	//bundle
+	public HitElement(int segmentSequence, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list, BytesRef bundleKey){
+		super(segmentSequence, docNo, score, dataList, list);
+		this.bundleKey = bundleKey;
 	}
 	
-	public BytesRef[] rankData(){
-		return rankData;
-	}
-	
-	public BytesRef rankData(int i){
-		return rankData[i];
-	}
-	
-	public int rankDataSize(){
-		if(rankData == null){
-			return 0;
-		}
-		return rankData.length;
-	}
-	
-	public List<RowExplanation> rowExplanations(){
-		return list;
-	}
-	
-//	public HitElement addBaseDocNo(int baseDocNo){
-//		docNo += baseDocNo;
-//		return this;
-//	}
+	@Override
 	public String toString(){
-		StringBuffer sb = new StringBuffer();
-		sb.append("[seg#");
-		sb.append(segmentSequence);
-		sb.append("]");
-		sb.append(docNo);
-		sb.append(":");
-		sb.append(score);
-		sb.append(":");
-//		if(rankdata != null){
-//			for (int i = 0; i < dataLen; i++) {
-//				sb.append(rankdata[dataOffset + i]);
-//				if(i < dataLen - 1)
-//					sb.append(",");
-//			}
-//		}
-		return sb.toString();
+		if(bundleKey != null) {
+			return super.toString() + ":" + bundleKey + ":" + totalBundleSize;
+		} else {
+			return super.toString();
+		}
 	}
+	
 	@Override
 	public int compareTo(HitElement other) {
 		
@@ -125,4 +80,27 @@ public class HitElement implements Comparable<HitElement> {
 		return other.docNo - docNo;
 	}
 	
+	public void setBundleKey(BytesRef bundleKey) {
+		this.bundleKey = bundleKey;
+	}
+
+	public BytesRef getBundleKey() {
+		return bundleKey;
+	}
+	
+	public void setBundleDocIdList(DocIdList bundleDocIdList) {
+		this.bundleDocIdList = bundleDocIdList;
+	}
+	
+	public DocIdList getBundleDocIdList() {
+		return bundleDocIdList;
+	}
+
+    public void setTotalBundleSize(int totalBundleSize) {
+        this.totalBundleSize = totalBundleSize;
+    }
+
+    public int getTotalBundleSize() {
+        return totalBundleSize;
+    }
 }

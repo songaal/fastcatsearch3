@@ -1,12 +1,5 @@
 package org.fastcatsearch.job.search;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.ResultFuture;
@@ -17,22 +10,8 @@ import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.FixedHitReader;
-import org.fastcatsearch.ir.query.Groups;
-import org.fastcatsearch.ir.query.HighlightInfo;
-import org.fastcatsearch.ir.query.InternalSearchResult;
-import org.fastcatsearch.ir.query.Metadata;
-import org.fastcatsearch.ir.query.Query;
-import org.fastcatsearch.ir.query.QueryModifier;
-import org.fastcatsearch.ir.query.Result;
-import org.fastcatsearch.ir.query.ResultModifier;
-import org.fastcatsearch.ir.query.Row;
-import org.fastcatsearch.ir.query.RowExplanation;
-import org.fastcatsearch.ir.query.ViewContainer;
-import org.fastcatsearch.ir.search.DocIdList;
-import org.fastcatsearch.ir.search.DocumentResult;
-import org.fastcatsearch.ir.search.Explanation;
-import org.fastcatsearch.ir.search.HitElement;
-import org.fastcatsearch.ir.search.SearchResultAggregator;
+import org.fastcatsearch.ir.query.*;
+import org.fastcatsearch.ir.search.*;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.internal.InternalDocumentSearchJob;
@@ -45,6 +24,8 @@ import org.fastcatsearch.transport.vo.StreamableDocumentResult;
 import org.fastcatsearch.transport.vo.StreamableInternalSearchResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 /**
  * 검색을 수행하여 병합까지 마치는 broker 검색작업.
@@ -70,7 +51,7 @@ public class ClusterSearchJob extends Job {
 			try {
 				q = QueryParser.getInstance().parseQuery(queryMap);
 			} catch (QueryParseException e) {
-				throw new FastcatSearchException("ERR-01000", e, queryMap.queryString());
+				throw new FastcatSearchException("[Query Parsing Error] " + e.getMessage());
 			}
 	
 			Metadata meta = q.getMeta();
@@ -120,7 +101,7 @@ public class ClusterSearchJob extends Job {
 			for (int i = 0; i < collectionIdList.length; i++) {
 				String id = collectionIdList[i];
 				if(irService.collectionHandler(id) == null) {
-					throw new FastcatSearchException("ERR-00520", id);
+					throw new FastcatSearchException("Collection Not Found: " + id);
 				}
 				collectionNumberMap.put(id, i);
 
@@ -144,17 +125,16 @@ public class ClusterSearchJob extends Job {
 			HighlightInfo highlightInfo = null;
 
 			for (int i = 0; i < collectionIdList.length; i++) {
+				// TODO 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
 				if (resultFutureList[i] == null) {
-					throw new FastcatSearchException("ERR-00600", selectedNodeList[i]);
+					throw new FastcatSearchException("요청메시지 전송불가에러.");
 				}
 				Object obj = resultFutureList[i].take();
 				if (!resultFutureList[i].isSuccess()) {
-					if (obj instanceof FastcatSearchException) {
-						throw (FastcatSearchException) obj;
-					} else if (obj instanceof Throwable) {
-						throw (Throwable) obj;
+					if (obj instanceof Throwable) {
+						throw new FastcatSearchException("검색수행중 에러발생.", (Throwable) obj);
 					} else {
-						throw new Exception();
+						throw new FastcatSearchException("검색수행중 에러발생.");
 					}
 				}
 
@@ -186,15 +166,18 @@ public class ClusterSearchJob extends Job {
 			int realSize = aggregatedSearchResult.getCount();
 			DocIdList[] docIdList = new DocIdList[collectionIdList.length];
 			int[] collectionTags = new int[realSize]; // 해당 문서가 어느 collection에 속하는지 알려주는 항목.
-			ArrayDeque<Integer>[] eachScores = new ArrayDeque[collectionIdList.length];
+//			ArrayDeque<Integer>[] eachScores = new ArrayDeque[collectionIdList.length];
+            int[] eachScores = new int[realSize];
+            int[] bundleTotalSizeList = new int[realSize];
 			List<RowExplanation>[] rowExplanationsList = null;
+
 			if(explanations != null){
 				rowExplanationsList = new List[realSize];
 			}
 			
 			for (int i = 0; i < collectionIdList.length; i++) {
 				docIdList[i] = new DocIdList(realSize);
-				eachScores[i] = new ArrayDeque<Integer>(realSize);
+//				eachScores[i] = new ArrayDeque<Integer>(realSize);
 			}
 
 			int idx = 0;
@@ -202,8 +185,22 @@ public class ClusterSearchJob extends Job {
 			while (hitReader.next()) {
 				HitElement el = hitReader.read();
 				int collectionNo = collectionNumberMap.get(el.collectionId());
-				docIdList[collectionNo].add(el.segmentSequence(), el.docNo());
-				eachScores[collectionNo].add(el.score());
+//				logger.debug("## {}", el.docNo());
+
+//				if(el.getBundleDocIdList() != null) {
+//					logger.debug("--bundle---");
+//					DocIdList list = el.getBundleDocIdList();
+//					for(int i=0;i<list.size(); i++) {
+//						logger.debug("  >>> [{}] {}", list.segmentSequence(i), list.docNo(i));
+//					}
+//				}
+				
+				//묶음 문서 존재시 같이 넣어준다.
+				docIdList[collectionNo].add(el.segmentSequence(), el.docNo(), el.getBundleDocIdList());
+//				eachScores[collectionNo].add(el.score());
+                eachScores[idx] = el.score();
+                bundleTotalSizeList[idx] = el.getTotalBundleSize();
+
 				collectionTags[idx] = collectionNo;
 				if(rowExplanationsList != null){
 					rowExplanationsList[idx] = el.rowExplanations();
@@ -229,20 +226,18 @@ public class ClusterSearchJob extends Job {
 			DocumentResult[] docResultList = new DocumentResult[collectionIdList.length];
 
 			for (int i = 0; i < collectionIdList.length; i++) {
-				String shardId = collectionIdList[i];
+				String cid = collectionIdList[i];
 				// 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
 				if (resultFutureList[i] == null) {
-					throw new FastcatSearchException("ERR-00600", selectedNodeList[i]);
+					throw new FastcatSearchException("요청메시지 전송불가에러.");
 				}
 
 				Object obj = resultFutureList[i].take();
 				if (!resultFutureList[i].isSuccess()) {
-					if (obj instanceof FastcatSearchException) {
-						throw (FastcatSearchException) obj;
-					} else if (obj instanceof Throwable) {
-						throw (Throwable) obj;
+					if (obj instanceof Throwable) {
+						throw new FastcatSearchException("검색수행중 에러발생.", (Throwable) obj);
 					} else {
-						throw new Exception();
+						throw new FastcatSearchException("검색수행중 에러발생.");
 					}
 				}
 
@@ -251,25 +246,31 @@ public class ClusterSearchJob extends Job {
 				if (documentResult != null) {
 					docResultList[i] = documentResult;
 				} else {
-					logger.warn("{}의 documentList가 null입니다.", shardId);
+					logger.warn("{}의 documentList가 null입니다.", cid);
 				}
 			}
 			String[] fieldIdList = docResultList[0].fieldIdList();
 			Row[] rows = new Row[realSize];
+			Row[][] bundleRows = null;
 			for (int i = 0; i < realSize; i++) {
 				int collectionNo = collectionTags[i];
 				DocumentResult documentResult = docResultList[collectionNo];
-				rows[i] = documentResult.next();
-				int score = eachScores[collectionNo].pop();
+				rows[i] = documentResult.row();
+				Row[] bundleRow = documentResult.bundleRow();
+				if(bundleRow != null) {
+					if(bundleRows == null) {
+						bundleRows = new Row[realSize][];
+					}
+					bundleRows[i] = bundleRow;
+				}
+//				int score = eachScores[collectionNo].pop();
+                int score = eachScores[i];
 				rows[i].setScore(score);
+				
+				documentResult.next();
 			}
 
 			//TODO row별과 통합 explain결과 포함시킨다.
-			
-			
-			
-			
-			
 			
 			/*
 			 * Group Result
@@ -280,7 +281,7 @@ public class ClusterSearchJob extends Job {
 				groupResults = groups.getGroupResultsGenerator().generate(groupsData);
 			}
 
-			searchResult = new Result(rows, groupResults, fieldIdList, realSize, totalSize, meta.start(), explanations, rowExplanationsList);
+			searchResult = new Result(rows, bundleRows, bundleTotalSizeList, groupResults, fieldIdList, realSize, totalSize, meta.start(), explanations, rowExplanationsList);
 
 			ResultModifier resultModifier = meta.resultModifier();
 			if(resultModifier != null){
@@ -294,10 +295,8 @@ public class ClusterSearchJob extends Job {
 
 //			logger.debug("ClusterSearchJob 수행시간 : {}", Strings.getHumanReadableTimeInterval((System.nanoTime() - st) / 1000000));
 			return new JobResult(searchResult);
-		}catch(FastcatSearchException t){
-			throw t;
 		}catch(Throwable t){
-			throw new FastcatSearchException("ERR-00556", t);
+			throw new FastcatSearchException(t);
 		} finally {
 			//로깅은 반드시 수행한다.
 			writeSearchLog(collectionId, searchKeyword, searchResult, (System.nanoTime() - st) / 1000000, isCache);

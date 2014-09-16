@@ -1,15 +1,10 @@
 package org.fastcatsearch.servlet;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.Date;
-
 import org.fastcatsearch.http.writer.SearchResultWriter;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.value.IntGroupingValue;
-import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
 import org.fastcatsearch.util.JSONResponseWriter;
@@ -19,13 +14,17 @@ import org.fastcatsearch.util.XMLResponseWriter;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.Date;
+
 public class SearchResultWriterTest {
 	
 	Result result = null;
 	GroupResults groupResults = null;
 	@Before
 	public void init(){
-		String[] headerNameList = new String[]{"KEY", "COUNT"};
+		String[] headerNameList = new String[]{"COUNT"};
 		int groupSize = 3;
 		int totalSearchCount = 11200;
 		groupResults =  new GroupResults(groupSize, totalSearchCount);
@@ -46,22 +45,30 @@ public class SearchResultWriterTest {
 		groupResults.add(groupResult3);
 		
 		Row[] data = new Row[2];
-		String field1 = "안녕하세요.";
-		String field2 = "사랑합니다.";
-		data[0] = new Row(new char[][]{field1.toCharArray(), field2.toCharArray()});
-		field1 = "안녕하세요2";
-		field2 = "사랑합니다2";
-		data[1] = new Row(new char[][]{field1.toCharArray(), field2.toCharArray()});
+		data[0] = makeRow("안녕하세요.", "사랑합니다.");
+		data[1] = makeRow("세무회계사무소.", "정성을 다하겠습니다.");
+		
+		Row[][] bundleData = new Row[2][];
+		bundleData[0] = new Row[]{makeRow("안녕하세요111.", "사랑합니다.111"), makeRow("안녕하세요.222", "사랑합니다22222.")};
+		bundleData[1] = new Row[]{makeRow("세무회계사무소222.", "정성을 다하겠습니다2222.."), makeRow("세무사무소입니다..", "사랑이 가득한곳.")};
+		
+		
 		
 		String[] fieldNameList = new String[]{"title", "body"};
 		int count = 2;
 		int totalCount = 100;
-		Metadata meta = new Metadata(1, count);
-		result = new Result(data, null, fieldNameList, count, totalCount, 0, null, null);
+		result = new Result(data, bundleData, null, null, fieldNameList, count, totalCount, 0, null, null);
 		result.setGroupResult(groupResults);
 		
-		
-		
+	}
+	
+	private Row makeRow(String... args) {
+		Row r = new Row(args.length);
+		for(int i= 0; i < args.length ; i++) {
+			String a = args[i];
+			r.put(i, a.toCharArray());
+		}
+		return r;
 	}
 	
 	@Test

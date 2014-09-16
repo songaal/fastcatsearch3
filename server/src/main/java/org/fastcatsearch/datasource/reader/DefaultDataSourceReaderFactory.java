@@ -11,9 +11,6 @@
 
 package org.fastcatsearch.datasource.reader;
 
-import java.io.File;
-import java.util.Map;
-
 import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.DataSourceConfig;
@@ -22,6 +19,9 @@ import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.util.DynamicClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.Map;
 
 public class DefaultDataSourceReaderFactory {
 	private static Logger logger = LoggerFactory.getLogger(DefaultDataSourceReaderFactory.class);
@@ -40,7 +40,7 @@ public class DefaultDataSourceReaderFactory {
 				dataSourceReader.addSourceReader(sourceReader);
 			}
 		} else {
-			logger.error("설정된 datasource가 없습니다.");
+			logger.error("No data source config!");
 		}
 		dataSourceReader.init();
 		return dataSourceReader;
@@ -60,7 +60,7 @@ public class DefaultDataSourceReaderFactory {
 				dataSourceReader.addSourceReader(sourceReader);
 			}
 		} else {
-			logger.error("설정된 datasource가 없습니다.");
+			logger.error("No data source config!");
 		}
 		dataSourceReader.init();
 		return dataSourceReader;
@@ -72,6 +72,9 @@ public class DefaultDataSourceReaderFactory {
 		SourceModifier<Map<String, Object>> sourceModifier = null;
 		if (sourceModifierType != null && sourceModifierType.length() > 0) {
 			sourceModifier = DynamicClassLoader.loadObject(sourceModifierType, SourceModifier.class);
+            if(sourceModifier == null) {
+                logger.error("Cannot find source modifier : {}", sourceModifierType);
+            }
 		}
 
 		SingleSourceReader<Map<String, Object>> sourceReader = DynamicClassLoader.loadObject(sourceReaderType, SingleSourceReader.class, new Class[] { File.class,
@@ -81,7 +84,7 @@ public class DefaultDataSourceReaderFactory {
 		logger.debug("Loading sourceReader : {} >> {}, modifier:{} / lastIndexTime:{}", sourceReaderType, sourceReader, sourceModifier, lastIndexTime);
 		// dataSourceReader가 null일 수 있다.
 		if (sourceReader == null) {
-			throw new IRException("소스리더를 로드하지 못했습니다. 해당 클래스가 클래스패스에 없거나 생성자 시그너처가 일치하는지 확인이 필요합니다. reader=" + sourceReaderType);
+			throw new IRException("Cannot find source reader. Make sure the class is in classpath or constructor signature is valid. reader = " + sourceReaderType);
 		} else {
 			return sourceReader;
 		}

@@ -1,8 +1,6 @@
 package org.fastcatsearch.http.writer;
 
-import java.io.IOException;
-import java.util.List;
-
+import org.fastcatsearch.ir.field.BundleSizeField;
 import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Result;
@@ -13,6 +11,9 @@ import org.fastcatsearch.ir.search.Explanation;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
+
+import java.io.IOException;
+import java.util.List;
 
 public class SearchResultWriter extends AbstractSearchResultWriter {
 	
@@ -65,6 +66,8 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 		resultWriter.key("result");
 		//data
 		Row[] rows = result.getData();
+		Row[][] bundleRowsList = result.getBundleData();
+        int[] bundleTotalSizeList = result.getBundleTotalSizeList();
 		List<RowExplanation>[] rowExplanationsList = result.getRowExplanationsList();
 
 		if(rows.length == 0){
@@ -73,19 +76,23 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 			resultWriter.array("item");
 			for (int i = 0; i < rows.length; i++) {
 				Row row = rows[i];
-				
+
 				resultWriter.object();
 
-				for(int k = 0; k < fieldNames.length; k++) {
-					String fdata = null;
-					if(fieldNames[k].equalsIgnoreCase(ScoreField.fieldName)){
-						fdata = String.valueOf(row.getScore());
-					}else{
-						char[] f = row.get(k);
-						fdata = new String(f).trim();
+				writeRowObject(row, (bundleRowsList != null && bundleRowsList[i] != null) ? bundleRowsList[i].length : 0);
+				
+				if(bundleRowsList != null && bundleRowsList[i] != null) {
+					resultWriter.key("_bundleSize").value(bundleTotalSizeList[i]);
+					resultWriter.key("_bundle");
+                    resultWriter.array("item");
+					for(Row bundleRow : bundleRowsList[i]){
+						resultWriter.object();
+						writeRowObject(bundleRow);
+						resultWriter.endObject();
 					}
-					resultWriter.key(fieldNames[k]).value(fdata);
+					resultWriter.endArray();
 				}
+				
 				if(rowExplanationsList != null) {
 					resultWriter.key("_explain");
 					resultWriter.array("item");
@@ -125,6 +132,23 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 				resultWriter.endObject();
 			}
 			resultWriter.endArray();
+		}
+	}
+	private void writeRowObject(Row row) throws ResultWriterException{
+		writeRowObject(row, 0);
+	}
+	private void writeRowObject(Row row, int bundleSize) throws ResultWriterException{
+		for(int k = 0; k < fieldNames.length; k++) {
+			String fdata = null;
+			if(fieldNames[k].equalsIgnoreCase(ScoreField.fieldName)){
+				fdata = String.valueOf(row.getScore());
+			}else if(fieldNames[k].equalsIgnoreCase(BundleSizeField.fieldName)){
+				fdata = String.valueOf(bundleSize);
+			}else{
+				char[] f = row.get(k);
+				fdata = new String(f).trim();
+			}
+			resultWriter.key(fieldNames[k]).value(fdata);
 		}
 	}
 	

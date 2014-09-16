@@ -74,6 +74,8 @@ public class UpdateSearchPageConfigAction extends AuthAction {
 				setting.setTitleField(value);
 			} else if ((setting = getSetting(categoryMap, key, "bodyField")) != null) {
 				setting.setBodyField(value);
+			} else if ((setting = getSetting(categoryMap, key, "bundleField")) != null) {
+				setting.setBundleField(value);
 			} else if ((setting = getSetting(categoryMap, key, "searchQuery")) != null) {
 				setting.setSearchQuery(value);
 			}
