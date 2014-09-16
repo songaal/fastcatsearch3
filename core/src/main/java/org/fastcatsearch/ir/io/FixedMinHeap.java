@@ -26,9 +26,9 @@ import org.slf4j.LoggerFactory;
 public class FixedMinHeap<T extends Comparable<T>> {
 	protected static Logger logger = LoggerFactory.getLogger(FixedMinHeap.class);
 	
-	private Object[] heap;
-	private int maxsize;
-	private int size;
+	protected Object[] heap;
+	protected int maxsize;
+	protected int size;
 	
 	public FixedMinHeap(int maxsize){
 		this.maxsize = maxsize;

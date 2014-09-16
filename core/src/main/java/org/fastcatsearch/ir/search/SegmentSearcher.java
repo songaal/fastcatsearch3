@@ -274,6 +274,96 @@ public class SegmentSearcher {
 		return new HitReader(segmentReader, meta, clause, filters, groups, groupFilters, sorts, bundle, boostList);
 	}
 
+	public Hit searchIndex(Clause clause, Sorts sorts, int start, int length) throws ClauseException,
+		IOException, IRException {
+		
+		int totalCount = 0;
+		FieldIndexesReader fieldIndexesReader = null;
+		int sortMaxSize = start + length - 1;
+		
+		OperatedClause operatedClause = clause.getOperatedClause(0, segmentReader.newSearchIndexesReader(), null);
+		// sort
+		SortGenerator sortGenerator = null;
+		FixedMaxPriorityQueue<HitElement> ranker = null;
+		if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
+			ranker = new DefaultRanker(sortMaxSize);
+		} else {
+			if(fieldIndexesReader == null){
+				fieldIndexesReader = segmentReader.newFieldIndexesReader();
+			}
+			sortGenerator = sorts.getSortGenerator(schema, fieldIndexesReader, null);
+			// ranker에 정렬 로직이 담겨있다.
+			// ranker 안에는 필드타입과 정렬옵션을 확인하여 적합한 byte[] 비교를 수행한다.
+			ranker = sorts.createRanker(schema, sortMaxSize);
+		}
+		
+		RankInfo[] rankInfoList = new RankInfo[BULK_SIZE];
+		boolean exausted = false;
+		BitSet localDeleteSet = segmentReader.deleteSet();
+		
+		//int searchTime = 0, sortTime = 0, groupTime = 0, filterTime = 0;
+		while (!exausted) {
+			int nread = 0;
+			// search
+			for (nread = 0; nread < BULK_SIZE; nread++) {
+				RankInfo rankInfo = new RankInfo();
+				if (operatedClause.next(rankInfo)) {
+					rankInfoList[nread] = rankInfo;
+				} else {
+					exausted = true;
+					break;
+				}
+			}
+			if (!exausted && nread == 0) {
+				continue;
+			}
+		
+			// check delete documents
+			int count = 0;
+			for (int i = 0; i < nread; i++) {
+				RankInfo rankInfo = rankInfoList[i];
+				// Check deleted list
+				if (!localDeleteSet.isSet(rankInfo.docNo())) {
+					rankInfoList[count] = rankInfo;
+					count++;
+		//			logger.debug("ok docNo = {}", rankInfo.docNo());
+				} else {
+		//			logger.debug("deleted docNo = {}", rankInfo.docNo());
+				}
+		
+			}
+		//	logger.debug("check delete docs {} => {}", nread, count);
+			nread = count;
+		//	st = System.nanoTime();
+			if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
+				// if sort is not set, rankdata is null
+				for (int i = 0; i < nread; i++) {
+					ranker.push(new HitElement(rankInfoList[i].docNo(), rankInfoList[i].score(), rankInfoList[i].rowExplanations()));
+				}
+			} else {
+				// if sort set
+				// sortGenerator 는 단순히 데이터를 읽어서 HitElement에 넣어주고 실제 정렬로직은 ranker에 push하면서 수행된다.
+				HitElement[] e = sortGenerator.getHitElement(rankInfoList, nread);
+				for (int i = 0; i < nread; i++) {
+					ranker.push(e[i]);
+				}
+			}
+			totalCount += nread;
+		}
+		
+		int segmentSequence = segmentReader.sequence();
+		int size = ranker.size();
+		FixedHitStack hitStack = new FixedHitStack(size);
+		for (int i = 0; i < size; i++) {
+			HitElement el = ranker.pop();
+			//여기에서 segment번호를 셋팅해준다. 
+			el.setDocNo(segmentSequence, el.docNo());
+			hitStack.push(el);
+		}
+		
+		return new Hit(hitStack, null, totalCount, null);
+	}
+	
 	/**
 	 * @param docFilter 결과 문서를 제한하기 위한 필터로써, 한번 검색된 필터를 가지고 있다가 전달해주면, 이 필터내의 문서에서만 결과를 만들도록 한다.
 	 * 

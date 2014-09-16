@@ -36,7 +36,7 @@ public class Sort {
 	}
 	
 	public String toString(){
-		return "[SORT]"+fieldIndexId+":"+asc;
+		return fieldIndexId+":"+asc;
 	}
 	
 	public String fieldIndexId(){
