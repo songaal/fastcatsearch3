@@ -11,13 +11,14 @@
 
 package org.fastcatsearch.job;
 
-import java.io.IOException;
-import java.util.Map;
-
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.plugin.LicenseInvalidException;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.plugin.analysis.AnalysisPlugin;
 import org.fastcatsearch.service.ServiceManager;
+
+import java.io.IOException;
+import java.util.Map;
 
 public class DictionaryCompileApplyJob extends MasterNodeJob {
 
@@ -51,8 +52,11 @@ public class DictionaryCompileApplyJob extends MasterNodeJob {
 		}
 
 		logger.debug("사전컴파일후 플러그인 {}를 재로딩합니다.", pluginId);
-		analysisPlugin.reload(environment.isMasterNode());
-
+        try {
+            analysisPlugin.reload(environment.isMasterNode());
+        } catch(LicenseInvalidException e) {
+            throw new FastcatSearchException(e);
+        }
 		return new JobResult(true);
 	}
 
