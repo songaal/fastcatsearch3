@@ -1,11 +1,17 @@
 package org.fastcatsearch.env;
 
-import java.io.File;
-
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.settings.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Enumeration;
+import java.util.UUID;
 
 public class Environment {
 	
@@ -24,7 +30,9 @@ public class Environment {
 	private String myNodeId;
 	private String masterNodeId;
 	private boolean isMasterNode;
-	
+
+    private final String serverId;
+
 	public Environment(String homeDirPath){
 		home = homeDirPath;
 		homeFile= new File(homeDirPath);
@@ -32,7 +40,9 @@ public class Environment {
 		if (home.length() > 0 && !home.endsWith(FILE_SEPARATOR)) {
 			home = home + FILE_SEPARATOR;
 		}
-		
+
+        this.serverId = generateServerId();
+
 		System.setProperty("fastcatsearch.home", homeFile.getAbsolutePath());
 		System.setProperty("logback.configurationFile", new File(new File(homeFile, "conf"), "logback.xml").getAbsolutePath());
 		System.setProperty("log.path", new File(homeFile, "logs").getAbsolutePath());
@@ -41,6 +51,7 @@ public class Environment {
 		logger.info("JAVA >> {} {}", System.getProperty("java.vendor"), System.getProperty("java.version"));
 		logger.info("Setting Home = {}", home);
 		logger.info("logback.configurationFile = {}", new File(new File(homeFile, "conf"), "logback.xml").getAbsolutePath());
+        logger.info("Server ID = {}", serverId);
 	}
 	
 	public Environment init() throws FastcatSearchException {
@@ -88,4 +99,51 @@ public class Environment {
 	public boolean isMasterNode(){
 		return isMasterNode;
 	}
+
+    public String getServerId() {
+        return serverId;
+    }
+    private String generateServerId() {
+        //
+        //enumerate ethernet card list
+        //
+        try {
+            Enumeration<NetworkInterface> nienum = NetworkInterface.getNetworkInterfaces();
+            while (nienum.hasMoreElements()) {
+                NetworkInterface ni = nienum.nextElement();
+                if(logger.isTraceEnabled()) {
+                    logger.trace("NetworkInterface {}({}) status : [{}:{}:{}]", ni.getName(),
+                            ni.getInterfaceAddresses(), ni.isUp(), ni.isLoopback(), ni.isVirtual());
+                }
+                if(!ni.isUp() || ni.isLoopback() || ni.isVirtual()) {
+                    continue;
+                }
+                boolean validInet = true;
+                Enumeration<InetAddress> inetEnum = ni.getInetAddresses();
+                while(inetEnum.hasMoreElements()) {
+                    InetAddress inet = inetEnum.nextElement();
+                    if(logger.isTraceEnabled()) {
+                        logger.trace("InetAddress {} valid : [{}:{}]", ni.getName(), !inet.isAnyLocalAddress(),
+                                inet.isReachable(100));
+                    }
+
+                    if(inet.isAnyLocalAddress()) {
+                        validInet = false;
+                    }
+                }
+                if(!validInet) { continue; }
+                byte[] hardwareAddress = ni.getHardwareAddress();
+                if (hardwareAddress != null) {
+                    UUID uuid = UUID.nameUUIDFromBytes(hardwareAddress);
+                    logger.trace("Valid uuid = {}", uuid);
+                    return uuid.toString();
+                }
+            }
+        } catch (SocketException e) {
+            logger.error("",e);
+        } catch (IOException e) {
+            logger.error("",e);
+        }
+        return "";
+    }
 }
