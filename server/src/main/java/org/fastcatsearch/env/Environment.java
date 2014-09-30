@@ -41,8 +41,6 @@ public class Environment {
 			home = home + FILE_SEPARATOR;
 		}
 
-        this.serverId = generateServerId();
-
 		System.setProperty("fastcatsearch.home", homeFile.getAbsolutePath());
 		System.setProperty("logback.configurationFile", new File(new File(homeFile, "conf"), "logback.xml").getAbsolutePath());
 		System.setProperty("log.path", new File(homeFile, "logs").getAbsolutePath());
@@ -51,6 +49,7 @@ public class Environment {
 		logger.info("JAVA >> {} {}", System.getProperty("java.vendor"), System.getProperty("java.version"));
 		logger.info("Setting Home = {}", home);
 		logger.info("logback.configurationFile = {}", new File(new File(homeFile, "conf"), "logback.xml").getAbsolutePath());
+        this.serverId = generateServerId();
         logger.info("Server ID = {}", serverId);
 	}
 	
