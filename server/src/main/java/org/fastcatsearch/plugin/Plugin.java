@@ -1,13 +1,14 @@
 package org.fastcatsearch.plugin;
 
-import java.io.File;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.fastcatsearch.db.InternalDBModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class Plugin {
 	protected static final Logger logger = LoggerFactory.getLogger(Plugin.class);
@@ -36,8 +37,18 @@ public abstract class Plugin {
 		doLoad(isLoadDb);
 		isLoaded = true;
 	}
-	
-	public final void unload(){
+
+
+    /**
+     * To be override for license validation
+     * @Param licenseInputStream License file inputstream. It can be null if file is not exist.
+     * */
+    protected boolean validateLicense(InputStream licenseInputStream) throws LicenseInvalidException {
+        return true;
+    }
+
+
+    public final void unload(){
 		doUnload();
 		if(pluginSetting.isUseDB()){
 			unloadDB();
