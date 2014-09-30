@@ -17,57 +17,70 @@ public abstract class Plugin {
 	protected PluginSetting pluginSetting;
 	protected InternalDBModule internalDBModule;
 	protected boolean isLoaded;
-	protected File licenseFile;
+    protected final String serverId;
+    protected final String licenseKey;
+    private final static String licenseFileName = "license.key";
 
-	public Plugin(File pluginDir, PluginSetting pluginSetting){
+    protected PluginLicenseInfo licenseInfo;
+
+	public Plugin(File pluginDir, PluginSetting pluginSetting, String serverId) throws LicenseInvalidException {
 		this.pluginDir = pluginDir;
 		this.pluginSetting = pluginSetting;
 		this.pluginId = pluginSetting.getId();
-        this.licenseFile = new File(pluginDir, "license.txt");
+        this.serverId = serverId;
+        this.licenseKey = readLicenseKey();
 	}
-	
-	public String pluginId(){
-		return pluginId;
-	}
-	
-	public final void load(boolean isMaster) throws LicenseInvalidException {
-        if(licenseFile != null) {
 
-            InputStream licenseInputStream = null;
-            try{
-                try {
-                    licenseInputStream = new FileInputStream(licenseFile);
-                } catch (FileNotFoundException e) {
-                    //ignore
+    protected void setLicenseInfo(PluginLicenseInfo licenseInfo) {
+        this.licenseInfo = licenseInfo;
+    }
+
+    public PluginLicenseInfo getLicenseInfo() {
+        return licenseInfo;
+    }
+
+    private String readLicenseKey() {
+        File licenseKeyFile = new File(pluginDir, licenseFileName);
+        if(licenseKeyFile.exists()) {
+            BufferedReader br = null;
+            try {
+                br = new BufferedReader(new FileReader(licenseKeyFile));
+                StringBuilder sb = new StringBuilder();
+                String line = br.readLine();
+
+                while (line != null) {
+                    sb.append(line);
+                    sb.append("\n");
+                    line = br.readLine();
                 }
-
-                validateLicense(licenseInputStream);
+                return sb.toString();
+            } catch (IOException e) {
+                logger.error("", e);
             } finally {
-                if (licenseInputStream != null) {
+                if(br != null) {
                     try {
-                        licenseInputStream.close();
+                        br.close();
                     } catch (IOException e) {
                         //ignore
                     }
                 }
             }
         }
+        return null;
+    }
 
-		boolean isLoadDb = isMaster && pluginSetting.isUseDB();
+	public String pluginId(){
+		return pluginId;
+	}
+	
+	public final void load(boolean isMasterNode) {
+		boolean isLoadDb = isMasterNode && pluginSetting.isUseDB();
 		if(isLoadDb){
 			loadDB();
 		}
 		doLoad(isLoadDb);
 		isLoaded = true;
 	}
-
-    /**
-    * To be override for license validation
-    * @Param licenseInputStream License file inputstream. It can be null if file is not exist.
-    * */
-    protected void validateLicense(InputStream licenseInputStream) throws LicenseInvalidException {
-
-    }
 
 	public final void unload(){
 		doUnload();
@@ -77,7 +90,7 @@ public abstract class Plugin {
 		isLoaded = false;
 	}
 	
-	public final void reload(boolean isMaster) throws LicenseInvalidException {
+	public final void reload(boolean isMaster) {
 		unload();
 		load(isMaster);
 	}

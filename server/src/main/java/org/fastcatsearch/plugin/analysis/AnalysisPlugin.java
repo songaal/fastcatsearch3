@@ -1,15 +1,5 @@
 package org.fastcatsearch.plugin.analysis;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
 import org.apache.ibatis.io.Resources;
 import org.fastcatsearch.db.dao.DictionaryDAO;
 import org.fastcatsearch.db.dao.DictionaryStatusDAO;
@@ -22,20 +12,21 @@ import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.dic.CommonDictionary;
 import org.fastcatsearch.ir.dic.Dictionary;
 import org.fastcatsearch.ir.dic.PreResult;
-import org.fastcatsearch.ir.dictionary.CustomDictionary;
-import org.fastcatsearch.ir.dictionary.DAOSourceDictionaryCompiler;
-import org.fastcatsearch.ir.dictionary.MapDictionary;
-import org.fastcatsearch.ir.dictionary.SetDictionary;
-import org.fastcatsearch.ir.dictionary.SourceDictionary;
-import org.fastcatsearch.ir.dictionary.SpaceDictionary;
-import org.fastcatsearch.ir.dictionary.SynonymDictionary;
+import org.fastcatsearch.ir.dictionary.*;
 import org.fastcatsearch.ir.io.CharVector;
+import org.fastcatsearch.plugin.LicenseInvalidException;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginSetting;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.Analyzer;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting.Type;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.*;
+import java.util.Map.Entry;
 
 public abstract class AnalysisPlugin<T, P> extends Plugin {
 
@@ -55,8 +46,8 @@ public abstract class AnalysisPlugin<T, P> extends Plugin {
 	
 	protected AnalyzerPoolManager analyzerPoolManager;
 	
-	public AnalysisPlugin(File pluginDir, PluginSetting pluginSetting) {
-		super(pluginDir, pluginSetting);
+	public AnalysisPlugin(File pluginDir, PluginSetting pluginSetting, String serverId) throws LicenseInvalidException {
+		super(pluginDir, pluginSetting, serverId);
 		analyzerPoolManager = new AnalyzerPoolManager();
 	}
 
@@ -78,8 +69,8 @@ public abstract class AnalysisPlugin<T, P> extends Plugin {
 	}
 
 	@Override
-	protected void doLoad(boolean isLoadDb) {
-		if(isLoadDb){
+	protected void doLoad(boolean isMasterNode) {
+		if(isMasterNode){
 			prepareDAO();
 		}
 		commonDictionary = loadDictionary();

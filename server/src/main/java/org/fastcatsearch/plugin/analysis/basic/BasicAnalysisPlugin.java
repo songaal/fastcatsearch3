@@ -1,8 +1,5 @@
 package org.fastcatsearch.plugin.analysis.basic;
 
-import java.io.File;
-import java.util.Map;
-
 import org.apache.lucene.analysis.core.CSVAnalyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
@@ -13,16 +10,22 @@ import org.fastcatsearch.ir.analysis.PrimaryWordAnalyzer;
 import org.fastcatsearch.ir.dic.Dictionary;
 import org.fastcatsearch.ir.dic.PreResult;
 import org.fastcatsearch.ir.io.CharVector;
+import org.fastcatsearch.plugin.LicenseInvalidException;
+import org.fastcatsearch.plugin.PluginLicenseInfo;
 import org.fastcatsearch.plugin.PluginSetting;
 import org.fastcatsearch.plugin.analysis.AnalysisPlugin;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting;
 import org.fastcatsearch.plugin.analysis.AnalyzerInfo;
 
+import java.io.File;
+import java.util.Map;
+
 
 public class BasicAnalysisPlugin extends AnalysisPlugin<CharVector, PreResult<CharVector>> {
 
-	public BasicAnalysisPlugin(File pluginDir, PluginSetting pluginSetting) {
-		super(pluginDir, pluginSetting);
+	public BasicAnalysisPlugin(File pluginDir, PluginSetting pluginSetting, String serverId) throws LicenseInvalidException {
+		super(pluginDir, pluginSetting, serverId);
+        setLicenseInfo(new PluginLicenseInfo("analyzer-basic", "Unlimited", "Everyone"));
 	}
 
 	@Override

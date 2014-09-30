@@ -1,23 +1,5 @@
 package org.fastcatsearch.plugin;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-
 import org.fastcatsearch.alert.ClusterAlertService;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.Environment;
@@ -37,6 +19,14 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.util.DynamicClassLoader;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import java.io.*;
+import java.text.ParseException;
+import java.util.*;
+import java.util.Map.Entry;
 
 public class PluginService extends AbstractService implements AnalyzerProvider {
 
@@ -118,7 +108,7 @@ public class PluginService extends AbstractService implements AnalyzerProvider {
 					String pluginId = setting.getId();
 					Plugin plugin = null;
 					if (className != null && className.length() > 0) {
-						plugin = DynamicClassLoader.loadObject(className, Plugin.class, new Class<?>[] { File.class, PluginSetting.class }, new Object[] { dir, setting });
+						plugin = DynamicClassLoader.loadObject(className, Plugin.class, new Class<?>[] { File.class, PluginSetting.class, String.class }, new Object[] { dir, setting, environment.getServerId() });
 						if(plugin == null){
 							logger.error("Cannot load plugin {} : {}", pluginId, className);
 							continue;

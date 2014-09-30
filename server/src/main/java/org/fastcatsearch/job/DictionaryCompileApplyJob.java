@@ -12,7 +12,6 @@
 package org.fastcatsearch.job;
 
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.plugin.LicenseInvalidException;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.plugin.analysis.AnalysisPlugin;
 import org.fastcatsearch.service.ServiceManager;
@@ -52,11 +51,9 @@ public class DictionaryCompileApplyJob extends MasterNodeJob {
 		}
 
 		logger.debug("사전컴파일후 플러그인 {}를 재로딩합니다.", pluginId);
-        try {
-            analysisPlugin.reload(environment.isMasterNode());
-        } catch(LicenseInvalidException e) {
-            throw new FastcatSearchException(e);
-        }
+
+        analysisPlugin.reload(environment.isMasterNode());
+
 		return new JobResult(true);
 	}
 
