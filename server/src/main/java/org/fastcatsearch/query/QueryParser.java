@@ -240,9 +240,13 @@ public class QueryParser {
 					} else {
 						// 사용자가 만든 XXXX_COUNT
 						String className = convertToClassName(functionName);
-						groupFunction = DynamicClassLoader.loadObject(className, GroupFunction.class, new Class<?>[] { int.class, String.class },
-								new Object[] { sortOrder, param });
-					}
+                        try {
+                            groupFunction = DynamicClassLoader.loadObject(className, GroupFunction.class, new Class<?>[] { int.class, String.class },
+                                    new Object[] { sortOrder, param });
+                        } catch (Exception e) {
+                            throw new QueryParseException(e);
+                        }
+                    }
 					groupFunctions[j] = groupFunction;
 					if(groupFunction == null) {
 						throw new QueryParseException("Unknown group function \""+functionName+"\"");

@@ -77,11 +77,16 @@ public class DefaultDataSourceReaderFactory {
             }
 		}
 
-		SingleSourceReader<Map<String, Object>> sourceReader = DynamicClassLoader.loadObject(sourceReaderType, SingleSourceReader.class, new Class[] { File.class,
-			SingleSourceConfig.class, SourceModifier.class, String.class }, new Object[] { filePath, 
-				singleSourceConfig, sourceModifier, lastIndexTime });
-		
-		logger.debug("Loading sourceReader : {} >> {}, modifier:{} / lastIndexTime:{}", sourceReaderType, sourceReader, sourceModifier, lastIndexTime);
+        SingleSourceReader<Map<String, Object>> sourceReader = null;
+        try {
+            sourceReader = DynamicClassLoader.loadObject(sourceReaderType, SingleSourceReader.class, new Class[]{File.class,
+                    SingleSourceConfig.class, SourceModifier.class, String.class}, new Object[]{filePath,
+                    singleSourceConfig, sourceModifier, lastIndexTime});
+        } catch (Exception e) {
+            throw new IRException(e);
+        }
+
+        logger.debug("Loading sourceReader : {} >> {}, modifier:{} / lastIndexTime:{}", sourceReaderType, sourceReader, sourceModifier, lastIndexTime);
 		// dataSourceReader가 null일 수 있다.
 		if (sourceReader == null) {
 			throw new IRException("Cannot find source reader. Make sure the class is in classpath or constructor signature is valid. reader = " + sourceReaderType);

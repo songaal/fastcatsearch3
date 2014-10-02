@@ -16,26 +16,20 @@
 
 package org.fastcatsearch.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DynamicClassLoader {
 	private static Logger logger = LoggerFactory.getLogger(DynamicClassLoader.class);
@@ -134,20 +128,19 @@ public class DynamicClassLoader {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static <T> T loadObject(String className, Class<T> type, Class<?>[] paramTypes ,Object[] initargs) {
-		try {
-			Class<?> clazz = loadClass(className);
-			if(clazz != null){
-				try{
-					Constructor<?> constructor = clazz.getConstructor(paramTypes);
-					return (T) constructor.newInstance(initargs);
-				}catch(NoSuchMethodException e){
-					logger.trace("해당 생성자가 없습니다. {} >> {} {} {} {} {} {} {}", className, paramTypes);
-				}
-			}
-		} catch (Exception e){
-			logger.debug("loadObject error > {}", e);
-		}
+	public static <T> T loadObject(String className, Class<T> type, Class<?>[] paramTypes ,Object[] initargs) throws Exception {
+        Class<?> clazz = loadClass(className);
+        if(clazz != null){
+            try{
+                Constructor<?> constructor = clazz.getConstructor(paramTypes);
+                return (T) constructor.newInstance(initargs);
+            } catch(NoSuchMethodException e) {
+                logger.trace("해당 생성자가 없습니다. {} >> {} {} {} {} {} {} {}", className, paramTypes);
+            } catch(InvocationTargetException e) {
+                throw new Exception(e.getCause());
+            }
+        }
+
 		return null;
 	}
 	
