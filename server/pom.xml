@@ -91,6 +91,7 @@
 							<outputDirectory>${project.build.directory}/lib</outputDirectory>
 							<excludes>
 								<exclude>**/Bootstrap.class</exclude>
+                                <exclude>**/BootstrapServlet.class</exclude>
 							</excludes>
 						</configuration>
 					</execution>
@@ -106,6 +107,7 @@
 							<outputDirectory>${project.build.directory}/lib</outputDirectory>
 							<includes>
 								<include>org/fastcatsearch/server/Bootstrap.class</include>
+                                <include>org/fastcatsearch/server/BootstrapServlet.class</include>
 							</includes>
 						</configuration>
 					</execution>
