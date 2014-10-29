@@ -11,13 +11,6 @@
 
 package org.fastcatsearch.server;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.util.concurrent.CountDownLatch;
-
 import org.fastcatsearch.alert.ClusterAlertService;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.JobService;
@@ -35,6 +28,13 @@ import org.fastcatsearch.processlogger.ProcessLoggerService;
 import org.fastcatsearch.service.ServiceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.util.concurrent.CountDownLatch;
 
 public class CatServer {
 
@@ -194,9 +194,11 @@ public class CatServer {
 			dbService.start();
 			//notification서비스는 db서비스를 이용하므로 db가 먼저로딩.
 			notificationService.start();
-			
-			pluginService.start();
-			
+            try {
+			    pluginService.start();
+            } catch (FastcatSearchException e) {
+                logger.error("PluginService 시작에 실패했습니다.", e);
+            }
 			systemInfoService.start();
 
 			httpRequestService.start();
@@ -208,18 +210,17 @@ public class CatServer {
 			collectionQueryCountService.start();
 
 			// 서비스가 모두 뜬 상태에서 후속작업.
-			if (environment.isMasterNode()) {
+			if (environment.isMasterNode() && pluginService.isRunning()) {
 				pluginService.loadAction();
 				pluginService.loadSchedule();
 			}
 			// 색인 스케쥴등록.
-			if (environment.isMasterNode()) {
+			if (environment.isMasterNode() && irService.isRunning()) {
 				irService.reloadAllSchedule();
 			}
 
 		} catch (FastcatSearchException e) {
 			logger.error("CatServer 시작에 실패했습니다.", e);
-			stop();
 		}
 
 		irService.registerLoadBanlancer(nodeService);
