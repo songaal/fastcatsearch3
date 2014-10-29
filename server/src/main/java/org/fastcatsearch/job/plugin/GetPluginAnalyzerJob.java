@@ -1,9 +1,5 @@
 package org.fastcatsearch.job.plugin;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.io.DataInput;
@@ -18,6 +14,10 @@ import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.Analyzer;
 import org.fastcatsearch.service.ServiceManager;
 import org.json.JSONException;
 import org.json.JSONStringer;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 
 public class GetPluginAnalyzerJob extends Job implements Streamable {
 	
@@ -48,14 +48,16 @@ public class GetPluginAnalyzerJob extends Job implements Streamable {
 					.key("description").value(pluginSetting.getDescription())
 					.key("className").value(pluginSetting.getClassName())
 					.key("analyzer").array();
-					
-					for(Analyzer analyzer : analyzerList) {
-						stringer.object()
-							.key("id").value(analyzer.getId())
-							.key("name").value(analyzer.getName())
-							.endObject();
-					}
-					stringer.endArray().endObject();
+					if(analyzerList != null) {
+                        for (Analyzer analyzer : analyzerList) {
+                            stringer.object()
+                                    .key("id").value(analyzer.getId())
+                                    .key("name").value(analyzer.getName())
+                                    .endObject();
+                        }
+                    }
+                    stringer.endArray().endObject();
+
 				}
 			}
 			stringer.endArray().endObject();

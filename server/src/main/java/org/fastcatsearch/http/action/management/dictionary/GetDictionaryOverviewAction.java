@@ -1,11 +1,5 @@
 package org.fastcatsearch.http.action.management.dictionary;
 
-import java.io.File;
-import java.io.Writer;
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.List;
-
 import org.fastcatsearch.db.dao.DictionaryDAO;
 import org.fastcatsearch.db.dao.DictionaryStatusDAO;
 import org.fastcatsearch.db.vo.DictionaryStatusVO;
@@ -16,13 +10,18 @@ import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.ir.util.Formatter;
+import org.fastcatsearch.plugin.Plugin;
+import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.plugin.analysis.AnalysisPlugin;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting;
-import org.fastcatsearch.plugin.Plugin;
-import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
+
+import java.io.File;
+import java.io.Writer;
+import java.util.Date;
+import java.util.List;
 
 @ActionMapping(value="/management/dictionary/overview", authority=ActionAuthority.Dictionary, authorityLevel=ActionAuthorityLevel.READABLE)
 public class GetDictionaryOverviewAction extends AuthAction {
@@ -35,7 +34,16 @@ public class GetDictionaryOverviewAction extends AuthAction {
 		
 		String pluginId = request.getParameter("pluginId");
 		PluginService pluginService = ServiceManager.getInstance().getService(PluginService.class);
+
 		Plugin plugin = pluginService.getPlugin(pluginId);
+        if(!plugin.isLoaded()){
+            Writer writer = response.getWriter();
+            ResponseWriter resultWriter = getDefaultResponseWriter(writer);
+            resultWriter.object().key("overview").array();
+            resultWriter.endArray().endObject();
+            resultWriter.done();
+            return;
+        }
 		AnalysisPlugin analysisPlugin = (AnalysisPlugin) plugin;
 		
 		AnalysisPluginSetting analysisPluginSetting = (AnalysisPluginSetting) plugin.getPluginSetting();

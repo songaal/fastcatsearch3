@@ -1,8 +1,5 @@
 package org.fastcatsearch.http.action.management.dictionary;
 
-import java.io.Writer;
-import java.util.List;
-
 import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
@@ -22,6 +19,9 @@ import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
+import java.io.Writer;
+import java.util.List;
+
 @ActionMapping(value = "/management/dictionary/system", authority = ActionAuthority.Dictionary, authorityLevel = ActionAuthorityLevel.READABLE)
 public class GetSystemDictionaryWordListAction extends AuthAction {
 
@@ -33,6 +33,17 @@ public class GetSystemDictionaryWordListAction extends AuthAction {
 
 		PluginService pluginService = ServiceManager.getInstance().getService(PluginService.class);
 		Plugin plugin = pluginService.getPlugin(pluginId);
+        if(!plugin.isLoaded()) {
+            Writer writer = response.getWriter();
+            ResponseWriter resultWriter = getDefaultResponseWriter(writer);
+
+            resultWriter.object().key("list").array();
+            resultWriter.endArray();
+
+            resultWriter.endObject();
+            resultWriter.done();
+            return;
+        }
 		AnalysisPlugin<CharVector, PreResult<CharVector>> analysisPlugin = (AnalysisPlugin<CharVector, PreResult<CharVector>>) plugin;
 
 		AnalysisPluginSetting analysisPluginSetting = (AnalysisPluginSetting) plugin.getPluginSetting();

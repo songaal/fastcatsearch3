@@ -114,8 +114,13 @@ public class PluginService extends AbstractService implements AnalyzerProvider {
 							logger.error("Cannot load plugin {} : {}", pluginId, className);
 							continue;
 						}
-						plugin.load(environment.isMasterNode());
-						logger.debug("PLUGIN {} >> {}", setting.getId(), plugin.getClass().getName());
+                        try{
+						    plugin.load(environment.isMasterNode());
+                            logger.debug("PLUGIN {} >> {}", setting.getId(), plugin.getClass().getName());
+                        } catch( LicenseInvalidException e ) {
+                            logger.error("License error! {}", e.getMessage());
+                            ClusterAlertService.getInstance().alert(e);
+                        }
 						pluginMap.put(setting.getId(), plugin);
 
 						if (plugin instanceof AnalysisPlugin) {
@@ -138,9 +143,7 @@ public class PluginService extends AbstractService implements AnalyzerProvider {
 				} catch (IOException e) {
 					logger.error("{}", e);
 					ClusterAlertService.getInstance().alert(e);
-				} catch( LicenseInvalidException e ) {
-                    logger.error("License error! {}", e.getMessage());
-                    ClusterAlertService.getInstance().alert(e);
+
                 }
 
 			}
