@@ -1,9 +1,5 @@
 package org.fastcatsearch.ir.search;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.document.DocumentReader;
@@ -13,24 +9,15 @@ import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.io.FixedHitStack;
 import org.fastcatsearch.ir.io.FixedMaxPriorityQueue;
-import org.fastcatsearch.ir.query.Bundle;
-import org.fastcatsearch.ir.query.Filters;
-import org.fastcatsearch.ir.query.Groups;
-import org.fastcatsearch.ir.query.HighlightInfo;
-import org.fastcatsearch.ir.query.HitFilter;
-import org.fastcatsearch.ir.query.Metadata;
-import org.fastcatsearch.ir.query.Query;
-import org.fastcatsearch.ir.query.RankInfo;
-import org.fastcatsearch.ir.query.Sorts;
-import org.fastcatsearch.ir.search.clause.AllDocumentOperatedClause;
-import org.fastcatsearch.ir.search.clause.BoostOperatedClause;
-import org.fastcatsearch.ir.search.clause.Clause;
-import org.fastcatsearch.ir.search.clause.ClauseException;
-import org.fastcatsearch.ir.search.clause.OperatedClause;
-import org.fastcatsearch.ir.search.clause.PkScoreOperatedClause;
+import org.fastcatsearch.ir.query.*;
+import org.fastcatsearch.ir.search.clause.*;
 import org.fastcatsearch.ir.settings.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 
 /**
  * Single Thread로 동작한다.
@@ -142,22 +129,17 @@ public class SegmentSearcher {
 
 		// sort
 		// Sorts sorts = q.getSorts();
-		SortGenerator sortGenerator = null;
 		if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
-			
-			
-			//TODO 
-			//BundleDefaultRanker (fieldIndexesReader, bundle)
 			ranker = new DefaultRanker(sortMaxSize);
 		} else {
 			if(fieldIndexesReader == null){
 				fieldIndexesReader = segmentReader.newFieldIndexesReader();
 			}
-			sortGenerator = sorts.getSortGenerator(schema, fieldIndexesReader, bundle);
 			// ranker에 정렬 로직이 담겨있다.
 			// ranker 안에는 필드타입과 정렬옵션을 확인하여 적합한 byte[] 비교를 수행한다.
 			ranker = sorts.createRanker(schema, sortMaxSize);
 		}
+        SortGenerator sortGenerator = sorts.getSortGenerator(schema, fieldIndexesReader, bundle);
 
 		RankInfo[] rankInfoList = new RankInfo[BULK_SIZE];
 		boolean exausted = false;
@@ -236,28 +218,35 @@ public class SegmentSearcher {
 			}
 //			groupTime += (System.nanoTime() - st);st = System.nanoTime();
 			
-			if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
-				// if sort is not set, rankdata is null
-				for (int i = 0; i < nread; i++) {
-					if(ranker.push(new HitElement(rankInfoList[i].docNo(), rankInfoList[i].score(), rankInfoList[i].rowExplanations()))){
-						totalCount++;
-					}
-				}
-			} else {
-				// if sort set
-				// sortGenerator 는 단순히 데이터를 읽어서 HitElement에 넣어주고 실제 정렬로직은 ranker에 push하면서 수행된다.
-				
-				//TODO 여기에서 groupkey의 그룹키를 읽어서 넣어주도록 한다. 길이 32의 md5키로 비교하기 때문에, Field index로 색인해도 될듯한데..
-				// 동일그룹여부확인시는 group no 즉, int로 비교가 가능하므로 좋긴한데, 세그먼트를 벗어나는 순간 key자체로 비교해야한다. 그러므로 group index는 의미가 없다.
-				
-				
-				HitElement[] e = sortGenerator.getHitElement(rankInfoList, nread);
-				for (int i = 0; i < nread; i++) {
-					if(ranker.push(e[i])) {
-						totalCount++;
-					}
-				}
-			}
+//			if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
+//				// if sort is not set, rankdata is null
+//				for (int i = 0; i < nread; i++) {
+//					if(ranker.push(new HitElement(rankInfoList[i].docNo(), rankInfoList[i].score(), rankInfoList[i].rowExplanations()))){
+//						totalCount++;
+//					}
+//				}
+//			} else {
+//				// if sort set
+//				// sortGenerator 는 단순히 데이터를 읽어서 HitElement에 넣어주고 실제 정렬로직은 ranker에 push하면서 수행된다.
+//
+//				//TODO 여기에서 groupkey의 그룹키를 읽어서 넣어주도록 한다. 길이 32의 md5키로 비교하기 때문에, Field index로 색인해도 될듯한데..
+//				// 동일그룹여부확인시는 group no 즉, int로 비교가 가능하므로 좋긴한데, 세그먼트를 벗어나는 순간 key자체로 비교해야한다. 그러므로 group index는 의미가 없다.
+//
+//
+//				HitElement[] e = sortGenerator.getHitElement(rankInfoList, nread);
+//				for (int i = 0; i < nread; i++) {
+//					if(ranker.push(e[i])) {
+//						totalCount++;
+//					}
+//				}
+//			}
+
+            HitElement[] e = sortGenerator.getHitElement(rankInfoList, nread);
+            for (int i = 0; i < nread; i++) {
+                if(ranker.push(e[i])) {
+                    totalCount++;
+                }
+            }
 			
 			
 //			sortTime += (System.nanoTime() - st);
@@ -276,92 +265,7 @@ public class SegmentSearcher {
 
 	public Hit searchIndex(Clause clause, Sorts sorts, int start, int length) throws ClauseException,
 		IOException, IRException {
-		
-		int totalCount = 0;
-		FieldIndexesReader fieldIndexesReader = null;
-		int sortMaxSize = start + length - 1;
-		
-		OperatedClause operatedClause = clause.getOperatedClause(0, segmentReader.newSearchIndexesReader(), null);
-		// sort
-		SortGenerator sortGenerator = null;
-		FixedMaxPriorityQueue<HitElement> ranker = null;
-		if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
-			ranker = new DefaultRanker(sortMaxSize);
-		} else {
-			if(fieldIndexesReader == null){
-				fieldIndexesReader = segmentReader.newFieldIndexesReader();
-			}
-			sortGenerator = sorts.getSortGenerator(schema, fieldIndexesReader, null);
-			// ranker에 정렬 로직이 담겨있다.
-			// ranker 안에는 필드타입과 정렬옵션을 확인하여 적합한 byte[] 비교를 수행한다.
-			ranker = sorts.createRanker(schema, sortMaxSize);
-		}
-		
-		RankInfo[] rankInfoList = new RankInfo[BULK_SIZE];
-		boolean exausted = false;
-		BitSet localDeleteSet = segmentReader.deleteSet();
-		
-		//int searchTime = 0, sortTime = 0, groupTime = 0, filterTime = 0;
-		while (!exausted) {
-			int nread = 0;
-			// search
-			for (nread = 0; nread < BULK_SIZE; nread++) {
-				RankInfo rankInfo = new RankInfo();
-				if (operatedClause.next(rankInfo)) {
-					rankInfoList[nread] = rankInfo;
-				} else {
-					exausted = true;
-					break;
-				}
-			}
-			if (!exausted && nread == 0) {
-				continue;
-			}
-		
-			// check delete documents
-			int count = 0;
-			for (int i = 0; i < nread; i++) {
-				RankInfo rankInfo = rankInfoList[i];
-				// Check deleted list
-				if (!localDeleteSet.isSet(rankInfo.docNo())) {
-					rankInfoList[count] = rankInfo;
-					count++;
-		//			logger.debug("ok docNo = {}", rankInfo.docNo());
-				} else {
-		//			logger.debug("deleted docNo = {}", rankInfo.docNo());
-				}
-		
-			}
-		//	logger.debug("check delete docs {} => {}", nread, count);
-			nread = count;
-		//	st = System.nanoTime();
-			if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
-				// if sort is not set, rankdata is null
-				for (int i = 0; i < nread; i++) {
-					ranker.push(new HitElement(rankInfoList[i].docNo(), rankInfoList[i].score(), rankInfoList[i].rowExplanations()));
-				}
-			} else {
-				// if sort set
-				// sortGenerator 는 단순히 데이터를 읽어서 HitElement에 넣어주고 실제 정렬로직은 ranker에 push하면서 수행된다.
-				HitElement[] e = sortGenerator.getHitElement(rankInfoList, nread);
-				for (int i = 0; i < nread; i++) {
-					ranker.push(e[i]);
-				}
-			}
-			totalCount += nread;
-		}
-		
-		int segmentSequence = segmentReader.sequence();
-		int size = ranker.size();
-		FixedHitStack hitStack = new FixedHitStack(size);
-		for (int i = 0; i < size; i++) {
-			HitElement el = ranker.pop();
-			//여기에서 segment번호를 셋팅해준다. 
-			el.setDocNo(segmentSequence, el.docNo());
-			hitStack.push(el);
-		}
-		
-		return new Hit(hitStack, null, totalCount, null);
+		return searchIndex(clause, sorts, start, length, null);
 	}
 	
 	/**
@@ -377,7 +281,6 @@ public class SegmentSearcher {
 		
 		OperatedClause operatedClause = clause.getOperatedClause(0, segmentReader.newSearchIndexesReader(), null);
 		// sort
-		SortGenerator sortGenerator = null;
 		FixedMaxPriorityQueue<HitElement> ranker = null;
 		if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
 			ranker = new DefaultRanker(sortMaxSize);
@@ -385,11 +288,12 @@ public class SegmentSearcher {
 			if(fieldIndexesReader == null){
 				fieldIndexesReader = segmentReader.newFieldIndexesReader();
 			}
-			sortGenerator = sorts.getSortGenerator(schema, fieldIndexesReader, null);
+
 			// ranker에 정렬 로직이 담겨있다.
 			// ranker 안에는 필드타입과 정렬옵션을 확인하여 적합한 byte[] 비교를 수행한다.
 			ranker = sorts.createRanker(schema, sortMaxSize);
 		}
+        SortGenerator sortGenerator = sorts.getSortGenerator(schema, fieldIndexesReader, null);
 		
 		RankInfo[] rankInfoList = new RankInfo[BULK_SIZE];
 		boolean exausted = false;
@@ -449,19 +353,25 @@ public class SegmentSearcher {
 		//	logger.debug("check delete docs {} => {}", nread, count);
 			nread = count;
 		//	st = System.nanoTime();
-			if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
-				// if sort is not set, rankdata is null
-				for (int i = 0; i < nread; i++) {
-					ranker.push(new HitElement(rankInfoList[i].docNo(), rankInfoList[i].score(), rankInfoList[i].rowExplanations()));
-				}
-			} else {
-				// if sort set
-				// sortGenerator 는 단순히 데이터를 읽어서 HitElement에 넣어주고 실제 정렬로직은 ranker에 push하면서 수행된다.
-				HitElement[] e = sortGenerator.getHitElement(rankInfoList, nread);
-				for (int i = 0; i < nread; i++) {
-					ranker.push(e[i]);
-				}
-			}
+//			if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
+//				// if sort is not set, rankdata is null
+//				for (int i = 0; i < nread; i++) {
+//					ranker.push(new HitElement(rankInfoList[i].docNo(), rankInfoList[i].score(), rankInfoList[i].rowExplanations()));
+//				}
+//			} else {
+//				// if sort set
+//				// sortGenerator 는 단순히 데이터를 읽어서 HitElement에 넣어주고 실제 정렬로직은 ranker에 push하면서 수행된다.
+//				HitElement[] e = sortGenerator.getHitElement(rankInfoList, nread);
+//				for (int i = 0; i < nread; i++) {
+//					ranker.push(e[i]);
+//				}
+//			}
+
+            HitElement[] e = sortGenerator.getHitElement(rankInfoList, nread);
+            for (int i = 0; i < nread; i++) {
+                ranker.push(e[i]);
+            }
+
 			totalCount += nread;
 		}
 		
