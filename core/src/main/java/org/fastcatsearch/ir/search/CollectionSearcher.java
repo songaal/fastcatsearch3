@@ -336,10 +336,10 @@ public class CollectionSearcher {
 		HighlightInfo highlightInfo = null;
 
 		int totalSize = 0;
-		//
-		//TODO 차후 disk를 보조로 사용하는 hybrid기반 hashset으로 바꾼다. 메모리문제.. 
-		// 예를 들어 결과가 1억건이라면.. OOM발생. 처음엔 메모리로 가다가 1만건 넘어가면, 파일로 flush해서 사용하는 hybrid방식이 필요..   
-		//
+		// bundleKeySet 는 동일그룹갯수를 확인하는 용도이다.
+        // 묶음검색에서는 전체 문서갯수가 아닌 묶음의 갯수가 총 결과갯수가 되므로, 그룹중복을 제거하여 계산해주어야 한다.
+        // 32byte의 key를 HashSet에 넣었을때 100만개에 100MB, 1000만개에 1G 정도 메모리 소요.
+        // 대부분 100만개 이하일 것이므로, 메모리에서 수행하도록 한다.
 		Set<BytesRef> bundleKeySet = new HashSet<BytesRef>();
 		List<Explanation> explanationList = null;
 		BitSet[] segmentDocHitSetList = null;
