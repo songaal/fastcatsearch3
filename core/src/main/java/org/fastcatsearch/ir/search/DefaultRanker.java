@@ -35,13 +35,23 @@ public class DefaultRanker extends FixedMaxPriorityQueue<HitElement>{
 	public boolean push(HitElement e){
 		if(e.getBundleKey() != null) {
 			BytesRef bundleKey = e.getBundleKey();
-			for (int i = 1; i <= size; i++) {
-				if(bundleKey.equals(((HitElement) heap[i]).getBundleKey())){
-					//동일 bundle 이 존재하면 또다시 push하지 않는다.
-					logger.debug("동일 Bundle found > {}", e.docNo());
-					return false;
-				}
-			}
+            for (int i = 1; i <= size; i++) {
+                if (bundleKey.equals(((HitElement) heap[i]).getBundleKey())) {
+					/*
+					 * 동일 bundle 이 존재하면 어느것이 더 적합한지 체크한다.
+					 */
+                    if (compare(e, (HitElement) heap[i]) < 0) {
+                        // 크거나 같으면 그냥 패스.
+                        // 작으면 바꾼다.
+                        replaceEl(i, e);
+                        // break;
+                        return true;
+                    }
+
+                    // logger.debug("Do no push > {}", e.docNo());
+                    return false;
+                }
+            }
 		}
 		//bundle을 사용하지 않거나 동일 bundle이 없으면 push한다. 
 		return super.push(e);	
