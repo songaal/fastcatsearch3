@@ -6,6 +6,8 @@ public class SourceReaderParameter {
 	public static final String TYPE_STRING_LONG = "STRING_LONG"; //single-line long
 	public static final String TYPE_TEXT = "TEXT"; //multi-line
 	public static final String TYPE_NUMBER = "NUMBER"; //숫자형.
+	public static final String TYPE_CHECK = "CHECK"; //체크박스형.
+	public static final String TYPE_ENUM = "ENUM"; //나열 선택형.
 	
 	private String id;
 	private String name;
