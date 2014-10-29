@@ -46,7 +46,7 @@ public abstract class AnalysisPlugin<T, P> extends Plugin {
 	
 	protected AnalyzerPoolManager analyzerPoolManager;
 	
-	public AnalysisPlugin(File pluginDir, PluginSetting pluginSetting, String serverId) throws LicenseInvalidException {
+	public AnalysisPlugin(File pluginDir, PluginSetting pluginSetting, String serverId) {
 		super(pluginDir, pluginSetting, serverId);
 		analyzerPoolManager = new AnalyzerPoolManager();
 	}
@@ -69,7 +69,7 @@ public abstract class AnalysisPlugin<T, P> extends Plugin {
 	}
 
 	@Override
-	protected void doLoad(boolean isMasterNode) {
+	protected void doLoad(boolean isMasterNode) throws LicenseInvalidException {
 		if(isMasterNode){
 			prepareDAO();
 		}

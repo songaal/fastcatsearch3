@@ -23,7 +23,7 @@ public abstract class Plugin {
 
     protected PluginLicenseInfo licenseInfo;
 
-	public Plugin(File pluginDir, PluginSetting pluginSetting, String serverId) throws LicenseInvalidException {
+	public Plugin(File pluginDir, PluginSetting pluginSetting, String serverId) {
 		this.pluginDir = pluginDir;
 		this.pluginSetting = pluginSetting;
 		this.pluginId = pluginSetting.getId();
@@ -73,7 +73,7 @@ public abstract class Plugin {
 		return pluginId;
 	}
 	
-	public final void load(boolean isMasterNode) {
+	public final void load(boolean isMasterNode) throws LicenseInvalidException {
 		boolean isLoadDb = isMasterNode && pluginSetting.isUseDB();
 		if(isLoadDb){
 			loadDB();
@@ -90,12 +90,12 @@ public abstract class Plugin {
 		isLoaded = false;
 	}
 	
-	public final void reload(boolean isMaster) {
+	public final void reload(boolean isMaster) throws LicenseInvalidException {
 		unload();
 		load(isMaster);
 	}
 	
-	protected abstract void doLoad(boolean isLoadDb);
+	protected abstract void doLoad(boolean isLoadDb) throws LicenseInvalidException;
 	
 	protected abstract void doUnload();
 	
