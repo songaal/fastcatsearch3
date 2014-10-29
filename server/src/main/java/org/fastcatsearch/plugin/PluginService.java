@@ -138,7 +138,10 @@ public class PluginService extends AbstractService implements AnalyzerProvider {
 				} catch (IOException e) {
 					logger.error("{}", e);
 					ClusterAlertService.getInstance().alert(e);
-				}
+				} catch( LicenseInvalidException e ) {
+                    logger.error("License error! {}", e.getMessage());
+                    ClusterAlertService.getInstance().alert(e);
+                }
 
 			}
 
