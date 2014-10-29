@@ -13,10 +13,12 @@ package org.fastcatsearch.datasource.reader;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.sql.Connection;
@@ -59,7 +61,6 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 
 	private static final String LOB_BINARY = "LOB_BINARY";
 	private static final String LOB_STRING = "LOB_STRING";
-	private static final String LOB_NSTRING = "LOB_NSTRING";
 	private static Logger logger = LoggerFactory.getLogger(DBReader.class);
 	private int BULK_SIZE;
 
@@ -103,7 +104,7 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 				, SourceReaderParameter.TYPE_TEXT, false, null));
 		registerParameter(new SourceReaderParameter("afterSQL", "After SQL", "Query after indexing."
 				, SourceReaderParameter.TYPE_TEXT, false, null));
-		registerParameter(new SourceReaderParameter("useBlobFile", "LOB as File", "Using *LOB ( CLOB / BLOB / NCLOB ) as File. <br/> ( You must handle it in Source-Modifier )"
+		registerParameter(new SourceReaderParameter("useBlobFile", "LOB as File", "Using *LOB ( CLOB / NCLOB / BLOB ) as File. <br/> ( You must handle it in Source-Modifier )"
 				, SourceReaderParameter.TYPE_CHECK, false, "false"));
 	}
 	
@@ -175,7 +176,7 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 				pstmt = con.prepareStatement(q(dataSQL), ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				pstmt.setFetchSize(Integer.MIN_VALUE);
 			} else {
-				pstmt = con.prepareStatement(q(dataSQL), ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				pstmt = con.prepareStatement(q(dataSQL));
 				if (fetchSize > 0){
 					pstmt.setFetchSize(fetchSize);
 				}
@@ -356,12 +357,8 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 					if (type == Types.BLOB || type == Types.BINARY || type == Types.LONGVARBINARY || type == Types.VARBINARY
 							|| type == Types.JAVA_OBJECT) {
 						lobType = LOB_BINARY;
-					} else if (type == Types.CLOB) {
+					} else if (type == Types.CLOB || type == Types.NCLOB || type == Types.SQLXML || type == Types.LONGVARCHAR || type == Types.LONGNVARCHAR) {
 						lobType = LOB_STRING;
-					} else {
-						if (type == Types.NCLOB || type == Types.SQLXML || type == Types.LONGVARCHAR || type == Types.LONGNVARCHAR) {
-							lobType = LOB_NSTRING;
-						}
 					}
 					
 					if(lobType == null) {
@@ -375,20 +372,31 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 						}
 					} else {
 						File file = null;
-						StringBuilder sb = null;
 						
 						if(lobType == LOB_BINARY) {
-							if(useBlobFile) {
-								// logger.debug("Column-"+columnIdx+" is BLOB!");
-								// BLOB일 경우 스트림으로 받는다.
+							// logger.debug("Column-"+columnIdx+" is BLOB!");
+							// BLOB일 경우 스트림으로 받는다.
+							ByteArrayOutputStream buffer = null;
+							try {
+								if(!useBlobFile) {
+									buffer = new ByteArrayOutputStream();
+								}
+								file = readTmpBlob(i, columnIdx, rsMeta, buffer);
 								if(useBlobFile) {
-									file = readTmpLob(i, columnIdx, rsMeta);
 									keyValueMap.put(columnName[i], file);
 								} else {
-									keyValueMap.put(columnName[i], "");
+									keyValueMap.put(columnName[i], buffer.toByteArray());
+								}
+							} finally {
+								if (buffer != null) {
+									try {
+										buffer.close();
+									} catch (IOException ignore) {
+									}
 								}
 							}
 						} else if(lobType == LOB_STRING) {
+							StringBuilder sb = null;
 							if(!useBlobFile) {
 								sb = new StringBuilder();
 							}
@@ -397,25 +405,6 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 								keyValueMap.put(columnName[i], file);
 							} else {
 								keyValueMap.put(columnName[i], sb.toString());
-							}
-						} else if(lobType == LOB_NSTRING) {
-							// java 1.6 이상지원 jdbc4.0 CLOB 필드
-							// CLOB과 동일하게 처리해준다.
-							// java1.5의 경우는 위에서 처리가 되며,
-							// 데이터가 null이거나 java1.6이상의 CLOB데이터는 이곳으로 넘어오게 되는데, 에러가 발생하면 null로 처리해준다.
-							try {
-								if(!useBlobFile) {
-									sb = new StringBuilder();
-								}
-								file = readTmpClob(i, columnIdx, rsMeta, sb);
-								if(useBlobFile) {
-									keyValueMap.put(columnName[i], file);
-								} else {
-									keyValueMap.put(columnName[i], sb.toString());
-								}
-							} catch (Exception e) {
-								// java1.5에서 데이터가 실제 null인 경우이므로 무시한다.
-								logger.debug("Exception in CLOB Field {} : {}", i, e.getMessage());
 							}
 						}
 						
@@ -461,18 +450,24 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 		}
 	}
 	
-	private File readTmpLob(int columnInx, int columnNo, ResultSetMetaData rsMeta) throws IRException, SQLException {
+	private File readTmpBlob(int columnInx, int columnNo, ResultSetMetaData rsMeta, OutputStream buffer) throws IRException, SQLException {
 		File file = null;
 		FileOutputStream os = null;
 		InputStream is = null;
 		try {
-			file = File.createTempFile("LOB." + columnNo, ".tmp");
-			// logger.debug("tmp file = "+f.getAbsolutePath());
 			is = r.getBinaryStream(columnNo);
 			if (is != null) {
-				os = new FileOutputStream(file);
+				if(buffer == null) {
+					file = File.createTempFile("blob." + columnNo, ".tmp");
+					os = new FileOutputStream(file);
+					// logger.debug("tmp file = "+f.getAbsolutePath());
+				}
 				for (int rlen = 0; (rlen = is.read(data, 0, data.length)) != -1;) {
-					os.write(data, 0, rlen);
+					if(buffer != null) {
+						buffer.write(data, 0, rlen);
+					} else {
+						os.write(data, 0, rlen);
+					}
 				}
 			}
 
@@ -548,7 +543,7 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 	
 	private void deleteTmpLob() {
 		while (tmpFile.size() > 0) {
-			File file = tmpFile.remove(0);
+			File file = tmpFile.remove(tmpFile.size() - 1);
 			try {
 				if (file.exists()) {
 					FileUtils.forceDelete(file);
