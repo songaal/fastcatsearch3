@@ -116,7 +116,7 @@ public class LexiconPostingChecker {
 					}
 					
 					if(findDocNo == docId) {
-						findWord.append(string).append(" ");
+						findWord.append("\"").append(string).append("\", ");
 					}
 					
 					int tf = clone.readVInt();
