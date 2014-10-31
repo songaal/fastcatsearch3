@@ -28,7 +28,7 @@ import java.util.List;
 
 /**
  * .lexicon 파일에서 텀과 색인포지션정보를 stdout으로 봅아낸다.
- * 사용법은 java LexiconChecker <검색필드명> <세그먼트경로> <리비전번호>
+ * 사용법은 java LexiconChecker <검색필드명> <세그먼트경로> <리비전번호> <찾고자하는도큐먼트번호>
  */
 public class LexiconPostingChecker {
 	
@@ -43,21 +43,19 @@ public class LexiconPostingChecker {
 		File dir = new File(args[1]);
 		int rev = Integer.parseInt(args[2]);
 		
-		String checkStr = args[3];
-		
 		int docNo = -1;
 		
-		if(args.length > 4) {
-			docNo = Integer.parseInt(args[4]);
+		if(args.length > 3) {
+			docNo = Integer.parseInt(args[3]);
 		}
 		
-		LexiconPostingChecker checker = new LexiconPostingChecker(id, dir, rev, checkStr, docNo);
-		checker.list(System.out, checkStr);
+		LexiconPostingChecker checker = new LexiconPostingChecker(id, dir, rev, docNo);
+		checker.list(System.out);
 		checker.close();
 	}
 	
 	
-	public LexiconPostingChecker(String id, File dir, int revision, String checkStr, int findDocNo) throws IOException{
+	public LexiconPostingChecker(String id, File dir, int revision, int findDocNo) throws IOException{
 		this.id = id;
 		this.dir = dir;
 		this.rev = revision;
@@ -72,84 +70,90 @@ public class LexiconPostingChecker {
 		indexInput.close();
 	}
 
-	public void list(PrintStream output, String checkStr) throws IOException{
+	public void list(PrintStream output) throws IOException{
 		int indexSize = indexInput.readInt();
 		output.println("Memory indexsize = "+indexSize);
+		
+		StringBuilder findWord = new StringBuilder();
+		
 		for (int k = 0; k < indexSize; k++) {
 			String string = new String(indexInput.readUString());
 			long inputOffset = indexInput.readLong();
 			
-			if(checkStr.equalsIgnoreCase(string)) {
+			//output.println("word="+string+" ,"+ inputOffset);
+			BufferedFileInput postingInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, rev) , IndexFileNames.getSearchPostingFileName(id));
 			
-				output.println("word="+string+" ,"+ inputOffset);
-				BufferedFileInput postingInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, rev) , IndexFileNames.getSearchPostingFileName(id));
-				
-				BufferedFileInput clone = postingInput.clone();
-				
-				IndexFieldOption indexFieldOption = new IndexFieldOption(clone.readInt());
-				
-				output.println("offset:" + inputOffset);
-				
-				clone.seek(inputOffset);
-				
-				int len = 0, postingCount = 0, lastDocNo = 0;
-				
-				List<Integer> postingList = new ArrayList<Integer>();
+			BufferedFileInput clone = postingInput.clone();
 			
-				try {
-					len = clone.readVInt();
-					postingCount = clone.readInt();
-					lastDocNo = clone.readInt();
-					
-					int postingRemain = postingCount;
-					
-					int prevId = -1;
-					
-					boolean isStorePosition = indexFieldOption.isStorePosition();
-					
-					for (int i = 0; postingRemain > 0; i++) {
-						int docId = -1;
-						if (prevId >= 0) {
-							docId = clone.readVInt() + prevId + 1;
-						} else {
-							docId = clone.readVInt();
-						}
-						
-						
-						int tf = clone.readVInt();
-						if (tf > 0 && isStorePosition) {
-							
-							int prevPosition = -1;
-							for (int j = 0; j < tf; j++) {
-								int position = 0;
-								if (prevPosition >= 0) {
-									position = clone.readVInt() + prevPosition + 1;
-								} else {
-									position = clone.readVInt();
-								}
-								prevPosition = position;
-							}
-						}
-						postingList.add(docId);
-						
-						postingRemain--;
-						prevId = docId;
+			IndexFieldOption indexFieldOption = new IndexFieldOption(clone.readInt());
+			
+			//output.println("offset:" + inputOffset);
+			
+			clone.seek(inputOffset);
+			
+			int len = 0, postingCount = 0, lastDocNo = 0;
+			
+			//List<Integer> postingList = new ArrayList<Integer>();
+		
+			try {
+				len = clone.readVInt();
+				postingCount = clone.readInt();
+				lastDocNo = clone.readInt();
+				
+				int postingRemain = postingCount;
+				
+				int prevId = -1;
+				
+				boolean isStorePosition = indexFieldOption.isStorePosition();
+				
+				for (int i = 0; postingRemain > 0; i++) {
+					int docId = -1;
+					int readed = clone.readVInt();
+					if (prevId >= 0) {
+						docId = readed + prevId + 1;
+					} else {
+						docId = readed;
 					}
 					
-				} catch (IOException ex) {
-					ex.printStackTrace();
+					if(findDocNo == docId) {
+						findWord.append(string).append(" ");
+					}
+					
+					int tf = clone.readVInt();
+					if (tf > 0 && isStorePosition) {
+						
+						int prevPosition = -1;
+						for (int j = 0; j < tf; j++) {
+							int position = 0;
+							if (prevPosition >= 0) {
+								position = clone.readVInt() + prevPosition + 1;
+							} else {
+								position = clone.readVInt();
+							}
+							prevPosition = position;
+						}
+					}
+					//postingList.add(docId);
+					
+					postingRemain--;
+					prevId = docId;
 				}
 				
-				postingInput.close();
-				
-				output.println("poosting len : " + len + " postingCount : "
-						+ postingCount + " / lastDocNo : " + lastDocNo);
-				output.println("postingList:"+postingList);
-				if(findDocNo != -1) {
-					output.println("findDocNo:"+findDocNo+" "+(postingList.contains(findDocNo)?"CONTAINS":"NOT"));
-				}
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
+			
+			postingInput.close();
+			
+			//output.println("poosting len : " + len + " postingCount : "
+			//		+ postingCount + " / lastDocNo : " + lastDocNo);
+			//output.println("postingList:"+postingList);
+			if(findDocNo != -1) {
+				//output.println("findDocNo:"+findDocNo+" "+(postingList.contains(findDocNo)?"CONTAINS":"NOT"));
 			}
 		}
+		
+		output.println("docNo ["+findDocNo+"] has word "+ findWord);
 	}
 }
 
