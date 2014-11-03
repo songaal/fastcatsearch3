@@ -179,6 +179,23 @@ final class CSVTokenizer extends Tokenizer {
 			}
 		}
 		
+		if(dataStarts != -1) {
+			int length = lastPos - dataStarts + 1;
+			int startOffset = baseOffset + dataStarts;
+			int endOffset = startOffset + length;
+			
+			termAttribute.copyBuffer(cbuf, dataStarts, length);
+			offsetAttribute.setOffset(startOffset, endOffset);
+			if(logger.isTraceEnabled()) {
+				String term = new String(cbuf, dataStarts, length);
+				logger.trace("output token:[{}] {}~{}", term, dataStarts, length);
+			}
+			lastPos = -1;
+			dataStarts = -1;
+			lastReaded = -1;
+			currentPos++;
+			return true;
+		}
 		return false;
 	}
 }

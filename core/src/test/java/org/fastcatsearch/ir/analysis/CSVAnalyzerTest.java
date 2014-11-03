@@ -38,6 +38,26 @@ public class CSVAnalyzerTest {
 	}
 	
 	@Test
+	public void testBulk() throws IOException {
+		String str = "";
+		str = "SK,  하이닉스";
+		//str = "하이닉스";
+		
+		StringReader input = new StringReader(str);
+		CSVAnalyzer analyzer = new CSVAnalyzer();
+		TokenStream tokenStream = analyzer.tokenStream("", input);
+		tokenStream.reset();
+		logger.debug("tokenStream:{}", tokenStream);
+		CharTermAttribute charTermAttribute = tokenStream.getAttribute(CharTermAttribute.class);
+		OffsetAttribute offsetAttribute = tokenStream.getAttribute(OffsetAttribute.class);
+		for(int inx=0;tokenStream.incrementToken();inx++) {
+			String term = charTermAttribute.toString();
+			logger.debug("[{}] \"{}\" {}~{}", inx, term, offsetAttribute.startOffset(), offsetAttribute.endOffset());
+		}
+		analyzer.close();
+	}
+	
+	@Test
 	public void testTokenizer() throws IOException {
 		
 		String str = "";
