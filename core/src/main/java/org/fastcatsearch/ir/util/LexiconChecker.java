@@ -16,48 +16,47 @@
 
 package org.fastcatsearch.ir.util;
 
+import org.fastcatsearch.ir.common.IndexFileNames;
+import org.fastcatsearch.ir.io.BufferedFileInput;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import org.fastcatsearch.ir.common.IndexFileNames;
-import org.fastcatsearch.ir.io.BufferedFileInput;
-
-
+/**
+ * .lexicon 파일에서 텀과 색인포지션정보를 stdout으로 봅아낸다.
+ * 사용법은 java LexiconChecker <검색필드명> <세그먼트경로> <리비전번호>
+ */
 public class LexiconChecker {
 	public static void main(String[] args) throws IOException {
-		int indexFieldSize = Integer.parseInt(args[0]);
+		String id = args[0];
 		File dir = new File(args[1]);
 		int rev = Integer.parseInt(args[2]);
-		LexiconChecker checker = new LexiconChecker(dir, rev);
-		checker.list(System.out, indexFieldSize);
+		LexiconChecker checker = new LexiconChecker(id, dir, rev);
+		checker.list(System.out);
 		checker.close();
 	}
 	
 	BufferedFileInput indexInput;
 	
-	public LexiconChecker(File dir, int revision) throws IOException{
+	public LexiconChecker(String id, File dir, int revision) throws IOException{
 		System.out.println("Check dir = "+dir.getAbsolutePath());
-		String id = "";
-		indexInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.getSearchIndexFileName(id));
+
+		indexInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.getSearchLexiconFileName(id));
 	}
 	
 	public void close() throws IOException{
 		indexInput.close();
 	}
-	public void list(PrintStream output, int indexFieldSize) throws IOException{
-		for (int i = 0; i < indexFieldSize; i++) {
-			int indexSize = indexInput.readInt();
-			output.println("Memory indexsize = "+indexSize);
-			if(indexSize > 0){
-				for (int k = 0; k < indexSize; k++) {
-					output.println("word="+new String(indexInput.readUString())+" ,"+ indexInput.readLong()+", "+ indexInput.readLong());
-				}
-			}else{
-				if(i > 0){
-					indexInput.readLong();
-				}
-			}
-		}
+
+	public void list(PrintStream output) throws IOException{
+        int indexSize = indexInput.readInt();
+        output.println("Memory indexsize = "+indexSize);
+        for (int k = 0; k < indexSize; k++) {
+            output.println("word="+new String(indexInput.readUString())+" ,"+ indexInput.readLong());
+        }
+
 	}
 }
+
+

@@ -13,10 +13,12 @@ package org.fastcatsearch.datasource.reader;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.sql.Connection;
@@ -33,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.datasource.reader.annotation.SourceReader;
 import org.fastcatsearch.ir.IRService;
@@ -56,6 +59,8 @@ import org.slf4j.LoggerFactory;
 @SourceReader(name="DBMS")
 public class DBReader extends SingleSourceReader<Map<String, Object>> {
 
+	private static final String LOB_BINARY = "LOB_BINARY";
+	private static final String LOB_STRING = "LOB_STRING";
 	private static Logger logger = LoggerFactory.getLogger(DBReader.class);
 	private int BULK_SIZE;
 
@@ -65,9 +70,13 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 	private int columnCount;
 	private String[] columnName;
 	private Map<String, Object>[] dataSet;
+	
+	private List<File> tmpFile;
 
 	private int bulkCount;
 	private int readCount;
+	
+	private boolean useBlobFile;
 
 	public DBReader() {
 		super();
@@ -95,11 +104,17 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 				, SourceReaderParameter.TYPE_TEXT, false, null));
 		registerParameter(new SourceReaderParameter("afterSQL", "After SQL", "Query after indexing."
 				, SourceReaderParameter.TYPE_TEXT, false, null));
+		registerParameter(new SourceReaderParameter("useBlobFile", "LOB as File", "Using *LOB ( CLOB / NCLOB / BLOB ) as File. <br/> ( You must handle it in Source-Modifier )"
+				, SourceReaderParameter.TYPE_CHECK, false, "false"));
 	}
 	
 	@Override
 	public void init() throws IRException {
-		this.BULK_SIZE = getConfigInt("bulkSize");
+		BULK_SIZE = getConfigInt("bulkSize");
+		
+		useBlobFile = getConfigBoolean("useBlobFile");
+		
+		tmpFile = new ArrayList<File>();
 
 		dataSet = new Map[BULK_SIZE];
 		String jdbcSourceId = getConfigString("jdbcSourceId");
@@ -211,12 +226,14 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 	}
 
 	private String q(String query) {
-		if (query!=null && lastIndexTime != null) {
-			if (lastIndexTime.length() == 0) {
-				// 현재시각으로 넣어준다.
-				query = query.replaceAll("\\$\\{last_index_time\\}", "'" + Formatter.formatDate() + "'");
-			} else {
-				query = query.replaceAll("\\$\\{last_index_time\\}", "'" + lastIndexTime + "'");
+		if (query!=null && query.length() > 0 && lastIndexTime != null) {
+			if (query.indexOf("${last_index_time}") != -1) {
+				if (lastIndexTime.length() == 0) {
+					// 현재시각으로 넣어준다.
+					query = query.replaceAll("\\$\\{last_index_time\\}", "'" + Formatter.formatDate() + "'");
+				} else {
+					query = query.replaceAll("\\$\\{last_index_time\\}", "'" + lastIndexTime + "'");
+				}
 			}
 		}
 
@@ -226,39 +243,40 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 	@Override
 	public void close() throws IRException {
 		logger.info("DBReader has read {} docs", totalCnt);
+		deleteTmpLob();
 		try {
 			doAfterQuery();
 		} catch (SQLException e) {
 			logger.error("After Query Error => " + e.getMessage(), e);
 		}
-
 		closeConnection();
 
 	}
 	
 	private void closeConnection() throws IRException {
-
+		
 		try {
-			if (r != null)
+			if (r != null) {
 				r.close();
-		} catch (SQLException e) {
+			}
+		} catch (SQLException ignore) {
 		}
 
 		try {
-			if (pstmt != null)
+			if (pstmt != null) {
 				pstmt.close();
-		} catch (SQLException e) {
+			}
+		} catch (SQLException ignore) {
 		}
 
 		try {
-			if (con != null && !con.isClosed())
+			if (con != null && !con.isClosed()) {
 				con.close();
-		} catch (SQLException e) {
+			}
+		} catch (SQLException ignore) {
 		}
-
 	}
 	
-
 	private int executeUpdateQuery(String query) throws SQLException {
 		if (query == null || query.length() == 0)
 			return -1;
@@ -317,6 +335,8 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 		bulkCount = 0;
 		try {
 			ResultSetMetaData rsMeta = null;
+			//이전 Tmp 데이터들을 지워준다.
+			deleteTmpLob();
 
 			try {
 				rsMeta = r.getMetaData();
@@ -326,159 +346,73 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 			while (r.next()) {
 
 				Map<String, Object> keyValueMap = new HashMap<String, Object>();
-				boolean hasLob = false;
 				
 				for (int i = 0; i < columnCount; i++) {
 					int columnIdx = i + 1;
 					int type = rsMeta.getColumnType(columnIdx);
+					
+					String str = "";
 
-					String str = r.getString(columnIdx);
-					if (str == null) {
-						if (type == Types.BLOB || type == Types.BINARY || type == Types.LONGVARBINARY || type == Types.VARBINARY
-								|| type == Types.JAVA_OBJECT) {
-							// logger.debug("Column-"+columnIdx+" is BLOB!");
-							// BLOB일 경우 스트림으로 받는다.
-							File f = null;
-							FileOutputStream os = null;
-							InputStream is = null;
-							try {
-								f = File.createTempFile("blob." + columnIdx, ".tmp");
-								// logger.debug("tmp file = "+f.getAbsolutePath());
-								is = r.getBinaryStream(columnIdx);
-								if (is != null) {
-									os = new FileOutputStream(f);
-									for (int rlen = 0; (rlen = is.read(data, 0, data.length)) != -1;) {
-										os.write(data, 0, rlen);
-									}
-
-									keyValueMap.put(columnName[i], f);
-									hasLob = true;
-								} else {
-									keyValueMap.put(columnName[i], "");
-								}
-
-							} catch (IOException e) {
-								throw new IRException("Error while writing Blob field. column => " + rsMeta.getColumnName(columnIdx));
-							} finally {
-								IOException ex = null;
-								if (os != null)
-									try {
-										os.close();
-									} catch (IOException e) {
-										ex = e;
-									}
-								if (is != null)
-									try {
-										is.close();
-									} catch (IOException e) {
-										ex = e;
-									}
-								if (ex != null) {
-									logger.error("Error while close blob field and output file stream.", ex);
-								}
-							}
-						} else if (type == Types.CLOB) {
-
-							File f = null;
-							BufferedWriter os = null;
-							BufferedReader is = null;
-							try {
-								f = File.createTempFile("clob." + columnIdx, ".tmp");
-								Reader reader = r.getCharacterStream(columnIdx);
-								if (reader != null) {
-									is = new BufferedReader(reader);
-									os = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f)));
-									while ((str = is.readLine()) != null) {
-										os.write(str);
-									}
-									keyValueMap.put(columnName[i], f);
-									hasLob = true;
-								} else {
-									keyValueMap.put(columnName[i], "");
-								}
-							} catch (IOException e) {
-								throw new IRException("Error while writing Clob field. column => " + rsMeta.getColumnName(columnIdx));
-							} finally {
-								IOException ex = null;
-								if (os != null)
-									try {
-										os.close();
-									} catch (IOException e) {
-										ex = e;
-									}
-								if (is != null)
-									try {
-										is.close();
-									} catch (IOException e) {
-										ex = e;
-									}
-								if (f != null && f.exists()) {
-									f.delete();
-								}
-								if (ex != null) {
-									logger.error("Error while close clob field and output file stream.", ex);
-								}
-							}
+					String lobType = null;
+					if (type == Types.BLOB || type == Types.BINARY || type == Types.LONGVARBINARY || type == Types.VARBINARY
+							|| type == Types.JAVA_OBJECT) {
+						lobType = LOB_BINARY;
+					} else if (type == Types.CLOB || type == Types.NCLOB || type == Types.SQLXML || type == Types.LONGVARCHAR || type == Types.LONGNVARCHAR) {
+						lobType = LOB_STRING;
+					}
+					
+					if(lobType == null) {
+						str = r.getString(columnIdx);
+					
+						if(str != null) {
+							keyValueMap.put(columnName[i], str);
 						} else {
-							// java 1.6 이상지원 jdbc4.0 CLOB 필드
-							// CLOB과 동일하게 처리해준다.
-							// java1.5의 경우는 위에서 처리가 되며,
-							// 데이터가 null이거나 java1.6이상의 CLOB데이터는 이곳으로 넘어오게 되는데, 에러가 발생하면 null로 처리해준다.
-							try {
-								if (type == Types.NCLOB || type == Types.SQLXML || type == Types.LONGVARCHAR || type == Types.LONGNVARCHAR) {
-									File f = null;
-									BufferedWriter os = null;
-									BufferedReader is = null;
-									try {
-										f = File.createTempFile("clob." + columnIdx, ".tmp");
-										Reader reader = r.getCharacterStream(columnIdx);
-										if (reader != null) {
-											is = new BufferedReader(reader);
-											os = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f)));
-											while ((str = is.readLine()) != null) {
-												os.write(str);
-											}
-											keyValueMap.put(columnName[i], f);
-											hasLob = true;
-										} else {
-											keyValueMap.put(columnName[i], "");
-										}
-									} catch (IOException e) {
-										throw new IRException("Error while writing Clob field. column => " + rsMeta.getColumnName(columnIdx));
-									} finally {
-										IOException ex = null;
-										if (os != null)
-											try {
-												os.close();
-											} catch (IOException e) {
-												ex = e;
-											}
-										if (is != null)
-											try {
-												is.close();
-											} catch (IOException e) {
-												ex = e;
-											}
-										if (f != null && f.exists()) {
-											f.delete();
-										}
-										if (ex != null) {
-											logger.error("Error while close clob field and output file stream.", ex);
-										}
-									}
-								}
-							} catch (Error e) {
-								// 에러무시.
-								// java1.5에서 데이터가 실제 null인 경우이므로 무시한다.
-							}
-
 							// 파싱할 수 없는 자료형 이거나 정말 NULL 값인 경우
 							keyValueMap.put(columnName[i], "");
 						}
 					} else {
-						keyValueMap.put(columnName[i], str.trim());
+						File file = null;
+						
+						if(lobType == LOB_BINARY) {
+							// logger.debug("Column-"+columnIdx+" is BLOB!");
+							// BLOB일 경우 스트림으로 받는다.
+							ByteArrayOutputStream buffer = null;
+							try {
+								if(!useBlobFile) {
+									buffer = new ByteArrayOutputStream();
+								}
+								file = readTmpBlob(i, columnIdx, rsMeta, buffer);
+								if(useBlobFile) {
+									keyValueMap.put(columnName[i], file);
+								} else {
+									keyValueMap.put(columnName[i], buffer.toByteArray());
+								}
+							} finally {
+								if (buffer != null) {
+									try {
+										buffer.close();
+									} catch (IOException ignore) {
+									}
+								}
+							}
+						} else if(lobType == LOB_STRING) {
+							StringBuilder sb = null;
+							if(!useBlobFile) {
+								sb = new StringBuilder();
+							}
+							file = readTmpClob(i, columnIdx, rsMeta, sb);
+							if(useBlobFile) {
+								keyValueMap.put(columnName[i], file);
+							} else {
+								keyValueMap.put(columnName[i], sb.toString());
+							}
+						}
+						
+						//다음 레코드 진행시 지우도록 한다.
+						if(file!=null) {
+							tmpFile.add(file);
+						}
 					}
-					
 				}
 
 				dataSet[bulkCount] = keyValueMap;
@@ -495,24 +429,128 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 			logger.debug("",e);
 
 			try {
-				if (r != null)
+				if (r != null) {
 					r.close();
-			} catch (SQLException e1) {
-			}
+				}
+			} catch (SQLException ignore) { }
 
 			try {
-				if (pstmt != null)
+				if (pstmt != null) {
 					pstmt.close();
-			} catch (SQLException e1) {
-			}
+				}
+			} catch (SQLException ignore) { }
 
 			try {
-				if (con != null && !con.isClosed())
+				if (con != null && !con.isClosed()) {
 					con.close();
-			} catch (SQLException e1) {
-			}
+				}
+			} catch (SQLException ignore) { }
 
 			throw new IRException(e);
+		}
+	}
+	
+	private File readTmpBlob(int columnInx, int columnNo, ResultSetMetaData rsMeta, OutputStream buffer) throws IRException, SQLException {
+		File file = null;
+		FileOutputStream os = null;
+		InputStream is = null;
+		try {
+			is = r.getBinaryStream(columnNo);
+			if (is != null) {
+				if(buffer == null) {
+					file = File.createTempFile("blob." + columnNo, ".tmp");
+					os = new FileOutputStream(file);
+					// logger.debug("tmp file = "+f.getAbsolutePath());
+				}
+				for (int rlen = 0; (rlen = is.read(data, 0, data.length)) != -1;) {
+					if(buffer != null) {
+						buffer.write(data, 0, rlen);
+					} else {
+						os.write(data, 0, rlen);
+					}
+				}
+			}
+
+		} catch (IOException e) {
+			throw new IRException("Error while writing Blob field. column => " + rsMeta.getColumnName(columnNo));
+		} finally {
+			IOException ex = null;
+			if (os != null)
+				try {
+					os.close();
+				} catch (IOException e) {
+					ex = e;
+				}
+			if (is != null)
+				try {
+					is.close();
+				} catch (IOException e) {
+					ex = e;
+				}
+			if (ex != null) {
+				logger.error("Error while close LOB field and output file stream.", ex);
+			}
+		}
+		return file;
+	}
+
+	private File readTmpClob (int columnInx, int columnNo, ResultSetMetaData rsMeta, StringBuilder buffer) throws IRException, SQLException {
+		File file = null;
+		BufferedWriter os = null;
+		BufferedReader is = null;
+		try {
+			Reader reader = r.getCharacterStream(columnNo);
+			if (reader != null) {
+				//buffer is null when using File
+				if(buffer == null) {
+					file = File.createTempFile("clob." + columnNo, ".tmp");
+					os = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)));
+				}
+				is = new BufferedReader(reader);
+				for (String rline = ""; (rline = is.readLine()) != null;) {
+					if(buffer!=null) {
+						buffer.append(rline).append("\n");
+					} else {
+						os.write(rline);
+						os.write("\n");
+					}
+				}
+			}
+		} catch (IOException e) {
+			throw new IRException("Error while writing Clob field. column => " + rsMeta.getColumnName(columnNo));
+		} finally {
+			IOException ex = null;
+			if (os != null) {
+				try {
+					os.close();
+				} catch (IOException e) {
+					ex = e;
+				}
+			}
+			if (is != null) {
+				try {
+					is.close();
+				} catch (IOException e) {
+					ex = e;
+				}
+			}
+			if (ex != null) {
+				logger.error("Error while close clob field and output file stream.", ex);
+			}
+		}
+		return file;
+	}
+	
+	private void deleteTmpLob() {
+		while (tmpFile.size() > 0) {
+			File file = tmpFile.remove(tmpFile.size() - 1);
+			try {
+				if (file.exists()) {
+					FileUtils.forceDelete(file);
+				}
+			} catch (IOException e) {
+				logger.debug("Can not delete file : {}", file.getAbsolutePath());
+			}
 		}
 	}
 
@@ -544,7 +582,6 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 
 				SchemaSetting setting = new SchemaSetting();
 				PrimaryKeySetting primaryKeySetting = new PrimaryKeySetting();
-//				List<RefSetting> primaryFieldList = new ArrayList<RefSetting>();
 				List<FieldSetting> fieldSettingList = new ArrayList<FieldSetting>();
 				List<AnalyzerSetting> analyzerSetting = new ArrayList<AnalyzerSetting>();
 				List<GroupIndexSetting> groupIndexSetting = new ArrayList<GroupIndexSetting>();
@@ -599,38 +636,6 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 					logger.trace("field add {}", field);
 					fieldSettingList.add(field);
 				}
-				
-				//primary key 추천은 join의 경우 아이디명이 중복 되어,schema validation이 통과하지 못할수도 있으므로, 정확한 추천 방법을 만들기 전까지는 제공하지 않는다.  
-//				DatabaseMetaData dm = con.getMetaData();
-//				ResultSet tres = dm.getPrimaryKeys("", "", tableName);
-//				ResultSetMetaData tmeta = res.getMetaData();
-//				if (logger.isTraceEnabled()) {
-//					for (int inx = 0; inx < tmeta.getColumnCount(); inx++) {
-//						logger.trace("get tmeta :{} / size:{}", tmeta.getColumnName(inx + 1), tmeta.getColumnDisplaySize(inx + 1));
-//					}
-//				}
-//				while (tres.next()) {
-//					String pkey = tres.getString("COLUMN_NAME").toUpperCase();
-//					for (int inx = 0; inx < fieldSettingList.size(); inx++) {
-//						// logger.trace("matching pk column:{}:{}", pkey, fieldSettingList.get(inx).getId());
-//						if (fieldSettingList.get(inx).getId().equals(pkey)) {
-//							RefSetting ref = new RefSetting();
-//							ref.setRef(fieldSettingList.get(inx).getId());
-//							primaryFieldList.add(ref);
-//							// 칼럼사이즈 세팅
-//							for (int inxSub = 0; inxSub < meta.getColumnCount(); inxSub++) {
-//								if (meta.getColumnName(inxSub + 1).toUpperCase().equals(pkey)) {
-//									fieldSettingList.get(inx).setSize(meta.getColumnDisplaySize(inxSub + 1));
-//									break;
-//								}
-//							}
-//							break;
-//						}
-//					}
-//				}
-//				tres.close();
-//				res.close();
-//				primaryKeySetting.setFieldList(primaryFieldList);
 				
 				setting.setFieldSettingList(fieldSettingList);
 				setting.setPrimaryKeySetting(primaryKeySetting);
