@@ -64,11 +64,18 @@ public abstract class FilterFunction {
 				if(isIgnoreCase){
 					pattern = pattern.toUpperCase();
 				}
-				Field f = fieldSetting.createPatternField(pattern);
-				int patternByteSize = fieldSetting.getByteSize();
-				BytesDataOutput arrayOutput = new BytesDataOutput(patternByteSize);
-				f.writeFixedDataTo(arrayOutput);
-				patternList[j] = arrayOutput.bytesRef();
+				
+				Field f;
+				int patternByteSize = 0;
+				BytesDataOutput arrayOutput = null;
+				
+				if(pattern != null && !"".equals(pattern)) {
+					f = fieldSetting.createPatternField(pattern);
+					patternByteSize = fieldSetting.getByteSize();
+					arrayOutput = new BytesDataOutput(patternByteSize);
+					f.writeFixedDataTo(arrayOutput);
+					patternList[j] = arrayOutput.bytesRef();
+				}
 				logger.debug("Filter Pattern>>> {} > {}", pattern, patternList[j]);
 				
 				if(filter.isEndPatternExist()){
@@ -76,11 +83,15 @@ public abstract class FilterFunction {
 					if(isIgnoreCase){
 						pattern = pattern.toUpperCase();
 					}
-					f = fieldSetting.createPatternField(pattern);
-					patternByteSize = fieldSetting.getByteSize();
-					arrayOutput = new BytesDataOutput(patternByteSize);
-					f.writeFixedDataTo(arrayOutput);
-					endPatternList[j] = arrayOutput.bytesRef();
+					
+					if(pattern != null && !"".equals(pattern)) {
+						f = fieldSetting.createPatternField(pattern);
+						patternByteSize = fieldSetting.getByteSize();
+						arrayOutput = new BytesDataOutput(patternByteSize);
+						f.writeFixedDataTo(arrayOutput);
+						endPatternList[j] = arrayOutput.bytesRef();
+					}
+					logger.debug("End Filter Pattern>>> {} > {}", pattern, endPatternList[j]);
 				}
 			}
 		} catch (IOException e) {

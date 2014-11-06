@@ -60,7 +60,12 @@ public class HitReader {
 	
 	
 	public HitReader(SegmentReader segmentReader, Metadata meta, Clause clause, Filters filters, Groups groups, Filters groupFilters, Sorts sorts, Bundle bundle, PkScoreList boostList) throws IOException, ClauseException, IRException {
+		
+		this.filters = filters;
+		this.groups = groups;
+		this.groupFilters = groupFilters;
 		this.sorts = sorts;
+		
 		FieldIndexesReader fieldIndexesReader = null;
 //		int sortMaxSize = meta.start() + meta.rows() - 1;
 		schema = segmentReader.schema();
