@@ -117,19 +117,21 @@ public class PluginService extends AbstractService implements AnalyzerProvider {
                         try{
 						    plugin.load(environment.isMasterNode());
                             logger.debug("PLUGIN {} >> {}", setting.getId(), plugin.getClass().getName());
+                            
+                            if (plugin instanceof AnalysisPlugin) {
+    							AnalysisPlugin analysisPlugin = (AnalysisPlugin) plugin;
+    							Map<String, AnalyzerInfo> map = analysisPlugin.analyzerFactoryMap();
+    							for (Entry<String, AnalyzerInfo> entry : map.entrySet()) {
+    								pluginAnalyzerFactoryManager.addAnalyzerFactory(pluginId + "." + entry.getKey(), entry.getValue().factory());
+    							}
+    						}
                         } catch( LicenseInvalidException e ) {
                             logger.error("License error! {}", e.getMessage());
                             ClusterAlertService.getInstance().alert(e);
                         }
 						pluginMap.put(setting.getId(), plugin);
 
-						if (plugin instanceof AnalysisPlugin) {
-							AnalysisPlugin analysisPlugin = (AnalysisPlugin) plugin;
-							Map<String, AnalyzerInfo> map = analysisPlugin.analyzerFactoryMap();
-							for (Entry<String, AnalyzerInfo> entry : map.entrySet()) {
-								pluginAnalyzerFactoryManager.addAnalyzerFactory(pluginId + "." + entry.getKey(), entry.getValue().factory());
-							}
-						}
+						
 						// } else {
 						// plugin = new Plugin(dir, setting);
 					}
