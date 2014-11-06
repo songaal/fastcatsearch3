@@ -48,10 +48,13 @@ public class SortGenerator {
 	private BytesRef[] dataList;
 	private int sortSize;//다중정렬갯수.
 	
+	public SortGenerator() throws IOException{
+	}
+	
 	public SortGenerator(List<Sort> querySortList, Schema schema, FieldIndexesReader fieldIndexesReader) throws IOException{
 //		this.dataSize = 0;
-		this.sortSize = querySortList.size();
-		if(sortSize > 0) {
+		if(querySortList != null && querySortList.size() > 0) {
+			this.sortSize = querySortList.size();
             this.fieldIndex = new int[sortSize];
             this.isAscending = new boolean[sortSize];
             this.dataList = new BytesRef[sortSize];
