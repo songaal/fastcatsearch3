@@ -63,11 +63,8 @@ public class SectionFilter extends FilterFunction {
 				// 2. 패턴크기가 다른경우 : 앞에서부터 순차비교, 짧은 패턴에 맞춤. 남는패턴이 있는쪽이 큼
 				if (fieldSetting.isNumericField()) {
 
-					if (compareNumeric(bytesRef, bytesRef.length(), patternBuf1, patternBuf1.length()) >= 0 &&
-
-					compareNumeric(bytesRef, bytesRef.length(), patternBuf2, patternBuf2.length()) <= 0
-
-					) {
+					if ((patternBuf1 == null || compareNumeric(bytesRef, bytesRef.length(), patternBuf1, patternBuf1.length()) >= 0) &&
+						(patternBuf2 == null || compareNumeric(bytesRef, bytesRef.length(), patternBuf2, patternBuf2.length()) <= 0)) {
 						if(isBoostFunction){
 							//boost옵션이 있다면 점수를 올려주고 리턴한다.
 							rankInfo.addScore(boostScore);
