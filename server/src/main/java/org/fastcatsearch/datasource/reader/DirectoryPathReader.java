@@ -13,7 +13,7 @@ import org.fastcatsearch.datasource.reader.annotation.SourceReader;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 
-@SourceReader(name="DirectoryPath")
+@SourceReader(name="DIRECTORY_PATH")
 public class DirectoryPathReader extends SingleSourceReader<Map<String,Object>> implements FileFilter, Runnable {
 	
 	public DirectoryPathReader() {

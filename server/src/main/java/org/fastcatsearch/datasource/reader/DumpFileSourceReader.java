@@ -33,7 +33,7 @@ import org.fastcatsearch.ir.index.PrimaryKeys;
 import org.fastcatsearch.ir.io.DirBufferedReader;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 
-@SourceReader(name="File")
+@SourceReader(name="DUMP_FILE")
 public class DumpFileSourceReader extends SingleSourceReader<Map<String, Object>> {
 
 	private DirBufferedReader br;
