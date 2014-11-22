@@ -51,9 +51,9 @@ public class BooleanClause extends OperatedClause {
 		Option searchOption = term.option();
 		CharVector fullTerm = new CharVector(termString);
 		Analyzer analyzer = searchIndexReader.getQueryAnalyzerFromPool();
-
+		
 		IndexSetting indexSetting = searchIndexReader.indexSetting();
-		if (highlightInfo != null) {
+		if (highlightInfo != null && searchOption.useHighlight()) {
 			String queryAnalyzerId = indexSetting.getQueryAnalyzer();
 			for (IndexRefSetting refSetting : indexSetting.getFieldList()) {
 				highlightInfo.add(refSetting.getRef(), refSetting.getIndexAnalyzer(), queryAnalyzerId, term.termString(), searchOption.value());
