@@ -152,10 +152,18 @@ public class DynamicClassLoader {
 			if(clazz != null){
 				return clazz;
 			}
+			
 		}catch(NoSuchMethodError ignore){
 		}catch(NoSuchFieldError ignore){
 		}catch(ClassNotFoundException ignore){
 		}catch(NoClassDefFoundError ignore){
+		}
+		try {
+			clazz = Thread.currentThread().getContextClassLoader().loadClass(className);
+			if(clazz != null){
+				return clazz;
+			}
+		} catch (ClassNotFoundException ignore) {
 		}
 		logger.trace("basic cl {}, {}", clazz, className);
 		try{
