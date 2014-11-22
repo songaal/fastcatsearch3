@@ -138,8 +138,8 @@ public class PriorityScheduledJob extends ScheduledJob {
 					nextStartTime += periodInSecond;// increase by period
 				}
 			}else{
-				//주기가 0 이라면 바로시작한다. delay time = 1초.
-				nextStartTime = now + 1000;
+				//주기가 0 이라면 바로시작한다. delay time = 3초.
+				nextStartTime = now + 3000;
 			}
 			entry.setStartTime(new Date(nextStartTime));
 		} else {
