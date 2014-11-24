@@ -95,12 +95,14 @@ public class CollectionAddIndexingJob extends IndexingJob {
 			 */
 			//////////////////////////////////////////////////////////////////////////////////////////
 			SegmentInfo lastSegmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
-			if(lastSegmentInfo == null){
-				//색인이 안된상태이다.
-				throw new FastcatSearchException("Cannot index collection. It has no full indexing information. collectionId = "+collectionContext.collectionId());
+//			if(lastSegmentInfo == null){
+//				//색인이 안된상태이다.
+//				throw new FastcatSearchException("Cannot index collection. It has no full indexing information. collectionId = "+collectionContext.collectionId());
+//			}
+			String lastRevisionUUID = null;
+			if(lastSegmentInfo != null) {
+				lastRevisionUUID = lastSegmentInfo.getRevisionInfo().getUuid();
 			}
-			String lastRevisionUUID = lastSegmentInfo.getRevisionInfo().getUuid();
-			
 			boolean isIndexed = false;
 			CollectionAddIndexer collectionIndexer = new CollectionAddIndexer(collectionHandler);
 			indexer = collectionIndexer;
@@ -157,34 +159,38 @@ public class CollectionAddIndexingJob extends IndexingJob {
 				if(nodeList.size() > 0) {
 					//색인노드만 있어도 OK.
 					
-					/*
-					 * lastRevisionUUID가 일치하는 보낼노드가 존재하는지 확인한다.
-					 * 존재한다면 mirror sync file을 만든다.
-					 * 
-					 * */
 					NodeJobResult[] nodeResultList = null;
-					GetCollectionIndexRevisionUUIDJob getRevisionUUIDJob = new GetCollectionIndexRevisionUUIDJob();
-					getRevisionUUIDJob.setArgs(collectionId);
-					nodeResultList = ClusterUtils.sendJobToNodeList(getRevisionUUIDJob, nodeService, nodeList, false);
 					
-					//성공한 node만 전송.
-					nodeList = new ArrayList<Node>();
-					for (int i = 0; i < nodeResultList.length; i++) {
-						NodeJobResult r = nodeResultList[i];
-						logger.debug("node#{} >> {}", i, r);
-						if (r.isSuccess()) {
-							String uuid = (String) r.result();
-							if(lastRevisionUUID.equals(uuid)){
-								nodeList.add(r.node());
+					//이전 세그먼트 존재시 확인.
+					if(lastRevisionUUID != null) {
+						/*
+						 * lastRevisionUUID가 일치하는 보낼노드가 존재하는지 확인한다.
+						 * 존재한다면 mirror sync file을 만든다.
+						 * 
+						 * */
+						
+						GetCollectionIndexRevisionUUIDJob getRevisionUUIDJob = new GetCollectionIndexRevisionUUIDJob();
+						getRevisionUUIDJob.setArgs(collectionId);
+						nodeResultList = ClusterUtils.sendJobToNodeList(getRevisionUUIDJob, nodeService, nodeList, false);
+						
+						//성공한 node만 전송.
+						nodeList = new ArrayList<Node>();
+						for (int i = 0; i < nodeResultList.length; i++) {
+							NodeJobResult r = nodeResultList[i];
+							logger.debug("node#{} >> {}", i, r);
+							if (r.isSuccess()) {
+								String uuid = (String) r.result();
+								if(lastRevisionUUID.equals(uuid)){
+									nodeList.add(r.node());
+								}else{
+									logger.error("{} has different uuid > {}", r.node(), uuid);
+								}
 							}else{
-								logger.error("{} has different uuid > {}", r.node(), uuid);
+								logger.warn("Cannot get revision information > {}", r.node());
 							}
-						}else{
-							logger.warn("Cannot get revision information > {}", r.node());
 						}
+					
 					}
-					
-					
 					
 					//TODO indexWriteInfoList를 파일로 저장해놓아야 실패한 노드에 차후 전송이 가능하게 된다. 또는 mirror sync파일을 매번 만들어 놓는다던지.. 
 					//revision이 여러번 바뀌면 mirror sync를 여러번전송해서 한번씩 업데이트. 

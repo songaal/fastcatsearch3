@@ -72,7 +72,7 @@ public class HitReader {
 		int docCount = segmentReader.docCount();
 		segmentSequence = segmentReader.sequence();
 		// Search
-		
+		highlightInfo = new HighlightInfo();
 		if (clause == null) {
 			operatedClause = new AllDocumentOperatedClause(docCount);
 		} else {
