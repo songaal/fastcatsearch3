@@ -224,7 +224,9 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 				if(isIgnoreCase){
 					data = data.toUpperCase();
 				}
-				
+				if(allFieldData.length() > 0) {
+					allFieldData.append(" ");
+				}
 				allFieldData.append(data);
 				
 				AnalyzerPool analyzerPool = collectionHandler.getAnalyzerPool(indexAnalyzerId);
