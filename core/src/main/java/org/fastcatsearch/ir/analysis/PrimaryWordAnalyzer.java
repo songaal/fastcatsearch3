@@ -48,13 +48,15 @@ public class PrimaryWordAnalyzer extends Analyzer {
 						continue;
 					}
 					
-					if(typeAttribute.type() == TypeTokenizer.HANGUL && charTermAttribute.length() > 10){
-						continue;
-					}
+					//길이제한은 없음.
 					
-					if(charTermAttribute.length() > 15){
-						continue;
-					}
+//					if(typeAttribute.type() == TypeTokenizer.HANGUL && charTermAttribute.length() > 10){
+//						continue;
+//					}
+//					
+//					if(charTermAttribute.length() > 15){
+//						continue;
+//					}
 					
 					found = true;
 					break;
