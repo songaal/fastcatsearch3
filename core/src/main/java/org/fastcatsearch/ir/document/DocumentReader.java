@@ -19,21 +19,21 @@ package org.fastcatsearch.ir.document;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
 
+import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.field.FieldDataParseException;
 import org.fastcatsearch.ir.io.BufferedFileInput;
-import org.fastcatsearch.ir.io.BytesDataInput;
 import org.fastcatsearch.ir.io.ByteRefArrayOutputStream;
+import org.fastcatsearch.ir.io.BytesDataInput;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.IOUtil;
 import org.fastcatsearch.ir.io.IndexInput;
 import org.fastcatsearch.ir.settings.FieldSetting;
-import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,12 +45,12 @@ import org.slf4j.LoggerFactory;
 public class DocumentReader implements Cloneable {
 	private static Logger logger = LoggerFactory.getLogger(DocumentReader.class);
 
+	private static final int INFLATE_BUFFER_INIT_SIZE = 20 * 1024;
 	private List<FieldSetting> fields;
 	private IndexInput docInput;
 	private IndexInput positionInput;
 	private ByteRefArrayOutputStream inflaterOutput;
 	private byte[] workingBuffer;
-	private byte[] docReadBuffer;
 
 	private int baseDocNo;
 	private int documentCount;
@@ -74,9 +74,8 @@ public class DocumentReader implements Cloneable {
 		documentCount = docInput.readInt();
 		logger.info("DocumentCount = {}", documentCount);
 
-		inflaterOutput = new ByteRefArrayOutputStream(3 * 1024 * 1024); // 자동 증가됨.
+		inflaterOutput = new ByteRefArrayOutputStream(INFLATE_BUFFER_INIT_SIZE); // 자동 증가됨. 초기 20KB으로 내림. 예전에는 3MB였음.
 		workingBuffer = new byte[1024];
-		docReadBuffer = new byte[3 * 1024 * 1024];
 	}
 
 	public int getDocumentCount() {
@@ -117,28 +116,21 @@ public class DocumentReader implements Cloneable {
 			// find a document block
 			docInput.seek(pos);
 			int len = docInput.readInt();
-
-			if (len > docReadBuffer.length) {
-				docReadBuffer = new byte[len];
-			}
-
-			docInput.readBytes(docReadBuffer, 0, len);
-
-			Inflater decompressor = new Inflater();
-
+			
+			//2014-11-26 검색요청이 많아서 working 버퍼가 너무 빠르게 많이 생길경우 GC 되기전에 OOM 발생할수 있음.
+			// Stream으로 바꾸어 해결.
+			InflaterInputStream decompressInputStream = null;
 			inflaterOutput.reset();
+			int count = -1;
 			try {
-				decompressor.setInput(docReadBuffer, 0, len);
-
-				while (!decompressor.finished()) {
-					int count = decompressor.inflate(workingBuffer);
+				BoundedInputStream boundedInputStream = new BoundedInputStream(docInput, len);
+				boundedInputStream.setPropagateClose(false);//하위 docInput 를 닫지않는다.
+				decompressInputStream = new InflaterInputStream(boundedInputStream, new Inflater(), 512);
+				while ((count = decompressInputStream.read(workingBuffer)) != -1) {
 					inflaterOutput.write(workingBuffer, 0, count);
 				}
-
-			} catch (DataFormatException e) {
-				throw new IOException(e);
 			} finally {
-				decompressor.end();
+				decompressInputStream.close();
 			}
 
 			BytesRef bytesRef = inflaterOutput.getBytesRef();
@@ -197,9 +189,8 @@ public class DocumentReader implements Cloneable {
 		reader.baseDocNo = baseDocNo;
 		reader.documentCount = documentCount;
 
-		reader.inflaterOutput = new ByteRefArrayOutputStream(3 * 1024 * 1024); // 자동 증가됨.
+		reader.inflaterOutput = new ByteRefArrayOutputStream(INFLATE_BUFFER_INIT_SIZE); // 자동 증가됨.
 		reader.workingBuffer = new byte[1024];
-		reader.docReadBuffer = new byte[3 * 1024 * 1024];
 		reader.positionLimit = positionLimit;
 		return reader;
 	}
