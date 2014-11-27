@@ -298,7 +298,7 @@ public class BufferedFileInput extends IndexInput implements Cloneable {
 
 	@Override
 	public int read() throws IOException {
-		return readByte();
+		return readByte() & 0xff;
 	}
 
 
