@@ -16,14 +16,16 @@
 
 package org.fastcatsearch.ir.io;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Random;
 
 import org.junit.Test;
-
-import junit.framework.TestCase;
 
 public class BufferedFileInputOutputTest {
 	
@@ -75,6 +77,7 @@ public class BufferedFileInputOutputTest {
 //		System.out.println("pos="+writePos[TRY - 1]);
 	}
 	
+	@Test
 	public void testInOut2() throws IOException{
 		String filename = "test.inout";
 		
@@ -218,8 +221,72 @@ public class BufferedFileInputOutputTest {
 		
 		System.out.println("#plain pos="+writePos[TRY - 1]);
 		System.out.println("#compressed pos="+writePos2[TRY - 1]);
+	}
+	
+	@Test
+	public void testWriteAndRead() throws IOException {
+		int SIZE = 100 * 1000;
+		byte[] data = new byte[SIZE];
+		Random r = new Random(System.currentTimeMillis());
+		r.nextBytes(data);
 		
+		File f = new File("/tmp/test."+System.currentTimeMillis());
+		FileOutputStream fos = new FileOutputStream(f);
+		fos.write(data);
+		fos.close();
 		
+		byte[] buf = new byte[128];
+		InputStream in = new BufferedFileInput(f);
+//		InputStream in = new FileInputStream(f);
+		int c = 0;
+		int offset = 0;
+		int k = 0;
+		while((c = in.read(buf)) != -1){
+			for (int i = 0; i < c; i++) {
+//				System.out.printf("%d : %d = %d\n", k, data[offset + i], buf[i]);
+				if(data[offset + i] != buf[i]) {
+					System.out.printf("error at = %d\n", offset + i);
+				}
+				assertEquals(data[offset + i], buf[i]);
+				k++;
+			}
+			offset += c;
+		}
+		
+		in.close();
+		f.delete();
+		
+	}
+	
+	@Test
+	public void testWriteAndRead2() throws IOException {
+		byte[] data = new byte[] { 0, 1, 2, 3, 4, -1, 6 };
+		
+		File f = new File("/tmp/test."+System.currentTimeMillis());
+		FileOutputStream fos = new FileOutputStream(f);
+		fos.write(data);
+		fos.close();
+		
+		byte[] buf = new byte[5];
+		InputStream in = new BufferedFileInput(f);
+//		InputStream in = new FileInputStream(f);
+		int c = 0;
+		int offset = 0;
+		int k = 0;
+		while((c = in.read(buf)) != -1){
+			for (int i = 0; i < c; i++) {
+				System.out.printf("%d : %d = %d\n", k, data[offset + i], buf[i]);
+				if(data[offset + i] != buf[i]) {
+					System.out.printf("error at = %d\n", offset + i);
+				}
+				assertEquals(data[offset + i], buf[i]);
+				k++;
+			}
+			offset += c;
+		}
+		
+		in.close();
+		f.delete();
 		
 	}
 }
