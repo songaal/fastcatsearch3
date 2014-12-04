@@ -198,8 +198,8 @@ public class BooleanClause extends OperatedClause {
 					if(synonymAttribute!=null) {
 						clause = this.applySynonym(clause, searchIndexReader, synonymAttribute, indexId, queryPosition, termSequence, type); 
 					}
-					if (offsetAttribute.startOffset() == 0 &&
-						offsetAttribute.endOffset() == fullTerm.length()) {
+					if ((offsetAttribute.startOffset() == 0 &&
+						offsetAttribute.endOffset() == fullTerm.length()) || !termIter.hasNext()) {
 						//전체단어동의어 확장어
 						finalClause = clause;
 					} else {
