@@ -124,6 +124,8 @@ public class BooleanClause extends OperatedClause {
 		
 		int queryPosition = 0;
 		
+		boolean isFirstAddTerm = true;
+		
 		while (tokenStream.incrementToken()) {
 
 			//요청 타입이 존재할때 타입이 다르면 단어무시.
@@ -198,8 +200,8 @@ public class BooleanClause extends OperatedClause {
 					if(synonymAttribute!=null) {
 						clause = this.applySynonym(clause, searchIndexReader, synonymAttribute, indexId, queryPosition, termSequence, type); 
 					}
-					if (offsetAttribute.startOffset() == 0 &&
-						offsetAttribute.endOffset() == fullTerm.length()) {
+					if ((offsetAttribute.startOffset() == 0 &&
+						offsetAttribute.endOffset() == fullTerm.length())) {
 						//전체단어동의어 확장어
 						finalClause = clause;
 					} else {
@@ -246,8 +248,19 @@ public class BooleanClause extends OperatedClause {
 							OperatedClause[] subClause = operatedClause.children();
 							OperatedClause clause1 = subClause[0];
 							OperatedClause clause2 = subClause[1];
-							clause2 = new OrOperatedClause(clause2, additionalClause);
-							operatedClause = new AndOperatedClause(clause1, clause2);
+							
+							
+							//괄호 우선 순위상 최초 추가텀만 따로 처리해 주어야 한다.
+							//첫번째 추가텀은 마지막 괄호에 적용해야 하나
+							//두번째 추가텀 부터는 지역 괄호에 적용해야 함.
+							if(isFirstAddTerm) {
+								clause2 = new AndOperatedClause(clause1, clause2);
+								operatedClause = new OrOperatedClause(clause2, additionalClause);
+								isFirstAddTerm = false;
+							} else {
+								clause2 = new OrOperatedClause(clause2, additionalClause);
+								operatedClause = new AndOperatedClause(clause1, clause2);
+							}
 						} else if(operatedClause instanceof OrOperatedClause) {
 							//simply append in or-operated clause.
 							operatedClause = new OrOperatedClause(operatedClause, additionalClause);
