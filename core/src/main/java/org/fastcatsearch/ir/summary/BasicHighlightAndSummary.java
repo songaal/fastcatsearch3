@@ -3,6 +3,7 @@ package org.fastcatsearch.ir.summary;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -24,7 +25,6 @@ import org.apache.lucene.search.highlight.Scorer;
 import org.apache.lucene.search.highlight.SimpleFragmenter;
 import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
 import org.apache.lucene.search.highlight.WeightedTerm;
-import org.apache.lucene.util.AttributeImpl;
 import org.apache.lucene.util.CharsRef;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.query.Term.Option;
@@ -270,10 +270,16 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 		private CharsRefTermAttribute charsRefTermAttribute;
 		private AdditionalTermAttribute additionalTermAttribute;
 		
-		private OffsetAttribute offsetAttributeLocal;
-		private CharTermAttribute charTermAttributeLocal;
-		private CharsRefTermAttribute charsRefTermAttributeLocal;
-		private AdditionalTermAttribute additionalTermAttributeLocal;
+//		private OffsetAttribute offsetAttributeLocal;
+//		private CharTermAttribute charTermAttributeLocal;
+//		private CharsRefTermAttribute charsRefTermAttributeLocal;
+//		private AdditionalTermAttribute additionalTermAttributeLocal;
+//		private Iterator<String> additionalTerms;
+		
+		private OffsetAttribute offsetAttributeLocal = this.addAttribute(OffsetAttribute.class);
+		private CharTermAttribute charTermAttributeLocal = this.addAttribute(CharTermAttribute.class);
+		private CharsRefTermAttribute charsRefTermAttributeLocal = this.addAttribute(CharsRefTermAttribute.class);
+		private AdditionalTermAttribute additionalTermAttributeLocal = this.addAttribute(AdditionalTermAttribute.class);
 
 		public WrappedTokenStream(TokenStream tokenStream, String pText) {
 			this.pText = pText;
@@ -292,26 +298,27 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 				additionalTermAttribute = tokenStream.getAttribute(AdditionalTermAttribute.class);
 			}
 			
-			offsetAttributeLocal = this.addAttribute(OffsetAttribute.class);
-			charTermAttributeLocal = this.addAttribute(CharTermAttribute.class);
-			charsRefTermAttributeLocal = this.addAttribute(CharsRefTermAttribute.class);
-			additionalTermAttributeLocal = this.addAttribute(AdditionalTermAttribute.class);
+			additionalTermAttributeLocal.init(this);
 		}
 		@Override
 		public void end() throws IOException { tokenStream.end(); }
 		@Override
-		public void reset() throws IOException { tokenStream.reset(); }
+		public void reset() throws IOException { 
+			this.tokenStream.reset(); 
+			additionalTermAttributeLocal.init(this);
+		}
 		@Override
 		public void close() throws IOException { tokenStream.close(); }
 		@Override
 		public boolean incrementToken() throws IOException {
+			boolean ret = false;
 			//CharTermAttribute나 offsetAttribute가 제공안되면 하이라이팅 불가. 
 			if(offsetAttribute == null || charTermAttribute == null) {
 				return false;
 			}
-			
-			boolean ret = tokenStream.incrementToken();
-	
+						
+			ret = tokenStream.incrementToken();
+		
 			char[] buffer;
 			int offset;
 			int length;
@@ -352,12 +359,6 @@ public class BasicHighlightAndSummary implements HighlightAndSummary {
 			if(additionalTermAttribute != null) {
 				((AdditionalTermAttributeImpl)additionalTermAttribute).cloneTo((AdditionalTermAttributeImpl) additionalTermAttributeLocal);
 			}
-			
-			if(logger.isTraceEnabled()) {
-				logger.trace("text:{} / {}", charTermAttributeLocal, pText
-						.substring(offsetAttributeLocal.startOffset(),offsetAttributeLocal.endOffset()));
-			}
-			
 			return ret;
 		}
 		
