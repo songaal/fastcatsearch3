@@ -122,9 +122,9 @@ public class BooleanClause extends OperatedClause {
 		CharVector token = null;
 		AtomicInteger termSequence = new AtomicInteger();
 		
-		int queryPosition = 0;
+		int queryDepth = 0;
 		
-		boolean isFirstAddTerm = true;
+		int queryPosition = 0;
 		
 		while (tokenStream.incrementToken()) {
 
@@ -178,11 +178,14 @@ public class BooleanClause extends OperatedClause {
 			}
 			if (operatedClause == null) {
 				operatedClause = clause;
+				queryDepth ++;
 			} else {
 				if(type == Type.ALL){
 					operatedClause = new AndOperatedClause(operatedClause, clause);
+					queryDepth ++;
 				}else if(type == Type.ANY){
 					operatedClause = new OrOperatedClause(operatedClause, clause);
+					queryDepth ++;
 				}
 			}
 			
@@ -220,6 +223,7 @@ public class BooleanClause extends OperatedClause {
 				}
 				if(additionalClause != null) {
 					int subSize = additionalTermAttribute.subSize();
+					logger.trace("additional term subSize:{}/{} : {}", subSize, queryDepth, additionalTermAttribute);
 					if( subSize > 0) {
 						//추가텀이 가진 서브텀의 갯수만큼 거슬러 올라가야 한다.
 						for(int inx=0;inx<subSize-1; inx++) {
@@ -249,14 +253,12 @@ public class BooleanClause extends OperatedClause {
 							OperatedClause clause1 = subClause[0];
 							OperatedClause clause2 = subClause[1];
 							
-							
 							//괄호 우선 순위상 최초 추가텀만 따로 처리해 주어야 한다.
-							//첫번째 추가텀은 마지막 괄호에 적용해야 하나
-							//두번째 추가텀 부터는 지역 괄호에 적용해야 함.
-							if(isFirstAddTerm) {
+							//첫머리에서 발견되는 추가텀은 마지막 괄호에 적용해야 하나
+							//두번째 이후 위치에서 발견되는 추가텀 부터는 지역 괄호에 적용해야 함.
+							if(subSize == queryDepth) {
 								clause2 = new AndOperatedClause(clause1, clause2);
 								operatedClause = new OrOperatedClause(clause2, additionalClause);
-								isFirstAddTerm = false;
 							} else {
 								clause2 = new OrOperatedClause(clause2, additionalClause);
 								operatedClause = new AndOperatedClause(clause1, clause2);
