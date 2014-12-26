@@ -225,7 +225,7 @@ public class QueryParser {
 					String param = null;
 					if (functionExpr.contains("(")) {
 
-						String[] funcTmp = functionExpr.split("(");
+						String[] funcTmp = functionExpr.split("\\(");
 						functionName = funcTmp[0];
 						param = funcTmp[1].substring(0, funcTmp[1].length() - 1);
 
@@ -240,13 +240,13 @@ public class QueryParser {
 					} else {
 						// 사용자가 만든 XXXX_COUNT
 						String className = convertToClassName(functionName);
-                        try {
-                            groupFunction = DynamicClassLoader.loadObject(className, GroupFunction.class, new Class<?>[] { int.class, String.class },
-                                    new Object[] { sortOrder, param });
-                        } catch (Exception e) {
-                            throw new QueryParseException(e);
-                        }
-                    }
+						try {
+							groupFunction = DynamicClassLoader.loadObject(className, GroupFunction.class, new Class<?>[] { int.class, String.class },
+									new Object[] { sortOrder, param });
+						} catch (Exception e) {
+							throw new QueryParseException(e);
+						}
+					}
 					groupFunctions[j] = groupFunction;
 					if(groupFunction == null) {
 						throw new QueryParseException("Unknown group function \""+functionName+"\"");
