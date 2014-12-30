@@ -27,7 +27,7 @@ public class MaxGroupFunction extends GroupFunction {
 	}
 
 	@Override
-	public void addValue(int groupNo, Number value) {
+	public void addValue(int groupNo, Object value) {
 		valueList[groupNo].setIfMax(value);
 	}
 

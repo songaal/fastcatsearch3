@@ -18,22 +18,22 @@ package org.fastcatsearch.ir.group.function;
 
 import org.fastcatsearch.ir.group.GroupFunction;
 
-public class CountGroupFunction extends GroupFunction {
+public class LastValueGroupFunction extends GroupFunction {
 
-	public final static String FUNCTION_NAME = "COUNT";
+	private final static String FUNCTION_NAME = "LASTVALUE";
 
-	public CountGroupFunction(int sortOrder, String param) {
-		super(FUNCTION_NAME, sortOrder, param);
+	public LastValueGroupFunction(int sortOrder, String fieldId) {
+		super(FUNCTION_NAME, sortOrder, fieldId);
 	}
 
 	@Override
 	public void addValue(int groupNo, Object value) {
-		valueList[groupNo].increment();
+		valueList[groupNo].set(value);
 	}
 
 	@Override
 	public String getHeaderName() {
-		return FUNCTION_NAME;
+		return FUNCTION_NAME + "_" + fieldId;
 	}
 
 	@Override

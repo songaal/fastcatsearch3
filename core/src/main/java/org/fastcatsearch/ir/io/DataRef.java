@@ -3,6 +3,7 @@ package org.fastcatsearch.ir.io;
 import java.io.IOException;
 
 import org.apache.lucene.util.BytesRef;
+import org.fastcatsearch.ir.settings.FieldSetting.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +15,7 @@ public class DataRef {
 	
 	protected int count; //멀티밸류의 경우 여러번 읽어야하므로 갯수를 정해준다.
 	
-	private Class<? extends Number> numberType;
+	private Type type;
 	
 	public final static DataRef EMPTY_DATAREF = new DataRef();
 	
@@ -47,20 +48,25 @@ public class DataRef {
 		return bytesRef;
 	}
 	
-	public void setNumberType(Class<? extends Number> numberType){
-		this.numberType = numberType;
+	public void setType(Type type) {
+		this.type = type;
+		
 	}
 	
-	public Number getNumber(){
+	public Object getValue(){
 		
-		if(numberType == Integer.class){
+		if(type == Type.INT){
 			return bytesRef.toIntValue();
-		}else if(numberType == Long.class){
+		}else if(type == Type.LONG){
 			return bytesRef.toLongValue();
-		}else if(numberType == Float.class){
+		}else if(type == Type.FLOAT){
 			return Float.intBitsToFloat(bytesRef.toIntValue());
-		}else if(numberType == Double.class){
+		}else if(type == Type.DOUBLE){
 			return Double.longBitsToDouble(bytesRef.toLongValue());
+		}else if(type == Type.ASTRING) {
+			return new String(bytesRef.bytes);
+		}else if(type == Type.STRING) {
+			return new String(bytesRef.toUCharArray());
 		}
 		
 		return null;

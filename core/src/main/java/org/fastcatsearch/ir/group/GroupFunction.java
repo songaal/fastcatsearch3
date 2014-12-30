@@ -60,7 +60,7 @@ public abstract class GroupFunction {
 		return functionName;
 	}
 	
-	public abstract void addValue(int groupNo, Number value);
+	public abstract void addValue(int groupNo, Object value);
 
 	public abstract void done();
 		

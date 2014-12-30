@@ -33,6 +33,7 @@ import org.fastcatsearch.ir.group.value.DoubleGroupingValue;
 import org.fastcatsearch.ir.group.value.FloatGroupingValue;
 import org.fastcatsearch.ir.group.value.IntGroupingValue;
 import org.fastcatsearch.ir.group.value.LongGroupingValue;
+import org.fastcatsearch.ir.group.value.StringGroupingValue;
 import org.fastcatsearch.ir.io.DataRef;
 import org.fastcatsearch.ir.query.Group;
 import org.fastcatsearch.ir.query.RankInfo;
@@ -137,7 +138,6 @@ public class GroupDataGenerator {
 						
 						if(!paramFieldNameList.contains(groupFunction.fieldId)){
 							paramFieldNameList.add(groupFunction.fieldId);
-							
 							//fieldId 타입에 따라서 value를 만들어준다.
 							FieldSetting fieldSetting = schema.fieldSettingMap().get(groupFunction.fieldId);
 							if(fieldSetting.getType() == FieldSetting.Type.INT){
@@ -148,12 +148,12 @@ public class GroupDataGenerator {
 								groupFunction.init(FloatGroupingValue.createList(groupKeySize));
 							}else if(fieldSetting.getType() == FieldSetting.Type.DOUBLE){
 								groupFunction.init(DoubleGroupingValue.createList(groupKeySize));
+							}else{
+								groupFunction.init(StringGroupingValue.createList(groupKeySize));
 							}
-							
 						}
 					}
 				}
-				
 			}
 			
 			if(paramFieldNameList.size() > 0){
@@ -167,16 +167,16 @@ public class GroupDataGenerator {
 					//stream input ref일수도 있다.
 					DataRef dataRef = fieldIndexRefList[i].getDataRef(k++); 
 					FieldSetting fieldSetting = schema.fieldSettingMap().get(paramFieldId);
-					if(fieldSetting.getType() == FieldSetting.Type.INT){
-						dataRef.setNumberType(Integer.class);
-					}else if(fieldSetting.getType() == FieldSetting.Type.LONG){
-						dataRef.setNumberType(Long.class);
-					}else if(fieldSetting.getType() == FieldSetting.Type.FLOAT){
-						dataRef.setNumberType(Float.class);
-					}else if(fieldSetting.getType() == FieldSetting.Type.DOUBLE){
-						dataRef.setNumberType(Double.class);
-					}
-					
+					dataRef.setType(fieldSetting.getType());
+//					if(fieldSetting.getType() == FieldSetting.Type.INT){
+//						dataRef.setNumberType(Integer.class);
+//					}else if(fieldSetting.getType() == FieldSetting.Type.LONG){
+//						//dataRef.setNumberType(Long.class);
+//					}else if(fieldSetting.getType() == FieldSetting.Type.FLOAT){
+//						//dataRef.setNumberType(Float.class);
+//					}else if(fieldSetting.getType() == FieldSetting.Type.DOUBLE){
+//						//dataRef.setNumberType(Double.class);
+//					}
 					//차후 dataRef.next하면서 데이터를 읽는다. 
 					fieldBytesRefMap[i].put(paramFieldId, dataRef);
 				}
@@ -210,12 +210,12 @@ public class GroupDataGenerator {
 						if(groupFunction == null){
 							continue;
 						}
-						Number value = null;
+						Object value = null;
 						if(groupFunction.fieldId != null){
 							DataRef dataRef = fieldBytesRefMap[i].get(groupFunction.fieldId);
 							dataRef.reset();
 							while(dataRef.next()){
-								value = dataRef.getNumber();
+								value = dataRef.getValue();
 								groupFunction.addValue(groupNo, value);
 							}
 						}else{
