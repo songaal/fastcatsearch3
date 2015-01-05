@@ -138,12 +138,17 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 			if (deleteIdSQL != null && deleteIdSQL.length() > 0) {
 				PreparedStatement idPstmt = null;
 				ResultSet rs = null;
+				ResultSetMetaData rm = null;
 				try {
 					idPstmt = con.prepareStatement(q(deleteIdSQL));
 					rs = idPstmt.executeQuery();
+					rm = rs.getMetaData();
+					String[] rid = new String[rm.getColumnCount()];
 					while (rs.next()) {
-						String ID = rs.getString(1);
-						deleteIdList.add(ID);
+						for (int inx = 0; inx < rid.length; inx++) {
+							rid[inx] = rs.getString(inx+1);
+						}
+						deleteIdList.add(rid);
 					}
 				} finally {
 					if(idPstmt != null){
