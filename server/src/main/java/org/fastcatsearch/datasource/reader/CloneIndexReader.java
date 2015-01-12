@@ -131,7 +131,7 @@ public class CloneIndexReader extends SingleSourceReader<Map<String, Object>> {
 						break;
 					}
 				}
-				logger.debug("DOCNO:{}/{}", docNo, lastSegmentDocNo);
+				logger.trace("DOCNO:{}/{}", docNo, lastSegmentDocNo);
 				//if(docNo < lastSegmentDocNo) {
 					if(logger.isTraceEnabled()) {
 						logger.trace("DOC is Deleted?:{}", currentDeleteSet.isSet(docNo));
@@ -146,7 +146,7 @@ public class CloneIndexReader extends SingleSourceReader<Map<String, Object>> {
 								newData.put(field.getId(), field.toString());
 							}
 							dataRecord = newData;
-							logger.debug("DOCNO:{} / DATA:{}", docNo,dataRecord);
+							logger.trace("DOCNO:{} / DATA:{}", docNo,dataRecord);
 						} else {
 							segmentSearcher = null;
 							isContinue = true;
@@ -163,7 +163,7 @@ public class CloneIndexReader extends SingleSourceReader<Map<String, Object>> {
 					continue;
 				}
 				
-				logger.debug("DOCNO:{} / ISCONT:{} / DATA:{}", docNo,isContinue,dataRecord);
+				logger.trace("DOCNO:{} / ISCONT:{} / DATA:{}", docNo,isContinue,dataRecord);
 				break;
 			}
 		} catch (IOException e) {
