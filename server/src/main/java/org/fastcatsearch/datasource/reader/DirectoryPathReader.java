@@ -144,8 +144,10 @@ public class DirectoryPathReader extends SingleSourceReader<Map<String,Object>> 
 				try {
 					logger.trace("waiting..");
 					Thread.sleep(100);
-				} catch (InterruptedException ignore) { }
-				if(finished) {
+				} catch (InterruptedException ex) { 
+					logger.debug("CATCH INTERRUPT! {}", ex.getMessage());
+				}
+				if(finished && filePaths.size() == 0) {
 					break;
 				}
 				continue;

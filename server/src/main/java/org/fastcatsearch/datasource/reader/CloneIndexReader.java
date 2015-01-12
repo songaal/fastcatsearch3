@@ -20,6 +20,8 @@ import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.datasource.reader.annotation.SourceReader;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.field.Field;
@@ -40,8 +42,10 @@ public class CloneIndexReader extends SingleSourceReader<Map<String, Object>> {
 	private Map<String, Object> dataRecord;
 	
 	private int currentSegment = 0;
+
+	private int totalSegments = 0;
 	
-	private int currentSegmentDocumentCnt;
+	private int lastSegmentDocNo;
 	
 	private int docNo;
 
@@ -70,6 +74,12 @@ public class CloneIndexReader extends SingleSourceReader<Map<String, Object>> {
 		String collection = getConfigString("collection");
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		collectionHandler = irService.collectionHandler(collection);
+		CollectionContext collectionContext = collectionHandler.collectionContext();
+		DataInfo dataInfo = collectionContext.dataInfo();
+		
+		totalCnt = dataInfo.getDocuments();
+		totalSegments = dataInfo.getSegmentSize();
+		docNo = 0;
 	}
 
 	@Override
@@ -83,6 +93,7 @@ public class CloneIndexReader extends SingleSourceReader<Map<String, Object>> {
 		}
 		if(dataRecord == null) {
 			return false;
+//throw new IRException("");
 		} else {
 			return true;
 		}
@@ -103,40 +114,56 @@ public class CloneIndexReader extends SingleSourceReader<Map<String, Object>> {
 			while(true) {
 				boolean isContinue = false;
 				if(segmentSearcher == null) {
-					if(currentSegment < collectionHandler.segmentSize()) {
+					logger.trace("CURRENTSEGMENT:{}/{}", currentSegment, totalSegments);
+					if(currentSegment < totalSegments) {
 						SegmentReader segmentReader = collectionHandler.segmentReader(currentSegment);
 						segmentSearcher = collectionHandler.segmentSearcher(currentSegment);
 						currentDeleteSet = segmentReader.deleteSet();
-						currentSegmentDocumentCnt = segmentReader.segmentInfo().getNextBaseNumber();
-						docNo = 0;
+						if(currentSegment + 1 == totalSegments) {
+							//if last segment, lastDocNo = totalCnt
+							lastSegmentDocNo = totalCnt;
+						} else {
+							//else lastDocNo = nextBase
+							lastSegmentDocNo = segmentReader.segmentInfo().getNextSegmentInfo().getBaseNumber();
+						}
 						currentSegment++;
 					} else {
 						break;
 					}
 				}
-				if(docNo < currentSegmentDocumentCnt) {
+				logger.debug("DOCNO:{}/{}", docNo, lastSegmentDocNo);
+				//if(docNo < lastSegmentDocNo) {
+					if(logger.isTraceEnabled()) {
+						logger.trace("DOC is Deleted?:{}", currentDeleteSet.isSet(docNo));
+					}
 					if(!currentDeleteSet.isSet(docNo)) {
 						Document document = segmentSearcher.getDocument(docNo);
-						Map<String, Object>newData = new HashMap<String, Object>();
-						int fsize = document.size();
-						for (int finx = 0; finx < fsize; finx++) {
-							Field field = document.get(finx);
-							newData.put(field.getId(), field.toString());
+						if(document != null) {
+							Map<String, Object>newData = new HashMap<String, Object>();
+							int fsize = document.size();
+							for (int finx = 0; finx < fsize; finx++) {
+								Field field = document.get(finx);
+								newData.put(field.getId(), field.toString());
+							}
+							dataRecord = newData;
+							logger.debug("DOCNO:{} / DATA:{}", docNo,dataRecord);
+						} else {
+							segmentSearcher = null;
+							isContinue = true;
 						}
-						dataRecord = newData;
-						docNo++;
 					} else {
 						isContinue = true;
-						docNo++;
 					}
-				} else {
-					segmentSearcher = null;
-					isContinue = true;
-				}
+				//} else {
+				//	segmentSearcher = null;
+				//	isContinue = true;
+				//}
+				docNo++;
 				if(isContinue) {
 					continue;
 				}
 				
+				logger.debug("DOCNO:{} / ISCONT:{} / DATA:{}", docNo,isContinue,dataRecord);
 				break;
 			}
 		} catch (IOException e) {
