@@ -31,7 +31,8 @@ public class SimpleFileReader extends SingleSourceReader<Map<String,Object>> imp
 	
 	String rootPath;
 	String encoding;
-	String fieldId;
+	String[] fieldId;
+	String delimiter;
 	List<String> filePaths;
 	boolean finished;
 	int bufferSize;
@@ -44,7 +45,8 @@ public class SimpleFileReader extends SingleSourceReader<Map<String,Object>> imp
 	public void init() throws IRException { 
 		rootPath = getConfigString("rootPath","/");
 		encoding = getConfigString("encoding",null);
-		fieldId = getConfigString("fieldId").trim().toUpperCase();
+		delimiter = getConfigString("delimiter","\t");
+		fieldId = getConfigString("fieldId").trim().toUpperCase().split(",");
 		bufferSize = getConfigInt("bufferSize");
 		
 		if(bufferSize < 100) {
@@ -62,7 +64,9 @@ public class SimpleFileReader extends SingleSourceReader<Map<String,Object>> imp
 	protected void initParameters() { 
 		registerParameter(new SourceReaderParameter("rootPath", "Data Root Path", "Root Filepath for Indexing. (Absolute Path)"
 				, SourceReaderParameter.TYPE_STRING_LONG, true, null));
-		registerParameter(new SourceReaderParameter("fieldId", "Mapping Field Id", "Mapping Field-Id In Collection Schema"
+		registerParameter(new SourceReaderParameter("delimiter", "Delimiter", "Delimiter"
+				, SourceReaderParameter.TYPE_STRING, true, ""));
+		registerParameter(new SourceReaderParameter("fieldId", "Mapping Field Id", "Mapping Field-Id In Collection Schema (Separated with ',')"
 				, SourceReaderParameter.TYPE_STRING, true, "DATA"));
 		registerParameter(new SourceReaderParameter("encoding", "Encoding", "File encoding"
 				, SourceReaderParameter.TYPE_STRING, false, null));
@@ -102,7 +106,16 @@ public class SimpleFileReader extends SingleSourceReader<Map<String,Object>> imp
 					}
 					if(rline != null) {
 						Map<String, Object> record = new HashMap<String, Object>();
-						record.put(fieldId, rline);
+						String[] rdata = rline.split(delimiter);
+						
+						for (int keyInx = 0; keyInx < fieldId.length; keyInx++) {
+							String value = "";
+							if(keyInx < rdata.length) {
+								value = rdata[keyInx];
+							}
+							record.put(fieldId[keyInx], value);
+						}
+						
 						if (sourceModifier != null) {
 							sourceModifier.modify(record);
 						}
