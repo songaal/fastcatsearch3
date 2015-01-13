@@ -216,6 +216,16 @@ public class GroupDataGenerator {
 							dataRef.reset();
 							while(dataRef.next()){
 								value = dataRef.getValue();
+								if(value!=null && value instanceof String) {
+									String strValue = (String)value;
+									//trim nil character
+									for (int inx = strValue.length() - 1; inx > 0; inx--) {
+										if(strValue.charAt(inx - 1) != 0) {
+											value = strValue.substring(0, inx);
+											break;
+										}
+									}
+								}
 								groupFunction.addValue(groupNo, value);
 							}
 						}else{
