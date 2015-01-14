@@ -378,9 +378,9 @@ public class TransportModule extends AbstractModule {
     	if(node == null){
     		throw new TransportException("node is null");
     	}
-    	if(!node.isActive()){
-    		throw new TransportException("node is not active : "+node.toString());
-    	}
+//    	if(!node.isActive()){
+//    		throw new TransportException("node is not active : "+node.toString());
+//    	}
         final long requestId = newRequestId();
         try {
         	if (job.isNoResult()) {
@@ -404,9 +404,9 @@ public class TransportModule extends AbstractModule {
     	if(node == null){
     		throw new TransportException("node is null");
     	}
-    	if(!node.isActive()){
-    		throw new TransportException("node is not active : "+node.toString());
-    	}
+//    	if(!node.isActive()){
+//    		throw new TransportException("node is not active : "+node.toString());
+//    	}
     	final long requestId = newRequestId();
     	try {
     		SendFileResultFuture resultFuture = new SendFileResultFuture(requestId, resultFutureMap);
