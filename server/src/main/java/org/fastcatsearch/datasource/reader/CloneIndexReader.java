@@ -59,9 +59,9 @@ public class CloneIndexReader extends SingleSourceReader<Map<String, Object>> {
 		super();
 	}
 	
-	public CloneIndexReader(File filePath, SingleSourceConfig singleSourceConfig, SourceModifier<Map<String, Object>> sourceModifier, String lastIndexTime)
+	public CloneIndexReader(String collectionId, File filePath, SingleSourceConfig singleSourceConfig, SourceModifier<Map<String, Object>> sourceModifier, String lastIndexTime)
 			throws IRException {
-		super(filePath, singleSourceConfig, sourceModifier, lastIndexTime);
+		super(collectionId, filePath, singleSourceConfig, sourceModifier, lastIndexTime);
 	}
 
 	@Override

@@ -24,9 +24,9 @@ public class SimpleFileReader extends SingleSourceReader<Map<String,Object>> imp
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public SimpleFileReader(File filePath, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime)
+	public SimpleFileReader(String collectionId, File filePath, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime)
 			throws IRException {
-		super(filePath, singleSourceConfig, sourceModifier, lastIndexTime);
+		super(collectionId, filePath, singleSourceConfig, sourceModifier, lastIndexTime);
 	}
 	
 	String rootPath;

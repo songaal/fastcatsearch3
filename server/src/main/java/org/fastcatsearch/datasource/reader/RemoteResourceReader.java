@@ -19,8 +19,8 @@ import org.fastcatsearch.ir.settings.SchemaSetting;
 public class RemoteResourceReader extends SingleSourceReader {
 
 	
-	public RemoteResourceReader(File filePath, SingleSourceConfig sourceConfig, SourceModifier sourceModifier, String lastIndexTime){
-		super(filePath, sourceConfig, sourceModifier, lastIndexTime);
+	public RemoteResourceReader(String collectionId, File filePath, SingleSourceConfig sourceConfig, SourceModifier sourceModifier, String lastIndexTime){
+		super(collectionId, filePath, sourceConfig, sourceModifier, lastIndexTime);
 		//TODO
 		// 1. 외부 리소스 저장소에 연결.
 		// 2. 디렉토리 또는 파일요청 (셋팅파일에 정의)

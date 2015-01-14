@@ -82,9 +82,9 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 		super();
 	}
 	
-	public DBReader(File filePath, SingleSourceConfig singleSourceConfig, SourceModifier<Map<String, Object>> sourceModifier, String lastIndexTime)
+	public DBReader(String collectionId, File filePath, SingleSourceConfig singleSourceConfig, SourceModifier<Map<String, Object>> sourceModifier, String lastIndexTime)
 			throws IRException {
-		super(filePath, singleSourceConfig, sourceModifier, lastIndexTime);
+		super(collectionId, filePath, singleSourceConfig, sourceModifier, lastIndexTime);
 	}
 
 	@Override

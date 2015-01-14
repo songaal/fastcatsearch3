@@ -29,6 +29,7 @@ public abstract class SingleSourceReader<SourceType> {
 
 	private List<SourceReaderParameter> sourceReaderParameterList;
 	private Map<String, String> parameterMap;
+	private String collectionId;
 
 	protected int maxRows;
 	
@@ -61,8 +62,9 @@ public abstract class SingleSourceReader<SourceType> {
 		initParameters();
 	}
 
-	public SingleSourceReader(File filePath, SingleSourceConfig singleSourceConfig, SourceModifier<SourceType> sourceModifier,
+	public SingleSourceReader(String collectionId, File filePath, SingleSourceConfig singleSourceConfig, SourceModifier<SourceType> sourceModifier,
 			String lastIndexTime) {
+		this.collectionId = collectionId;
 		this.filePath = new Path(filePath);
 		this.singleSourceConfig = singleSourceConfig;
 		this.lastIndexTime = lastIndexTime;
@@ -92,6 +94,9 @@ public abstract class SingleSourceReader<SourceType> {
 		} else {
 			return true;
 		}
+	}
+	public String getCollectionId() {
+		return collectionId;
 	}
 	
 	private void fillParameters(Map<String, String> map) {

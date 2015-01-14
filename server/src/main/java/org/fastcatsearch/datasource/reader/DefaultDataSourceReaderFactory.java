@@ -6,7 +6,7 @@
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  * 
  * Contributors:
- *     swsong - initial API and implementation
+ *	 swsong - initial API and implementation
  */
 
 package org.fastcatsearch.datasource.reader;
@@ -26,7 +26,7 @@ import java.util.Map;
 public class DefaultDataSourceReaderFactory {
 	private static Logger logger = LoggerFactory.getLogger(DefaultDataSourceReaderFactory.class);
 
-	public static AbstractDataSourceReader<Map<String, Object>> createFullIndexingSourceReader(File filePath, SchemaSetting schemaSetting, DataSourceConfig dataSourceConfig) throws IRException {
+	public static AbstractDataSourceReader<Map<String, Object>> createFullIndexingSourceReader(String collectionId, File filePath, SchemaSetting schemaSetting, DataSourceConfig dataSourceConfig) throws IRException {
 
 		AbstractDataSourceReader<Map<String, Object>> dataSourceReader = new DefaultDataSourceReader(schemaSetting);
 		logger.debug("dataSourceConfig > {}", dataSourceConfig);
@@ -36,7 +36,7 @@ public class DefaultDataSourceReaderFactory {
 				if(!singleSourceConfig.isActive()){
 					continue;
 				}
-				SingleSourceReader<Map<String, Object>> sourceReader = createSingleSourceReader(filePath, singleSourceConfig, null);
+				SingleSourceReader<Map<String, Object>> sourceReader = createSingleSourceReader(collectionId, filePath, singleSourceConfig, null);
 				dataSourceReader.addSourceReader(sourceReader);
 			}
 		} else {
@@ -46,7 +46,7 @@ public class DefaultDataSourceReaderFactory {
 		return dataSourceReader;
 	}
 	
-	public static AbstractDataSourceReader<Map<String, Object>> createAddIndexingSourceReader(File filePath, SchemaSetting schemaSetting, DataSourceConfig dataSourceConfig, String lastIndexTime) throws IRException {
+	public static AbstractDataSourceReader<Map<String, Object>> createAddIndexingSourceReader(String collectionId, File filePath, SchemaSetting schemaSetting, DataSourceConfig dataSourceConfig, String lastIndexTime) throws IRException {
 
 		AbstractDataSourceReader<Map<String, Object>> dataSourceReader = new DefaultDataSourceReader(schemaSetting);
 		logger.debug("dataSourceConfig > {}", dataSourceConfig);
@@ -56,7 +56,7 @@ public class DefaultDataSourceReaderFactory {
 				if(!singleSourceConfig.isActive()){
 					continue;
 				}
-				SingleSourceReader<Map<String, Object>> sourceReader = createSingleSourceReader(filePath, singleSourceConfig, lastIndexTime);
+				SingleSourceReader<Map<String, Object>> sourceReader = createSingleSourceReader(collectionId, filePath, singleSourceConfig, lastIndexTime);
 				dataSourceReader.addSourceReader(sourceReader);
 			}
 		} else {
@@ -66,27 +66,27 @@ public class DefaultDataSourceReaderFactory {
 		return dataSourceReader;
 	}
 
-	private static SingleSourceReader<Map<String, Object>> createSingleSourceReader(File filePath, SingleSourceConfig singleSourceConfig, String lastIndexTime) throws IRException {
+	private static SingleSourceReader<Map<String, Object>> createSingleSourceReader(String collectionId, File filePath, SingleSourceConfig singleSourceConfig, String lastIndexTime) throws IRException {
 		String sourceReaderType = singleSourceConfig.getSourceReader();
 		String sourceModifierType = singleSourceConfig.getSourceModifier();
 		SourceModifier<Map<String, Object>> sourceModifier = null;
 		if (sourceModifierType != null && sourceModifierType.length() > 0) {
 			sourceModifier = DynamicClassLoader.loadObject(sourceModifierType, SourceModifier.class);
-            if(sourceModifier == null) {
-                logger.error("Cannot find source modifier : {}", sourceModifierType);
-            }
+			if(sourceModifier == null) {
+				logger.error("Cannot find source modifier : {}", sourceModifierType);
+			}
 		}
 
-        SingleSourceReader<Map<String, Object>> sourceReader = null;
-        try {
-            sourceReader = DynamicClassLoader.loadObject(sourceReaderType, SingleSourceReader.class, new Class[]{File.class,
-                    SingleSourceConfig.class, SourceModifier.class, String.class}, new Object[]{filePath,
-                    singleSourceConfig, sourceModifier, lastIndexTime});
-        } catch (Exception e) {
-            throw new IRException(e);
-        }
+		SingleSourceReader<Map<String, Object>> sourceReader = null;
+		try {
+			sourceReader = DynamicClassLoader.loadObject(sourceReaderType, SingleSourceReader.class, 
+		   		new Class[]{ String.class, File.class, SingleSourceConfig.class, SourceModifier.class, String.class}, 
+				new Object[]{collectionId, filePath, singleSourceConfig, sourceModifier, lastIndexTime});
+		} catch (Exception e) {
+			throw new IRException(e);
+		}
 
-        logger.debug("Loading sourceReader : {} >> {}, modifier:{} / lastIndexTime:{}", sourceReaderType, sourceReader, sourceModifier, lastIndexTime);
+		logger.debug("Loading sourceReader : {} >> {}, modifier:{} / lastIndexTime:{}", sourceReaderType, sourceReader, sourceModifier, lastIndexTime);
 		// dataSourceReader가 null일 수 있다.
 		if (sourceReader == null) {
 			throw new IRException("Cannot find source reader. Make sure the class is in classpath or constructor signature is valid. reader = " + sourceReaderType);

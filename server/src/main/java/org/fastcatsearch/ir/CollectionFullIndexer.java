@@ -33,7 +33,8 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 	@Override
 	protected DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException{
 		DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
-		return DefaultDataSourceReaderFactory.createFullIndexingSourceReader(filePath, schemaSetting, dataSourceConfig);
+		
+		return DefaultDataSourceReaderFactory.createFullIndexingSourceReader(super.collectionContext.collectionId(),filePath, schemaSetting, dataSourceConfig);
 	}
 
 	@Override

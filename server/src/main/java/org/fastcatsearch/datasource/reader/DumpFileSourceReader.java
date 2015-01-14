@@ -51,8 +51,8 @@ public class DumpFileSourceReader extends SingleSourceReader<Map<String, Object>
 		super();
 	}
 	
-	public DumpFileSourceReader(File filePath, SingleSourceConfig singleSourceConfig, SourceModifier<Map<String, Object>> sourceModifier, String lastIndexTime) throws IRException {
-		super(filePath, singleSourceConfig, sourceModifier, lastIndexTime);
+	public DumpFileSourceReader(String collectionId, File filePath, SingleSourceConfig singleSourceConfig, SourceModifier<Map<String, Object>> sourceModifier, String lastIndexTime) throws IRException {
+		super(collectionId, filePath, singleSourceConfig, sourceModifier, lastIndexTime);
 	}
 
 	@Override

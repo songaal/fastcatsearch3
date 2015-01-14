@@ -76,7 +76,7 @@ public class CollectionDatasourceDumpJob extends Job implements Streamable {
 			long lapTime = startTime;
 			
 			writer = new OutputStreamWriter(new FileOutputStream(new File(filePath,  "datasource."+System.currentTimeMillis()+".txt")));
-			dataSourceReader = DefaultDataSourceReaderFactory.createFullIndexingSourceReader(filePath, schemaSetting, dataSourceConfig);
+			dataSourceReader = DefaultDataSourceReaderFactory.createFullIndexingSourceReader(collectionContext.collectionId(), filePath, schemaSetting, dataSourceConfig);
 			int count = 0;
 			while (dataSourceReader.hasNext()) {
 				Document document = dataSourceReader.nextDocument();

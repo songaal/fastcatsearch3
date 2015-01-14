@@ -46,7 +46,7 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
 	protected DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException{
 		DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
 		String lastIndexTime = collectionContext.getLastIndexTime();
-		return DefaultDataSourceReaderFactory.createAddIndexingSourceReader(filePath, schemaSetting, dataSourceConfig, lastIndexTime);
+		return DefaultDataSourceReaderFactory.createAddIndexingSourceReader(collectionContext.collectionId(), filePath, schemaSetting, dataSourceConfig, lastIndexTime);
 	}
 
 	/*

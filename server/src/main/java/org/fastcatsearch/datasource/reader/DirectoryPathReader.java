@@ -21,9 +21,9 @@ public class DirectoryPathReader extends SingleSourceReader<Map<String,Object>> 
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public DirectoryPathReader(File filePath, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime)
+	public DirectoryPathReader(String collectionId, File filePath, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime)
 			throws IRException {
-		super(filePath, singleSourceConfig, sourceModifier, lastIndexTime);
+		super(collectionId, filePath, singleSourceConfig, sourceModifier, lastIndexTime);
 	}
 	
 	String rootPath;
