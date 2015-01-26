@@ -219,11 +219,9 @@ public class GroupDataGenerator {
 								if(value!=null && value instanceof String) {
 									String strValue = (String)value;
 									//trim nil character
-									for (int inx = strValue.length() - 1; inx > 0; inx--) {
-										if(strValue.charAt(inx - 1) != 0) {
-											value = strValue.substring(0, inx);
-											break;
-										}
+									int inx = strValue.indexOf('\0');
+									if(inx != -1) {
+										value = strValue.substring(0, inx);
 									}
 								}
 								groupFunction.addValue(groupNo, value);

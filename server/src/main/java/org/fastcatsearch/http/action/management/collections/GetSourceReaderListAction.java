@@ -41,9 +41,9 @@ public class GetSourceReaderListAction extends AuthAction {
 			if (annotation != null && annotation.name() != null) {
 				
 				try {
-					Constructor<?> constructor = sourceReader.getConstructor(File.class, SingleSourceConfig.class, SourceModifier.class, String.class);
+					Constructor<?> constructor = sourceReader.getConstructor(String.class, File.class, SingleSourceConfig.class, SourceModifier.class, String.class);
 					SingleSourceConfig singleSourceConfig = new SingleSourceConfig();
-					SingleSourceReader<?> sreader = (SingleSourceReader<?>) constructor.newInstance(null, singleSourceConfig, null, null);
+					SingleSourceReader<?> sreader = (SingleSourceReader<?>) constructor.newInstance("", null, singleSourceConfig, null, null);
 					List<SourceReaderParameter> parameterList = sreader.getParameterList();
 					responseWriter.object().key("name").value(annotation.name()).key("reader").value(sreader.getClass().getName()).key("parameters").array();
 					for (SourceReaderParameter param : parameterList) {
