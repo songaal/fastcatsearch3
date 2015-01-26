@@ -36,16 +36,16 @@ import org.fastcatsearch.ir.settings.SchemaSetting;
 @SourceReader(name="DUMP_FILE")
 public class DumpFileSourceReader extends SingleSourceReader<Map<String, Object>> {
 
-	private DirBufferedReader br;
-	private Map<String, Object> dataMap;
+	protected DirBufferedReader br;
+	protected Map<String, Object> dataMap;
 
-	private static String DOC_START = "<doc>";
-	private static String DOC_END = "</doc>";
+	protected static String DOC_START = "<doc>";
+	protected static String DOC_END = "</doc>";
 
-	private static String OPEN_PATTERN = "^<([\\w]+[^>]*)>$";
-	private static String CLOSE_PATTERN = "^<\\/([\\w]+[^>]*)>$";
-	private Pattern OPAT;
-	private Pattern CPAT;
+	protected static String OPEN_PATTERN = "^<([\\w]+[^>]*)>$";
+	protected static String CLOSE_PATTERN = "^<\\/([\\w]+[^>]*)>$";
+	protected Pattern OPAT;
+	protected Pattern CPAT;
 
 	public DumpFileSourceReader() {
 		super();
@@ -189,7 +189,7 @@ public class DumpFileSourceReader extends SingleSourceReader<Map<String, Object>
 	}
 	
 
-	private String nextLine() throws IOException {
+	protected String nextLine() throws IOException {
 		String line = br.readLine();
 
 		if (line == null) {
