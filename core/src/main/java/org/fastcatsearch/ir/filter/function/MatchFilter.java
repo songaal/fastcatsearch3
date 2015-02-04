@@ -63,7 +63,6 @@ public class MatchFilter extends FilterFunction {
 					if (!patternBuf.bytesEquals(bytesRef, plen)) {
 						isMatch = false;
 					}
-logger.debug("TEST [{}] / \"{}\":\"{}\"", isMatch, new String(patternBuf.toUCharArray()), new String(bytesRef.toUCharArray()));
 
 					//
 					// 여기까지만 수행하면 prefix매치와 동일함.
@@ -73,11 +72,13 @@ logger.debug("TEST [{}] / \"{}\":\"{}\"", isMatch, new String(patternBuf.toUChar
 						// 위의 매치에서는 패턴의 길이만 큼만 비교했으므로,
 						// 남아있는 데이터가 더 있는지 확인해본다.
 						// 널이 아닌 데이터가 남아있다면 모두 매칭하지 않은것이다.
-logger.debug("DATA:[{}/{}]", bytesRef.length, plen);
 
 						for (int bufInx = plen; bufInx < bytesRef.length(); bufInx++) {
-							if (bytesRef.bytes[bufInx] != 0) {
-logger.debug("DATA:[{}/{}/{}] = {}", bytesRef.length, plen, bufInx, bytesRef.bytes[bufInx]);
+							if (bytesRef.bytes[bufInx] != '\0' &&
+								bytesRef.bytes[bufInx] != '\t' &&
+								bytesRef.bytes[bufInx] != '\n' &&
+								bytesRef.bytes[bufInx] != '\r' &&
+								bytesRef.bytes[bufInx] != ' ') {
 								isMatch = false;
 								break;
 							}
