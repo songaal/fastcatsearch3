@@ -52,6 +52,13 @@ public class DefaultDataSourceReader extends AbstractDataSourceReader<Map<String
 					key = source;
 				}
 				Object data = map.get(key);
+				//null이면 공백문자로 치환.
+				if(data == null) {
+					data = "";
+				} else if (data instanceof String) {
+					data = ((String) data).trim();
+				}
+				
 //				logger.debug("Get {} : {}", key, data);
 				String multiValueDelimiter = fs.getMultiValueDelimiter();
 				
@@ -63,10 +70,6 @@ public class DefaultDataSourceReader extends AbstractDataSourceReader<Map<String
 					if(!(data instanceof String)){
 						data = HTMLTagRemover.clean(data.toString());
 					}
-				}
-				//null이면 공백문자로 치환.
-				if(data == null) {
-					data = "";
 				}
 				Field f = fs.createIndexableField(data, multiValueDelimiter);
 				document.set(i, f);

@@ -59,7 +59,6 @@ public class MatchFilter extends FilterFunction {
 
 				if (plen > 0) {
 					boolean isMatch = true;
-					
 					if (!patternBuf.bytesEquals(bytesRef, plen)) {
 						isMatch = false;
 					}
@@ -74,11 +73,7 @@ public class MatchFilter extends FilterFunction {
 						// 널이 아닌 데이터가 남아있다면 모두 매칭하지 않은것이다.
 
 						for (int bufInx = plen; bufInx < bytesRef.length(); bufInx++) {
-							if (bytesRef.bytes[bufInx] != '\0' &&
-								bytesRef.bytes[bufInx] != '\t' &&
-								bytesRef.bytes[bufInx] != '\n' &&
-								bytesRef.bytes[bufInx] != '\r' &&
-								bytesRef.bytes[bufInx] != ' ') {
+							if (bytesRef.bytes[bufInx] != 0) {
 								isMatch = false;
 								break;
 							}
