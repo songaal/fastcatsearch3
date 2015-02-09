@@ -125,7 +125,11 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 	}
 
 	public String toString() {
-		return new String(array, start, length);
+		if(length > 0) {
+			return new String(array, start, length);
+		} else {
+			return null;
+		}
 	}
 
 	@Override
