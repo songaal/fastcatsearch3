@@ -128,7 +128,7 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 		if(length > 0) {
 			return new String(array, start, length);
 		} else {
-			return null;
+			return "";
 		}
 	}
 
