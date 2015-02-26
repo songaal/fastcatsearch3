@@ -134,7 +134,8 @@ public class DemoSearchResultWriter extends AbstractSearchResultWriter {
                 while(iter.hasNext()) {
                     String fieldId = iter.next();
                     String fieldData = getFieldData(fieldId, row, fieldNames, bundleTotalSize);
-                    bodyData = bodyData.replaceAll("\\$"+fieldId, fieldData);
+                    fieldData = fieldData.replaceAll("\\$", "&#36;");
+                    bodyData = bodyData.replaceAll("([\\$])"+fieldId+"", fieldData);
                 }
                 resultWriter.value(bodyData);
 				
