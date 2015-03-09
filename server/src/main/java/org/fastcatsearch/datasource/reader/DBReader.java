@@ -582,8 +582,8 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 				pst.setFetchSize(1);
 				pst.setMaxRows(1);
 				res = pst.executeQuery();
-				res.next();
 				meta = res.getMetaData();
+				res.next();
 
 				SchemaSetting setting = new SchemaSetting();
 				PrimaryKeySetting primaryKeySetting = new PrimaryKeySetting();
