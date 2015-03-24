@@ -16,14 +16,14 @@
 
 package org.fastcatsearch.ir.search;
 
-import java.io.IOException;
-import java.util.List;
-
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.query.Bundle;
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.query.Sort;
 import org.fastcatsearch.ir.settings.Schema;
+
+import java.io.IOException;
+import java.util.List;
 
 
 
@@ -52,8 +52,10 @@ public class BundleSortGenerator extends SortGenerator {
 		for (int i = 0; i < n; i++) {
 			RankInfo ri = rankInfoList[i];
 			bundleIndexRef.read(ri.docNo());
-			BytesRef bundleKey = data.duplicate();
-			result[i].setBundleKey(bundleKey);
+			if(!isBundleKeyEmpty(data)) {
+				BytesRef bundleKey = data.duplicate();
+				result[i].setBundleKey(bundleKey);
+			}
 		}
 		return result;
 	}
@@ -64,9 +66,20 @@ public class BundleSortGenerator extends SortGenerator {
 		for (int i = 0; i < n; i++) {
 			RankInfo ri = rankInfoList[i];
 			bundleIndexRef.read(ri.docNo());
-			BytesRef bundleKey = data.duplicate();
-			result[i].setBundleKey(bundleKey);
+			if(!isBundleKeyEmpty(data)) {
+				BytesRef bundleKey = data.duplicate();
+				result[i].setBundleKey(bundleKey);
+			}
 		}
+	}
+
+	private boolean isBundleKeyEmpty(BytesRef bundleKey) {
+		for(int i = bundleKey.offset; i < bundleKey.length; i++) {
+			if(bundleKey.bytes[i] != 0) {
+				return false;
+			}
+		}
+		return true;
 	}
 }
 

@@ -461,6 +461,9 @@ public class CollectionSearcher {
 				//bundleKey로 clause생성한다.
                 int mainDocNo = hitElementList[k].docNo();
 				BytesRef bundleKey = hitElementList[k].getBundleKey();
+				if(bundleKey == null) {
+					continue;
+				}
 				String bundleStringKey = bundleKey.toAlphaString();
 				Clause bundleClause = new Clause(new Term(fieldIndexId, bundleStringKey));
 				Hit[] segmentHitList = new Hit[segmentSize];
