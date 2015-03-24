@@ -1,31 +1,18 @@
 package org.fastcatsearch.ir.search;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.group.GroupDataGenerator;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.BitSet;
-import org.fastcatsearch.ir.query.Bundle;
-import org.fastcatsearch.ir.query.Filters;
-import org.fastcatsearch.ir.query.Groups;
-import org.fastcatsearch.ir.query.HighlightInfo;
-import org.fastcatsearch.ir.query.HitFilter;
-import org.fastcatsearch.ir.query.Metadata;
-import org.fastcatsearch.ir.query.Query;
-import org.fastcatsearch.ir.query.RankInfo;
-import org.fastcatsearch.ir.query.Sorts;
-import org.fastcatsearch.ir.search.clause.AllDocumentOperatedClause;
-import org.fastcatsearch.ir.search.clause.BoostOperatedClause;
-import org.fastcatsearch.ir.search.clause.Clause;
-import org.fastcatsearch.ir.search.clause.ClauseException;
-import org.fastcatsearch.ir.search.clause.OperatedClause;
-import org.fastcatsearch.ir.search.clause.PkScoreOperatedClause;
+import org.fastcatsearch.ir.query.*;
+import org.fastcatsearch.ir.search.clause.*;
 import org.fastcatsearch.ir.settings.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 
 public class HitReader {
 	private static Logger logger = LoggerFactory.getLogger(HitReader.class);
@@ -107,7 +94,12 @@ public class HitReader {
 		// sort
 		// Sorts sorts = q.getSorts();
 		if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
-			
+			if(bundle  != null) {
+				if(fieldIndexesReader == null){
+					fieldIndexesReader = segmentReader.newFieldIndexesReader();
+				}
+				sortGenerator = new BundleSortGenerator(bundle, null, schema, fieldIndexesReader);
+			}
 		} else {
 			if(fieldIndexesReader == null){
 				fieldIndexesReader = segmentReader.newFieldIndexesReader();
@@ -202,8 +194,13 @@ public class HitReader {
 		}
 		
 		if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
-			for (int i = 0; i < nread; i++) {
-				hitElementBuffer[i] = new HitElement(rankInfoList[i].docNo(), rankInfoList[i].score(), rankInfoList[i].rowExplanations());
+			//정렬없는 묶음검색의 경우.
+			if(sortGenerator != null) {
+				sortGenerator.getHitElement(rankInfoList, hitElementBuffer, nread);
+			} else {
+				for (int i = 0; i < nread; i++) {
+					hitElementBuffer[i] = new HitElement(rankInfoList[i].docNo(), rankInfoList[i].score(), rankInfoList[i].rowExplanations());
+				}
 			}
 		} else {
 			sortGenerator.getHitElement(rankInfoList, hitElementBuffer, nread);
