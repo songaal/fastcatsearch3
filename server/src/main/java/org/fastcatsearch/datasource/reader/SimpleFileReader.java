@@ -1,20 +1,15 @@
 package org.fastcatsearch.datasource.reader;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.datasource.reader.annotation.SourceReader;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @SourceReader(name="SIMPLE_FILE")
 public class SimpleFileReader extends SingleSourceReader<Map<String,Object>> implements FileFilter, Runnable {
@@ -67,7 +62,7 @@ public class SimpleFileReader extends SingleSourceReader<Map<String,Object>> imp
 		registerParameter(new SourceReaderParameter("delimiter", "Delimiter", "Delimiter"
 				, SourceReaderParameter.TYPE_STRING, true, ""));
 		registerParameter(new SourceReaderParameter("fieldId", "Mapping Field Id", "Mapping Field-Id In Collection Schema (Separated with ',')"
-				, SourceReaderParameter.TYPE_STRING, true, "DATA"));
+				, SourceReaderParameter.TYPE_STRING_LONG, true, "DATA"));
 		registerParameter(new SourceReaderParameter("encoding", "Encoding", "File encoding"
 				, SourceReaderParameter.TYPE_STRING, false, null));
 		registerParameter(new SourceReaderParameter("bufferSize", "Buffer Size", "Reading Buffer Size"
