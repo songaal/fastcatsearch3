@@ -8,6 +8,8 @@ import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionConfig;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.io.DataInput;
@@ -61,17 +63,42 @@ public class UpdateCollectionConfigJob extends Job implements Streamable {
 		FilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(this.collectionId);		
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		
+		boolean collectionExists = false;
+		boolean isSuccess = false;
 		//객체도 함께 즉시 업데이트 해준다.
 		CollectionContext collectionContext = irService.collectionContext(collectionId);
-		CollectionConfig collectionConfig = collectionContext.collectionConfig();
+		CollectionConfig collectionConfig = null;
+		if(collectionContext != null) {
+			collectionExists = true;
+			collectionConfig = collectionContext.collectionConfig();
+		} else {
+			try {
+				irService.removeCollection(collectionId);
+			} catch (SettingException ignore) {
+			}
+			collectionConfig = new CollectionConfig();
+		}
 		collectionConfig.setName(this.collectionConfig.getName());
 		collectionConfig.setIndexNode(this.collectionConfig.getIndexNode());
 		collectionConfig.setSearchNodeList(this.collectionConfig.getSearchNodeList());
 		collectionConfig.setDataNodeList(this.collectionConfig.getDataNodeList());
 		collectionConfig.setDataPlanConfig(this.collectionConfig.getDataPlanConfig());
 		collectionConfig.setFullIndexingSegmentSize(this.collectionConfig.getFullIndexingSegmentSize());
-		
-		boolean isSuccess = CollectionContextUtil.writeConfigFile(collectionConfig, collectionFilePaths);
+	
+		Exception ex = null;
+		try {
+			if(!collectionExists) {
+				irService.createCollection(collectionId, collectionConfig);
+			}
+			isSuccess = CollectionContextUtil.writeConfigFile(collectionConfig, collectionFilePaths);
+		} catch (IRException e) {
+			ex = e;
+		} catch (SettingException e) {
+			ex = e;
+		} finally {
+			logger.error("", ex);
+			isSuccess = false;
+		}
 		
 		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 		nodeService.updateLoadBalance(collectionId, collectionConfig.getDataNodeList());

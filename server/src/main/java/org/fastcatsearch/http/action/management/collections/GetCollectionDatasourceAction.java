@@ -25,8 +25,13 @@ public class GetCollectionDatasourceAction extends AuthAction {
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		
 		CollectionContext collectionContext = irService.collectionContext(collectionId);
-		DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
+		DataSourceConfig dataSourceConfig = null;
 		
+		if(collectionContext != null) {
+			dataSourceConfig = collectionContext.dataSourceConfig();
+		} else {
+			dataSourceConfig = new DataSourceConfig();
+		}
 		
 		OutputStream os = response.getOutputStream();
 		JAXBConfigs.writeRawConfig(os, dataSourceConfig, DataSourceConfig.class);

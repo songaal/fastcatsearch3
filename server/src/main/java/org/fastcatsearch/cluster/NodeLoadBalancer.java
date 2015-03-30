@@ -24,7 +24,9 @@ public class NodeLoadBalancer {
 	}
 
 	public void update(String id, List<Node> list) {
-		map.put(id, list);
+		if(!map.containsKey(id)) {
+			map.put(id, list);
+		}
 	}
 
 	/**

@@ -3,6 +3,7 @@ package org.fastcatsearch.job.cluster;
 import java.io.IOException;
 import java.util.List;
 
+import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
@@ -57,6 +58,8 @@ public class NodeCollectionReloadJob extends Job implements Streamable {
 			logger.info("===================");
 			IndexStatus indexStatus = collectionContext.indexStatus().getFullIndexStatus();
 			logger.info("[{}] Collection Index Status > {}", collectionId, indexStatus);
+			
+			nodeService.updateLoadBalance(collectionId, dataNodeList);
 
 			/*
 			 * 캐시 클리어.

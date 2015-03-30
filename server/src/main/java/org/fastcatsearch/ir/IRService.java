@@ -360,7 +360,9 @@ public class IRService extends AbstractService {
 				
 				FilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
 				//FileUtils.deleteDirectory(collectionFilePaths.file());
-				FileUtils.forceDelete(collectionFilePaths.file());
+				if(collectionFilePaths.file().exists()) {
+					FileUtils.forceDelete(collectionFilePaths.file());
+				}
 				return true;
 			} catch (Exception e) {
 				logger.error("Error while remove collection", e);
