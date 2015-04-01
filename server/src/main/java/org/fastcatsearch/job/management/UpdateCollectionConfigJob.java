@@ -96,8 +96,10 @@ public class UpdateCollectionConfigJob extends Job implements Streamable {
 		} catch (SettingException e) {
 			ex = e;
 		} finally {
-			logger.error("", ex);
-			isSuccess = false;
+			if(ex != null) {
+				logger.error("", ex);
+				isSuccess = false;
+			}
 		}
 		
 		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
