@@ -290,7 +290,10 @@ public class IRService extends AbstractService {
 	}
 	
 	public CollectionHandler collectionHandler(String collectionId) {
-		return collectionHandlerMap.get(collectionId);
+		if(collectionHandlerMap !=null && collectionHandlerMap.containsKey(collectionId)) {
+			return collectionHandlerMap.get(collectionId);
+		}
+		return null;
 	}
 
 	public CollectionContext collectionContext(String collectionId) {

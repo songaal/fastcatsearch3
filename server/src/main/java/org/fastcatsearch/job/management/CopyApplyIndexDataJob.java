@@ -48,8 +48,9 @@ public class CopyApplyIndexDataJob extends Job implements Streamable {
 	public void readFrom(DataInput input) throws IOException {
 		this.collectionId = input.readString();
 		this.sourceNodeId = input.readString();
-		this.destNodeIdList = new ArrayList<String>(input.readInt());
-		for (int i = 0; i < destNodeIdList.size(); i++) {
+		int nodeSize = input.readInt();
+		this.destNodeIdList = new ArrayList<String>(nodeSize);
+		for (int i = 0; i < nodeSize; i++) {
 			destNodeIdList.add(input.readString());
 		}
 	}
@@ -72,7 +73,6 @@ public class CopyApplyIndexDataJob extends Job implements Streamable {
 		Node sourceNode = nodeService.getNodeById(sourceNodeId);
 		if(nodeService.isMyNode(sourceNode)){
 			List<Node> destNodeList = nodeService.getNodeById(destNodeIdList);
-			
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			CollectionContext collectionContext = irService.collectionContext(collectionId);
 			FilePaths indexFilePaths = collectionContext.indexFilePaths();
