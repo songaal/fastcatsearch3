@@ -63,4 +63,9 @@ public abstract class QueryModifier extends Query {
 	public Query getBoostQuery() {
 		return query.getBoostQuery();
 	}
+
+	@Override
+	public Bundle getBundle() {
+		return query.getBundle();
+	}
 }

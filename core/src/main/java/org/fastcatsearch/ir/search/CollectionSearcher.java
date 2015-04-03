@@ -18,8 +18,11 @@ import org.fastcatsearch.ir.query.*;
 import org.fastcatsearch.ir.query.Term.Option;
 import org.fastcatsearch.ir.search.clause.Clause;
 import org.fastcatsearch.ir.search.clause.ClauseException;
+import org.fastcatsearch.ir.settings.FieldSetting;
+import org.fastcatsearch.ir.settings.FieldSetting.Type;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.summary.BasicHighlightAndSummary;
+import org.fastcatsearch.ir.util.Formatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -455,6 +458,10 @@ public class CollectionSearcher {
 		Sorts bundleSorts = bundle.getSorts();
 		int bundleRows = bundle.getRows();
 		int bundleStart = 1;
+		
+		FieldSetting bundleFieldSetting = schema.getFieldSetting(bundle.getFieldIndexId());
+		Type bundleFieldType = bundleFieldSetting.getType();
+		
 		try {
 			for (int k = 0; k < size; k++) {
 				int totalSize = 0;
@@ -464,7 +471,12 @@ public class CollectionSearcher {
 				if(bundleKey == null) {
 					continue;
 				}
-				String bundleStringKey = bundleKey.toAlphaString();
+				String bundleStringKey = Formatter.getContentString(bundleKey, bundleFieldType);
+				
+				if(bundleStringKey == null) {
+					continue;
+				}
+				
 				Clause bundleClause = new Clause(new Term(fieldIndexId, bundleStringKey));
 				Hit[] segmentHitList = new Hit[segmentSize];
 				

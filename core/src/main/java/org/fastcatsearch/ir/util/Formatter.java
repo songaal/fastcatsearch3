@@ -21,6 +21,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.regex.Pattern;
 
+import org.apache.lucene.util.BytesRef;
+import org.fastcatsearch.ir.settings.FieldSetting.Type;
+
 /**
  * 객체 / 문자열의 상호변환 등을 위한 유틸
  *
@@ -31,6 +34,7 @@ public class Formatter {
 	public static final SimpleDateFormat DATEFORMAT_DEFAULT_PARSE = new SimpleDateFormat("yyyyMMddHHmmssS");
 	/** 포맷팅을 위한 날자포맷. **/
 	public static final SimpleDateFormat DATEFORMAT_DEFAULT_FORMAT = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+	public static final SimpleDateFormat DATEFORMAT_OUTPUT_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
 	public static final SimpleDateFormat DATEFORMAT_DEFAULT_FORMAT_MIN = new SimpleDateFormat("yyyy.MM.dd HH:mm");
 	/** 날자 중의 특수기호들을 삭제하기 위한 패턴 **/
 	public static final Pattern PTN_STRIP_DATE = Pattern.compile("[-\t :.,/]");
@@ -52,6 +56,9 @@ public class Formatter {
 		return defaultValue;
 	}
 	public static Date parseDate(String data) throws ParseException {
+		if (data == null) {
+			return null;
+		}
 		data=PTN_STRIP_DATE.matcher(data).replaceAll("");
 		//일부만 들어와도 되도록 자리맞춤을 위한 0 채움
 		for(int strlen=data.length(); strlen < 17; strlen++) { data+="0"; }
@@ -127,4 +134,27 @@ public class Formatter {
 		return value.replaceAll(CONTROL_CHAR_REGEXP, " ");
 	}
 	
+	public static String getContentString(BytesRef ref, Type type) {
+		String contentString = null;	
+		if(type == Type.ASTRING) {
+			contentString = ref.toAlphaString().trim();
+		} else if(type == Type.STRING) {
+			contentString = new String(ref.toUCharArray()).trim();
+		} else if(type == Type.DATETIME) {
+			contentString = String.valueOf(DATEFORMAT_OUTPUT_FORMAT.format(new Date(ref.toLongValue())));
+		} else if(type == Type.DOUBLE) {
+			contentString = String.valueOf(Double.longBitsToDouble(ref.toLongValue())).trim();
+		} else if(type == Type.FLOAT) {
+			contentString = String.valueOf(Float.intBitsToFloat(ref.toIntValue())).trim();
+		} else if(type == Type.LONG) {
+			contentString = String.valueOf(ref.toLongValue()).trim();
+		} else if(type == Type.INT) {
+			contentString = String.valueOf(ref.toIntValue()).trim();
+		}
+		
+		if(contentString!=null) {
+			contentString = contentString.trim();
+		}
+		return contentString;
+	}
 }

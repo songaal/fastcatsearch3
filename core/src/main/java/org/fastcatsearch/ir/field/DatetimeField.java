@@ -1,18 +1,14 @@
 package org.fastcatsearch.ir.field;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.regex.Pattern;
 
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.io.IOUtil;
+import org.fastcatsearch.ir.util.Formatter;
 
 public class DatetimeField extends Field {
-	public static final SimpleDateFormat inputFormat = new SimpleDateFormat("yyyyMMddHHmmssS");
-	public static final SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
-	public static final Pattern ptn = Pattern.compile("[- :.,]");
 
 	public DatetimeField(String id) {
 		super(id, IOUtil.SIZE_OF_LONG);
@@ -25,19 +21,7 @@ public class DatetimeField extends Field {
 
 	@Override
 	protected Object parseData(String data) {
-		if (data == null) {
-			return null;
-		}
-		
-		data = ptn.matcher(data).replaceAll("");
-		for (int strlen = data.length(); strlen < 17; strlen++) {
-			data += "0";
-		}
-		try {
-			return ((SimpleDateFormat) inputFormat.clone()).parse(data);
-		} catch (Exception e) {
-			return new Date(0);
-		}
+		return Formatter.parseDate(data, new Date(0));
 	}
 
 	@Override
@@ -72,7 +56,7 @@ public class DatetimeField extends Field {
 	@Override
 	public String getDataString() {
 		if (fieldsData != null) {
-			return outputFormat.format((Date) fieldsData);
+			return Formatter.formatDate((Date) fieldsData);
 		} else {
 			return null;
 		}
