@@ -79,7 +79,8 @@ public class DefaultDataSourceReader extends AbstractDataSourceReader<Map<String
 		} catch (Throwable e) {
 			close();
 			if(fs!=null) {
-				throw new IRException("Exception At Field ["+fs.getName()+"]" + e.getMessage());
+				logger.error("", e);
+				throw new IRException("Exception At Field ["+fs.getName()+"]", e);
 			} else {
 				logger.error("", e);
 				throw new IRException(e.getMessage());
