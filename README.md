@@ -4,38 +4,38 @@ Fastcatsearch is an open-source distributed search engine.
 
 ## Community
 
-* Korean: Use Fastcatsearch Korea group - https://www.facebook.com/groups/fastcatsearch/
-* English: Use google groups - https://groups.google.com/d/forum/fastcatsearch
+- Korean: Use Fastcatsearch Korea group - https://www.facebook.com/groups/fastcatsearch/
+- English: Use google groups - https://groups.google.com/d/forum/fastcatsearch
 
 
-
+@[caption](https://twitter.com/haroopad/status/337257711827841024)
 ## Feature List
 
 ### System 
 
-* Distributed index and search
-* Support search broker - merge sub-search results
-* Manage config files as XML
-* RESTFul search API
-* Search result provides JSON, XML format
-* Running on Java JVM
-* Support QPS maximum 200 queries / seconds
-* Index data can be restored to previous time
+- Distributed index and search
+- Support search broker - merge sub-search results
+- Manage config files as XML
+- RESTFul search API
+- Search result provides JSON, XML format
+- Running on Java JVM
+- Support QPS maximum 200 queries / seconds
+- Index data can be restored to previous time
 
 ### Search
 
-* Boolean search, natual languae search
-* Support synonym, stopword
-* Search result summary, and highlight.
-* Multiple filed searching
-* Multiple field sorting
-* Multiple field filtering
-* Multiple field grouping
-* Support various dbms data importing
-* Support custom file data importing
-* Support MS Office, PDF document indexing
-* Indexing schduling
-* Full indexing, increment indexing
+- Boolean search, natual languae search
+- Support synonym, stopword
+- Search result summary, and highlight.
+- Multiple filed searching
+- Multiple field sorting
+- Multiple field filtering
+- Multiple field grouping
+- Support various dbms data importing
+- Support custom file data importing
+- Support MS Office, PDF document indexing
+- Indexing schduling
+- Full indexing, increment indexing
 
 
 ## License
@@ -69,13 +69,13 @@ For more information, see <http://www.gnu.org/licenses/old-licenses/lgpl-2.1.htm
 
 ## Settings
 
-* Port Check
+- Port Check
     
     Default port is `8090`. If this port is used, you can change it in config file.
     
     In `conf/id.properties` file,  find line `servicePort=8090` and change port number you want.
 
-* Memory size
+- Memory size
 
     Default memory size is 512m. To change this value, open `bin/start.sh` and change `HEAP_MEMORY_SIZE=512m` you want.
 
@@ -108,6 +108,6 @@ You can make collections on fastcatsearch, edit configs, and index documents usi
 
 ## Need Help?
 
-* Resources : You can find manuals and tutorials on the <http://fastcatsearch.org> site.
+- Resources : You can find manuals and tutorials on the <http://fastcatsearch.org> site.
 
-* Support : Google groups - <https://groups.google.com/d/forum/fastcatsearch>. Join and get free support.
+- Support : Google groups - <https://groups.google.com/d/forum/fastcatsearch>. Join and get free support.
