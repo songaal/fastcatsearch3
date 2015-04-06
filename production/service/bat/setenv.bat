@@ -8,8 +8,8 @@ set wrapper_home=%~dp0/..
 
 rem default java exe for running the wrapper
 rem note this is not the java exe for running the application. the exe for running the application is defined in the wrapper configuration file
-set java_exe="java"
-set javaw_exe="javaw"
+set java_exe="java.exe"
+set javaw_exe="javaw.exe"
 
 if defined java_path set java_exe=%java_path%
 if defined javaw_path set javaw_exe=%javaw_path%
