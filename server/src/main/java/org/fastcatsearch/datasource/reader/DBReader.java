@@ -143,8 +143,8 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 					idPstmt = con.prepareStatement(q(deleteIdSQL));
 					rs = idPstmt.executeQuery();
 					rm = rs.getMetaData();
-					String[] rid = new String[rm.getColumnCount()];
 					while (rs.next()) {
+						String[] rid = new String[rm.getColumnCount()];
 						for (int inx = 0; inx < rid.length; inx++) {
 							rid[inx] = rs.getString(inx+1);
 						}

@@ -38,6 +38,7 @@ public class DefaultDataSourceReader extends AbstractDataSourceReader<Map<String
 
 	public Document createDocument(Map<String, Object> map) throws IRException {
 		FieldSetting fs = null;
+		Object data = null;
 		try {
 //			logger.debug("doc >> {}", map);
 			// Schema를 기반으로 Document로 만든다.
@@ -51,7 +52,7 @@ public class DefaultDataSourceReader extends AbstractDataSourceReader<Map<String
 					//source가 있다면 source에서 데이터를 가져온다.
 					key = source;
 				}
-				Object data = map.get(key);
+				data = map.get(key);
 				//null이면 공백문자로 치환.
 				if(data == null) {
 					data = "";
@@ -80,7 +81,7 @@ public class DefaultDataSourceReader extends AbstractDataSourceReader<Map<String
 			close();
 			if(fs!=null) {
 				logger.error("", e);
-				throw new IRException("Exception At Field ["+fs.getName()+"]", e);
+				throw new IRException("Exception At Field ["+fs.getName()+"] in \""+data+"\"", e);
 			} else {
 				logger.error("", e);
 				throw new IRException(e.getMessage());
