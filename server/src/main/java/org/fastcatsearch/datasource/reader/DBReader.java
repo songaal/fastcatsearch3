@@ -77,6 +77,8 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 	private int readCount;
 	
 	private boolean useBlobFile;
+	
+	private boolean isClosed;
 
 	public DBReader() {
 		super();
@@ -110,6 +112,9 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 	
 	@Override
 	public void init() throws IRException {
+		
+		isClosed = false;
+		
 		BULK_SIZE = getConfigInt("bulkSize");
 		
 		useBlobFile = getConfigBoolean("useBlobFile");
@@ -247,15 +252,17 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 
 	@Override
 	public void close() throws IRException {
-		logger.info("DBReader has read {} docs", totalCnt);
-		deleteTmpLob();
-		try {
-			doAfterQuery();
-		} catch (SQLException e) {
-			logger.error("After Query Error => " + e.getMessage(), e);
+		if(!isClosed) {
+			logger.info("DBReader has read {} docs", totalCnt);
+			deleteTmpLob();
+			try {
+				doAfterQuery();
+			} catch (SQLException e) {
+				logger.error("After Query Error => " + e.getMessage(), e);
+			}
+			closeConnection();
+			isClosed = true;
 		}
-		closeConnection();
-
 	}
 	
 	private void closeConnection() throws IRException {
