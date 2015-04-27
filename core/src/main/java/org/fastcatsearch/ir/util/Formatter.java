@@ -53,15 +53,10 @@ public class Formatter {
 	 * @throws ParseException
 	 */
 	public static Date parseDate(String data, Date defaultValue) {
-		Exception ex = null;
 		try {
 			return parseDate(data);
-		} catch (ParseException e) {
-			ex = e;
-		} catch (NumberFormatException e) {
-			ex = e;
-		} finally {
-			if(ex != null) { logger.error("ERROR PARSING DATE STRING \"{}\" / {}", data, ex.getMessage()); }
+		} catch (Exception e) {
+			logger.error("ERROR PARSING DATE STRING \"{}\" / {}", data, e.getMessage());
 		}
 		return defaultValue;
 	}
@@ -72,7 +67,15 @@ public class Formatter {
 		data=PTN_STRIP_DATE.matcher(data).replaceAll("");//.trim();
 		//일부만 들어와도 되도록 자리맞춤을 위한 0 채움
 		for(int strlen=data.length(); strlen < 17; strlen++) { data+="0"; }
-		return DATEFORMAT_DEFAULT_PARSE.parse(data);
+		Date ret = null;
+		try {
+			synchronized (DATEFORMAT_DEFAULT_PARSE) {
+				ret = DATEFORMAT_DEFAULT_PARSE.parse(data);
+			}
+		} catch (Exception e) { 
+			logger.error("ERROR PARSING DATE STRING \"{}\" / {}", data, e.getMessage()); 
+		}
+		return ret;
 	}
 	
 	/**
@@ -166,5 +169,11 @@ public class Formatter {
 			contentString = contentString.trim();
 		}
 		return contentString;
+	}
+	
+	public static void main(String[] arg) throws Exception {
+		
+		System.out.println(""+Formatter.parseDate("20150420"));
+		
 	}
 }
