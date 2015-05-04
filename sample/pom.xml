@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
+        <groupId>org.fastcat</groupId>
         <artifactId>fastcatsearch</artifactId>
-        <groupId>org.fastcatsearch</groupId>
         <version>2.20.5-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fastcatsearch.fastcatsearch</groupId>
+    <groupId>org.fastcat.fastcatsearch</groupId>
     <artifactId>fastcatsearch-sample</artifactId>
     <name>fastcatsearch-sample</name>
     <description>fastcatsearch/sample</description>
-    <url>http://fastcatsearch.org</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -18,11 +17,11 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.fastcatsearch.fastcatsearch</groupId>
+            <groupId>org.fastcat.fastcatsearch</groupId>
             <artifactId>fastcatsearch-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.fastcatsearch.fastcatsearch</groupId>
+            <groupId>org.fastcat.fastcatsearch</groupId>
             <artifactId>fastcatsearch-server</artifactId>
         </dependency>
     </dependencies>

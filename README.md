@@ -7,8 +7,6 @@ Fastcatsearch is an open-source distributed search engine.
 - Korean: Use Fastcatsearch Korea group - https://www.facebook.com/groups/fastcatsearch/
 - English: Use google groups - https://groups.google.com/d/forum/fastcatsearch
 
-
-@[caption](https://twitter.com/haroopad/status/337257711827841024)
 ## Feature List
 
 ### System 
