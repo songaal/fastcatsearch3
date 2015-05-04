@@ -16,15 +16,15 @@
 
 package org.fastcatsearch.ir.util;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.regex.Pattern;
-
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.settings.FieldSetting.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.regex.Pattern;
 
 /**
  * 객체 / 문자열의 상호변환 등을 위한 유틸
@@ -33,13 +33,40 @@ import org.slf4j.LoggerFactory;
 public class Formatter {
 	
 	private static final Logger logger = LoggerFactory.getLogger(Formatter.class);
-	
+
+//	public static final SimpleDateFormat DATEFORMAT_DEFAULT_PARSE = new SimpleDateFormat("yyyyMMddHHmmssS");
+//	public static final SimpleDateFormat DATEFORMAT_DEFAULT_FORMAT = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+//	public static final SimpleDateFormat DATEFORMAT_OUTPUT_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+//	public static final SimpleDateFormat DATEFORMAT_DEFAULT_FORMAT_MIN = new SimpleDateFormat("yyyy.MM.dd HH:mm");
+
 	/** 파싱을 위한 날자포맷.**/
-	public static final SimpleDateFormat DATEFORMAT_DEFAULT_PARSE = new SimpleDateFormat("yyyyMMddHHmmssS");
+	private static final ThreadLocal<SimpleDateFormat> DATEFORMAT_DEFAULT_PARSE = new ThreadLocal<SimpleDateFormat>(){
+		@Override
+		protected SimpleDateFormat initialValue() {
+			return new SimpleDateFormat("yyyyMMddHHmmssS");
+		}
+	};
+
 	/** 포맷팅을 위한 날자포맷. **/
-	public static final SimpleDateFormat DATEFORMAT_DEFAULT_FORMAT = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
-	public static final SimpleDateFormat DATEFORMAT_OUTPUT_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
-	public static final SimpleDateFormat DATEFORMAT_DEFAULT_FORMAT_MIN = new SimpleDateFormat("yyyy.MM.dd HH:mm");
+	private static final ThreadLocal<SimpleDateFormat> DATEFORMAT_DEFAULT_FORMAT = new ThreadLocal<SimpleDateFormat>(){
+		@Override
+		protected SimpleDateFormat initialValue() {
+			return new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+		}
+	};
+	private static final ThreadLocal<SimpleDateFormat> DATEFORMAT_OUTPUT_FORMAT = new ThreadLocal<SimpleDateFormat>(){
+		@Override
+		protected SimpleDateFormat initialValue() {
+			return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+		}
+	};
+	private static final ThreadLocal<SimpleDateFormat> DATEFORMAT_DEFAULT_FORMAT_MIN = new ThreadLocal<SimpleDateFormat>(){
+		@Override
+		protected SimpleDateFormat initialValue() {
+			return new SimpleDateFormat("yyyy.MM.dd HH:mm");
+		}
+	};
+
 	/** 날자 중의 특수기호들을 삭제하기 위한 패턴 **/
 	public static final Pattern PTN_STRIP_DATE = Pattern.compile("[-\t\0\r\n :.,/]");
 //	public static final Pattern PTN_PARSE_DATE = Pattern.compile("[0-9]{4}+[-\t :.,/][0-9]{1-2}+[-\t :.,/][0-9]{1-2}+[-\t :.,/][0-9]{1-2}");
@@ -69,10 +96,8 @@ public class Formatter {
 		for(int strlen=data.length(); strlen < 17; strlen++) { data+="0"; }
 		Date ret = null;
 		try {
-			synchronized (DATEFORMAT_DEFAULT_PARSE) {
-				ret = DATEFORMAT_DEFAULT_PARSE.parse(data);
-			}
-		} catch (Exception e) { 
+			ret = DATEFORMAT_DEFAULT_PARSE.get().parse(data);
+		} catch (Exception e) {
 			logger.error("ERROR PARSING DATE STRING \"{}\" / {}", data, e.getMessage()); 
 		}
 		return ret;
@@ -81,17 +106,16 @@ public class Formatter {
 	/**
 	 * 날자를 문자로 변환하여 반환한다.
 	 * 형식은 yyyy-MM-dd HH:mm:ss.S
-	 * @param date
 	 * @return
 	 */
 	public static String formatDate() {
 		return formatDate(new Date());
 	}
 	public static String formatDate(Date date) {
-		return DATEFORMAT_DEFAULT_FORMAT.format(date);
+		return DATEFORMAT_DEFAULT_FORMAT.get().format(date);
 	}
 	public static String formatDateEndsMinute(Date date) {
-		return DATEFORMAT_DEFAULT_FORMAT_MIN.format(date);
+		return DATEFORMAT_DEFAULT_FORMAT_MIN.get().format(date);
 	}
 	
 	private static String CONTROL_CHAR_REGEXP = "["+(char)0+" "+(char)1+" "+(char)2+" "+(char)3+" "+(char)4+" "+(char)5+" "
@@ -154,7 +178,7 @@ public class Formatter {
 		} else if(type == Type.STRING) {
 			contentString = new String(ref.toUCharArray()).trim();
 		} else if(type == Type.DATETIME) {
-			contentString = String.valueOf(DATEFORMAT_OUTPUT_FORMAT.format(new Date(ref.toLongValue())));
+			contentString = String.valueOf(DATEFORMAT_OUTPUT_FORMAT.get().format(new Date(ref.toLongValue())));
 		} else if(type == Type.DOUBLE) {
 			contentString = String.valueOf(Double.longBitsToDouble(ref.toLongValue())).trim();
 		} else if(type == Type.FLOAT) {
