@@ -65,6 +65,7 @@ public class DemoSearchResultWriter extends AbstractSearchResultWriter {
     }
 
     Pattern patt = Pattern.compile("\\$[a-zA-Z_-]+");
+	Pattern patt2 = Pattern.compile("\\$\\{[a-zA-Z_-]+\\}");
     private Set<String> findIdList(String source) {
         if(source == null) {
             return new HashSet<String>();
@@ -76,6 +77,12 @@ public class DemoSearchResultWriter extends AbstractSearchResultWriter {
             String g = matcher.group();
             set.add(g.substring(1));
         }
+	    matcher = patt2.matcher(source);
+	    while(matcher.find()){
+		    String g = matcher.group();
+		    int len = g.length();
+		    set.add(g.substring(2, len - 1));
+	    }
         return set;
     }
 
@@ -122,6 +129,7 @@ public class DemoSearchResultWriter extends AbstractSearchResultWriter {
 	            while(iter.hasNext()) {
 		            String fieldId = iter.next();
 		            String fieldData = getFieldData(fieldId, row, fieldNames, bundleTotalSize);
+		            thumbnailData = thumbnailData.replaceAll("\\$\\{"+fieldId+"\\}", fieldData);
 		            thumbnailData = thumbnailData.replaceAll("\\$"+fieldId, fieldData);
 	            }
 	            resultWriter.value(thumbnailData);
@@ -135,6 +143,7 @@ public class DemoSearchResultWriter extends AbstractSearchResultWriter {
                 while(iter.hasNext()) {
                     String fieldId = iter.next();
                     String fieldData = getFieldData(fieldId, row, fieldNames, bundleTotalSize);
+	                titleData = titleData.replaceAll("\\$\\{"+fieldId+"\\}", fieldData);
                     titleData = titleData.replaceAll("\\$"+fieldId, fieldData);
                 }
                 resultWriter.value(titleData);
@@ -149,7 +158,8 @@ public class DemoSearchResultWriter extends AbstractSearchResultWriter {
                     String fieldId = iter.next();
                     String fieldData = getFieldData(fieldId, row, fieldNames, bundleTotalSize);
                     fieldData = fieldData.replaceAll("\\$", "&#36;");
-                    bodyData = bodyData.replaceAll("([\\$])"+fieldId+"", fieldData);
+	                bodyData = bodyData.replaceAll("([\\$])"+fieldId+"", fieldData);
+	                bodyData = bodyData.replaceAll("\\$\\{"+fieldId+"\\}", fieldData);
                 }
                 resultWriter.value(bodyData);
 				
