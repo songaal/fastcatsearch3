@@ -82,11 +82,12 @@ public class DemoSearchResultWriter extends AbstractSearchResultWriter {
     public void writeBody(Result result, ResponseWriter resultWriter, long searchTime) throws ResultWriterException {
         String[] fieldNames = result.getFieldNameList();
 
+	    String thumbnailField = setting.getThumbnailField();
         String titleField = setting.getTitleField();
         String bodyField = setting.getBodyField();
         String bundleField = setting.getBundleField();
 
-
+	    Set<String> thumbnailIdSet = findIdList(thumbnailField);
         Set<String> titleIdSet = findIdList(titleField);
         Set<String> bodyIdSet = findIdList(bodyField);
         Set<String> bundleIdSet = findIdList(bundleField);
@@ -113,10 +114,23 @@ public class DemoSearchResultWriter extends AbstractSearchResultWriter {
                 resultWriter.object();
 
 				/*
+				 * 0. thumbnail
+				 * */
+	            resultWriter.key("thumbnail");
+	            Iterator<String> iter = thumbnailIdSet.iterator();
+	            String thumbnailData = thumbnailField;
+	            while(iter.hasNext()) {
+		            String fieldId = iter.next();
+		            String fieldData = getFieldData(fieldId, row, fieldNames, bundleTotalSize);
+		            thumbnailData = thumbnailData.replaceAll("\\$"+fieldId, fieldData);
+	            }
+	            resultWriter.value(thumbnailData);
+
+				/*
 				 * 1. title
 				 * */
-                resultWriter.key("title");
-                Iterator<String> iter = titleIdSet.iterator();
+	            resultWriter.key("title");
+                iter = titleIdSet.iterator();
                 String titleData = titleField;
                 while(iter.hasNext()) {
                     String fieldId = iter.next();
