@@ -1,15 +1,5 @@
 package org.fastcatsearch.ir.dictionary;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.lucene.store.InputStreamDataInput;
 import org.apache.lucene.store.OutputStreamDataOutput;
 import org.fastcatsearch.ir.io.CharVector;
@@ -17,6 +7,12 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.util.CharVectorHashMap;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
+
+import java.io.*;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /*
  * map 범용 사전. 

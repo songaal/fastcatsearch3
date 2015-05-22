@@ -1,16 +1,5 @@
 package org.fastcatsearch.ir.dictionary;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.lucene.store.InputStreamDataInput;
 import org.apache.lucene.store.OutputStreamDataOutput;
 import org.fastcatsearch.ir.io.CharVector;
@@ -18,6 +7,12 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.util.CharVectorHashSet;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.*;
 
 public class SynonymDictionary extends MapDictionary {
 
@@ -28,17 +23,23 @@ public class SynonymDictionary extends MapDictionary {
 	}
 	public SynonymDictionary(boolean isIgnoreCase) {
 		super(isIgnoreCase);
-		wordSet = new CharVectorHashSet(isIgnoreCase);
+		if(wordSet == null) {
+			wordSet = new CharVectorHashSet(isIgnoreCase);
+		}
 	}
 
 	public SynonymDictionary(File file, boolean isIgnoreCase) {
 		super(file, isIgnoreCase);
-		wordSet = new CharVectorHashSet(isIgnoreCase);
+		if(wordSet == null) {
+			wordSet = new CharVectorHashSet(isIgnoreCase);
+		}
 	}
 
 	public SynonymDictionary(InputStream is, boolean isIgnoreCase) {
 		super(is, isIgnoreCase);
-		wordSet = new CharVectorHashSet(isIgnoreCase);
+		if(wordSet == null) {
+			wordSet = new CharVectorHashSet(isIgnoreCase);
+		}
 	}
 
 	public Set<CharVector> getWordSet() {

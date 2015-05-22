@@ -1,16 +1,5 @@
 package org.fastcatsearch.ir.dictionary;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Pattern;
-
 import org.apache.lucene.store.InputStreamDataInput;
 import org.apache.lucene.store.OutputStreamDataOutput;
 import org.fastcatsearch.ir.io.CharVector;
@@ -18,6 +7,16 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.util.CharVectorHashSet;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 public class SpaceDictionary extends MapDictionary {
 
@@ -30,7 +29,9 @@ public class SpaceDictionary extends MapDictionary {
 
 	public SpaceDictionary(boolean ignoreCase) {
 		super(ignoreCase);
-		wordSet = new CharVectorHashSet(ignoreCase);
+		if(wordSet == null) {
+			wordSet = new CharVectorHashSet(ignoreCase);
+		}
 	}
 
 	public SpaceDictionary(File file, boolean ignoreCase) {
