@@ -6,7 +6,7 @@ heap_memory_size=768m
 java_path=
 daemon_account=fastcat
 
-current=$(pwd)
+current=$( dirname "$0" )
 
 cd $current/../
 server_home=$(pwd)
