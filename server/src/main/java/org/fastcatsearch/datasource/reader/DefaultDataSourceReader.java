@@ -16,14 +16,14 @@
 
 package org.fastcatsearch.datasource.reader;
 
-import java.util.Map;
-
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.util.HTMLTagRemover;
+
+import java.util.Map;
 
 /**
  * 데이터소스 리더.
@@ -53,6 +53,10 @@ public class DefaultDataSourceReader extends AbstractDataSourceReader<Map<String
 					key = source;
 				}
 				data = map.get(key);
+				//데이터가 없으면 소문자로 시도. 퍼블릭 REST API를 통해 받은 json등은 키를 변경하기가 어려우므로 추가된 기능.
+				if(data == null) {
+					data = map.get(key.toLowerCase());
+				}
 				//null이면 공백문자로 치환.
 				if(data == null) {
 					data = "";

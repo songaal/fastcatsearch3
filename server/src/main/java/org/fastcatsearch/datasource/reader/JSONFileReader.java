@@ -41,7 +41,7 @@ public class JSONFileReader extends SingleSourceReader<Map<String,Object>> imple
 
 	@Override
 	public void init() throws IRException { 
-		rootPath = getConfigString("rootPath", "/");
+		rootPath = filePath.makePath(getConfigString("filePath")).file().getAbsolutePath();
 		encoding = getConfigString("encoding", null);
 
 		if(bufferSize < 100) {
@@ -60,7 +60,7 @@ public class JSONFileReader extends SingleSourceReader<Map<String,Object>> imple
 	
 	@Override
 	protected void initParameters() { 
-		registerParameter(new SourceReaderParameter("rootPath", "Data Root Path", "Root Filepath for Indexing. (Absolute Path)"
+		registerParameter(new SourceReaderParameter("filePath", "File or Dir Path", "Filepath for Indexing.(Relative for Server Home)"
 				, SourceReaderParameter.TYPE_STRING_LONG, true, null));
 		registerParameter(new SourceReaderParameter("encoding", "Encoding", "File encoding"
 				, SourceReaderParameter.TYPE_STRING, false, null));
@@ -93,14 +93,19 @@ public class JSONFileReader extends SingleSourceReader<Map<String,Object>> imple
 			while (true) {
 				if(items != null) {
 					if(pos  < items.size()) {
-						return items.get(pos++);
+						Map<String, Object> item = items.get(pos++);
+						if (sourceModifier != null) {
+							sourceModifier.modify(item);
+						}
+						return item;
 					}
+					items = null;
 				} else {
 					if (reader != null) {
 						try {
 							JsonFactory jsonFactory = new JsonFactory();
 							ObjectMapper mapper = new ObjectMapper(jsonFactory);
-							TypeReference<List<HashMap<String, Object>>> typeRef = new TypeReference<List<HashMap<String, Object>>>() {};
+							TypeReference<List<HashMap<String, Object>>> typeRef = new TypeReference<List<HashMap<String, Object>>>(){};
 							Object docs = mapper.readValue(reader, typeRef);
 							items = (List<HashMap<String, Object>>) docs;
 							pos = 0;
@@ -109,25 +114,33 @@ public class JSONFileReader extends SingleSourceReader<Map<String,Object>> imple
 							logger.error("", ex);
 						}
 
-						HashMap<String, Object> item = null;
-						if(pos  < items.size()) {
-							item = items.get(pos++);
-						}
+//						HashMap<String, Object> item = null;
+//						if(pos  < items.size()) {
+//							item = items.get(pos++);
+//						} else {
+//							items = null;
+//						}
 
-						if (item != null) {
-							if (sourceModifier != null) {
-								sourceModifier.modify(item);
-							}
-							return item;
-						} else {
-							//get next reader..
-							try {
-								reader.close();
-							} catch (IOException ignore) {
-							}
-							reader = null;
-							continue;
+						try {
+							reader.close();
+						} catch (IOException ignore) {
 						}
+						reader = null;
+
+//						if (item != null) {
+//							if (sourceModifier != null) {
+//								sourceModifier.modify(item);
+//							}
+//							return item;
+//						} else {
+//							//get next reader..
+//							try {
+//								reader.close();
+//							} catch (IOException ignore) {
+//							}
+//							reader = null;
+//							continue;
+//						}
 					} else {
 						if (filePaths.size() > 0) {
 							logger.trace("fetch record..");
@@ -137,7 +150,7 @@ public class JSONFileReader extends SingleSourceReader<Map<String,Object>> imple
 							} catch (IOException ex) {
 								logger.error("", ex);
 							}
-							continue;
+//							continue;
 						} else {
 							break;
 						}
