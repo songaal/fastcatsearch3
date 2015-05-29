@@ -176,7 +176,9 @@ public class SimpleFileReader extends SingleSourceReader<Map<String,Object>> imp
 					file.listFiles(this);
 			} else if(file.isFile()) {
 				logger.trace("file : {}", file);
-				filePaths.add(file.getAbsolutePath());
+				if(! file.isHidden()) {
+					filePaths.add(file.getAbsolutePath());
+				}
 			}
 			break;
 		}

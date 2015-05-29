@@ -1,16 +1,17 @@
 package org.fastcatsearch.plugin;
 
-import java.util.List;
-
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.ActionMethod;
 import org.fastcatsearch.http.action.management.analysis.GetBasicAnalizedResultAction;
 import org.fastcatsearch.util.DynamicClassLoader;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlType;
+import java.util.List;
+
+@XmlType(name = "plugin")
 public class PluginSetting {
 
 	protected String id;
