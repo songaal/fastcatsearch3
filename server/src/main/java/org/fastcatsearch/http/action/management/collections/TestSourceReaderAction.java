@@ -52,12 +52,12 @@ public class TestSourceReaderAction extends AuthAction {
 			if(singleSourceConfigList.size() > 0) {
 				SingleSourceConfig singleSourceConfig = singleSourceConfigList.get(0);
 				Class<?> sourceReaderCls = DynamicClassLoader.loadClass(singleSourceConfig.getSourceReader());
-				Constructor<?> constructor = sourceReaderCls.getConstructor(
+				Constructor<?> constructor = sourceReaderCls.getConstructor(String.class,
 						File.class, SingleSourceConfig.class, SourceModifier.class,
 						String.class);
 				@SuppressWarnings("unchecked")
 				SingleSourceReader<Map<String, Object>> sreader = (SingleSourceReader<Map<String, Object>>) constructor
-						.newInstance(null, singleSourceConfig, null, null);
+						.newInstance(collectionId, singleSourceConfig, null, null);
 				sreader.setMaxRows(maxRows);
 				
 				SchemaSetting workSchemaSetting = collectionContext.workSchemaSetting();
