@@ -57,7 +57,7 @@ public class TestSourceReaderAction extends AuthAction {
 						String.class);
 				@SuppressWarnings("unchecked")
 				SingleSourceReader<Map<String, Object>> sreader = (SingleSourceReader<Map<String, Object>>) constructor
-						.newInstance(collectionId, singleSourceConfig, null, null);
+						.newInstance(collectionId, null, singleSourceConfig, null, null);
 				sreader.setMaxRows(maxRows);
 				
 				SchemaSetting workSchemaSetting = collectionContext.workSchemaSetting();
