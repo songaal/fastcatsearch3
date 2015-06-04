@@ -47,6 +47,7 @@ public class GetPluginAnalyzerJob extends Job implements Streamable {
 					.key("version").value(pluginSetting.getVersion())
 					.key("description").value(pluginSetting.getDescription())
 					.key("className").value(pluginSetting.getClassName())
+					.key("licenseStatus").value(plugin.getLicenseStatus())
 					.key("analyzer").array();
 					if(analyzerList != null) {
                         for (Analyzer analyzer : analyzerList) {

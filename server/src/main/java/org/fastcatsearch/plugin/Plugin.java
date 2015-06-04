@@ -22,6 +22,7 @@ public abstract class Plugin {
 	protected boolean isLoaded;
     protected final String serverId;
     protected final String licenseKey;
+	protected String licenseStatus;
     private final static String licenseFileName = "license.key";
 
     protected PluginLicenseInfo licenseInfo;
@@ -75,13 +76,25 @@ public abstract class Plugin {
 	public String pluginId(){
 		return pluginId;
 	}
-	
+
+	public String getLicenseStatus() {
+		return licenseStatus != null ? licenseStatus : "";
+	}
 	public final void load(boolean isMasterNode) throws LicenseInvalidException {
 		boolean isLoadDb = isMasterNode && pluginSetting.isUseDB();
 		if(isLoadDb){
 			loadDB();
 		}
-		doLoad(isLoadDb);
+		try {
+			doLoad(isLoadDb);
+		}catch (LicenseInvalidException e) {
+			licenseStatus = e.getMessage();
+			throw e;
+		}
+        licenseStatus = "Valid";
+        if(licenseInfo != null) {
+            licenseStatus = licenseStatus + " (" + licenseInfo.getLicenseExpireDate() +  ")";
+        }
 		isLoaded = true;
 	}
 
