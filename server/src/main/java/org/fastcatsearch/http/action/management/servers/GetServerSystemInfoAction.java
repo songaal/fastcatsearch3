@@ -75,6 +75,7 @@ public class GetServerSystemInfoAction extends AuthAction {
 		.key("javaVersion").value(info.javaVersion)
 		.key("javaClasspath").value(info.javaClasspath)
 		.key("homePath").value(info.homePath)
+        .key("serverId").value(environment.getServerId())
 		.endObject();
 	}
 }
