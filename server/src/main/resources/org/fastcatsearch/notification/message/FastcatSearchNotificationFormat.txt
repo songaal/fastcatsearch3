@@ -3,7 +3,7 @@
 MSG-00100: OutOfMemory Error at Node{0}. Code={1}
 MSG-00101: Disk usage is {1}% high at Node{0}
 
-MSG-01000: {0} collection's {1}/{2} indexing job {2} started! time:{4}
+MSG-01000: {0} collection's {1}/{2} indexing job {3} started! time:{4}
 MSG-01001: {0} collection's {1}/{2} indexing job done successfully. time:{3}~{4}. {5}
 MSG-01002: {0} collection's {1}/{2} indexing job failed. time:{3}~{4}. {5}
 MSG-01003: {0} collection's {1}/{2} indexing job canceled. time:{3}~{4}.
