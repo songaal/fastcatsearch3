@@ -86,7 +86,7 @@ public class SearchResultWriterTest {
 	@Test
 	public void testXML() throws ResultWriterException, IOException {
 		StringWriter writer = new StringWriter();
-		XMLResponseWriter stringer = new XMLResponseWriter(writer, "fastcatsearch", true);
+		XMLResponseWriter stringer = new XMLResponseWriter(writer, "fastcatsearch", true, false);
 		SearchResultWriter resultWriter = new SearchResultWriter(stringer);
 		long searchTime = 1234;
 		boolean isSuccess = true;

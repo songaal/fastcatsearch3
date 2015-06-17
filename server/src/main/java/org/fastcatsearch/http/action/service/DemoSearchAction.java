@@ -1,12 +1,5 @@
 package org.fastcatsearch.http.action.service;
 
-import java.io.IOException;
-import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.http.ActionMapping;
@@ -14,9 +7,7 @@ import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.ServiceAction;
 import org.fastcatsearch.http.writer.DemoSearchResultWriter;
-import org.fastcatsearch.http.writer.SearchResultWriter;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.search.ClusterSearchJob;
 import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.service.ServiceManager;
@@ -24,6 +15,13 @@ import org.fastcatsearch.settings.SearchPageSettings;
 import org.fastcatsearch.settings.SearchPageSettings.SearchCategorySetting;
 import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
+
+import java.io.IOException;
+import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 @ActionMapping("/service/demo/search")
 public class DemoSearchAction extends ServiceAction {
@@ -37,7 +35,7 @@ public class DemoSearchAction extends ServiceAction {
 
 		writeHeader(response);
 		
-		ResponseWriter responseWriter = getResponseWriter(response.getWriter(), ServiceAction.DEFAULT_ROOT_ELEMENT, true, null);
+		ResponseWriter responseWriter = getResponseWriter(response.getWriter(), ServiceAction.DEFAULT_ROOT_ELEMENT, true, null, false);
 		long st = System.nanoTime();
 		
 		responseWriter.object();

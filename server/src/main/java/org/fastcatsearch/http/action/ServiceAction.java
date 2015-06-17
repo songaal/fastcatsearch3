@@ -1,12 +1,12 @@
 package org.fastcatsearch.http.action;
 
-import java.io.Writer;
-
 import org.fastcatsearch.util.JSONPResponseWriter;
 import org.fastcatsearch.util.JSONResponseWriter;
 import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.XMLResponseWriter;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+
+import java.io.Writer;
 
 public abstract class ServiceAction extends HttpAction {
 	public static final String DEFAULT_ROOT_ELEMENT = "response";
@@ -61,18 +61,22 @@ public abstract class ServiceAction extends HttpAction {
 		}
 	}
 
-	protected ResponseWriter getDefaultResponseWriter(Writer writer) {
-		return getResponseWriter(writer, DEFAULT_ROOT_ELEMENT, true, null);
+    protected ResponseWriter getDefaultResponseWriter(Writer writer) {
+        return getDefaultResponseWriter(writer, false);
+    }
+
+	protected ResponseWriter getDefaultResponseWriter(Writer writer, boolean isFieldLowercase) {
+		return getResponseWriter(writer, DEFAULT_ROOT_ELEMENT, true, null, isFieldLowercase);
 	}
 
-	protected ResponseWriter getResponseWriter(Writer writer, String rootElement, boolean isBeautify, String jsonCallback) {
+	protected ResponseWriter getResponseWriter(Writer writer, String rootElement, boolean isBeautify, String jsonCallback, boolean isFieldLowercase) {
 		ResponseWriter resultWriter = null;
 		if (resultType == Type.json) {
-			resultWriter = new JSONResponseWriter(writer, isBeautify);
+			resultWriter = new JSONResponseWriter(writer, isBeautify, isFieldLowercase);
 		} else if (resultType == Type.jsonp) {
-			resultWriter = new JSONPResponseWriter(writer, jsonCallback, isBeautify);
+			resultWriter = new JSONPResponseWriter(writer, jsonCallback, isBeautify, isFieldLowercase);
 		} else if (resultType == Type.xml) {
-			resultWriter = new XMLResponseWriter(writer, rootElement, isBeautify);
+			resultWriter = new XMLResponseWriter(writer, rootElement, isBeautify, isFieldLowercase);
 		}
 		return resultWriter;
 	}

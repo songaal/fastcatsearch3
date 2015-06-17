@@ -1,7 +1,5 @@
 package org.fastcatsearch.http.action.service;
 
-import java.io.Writer;
-
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.http.action.ActionRequest;
@@ -11,6 +9,8 @@ import org.fastcatsearch.job.Job;
 import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+
+import java.io.Writer;
 
 public abstract class CallableAction extends ServiceAction {
 
@@ -22,7 +22,7 @@ public abstract class CallableAction extends ServiceAction {
 		response.setStatus(HttpResponseStatus.OK);
 		String jsonCallback = request.getParameter("_jsonCallback");
 		boolean isJoin = request.getBooleanParameter("_wait", true);
-		ResponseWriter resultWriter = getResponseWriter(writer, ServiceAction.DEFAULT_ROOT_ELEMENT, true, jsonCallback);
+		ResponseWriter resultWriter = getResponseWriter(writer, ServiceAction.DEFAULT_ROOT_ELEMENT, true, jsonCallback, false);
 		
 		
 		Job job = createJob();

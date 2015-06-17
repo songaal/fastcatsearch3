@@ -9,11 +9,11 @@ public class JSONPResponseWriter extends JSONResponseWriter {
 	private Writer w;
 
 	public JSONPResponseWriter(Writer w, String callback) {
-		this(w, callback, false);
+		this(w, callback, false, false);
 	}
 
-	public JSONPResponseWriter(Writer w, String callback, boolean beautify) {
-		super(w, beautify);
+	public JSONPResponseWriter(Writer w, String callback, boolean beautify, boolean isKeyLowercase) {
+		super(w, beautify, isKeyLowercase);
 		this.w = w;
 		if(callback == null){
 			callback = DEFAULT_CALLBACK;

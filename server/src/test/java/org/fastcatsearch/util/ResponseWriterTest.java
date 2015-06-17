@@ -1,17 +1,15 @@
 package org.fastcatsearch.util;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 import java.io.StringWriter;
-
-import org.junit.Test;
 
 public class ResponseWriterTest {
 
 	@Test
 	public void testArrayObject() throws Exception {
 		StringWriter writer = new StringWriter();
-		ResponseWriter rs = new XMLResponseWriter(writer, "response", true);
+		ResponseWriter rs = new XMLResponseWriter(writer, "response", true, false);
 		
 		//rs = new JSONResultStringer();
 		
@@ -63,7 +61,7 @@ public class ResponseWriterTest {
 	@Test
 	public void testSingle() throws Exception {
 		StringWriter writer = new StringWriter();
-		ResponseWriter rs = new XMLResponseWriter(writer, "response",true);
+		ResponseWriter rs = new XMLResponseWriter(writer, "response",true, false);
 		
 		//rs = new JSONResponseWriter(writer, true);
 		
@@ -101,7 +99,7 @@ public class ResponseWriterTest {
 	@Test
 	public void test3() throws Exception {
 		StringWriter writer = new StringWriter();
-		ResponseWriter rs = new XMLResponseWriter(writer, "fastcatsearch",true);
+		ResponseWriter rs = new XMLResponseWriter(writer, "fastcatsearch",true, false);
 		//ResultWriter rs = new JSONResultWriter(writer,true);
 		
 		rs.object()

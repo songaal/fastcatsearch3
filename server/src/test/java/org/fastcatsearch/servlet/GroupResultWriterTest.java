@@ -1,9 +1,5 @@
 package org.fastcatsearch.servlet;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.Date;
-
 import org.fastcatsearch.http.writer.GroupResultWriter;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
@@ -15,6 +11,10 @@ import org.fastcatsearch.util.ResultWriterException;
 import org.fastcatsearch.util.XMLResponseWriter;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.Date;
 
 public class GroupResultWriterTest {
 	
@@ -49,7 +49,7 @@ public class GroupResultWriterTest {
 	@Test
 	public void testJson() throws ResultWriterException, IOException {
 		StringWriter writer = new StringWriter();
-		ResponseWriter resultWriter = new JSONResponseWriter(writer, true);
+		ResponseWriter resultWriter = new JSONResponseWriter(writer, true, false);
 		GroupResultWriter groupResultWriter = new GroupResultWriter(resultWriter);
 		long searchTime = 1234;
 		boolean isSuccess = true;
@@ -62,7 +62,7 @@ public class GroupResultWriterTest {
 	@Test
 	public void testXML() throws ResultWriterException, IOException {
 		StringWriter writer = new StringWriter();
-		XMLResponseWriter stringer = new XMLResponseWriter(writer, "fastcatsearch", true);
+		XMLResponseWriter stringer = new XMLResponseWriter(writer, "fastcatsearch", true, false);
 		GroupResultWriter groupResultWriter = new GroupResultWriter(stringer);
 		long searchTime = 1234;
 		boolean isSuccess = true;

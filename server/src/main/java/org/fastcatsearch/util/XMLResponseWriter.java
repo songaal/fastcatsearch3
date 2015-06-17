@@ -1,25 +1,20 @@
 package org.fastcatsearch.util;
 
+import org.dom4j.Document;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.xml.transform.*;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-
-import org.dom4j.Document;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author lupfeliz
@@ -36,18 +31,20 @@ public class XMLResponseWriter implements ResponseWriter {
 	List<String> arrayName;
 	List<NODE_TYPE> types;
 	boolean beautify;
+    boolean isKeyLowercase;
 	Writer w;
 	
 	public XMLResponseWriter(Writer w, String rootName) {
-		this(w, rootName, false);
+		this(w, rootName, false, false);
 	}
 	
-	public XMLResponseWriter(Writer w, String rootName, boolean beautify) {
+	public XMLResponseWriter(Writer w, String rootName, boolean beautify, boolean isKeyLowercase) {
 		this.w = w;
 		document = DocumentHelper.createDocument();
 		root = document.addElement(rootName);
 		currentElement = root;
 		this.beautify = beautify;
+        this.isKeyLowercase = isKeyLowercase;
 		types = new ArrayList<NODE_TYPE>();
 		arrayName = new ArrayList<String>();
 	}
@@ -99,6 +96,9 @@ public class XMLResponseWriter implements ResponseWriter {
 
 	@Override
 	public ResponseWriter key(String key) throws ResultWriterException {
+        if(isKeyLowercase) {
+            key = key.toLowerCase();
+        }
 		currentElement = currentElement.addElement(key);
 		return this;
 	}

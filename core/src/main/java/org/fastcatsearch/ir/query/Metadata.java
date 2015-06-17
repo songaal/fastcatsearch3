@@ -16,12 +16,12 @@
 
 package org.fastcatsearch.ir.query;
 
-import java.util.Map;
-import java.util.Set;
-
 import org.fastcatsearch.ir.search.StoredProcedure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
+import java.util.Set;
 
 
 public class Metadata {
@@ -104,12 +104,18 @@ public class Metadata {
 		return option;
 	}
 	public void setSearchOptions(String value){
+        if(value == null) {
+            return;
+        }
 		if (value.contains("nocache")) {
 			option |= Query.SEARCH_OPT_NOCACHE;
 		}
 		if (value.contains("explain")) {
 			option |= Query.SEARCH_OPT_EXPLAIN;
 		}
+        if (value.contains("lowercase")) {
+            option |= Query.SEARCH_OPT_LOWERCASE;
+        }
 	}
 	public boolean isSearchOption(int value){
 		return (option & value) > 0;

@@ -39,6 +39,7 @@ import org.fastcatsearch.ir.search.clause.Clause;
 public class Query {
 	public static int SEARCH_OPT_NOCACHE = 1 << 0;
 	public static int SEARCH_OPT_EXPLAIN = 1 << 1;
+    public static int SEARCH_OPT_LOWERCASE = 1 << 2;
 	
 	public static enum EL {
 		cn, sd, ht, sn, ln, so, ud, fl, se, ft, gr, gf, ra, sp, qm, rm, bd;

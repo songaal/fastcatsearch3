@@ -1,27 +1,29 @@
 package org.fastcatsearch.util;
 
-import java.io.IOException;
-import java.io.Writer;
-
 import org.json.JSONException;
 import org.json.JSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.Writer;
 
 public class JSONResponseWriter implements ResponseWriter {
 	protected static Logger logger = LoggerFactory.getLogger(JSONResponseWriter.class);
 	protected Writer w;
 	protected JSONWriter writer;
 	protected boolean beautify;
-	
+	protected boolean isKeyLowercase;
+
 	public JSONResponseWriter(Writer w) {
-		this(w, false);
+		this(w, false, false);
 	}
 	
-	public JSONResponseWriter(Writer w, boolean beautify) {
+	public JSONResponseWriter(Writer w, boolean beautify, boolean isKeyLowercase) {
 		this.w = w;
 		writer = new JSONWriter(w);
 		this.beautify = beautify;
+        this.isKeyLowercase = isKeyLowercase;
 	}
 	
 	public boolean isBeautify() {
@@ -76,6 +78,9 @@ public class JSONResponseWriter implements ResponseWriter {
 	@Override
 	public ResponseWriter key(String key) throws ResultWriterException {
 		try {
+            if(isKeyLowercase) {
+                key = key.toLowerCase();
+            }
 			writer.key(key);
 			return this;
 		} catch (JSONException e) {

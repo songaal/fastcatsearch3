@@ -1,8 +1,5 @@
 package org.fastcatsearch.http.action.service;
 
-import java.io.Writer;
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.http.action.ActionRequest;
@@ -10,6 +7,8 @@ import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.ServiceAction;
 import org.fastcatsearch.http.writer.AbstractSearchResultWriter;
 import org.fastcatsearch.http.writer.SearchResultWriter;
+import org.fastcatsearch.ir.query.Metadata;
+import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.util.ResponseWriter;
@@ -17,6 +16,9 @@ import org.fastcatsearch.util.ResultWriterException;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.Writer;
+import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class AbstractSearchAction extends ServiceAction {
 	
@@ -28,8 +30,8 @@ public abstract class AbstractSearchAction extends ServiceAction {
 
 	protected abstract Job createSearchJob(QueryMap queryMap);
 
-	protected AbstractSearchResultWriter createSearchResultWriter(Writer writer) {
-		return new SearchResultWriter(getSearchResultWriter(writer));
+	protected AbstractSearchResultWriter createSearchResultWriter(Writer writer, boolean isFieldLowercase) {
+		return new SearchResultWriter(getSearchResultWriter(writer, isFieldLowercase));
 	}
 
 	public void doSearch(long requestId, QueryMap queryMap, int timeout, Writer writer) throws Exception {
@@ -42,7 +44,12 @@ public abstract class AbstractSearchAction extends ServiceAction {
 		Object obj = jobResult.poll(timeout);
 		searchTime = (System.nanoTime() - st) / 1000000;
 
-		AbstractSearchResultWriter resultWriter = createSearchResultWriter(writer);
+        // searchOption에서 lowercase가 존재하는지 확인후, 존재하면 lowercase로 결과를 기록하도록 한다.
+        String so = queryMap.get(Query.EL.so.name());
+        Metadata meta = new Metadata();
+        meta.setSearchOptions(so);
+        boolean isFieldLowercase = meta.isSearchOption(Query.SEARCH_OPT_LOWERCASE);
+        AbstractSearchResultWriter resultWriter = createSearchResultWriter(writer, isFieldLowercase);
 
 		try {
 			resultWriter.writeResult(obj, searchTime, jobResult.isSuccess());
@@ -87,11 +94,11 @@ public abstract class AbstractSearchAction extends ServiceAction {
 
 	
 
-	protected ResponseWriter getSearchResultWriter(Writer writer) {
-		return getSearchResultWriter(writer, "_search_callback");
+	protected ResponseWriter getSearchResultWriter(Writer writer, boolean isFieldLowercase) {
+		return getSearchResultWriter(writer, "_search_callback", isFieldLowercase);
 	}
 
-	protected ResponseWriter getSearchResultWriter(Writer writer, String jsonCallback) {
-		return getResponseWriter(writer, ServiceAction.DEFAULT_ROOT_ELEMENT, true, jsonCallback);
+	protected ResponseWriter getSearchResultWriter(Writer writer, String jsonCallback, boolean isFieldLowercase) {
+		return getResponseWriter(writer, ServiceAction.DEFAULT_ROOT_ELEMENT, true, jsonCallback, isFieldLowercase);
 	}
 }

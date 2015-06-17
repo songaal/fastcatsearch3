@@ -1,13 +1,13 @@
 package org.fastcatsearch.http.action.service;
 
-import java.io.Writer;
-
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.writer.AbstractSearchResultWriter;
 import org.fastcatsearch.http.writer.GroupResultWriter;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.search.ClusterGroupSearchJob;
 import org.fastcatsearch.query.QueryMap;
+
+import java.io.Writer;
 
 @ActionMapping("/service/search/group")
 public class ClusterGroupSearchAction extends AbstractSearchAction {
@@ -20,7 +20,7 @@ public class ClusterGroupSearchAction extends AbstractSearchAction {
 	}
 	
 	@Override
-	protected AbstractSearchResultWriter createSearchResultWriter(Writer writer) {
-		return new GroupResultWriter(getSearchResultWriter(writer));
+	protected AbstractSearchResultWriter createSearchResultWriter(Writer writer, boolean isFieldLowercase) {
+		return new GroupResultWriter(getSearchResultWriter(writer, isFieldLowercase));
 	}
 }
