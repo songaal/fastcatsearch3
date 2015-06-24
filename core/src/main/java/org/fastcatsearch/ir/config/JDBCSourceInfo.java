@@ -67,6 +67,13 @@ public class JDBCSourceInfo {
 		this.user = user;
 	}
 
-	
+	@Override
+    public String toString() {
+        return new StringBuffer().append(this.getClass().getSimpleName())
+                .append(":").append(id)
+                .append(":").append(url)
+                .append(":").append(user)
+                .toString();
+    }
 
 }
