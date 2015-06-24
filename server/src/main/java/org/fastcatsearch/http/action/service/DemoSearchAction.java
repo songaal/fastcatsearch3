@@ -35,7 +35,7 @@ public class DemoSearchAction extends ServiceAction {
 
 		writeHeader(response);
 		
-		ResponseWriter responseWriter = getResponseWriter(response.getWriter(), ServiceAction.DEFAULT_ROOT_ELEMENT, true, null, false);
+		ResponseWriter responseWriter = getResponseWriter(response.getWriter(), ServiceAction.DEFAULT_ROOT_ELEMENT, true, null, false, false);
 		long st = System.nanoTime();
 		
 		responseWriter.object();

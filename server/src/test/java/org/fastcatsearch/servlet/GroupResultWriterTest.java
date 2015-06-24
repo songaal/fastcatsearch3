@@ -49,7 +49,7 @@ public class GroupResultWriterTest {
 	@Test
 	public void testJson() throws ResultWriterException, IOException {
 		StringWriter writer = new StringWriter();
-		ResponseWriter resultWriter = new JSONResponseWriter(writer, true, false);
+		ResponseWriter resultWriter = new JSONResponseWriter(writer, true, false, false);
 		GroupResultWriter groupResultWriter = new GroupResultWriter(resultWriter);
 		long searchTime = 1234;
 		boolean isSuccess = true;

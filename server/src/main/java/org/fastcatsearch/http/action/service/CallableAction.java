@@ -22,7 +22,7 @@ public abstract class CallableAction extends ServiceAction {
 		response.setStatus(HttpResponseStatus.OK);
 		String jsonCallback = request.getParameter("_jsonCallback");
 		boolean isJoin = request.getBooleanParameter("_wait", true);
-		ResponseWriter resultWriter = getResponseWriter(writer, ServiceAction.DEFAULT_ROOT_ELEMENT, true, jsonCallback, false);
+		ResponseWriter resultWriter = getResponseWriter(writer, ServiceAction.DEFAULT_ROOT_ELEMENT, true, jsonCallback, false, false);
 		
 		
 		Job job = createJob();

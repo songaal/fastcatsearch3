@@ -30,8 +30,8 @@ public abstract class AbstractSearchAction extends ServiceAction {
 
 	protected abstract Job createSearchJob(QueryMap queryMap);
 
-	protected AbstractSearchResultWriter createSearchResultWriter(Writer writer, boolean isFieldLowercase) {
-		return new SearchResultWriter(getSearchResultWriter(writer, isFieldLowercase));
+	protected AbstractSearchResultWriter createSearchResultWriter(Writer writer, boolean isFieldLowercase, boolean noUnicode) {
+		return new SearchResultWriter(getSearchResultWriter(writer, isFieldLowercase, noUnicode));
 	}
 
 	public void doSearch(long requestId, QueryMap queryMap, int timeout, Writer writer) throws Exception {
@@ -49,7 +49,8 @@ public abstract class AbstractSearchAction extends ServiceAction {
         Metadata meta = new Metadata();
         meta.setSearchOptions(so);
         boolean isFieldLowercase = meta.isSearchOption(Query.SEARCH_OPT_LOWERCASE);
-        AbstractSearchResultWriter resultWriter = createSearchResultWriter(writer, isFieldLowercase);
+        boolean noUnicode = meta.isSearchOption(Query.SEARCH_OPT_NOUNICODE);
+        AbstractSearchResultWriter resultWriter = createSearchResultWriter(writer, isFieldLowercase, noUnicode);
 
 		try {
 			resultWriter.writeResult(obj, searchTime, jobResult.isSuccess());
@@ -94,11 +95,11 @@ public abstract class AbstractSearchAction extends ServiceAction {
 
 	
 
-	protected ResponseWriter getSearchResultWriter(Writer writer, boolean isFieldLowercase) {
-		return getSearchResultWriter(writer, "_search_callback", isFieldLowercase);
+	protected ResponseWriter getSearchResultWriter(Writer writer, boolean isFieldLowercase, boolean noUnicode) {
+		return getSearchResultWriter(writer, "_search_callback", isFieldLowercase, noUnicode);
 	}
 
-	protected ResponseWriter getSearchResultWriter(Writer writer, String jsonCallback, boolean isFieldLowercase) {
-		return getResponseWriter(writer, ServiceAction.DEFAULT_ROOT_ELEMENT, true, jsonCallback, isFieldLowercase);
+	protected ResponseWriter getSearchResultWriter(Writer writer, String jsonCallback, boolean isFieldLowercase, boolean noUnicode) {
+		return getResponseWriter(writer, ServiceAction.DEFAULT_ROOT_ELEMENT, true, jsonCallback, isFieldLowercase, noUnicode);
 	}
 }

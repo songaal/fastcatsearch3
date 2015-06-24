@@ -20,7 +20,7 @@ public class GroupSearchAction extends AbstractSearchAction {
 	}
 
 	@Override
-	protected AbstractSearchResultWriter createSearchResultWriter(Writer writer, boolean isFieldLowercase) {
-		return new GroupResultWriter(getSearchResultWriter(writer, isFieldLowercase));
+	protected AbstractSearchResultWriter createSearchResultWriter(Writer writer, boolean isFieldLowercase, boolean noUnicode) {
+		return new GroupResultWriter(getSearchResultWriter(writer, isFieldLowercase, noUnicode));
 	}
 }

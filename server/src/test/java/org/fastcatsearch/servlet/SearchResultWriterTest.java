@@ -46,18 +46,20 @@ public class SearchResultWriterTest {
 		
 		Row[] data = new Row[2];
 		data[0] = makeRow("안녕하세요.", "사랑합니다.");
-		data[1] = makeRow("세무회계사무소.", "정성을 다하겠습니다.");
+		data[1] = makeRow("“3D프린터로 아이디어 형상을 현실로 실현하다”", "정성을 다하겠습니다.");
 		
 		Row[][] bundleData = new Row[2][];
 		bundleData[0] = new Row[]{makeRow("안녕하세요111.", "사랑합니다.111"), makeRow("안녕하세요.222", "사랑합니다22222.")};
 		bundleData[1] = new Row[]{makeRow("세무회계사무소222.", "정성을 다하겠습니다2222.."), makeRow("세무사무소입니다..", "사랑이 가득한곳.")};
-		
+        int[] bundleTotalSizeList = new int[2];
+        bundleTotalSizeList[0] = 2;
+        bundleTotalSizeList[1] = 2;
 		
 		
 		String[] fieldNameList = new String[]{"title", "body"};
 		int count = 2;
 		int totalCount = 100;
-		result = new Result(data, bundleData, null, null, fieldNameList, count, totalCount, 0, null, null);
+		result = new Result(data, bundleData, bundleTotalSizeList, null, fieldNameList, count, totalCount, 0, null, null);
 		result.setGroupResult(groupResults);
 		
 	}

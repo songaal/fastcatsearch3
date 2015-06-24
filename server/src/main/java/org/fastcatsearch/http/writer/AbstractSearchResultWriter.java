@@ -13,8 +13,6 @@ public abstract class AbstractSearchResultWriter {
 	protected static Logger logger = LoggerFactory.getLogger(AbstractSearchResultWriter.class);
 	protected ResponseWriter resultWriter;
 
-    protected boolean isFieldLowercase;
-
 	public AbstractSearchResultWriter(ResponseWriter resultStringer){
 		this.resultWriter = resultStringer;
 	}

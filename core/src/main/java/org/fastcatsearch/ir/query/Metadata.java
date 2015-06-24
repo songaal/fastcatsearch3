@@ -116,6 +116,10 @@ public class Metadata {
         if (value.contains("lowercase")) {
             option |= Query.SEARCH_OPT_LOWERCASE;
         }
+
+        if (value.contains("nounicode")) {
+            option |= Query.SEARCH_OPT_NOUNICODE;
+        }
 	}
 	public boolean isSearchOption(int value){
 		return (option & value) > 0;

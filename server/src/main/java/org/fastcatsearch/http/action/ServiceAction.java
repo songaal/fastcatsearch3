@@ -62,19 +62,19 @@ public abstract class ServiceAction extends HttpAction {
 	}
 
     protected ResponseWriter getDefaultResponseWriter(Writer writer) {
-        return getDefaultResponseWriter(writer, false);
+        return getDefaultResponseWriter(writer, false, false);
     }
 
-	protected ResponseWriter getDefaultResponseWriter(Writer writer, boolean isFieldLowercase) {
-		return getResponseWriter(writer, DEFAULT_ROOT_ELEMENT, true, null, isFieldLowercase);
+	protected ResponseWriter getDefaultResponseWriter(Writer writer, boolean isFieldLowercase, boolean noUnicode) {
+		return getResponseWriter(writer, DEFAULT_ROOT_ELEMENT, true, null, isFieldLowercase, false);
 	}
 
-	protected ResponseWriter getResponseWriter(Writer writer, String rootElement, boolean isBeautify, String jsonCallback, boolean isFieldLowercase) {
+	protected ResponseWriter getResponseWriter(Writer writer, String rootElement, boolean isBeautify, String jsonCallback, boolean isFieldLowercase, boolean noUnicode) {
 		ResponseWriter resultWriter = null;
 		if (resultType == Type.json) {
-			resultWriter = new JSONResponseWriter(writer, isBeautify, isFieldLowercase);
+			resultWriter = new JSONResponseWriter(writer, isBeautify, isFieldLowercase, noUnicode);
 		} else if (resultType == Type.jsonp) {
-			resultWriter = new JSONPResponseWriter(writer, jsonCallback, isBeautify, isFieldLowercase);
+			resultWriter = new JSONPResponseWriter(writer, jsonCallback, isBeautify, isFieldLowercase, noUnicode);
 		} else if (resultType == Type.xml) {
 			resultWriter = new XMLResponseWriter(writer, rootElement, isBeautify, isFieldLowercase);
 		}
