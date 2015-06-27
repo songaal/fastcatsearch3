@@ -24,9 +24,14 @@ public class NodeLoadBalancer {
 	}
 
 	public void update(String id, List<Node> list) {
-		if(!map.containsKey(id)) {
-			map.put(id, list);
-		}
+//		if(!map.containsKey(id)) {
+//			map.put(id, list);
+//		}
+		/*
+		* id가 없을때에만 업데이트하도록하면 차후 업데이트가 되지 않는 문제가 발생한다.
+		* 그러므로 무조건 put하도록 한다.
+		* */
+		map.put(id, list);
 	}
 
 	/**
