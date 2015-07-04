@@ -60,11 +60,11 @@ public class QueryParser {
 	private static QueryParser instance = new QueryParser();
 
 	private static final String SECTION_SEPARATOR = "(?<!\\\\)&";
-	private static final String VALUE_SEPARATOR = "(?<!\\\\)=";
-	private static final String COMMA_SEPARATOR = "(?<!\\\\),";
-	private static final String COLON_SEPARATOR = "(?<!\\\\):";
-	private static final String SEMICOLON_SEPARATOR = "(?<!\\\\);";
-	private static final String RANGE_SEPARATOR = "(?<!\\\\)~";
+    private static final String VALUE_SEPARATOR = "(?<!\\\\)=";
+    private static final String COMMA_SEPARATOR = "(?<!\\\\),";
+    private static final String COLON_SEPARATOR = "(?<!\\\\):";
+    private static final String SEMICOLON_SEPARATOR = "(?<!\\\\);";
+    private static final String RANGE_SEPARATOR = "(?<!\\\\)~";
 
 	private QueryParser() {
 	}
@@ -488,10 +488,10 @@ public class QueryParser {
 		int depth = 0;
 		for (; m < value.length(); m++) {
 			// logger.debug(m+"="+value.charAt(m));
-			if (value.charAt(m) == '{') {
+			if (value.charAt(m) == '{' && ( m == 0 || value.charAt(m - 1) != '\\')) {
 				depth++;
 				// logger.debug("depth="+depth);
-			} else if (value.charAt(m) == '}') {
+			} else if (value.charAt(m) == '}' && ( m == 0 || value.charAt(m - 1) != '\\')) {
 				// logger.debug("depth="+depth);
 				if (depth == 0)
 					return m;
