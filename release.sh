@@ -12,4 +12,4 @@ tar czvf "$name".tar.gz "$name"/
 
 cd .. 
 
-mvn release:clean
+mvn deploy && mvn release:clean
