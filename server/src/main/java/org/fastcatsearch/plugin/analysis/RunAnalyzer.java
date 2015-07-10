@@ -10,8 +10,6 @@ import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.plugin.LicenseInvalidException;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginSetting;
-import org.fastcatsearch.plugin.analysis.ko.KoreanAnalysisPlugin;
-import org.fastcatsearch.plugin.analysis.ko.standard.StandardKoreanAnalyzer;
 import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.util.DynamicClassLoader;
 import org.slf4j.Logger;
@@ -155,7 +153,7 @@ public class RunAnalyzer {
     private static void printUsage() {
         System.out.println("Usage : java " + RunAnalyzer.class.getName() + " <pluginDir> <pluginClassName> <analyzerId>");
         System.out.println("Example");
-        System.out.println("$ java " + RunAnalyzer.class.getName()+ " plugin/Korean org.fastcatsearch.plugin.analysis.ko.KoreanAnalysisPlugin standard");
+        System.out.println("$ java " + RunAnalyzer.class.getName()+ " plugin/analysis/Korean org.fastcatsearch.plugin.analysis.ko.KoreanAnalysisPlugin standard");
     }
 
 
