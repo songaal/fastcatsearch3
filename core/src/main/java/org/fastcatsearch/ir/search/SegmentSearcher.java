@@ -87,6 +87,7 @@ public class SegmentSearcher {
 		return new GroupHit(makeGroupData(), totalCount);
 	}
 
+    @Deprecated
 	public void search(Metadata meta, Clause clause, Filters filters, Groups groups, Filters groupFilters, Sorts sorts, Bundle bundle, PkScoreList boostList) throws ClauseException,
 			IOException, IRException {
 		FieldIndexesReader fieldIndexesReader = null;
