@@ -576,6 +576,19 @@ public class QueryParser {
 //			}
 			String field = str[0];
 			String method = str[1];
+            //method 함수에 딸린 파라미터. 괄호안에 ; 구분으로 들어있음.
+            String[] functionParams = null;
+            if(method.contains("(") && method.contains(")")) {
+                String tmp = method;
+                int spos = tmp.indexOf("(");
+                int epos = tmp.lastIndexOf(")");
+                method = tmp.substring(0, spos);
+                String paramStr = tmp.substring(spos + 1, epos);
+                functionParams = paramStr.split(SEMICOLON_SEPARATOR);
+                for(int i = 0; i < functionParams.length; i++) {
+                    functionParams[i] = functionParams[i].trim();
+                }
+            }
 			String[] patternList = null;
 			if(str.length > 2){
 				patternList = str[2].split(SEMICOLON_SEPARATOR);
@@ -640,6 +653,11 @@ public class QueryParser {
 				f.add(new Filter(field, Filter.EXCLUDE_BOOST, patternList, boostScore));
 			} else if (method.equalsIgnoreCase("BOOST")) {
 				f.add(new Filter(field, Filter.BOOST));
+            } else if (method.equalsIgnoreCase("GEO_RADIUS")) {
+                String[] fieldList = field.split(SEMICOLON_SEPARATOR);
+                Filter filter = new Filter(fieldList, Filter.GEO_RADIUS);
+                filter.setFunctionParams(functionParams);
+                f.add(filter);
 			} else {
 				logger.error("Unknown Filter method = {}", method);
 			}

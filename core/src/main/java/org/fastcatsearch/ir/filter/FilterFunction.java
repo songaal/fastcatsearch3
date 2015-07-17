@@ -41,24 +41,36 @@ public abstract class FilterFunction {
 	protected BytesRef[] endPatternList;
 	protected int boostScore;
 	protected boolean isBoostFunction;
-	protected String fieldIndexId;
-	
+    protected String fieldIndexId;
+	protected String[] fieldIndexIdList;
+	protected Object functionParams;
+
 	public FilterFunction(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting, boolean isBoostFunction) throws FilterException{
-		this.fieldIndexId = filter.fieldIndexId();
+        Object fieldIdObject = filter.fieldIndexId();
+        if(fieldIdObject instanceof String) {
+            fieldIndexId = ((String) fieldIdObject).toUpperCase();
+        } else if(fieldIdObject instanceof String[]) {
+            fieldIndexIdList = (String[]) fieldIdObject;
+            for(int i = 0; i < fieldIndexIdList.length;i++) {
+                fieldIndexIdList[i] = fieldIndexIdList[i].toUpperCase();
+            }
+            fieldIndexId = fieldIndexIdList[0];
+        }
 		this.fieldSetting = fieldSetting;
 		this.isBoostFunction = isBoostFunction;
 		patternCount = filter.patternLength();
 		patternList = new BytesRef[patternCount];
 		endPatternList = new BytesRef[patternCount];
 		boostScore = filter.boostScore();
-		boolean isIgnoreCase = fieldIndexSetting.isIgnoreCase();
+		boolean isIgnoreCase = fieldIndexSetting != null ? fieldIndexSetting.isIgnoreCase() : false;
+        functionParams = filter.getFunctionParams();
 		
 		try {
 			for (int j = 0; j < patternCount; j++) {
 				//패턴의 byte 데이터를 얻기위해 필드객체를 생성한다.
 				//패턴과 필드데이터를 같은 길이의 byte[]로 만들어놓고 비교를 한다.
 				String pattern = filter.pattern(j);
-				logger.debug("Filter Pattern {} : {} isIgnoreCase={}", fieldIndexSetting.getId(), pattern, isIgnoreCase);
+//				logger.debug("Filter Pattern {} : {} isIgnoreCase={}", fieldIndexSetting.getId(), pattern, isIgnoreCase);
 				
 				//ignoreCase로 색인되어있다면 패턴도 대문자로 변환한다.
 				if(isIgnoreCase){
@@ -76,7 +88,7 @@ public abstract class FilterFunction {
 					f.writeFixedDataTo(arrayOutput);
 					patternList[j] = arrayOutput.bytesRef();
 				}
-				logger.debug("Filter Pattern>>> {} > {}", pattern, patternList[j]);
+//				logger.debug("Filter Pattern>>> {} > {}", pattern, patternList[j]);
 				
 				if(filter.isEndPatternExist()){
 					pattern = filter.endPattern(j);
@@ -91,7 +103,7 @@ public abstract class FilterFunction {
 						f.writeFixedDataTo(arrayOutput);
 						endPatternList[j] = arrayOutput.bytesRef();
 					}
-					logger.debug("End Filter Pattern>>> {} > {}", pattern, endPatternList[j]);
+//					logger.debug("End Filter Pattern>>> {} > {}", pattern, endPatternList[j]);
 				}
 			}
 		} catch (IOException e) {

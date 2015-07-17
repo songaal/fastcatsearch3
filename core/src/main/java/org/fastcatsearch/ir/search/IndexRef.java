@@ -8,16 +8,19 @@ import java.util.Map;
 
 import org.fastcatsearch.ir.io.DataRef;
 
-public class IndexRef<T extends ReferencableIndexReader> {
+public class IndexRef<T extends ReferenceableReader> {
 	protected List<T> readerList;
 	protected List<DataRef> dataRefList;
 	protected Map<Integer, T> readerSequenceMap;
 	protected int sequence;
-	
+    protected Map<Integer, T[]> readersSequenceMap;
+	private int defaultSize;
+
 	public IndexRef(){
 		this(5);
 	}
 	public IndexRef(int size){
+        this.defaultSize = size;
 		readerList = new ArrayList<T>(size);
 		dataRefList = new ArrayList<DataRef>(size);
 		readerSequenceMap = new HashMap<Integer, T>(size);
@@ -38,21 +41,35 @@ public class IndexRef<T extends ReferencableIndexReader> {
 		return dataRefList.get(sequence);
 	}
 	
-	public void add(String fieldId, T reader) throws IOException {
-		readerSequenceMap.put(sequence++, reader);
-		
+	public void add(String fieldId, T... reader) throws IOException {
+        if(reader.length > 1) {
+            if(readersSequenceMap == null) {
+                readersSequenceMap = new HashMap<Integer, T[]>(defaultSize);
+            }
+            readersSequenceMap.put(sequence++, reader);
+        } else {
+            readerSequenceMap.put(sequence++, reader[0]);
+        }
+
 		if(reader == null){
 			dataRefList.add(DataRef.EMPTY_DATAREF);
 			return;
 		}
+
+        T finalReader = null;
 		
-		
-		//unique한 reader 리스트. 
-		if(!readerList.contains(reader)){
-			readerList.add(reader);
+		//unique한 reader 리스트.
+        if(reader.length > 1) {
+            finalReader = (T) new CompoundReferenceableIndexReader(reader);
+        } else {
+            finalReader = reader[0];
+        }
+
+		if(!readerList.contains(finalReader)){
+			readerList.add(finalReader);
 		}
 		
-		DataRef dataRef = reader.getRef();
+		DataRef dataRef = finalReader.getRef();
 		dataRefList.add(dataRef);
 	}
 	
@@ -62,5 +79,9 @@ public class IndexRef<T extends ReferencableIndexReader> {
 	public T getReader(int sequence){
 		return readerSequenceMap.get(sequence);
 	}
+
+    public T[] getReaders(int sequence){
+        return readersSequenceMap.get(sequence);
+    }
 	
 }

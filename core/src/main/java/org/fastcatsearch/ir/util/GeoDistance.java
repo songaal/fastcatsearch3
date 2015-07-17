@@ -63,4 +63,12 @@ public class GeoDistance {
         return distance / 1000;
     }
 
+    public static void main(String[] args) {
+        GeoDistance d = new GeoDistance();
+
+        double lat1 = 128, lon1 = 37, lat2 = 140, lon2 = 20;
+        System.out.println("calDistance=" + d.calDistance(lat1, lon1, lat2, lon2));
+        System.out.println("calDistance2=" + d.calDistance2(lat1, lon1, lat2, lon2));
+        System.out.println("getDistance=" + d.getDistance(lat1, lon1, lat2, lon2));
+    }
 }

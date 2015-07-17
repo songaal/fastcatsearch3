@@ -41,7 +41,7 @@ import org.fastcatsearch.ir.settings.GroupIndexSetting;
  * @author sangwook.song
  *
  */
-public class GroupIndexReader extends ReferencableIndexReader {
+public class GroupIndexReader extends ReferenceableIndexReader {
 	
 	private SequencialDataInput groupKeyInput;
 	protected int groupKeySize;

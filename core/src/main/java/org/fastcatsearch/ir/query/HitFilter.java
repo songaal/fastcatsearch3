@@ -53,7 +53,7 @@ public class HitFilter {
 		this.filterList = new Filter[size];
 		filterFunctions = new FilterFunction[size];
 		
-		String[] fieldList = new String[size];
+		Object[] fieldList = new String[size];
 		int k = 0;
 		for (Filter filter : filterList) {
 			fieldList[k++] = filter.fieldIndexId();
@@ -66,22 +66,41 @@ public class HitFilter {
 		for (int i = 0; i < size; i++) {
 			Filter filter = filterList.get(i);
 			this.filterList[i] = filter;
-			String fieldIndexId = filter.fieldIndexId();
-			
-			FieldIndexSetting fieldIndexSetting = schema.getFieldIndexSetting(fieldIndexId);
-			if(fieldIndexSetting == null){
-				//잘못된 필드명.
-				throw new IRException("\"" + fieldIndexId + "\" is not a field index or not indexed.");
-			}
-			
-			String fieldId = fieldIndexSetting.getRef();
-			FieldSetting fieldSetting = schema.getFieldSetting(fieldId);
-			filterFunctions[i] = filter.createFilterFunction(fieldIndexSetting, fieldSetting);
+			Object fieldIndexIdObject = filter.fieldIndexId();
+            FieldIndexSetting fieldIndexSetting = null;
+            if(fieldIndexIdObject instanceof String) {
+                fieldIndexSetting = schema.getFieldIndexSetting((String)fieldIndexIdObject);
+                if(fieldIndexSetting == null){
+                    //잘못된 필드명.
+                    throw new IRException("\"" + fieldIndexIdObject + "\" is not a field index or not indexed.");
+                }
+
+                String fieldId = fieldIndexSetting.getRef();
+                FieldSetting fieldSetting = schema.getFieldSetting(fieldId);
+                filterFunctions[i] = filter.createFilterFunction(fieldIndexSetting, fieldSetting);
+            } else if(fieldIndexIdObject instanceof String[]) {
+                for(String fieldIndexId : (String[]) fieldIndexIdObject) {
+                    fieldIndexSetting = schema.getFieldIndexSetting(fieldIndexId);
+                    if(fieldIndexSetting == null){
+                        //잘못된 필드명.
+                        throw new IRException("\"" + fieldIndexId + "\" is not a field index or not indexed.");
+                    }
+                }
+
+                filterFunctions[i] = filter.createFilterFunction(null, null);
+            }
+
 			logger.debug("FilterFunction[{}] > {}", i, filterFunctions[i]);
 		}
 	}
 
-	
+	private void checkFieldIndexId(Schema schema, String fieldIndexId) throws IRException {
+        FieldIndexSetting fieldIndexSetting = schema.getFieldIndexSetting(fieldIndexId);
+        if(fieldIndexSetting == null){
+            //잘못된 필드명.
+            throw new IRException("\"" + fieldIndexId + "\" is not a field index or not indexed.");
+        }
+    }
 	public int filtering(RankInfo[] rankInfoList, int nread) throws IOException {
 		if(nread <= 0){
 			return 0;

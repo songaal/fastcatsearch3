@@ -19,58 +19,56 @@ package org.fastcatsearch.ir.query;
 import org.fastcatsearch.ir.filter.FilterException;
 import org.fastcatsearch.ir.filter.FilterFunction;
 import org.fastcatsearch.ir.filter.NotSupportedFilterFunctionException;
-import org.fastcatsearch.ir.filter.function.BoostFilter;
-import org.fastcatsearch.ir.filter.function.ExcludeFilter;
-import org.fastcatsearch.ir.filter.function.MatchFilter;
-import org.fastcatsearch.ir.filter.function.PrefixFilter;
-import org.fastcatsearch.ir.filter.function.SectionFilter;
-import org.fastcatsearch.ir.filter.function.SuffixFilter;
+import org.fastcatsearch.ir.filter.function.*;
 import org.fastcatsearch.ir.settings.FieldIndexSetting;
 import org.fastcatsearch.ir.settings.FieldSetting;
+
+import java.util.Arrays;
 
 public class Filter {
 
 	// filter function for bitwise calculation
-	public static final int MATCH = 1 << 0; // 0x0001
-	public static final int SECTION = 1 << 1; // 0x0002 pattern is compared as a
-												// string. Always inclusive
-	public static final int PREFIX = 1 << 2; // 0x0004
-	public static final int SUFFIX = 1 << 3; // 0x0008
-	public static final int MATCH_BOOST = 1 << 4; // 0x0010
-	public static final int SECTION_BOOST = 1 << 5; // 0x0020 pattern is
-													// compared as a string.
-													// Always inclusive
-	public static final int PREFIX_BOOST = 1 << 6; // 0x0040
-	public static final int SUFFIX_BOOST = 1 << 7; // 0x0080
-	public static final int EXCLUDE = 1 << 8; // 0x0100
+	public static final int MATCH = 1 << 0;
+	public static final int SECTION = 1 << 1;
+	public static final int PREFIX = 1 << 2;
+	public static final int SUFFIX = 1 << 3;
+	public static final int MATCH_BOOST = 1 << 4;
+	public static final int SECTION_BOOST = 1 << 5;
+	public static final int PREFIX_BOOST = 1 << 6;
+	public static final int SUFFIX_BOOST = 1 << 7;
+	public static final int EXCLUDE = 1 << 8;
 	public static final int EXCLUDE_BOOST = 1 << 9;
-	public static final int BOOST = 1 << 10;
+    public static final int BOOST = 1 << 10;
+    public static final int GEO_RADIUS = 1 << 11;
+    public static final int GEO_RADIUS_BOOST = 1 << 12;
 
-	private String fieldIndexId;
+	private Object fieldIndexId;
 	private int function;
 	private String[] patternList;
 	private String[] endPatternList;
 	private int boostScore;
 
-	public Filter(String fieldIndexId, int function) {
+    private Object functionParams; //filter function의 파라미터.
+
+	public Filter(Object fieldIndexId, int function) {
 		this(fieldIndexId, function, "");
 	}
-	
-	public Filter(String fieldIndexId, int function, String pattern) {
+
+	public Filter(Object fieldIndexId, int function, String pattern) {
 		this(fieldIndexId, function, pattern, null, 0);
 	}
 
-	public Filter(String fieldIndexId, int function, String pattern, String endPattern) {
+	public Filter(Object fieldIndexId, int function, String pattern, String endPattern) {
 		this(fieldIndexId, function, pattern, endPattern, 0);
 	}
 
-	public Filter(String fieldIndexId, int function, String pattern, int boostScore) {
+	public Filter(Object fieldIndexId, int function, String pattern, int boostScore) {
 		this(fieldIndexId, function, pattern, null, boostScore);
 	}
 
-	public Filter(String fieldIndexId, int function, String pattern, String endPattern, int boostScore) {
-		this.fieldIndexId = fieldIndexId.toUpperCase();
-		this.function = function;
+	public Filter(Object fieldIndexId, int function, String pattern, String endPattern, int boostScore) {
+        this.fieldIndexId = fieldIndexId;
+        this.function = function;
 		this.patternList = new String[] { pattern };
 		if (endPattern != null) {
 			this.endPatternList = new String[] { endPattern };
@@ -81,25 +79,25 @@ public class Filter {
 	//
 	// LIST
 	//
-	public Filter(String fieldIndexId, int function, String[] patternList) {
-		this.fieldIndexId = fieldIndexId.toUpperCase();
-		this.function = function;
-		this.patternList = patternList;
+    public Filter(Object fieldIndexId, int function, String[] patternList) {
+        this(fieldIndexId, function, patternList, null, 0);
+    }
+
+	public Filter(Object fieldIndexId, int function, String[] patternList, String[] endPatternList) {
+		this(fieldIndexId, function, patternList, endPatternList, 0);
 	}
 
-	public Filter(String fieldIndexId, int function, String[] patternList, String[] endPatternList) {
-		this(fieldIndexId, function, patternList);
-		this.endPatternList = endPatternList;
-	}
-
-	public Filter(String fieldIndexId, int function, String[] patternList, int boostScore) {
+	public Filter(Object fieldIndexId, int function, String[] patternList, int boostScore) {
 		this(fieldIndexId, function, patternList);
 		this.boostScore = boostScore;
 	}
 
-	public Filter(String fieldIndexId, int function, String[] patternList, String[] endPatternList, int boostScore) {
-		this(fieldIndexId, function, patternList, endPatternList);
-		this.boostScore = boostScore;
+	public Filter(Object fieldIndexId, int function, String[] patternList, String[] endPatternList, int boostScore) {
+		this.fieldIndexId = fieldIndexId;
+        this.function = function;
+        this.patternList = patternList;
+        this.endPatternList = endPatternList;
+        this.boostScore = boostScore;
 	}
 
 	public FilterFunction createFilterFunction(FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting) throws NotSupportedFilterFunctionException, FilterException {
@@ -126,13 +124,17 @@ public class Filter {
 			return new ExcludeFilter(this, fieldIndexSetting, fieldSetting, true);
 		case BOOST:
 			return new BoostFilter(this, fieldIndexSetting, fieldSetting);
+        case GEO_RADIUS:
+            return new GeoRadiusFilter(this, fieldIndexSetting, fieldSetting);
+        case GEO_RADIUS_BOOST:
+            return new GeoRadiusFilter(this, fieldIndexSetting, fieldSetting, true);
 
 		}
 		throw new NotSupportedFilterFunctionException("지원하지 않는 필터기능입니다. function=" + function);
 	}
 
 	public String toString() {
-		String str = fieldIndexId + ":" + function + ":";
+        String str = fieldIndexId + ":" + function + ":";
 		if (endPatternList != null) {
 			for (int i = 0; i < patternList.length; i++) {
 				str += (patternList[i] + "~" + endPatternList[i]);
@@ -149,7 +151,15 @@ public class Filter {
 		return str + ":" + boostScore;
 	}
 
-	public String fieldIndexId() {
+    public void setFunctionParams(Object functionParams) {
+        this.functionParams = functionParams;
+    }
+
+    public Object getFunctionParams() {
+        return functionParams;
+    }
+
+	public Object fieldIndexId() {
 		return fieldIndexId;
 	}
 

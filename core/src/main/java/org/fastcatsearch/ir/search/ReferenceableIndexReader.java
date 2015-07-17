@@ -13,17 +13,18 @@ import org.fastcatsearch.ir.settings.FieldSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class ReferencableIndexReader implements Cloneable {
-	protected static Logger logger = LoggerFactory.getLogger(ReferencableIndexReader.class);
+public abstract class ReferenceableIndexReader implements ReferenceableReader {
+	protected static Logger logger = LoggerFactory.getLogger(ReferenceableIndexReader.class);
 	
 	protected String indexId;
 	protected IndexInput dataInput;
 	protected IndexInput multiValueInput;
 	protected DataRef dataRef;
 	protected int dataSize;//색인된 한 문서의 필드데이터의  길이
+
 	protected boolean isMultiValue;
 	
-	public ReferencableIndexReader() {}
+	public ReferenceableIndexReader() {}
 	
 	public void init(String indexId, FieldSetting refFieldSetting, File dataFile, File multiValueFile, int dataSize) throws IOException, IRException{
 		this.indexId = indexId;
@@ -40,11 +41,13 @@ public abstract class ReferencableIndexReader implements Cloneable {
 //    	logger.debug("index reader init {}, {}, {}", indexId, dataSize, isMultiValue);
 	}
 	
-	public DataRef getRef() throws IOException{
+	@Override
+    public DataRef getRef() throws IOException{
 		return dataRef;
 	}
 	
-	public void read(int docNo) throws IOException{
+	@Override
+    public void read(int docNo) throws IOException{
 		
 		if(isMultiValue){
 			//multi-value는 위치가 8byte씩 기록되어있다. 
@@ -68,9 +71,10 @@ public abstract class ReferencableIndexReader implements Cloneable {
 		}
 	}
 	
-	public abstract ReferencableIndexReader clone();
+	public abstract ReferenceableIndexReader clone();
 	
-	public void close() throws IOException {
+	@Override
+    public void close() throws IOException {
 		dataInput.close();
 		
 		if(isMultiValue && multiValueInput != null){

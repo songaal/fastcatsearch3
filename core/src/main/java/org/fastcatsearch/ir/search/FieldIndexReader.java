@@ -23,14 +23,13 @@ import java.util.Map;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.io.DataRef;
-import org.fastcatsearch.ir.io.IndexInput;
 import org.fastcatsearch.ir.io.StreamInputRef;
 import org.fastcatsearch.ir.settings.FieldIndexSetting;
 import org.fastcatsearch.ir.settings.FieldSetting;
 
 
 
-public class FieldIndexReader extends ReferencableIndexReader {
+public class FieldIndexReader extends ReferenceableIndexReader {
 	
 	public FieldIndexReader() { }
 	

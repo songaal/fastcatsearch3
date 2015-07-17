@@ -8,7 +8,7 @@ import org.fastcatsearch.ir.settings.ReferencableFieldSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class SelectableIndexesReader<T extends ReferencableIndexReader, S extends ReferencableFieldSetting> implements Cloneable {
+public abstract class SelectableIndexesReader<T extends ReferenceableReader, S extends ReferencableFieldSetting> implements Cloneable {
 	protected static Logger logger = LoggerFactory.getLogger(SelectableIndexesReader.class);
 
 	protected List<T> readerList;
@@ -19,32 +19,52 @@ public abstract class SelectableIndexesReader<T extends ReferencableIndexReader,
 	public SelectableIndexesReader() {
 	}
 
-	public IndexRef<T> selectIndexRef(String[] fieldList) throws IOException {
+	public IndexRef<T> selectIndexRef(Object[] fieldList) throws IOException {
 		IndexRef<T> indexRef = new IndexRef<T>();
 
 		// 단일인덱스를 조합한다.
 
 		for (int i = 0; i < fieldList.length; i++) {
-			String fieldId = fieldList[i];
-			T reader = null;
-			if (fieldId != null) {
-			
-				for (int j = 0; j < indexSettingList.size(); j++) {
-					S setting = indexSettingList.get(j);
-					String indexFieldId = setting.getId();
-					// 동일필드명을 찾는다.
-					if (indexFieldId.equalsIgnoreCase(fieldId)) {
-						reader = cloneReader(j);
-						break;
-					}
-	
-				}
-			}
-			indexRef.add(fieldId, reader);
+            Object fieldIdObject = fieldList[i];
+            String[] fieldIdList = null;
+            if(fieldIdObject instanceof String) {
+                fieldIdList = new String[] {(String) fieldIdObject};
+            } else if(fieldIdObject instanceof String[]) {
+                fieldIdList = (String[]) fieldIdObject;
+            }
+//			String fieldId = fieldList[i];
+            T reader = null;
+			if (fieldIdList != null && fieldIdList.length > 0) {
 
-			if (reader == null && fieldId !=null) {
+                ReferenceableReader[] readers = new ReferenceableReader[fieldIdList.length];
+                for(int k = 0; k < fieldIdList.length; k++) {
+
+                    String fieldId = fieldIdList[k];
+
+                    for (int j = 0; j < indexSettingList.size(); j++) {
+                        S setting = indexSettingList.get(j);
+                        String indexFieldId = setting.getId();
+                        // 동일필드명을 찾는다.
+                        if (indexFieldId.equalsIgnoreCase(fieldId)) {
+//                            reader = cloneReader(j);
+                            readers[k] = cloneReader(j);
+                            break;
+                        }
+
+                    }
+                }
+
+                if(fieldIdList.length == 1) {
+                    reader = (T) readers[0];
+                } else {
+                    reader = (T) new CompoundReferenceableIndexReader(readers);
+                }
+			}
+			indexRef.add(null, reader);
+
+			if (reader == null && fieldIdList !=null) {
 //				logger.error("색인된 필드를 찾지못함.>>{}", fieldId);
-				throw new IOException("Field is not exist \""+fieldId+"\"");
+				throw new IOException("Field is not exist \""+fieldIdList+"\"");
 			}
 		}
 
