@@ -53,7 +53,7 @@ public class HitFilter {
 		this.filterList = new Filter[size];
 		filterFunctions = new FilterFunction[size];
 		
-		Object[] fieldList = new String[size];
+		Object[] fieldList = new Object[size];
 		int k = 0;
 		for (Filter filter : filterList) {
 			fieldList[k++] = filter.fieldIndexId();

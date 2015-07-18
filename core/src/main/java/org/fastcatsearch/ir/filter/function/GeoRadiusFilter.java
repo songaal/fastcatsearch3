@@ -21,7 +21,6 @@ import org.fastcatsearch.ir.filter.FilterException;
 import org.fastcatsearch.ir.filter.FilterFunction;
 import org.fastcatsearch.ir.io.CompoundDataRef;
 import org.fastcatsearch.ir.io.DataRef;
-import org.fastcatsearch.ir.io.IOUtil;
 import org.fastcatsearch.ir.query.Filter;
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.settings.FieldIndexSetting;
@@ -31,7 +30,7 @@ import org.fastcatsearch.ir.util.GeoDistance;
 import java.io.IOException;
 
 /**
- * 경위도 상의 거리를 판별하여, 필터링해주고, 거리 계산값을 _distance 필드로 넣어준다.
+ * 경위도 상의 거리를 판별하여, 필터링해주고, 거리 계산값을 _distance 필드로 넣어주게 된다.
  * 
  * @author swsong
  * 
@@ -40,34 +39,32 @@ public class GeoRadiusFilter extends FilterFunction {
 
     private float latPosition;
     private float lonPosition;
-    private float radiusInKm;
+    private float radiusInMeter;
 
     private GeoDistance geoDistance;
 
 	public GeoRadiusFilter(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting) throws FilterException {
 		super(filter, fieldIndexSetting, fieldSetting, false);
-        initFunctionParams();
+        initFunctionParams(filter);
 	}
 
 	public GeoRadiusFilter(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting, boolean isBoostFunction) throws FilterException {
 		super(filter, fieldIndexSetting, fieldSetting, isBoostFunction);
-        initFunctionParams();
+        initFunctionParams(filter);
 	}
 
-    private void initFunctionParams() throws FilterException {
-        String[] params = (String[]) functionParams;
-        if(params == null || params.length == 0) {
-            throw new FilterException("Invalid filter method params = " + functionParams);
+    private void initFunctionParams(Filter filter) throws FilterException {
+        int paramLength = filter.paramLength();
+        if(paramLength != 3) {
+            throw new FilterException("GEO_RADIUS filter needs 3 params : lat, lon, radius. But only " + paramLength +" params specified.");
         }
-        String myLat = params[0];
-        String myLon = params[1];
-        String radius = params[2];
+
         try {
-            latPosition = Float.parseFloat(myLat);
-            lonPosition = Float.parseFloat(myLon);
-            radiusInKm = Float.parseFloat(radius);
+            latPosition = Float.parseFloat(filter.param(0));
+            lonPosition = Float.parseFloat(filter.param(1));
+            radiusInMeter = Float.parseFloat(filter.param(2)) * 1000.0f;
         } catch (NumberFormatException e) {
-            throw new FilterException("Invalid Geo_Radius filter param is not integer = " + functionParams);
+            throw new FilterException("Invalid GEO_RADIUS filter param. This is not float type : " + filter.param(0) + ", " + filter.param(1) + ", " + filter.param(2));
         }
         geoDistance = new GeoDistance();
     }
@@ -83,9 +80,10 @@ public class GeoRadiusFilter extends FilterFunction {
             float lat = Float.intBitsToFloat(bytesRef1.toIntValue());
             float lon = Float.intBitsToFloat(bytesRef2.toIntValue());
 
-            double distance = geoDistance.calDistance(lat, lon, latPosition, lonPosition);
-
-            if(distance < radiusInKm) {
+            float distance = (float) geoDistance.calDistance(lat, lon, latPosition, lonPosition);
+            logger.debug("calDistance {},{} -> {},{} = {} < {}", lat, lon, latPosition, lonPosition, distance, radiusInMeter);
+            rankInfo.distance(distance);
+            if(distance < radiusInMeter) {
                 if (isBoostFunction) {
                     // boost옵션이 있다면 점수를 올려주고 리턴한다.
                     rankInfo.addScore(boostScore);

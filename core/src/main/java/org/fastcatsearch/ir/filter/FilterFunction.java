@@ -36,9 +36,6 @@ import org.slf4j.LoggerFactory;
 public abstract class FilterFunction {
 	protected static Logger logger = LoggerFactory.getLogger(FilterFunction.class);
 	protected FieldSetting fieldSetting;
-	protected int patternCount;
-	protected BytesRef[] patternList;
-	protected BytesRef[] endPatternList;
 	protected int boostScore;
 	protected boolean isBoostFunction;
     protected String fieldIndexId;
@@ -58,63 +55,10 @@ public abstract class FilterFunction {
         }
 		this.fieldSetting = fieldSetting;
 		this.isBoostFunction = isBoostFunction;
-		patternCount = filter.patternLength();
-		patternList = new BytesRef[patternCount];
-		endPatternList = new BytesRef[patternCount];
 		boostScore = filter.boostScore();
-		boolean isIgnoreCase = fieldIndexSetting != null ? fieldIndexSetting.isIgnoreCase() : false;
         functionParams = filter.getFunctionParams();
-		
-		try {
-			for (int j = 0; j < patternCount; j++) {
-				//패턴의 byte 데이터를 얻기위해 필드객체를 생성한다.
-				//패턴과 필드데이터를 같은 길이의 byte[]로 만들어놓고 비교를 한다.
-				String pattern = filter.pattern(j);
-//				logger.debug("Filter Pattern {} : {} isIgnoreCase={}", fieldIndexSetting.getId(), pattern, isIgnoreCase);
-				
-				//ignoreCase로 색인되어있다면 패턴도 대문자로 변환한다.
-				if(isIgnoreCase){
-					pattern = pattern.toUpperCase();
-				}
-				
-				Field f;
-				int patternByteSize = 0;
-				BytesDataOutput arrayOutput = null;
-				
-				if(pattern != null && !"".equals(pattern)) {
-					f = fieldSetting.createPatternField(pattern);
-					patternByteSize = fieldSetting.getByteSize();
-					arrayOutput = new BytesDataOutput(patternByteSize);
-					f.writeFixedDataTo(arrayOutput);
-					patternList[j] = arrayOutput.bytesRef();
-				}
-//				logger.debug("Filter Pattern>>> {} > {}", pattern, patternList[j]);
-				
-				if(filter.isEndPatternExist()){
-					pattern = filter.endPattern(j);
-					if(isIgnoreCase){
-						pattern = pattern.toUpperCase();
-					}
-					
-					if(pattern != null && !"".equals(pattern)) {
-						f = fieldSetting.createPatternField(pattern);
-						patternByteSize = fieldSetting.getByteSize();
-						arrayOutput = new BytesDataOutput(patternByteSize);
-						f.writeFixedDataTo(arrayOutput);
-						endPatternList[j] = arrayOutput.bytesRef();
-					}
-//					logger.debug("End Filter Pattern>>> {} > {}", pattern, endPatternList[j]);
-				}
-			}
-		} catch (IOException e) {
-			throw new FilterException("필터패턴생성중 에러", e);
-		} catch (FieldDataParseException e) {
-			throw new FilterException("필터패턴을 파싱할 수 없습니다.", e);
-		}
-
-
 	}
-	
+
 	/**
 	 * 필터링에서 buffer의 데이터는 셋팅필드의 바이트길이로 계산되어 입력된다.
 	 * 즉, 길이가 10인 셋팅필드에 실제데이터가 1바이트만 들어있든 5바이트만 들어있든 받는 쪽에서는 알수없으므로(나머지는 0으로 채워져있다.), 무조건 패턴길이만큼 비교를 해봐야 한다.   
@@ -123,7 +67,4 @@ public abstract class FilterFunction {
 	 */
 	public abstract boolean filtering(RankInfo rankInfo, DataRef dataRef) throws IOException;
 	
-	public BytesRef[] getPatternList(){
-		return patternList;
-	}
 }

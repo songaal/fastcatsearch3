@@ -208,24 +208,24 @@
 //			if (termStr.length() > 3) {
 //				if (!tmp.contains(termStr)) {
 //					String patternStr = "^" + termStr;
-//					Pattern pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
-//					Matcher matcher = pattern.matcher(target);
+//					Pattern param = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
+//					Matcher matcher = param.matcher(target);
 //					while (matcher.find()) {
 //						matchList.add(new MatchRegion(matcher.start(), matcher.end(), termStr));
 //					}
 //				}
 //				if (!tmp.contains(termStr)) {
 //					String patternStr = termStr + "$";
-//					Pattern pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
-//					Matcher matcher = pattern.matcher(target);
+//					Pattern param = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
+//					Matcher matcher = param.matcher(target);
 //					while (matcher.find()) {
 //						matchList.add(new MatchRegion(matcher.start(), matcher.end(), termStr));
 //					}
 //				}
 //				if (!tmp.contains(termStr)) {
 //					String patternStr = "[\\s]" + termStr;
-//					Pattern pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
-//					Matcher matcher = pattern.matcher(target);
+//					Pattern param = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
+//					Matcher matcher = param.matcher(target);
 //					while (matcher.find()) {
 //						matchList.add(new MatchRegion(matcher.start() + 1, matcher.end(), termStr));
 //						tmp += (termStr + " ");
@@ -233,8 +233,8 @@
 //				}
 //				if (!tmp.contains(termStr)) {
 //					String patternStr = termStr + "[\\s]";
-//					Pattern pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
-//					Matcher matcher = pattern.matcher(target);
+//					Pattern param = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
+//					Matcher matcher = param.matcher(target);
 //					while (matcher.find()) {
 //						matchList.add(new MatchRegion(matcher.start(), matcher.end() - 1, termStr));
 //						tmp += (termStr + " ");
@@ -245,24 +245,24 @@
 //				// logger.debug("termStr="+termStr);
 //				if (!tmp.contains(termStr)) {
 //					String patternStr = "^" + termStr + "[\\s]";
-//					Pattern pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
-//					Matcher matcher = pattern.matcher(target);
+//					Pattern param = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
+//					Matcher matcher = param.matcher(target);
 //					while (matcher.find()) {
 //						matchList.add(new MatchRegion(matcher.start(), matcher.end() - 1, termStr));
 //					}
 //				}
 //				if (!tmp.contains(termStr)) {
 //					String patternStr = "[\\s]" + termStr + "$";
-//					Pattern pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
-//					Matcher matcher = pattern.matcher(target);
+//					Pattern param = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
+//					Matcher matcher = param.matcher(target);
 //					while (matcher.find()) {
 //						matchList.add(new MatchRegion(matcher.start() + 1, matcher.end(), termStr));
 //					}
 //				}
 //				if (!tmp.contains(termStr)) {
 //					String patternStr = "[\\s]" + termStr + "[\\s]";
-//					Pattern pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
-//					Matcher matcher = pattern.matcher(target);
+//					Pattern param = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
+//					Matcher matcher = param.matcher(target);
 //					while (matcher.find()) {
 //						matchList.add(new MatchRegion(matcher.start() + 1, matcher.end() - 1, termStr));
 //						tmp += (termStr + " ");
@@ -275,24 +275,24 @@
 //			if (termStr.length() > 3) {
 //				if (!tmp.contains(termStr)) {
 //					String patternStr = "^" + termStr;
-//					Pattern pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
-//					Matcher matcher = pattern.matcher(target);
+//					Pattern param = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
+//					Matcher matcher = param.matcher(target);
 //					while (matcher.find()) {
 //						matchList.add(new MatchRegion(matcher.start(), matcher.end(), termStr));
 //					}
 //				}
 //				if (!tmp.contains(termStr)) {
 //					String patternStr = termStr + "$";
-//					Pattern pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
-//					Matcher matcher = pattern.matcher(target);
+//					Pattern param = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
+//					Matcher matcher = param.matcher(target);
 //					while (matcher.find()) {
 //						matchList.add(new MatchRegion(matcher.start(), matcher.end(), termStr));
 //					}
 //				}
 //				if (!tmp.contains(termStr)) {
 //					String patternStr = "[\\s]" + termStr;
-//					Pattern pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
-//					Matcher matcher = pattern.matcher(target);
+//					Pattern param = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
+//					Matcher matcher = param.matcher(target);
 //					while (matcher.find()) {
 //						matchList.add(new MatchRegion(matcher.start() + 1, matcher.end(), termStr));
 //						tmp += (termStr + " ");
@@ -300,8 +300,8 @@
 //				}
 //				if (!tmp.contains(termStr)) {
 //					String patternStr = termStr + "[\\s]";
-//					Pattern pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
-//					Matcher matcher = pattern.matcher(target);
+//					Pattern param = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
+//					Matcher matcher = param.matcher(target);
 //					while (matcher.find()) {
 //						matchList.add(new MatchRegion(matcher.start(), matcher.end() - 1, termStr));
 //						tmp += (termStr + " ");
@@ -312,24 +312,24 @@
 //				// logger.debug("termStr="+termStr);
 //				if (!tmp.contains(termStr)) {
 //					String patternStr = "^" + termStr + "[\\s]";
-//					Pattern pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
-//					Matcher matcher = pattern.matcher(target);
+//					Pattern param = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
+//					Matcher matcher = param.matcher(target);
 //					while (matcher.find()) {
 //						matchList.add(new MatchRegion(matcher.start(), matcher.end() - 1, termStr));
 //					}
 //				}
 //				if (!tmp.contains(termStr)) {
 //					String patternStr = "[\\s]" + termStr + "$";
-//					Pattern pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
-//					Matcher matcher = pattern.matcher(target);
+//					Pattern param = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
+//					Matcher matcher = param.matcher(target);
 //					while (matcher.find()) {
 //						matchList.add(new MatchRegion(matcher.start() + 1, matcher.end(), termStr));
 //					}
 //				}
 //				if (!tmp.contains(termStr)) {
 //					String patternStr = "[\\s]" + termStr + "[\\s]";
-//					Pattern pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
-//					Matcher matcher = pattern.matcher(target);
+//					Pattern param = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
+//					Matcher matcher = param.matcher(target);
 //					while (matcher.find()) {
 //						matchList.add(new MatchRegion(matcher.start() + 1, matcher.end() - 1, termStr));
 //						tmp += (termStr + " ");

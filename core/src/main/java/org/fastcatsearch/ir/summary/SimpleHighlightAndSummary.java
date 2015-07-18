@@ -217,8 +217,8 @@
 //			if (!tmp.contains(termStr)) {
 //				String patternStr = "(?i)(" + escapseRegEx(termStr) + ")";
 //				try {
-//					Pattern pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
-//					Matcher matcher = pattern.matcher(target);
+//					Pattern param = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
+//					Matcher matcher = param.matcher(target);
 //					while (matcher.find()) {
 //						matchList.add(new MatchRegion(matcher.start(), matcher.end(), matcher.group(1)));
 //						tmp += (termStr + " ");
@@ -235,8 +235,8 @@
 //				if (!tmp.contains(termStr)) {
 //					String patternStr = "(?i)(" + escapseRegEx(termStr) + ")";
 //					try {
-//						Pattern pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
-//						Matcher matcher = pattern.matcher(target);
+//						Pattern param = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
+//						Matcher matcher = param.matcher(target);
 //						while (matcher.find()) {
 //							matchList.add(new MatchRegion(matcher.start(), matcher.end(), matcher.group(1)));
 //							tmp += (termStr + " ");

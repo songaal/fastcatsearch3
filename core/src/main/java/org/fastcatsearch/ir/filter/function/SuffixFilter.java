@@ -34,7 +34,7 @@ import org.fastcatsearch.ir.settings.FieldSetting;
  * @author swsong
  *
  */
-public class SuffixFilter extends FilterFunction {
+public class SuffixFilter extends PatternFilterFunction {
 
 	public SuffixFilter(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting) throws FilterException {
 		super(filter, fieldIndexSetting, fieldSetting, false);

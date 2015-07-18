@@ -20,8 +20,13 @@ public abstract class NumericField extends Field {
 		if(data == null || data.trim().length() == 0){
 			return null;
 		}
-		
-		return parseNumber(data.trim());
+
+        //숫자형 파싱에 실패하면 null을 보낸다.
+        try {
+            return parseNumber(data.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
 	}
 	
 	@Override

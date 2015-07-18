@@ -571,37 +571,37 @@ public class QueryParser {
 				return f;
 			} 
 //				else if (str.length <= 2) {
-//				logger.error("Filter pattern string is empty. >> {}", value);
+//				logger.error("Filter param string is empty. >> {}", value);
 //				return f;
 //			}
 			String field = str[0];
 			String method = str[1];
-            //method 함수에 딸린 파라미터. 괄호안에 ; 구분으로 들어있음.
-            String[] functionParams = null;
-            if(method.contains("(") && method.contains(")")) {
-                String tmp = method;
-                int spos = tmp.indexOf("(");
-                int epos = tmp.lastIndexOf(")");
-                method = tmp.substring(0, spos);
-                String paramStr = tmp.substring(spos + 1, epos);
-                functionParams = paramStr.split(SEMICOLON_SEPARATOR);
-                for(int i = 0; i < functionParams.length; i++) {
-                    functionParams[i] = functionParams[i].trim();
-                }
-            }
-			String[] patternList = null;
+//            //method 함수에 딸린 파라미터. 괄호안에 ; 구분으로 들어있음.
+//            String[] functionParams = null;
+//            if(method.contains("(") && method.contains(")")) {
+//                String tmp = method;
+//                int spos = tmp.indexOf("(");
+//                int epos = tmp.lastIndexOf(")");
+//                method = tmp.substring(0, spos);
+//                String paramStr = tmp.substring(spos + 1, epos);
+//                functionParams = paramStr.split(SEMICOLON_SEPARATOR);
+//                for(int i = 0; i < functionParams.length; i++) {
+//                    functionParams[i] = functionParams[i].trim();
+//                }
+//            }
+			String[] parameterList = null;
 			if(str.length > 2){
-				patternList = str[2].split(SEMICOLON_SEPARATOR);
-				removeEscape(patternList);
+				parameterList = str[2].split(SEMICOLON_SEPARATOR);
+				removeEscape(parameterList);
 			}
 			if (method.equalsIgnoreCase("MATCH")) {
-				f.add(new Filter(field, Filter.MATCH, patternList));
+				f.add(new Filter(field, Filter.MATCH, parameterList));
 			} else if (method.equalsIgnoreCase("SECTION")) {
-				String[] patList = new String[patternList.length];
-				String[] endPatList = new String[patternList.length];
+				String[] patList = new String[parameterList.length];
+				String[] endPatList = new String[parameterList.length];
 
-				for (int i = 0; i < patternList.length; i++) {
-					String[] range = patternList[i].split(RANGE_SEPARATOR);
+				for (int i = 0; i < parameterList.length; i++) {
+					String[] range = parameterList[i].split(RANGE_SEPARATOR);
 					patList[i] = range[0];
 					if (range.length >= 2) {
 						endPatList[i] = range[1];
@@ -613,22 +613,22 @@ public class QueryParser {
 				}
 				f.add(new Filter(field, Filter.SECTION, patList, endPatList));
 			} else if (method.equalsIgnoreCase("PREFIX")) {
-				f.add(new Filter(field, Filter.PREFIX, patternList));
+				f.add(new Filter(field, Filter.PREFIX, parameterList));
 			} else if (method.equalsIgnoreCase("SUFFIX")) {
-				f.add(new Filter(field, Filter.SUFFIX, patternList));
+				f.add(new Filter(field, Filter.SUFFIX, parameterList));
 			} else if (method.equalsIgnoreCase("MATCH_BOOST")) {
 				if (str.length >= 4) {
 					int boostScore = Integer.parseInt(str[3]);
-					f.add(new Filter(field, Filter.MATCH_BOOST, patternList, boostScore));
+					f.add(new Filter(field, Filter.MATCH_BOOST, parameterList, boostScore));
 				} else {
 					logger.warn("MATCH_BOOST Pattern string is empty.");
 				}
 			} else if (method.equalsIgnoreCase("SECTION_BOOST")) {
 				if (str.length >= 4) {
-					String[] patList = new String[patternList.length];
-					String[] endPatList = new String[patternList.length];
-					for (int i = 0; i < patternList.length; i++) {
-						String[] range = patternList[i].split(RANGE_SEPARATOR);
+					String[] patList = new String[parameterList.length];
+					String[] endPatList = new String[parameterList.length];
+					for (int i = 0; i < parameterList.length; i++) {
+						String[] range = parameterList[i].split(RANGE_SEPARATOR);
 						patList[i] = range[0];
 						if (range.length >= 2)
 							endPatList[i] = range[1];
@@ -642,21 +642,25 @@ public class QueryParser {
 				}
 			} else if (method.equalsIgnoreCase("PREFIX_BOOST")) {
 				int boostScore = Integer.parseInt(str[3]);
-				f.add(new Filter(field, Filter.PREFIX_BOOST, patternList, boostScore));
+				f.add(new Filter(field, Filter.PREFIX_BOOST, parameterList, boostScore));
 			} else if (method.equalsIgnoreCase("SUFFIX_BOOST")) {
 				int boostScore = Integer.parseInt(str[3]);
-				f.add(new Filter(field, Filter.SUFFIX_BOOST, patternList, boostScore));
+				f.add(new Filter(field, Filter.SUFFIX_BOOST, parameterList, boostScore));
 			} else if (method.equalsIgnoreCase("EXCLUDE")) {
-				f.add(new Filter(field, Filter.EXCLUDE, patternList));
+				f.add(new Filter(field, Filter.EXCLUDE, parameterList));
 			} else if (method.equalsIgnoreCase("EXCLUDE_BOOST")) {
 				int boostScore = Integer.parseInt(str[3]);
-				f.add(new Filter(field, Filter.EXCLUDE_BOOST, patternList, boostScore));
+				f.add(new Filter(field, Filter.EXCLUDE_BOOST, parameterList, boostScore));
 			} else if (method.equalsIgnoreCase("BOOST")) {
 				f.add(new Filter(field, Filter.BOOST));
             } else if (method.equalsIgnoreCase("GEO_RADIUS")) {
                 String[] fieldList = field.split(SEMICOLON_SEPARATOR);
-                Filter filter = new Filter(fieldList, Filter.GEO_RADIUS);
-                filter.setFunctionParams(functionParams);
+                Filter filter = new Filter(fieldList, Filter.GEO_RADIUS, parameterList);
+                f.add(filter);
+            } else if (method.equalsIgnoreCase("GEO_RADIUS_BOOST")) {
+                int boostScore = Integer.parseInt(str[3]);
+                String[] fieldList = field.split(SEMICOLON_SEPARATOR);
+                Filter filter = new Filter(fieldList, Filter.GEO_RADIUS_BOOST, parameterList, boostScore);
                 f.add(filter);
 			} else {
 				logger.error("Unknown Filter method = {}", method);

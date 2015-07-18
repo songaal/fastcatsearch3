@@ -23,8 +23,6 @@ import org.fastcatsearch.ir.filter.function.*;
 import org.fastcatsearch.ir.settings.FieldIndexSetting;
 import org.fastcatsearch.ir.settings.FieldSetting;
 
-import java.util.Arrays;
-
 public class Filter {
 
 	// filter function for bitwise calculation
@@ -44,8 +42,8 @@ public class Filter {
 
 	private Object fieldIndexId;
 	private int function;
-	private String[] patternList;
-	private String[] endPatternList;
+	private String[] paramList;
+	private String[] endParamList;
 	private int boostScore;
 
     private Object functionParams; //filter function의 파라미터.
@@ -54,24 +52,24 @@ public class Filter {
 		this(fieldIndexId, function, "");
 	}
 
-	public Filter(Object fieldIndexId, int function, String pattern) {
-		this(fieldIndexId, function, pattern, null, 0);
+	public Filter(Object fieldIndexId, int function, String param) {
+		this(fieldIndexId, function, param, null, 0);
 	}
 
-	public Filter(Object fieldIndexId, int function, String pattern, String endPattern) {
-		this(fieldIndexId, function, pattern, endPattern, 0);
+	public Filter(Object fieldIndexId, int function, String param, String endParam) {
+		this(fieldIndexId, function, param, endParam, 0);
 	}
 
-	public Filter(Object fieldIndexId, int function, String pattern, int boostScore) {
-		this(fieldIndexId, function, pattern, null, boostScore);
+	public Filter(Object fieldIndexId, int function, String param, int boostScore) {
+		this(fieldIndexId, function, param, null, boostScore);
 	}
 
-	public Filter(Object fieldIndexId, int function, String pattern, String endPattern, int boostScore) {
+	public Filter(Object fieldIndexId, int function, String param, String endParam, int boostScore) {
         this.fieldIndexId = fieldIndexId;
         this.function = function;
-		this.patternList = new String[] { pattern };
-		if (endPattern != null) {
-			this.endPatternList = new String[] { endPattern };
+		this.paramList = new String[] { param };
+		if (endParam != null) {
+			this.endParamList = new String[] { endParam };
 		}
 		this.boostScore = boostScore;
 	}
@@ -79,24 +77,24 @@ public class Filter {
 	//
 	// LIST
 	//
-    public Filter(Object fieldIndexId, int function, String[] patternList) {
-        this(fieldIndexId, function, patternList, null, 0);
+    public Filter(Object fieldIndexId, int function, String[] paramList) {
+        this(fieldIndexId, function, paramList, null, 0);
     }
 
-	public Filter(Object fieldIndexId, int function, String[] patternList, String[] endPatternList) {
-		this(fieldIndexId, function, patternList, endPatternList, 0);
+	public Filter(Object fieldIndexId, int function, String[] paramList, String[] endParamList) {
+		this(fieldIndexId, function, paramList, endParamList, 0);
 	}
 
-	public Filter(Object fieldIndexId, int function, String[] patternList, int boostScore) {
-		this(fieldIndexId, function, patternList);
+	public Filter(Object fieldIndexId, int function, String[] paramList, int boostScore) {
+		this(fieldIndexId, function, paramList);
 		this.boostScore = boostScore;
 	}
 
-	public Filter(Object fieldIndexId, int function, String[] patternList, String[] endPatternList, int boostScore) {
+	public Filter(Object fieldIndexId, int function, String[] paramList, String[] endParamList, int boostScore) {
 		this.fieldIndexId = fieldIndexId;
         this.function = function;
-        this.patternList = patternList;
-        this.endPatternList = endPatternList;
+        this.paramList = paramList;
+        this.endParamList = endParamList;
         this.boostScore = boostScore;
 	}
 
@@ -135,16 +133,16 @@ public class Filter {
 
 	public String toString() {
         String str = fieldIndexId + ":" + function + ":";
-		if (endPatternList != null) {
-			for (int i = 0; i < patternList.length; i++) {
-				str += (patternList[i] + "~" + endPatternList[i]);
-				if (i < patternList.length - 1)
+		if (endParamList != null) {
+			for (int i = 0; i < paramList.length; i++) {
+				str += (paramList[i] + "~" + endParamList[i]);
+				if (i < paramList.length - 1)
 					str += ";";
 			}
 		} else {
-			for (int i = 0; i < patternList.length; i++) {
-				str += patternList[i];
-				if (i < patternList.length - 1)
+			for (int i = 0; i < paramList.length; i++) {
+				str += paramList[i];
+				if (i < paramList.length - 1)
 					str += ";";
 			}
 		}
@@ -167,28 +165,28 @@ public class Filter {
 		return function;
 	}
 
-	public String pattern() {
-		return patternList[0];
+	public String param() {
+		return paramList[0];
 	}
 
-	public String pattern(int n) {
-		return patternList[n];
+	public String param(int n) {
+		return paramList[n];
 	}
 
-	public int patternLength() {
-		return patternList.length;
+	public int paramLength() {
+		return paramList.length;
 	}
 
-	public boolean isEndPatternExist() {
-		return endPatternList != null;
+	public boolean isEndParamExist() {
+		return endParamList != null;
 	}
 
-	public String endPattern(int n) {
-		return endPatternList[n];
+	public String endParam(int n) {
+		return endParamList[n];
 	}
 
-	public int endPatternLength() {
-		return endPatternList.length;
+	public int endParamLength() {
+		return endParamList.length;
 	}
 
 	public int boostScore() {

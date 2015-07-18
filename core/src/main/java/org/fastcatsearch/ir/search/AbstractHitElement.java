@@ -35,6 +35,7 @@ public abstract class AbstractHitElement<T> implements Comparable<T> {
 	protected int segmentSequence;
 	protected int docNo;
 	protected int score; //매칭점수
+
 	protected BytesRef[] rankData; //필드값으로 정렬할 경우 필드값 데이터
 	protected List<RowExplanation> list;
 	
@@ -74,7 +75,7 @@ public abstract class AbstractHitElement<T> implements Comparable<T> {
 	public int score(){
 		return score;
 	}
-	
+
 	public BytesRef[] rankData(){
 		return rankData;
 	}

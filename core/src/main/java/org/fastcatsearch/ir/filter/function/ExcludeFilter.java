@@ -33,7 +33,7 @@ import org.fastcatsearch.ir.settings.FieldSetting;
  * @author swsong
  * 
  */
-public class ExcludeFilter extends FilterFunction {
+public class ExcludeFilter extends PatternFilterFunction {
 
 	public ExcludeFilter(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting) throws FilterException {
 		super(filter, fieldIndexSetting, fieldSetting, false);

@@ -200,6 +200,7 @@ public class HitReader {
 			} else {
 				for (int i = 0; i < nread; i++) {
 					hitElementBuffer[i] = new HitElement(rankInfoList[i].docNo(), rankInfoList[i].score(), rankInfoList[i].rowExplanations());
+                    hitElementBuffer[i].setDistance(rankInfoList[i].distance());
 				}
 			}
 		} else {

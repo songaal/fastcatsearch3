@@ -17,6 +17,7 @@
 package org.fastcatsearch.ir.search;
 
 import org.apache.lucene.util.BytesRef;
+import org.fastcatsearch.ir.field.DistanceField;
 import org.fastcatsearch.ir.field.HitField;
 import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.io.IOUtil;
@@ -74,6 +75,8 @@ public class SortGenerator {
                     } else if (fieldId.equalsIgnoreCase(HitField.fieldName)) {
                         fieldIndex[i] = HitField.fieldNumber;
 //					dataSize += HitField.fieldSize;
+                    } else if (fieldId.equalsIgnoreCase(DistanceField.fieldName)) {
+                        fieldIndex[i] = DistanceField.fieldNumber;
                     } else {
                         throw new IOException("Unknown sort field name = " + fieldId);
                     }
@@ -108,11 +111,13 @@ public class SortGenerator {
 
                 BytesRef[] rankData = readRankData(ri);
                 result[i] = new HitElement(ri.docNo(), ri.score(), rankData, rankInfoList[i].rowExplanations());
+                result[i].setDistance(ri.distance());
             }
         } else {
             for (int i = 0; i < n; i++) {
                 RankInfo ri = rankInfoList[i];
                 result[i] = new HitElement(ri.docNo(), ri.score(), null, rankInfoList[i].rowExplanations());
+                result[i].setDistance(ri.distance());
             }
         }
 		return result;
@@ -127,11 +132,13 @@ public class SortGenerator {
 
                 BytesRef[] rankData = readRankData(ri);
                 result[i] = new HitElement(ri.docNo(), ri.score(), rankData, rankInfoList[i].rowExplanations());
+                result[i].setDistance(ri.distance());
             }
         } else {
             for (int i = 0; i < n; i++) {
                 RankInfo ri = rankInfoList[i];
                 result[i] = new HitElement(ri.docNo(), ri.score(), null, rankInfoList[i].rowExplanations());
+                result[i].setDistance(ri.distance());
             }
         }
 	}
@@ -148,6 +155,10 @@ public class SortGenerator {
 				rankData[j] = new BytesRef(HitField.fieldSize);
 				IOUtil.writeInt(rankData[j], ri.hit());
 				rankData[j].flip();
+            }else if(fieldIndex[j] == DistanceField.fieldNumber){
+                rankData[j] = new BytesRef(DistanceField.fieldSize);
+                IOUtil.writeInt(rankData[j], Float.floatToIntBits(ri.distance()));
+                rankData[j].flip();
 			}else{
 //				BytesRef bytesRef = indexRef.getDataRef(j).bytesRef();
 //				rankData[j] = bytesRef.duplicate();

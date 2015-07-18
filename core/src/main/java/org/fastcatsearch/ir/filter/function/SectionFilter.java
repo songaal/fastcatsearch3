@@ -34,7 +34,7 @@ import org.fastcatsearch.ir.settings.FieldSetting;
  * @author swsong
  * 
  */
-public class SectionFilter extends FilterFunction {
+public class SectionFilter extends PatternFilterFunction {
 
 	public SectionFilter(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting) throws FilterException {
 		super(filter, fieldIndexSetting, fieldSetting, false);

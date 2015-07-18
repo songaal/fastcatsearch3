@@ -27,7 +27,8 @@ import java.util.List;
  *
  */
 public class HitElement extends AbstractHitElement<HitElement> {
-	
+
+    protected float distance;
 	//bundleKey는 타 노드로 전송할 필요없음. 즉, 한 컬렉션 내에서만 묶고, 컬렉션끼리의 병합시에는 묶지 않음. 
 	private BytesRef bundleKey;
 	
@@ -58,7 +59,15 @@ public class HitElement extends AbstractHitElement<HitElement> {
 		super(segmentSequence, docNo, score, dataList, list);
 		this.bundleKey = bundleKey;
 	}
-	
+
+    public float distance() {
+        return distance;
+    }
+
+    public void setDistance(float distance) {
+        this.distance = distance;
+    }
+
 	@Override
 	public String toString(){
 		if(bundleKey != null) {

@@ -40,7 +40,9 @@ public class RankInfo {
 	
 	private boolean explain;
 	private List<RowExplanation> rowExplanations;
-	
+
+    private float distance;
+
 	public RankInfo() {
 	}
 	
@@ -95,8 +97,15 @@ public class RankInfo {
 		this.hit = hit;
 	}
 
+    public float distance() {
+        return distance;
+    }
+
+    public void distance(float distance) {
+        this.distance = distance;
+    }
 	public String toString() {
-		return "docNo=" + docNo + ",score=" + score + ",hit=" + hit;
+		return "docNo=" + docNo + ",score=" + score + ",hit=" + hit + ",distance=" + distance;
 	}
 
 	public int matchFlag() {

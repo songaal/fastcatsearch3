@@ -22,6 +22,8 @@ public class Row {
 	private char[][] row;
 	private int fieldCount;
 	private int score;
+    private float distance;
+
 	//원문조회기능에서필요.
 	private boolean isDeleted;
 	private String rowTag;
@@ -86,5 +88,13 @@ public class Row {
 	public void setScore(int score) {
 		this.score = score;
 	}
+
+    public float getDistance(){
+        return distance;
+    }
+
+    public void setDistance(float distance) {
+        this.distance = distance;
+    }
 }
 

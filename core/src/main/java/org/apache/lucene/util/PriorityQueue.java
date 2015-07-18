@@ -99,7 +99,7 @@ public abstract class PriorityQueue<T> {
    * pre-populate the queue. Adds sentinel values to the queue.<br>
    * 
    * If this method is extended to return a non-null value, then the following
-   * usage pattern is recommended:
+   * usage param is recommended:
    * 
    * <pre class="prettyprint">
    * // extends getSentinelObject() to return a non-null value.

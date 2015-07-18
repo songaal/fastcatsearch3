@@ -78,7 +78,7 @@ import org.apache.lucene.util.AttributeSource;
  * TeeSinkTokenFilter). For this usecase
  * {@link AttributeSource#captureState} and {@link AttributeSource#restoreState}
  * can be used.
- * <p>The {@code TokenStream}-API in Lucene is based on the decorator pattern.
+ * <p>The {@code TokenStream}-API in Lucene is based on the decorator param.
  * Therefore all non-abstract subclasses must be final or have at least a final
  * implementation of {@link #incrementToken}! This is checked when Java
  * assertions are enabled.

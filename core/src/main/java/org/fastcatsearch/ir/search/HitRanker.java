@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.lucene.util.BytesRef;
+import org.fastcatsearch.ir.field.DistanceField;
 import org.fastcatsearch.ir.field.HitField;
 import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.io.FixedMaxPriorityQueue;
@@ -58,6 +59,8 @@ public class HitRanker extends FixedMaxPriorityQueue<HitElement>{
 					sortFunctions[i] = sort.createSortFunction(ScoreField.field);
 				}else if(fieldIndexId.equalsIgnoreCase(HitField.fieldName)){
 					sortFunctions[i] = sort.createSortFunction(HitField.field);
+                }else if(fieldIndexId.equalsIgnoreCase(DistanceField.fieldName)){
+                    sortFunctions[i] = sort.createSortFunction(DistanceField.field);
 				}else{
 					throw new IOException("Unknown sort field name = "+fieldIndexId);
 				}

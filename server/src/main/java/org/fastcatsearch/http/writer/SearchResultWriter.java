@@ -1,6 +1,7 @@
 package org.fastcatsearch.http.writer;
 
 import org.fastcatsearch.ir.field.BundleSizeField;
+import org.fastcatsearch.ir.field.DistanceField;
 import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Result;
@@ -144,6 +145,8 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 				fdata = String.valueOf(row.getScore());
 			}else if(fieldNames[k].equalsIgnoreCase(BundleSizeField.fieldName)){
 				fdata = String.valueOf(bundleSize);
+            }else if(fieldNames[k].equalsIgnoreCase(DistanceField.fieldName)){
+                    fdata = String.valueOf(row.getDistance());
 			}else{
 				char[] f = row.get(k);
 				fdata = new String(f).trim();

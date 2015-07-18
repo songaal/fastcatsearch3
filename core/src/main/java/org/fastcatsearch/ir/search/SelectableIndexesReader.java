@@ -52,6 +52,13 @@ public abstract class SelectableIndexesReader<T extends ReferenceableReader, S e
                         }
 
                     }
+
+
+                    if (readers[k] == null) {
+//				        logger.error("색인된 필드를 찾지못함.>>{}", fieldId);
+                        throw new IOException("Field index is not exist \""+fieldId+"\"");
+                    }
+
                 }
 
                 if(fieldIdList.length == 1) {
@@ -62,10 +69,7 @@ public abstract class SelectableIndexesReader<T extends ReferenceableReader, S e
 			}
 			indexRef.add(null, reader);
 
-			if (reader == null && fieldIdList !=null) {
-//				logger.error("색인된 필드를 찾지못함.>>{}", fieldId);
-				throw new IOException("Field is not exist \""+fieldIdList+"\"");
-			}
+
 		}
 
 		return indexRef;

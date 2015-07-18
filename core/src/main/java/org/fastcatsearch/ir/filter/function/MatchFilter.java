@@ -33,7 +33,7 @@ import org.fastcatsearch.ir.settings.FieldSetting;
  * @author swsong
  * 
  */
-public class MatchFilter extends FilterFunction {
+public class MatchFilter extends PatternFilterFunction {
 
 	public MatchFilter(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting) throws FilterException {
 		super(filter, fieldIndexSetting, fieldSetting, false);
