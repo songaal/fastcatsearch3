@@ -1,6 +1,7 @@
 package org.fastcatsearch.ir.search;
 
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.filter.FilterException;
 import org.fastcatsearch.ir.group.GroupDataGenerator;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.BitSet;
@@ -134,7 +135,7 @@ public class HitReader {
 		hitElementBuffer = new HitElement[BULK_SIZE];
 	}
 	
-	public HitElement next() throws IOException {
+	public HitElement next() throws IOException, FilterException {
 		while (nread == 0) {
 			if(exausted) {
 				return null;
@@ -148,7 +149,7 @@ public class HitReader {
 	}
 	
 	
-	private void fill() throws IOException {
+	private void fill() throws IOException, FilterException {
 		nread = 0;
 		while (!exausted) {
 			

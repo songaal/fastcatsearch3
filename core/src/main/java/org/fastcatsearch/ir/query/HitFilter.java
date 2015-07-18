@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.filter.FilterException;
 import org.fastcatsearch.ir.filter.FilterFunction;
 import org.fastcatsearch.ir.io.DataRef;
 import org.fastcatsearch.ir.search.FieldIndexReader;
@@ -101,7 +102,7 @@ public class HitFilter {
             throw new IRException("\"" + fieldIndexId + "\" is not a field index or not indexed.");
         }
     }
-	public int filtering(RankInfo[] rankInfoList, int nread) throws IOException {
+	public int filtering(RankInfo[] rankInfoList, int nread) throws FilterException, IOException {
 		if(nread <= 0){
 			return 0;
 		}

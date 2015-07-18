@@ -65,6 +65,6 @@ public abstract class FilterFunction {
 	 * @param rankInfo
 	 * @return true : 포함됨, false : 포함되지 않음.
 	 */
-	public abstract boolean filtering(RankInfo rankInfo, DataRef dataRef) throws IOException;
+	public abstract boolean filtering(RankInfo rankInfo, DataRef dataRef) throws FilterException, IOException;
 	
 }

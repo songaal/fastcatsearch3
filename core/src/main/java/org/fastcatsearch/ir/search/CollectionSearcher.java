@@ -10,6 +10,7 @@ import org.fastcatsearch.ir.field.DocNoField;
 import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.field.UnknownField;
+import org.fastcatsearch.ir.filter.FilterException;
 import org.fastcatsearch.ir.group.GroupDataMerger;
 import org.fastcatsearch.ir.group.GroupHit;
 import org.fastcatsearch.ir.group.GroupsData;
@@ -394,6 +395,8 @@ public class CollectionSearcher {
 			
 		} catch (IOException e) {
 			throw new IRException(e);
+        } catch (FilterException e) {
+            throw new IRException(e);
 		} catch (ClauseException e) {
 			throw new IRException(e);
 		}

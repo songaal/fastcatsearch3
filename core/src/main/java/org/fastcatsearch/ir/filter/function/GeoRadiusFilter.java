@@ -70,8 +70,11 @@ public class GeoRadiusFilter extends FilterFunction {
     }
 
 	@Override
-	public boolean filtering(RankInfo rankInfo, DataRef dataRef) throws IOException {
+	public boolean filtering(RankInfo rankInfo, DataRef dataRef) throws FilterException, IOException {
 		while (dataRef.next()) {
+            if(!(dataRef instanceof CompoundDataRef)) {
+                throw new FilterException("GEO_RADIUS need 2 field : latitude, longitude.");
+            }
             BytesRef[] refs = ((CompoundDataRef) dataRef).bytesRefs();
 
             BytesRef bytesRef1 = refs[0]; //lat
@@ -81,9 +84,9 @@ public class GeoRadiusFilter extends FilterFunction {
             float lon = Float.intBitsToFloat(bytesRef2.toIntValue());
 
             float distance = (float) geoDistance.calDistance(lat, lon, latPosition, lonPosition);
-            logger.debug("calDistance {},{} -> {},{} = {} < {}", lat, lon, latPosition, lonPosition, distance, radiusInMeter);
+//            logger.debug("calDistance {},{} -> {},{} = {} < {}", lat, lon, latPosition, lonPosition, distance, radiusInMeter);
             rankInfo.distance(distance);
-            if(distance < radiusInMeter) {
+            if(distance <= radiusInMeter) {
                 if (isBoostFunction) {
                     // boost옵션이 있다면 점수를 올려주고 리턴한다.
                     rankInfo.addScore(boostScore);
