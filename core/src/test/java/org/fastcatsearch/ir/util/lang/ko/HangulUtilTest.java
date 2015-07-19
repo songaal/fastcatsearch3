@@ -53,7 +53,7 @@ public class HangulUtilTest {
 	}
 	
 	@Test
-	public void tesChosungt() {
+	public void testChosung() {
 		String s = HangulUtil.makeHangulChosung("빙그레", '\t');
 		logger.debug(s);
 		String[] ss = s.split("\t");
@@ -62,5 +62,13 @@ public class HangulUtilTest {
 		}
 		assertEquals("ㅂ	ㅂㄱ	ㅂㄱㄹ", s);
 	}
+
+    @Test
+    public void testChosung2() {
+        String s = HangulUtil.makeHangulChosung("abc", '\t');
+        logger.debug("str= {}, size= {}", s, s.length());
+        assertEquals("", s);
+        assertEquals(0, s.length());
+    }
 
 }

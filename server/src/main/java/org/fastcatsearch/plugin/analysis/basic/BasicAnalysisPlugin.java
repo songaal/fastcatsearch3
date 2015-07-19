@@ -4,6 +4,7 @@ import org.apache.lucene.analysis.core.CSVAnalyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.fastcatsearch.ir.analysis.AutocompleteAnalyzer;
 import org.fastcatsearch.ir.analysis.DefaultAnalyzerFactory;
 import org.fastcatsearch.ir.analysis.NGramWordAnalyzer;
 import org.fastcatsearch.ir.analysis.PrimaryWordAnalyzer;
@@ -42,6 +43,8 @@ public class BasicAnalysisPlugin extends AnalysisPlugin<CharVector, PreResult<Ch
 		registerAnalyzer(analyzerFactoryMap, "whitespace", "Whitespace Analyzer", new DefaultAnalyzerFactory(WhitespaceAnalyzer.class));
 		
 		registerAnalyzer(analyzerFactoryMap, "csv", "Comma separated value Analyzer", new DefaultAnalyzerFactory(CSVAnalyzer.class));
+
+        registerAnalyzer(analyzerFactoryMap, "autocomplete", "Autocomplete Analyzer", new DefaultAnalyzerFactory(AutocompleteAnalyzer.class));
 	}
 
 	@Override

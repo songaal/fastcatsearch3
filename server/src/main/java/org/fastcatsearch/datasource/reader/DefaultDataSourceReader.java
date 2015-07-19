@@ -40,6 +40,13 @@ public class DefaultDataSourceReader extends AbstractDataSourceReader<Map<String
 		FieldSetting fs = null;
 		Object data = null;
 		try {
+
+            /*
+            * 루프를 돌기전에 먼저 target속성이 존재하면 그 필드를 먼저수행해준다. target은 transform이 있어야만 한다.
+            * 왜냐하면, 다른 필드에 값을 넣어주기 때문에..
+            * 또한 해당 값이 Multivalue라면 먼저 파싱해서 transform을 해야한다.
+            *
+            * */
 //			logger.debug("doc >> {}", map);
 			// Schema를 기반으로 Document로 만든다.
 			Document document = new Document(fieldSettingList.size());
@@ -63,19 +70,10 @@ public class DefaultDataSourceReader extends AbstractDataSourceReader<Map<String
 				} else if (data instanceof String) {
 					data = ((String) data).trim();
 				}
-				
+
+
 //				logger.debug("Get {} : {}", key, data);
 				String multiValueDelimiter = fs.getMultiValueDelimiter();
-				
-				/*
-				 * HTML Tag remover
-				 */
-				boolean isRemoveTag = fs.isRemoveTag();
-				if(isRemoveTag && data != null){
-					if(!(data instanceof String)){
-						data = HTMLTagRemover.clean(data.toString());
-					}
-				}
 				Field f = fs.createIndexableField(data, multiValueDelimiter);
 				document.set(i, f);
 //				logger.debug("doc [{}]{}:{}", i, fs.getId(), f);
