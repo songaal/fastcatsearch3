@@ -64,8 +64,8 @@ public class DemoSearchResultWriter extends AbstractSearchResultWriter {
 
     }
 
-    Pattern patt = Pattern.compile("\\$[a-zA-Z_-]+");
-	Pattern patt2 = Pattern.compile("\\$\\{[a-zA-Z_-]+\\}");
+    Pattern patt = Pattern.compile("\\$[a-zA-Z_\\-\\d]+");
+	Pattern patt2 = Pattern.compile("\\$\\{[a-zA-Z_\\-\\d]+\\}");
     private Set<String> findIdList(String source) {
         if(source == null) {
             return new HashSet<String>();
