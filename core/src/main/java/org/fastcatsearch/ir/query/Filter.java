@@ -65,7 +65,7 @@ public class Filter {
 	}
 
 	public Filter(Object fieldIndexId, int function, String param, String endParam, int boostScore) {
-        this.fieldIndexId = fieldIndexId;
+        this.fieldIndexId = convertFieldIndexIdToUpperCase(fieldIndexId);
         this.function = function;
 		this.paramList = new String[] { param };
 		if (endParam != null) {
@@ -91,12 +91,25 @@ public class Filter {
 	}
 
 	public Filter(Object fieldIndexId, int function, String[] paramList, String[] endParamList, int boostScore) {
-		this.fieldIndexId = fieldIndexId;
+		this.fieldIndexId = convertFieldIndexIdToUpperCase(fieldIndexId);
         this.function = function;
         this.paramList = paramList;
         this.endParamList = endParamList;
         this.boostScore = boostScore;
 	}
+
+    private Object convertFieldIndexIdToUpperCase(Object fieldIndexId) {
+        if(fieldIndexId instanceof String) {
+            return ((String) fieldIndexId).toUpperCase();
+        } else if(fieldIndexId instanceof String[]) {
+            String[] fieldIndexIdList = (String[]) fieldIndexId;
+            for(int i = 0; i < fieldIndexIdList.length;i++) {
+                fieldIndexIdList[i] = fieldIndexIdList[i].toUpperCase();
+            }
+            return fieldIndexIdList;
+        }
+        return fieldIndexId;
+    }
 
 	public FilterFunction createFilterFunction(FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting) throws NotSupportedFilterFunctionException, FilterException {
 		switch (function) {

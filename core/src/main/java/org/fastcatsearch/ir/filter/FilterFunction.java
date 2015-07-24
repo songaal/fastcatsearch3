@@ -45,12 +45,9 @@ public abstract class FilterFunction {
 	public FilterFunction(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting, boolean isBoostFunction) throws FilterException{
         Object fieldIdObject = filter.fieldIndexId();
         if(fieldIdObject instanceof String) {
-            fieldIndexId = ((String) fieldIdObject).toUpperCase();
+            fieldIndexId = (String) fieldIdObject;
         } else if(fieldIdObject instanceof String[]) {
             fieldIndexIdList = (String[]) fieldIdObject;
-            for(int i = 0; i < fieldIndexIdList.length;i++) {
-                fieldIndexIdList[i] = fieldIndexIdList[i].toUpperCase();
-            }
             fieldIndexId = fieldIndexIdList[0];
         }
 		this.fieldSetting = fieldSetting;
