@@ -200,7 +200,8 @@ public class SchemaSettingUtil {
 					setting.setType(Type.valueOf(value = data.optString(attributeId = "type", "").toUpperCase()));
 					setting.setSize(data.optInt(attributeId = "size", 0));
 					setting.setStore("true".equals(value = data.optString(attributeId = "store")));
-					setting.setRemoveTag("true".equals(value = data.optString(attributeId = "removeTag")));
+                    setting.setSource(value = data.optString(attributeId = "source"));
+                    setting.setRemoveTag("true".equals(value = data.optString(attributeId = "removeTag")));
 					setting.setMultiValue("true".equals(value = data.optString(attributeId = "multiValue")));
 					setting.setMultiValueDelimiter(value = data.optString(attributeId = "multiValueDelimiter", null));
 					fieldSettingList.add(setting);
