@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ranking>
+    <profile-list>
+        <profile id="rankingA" name="랭킹A" description="카테고리점수와 클릭점수 부스팅을 수행한다.">
+            <keyword-boosting-list>
+                <keyword-boosting order="1" id="CateBoost">
+                    <dictionary id="cat_boost" plugin="Product" keyColumn="keyword" valueColumn="value"/>
+                    <boosting-filter fieldId="cat1;cat2" score="100000"/>
+                </keyword-boosting>
+            </keyword-boosting-list>
+            <search-boosting-list>
+                <search-boosting order="1" id="RS1">
+                    <target-collection theSame="true"/>
+                    <search-field id="makerBrand" type="ALL" option="15" score="1000000"/>
+                    <option remove-keyword="true"/>
+                </search-boosting>
+                <search-boosting order="2" id="RS5">
+                    <target-collection theSame="false" collectionId="clickLog" joinField="click_id" scoreField="click_score"/>
+                    <search-field id="modelWeight" type="ALL" option="3" />
+                    <option remove-keyword="false"/>
+                </search-boosting>
+            </search-boosting-list>
+        </profile>
+    </profile-list>
+</ranking>
