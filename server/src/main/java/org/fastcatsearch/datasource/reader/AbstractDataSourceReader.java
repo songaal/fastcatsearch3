@@ -16,9 +16,6 @@
 
 package org.fastcatsearch.datasource.reader;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.document.Document;
@@ -28,6 +25,9 @@ import org.fastcatsearch.ir.settings.PrimaryKeySetting;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 데이터소스 리더.
@@ -62,13 +62,14 @@ public abstract class AbstractDataSourceReader<DataType> implements DataSourceRe
 		singleSourceReaderList = new ArrayList<SingleSourceReader<DataType>>();
 	}
 
-	private void nextReader() {
+	private void nextReader() throws IRException {
 		while (readerPos < singleSourceReaderList.size()) {
 			currentReader = singleSourceReaderList.get(readerPos++);
 			if (!currentReader.isActive()) {
 				continue;
 			}
 			if (currentReader != null) {
+                currentReader.init();
 				return;
 			}else{
 				break;
@@ -84,11 +85,10 @@ public abstract class AbstractDataSourceReader<DataType> implements DataSourceRe
 
 	public void addSourceReader(SingleSourceReader<DataType> sourceReader) throws IRException {
 		sourceReader.setDeleteIdList(deleteIdList);
-		sourceReader.init();
 		singleSourceReaderList.add(sourceReader);
 	}
 
-	public void init(){
+	public void init() throws IRException {
 		nextReader();
 	}
 	public boolean hasNext() throws IRException {
