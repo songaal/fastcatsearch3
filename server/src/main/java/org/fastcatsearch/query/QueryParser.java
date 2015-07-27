@@ -16,32 +16,19 @@
 
 package org.fastcatsearch.query;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map.Entry;
-
 import org.fastcatsearch.ir.group.GroupFunction;
 import org.fastcatsearch.ir.group.function.CountGroupFunction;
-import org.fastcatsearch.ir.query.Bundle;
-import org.fastcatsearch.ir.query.Filter;
-import org.fastcatsearch.ir.query.Filters;
-import org.fastcatsearch.ir.query.Group;
-import org.fastcatsearch.ir.query.Groups;
-import org.fastcatsearch.ir.query.Metadata;
-import org.fastcatsearch.ir.query.Query;
-import org.fastcatsearch.ir.query.QueryModifier;
-import org.fastcatsearch.ir.query.ResultModifier;
-import org.fastcatsearch.ir.query.Sort;
-import org.fastcatsearch.ir.query.Sorts;
-import org.fastcatsearch.ir.query.Term;
+import org.fastcatsearch.ir.query.*;
 import org.fastcatsearch.ir.query.Term.Option;
-import org.fastcatsearch.ir.query.View;
-import org.fastcatsearch.ir.query.ViewContainer;
 import org.fastcatsearch.ir.search.StoredProcedure;
 import org.fastcatsearch.ir.search.clause.Clause;
 import org.fastcatsearch.util.DynamicClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 /**
  * 
@@ -177,12 +164,12 @@ public class QueryParser {
 		} else if (Query.EL.se == el) {
 
 			if (value.length() > 0) {
-				Object obj = makeClause(value, query);
+				Object obj = makeClause(value);
 				Clause clause = null;
 				if(obj instanceof Term){
 					clause = new Clause((Term) obj);
 				}else{
-					clause = (Clause) makeClause(value, query);
+					clause = (Clause) makeClause(value);
 				}
 				query.setClause(clause);
 			}
@@ -408,20 +395,20 @@ public class QueryParser {
 	//
 	// TODO 괄호없이 A or B and C 형태도 가능토록, escapse 문자 '\' 적용필요.
 	//
-	protected Object makeClause(String value, Query query) throws QueryParseException {
+	protected Object makeClause(String value) throws QueryParseException {
 		logger.trace("makeClause = {}", value);
 		try {
 			if (value.charAt(0) == '{') {
 				int pos = findMatchBrace(value, 1);
 
-				if (pos < 0)
-					logger.error("Cannot find match brace '}'.");
-
+				if (pos < 0) {
+                    throw new QueryParseException("Cannot find match close brace '}'");
+                }
 				// logger.debug("pos={}, value={}",pos, value);
-				Object operand1 = makeClause(value.substring(1, pos), query);
+				Object operand1 = makeClause(value.substring(1, pos));
 				if (value.regionMatches(true, pos + 1, Clause.Operator.OR.name(), 0, 2)) {
 					int end = findMatchBrace(value, pos + 4);// value.indexOf('}', pos + 4);
-					Object operand2 = makeClause(value.substring(pos + 4, end), query);
+					Object operand2 = makeClause(value.substring(pos + 4, end));
 					if(operand2 instanceof Clause) {
 						Clause innerClause = (Clause)operand2;
 						if(innerClause.operator() == Clause.Operator.NOT && innerClause.operand1() == null) {
@@ -432,7 +419,7 @@ public class QueryParser {
 					return new Clause(operand1, Clause.Operator.OR, operand2);
 				} else if (value.regionMatches(true, pos + 1, Clause.Operator.AND.name(), 0, 3)) {
 					int end = findMatchBrace(value, pos + 5);// value.indexOf('}', pos + 5);
-					Object operand2 = makeClause(value.substring(pos + 5, end), query);
+					Object operand2 = makeClause(value.substring(pos + 5, end));
 					if(operand2 instanceof Clause) {
 						Clause innerClause = (Clause)operand2;
 						if(innerClause.operator() == Clause.Operator.NOT && innerClause.operand1() == null) {
@@ -442,11 +429,11 @@ public class QueryParser {
 					return new Clause(operand1, Clause.Operator.AND, operand2);
 				} else if (value.regionMatches(true, pos + 1, Clause.Operator.NOT.name(), 0, 3)) {
 					int end = findMatchBrace(value, pos + 5);// value.indexOf('}', pos + 5);
-					Object operand2 = makeClause(value.substring(pos + 5, end), query);
+					Object operand2 = makeClause(value.substring(pos + 5, end));
 					return new Clause(operand1, Clause.Operator.NOT, operand2);
 				} else if (value.regionMatches(true, pos + 1, Clause.Operator.BOOST.name(), 0, 5)) {
 					int end = findMatchBrace(value, pos + 7);
-					Object operand2 = makeClause(value.substring(pos + 7, end), query);
+					Object operand2 = makeClause(value.substring(pos + 7, end));
 					if(operand2 instanceof Clause) {
 						Clause innerClause = (Clause)operand2;
 						if(innerClause.operator() == Clause.Operator.NOT && innerClause.operand1() == null) {
@@ -454,6 +441,17 @@ public class QueryParser {
 						}
 					}
 					return new Clause(operand1, Clause.Operator.BOOST, operand2);
+                } else if (value.regionMatches(true, pos + 1, Clause.Operator.LOR.name(), 0, 3)) {
+                    int end = findMatchBrace(value, pos + 5);
+                    Object operand2 = makeClause(value.substring(pos + 5, end));
+                    if(operand2 instanceof Clause) {
+                        Clause innerClause = (Clause)operand2;
+                        if(innerClause.operator() == Clause.Operator.NOT && innerClause.operand1() == null) {
+                            logger.info("OR-NOT Clause detected : [{}]OR[NOT[{}]]", operand1, innerClause.operand2());
+                        }
+                    }
+
+                    return new Clause(operand1, Clause.Operator.LOR, operand2);
 				} else {
 					// operator가 없거나 잘못되었으면 뒤는 무시하고 operand1 이 term으로 간주된다.
 					if (operand1 instanceof Term)
@@ -468,7 +466,7 @@ public class QueryParser {
 				 */
 				if (value.startsWith(Clause.Operator.NOT.name()+"{")) {
 					int end = findMatchBrace(value, 4);
-					Object operand2 = makeClause(value.substring(4, end), query);
+					Object operand2 = makeClause(value.substring(4, end));
 					return new Clause(null, Clause.Operator.NOT, operand2);
 				} else {
 					Term term = makeTerm(value);

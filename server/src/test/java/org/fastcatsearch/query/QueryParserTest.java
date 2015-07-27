@@ -68,7 +68,7 @@ public class QueryParserTest {
 		String queryString = "{test:cc}AND{NOT{test:bb}}";
 		//String queryString = "{test:cc}NOT{test:bb}";
 		QueryParser parser = QueryParser.getInstance();
-		Object obj = parser.makeClause(queryString,query);
+		Object obj = parser.makeClause(queryString);
 		System.out.println(obj);
 	}
 
@@ -97,7 +97,7 @@ public class QueryParserTest {
 		Query query = new Query();
 		String queryString = "{{{{Title:cc:200:15}AND{Title:aa:200:15}}AND{{{Title:bb:200:15}OR{Content:cc:100:15}}OR{Content2:cc:100:15}}}}";
 		QueryParser parser = QueryParser.getInstance();
-		Object obj = parser.makeClause(queryString,query);
+		Object obj = parser.makeClause(queryString);
 		System.out.println(obj);
 	}
 }

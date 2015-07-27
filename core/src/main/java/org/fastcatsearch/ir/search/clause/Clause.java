@@ -16,22 +16,20 @@
 
 package org.fastcatsearch.ir.search.clause;
 
-import java.io.IOException;
-import java.util.Map;
-
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.Term;
-import org.fastcatsearch.ir.search.ClauseExplanation;
 import org.fastcatsearch.ir.search.SearchIndexesReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 public class Clause {
 	private static Logger logger = LoggerFactory.getLogger(Clause.class);
 
 	public static enum Operator {
-		OR, AND, NOT, BOOST
+		OR, AND, NOT, BOOST, LOR
 	};
 
 	private Object operand1;
@@ -144,7 +142,9 @@ public class Clause {
 			return new NotOperatedClause(clause1, clause2);
 		} else if (operator == Operator.BOOST) {
 			return new BoostOperatedClause(clause1, clause2);
-		}
+		} else if (operator == Operator.LOR) {
+            return new LOrOperatedClause(clause1, clause2);
+        }
 		
 		throw new ClauseException("Unknown operator =" + operator);
 	}
