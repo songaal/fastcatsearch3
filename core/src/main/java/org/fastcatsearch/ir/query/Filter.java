@@ -39,9 +39,12 @@ public class Filter {
     public static final int BOOST = 1 << 10;
     public static final int GEO_RADIUS = 1 << 11;
     public static final int GEO_RADIUS_BOOST = 1 << 12;
+	public static final int DICT_SEARCH = 1 << 13;
+	public static final int DICT_SEARCH_BOOST = 1 << 14;
 
 	private Object fieldIndexId;
 	private int function;
+	private String[] functionParamList;
 	private String[] paramList;
 	private String[] endParamList;
 	private int boostScore;
@@ -77,22 +80,23 @@ public class Filter {
 	//
 	// LIST
 	//
-    public Filter(Object fieldIndexId, int function, String[] paramList) {
-        this(fieldIndexId, function, paramList, null, 0);
+    public Filter(Object fieldIndexId, int function, String[] functionParamList, String[] paramList) {
+        this(fieldIndexId, function, functionParamList, paramList, null, 0);
     }
 
-	public Filter(Object fieldIndexId, int function, String[] paramList, String[] endParamList) {
-		this(fieldIndexId, function, paramList, endParamList, 0);
+	public Filter(Object fieldIndexId, int function, String[] functionParamList, String[] paramList, String[] endParamList) {
+		this(fieldIndexId, function, functionParamList, paramList, endParamList, 0);
 	}
 
-	public Filter(Object fieldIndexId, int function, String[] paramList, int boostScore) {
-		this(fieldIndexId, function, paramList);
+	public Filter(Object fieldIndexId, int function, String[] functionParamList, String[] paramList, int boostScore) {
+		this(fieldIndexId, function, functionParamList, paramList, null, 0);
 		this.boostScore = boostScore;
 	}
 
-	public Filter(Object fieldIndexId, int function, String[] paramList, String[] endParamList, int boostScore) {
+	public Filter(Object fieldIndexId, int function, String[] functionParamList, String[] paramList, String[] endParamList, int boostScore) {
 		this.fieldIndexId = convertFieldIndexIdToUpperCase(fieldIndexId);
         this.function = function;
+		this.functionParamList = functionParamList;
         this.paramList = paramList;
         this.endParamList = endParamList;
         this.boostScore = boostScore;
@@ -139,6 +143,10 @@ public class Filter {
             return new GeoRadiusFilter(this, fieldIndexSetting, fieldSetting);
         case GEO_RADIUS_BOOST:
             return new GeoRadiusFilter(this, fieldIndexSetting, fieldSetting, true);
+		case DICT_SEARCH:
+			return new DictSearchFilter(this, fieldIndexSetting, fieldSetting);
+		case DICT_SEARCH_BOOST:
+			return new DictSearchFilter(this, fieldIndexSetting, fieldSetting, true);
 
 		}
 		throw new NotSupportedFilterFunctionException("지원하지 않는 필터기능입니다. function=" + function);
@@ -188,6 +196,18 @@ public class Filter {
 
 	public int paramLength() {
 		return paramList.length;
+	}
+
+	public String functionParam() {
+		return functionParamList[0];
+	}
+
+	public String functionParam(int n) {
+		return functionParamList[n];
+	}
+
+	public int functionParamLength() {
+		return functionParamList.length;
 	}
 
 	public boolean isEndParamExist() {

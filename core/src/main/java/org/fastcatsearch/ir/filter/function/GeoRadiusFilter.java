@@ -44,16 +44,15 @@ public class GeoRadiusFilter extends FilterFunction {
     private GeoDistance geoDistance;
 
 	public GeoRadiusFilter(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting) throws FilterException {
-		super(filter, fieldIndexSetting, fieldSetting, false);
-        initFunctionParams(filter);
+		this(filter, fieldIndexSetting, fieldSetting, false);
 	}
 
 	public GeoRadiusFilter(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting, boolean isBoostFunction) throws FilterException {
 		super(filter, fieldIndexSetting, fieldSetting, isBoostFunction);
-        initFunctionParams(filter);
+        initParams(filter);
 	}
 
-    private void initFunctionParams(Filter filter) throws FilterException {
+    private void initParams(Filter filter) throws FilterException {
         int paramLength = filter.paramLength();
         if(paramLength != 3) {
             throw new FilterException("GEO_RADIUS filter needs 3 params : lat, lon, radius. But only " + paramLength +" params specified.");

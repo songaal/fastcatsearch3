@@ -42,13 +42,17 @@ public abstract class FilterFunction {
 	protected String[] fieldIndexIdList;
 	protected Object functionParams;
 
+	protected boolean isMultiField;
+
 	public FilterFunction(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting, boolean isBoostFunction) throws FilterException{
         Object fieldIdObject = filter.fieldIndexId();
         if(fieldIdObject instanceof String) {
             fieldIndexId = (String) fieldIdObject;
+			isMultiField = false;
         } else if(fieldIdObject instanceof String[]) {
             fieldIndexIdList = (String[]) fieldIdObject;
             fieldIndexId = fieldIndexIdList[0];
+			isMultiField = true;
         }
 		this.fieldSetting = fieldSetting;
 		this.isBoostFunction = isBoostFunction;

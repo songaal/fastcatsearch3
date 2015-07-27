@@ -559,7 +559,10 @@ public class QueryParser {
 		return Term.Type.ALL;
 	}
 
-	private Filters makeFilters(String value) {
+	private Filters makeFilters(String value) throws QueryParseException {
+		//
+		// Syntax : [FieldId;..] : [Filter Function] [(param;..)] : [Value;..] : [Boosting Score]
+		//
 		String[] list = value.split(COMMA_SEPARATOR);
 		Filters f = new Filters();
 		for (int k = 0; k < list.length; k++) {
@@ -573,28 +576,33 @@ public class QueryParser {
 //				return f;
 //			}
 			String field = str[0];
-			String method = str[1];
-//            //method 함수에 딸린 파라미터. 괄호안에 ; 구분으로 들어있음.
-//            String[] functionParams = null;
-//            if(method.contains("(") && method.contains(")")) {
-//                String tmp = method;
-//                int spos = tmp.indexOf("(");
-//                int epos = tmp.lastIndexOf(")");
-//                method = tmp.substring(0, spos);
-//                String paramStr = tmp.substring(spos + 1, epos);
-//                functionParams = paramStr.split(SEMICOLON_SEPARATOR);
-//                for(int i = 0; i < functionParams.length; i++) {
-//                    functionParams[i] = functionParams[i].trim();
-//                }
-//            }
+			String function = str[1];
+			String[] fieldList = field.split(SEMICOLON_SEPARATOR);
+			//method 함수에 딸린 파라미터. 괄호안에 ; 구분으로 들어있음.
+            String[] functionParamList = null;
+            if(function.contains("(") && function.contains(")")) {
+                String tmp = function;
+                int spos = tmp.indexOf("(");
+                int epos = tmp.lastIndexOf(")");
+                function = tmp.substring(0, spos);
+                String paramStr = tmp.substring(spos + 1, epos);
+				functionParamList = paramStr.split(SEMICOLON_SEPARATOR);
+                for(int i = 0; i < functionParamList.length; i++) {
+					functionParamList[i] = functionParamList[i].trim();
+                }
+            }
 			String[] parameterList = null;
 			if(str.length > 2){
 				parameterList = str[2].split(SEMICOLON_SEPARATOR);
 				removeEscape(parameterList);
 			}
-			if (method.equalsIgnoreCase("MATCH")) {
-				f.add(new Filter(field, Filter.MATCH, parameterList));
-			} else if (method.equalsIgnoreCase("SECTION")) {
+			int boostScore = 0;
+			if(str.length > 3){
+				boostScore = Integer.parseInt(str[3]);
+			}
+			if (function.equalsIgnoreCase("MATCH")) {
+				f.add(new Filter(field, Filter.MATCH, functionParamList, parameterList));
+			} else if (function.equalsIgnoreCase("SECTION")) {
 				String[] patList = new String[parameterList.length];
 				String[] endPatList = new String[parameterList.length];
 
@@ -609,19 +617,14 @@ public class QueryParser {
 						logger.debug("[" + patList[i] + "~]");
 					}
 				}
-				f.add(new Filter(field, Filter.SECTION, patList, endPatList));
-			} else if (method.equalsIgnoreCase("PREFIX")) {
-				f.add(new Filter(field, Filter.PREFIX, parameterList));
-			} else if (method.equalsIgnoreCase("SUFFIX")) {
-				f.add(new Filter(field, Filter.SUFFIX, parameterList));
-			} else if (method.equalsIgnoreCase("MATCH_BOOST")) {
-				if (str.length >= 4) {
-					int boostScore = Integer.parseInt(str[3]);
-					f.add(new Filter(field, Filter.MATCH_BOOST, parameterList, boostScore));
-				} else {
-					logger.warn("MATCH_BOOST Pattern string is empty.");
-				}
-			} else if (method.equalsIgnoreCase("SECTION_BOOST")) {
+				f.add(new Filter(field, Filter.SECTION, functionParamList, patList, endPatList));
+			} else if (function.equalsIgnoreCase("PREFIX")) {
+				f.add(new Filter(field, Filter.PREFIX, functionParamList, parameterList));
+			} else if (function.equalsIgnoreCase("SUFFIX")) {
+				f.add(new Filter(field, Filter.SUFFIX, functionParamList, parameterList));
+			} else if (function.equalsIgnoreCase("MATCH_BOOST")) {
+				f.add(new Filter(field, Filter.MATCH_BOOST, functionParamList, parameterList, boostScore));
+			} else if (function.equalsIgnoreCase("SECTION_BOOST")) {
 				if (str.length >= 4) {
 					String[] patList = new String[parameterList.length];
 					String[] endPatList = new String[parameterList.length];
@@ -633,35 +636,44 @@ public class QueryParser {
 						else
 							endPatList[i] = "";
 					}
-					int boostScore = Integer.parseInt(str[3]);
-					f.add(new Filter(field, Filter.SECTION_BOOST, patList, endPatList, boostScore));
+					f.add(new Filter(field, Filter.SECTION_BOOST, functionParamList, patList, endPatList, boostScore));
 				} else {
 					logger.warn("SECTION_BOOST Pattern string or boost score is empty.");
 				}
-			} else if (method.equalsIgnoreCase("PREFIX_BOOST")) {
-				int boostScore = Integer.parseInt(str[3]);
-				f.add(new Filter(field, Filter.PREFIX_BOOST, parameterList, boostScore));
-			} else if (method.equalsIgnoreCase("SUFFIX_BOOST")) {
-				int boostScore = Integer.parseInt(str[3]);
-				f.add(new Filter(field, Filter.SUFFIX_BOOST, parameterList, boostScore));
-			} else if (method.equalsIgnoreCase("EXCLUDE")) {
-				f.add(new Filter(field, Filter.EXCLUDE, parameterList));
-			} else if (method.equalsIgnoreCase("EXCLUDE_BOOST")) {
-				int boostScore = Integer.parseInt(str[3]);
-				f.add(new Filter(field, Filter.EXCLUDE_BOOST, parameterList, boostScore));
-			} else if (method.equalsIgnoreCase("BOOST")) {
+			} else if (function.equalsIgnoreCase("PREFIX_BOOST")) {
+				f.add(new Filter(field, Filter.PREFIX_BOOST, functionParamList, parameterList, boostScore));
+			} else if (function.equalsIgnoreCase("SUFFIX_BOOST")) {
+				f.add(new Filter(field, Filter.SUFFIX_BOOST, functionParamList, parameterList, boostScore));
+			} else if (function.equalsIgnoreCase("EXCLUDE")) {
+				f.add(new Filter(field, Filter.EXCLUDE, functionParamList, parameterList));
+			} else if (function.equalsIgnoreCase("EXCLUDE_BOOST")) {
+				f.add(new Filter(field, Filter.EXCLUDE_BOOST, functionParamList, parameterList, boostScore));
+			} else if (function.equalsIgnoreCase("BOOST")) {
 				f.add(new Filter(field, Filter.BOOST));
-            } else if (method.equalsIgnoreCase("GEO_RADIUS")) {
-                String[] fieldList = field.split(SEMICOLON_SEPARATOR);
-                Filter filter = new Filter(fieldList, Filter.GEO_RADIUS, parameterList);
+            } else if (function.equalsIgnoreCase("GEO_RADIUS")) {
+				//다중 필드지원.
+                Filter filter = new Filter(fieldList, Filter.GEO_RADIUS, functionParamList, parameterList);
                 f.add(filter);
-            } else if (method.equalsIgnoreCase("GEO_RADIUS_BOOST")) {
-                int boostScore = Integer.parseInt(str[3]);
-                String[] fieldList = field.split(SEMICOLON_SEPARATOR);
-                Filter filter = new Filter(fieldList, Filter.GEO_RADIUS_BOOST, parameterList, boostScore);
+            } else if (function.equalsIgnoreCase("GEO_RADIUS_BOOST")) {
+				//다중 필드지원.
+                Filter filter = new Filter(fieldList, Filter.GEO_RADIUS_BOOST, functionParamList, parameterList, boostScore);
                 f.add(filter);
+			} else if (function.equalsIgnoreCase("DICT_SEARCH")) {
+				//다중 필드지원.
+				//
+				// field1;field2:DICT_SEARCH(Product:keyword_cate):검색어, [또다른 필터]
+				//
+				Filter filter = new Filter(fieldList, Filter.DICT_SEARCH, functionParamList, parameterList);
+				f.add(filter);
+			} else if (function.equalsIgnoreCase("DICT_SEARCH_BOOST")) {
+				//다중 필드지원.
+				//
+				// field1;field2:DICT_SEARCH_BOOST(Product:keyword_cate):검색어:1000000, [또다른 필터]
+				//
+				Filter filter = new Filter(fieldList, Filter.DICT_SEARCH_BOOST, functionParamList, parameterList, boostScore);
+				f.add(filter);
 			} else {
-				logger.error("Unknown Filter method = {}", method);
+				logger.error("Unknown Filter method = {}", function);
 			}
 
 		}
