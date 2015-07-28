@@ -39,8 +39,6 @@ public class Filter {
     public static final int BOOST = 1 << 10;
     public static final int GEO_RADIUS = 1 << 11;
     public static final int GEO_RADIUS_BOOST = 1 << 12;
-	public static final int DICT_SEARCH = 1 << 13;
-	public static final int DICT_SEARCH_BOOST = 1 << 14;
 
 	private Object fieldIndexId;
 	private int function;
@@ -143,10 +141,6 @@ public class Filter {
             return new GeoRadiusFilter(this, fieldIndexSetting, fieldSetting);
         case GEO_RADIUS_BOOST:
             return new GeoRadiusFilter(this, fieldIndexSetting, fieldSetting, true);
-		case DICT_SEARCH:
-			return new DictSearchFilter(this, fieldIndexSetting, fieldSetting);
-		case DICT_SEARCH_BOOST:
-			return new DictSearchFilter(this, fieldIndexSetting, fieldSetting, true);
 
 		}
 		throw new NotSupportedFilterFunctionException("지원하지 않는 필터기능입니다. function=" + function);

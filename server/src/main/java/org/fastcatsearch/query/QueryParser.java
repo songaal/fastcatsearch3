@@ -658,20 +658,6 @@ public class QueryParser {
 				//다중 필드지원.
                 Filter filter = new Filter(fieldList, Filter.GEO_RADIUS_BOOST, functionParamList, parameterList, boostScore);
                 f.add(filter);
-			} else if (function.equalsIgnoreCase("DICT_SEARCH")) {
-				//다중 필드지원.
-				//
-				// field1;field2:DICT_SEARCH(Product:keyword_cate):검색어, [또다른 필터]
-				//
-				Filter filter = new Filter(fieldList, Filter.DICT_SEARCH, functionParamList, parameterList);
-				f.add(filter);
-			} else if (function.equalsIgnoreCase("DICT_SEARCH_BOOST")) {
-				//다중 필드지원.
-				//
-				// field1;field2:DICT_SEARCH_BOOST(Product:keyword_cate):검색어:1000000, [또다른 필터]
-				//
-				Filter filter = new Filter(fieldList, Filter.DICT_SEARCH_BOOST, functionParamList, parameterList, boostScore);
-				f.add(filter);
 			} else {
 				logger.error("Unknown Filter method = {}", function);
 			}
