@@ -129,7 +129,11 @@ public class Term {
 	public void setTypeAttribute(String typeAttribute){
 		this.typeAttribute = typeAttribute;
 	}
-	
+
+    public void setTermString(String str) {
+        this.termString = str;
+    }
+
 	public static class Option {
 		private int optionValue;
 		
