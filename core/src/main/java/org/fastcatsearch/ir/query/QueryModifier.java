@@ -68,4 +68,9 @@ public abstract class QueryModifier extends Query {
 	public Bundle getBundle() {
 		return query.getBundle();
 	}
+
+    @Override
+    public String toString() {
+        return query.toString();
+    }
 }

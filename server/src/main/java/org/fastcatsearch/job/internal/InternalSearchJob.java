@@ -60,7 +60,7 @@ public class InternalSearchJob extends Job implements Streamable {
 				q = queryModifier.modify(collectionId, q);
 				meta = q.getMeta();
 			}
-			
+			logger.debug("q > {}", q);
 			InternalSearchResult result = null;
 			
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
