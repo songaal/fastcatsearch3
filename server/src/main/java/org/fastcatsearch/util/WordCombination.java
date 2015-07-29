@@ -66,6 +66,10 @@ public class WordCombination {
             append(word);
         }
 
+        @Override
+        public boolean equals(Object o) {
+            return sb.toString().equals(o.toString());
+        }
 
         public void append(String word){
             if(delimiter != null) {
