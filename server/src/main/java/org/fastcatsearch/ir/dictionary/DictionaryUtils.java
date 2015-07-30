@@ -36,6 +36,8 @@ public class DictionaryUtils {
         try {
             analyzer = analyzerPool.getFromPool();
             tokenStream = analyzer.tokenStream("", new StringReader(keyword), noOption);
+            tokenStream.reset();
+
             if (tokenStream.hasAttribute(CharsRefTermAttribute.class)) {
                 CharsRefTermAttribute termAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
                 while (tokenStream.incrementToken()) {
