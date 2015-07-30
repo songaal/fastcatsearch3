@@ -59,7 +59,7 @@ public class DAOSourceDictionaryCompiler {
 				Object[] values = new Object[valueColumnNames.size()];
 				String key = null;
 				if(keyColumnName != null){
-					key = vo.get(keyColumnName).toString();
+					key = vo.get(keyColumnName).toString().trim();
 				}
 				for (int j = 0; j < valueColumnNames.size(); j++) {
 					String columnName = valueColumnNames.get(j);
