@@ -85,7 +85,19 @@ public class Clause {
 		return operator;
 	}
 
-	public OperatedClause getOperatedClause(SearchIndexesReader reader, HighlightInfo highlightInfo) throws ClauseException, IOException, IRException {
+    public void setOperand1(Object operand1) {
+        this.operand1 = operand1;
+    }
+
+    public void setOperand2(Object operand2) {
+        this.operand2 = operand2;
+    }
+
+    public void removeOperator() {
+        this.operator = null;
+    }
+
+    public OperatedClause getOperatedClause(SearchIndexesReader reader, HighlightInfo highlightInfo) throws ClauseException, IOException, IRException {
 		return getOperatedClause(-1, reader, highlightInfo);
 
 	}
