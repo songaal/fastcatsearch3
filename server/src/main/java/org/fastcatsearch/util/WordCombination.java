@@ -115,4 +115,22 @@ public class WordCombination {
             return newEntry;
         }
     }
+
+    public static class WordEntryPair {
+        private WordEntry entry;
+        private String value;
+
+        public WordEntryPair(WordEntry entry, String value) {
+            this.entry = entry;
+            this.value = value;
+        }
+
+        public WordEntry getEntry() {
+            return entry;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
 }
