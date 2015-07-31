@@ -216,7 +216,13 @@ public abstract class AnalysisPlugin<T, P> extends Plugin {
 						dictionary.appendAdditionalNounEntry(customDictionary.getWordSet(), tokenType);
 					}
 					sourceDictionary = customDictionary;
-					
+
+                }else if(type == Type.INVERT_MAP){
+                    InvertMapDictionary invertMapDictionary = new InvertMapDictionary(dictFile, isIgnoreCase);
+                    if(tokenType != null){
+                        dictionary.appendAdditionalNounEntry(invertMapDictionary.map().keySet(), tokenType);
+                    }
+                    sourceDictionary = invertMapDictionary;
 				}else if(type == Type.SYSTEM){
 					//ignore
 				}else{
@@ -361,7 +367,9 @@ public abstract class AnalysisPlugin<T, P> extends Plugin {
 							dictionaryType = new SpaceDictionary(isIgnoreCase);
 						} else if (type == Type.CUSTOM) {
 							dictionaryType = new CustomDictionary(isIgnoreCase);
-						}
+						} else if (type == Type.INVERT_MAP) {
+                            dictionaryType = new InvertMapDictionary(isIgnoreCase);
+                        }
 
 						try {
 							count = DAOSourceDictionaryCompiler.compile(targetFile, dictionaryDAO, dictionaryType, columnSettingList);
