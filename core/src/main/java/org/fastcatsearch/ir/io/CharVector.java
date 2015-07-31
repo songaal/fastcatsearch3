@@ -285,6 +285,19 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
 		hash = 0;
 	}
 
+    //내부 공백을 삭제해준다.
+    public CharVector removeWhitespaces() {
+        int len = 0;
+        for(int i = 0; i < length; i++) {
+            if(array[start + i] != ' ') {
+                array[start + len++] = array[start + i];
+            }
+        }
+        length = len;
+        hash = 0;
+        return this;
+    }
+
 	public char[] array() {
 		return array;
 	}

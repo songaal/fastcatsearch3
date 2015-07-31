@@ -23,8 +23,13 @@ import org.fastcatsearch.ir.io.CharVector;
 
 
 import junit.framework.TestCase;
+import org.junit.Test;
 
-public class CharVectorTest extends TestCase{
+import static org.junit.Assert.assertEquals;
+
+public class CharVectorTest {
+
+    @Test
 	public void test1(){
 		String str ="금나와라와라뚝딱은나와라와라뚝딱";
 		char[] ca = str.toCharArray();
@@ -56,7 +61,8 @@ public class CharVectorTest extends TestCase{
 		assertEquals(3, map.get(c[i++]));
 		assertEquals(9, map.get(c[i++]));
 	}
-	
+
+    @Test
 	public void trimTest(){
 		CharVector cv = new CharVector("   1 2 4  ");
 		System.out.println("Before ="+cv);
@@ -65,4 +71,14 @@ public class CharVectorTest extends TestCase{
 		cv = new CharVector("");
 		System.out.println("After ="+cv.trim());
 	}
+
+    @Test
+    public void removeWhitespaces() {
+        CharVector cv = new CharVector("   1 2 4  ");
+        CharVector cv2 = new CharVector("124");
+        assertEquals(cv2, cv.removeWhitespaces());
+
+        cv = new CharVector("").removeWhitespaces();
+        assertEquals(0, cv.length());
+    }
 }
