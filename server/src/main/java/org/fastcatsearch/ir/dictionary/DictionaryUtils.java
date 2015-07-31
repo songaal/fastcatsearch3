@@ -16,6 +16,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by swsong on 2015. 7. 30..
@@ -84,8 +85,6 @@ public class DictionaryUtils {
                 if (value != null && value.length > 0) {
                     String foundValue = value[0].toString();
                     foundPairList.add(new WordCombination.WordEntryPair(wordEntry, foundValue));
-                    //찾았으면 빠져나온다.
-//                    break;
                 }
 
             }
@@ -93,6 +92,21 @@ public class DictionaryUtils {
         }
 
         return foundPairList;
+    }
+
+    public static List<WordCombination.WordEntry> findExtendedKey(Set<CharVector> set, List<WordCombination.WordEntry> wordList) {
+
+        List<WordCombination.WordEntry> foundList = new ArrayList<WordCombination.WordEntry>();
+
+        if (wordList != null && wordList.size() > 0) {
+            for (WordCombination.WordEntry wordEntry : wordList) {
+                CharVector keyword = new CharVector(wordEntry.getWord());
+                if(set.contains(keyword)) {
+                    foundList.add(wordEntry);
+                }
+            }
+        }
+        return foundList;
     }
 
     /**
@@ -109,6 +123,32 @@ public class DictionaryUtils {
             OUTER:
             for (WordCombination.WordEntryPair pair : pairList) {
                 WordCombination.WordEntry entry = pair.getEntry();
+                // 하위 엘리먼트를 확인해서 일치하는것 발견시 제거한다.
+                for (String e : entry.getElements()) {
+                    if (e.equals(word)) {
+                        found = true;
+                        break OUTER;
+                    }
+                }
+            }
+            if (!found) {
+                remnant.add(word);
+            }
+        }
+
+        return remnant;
+    }
+
+    public static List<String> makeRemnantList2(List<String> termList, List<WordCombination.WordEntry> list) {
+        if (list == null || list.size() == 0) {
+            return termList;
+        }
+        List<String> remnant = new ArrayList<String>();
+
+        for (String word : termList) {
+            boolean found = false;
+            OUTER:
+            for (WordCombination.WordEntry entry : list) {
                 // 하위 엘리먼트를 확인해서 일치하는것 발견시 제거한다.
                 for (String e : entry.getElements()) {
                     if (e.equals(word)) {

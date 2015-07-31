@@ -192,17 +192,6 @@ public class SynonymDictionary extends MapDictionary {
 		return list;
 	}
 
-	private String join(CharVector[] list) {
-		String result = "";
-		for (int i = 0; i < list.length; i++) {
-			result += list[i].toString();
-			if (i < list.length - 1) {
-				result += ", ";
-			}
-		}
-		return result;
-	}
-
 	@Override
 	public void writeTo(OutputStream out) throws IOException {
 		super.writeTo(out);
