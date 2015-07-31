@@ -1,23 +1,11 @@
 package org.fastcatsearch.ir.search.clause;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.core.AnalyzerOption;
-import org.apache.lucene.analysis.tokenattributes.AdditionalTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
-import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
-import org.apache.lucene.analysis.tokenattributes.StopwordAttribute;
-import org.apache.lucene.analysis.tokenattributes.SynonymAttribute;
-import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
+import org.apache.lucene.analysis.tokenattributes.*;
 import org.apache.lucene.util.CharsRef;
+import org.fastcatsearch.ir.analysis.TermsEntry;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.RankInfo;
@@ -31,12 +19,21 @@ import org.fastcatsearch.ir.search.method.SearchMethod;
 import org.fastcatsearch.ir.settings.IndexRefSetting;
 import org.fastcatsearch.ir.settings.IndexSetting;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class AnalyzedBooleanClause extends OperatedClause {
 
 	private String termString;
 	private SearchIndexReader searchIndexReader;
 	private OperatedClause operatedClause;
 	private int weight;
+
+    List<TermsEntry> termsEntryList;
+
 
 	public AnalyzedBooleanClause(SearchIndexReader searchIndexReader, Term term, HighlightInfo highlightInfo) {
 		this(searchIndexReader, term, highlightInfo, null);
@@ -45,12 +42,18 @@ public class AnalyzedBooleanClause extends OperatedClause {
 		super(searchIndexReader.indexId());
 		this.searchIndexReader = searchIndexReader;
 		String indexId = searchIndexReader.indexId();
+
+
+        //TODO
+        termsEntryList =  term.getTermsEntryList();
+
+
 		String termString = term.termString();
 		this.termString = termString;
 		this.weight = term.weight();
 		Option searchOption = term.option();
 		CharVector fullTerm = new CharVector(termString);
-		Analyzer analyzer = searchIndexReader.getQueryAnalyzerFromPool();
+//		Analyzer analyzer = searchIndexReader.getQueryAnalyzerFromPool();
 		
 		IndexSetting indexSetting = searchIndexReader.indexSetting();
 		if (highlightInfo != null && searchOption.useHighlight()) {
@@ -60,64 +63,26 @@ public class AnalyzedBooleanClause extends OperatedClause {
 			}
 		}
 		try {
-			
+
 			//검색옵션에 따라 analyzerOption도 수정.
-			AnalyzerOption analyzerOption = new AnalyzerOption();
-			analyzerOption.useStopword(searchOption.useStopword());
-			analyzerOption.useSynonym(searchOption.useSynonym());
-			analyzerOption.setForQuery();
-			operatedClause = search(indexId, fullTerm, term.type(), indexSetting, analyzer, analyzerOption, requestTypeAttribute);
+//			AnalyzerOption analyzerOption = new AnalyzerOption();
+//			analyzerOption.useStopword(searchOption.useStopword());
+//			analyzerOption.useSynonym(searchOption.useSynonym());
+//			analyzerOption.setForQuery();
+			operatedClause = search(indexId, termsEntryList, term.type(), indexSetting);
 			
 		} catch (IOException e) {
 			logger.error("", e);
 		} finally {
-			searchIndexReader.releaseQueryAnalyzerToPool(analyzer);
+//			searchIndexReader.releaseQueryAnalyzerToPool(analyzer);
 		}
 	}
-	
-	private OperatedClause search(String indexId, CharVector fullTerm, Type type, IndexSetting indexSetting, Analyzer analyzer, AnalyzerOption analyzerOption, String requestTypeAttribute) throws IOException {
+
+    private OperatedClause search(String indexId, List<TermsEntry> termsList, Type type, IndexSetting indexSetting) throws IOException {
 		logger.debug("############ search Term > {}", fullTerm);
 		OperatedClause operatedClause = null;
 		OperatedClause finalClause = null;
 		
-		CharTermAttribute termAttribute = null;
-		CharsRefTermAttribute refTermAttribute = null;
-		PositionIncrementAttribute positionAttribute = null;
-		StopwordAttribute stopwordAttribute = null;
-		TypeAttribute typeAttribute = null;
-		AdditionalTermAttribute additionalTermAttribute = null;
-		
-		SynonymAttribute synonymAttribute = null;
-		OffsetAttribute offsetAttribute = null;
-		
-		TokenStream tokenStream = analyzer.tokenStream(indexId, fullTerm.getReader(), analyzerOption);
-		tokenStream.reset();
-		
-		if (tokenStream.hasAttribute(CharsRefTermAttribute.class)) {
-			refTermAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
-		}
-		if (tokenStream.hasAttribute(CharTermAttribute.class)) {
-			termAttribute = tokenStream.getAttribute(CharTermAttribute.class);
-		}
-		if (tokenStream.hasAttribute(PositionIncrementAttribute.class)) {
-			positionAttribute = tokenStream.getAttribute(PositionIncrementAttribute.class);
-		}
-		if (tokenStream.hasAttribute(StopwordAttribute.class)) {
-			stopwordAttribute = tokenStream.getAttribute(StopwordAttribute.class);
-		}
-		if (tokenStream.hasAttribute(TypeAttribute.class)) {
-			typeAttribute = tokenStream.getAttribute(TypeAttribute.class);
-		}
-		if (tokenStream.hasAttribute(AdditionalTermAttribute.class)) {
-			additionalTermAttribute = tokenStream.getAttribute(AdditionalTermAttribute.class);
-		}
-		if (tokenStream.hasAttribute(SynonymAttribute.class)) {
-			synonymAttribute = tokenStream.getAttribute(SynonymAttribute.class);
-		}
-		
-		if (tokenStream.hasAttribute(OffsetAttribute.class)) {
-			offsetAttribute = tokenStream.getAttribute(OffsetAttribute.class);
-		}
 
 		CharVector token = null;
 		AtomicInteger termSequence = new AtomicInteger();
@@ -126,38 +91,24 @@ public class AnalyzedBooleanClause extends OperatedClause {
 		
 		int queryPosition = 0;
 		
-		while (tokenStream.incrementToken()) {
-
-			//요청 타입이 존재할때 타입이 다르면 단어무시.
-			if(requestTypeAttribute != null && typeAttribute != null){
-				if(requestTypeAttribute != typeAttribute.type()){
-					continue;
-				}
-			}
-			/* 
-			 * stopword 
-			 * */
-			if (stopwordAttribute != null && stopwordAttribute.isStopword()) {
-//				logger.debug("stopword");
-				continue;
-			}
+		for (TermsEntry entry : termsList) {
 
 			/*
 			 * Main 단어는 tf를 적용하고, 나머지는 tf를 적용하지 않는다.
 			 * */
-			if (refTermAttribute != null) {
-				CharsRef charRef = refTermAttribute.charsRef();
-
-				if (charRef != null) {
-					char[] buffer = new char[charRef.length()];
-					System.arraycopy(charRef.chars, charRef.offset, buffer, 0, charRef.length);
-					token = new CharVector(buffer, 0, buffer.length, indexSetting.isIgnoreCase());
-				} else if (termAttribute != null && termAttribute.buffer() != null) {
-					token = new CharVector(termAttribute.buffer(), indexSetting.isIgnoreCase());
-				}
-			} else {
-				token = new CharVector(termAttribute.buffer(), 0, termAttribute.length(), indexSetting.isIgnoreCase());
-			}
+//			if (refTermAttribute != null) {
+//				CharsRef charRef = refTermAttribute.charsRef();
+//
+//				if (charRef != null) {
+//					char[] buffer = new char[charRef.length()];
+//					System.arraycopy(charRef.chars, charRef.offset, buffer, 0, charRef.length);
+//					token = new CharVector(buffer, 0, buffer.length, indexSetting.isIgnoreCase());
+//				} else if (termAttribute != null && termAttribute.buffer() != null) {
+//					token = new CharVector(termAttribute.buffer(), indexSetting.isIgnoreCase());
+//				}
+//			} else {
+//				token = new CharVector(termAttribute.buffer(), 0, termAttribute.length(), indexSetting.isIgnoreCase());
+//			}
 			
 			logger.debug("token > {}, isIgnoreCase = {} analyzer= {}", token, token.isIgnoreCase(), analyzer.getClass().getSimpleName());
 			queryPosition = positionAttribute != null ? positionAttribute.getPositionIncrement() : 0;

@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
+import org.fastcatsearch.ir.analysis.TermsEntry;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.Term;
@@ -117,7 +118,17 @@ public class SearchIndexesReader implements Cloneable {
 		
 		return reader;
 	}
-	
+    public OperatedClause getOperatedClause(String searchFieldId , List<TermsEntry> termsList, HighlightInfo highlightInfo) throws IOException, IRException {
+
+
+        //TODO
+
+        SearchIndexReader searchIndexReader = readerList.get(indexFieldSequence);
+        oneFieldClause = term.createOperatedClause(searchIndexReader, highlightInfo);
+    }
+
+
+
 	public OperatedClause getOperatedClause(Term term, HighlightInfo highlightInfo) throws IOException, IRException {
 		String[] indexFieldIdList = term.indexFieldId();
 
@@ -132,7 +143,7 @@ public class SearchIndexesReader implements Cloneable {
 			if (indexFieldSequence < 0) {
 				String primaryKeyId = schema.schemaSetting().getPrimaryKeySetting().getId();
 				logger.debug("getSearchIndexSequence primaryKeyId > {}", primaryKeyId);
-				if (indexFieldId.equals(primaryKeyId)) {
+				if (indexFieldId.equalsIgnoreCase(primaryKeyId)) {
 					isPrimaryKeyField = true;
 				} else {
 					throw new IRException("Unknown Search index field id \"" + indexFieldId + "\"");

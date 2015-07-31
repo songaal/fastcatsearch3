@@ -16,17 +16,18 @@
 
 package org.fastcatsearch.ir.query;
 
+import org.fastcatsearch.ir.analysis.TermsEntry;
 import org.fastcatsearch.ir.search.ClauseExplanation;
 import org.fastcatsearch.ir.search.SearchIndexReader;
 import org.fastcatsearch.ir.search.SearchIndexesReader;
+import org.fastcatsearch.ir.search.clause.AnalyzedBooleanClause;
 import org.fastcatsearch.ir.search.clause.BooleanClause;
 import org.fastcatsearch.ir.search.clause.OperatedClause;
 import org.fastcatsearch.ir.search.clause.PhraseClause;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-
+import java.util.List;
 
 
 public class Term {
@@ -49,7 +50,9 @@ public class Term {
 	private int weight;
 	private Type type; //set AND between terms
 	protected Option option;
-	protected String typeAttribute; 
+	protected String typeAttribute;
+
+    private List<TermsEntry> termsEntryList;
 	
 	public Term(){}
 	public Term(String indexFieldId, String termString){
@@ -134,7 +137,11 @@ public class Term {
         this.termString = str;
     }
 
-	public static class Option {
+    public List<TermsEntry> getTermsEntryList() {
+        return termsEntryList;
+    }
+
+    public static class Option {
 		private int optionValue;
 		
 		public Option(){
@@ -182,7 +189,9 @@ public class Term {
 	}
 
 	public OperatedClause createOperatedClause(SearchIndexReader searchIndexReader, HighlightInfo highlightInfo) {
-		
+		if(termsEntryList != null) {
+            return new AnalyzedBooleanClause(searchIndexReader, this, highlightInfo, null);
+        }
 		if(type == Type.ALL || type == Type.ANY){
 			return new BooleanClause(searchIndexReader, this, highlightInfo, null);
 		}else if(type == Type.PHRASE){
