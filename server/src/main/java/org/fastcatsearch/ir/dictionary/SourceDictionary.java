@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.regex.Pattern;
 
+import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +19,8 @@ public abstract class SourceDictionary implements ReloadableDictionary, Writable
 	protected static Logger logger = LoggerFactory.getLogger(SourceDictionary.class);
 
 	protected boolean ignoreCase;
-	
+    private Pattern whitespacePattern = Pattern.compile(" ");
+
 	public SourceDictionary(boolean ignoreCase){
 		this.ignoreCase = ignoreCase;
 	}
@@ -59,5 +62,5 @@ public abstract class SourceDictionary implements ReloadableDictionary, Writable
 	public abstract void addEntry(String keyword, Object[] values, List<ColumnSetting> columnSettingList);
 	
 	public abstract void addSourceLineEntry(String line);
-	
+
 }

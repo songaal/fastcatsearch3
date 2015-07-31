@@ -66,7 +66,7 @@ public class SetDictionary extends SourceDictionary {
 	public void addEntry(String keyword, Object[] value, List<ColumnSetting> columnList) {
 		keyword = keyword.trim();
 		if (keyword.length() > 0) {
-			CharVector cv = new CharVector(keyword);
+			CharVector cv = new CharVector(keyword).removeWhitespaces();
 			set.add(cv);
 		}
 	}

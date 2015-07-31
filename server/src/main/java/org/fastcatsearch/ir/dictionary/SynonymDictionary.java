@@ -104,8 +104,11 @@ public class SynonymDictionary extends MapDictionary {
 				if (idx < value.length) {
 					value = Arrays.copyOf(value, idx);
 				}
+
+                //공백제거 키를 만든다.
 				if (value.length > 0) {
-					CharVector[] value2 = map.get(key);
+                    key = key.clone().removeWhitespaces();
+                    CharVector[] value2 = map.get(key);
 					if (value2 != null) {
 						// 이전값과 머징.
 						value = mergeSynonyms(value2, value);
@@ -136,8 +139,11 @@ public class SynonymDictionary extends MapDictionary {
 					// 이전값과 머징.
 					value = mergeSynonyms(value2, value);
 				}
-				
-				map.put(mainWord, value);
+
+                //
+                //입력시 키워드는 공백제거.
+                //
+				map.put(mainWord.removeWhitespaces(), value);
 				//logger.debug("유사어 단방향 {} >> {}", mainWord, join(value));
 			}
 		}

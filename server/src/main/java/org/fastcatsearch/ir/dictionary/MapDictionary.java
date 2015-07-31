@@ -67,9 +67,13 @@ public class MapDictionary extends SourceDictionary {
 
 	@Override
 	public void addEntry(String keyword, Object[] values, List<ColumnSetting> columnList) {
-		if (keyword == null || keyword.length() == 0) {
-			return;
-		}
+        if (keyword == null) {
+            return;
+        }
+        keyword = keyword.trim();
+        if(keyword.length() == 0) {
+            return;
+        }
 
 		CharVector[] list = new CharVector[values.length];
 		for (int i = 0; i < values.length; i++) {
@@ -77,7 +81,7 @@ public class MapDictionary extends SourceDictionary {
 			list[i] = new CharVector(value);
 		}
 		
-		CharVector cv = new CharVector(keyword);
+		CharVector cv = new CharVector(keyword).removeWhitespaces();
 		map.put(cv, list);
 	}
 

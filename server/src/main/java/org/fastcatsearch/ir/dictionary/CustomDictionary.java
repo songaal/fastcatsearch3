@@ -165,7 +165,7 @@ public class CustomDictionary extends SourceDictionary {
 		if(keyword.length() == 0) {
 			return;
 		}
-		CharVector cv = new CharVector(keyword);
+		CharVector cv = new CharVector(keyword).removeWhitespaces();
 
 		Object[] list = new Object[values.length];
 		for (int i = 0; i < values.length; i++) {
