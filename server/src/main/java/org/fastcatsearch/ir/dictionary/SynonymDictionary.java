@@ -107,7 +107,7 @@ public class SynonymDictionary extends MapDictionary {
 
                 //공백제거 키를 만든다.
 				if (value.length > 0) {
-                    key = key.clone().removeWhitespaces();
+                    key = key.duplicate().removeWhitespaces();
                     CharVector[] value2 = map.get(key);
 					if (value2 != null) {
 						// 이전값과 머징.
