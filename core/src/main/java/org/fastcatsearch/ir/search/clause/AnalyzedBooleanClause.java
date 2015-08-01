@@ -14,6 +14,7 @@ import org.fastcatsearch.ir.search.method.SearchMethod;
 import org.fastcatsearch.ir.settings.IndexRefSetting;
 import org.fastcatsearch.ir.settings.IndexSetting;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
@@ -48,6 +49,13 @@ public class AnalyzedBooleanClause extends OperatedClause {
 		}
 		try {
 			operatedClause = search(indexId, termsEntryList, term.type(), indexSetting);
+            if(logger.isDebugEnabled()) {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                PrintStream stream = new PrintStream(baos);
+                stream.println();
+                printTrace(stream, 0);
+                logger.debug("AnalyzedBooleanClause : {}", baos.toString());
+            }
 		} catch (IOException e) {
 			logger.error("", e);
 		}
@@ -66,6 +74,9 @@ public class AnalyzedBooleanClause extends OperatedClause {
 
 
     private OperatedClause search0(List<String> terms, Type type, String indexId, int queryPosition, AtomicInteger termSequence) throws IOException {
+        if(terms == null) {
+            return null;
+        }
         OperatedClause operatedClause = null;
         for(String term : terms) {
             CharVector token = new CharVector(term);
@@ -166,7 +177,7 @@ public class AnalyzedBooleanClause extends OperatedClause {
 				}
 			}
 		}
-		os.println(indent+"[OR]");
+		os.println(indent+"[ROOT]");
 		operatedClause.printTrace(os, depth + 1);
 		
 	}
