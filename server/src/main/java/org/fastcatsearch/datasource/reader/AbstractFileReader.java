@@ -10,17 +10,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
-
+/**
+ * 파일기반의 소스데이터를 읽어들이는 Abstract Reader이다.
+ * GZip으로 압축되어 있다면 자동으로 풀면서 읽어들이고, 압축되지 있지 않은 데이터는 그대로 읽어들인다.
+ * 하위 클래스에서는 parse()를 구현하여 어떻게 문서를 읽어들이는지를 정의하도록 한다.
+ * */
 public abstract class AbstractFileReader extends SingleSourceReader<Map<String,Object>> implements FileFilter {
 
 	private LinkedList<Map<String, Object>> items;
     protected String rootPath;
     protected String encoding;
-    protected boolean isCompressed;
     protected int bufferSize;
+    protected int limitSize;
     protected List<String> filePaths;
     protected BufferedReader reader;
     private static final int DEFAULT_BUFFER_SIZE = 100;
+    private int readCount;
 
 	public AbstractFileReader() {
 		super();
@@ -36,8 +41,8 @@ public abstract class AbstractFileReader extends SingleSourceReader<Map<String,O
 	public void init() throws IRException { 
 		rootPath = filePath.makePath(getConfigString("filePath")).file().getAbsolutePath();
 		encoding = getConfigString("encoding", null);
-        isCompressed = getConfigBoolean("compressed", false);
         bufferSize = getConfigInt("bufferSize", DEFAULT_BUFFER_SIZE);
+        limitSize = getConfigInt("limitSize");
         if(bufferSize < DEFAULT_BUFFER_SIZE) {
             bufferSize = DEFAULT_BUFFER_SIZE;
         }
@@ -50,18 +55,19 @@ public abstract class AbstractFileReader extends SingleSourceReader<Map<String,O
 		} else {
 			filePaths.add(rootFile.getAbsolutePath());
 		}
+        readCount = 0;
 	}
 	
 	@Override
 	protected void initParameters() {
-		registerParameter(new SourceReaderParameter("filePath", "File or Dir Path", "Filepath for Indexing. Absolute or Relative path for server-home)"
+		registerParameter(new SourceReaderParameter("filePath", "File or Dir Path", "File path for reading source file. Absolute path or relative path for collection home directory. Multiple paths are allowed with commas."
 				, SourceReaderParameter.TYPE_STRING_LONG, true, null));
 		registerParameter(new SourceReaderParameter("encoding", "Encoding", "File encoding"
 				, SourceReaderParameter.TYPE_STRING, false, null));
-        registerParameter(new SourceReaderParameter("compressed", "GZip Compressed", "GZip compressed"
-                , SourceReaderParameter.TYPE_CHECK, true, "false"));
         registerParameter(new SourceReaderParameter("bufferSize", "Buffer Size", "Read Buffer Size"
                 , SourceReaderParameter.TYPE_NUMBER, true, String.valueOf(DEFAULT_BUFFER_SIZE)));
+        registerParameter(new SourceReaderParameter("limitSize", "Limit Size", "Read documents within limit size."
+                , SourceReaderParameter.TYPE_NUMBER, false, ""));
 	}
 
 	@Override
@@ -90,11 +96,15 @@ public abstract class AbstractFileReader extends SingleSourceReader<Map<String,O
                     if(items.size() >= bufferSize) {
                         return;
                     }
+                    if(limitSize > 0 && readCount >= limitSize) {
+                        return;
+                    }
 					Map<String, Object> record = parse(reader);
 					if (sourceModifier != null) {
 						sourceModifier.modify(record);
 					}
                     items.addLast(record);
+                    readCount++;
 				} catch(IOException e) {
 					//get next reader..
 					try {
@@ -112,7 +122,7 @@ public abstract class AbstractFileReader extends SingleSourceReader<Map<String,O
                         continue;
                     }
 					try {
-                        if(isCompressed) {
+                        if(isGZipped(f)) {
                             reader = new BufferedReader((new InputStreamReader(new GZIPInputStream(new FileInputStream(f)), encoding)));
                         } else {
                             reader = new BufferedReader(new InputStreamReader(new FileInputStream(f), encoding));
@@ -171,5 +181,22 @@ public abstract class AbstractFileReader extends SingleSourceReader<Map<String,O
 		return true;
 	}
 	
-
+    private boolean isGZipped(File file) {
+        int magic = 0;
+        RandomAccessFile raf = null;
+        try {
+            raf = new RandomAccessFile(file, "r");
+            magic = raf.read() & 0xff | ((raf.read() << 8) & 0xff00);
+        } catch (Throwable t) {
+            logger.error("error while inspect file header.", t);
+        } finally {
+            if(raf != null) {
+                try {
+                    raf.close();
+                } catch (IOException ignore) {
+                }
+            }
+        }
+        return magic == GZIPInputStream.GZIP_MAGIC;
+    }
 }
