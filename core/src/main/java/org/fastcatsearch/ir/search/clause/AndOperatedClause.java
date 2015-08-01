@@ -16,9 +16,9 @@
 
 package org.fastcatsearch.ir.search.clause;
 
-import java.io.PrintStream;
-
 import org.fastcatsearch.ir.query.RankInfo;
+
+import java.io.PrintStream;
 
 public class AndOperatedClause extends OperatedClause {
 	private OperatedClause clause1;
@@ -87,8 +87,13 @@ public class AndOperatedClause extends OperatedClause {
 	protected void initClause(boolean explain) {
 		docInfo1 = new RankInfo(explain);
 		docInfo2 = new RankInfo(explain);
-		clause1.init(explanation != null ? explanation.createSubExplanation() : null);
-		clause2.init(explanation != null ? explanation.createSubExplanation() : null);
+        if(clause1 != null) {
+            clause1.init(explanation != null ? explanation.createSubExplanation() : null);
+        }
+
+        if(clause2 != null) {
+            clause2.init(explanation != null ? explanation.createSubExplanation() : null);
+        }
 	}
 	
 	@Override
