@@ -18,11 +18,7 @@ package org.fastcatsearch.ir.query;
 
 
 
-import java.io.File;
-import java.io.IOException;
-
 import junit.framework.TestCase;
-
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
@@ -35,6 +31,9 @@ import org.fastcatsearch.ir.search.clause.ClauseException;
 import org.fastcatsearch.ir.search.clause.OperatedClause;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
+
+import java.io.File;
+import java.io.IOException;
 
 public class QueryTest extends TestCase{
 	
@@ -84,7 +83,7 @@ public class QueryTest extends TestCase{
 		Metadata meta2 = q.getMeta();
 		int start = meta2.start();
 		int rows  = meta2.rows();
-		OperatedClause oc = c2.getOperatedClause(reader, null);
+		OperatedClause oc = c2.getOperatedClause(-1, reader, null);
 		RankInfo docInfo = new RankInfo();
 		int count = 0;
 		

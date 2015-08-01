@@ -17,9 +17,7 @@
 package org.fastcatsearch.ir.query;
 
 import org.fastcatsearch.ir.analysis.TermsEntry;
-import org.fastcatsearch.ir.search.ClauseExplanation;
 import org.fastcatsearch.ir.search.SearchIndexReader;
-import org.fastcatsearch.ir.search.SearchIndexesReader;
 import org.fastcatsearch.ir.search.clause.AnalyzedBooleanClause;
 import org.fastcatsearch.ir.search.clause.BooleanClause;
 import org.fastcatsearch.ir.search.clause.OperatedClause;
@@ -141,6 +139,10 @@ public class Term {
         return termsEntryList;
     }
 
+    public void setTermsEntryList(List<TermsEntry> termsEntryList) {
+        this.termsEntryList = termsEntryList;
+    }
+
     public static class Option {
 		private int optionValue;
 		
@@ -190,7 +192,7 @@ public class Term {
 
 	public OperatedClause createOperatedClause(SearchIndexReader searchIndexReader, HighlightInfo highlightInfo) {
 		if(termsEntryList != null) {
-            return new AnalyzedBooleanClause(searchIndexReader, this, highlightInfo, null);
+            return new AnalyzedBooleanClause(searchIndexReader, this, highlightInfo);
         }
 		if(type == Type.ALL || type == Type.ANY){
 			return new BooleanClause(searchIndexReader, this, highlightInfo, null);

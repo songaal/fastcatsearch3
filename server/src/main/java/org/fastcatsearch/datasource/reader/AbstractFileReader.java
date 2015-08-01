@@ -1,44 +1,47 @@
 package org.fastcatsearch.datasource.reader;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.fastcatsearch.datasource.SourceModifier;
-import org.fastcatsearch.datasource.reader.annotation.SourceReader;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 
 import java.io.*;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 
 public abstract class AbstractFileReader extends SingleSourceReader<Map<String,Object>> implements FileFilter {
 
-	private List<HashMap<String, Object>> items;
+	private LinkedList<Map<String, Object>> items;
+    protected String rootPath;
+    protected String encoding;
+    protected boolean isCompressed;
+    protected int bufferSize;
+    protected List<String> filePaths;
+    protected BufferedReader reader;
+    private static final int DEFAULT_BUFFER_SIZE = 100;
 
 	public AbstractFileReader() {
 		super();
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public AbstractFileReader(String collectionId, File filePath, SingleSourceConfig singleSourceConfig, SourceModifier sourceModifier, String lastIndexTime)
+	public AbstractFileReader(String collectionId, File filePath, SingleSourceConfig singleSourceConfig
+            , SourceModifier sourceModifier, String lastIndexTime)
 			throws IRException {
 		super(collectionId, filePath, singleSourceConfig, sourceModifier, lastIndexTime);
 	}
-	
-	protected String rootPath;
-	protected String encoding;
-	protected String[] fieldId;
-	protected List<String> filePaths;
-	protected BufferedReader reader;
-	
-	private Map<String, Object> record;
 
 	@Override
 	public void init() throws IRException { 
 		rootPath = filePath.makePath(getConfigString("filePath")).file().getAbsolutePath();
 		encoding = getConfigString("encoding", null);
-
+        isCompressed = getConfigBoolean("compressed", false);
+        bufferSize = getConfigInt("bufferSize", DEFAULT_BUFFER_SIZE);
+        if(bufferSize < DEFAULT_BUFFER_SIZE) {
+            bufferSize = DEFAULT_BUFFER_SIZE;
+        }
+        items = new LinkedList<Map<String, Object>>();
 		filePaths = new LinkedList<String>();
 
 		File rootFile = new File(rootPath);
@@ -55,39 +58,44 @@ public abstract class AbstractFileReader extends SingleSourceReader<Map<String,O
 				, SourceReaderParameter.TYPE_STRING_LONG, true, null));
 		registerParameter(new SourceReaderParameter("encoding", "Encoding", "File encoding"
 				, SourceReaderParameter.TYPE_STRING, false, null));
+        registerParameter(new SourceReaderParameter("compressed", "GZip Compressed", "GZip compressed"
+                , SourceReaderParameter.TYPE_CHECK, true, "false"));
+        registerParameter(new SourceReaderParameter("bufferSize", "Buffer Size", "Read Buffer Size"
+                , SourceReaderParameter.TYPE_NUMBER, true, String.valueOf(DEFAULT_BUFFER_SIZE)));
 	}
 
 	@Override
 	public boolean hasNext() throws IRException {
-		if(record == null) {
-			record = fill();
+		if(items.size() == 0) {
+			fill();
 		}
-		return record !=null;
+		return items.size() > 0;
 	}
 
 	@Override
 	protected Map<String, Object> next() throws IRException {
-		Map<String,Object> ret = record;
-		record = null;
-		if(ret != null) {
-			return ret;
-		} else {
-			ret = fill();
-		}
-		return ret;
+        if(items.size() == 0) {
+            fill();
+        }
+        if(items.size() > 0) {
+            return items.removeFirst();
+        }
+		return null;
 	}
 
-	private Map<String, Object> fill() throws IRException {
+	private void fill() throws IRException {
 		while (true) {
 			if(reader != null) {
 				try {
+                    if(items.size() >= bufferSize) {
+                        return;
+                    }
 					Map<String, Object> record = parse(reader);
-
 					if (sourceModifier != null) {
 						sourceModifier.modify(record);
 					}
-					return record;
-				}catch(IOException e) {
+                    items.addLast(record);
+				} catch(IOException e) {
 					//get next reader..
 					try {
 						reader.close();
@@ -95,17 +103,32 @@ public abstract class AbstractFileReader extends SingleSourceReader<Map<String,O
 					reader = null;
 				}
 			} else {
-				if (filePaths.size() > 0) {
+				while (filePaths.size() > 0) {
 					String path = filePaths.remove(0);
+                    File f = new File(path);
+                    if(!f.exists()) {
+                        //파일이 없으면 continue
+                        logger.error(String.format("File not exists : %s", f.getAbsolutePath()));
+                        continue;
+                    }
 					try {
-						reader = new BufferedReader(new InputStreamReader(new FileInputStream(path), encoding));
+                        if(isCompressed) {
+                            reader = new BufferedReader((new InputStreamReader(new GZIPInputStream(new FileInputStream(f)), encoding)));
+                        } else {
+                            reader = new BufferedReader(new InputStreamReader(new FileInputStream(f), encoding));
+                        }
 						initReader(reader);
+                        break;
 					} catch (IOException ex) {
 						logger.error("", ex);
+                        if(reader != null) {
+                            try {
+                                reader.close();
+                            } catch (IOException ignore) {
+                            }
+                            reader = null;
+                        }
 					}
-				} else {
-					//파일리스트가 0 이면 끝이다.
-					return null;
 				}
 			}
 		}

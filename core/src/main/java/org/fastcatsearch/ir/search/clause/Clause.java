@@ -97,11 +97,6 @@ public class Clause {
         this.operator = null;
     }
 
-    public OperatedClause getOperatedClause(SearchIndexesReader reader, HighlightInfo highlightInfo) throws ClauseException, IOException, IRException {
-		return getOperatedClause(-1, reader, highlightInfo);
-
-	}
-
 	public OperatedClause getOperatedClause(int docCount, SearchIndexesReader reader, HighlightInfo highlightInfo) throws ClauseException, IOException, IRException {
 		OperatedClause clause1 = null;
 		OperatedClause clause2 = null;

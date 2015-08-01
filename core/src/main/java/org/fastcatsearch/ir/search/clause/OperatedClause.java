@@ -16,12 +16,12 @@
 
 package org.fastcatsearch.ir.search.clause;
 
-import java.io.PrintStream;
-
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.search.ClauseExplanation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.PrintStream;
 
 
 public abstract class OperatedClause {
@@ -113,5 +113,5 @@ public abstract class OperatedClause {
 		return null;
 	}
 	
-	abstract public void printTrace(PrintStream os, int depth);
+	public abstract void printTrace(PrintStream os, int depth);
 }

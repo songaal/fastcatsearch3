@@ -16,14 +16,8 @@
 
 package org.fastcatsearch.ir.search;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
-import org.fastcatsearch.ir.analysis.TermsEntry;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.Term;
@@ -31,10 +25,14 @@ import org.fastcatsearch.ir.search.clause.OperatedClause;
 import org.fastcatsearch.ir.search.clause.OrOperatedClause;
 import org.fastcatsearch.ir.settings.IndexSetting;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
-import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 검색시 numeric field도 모두 string 형을 처리하기때문에, key는 123 1200 2 20000 31 과 같이 정렬되어 있다.
@@ -118,21 +116,14 @@ public class SearchIndexesReader implements Cloneable {
 		
 		return reader;
 	}
-    public OperatedClause getOperatedClause(String searchFieldId , List<TermsEntry> termsList, HighlightInfo highlightInfo) throws IOException, IRException {
-
-
-        //TODO
-
-        SearchIndexReader searchIndexReader = readerList.get(indexFieldSequence);
-        oneFieldClause = term.createOperatedClause(searchIndexReader, highlightInfo);
-    }
-
-
 
 	public OperatedClause getOperatedClause(Term term, HighlightInfo highlightInfo) throws IOException, IRException {
 		String[] indexFieldIdList = term.indexFieldId();
 
 		OperatedClause totalClause = null;
+        //
+        // 검색대상 필드가 여러개일경우 OR로 묶어준다.
+        //
 		for (int i = 0; i < indexFieldIdList.length; i++) {
 			String indexFieldId = indexFieldIdList[i];
 			logger.debug("getOperatedClause [{}] >> [{}]", indexFieldId, term);

@@ -62,17 +62,17 @@ public class SegmentSearcher {
 		return document;
 	}
 
-	public Hit searchHit(Query query) throws ClauseException, IOException, IRException {
-		return searchHit(query, null);
-	}
-	public Hit searchHit(Query query, PkScoreList boostList) throws ClauseException, IOException, IRException {
-//		QueryModifier queryModifier = query.getMeta().queryModifier();
-//		if(queryModifier != null){
-//			query = queryModifier.modify(query);
-//		}
-		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), query.getGroupFilters(), query.getSorts(), query.getBundle(), boostList);
-		return new Hit(rankHitList(), makeGroupData(), totalCount, highlightInfo, explanation);
-	}
+//	public Hit searchHit(Query query) throws ClauseException, IOException, IRException {
+//		return searchHit(query, null);
+//	}
+//	public Hit searchHit(Query query, PkScoreList boostList) throws ClauseException, IOException, IRException {
+////		QueryModifier queryModifier = query.getMeta().queryModifier();
+////		if(queryModifier != null){
+////			query = queryModifier.modify(query);
+////		}
+//		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), query.getGroupFilters(), query.getSorts(), query.getBundle(), boostList);
+//		return new Hit(rankHitList(), makeGroupData(), totalCount, highlightInfo, explanation);
+//	}
 	public HitReader searchHitReader(Query query, PkScoreList boostList) throws ClauseException, IOException, IRException {
 //		QueryModifier queryModifier = query.getMeta().queryModifier();
 //		if(queryModifier != null){
@@ -234,7 +234,7 @@ public class SegmentSearcher {
 //		 logger.debug("#### time = se:{}ms, ft:{}ms, gr:{}ms, so:{}ms", searchTime / 1000000, filterTime / 1000000, groupTime / 1000000, sortTime / 1000000);
 	}
 	
-	public HitReader searchHitReader(Metadata meta, Clause clause, Filters filters, Groups groups, Filters groupFilters, Sorts sorts, Bundle bundle, PkScoreList boostList) throws ClauseException,
+	private HitReader searchHitReader(Metadata meta, Clause clause, Filters filters, Groups groups, Filters groupFilters, Sorts sorts, Bundle bundle, PkScoreList boostList) throws ClauseException,
 	IOException, IRException {
 		return new HitReader(segmentReader, meta, clause, filters, groups, groupFilters, sorts, bundle, boostList);
 	}
