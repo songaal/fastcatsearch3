@@ -142,6 +142,10 @@ public abstract class AbstractFileReader extends SingleSourceReader<Map<String,O
                         }
 					}
 				}
+                //파일이 더 이상 없으면 끝낸다.
+                if(reader == null) {
+                    break;
+                }
 			}
 		}
 	}

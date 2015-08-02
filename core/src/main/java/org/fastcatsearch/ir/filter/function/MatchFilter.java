@@ -16,16 +16,15 @@
 
 package org.fastcatsearch.ir.filter.function;
 
-import java.io.IOException;
-
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.filter.FilterException;
-import org.fastcatsearch.ir.filter.FilterFunction;
 import org.fastcatsearch.ir.io.DataRef;
 import org.fastcatsearch.ir.query.Filter;
 import org.fastcatsearch.ir.query.RankInfo;
 import org.fastcatsearch.ir.settings.FieldIndexSetting;
 import org.fastcatsearch.ir.settings.FieldSetting;
+
+import java.io.IOException;
 
 /**
  * 패턴과 데이터비교시. 패턴길이 > 데이터길이 이면 비교하지 않고 불일치처리.
@@ -48,8 +47,10 @@ public class MatchFilter extends PatternFilterFunction {
 		while (dataRef.next()) {
 
 			BytesRef bytesRef = dataRef.bytesRef();
+
 			for (int j = 0; j < patternCount; j++) {
 				BytesRef patternBuf = patternList[j];
+                logger.debug("Read field data : {}", new String(patternBuf.bytes));
 				int plen = patternBuf.length;
 
 				// Match에서는 패턴이 데이터보다 크면 match확인필요없음. 다음으로 진행.
