@@ -1,14 +1,5 @@
 package org.fastcatsearch.ir;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
-
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.datasource.reader.DataSourceReader;
 import org.fastcatsearch.datasource.reader.DefaultDataSourceReaderFactory;
@@ -23,13 +14,7 @@ import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
-import org.fastcatsearch.ir.index.DeleteIdSet;
-import org.fastcatsearch.ir.index.IndexWritable;
-import org.fastcatsearch.ir.index.IndexWriteInfoList;
-import org.fastcatsearch.ir.index.SegmentIndexWriteConsumer;
-import org.fastcatsearch.ir.index.SegmentWriter;
-import org.fastcatsearch.ir.index.SelectedIndexList;
-import org.fastcatsearch.ir.index.WriteInfoLoggable;
+import org.fastcatsearch.ir.index.*;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.ir.util.Formatter;
@@ -39,6 +24,15 @@ import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 	protected static final Logger logger = LoggerFactory.getLogger(MultiThreadCollectionFullIndexer.class);
@@ -174,7 +168,9 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 		File indexDataDir = collectionContext.collectionFilePaths().dataPaths().indexDirFile(newDataSequence);
 		try {
 			//FileUtils.deleteDirectory(indexDataDir);
-			FileUtils.forceDelete(indexDataDir);
+            if(indexDataDir.exists()) {
+                FileUtils.forceDelete(indexDataDir);
+            }
 		} catch (IOException e) {
 			throw new IRException(e);
 		}
