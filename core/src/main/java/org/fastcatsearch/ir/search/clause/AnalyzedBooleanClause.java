@@ -178,7 +178,9 @@ public class AnalyzedBooleanClause extends OperatedClause {
 			}
 		}
 		os.println(indent+"[ROOT]");
-		operatedClause.printTrace(os, depth + 1);
+        if(operatedClause != null) {
+            operatedClause.printTrace(os, depth + 1);
+        }
 		
 	}
 
