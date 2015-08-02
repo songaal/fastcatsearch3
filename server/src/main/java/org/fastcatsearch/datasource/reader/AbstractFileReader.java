@@ -18,7 +18,6 @@ import java.util.zip.GZIPInputStream;
 public abstract class AbstractFileReader extends SingleSourceReader<Map<String,Object>> implements FileFilter {
 
 	private LinkedList<Map<String, Object>> items;
-    protected String rootPath;
     protected String encoding;
     protected int bufferSize;
     protected int limitSize;
@@ -38,9 +37,9 @@ public abstract class AbstractFileReader extends SingleSourceReader<Map<String,O
 	}
 
 	@Override
-	public void init() throws IRException { 
-		rootPath = filePath.makePath(getConfigString("filePath")).file().getAbsolutePath();
-		encoding = getConfigString("encoding", null);
+	public void init() throws IRException {
+        String filePathStr = getConfigString("filePath");
+		encoding = getConfigString("encoding", "utf-8");
         bufferSize = getConfigInt("bufferSize", DEFAULT_BUFFER_SIZE);
         limitSize = getConfigInt("limitSize");
         if(bufferSize < DEFAULT_BUFFER_SIZE) {
@@ -48,13 +47,16 @@ public abstract class AbstractFileReader extends SingleSourceReader<Map<String,O
         }
         items = new LinkedList<Map<String, Object>>();
 		filePaths = new LinkedList<String>();
-
-		File rootFile = new File(rootPath);
-		if(rootFile.isDirectory()) {
-			rootFile.listFiles(this);
-		} else {
-			filePaths.add(rootFile.getAbsolutePath());
-		}
+        String[] pathList = filePathStr.split(",");
+        for(String path : pathList) {
+            String rootPath = filePath.makePath(path).file().getAbsolutePath();
+            File rootFile = new File(rootPath);
+            if(rootFile.isDirectory()) {
+                rootFile.listFiles(this);
+            } else {
+                filePaths.add(rootFile.getAbsolutePath());
+            }
+        }
         readCount = 0;
 	}
 	
@@ -63,7 +65,7 @@ public abstract class AbstractFileReader extends SingleSourceReader<Map<String,O
 		registerParameter(new SourceReaderParameter("filePath", "File or Dir Path", "File path for reading source file. Absolute path or relative path for collection home directory. Multiple paths are allowed with commas."
 				, SourceReaderParameter.TYPE_STRING_LONG, true, null));
 		registerParameter(new SourceReaderParameter("encoding", "Encoding", "File encoding"
-				, SourceReaderParameter.TYPE_STRING, false, null));
+				, SourceReaderParameter.TYPE_STRING, true, "utf-8"));
         registerParameter(new SourceReaderParameter("bufferSize", "Buffer Size", "Read Buffer Size"
                 , SourceReaderParameter.TYPE_NUMBER, true, String.valueOf(DEFAULT_BUFFER_SIZE)));
         registerParameter(new SourceReaderParameter("limitSize", "Limit Size", "Read documents within limit size."
