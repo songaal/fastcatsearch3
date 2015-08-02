@@ -50,7 +50,6 @@ public class MatchFilter extends PatternFilterFunction {
 
 			for (int j = 0; j < patternCount; j++) {
 				BytesRef patternBuf = patternList[j];
-                logger.debug("Read field data : {}", new String(patternBuf.bytes));
 				int plen = patternBuf.length;
 
 				// Match에서는 패턴이 데이터보다 크면 match확인필요없음. 다음으로 진행.
