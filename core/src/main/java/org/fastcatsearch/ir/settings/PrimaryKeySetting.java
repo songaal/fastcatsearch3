@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlElement;
 
 
 public class PrimaryKeySetting {
-	
+	private static final String ID = "_PK";
 	private String id;
 	private List<RefSetting> fieldList;
 
@@ -19,7 +19,8 @@ public class PrimaryKeySetting {
 
     @XmlAttribute(name = "id", required = false)
     public String getId() {
-		return id;
+//		return id;
+		return ID;
 	}
 
 	public void setId(String id) {
