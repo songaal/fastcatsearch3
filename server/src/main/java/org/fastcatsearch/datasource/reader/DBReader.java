@@ -226,6 +226,8 @@ public class DBReader extends SingleSourceReader<Map<String, Object>> {
 				Properties info = new Properties();
 				info.put("user", jdbcSourceInfo.getUser());
 				info.put("password", jdbcSourceInfo.getPassword());
+				info.put("connectTimeout", 3600 * 1000);
+				info.put("socketTimeout", 3600 * 1000);
 				con = driver.connect(jdbcSourceInfo.getUrl(), info);
 				con.setAutoCommit(true);
 			}
