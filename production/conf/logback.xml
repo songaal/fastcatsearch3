@@ -53,13 +53,29 @@
 			<MaxHistory>7</MaxHistory>
 		</rollingPolicy>
 	</appender>
-	
+
+	<appender name="searcherrorlog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${log.path}/search_error.log</file>
+
+		<encoder>
+			<pattern>[%date] %m%n</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>${log.path}/search_error.%d{yyyy-MM-dd}.log</FileNamePattern>
+			<MaxHistory>7</MaxHistory>
+		</rollingPolicy>
+	</appender>
+
 	<logger name="SEARCH_LOG" level="INFO" additivity="false">
 		<appender-ref ref="searchlog" />
 	</logger>
 	
 	<logger name="REQUEST_LOG" level="INFO" additivity="false">
 		<appender-ref ref="requestlog" />
+	</logger>
+
+	<logger name="SEARCH_ERROR_LOG" level="INFO" additivity="false">
+		<appender-ref ref="searcherrorlog" />
 	</logger>
 
 	<logger name="INDEXING_LOG" level="INFO" additivity="false">

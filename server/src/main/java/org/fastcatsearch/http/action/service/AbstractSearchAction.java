@@ -24,6 +24,8 @@ public abstract class AbstractSearchAction extends ServiceAction {
 	
 	private static final Logger requestLogger = LoggerFactory.getLogger("REQUEST_LOG");
 
+	private static final Logger searchErrorLogger = LoggerFactory.getLogger("SEARCH_ERROR_LOG");
+
 	private static AtomicLong taskSeq = new AtomicLong();
 	
 	public static final int DEFAULT_TIMEOUT = 5; // 5초.
@@ -34,7 +36,7 @@ public abstract class AbstractSearchAction extends ServiceAction {
 		return new SearchResultWriter(getSearchResultWriter(writer, isFieldLowercase, noUnicode));
 	}
 
-	public void doSearch(long requestId, QueryMap queryMap, int timeout, Writer writer) throws Exception {
+	public Object doSearch(long requestId, QueryMap queryMap, int timeout, Writer writer) throws Exception {
 
 		long searchTime = 0;
 		long st = System.nanoTime();
@@ -60,6 +62,7 @@ public abstract class AbstractSearchAction extends ServiceAction {
 
 		writer.close();
 
+		return obj;
 	}
 
 	protected long getRequestId() {
@@ -84,11 +87,18 @@ public abstract class AbstractSearchAction extends ServiceAction {
 		}
 		Writer writer = response.getWriter();
 		response.setStatus(HttpResponseStatus.OK);
+		Object obj = null;
 		try {
-			doSearch(requestId, queryMap, timeout, writer);
+			obj = doSearch(requestId, queryMap, timeout, writer);
 		} finally {
 			writer.close();
 			requestLogger.info("end request id:{}",requestId);
+		}
+
+		if(obj instanceof Exception) {
+			Exception e = (Exception) obj;
+			searchErrorLogger.error("REQ-{} URL: {}?{}", requestId, request.uri(), request.getParameterString());
+			searchErrorLogger.error("RES-"+requestId, e);
 		}
 
 	}
