@@ -3,6 +3,8 @@ package org.fastcatsearch.job.search;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.ResultFuture;
+import org.fastcatsearch.error.ErrorCode;
+import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
@@ -51,7 +53,8 @@ public class ClusterSearchJob extends Job {
 			try {
 				q = QueryParser.getInstance().parseQuery(queryMap);
 			} catch (QueryParseException e) {
-				throw new FastcatSearchException("[Query Parsing Error] " + e.getMessage());
+				return new JobResult(e);
+//				throw new FastcatSearchException("[Query Parsing Error] " + e.getMessage());
 			}
 	
 			Metadata meta = q.getMeta();
@@ -63,6 +66,10 @@ public class ClusterSearchJob extends Job {
 			}
 			
 			collectionId = meta.collectionId();
+			if(collectionId == null) {
+//				return new JobResult(new QueryParseException("cn cannot be empty."));
+				throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "cn cannot be empty.");
+			}
 			searchKeyword = meta.getUserData("KEYWORD");
 			// no cache 옵션이 없으면 캐시를 확인한다.
 			if (meta.isSearchOption(Query.SEARCH_OPT_NOCACHE)) {
@@ -101,7 +108,8 @@ public class ClusterSearchJob extends Job {
 			for (int i = 0; i < collectionIdList.length; i++) {
 				String id = collectionIdList[i];
 				if(irService.collectionHandler(id) == null) {
-					throw new FastcatSearchException("Collection Not Found: " + id);
+					return new JobResult(new QueryParseException("Collection is not found: " + id));
+//					throw new FastcatSearchException("Collection Not Found: " + id);
 				}
 				collectionNumberMap.put(id, i);
 

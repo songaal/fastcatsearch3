@@ -139,7 +139,7 @@ public abstract class Job implements Runnable, Serializable {
 				isSuccess = jobResult.isSuccess;
 				if (result != null && result instanceof Throwable) {
 					// 다른 서버에서 발생한 에러의 경우는 예외가 result에 담겨있다.
-					throw (Throwable) result;
+//					throw (Throwable) result;
 				}
 			}
 			
