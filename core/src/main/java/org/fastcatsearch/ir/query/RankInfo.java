@@ -31,11 +31,11 @@ import org.slf4j.LoggerFactory;
  */
 public class RankInfo {
 	protected static Logger logger = LoggerFactory.getLogger(RankInfo.class);
-	
+	private static final int[] EMPTY_POSITIONS = new int[0];
 	private int docNo;
 	private int score;
 	private int hit; // 매칭횟수.
-
+    private int[] positions;
 	private int matchFlag;
 	
 	private boolean explain;
@@ -51,15 +51,24 @@ public class RankInfo {
 	}
 
 	public void init(int docNo, int score) {
-		init(docNo, score, 1);
+		init(docNo, score, 1, EMPTY_POSITIONS);
 	}
 
-	public void init(int docNo, int score, int hit) {
+    public void init(int docNo, int score, int hit) {
+        init(docNo, score, hit, EMPTY_POSITIONS);
+    }
+
+	public void init(int docNo, int score, int hit, int[] positions) {
 		this.docNo = docNo;
 		this.score = score;
 		this.hit = hit;
-		this.matchFlag = 0;
+        this.positions = positions;
+        this.matchFlag = 0;
 	}
+
+    public void setEmpty() {
+        init(-1, 0, 0, EMPTY_POSITIONS);
+    }
 
 	public boolean isExplain(){
 		return explain;
@@ -97,6 +106,9 @@ public class RankInfo {
 		this.hit = hit;
 	}
 
+    public int[] positions() {
+        return positions;
+    }
     public float distance() {
         return distance;
     }

@@ -205,7 +205,8 @@ public class SearchIndexWriter implements SingleIndexWriter {
 		}
 		
 		int lastPosition = 0;
-	
+
+        int pos = 0;
 		while (tokenStream.incrementToken()) {
 			CharVector key = null;
 			if (termAttribute != null) {
@@ -219,7 +220,10 @@ public class SearchIndexWriter implements SingleIndexWriter {
 			
 			int position = -1;
 			if (positionAttribute != null) {
-				position = positionAttribute.getPositionIncrement() + positionIncrementGap;
+                /*
+                 * 2015.8.31 swsong 순차적 번호를 부여한다.
+                 * */
+				position = pos++ + positionIncrementGap;
 				lastPosition = position;
 			}
 //			logger.debug("FIELD#{}: {} >> {} ({})", indexId, key, docNo, position);

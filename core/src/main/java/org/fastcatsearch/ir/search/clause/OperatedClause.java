@@ -30,7 +30,8 @@ public abstract class OperatedClause {
 	protected String id;
 	protected ClauseExplanation explanation;
 	private boolean isReady;
-	
+	private int position;
+
 	public OperatedClause(String id){
 		this.id = id;
 	}
@@ -114,4 +115,12 @@ public abstract class OperatedClause {
 	}
 	
 	public abstract void printTrace(PrintStream os, int depth);
+
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
+    }
 }

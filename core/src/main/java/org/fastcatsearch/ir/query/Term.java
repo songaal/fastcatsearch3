@@ -43,7 +43,6 @@ public class Term {
 	public static final Option OPTION_DEFAULT = new Option(SYNONYM | STOPWORD); //기본 옵션.
 	
 	private String[] indexFieldId;
-	private boolean fieldConcat; //필드결합 검색인지..
 	private String termString;
 	private int weight;
 	private Type type; //set AND between terms
@@ -51,6 +50,7 @@ public class Term {
 	protected String typeAttribute;
 
     private List<TermsEntry> termsEntryList;
+    private int proximity;
 	
 	public Term(){}
 	public Term(String indexFieldId, String termString){
@@ -79,22 +79,29 @@ public class Term {
 		this.type = type;
 		this.option = option;
 	}
-	
-	public String toString(){
+
+    public int getProximity() {
+        return proximity;
+    }
+
+    public Term withProximity(int proximity) {
+        this.proximity = proximity;
+        return this;
+    }
+
+    public String toString(){
 		String fieldList = "";
 		for (int i = 0; i < indexFieldId.length; i++) {
 			fieldList += indexFieldId[i];
 			if (i < indexFieldId.length - 1) {
-				if (fieldConcat) {
-					fieldList += "+";
-				} else {
-					fieldList += ",";
-				}
+                fieldList += ",";
 			}
 		}
-		
-		return "{"+fieldList+":"+type+"("+termString+"):"+weight+":"+option+"}";
-	}
+
+        return "{" + fieldList + ":" + type
+                + "(" + termString + (proximity == 0 ? ")" : ")~" + proximity)
+                + ":" + weight + ":" + option + "}";
+    }
 	public String[] indexFieldId(){
 		return indexFieldId;
 	}
@@ -108,13 +115,6 @@ public class Term {
 		return type;
 	}
 	
-	public boolean isFieldConcat(){
-		return fieldConcat;
-	}
-	
-	public void setFieldConcat(){
-		fieldConcat = true;
-	}
 	public void addOption(int op){
 		option.addOption(op);
 	}
@@ -171,7 +171,7 @@ public class Term {
 		public boolean useHighlight(){
 			return (optionValue & HIGHLIGHT) > 0;
 		}
-		
+
 		public boolean useSummary(){
 			return (optionValue & SUMMARY) > 0;
 		}
@@ -183,7 +183,7 @@ public class Term {
 		public boolean isBoolean(){
 			return (optionValue & BOOLEAN) > 0;
 		}
-		
+
 		@Override
 		public String toString(){
 			return "OPT-"+String.valueOf(optionValue);

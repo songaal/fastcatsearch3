@@ -49,7 +49,7 @@ public class TermOperatedClause extends OperatedClause {
 
 	protected boolean nextDoc(RankInfo rankInfo) {
 		if (postingReader == null) {
-			rankInfo.init(-1, 0, 0);
+			rankInfo.setEmpty();
 			return false;
 		}
 		if (postingReader.hasNext()) {
@@ -62,16 +62,16 @@ public class TermOperatedClause extends OperatedClause {
 				float tf = 2.2f * postingDoc.tf() / (2.0f + postingDoc.tf());
 				float idf = (float) Math.log(documentCount / segmentDF);
 				score = (int) (tf * idf * SCORE_BASE);
-			}			
-			
-			rankInfo.init(postingDoc.docNo(), score, postingDoc.tf());
+			}
+            //logger.debug("TermOP >> {} doc[{}] score[{}] tf[{}] pos[{}]", termString, postingDoc.docNo(), score, postingDoc.tf(), postingDoc.positions());
+			rankInfo.init(postingDoc.docNo(), score, postingDoc.tf(), postingDoc.positions());
 			rankInfo.addMatchSequence(termSequence);
 			if(isExplain()){
 				rankInfo.explain(id, score, postingReader.term().toString());
 			}
 			return true;
 		} else {
-			rankInfo.init(-1, 0, 0);
+			rankInfo.setEmpty();
 			return false;
 		}
 	}

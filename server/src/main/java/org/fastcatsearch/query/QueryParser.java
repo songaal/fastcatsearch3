@@ -505,26 +505,27 @@ public class QueryParser {
 		try {
 			logger.debug("Term => {}", value);
 			String[] list = value.split(COLON_SEPARATOR);
+            int[] proximity = new int[1];
 			if (list.length == 1) {
 				throw new QueryParseException("Term field syntax error. No Search keyword => " + value);
 			} else if (list.length == 2) {
 				// field:term
 				String[] fieldList = list[0].replaceAll(" ", "").split(COMMA_SEPARATOR);
 				String[] term = new String[1];
-				Term.Type type = getType(list[1], term);
-				return new Term(fieldList, removeEscape(term[0]), type);
+				Term.Type type = getType(list[1], term, proximity);
+				return new Term(fieldList, removeEscape(term[0]), type).withProximity(proximity[0]);
 			} else if (list.length == 3) {
 				// field:term:score
 				String[] fieldList = list[0].replaceAll(" ", "").split(COMMA_SEPARATOR);
 				String[] term = new String[1];
-				Term.Type type = getType(list[1], term);
-				return new Term(fieldList, removeEscape(term[0]), Integer.parseInt(list[2]), type);
+				Term.Type type = getType(list[1], term, proximity);
+				return new Term(fieldList, removeEscape(term[0]), Integer.parseInt(list[2]), type).withProximity(proximity[0]);
 			} else if (list.length == 4) {
 				// field:term:score:option
 				String[] fieldList = list[0].replaceAll(" ", "").split(COMMA_SEPARATOR);
 				String[] term = new String[1];
-				Term.Type type = getType(list[1], term);
-				return new Term(fieldList, removeEscape(term[0]), Integer.parseInt(list[2]), type, new Option(Integer.parseInt(list[3])));
+				Term.Type type = getType(list[1], term, proximity);
+				return new Term(fieldList, removeEscape(term[0]), Integer.parseInt(list[2]), type, new Option(Integer.parseInt(list[3]))).withProximity(proximity[0]);
 			} else {
 				throw new QueryParseException("Term field syntax error. Too many options => " + value);
 			}
@@ -534,22 +535,34 @@ public class QueryParser {
 
 	}
 
-	private Term.Type getType(String str, String[] term) throws QueryParseException {
-		if (str.startsWith("ALL")) {
-			term[0] = str.substring(4, str.length() - 1);
-			return Term.Type.ALL;
-		} else if (str.startsWith("ANY")) {
+	private Term.Type getType(String str, String[] term, int[] proximity) throws QueryParseException {
+		if (str.startsWith("ALL(")) {
+            if(str.endsWith(")")) {
+                term[0] = str.substring(4, str.length() - 1);
+            } else {
+                int p = str.lastIndexOf(")");
+                if (str.length() > p + 2) {
+                    char ch = str.charAt(p + 1);
+                    if (ch == '~') {
+                        String proximityStr = str.substring(p + 2);
+                        proximity[0] = Integer.parseInt(proximityStr);
+                    }
+                    term[0] = str.substring(4, p);
+                }
+            }
+            return Term.Type.ALL;
+        } else if (str.startsWith("ANY(")) {
 			term[0] = str.substring(4, str.length() - 1);
 			return Term.Type.ANY;
-		} else if (str.startsWith("EXT")) {
+		} else if (str.startsWith("EXT(")) {
 			term[0] = str.substring(4, str.length() - 1);
 			logger.debug("str = " + str);
 			return Term.Type.EXT;
-		} else if (str.startsWith("PHRASE")) {
+		} else if (str.startsWith("PHRASE(")) {
 			term[0] = str.substring(7, str.length() - 1);
 			logger.debug("str = " + str);
 			return Term.Type.PHRASE;
-		} else if (str.startsWith("BOOL")) {
+		} else if (str.startsWith("BOOL(")) {
 			term[0] = str.substring(5, str.length() - 1);
 			logger.debug("str = " + str);
 			return Term.Type.BOOL;

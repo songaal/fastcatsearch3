@@ -60,13 +60,13 @@ public class BooleanClause extends OperatedClause {
 			}
 		}
 		try {
-			
 			//검색옵션에 따라 analyzerOption도 수정.
 			AnalyzerOption analyzerOption = new AnalyzerOption();
 			analyzerOption.useStopword(searchOption.useStopword());
 			analyzerOption.useSynonym(searchOption.useSynonym());
 			analyzerOption.setForQuery();
-			operatedClause = search(indexId, fullTerm, term.type(), indexSetting, analyzer, analyzerOption, requestTypeAttribute);
+
+			operatedClause = search(indexId, fullTerm, term.getProximity(), term.type(), indexSetting, analyzer, analyzerOption, requestTypeAttribute);
 			
 		} catch (IOException e) {
 			logger.error("", e);
@@ -75,7 +75,7 @@ public class BooleanClause extends OperatedClause {
 		}
 	}
 	
-	private OperatedClause search(String indexId, CharVector fullTerm, Type type, IndexSetting indexSetting, Analyzer analyzer, AnalyzerOption analyzerOption, String requestTypeAttribute) throws IOException {
+	private OperatedClause search(String indexId, CharVector fullTerm, int proximity, Type type, IndexSetting indexSetting, Analyzer analyzer, AnalyzerOption analyzerOption, String requestTypeAttribute) throws IOException {
 		logger.debug("############ search Term > {}", fullTerm);
 		OperatedClause operatedClause = null;
 		OperatedClause finalClause = null;
@@ -167,7 +167,7 @@ public class BooleanClause extends OperatedClause {
 			PostingReader postingReader = searchMethod.search(indexId, token, queryPosition, weight);
 
 			OperatedClause clause = new TermOperatedClause(indexId, token.toString(), postingReader, termSequence.getAndIncrement());
-			
+//			logger.debug("Term :{}", token.toString());
 			// 유사어 처리
 			// analyzerOption에 synonym확장여부가 들어가 있으므로, 여기서는 option을 확인하지 않고,
 			// 있으면 그대로 색인하고 유사어가 없으면 색인되지 않는다.
@@ -181,7 +181,7 @@ public class BooleanClause extends OperatedClause {
 				queryDepth ++;
 			} else {
 				if(type == Type.ALL){
-					operatedClause = new AndOperatedClause(operatedClause, clause);
+					operatedClause = new AndOperatedClause(operatedClause, clause, proximity);
 					queryDepth ++;
 				}else if(type == Type.ANY){
 					operatedClause = new OrOperatedClause(operatedClause, clause);
@@ -453,7 +453,9 @@ public class BooleanClause extends OperatedClause {
 				}
 			}
 			if(synonymClause != null) {
+                int position = clause.getPosition();
 				clause = new OrOperatedClause(clause, synonymClause);
+                clause.setPosition(position);
 			}
 		}
 		
