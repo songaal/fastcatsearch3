@@ -16,6 +16,8 @@
 
 package org.fastcatsearch.query;
 
+import org.fastcatsearch.error.ErrorCode;
+import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.ir.group.GroupFunction;
 import org.fastcatsearch.ir.group.function.CountGroupFunction;
 import org.fastcatsearch.ir.query.*;
@@ -74,24 +76,19 @@ public class QueryParser {
 					.replaceAll("\\\\;", ";").replaceAll("\\\\~", "~");
 	}
 
-	public Query parseQuery(QueryMap queryMap) throws QueryParseException {
-		try {
-			Query query = new Query();
+	public Query parseQuery(QueryMap queryMap) {
+        Query query = new Query();
 
-			Iterator<Entry<String, String>> iterator = queryMap.entrySet().iterator();
-			while (iterator.hasNext()) {
-				Entry<String, String> entry = iterator.next();
-				String key = entry.getKey();
-				String value = entry.getValue().trim();
-				if (value != null) {
-					fillQuery(query, key, value);
-				}
-			}
-			return query;
-		} catch (Throwable e) {
-			logger.error("Error while parse query => ", e);
-			throw new QueryParseException(e);
-		}
+        Iterator<Entry<String, String>> iterator = queryMap.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Entry<String, String> entry = iterator.next();
+            String key = entry.getKey();
+            String value = entry.getValue().trim();
+            if (value != null) {
+                fillQuery(query, key, value);
+            }
+        }
+        return query;
 
 	}
 
@@ -104,7 +101,7 @@ public class QueryParser {
 		}
 	}
 
-	private void fillQuery(Query query, String key, String value) throws QueryParseException {
+	private void fillQuery(Query query, String key, String value) {
 		Query.EL el = detectElement(key);
 		if (el == null || value.length() == 0) {
 			return;
@@ -122,14 +119,15 @@ public class QueryParser {
 		} else if (Query.EL.sn == el) {
 			Metadata m2 = query.getMeta();
 			int sn = Integer.parseInt(value);
-			if (sn < 1)
-				throw new QueryParseException("Start number has to be greater than 0.");
+			if (sn < 1) {
+                throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "Start number has to be greater than 0.");
+            }
 			m2.setStart(sn);
 		} else if (Query.EL.ln == el) {
 			Metadata m3 = query.getMeta();
 			int len = Integer.parseInt(value);
 			if (len < 1)
-				throw new QueryParseException("Length has to be greater than 0.");
+                throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "Length has to be greater than 0.");
 			m3.setRows(len);
 		} else if (Query.EL.so == el) {
 			Metadata m4 = query.getMeta();
@@ -231,12 +229,12 @@ public class QueryParser {
 							groupFunction = DynamicClassLoader.loadObject(className, GroupFunction.class, new Class<?>[] { int.class, String.class },
 									new Object[] { sortOrder, param });
 						} catch (Exception e) {
-							throw new QueryParseException(e);
+                            throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "Cannot construct group function class '"+ className +"'.");
 						}
 					}
 					groupFunctions[j] = groupFunction;
 					if(groupFunction == null) {
-						throw new QueryParseException("Unknown group function \""+functionName+"\"");
+                        throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "Unknown group function '"+ functionName +"'.");
 					}
 				}
 
@@ -310,32 +308,26 @@ public class QueryParser {
 	/**
 	 * @Deprecated 대신 parseQuery(QueryMap queryMap) 를 사용하기 바람.
 	 * */
-	public Query parseQuery(String queryString) throws QueryParseException {
-		try {
-			String[] groups = queryString.split(SECTION_SEPARATOR);
-			Query query = new Query();
-			query.setMeta(new Metadata());
-			for (int i = 0; i < groups.length; i++) {
-				String[] tmp = groups[i].split(VALUE_SEPARATOR);
-				if (tmp.length < 2) {
-					continue;
-				}
-				String key = tmp[0];
-				String value = tmp[1];
+	public Query parseQuery(String queryString) {
+        String[] groups = queryString.split(SECTION_SEPARATOR);
+        Query query = new Query();
+        query.setMeta(new Metadata());
+        for (int i = 0; i < groups.length; i++) {
+            String[] tmp = groups[i].split(VALUE_SEPARATOR);
+            if (tmp.length < 2) {
+                continue;
+            }
+            String key = tmp[0];
+            String value = tmp[1];
 
-				if (value == null || value.length() == 0) {
-					continue;
-				}
-				fillQuery(query, key, value);
-			}
+            if (value == null || value.length() == 0) {
+                continue;
+            }
+            fillQuery(query, key, value);
+        }
 
-			logger.debug("query = {}", query);
-			return query;
-		} catch (Exception e) {
-			logger.error("Error while parse query => ", e);
-			throw new QueryParseException(e);
-		}
-
+        logger.debug("query = {}", query);
+        return query;
 	}
 
 	private static String convertToClassName(String groupFunctionName) {
@@ -395,90 +387,84 @@ public class QueryParser {
 	//
 	// TODO 괄호없이 A or B and C 형태도 가능토록, escapse 문자 '\' 적용필요.
 	//
-	protected Object makeClause(String value) throws QueryParseException {
+	protected Object makeClause(String value) {
 		logger.trace("makeClause = {}", value);
-		try {
-			if (value.charAt(0) == '{') {
-				int pos = findMatchBrace(value, 1);
+        if (value.charAt(0) == '{') {
+            int pos = findMatchBrace(value, 1);
 
-				if (pos < 0) {
-                    throw new QueryParseException("Cannot find match close brace '}'");
-                }
-				// logger.debug("pos={}, value={}",pos, value);
-				Object operand1 = makeClause(value.substring(1, pos));
-				if (value.regionMatches(true, pos + 1, Clause.Operator.OR.name(), 0, 2)) {
-					int end = findMatchBrace(value, pos + 4);// value.indexOf('}', pos + 4);
-					Object operand2 = makeClause(value.substring(pos + 4, end));
-					if(operand2 instanceof Clause) {
-						Clause innerClause = (Clause)operand2;
-						if(innerClause.operator() == Clause.Operator.NOT && innerClause.operand1() == null) {
-							logger.info("OR-NOT Clause detected : [{}]OR[NOT[{}]]", operand1, innerClause.operand2());
-						}
-					}
-					
-					return new Clause(operand1, Clause.Operator.OR, operand2);
-				} else if (value.regionMatches(true, pos + 1, Clause.Operator.AND.name(), 0, 3)) {
-					int end = findMatchBrace(value, pos + 5);// value.indexOf('}', pos + 5);
-					Object operand2 = makeClause(value.substring(pos + 5, end));
-					if(operand2 instanceof Clause) {
-						Clause innerClause = (Clause)operand2;
-						if(innerClause.operator() == Clause.Operator.NOT && innerClause.operand1() == null) {
-							return new Clause(operand1, Clause.Operator.NOT, innerClause.operand2());
-						}
-					}
-					return new Clause(operand1, Clause.Operator.AND, operand2);
-				} else if (value.regionMatches(true, pos + 1, Clause.Operator.NOT.name(), 0, 3)) {
-					int end = findMatchBrace(value, pos + 5);// value.indexOf('}', pos + 5);
-					Object operand2 = makeClause(value.substring(pos + 5, end));
-					return new Clause(operand1, Clause.Operator.NOT, operand2);
-				} else if (value.regionMatches(true, pos + 1, Clause.Operator.BOOST.name(), 0, 5)) {
-					int end = findMatchBrace(value, pos + 7);
-					Object operand2 = makeClause(value.substring(pos + 7, end));
-					if(operand2 instanceof Clause) {
-						Clause innerClause = (Clause)operand2;
-						if(innerClause.operator() == Clause.Operator.NOT && innerClause.operand1() == null) {
-							throw new QueryParseException("BOOST-uni NOT is not supported.");
-						}
-					}
-					return new Clause(operand1, Clause.Operator.BOOST, operand2);
-                } else if (value.regionMatches(true, pos + 1, Clause.Operator.LOR.name(), 0, 3)) {
-                    int end = findMatchBrace(value, pos + 5);
-                    Object operand2 = makeClause(value.substring(pos + 5, end));
-                    if(operand2 instanceof Clause) {
-                        Clause innerClause = (Clause)operand2;
-                        if(innerClause.operator() == Clause.Operator.NOT && innerClause.operand1() == null) {
-                            logger.info("OR-NOT Clause detected : [{}]OR[NOT[{}]]", operand1, innerClause.operand2());
-                        }
+            if (pos < 0) {
+                throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "Close brace not found : " + value);
+            }
+            // logger.debug("pos={}, value={}",pos, value);
+            Object operand1 = makeClause(value.substring(1, pos));
+            if (value.regionMatches(true, pos + 1, Clause.Operator.OR.name(), 0, 2)) {
+                int end = findMatchBrace(value, pos + 4);// value.indexOf('}', pos + 4);
+                Object operand2 = makeClause(value.substring(pos + 4, end));
+                if(operand2 instanceof Clause) {
+                    Clause innerClause = (Clause)operand2;
+                    if(innerClause.operator() == Clause.Operator.NOT && innerClause.operand1() == null) {
+                        logger.info("OR-NOT Clause detected : [{}]OR[NOT[{}]]", operand1, innerClause.operand2());
                     }
+                }
 
-                    return new Clause(operand1, Clause.Operator.LOR, operand2);
-				} else {
-					// operator가 없거나 잘못되었으면 뒤는 무시하고 operand1 이 term으로 간주된다.
-					if (operand1 instanceof Term)
-						return new Clause(operand1);
-					else
-						return operand1;
-				}
+                return new Clause(operand1, Clause.Operator.OR, operand2);
+            } else if (value.regionMatches(true, pos + 1, Clause.Operator.AND.name(), 0, 3)) {
+                int end = findMatchBrace(value, pos + 5);// value.indexOf('}', pos + 5);
+                Object operand2 = makeClause(value.substring(pos + 5, end));
+                if(operand2 instanceof Clause) {
+                    Clause innerClause = (Clause)operand2;
+                    if(innerClause.operator() == Clause.Operator.NOT && innerClause.operand1() == null) {
+                        return new Clause(operand1, Clause.Operator.NOT, innerClause.operand2());
+                    }
+                }
+                return new Clause(operand1, Clause.Operator.AND, operand2);
+            } else if (value.regionMatches(true, pos + 1, Clause.Operator.NOT.name(), 0, 3)) {
+                int end = findMatchBrace(value, pos + 5);// value.indexOf('}', pos + 5);
+                Object operand2 = makeClause(value.substring(pos + 5, end));
+                return new Clause(operand1, Clause.Operator.NOT, operand2);
+            } else if (value.regionMatches(true, pos + 1, Clause.Operator.BOOST.name(), 0, 5)) {
+                int end = findMatchBrace(value, pos + 7);
+                Object operand2 = makeClause(value.substring(pos + 7, end));
+                if(operand2 instanceof Clause) {
+                    Clause innerClause = (Clause)operand2;
+                    if(innerClause.operator() == Clause.Operator.NOT && innerClause.operand1() == null) {
+                        throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "BOOST-uni NOT is not supported : " + value);
+                    }
+                }
+                return new Clause(operand1, Clause.Operator.BOOST, operand2);
+            } else if (value.regionMatches(true, pos + 1, Clause.Operator.LOR.name(), 0, 3)) {
+                int end = findMatchBrace(value, pos + 5);
+                Object operand2 = makeClause(value.substring(pos + 5, end));
+                if(operand2 instanceof Clause) {
+                    Clause innerClause = (Clause)operand2;
+                    if(innerClause.operator() == Clause.Operator.NOT && innerClause.operand1() == null) {
+                        logger.info("OR-NOT Clause detected : [{}]OR[NOT[{}]]", operand1, innerClause.operand2());
+                    }
+                }
 
-			} else {
-				/*
-				 * Unary NOT을 지원하기위함. 예) NOT{title,body:AND(방송):100:32}
-				 */
-				if (value.startsWith(Clause.Operator.NOT.name()+"{")) {
-					int end = findMatchBrace(value, 4);
-					Object operand2 = makeClause(value.substring(4, end));
-					return new Clause(null, Clause.Operator.NOT, operand2);
-				} else {
-					Term term = makeTerm(value);
-					return term;
-				}
-			}
-		} catch (QueryParseException e) {
-			throw e;
-		} catch (Exception e) {
-			logger.error("", e);
-			throw new QueryParseException("parsing clause error: " + value, e);
-		}
+                return new Clause(operand1, Clause.Operator.LOR, operand2);
+            } else {
+                // operator가 없거나 잘못되었으면 뒤는 무시하고 operand1 이 term으로 간주된다.
+                if (operand1 instanceof Term)
+                    return new Clause(operand1);
+                else
+                    return operand1;
+            }
+
+        } else {
+            /*
+             * Unary NOT을 지원하기위함. 예) NOT{title,body:AND(방송):100:32}
+             */
+            if (value.startsWith(Clause.Operator.NOT.name()+"{")) {
+                int end = findMatchBrace(value, 4);
+                Object operand2 = makeClause(value.substring(4, end));
+                return new Clause(null, Clause.Operator.NOT, operand2);
+            } else {
+                Term term = makeTerm(value);
+                return term;
+            }
+        }
+
 
 	}
 
@@ -501,41 +487,38 @@ public class QueryParser {
 		return -1;
 	}
 
-	private Term makeTerm(String value) throws QueryParseException {
-		try {
-			logger.debug("Term => {}", value);
-			String[] list = value.split(COLON_SEPARATOR);
-            int[] proximity = new int[1];
-			if (list.length == 1) {
-				throw new QueryParseException("Term field syntax error. No Search keyword => " + value);
-			} else if (list.length == 2) {
-				// field:term
-				String[] fieldList = list[0].replaceAll(" ", "").split(COMMA_SEPARATOR);
-				String[] term = new String[1];
-				Term.Type type = getType(list[1], term, proximity);
-				return new Term(fieldList, removeEscape(term[0]), type).withProximity(proximity[0]);
-			} else if (list.length == 3) {
-				// field:term:score
-				String[] fieldList = list[0].replaceAll(" ", "").split(COMMA_SEPARATOR);
-				String[] term = new String[1];
-				Term.Type type = getType(list[1], term, proximity);
-				return new Term(fieldList, removeEscape(term[0]), Integer.parseInt(list[2]), type).withProximity(proximity[0]);
-			} else if (list.length == 4) {
-				// field:term:score:option
-				String[] fieldList = list[0].replaceAll(" ", "").split(COMMA_SEPARATOR);
-				String[] term = new String[1];
-				Term.Type type = getType(list[1], term, proximity);
-				return new Term(fieldList, removeEscape(term[0]), Integer.parseInt(list[2]), type, new Option(Integer.parseInt(list[3]))).withProximity(proximity[0]);
-			} else {
-				throw new QueryParseException("Term field syntax error. Too many options => " + value);
-			}
-		} catch (Exception e) {
-			throw new QueryParseException(e);
-		}
+	private Term makeTerm(String value) {
+        logger.debug("Term => {}", value);
+        String[] list = value.split(COLON_SEPARATOR);
+        int[] proximity = new int[1];
+        if (list.length == 1) {
+            throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "Search field must contain field id and keyword : " + value);
+
+        } else if (list.length == 2) {
+            // field:term
+            String[] fieldList = list[0].replaceAll(" ", "").split(COMMA_SEPARATOR);
+            String[] term = new String[1];
+            Term.Type type = getType(list[1], term, proximity);
+            return new Term(fieldList, removeEscape(term[0]), type).withProximity(proximity[0]);
+        } else if (list.length == 3) {
+            // field:term:score
+            String[] fieldList = list[0].replaceAll(" ", "").split(COMMA_SEPARATOR);
+            String[] term = new String[1];
+            Term.Type type = getType(list[1], term, proximity);
+            return new Term(fieldList, removeEscape(term[0]), Integer.parseInt(list[2]), type).withProximity(proximity[0]);
+        } else if (list.length == 4) {
+            // field:term:score:option
+            String[] fieldList = list[0].replaceAll(" ", "").split(COMMA_SEPARATOR);
+            String[] term = new String[1];
+            Term.Type type = getType(list[1], term, proximity);
+            return new Term(fieldList, removeEscape(term[0]), Integer.parseInt(list[2]), type, new Option(Integer.parseInt(list[3]))).withProximity(proximity[0]);
+        } else {
+            throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "Search field has too many options. Check search keyword escape colon symbol. : " + value);
+        }
 
 	}
 
-	private Term.Type getType(String str, String[] term, int[] proximity) throws QueryParseException {
+	private Term.Type getType(String str, String[] term, int[] proximity) {
 		if (str.startsWith("ALL(")) {
             if(str.endsWith(")")) {
                 term[0] = str.substring(4, str.length() - 1);
@@ -545,7 +528,15 @@ public class QueryParser {
                     char ch = str.charAt(p + 1);
                     if (ch == '~') {
                         String proximityStr = str.substring(p + 2);
-                        proximity[0] = Integer.parseInt(proximityStr);
+                        proximityStr = proximityStr.trim();
+                        if(proximity.length == 0){
+                            throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "Proximity cannot be empty.");
+                        }
+                        try {
+                            proximity[0] = Integer.parseInt(proximityStr);
+                        } catch (NumberFormatException e) {
+                            throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "Proximity is not an integer number : " + proximityStr);
+                        }
                     }
                     term[0] = str.substring(4, p);
                 }
@@ -572,7 +563,7 @@ public class QueryParser {
 		return Term.Type.ALL;
 	}
 
-	private Filters makeFilters(String value) throws QueryParseException {
+	private Filters makeFilters(String value) {
 		//
 		// Syntax : [FieldId;..] : [Filter Function] [(param;..)] : [Value;..] : [Boosting Score]
 		//
@@ -673,6 +664,7 @@ public class QueryParser {
                 f.add(filter);
 			} else {
 				logger.error("Unknown Filter method = {}", function);
+
 			}
 
 		}

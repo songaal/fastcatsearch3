@@ -19,7 +19,6 @@ import org.fastcatsearch.ir.search.GroupResultAggregator;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.internal.InternalGroupSearchJob;
 import org.fastcatsearch.query.QueryMap;
-import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableGroupsData;
@@ -37,13 +36,8 @@ public class ClusterGroupSearchJob extends Job {
 		boolean noCache = false;
 		
 		
-		Query q = null;
-		try {
-			q = QueryParser.getInstance().parseQuery(queryMap);
-		} catch (QueryParseException e) {
-			throw new FastcatSearchException("ERR-01000", e, queryMap.queryString());
-		}
-		
+		Query q = QueryParser.getInstance().parseQuery(queryMap);
+
 		//no cache 옵션이 없으면 캐시를 확인한다.
 		if(q.getMeta().isSearchOption(Query.SEARCH_OPT_NOCACHE)){
 			noCache = true;

@@ -48,7 +48,7 @@ public class QueryParserTest {
 	}
 
 	@Test
-	public void test1() throws QueryParseException{
+	public void test1() {
 		QueryParser parser = QueryParser.getInstance();
 		String queryString = "cn=allgoods&ht=<a>:</a>&sn=0&ln=10" +
 				"&so=cache&ud=debug:true,logger:file" +
@@ -62,7 +62,7 @@ public class QueryParserTest {
 	}
 
 	@Test
-	public void test3() throws QueryParseException{
+	public void test3() {
 		Query query = new Query();
 		//String queryString = "{{{{Title:cc:200:15}AND{Title:aa:200:15}}AND{NOT{{{Title:bb:200:15}OR{Content:cc:100:15}}OR{Content2:cc:100:15}}}}}";
 		String queryString = "{test:cc}AND{NOT{test:bb}}";
@@ -73,7 +73,7 @@ public class QueryParserTest {
 	}
 
 	@Test
-	public void test2() throws QueryParseException{
+	public void test2() {
 		/*
 		 * String queryString = "{" +
 				"				{" +

@@ -23,7 +23,6 @@ import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.query.QueryMap;
-import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
 
@@ -36,13 +35,8 @@ public class GroupSearchJob extends Job {
 	public JobResult doRun() throws FastcatSearchException {
 		QueryMap queryMap = (QueryMap) getArgs();
 		
-		Query q = null;
-		try {
-			q = QueryParser.getInstance().parseQuery(queryMap);
-		} catch (QueryParseException e) {
-			throw new FastcatSearchException("ERR-01000", e, queryMap.queryString());
-		}
-		
+		Query q = QueryParser.getInstance().parseQuery(queryMap);
+
 		Metadata meta = q.getMeta();
 		Map<String, String> userData = meta.userData();
 		String keyword = null;

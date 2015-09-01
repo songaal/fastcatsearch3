@@ -20,7 +20,6 @@ import org.fastcatsearch.ir.search.PkScore;
 import org.fastcatsearch.ir.search.PkScoreList;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.query.QueryMap;
-import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableInternalSearchResult;
@@ -44,13 +43,8 @@ public class InternalSearchJob extends Job implements Streamable {
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
 		
-		Query q = null;
-		try {
-			q = QueryParser.getInstance().parseQuery(queryMap);
-		} catch (QueryParseException e) {
-			throw new FastcatSearchException("ERR-01000", e.getMessage(), queryMap.queryString());
-		}
-		
+		Query q = QueryParser.getInstance().parseQuery(queryMap);
+
 		String collectionId = queryMap.collectionId();
 		try {
 			Metadata meta = q.getMeta();

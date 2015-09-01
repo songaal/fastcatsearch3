@@ -7,6 +7,7 @@ import org.fastcatsearch.error.ErrorCode;
 import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;
@@ -19,7 +20,6 @@ import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.internal.InternalDocumentSearchJob;
 import org.fastcatsearch.job.internal.InternalSearchJob;
 import org.fastcatsearch.query.QueryMap;
-import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableDocumentResult;
@@ -45,18 +45,11 @@ public class ClusterSearchJob extends Job {
 		boolean noCache = false;
 		String collectionId = null;
 		String searchKeyword = null;
-		Query q = null;
 		boolean isCache = false;
 		Result searchResult = null;
 		try {
-			
-			try {
-				q = QueryParser.getInstance().parseQuery(queryMap);
-			} catch (QueryParseException e) {
-				return new JobResult(e);
-//				throw new FastcatSearchException("[Query Parsing Error] " + e.getMessage());
-			}
-	
+            Query q = QueryParser.getInstance().parseQuery(queryMap);
+
 			Metadata meta = q.getMeta();
 			QueryModifier queryModifier = meta.queryModifier();
 			//쿼리모디파이.
@@ -108,7 +101,7 @@ public class ClusterSearchJob extends Job {
 			for (int i = 0; i < collectionIdList.length; i++) {
 				String id = collectionIdList[i];
 				if(irService.collectionHandler(id) == null) {
-					return new JobResult(new QueryParseException("Collection is not found: " + id));
+					throw new SearchError(ErrorCode.COLLECTION_NOT_FOUND, id);
 //					throw new FastcatSearchException("Collection Not Found: " + id);
 				}
 				collectionNumberMap.put(id, i);
@@ -306,8 +299,8 @@ public class ClusterSearchJob extends Job {
 
 //			logger.debug("ClusterSearchJob 수행시간 : {}", Strings.getHumanReadableTimeInterval((System.nanoTime() - st) / 1000000));
 			return new JobResult(searchResult);
-		}catch(Throwable t){
-			throw new FastcatSearchException(t);
+		}catch(IRException e){
+			throw new FastcatSearchException(e);
 		} finally {
 			//로깅은 반드시 수행한다.
 			writeSearchLog(collectionId, searchKeyword, searchResult, (System.nanoTime() - st) / 1000000, isCache);

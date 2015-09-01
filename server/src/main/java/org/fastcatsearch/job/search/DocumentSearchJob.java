@@ -18,7 +18,6 @@ import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.query.QueryParseException;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
 
@@ -53,13 +52,8 @@ public class DocumentSearchJob extends Job {
 			}
 		}
 		
-		Query q = null;
-		try {
-			q = QueryParser.getInstance().parseQuery(queryString);
-		} catch (QueryParseException e) {
-			throw new FastcatSearchException("ERR-01000", e, queryString);
-		} 
-		
+		Query q = QueryParser.getInstance().parseQuery(queryString);
+
 		Metadata meta = q.getMeta();
 		String collection = meta.collectionId();
 //		logger.debug("collection = "+collection);

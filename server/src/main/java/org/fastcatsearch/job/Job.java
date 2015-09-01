@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.fastcatsearch.alert.ClusterAlertService;
 import org.fastcatsearch.control.JobExecutor;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.service.ServiceManager;
 import org.slf4j.Logger;
@@ -147,6 +148,10 @@ public abstract class Job implements Runnable, Serializable {
 				logger.error("## 결과에 jobId가 없습니다. job={}, result={}", this, jobResult);
 				throw new FastcatSearchException("ERR-00110");
 			}
+        } catch (SearchError e) {
+            //검색에러는 따로 시스템에러 처리하지 않는다.
+            result = e;
+            isSuccess = false;
 		} catch (Throwable e) {
 			result = e;
 			isSuccess = false;
