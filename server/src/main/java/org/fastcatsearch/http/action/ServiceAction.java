@@ -44,7 +44,9 @@ public abstract class ServiceAction extends HttpAction {
 	}
 
 	protected void writeHeader(ActionResponse response, String responseCharset) {
-		response.setStatus(HttpResponseStatus.OK);
+        if(response.status() == null) {
+            response.setStatus(HttpResponseStatus.OK);
+        }
 //		logger.debug("resultType > {}", resultType);
 		if (resultType == Type.json) {
 			response.setContentType("application/json; charset=" + responseCharset);

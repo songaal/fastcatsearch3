@@ -1,6 +1,7 @@
 package org.fastcatsearch.http.action.service;
 
 import org.fastcatsearch.http.ActionMapping;
+import org.fastcatsearch.http.ActionMethod;
 import org.fastcatsearch.http.writer.AbstractSearchResultWriter;
 import org.fastcatsearch.http.writer.GroupResultWriter;
 import org.fastcatsearch.job.Job;
@@ -9,7 +10,7 @@ import org.fastcatsearch.query.QueryMap;
 
 import java.io.Writer;
 
-@ActionMapping("/service/search/group")
+@ActionMapping(value = "/service/search/group", method = {ActionMethod.GET, ActionMethod.POST})
 public class ClusterGroupSearchAction extends AbstractSearchAction {
 
 	@Override
