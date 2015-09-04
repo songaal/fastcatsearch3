@@ -25,6 +25,16 @@ public abstract class ServiceAction extends HttpAction {
 	public void runAction(ActionRequest request, ActionResponse response) throws Exception {
 		try {
 			doAction(request, response);
+        } catch (ActionException t) {
+            writeHeader(response);
+            Writer writer = response.getWriter();
+            try {
+                ResponseWriter resultWriter = getDefaultResponseWriter(writer);
+                resultWriter.object().key("success").value(false).key("errorMessage").value(t.toString()).endObject();
+                resultWriter.done();
+            } finally {
+                writer.close();
+            }
 		} catch (Throwable t) {
 			logger.error("ServiceAction Error!", t);
 			writeHeader(response);

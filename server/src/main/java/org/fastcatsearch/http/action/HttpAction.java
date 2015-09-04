@@ -51,6 +51,8 @@ public abstract class HttpAction implements Runnable, Cloneable {
 		try {
 			runAction(request, response);
 			response.done();
+        } catch (ActionException e) {
+            response.error(e);
 		} catch (Throwable e) {
 			logger.error("Action수행중 에러발생.", e);
 			response.error(e);

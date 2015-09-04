@@ -605,16 +605,4 @@ public class CollectionHandler {
 		return queryCounter;
 	}
 
-    public boolean pauseIndexingSchedule() {
-        //TODO
-
-        return false;
-
-    }
-
-    public boolean resumeIndexingSchedule() {
-        //TODO
-
-        return false;
-    }
 }
