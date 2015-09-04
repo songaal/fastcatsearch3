@@ -2,6 +2,8 @@ package org.fastcatsearch.ir.search;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.util.BytesRef;
+import org.fastcatsearch.error.CoreErrorCode;
+import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
@@ -47,11 +49,11 @@ public class CollectionSearcher {
 		has = new BasicHighlightAndSummary();
 	}
 
-	public GroupsData doGrouping(Query q) throws IRException, IOException, SettingException {
+	public GroupsData doGrouping(Query q) throws Exception {
 		
 		int segmentSize = collectionHandler.segmentSize();
 		if (segmentSize == 0) {
-			logger.warn("Collection {} is not indexed!", collectionHandler.collectionId());
+			throw new SearchError(CoreErrorCode.COLLECTION_NOT_INDEXED, collectionId);
 		}
 
 		Groups groups = q.getGroups();
@@ -62,14 +64,8 @@ public class CollectionSearcher {
 
 		if (segmentSize == 1) {
 			// 머징필요없음.
-			try {
-				GroupHit groupHit = collectionHandler.segmentSearcher(0).searchGroupHit(q);
-				return groupHit.groupData();
-			} catch (IOException e) {
-				throw new IRException(e);
-			} catch (ClauseException e) {
-				throw new IRException(e);
-			}
+            GroupHit groupHit = collectionHandler.segmentSearcher(0).searchGroupHit(q);
+            return groupHit.groupData();
 		} else {
 
 			GroupDataMerger dataMerger = null;
@@ -77,19 +73,13 @@ public class CollectionSearcher {
 				dataMerger = new GroupDataMerger(groups, segmentSize);
 			}
 
-			try {
-				for (int i = 0; i < segmentSize; i++) {
-					GroupHit groupHit = collectionHandler.segmentSearcher(i).searchGroupHit(q);
+            for (int i = 0; i < segmentSize; i++) {
+                GroupHit groupHit = collectionHandler.segmentSearcher(i).searchGroupHit(q);
 
-					if (dataMerger != null) {
-						dataMerger.put(groupHit.groupData());
-					}
-				}
-			} catch (IOException e) {
-				throw new IRException(e);
-			} catch (ClauseException e) {
-				throw new IRException(e);
-			}
+                if (dataMerger != null) {
+                    dataMerger.put(groupHit.groupData());
+                }
+            }
 
 			GroupsData groupData = null;
 			if (dataMerger != null) {
@@ -148,7 +138,7 @@ public class CollectionSearcher {
 	public InternalSearchResult searchInternal(Query q, boolean forMerging, PkScoreList boostList) throws IRException, IOException, SettingException {
 		int segmentSize = collectionHandler.segmentSize();
 		if (segmentSize == 0) {
-			logger.warn("Collection {} is not indexed!", collectionId);
+			throw new SearchError(CoreErrorCode.COLLECTION_NOT_INDEXED, collectionId);
 		}
 
 //		logger.debug("searchInternal incrementCount > {} ", q);

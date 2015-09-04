@@ -48,7 +48,7 @@ public class DictionaryCompileApplyJob extends MasterNodeJob {
 				analysisPlugin.compileDictionaryFromDAO(dictionaryId);
 			}
 		} catch (IOException e) {
-			throw new FastcatSearchException("", e);
+			throw new FastcatSearchException(e);
 		}
 
 		logger.debug("사전컴파일후 플러그인 {}를 재로딩합니다.", pluginId);

@@ -8,6 +8,8 @@ import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.control.ResultFuture;
+import org.fastcatsearch.error.SearchError;
+import org.fastcatsearch.error.ServerErrorCode;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
@@ -74,22 +76,24 @@ public class ClusterGroupSearchJob extends Job {
 			//보내는 곳마다 collectionId를 재 셋팅한다. (collection group명일수 있기때문에) 
 			InternalGroupSearchJob job = new InternalGroupSearchJob(newQueryMap);
 			resultFutureList[i] = nodeService.sendRequest(dataNode, job);
+            // 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
+            if (resultFutureList[i] == null) {
+                throw new SearchError(ServerErrorCode.DATA_NODE_CONNECTION_ERROR, dataNode.toString() );
+            }
 		}
 		
 		List<GroupsData> resultList = new ArrayList<GroupsData>(collectionIdList.length);
 		
 		for (int i = 0; i < collectionIdList.length; i++) {
-			//TODO 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
-			if(resultFutureList[i] == null){
-				throw new FastcatSearchException("요청메시지 전송불가에러.");
-			}
 			Object obj = resultFutureList[i].take();
 			if(!resultFutureList[i].isSuccess()){
-				if(obj instanceof Throwable){
-					throw new FastcatSearchException("검색수행중 에러발생.", (Throwable) obj);
-				}else{
-					throw new FastcatSearchException("검색수행중 에러발생.");
-				}
+                if (obj instanceof SearchError) {
+                    throw (SearchError) obj;
+                } else if (obj instanceof Throwable) {
+                    throw new FastcatSearchException((Throwable) obj);
+                } else {
+                    throw new FastcatSearchException("Error while searching.", obj);
+                }
 			}
 			
 			StreamableGroupsData obj2 = (StreamableGroupsData) obj;

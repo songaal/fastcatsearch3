@@ -16,6 +16,8 @@
 
 package org.fastcatsearch.ir.search;
 
+import org.fastcatsearch.error.CoreErrorCode;
+import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
@@ -137,7 +139,7 @@ public class SearchIndexesReader implements Cloneable {
 				if (indexFieldId.equalsIgnoreCase(primaryKeyId)) {
 					isPrimaryKeyField = true;
 				} else {
-					throw new IRException("Unknown Search index field id \"" + indexFieldId + "\"");
+					throw new SearchError(CoreErrorCode.SEARCH_INDEX_NOT_EXIST, indexFieldId);
 				}
 			}
 

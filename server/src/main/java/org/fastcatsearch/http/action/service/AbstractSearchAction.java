@@ -2,6 +2,7 @@ package org.fastcatsearch.http.action.service;
 
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
+import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.ServiceAction;
@@ -98,7 +99,11 @@ public abstract class AbstractSearchAction extends ServiceAction {
 		if(obj instanceof Exception) {
 			Exception e = (Exception) obj;
 			searchErrorLogger.error("REQ-{} URL: {}?{}", requestId, request.uri(), request.getParameterString());
-			searchErrorLogger.error("RES-"+requestId, e);
+            if(e instanceof SearchError) {
+                searchErrorLogger.error("RES-{} : {}", requestId, e.getMessage());
+            } else {
+                searchErrorLogger.error("RES-" + requestId, e);
+            }
 		}
 
 	}

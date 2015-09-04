@@ -22,9 +22,4 @@ public class SearchError extends RuntimeException {
         return String.format(errorCode.getMessage(), args);
     }
 
-    public static void main(String... args) {
-        System.out.println(new SearchError(ErrorCode.COLLECTION_NOT_FOUND, "test").getMessage());
-        System.out.println(new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "cn cannot be empty.").getMessage());
-    }
-
 }

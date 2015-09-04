@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.fastcatsearch.error.CoreErrorCode;
+import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.ir.settings.ReferencableFieldSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +58,7 @@ public abstract class SelectableIndexesReader<T extends ReferenceableReader, S e
 
                     if (readers[k] == null) {
 //				        logger.error("색인된 필드를 찾지못함.>>{}", fieldId);
-                        throw new IOException("Field index is not exist '"+fieldId+"'");
+                        throw new SearchError(CoreErrorCode.INDEX_NOT_EXIST, fieldId);
                     }
 
                 }

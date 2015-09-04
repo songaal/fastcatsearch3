@@ -11,6 +11,8 @@
 
 package org.fastcatsearch.job;
 
+import org.fastcatsearch.error.SearchError;
+import org.fastcatsearch.error.ServerErrorCode;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.query.Metadata;
@@ -59,45 +61,41 @@ public class DocumentListJob extends Job {
 		Metadata meta = q.getMeta();
 //		String collection = meta.collectionName();
 //		logger.debug("collection = "+collection);
-		try {
-			Result result = null;
-			boolean noCache = false;
-			//no cache 옵션이 없으면 캐시를 확인한다.
+        Result result = null;
+        boolean noCache = false;
+        //no cache 옵션이 없으면 캐시를 확인한다.
 //			if((q.getMeta().option() & Query.SEARCH_OPT_NOCACHE) > 0)
 //				noCache = true;
-			IRService irService = ServiceManager.getInstance().getService(IRService.class);
+        IRService irService = ServiceManager.getInstance().getService(IRService.class);
 //			logger.debug("NoCache => "+noCache+" ,option = "+q.getMeta().option()+", "+(q.getMeta().option() & Query.SEARCH_OPT_NOCACHE));
-			String cacheKey = collection+":"+start+":"+rows;
-			if(!noCache){
-				result = irService.documentCache().get(cacheKey);
-			}
-			
-			//Not Exist in Cache
-			if(result == null){
-				CollectionHandler collectionHandler = irService.collectionHandler(collection);
-				
-				if(collectionHandler == null){
-					throw new FastcatSearchException("ERR-00520", collection);
-				}
-				
-				
-				//FIXME
+        String cacheKey = collection+":"+start+":"+rows;
+        if(!noCache){
+            result = irService.documentCache().get(cacheKey);
+        }
+
+        //Not Exist in Cache
+        if(result == null){
+            CollectionHandler collectionHandler = irService.collectionHandler(collection);
+
+            if(collectionHandler == null){
+                throw new SearchError(ServerErrorCode.COLLECTION_NOT_FOUND, collection);
+            }
+
+
+            //FIXME
 //				result = collectionHandler.searcher().listDocument(collection, start, rows);
-				
-				if(!noCache){
-					irService.documentCache().put(cacheKey, result);
-				}
-			}
+
+            if(!noCache){
+                irService.documentCache().put(cacheKey, result);
+            }
+        }
 //			long st = System.currentTimeMillis();
+
+
+
+        return new JobResult(result);
 			
 
-			
-			return new JobResult(result);
-			
-		} catch(Exception e){
-			throw new FastcatSearchException("ERR-00553", e, collection);
-		}
-		
 	}
 
 }

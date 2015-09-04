@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.List;
 
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.error.SearchError;
+import org.fastcatsearch.error.ServerErrorCode;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.document.Document;
@@ -37,24 +39,22 @@ public class InternalDocumentRequestJob extends Job implements Streamable {
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
 		
-		try {
-			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
-			
-			if(collectionHandler == null){
-				throw new FastcatSearchException("ERR-00520", collectionId);
-			}
-			
-			List<Document> documentList = collectionHandler.searcher().requestDocument(docIdList);
-			
-			return new JobResult(new StreamableDocumentList(documentList));
-		} catch (FastcatSearchException e){
-			throw e;
-		} catch(Exception e){
-//			EventDBLogger.error(EventDBLogger.CATE_SEARCH, "검색에러..", EventDBLogger.getStackTrace(e));
-			throw new FastcatSearchException("ERR-00550", e, collectionId);
-		}
-		
+        IRService irService = ServiceManager.getInstance().getService(IRService.class);
+        CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
+
+        if(collectionHandler == null){
+            throw new SearchError(ServerErrorCode.COLLECTION_NOT_FOUND, collectionId);
+        }
+
+        List<Document> documentList = null;
+        try {
+            documentList = collectionHandler.searcher().requestDocument(docIdList);
+        } catch (IOException e) {
+            throw new FastcatSearchException(e);
+        }
+
+        return new JobResult(new StreamableDocumentList(documentList));
+
 	}
 	@Override
 	public void readFrom(DataInput input) throws IOException {

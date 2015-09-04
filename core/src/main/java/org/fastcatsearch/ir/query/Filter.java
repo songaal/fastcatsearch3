@@ -149,17 +149,21 @@ public class Filter {
 	public String toString() {
         String str = fieldIndexId + ":" + function + ":";
 		if (endParamList != null) {
-			for (int i = 0; i < paramList.length; i++) {
-				str += (paramList[i] + "~" + endParamList[i]);
-				if (i < paramList.length - 1)
-					str += ";";
-			}
+            if(paramList != null) {
+                for (int i = 0; i < paramList.length; i++) {
+                    str += (paramList[i] + "~" + endParamList[i]);
+                    if (i < paramList.length - 1)
+                        str += ";";
+                }
+            }
 		} else {
-			for (int i = 0; i < paramList.length; i++) {
-				str += paramList[i];
-				if (i < paramList.length - 1)
-					str += ";";
-			}
+            if(paramList != null) {
+                for (int i = 0; i < paramList.length; i++) {
+                    str += paramList[i];
+                    if (i < paramList.length - 1)
+                        str += ";";
+                }
+            }
 		}
 		return str + ":" + boostScore;
 	}

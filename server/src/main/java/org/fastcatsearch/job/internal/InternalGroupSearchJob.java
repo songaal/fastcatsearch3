@@ -3,10 +3,12 @@ package org.fastcatsearch.job.internal;
 import java.io.IOException;
 
 import org.fastcatsearch.common.io.Streamable;
-import org.fastcatsearch.error.ErrorCode;
 import org.fastcatsearch.error.SearchError;
+import org.fastcatsearch.error.ServerErrorCode;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
@@ -35,32 +37,26 @@ public class InternalGroupSearchJob extends Job implements Streamable {
 //		Metadata meta = q.getMeta();
 		String collectionId = queryMap.collectionId();
 		
-		try {
-			GroupsData result = null;
-			
-			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-			
-			
-			//Not Exist in Cache
-			if(result == null){
-				CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
-				if(collectionHandler == null){
-					throw new FastcatSearchException("ERR-00520", collectionId);
-				}
-				
-				result = collectionHandler.searcher().doGrouping(q);
-			}
-			
-			return new JobResult(new StreamableGroupsData(result));
-			
-		} catch (FastcatSearchException e){
-			throw e;
-		} catch(Exception e){
-			logger.error("", e);
-//			EventDBLogger.error(EventDBLogger.CATE_SEARCH, "검색에러..", EventDBLogger.getStackTrace(e));
-			throw new FastcatSearchException("ERR-00551", e, collectionId);
-		}
-		
+        GroupsData result = null;
+
+        IRService irService = ServiceManager.getInstance().getService(IRService.class);
+
+
+        //Not Exist in Cache
+        if(result == null){
+            CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
+            if(collectionHandler == null){
+                throw new SearchError(ServerErrorCode.COLLECTION_NOT_FOUND, collectionId);
+            }
+
+            try {
+                result = collectionHandler.searcher().doGrouping(q);
+            } catch (Throwable e) {
+                throw new SearchError(ServerErrorCode.SERVER_SEARCH_ERROR, e.getMessage());
+            }
+        }
+
+        return new JobResult(new StreamableGroupsData(result));
 	}
 	
 	@Override

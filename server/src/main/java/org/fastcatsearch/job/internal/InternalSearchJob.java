@@ -1,12 +1,12 @@
 package org.fastcatsearch.job.internal;
 
 import java.io.IOException;
-import java.util.List;
 
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.error.SearchError;
+import org.fastcatsearch.error.ServerErrorCode;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.query.InternalSearchResult;
@@ -63,7 +63,7 @@ public class InternalSearchJob extends Job implements Streamable {
 			if(result == null){
 				CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
 				if(collectionHandler == null){
-					throw new FastcatSearchException("ERR-00520", collectionId);
+                    throw new SearchError(ServerErrorCode.COLLECTION_NOT_FOUND, collectionId);
 				}
 				Query boostQuery = q.getBoostQuery();
 				PkScoreList pkScoreList = null;
@@ -90,14 +90,13 @@ public class InternalSearchJob extends Job implements Streamable {
 			}
 
 			return new JobResult(new StreamableInternalSearchResult(result));
-			
-		} catch (FastcatSearchException e){
-			throw e;
+
+        } catch (SearchError e){
+            throw e;
 		} catch(Exception e){
-			logger.error("", e);
-			throw new FastcatSearchException("ERR-00552", e, collectionId);
+			throw new FastcatSearchException(e);
 		}
-		
+
 	}
 	@Override
 	public void readFrom(DataInput input) throws IOException {

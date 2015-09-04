@@ -14,7 +14,7 @@ public class Bundle {
 	
 	@Override
 	public String toString(){
-		return fieldIndexId + ":" + rows + ";" + sorts.toString();
+		return fieldIndexId + ":" + rows + ";" + (sorts != null ? sorts.toString() : "");
 	}
 
 	public Sorts getSorts() {

@@ -3,7 +3,7 @@ package org.fastcatsearch.job.search;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.ResultFuture;
-import org.fastcatsearch.error.ErrorCode;
+import org.fastcatsearch.error.ServerErrorCode;
 import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
@@ -61,7 +61,7 @@ public class ClusterSearchJob extends Job {
 			collectionId = meta.collectionId();
 			if(collectionId == null) {
 //				return new JobResult(new QueryParseException("cn cannot be empty."));
-				throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "cn cannot be empty.");
+				throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "cn cannot be empty.");
 			}
 			searchKeyword = meta.getUserData("KEYWORD");
 			// no cache 옵션이 없으면 캐시를 확인한다.
@@ -101,8 +101,7 @@ public class ClusterSearchJob extends Job {
 			for (int i = 0; i < collectionIdList.length; i++) {
 				String id = collectionIdList[i];
 				if(irService.collectionHandler(id) == null) {
-					throw new SearchError(ErrorCode.COLLECTION_NOT_FOUND, id);
-//					throw new FastcatSearchException("Collection Not Found: " + id);
+					throw new SearchError(ServerErrorCode.COLLECTION_NOT_FOUND, id);
 				}
 				collectionNumberMap.put(id, i);
 
@@ -120,23 +119,25 @@ public class ClusterSearchJob extends Job {
 				// collectionId가 하나이상이면 머징을 해야한다.
 				InternalSearchJob job = new InternalSearchJob(newQueryMap, forMerging);
 				resultFutureList[i] = nodeService.sendRequest(dataNode, job);
+                // 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
+                if (resultFutureList[i] == null) {
+                    throw new SearchError(ServerErrorCode.DATA_NODE_CONNECTION_ERROR, dataNode.toString() );
+                }
 			}
 
 			List<InternalSearchResult> resultList = new ArrayList<InternalSearchResult>(collectionIdList.length);
 			HighlightInfo highlightInfo = null;
 
 			for (int i = 0; i < collectionIdList.length; i++) {
-				// TODO 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
-				if (resultFutureList[i] == null) {
-					throw new FastcatSearchException("요청메시지 전송불가에러.");
-				}
 				Object obj = resultFutureList[i].take();
 				if (!resultFutureList[i].isSuccess()) {
-					if (obj instanceof Throwable) {
-						throw new FastcatSearchException("검색수행중 에러발생.", (Throwable) obj);
-					} else {
-						throw new FastcatSearchException("검색수행중 에러발생.");
-					}
+                    if (obj instanceof SearchError) {
+                        throw (SearchError) obj;
+                    } else if (obj instanceof Throwable) {
+                        throw new FastcatSearchException((Throwable) obj);
+                    } else {
+                        throw new FastcatSearchException("Error while searching.", obj);
+                    }
 				}
 
 				StreamableInternalSearchResult obj2 = (StreamableInternalSearchResult) obj;
@@ -223,6 +224,9 @@ public class ClusterSearchJob extends Job {
 
 				InternalDocumentSearchJob job = new InternalDocumentSearchJob(cid, docIdList[i], views, tags, highlightInfo);
 				resultFutureList[i] = nodeService.sendRequest(dataNode, job);
+                if (resultFutureList[i] == null) {
+                    throw new SearchError(ServerErrorCode.DATA_NODE_CONNECTION_ERROR, dataNode.toString() );
+                }
 			}
 
 			// document 결과를 받는다.
@@ -230,18 +234,15 @@ public class ClusterSearchJob extends Job {
 
 			for (int i = 0; i < collectionIdList.length; i++) {
 				String cid = collectionIdList[i];
-				// 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
-				if (resultFutureList[i] == null) {
-					throw new FastcatSearchException("요청메시지 전송불가에러.");
-				}
-
 				Object obj = resultFutureList[i].take();
 				if (!resultFutureList[i].isSuccess()) {
-					if (obj instanceof Throwable) {
-						throw new FastcatSearchException("검색수행중 에러발생.", (Throwable) obj);
-					} else {
-						throw new FastcatSearchException("검색수행중 에러발생.");
-					}
+                    if (obj instanceof SearchError) {
+                        throw (SearchError) obj;
+                    } else if (obj instanceof Throwable) {
+                        throw new FastcatSearchException((Throwable) obj);
+                    } else {
+                        throw new FastcatSearchException("Error while searching.", obj);
+                    }
 				}
 
 				StreamableDocumentResult obj2 = (StreamableDocumentResult) obj;

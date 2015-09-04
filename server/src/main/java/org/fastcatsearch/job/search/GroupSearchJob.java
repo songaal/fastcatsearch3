@@ -11,10 +11,15 @@
 
 package org.fastcatsearch.job.search;
 
+import java.io.IOException;
 import java.util.Map;
 
+import org.fastcatsearch.error.SearchError;
+import org.fastcatsearch.error.ServerErrorCode;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.query.Groups;
@@ -44,7 +49,6 @@ public class GroupSearchJob extends Job {
 			keyword = userData.get("keyword");
 		
 		String collection = meta.collectionId();
-		try {
 			GroupResults groupResults = null;
 			boolean noCache = false;
 			//no cache 옵션이 없으면 캐시를 확인한다.
@@ -60,11 +64,16 @@ public class GroupSearchJob extends Job {
 				CollectionHandler collectionHandler = irService.collectionHandler(collection);
 				
 				if(collectionHandler == null){
-					throw new FastcatSearchException("ERR-00520", collection);
+                    throw new SearchError(ServerErrorCode.COLLECTION_NOT_FOUND, collection);
 				}
-				
-				GroupsData groupData = collectionHandler.searcher().doGrouping(q);
-				Groups groups =q.getGroups();
+
+                GroupsData groupData = null;
+                try {
+                    groupData = collectionHandler.searcher().doGrouping(q);
+                } catch (Throwable t) {
+                    throw new SearchError(ServerErrorCode.SERVER_SEARCH_ERROR, t.getMessage());
+                }
+                Groups groups =q.getGroups();
 				groupResults = groups.getGroupResultsGenerator().generate(groupData);
 				if(groupResults != null){
 					irService.groupingCache().put(queryMap.queryString(), groupResults);
@@ -79,11 +88,7 @@ public class GroupSearchJob extends Job {
 			
 			return new JobResult(groupResults);
 			
-		} catch(Exception e){
-//			EventDBLogger.error(EventDBLogger.CATE_SEARCH, "검색에러..", EventDBLogger.getStackTrace(e));
-			throw new FastcatSearchException("ERR-00555", e, collection);
-		}
-		
+
 	}
 
 }

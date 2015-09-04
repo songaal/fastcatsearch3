@@ -16,7 +16,7 @@
 
 package org.fastcatsearch.query;
 
-import org.fastcatsearch.error.ErrorCode;
+import org.fastcatsearch.error.ServerErrorCode;
 import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.ir.group.GroupFunction;
 import org.fastcatsearch.ir.group.function.CountGroupFunction;
@@ -114,20 +114,23 @@ public class QueryParser {
 		} else if (Query.EL.ht == el) {
 			Metadata m1 = query.getMeta();
 			String tags[] = value.split(COLON_SEPARATOR);
+            if(tags.length != 2) {
+                throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Highlighting tag must contains start and end tag with colon. : " + value);
+            }
 			removeEscape(tags);
 			m1.setTags(tags);
 		} else if (Query.EL.sn == el) {
 			Metadata m2 = query.getMeta();
 			int sn = Integer.parseInt(value);
 			if (sn < 1) {
-                throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "Start number has to be greater than 0.");
+                throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Start number has to be greater than 0.");
             }
 			m2.setStart(sn);
 		} else if (Query.EL.ln == el) {
 			Metadata m3 = query.getMeta();
 			int len = Integer.parseInt(value);
 			if (len < 1)
-                throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "Length has to be greater than 0.");
+                throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Length has to be greater than 0.");
 			m3.setRows(len);
 		} else if (Query.EL.so == el) {
 			Metadata m4 = query.getMeta();
@@ -181,8 +184,7 @@ public class QueryParser {
 				String[] items = list[k].split(COLON_SEPARATOR);
 				if (items.length < 2) {
 					// 정보부족 에러.
-					logger.error("그룹핑 조건 정보부족 => " + list[k]);
-					continue;
+                    throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Grouping syntax is invalid : " + list[k]);
 				}
 
 				String field = items[0].trim();
@@ -229,12 +231,12 @@ public class QueryParser {
 							groupFunction = DynamicClassLoader.loadObject(className, GroupFunction.class, new Class<?>[] { int.class, String.class },
 									new Object[] { sortOrder, param });
 						} catch (Exception e) {
-                            throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "Cannot construct group function class '"+ className +"'.");
+                            throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Cannot construct group function class '"+ className +"'.");
 						}
 					}
 					groupFunctions[j] = groupFunction;
 					if(groupFunction == null) {
-                        throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "Unknown group function '"+ functionName +"'.");
+                        throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Unknown group function '"+ functionName +"'.");
 					}
 				}
 
@@ -262,14 +264,23 @@ public class QueryParser {
 		} else if (Query.EL.qm == el) {
 			Metadata m = query.getMeta();
 			QueryModifier queryModifier = (QueryModifier) DynamicClassLoader.loadObject(value);
+            if(queryModifier == null) {
+                throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Cannot find query modifier '"+ value +"'.");
+            }
 			m.setQueryModifier(queryModifier);
 		} else if (Query.EL.rm == el) {
 			Metadata m = query.getMeta();
 			ResultModifier resultModifier = (ResultModifier) DynamicClassLoader.loadObject(value);
+            if(resultModifier == null) {
+                throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Cannot find result modifier '"+ value +"'.");
+            }
 			m.setResultModifier(resultModifier);
 		} else if (Query.EL.sp == el) {
 			Metadata m = query.getMeta();
 			StoredProcedure sp = (StoredProcedure) DynamicClassLoader.loadObject(value);
+            if(sp == null) {
+                throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Cannot find stored procedure '"+ value +"'.");
+            }
 			m.setStoredProcedure(sp);
 		} else if (Query.EL.bd == el) {
 			String[] list = value.split(SEMICOLON_SEPARATOR);
@@ -393,7 +404,7 @@ public class QueryParser {
             int pos = findMatchBrace(value, 1);
 
             if (pos < 0) {
-                throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "Close brace not found : " + value);
+                throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Close brace not found : " + value);
             }
             // logger.debug("pos={}, value={}",pos, value);
             Object operand1 = makeClause(value.substring(1, pos));
@@ -428,7 +439,7 @@ public class QueryParser {
                 if(operand2 instanceof Clause) {
                     Clause innerClause = (Clause)operand2;
                     if(innerClause.operator() == Clause.Operator.NOT && innerClause.operand1() == null) {
-                        throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "BOOST-uni NOT is not supported : " + value);
+                        throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "BOOST-uni NOT is not supported : " + value);
                     }
                 }
                 return new Clause(operand1, Clause.Operator.BOOST, operand2);
@@ -492,7 +503,7 @@ public class QueryParser {
         String[] list = value.split(COLON_SEPARATOR);
         int[] proximity = new int[1];
         if (list.length == 1) {
-            throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "Search field must contain field id and keyword : " + value);
+            throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Search field must contain field id and keyword : " + value);
 
         } else if (list.length == 2) {
             // field:term
@@ -513,7 +524,7 @@ public class QueryParser {
             Term.Type type = getType(list[1], term, proximity);
             return new Term(fieldList, removeEscape(term[0]), Integer.parseInt(list[2]), type, new Option(Integer.parseInt(list[3]))).withProximity(proximity[0]);
         } else {
-            throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "Search field has too many options. Check search keyword escape colon symbol. : " + value);
+            throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Search field has too many options. Check search keyword escape colon symbol. : " + value);
         }
 
 	}
@@ -530,12 +541,12 @@ public class QueryParser {
                         String proximityStr = str.substring(p + 2);
                         proximityStr = proximityStr.trim();
                         if(proximity.length == 0){
-                            throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "Proximity cannot be empty.");
+                            throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Proximity cannot be empty.");
                         }
                         try {
                             proximity[0] = Integer.parseInt(proximityStr);
                         } catch (NumberFormatException e) {
-                            throw new SearchError(ErrorCode.QUERY_SYNTAX_ERROR, "Proximity is not an integer number : " + proximityStr);
+                            throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Proximity is not an integer number : " + proximityStr);
                         }
                     }
                     term[0] = str.substring(4, p);
@@ -572,9 +583,8 @@ public class QueryParser {
 		for (int k = 0; k < list.length; k++) {
 			String[] str = list[k].split(COLON_SEPARATOR);
 			if (str.length <= 1) {
-				logger.error("Filter grammar error. >> {}", value);
-				return f;
-			} 
+				throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Filter syntax is invalid : " + value);
+			}
 //				else if (str.length <= 2) {
 //				logger.error("Filter param string is empty. >> {}", value);
 //				return f;
@@ -663,7 +673,7 @@ public class QueryParser {
                 Filter filter = new Filter(fieldList, Filter.GEO_RADIUS_BOOST, functionParamList, parameterList, boostScore);
                 f.add(filter);
 			} else {
-				logger.error("Unknown Filter method = {}", function);
+                throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Filter method '" + function + "' is unknown.");
 
 			}
 
