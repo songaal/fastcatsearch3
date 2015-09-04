@@ -55,9 +55,8 @@ public class LoginAction extends ServiceAction {
 				isCorrectPassword = userInfo.isEqualsEncryptedPassword(password);
 			}
 
-			if (isCorrectPassword) {
-
-				Map<ActionAuthority, ActionAuthorityLevel> authorityMap = new HashMap<ActionAuthority, ActionAuthorityLevel>();
+            Map<ActionAuthority, ActionAuthorityLevel> authorityMap = new HashMap<ActionAuthority, ActionAuthorityLevel>();
+            if (isCorrectPassword) {
 				try {
 
 					// db에서 내 그룹의 권한을 가져와서 authorityMap에 채워준다.
@@ -80,6 +79,11 @@ public class LoginAction extends ServiceAction {
 			if (isCorrectPassword) {
 				resultWriter.key("status").value("0");
 				resultWriter.key("name").value(userInfo.name);
+                resultWriter.key("authority").object();
+                for(Map.Entry<ActionAuthority, ActionAuthorityLevel> entry : authorityMap.entrySet()) {
+                    resultWriter.key(entry.getKey().name().toLowerCase()).value(entry.getValue().name());
+                }
+                resultWriter.endObject();
 			} else {
 				// 로그인 실패.
 				resultWriter.key("status").value("1");
