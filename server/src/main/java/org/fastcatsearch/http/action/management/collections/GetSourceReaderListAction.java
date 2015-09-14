@@ -55,7 +55,9 @@ public class GetSourceReaderListAction extends AuthAction {
 					responseWriter.endArray().endObject();
 				} catch (NoSuchMethodException e) {
 					logger.warn("no constructor : {}", sourceReader);
-				}
+				} catch (Throwable t) {
+                    logger.error("error while create source reader " + sourceReader.getName(), t);
+                }
 			}
 		}
 		responseWriter.endArray().endObject();
