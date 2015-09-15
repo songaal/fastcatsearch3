@@ -306,7 +306,9 @@ public class CollectionSearcher {
 		Sorts bundleSorts = bundle.getSorts();
 		int bundleRows = bundle.getRows();
 		int bundleStart = 1;
-		
+        int bundleOption = bundle.getOption();
+        boolean isParentInclude = ( bundleOption == Bundle.OPT_PARENT_INCLUDE );
+
 		FieldSetting bundleFieldSetting = schema.getFieldSetting(bundle.getFieldIndexId());
 		Type bundleFieldType = bundleFieldSetting.getType();
 		
@@ -361,7 +363,8 @@ public class CollectionSearcher {
 
                         //mainDocNo 와 동일한 문서는 제외한다.
                         //group 문서들에서 그룹대표 문서와 동일한 것은 보여주지 않는다.
-						if(el.docNo() != mainDocNo) {
+                        //단, 대표문서를 포함옵션이 있다면 추가한다.
+						if(isParentInclude || el.docNo() != mainDocNo) {
                             if (c >= bundleStart) {
                                 bundleDocIdList.add(el.segmentSequence(), el.docNo());
                                 n++;
