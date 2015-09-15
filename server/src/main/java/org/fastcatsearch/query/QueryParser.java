@@ -296,7 +296,19 @@ public class QueryParser {
 				}
 				b.setRows(bundleRows);
 			}
-			
+
+            if(list1.length > 2) {
+                int option = Bundle.OPT_PARENT_INCLUDE; //대표포함.
+                try{
+                    option = Integer.parseInt(list1[2].trim());
+                }catch(NumberFormatException e) {
+                    //ignore
+                }
+                b.setOption(option);
+            } else {
+                b.setOption(Bundle.OPT_PARENT_INCLUDE);
+            }
+
 			if(list.length > 1) {
 				Sorts s = new Sorts();
 				String[] sortList = list[1].split(COMMA_SEPARATOR);
@@ -309,7 +321,7 @@ public class QueryParser {
 						s.add(new Sort(sortList[k]));
 					}
 
-				}
+                }
 				b.setSorts(s);
 			}
 			query.setBundle(b);
