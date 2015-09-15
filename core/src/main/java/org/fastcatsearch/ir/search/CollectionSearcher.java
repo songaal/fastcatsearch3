@@ -385,7 +385,11 @@ public class CollectionSearcher {
 						}
 						hitMerger.heapify();
 					}
-					
+
+                    //대표가 포함되지 않으면, 갯수를 줄인다.
+                    if(!isParentInclude) {
+                        totalSize--;
+                    }
 					hitElementList[k].setBundleDocIdList(bundleDocIdList);
                     hitElementList[k].setTotalBundleSize(totalSize);
 				}
