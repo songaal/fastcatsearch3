@@ -47,6 +47,7 @@ public abstract class FilterFunction {
 	public FilterFunction(Filter filter, FieldIndexSetting fieldIndexSetting, FieldSetting fieldSetting, boolean isBoostFunction) throws FilterException{
         Object fieldIdObject = filter.fieldIndexId();
         if(fieldIdObject instanceof String) {
+            fieldIndexIdList = new String[] { (String) fieldIdObject };
             fieldIndexId = (String) fieldIdObject;
 			isMultiField = false;
         } else if(fieldIdObject instanceof String[]) {
