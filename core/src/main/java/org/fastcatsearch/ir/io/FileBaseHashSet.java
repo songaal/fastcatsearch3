@@ -22,7 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.Arrays;
 
 /**
@@ -33,6 +35,8 @@ public class FileBaseHashSet {
 	private static final Logger logger = LoggerFactory.getLogger(FileBaseHashSet.class);
 
 	private static final HashFunctions hfunc = HashFunctions.RSHash;
+
+    private File f;
 
 	private int[] bucket;
 	private char[] keyArray;
@@ -45,14 +49,41 @@ public class FileBaseHashSet {
 	private int keyArrayLength;
 	private int keyUseLength;
 
-	public File file;
+    private RandomAccessFile raf;
 
-	public FileBaseHashSet(int bucketSize){
-		init(bucketSize);
+    private long countOffset;
+    private long keyPosOffset;
+    private long nextOffset;
+    private long bucketOffset;
+    private long keyArrayOffset;
+
+    /**
+     * 기존파일 오픈
+     * */
+    public FileBaseHashSet(File f) throws FileNotFoundException {
+        raf = new RandomAccessFile(f, "rw");
+        load();
+    }
+
+    /**
+     * 새로 생성
+     * */
+	public FileBaseHashSet(File f, int bucketSize){
+        if(f.exists()) {
+            f.delete();
+        }
+
+        try {
+            f.createNewFile();
+            raf = new RandomAccessFile(f, "rw");
+        } catch (IOException e) {
+            logger.error("", e);
+        }
+        init(bucketSize);
 	}
 
-    public void init(int size){
-        bucketSize = size;
+    public void init(int bucketSize){
+        this.bucketSize = bucketSize;
         length = bucketSize;
         count = 0;
         keyArrayLength = bucketSize * 5;
@@ -66,42 +97,46 @@ public class FileBaseHashSet {
         Arrays.fill(bucket, -1);
     }
 
-	public FileBaseHashSet(File file) throws IRException{
-		this.file = file;
-		try {
-			long st = System.currentTimeMillis();
-			
-			IndexInput input = new BufferedFileInput(file);
-			bucketSize = input.readInt();
-			count = input.readInt();
-			keyUseLength = input.readInt();
-			
-			bucket = new int[bucketSize];
-			keyArray = new char[keyUseLength];
-			keyPos = new int[count];
-			nextIdx = new int[count];
-			
-			for (int i = 0; i < bucketSize; i++) {
-				bucket[i] = input.readInt();
-			}
-			for (int i = 0; i < keyUseLength; i++) {
-				keyArray[i] = input.readUChar();
-			}
-			for (int i = 0; i < count; i++) {
-				keyPos[i] = input.readInt();
-			}
-			for (int i = 0; i < count; i++) {
-				nextIdx[i] = input.readInt();
-			}
-			input.close();
-			
-			logger.info("Load dictionary done! {}, entry = {}, time = {}ms", new Object[]{file.getAbsolutePath(), count, (System.currentTimeMillis() - st)});
-		} catch (IOException e) {
-			logger.error("IOException",e);
-			throw new IRException(e);
-		}
-		
-	}
+    public void load() {
+
+    }
+
+//	public FileBaseHashSet(File file) throws IRException{
+//		this.file = file;
+//		try {
+//			long st = System.currentTimeMillis();
+//
+//			IndexInput input = new BufferedFileInput(file);
+//			bucketSize = input.readInt();
+//			count = input.readInt();
+//			keyUseLength = input.readInt();
+//
+//			bucket = new int[bucketSize];
+//			keyArray = new char[keyUseLength];
+//			keyPos = new int[count];
+//			nextIdx = new int[count];
+//
+//			for (int i = 0; i < bucketSize; i++) {
+//				bucket[i] = input.readInt();
+//			}
+//			for (int i = 0; i < keyUseLength; i++) {
+//				keyArray[i] = input.readUChar();
+//			}
+//			for (int i = 0; i < count; i++) {
+//				keyPos[i] = input.readInt();
+//			}
+//			for (int i = 0; i < count; i++) {
+//				nextIdx[i] = input.readInt();
+//			}
+//			input.close();
+//
+//			logger.info("Load dictionary done! {}, entry = {}, time = {}ms", new Object[]{file.getAbsolutePath(), count, (System.currentTimeMillis() - st)});
+//		} catch (IOException e) {
+//			logger.error("IOException",e);
+//			throw new IRException(e);
+//		}
+//
+//	}
 	
 	public void save(File file) throws IRException{
 		try {
