@@ -61,8 +61,8 @@ public class MappedFileBaseByteHashSetTest {
 
     @Test
     public void testRandom() {
-        int LIMIT = 1000000;
-        int bucketSize = 10000;
+        int LIMIT = 10000000;
+        int bucketSize = 10000000;
 //        int LIMIT = 100000;
 //        int bucketSize = 10000;
         File f = new File("/tmp/random.set");
@@ -80,8 +80,8 @@ public class MappedFileBaseByteHashSetTest {
 
     @Test
     public void testRandomMemory() {
-//        int LIMIT = 1000000;
-        int LIMIT = 100000;
+        int LIMIT = 10000000;
+//        int LIMIT = 100000;
         HashSet<BytesRef> set = new HashSet();
         int keySize = 32;
         long st = System.nanoTime();

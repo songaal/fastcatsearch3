@@ -95,7 +95,7 @@ public class MappedFileBaseByteHashSet {
         segmentWidth = (NEXT_WIDTH + KEYPOS_WIDTH + keyByteSize) * segmentEntrySize;
         logger.debug("segment off[{}] width[{}]", segmentOffset, segmentWidth);
         this.index = index;
-        this.limit = bucketSize;////;(index / segmentEntrySize + 1) * segmentEntrySize; //엔트리 제한 갯수. 이 수치를 넘어서면 파일길이를 늘린다.
+        this.limit = bucketSize;
     }
 
     public int getNextOffset(int segment, int index) {
@@ -119,7 +119,7 @@ public class MappedFileBaseByteHashSet {
 
     private void spanFileToSegment(int segment) {
         try {
-            int expectedLength = segmentOffset + (segment + 1) * segmentWidth;//HEADER_LENGTH + bucketLength + (segment + 1) * segmentWidth;
+            int expectedLength = segmentOffset + (segment + 1) * segmentWidth;
             logger.debug("## span file seg[{}] len[{}]", segment, expectedLength);
             raf.setLength(expectedLength);
             chan = raf.getChannel();
@@ -131,15 +131,15 @@ public class MappedFileBaseByteHashSet {
 
     private int newKeyPos(int id) throws IOException {
         int segment = id / segmentEntrySize;
-        int offset = getKeyPosOffset(segment, id);//keyPosOffset + segment * segmentEntrySize + id * KEYPOS_WIDTH;
-        int keyOffset = getKeyArrayOffset(segment, id);//keyArrayOffset + id * keyByteSize;
+        int offset = getKeyPosOffset(segment, id);
+        int keyOffset = getKeyArrayOffset(segment, id);
         buf.position(offset);
         buf.putInt(keyOffset);
         return keyOffset;
     }
     private int readKeyPos(int id) throws IOException {
         int segment = id / segmentEntrySize;
-        int offset = getKeyPosOffset(segment, id);//keyPosOffset + segment * segmentEntrySize + id * KEYPOS_WIDTH;
+        int offset = getKeyPosOffset(segment, id);
         buf.position(offset);
         return buf.getInt();
     }
@@ -153,22 +153,22 @@ public class MappedFileBaseByteHashSet {
         for (int i = 0; i < keyByteSize; i++) {
             byte b = buf.get();
             logger.debug("comp {}:{}", key.get(i), b);
-            if (key.get(i) != b)
-//            if (term.charAt(i) != raf.readChar())
+            if (key.get(i) != b) {
                 return false;
+            }
         }
         return true;
 	}
 
     private int readNextIndex(int id) throws IOException {
         int segment = id / segmentEntrySize;
-        int offset = getNextOffset(segment, id);//nextOffset + segment * segmentEntrySize + id * NEXT_WIDTH;
+        int offset = getNextOffset(segment, id);
         buf.position(offset);
         return buf.getInt();
     }
     private void writeNextIndex(int id, int nextId) throws IOException {
         int segment = id / segmentEntrySize;
-        int offset = getNextOffset(segment, id);//nextOffset + segment * segmentEntrySize + id * NEXT_WIDTH;
+        int offset = getNextOffset(segment, id);
         buf.position(offset);
         buf.putInt(nextId);
     }
@@ -185,9 +185,6 @@ public class MappedFileBaseByteHashSet {
     }
 
 	public boolean add(BytesRef key) {
-//        if(key.length() > keyByteSize) {
-//            key = key.substring(0, keyByteSize);
-//        }
         try {
             int hashValue = (Math.abs(key.hashCode()) % (bucketSize - 1)) + 1; //0을 피한다.
 
