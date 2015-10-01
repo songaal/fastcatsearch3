@@ -24,7 +24,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
-import java.nio.channels.Channel;
 import java.nio.channels.FileChannel;
 
 /**
@@ -32,10 +31,8 @@ import java.nio.channels.FileChannel;
  * key는 고정길이 String이다.
  *
  * */
-public class MappedFileBaseHashSet {
-	private static final Logger logger = LoggerFactory.getLogger(MappedFileBaseHashSet.class);
-
-	private static final HashFunctions hfunc = HashFunctions.RSHash;
+public class MappedFileBaseCharHashSet {
+	private static final Logger logger = LoggerFactory.getLogger(MappedFileBaseCharHashSet.class);
 
     private File f;
 
@@ -62,7 +59,7 @@ public class MappedFileBaseHashSet {
     private int segmentWidth;
     private int limit;
 
-	public MappedFileBaseHashSet(File f, int bucketSize, int keySize){
+	public MappedFileBaseCharHashSet(File f, int bucketSize, int keySize){
         this.f = f;
         if(f.exists()) {
             f.delete();

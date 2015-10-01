@@ -10,12 +10,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.Random;
-import java.util.UUID;
 
 /**
  * Created by swsong on 2015. 9. 24..
  */
-public class MappedFileBaseHashSetTest {
+public class MappedFileBaseCharHashSetTest {
 
     private Random random = new Random(System.currentTimeMillis());
 
@@ -30,7 +29,7 @@ public class MappedFileBaseHashSetTest {
         File f = new File("/tmp/a");
         int bucketSize = 10;
         int keySize = 3;
-        MappedFileBaseHashSet set = new MappedFileBaseHashSet(f, bucketSize, keySize);
+        MappedFileBaseCharHashSet set = new MappedFileBaseCharHashSet(f, bucketSize, keySize);
 
         insertEntry(set, "AAA");
         insertEntry(set, "AAA");
@@ -42,7 +41,7 @@ public class MappedFileBaseHashSetTest {
         insertEntry(set, "CCC");
     }
 
-    private void insertEntry(MappedFileBaseHashSet set, String value) {
+    private void insertEntry(MappedFileBaseCharHashSet set, String value) {
         boolean r = set.add(value);
         if(r) {
             System.out.println("OK: " + value);
@@ -59,7 +58,7 @@ public class MappedFileBaseHashSetTest {
 //        int bucketSize = 10000;
         File f = new File("/tmp/random.set");
         int keySize = 36;
-        MappedFileBaseHashSet set = new MappedFileBaseHashSet(f, bucketSize, keySize);
+        MappedFileBaseCharHashSet set = new MappedFileBaseCharHashSet(f, bucketSize, keySize);
         long st = System.nanoTime();
         for (int i = 0; i < LIMIT; i++) {
             String key = generateString(keySize);
@@ -113,7 +112,7 @@ public class MappedFileBaseHashSetTest {
         File f = new File("/tmp/2.set");
         int bucketSize = 5;
         int keySize = 1;
-        MappedFileBaseHashSet set = new MappedFileBaseHashSet(f, bucketSize, keySize);
+        MappedFileBaseCharHashSet set = new MappedFileBaseCharHashSet(f, bucketSize, keySize);
         insertEntry(set, "a");
         insertEntry(set, "b");
         insertEntry(set, "c");
