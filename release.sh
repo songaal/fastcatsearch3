@@ -2,7 +2,7 @@
 
 mvn clean
 
-mvn release:prepare
+mvn release:prepare || exit
 
 cd target
 
@@ -12,4 +12,4 @@ tar czvf "$name".tar.gz "$name"/
 
 cd .. 
 
-mvn deploy && mvn release:clean
+mvn release:clean
