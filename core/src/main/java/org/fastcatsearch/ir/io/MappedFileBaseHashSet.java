@@ -123,7 +123,7 @@ public class MappedFileBaseHashSet {
 
     private void spanFileToSegment(int segment) {
         try {
-            long expectedLength = segmentOffset + (segment + 1) * segmentWidth;//HEADER_LENGTH + bucketLength + (segment + 1) * segmentWidth;
+            int expectedLength = segmentOffset + (segment + 1) * segmentWidth;//HEADER_LENGTH + bucketLength + (segment + 1) * segmentWidth;
             logger.debug("## span file seg[{}] len[{}]", segment, expectedLength);
             raf.setLength(expectedLength);
             chan = raf.getChannel();
@@ -138,7 +138,7 @@ public class MappedFileBaseHashSet {
         int offset = getKeyPosOffset(segment, id);//keyPosOffset + segment * segmentEntrySize + id * KEYPOS_WIDTH;
         int keyOffset = getKeyArrayOffset(segment, id);//keyArrayOffset + id * keyByteSize;
         buf.position(offset);
-        buf.putLong(keyOffset);
+        buf.putInt(keyOffset);
         return keyOffset;
     }
     private int readKeyPos(int id) throws IOException {
@@ -149,14 +149,14 @@ public class MappedFileBaseHashSet {
     }
 	private boolean isTheSame(String term, int id) throws IOException {
 		int pos = readKeyPos(id);
-//        logger.debug("isTheSame {}=={} at {}", term, id, pos);
+        logger.debug("isTheSame {}=={} at {}", term, id, pos);
         if(pos <= 0) {
             return false;
         }
         buf.position(pos);
         for (int i = 0; i < keyCharSize; i++) {
             char ch = buf.getChar();
-//            logger.debug("comp {}:{}", term.charAt(i), ch);
+            logger.debug("comp {}:{}", term.charAt(i), ch);
             if (term.charAt(i) != ch)
 //            if (term.charAt(i) != raf.readChar())
                 return false;
@@ -188,7 +188,7 @@ public class MappedFileBaseHashSet {
         buf.putInt(id);
     }
 
-	public boolean put(String key) {
+	public boolean add(String key) {
         if(key.length() > keyCharSize) {
             key = key.substring(0, keyCharSize);
         }

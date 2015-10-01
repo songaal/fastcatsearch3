@@ -32,39 +32,48 @@ public class MappedFileBaseHashSetTest {
         int keySize = 3;
         MappedFileBaseHashSet set = new MappedFileBaseHashSet(f, bucketSize, keySize);
 
-        set.put("AAA");
-        set.put("AAA");
-        set.put("BBB");
-        set.put("AAA");
-        set.put("BBB");
-        set.put("BBB");
-        set.put("CCC");
-        set.put("CCC");
+        insertEntry(set, "AAA");
+        insertEntry(set, "AAA");
+        insertEntry(set, "BBB");
+        insertEntry(set, "AAA");
+        insertEntry(set, "BBB");
+        insertEntry(set, "BBB");
+        insertEntry(set, "CCC");
+        insertEntry(set, "CCC");
+    }
+
+    private void insertEntry(MappedFileBaseHashSet set, String value) {
+        boolean r = set.add(value);
+        if(r) {
+            System.out.println("OK: " + value);
+        } else {
+            System.out.println("FAIL: " + value);
+        }
     }
 
     @Test
     public void testRandom() {
-//        int LIMIT = 3000000;
-//        int bucketSize = 1000000;
-        int LIMIT = 100000;
-        int bucketSize = 10000;
+        int LIMIT = 3000000;
+        int bucketSize = 1000000;
+//        int LIMIT = 100000;
+//        int bucketSize = 10000;
         File f = new File("/tmp/random.set");
         int keySize = 36;
         MappedFileBaseHashSet set = new MappedFileBaseHashSet(f, bucketSize, keySize);
         long st = System.nanoTime();
         for (int i = 0; i < LIMIT; i++) {
             String key = generateString(keySize);
-            set.put(key);
+            set.add(key);
         }
         System.out.println("File Time : " + (System.nanoTime() - st) / 1000 / 1000 / 1000.0 + "s");
-        System.out.println("File Size : " + f.length() /1024 / 1024 +" MB");
+        System.out.println("File Size : " + f.length() / 1024 / 1024 + " MB");
         set.clean();
     }
 
     @Test
     public void testRandomMemory() {
-//        int LIMIT = 3000000;
-        int LIMIT = 100000;
+        int LIMIT = 3000000;
+//        int LIMIT = 100000;
         HashSet<String> set = new HashSet();
         int keySize = 36;
         long st = System.nanoTime();
@@ -73,20 +82,27 @@ public class MappedFileBaseHashSetTest {
             set.add(key);
         }
         System.out.println("Memory Time : " + (System.nanoTime() - st) / 1000 / 1000 / 1000.0 + "s");
+        long mem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        System.out.println("Memory Size : " + mem / 1024 / 1024 + " MB");
     }
 
-    private String makeString() {
-        //size는 36. ex) 2d515f46-c9b5-4c05-b019-8dfb19e62f85
-        String key = UUID.randomUUID().toString();
-        return key;
+    @Test
+    public void testGenerateString() {
+        int LIMIT = 3000000;
+//        int LIMIT = 100000;
+        int keySize = 36;
+        long st = System.nanoTime();
+        for (int i = 0; i < LIMIT; i++) {
+            String key = generateString(keySize);
+        }
+        System.out.println("Gen String Time : " + (System.nanoTime() - st) / 1000 / 1000 / 1000.0 + "s");
     }
 
     String characters = "qwertyuiopasdfghjklzxcvbnm1234567890";
-    public String generateString(int length)
-    {
+
+    public String generateString(int length) {
         char[] text = new char[length];
-        for (int i = 0; i < length; i++)
-        {
+        for (int i = 0; i < length; i++) {
             text[i] = characters.charAt(random.nextInt(characters.length()));
         }
         return new String(text);
@@ -98,20 +114,19 @@ public class MappedFileBaseHashSetTest {
         int bucketSize = 5;
         int keySize = 1;
         MappedFileBaseHashSet set = new MappedFileBaseHashSet(f, bucketSize, keySize);
-        System.out.println("size1 : " + f.length());
-        set.put("a");
-        set.put("b");
-        set.put("c");
-        set.put("d");
-        set.put("d");
-        set.put("e");
-        set.put("f");
-        set.put("g");
-        set.put("h");
-        set.put("h");
-        set.put("i");
-        set.put("b");
-        set.put("a");
+        insertEntry(set, "a");
+        insertEntry(set, "b");
+        insertEntry(set, "c");
+        insertEntry(set, "d");
+        insertEntry(set, "d");
+        insertEntry(set, "e");
+        insertEntry(set, "f");
+        insertEntry(set, "g");
+        insertEntry(set, "h");
+        insertEntry(set, "h");
+        insertEntry(set, "i");
+        insertEntry(set, "b");
+        insertEntry(set, "a");
         System.out.println("size2 : " + f.length());
     }
 }
