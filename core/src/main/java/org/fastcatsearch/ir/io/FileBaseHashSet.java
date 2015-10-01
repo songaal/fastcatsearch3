@@ -36,28 +36,25 @@ public class FileBaseHashSet {
 
     private File f;
 
-	private int bucketSize;
-	private int count;
-
     private RandomAccessFile raf;
+    private long segmentOffset;
 
-    private long bucketSizeOffset = 0L;
-    private long keySizeOffset = 4L;
-    private long countOffset = 8L;
-    private long bucketOffset = 12L;
-    private long nextOffset;
-    private long keyPosOffset;
-    private long keyArrayOffset;
-
+    private int index;
+    private int bucketSize;
     private static final long HEADER_LENGTH = 12L;
-    private static int KEY_WIDTH;
+    private static final long bucketOffset = 12L;
     private static final int BUCKET_WIDTH = 4;
     private static final int NEXT_WIDTH = 4;
     private static final int KEYPOS_WIDTH = 8;
 
-    private int SEGMENT_ENTRY_SIZE;
-    private int BUCKET_LENGTH;
-    private int SEGMENT_WIDTH;
+    private int nextLength;
+    private int keyPosLength;
+
+    private int keyCharSize;
+    private int keyByteSize;
+    private int segmentEntrySize;
+    private int bucketLength;
+    private int segmentWidth;
     private int limit;
 
     /**
@@ -85,12 +82,12 @@ public class FileBaseHashSet {
             f.createNewFile();
             raf = new RandomAccessFile(f, "rw");
 
-            int count = 0;
-            init(bucketSize, keySize, count);
+            int index = 1;
+            init(bucketSize, keySize, index);
             raf.seek(0);
             raf.writeInt(bucketSize);
             raf.writeInt(keySize);
-            raf.writeInt(count);
+            raf.writeInt(index);
             spanFileToSegment(0);
 
             raf.seek(12);
@@ -102,23 +99,47 @@ public class FileBaseHashSet {
         }
 	}
 
-    public void init(int bucketSize, int keySize, int count){
+    public void init(int bucketSize, int keyCharSize, int index){
         this.bucketSize = bucketSize;
-        SEGMENT_ENTRY_SIZE = bucketSize;
-        KEY_WIDTH = keySize;
-        nextOffset = bucketOffset + BUCKET_WIDTH * SEGMENT_ENTRY_SIZE;
-        keyPosOffset = nextOffset + NEXT_WIDTH * SEGMENT_ENTRY_SIZE;
-        keyArrayOffset = keyPosOffset + KEYPOS_WIDTH * SEGMENT_ENTRY_SIZE;
+        segmentEntrySize = bucketSize;
 
-        BUCKET_LENGTH = BUCKET_WIDTH * SEGMENT_ENTRY_SIZE;
-        SEGMENT_WIDTH = (NEXT_WIDTH + KEYPOS_WIDTH + KEY_WIDTH) * SEGMENT_ENTRY_SIZE;
-        this.count = count;
-        this.limit = (count / SEGMENT_ENTRY_SIZE + 1) * SEGMENT_ENTRY_SIZE; //엔트리 제한 갯수. 이 수치를 넘어서면 파일길이를 늘린다.
+        this.keyCharSize = keyCharSize;
+        this.keyByteSize = keyCharSize * 2;
+//        nextOffset = bucketOffset + BUCKET_WIDTH * segmentEntrySize;
+        nextLength = NEXT_WIDTH * segmentEntrySize;
+        keyPosLength = KEYPOS_WIDTH * segmentEntrySize;
+
+        bucketLength = BUCKET_WIDTH * segmentEntrySize;
+        segmentOffset = HEADER_LENGTH + bucketLength;
+        segmentWidth = (NEXT_WIDTH + KEYPOS_WIDTH + keyByteSize) * segmentEntrySize;
+        this.index = index;
+        this.limit = bucketSize;////;(index / segmentEntrySize + 1) * segmentEntrySize; //엔트리 제한 갯수. 이 수치를 넘어서면 파일길이를 늘린다.
+    }
+
+    public long getNextOffset(int segment, int index) {
+        if(segment > 0) {
+            index = index % segmentEntrySize;
+        }
+        return segmentOffset + segment * segmentWidth + index * NEXT_WIDTH;
+    }
+    public long getKeyPosOffset(int segment, int index) {
+        if(segment > 0) {
+            index = index % segmentEntrySize;
+        }
+        return segmentOffset + segment * segmentWidth + nextLength + index * KEYPOS_WIDTH;
+    }
+    public long getKeyArrayOffset(int segment, int index) {
+        if(segment > 0) {
+            index = index % segmentEntrySize;
+        }
+        return segmentOffset + segment * segmentWidth + nextLength + keyPosLength + index * keyByteSize;
     }
 
     private void spanFileToSegment(int segment) {
         try {
-            raf.setLength(HEADER_LENGTH + BUCKET_LENGTH + segment + 1 * SEGMENT_WIDTH);
+            long expectedLength = segmentOffset + (segment + 1) * segmentWidth;//HEADER_LENGTH + bucketLength + (segment + 1) * segmentWidth;
+            logger.info("## span file seg[{}] len[{}]", segment, expectedLength);
+            raf.setLength(expectedLength);
         } catch (IOException e) {
             logger.error("", e);
         }
@@ -159,32 +180,46 @@ public class FileBaseHashSet {
 //		}
 //	}
 
-
+    private long newKeyPos(int id) throws IOException {
+        int segment = id / segmentEntrySize;
+        long offset = getKeyPosOffset(segment, id);//keyPosOffset + segment * segmentEntrySize + id * KEYPOS_WIDTH;
+        long keyOffset = getKeyArrayOffset(segment, id);//keyArrayOffset + id * keyByteSize;
+        raf.seek(offset);
+        raf.writeLong(keyOffset);
+        return keyOffset;
+    }
     private long readKeyPos(int id) throws IOException {
-        int segment = id / SEGMENT_ENTRY_SIZE;
-        long offset = keyPosOffset + segment * SEGMENT_ENTRY_SIZE + id * KEY_WIDTH;
+        int segment = id / segmentEntrySize;
+        long offset = getKeyPosOffset(segment, id);//keyPosOffset + segment * segmentEntrySize + id * KEYPOS_WIDTH;
         raf.seek(offset);
         return raf.readLong();
     }
 	private boolean isTheSame(String term, int id) throws IOException {
 		long pos = readKeyPos(id);
+        logger.debug("isTheSame {}=={} at {}", term, id, pos);
+        if(pos <= 0) {
+            return false;
+        }
         raf.seek(pos);
-        for (int i = 0; i < KEY_WIDTH; i++) {
-            if(term.charAt(i) != raf.readChar())
+        for (int i = 0; i < keyCharSize; i++) {
+            char ch = raf.readChar();
+            logger.debug("comp {}:{}", term.charAt(i), ch);
+            if (term.charAt(i) != ch)
+//            if (term.charAt(i) != raf.readChar())
                 return false;
         }
         return true;
 	}
 
     private int readNextIndex(int id) throws IOException {
-        int segment = id / SEGMENT_ENTRY_SIZE;
-        long offset = nextOffset + segment * SEGMENT_ENTRY_SIZE + id * NEXT_WIDTH;
+        int segment = id / segmentEntrySize;
+        long offset = getNextOffset(segment, id);//nextOffset + segment * segmentEntrySize + id * NEXT_WIDTH;
         raf.seek(offset);
         return raf.readInt();
     }
     private void writeNextIndex(int id, int nextId) throws IOException {
-        int segment = id / SEGMENT_ENTRY_SIZE;
-        long offset = nextOffset + segment * SEGMENT_ENTRY_SIZE + id * NEXT_WIDTH;
+        int segment = id / segmentEntrySize;
+        long offset = getNextOffset(segment, id);//nextOffset + segment * segmentEntrySize + id * NEXT_WIDTH;
         raf.seek(offset);
         raf.writeInt(nextId);
     }
@@ -201,27 +236,33 @@ public class FileBaseHashSet {
     }
 
 	public boolean put(String key) {
+        if(key.length() > keyCharSize) {
+            key = key.substring(0, keyCharSize);
+        }
         try {
-//		    logger.debug("term >> {}", term);
-            int hashValue = (key.hashCode() % (bucketSize - 1)) + 1; //0을 피한다.
+            int hashValue = (Math.abs(key.hashCode()) % (bucketSize - 1)) + 1; //0을 피한다.
 
             int prev = 0;
-            int idx = readBucket(hashValue);
+            int id = readBucket(hashValue);
 
-            while (idx > 0) {
-                if (isTheSame(key, idx)) {
+            logger.debug("------------------");
+            logger.debug("key[{}] hash[{}] bucket[{}]", key, hashValue, id);
+            while (id > 0) {
+                if (isTheSame(key, id)) {
                     //동일 발견시 false리턴.
+                    logger.debug("Dup entry!");
                     return false;
                 }
 
-                prev = idx;
-                idx = readNextIndex(idx);
+                prev = id;
+                id = readNextIndex(id);
             }
-            idx = getNextIdx();
-            logger.debug("NextIdx = {}, key = {}", idx, key);
+            int idx = newIndex();
+            logger.debug("Index[{}] {}", idx, key);
 
-            long offset = readKeyPos(idx);
+            long offset = newKeyPos(idx);
             raf.seek(offset);
+            logger.debug("write {} at {}", key, offset);
             for (int i = 0; i < key.length(); i++) {
                 raf.writeChar(key.charAt(i));
             }
@@ -229,9 +270,11 @@ public class FileBaseHashSet {
             if (prev > 0) {
 //                nextIdx[prev] = idx;
                 writeNextIndex(prev, idx);
+                logger.debug("writeNext prev[{}], id[{}]", prev, idx);
             } else {
 //                bucket[hashValue] = idx;
                 writeBucket(hashValue, idx);
+                logger.debug("writeBucket hash[{}], id[{}]", hashValue, idx);
             }
             return true;
         }catch(Exception e) {
@@ -242,7 +285,7 @@ public class FileBaseHashSet {
 
 	public boolean contains(String key) {
         try {
-            int hashValue = (key.hashCode() % (bucketSize - 1)) + 1; //0을 피한다.
+            int hashValue = (Math.abs(key.hashCode()) % (bucketSize - 1)) + 1; //0을 피한다.
             int idx = readBucket(hashValue);
 
             while(idx > 0){
@@ -259,16 +302,17 @@ public class FileBaseHashSet {
         }
 	}
 
-	private int getNextIdx() {
-        if(count >= limit) {
+	private int newIndex() {
+        logger.debug("# newIndex index[{}] limit[{}]", index, limit);
+        if(index >= limit) {
             spanFileToSegment(limit / bucketSize);
+            limit *= 2;
         }
-		return count++;
+        return index++;
 	}
 
-	//entry count
-	public int count() {
-		return count;
+	public int lastIndex() {
+		return index;
 	}
 
 }
