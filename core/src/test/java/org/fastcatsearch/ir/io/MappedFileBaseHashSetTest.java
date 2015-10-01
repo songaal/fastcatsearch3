@@ -15,7 +15,7 @@ import java.util.UUID;
 /**
  * Created by swsong on 2015. 9. 24..
  */
-public class FileBaseHashSetTest {
+public class MappedFileBaseHashSetTest {
 
     private Random random = new Random(System.currentTimeMillis());
 
@@ -30,7 +30,7 @@ public class FileBaseHashSetTest {
         File f = new File("/tmp/a");
         int bucketSize = 10;
         int keySize = 3;
-        FileBaseHashSet set = new FileBaseHashSet(f, bucketSize, keySize);
+        MappedFileBaseHashSet set = new MappedFileBaseHashSet(f, bucketSize, keySize);
 
         set.put("AAA");
         set.put("AAA");
@@ -44,37 +44,35 @@ public class FileBaseHashSetTest {
 
     @Test
     public void testRandom() {
-        int LIMIT = 1000000;
+//        int LIMIT = 3000000;
+//        int bucketSize = 1000000;
+        int LIMIT = 100000;
+        int bucketSize = 10000;
         File f = new File("/tmp/random.set");
-        int bucketSize = 1000000;
         int keySize = 36;
-        FileBaseHashSet set = new FileBaseHashSet(f, bucketSize, keySize);
-        System.out.println("size1 : " + f.length());
+        MappedFileBaseHashSet set = new MappedFileBaseHashSet(f, bucketSize, keySize);
         long st = System.nanoTime();
         for (int i = 0; i < LIMIT; i++) {
-            String key = makeString();
+            String key = generateString(keySize);
             set.put(key);
-            if(i % 10000 == 0) {
-                System.out.println("count = " + i);
-            }
         }
-        System.out.println((System.nanoTime() - st) / 1000 / 1000 / 1000.0 + "s");
-        System.out.println("size2 : " + f.length());
+        System.out.println("File Time : " + (System.nanoTime() - st) / 1000 / 1000 / 1000.0 + "s");
+        System.out.println("File Size : " + f.length() /1024 / 1024 +" MB");
+        set.clean();
     }
 
     @Test
     public void testRandomMemory() {
-        int LIMIT = 1000000;
+//        int LIMIT = 3000000;
+        int LIMIT = 100000;
         HashSet<String> set = new HashSet();
+        int keySize = 36;
         long st = System.nanoTime();
         for (int i = 0; i < LIMIT; i++) {
-            String key = makeString();
+            String key = generateString(keySize);
             set.add(key);
-            if(i % 10000 == 0) {
-                System.out.println("count = " + i);
-            }
         }
-        System.out.println((System.nanoTime() - st) / 1000 / 1000 / 1000.0 + "s");
+        System.out.println("Memory Time : " + (System.nanoTime() - st) / 1000 / 1000 / 1000.0 + "s");
     }
 
     private String makeString() {
@@ -83,12 +81,23 @@ public class FileBaseHashSetTest {
         return key;
     }
 
+    String characters = "qwertyuiopasdfghjklzxcvbnm1234567890";
+    public String generateString(int length)
+    {
+        char[] text = new char[length];
+        for (int i = 0; i < length; i++)
+        {
+            text[i] = characters.charAt(random.nextInt(characters.length()));
+        }
+        return new String(text);
+    }
+
     @Test
     public void test2() {
         File f = new File("/tmp/2.set");
         int bucketSize = 5;
         int keySize = 1;
-        FileBaseHashSet set = new FileBaseHashSet(f, bucketSize, keySize);
+        MappedFileBaseHashSet set = new MappedFileBaseHashSet(f, bucketSize, keySize);
         System.out.println("size1 : " + f.length());
         set.put("a");
         set.put("b");
