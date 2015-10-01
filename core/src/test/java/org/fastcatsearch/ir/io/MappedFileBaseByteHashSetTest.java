@@ -61,12 +61,12 @@ public class MappedFileBaseByteHashSetTest {
 
     @Test
     public void testRandom() {
-        int LIMIT = 3000000;
-        int bucketSize = 1000000;
+        int LIMIT = 1000000;
+        int bucketSize = 10000;
 //        int LIMIT = 100000;
 //        int bucketSize = 10000;
         File f = new File("/tmp/random.set");
-        int keySize = 36;
+        int keySize = 32;
         MappedFileBaseByteHashSet set = new MappedFileBaseByteHashSet(f, bucketSize, keySize);
         long st = System.nanoTime();
         for (int i = 0; i < LIMIT; i++) {
@@ -80,10 +80,10 @@ public class MappedFileBaseByteHashSetTest {
 
     @Test
     public void testRandomMemory() {
-        int LIMIT = 3000000;
-//        int LIMIT = 100000;
+//        int LIMIT = 1000000;
+        int LIMIT = 100000;
         HashSet<BytesRef> set = new HashSet();
-        int keySize = 36;
+        int keySize = 32;
         long st = System.nanoTime();
         for (int i = 0; i < LIMIT; i++) {
             BytesRef key = generateString(keySize);
@@ -96,9 +96,9 @@ public class MappedFileBaseByteHashSetTest {
 
     @Test
     public void testGenerateString() {
-        int LIMIT = 3000000;
+        int LIMIT = 1000000;
 //        int LIMIT = 100000;
-        int keySize = 36;
+        int keySize = 32;
         long st = System.nanoTime();
         for (int i = 0; i < LIMIT; i++) {
             BytesRef key = generateString(keySize);
