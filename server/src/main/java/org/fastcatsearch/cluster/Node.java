@@ -6,6 +6,7 @@ import java.net.InetSocketAddress;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
+import org.fastcatsearch.settings.NodeListSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +17,7 @@ public class Node implements Streamable {
 	private String nodeId;
 	private String name;
 	private InetSocketAddress socketAddress;
+	private InetSocketAddress dataSocketAddress;
 
 	private transient boolean isEnabled;
 	private transient boolean isActive;
@@ -41,6 +43,16 @@ public class Node implements Streamable {
 		this.name = name;
 		this.isEnabled = isEnabled;
 		socketAddress = new InetSocketAddress(address, port);
+	}
+
+	public Node(NodeListSettings.NodeSettings settings) {
+		this.nodeId = settings.getId();
+		this.name = settings.getName();
+		this.isEnabled = settings.isEnabled();
+		this.socketAddress = new InetSocketAddress(settings.getAddress(), settings.getPort());
+		if(settings.getDataAddress() != null) {
+			this.dataSocketAddress = new InetSocketAddress(settings.getDataAddress(), settings.getPort());
+		}
 	}
 
 	public String toString() {
@@ -100,6 +112,10 @@ public class Node implements Streamable {
 		return socketAddress;
 	}
 
+	public InetSocketAddress dataAddress() {
+		return dataSocketAddress;
+	}
+
 	public int port() {
 		return socketAddress.getPort();
 	}
@@ -125,6 +141,10 @@ public class Node implements Streamable {
 		String hostName = in.readString().intern();
 		int port = in.readInt();
 		socketAddress = new InetSocketAddress(hostName, port);
+		if(in.readBoolean()) {
+			String dataHostAddress = in.readString();
+			dataSocketAddress = new InetSocketAddress(dataHostAddress, port);
+		}
 	}
 
 	@Override
@@ -133,6 +153,12 @@ public class Node implements Streamable {
 		out.writeString(name);
 		out.writeString(socketAddress.getHostName());
 		out.writeInt(socketAddress.getPort());
+		if(dataSocketAddress == null) {
+			out.writeBoolean(false);
+		} else {
+			out.writeBoolean(true);
+			out.writeString(dataSocketAddress.getHostName());
+		}
 	}
 
 	@Override
