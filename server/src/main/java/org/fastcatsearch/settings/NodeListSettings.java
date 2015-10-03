@@ -37,8 +37,10 @@ public class NodeListSettings {
 		private String name;
 		private String address;
 		private int port;
+		private String dataAddress;
+		private int dataPort;
 		private boolean enabled;
-		
+
 		@XmlAttribute
 		public String getId() {
 			return id;
@@ -67,6 +69,23 @@ public class NodeListSettings {
 		public void setPort(int port) {
 			this.port = port;
 		}
+
+		@XmlAttribute(required = false)
+		public String getDataAddress() {
+			return dataAddress;
+		}
+		public void setDataAddress(String dataAddress) {
+			this.dataAddress = dataAddress;
+		}
+		@XmlAttribute(required = false)
+		public int getDataPort() {
+			return dataPort;
+		}
+		public void setDataPort(int dataPort) {
+			this.dataPort = dataPort;
+		}
+
+
 		@XmlAttribute
 		public boolean isEnabled() {
 			return enabled;
@@ -74,7 +93,7 @@ public class NodeListSettings {
 		public void setEnabled(boolean enabled) {
 			this.enabled = enabled;
 		}
-		
-		
+
+
 	}
 }
