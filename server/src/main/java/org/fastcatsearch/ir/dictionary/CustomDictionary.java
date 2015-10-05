@@ -37,6 +37,7 @@ public class CustomDictionary extends SourceDictionary {
 	}
 	public CustomDictionary(File file, boolean ignoreCase) {
 		super(ignoreCase);
+        wordSet = new CharVectorHashSet(ignoreCase);
 		if (!file.exists()) {
 			map = new HashMap<CharVector, Object[]>();
 			logger.error("사전파일이 존재하지 않습니다. file={}", file.getAbsolutePath());
