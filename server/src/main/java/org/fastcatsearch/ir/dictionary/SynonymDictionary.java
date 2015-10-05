@@ -54,6 +54,14 @@ public class SynonymDictionary extends MapDictionary {
 		return Collections.unmodifiableSet(wordSet);
 	}
 
+    private CharVector[] duplicateCharList(CharVector[] arr){
+        if(arr != null) {
+            CharVector[] list = new CharVector[arr.length];
+            System.arraycopy(arr, 0, list, 0, arr.length);
+            return list;
+        }
+        return null;
+    }
 	// key가 null일수 있다. 양방향의 경우.
 	@Override
 	public void addEntry(String keyword, Object[] values, List<ColumnSetting> columnSettingList) {
@@ -105,16 +113,25 @@ public class SynonymDictionary extends MapDictionary {
 					value = Arrays.copyOf(value, idx);
 				}
 
-                //공백제거 키를 만든다.
 				if (value.length > 0) {
-                    key = key.duplicate().removeWhitespaces();
                     CharVector[] value2 = map.get(key);
 					if (value2 != null) {
-						// 이전값과 머징.
-						value = mergeSynonyms(value2, value);
+                        // 이전값과 머징.
+                        value2 = duplicateCharList(value2);
+                        value = mergeSynonyms(value2, value);
 					}
-					
 					map.put(key, value);
+                    //공백을 제거한 key도 하나더 만든다.
+                    if(key.hasWhitespaces()) {
+                        key = key.duplicate().removeWhitespaces();
+                        value2 = map.get(key);
+                        if (value2 != null) {
+                            // 이전값과 머징.
+                            value2 = duplicateCharList(value2);
+                            value = mergeSynonyms(value2, value);
+                        }
+                        map.put(key, value);
+                    }
 					//logger.debug("유사어 양방향 {} >> {}", key, join(value));
 				}
 			}
@@ -137,14 +154,19 @@ public class SynonymDictionary extends MapDictionary {
 				CharVector[] value2 = map.get(mainWord);
 				if (value2 != null) {
 					// 이전값과 머징.
+                    value2 = duplicateCharList(value2);
 					value = mergeSynonyms(value2, value);
 				}
 
                 //
                 //입력시 키워드는 공백제거.
                 //
-				map.put(mainWord.removeWhitespaces(), value);
-				//logger.debug("유사어 단방향 {} >> {}", mainWord, join(value));
+                map.put(mainWord, value);
+                //공백이 포함되어 있다면, 제거한 단어도 함께 넣어준다.
+                if(mainWord.hasWhitespaces()) {
+                    map.put(mainWord.duplicate().removeWhitespaces(), value);
+                }
+                //logger.debug("유사어 단방향 {} >> {}", mainWord, join(value));
 			}
 		}
 	}
