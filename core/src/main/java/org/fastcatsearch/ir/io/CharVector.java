@@ -298,6 +298,16 @@ public class CharVector implements ElementVector, CharSequence, Comparable<CharS
         return this;
     }
 
+    public boolean hasWhitespaces() {
+        for(int i = 0; i < length; i++) {
+            if(array[start + i] == ' ') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 	public char[] array() {
 		return array;
 	}
