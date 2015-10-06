@@ -93,7 +93,7 @@ public class MappedFileBaseByteHashSet {
         bucketLength = BUCKET_WIDTH * segmentEntrySize;
         segmentOffset = HEADER_LENGTH + bucketLength;
         segmentWidth = (NEXT_WIDTH + KEYPOS_WIDTH + keyByteSize) * segmentEntrySize;
-        logger.debug("segment off[{}] width[{}]", segmentOffset, segmentWidth);
+        logger.trace("segment off[{}] width[{}]", segmentOffset, segmentWidth);
         this.index = index;
         this.limit = bucketSize;
     }
@@ -120,7 +120,7 @@ public class MappedFileBaseByteHashSet {
     private void spanFileToSegment(int segment) {
         try {
             int expectedLength = segmentOffset + (segment + 1) * segmentWidth;
-            logger.debug("## span file seg[{}] len[{}]", segment, expectedLength);
+            logger.trace("## span file seg[{}] len[{}]", segment, expectedLength);
             raf.setLength(expectedLength);
             chan = raf.getChannel();
             buf = chan.map(FileChannel.MapMode.READ_WRITE, 0, expectedLength);
@@ -145,14 +145,14 @@ public class MappedFileBaseByteHashSet {
     }
 	private boolean isTheSame(BytesRef key, int id) throws IOException {
 		int pos = readKeyPos(id);
-        logger.debug("isTheSame {}=={} at {}", key, id, pos);
+        logger.trace("isTheSame {}=={} at {}", key, id, pos);
         if(pos <= 0) {
             return false;
         }
         buf.position(pos);
         for (int i = 0; i < keyByteSize; i++) {
             byte b = buf.get();
-            logger.debug("comp {}:{}", key.get(i), b);
+            logger.trace("comp {}:{}", key.get(i), b);
             if (key.get(i) != b) {
                 return false;
             }
@@ -191,12 +191,12 @@ public class MappedFileBaseByteHashSet {
             int prev = 0;
             int id = readBucket(hashValue);
 
-            logger.debug("------------------");
-            logger.debug("key[{}] hash[{}] bucket[{}]", key, hashValue, id);
+            logger.trace("------------------");
+            logger.trace("key[{}] hash[{}] bucket[{}]", key, hashValue, id);
             while (id > 0) {
                 if (isTheSame(key, id)) {
                     //동일 발견시 false리턴.
-                    logger.debug("Dup entry!");
+                    logger.trace("Dup entry!");
                     return false;
                 }
 
@@ -204,11 +204,11 @@ public class MappedFileBaseByteHashSet {
                 id = readNextIndex(id);
             }
             int idx = newIndex();
-            logger.debug("Index[{}] {}", idx, key);
+            logger.trace("Index[{}] {}", idx, key);
 
             int offset = newKeyPos(idx);
             buf.position(offset);
-            logger.debug("write {} at {}", key, offset);
+            logger.trace("write {} at {}", key, offset);
             for (int i = 0; i < key.length(); i++) {
                 buf.put(key.get(i));
 
@@ -216,10 +216,10 @@ public class MappedFileBaseByteHashSet {
 
             if (prev > 0) {
                 writeNextIndex(prev, idx);
-                logger.debug("writeNext prev[{}], id[{}]", prev, idx);
+                logger.trace("writeNext prev[{}], id[{}]", prev, idx);
             } else {
                 writeBucket(hashValue, idx);
-                logger.debug("writeBucket hash[{}], id[{}]", hashValue, idx);
+                logger.trace("writeBucket hash[{}], id[{}]", hashValue, idx);
             }
             return true;
         }catch(Exception e) {
@@ -229,7 +229,7 @@ public class MappedFileBaseByteHashSet {
 	}
 
 	private int newIndex() {
-        logger.debug("# newIndex index[{}] limit[{}]", index, limit);
+        logger.trace("# newIndex index[{}] limit[{}]", index, limit);
         if(index >= limit) {
             spanFileToSegment(limit / bucketSize);
             limit += segmentEntrySize;
