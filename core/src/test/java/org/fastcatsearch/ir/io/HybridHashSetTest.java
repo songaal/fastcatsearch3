@@ -130,6 +130,6 @@ public class HybridHashSetTest {
         File f = new File("/tmp");
 //        int bucketSize = 10000000;
         int limit = 100;
-        return new HybridHashSet(limit, f, bucketSize, keySize);
+        return new HybridHashSet(limit, bucketSize, keySize);
     }
 }
