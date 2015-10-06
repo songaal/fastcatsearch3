@@ -23,19 +23,19 @@ public class HybridHashSet {
 
     //이 수치를 넘어가면 파일베이스로 변경된다.
     private int itemInMemoryLimit;
-    private File setFileDir;
+//    private File setFileDir;
     private int bucketSize;
     private int keySize;
     private int count;
     private boolean isFileBase;
 
-    public HybridHashSet(int itemInMemoryLimit, File setFileDir, int bucketSize, int keySize) {
+    public HybridHashSet(int itemInMemoryLimit /*, File setFileDir*/, int bucketSize, int keySize) {
         memorySet = new HashSet<BytesRef>();
         this.itemInMemoryLimit = itemInMemoryLimit;
         if(itemInMemoryLimit < 1) {
             throw new RuntimeException("Limit size must be greater than 0");
         }
-        this.setFileDir = setFileDir;
+//        this.setFileDir = setFileDir;
         this.bucketSize = bucketSize;
         this.keySize = keySize;
     }
@@ -43,11 +43,11 @@ public class HybridHashSet {
     private MappedFileBaseByteHashSet fileBaseSet() {
         if(fileBaseSet == null) {
             try {
-                if(!setFileDir.exists()) {
-                    setFileDir.mkdirs();
-                }
-                File tempFile =  File.createTempFile(filePrefix, fileSuffix, setFileDir);
-                logger.info("create file hash tempFile > {}", tempFile);
+//                if(!setFileDir.exists()) {
+//                    setFileDir.mkdirs();
+//                }
+                File tempFile =  File.createTempFile(filePrefix, fileSuffix);
+                logger.debug("create file hash tempFile > {}", tempFile);
                 fileBaseSet =  new MappedFileBaseByteHashSet(tempFile, bucketSize, keySize);
             } catch (IOException e) {
                 logger.error("error while create temp set file.", e);

@@ -69,7 +69,16 @@ public class Environment {
 		if(myNodeId.equals(masterNodeId)){
 			isMasterNode = true;
 		}
-		
+
+        //
+        int bundleHashBucket = settingManager().getSystemSettings().getInt("bundleHashBucket", -1);
+        int bundleMemMaxCount = settingManager().getSystemSettings().getInt("bundleMemMaxCount", -1);
+        if(bundleHashBucket > 0) {
+            System.setProperty("bundleHashBucket", String.valueOf(bundleHashBucket));
+        }
+        if(bundleMemMaxCount > 0) {
+            System.setProperty("bundleMemMaxCount", String.valueOf(bundleMemMaxCount));
+        }
 		logger.info("[ID] me[{}] master[{}] servicePort[{}]", myNodeId, masterNodeId, servicePort);
 		return this;
 	}

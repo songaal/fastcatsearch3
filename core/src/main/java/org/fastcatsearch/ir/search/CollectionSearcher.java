@@ -44,10 +44,23 @@ public class CollectionSearcher {
 
 	private HighlightAndSummary has;
 
+    private int bundleMemMaxCountLimit = 10 * 10000;
+    private int bundleHashBucketSize = 100 * 10000;
+
 	public CollectionSearcher(CollectionHandler collectionHandler) {
 		this.collectionId = collectionHandler.collectionId();
 		this.collectionHandler = collectionHandler;
 		has = new BasicHighlightAndSummary();
+
+        //묶음검색 파일기반 해시셋 설정값.
+        String bundleMemMaxCount = System.getProperty("bundleMemMaxCount");
+        String bundleHashBucket = System.getProperty("bundleHashBucket");
+        if(bundleMemMaxCount != null) {
+            bundleMemMaxCountLimit = Integer.parseInt(bundleMemMaxCount);
+        }
+        if(bundleHashBucket != null) {
+            bundleHashBucketSize = Integer.parseInt(bundleHashBucket);
+        }
 	}
 
 	public GroupsData doGrouping(Query q) throws Exception {
@@ -191,11 +204,8 @@ public class CollectionSearcher {
         // 32byte의 key를 HashSet에 넣었을때 100만개에 100MB, 1000만개에 1G 정도 메모리 소요.
         // 대부분 100만개 이하일 것이므로, 메모리에서 수행하도록 한다.
 //		Set<BytesRef> bundleKeySet = new HashSet<BytesRef>();
-        File hashFileDir = new File("/tmp");
-        int limit = 100000;
-        int bucketSize = 1000000;
         int keySize = 0;
-        HybridHashSet bundleKeySet = new HybridHashSet(limit, hashFileDir, bucketSize, keySize);
+        HybridHashSet bundleKeySet = new HybridHashSet(bundleMemMaxCountLimit, bundleHashBucketSize, keySize);
 		List<Explanation> explanationList = null;
 		BitSet[] segmentDocHitSetList = null;
 		try {
@@ -216,15 +226,14 @@ public class CollectionSearcher {
 				HitElement e = null;
 				while ((e = hitReader.next()) != null) {
 					if (e.getBundleKey() != null) {
-						segmentDocHitSetList[i].set(e.docNo());
-						if(bundleKeySet.add(e.getBundleKey())) {
-							totalSize++;
-						}
                         if(keySize == 0) {
                             keySize = e.getBundleKey().length();
                             bundleKeySet.setKeySize(keySize);
                         }
-
+						segmentDocHitSetList[i].set(e.docNo());
+						if(bundleKeySet.add(e.getBundleKey())) {
+							totalSize++;
+						}
 					} else {
 						totalSize++;
 					}
