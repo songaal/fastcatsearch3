@@ -262,7 +262,11 @@ public class CollectionSearcher {
             throw new IRException(e);
 		} catch (ClauseException e) {
 			throw new IRException(e);
-		}
+		} finally {
+            if(bundleKeySet != null) {
+                bundleKeySet.clean();
+            }
+        }
 
 
 		int rankerSize = ranker.size();
