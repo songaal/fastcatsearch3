@@ -38,14 +38,14 @@ public class HybridHashSet {
         this.setFileDir = setFileDir;
         this.bucketSize = bucketSize;
         this.keySize = keySize;
-        if(!setFileDir.exists()) {
-            setFileDir.mkdirs();
-        }
     }
 
     private MappedFileBaseByteHashSet fileBaseSet() {
         if(fileBaseSet == null) {
             try {
+                if(!setFileDir.exists()) {
+                    setFileDir.mkdirs();
+                }
                 File tempFile =  File.createTempFile(filePrefix, fileSuffix, setFileDir);
                 logger.info("create file hash tempFile > {}", tempFile);
                 fileBaseSet =  new MappedFileBaseByteHashSet(tempFile, bucketSize, keySize);

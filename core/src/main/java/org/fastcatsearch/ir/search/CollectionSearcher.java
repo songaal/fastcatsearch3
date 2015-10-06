@@ -211,8 +211,6 @@ public class CollectionSearcher {
 					highlightInfo = hitReader.highlightInfo();
 				}
 
-//				GroupsData groupData = hitReader.groupData();
-				
 				segmentDocHitSetList[i] = new BitSet();
 				// posting data
 				HitElement e = null;
