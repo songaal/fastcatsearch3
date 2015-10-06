@@ -29,6 +29,7 @@ import org.fastcatsearch.ir.util.Formatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -189,7 +190,12 @@ public class CollectionSearcher {
         // 묶음검색에서는 전체 문서갯수가 아닌 묶음의 갯수가 총 결과갯수가 되므로, 그룹중복을 제거하여 계산해주어야 한다.
         // 32byte의 key를 HashSet에 넣었을때 100만개에 100MB, 1000만개에 1G 정도 메모리 소요.
         // 대부분 100만개 이하일 것이므로, 메모리에서 수행하도록 한다.
-		Set<BytesRef> bundleKeySet = new HashSet<BytesRef>();
+//		Set<BytesRef> bundleKeySet = new HashSet<BytesRef>();
+        File hashFileDir = new File("/tmp");
+        int limit = 100000;
+        int bucketSize = 1000000;
+        int keySize = 0;
+        HybridHashSet bundleKeySet = new HybridHashSet(limit, hashFileDir, bucketSize, keySize);
 		List<Explanation> explanationList = null;
 		BitSet[] segmentDocHitSetList = null;
 		try {
@@ -216,6 +222,11 @@ public class CollectionSearcher {
 						if(bundleKeySet.add(e.getBundleKey())) {
 							totalSize++;
 						}
+                        if(keySize == 0) {
+                            keySize = e.getBundleKey().length();
+                            bundleKeySet.setKeySize(keySize);
+                        }
+
 					} else {
 						totalSize++;
 					}
