@@ -45,7 +45,7 @@ public class HTMLTagRemover {
 			htmlStr = htmlStr.replaceAll("&#39;", "'");
 			htmlStr = ptnChrSpecial.matcher(htmlStr).replaceAll(" ");
 			htmlStr = ptnChrSpecial2.matcher(htmlStr).replaceAll(" ");
-			htmlStr = ptnSpaces.matcher(htmlStr).replaceAll("");
+			htmlStr = ptnSpaces.matcher(htmlStr).replaceAll(" ");
 			htmlStr = ptnMultiLine1.matcher(htmlStr).replaceAll("");
 			htmlStr = ptnMultiLine2.matcher(htmlStr).replaceAll("\n");
 			return htmlStr;

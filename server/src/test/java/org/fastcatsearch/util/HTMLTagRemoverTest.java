@@ -91,7 +91,19 @@ public class HTMLTagRemoverTest extends TestCase {
 			e.printStackTrace();
 		}
 	}
-	
+
+    @Test
+    public void test4() {
+        String str = "abc4.0  qwe 3.0 tyu 9.0 \n123   \n\n456\n789";
+
+        try {
+            str = HTMLTagRemover.clean(str);
+            System.out.println(str);
+        } catch (IRException e) {
+            e.printStackTrace();
+        }
+    }
+
 	@Test
 	public void testfile() throws Exception {
 		String strFilePath="/Users/swsong/Desktop/a.html";
