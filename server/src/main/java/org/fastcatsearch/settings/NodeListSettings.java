@@ -36,7 +36,7 @@ public class NodeListSettings {
 		private String id;
 		private String name;
 		private String address;
-		private int port;
+		private Integer port;
 		private String dataAddress;
 		private boolean enabled;
 
@@ -65,7 +65,7 @@ public class NodeListSettings {
 		public Integer getPort() {
 			return port;
 		}
-		public void setPort(int port) {
+		public void setPort(Integer port) {
 			this.port = port;
 		}
 

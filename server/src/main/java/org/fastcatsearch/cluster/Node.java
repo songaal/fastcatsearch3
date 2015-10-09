@@ -50,13 +50,15 @@ public class Node implements Streamable {
 		this.name = settings.getName();
 		this.isEnabled = settings.isEnabled();
 		this.socketAddress = new InetSocketAddress(settings.getAddress(), settings.getPort());
+        logger.debug("#####SOCKETADDRESS > {}:{}", settings.getAddress(), settings.getPort());
 		if(settings.getDataAddress() != null) {
 			this.dataSocketAddress = new InetSocketAddress(settings.getDataAddress(), settings.getPort());
+            logger.debug("#####DATA_SOCKETADDRESS > {}:{}", settings.getDataAddress(), settings.getPort());
 		}
 	}
 
 	public String toString() {
-		return name + " (" + nodeId + "/" + socketAddress.getHostName() + "/" + socketAddress.getPort() + ")";
+		return name + " (" + nodeId + "/" + socketAddress.getHostName() + (dataSocketAddress != null? "," + dataSocketAddress.getHostName() : "") + "/" + socketAddress.getPort() + ")";
 	}
 
 	public String status() {

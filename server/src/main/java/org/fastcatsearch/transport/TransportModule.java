@@ -98,6 +98,9 @@ public class TransportModule extends AbstractModule {
 	//색인 데이터 전송시 별도 대역폭의 네트워크를 생성하는지 여부.
 	private boolean hasSeparateDataNetwork;
 
+    public TransportModule(Environment environment, Settings settings, int port, JobExecutor jobExecutor){
+        this(environment, settings, port, jobExecutor, false);
+    }
 	public TransportModule(Environment environment, Settings settings, int port, JobExecutor jobExecutor, boolean hasSeparateDataNetwork){
 		super(environment, settings);
 		this.port = port;
@@ -502,7 +505,7 @@ public class TransportModule extends AbstractModule {
 		byte type = 0;
 		type = TransportOption.setTypeFile(type);
 		byte status = 0;
-		logger.debug("sendFileRequest type={}, {} >> {}", new Object[]{type, sourcefile.getAbsolutePath(), targetFile.getPath()});
+		logger.debug("sendFileRequest {} type={}, {} >> {}", targetChannel.getLocalAddress(), type, sourcefile.getAbsolutePath(), targetFile.getPath());
         FileChunkEnumeration enumeration = null;
         try{
         	if(!sourcefile.exists()){
