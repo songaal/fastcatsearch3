@@ -58,7 +58,7 @@ public class Node implements Streamable {
 	}
 
 	public String toString() {
-		return name + " (" + nodeId + "/" + socketAddress.getHostName() + (dataSocketAddress != null? "," + dataSocketAddress.getHostName() : "") + "/" + socketAddress.getPort() + ")";
+		return name + " (" + nodeId + "/" + socketAddress.getAddress() + (dataSocketAddress != null? "," + dataSocketAddress.getAddress() : "") + "/" + socketAddress.getPort() + ")";
 	}
 
 	public String status() {
@@ -140,9 +140,9 @@ public class Node implements Streamable {
 	public void readFrom(DataInput in) throws IOException {
 		nodeId = in.readString().intern();
 		name = in.readString();
-		String hostName = in.readString().intern();
+		String hostAddress = in.readString().intern();
 		int port = in.readInt();
-		socketAddress = new InetSocketAddress(hostName, port);
+		socketAddress = new InetSocketAddress(hostAddress, port);
 		if(in.readBoolean()) {
 			String dataHostAddress = in.readString();
 			dataSocketAddress = new InetSocketAddress(dataHostAddress, port);
@@ -153,13 +153,13 @@ public class Node implements Streamable {
 	public void writeTo(DataOutput out) throws IOException {
 		out.writeString(nodeId);
 		out.writeString(name);
-		out.writeString(socketAddress.getHostName());
+		out.writeString(socketAddress.getAddress().getHostAddress());
 		out.writeInt(socketAddress.getPort());
 		if(dataSocketAddress == null) {
 			out.writeBoolean(false);
 		} else {
 			out.writeBoolean(true);
-			out.writeString(dataSocketAddress.getHostName());
+			out.writeString(dataSocketAddress.getAddress().getHostAddress());
 		}
 	}
 

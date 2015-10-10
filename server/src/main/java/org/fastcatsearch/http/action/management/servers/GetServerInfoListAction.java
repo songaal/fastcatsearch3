@@ -37,7 +37,7 @@ public class GetServerInfoListAction extends AuthAction {
 			responseWriter.object()
 			.key("id").value(node.id())
 			.key("name").value(node.name())
-			.key("host").value(node.address().getHostName())
+			.key("host").value(node.address().getAddress().getHostAddress())
 			.key("port").value(node.port())
 			.key("servicePort").value(node.servicePort())
 			.key("enabled").value(node.isEnabled())

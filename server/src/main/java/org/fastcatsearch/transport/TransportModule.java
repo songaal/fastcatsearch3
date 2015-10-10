@@ -308,12 +308,13 @@ public class TransportModule extends AbstractModule {
 		                    }
 		                    nodeChannels.setLowChannel(connectLow.getChannel());
 		                    nodeChannels.getLowChannel().getCloseFuture().addListener(new ChannelCloseListener(node));
-		                    
+		                    logger.debug("##Internal Transport Low Channel {}", connectLow.getChannel());
 		                    
 		                    connectHigh.awaitUninterruptibly((long) (connectTimeout * 1.5));
 		                    if (!connectHigh.isSuccess()) {
 		                        throw new TransportException(node, "connect_timeout[" + connectTimeout + "]", connectHigh.getCause());
 		                    }
+                            logger.debug("##Internal Transport High Channel {}", connectHigh.getChannel());
 		                    nodeChannels.setHighChannel(connectHigh.getChannel());
 		                    nodeChannels.getHighChannel().getCloseFuture().addListener(new ChannelCloseListener(node));
 		                } catch (RuntimeException e) {
@@ -505,7 +506,7 @@ public class TransportModule extends AbstractModule {
 		byte type = 0;
 		type = TransportOption.setTypeFile(type);
 		byte status = 0;
-		logger.debug("sendFileRequest {} type={}, {} >> {}", targetChannel.getLocalAddress(), type, sourcefile.getAbsolutePath(), targetFile.getPath());
+		logger.debug("sendFileRequest {} type={}, {} >> {}", targetChannel, type, sourcefile.getAbsolutePath(), targetFile.getPath());
         FileChunkEnumeration enumeration = null;
         try{
         	if(!sourcefile.exists()){
