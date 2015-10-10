@@ -51,12 +51,9 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 		if(nodeListSettings != null){
 			for(NodeSettings nodeSetting : nodeListSettings.getNodeList()){
 				String id = nodeSetting.getId();
-				String name = nodeSetting.getName();
-				String address = nodeSetting.getAddress();
-				int port = nodeSetting.getPort();
 				boolean isEnabled = nodeSetting.isEnabled();
 
-				Node node = new Node(id, name, address, port, isEnabled);
+				Node node = new Node(nodeSetting);
 				nodeMap.put(id, node);
 				
 				if (isEnabled) {
@@ -86,16 +83,13 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 		myNode.setActive();
 		int servicePort = environment.settingManager().getIdSettings().getInt("servicePort");
 		myNode.setServicePort(servicePort);
-		
-		transportModule = new TransportModule(environment, settings.getSubSettings("transport"), myNode.port(), jobService);
-//		if (myNode.port() > 0) {
-//			transportModule.settings().put("node_port", myNode.port());
-//		}
 
+		boolean hasSeparateDataNetwork = myNode.dataAddress() != null;
+		transportModule = new TransportModule(environment, settings.getSubSettings("transport"), myNode.port(), jobService, hasSeparateDataNetwork);
 		if (!transportModule.load()) {
 			throw new FastcatSearchException("ERR-00305");
 		}
-		
+
 		NodeHandshakeJob nodeHandshakeJob = new NodeHandshakeJob(myNode.id(), servicePort);
 
 		for (Node node : nodeMap.values()) {
@@ -285,10 +279,10 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 					node = nodeMap.get(nodeId);
 					//주소 및 포트가 변경 되었다면
 					logger.debug("check node {} ({}:{}) : ({}:{})", nodeId, address.getAddress(), address.getPort(), node.address().getAddress(), node.address().getPort());
-					Node newNode = new Node(nodeId, name, address.getHostName(), address.getPort(), enabled);
+					Node newNode = new Node(setting);
 					nodeMap.put(nodeId, newNode);
-					if (!(address.getHostName() != null
-							&& address.getHostName().equals( node.address().getHostName()) 
+					if (!(address.getAddress().getHostAddress() != null
+							&& address.getAddress().getHostAddress().equals(node.address().getAddress().getHostAddress())
 							&& address.getPort() == node.address().getPort()
 						)) {
 						//기존 노드의 삭제 후 새 노드를 시작함.
@@ -300,7 +294,7 @@ public class NodeService extends AbstractService implements NodeLoadBalancable {
 					}
 				} else {
 					//노드추가
-					node = new Node(nodeId, name, address.getHostName(), address.getPort(), enabled);
+					node = new Node(setting);
 					logger.debug("add new node.. {}", node);
 					nodeMap.put(nodeId, node);
 				}

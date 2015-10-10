@@ -6,6 +6,7 @@ import java.net.InetSocketAddress;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
+import org.fastcatsearch.settings.NodeListSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +17,7 @@ public class Node implements Streamable {
 	private String nodeId;
 	private String name;
 	private InetSocketAddress socketAddress;
+	private InetSocketAddress dataSocketAddress;
 
 	private transient boolean isEnabled;
 	private transient boolean isActive;
@@ -43,8 +45,20 @@ public class Node implements Streamable {
 		socketAddress = new InetSocketAddress(address, port);
 	}
 
+	public Node(NodeListSettings.NodeSettings settings) {
+		this.nodeId = settings.getId();
+		this.name = settings.getName();
+		this.isEnabled = settings.isEnabled();
+		this.socketAddress = new InetSocketAddress(settings.getAddress(), settings.getPort());
+        logger.debug("#####SOCKETADDRESS > {}:{}", settings.getAddress(), settings.getPort());
+		if(settings.getDataAddress() != null) {
+			this.dataSocketAddress = new InetSocketAddress(settings.getDataAddress(), settings.getPort());
+            logger.debug("#####DATA_SOCKETADDRESS > {}:{}", settings.getDataAddress(), settings.getPort());
+		}
+	}
+
 	public String toString() {
-		return name + " (" + nodeId + "/" + socketAddress.getHostName() + "/" + socketAddress.getPort() + ")";
+		return name + " (" + nodeId + "/" + socketAddress.getAddress() + (dataSocketAddress != null? "," + dataSocketAddress.getAddress() : "") + "/" + socketAddress.getPort() + ")";
 	}
 
 	public String status() {
@@ -100,6 +114,10 @@ public class Node implements Streamable {
 		return socketAddress;
 	}
 
+	public InetSocketAddress dataAddress() {
+		return dataSocketAddress;
+	}
+
 	public int port() {
 		return socketAddress.getPort();
 	}
@@ -122,17 +140,27 @@ public class Node implements Streamable {
 	public void readFrom(DataInput in) throws IOException {
 		nodeId = in.readString().intern();
 		name = in.readString();
-		String hostName = in.readString().intern();
+		String hostAddress = in.readString().intern();
 		int port = in.readInt();
-		socketAddress = new InetSocketAddress(hostName, port);
+		socketAddress = new InetSocketAddress(hostAddress, port);
+		if(in.readBoolean()) {
+			String dataHostAddress = in.readString();
+			dataSocketAddress = new InetSocketAddress(dataHostAddress, port);
+		}
 	}
 
 	@Override
 	public void writeTo(DataOutput out) throws IOException {
 		out.writeString(nodeId);
 		out.writeString(name);
-		out.writeString(socketAddress.getHostName());
+		out.writeString(socketAddress.getAddress().getHostAddress());
 		out.writeInt(socketAddress.getPort());
+		if(dataSocketAddress == null) {
+			out.writeBoolean(false);
+		} else {
+			out.writeBoolean(true);
+			out.writeString(dataSocketAddress.getAddress().getHostAddress());
+		}
 	}
 
 	@Override

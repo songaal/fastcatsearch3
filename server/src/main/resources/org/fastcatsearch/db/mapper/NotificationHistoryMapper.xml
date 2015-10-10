@@ -8,7 +8,7 @@
 	<update id="createTable">
 		create table NotificationHistory (
 		id int GENERATED ALWAYS AS IDENTITY,
-		node varchar(50),
+		node varchar(100),
 		messageCode varchar(50),
 		message varchar(3000),
 		regtime timestamp,

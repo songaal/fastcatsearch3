@@ -94,8 +94,14 @@ public class TransportModule extends AbstractModule {
     private final ReadWriteLock globalLock = new ReentrantReadWriteLock();
     private FileTransportHandler fileTransportHandler;
     private BlockingCachedStreamOutput fileStreamOutputCache;
-    
-	public TransportModule(Environment environment, Settings settings, int port, JobExecutor jobExecutor){
+
+	//색인 데이터 전송시 별도 대역폭의 네트워크를 생성하는지 여부.
+	private boolean hasSeparateDataNetwork;
+
+    public TransportModule(Environment environment, Settings settings, int port, JobExecutor jobExecutor){
+        this(environment, settings, port, jobExecutor, false);
+    }
+	public TransportModule(Environment environment, Settings settings, int port, JobExecutor jobExecutor, boolean hasSeparateDataNetwork){
 		super(environment, settings);
 		this.port = port;
 		this.jobExecutor = jobExecutor;
@@ -103,7 +109,7 @@ public class TransportModule extends AbstractModule {
         for (int i = 0; i < connectMutex.length; i++) {
             connectMutex[i] = new Object();
         }
-        
+        this.hasSeparateDataNetwork = hasSeparateDataNetwork;
 	}
 	
 	@Override
@@ -277,14 +283,24 @@ public class TransportModule extends AbstractModule {
 	
 	                try {
 	                    InetSocketAddress address = node.address();
-	                    
-	                    ChannelFuture connectLow = clientBootstrap.connect(address);
-	                    
-	                    ChannelFuture connectHigh = clientBootstrap.connect(address);
-	                    
+						InetSocketAddress dataAddress = node.dataAddress();
+
+						ChannelFuture connectHigh = clientBootstrap.connect(address);
+
+						ChannelFuture connectLow = null;
+
+						// 1. 내 노드가 데이터 전용 네트워크를 사용하고,
+						// 2. 상대 노드도 데이터 전용 어드레스가 존재하면
+						// 별도 네트워크를 생성한다.
+						if(hasSeparateDataNetwork && dataAddress != null) {
+							connectLow = clientBootstrap.connect(dataAddress);
+						} else {
+							//기존 대역폭이용.
+							connectLow = clientBootstrap.connect(address);
+						}
+
 	                    nodeChannels = new NodeChannels();
-	               
-	                
+
 		                try{
 		                    connectLow.awaitUninterruptibly((long) (connectTimeout * 1.5));
 		                    if (!connectLow.isSuccess()) {
@@ -292,12 +308,13 @@ public class TransportModule extends AbstractModule {
 		                    }
 		                    nodeChannels.setLowChannel(connectLow.getChannel());
 		                    nodeChannels.getLowChannel().getCloseFuture().addListener(new ChannelCloseListener(node));
-		                    
+		                    logger.debug("##Internal Transport Low Channel {}", connectLow.getChannel());
 		                    
 		                    connectHigh.awaitUninterruptibly((long) (connectTimeout * 1.5));
 		                    if (!connectHigh.isSuccess()) {
 		                        throw new TransportException(node, "connect_timeout[" + connectTimeout + "]", connectHigh.getCause());
 		                    }
+                            logger.debug("##Internal Transport High Channel {}", connectHigh.getChannel());
 		                    nodeChannels.setHighChannel(connectHigh.getChannel());
 		                    nodeChannels.getHighChannel().getCloseFuture().addListener(new ChannelCloseListener(node));
 		                } catch (RuntimeException e) {
@@ -489,7 +506,7 @@ public class TransportModule extends AbstractModule {
 		byte type = 0;
 		type = TransportOption.setTypeFile(type);
 		byte status = 0;
-		logger.debug("sendFileRequest type={}, {} >> {}", new Object[]{type, sourcefile.getAbsolutePath(), targetFile.getPath()});
+		logger.debug("sendFileRequest {} type={}, {} >> {}", targetChannel, type, sourcefile.getAbsolutePath(), targetFile.getPath());
         FileChunkEnumeration enumeration = null;
         try{
         	if(!sourcefile.exists()){
