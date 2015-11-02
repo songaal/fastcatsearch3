@@ -28,7 +28,9 @@ public class SumGroupFunction extends GroupFunction {
 
 	@Override
 	public void addValue(int groupNo, Object value) {
-		valueList[groupNo].add(value);
+        if(value != null) {
+            valueList[groupNo].add(value);
+        }
 	}
 
 	@Override

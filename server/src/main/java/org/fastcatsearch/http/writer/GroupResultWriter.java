@@ -7,6 +7,7 @@ import org.fastcatsearch.common.Strings;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;
+import org.fastcatsearch.ir.group.GroupingValue;
 import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
 
@@ -78,7 +79,8 @@ public class GroupResultWriter extends AbstractSearchResultWriter {
 						.key("_KEY").value(keyData);
 					
 					for (int j = 0; j < functionName.length; j++) {
-						resultStringer.key(functionName[j]).value(e.groupingValue(j).toString());
+                        GroupingValue val = e.groupingValue(j);
+						resultStringer.key(functionName[j]).value(val != null ? val.toString() : "");
 					}
 					
 					resultStringer.endObject();

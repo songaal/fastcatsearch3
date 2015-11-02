@@ -134,24 +134,25 @@ public class GroupDataGenerator {
 					//
 					if(groupFunction.fieldId != null){
 						
-						//TODO 동일한 필드를 여러번 function 수행할때는 어떻게 할까.
+						//동일한 필드를 여러번 function 수행할때는 함께 사용한다
 						
-						if(!paramFieldNameList.contains(groupFunction.fieldId)){
-							paramFieldNameList.add(groupFunction.fieldId);
-							//fieldId 타입에 따라서 value를 만들어준다.
-							FieldSetting fieldSetting = schema.fieldSettingMap().get(groupFunction.fieldId);
-							if(fieldSetting.getType() == FieldSetting.Type.INT){
-								groupFunction.init(IntGroupingValue.createList(groupKeySize));
-							}else if(fieldSetting.getType() == FieldSetting.Type.LONG){
-								groupFunction.init(LongGroupingValue.createList(groupKeySize));
-							}else if(fieldSetting.getType() == FieldSetting.Type.FLOAT){
-								groupFunction.init(FloatGroupingValue.createList(groupKeySize));
-							}else if(fieldSetting.getType() == FieldSetting.Type.DOUBLE){
-								groupFunction.init(DoubleGroupingValue.createList(groupKeySize));
-							}else{
-								groupFunction.init(StringGroupingValue.createList(groupKeySize));
-							}
-						}
+						if(!paramFieldNameList.contains(groupFunction.fieldId)) {
+                            paramFieldNameList.add(groupFunction.fieldId);
+                        }
+                        //fieldId 타입에 따라서 value를 만들어준다.
+                        FieldSetting fieldSetting = schema.fieldSettingMap().get(groupFunction.fieldId);
+                        if(fieldSetting.getType() == FieldSetting.Type.INT){
+                            groupFunction.init(IntGroupingValue.createList(groupKeySize));
+                        }else if(fieldSetting.getType() == FieldSetting.Type.LONG){
+                            groupFunction.init(LongGroupingValue.createList(groupKeySize));
+                        }else if(fieldSetting.getType() == FieldSetting.Type.FLOAT){
+                            groupFunction.init(FloatGroupingValue.createList(groupKeySize));
+                        }else if(fieldSetting.getType() == FieldSetting.Type.DOUBLE){
+                            groupFunction.init(DoubleGroupingValue.createList(groupKeySize));
+                        }else{
+                            groupFunction.init(StringGroupingValue.createList(groupKeySize));
+                        }
+
 					}
 				}
 			}
@@ -168,16 +169,7 @@ public class GroupDataGenerator {
 					DataRef dataRef = fieldIndexRefList[i].getDataRef(k++); 
 					FieldSetting fieldSetting = schema.fieldSettingMap().get(paramFieldId);
 					dataRef.setType(fieldSetting.getType());
-//					if(fieldSetting.getType() == FieldSetting.Type.INT){
-//						dataRef.setNumberType(Integer.class);
-//					}else if(fieldSetting.getType() == FieldSetting.Type.LONG){
-//						//dataRef.setNumberType(Long.class);
-//					}else if(fieldSetting.getType() == FieldSetting.Type.FLOAT){
-//						//dataRef.setNumberType(Float.class);
-//					}else if(fieldSetting.getType() == FieldSetting.Type.DOUBLE){
-//						//dataRef.setNumberType(Double.class);
-//					}
-					//차후 dataRef.next하면서 데이터를 읽는다. 
+					//차후 dataRef.next하면서 데이터를 읽는다.
 					fieldBytesRefMap[i].put(paramFieldId, dataRef);
 				}
 			}

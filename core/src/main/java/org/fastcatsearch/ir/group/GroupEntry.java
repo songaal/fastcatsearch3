@@ -29,8 +29,8 @@ public class GroupEntry {
 		String valueString = "";
 		if(groupingValue != null){
 			for (GroupingValue value : groupingValue) {
-				valueString += (value.toString() + ",");
-			}
+                valueString += ((value != null ? value.toString() : value) + ",");
+            }
 		}
 		return "[GroupEntry]"+key + " : " + valueString;
 	}
