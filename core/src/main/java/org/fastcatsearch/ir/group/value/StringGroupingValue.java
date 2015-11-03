@@ -18,7 +18,7 @@ public class StringGroupingValue extends GroupingValue<String> {
 	}
 
 	@Override
-	public void setIfMax(String obj) {
+	public void setIfMaxValue(String obj) {
 		if (value == null) {
 			value = obj;
 		} else {
@@ -30,7 +30,7 @@ public class StringGroupingValue extends GroupingValue<String> {
 	}
 
 	@Override
-	public void setIfMin(String obj) {
+	public void setIfMinValue(String obj) {
 		if (value == null) {
 			value = obj;
 		} else {

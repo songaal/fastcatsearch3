@@ -18,7 +18,7 @@ public class IntGroupingValue extends GroupingValue<Integer> {
 	}
 
 	@Override
-	public void setIfMax(Integer obj) {
+	public void setIfMaxValue(Integer obj) {
 		if (value == null) {
 			value = obj;
 		} else {
@@ -32,7 +32,7 @@ public class IntGroupingValue extends GroupingValue<Integer> {
 	}
 
 	@Override
-	public void setIfMin(Integer obj) {
+	public void setIfMinValue(Integer obj) {
 		if (value == null) {
 			value = obj;
 		} else {

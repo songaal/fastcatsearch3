@@ -18,7 +18,7 @@ public class DoubleGroupingValue extends GroupingValue<Double> {
 	}
 
 	@Override
-	public void setIfMax(Double obj) {
+	public void setIfMaxValue(Double obj) {
 		if (value == null) {
 			value = obj;
 		} else {
@@ -32,7 +32,7 @@ public class DoubleGroupingValue extends GroupingValue<Double> {
 	}
 
 	@Override
-	public void setIfMin(Double obj) {
+	public void setIfMinValue(Double obj) {
 		if (value == null) {
 			value = obj;
 		} else {

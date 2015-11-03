@@ -20,7 +20,7 @@ public class FloatGroupingValue extends GroupingValue<Float> {
 	}
 
 	@Override
-	public void setIfMax(Float obj) {
+	public void setIfMaxValue(Float obj) {
 		if (value == null) {
 			value = obj;
 		} else {
@@ -34,7 +34,7 @@ public class FloatGroupingValue extends GroupingValue<Float> {
 	}
 
 	@Override
-	public void setIfMin(Float obj) {
+	public void setIfMinValue(Float obj) {
 		if (value == null) {
 			value = obj;
 		} else {

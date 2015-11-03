@@ -18,7 +18,7 @@ public class LongGroupingValue extends GroupingValue<Long> {
 	}
 
 	@Override
-	public void setIfMax(Long obj) {
+	public void setIfMaxValue(Long obj) {
 		if (value == null) {
 			value = obj;
 		} else {
@@ -32,7 +32,7 @@ public class LongGroupingValue extends GroupingValue<Long> {
 	}
 
 	@Override
-	public void setIfMin(Long obj) {
+	public void setIfMinValue(Long obj) {
 		if (value == null) {
 			value = obj;
 		} else {
