@@ -18,19 +18,17 @@ package org.fastcatsearch.ir.group.function;
 
 import org.fastcatsearch.ir.group.GroupFunction;
 
-public class FirstValueGroupFunction extends GroupFunction {
+public class LastGroupFunction extends GroupFunction {
 
-	private final static String FUNCTION_NAME = "FIRSTVALUE";
+	private final static String FUNCTION_NAME = "LAST";
 
-	public FirstValueGroupFunction(int sortOrder, String fieldId) {
+	public LastGroupFunction(int sortOrder, String fieldId) {
 		super(FUNCTION_NAME, sortOrder, fieldId);
 	}
 
 	@Override
 	public void addValue(int groupNo, Object value) {
-		if(valueList[groupNo].isEmpty()) {
-			valueList[groupNo].set(value);
-		}
+		valueList[groupNo].set(value);
 	}
 
 	@Override
