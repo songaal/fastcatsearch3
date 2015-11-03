@@ -32,6 +32,20 @@ public class LongGroupingValue extends GroupingValue<Long> {
 	}
 
 	@Override
+	public void setIfMin(Long obj) {
+		if (value == null) {
+			value = obj;
+		} else {
+			long o = obj;
+			long r = (Long) value;
+			// 입력값이 기존 값보다 작으면 교체한다.
+			if (o < r) {
+				value = o;
+			}
+		}
+	}
+
+	@Override
 	public void increment() {
 		value++;
 	}

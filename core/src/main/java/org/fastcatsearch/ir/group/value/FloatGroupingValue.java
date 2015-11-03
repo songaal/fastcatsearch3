@@ -34,6 +34,20 @@ public class FloatGroupingValue extends GroupingValue<Float> {
 	}
 
 	@Override
+	public void setIfMin(Float obj) {
+		if (value == null) {
+			value = obj;
+		} else {
+			float o = obj;
+			float r = (Float) value;
+			// 입력값이 기존 값보다 작으면 교체한다.
+			if (o < r) {
+				value = o;
+			}
+		}
+	}
+
+	@Override
 	public void increment() {
 		value++;
 	}

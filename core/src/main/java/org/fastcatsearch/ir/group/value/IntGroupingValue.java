@@ -32,6 +32,20 @@ public class IntGroupingValue extends GroupingValue<Integer> {
 	}
 
 	@Override
+	public void setIfMin(Integer obj) {
+		if (value == null) {
+			value = obj;
+		} else {
+			int o = obj;
+			int r = (Integer) value;
+			// 입력값이 기존 값보다 작으면 교체한다.
+			if (o < r) {
+				value = o;
+			}
+		}
+	}
+
+	@Override
 	public void increment() {
 		value++;
 	}
