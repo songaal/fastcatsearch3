@@ -38,13 +38,11 @@ Fastcatsearch is an open-source distributed search engine.
 
 ## License
 
-The license is GNU LGPL v2.1
+The license is Apache License Version 2.0.
 
 It's free and you can use it however you want it wharever way.
 
-You don't need to open your closed source unless you distribute derived works to others.
-
-For more information, see <http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html>
+For more information, see <http://www.apache.org/licenses/LICENSE-2.0.txt>
 
 
 
