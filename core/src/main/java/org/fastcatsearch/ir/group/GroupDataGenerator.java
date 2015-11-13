@@ -273,6 +273,8 @@ public class GroupDataGenerator {
 					if(groupingValue != null && !groupingValue.isEmpty()){
 						valueList[j++] = groupingValue; 
 						hasValue = true;
+					} else {
+						valueList[j++] = null;
 					}
 				}
 

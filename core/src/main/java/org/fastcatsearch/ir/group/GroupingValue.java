@@ -22,7 +22,8 @@ import org.slf4j.LoggerFactory;
 public abstract class GroupingValue<T> implements Comparable<GroupingValue<T>> {
 	protected static Logger logger = LoggerFactory.getLogger(GroupingValue.class);
 	protected T value;
-	
+	protected boolean isSet;
+
 	public GroupingValue(){
 		
 	}
@@ -42,7 +43,27 @@ public abstract class GroupingValue<T> implements Comparable<GroupingValue<T>> {
 	
 	public abstract void add(T obj);
 	
-	public abstract void setIfMax(T obj);
+	public void setIfMax(T obj) {
+		if(isSet) {
+			setIfMaxValue(obj);
+		} else {
+			value = obj;
+			isSet = true;
+		}
+	}
+
+	public void setIfMin(T obj) {
+		if(isSet) {
+			setIfMinValue(obj);
+		} else {
+			value = obj;
+			isSet = true;
+		}
+	}
+
+	protected abstract void setIfMaxValue(T obj);
+
+	protected abstract void setIfMinValue(T obj);
 	
 	public abstract void increment();
 	

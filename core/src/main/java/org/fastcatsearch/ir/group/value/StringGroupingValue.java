@@ -18,12 +18,24 @@ public class StringGroupingValue extends GroupingValue<String> {
 	}
 
 	@Override
-	public void setIfMax(String obj) {
+	public void setIfMaxValue(String obj) {
 		if (value == null) {
 			value = obj;
 		} else {
 			// 입력값이 기존 값보다 크면 교체한다.
 			if(obj.compareTo(value) > 0) {
+				value = obj;
+			}
+		}
+	}
+
+	@Override
+	public void setIfMinValue(String obj) {
+		if (value == null) {
+			value = obj;
+		} else {
+			// 입력값이 기존 값보다 작으면 교체한다.
+			if(obj.compareTo(value) < 0) {
 				value = obj;
 			}
 		}

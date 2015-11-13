@@ -18,7 +18,7 @@ public class DoubleGroupingValue extends GroupingValue<Double> {
 	}
 
 	@Override
-	public void setIfMax(Double obj) {
+	public void setIfMaxValue(Double obj) {
 		if (value == null) {
 			value = obj;
 		} else {
@@ -26,6 +26,20 @@ public class DoubleGroupingValue extends GroupingValue<Double> {
 			double r = (Double) value;
 			// 입력값이 기존 값보다 크면 교체한다.
 			if (o > r) {
+				value = o;
+			}
+		}
+	}
+
+	@Override
+	public void setIfMinValue(Double obj) {
+		if (value == null) {
+			value = obj;
+		} else {
+			double o = obj;
+			double r = (Double) value;
+			// 입력값이 기존 값보다 작으면 교체한다.
+			if (o < r) {
 				value = o;
 			}
 		}

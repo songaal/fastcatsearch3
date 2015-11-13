@@ -18,17 +18,18 @@ package org.fastcatsearch.ir.group.function;
 
 import org.fastcatsearch.ir.group.GroupFunction;
 
-public class LastValueGroupFunction extends GroupFunction {
+public class MinGroupFunction extends GroupFunction {
 
-	private final static String FUNCTION_NAME = "LASTVALUE";
+	private final static String FUNCTION_NAME = "MIN";
 
-	public LastValueGroupFunction(int sortOrder, String fieldId) {
+	public MinGroupFunction(int sortOrder, String fieldId) {
 		super(FUNCTION_NAME, sortOrder, fieldId);
 	}
 
 	@Override
 	public void addValue(int groupNo, Object value) {
-		valueList[groupNo].set(value);
+
+		valueList[groupNo].setIfMin(value);
 	}
 
 	@Override

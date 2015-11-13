@@ -21,6 +21,7 @@ import org.fastcatsearch.ir.group.GroupFunction;
 /**
  * 그룹결과를 다시한번 정제하여 정해진 range 수 만큼 구간통계로 바꾸어 주는 function
  * */
+@Deprecated
 public class RangeCountGroupFunction extends GroupFunction {
 
 	private final static String FUNCTION_NAME = "RANGE";

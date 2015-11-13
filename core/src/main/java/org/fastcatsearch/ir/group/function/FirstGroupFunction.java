@@ -18,11 +18,11 @@ package org.fastcatsearch.ir.group.function;
 
 import org.fastcatsearch.ir.group.GroupFunction;
 
-public class FirstValueGroupFunction extends GroupFunction {
+public class FirstGroupFunction extends GroupFunction {
 
-	private final static String FUNCTION_NAME = "FIRSTVALUE";
+	private final static String FUNCTION_NAME = "FIRST";
 
-	public FirstValueGroupFunction(int sortOrder, String fieldId) {
+	public FirstGroupFunction(int sortOrder, String fieldId) {
 		super(FUNCTION_NAME, sortOrder, fieldId);
 	}
 

@@ -18,7 +18,7 @@ public class LongGroupingValue extends GroupingValue<Long> {
 	}
 
 	@Override
-	public void setIfMax(Long obj) {
+	public void setIfMaxValue(Long obj) {
 		if (value == null) {
 			value = obj;
 		} else {
@@ -26,6 +26,20 @@ public class LongGroupingValue extends GroupingValue<Long> {
 			long r = (Long) value;
 			// 입력값이 기존 값보다 크면 교체한다.
 			if (o > r) {
+				value = o;
+			}
+		}
+	}
+
+	@Override
+	public void setIfMinValue(Long obj) {
+		if (value == null) {
+			value = obj;
+		} else {
+			long o = obj;
+			long r = (Long) value;
+			// 입력값이 기존 값보다 작으면 교체한다.
+			if (o < r) {
 				value = o;
 			}
 		}
