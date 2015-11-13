@@ -20,15 +20,15 @@ mkdir -p $LOGS
 
 
 # PROFILE
-PROFILE_AGENT_LINUX_X86_32=$server_home/bin/profile/yourkit/linux-x86-32/libyjpagent.so
-PROFILE_AGENT_LINUX_X86_64=$server_home/bin/profile/yourkit/linux-x86-64/libyjpagent.so
-PROFILE_AGENT_WIN32=$server_home/bin/profile/yourkit/win32/yjpagent.dll
-PROFILE_AGENT_WIN64=$server_home/bin/profile/yourkit/win64/yjpagent.dll
+PROFILE_AGENT_LINUX_X86_32=$server_home/bin/profile/yourkit/bin/linux-x86-32/libyjpagent.so
+PROFILE_AGENT_LINUX_X86_64=$server_home/bin/profile/yourkit/bin/linux-x86-64/libyjpagent.so
+PROFILE_AGENT_WIN32=$server_home/bin/profile/yourkit/bin/win32/yjpagent.dll
+PROFILE_AGENT_WIN64=$server_home/bin/profile/yourkit/bin/win64/yjpagent.dll
 PROFILE_AGENT=PROFILE_AGENT_LINUX_X86_64
 PROFILE_PORT=10001
 
 JVM_OPTS="-Xms$heap_memory_size -Xmx$heap_memory_size -XX:+HeapDumpOnOutOfMemoryError"
-JAVA_OPTS="-server -Dfile.encoding=UTF-8 -Dlogback.configurationFile=$CONF/logback.xml -Dderby.stream.error.file=$LOGS/db.log -Duser.timezone=Asia/Seoul"
+JAVA_OPTS="-server -Dorg.jboss.netty.epollBugWorkaround=true -Dfile.encoding=UTF-8 -Dlogback.configurationFile=$CONF/logback.xml -Dderby.stream.error.file=$LOGS/db.log -Duser.timezone=Asia/Seoul"
 DEBUG_OPT="-agentlib:jdwp=transport=dt_socket,suspend=n,server=y,address=59090"
 PROFILE_OPT_JMX="-verbosegc -XX:+PrintGCDetails -Dcom.sun.management.jmxremote"
 PROFILE_OPT="-agentpath:$PROFILE_AGENT=port=$PROFILE_PORT"
