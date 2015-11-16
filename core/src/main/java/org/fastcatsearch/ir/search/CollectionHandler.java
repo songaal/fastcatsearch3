@@ -288,7 +288,8 @@ public class CollectionHandler {
 			// return은 update,delete int[]를 받도록 한다.
 
 			BitSet[] deleteSetList = new BitSet[segmentReaderMap.size()];
-			int[] updateAndDeleteCount = makeDeleteSetWithSegments(segmentInfo, segmentDir, segmentReaderMap, deleteSet, deleteSetList);
+//			int[] updateAndDeleteCount = makeDeleteSetWithSegments(segmentInfo, segmentDir, segmentReaderMap, deleteSet, deleteSetList);
+            int[] updateAndDeleteCount = updateDeleteSetWithSegments(segmentId, segmentDir, deleteSet, segmentReaderMap, deleteSetList);
 			/*
 			 * 적용
 			 */
@@ -380,7 +381,7 @@ public class CollectionHandler {
 	private int[] makeDeleteSetWithSegments(SegmentInfo segmentInfo, File segmentDir, List<SegmentReader> prevSegmentReaderList, DeleteIdSet deleteSet, BitSet[] deleteSetList)
 			throws IOException {
 		String segmentId = segmentInfo.getId();
-		int prevSegmentSize = prevSegmentReaderList.size();
+//		int prevSegmentSize = prevSegmentReaderList.size();
 
 //		File targetRevisionDir = new File(segmentDir, segmentInfo.getRevisionName());
 //        File targetRevisionDir = new File(segmentDir, segmentInfo.getRevisionName());
@@ -402,7 +403,7 @@ public class CollectionHandler {
 	}
 
 	/*
-	 * Indexing작업으로 생성된 pk와 delete list 를 이전 segment들과 비교해보면서 세그먼트별 delete.set.#들을 업데이트한다. delete.set.# 파일들은 최종 revision디렉토리안에 존재한다.
+	 * Indexing작업으로 생성된 pk와 delete list 를 이전 segment들과 비교해보면서 세그먼트별 delete.set들을 업데이트한다.
 	 */
 	private int[] updateDeleteSetWithSegments(String segmentId, File segmentDir, DeleteIdSet deleteIdSet, List<SegmentReader> prevSegmentReaderList,
 			BitSet[] prevDeleteSetList) throws IOException {
