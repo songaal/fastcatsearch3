@@ -1,25 +1,15 @@
 package org.fastcatsearch.ir;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Date;
-
 import org.fastcatsearch.datasource.reader.DataSourceReader;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
-import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
-import org.fastcatsearch.ir.index.DeleteIdSet;
-import org.fastcatsearch.ir.index.IndexWritable;
-import org.fastcatsearch.ir.index.IndexWriteInfoList;
-import org.fastcatsearch.ir.index.SegmentWriter;
-import org.fastcatsearch.ir.index.SelectedIndexList;
-import org.fastcatsearch.ir.index.WriteInfoLoggable;
+import org.fastcatsearch.ir.index.*;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.ir.util.Formatter;
@@ -29,6 +19,10 @@ import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
 
 public abstract class AbstractCollectionIndexer implements CollectionIndexerable {
 	protected static final Logger logger = LoggerFactory.getLogger(AbstractCollectionIndexer.class);
@@ -62,9 +56,9 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
 	
 	protected abstract DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException;
 	protected abstract void prepare() throws IRException;
-	protected abstract boolean done(RevisionInfo revisionInfo, IndexStatus indexStatus) throws IRException, IndexingStopException;
-	protected IndexWritable createIndexWriter(Schema schema, File segmentDir, RevisionInfo revisionInfo, IndexConfig indexConfig) throws IRException {
-		return new SegmentWriter(schema, segmentDir, revisionInfo, indexConfig, analyzerPoolManager, selectedIndexList);
+	protected abstract boolean done(SegmentInfo segmentInfo, IndexStatus indexStatus) throws IRException, IndexingStopException;
+	protected IndexWritable createIndexWriter(Schema schema, File segmentDir, SegmentInfo segmentInfo, IndexConfig indexConfig) throws IRException {
+		return new SegmentWriter(schema, segmentDir, segmentInfo, indexConfig, analyzerPoolManager, selectedIndexList);
 	}
 	
 	public void init(Schema schema) throws IRException {
@@ -78,7 +72,6 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
 		
 		logger.debug("WorkingSegmentInfo = {}", workingSegmentInfo);
 		String segmentId = workingSegmentInfo.getId();
-		RevisionInfo revisionInfo = workingSegmentInfo.getRevisionInfo();
 
 		File segmentDir = dataFilePaths.segmentFile(dataSequence, segmentId);
 		logger.info("Segment Dir = {}", segmentDir.getAbsolutePath());
@@ -87,7 +80,7 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
 		File filePath = collectionContext.collectionFilePaths().file();
 		dataSourceReader = createDataSourceReader(filePath, schema.schemaSetting());
 		
-		indexWriter = createIndexWriter(schema, segmentDir, revisionInfo, indexConfig);
+		indexWriter = createIndexWriter(schema, segmentDir, workingSegmentInfo, indexConfig);
 		
 		indexWriteInfoList = new IndexWriteInfoList();
 		
@@ -120,7 +113,7 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
 	@Override
 	public boolean close() throws IRException, SettingException, IndexingStopException {
 		
-		RevisionInfo revisionInfo = workingSegmentInfo.getRevisionInfo();
+//		RevisionInfo revisionInfo = workingSegmentInfo.getRevisionInfo();
 		if (indexWriter != null) {
 			try {
 				indexWriter.close();
@@ -133,21 +126,21 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
 
 		dataSourceReader.close();
 		
-		logger.debug("##Indexer close {}", revisionInfo);
+		logger.debug("##Indexer close {}", workingSegmentInfo);
 		deleteIdSet = dataSourceReader.getDeleteList();
 		int deleteCount = 0;
 		if(deleteIdSet != null) {
 			deleteCount = deleteIdSet.size();
 		}
-		
-		revisionInfo.setDeleteCount(deleteCount);
+
+        workingSegmentInfo.setDeleteCount(deleteCount);
 		
 		long endTime = System.currentTimeMillis();
 		
-		IndexStatus indexStatus = new IndexStatus(revisionInfo.getDocumentCount(), revisionInfo.getInsertCount(), revisionInfo.getUpdateCount(), deleteCount,
+		IndexStatus indexStatus = new IndexStatus(workingSegmentInfo.getDocumentCount(), workingSegmentInfo.getInsertCount(), workingSegmentInfo.getUpdateCount(), deleteCount,
 				Formatter.formatDate(new Date(startTime)), Formatter.formatDate(new Date(endTime)), Formatter.getFormatTime(endTime - startTime));
 		
-		if(done(revisionInfo, indexStatus)){
+		if(done(workingSegmentInfo, indexStatus)){
 			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
 		}else{
 			//저장하지 않음.

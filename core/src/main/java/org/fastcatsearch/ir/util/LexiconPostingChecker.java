@@ -63,7 +63,7 @@ public class LexiconPostingChecker {
 		
 		System.out.println("Check dir = "+dir.getAbsolutePath());
 
-		indexInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.getSearchLexiconFileName(id));
+		indexInput = new BufferedFileInput(dir, IndexFileNames.getSearchLexiconFileName(id));
 	}
 	
 	public void close() throws IOException{
@@ -81,7 +81,7 @@ public class LexiconPostingChecker {
 			long inputOffset = indexInput.readLong();
 			
 			//output.println("word="+string+" ,"+ inputOffset);
-			BufferedFileInput postingInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, rev) , IndexFileNames.getSearchPostingFileName(id));
+			BufferedFileInput postingInput = new BufferedFileInput(dir , IndexFileNames.getSearchPostingFileName(id));
 			
 			BufferedFileInput clone = postingInput.clone();
 			

@@ -11,10 +11,6 @@
 
 package org.fastcatsearch.job.indexing;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.fastcatsearch.cluster.ClusterUtils;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeJobResult;
@@ -26,23 +22,23 @@ import org.fastcatsearch.db.mapper.IndexingResultMapper.ResultStatus;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.CollectionAddIndexer;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.MirrorSynchronizer;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
-import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.index.IndexWriteInfoList;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.CacheServiceRestartJob;
-import org.fastcatsearch.job.Job.JobResult;
 import org.fastcatsearch.job.cluster.NodeDirectoryCleanJob;
 import org.fastcatsearch.job.cluster.NodeSegmentUpdateJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.task.IndexFileTransfer;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 특정 collection의 index node에서 수행되는 job.
@@ -101,7 +97,7 @@ public class CollectionAddIndexingJob extends IndexingJob {
 //			}
 			String lastRevisionUUID = null;
 			if(lastSegmentInfo != null) {
-				lastRevisionUUID = lastSegmentInfo.getRevisionInfo().getUuid();
+				lastRevisionUUID = lastSegmentInfo.getUuid();
 			}
 			boolean isIndexed = false;
 			CollectionAddIndexer collectionIndexer = new CollectionAddIndexer(collectionHandler);
@@ -143,10 +139,10 @@ public class CollectionAddIndexingJob extends IndexingJob {
 				
 				String segmentId = segmentInfo.getId();
 				logger.debug("Transfer index data collection[{}] >> {}", collectionId, segmentInfo);
-				RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
-				int revisionId = revisionInfo.getId();
+//				RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
+//				int revisionId = revisionInfo.getId();
 				int dataSequence = collectionContext.getIndexSequence();
-				File revisionDir = collectionContext.collectionFilePaths().dataPaths().revisionFile(dataSequence, segmentId, revisionId);
+//				File revisionDir = collectionContext.collectionFilePaths().dataPaths().revisionFile(dataSequence, segmentId, revisionId);
 				File segmentDir = collectionContext.collectionFilePaths().dataPaths().segmentFile(dataSequence, segmentId);
 				
 				/*
@@ -202,21 +198,21 @@ public class CollectionAddIndexingJob extends IndexingJob {
 					 * 여기서는 1. segment/ 파일들에 덧붙일 정보들이 준비되어있어야한다. revision은 그대로 복사하므로 준비필요없음.
 					 */
 					//0보다 크면 revision이 증가된것이다.
-					boolean revisionAppended = revisionInfo.getId() > 0;
-					boolean revisionHasInserts = revisionInfo.getInsertCount() > 0;
+//					boolean revisionAppended = revisionInfo.getId() > 0;
+					boolean revisionHasInserts = segmentInfo.getInsertCount() > 0;
 					File mirrorSyncFile = null;
-					if(revisionAppended){
-						if(revisionHasInserts){
-							mirrorSyncFile = new MirrorSynchronizer().createMirrorSyncFile(indexWriteInfoList, revisionDir);
-							logger.debug("동기화 파일 생성 >> {}", mirrorSyncFile.getAbsolutePath());
-						}
-						
-						transferDir = revisionDir;
-					}else{
+//					if(revisionAppended){
+//						if(revisionHasInserts){
+//							mirrorSyncFile = new MirrorSynchronizer().createMirrorSyncFile(indexWriteInfoList, revisionDir);
+//							logger.debug("동기화 파일 생성 >> {}", mirrorSyncFile.getAbsolutePath());
+//						}
+//
+//						transferDir = revisionDir;
+//					}else{
 						//세그먼트 전체전송.
 						transferDir = segmentDir;
 						logger.debug("세그먼트 생성되어 segment dir 전송필요");
-					}
+//					}
 					
 					
 					if(stopRequested){

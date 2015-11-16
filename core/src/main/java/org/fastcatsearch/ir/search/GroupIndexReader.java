@@ -48,7 +48,7 @@ public class GroupIndexReader extends ReferenceableIndexReader {
 	
 	public GroupIndexReader() {}
 	
-	public GroupIndexReader(GroupIndexSetting groupIndexSetting, Map<String, FieldSetting> fieldSettingMap, File dir, int revision) throws IOException, IRException{
+	public GroupIndexReader(GroupIndexSetting groupIndexSetting, Map<String, FieldSetting> fieldSettingMap, File dir) throws IOException, IRException{
 		String id = groupIndexSetting.getId();
 		String refId = groupIndexSetting.getRef();
 		FieldSetting refFieldSetting = fieldSettingMap.get(refId);
@@ -65,8 +65,8 @@ public class GroupIndexReader extends ReferenceableIndexReader {
 			groupKeyInput = new FixedDataInput(dir, IndexFileNames.getGroupKeyFileName(id), dataSize);
 		}
 		
-		File revisionDir = new File(dir, Integer.toString(revision));
-		PrimaryKeyIndexReader pkReader = new PrimaryKeyIndexReader(revisionDir, IndexFileNames.getGroupKeyMapFileName(id));
+//		File revisionDir = new File(dir, Integer.toString(revision));
+		PrimaryKeyIndexReader pkReader = new PrimaryKeyIndexReader(dir, IndexFileNames.getGroupKeyMapFileName(id));
 		groupKeySize = pkReader.count();
 		pkReader.close();
 //		logger.debug("Group {} >> keysize:{}", id, groupKeySize);

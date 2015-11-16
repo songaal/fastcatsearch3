@@ -9,7 +9,6 @@ import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
-import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.IndexConfig;
@@ -77,8 +76,8 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 		return DefaultDataSourceReaderFactory.createFullIndexingSourceReader(collectionContext.collectionId(), filePath, schemaSetting, dataSourceConfig);
 	}
 	
-	protected boolean done(RevisionInfo revisionInfo, IndexStatus indexStatus) throws IRException, IndexingStopException {
-		int insertCount = revisionInfo.getInsertCount();
+	protected boolean done(SegmentInfo segmentInfo, IndexStatus indexStatus) throws IRException, IndexingStopException {
+		int insertCount = segmentInfo.getInsertCount();
 
 		if (insertCount > 0 && !stopRequested) {
 			//이미 동일한 revinfo이므로 재셋팅필요없다.
@@ -89,7 +88,7 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 			for (int inx = 0; inx < segmentSize; inx++) {
 				workingSegmentInfo = workingSegmentInfoList.get(inx);
 				//문서수가 스레드 수보다 작은경우 발생할 수 있는 오류 제어.
-				if(workingSegmentInfo.getRevisionInfo().getDocumentCount() == 0) {
+				if(workingSegmentInfo.getDocumentCount() == 0) {
 					break;
 				}
 				workingSegmentInfo.setBaseNumber(baseNumber);
@@ -97,10 +96,33 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 				//addindexing의 updateCollection대신 호출.
 				collectionContext.addSegmentInfo(workingSegmentInfo);
 				logger.debug("Add Segment info = {}", workingSegmentInfo);
-				baseNumber = workingSegmentInfo.getNextBaseNumber();
+
+
+
+
+
+
+
+
+
+
+
+                //TODO
+//				baseNumber = workingSegmentInfo.getNextBaseNumber();
+
+
+
+
+
+
+
+
+
+
+
 			}
 			//update status.xml file
-			collectionContext.updateCollectionStatus(IndexingType.FULL, revisionInfo, startTime, System.currentTimeMillis());
+			collectionContext.updateCollectionStatus(IndexingType.FULL, segmentInfo, startTime, System.currentTimeMillis());
 			collectionContext.indexStatus().setFullIndexStatus(indexStatus);
 			
 			return true;
@@ -116,8 +138,8 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 		
 	}
 	
-	protected IndexWritable createIndexWriter(Schema schema, File segmentDir, RevisionInfo revisionInfo, IndexConfig indexConfig) throws IRException {
-		return new SegmentWriter(schema, segmentDir, revisionInfo, indexConfig, analyzerPoolManager, selectedIndexList);
+	protected IndexWritable createIndexWriter(Schema schema, File segmentDir, SegmentInfo segmentInfo, IndexConfig indexConfig) throws IRException {
+		return new SegmentWriter(schema, segmentDir, segmentInfo, indexConfig, analyzerPoolManager, selectedIndexList);
 	}
 	
 	public void init(Schema schema) throws IRException {
@@ -136,11 +158,11 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 			logger.debug("WorkingSegmentInfo-{} = {}", inx, workingSegmentInfo);
 			
 			String segmentId = workingSegmentInfo.getId();
-			RevisionInfo revisionInfo = workingSegmentInfo.getRevisionInfo();
+//			RevisionInfo revisionInfo = workingSegmentInfo.getRevisionInfo();
 
 			File segmentDir = dataFilePaths.segmentFile(dataSequence, segmentId);
 			logger.info("Segment Dir = {}", segmentDir.getAbsolutePath());
-			IndexWritable indexWriter = createIndexWriter(schema, segmentDir, revisionInfo, indexConfig);
+			IndexWritable indexWriter = createIndexWriter(schema, segmentDir, workingSegmentInfo, indexConfig);
 			consumerList.add(new SegmentIndexWriteConsumer(segmentId, indexWriter, documentQueue, latch));
 		}
 		File filePath = collectionContext.collectionFilePaths().file();
@@ -157,7 +179,21 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 		workingSegmentInfoList.add(workingSegmentInfo);
 		//순차적 세그먼트 info 를 할당한다.
 		for (int inx = 1; inx < segmentSize; inx++) {
-			workingSegmentInfo = workingSegmentInfo.getNextSegmentInfo();
+
+
+
+
+
+
+            //FIXME
+//			workingSegmentInfo = workingSegmentInfo.getNextSegmentInfo();
+
+
+
+
+
+
+
 			workingSegmentInfoList.add(workingSegmentInfo);
 		}
 		
@@ -202,7 +238,8 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 	//색인취소(0건)이면 false;
 	@Override
 	public boolean close() throws IRException, SettingException, IndexingStopException {
-		RevisionInfo revisionInfo = new RevisionInfo();
+//		RevisionInfo revisionInfo = new RevisionInfo();
+        SegmentInfo segmentInfo = new SegmentInfo();
 		
 		for (int inx = 0; inx < segmentSize; inx++) {
 			
@@ -214,29 +251,31 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 			} catch (IOException e) {
 				throw new IRException(e);
 			}
-			
-			RevisionInfo subRevisionInfo = workingSegmentInfoList.get(inx).getRevisionInfo();
-			revisionInfo.add(subRevisionInfo);
-			logger.debug("revisionInfo#{} > {}", inx, revisionInfo);
+
+
+			SegmentInfo segmentInfo1 = workingSegmentInfoList.get(inx);
+            segmentInfo.add(segmentInfo1);
+//			revisionInfo.add(subRevisionInfo);
+//			logger.debug("revisionInfo#{} > {}", inx, revisionInfo);
 		}
 
 		dataSourceReader.close();
 		
-		logger.debug("##Indexer close {}", revisionInfo);
+		logger.debug("##Indexer close.");
 		deleteIdSet = dataSourceReader.getDeleteList();
 		int deleteCount = 0;
 		if(deleteIdSet != null) {
 			deleteCount = deleteIdSet.size();
 		}
 		
-		revisionInfo.setDeleteCount(deleteCount);
+//		revisionInfo.setDeleteCount(deleteCount);
 		
 		long endTime = System.currentTimeMillis();
 		
-		IndexStatus indexStatus = new IndexStatus(revisionInfo.getDocumentCount(), revisionInfo.getInsertCount(), revisionInfo.getUpdateCount(), deleteCount,
+		IndexStatus indexStatus = new IndexStatus(segmentInfo.getDocumentCount(), segmentInfo.getInsertCount(), segmentInfo.getUpdateCount(), deleteCount,
 				Formatter.formatDate(new Date(startTime)), Formatter.formatDate(new Date(endTime)), Formatter.getFormatTime(endTime - startTime));
 		
-		if(done(revisionInfo, indexStatus)){
+		if(done(segmentInfo, indexStatus)){
 			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
 		}else{
 			//저장하지 않음.

@@ -1,8 +1,5 @@
 package org.fastcatsearch.job.management;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.env.Path;
@@ -10,12 +7,14 @@ import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo;
-import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
+
+import java.io.File;
+import java.io.IOException;
 
 public class GetIndexingDataInfoJob extends Job implements Streamable {
 
@@ -41,7 +40,7 @@ public class GetIndexingDataInfoJob extends Job implements Streamable {
 		String revisionUUID = null;
 		SegmentInfo lastSegmentInfo = dataInfo.getLastSegmentInfo();
 		if(lastSegmentInfo != null){
-			revisionUUID = lastSegmentInfo.getRevisionInfo().getUuid();
+			revisionUUID = lastSegmentInfo.getUuid();
 		}else{
 			revisionUUID = "";
 		}
@@ -65,10 +64,11 @@ public class GetIndexingDataInfoJob extends Job implements Streamable {
 		String createTime = "";
 		SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
 		if(segmentInfo != null){
-			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
-			if(revisionInfo != null){
-				createTime = revisionInfo.getCreateTime();
-			}
+//			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
+//			if(revisionInfo != null){
+//				createTime = revisionInfo.getCreateTime();
+//			}
+            createTime = segmentInfo.getCreateTime();
 		}
 		result.createTime = createTime;
 		

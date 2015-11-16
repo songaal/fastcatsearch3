@@ -51,10 +51,10 @@ public class PrimaryKeyIndexesReader implements Cloneable {
 	}
 
 	public PrimaryKeyIndexesReader(Schema schema, File dir) throws IOException, IRException {
-		this(schema, dir, 0);
-	}
-
-	public PrimaryKeyIndexesReader(Schema schema, File dir, int revision) throws IOException, IRException {
+//		this(schema, dir, 0);
+//	}
+//
+//	public PrimaryKeyIndexesReader(Schema schema, File dir, int revision) throws IOException, IRException {
 		PrimaryKeySetting primaryKeySetting = schema.schemaSetting().getPrimaryKeySetting();
 		List<RefSetting> pkRefSettingList = primaryKeySetting.getFieldList();
 		pkFieldSettingList = new FieldSetting[pkRefSettingList.size()];
@@ -64,7 +64,8 @@ public class PrimaryKeyIndexesReader implements Cloneable {
 			pkFieldSettingList[i] = schema.getFieldSetting(refId);
 		}
 
-		pkReader = new PrimaryKeyIndexReader(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.primaryKeyMap);
+//		pkReader = new PrimaryKeyIndexReader(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.primaryKeyMap);
+		pkReader = new PrimaryKeyIndexReader(dir, IndexFileNames.primaryKeyMap);
 	}
 
 	@Override

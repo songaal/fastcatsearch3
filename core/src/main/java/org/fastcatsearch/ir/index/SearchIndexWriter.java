@@ -16,31 +16,18 @@
 
 package org.fastcatsearch.ir.index;
 
-import java.io.CharArrayReader;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.core.AnalyzerOption;
-import org.apache.lucene.analysis.tokenattributes.AdditionalTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
-import org.apache.lucene.analysis.tokenattributes.StopwordAttribute;
+import org.apache.lucene.analysis.tokenattributes.*;
 import org.apache.lucene.util.CharsRef;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
-import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.field.Field;
-import org.fastcatsearch.ir.index.temp.TempSearchFieldAppender;
 import org.fastcatsearch.ir.index.temp.TempSearchFieldMerger;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.CharVector;
@@ -50,6 +37,13 @@ import org.fastcatsearch.ir.settings.IndexSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.CharArrayReader;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class SearchIndexWriter implements SingleIndexWriter {
 	private static Logger logger = LoggerFactory.getLogger(SearchIndexWriter.class);
@@ -71,18 +65,17 @@ public class SearchIndexWriter implements SingleIndexWriter {
 	private int[] indexFieldSequence; // index내에 색인할 필드가 여러개일 경우 필드 번호.
 	private int positionIncrementGap;
 
-	private RevisionInfo revisionInfo;
+//	private RevisionInfo revisionInfo;
 	private AnalyzerOption indexingAnalyzerOption;
 	
 	@Override
 	public String toString(){
 		return indexId;
 	}
-	public SearchIndexWriter(IndexSetting indexSetting, Schema schema, File dir, RevisionInfo revisionInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager) throws IOException,
+	public SearchIndexWriter(IndexSetting indexSetting, Schema schema, File dir, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager) throws IOException,
 			IRException {
 		this.indexId = indexSetting.getId();
 		this.baseDir = dir;
-		this.revisionInfo = revisionInfo;
 		this.indexConfig = indexConfig;
 		
 		ignoreCase = indexSetting.isIgnoreCase();
@@ -299,23 +292,23 @@ public class SearchIndexWriter implements SingleIndexWriter {
 			if (count > 0) {
 				logger.debug("Close, flushCount={}", flushPosition.size());
 
-				if (revisionInfo.isAppend()) {
-					File prevAppendDir = IndexFileNames.getRevisionDir(baseDir, revisionInfo.getRef());
-					File revisionDir = IndexFileNames.getRevisionDir(baseDir, revisionInfo.getId());
-					TempSearchFieldAppender appender = new TempSearchFieldAppender(indexId, flushPosition, tempFile);
-					try {
-						appender.mergeAndAppendIndex(prevAppendDir, revisionDir, indexConfig.getIndexTermInterval(), fieldIndexOption);
-					} finally {
-						appender.close();
-					}
-				} else {
+//				if (revisionInfo.isAppend()) {
+//					File prevAppendDir = IndexFileNames.getRevisionDir(baseDir, revisionInfo.getRef());
+//					File revisionDir = IndexFileNames.getRevisionDir(baseDir, revisionInfo.getId());
+//					TempSearchFieldAppender appender = new TempSearchFieldAppender(indexId, flushPosition, tempFile);
+//					try {
+//						appender.mergeAndAppendIndex(prevAppendDir, revisionDir, indexConfig.getIndexTermInterval(), fieldIndexOption);
+//					} finally {
+//						appender.close();
+//					}
+//				} else {
 					TempSearchFieldMerger merger = new TempSearchFieldMerger(indexId, flushPosition, tempFile);
 					try {
 						merger.mergeAndMakeIndex(baseDir, indexConfig.getIndexTermInterval(), fieldIndexOption);
 					} finally {
 						merger.close();
 					}
-				}
+//				}
 			}
 		} finally {
 			// delete temp file

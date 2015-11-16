@@ -1,31 +1,22 @@
 package org.fastcatsearch.ir;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-
 import org.apache.commons.io.FileUtils;
-import org.fastcatsearch.datasource.reader.AbstractDataSourceReader;
 import org.fastcatsearch.datasource.reader.DataSourceReader;
 import org.fastcatsearch.datasource.reader.DefaultDataSourceReaderFactory;
-import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.common.IndexingType;
-import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
-import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
-import org.fastcatsearch.ir.config.DataPlanConfig;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentReader;
-import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.job.indexing.IndexingStopException;
-import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.CoreFileUtils;
 import org.fastcatsearch.util.FilePaths;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * 컬렉션의 증분색인을 수행하는 indexer.
@@ -63,27 +54,45 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
 		try {
 			if (lastSegmentReader != null) {
 				segmentInfo = lastSegmentReader.segmentInfo();
-				int docCount = segmentInfo.getRevisionInfo().getDocumentCount();
-				DataPlanConfig dataPlanConfig = collectionContext.collectionConfig().getDataPlanConfig();
-				int segmentDocumentLimit = dataPlanConfig.getSegmentDocumentLimit();
+//				int docCount = segmentInfo.getRevisionInfo().getDocumentCount();
+//				DataPlanConfig dataPlanConfig = collectionContext.collectionConfig().getDataPlanConfig();
+//				int segmentDocumentLimit = dataPlanConfig.getSegmentDocumentLimit();
 
-				if (docCount >= segmentDocumentLimit) {
+                //무조건 세그먼트 생성.
+//				if (docCount >= segmentDocumentLimit) {
 					// segment가 생성되는 증분색인.
-					workingSegmentInfo = segmentInfo.getNextSegmentInfo();
+//					workingSegmentInfo = segmentInfo.getNextSegmentInfo();
+
+
+
+
+
+
+                //TODO
+//                    workingSegmentInfo = collectionContext.newSegmentInfo();
+
+
+
+
+
+
+
+
+
 					File segmentDir = indexFilePaths.file(workingSegmentInfo.getId());
 					logger.debug("#색인시 세그먼트를 생성합니다. {}", workingSegmentInfo);
 					CoreFileUtils.removeDirectoryCascade(segmentDir);
-				} else {
-					// 기존 segment에 append되는 증분색인.
-					workingSegmentInfo = segmentInfo.copy();
-					// 리비전을 증가시킨다.
-					logger.debug("#old seginfo {}", workingSegmentInfo);
-					int revision = workingSegmentInfo.nextRevision();
-					File segmentDir = indexFilePaths.file(workingSegmentInfo.getId());
-					File revisionDir = new File(segmentDir, Integer.toString(revision));
-					CoreFileUtils.removeDirectoryCascade(revisionDir);
-					logger.debug("#색인시 리비전을 증가합니다. {}", workingSegmentInfo);
-				}
+//				} else {
+//					// 기존 segment에 append되는 증분색인.
+//					workingSegmentInfo = segmentInfo.copy();
+//					// 리비전을 증가시킨다.
+//					logger.debug("#old seginfo {}", workingSegmentInfo);
+//					int revision = workingSegmentInfo.nextRevision();
+//					File segmentDir = indexFilePaths.file(workingSegmentInfo.getId());
+//					File revisionDir = new File(segmentDir, Integer.toString(revision));
+//					CoreFileUtils.removeDirectoryCascade(revisionDir);
+//					logger.debug("#색인시 리비전을 증가합니다. {}", workingSegmentInfo);
+//				}
 			} else {
 				// TODO 전체색인이 없는데 증분색인이 가능하도록 해야하나?
 
@@ -91,7 +100,7 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
 				// 이전 색인정보가 없다. 즉 전체색인이 수행되지 않은 컬렉션.
 				// segment가 생성되는 증분색인.
 				workingSegmentInfo = new SegmentInfo();
-				File segmentDir = indexFilePaths.file(workingSegmentInfo.getId());
+                File segmentDir = indexFilePaths.file(workingSegmentInfo.getId());
 				logger.debug("#이전 세그먼트가 없어서 색인시 세그먼트를 생성합니다. {}", workingSegmentInfo);
 				CoreFileUtils.removeDirectoryCascade(segmentDir);
 			}
@@ -102,15 +111,20 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
 	}
 
 	@Override
-	protected boolean done(RevisionInfo revisionInfo, IndexStatus indexStatus) throws IRException, IndexingStopException {
+	protected boolean done(SegmentInfo segmentInfo, IndexStatus indexStatus) throws IRException, IndexingStopException {
 
-		int insertCount = revisionInfo.getInsertCount();
-		int deleteCount = revisionInfo.getDeleteCount();
+		int insertCount = segmentInfo.getInsertCount();
+		int deleteCount = segmentInfo.getDeleteCount();
 		FilePaths indexFilePaths = collectionContext.indexFilePaths();
 		try {
 			if ((insertCount > 0 || deleteCount > 0) && !stopRequested) {
 				if (insertCount > 0) {
-					revisionInfo.setRefWithRevision();
+
+                    ///TODO
+//					segmentInfo.setRefWithRevision();
+
+
+
 				} else {
 					// 추가문서가 없고 삭제문서만 존재할 경우
 					logger.debug("추가문서없이 삭제문서만 존재합니다.!!");
@@ -124,19 +138,19 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
 
 						logger.debug("# 추가문서가 없으므로, segment를 삭제합니다. {}", segmentDir.getAbsolutePath());
 						workingSegmentInfo = workingSegmentInfo.copy();
-						int revision = workingSegmentInfo.getRevision();
-						workingSegmentInfo.getRevisionInfo().setInsertCount(0);
-						workingSegmentInfo.getRevisionInfo().setUpdateCount(0);
-						workingSegmentInfo.getRevisionInfo().setDeleteCount(deleteCount);
+//						int revision = workingSegmentInfo.getRevision();
+                        workingSegmentInfo.setInsertCount(0);
+						workingSegmentInfo.setUpdateCount(0);
+						workingSegmentInfo.setDeleteCount(deleteCount);
 
 						// 이전 리비전의 delete.set.#을 현 리비전으로 복사해온다.
 						// 원래 primarykeyindexeswriter에서 append일 경우 복사를 하나, 여기서는 추가문서가 0이므로
-						String segmentId = workingSegmentInfo.getId();
-						segmentDir = indexFilePaths.file(workingSegmentInfo.getId());
-						File revisionDir = IndexFileNames.getRevisionDir(segmentDir, revision);
-						File prevRevisionDir = IndexFileNames.getRevisionDir(segmentDir, revision - 1);
-						String deleteFileName = IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentId);
-						FileUtils.copyFile(new File(prevRevisionDir, deleteFileName), new File(revisionDir, deleteFileName));
+//						String segmentId = workingSegmentInfo.getId();
+//						segmentDir = indexFilePaths.file(workingSegmentInfo.getId());
+//						File revisionDir = IndexFileNames.getRevisionDir(segmentDir, revision);
+//						File prevRevisionDir = IndexFileNames.getRevisionDir(segmentDir, revision - 1);
+//						String deleteFileName = IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentId);
+//						FileUtils.copyFile(new File(prevRevisionDir, deleteFileName), new File(revisionDir, deleteFileName));
 					}
 					/*
 					 * else 세그먼트가 증가하지 않고 리비전이 증가한 경우.
@@ -148,7 +162,7 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
 				collectionHandler.updateCollection(collectionContext, workingSegmentInfo, segmentDir, deleteIdSet);
 				
 				//status.xml 업데이트
-				collectionContext.updateCollectionStatus(IndexingType.ADD, revisionInfo, startTime, System.currentTimeMillis());
+				collectionContext.updateCollectionStatus(IndexingType.ADD, segmentInfo, startTime, System.currentTimeMillis());
 				collectionContext.indexStatus().setAddIndexStatus(indexStatus);
 				
 				return true;
@@ -156,15 +170,15 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
 				// 추가,삭제 문서 모두 없을때.
 				// 리비전 디렉토리 삭제.
 				File segmentDir = indexFilePaths.file(workingSegmentInfo.getId());
-				File revisionDir = IndexFileNames.getRevisionDir(segmentDir, revisionInfo.getId());
+//				File revisionDir = IndexFileNames.getRevisionDir(segmentDir, segmentInfo.getId());
 				if (workingSegmentInfo != null && !workingSegmentInfo.equals(workingSegmentInfo)) {
 					// 세그먼트 증가시 segment디렉토리 삭제.
 					FileUtils.deleteDirectory(segmentDir);
 					logger.info("delete segment dir ={}", segmentDir.getAbsolutePath());
 				} else {
-					// 리비전 증가시 revision디렉토리 삭제.
-					FileUtils.deleteDirectory(revisionDir);
-					logger.info("delete revision dir ={}", revisionDir.getAbsolutePath());
+					// segment디렉토리 삭제.
+					FileUtils.deleteDirectory(segmentDir);
+					logger.info("delete segment dir ={}", segmentDir.getAbsolutePath());
 				}
 				
 				if(!stopRequested){

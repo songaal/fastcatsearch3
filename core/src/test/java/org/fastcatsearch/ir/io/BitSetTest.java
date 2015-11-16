@@ -50,7 +50,7 @@ public class BitSetTest extends TestCase {
 		File segmentDir = new File("/Users/swsong/search/fastcat_basic/collection/news/data/1");
 		int revision = 45;
 		System.out.println(segmentDir);
-		BitSet deleteSet = new BitSet(IndexFileNames.getRevisionDir(segmentDir, revision), IndexFileNames.docDeleteSet);
+		BitSet deleteSet = new BitSet(segmentDir, IndexFileNames.docDeleteSet);
 		for(int i=0; i<100;i++){
 			System.out.println(i);
 			if(deleteSet.isSet(i)){

@@ -1,26 +1,21 @@
 package org.fastcatsearch.ir.config;
 
-import static org.junit.Assert.*;
+import org.fastcatsearch.common.io.BytesStreamInput;
+import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
+import org.fastcatsearch.ir.io.BytesDataOutput;
+import org.fastcatsearch.ir.util.Formatter;
+import org.fastcatsearch.util.JAXBConfigs;
+import org.junit.Test;
 
+import javax.xml.bind.JAXBException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
-import javax.xml.bind.JAXBException;
-
-import org.fastcatsearch.common.io.BytesStreamInput;
-import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
-import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
-import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
-import org.fastcatsearch.ir.io.BytesDataInput;
-import org.fastcatsearch.ir.io.BytesDataOutput;
-import org.fastcatsearch.ir.util.Formatter;
-import org.fastcatsearch.util.JAXBConfigs;
-import org.junit.Test;
+import static org.junit.Assert.assertTrue;
 
 public class DataInfoConfigTest {
 
@@ -39,11 +34,9 @@ public class DataInfoConfigTest {
 		
 		DataInfo dataInfo = new DataInfo();
 		dataInfo.setSegmentInfoList(new ArrayList<SegmentInfo>());
-		SegmentInfo segmentInfo = new SegmentInfo("0", 0);
-		segmentInfo.updateRevision(new RevisionInfo(0, "1234-5678", 200, 100, 10, 0,Formatter.formatDate(new Date())));
+		SegmentInfo segmentInfo = new SegmentInfo("0", 0, "1234-5678", 200, 100, 10, 0,Formatter.formatDate(new Date()));
 		dataInfo.getSegmentInfoList().add(segmentInfo);
-		segmentInfo = new SegmentInfo("1", 1000);
-		segmentInfo.updateRevision(new RevisionInfo(0, "2345-6789", 400, 350, 20, 0, Formatter.formatDate(new Date())));
+		segmentInfo = new SegmentInfo("1", 1000, "2345-6789", 400, 350, 20, 0, Formatter.formatDate(new Date()));
 		dataInfo.getSegmentInfoList().add(segmentInfo);
 		
 		ByteArrayOutputStream os = new ByteArrayOutputStream();

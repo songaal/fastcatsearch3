@@ -16,39 +16,20 @@
 
 package org.fastcatsearch.ir.document;
 
+import junit.framework.TestCase;
+import org.apache.commons.io.FileUtils;
+import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.common.SettingException;
+import org.fastcatsearch.ir.config.IndexConfig;
+import org.fastcatsearch.ir.field.*;
+import org.fastcatsearch.ir.settings.*;
+import org.junit.Test;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import junit.framework.TestCase;
-
-import org.apache.commons.io.FileUtils;
-import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.common.SettingException;
-import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
-import org.fastcatsearch.ir.config.IndexConfig;
-import org.fastcatsearch.ir.field.AStringField;
-import org.fastcatsearch.ir.field.AStringMvField;
-import org.fastcatsearch.ir.field.DatetimeField;
-import org.fastcatsearch.ir.field.FieldDataParseException;
-import org.fastcatsearch.ir.field.IntField;
-import org.fastcatsearch.ir.field.IntMvField;
-import org.fastcatsearch.ir.field.LongField;
-import org.fastcatsearch.ir.field.UStringField;
-import org.fastcatsearch.ir.field.UStringMvField;
-import org.fastcatsearch.ir.settings.AnalyzerSetting;
-import org.fastcatsearch.ir.settings.FieldIndexSetting;
-import org.fastcatsearch.ir.settings.FieldSetting;
-import org.fastcatsearch.ir.settings.GroupIndexSetting;
-import org.fastcatsearch.ir.settings.IndexRefSetting;
-import org.fastcatsearch.ir.settings.IndexSetting;
-import org.fastcatsearch.ir.settings.PrimaryKeySetting;
-import org.fastcatsearch.ir.settings.RefSetting;
-import org.fastcatsearch.ir.settings.Schema;
-import org.fastcatsearch.ir.settings.SchemaSetting;
-import org.junit.Test;
 
 
 public class DocumentWriteReadTest extends TestCase{
@@ -60,7 +41,7 @@ public class DocumentWriteReadTest extends TestCase{
 		
 		SchemaSetting schemaSetting = createSchemaSetting();
 		IndexConfig indexConfig = createIndexConfig();
-		DocumentWriter dw = new DocumentWriter(schemaSetting, targetDir, new RevisionInfo(), indexConfig);
+		DocumentWriter dw = new DocumentWriter(schemaSetting, targetDir, indexConfig);
 		
 		Document document = new Document(6);
 		document.add(new LongField("id", "100"));
@@ -86,7 +67,7 @@ public class DocumentWriteReadTest extends TestCase{
 		SchemaSetting schemaSetting = createSchemaSetting();
 //		schema.getFieldSettingList().get(2).setStore(false); //field-2는 저장하지 않음.
 		IndexConfig indexConfig = createIndexConfig();
-		DocumentWriter dw = new DocumentWriter(schemaSetting, targetDir, new RevisionInfo(), indexConfig);
+		DocumentWriter dw = new DocumentWriter(schemaSetting, targetDir, indexConfig);
 		
 		Document document = new Document(6);
 		document.add(new LongField("id", "100"));
@@ -140,7 +121,7 @@ public class DocumentWriteReadTest extends TestCase{
 		schemaSetting.getFieldSettingList().get(4).setMultiValue(true);
 		
 		IndexConfig indexConfig = createIndexConfig();
-		DocumentWriter dw = new DocumentWriter(schemaSetting, targetDir, new RevisionInfo(), indexConfig);
+		DocumentWriter dw = new DocumentWriter(schemaSetting, targetDir, indexConfig);
 		
 		Document document = new Document(6);
 		document.add(new LongField("id", "100"));
@@ -191,7 +172,7 @@ public class DocumentWriteReadTest extends TestCase{
 		schemaSetting.getFieldSettingList().get(4).setMultiValue(true);
 		
 		IndexConfig indexConfig = createIndexConfig();
-		DocumentWriter dw = new DocumentWriter(schemaSetting, targetDir, new RevisionInfo(), indexConfig);
+		DocumentWriter dw = new DocumentWriter(schemaSetting, targetDir, indexConfig);
 		
 		int count = 300;
 		for (int i = 0; i < count; i++) {

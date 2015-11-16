@@ -1,29 +1,20 @@
 package org.fastcatsearch.util;
 
-import java.io.File;
-import java.util.ArrayList;
-
-import javax.xml.bind.JAXBException;
-
 import org.fastcatsearch.env.Path;
 import org.fastcatsearch.ir.common.SettingException;
-import org.fastcatsearch.ir.config.CollectionConfig;
-import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.CollectionIndexStatus;
+import org.fastcatsearch.ir.config.*;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
-import org.fastcatsearch.ir.config.DataInfo;
-import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
-import org.fastcatsearch.ir.config.DataSourceConfig;
-import org.fastcatsearch.ir.config.IndexConfig;
-import org.fastcatsearch.ir.config.IndexingScheduleConfig;
 import org.fastcatsearch.ir.config.IndexingScheduleConfig.IndexingSchedule;
-import org.fastcatsearch.ir.config.SingleSourceConfig;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.settings.SettingFileNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.xml.bind.JAXBException;
+import java.io.File;
+import java.util.ArrayList;
 
 public class CollectionContextUtil {
 	private static final Logger logger = LoggerFactory.getLogger(CollectionContextUtil.class);
@@ -250,12 +241,12 @@ public class CollectionContextUtil {
 				//리비전 xml을 각 리비전 디렉토리에 백업용을 남겨둔다.
 				SegmentInfo lastSegmentInfo = dataInfo.getLastSegmentInfo();
 				if(lastSegmentInfo != null) {
-					File revisionDir = dataFilePaths.revisionFile(collectionContext.getIndexSequence(), lastSegmentInfo.getId(), lastSegmentInfo.getRevision());
-					RevisionInfo revisionInfo = lastSegmentInfo.getRevisionInfo();
-					if (revisionInfo != null) {
-						logger.debug("Save RevisionInfo >> {}, {}", revisionDir.getAbsolutePath(), revisionInfo);
-						JAXBConfigs.writeConfig(new File(revisionDir, SettingFileNames.revisionInfo), revisionInfo, RevisionInfo.class);
-					}
+					File segmentDir = dataFilePaths.segmentFile(collectionContext.getIndexSequence(), lastSegmentInfo.getId());
+//					RevisionInfo revisionInfo = lastSegmentInfo.getRevisionInfo();
+//					if (revisionInfo != null) {
+//						logger.debug("Save RevisionInfo >> {}, {}", revisionDir.getAbsolutePath(), revisionInfo);
+//						JAXBConfigs.writeConfig(new File(revisionDir, SettingFileNames.revisionInfo), revisionInfo, RevisionInfo.class);
+//					}
 				}
 			}
 			

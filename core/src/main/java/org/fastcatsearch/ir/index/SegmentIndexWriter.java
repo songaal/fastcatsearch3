@@ -1,19 +1,19 @@
 package org.fastcatsearch.ir.index;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
-import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
+import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexesWriter;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * 문서를 제외한 색인파일만 기록한다.
@@ -32,15 +32,15 @@ public class SegmentIndexWriter implements IndexWritable {
 
 	protected String segmentId;
 	protected File targetDir;
-	protected RevisionInfo revisionInfo;
+	protected DataInfo.SegmentInfo segmentInfo;
 //	ThreadPoolExecutor threadPoolExecutor;
 	
-	public SegmentIndexWriter(Schema schema, File targetDir, RevisionInfo revisionInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager,
+	public SegmentIndexWriter(Schema schema, File targetDir, DataInfo.SegmentInfo segmentInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager,
 			SelectedIndexList selectedIndexList) throws IRException {
-		init(schema, targetDir, revisionInfo, indexConfig, analyzerPoolManager, selectedIndexList);
+		init(schema, targetDir, segmentInfo, indexConfig, analyzerPoolManager, selectedIndexList);
 	}
 
-	public void init(Schema schema, File targetDir, RevisionInfo revisionInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager, SelectedIndexList selectedIndexList)
+	public void init(Schema schema, File targetDir, DataInfo.SegmentInfo segmentInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager, SelectedIndexList selectedIndexList)
 			throws IRException {
 		try {
 //			int poolSize = 10;
@@ -51,30 +51,31 @@ public class SegmentIndexWriter implements IndexWritable {
 			
 			this.segmentId = targetDir.getName();
 			this.targetDir = targetDir;
-			this.revisionInfo = revisionInfo;
+			this.segmentInfo = segmentInfo;
 
 			// make a default 0 revision directory
-			IndexFileNames.getRevisionDir(targetDir, revisionInfo.getId()).mkdirs();
+//			IndexFileNames.getRevisionDir(targetDir, revisionInfo.getId()).mkdirs();
+            targetDir.mkdirs();
 
 			if (selectedIndexList == null) {
-				primaryKeyIndexesWriter = new PrimaryKeyIndexesWriter(schema, targetDir, revisionInfo, indexConfig);
+				primaryKeyIndexesWriter = new PrimaryKeyIndexesWriter(schema, targetDir, indexConfig);
 //				searchIndexesWriter = new SearchIndexesAsyncWriter(schema, targetDir, revisionInfo, indexConfig, analyzerPoolManager, taskQueue);
-				searchIndexesWriter = new SearchIndexesWriter(schema, targetDir, revisionInfo, indexConfig, analyzerPoolManager);
-				fieldIndexesWriter = new FieldIndexesWriter(schema, targetDir, revisionInfo);
-				groupIndexesWriter = new GroupIndexesWriter(schema, targetDir, revisionInfo, indexConfig);
+				searchIndexesWriter = new SearchIndexesWriter(schema, targetDir, indexConfig, analyzerPoolManager);
+				fieldIndexesWriter = new FieldIndexesWriter(schema, targetDir);
+				groupIndexesWriter = new GroupIndexesWriter(schema, targetDir, indexConfig);
 			} else {
 				if (selectedIndexList.isPrimaryKeyIndexSelected()) {
-					primaryKeyIndexesWriter = new PrimaryKeyIndexesWriter(schema, targetDir, revisionInfo, indexConfig);
+					primaryKeyIndexesWriter = new PrimaryKeyIndexesWriter(schema, targetDir, indexConfig);
 				}
 
 				List<String> searchIndexList = selectedIndexList.getSearchIndexList();
 //				searchIndexesWriter = new SearchIndexesAsyncWriter(schema, targetDir, revisionInfo, indexConfig, analyzerPoolManager, taskQueue, searchIndexList);
-				searchIndexesWriter = new SearchIndexesWriter(schema, targetDir, revisionInfo, indexConfig, analyzerPoolManager, searchIndexList);
+				searchIndexesWriter = new SearchIndexesWriter(schema, targetDir, indexConfig, analyzerPoolManager, searchIndexList);
 				List<String> fieldIndexList = selectedIndexList.getFieldIndexList();
-				fieldIndexesWriter = new FieldIndexesWriter(schema, targetDir, revisionInfo, fieldIndexList);
+				fieldIndexesWriter = new FieldIndexesWriter(schema, targetDir, fieldIndexList);
 				
 				List<String> groupIndexList = selectedIndexList.getGroupIndexList();
-				groupIndexesWriter = new GroupIndexesWriter(schema, targetDir, revisionInfo, indexConfig, groupIndexList);
+				groupIndexesWriter = new GroupIndexesWriter(schema, targetDir, indexConfig, groupIndexList);
 
 			}
 		} catch (IOException e) {
@@ -172,7 +173,7 @@ public class SegmentIndexWriter implements IndexWritable {
 
 			// 여기서는 동일 수집문서내 pk중복만 처리하고 삭제문서갯수는 알수 없다.
 			// 삭제문서는 DataSourceReader에서 알수 있으므로, 이 writer를 호출하는 class에서 처리한다.
-			revisionInfo.setDocumentCount(count);
+            segmentInfo.setDocumentCount(count);
 			int updateCount = 0;
 			int insertCount = 0;
 			if(primaryKeyIndexesWriter != null){
@@ -181,17 +182,17 @@ public class SegmentIndexWriter implements IndexWritable {
 			}else{
 				insertCount = count;
 			}
-			revisionInfo.setInsertCount(insertCount);
-			revisionInfo.setUpdateCount(updateCount);
-			revisionInfo.setCreateTime(Formatter.formatDate());
+            segmentInfo.setInsertCount(insertCount);
+            segmentInfo.setUpdateCount(updateCount);
+            segmentInfo.setCreateTime(Formatter.formatDate());
 
 			logger.info("Segment [{}] Indexed, elapsed = {}, mem = {}, {}", segmentId, Formatter.getFormatTime(System.currentTimeMillis() - startTime),
-					Formatter.getFormatSize(Runtime.getRuntime().totalMemory()), revisionInfo);
+					Formatter.getFormatSize(Runtime.getRuntime().totalMemory()), segmentInfo);
 
 		} catch (Exception e) {
-			File revisionDir = IndexFileNames.getRevisionDir(targetDir, revisionInfo.getId());
+//			File revisionDir = IndexFileNames.getRevisionDir(targetDir, revisionInfo.getId());
 			//FileUtils.deleteDirectory(revisionDir);
-			FileUtils.forceDelete(revisionDir);
+			FileUtils.forceDelete(targetDir);
 			throw new IRException(e);
 		} finally {
 //			if(threadPoolExecutor != null) {

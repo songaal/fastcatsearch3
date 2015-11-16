@@ -62,10 +62,10 @@ public class SearchIndexReader implements Cloneable {
 	}
 
 	public SearchIndexReader(IndexSetting indexSetting, Schema schema, File dir, AnalyzerPool queryAnalyzerPool, int segmentDocumentCount) throws IOException, IRException {
-		this(indexSetting, schema, dir, 0, queryAnalyzerPool, segmentDocumentCount);
-	}
-
-	public SearchIndexReader(IndexSetting indexSetting, Schema schema, File dir, int revision, AnalyzerPool queryAnalyzerPool, int segmentDocumentCount) throws IOException, IRException {
+//		this(indexSetting, schema, dir, 0, queryAnalyzerPool, segmentDocumentCount);
+//	}
+//
+//	public SearchIndexReader(IndexSetting indexSetting, Schema schema, File dir, int revision, AnalyzerPool queryAnalyzerPool, int segmentDocumentCount) throws IOException, IRException {
 		this.schema = schema;
 		this.indexSetting = indexSetting;
 		String id = indexSetting.getId();
@@ -75,8 +75,10 @@ public class SearchIndexReader implements Cloneable {
 		
 		logger.debug("Search Index [{}] Dir = {}", indexId, dir.getAbsolutePath());
 		try {
-			postingInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, revision) , IndexFileNames.getSearchPostingFileName(id));
-			lexiconInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, revision) , IndexFileNames.getSearchLexiconFileName(id));
+//			postingInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, revision) , IndexFileNames.getSearchPostingFileName(id));
+//			lexiconInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, revision) , IndexFileNames.getSearchLexiconFileName(id));
+            postingInput = new BufferedFileInput(dir , IndexFileNames.getSearchPostingFileName(id));
+            lexiconInput = new BufferedFileInput(dir , IndexFileNames.getSearchLexiconFileName(id));
 			
 			fileLimit = lexiconInput.length();
 			
@@ -95,7 +97,7 @@ public class SearchIndexReader implements Cloneable {
 		
 		IndexInput indexInput = null;
 		try {
-			indexInput = new BufferedFileInput(IndexFileNames.getRevisionDir(dir, revision), IndexFileNames.getSearchIndexFileName(id));
+			indexInput = new BufferedFileInput(dir, IndexFileNames.getSearchIndexFileName(id));
 			int indexSize = indexInput.readInt();
 
 			logger.debug("====memoryLexicon - {}==== index key size = {}", id, indexSize);

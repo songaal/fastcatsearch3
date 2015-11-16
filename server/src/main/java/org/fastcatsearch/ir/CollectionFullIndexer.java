@@ -1,11 +1,6 @@
 package org.fastcatsearch.ir;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-
 import org.apache.commons.io.FileUtils;
-import org.fastcatsearch.datasource.reader.AbstractDataSourceReader;
 import org.fastcatsearch.datasource.reader.DataSourceReader;
 import org.fastcatsearch.datasource.reader.DefaultDataSourceReaderFactory;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
@@ -13,11 +8,13 @@ import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
-import org.fastcatsearch.ir.config.DataInfo.RevisionInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.job.indexing.IndexingStopException;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * 컬렉션의 전체색인을 수행하는 indexer.
@@ -60,8 +57,8 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 	}
 
 	@Override
-	protected boolean done(RevisionInfo revisionInfo, IndexStatus indexStatus) throws IRException, IndexingStopException {
-		int insertCount = revisionInfo.getInsertCount();
+	protected boolean done(SegmentInfo segmentInfo, IndexStatus indexStatus) throws IRException, IndexingStopException {
+		int insertCount = segmentInfo.getInsertCount();
 
 		if (insertCount > 0 && !stopRequested) {
 			//이미 동일한 revinfo이므로 재셋팅필요없다.
@@ -71,7 +68,7 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 			//addindexing의 updateCollection대신 호출.
 			collectionContext.addSegmentInfo(workingSegmentInfo);  
 			//update status.xml file
-			collectionContext.updateCollectionStatus(IndexingType.FULL, revisionInfo, startTime, System.currentTimeMillis());
+			collectionContext.updateCollectionStatus(IndexingType.FULL, segmentInfo, startTime, System.currentTimeMillis());
 			collectionContext.indexStatus().setFullIndexStatus(indexStatus);
 			return true;
 		}else{

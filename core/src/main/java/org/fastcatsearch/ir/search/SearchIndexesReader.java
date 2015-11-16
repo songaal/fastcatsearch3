@@ -52,10 +52,10 @@ public class SearchIndexesReader implements Cloneable {
 	}
 
 	public SearchIndexesReader(Schema schema, File dir, AnalyzerPoolManager analyzerPoolManager, int segmentDocumentCount) throws IOException, IRException {
-		this(schema, dir, 0, analyzerPoolManager, segmentDocumentCount);
-	}
-
-	public SearchIndexesReader(Schema schema, File dir, int revision, AnalyzerPoolManager analyzerPoolManager, int segmentDocumentCount) throws IOException, IRException {
+//		this(schema, dir, 0, analyzerPoolManager, segmentDocumentCount);
+//	}
+//
+//	public SearchIndexesReader(Schema schema, File dir, int revision, AnalyzerPoolManager analyzerPoolManager, int segmentDocumentCount) throws IOException, IRException {
 		this.schema = schema;
 		this.segmentDocumentCount = segmentDocumentCount;
 //		logger.debug("schema > {}", schema);
@@ -79,7 +79,8 @@ public class SearchIndexesReader implements Cloneable {
 					throw new IRException("Query analyzer not found >> " + setting.getId() + " : " + queryAnalyzerName);
 				}
 				
-				reader = new SearchIndexReader(setting, schema, dir, revision, queryAnalyzerPool, segmentDocumentCount);
+//				reader = new SearchIndexReader(setting, schema, dir, revision, queryAnalyzerPool, segmentDocumentCount);
+                reader = new SearchIndexReader(setting, schema, dir, queryAnalyzerPool, segmentDocumentCount);
 			} catch (Exception e) {
 				logger.error("색인Reader {}로딩중 에러 >> {}", setting.getId(), e);
 				if (reader != null) {
@@ -90,7 +91,8 @@ public class SearchIndexesReader implements Cloneable {
 		}
 		PrimaryKeySetting primaryKeySetting = schema.schemaSetting().getPrimaryKeySetting();
 		if(primaryKeySetting.getFieldList() != null && primaryKeySetting.getFieldList().size() > 0) {
-			primaryKeyIndexesReader = new PrimaryKeyIndexesReader(schema, dir, revision);
+//			primaryKeyIndexesReader = new PrimaryKeyIndexesReader(schema, dir, revision);
+            primaryKeyIndexesReader = new PrimaryKeyIndexesReader(schema, dir);
 		}
 	}
 

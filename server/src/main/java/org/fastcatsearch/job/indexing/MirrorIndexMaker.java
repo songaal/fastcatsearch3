@@ -11,9 +11,6 @@
 
 package org.fastcatsearch.job.indexing;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
@@ -21,6 +18,9 @@ import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
+
+import java.io.File;
+import java.io.IOException;
 
 
 public class MirrorIndexMaker {
@@ -41,7 +41,7 @@ public class MirrorIndexMaker {
 		}
 		mirrorDir.mkdir();
 		
-		int docCount = segmentInfo.getRevisionInfo().getDocumentCount();
+		int docCount = segmentInfo.getDocumentCount();
 		
 		try {
 			//1. doc문서파일.

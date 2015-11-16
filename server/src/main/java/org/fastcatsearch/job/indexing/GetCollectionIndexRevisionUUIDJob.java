@@ -1,7 +1,5 @@
 package org.fastcatsearch.job.indexing;
 
-import java.io.IOException;
-
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
@@ -11,6 +9,8 @@ import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
+
+import java.io.IOException;
 
 /**
  * 증분색인시 이전 revisionUUID가 일치하는지 여부확인.
@@ -28,7 +28,7 @@ public class GetCollectionIndexRevisionUUIDJob extends Job implements Streamable
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		CollectionContext collectionContext = irService.collectionContext(collectionId);
 		SegmentInfo lastSegmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
-		String lastRevisionUUID = lastSegmentInfo.getRevisionInfo().getUuid();
+		String lastRevisionUUID = lastSegmentInfo.getUuid();
 		
 		return new JobResult(lastRevisionUUID);
 	}
