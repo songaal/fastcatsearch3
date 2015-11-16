@@ -36,27 +36,27 @@ public class HitElement extends AbstractHitElement<HitElement> {
 	private int totalBundleSize;
 
 	public HitElement(int docNo, int score, List<RowExplanation> list){
-		this(-1, docNo, score, null, list);
+		this(null, docNo, score, null, list);
 	}
 	public HitElement(int docNo, int score, BytesRef[] dataList, List<RowExplanation> list){
-		this(-1, docNo, score, dataList, list);
+		this(null, docNo, score, dataList, list);
 	}
 	//bundle
 	public HitElement(int docNo, int score, BytesRef[] dataList, List<RowExplanation> list, BytesRef bundleKey){
-		this(-1, docNo, score, dataList, list, bundleKey);
+		this(null, docNo, score, dataList, list, bundleKey);
 	}
-	public HitElement(int segmentSequence, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list){
-		super(segmentSequence, docNo, score, dataList, list);
+	public HitElement(String segmentId, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list){
+		super(segmentId, docNo, score, dataList, list);
 	}
-	public HitElement(int segmentSequence, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list, DocIdList bundleDocIdList, int totalBundleSize){
-		super(segmentSequence, docNo, score, dataList, list);
+	public HitElement(String segmentId, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list, DocIdList bundleDocIdList, int totalBundleSize){
+		super(segmentId, docNo, score, dataList, list);
 		this.bundleDocIdList = bundleDocIdList;
         this.totalBundleSize = totalBundleSize;
 	}
 
 	//bundle
-	public HitElement(int segmentSequence, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list, BytesRef bundleKey){
-		super(segmentSequence, docNo, score, dataList, list);
+	public HitElement(String segmentId, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list, BytesRef bundleKey){
+		super(segmentId, docNo, score, dataList, list);
 		this.bundleKey = bundleKey;
 	}
 
@@ -81,8 +81,8 @@ public class HitElement extends AbstractHitElement<HitElement> {
 	public int compareTo(HitElement other) {
 		
 		//최신세그먼트 우선.
-		if(segmentSequence != other.segmentSequence){
-			return other.segmentSequence - segmentSequence;
+		if(!segmentId.equals(other.segmentId)){
+			return other.segmentId.compareTo(segmentId);
 		}
 		
 		//정렬 데이터가 모두 같다면 문서번호가 최신인걸 보여준다. 

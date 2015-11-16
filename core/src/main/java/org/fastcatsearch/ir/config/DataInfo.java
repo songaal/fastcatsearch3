@@ -145,23 +145,20 @@ public class DataInfo {
 	 * */
 	@XmlRootElement(name = "segment")
 	@XmlType(propOrder = { "createTime", "deleteCount", "updateCount", "insertCount", "documentCount", "uuid", "baseNumber", "id" })
-	// , "revision"
 	public static class SegmentInfo implements Comparable<SegmentInfo>{
 		private String id;
 		private int baseNumber;
-		// private int revision;
-//		private RevisionInfo revisionInfo;
         private String uuid;
-//        private int ref;
         private int documentCount;
         private int insertCount;
         private int updateCount;
         private int deleteCount;
         private String createTime;
 
-		public SegmentInfo() {
-			this.id = "0";
-//			revisionInfo = new RevisionInfo();
+        public SegmentInfo() {}
+
+		public SegmentInfo(String id) {
+			this.id = id;
 		}
 
 		public SegmentInfo(String id, int baseNumber) {
@@ -187,10 +184,8 @@ public class DataInfo {
 		}
 
 		public SegmentInfo copy() {
-			SegmentInfo segmentInfo = new SegmentInfo();
-			segmentInfo.id = id;
+			SegmentInfo segmentInfo = new SegmentInfo(id);
 			segmentInfo.baseNumber = baseNumber;
-//			segmentInfo.revisionInfo = revisionInfo.copy();
             segmentInfo.uuid = uuid;
             segmentInfo.documentCount = documentCount;
             segmentInfo.insertCount = insertCount;
@@ -200,12 +195,11 @@ public class DataInfo {
 			return segmentInfo;
 		}
 
-		public void resetRevisionInfo() {
+		public void resetCountInfo() {
+            documentCount = 0;
             insertCount = 0;
             updateCount = 0;
             deleteCount = 0;
-//			revisionInfo.setUpdateCount(0);
-//			revisionInfo.setDeleteCount(0);
 		}
 
 		public String toString() {
@@ -245,10 +239,6 @@ public class DataInfo {
 		@XmlAttribute
 		public String getId() {
 			return id;
-		}
-
-		public int getIntId() {
-			return Integer.parseInt(id);
 		}
 
 		public void setId(String id) {
@@ -366,7 +356,7 @@ public class DataInfo {
 
 		@Override
 		public int compareTo(SegmentInfo o) {
-			return Integer.parseInt(id) - Integer.parseInt(o.id);
+			return id.compareTo(o.id);
 		}
 		
 	}

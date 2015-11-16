@@ -340,13 +340,13 @@ public class SegmentSearcher {
 			totalCount += nread;
 		}
 		
-		int segmentSequence = segmentReader.sequence();
+		String segmentId = segmentReader.segmentId();
 		int size = ranker.size();
 		FixedHitStack hitStack = new FixedHitStack(size);
 		for (int i = 0; i < size; i++) {
 			HitElement el = ranker.pop();
 			//여기에서 segment번호를 셋팅해준다. 
-			el.setDocNo(segmentSequence, el.docNo());
+			el.setDocNo(segmentId, el.docNo());
 			hitStack.push(el);
 		}
 		
@@ -359,14 +359,14 @@ public class SegmentSearcher {
 	 * @return
 	 */
 	private FixedHitStack rankHitList() {
-		int segmentSequence = segmentReader.sequence();
+        String segmentId = segmentReader.segmentId();
 		int size = ranker.size();
 		FixedHitStack hitStack = new FixedHitStack(size);
 		for (int i = 0; i < size; i++) {
 			HitElement el = ranker.pop();
 			
 			//여기에서 segment번호를 셋팅해준다. 
-			el.setDocNo(segmentSequence, el.docNo());
+			el.setDocNo(segmentId, el.docNo());
 //			logger.debug("rank hit seg#{} {}:{} > {}", segmentSequence, el.docNo(), el.score(), el.rowExplanations());
 			hitStack.push(el);
 		}

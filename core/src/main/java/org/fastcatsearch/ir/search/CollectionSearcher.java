@@ -17,6 +17,7 @@ import org.fastcatsearch.ir.group.GroupDataMerger;
 import org.fastcatsearch.ir.group.GroupHit;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.*;
+import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.query.*;
 import org.fastcatsearch.ir.query.Term.Option;
 import org.fastcatsearch.ir.search.clause.Clause;
@@ -31,10 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class CollectionSearcher {
 	private static Logger logger = LoggerFactory.getLogger(CollectionSearcher.class);
@@ -78,7 +76,7 @@ public class CollectionSearcher {
 
 		if (segmentSize == 1) {
 			// 머징필요없음.
-            GroupHit groupHit = collectionHandler.segmentSearcher(0).searchGroupHit(q);
+            GroupHit groupHit = collectionHandler.getFirstSegmentSearcher().searchGroupHit(q);
             return groupHit.groupData();
 		} else {
 
@@ -87,9 +85,8 @@ public class CollectionSearcher {
 				dataMerger = new GroupDataMerger(groups, segmentSize);
 			}
 
-            for (int i = 0; i < segmentSize; i++) {
-                GroupHit groupHit = collectionHandler.segmentSearcher(i).searchGroupHit(q);
-
+            for(SegmentReader r : collectionHandler.segmentReaders()) {
+                GroupHit groupHit = r.segmentSearcher().searchGroupHit(q);
                 if (dataMerger != null) {
                     dataMerger.put(groupHit.groupData());
                 }
@@ -105,36 +102,32 @@ public class CollectionSearcher {
 	}
 
 	// id리스트에 해당하는 document자체를 읽어서 리스트로 리턴한다.
-	@Deprecated
-	public List<Document> requestDocument(int[] docIdList) throws IOException {
-		// eachDocList에 해당하는 문서리스트를 리턴한다.
-		List<Document> documentList = new ArrayList<Document>(docIdList.length);
-
-		int segmentSize = collectionHandler.segmentSize();
-		for (int i = 0; i < docIdList.length; i++) {
-			int docNo = docIdList[i];
-
-			// make doc number lists to send each columns
-			for (int m = segmentSize - 1; m >= 0; m--) {
-				if (docNo >= collectionHandler.segmentReader(m).segmentInfo().getBaseNumber()) {
-					documentList.add(collectionHandler.segmentReader(m).segmentSearcher().getDocument(docNo));
-					break;
-				}
-			}
-		}
-
-		return documentList;
-	}
+//	@Deprecated
+//	public List<Document> requestDocument(int[] docIdList) throws IOException {
+//		// eachDocList에 해당하는 문서리스트를 리턴한다.
+//		List<Document> documentList = new ArrayList<Document>(docIdList.length);
+//
+//		int segmentSize = collectionHandler.segmentSize();
+//		for (int i = 0; i < docIdList.length; i++) {
+//			int docNo = docIdList[i];
+//
+//			// make doc number lists to send each columns
+//			for (int m = segmentSize - 1; m >= 0; m--) {
+//				if (docNo >= collectionHandler.segmentReader(m).segmentInfo().getBaseNumber()) {
+//					documentList.add(collectionHandler.segmentReader(m).segmentSearcher().getDocument(docNo));
+//					break;
+//				}
+//			}
+//		}
+//
+//		return documentList;
+//	}
 	
-	public Document requestDocument(int docNo) throws IOException {
-
-		int segmentSize = collectionHandler.segmentSize();
-		// make doc number lists to send each columns
-		for (int m = segmentSize - 1; m >= 0; m--) {
-			if (docNo >= collectionHandler.segmentReader(m).segmentInfo().getBaseNumber()) {
-				return collectionHandler.segmentReader(m).segmentSearcher().getDocument(docNo);
-			}
-		}
+	public Document requestDocument(String segmentId, int docNo) throws IOException {
+        SegmentReader reader = collectionHandler.segmentReader(segmentId);
+        if (docNo >= reader.segmentInfo().getBaseNumber()) {
+            return reader.segmentSearcher().getDocument(docNo);
+        }
 		return null;
 	}
 
@@ -169,7 +162,7 @@ public class CollectionSearcher {
 		if (forMerging) {// 앞에서 부터 모두.
 			resultRows = sortMaxSize;
 		}
-		
+
 		
 //		if(collectionId == null){
 //			collectionId = meta.collectionId();
@@ -209,10 +202,14 @@ public class CollectionSearcher {
 		List<Explanation> explanationList = null;
 		BitSet[] segmentDocHitSetList = null;
 		try {
-			segmentDocHitSetList = new BitSet[segmentSize];
-			for (int i = 0; i < segmentSize; i++) {
+            TreeSet treeSet = new TreeSet<SegmentReader>(collectionHandler.segmentReaders());
+            int size = treeSet.size();
+            segmentDocHitSetList = new BitSet[size];
+            Iterator<SegmentReader> iterator = treeSet.iterator();
+
+			for(int i = 0; iterator.hasNext(); i++) {
 				// segment 의 모든 결과를 보아야 중복체크가 가능하므로 reader를 받아오도록 한다.
-				HitReader hitReader = collectionHandler.segmentSearcher(i).searchHitReader(q, boostList);
+				HitReader hitReader = iterator.next().segmentSearcher().searchHitReader(q, boostList);
 				//
 				//
 				//FIXME highlightInfo 계속 덮어쓰나?
@@ -335,6 +332,9 @@ public class CollectionSearcher {
 		Type bundleFieldType = bundleFieldSetting.getType();
 		
 		try {
+
+            TreeSet treeSet = new TreeSet<SegmentReader>(collectionHandler.segmentReaders());
+//            Iterator<SegmentReader> iterator = treeSet.iterator();
 			for (int k = 0; k < size; k++) {
 				int totalSize = 0;
 				//bundleKey로 clause생성한다.
@@ -351,10 +351,11 @@ public class CollectionSearcher {
 				
 				Clause bundleClause = new Clause(new Term(fieldIndexId, bundleStringKey));
 				Hit[] segmentHitList = new Hit[segmentSize];
-				
-				for (int i = 0; i < segmentSize; i++) {
+
+                Iterator<SegmentReader> iterator = treeSet.iterator();
+                for(int i = 0; iterator.hasNext(); i++) {
 					//bundle key 별로 결과를 모은다.
-					segmentHitList[i] = collectionHandler.segmentSearcher(i).searchIndex(bundleClause, bundleSorts, bundleStart, bundleRows, segmentDocFilterList[i]);
+					segmentHitList[i] = iterator.next().segmentSearcher().searchIndex(bundleClause, bundleSorts, bundleStart, bundleRows, segmentDocFilterList[i]);
 					totalSize += segmentHitList[i].totalCount();
 				}
 				
@@ -388,7 +389,7 @@ public class CollectionSearcher {
                         //단, 대표문서를 포함옵션이 있다면 추가한다.
 						if(isParentInclude || el.docNo() != mainDocNo) {
                             if (c >= bundleStart) {
-                                bundleDocIdList.add(el.segmentSequence(), el.docNo());
+                                bundleDocIdList.add(el.segmentId(), el.docNo());
                                 n++;
                                 //logger.debug("[{}] {}", el.segmentSequence() ,el.docNo());
                             }
@@ -461,29 +462,31 @@ public class CollectionSearcher {
 		
 		//SegmentSearcher를 재사용하기 위한 array. Lazy-loading되며, segmentSequence가 array 첨자가 된다.
 		//처음에는 길이 5로 만들어놓고 나중에 더 필요하면, grow시킨다.
-		SegmentSearcher[] segmentSearcherList = new SegmentSearcher[5];
-		
+//		SegmentSearcher[] segmentSearcherList = new SegmentSearcher[5];
+
+        Map<String, SegmentSearcher> segmentSearchMap = new HashMap<String, SegmentSearcher>();
 		int idx = 0;
 		for (int i = 0; i < list.size(); i++) {
-			int segmentSequence = list.segmentSequence(i);
+			String segmentId = list.segmentId(i);
 			int docNo = list.docNo(i);
 			DocIdList bundleDocIdList = list.bundleDocIdList(i);
-			int size = segmentSearcherList.length;
+//			int size = segmentSearcherList.length;
 			
 			//기존 범위를 벗어나는 세그먼트 요청이 있을 때 grow한다. 
-			if(segmentSequence >= size){
-				while(segmentSequence >= size){
-					size += 5;
-				}
-				SegmentSearcher[] newSegmentSearcherList = new SegmentSearcher[size];
-				System.arraycopy(segmentSearcherList, 0, newSegmentSearcherList, 0, segmentSearcherList.length);
-				segmentSearcherList = newSegmentSearcherList;
+//			if(segmentSequence >= size){
+//				while(segmentSequence >= size){
+//					size += 5;
+//				}
+//				SegmentSearcher[] newSegmentSearcherList = new SegmentSearcher[size];
+//				System.arraycopy(segmentSearcherList, 0, newSegmentSearcherList, 0, segmentSearcherList.length);
+//				segmentSearcherList = newSegmentSearcherList;
+//			}
+            SegmentSearcher segmentSearcher = segmentSearchMap.get(segmentId);
+			if(segmentSearcher == null) {
+                segmentSearcher = collectionHandler.segmentReader(segmentId).segmentSearcher();
+                segmentSearchMap.put(segmentId, segmentSearcher);
 			}
-			
-			if(segmentSearcherList[segmentSequence] == null) {
-				segmentSearcherList[segmentSequence] = collectionHandler.segmentReader(segmentSequence).segmentSearcher();
-			}
-			Document doc = segmentSearcherList[segmentSequence].getDocument(docNo, fieldSelectOption);
+			Document doc = segmentSearcher.getDocument(docNo, fieldSelectOption);
 			eachDocList[idx] = doc;
 			
 			if(bundleDocIdList != null) {
@@ -493,9 +496,9 @@ public class CollectionSearcher {
 				}
 				Document[] bundleDoclist = new Document[bundleDocIdList.size()];
 				for (int j = 0; j < bundleDocIdList.size(); j++) {
-					int bundleSegmentSequence = bundleDocIdList.segmentSequence(j);
+					String bundleSegmentId = bundleDocIdList.segmentId(j);
 					int bundleDocNo = bundleDocIdList.docNo(j);
-					Document bundleDoc = collectionHandler.segmentReader(bundleSegmentSequence).segmentSearcher().getDocument(bundleDocNo, fieldSelectOption);
+					Document bundleDoc = collectionHandler.segmentReader(bundleSegmentId).segmentSearcher().getDocument(bundleDocNo, fieldSelectOption);
 					bundleDoclist[j] = bundleDoc;
 				}
 				eachBundleDocList[idx] = bundleDoclist;

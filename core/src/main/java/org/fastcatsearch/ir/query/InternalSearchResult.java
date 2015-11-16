@@ -71,7 +71,7 @@ public class InternalSearchResult {
 		DocIdList docIdList = new DocIdList(count);
 		for (int i = 0; i < count; i++) {
 			HitElement el = rows[i];
-			docIdList.add(el.segmentSequence(), el.docNo());
+			docIdList.add(el.segmentId(), el.docNo());
 		}
 		return docIdList;
 	}

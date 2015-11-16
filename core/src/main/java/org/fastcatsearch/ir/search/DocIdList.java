@@ -1,7 +1,7 @@
 package org.fastcatsearch.ir.search;
 
 public class DocIdList {
-	private int[] segmentSequenceList;
+	private String[] segmentIdList;
 	private int[] docNoList;
 	private int size;
 	
@@ -11,28 +11,28 @@ public class DocIdList {
 		this(32);
 	}
 	public DocIdList(int initSize){
-		segmentSequenceList = new int[initSize];
+		segmentIdList = new String[initSize];
 		docNoList = new int[initSize];
 	}
 	
-	public void add(int segmentSequence, int docNo){
-		add(segmentSequence, docNo, null);
+	public void add(String segmentId, int docNo){
+		add(segmentId, docNo, null);
 	}
 	
-	public void add(int segmentSequence, int docNo, DocIdList bundleDocIdList){
+	public void add(String segmentId, int docNo, DocIdList bundleDocIdList){
 		if(bundleDocIdList != null) {
 			if(bundleDocIdListArray == null){
-				bundleDocIdListArray = new DocIdList[segmentSequenceList.length];
+				bundleDocIdListArray = new DocIdList[segmentIdList.length];
 			}
 		}
 
 		if(docNoList.length == size){
 			int newSize = size * 2;
-			int[] newSegmentSequenceList = new int[newSize];
+            String[] newSegmentIdList = new String[newSize];
 			int[] newDocNoList = new int[newSize];
-			System.arraycopy(segmentSequenceList, 0, newSegmentSequenceList, 0, size);
+			System.arraycopy(segmentIdList, 0, newSegmentIdList, 0, size);
 			System.arraycopy(docNoList, 0, newDocNoList, 0, size);
-			segmentSequenceList = newSegmentSequenceList;
+			segmentIdList = newSegmentIdList;
 			docNoList = newDocNoList;
 			
 			if(bundleDocIdListArray != null) {
@@ -42,7 +42,7 @@ public class DocIdList {
 			}
 		}
 		
-		segmentSequenceList[size] = segmentSequence;
+		segmentIdList[size] = segmentId;
 		docNoList[size] = docNo;
 		if(bundleDocIdList != null) {
 			bundleDocIdListArray[size] = bundleDocIdList;
@@ -52,8 +52,8 @@ public class DocIdList {
 	}
 	
 	
-	public int segmentSequence(int i){
-		return segmentSequenceList[i];
+	public String segmentId(int i){
+		return segmentIdList[i];
 	}
 	
 	public int docNo(int i){

@@ -19,8 +19,8 @@ public class HitReader {
 	private static Logger logger = LoggerFactory.getLogger(HitReader.class);
 	
 	private Schema schema;
-	SegmentReader segmentReader;
-	int segmentSequence;
+    private SegmentReader segmentReader;
+	private String segmentId;
 	
 	Filters filters;
 	Groups groups;
@@ -58,8 +58,8 @@ public class HitReader {
 //		int sortMaxSize = meta.start() + meta.rows() - 1;
 		schema = segmentReader.schema();
 		int docCount = segmentReader.docCount();
-		segmentSequence = segmentReader.sequence();
-		// Search
+        segmentId = segmentReader.segmentId();
+        // Search
 		highlightInfo = new HighlightInfo();
 		if (clause == null) {
 			operatedClause = new AllDocumentOperatedClause(docCount);
@@ -144,7 +144,7 @@ public class HitReader {
 			}
 		}
 		HitElement e = hitElementBuffer[--nread];
-		e.setSegmentSequence(segmentSequence);
+		e.setSegmentId(segmentId);
 		return e;
 	}
 	

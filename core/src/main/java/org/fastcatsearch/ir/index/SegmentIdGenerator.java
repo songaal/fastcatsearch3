@@ -23,7 +23,7 @@ public class SegmentIdGenerator {
     private int firstPos = 0;
     private int secondPos = 0;
 
-    protected String nextId() {
+    public String nextId() {
         String id = new String(new char[]{first[firstPos], second[secondPos++]});
 
         if (secondPos == second.length) {

@@ -10,12 +10,12 @@ import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
-import org.fastcatsearch.ir.config.DataPlanConfig;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexBulkReader;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexReader;
 import org.fastcatsearch.ir.document.merge.PrimaryKeyIndexMerger;
 import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.index.PrimaryKeys;
+import org.fastcatsearch.ir.index.SegmentIdGenerator;
 import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.settings.AnalyzerSetting;
@@ -28,16 +28,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CollectionHandler {
 	private static Logger logger = LoggerFactory.getLogger(CollectionHandler.class);
 	private String collectionId;
 	private CollectionContext collectionContext;
 	private CollectionSearcher collectionSearcher;
-	private List<SegmentReader> segmentReaderList;
+	private Map<String, SegmentReader> segmentReaderMap;
 	private Schema schema;
 	private long startedTime;
 	private boolean isLoaded;
@@ -47,6 +46,8 @@ public class CollectionHandler {
 	private AnalyzerPoolManager analyzerPoolManager;
 
 	private Counter queryCounter;
+
+    private SegmentIdGenerator segmentIdGenerator = new SegmentIdGenerator();
 
 	public CollectionHandler(CollectionContext collectionContext, AnalyzerFactoryManager analyzerFactoryManager) throws IRException, SettingException {
 		this.collectionContext = collectionContext;
@@ -117,33 +118,45 @@ public class CollectionHandler {
 		logger.debug("Load CollectionHandler [{}] data >> {}", collectionId, dataDir.getAbsolutePath());
 
 		// 색인기록이 있다면 세그먼트를 로딩한다.
-		segmentReaderList = new ArrayList<SegmentReader>();
-		List<SegmentInfo> segmentInfoList = collectionContext.dataInfo().getSegmentInfoList();
-		int segmentSize = segmentInfoList.size();
+		segmentReaderMap = new ConcurrentHashMap<String, SegmentReader>();
+//		List<SegmentInfo> segmentInfoList = collectionContext.dataInfo().getSegmentInfoList();
+//		int segmentSize = segmentInfoList.size();
+
+        try {
+            for (SegmentInfo segmentInfo : collectionContext.dataInfo().getSegmentInfoList()) {
+                File segmentDir = dataPaths.segmentFile(dataSequence, segmentInfo.getId());
+//					// 삭제문서는 마지막 세그먼트의 마지막 리비전에 최신 업데이트 파일이 있으므로, 그것을 로딩한다.
+//					BitSet deleteSet = new BitSet(lastRevisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
+                segmentReaderMap.put(segmentInfo.getId(), new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager));
+//					logger.debug("{}", segmentInfo);
+            }
+        } catch (IOException e) {
+            throw new IRException(e);
+        }
 
 		// logger.debug("segmentInfoList > {}, {}", segmentInfoList.size(), segmentInfoList);
-		if (segmentSize > 0) {
+//		if (segmentSize > 0) {
 			// 0,1,2...차례대로 list에 존재해야한다. deleteset을 적용해야하기때문에..
-			SegmentInfo lastSegmentInfo = segmentInfoList.get(segmentSize - 1);
+//			SegmentInfo lastSegmentInfo = segmentInfoList.get(segmentSize - 1);
 //			File lastRevisionDir = dataPaths.revisionFile(dataSequence, lastSegmentInfo.getId(), lastSegmentInfo.getRevision());
 //			try {
 //				for (SegmentInfo segmentInfo : collectionContext.dataInfo().getSegmentInfoList()) {
 //					File segmentDir = dataPaths.segmentFile(dataSequence, segmentInfo.getId());
-//					// 삭제문서는 마지막 세그먼트의 마지막 리비전에 최신 업데이트 파일이 있으므로, 그것을 로딩한다.
-//					BitSet deleteSet = new BitSet(lastRevisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
-//					segmentReaderList.add(new SegmentReader(segmentInfo, schema, segmentDir, deleteSet, analyzerPoolManager));
-//					logger.debug("{}", segmentInfo);
+////					// 삭제문서는 마지막 세그먼트의 마지막 리비전에 최신 업데이트 파일이 있으므로, 그것을 로딩한다.
+////					BitSet deleteSet = new BitSet(lastRevisionDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
+//					segmentReaderMap.add(new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager));
+////					logger.debug("{}", segmentInfo);
 //				}
 //			} catch (IOException e) {
 //				throw new IRException(e);
 //			}
-		}
+//		}
 	}
 
 	public void close() throws IOException {
 		logger.info("Close Collection handler {}", collectionId);
-		if (segmentReaderList != null) {
-			for (SegmentReader segmentReader : segmentReaderList) {
+		if (segmentReaderMap != null) {
+			for (SegmentReader segmentReader : segmentReaderMap.values()) {
 				segmentReader.close();
 			}
 		}
@@ -162,36 +175,44 @@ public class CollectionHandler {
 
 	public void printSegmentStatus() {
 		int i = 0;
-		for (SegmentReader segmentReader : segmentReaderList) {
+		for (SegmentReader segmentReader : segmentReaderMap.values()) {
 			logger.info("SEG#{} >> {}", i++, segmentReader.segmentInfo());
 		}
 	}
 
-	public SegmentReader segmentReader(int segmentNumber) {
-		if (segmentReaderList.size() == 0) {
-			return null;
-		}
-
-		return segmentReaderList.get(segmentNumber);
-
+	public SegmentReader segmentReader(String segmentId) {
+		return segmentReaderMap.get(segmentId);
 	}
 
-	public SegmentReader getLastSegmentReader() {
-		if (segmentReaderList.size() == 0) {
-			return null;
-		}
+    public String nextSegmentId() {
+        Set segmentIdSet = segmentReaderMap.keySet();
+        String id = null;
+        do {
+            id = segmentIdGenerator.nextId();
+        } while (segmentIdSet.contains(id));
+        return id;
+    }
+//	public SegmentReader getLastSegmentReader() {
+//		if (segmentReaderMap.size() == 0) {
+//			return null;
+//		}
+//
+//		// get Last segment Number
+//		return segmentReaderMap.get(segmentReaderMap.size() - 1);
+//	}
 
-		// get Last segment Number
-		return segmentReaderList.get(segmentReaderList.size() - 1);
-	}
+	public SegmentSearcher segmentSearcher(String segmentId) {
+        return segmentReaderMap.get(segmentId).segmentSearcher();
+    }
 
-	public SegmentSearcher segmentSearcher(int segmentNumber) {
-		if (segmentReaderList.size() == 0) {
-			return null;
-		}
+    public Collection<SegmentReader> segmentReaders() {
+        return segmentReaderMap.values();
+    }
 
-		return segmentReaderList.get(segmentNumber).segmentSearcher();
-	}
+    public SegmentSearcher getFirstSegmentSearcher() {
+        String segmentId = segmentReaderMap.keySet().iterator().next();
+        return segmentReaderMap.get(segmentId).segmentSearcher();
+    }
 
 	// public Schema schema() {
 	// return collectionContext.schema();
@@ -201,15 +222,14 @@ public class CollectionHandler {
 	// collectionContext에는 segmentInfo를 추가하지 않는다.
 	// 색인이 끝나면서 이미 context에 segmentinfo가 추가되어있는 상태이다.
 	private void addSegmentReader(SegmentReader segmentReader) {
-		segmentReaderList.add(segmentReader);
+		segmentReaderMap.put(segmentReader.segmentId(), segmentReader);
 		// info.xml 파일업데이트용.
 		collectionContext.updateSegmentInfo(segmentReader.segmentInfo());
 	}
 
 	// segment reader 교체.
 	private void updateSegmentReader(SegmentReader segmentReader, SegmentReader prevSegmentReader) {
-		segmentReaderList.remove(prevSegmentReader);
-		segmentReaderList.add(segmentReader);
+		segmentReaderMap.put(segmentReader.segmentId(), segmentReader);
 		// info.xml 파일업데이트용.
 		collectionContext.updateSegmentInfo(segmentReader.segmentInfo());
 		
@@ -244,16 +264,6 @@ public class CollectionHandler {
 		
 	}
 
-	// SegmentReader 찾기.
-	private SegmentReader getSegmentReader(String segmentId) {
-		for (SegmentReader segmentReader : segmentReaderList) {
-			if (segmentReader.segmentInfo().getId().equals(segmentId)) {
-				return segmentReader;
-			}
-		}
-		return null;
-	}
-
 	/**
 	 * 증분색인후 호출하는 메소드이다. 1. 이전 세그먼트에 삭제 문서를 적용한다. 2. 해당 segment reader 재로딩 및 대체하기.
 	 * */
@@ -262,43 +272,43 @@ public class CollectionHandler {
 		this.collectionContext = collectionContext;
 
 		String segmentId = segmentInfo.getId();
-		SegmentReader oldSegmentReader = getSegmentReader(segmentId);
+//		SegmentReader oldSegmentReader = segmentReader(segmentId);
 		// 동일한 id의 세그먼트가 없을경우는 증분색인시 segment가 추가된경우이다.
-		if (oldSegmentReader == null) {
+//		if (oldSegmentReader == null) {
 			/*
 			 * 증분색인시 세그먼트 하나가 추가된 경우.
 			 */
 			// 전체색인시는 세그먼트 0번부터 생성. 증분색인시는 세그먼트내 문서갯수가 많아서 새로운 세그먼트를 만들어야 할 경우.
 			logger.debug("Add segment {}", segmentInfo);
-			// segmentReaderList.size가 0이상일때만 적용된다. 즉, 이전세그먼트가 존재할경우.
+			// segmentReaderMap.size가 0이상일때만 적용된다. 즉, 이전세그먼트가 존재할경우.
 
 			// TODO makeDeleteSetWithSegments를 통해 update, delete doc count가 생성된다.
 			// segmentInfo.revisionInfo에 적용하고, save할수 있도록 한다.
 			// BitSet[] deleteSetList는 파라미터로 넘겨서 reference방식으로 수정.
 			// return은 update,delete int[]를 받도록 한다.
 
-			BitSet[] deleteSetList = new BitSet[segmentReaderList.size()];
-			int[] updateAndDeleteCount = makeDeleteSetWithSegments(segmentInfo, segmentDir, segmentReaderList, deleteSet, deleteSetList);
+			BitSet[] deleteSetList = new BitSet[segmentReaderMap.size()];
+			int[] updateAndDeleteCount = makeDeleteSetWithSegments(segmentInfo, segmentDir, segmentReaderMap, deleteSet, deleteSetList);
 			/*
 			 * 적용
 			 */
-			for (int i = 0; i < segmentReaderList.size(); i++) {
-				segmentReaderList.get(i).setDeleteSet(deleteSetList[i]);
+			for (int i = 0; i < segmentReaderMap.size(); i++) {
+				segmentReaderMap.get(i).setDeleteSet(deleteSetList[i]);
 			}
 			// 새로생성된 세그먼트는 로딩하여 리스트에 추가해준다.
 			addSegmentReader(new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager));
-		} else {
+//		} else {
 			/*
 			 * 리비전이 증가한경우.
 			 */
-			if (oldSegmentReader.segmentInfo().getIntId() != segmentReaderList.size() - 1) {
-				// 마지막 reader가 아니므로 업데이트불가. revision 생성은 마지막 segment에 수행되므로 segmentid가 다르다면 문제가 발생한것임.
-				throw new IRException("마지막 segment만 update가능합니다.");
-			}
+//			if (oldSegmentReader.segmentId() != segmentReaderMap.size() - 1) {
+//				// 마지막 reader가 아니므로 업데이트불가. revision 생성은 마지막 segment에 수행되므로 segmentid가 다르다면 문제가 발생한것임.
+//				throw new IRException("마지막 segment만 update가능합니다.");
+//			}
 
-			logger.debug("Update segment {}", segmentInfo);
+//			logger.debug("Update segment {}", segmentInfo);
 			// 마지막 reader를 제외한 리스트를 생성하여 delete.set을 update한다.
-			List<SegmentReader> prevSegmentReaderList = segmentReaderList.subList(0, segmentReaderList.size() - 1);
+//			List<SegmentReader> prevSegmentReaderList = segmentReaderMap.subList(0, segmentReaderMap.size() - 1);
 			// 1. [revision] pk & current delete.set
 			// 이전 리비전과의 pk를 먼저 머징해야 이전 리비전의 문서를 지울수가 있다.
 //			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
@@ -314,56 +324,56 @@ public class CollectionHandler {
 //			}
 
 			// 2. [segment] prev delete.set.#
-			BitSet[] deleteSetList = new BitSet[prevSegmentReaderList.size()];
-			int[] updateAndDeleteCount = makeDeleteSetWithSegments(segmentInfo, segmentDir, prevSegmentReaderList, deleteSet, deleteSetList);
+//			BitSet[] deleteSetList = new BitSet[prevSegmentReaderList.size()];
+//			int[] updateAndDeleteCount = makeDeleteSetWithSegments(segmentInfo, segmentDir, prevSegmentReaderList, deleteSet, deleteSetList);
 
 			/*
 			 * 적용
 			 */
 			// 해당 segment reader 재로딩 및 대체하기.
 			// apply new delete.set.# to each segment
-			for (int i = 0; i < prevSegmentReaderList.size(); i++) {
-				prevSegmentReaderList.get(i).setDeleteSet(deleteSetList[i]);
-			}
+//			for (int i = 0; i < prevSegmentReaderList.size(); i++) {
+//				prevSegmentReaderList.get(i).setDeleteSet(deleteSetList[i]);
+//			}
 			// 새 revison을 읽는 segmentReader를 만들어서 기존것과 바꾼다.
-			updateSegmentReader(new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager), oldSegmentReader);
+//			updateSegmentReader(new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager), oldSegmentReader);
 			// 기존 reader는 닫는다.
-			oldSegmentReader.close();
-		}
+//			oldSegmentReader.close();
+//		}
 	}
 
 	// 색인되어있는 세그먼트를 단순히 추가만한다. delete.set파일은 이미 수정되어있다고 가정한다.
 	public void addSegmentApplyCollection(SegmentInfo segmentInfo, File segmentDir) throws IOException, IRException {
 //		File lastRevisionDir = new File(segmentDir, segmentInfo.getRevisionName());
 		// 삭제문서는 마지막 세그먼트의 마지막 리비전에 최신 업데이트 파일이 있으므로, 그것을 로딩한다.
-		for (int i = 0; i < segmentReaderList.size(); i++) {
-			SegmentInfo prevSegmentInfo = segmentReaderList.get(i).segmentInfo();
+		for (int i = 0; i < segmentReaderMap.size(); i++) {
+			SegmentInfo prevSegmentInfo = segmentReaderMap.get(i).segmentInfo();
 			BitSet deleteSet = new BitSet(segmentDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, prevSegmentInfo.getId()));
-			segmentReaderList.get(i).setDeleteSet(deleteSet);
+			segmentReaderMap.get(i).setDeleteSet(deleteSet);
 		}
 		addSegmentReader(new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager));
 	}
 
 	// 단순 update. delete.set파일은 이미 수정되어있다고 가정한다.
-	public void updateSegmentApplyCollection(SegmentInfo segmentInfo, File segmentDir) throws IOException, IRException {
-		if (segmentReaderList.size() == 0) {
-			return;
-		}
-//		File lastRevisionDir = new File(segmentDir, segmentInfo.getRevisionName());
-		String segmentId = segmentInfo.getId();
-		SegmentReader oldSegmentReader = getSegmentReader(segmentId);
-		logger.debug("updateSegmentApplyShard segId={}, reader={}, size={}", segmentId, oldSegmentReader, segmentReaderList.size());
-		List<SegmentReader> prevSegmentReaderList = segmentReaderList.subList(0, segmentReaderList.size() - 1);
-		for (int i = 0; i < prevSegmentReaderList.size(); i++) {
-			SegmentInfo prevSegmentInfo = prevSegmentReaderList.get(i).segmentInfo();
-			BitSet deleteSet = new BitSet(segmentDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, prevSegmentInfo.getId()));
-			prevSegmentReaderList.get(i).setDeleteSet(deleteSet);
-		}
-		// 새 revison을 읽는 segmentReader를 만들어서 기존것과 바꾼다.
-		updateSegmentReader(new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager), oldSegmentReader);
-		// 기존 reader는 닫는다.
-		oldSegmentReader.close();
-	}
+//	public void updateSegmentApplyCollection(SegmentInfo segmentInfo, File segmentDir) throws IOException, IRException {
+//		if (segmentReaderMap.size() == 0) {
+//			return;
+//		}
+////		File lastRevisionDir = new File(segmentDir, segmentInfo.getRevisionName());
+//		String segmentId = segmentInfo.getId();
+//		SegmentReader oldSegmentReader = segmentReader(segmentId);
+//		logger.debug("updateSegmentApplyShard segId={}, reader={}, size={}", segmentId, oldSegmentReader, segmentReaderMap.size());
+//		List<SegmentReader> prevSegmentReaderList = segmentReaderMap.subList(0, segmentReaderMap.size() - 1);
+//		for (int i = 0; i < prevSegmentReaderList.size(); i++) {
+//			SegmentInfo prevSegmentInfo = prevSegmentReaderList.get(i).segmentInfo();
+//			BitSet deleteSet = new BitSet(segmentDir, IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, prevSegmentInfo.getId()));
+//			prevSegmentReaderList.get(i).setDeleteSet(deleteSet);
+//		}
+//		// 새 revison을 읽는 segmentReader를 만들어서 기존것과 바꾼다.
+//		updateSegmentReader(new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager), oldSegmentReader);
+//		// 기존 reader는 닫는다.
+//		oldSegmentReader.close();
+//	}
 
 	// 이전 세그먼트가 존재하면 delete.set을 업데이트하여 segment reader 에 적용시켜준다.
 	// 최근 색인작업으로 추가된 newSegmentInfo 세그먼트의 문서는 최신이므로 delete.set을 따로 적용할 필요가없다.
@@ -585,11 +595,7 @@ public class CollectionHandler {
 	}
 
 	public int segmentSize() {
-		if (segmentReaderList == null) {
-			return 0;
-		}
-
-		return segmentReaderList.size();
+		return segmentReaderMap.size();
 	}
 
 	public AnalyzerPool getAnalyzerPool(String analyzerId) {

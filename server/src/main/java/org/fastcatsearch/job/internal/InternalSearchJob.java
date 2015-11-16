@@ -79,9 +79,9 @@ public class InternalSearchJob extends Job implements Streamable {
 							continue;
 						}
 						//FIXME 첫번째 필드가 id이다.
-						logger.debug("e.docNo() > {}", e.docNo());
-						logger.debug("field > {}", boostCollectionSearcher.requestDocument(e.docNo()).get(1));
-						String id = boostCollectionSearcher.requestDocument(e.docNo()).get(1).toString();
+						String id = boostCollectionSearcher.requestDocument(e.segmentId(), e.docNo()).get(1).toString();
+                        logger.debug("e.segmentId[{}] e.docNo[{}] > {}", e.segmentId(), e.docNo());
+                        logger.debug("field > {}", id);
 						int score = e.score();
 						pkScoreList.add(new PkScore(id, score));
 					}

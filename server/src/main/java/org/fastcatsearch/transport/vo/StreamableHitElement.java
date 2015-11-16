@@ -38,7 +38,7 @@ public class StreamableHitElement implements Streamable {
 		count = input.readInt();
 		this.hitElements = new HitElement[count];
 		for (int hitElementInx = 0; hitElementInx < count; hitElementInx++) {
-			int segmentSequence = input.readInt();
+			String segmentId = input.readString();
 			int docNo = input.readInt();
 			int score = input.readInt();
 			int rankDataSize = input.readInt();
@@ -62,12 +62,12 @@ public class StreamableHitElement implements Streamable {
 			if(bundleDocIdSize > 0) {
 				bundleDocIdList = new DocIdList(bundleDocIdSize);
 				for (int i = 0; i < bundleDocIdSize; i++) {
-					bundleDocIdList.add(input.readVInt(), input.readVInt());
+					bundleDocIdList.add(input.readString(), input.readVInt());
 				}
                 totalBundleSize = input.readVInt();
 			}
 			
-			hitElements[hitElementInx] = new HitElement(segmentSequence, docNo, score, rankData, explanations, bundleDocIdList, totalBundleSize);
+			hitElements[hitElementInx] = new HitElement(segmentId, docNo, score, rankData, explanations, bundleDocIdList, totalBundleSize);
 		}
 	}
 
@@ -78,8 +78,8 @@ public class StreamableHitElement implements Streamable {
 		for (int hitElementInx = 0; hitElementInx < count; hitElementInx++) {
 			HitElement hitElement = hitElements[hitElementInx];
 			BytesRef[] rankData = hitElement.rankData();
-			output.writeInt(hitElement.segmentSequence());
-			output.writeInt(hitElement.docNo());
+			output.writeString(hitElement.segmentId());
+            output.writeInt(hitElement.docNo());
 			output.writeInt(hitElement.score());
 			output.writeInt(hitElement.rankDataSize());
 			for (int i = 0; i < hitElement.rankDataSize(); i++) {

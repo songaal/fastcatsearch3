@@ -38,11 +38,11 @@ import org.slf4j.LoggerFactory;
  * @author sangwook.song
  * 
  */
-public class SegmentReader {
+public class SegmentReader implements Comparable {
 
 	private static final Logger logger = LoggerFactory.getLogger(SegmentReader.class);
 
-	private int segmentSequence;
+	private String segmentId;
 	private Schema schema;
 	private SearchIndexesReader searchIndexesReader;
 	private FieldIndexesReader fieldIndexesReader;
@@ -85,8 +85,8 @@ public class SegmentReader {
 	}
 			
 	public SegmentReader(SegmentInfo segmentInfo, Schema schema, File segmentDir, BitSet bitset, AnalyzerPoolManager analyzerPoolManager) throws IOException, IRException {
-		this.segmentSequence = segmentInfo.getIntId();
-		this.schema = schema;
+		this.segmentId = segmentInfo.getId();
+        this.schema = schema;
 		this.segmentDir = segmentDir;
 		this.segmentInfo = segmentInfo;
 //		int revision = segmentInfo.getRevisionInfo().getId();
@@ -119,9 +119,9 @@ public class SegmentReader {
 	public SegmentSearcher segmentSearcher(){
 		return new SegmentSearcher(this);
 	}
-	
-	protected int sequence(){
-		return segmentSequence;
+
+	protected String segmentId(){
+		return segmentId;
 	}
 	
 	protected Schema schema(){
@@ -194,4 +194,9 @@ public class SegmentReader {
 			throw exception;
 		}
 	}
+
+    @Override
+    public int compareTo(Object o) {
+        return segmentId.compareTo(((SegmentReader)o).segmentId);
+    }
 }

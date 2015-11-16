@@ -9,7 +9,7 @@ public class SegmentIdGeneratorTest {
 
     @Test
     public void make() {
-        int SIZE = 1000;
+        int SIZE = 937;
         SegmentIdGenerator gen = new SegmentIdGenerator();
         for(int i = 0; i< SIZE; i++) {
             System.out.println(gen.nextId());
