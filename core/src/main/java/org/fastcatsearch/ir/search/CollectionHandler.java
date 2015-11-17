@@ -345,7 +345,7 @@ public class CollectionHandler {
 			segmentReader.loadDeleteSet();
 		}
 
-		SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager));
+		SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager);
 		// segment reader 추가.
 		// collectionContext에는 segmentInfo를 추가하지 않는다.
 		// 색인이 끝나면서 이미 context에 segmentinfo가 추가되어있는 상태이다.
