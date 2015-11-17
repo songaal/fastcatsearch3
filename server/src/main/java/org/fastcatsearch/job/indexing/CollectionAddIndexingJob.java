@@ -192,15 +192,15 @@ public class CollectionAddIndexingJob extends IndexingJob {
 					//revision이 여러번 바뀌면 mirror sync를 여러번전송해서 한번씩 업데이트. 
 					
 					
-					File transferDir = null;
+//					File transferDir = segmentDir;
 					/*
 					 * 동기화 파일 생성. 
 					 * 여기서는 1. segment/ 파일들에 덧붙일 정보들이 준비되어있어야한다. revision은 그대로 복사하므로 준비필요없음.
 					 */
 					//0보다 크면 revision이 증가된것이다.
 //					boolean revisionAppended = revisionInfo.getId() > 0;
-					boolean revisionHasInserts = segmentInfo.getInsertCount() > 0;
-					File mirrorSyncFile = null;
+//					boolean revisionHasInserts = segmentInfo.getInsertCount() > 0;
+//					File mirrorSyncFile = null;
 //					if(revisionAppended){
 //						if(revisionHasInserts){
 //							mirrorSyncFile = new MirrorSynchronizer().createMirrorSyncFile(indexWriteInfoList, revisionDir);
@@ -209,9 +209,9 @@ public class CollectionAddIndexingJob extends IndexingJob {
 //
 //						transferDir = revisionDir;
 //					}else{
-						//세그먼트 전체전송.
-						transferDir = segmentDir;
-						logger.debug("세그먼트 생성되어 segment dir 전송필요");
+//						//세그먼트 전체전송.
+//						transferDir = segmentDir;
+//						logger.debug("세그먼트 생성되어 segment dir 전송필요");
 //					}
 					
 					
@@ -220,7 +220,7 @@ public class CollectionAddIndexingJob extends IndexingJob {
 					}
 					
 					// 색인전송할디렉토리를 먼저 비우도록 요청.segmentDir
-					File relativeDataDir = environment.filePaths().relativise(transferDir);
+					File relativeDataDir = environment.filePaths().relativise(segmentDir);
 					NodeDirectoryCleanJob cleanJob = new NodeDirectoryCleanJob(relativeDataDir);
 					nodeResultList = ClusterUtils.sendJobToNodeList(cleanJob, nodeService, nodeList, false);
 					
@@ -236,10 +236,13 @@ public class CollectionAddIndexingJob extends IndexingJob {
 						}
 					}
 					// 색인된 Segment 파일전송.
-					//case 1. segment-append 파일과 revision/ 파일들을 전송한다.
-					//case 2. 만약 segment가 생성 or 수정된 경우라면 그대로 전송하면된다. 
-					
-					TransferIndexFileMultiNodeJob transferJob = new TransferIndexFileMultiNodeJob(transferDir, nodeList);
+
+					//TODO
+
+
+					// 각 세그먼트들의 delete.set 도 함께 전달하도록 한다.
+
+					TransferIndexFileMultiNodeJob transferJob = new TransferIndexFileMultiNodeJob(segmentDir, nodeList);
 					ResultFuture resultFuture = JobService.getInstance().offer(transferJob);
 					Object obj = resultFuture.take();
 					if(resultFuture.isSuccess() && obj != null){

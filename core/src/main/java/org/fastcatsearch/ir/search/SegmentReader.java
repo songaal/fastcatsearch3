@@ -81,10 +81,10 @@ public class SegmentReader implements Comparable {
 	};
 	
 	public SegmentReader(SegmentInfo segmentInfo, Schema schema, File segmentDir, AnalyzerPoolManager analyzerPoolManager) throws IOException, IRException {
-		this(segmentInfo, schema, segmentDir, null, analyzerPoolManager);
-	}
-			
-	public SegmentReader(SegmentInfo segmentInfo, Schema schema, File segmentDir, BitSet bitset, AnalyzerPoolManager analyzerPoolManager) throws IOException, IRException {
+//		this(segmentInfo, schema, segmentDir, null, analyzerPoolManager);
+//	}
+//
+//	public SegmentReader(SegmentInfo segmentInfo, Schema schema, File segmentDir, BitSet bitset, AnalyzerPoolManager analyzerPoolManager) throws IOException, IRException {
 		this.segmentId = segmentInfo.getId();
         this.schema = schema;
 		this.segmentDir = segmentDir;
@@ -106,14 +106,17 @@ public class SegmentReader implements Comparable {
 //		this.groupIndexesReader = new GroupIndexesReader(schema, segmentDir, ref);
         this.groupIndexesReader = new GroupIndexesReader(schema, segmentDir);
 
-		
-		
-		if (bitset != null) {
-			deleteSet = bitset;
-		} else {
-//			deleteSet = new BitSet(IndexFileNames.getRevisionDir(segmentDir, revision), IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentInfo.getId()));
-            deleteSet = new BitSet(segmentDir, IndexFileNames.docDeleteSet);
-		}
+		loadDeleteSet();
+
+//		if (bitset != null) {
+//			deleteSet = bitset;
+//		} else {
+//			loadDeleteSet();
+//		}
+	}
+
+	public void loadDeleteSet() throws IOException {
+		deleteSet = new BitSet(segmentDir, IndexFileNames.docDeleteSet);
 	}
 
 	public SegmentSearcher segmentSearcher(){
@@ -199,4 +202,5 @@ public class SegmentReader implements Comparable {
     public int compareTo(Object o) {
         return segmentId.compareTo(((SegmentReader)o).segmentId);
     }
+
 }

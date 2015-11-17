@@ -155,7 +155,9 @@ public class DataInfo {
         private int deleteCount;
         private String createTime;
 
-        public SegmentInfo() {}
+        public SegmentInfo() {
+			this.id = "a0";
+		}
 
 		public SegmentInfo(String id) {
 			this.id = id;

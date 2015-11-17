@@ -36,4 +36,14 @@ public class SegmentIdGenerator {
         }
         return id;
     }
+
+    //세그먼트 이름 부여를 처음부터 다시 시작하도록.
+    public void reset() {
+        firstPos = 0;
+        secondPos = 0;
+    }
+
+    public String getInitialId() {
+        return "a0";
+    }
 }
