@@ -188,19 +188,8 @@ public class ClusterSearchJob extends Job {
 			while (hitReader.next()) {
 				HitElement el = hitReader.read();
 				int collectionNo = collectionNumberMap.get(el.collectionId());
-//				logger.debug("## {}", el.docNo());
-
-//				if(el.getBundleDocIdList() != null) {
-//					logger.debug("--bundle---");
-//					DocIdList list = el.getBundleDocIdList();
-//					for(int i=0;i<list.size(); i++) {
-//						logger.debug("  >>> [{}] {}", list.segmentSequence(i), list.docNo(i));
-//					}
-//				}
-				
 				//묶음 문서 존재시 같이 넣어준다.
-				docIdList[collectionNo].add(el.segmentSequence(), el.docNo(), el.getBundleDocIdList());
-//				eachScores[collectionNo].add(el.score());
+				docIdList[collectionNo].add(el.segmentId(), el.docNo(), el.getBundleDocIdList());
                 eachScores[idx] = el.score();
                 eachDistance[idx] = el.distance();
                 bundleTotalSizeList[idx] = el.getTotalBundleSize();

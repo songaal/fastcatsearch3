@@ -80,10 +80,6 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 		int insertCount = segmentInfo.getInsertCount();
 
 		if (insertCount > 0 && !stopRequested) {
-			//이미 동일한 revinfo이므로 재셋팅필요없다.
-			//workingSegmentInfo.updateRevision(revisionInfo);
-			
-			int baseNumber = 0;
 			SegmentInfo workingSegmentInfo = null;
 			for (int inx = 0; inx < segmentSize; inx++) {
 				workingSegmentInfo = workingSegmentInfoList.get(inx);
@@ -91,35 +87,12 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 				if(workingSegmentInfo.getDocumentCount() == 0) {
 					break;
 				}
-				workingSegmentInfo.setBaseNumber(baseNumber);
+//				workingSegmentInfo.setBaseNumber(baseNumber);
 				//update index#/info.xml file
 				//addindexing의 updateCollection대신 호출.
 				collectionContext.addSegmentInfo(workingSegmentInfo);
 				logger.debug("Add Segment info = {}", workingSegmentInfo);
-
-
-
-
-
-
-
-
-
-
-
-                //TODO
 //				baseNumber = workingSegmentInfo.getNextBaseNumber();
-
-
-
-
-
-
-
-
-
-
-
 			}
 			//update status.xml file
 			collectionContext.updateCollectionStatus(IndexingType.FULL, segmentInfo, startTime, System.currentTimeMillis());
@@ -175,26 +148,9 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 
 	protected void prepare() throws IRException {
 		workingSegmentInfoList = new ArrayList<SegmentInfo>(segmentSize);
-		SegmentInfo workingSegmentInfo = new SegmentInfo();
-		workingSegmentInfoList.add(workingSegmentInfo);
 		//순차적 세그먼트 info 를 할당한다.
-		for (int inx = 1; inx < segmentSize; inx++) {
-
-
-
-
-
-
-            //FIXME
-//			workingSegmentInfo = workingSegmentInfo.getNextSegmentInfo();
-
-
-
-
-
-
-
-			workingSegmentInfoList.add(workingSegmentInfo);
+		for (int inx = 0; inx < segmentSize; inx++) {
+			workingSegmentInfoList.add(new SegmentInfo("a" + inx));
 		}
 		
 		// data 디렉토리를 변경한다.
@@ -214,20 +170,6 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 		collectionContext.clearDataInfoAndStatus();
 		indexDataDir.mkdirs();
 	}
-//	public void addDocument(int threadInx, Document document) throws IRException, IOException{
-//		indexWriterList.get(threadInx).addDocument(document);
-//		if (count.incrementAndGet() % 10000 == 0) {
-//			logger.info(
-//					"{} documents indexed, lap = {} ms, elapsed = {}, mem = {}",
-//					count, System.currentTimeMillis() - lapTime,
-//							Formatter.getFormatTime(System.currentTimeMillis() - startTime),
-//							Formatter.getFormatSize(Runtime.getRuntime().totalMemory()));
-//			lapTime = System.currentTimeMillis();
-//		}
-//		if(indexingTaskState != null){
-//			indexingTaskState.incrementDocumentCount();
-//		}
-//	}
 	@Override
 	public void requestStop(){
 		logger.info("Collection [{}] Indexer Stop Requested! ", collectionContext.collectionId());
