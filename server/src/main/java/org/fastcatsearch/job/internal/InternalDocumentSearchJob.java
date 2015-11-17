@@ -76,18 +76,18 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 		int size = input.readVInt();
 		docIdList = new DocIdList(size);
 		for (int i = 0; i < size; i++) {
-			int segmentSequence = input.readVInt();
+			String segmentId = input.readString();
 			int docNo = input.readVInt();
 			//하위 묶음문서
 			int bundleSize = input.readVInt();
 			if(bundleSize > 0) {
 				DocIdList bundleDocIdList = new DocIdList(bundleSize);
 				for (int j = 0; j < bundleSize; j++) {
-					bundleDocIdList.add(input.readVInt(), input.readVInt());
+					bundleDocIdList.add(input.readString(), input.readVInt());
 				}
-				docIdList.add(segmentSequence, docNo, bundleDocIdList);	
+				docIdList.add(segmentId, docNo, bundleDocIdList);
 			} else {
-				docIdList.add(segmentSequence, docNo);	
+				docIdList.add(segmentId, docNo);
 			}
 		}
 
@@ -117,7 +117,7 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 		// DocIdList
 		output.writeVInt(docIdList.size());
 		for (int i = 0; i < docIdList.size(); i++) {
-			output.writeVInt(docIdList.segmentSequence(i));
+			output.writeString(docIdList.segmentId(i));
 			output.writeVInt(docIdList.docNo(i));
 			
 			//하위 묶음문서
@@ -127,7 +127,7 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 			} else {
 				output.writeVInt(bundleDocIdList.size());
 				for (int j = 0; j < bundleDocIdList.size(); j++) {
-					output.writeVInt(bundleDocIdList.segmentSequence(j));
+					output.writeString(bundleDocIdList.segmentId(j));
 					output.writeVInt(bundleDocIdList.docNo(j));
 				}
 				

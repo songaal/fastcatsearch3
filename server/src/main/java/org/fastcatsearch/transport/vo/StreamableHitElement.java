@@ -101,7 +101,7 @@ public class StreamableHitElement implements Streamable {
 				DocIdList bundleDocIdList = hitElement.getBundleDocIdList();
 				output.writeVInt(bundleDocIdList.size());
 				for (int i = 0; i < bundleDocIdList.size(); i++) {
-					output.writeVInt(bundleDocIdList.segmentSequence(i));
+					output.writeString(bundleDocIdList.segmentId(i));
 					output.writeVInt(bundleDocIdList.docNo(i));
 				}
                 output.writeVInt(hitElement.getTotalBundleSize());

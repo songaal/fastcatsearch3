@@ -16,10 +16,7 @@ import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentReader;
 import org.fastcatsearch.ir.search.SegmentSearcher;
-import org.fastcatsearch.ir.settings.FieldSetting;
-import org.fastcatsearch.ir.settings.IndexSetting;
-import org.fastcatsearch.ir.settings.Schema;
-import org.fastcatsearch.ir.settings.SchemaSetting;
+import org.fastcatsearch.ir.settings.*;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.vo.CollectionIndexData;
@@ -62,13 +59,15 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 		try {
 			SchemaSetting schemaSetting = collectionHandler.schema().schemaSetting();
 			List<FieldSetting> fieldSettingList = schemaSetting.getFieldSettingList();
+			PrimaryKeySetting primaryKeySetting = schemaSetting.getPrimaryKeySetting();
+			List<RefSetting> primaryKeyIdList = primaryKeySetting.getFieldList();
 			for (int i = 0; i < fieldSettingList.size(); i++) {
 				FieldSetting fieldSetting = fieldSettingList.get(i);
 				String fieldId = fieldSetting.getId();
 				fieldList.add(fieldId);
 			}
 			if(pkValue != null && pkValue.length() > 0) {
-				if(schemaSetting.getPrimaryKeySetting().getFieldList() != null && schemaSetting.getPrimaryKeySetting().getFieldList().size() > 0) {
+				if(primaryKeyIdList != null && primaryKeyIdList.size() > 0) {
 					String[] pkList = pkValue.split("\\W");
 					BytesDataOutput tempOutput = new BytesDataOutput();
 					int count = 0;
@@ -84,8 +83,6 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 							dupSet.add(pk);
 						}
 						for(SegmentReader segmentReader : collectionHandler.segmentReaders()) {
-//						for (int segmentNumber = segmentSize - 1; segmentNumber >= 0; segmentNumber--) {
-//							SegmentReader segmentReader = collectionHandler.segmentReader(segmentNumber);
 							int docNo = segmentReader.newSearchIndexesReader().getPrimaryKeyIndexesReader().getDocNo(pk, tempOutput);
 							if (docNo != -1) {
 	//							logger.debug(">>> {} , doc={}~ {}", count, start, end);
@@ -106,7 +103,6 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 				
 				//이 배열의 index번호는 세그먼트번호.
 				int[] segmentEndNumbers = new int[segmentSize];
-
 				TreeSet treeSet = new TreeSet<SegmentReader>(collectionHandler.segmentReaders());
 				//descendingIterator 로 세그먼트 이름 내림차순으로 최신문서순. 하지만 세그먼트 이름이 한바퀴 다 돌면 최신순이 아니다.
 				Iterator<SegmentReader> iterator = treeSet.descendingIterator();
@@ -205,15 +201,6 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 		}
 
 		return list;
-
-//		String[][] result = new String[list.size()][3];
-//		for (int i = 0; i < list.size(); i++) {
-//			String[] tmp = list.get(i);
-//			result[i][0] = tmp[0];
-//			result[i][1] = tmp[1];
-//			result[i][2] = tmp[2];
-//		}
-//		return result;
 	}
 	
 	@Override
