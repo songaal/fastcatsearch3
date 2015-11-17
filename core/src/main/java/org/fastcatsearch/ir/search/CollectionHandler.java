@@ -184,6 +184,9 @@ public class CollectionHandler {
 		return segmentReaderMap.get(segmentId);
 	}
 
+	public String getInitialSegmentId() {
+		return
+	}
     public String nextSegmentId() {
         Set segmentIdSet = segmentReaderMap.keySet();
         String id = null;

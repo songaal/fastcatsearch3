@@ -92,7 +92,7 @@ public class SegmentReader implements Comparable {
 //		int revision = segmentInfo.getRevisionInfo().getId();
 //		int ref = segmentInfo.getRevisionInfo().getRef();
 		
-		this.documentReader = new DocumentReader(schema.schemaSetting(), segmentDir, segmentInfo.getBaseNumber());
+		this.documentReader = new DocumentReader(schema.schemaSetting(), segmentDir);
 		int documentCount = documentReader.getDocumentCount();
 		
 		// reader들은 thread-safe하지 않다. clone해서 사용됨.
@@ -144,9 +144,9 @@ public class SegmentReader implements Comparable {
 		return documentReader.getDocumentCount();
 	}
 	
-	protected int baseDocNumber(){
-		return documentReader.getBaseNumber();
-	}
+//	protected int baseDocNumber(){
+//		return documentReader.getBaseNumber();
+//	}
 	
 	public BitSet deleteSet(){
 		return deleteSet;

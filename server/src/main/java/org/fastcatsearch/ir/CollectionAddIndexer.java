@@ -64,7 +64,7 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
         int insertCount = segmentInfo.getInsertCount();
         int deleteCount = segmentInfo.getDeleteCount();
         FilePaths indexFilePaths = collectionContext.indexFilePaths();
-        File segmentDir = indexFilePaths.file(workingSegmentInfo.getId());
+        File segmentDir = indexFilePaths.file(segmentInfo.getId());
 
         try {
             if (!stopRequested) {
@@ -73,10 +73,10 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
                     logger.debug("# 추가문서가 없으므로, segment를 삭제합니다. {}", segmentDir.getAbsolutePath());
                     FileUtils.deleteDirectory(segmentDir);
                     logger.info("delete segment dir ={}", segmentDir.getAbsolutePath());
-                    workingSegmentInfo.resetCountInfo();
+                    segmentInfo.resetCountInfo();
                 }
                 if (deleteCount > 0) {
-                    workingSegmentInfo.setDeleteCount(deleteCount);
+                    segmentInfo.setDeleteCount(deleteCount);
                 }
 
                 if (insertCount <= 0 && deleteCount <= 0) {
@@ -84,7 +84,7 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
                     throw new IndexingStopException(collectionContext.collectionId() + " Indexing Canceled due to no documents.");
                 }
 
-                collectionHandler.updateCollection(collectionContext, workingSegmentInfo, segmentDir, deleteIdSet);
+                collectionHandler.updateCollection(collectionContext, segmentInfo, segmentDir, deleteIdSet);
 
                 //status.xml 업데이트
                 collectionContext.updateCollectionStatus(IndexingType.ADD, segmentInfo, startTime, System.currentTimeMillis());

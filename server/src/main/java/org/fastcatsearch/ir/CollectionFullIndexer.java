@@ -60,27 +60,23 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 	protected boolean done(SegmentInfo segmentInfo, IndexStatus indexStatus) throws IRException, IndexingStopException {
 		int insertCount = segmentInfo.getInsertCount();
 
-		if (insertCount > 0 && !stopRequested) {
-			//이미 동일한 revinfo이므로 재셋팅필요없다.
-			//workingSegmentInfo.updateRevision(revisionInfo);
-			
-			//update index#/info.xml file
-			//addindexing의 updateCollection대신 호출.
-			collectionContext.addSegmentInfo(workingSegmentInfo);  
-			//update status.xml file
-			collectionContext.updateCollectionStatus(IndexingType.FULL, segmentInfo, startTime, System.currentTimeMillis());
-			collectionContext.indexStatus().setFullIndexStatus(indexStatus);
-			return true;
-		}else{
-			if(!stopRequested){
+		if(!stopRequested) {
+			if (insertCount > 0) {
+				//update index#/info.xml file
+				//addindexing의 updateCollection대신 호출.
+				collectionContext.addSegmentInfo(segmentInfo);
+				//update status.xml file
+				collectionContext.updateCollectionStatus(IndexingType.FULL, segmentInfo, startTime, System.currentTimeMillis());
+				collectionContext.indexStatus().setFullIndexStatus(indexStatus);
+				return true;
+			} else {
 				logger.info("[{}] Indexing Canceled due to no documents.", collectionContext.collectionId());
 				throw new IndexingStopException(collectionContext.collectionId()+" Indexing Canceled due to no documents.");
-			}else{
-				logger.info("[{}] Indexing Canceled due to Stop Requested!", collectionContext.collectionId());
-				throw new IndexingStopException(collectionContext.collectionId()+" Indexing Canceled due to Stop Requested");
 			}
+		} else {
+			logger.info("[{}] Indexing Canceled due to Stop Requested!", collectionContext.collectionId());
+			throw new IndexingStopException(collectionContext.collectionId()+" Indexing Canceled due to Stop Requested");
 		}
-		
 	}
 }
 
