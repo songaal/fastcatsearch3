@@ -144,10 +144,10 @@ public class DataInfo {
 	 * updates="5" deletes="0" createTime="2013-06-15 15:20:00" /> </segment>
 	 * */
 	@XmlRootElement(name = "segment")
-	@XmlType(propOrder = { "createTime", "deleteCount", "updateCount", "insertCount", "documentCount", "uuid", "baseNumber", "id" })
+	@XmlType(propOrder = { "createTime", "deleteCount", "updateCount", "insertCount", "documentCount", "uuid", "id" })
 	public static class SegmentInfo implements Comparable<SegmentInfo>{
 		private String id;
-		private int baseNumber;
+//		private int baseNumber;
         private String uuid;
         private int documentCount;
         private int insertCount;
@@ -161,14 +161,14 @@ public class DataInfo {
 			this.id = id;
 		}
 
-		public SegmentInfo(String id, int baseNumber) {
-			this.id = id;
-			this.baseNumber = baseNumber;
-		}
+//		public SegmentInfo(String id, int baseNumber) {
+//			this.id = id;
+//			this.baseNumber = baseNumber;
+//		}
 
-        public SegmentInfo(String id, int baseNumber, String uuid, int documentCount, int insertCount, int updateCount, int deleteCount, String createTime) {
+        public SegmentInfo(String id, String uuid, int documentCount, int insertCount, int updateCount, int deleteCount, String createTime) {
             this.id = id;
-            this.baseNumber = baseNumber;
+//            this.baseNumber = baseNumber;
             this.uuid = uuid;
             this.documentCount = documentCount;
             this.insertCount = insertCount;
@@ -185,7 +185,7 @@ public class DataInfo {
 
 		public SegmentInfo copy() {
 			SegmentInfo segmentInfo = new SegmentInfo(id);
-			segmentInfo.baseNumber = baseNumber;
+//			segmentInfo.baseNumber = baseNumber;
             segmentInfo.uuid = uuid;
             segmentInfo.documentCount = documentCount;
             segmentInfo.insertCount = insertCount;
@@ -203,12 +203,12 @@ public class DataInfo {
 		}
 
 		public String toString() {
-			return "[SegmentInfo] id[" + id + "] base[" + baseNumber + "] ";
+			return "[SegmentInfo] id[" + id + "]";
 		}
 
 		public void update(SegmentInfo segmentInfo) {
 			this.id = segmentInfo.id;
-			this.baseNumber = segmentInfo.baseNumber;
+//			this.baseNumber = segmentInfo.baseNumber;
             this.uuid = segmentInfo.uuid = uuid;
             this.documentCount = segmentInfo.documentCount;
             this.insertCount = segmentInfo.insertCount;
@@ -245,14 +245,14 @@ public class DataInfo {
 			this.id = id;
 		}
 
-		@XmlAttribute(name = "base")
-		public int getBaseNumber() {
-			return baseNumber;
-		}
+//		@XmlAttribute(name = "base")
+//		public int getBaseNumber() {
+//			return baseNumber;
+//		}
 
-		public void setBaseNumber(int baseNumber) {
-			this.baseNumber = baseNumber;
-		}
+//		public void setBaseNumber(int baseNumber) {
+//			this.baseNumber = baseNumber;
+//		}
 
         public String getUuid() {
             return uuid;
