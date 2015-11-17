@@ -137,7 +137,7 @@ public class SearchIndexWriter implements SingleIndexWriter {
 			if(sequence < 0){
 				continue;
 			}
-			write(docNo, i, doc.get(sequence), ignoreCase, positionIncrementGap);
+			write(docNo, i, doc.get(sequence), /*ignoreCase,*/ positionIncrementGap);
 			// positionIncrementGap은 필드가 증가할때마다 동일량으로 증가. 예) 0, 100, 200, 300...
 			positionIncrementGap += positionIncrementGap;
 		}
@@ -145,7 +145,7 @@ public class SearchIndexWriter implements SingleIndexWriter {
 		count++;
 	}
 
-	private void write(int docNo, int i, Field field, boolean isIgnoreCase, int positionIncrementGap) throws IRException, IOException {
+	private void write(int docNo, int i, Field field, /*boolean isIgnoreCase,*/ int positionIncrementGap) throws IRException, IOException {
 		if (field == null) {
 			return;
 		}
@@ -155,17 +155,17 @@ public class SearchIndexWriter implements SingleIndexWriter {
 			Iterator<Object> iterator = field.getMultiValueIterator();
 			if (iterator != null) {
 				while (iterator.hasNext()) {
-					indexValue(docNo, i, iterator.next(), isIgnoreCase, positionIncrementGap);
+					indexValue(docNo, i, iterator.next(), /*isIgnoreCase,*/ positionIncrementGap);
 					// 멀티밸류도 positionIncrementGap을 증가시킨다. 즉, 필드가 다를때처럼 position거리가 멀어진다.
 					positionIncrementGap += positionIncrementGap;
 				}
 			}
 		} else {
-			indexValue(docNo, i, field.getValue(), isIgnoreCase, positionIncrementGap);
+			indexValue(docNo, i, field.getValue(), /*isIgnoreCase,*/ positionIncrementGap);
 		}
 	}
 
-	private void indexValue(int docNo, int i, Object value, boolean isIgnoreCase, int positionIncrementGap) throws IOException, IRException {
+	private void indexValue(int docNo, int i, Object value, /*boolean isIgnoreCase,*/ int positionIncrementGap) throws IOException, IRException {
 		if(value == null){
 			return;
 		}
