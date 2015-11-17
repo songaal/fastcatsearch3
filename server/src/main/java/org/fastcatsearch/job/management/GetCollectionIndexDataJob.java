@@ -102,6 +102,7 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 			}else{
 				
 				//이 배열의 index번호는 세그먼트번호.
+				SegmentReader[] segmentReaderList = new SegmentReader[segmentSize];
 				int[] segmentEndNumbers = new int[segmentSize];
 				TreeSet treeSet = new TreeSet<SegmentReader>(collectionHandler.segmentReaders());
 				//descendingIterator 로 세그먼트 이름 내림차순으로 최신문서순. 하지만 세그먼트 이름이 한바퀴 다 돌면 최신순이 아니다.
@@ -111,21 +112,21 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 					DocumentReader documentReader = reader.newDocumentReader();
 					int count = documentReader.getDocumentCount();
 					documentSize += count;
+					segmentReaderList[segmentNumber] = reader;
 					segmentEndNumbers[segmentNumber] = documentSize - 1;
 					logger.debug("segmentEndNumbers[{}]={}", segmentNumber, segmentEndNumbers[segmentNumber]);
 				}
 				
 				//여러세그먼트에 걸쳐있을 경우를 고려한다.
 				//segmentId, start, end가 저장된다.
-				List<Object[]> matchSegmentList = matchSegment(segmentEndNumbers, start, end - start + 1);
-		
+				List<Integer[]> matchSegmentList = matchSegment(segmentEndNumbers, start, end - start + 1);
 				//write data
-				for(Object[] matchSegment : matchSegmentList) {
-					String segmentId = (String) matchSegment[0];
-					int startNo = (Integer) matchSegment[1];
-					int endNo = (Integer) matchSegment[2];
+				for(Integer[] matchSegment : matchSegmentList) {
+					int segmentSequence = matchSegment[0];
+					int startNo = matchSegment[1];
+					int endNo = matchSegment[2];
 					
-					SegmentReader segmentReader = collectionHandler.segmentReader(segmentId);
+					SegmentReader segmentReader = segmentReaderList[segmentSequence];
 					
 					if (segmentReader != null) {
 						SegmentInfo segmentInfo = segmentReader.segmentInfo();
@@ -140,7 +141,7 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 								break;
 							}
 							isDeletedList.add(segmentReader.deleteSet().isSet(docNo));
-							add(document, segmentId, indexDataList);
+							add(document, segmentReader.segmentInfo().getId(), indexDataList);
 						}
 						
 						
@@ -175,14 +176,14 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 		indexDataList.add(rowData);
 	}
 	
-	private List<Object[]> matchSegment(int[] segEndNums, int start, int rows) {
+	private List<Integer[]> matchSegment(int[] segEndNums, int start, int rows) {
 		// [][세그먼트번호,시작번호,끝번호]
-		ArrayList<Object[]> list = new ArrayList<Object[]>();
+		ArrayList<Integer[]> list = new ArrayList<Integer[]>();
 		for (int i = 0; i < segEndNums.length; i++) {
 			if (start > segEndNums[i]) {
 				start = start - segEndNums[i] - 1;
 			} else {
-				Object[] res = new Object[3];
+				Integer[] res = new Integer[3];
 				int emptyCount = segEndNums[i] - start + 1;
 				res[0] = i;// 세그먼트번호
 				if (emptyCount < rows) {
