@@ -101,33 +101,11 @@ public class CollectionSearcher {
 
 	}
 
-	// id리스트에 해당하는 document자체를 읽어서 리스트로 리턴한다.
-//	@Deprecated
-//	public List<Document> requestDocument(int[] docIdList) throws IOException {
-//		// eachDocList에 해당하는 문서리스트를 리턴한다.
-//		List<Document> documentList = new ArrayList<Document>(docIdList.length);
-//
-//		int segmentSize = collectionHandler.segmentSize();
-//		for (int i = 0; i < docIdList.length; i++) {
-//			int docNo = docIdList[i];
-//
-//			// make doc number lists to send each columns
-//			for (int m = segmentSize - 1; m >= 0; m--) {
-//				if (docNo >= collectionHandler.segmentReader(m).segmentInfo().getBaseNumber()) {
-//					documentList.add(collectionHandler.segmentReader(m).segmentSearcher().getDocument(docNo));
-//					break;
-//				}
-//			}
-//		}
-//
-//		return documentList;
-//	}
-	
 	public Document requestDocument(String segmentId, int docNo) throws IOException {
         SegmentReader reader = collectionHandler.segmentReader(segmentId);
-        if (docNo >= reader.segmentInfo().getBaseNumber()) {
-            return reader.segmentSearcher().getDocument(docNo);
-        }
+		if(reader != null) {
+			return reader.segmentSearcher().getDocument(docNo);
+		}
 		return null;
 	}
 
