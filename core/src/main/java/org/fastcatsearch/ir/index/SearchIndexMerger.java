@@ -60,6 +60,7 @@ public class SearchIndexMerger {
         workingReaders = new SearchPostingReader[readerSize];
         for (int i = 0; i < readerSize; i++) {
             reader[i] = new SearchPostingReader(i, indexId, files[i]);
+            reader[i].nextTerm();
         }
 
         IndexFieldOption fieldIndexOption = reader[0].indexFieldOption();
