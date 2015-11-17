@@ -79,7 +79,11 @@ public class HitElement extends AbstractHitElement<HitElement> {
 	
 	@Override
 	public int compareTo(HitElement other) {
-		
+
+		if(segmentId == null || other.segmentId == null) {
+			logger.debug("segmentId[{}], other.segmentId[{}]", segmentId, other.segmentId);
+			logger.debug("11");
+		}
 		//최신세그먼트 우선.
 		if(!segmentId.equals(other.segmentId)){
 			return other.segmentId.compareTo(segmentId);

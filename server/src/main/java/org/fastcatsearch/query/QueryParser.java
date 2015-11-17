@@ -102,229 +102,236 @@ public class QueryParser {
 	}
 
 	private void fillQuery(Query query, String key, String value) {
+
 		Query.EL el = detectElement(key);
-		if (el == null || value.length() == 0) {
-			return;
-		}
-		logger.debug("fill {} >> {}", key, value);
-
-		if (Query.EL.cn == el) {
-			Metadata m = query.getMeta();
-			m.setCollectionId(value);
-		} else if (Query.EL.ht == el) {
-			Metadata m1 = query.getMeta();
-			String tags[] = value.split(COLON_SEPARATOR);
-            if(tags.length != 2) {
-                throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Highlighting tag must contains start and end tag with colon. : " + value);
-            }
-			removeEscape(tags);
-			m1.setTags(tags);
-		} else if (Query.EL.sn == el) {
-			Metadata m2 = query.getMeta();
-			int sn = Integer.parseInt(value);
-			if (sn < 1) {
-                throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Start number has to be greater than 0.");
-            }
-			m2.setStart(sn);
-		} else if (Query.EL.ln == el) {
-			Metadata m3 = query.getMeta();
-			int len = Integer.parseInt(value);
-			if (len < 1)
-                throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Length has to be greater than 0.");
-			m3.setRows(len);
-		} else if (Query.EL.so == el) {
-			Metadata m4 = query.getMeta();
-			m4.setSearchOptions(value);
-		} else if (Query.EL.ud == el) {
-			Metadata m5 = query.getMeta();
-			String[] list = value.split(COMMA_SEPARATOR);
-			HashMap<String, String> map = new HashMap<String, String>();
-			for (int k = 0; k < list.length; k++) {
-				String[] keyValue = list[k].split(COLON_SEPARATOR);
-				// key:value 매핑.
-				if (keyValue.length == 2) {
-					removeEscape(keyValue);
-					map.put(keyValue[0].toUpperCase(), keyValue[1]);
-				}
+		try {
+			if (el == null || value.length() == 0) {
+				return;
 			}
-			m5.setUserData(map);
-		} else if (Query.EL.fl == el) {
-			String[] list = value.split(COMMA_SEPARATOR);
-			ViewContainer views = new ViewContainer(list.length);
-			for (int k = 0; k < list.length; k++) {
-				String[] str = list[k].split(COLON_SEPARATOR);
-				if (str.length > 2) {
-					views.add(new View(str[0].trim(), Integer.parseInt(str[1].trim()), Integer.parseInt(str[2].trim())));
-				} else if (str.length > 1) {
-					views.add(new View(str[0].trim(), Integer.parseInt(str[1].trim())));
-				} else {
-					views.add(new View(list[k]));
+			logger.debug("fill {} >> {}", key, value);
+
+			if (Query.EL.cn == el) {
+				Metadata m = query.getMeta();
+				m.setCollectionId(value);
+			} else if (Query.EL.ht == el) {
+				Metadata m1 = query.getMeta();
+				String tags[] = value.split(COLON_SEPARATOR);
+				if (tags.length != 2) {
+					throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Highlighting tag must contains start and end tag with colon. : " + value);
 				}
-			}
-			query.setViews(views);
-		} else if (Query.EL.se == el) {
-
-			if (value.length() > 0) {
-				Object obj = makeClause(value);
-				Clause clause = null;
-				if(obj instanceof Term){
-					clause = new Clause((Term) obj);
-				}else{
-					clause = (Clause) makeClause(value);
+				removeEscape(tags);
+				m1.setTags(tags);
+			} else if (Query.EL.sn == el) {
+				Metadata m2 = query.getMeta();
+				int sn = Integer.parseInt(value);
+				if (sn < 1) {
+					throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Start number has to be greater than 0.");
 				}
-				query.setClause(clause);
-			}
-		} else if (Query.EL.ft == el) {
-			Filters f = makeFilters(value);
-			query.setFilters(f);
-		} else if (Query.EL.gr == el) {
-			String[] list = value.split(COMMA_SEPARATOR);
-			Groups g = new Groups();
-			for (int k = 0; k < list.length; k++) {
-				String[] items = list[k].split(COLON_SEPARATOR);
-				if (items.length < 2) {
-					// 정보부족 에러.
-                    throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Grouping syntax is invalid : " + list[k]);
-				}
-
-				String field = items[0].trim();
-				// String shortFunctionName = items[1];
-				int limit = -1;
-				int sortOrder = 0;
-
-				// function은 ; 구분으로 파라미터 나눈다.
-				// 기능이름;파라미터1;파라미터2 등둥..
-
-				String[] functionList = items[1].split(SEMICOLON_SEPARATOR);
-				if (items.length > 2) {
-					if (items.length > 3) {
-						// 마지막은 limit이다.
-						limit = Integer.parseInt(items[3].trim());
+				m2.setStart(sn);
+			} else if (Query.EL.ln == el) {
+				Metadata m3 = query.getMeta();
+				int len = Integer.parseInt(value);
+				if (len < 1)
+					throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Length has to be greater than 0.");
+				m3.setRows(len);
+			} else if (Query.EL.so == el) {
+				Metadata m4 = query.getMeta();
+				m4.setSearchOptions(value);
+			} else if (Query.EL.ud == el) {
+				Metadata m5 = query.getMeta();
+				String[] list = value.split(COMMA_SEPARATOR);
+				HashMap<String, String> map = new HashMap<String, String>();
+				for (int k = 0; k < list.length; k++) {
+					String[] keyValue = list[k].split(COLON_SEPARATOR);
+					// key:value 매핑.
+					if (keyValue.length == 2) {
+						removeEscape(keyValue);
+						map.put(keyValue[0].toUpperCase(), keyValue[1]);
 					}
-					// items[2]는 정렬옵션
-					sortOrder = getGroupSortOrder(items[2].trim());
 				}
-
-				GroupFunction[] groupFunctions = new GroupFunction[functionList.length];
-				for (int j = 0; j < functionList.length; j++) {
-					String functionExpr = functionList[j];
-					String functionName = null;
-					String param = null;
-					if (functionExpr.contains("(")) {
-
-						String[] funcTmp = functionExpr.split("\\(");
-						functionName = funcTmp[0];
-						param = funcTmp[1].substring(0, funcTmp[1].length() - 1);
-
+				m5.setUserData(map);
+			} else if (Query.EL.fl == el) {
+				String[] list = value.split(COMMA_SEPARATOR);
+				ViewContainer views = new ViewContainer(list.length);
+				for (int k = 0; k < list.length; k++) {
+					String[] str = list[k].split(COLON_SEPARATOR);
+					if (str.length > 2) {
+						views.add(new View(str[0].trim(), Integer.parseInt(str[1].trim()), Integer.parseInt(str[2].trim())));
+					} else if (str.length > 1) {
+						views.add(new View(str[0].trim(), Integer.parseInt(str[1].trim())));
 					} else {
-						functionName = functionExpr;
+						views.add(new View(list[k]));
+					}
+				}
+				query.setViews(views);
+			} else if (Query.EL.se == el) {
+
+				if (value.length() > 0) {
+					Object obj = makeClause(value);
+					Clause clause = null;
+					if (obj instanceof Term) {
+						clause = new Clause((Term) obj);
+					} else {
+						clause = (Clause) makeClause(value);
+					}
+					query.setClause(clause);
+				}
+			} else if (Query.EL.ft == el) {
+				Filters f = makeFilters(value);
+				query.setFilters(f);
+			} else if (Query.EL.gr == el) {
+				String[] list = value.split(COMMA_SEPARATOR);
+				Groups g = new Groups();
+				for (int k = 0; k < list.length; k++) {
+					String[] items = list[k].split(COLON_SEPARATOR);
+					if (items.length < 2) {
+						// 정보부족 에러.
+						throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Grouping syntax is invalid : " + list[k]);
 					}
 
-					GroupFunction groupFunction = null;
-					if (functionName.equalsIgnoreCase(Group.DEFAULT_GROUP_FUNCTION_NAME)) {
-						// 기본 클래스.
-						groupFunction = new CountGroupFunction(sortOrder, param);
-					} else {
-						// 사용자가 만든 XXXX_COUNT
-						String className = convertToClassName(functionName);
-						try {
-							groupFunction = DynamicClassLoader.loadObject(className, GroupFunction.class, new Class<?>[] { int.class, String.class },
-									new Object[] { sortOrder, param });
-						} catch (Exception e) {
-                            throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Cannot construct group function class '"+ className +"'.");
+					String field = items[0].trim();
+					// String shortFunctionName = items[1];
+					int limit = -1;
+					int sortOrder = 0;
+
+					// function은 ; 구분으로 파라미터 나눈다.
+					// 기능이름;파라미터1;파라미터2 등둥..
+
+					String[] functionList = items[1].split(SEMICOLON_SEPARATOR);
+					if (items.length > 2) {
+						if (items.length > 3) {
+							// 마지막은 limit이다.
+							limit = Integer.parseInt(items[3].trim());
+						}
+						// items[2]는 정렬옵션
+						sortOrder = getGroupSortOrder(items[2].trim());
+					}
+
+					GroupFunction[] groupFunctions = new GroupFunction[functionList.length];
+					for (int j = 0; j < functionList.length; j++) {
+						String functionExpr = functionList[j];
+						String functionName = null;
+						String param = null;
+						if (functionExpr.contains("(")) {
+
+							String[] funcTmp = functionExpr.split("\\(");
+							functionName = funcTmp[0];
+							param = funcTmp[1].substring(0, funcTmp[1].length() - 1);
+
+						} else {
+							functionName = functionExpr;
+						}
+
+						GroupFunction groupFunction = null;
+						if (functionName.equalsIgnoreCase(Group.DEFAULT_GROUP_FUNCTION_NAME)) {
+							// 기본 클래스.
+							groupFunction = new CountGroupFunction(sortOrder, param);
+						} else {
+							// 사용자가 만든 XXXX_COUNT
+							String className = convertToClassName(functionName);
+							try {
+								groupFunction = DynamicClassLoader.loadObject(className, GroupFunction.class, new Class<?>[]{int.class, String.class},
+										new Object[]{sortOrder, param});
+							} catch (Exception e) {
+								throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Cannot construct group function class '" + className + "'.");
+							}
+						}
+						groupFunctions[j] = groupFunction;
+						if (groupFunction == null) {
+							throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Unknown group function '" + functionName + "'.");
 						}
 					}
-					groupFunctions[j] = groupFunction;
-					if(groupFunction == null) {
-                        throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Unknown group function '"+ functionName +"'.");
-					}
+
+					g.add(new Group(field, groupFunctions, sortOrder, limit));
+
 				}
-
-				g.add(new Group(field, groupFunctions, sortOrder, limit));
-
-			}
-			query.setGroups(g);
-		} else if (Query.EL.gf == el) {
-			Filters f = makeFilters(value);
-			query.setGroupFilters(f);
-		} else if (Query.EL.ra == el) {
-			Sorts s = new Sorts();
-			String[] list = value.split(COMMA_SEPARATOR);
-			for (int k = 0; k < list.length; k++) {
-				String[] str = list[k].split(COLON_SEPARATOR);
-				if (str.length > 1) {
-					boolean isAsc = str[1].equalsIgnoreCase("asc");
-					s.add(new Sort(str[0], isAsc));
-				} else {
-					s.add(new Sort(list[k]));
-				}
-
-			}
-			query.setSorts(s);
-		} else if (Query.EL.qm == el) {
-			Metadata m = query.getMeta();
-			QueryModifier queryModifier = (QueryModifier) DynamicClassLoader.loadObject(value);
-            if(queryModifier == null) {
-                throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Cannot find query modifier '"+ value +"'.");
-            }
-			m.setQueryModifier(queryModifier);
-		} else if (Query.EL.rm == el) {
-			Metadata m = query.getMeta();
-			ResultModifier resultModifier = (ResultModifier) DynamicClassLoader.loadObject(value);
-            if(resultModifier == null) {
-                throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Cannot find result modifier '"+ value +"'.");
-            }
-			m.setResultModifier(resultModifier);
-		} else if (Query.EL.sp == el) {
-			Metadata m = query.getMeta();
-			StoredProcedure sp = (StoredProcedure) DynamicClassLoader.loadObject(value);
-            if(sp == null) {
-                throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Cannot find stored procedure '"+ value +"'.");
-            }
-			m.setStoredProcedure(sp);
-		} else if (Query.EL.bd == el) {
-			String[] list = value.split(SEMICOLON_SEPARATOR);
-			String[] list1 = list[0].split(COLON_SEPARATOR);
-			
-			Bundle b = new Bundle(list1[0].trim());
-			if(list1.length > 1) {
-				int bundleRows = 5; //default 5개.
-				try{
-					bundleRows = Integer.parseInt(list1[1].trim());
-				}catch(NumberFormatException e) {
-					//ignore
-				}
-				b.setRows(bundleRows);
-			}
-
-            if(list1.length > 2) {
-                int option = Bundle.OPT_PARENT_INCLUDE; //대표포함.
-                try{
-                    option = Integer.parseInt(list1[2].trim());
-                }catch(NumberFormatException e) {
-                    //ignore
-                }
-                b.setOption(option);
-            } else {
-                b.setOption(Bundle.OPT_PARENT_INCLUDE);
-            }
-
-			if(list.length > 1) {
+				query.setGroups(g);
+			} else if (Query.EL.gf == el) {
+				Filters f = makeFilters(value);
+				query.setGroupFilters(f);
+			} else if (Query.EL.ra == el) {
 				Sorts s = new Sorts();
-				String[] sortList = list[1].split(COMMA_SEPARATOR);
-				for (int k = 0; k < sortList.length; k++) {
-					String[] str = sortList[k].split(COLON_SEPARATOR);
+				String[] list = value.split(COMMA_SEPARATOR);
+				for (int k = 0; k < list.length; k++) {
+					String[] str = list[k].split(COLON_SEPARATOR);
 					if (str.length > 1) {
 						boolean isAsc = str[1].equalsIgnoreCase("asc");
 						s.add(new Sort(str[0], isAsc));
 					} else {
-						s.add(new Sort(sortList[k]));
+						s.add(new Sort(list[k]));
 					}
 
-                }
-				b.setSorts(s);
+				}
+				query.setSorts(s);
+			} else if (Query.EL.qm == el) {
+				Metadata m = query.getMeta();
+				QueryModifier queryModifier = (QueryModifier) DynamicClassLoader.loadObject(value);
+				if (queryModifier == null) {
+					throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Cannot find query modifier '" + value + "'.");
+				}
+				m.setQueryModifier(queryModifier);
+			} else if (Query.EL.rm == el) {
+				Metadata m = query.getMeta();
+				ResultModifier resultModifier = (ResultModifier) DynamicClassLoader.loadObject(value);
+				if (resultModifier == null) {
+					throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Cannot find result modifier '" + value + "'.");
+				}
+				m.setResultModifier(resultModifier);
+			} else if (Query.EL.sp == el) {
+				Metadata m = query.getMeta();
+				StoredProcedure sp = (StoredProcedure) DynamicClassLoader.loadObject(value);
+				if (sp == null) {
+					throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Cannot find stored procedure '" + value + "'.");
+				}
+				m.setStoredProcedure(sp);
+			} else if (Query.EL.bd == el) {
+				String[] list = value.split(SEMICOLON_SEPARATOR);
+				String[] list1 = list[0].split(COLON_SEPARATOR);
+
+				Bundle b = new Bundle(list1[0].trim());
+				if (list1.length > 1) {
+					int bundleRows = 5; //default 5개.
+					try {
+						bundleRows = Integer.parseInt(list1[1].trim());
+					} catch (NumberFormatException e) {
+						//ignore
+					}
+					b.setRows(bundleRows);
+				}
+
+				if (list1.length > 2) {
+					int option = Bundle.OPT_PARENT_INCLUDE; //대표포함.
+					try {
+						option = Integer.parseInt(list1[2].trim());
+					} catch (NumberFormatException e) {
+						//ignore
+					}
+					b.setOption(option);
+				} else {
+					b.setOption(Bundle.OPT_PARENT_INCLUDE);
+				}
+
+				if (list.length > 1) {
+					Sorts s = new Sorts();
+					String[] sortList = list[1].split(COMMA_SEPARATOR);
+					for (int k = 0; k < sortList.length; k++) {
+						String[] str = sortList[k].split(COLON_SEPARATOR);
+						if (str.length > 1) {
+							boolean isAsc = str[1].equalsIgnoreCase("asc");
+							s.add(new Sort(str[0], isAsc));
+						} else {
+							s.add(new Sort(sortList[k]));
+						}
+
+					}
+					b.setSorts(s);
+				}
+				query.setBundle(b);
 			}
-			query.setBundle(b);
+		} catch (SearchError e) {
+			throw e;
+		} catch (Throwable t) {
+			throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR,  el + " contains error." + t.getMessage());
 		}
 	}
 

@@ -65,7 +65,7 @@ public abstract class AbstractHitElement<T> implements Comparable<T> {
 		return docNo;
 	}
 	public void setSegmentId(String segmentId){
-        segmentId = segmentId;
+        this.segmentId = segmentId;
 	}
 	
 	public void setDocNo(String segmentId, int docNo){
