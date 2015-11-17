@@ -52,7 +52,7 @@ public class DocumentReader implements Cloneable {
 	private ByteRefArrayOutputStream inflaterOutput;
 	private byte[] workingBuffer;
 
-	private int baseDocNo;
+//	private int baseDocNo;
 	private int documentCount;
 	private int lastDocNo = -1;
 	private DataInput lastBai;
@@ -62,11 +62,11 @@ public class DocumentReader implements Cloneable {
 	}
 
 	public DocumentReader(SchemaSetting schemaSetting, File dir) throws IOException {
-		this(schemaSetting, dir, 0);
-	}
-
-	public DocumentReader(SchemaSetting schemaSetting, File dir, int baseDocNo) throws IOException {
-		this.baseDocNo = baseDocNo;
+//		this(schemaSetting, dir, 0);
+//	}
+//
+//	public DocumentReader(SchemaSetting schemaSetting, File dir, int baseDocNo) throws IOException {
+//		this.baseDocNo = baseDocNo;
 		fields = schemaSetting.getFieldSettingList();
 		docInput = new BufferedFileInput(dir, IndexFileNames.docStored);
 		positionInput = new BufferedFileInput(dir, IndexFileNames.docPosition);
@@ -82,9 +82,9 @@ public class DocumentReader implements Cloneable {
 		return documentCount;
 	}
 
-	public int getBaseNumber() {
-		return baseDocNo;
-	}
+//	public int getBaseNumber() {
+//		return baseDocNo;
+//	}
 	
 	// 내부 문서번호로 호출한다.
 	public Document readDocument(int docNo) throws IOException {
@@ -175,8 +175,9 @@ public class DocumentReader implements Cloneable {
 			document.set(i, f);
 		}
 		
-		document.setDocId(docNo + baseDocNo);
-		
+//		document.setDocId(docNo + baseDocNo);
+		document.setDocId(docNo);
+
 		return document;
 	}
 
@@ -186,7 +187,7 @@ public class DocumentReader implements Cloneable {
 		reader.fields = fields;
 		reader.docInput = docInput.clone();
 		reader.positionInput = positionInput.clone();
-		reader.baseDocNo = baseDocNo;
+//		reader.baseDocNo = baseDocNo;
 		reader.documentCount = documentCount;
 
 		reader.inflaterOutput = new ByteRefArrayOutputStream(INFLATE_BUFFER_INIT_SIZE); // 자동 증가됨.
