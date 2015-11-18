@@ -33,24 +33,24 @@ import java.util.List;
 
 /**
  * 세그먼트내 Search index 를 머징하기 위한 포스팅 reader.
- *
+ * <p/>
  * 1. Lexicon. 키워드는 알피벳 오름차순 정렬.
- *    포맷 : string(키워드), long(위치)
- *
+ * 포맷 : string(키워드), long(위치)
+ * <p/>
  * 2. Posting
- *    포맷 : vInt(데이터길이), int(갯수), int(마지막문서번호), vInt(문서번호delta)
+ * 포맷 : vInt(데이터길이), int(갯수), int(마지막문서번호), vInt(문서번호delta)
  *
  * @see SearchIndexMerger
- * */
+ */
 public class SearchPostingReader {
-	private static Logger logger = LoggerFactory.getLogger(SearchPostingReader.class);
+    private static Logger logger = LoggerFactory.getLogger(SearchPostingReader.class);
 
-	private int sequence;
-	private String indexId;
-	private CharVector term;
-	private IndexInput lexiconInput;
+    private int sequence;
+    private String indexId;
+    private CharVector term;
+    private IndexInput lexiconInput;
     private IndexInput postingInput;
-	private int termLeft;
+    private int termLeft;
 
     private IndexFieldOption indexFieldOption;
 
@@ -62,17 +62,24 @@ public class SearchPostingReader {
     private BitSet deleteSet;
     private int[] deleteIdList;
 
-	public SearchPostingReader(int sequence, String indexId, File dir) throws IOException{
-		this.sequence = sequence;
-		this.indexId = indexId;
+    public SearchPostingReader(int sequence, String indexId, File dir) throws IOException {
+        this.sequence = sequence;
+        this.indexId = indexId;
         lexiconInput = new BufferedFileInput(dir, IndexFileNames.getSearchLexiconFileName(indexId));
         postingInput = new BufferedFileInput(dir, IndexFileNames.getSearchPostingFileName(indexId));
         deleteSet = new BitSet(dir, IndexFileNames.docDeleteSet);
+        IndexInput docInput = null;
+        int documentCount = 0;
+        try {
+            docInput = new BufferedFileInput(dir, IndexFileNames.docStored);
+            documentCount = docInput.readInt();
+        } finally {
+            if (docInput != null) {
+                docInput.close();
+            }
+        }
 
-        docInput = null;
-        int documentCount = docInput.readInt();
         List<Integer> deleteList = new ArrayList<Integer>();
-        //
         for (int i = 0; i < documentCount; i++) {
             if (deleteSet.isSet(i)) {
                 deleteList.add(i);
@@ -83,11 +90,10 @@ public class SearchPostingReader {
             deleteIdList[i] = deleteList.get(i);
         }
 
-
         //색인된 키워드 갯수
         termLeft = lexiconInput.readInt();
         indexFieldOption = new IndexFieldOption(postingInput.readInt());
-	}
+    }
 
     public IndexFieldOption indexFieldOption() {
         return indexFieldOption;
@@ -95,75 +101,80 @@ public class SearchPostingReader {
 
     /**
      * 문서 삭제여부 판단.
-    * */
+     */
     public boolean isAlive(int docNo) {
         return !deleteSet.isSet(docNo);
     }
-	public void close() throws IOException{
-		if(lexiconInput != null) {
+
+    public void close() throws IOException {
+        if (lexiconInput != null) {
             lexiconInput.close();
         }
 
-        if(postingInput != null) {
+        if (postingInput != null) {
             postingInput.close();
         }
-	}
-	public String indexId(){
-		return indexId;
-	}
-	
-	public int sequence(){
-		return sequence;
-	}
-	
-	public boolean nextTerm() throws IOException{
-		if(termLeft == 0){
-			term = null;
+    }
+
+    public String indexId() {
+        return indexId;
+    }
+
+    public int sequence() {
+        return sequence;
+    }
+
+    public boolean nextTerm() throws IOException {
+        if (termLeft == 0) {
+            term = null;
 
             docSize = 0;
             lastDocNo = -1;
 
-			return false;
-		}
-		
-		char[] array = null;
+            return false;
+        }
+
+        char[] array = null;
         long postingPos = -1;
-		try{
-			array = lexiconInput.readUString();
+        try {
+            array = lexiconInput.readUString();
             postingPos = lexiconInput.readLong();
             postingInput.seek(postingPos);
 
-		}catch(EOFException e){
-			logger.error(e.getMessage(),e);
-			logger.debug("{} - count = {}", indexId, termLeft);
-			throw e;
-		}
-		int len = array.length;
-		term = new CharVector(array, 0, len);
+        } catch (EOFException e) {
+            logger.error(e.getMessage(), e);
+            logger.debug("{} - count = {}", indexId, termLeft);
+            throw e;
+        }
+        int len = array.length;
+        term = new CharVector(array, 0, len);
         int bufLength = postingInput.readVInt();
         docSize = postingInput.readInt();
         lastDocNo = postingInput.readInt();
-		docPos = 0;
+        docPos = 0;
         prevDocNo = 0;
         termLeft--;
         return true;
-	}
-	
-	public int left(){
-		return termLeft;
-	}
-	public CharVector term(){
-		return term;
-	}
+    }
+
+    public int left() {
+        return termLeft;
+    }
+
+    public CharVector term() {
+        return term;
+    }
 
     public int docSize() {
         return docSize;
     }
+
     public int lastDocNo() {
         return lastDocNo;
     }
+
     public int readDocNo() throws IOException {
-        if(docPos >= docSize) {
+        if (docPos >= docSize) {
             return -1;
         }
         prevDocNo += postingInput.readVInt();

@@ -97,7 +97,6 @@ public class SearchIndexMerger {
                 postingBeforePosition = postingOutput.position();
                 prevDocNo = -1;
                 totalCount = 0;
-                postingOutput.position();
                 for (int k = 0; k < workingReaderSize; k++) {
                     SearchPostingReader reader = workingReaders[k];
                     // count 와 lastNo를 읽어둔다.
@@ -105,6 +104,13 @@ public class SearchIndexMerger {
                     int lastDocNo = reader.lastDocNo();
                     totalCount += count;
                     for (int i = 0; i < reader.docSize(); i++) {
+
+
+                        //TODO 삭제문서가 적용된 새로운 문서번호가 리턴된다.
+
+                        // i가 0,1,2 일때 각각 삭제문서를 제외한 총 문서 갯수가 필요하다
+                        // 그래야만, 다음 머징될 세그먼트에 새로운 문서번호를 부여할 수 있다.
+
                         int docNo = reader.readDocNo();
                         /*
                         * 여기서 실제 삭제가 이루어 진다.
