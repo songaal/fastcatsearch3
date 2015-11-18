@@ -13,14 +13,24 @@ public class DocumentNumberConverter {
 
     private int[] deleteIdList;
 
+    private int offset;
     private int size;
+
 
     public DocumentNumberConverter(BitSet deleteSet) {
         //TODO 변환한다.
     }
     public DocumentNumberConverter(int[] deleteIdList) {
+        this(deleteIdList, 0);
+    }
+    public DocumentNumberConverter(int[] deleteIdList, int offset) {
         this.deleteIdList = deleteIdList;
         this.size = deleteIdList.length;
+        this.offset = offset;
+    }
+
+    public void setOffset(int offset) {
+        this.offset = offset;
     }
 
     public int convert(int docNo) {
@@ -32,7 +42,7 @@ public class DocumentNumberConverter {
 
     public int binSearch(int docNo){
         if(size == 0) {
-            return docNo;
+            return docNo + offset;
         }
 
         int left = 0;
@@ -59,8 +69,8 @@ public class DocumentNumberConverter {
 
         if(mid == -1) {
             //그대로.
-            return docNo;
+            return docNo + offset;
         }
-        return docNo - mid - 1;
+        return docNo - mid - 1 + offset;
     }
 }
