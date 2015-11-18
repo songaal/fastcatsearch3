@@ -18,6 +18,7 @@ import java.util.List;
  */
 public class DocumentRawReader {
     private static Logger logger = LoggerFactory.getLogger(DocumentRawReader.class);
+    private int lastDocNo;
     private int docNo;
 
     private IndexInput docInput;
@@ -29,7 +30,6 @@ public class DocumentRawReader {
 
     private byte[] buffer = new byte[8192];
     private int dataLength;
-    private int[] deleteIdList;
 
     private boolean isAlive;
 
@@ -39,29 +39,11 @@ public class DocumentRawReader {
         deleteSet = new BitSet(dir, IndexFileNames.docDeleteSet);
         positionLimit = positionInput.length();
         documentCount = docInput.readInt();
-
-        List<Integer> deleteList = new ArrayList<Integer>();
-        //
-        for (int i = 0; i < documentCount; i++) {
-            if (deleteSet.isSet(i)) {
-                deleteList.add(i);
-            }
-        }
-        deleteIdList = new int[deleteList.size()];
-        for (int i = 0; i < deleteIdList.length; i++) {
-            deleteIdList[i] = deleteList.get(i);
-        }
         logger.info("DocumentCount = {}", documentCount);
     }
 
-    public boolean hasDeletion() {
-        return deleteIdList.length > 0;
-    }
-    public int[] deleteIdList() {
-        return deleteIdList;
-    }
-
     public boolean read() throws IOException {
+        lastDocNo = -1;
         dataLength = 0;
         isAlive = false;
 
@@ -88,6 +70,7 @@ public class DocumentRawReader {
             docInput.readBytes(buffer, 0, dataLength);
             isAlive = true;
         }
+        lastDocNo = docNo;
         docNo++;
         return true;
     }
@@ -105,7 +88,7 @@ public class DocumentRawReader {
     }
 
     public int getDocNo() {
-        return docNo;
+        return lastDocNo;
     }
 
     public void close() throws IOException {

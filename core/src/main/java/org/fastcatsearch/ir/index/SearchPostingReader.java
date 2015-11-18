@@ -28,6 +28,8 @@ import org.slf4j.LoggerFactory;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 세그먼트내 Search index 를 머징하기 위한 포스팅 reader.
@@ -58,6 +60,7 @@ public class SearchPostingReader {
     private int prevDocNo; // 이전 문서번호. delta에 더하기 위해 필요.
 
     private BitSet deleteSet;
+    private int[] deleteIdList;
 
 	public SearchPostingReader(int sequence, String indexId, File dir) throws IOException{
 		this.sequence = sequence;
@@ -65,6 +68,22 @@ public class SearchPostingReader {
         lexiconInput = new BufferedFileInput(dir, IndexFileNames.getSearchLexiconFileName(indexId));
         postingInput = new BufferedFileInput(dir, IndexFileNames.getSearchPostingFileName(indexId));
         deleteSet = new BitSet(dir, IndexFileNames.docDeleteSet);
+
+        docInput = null;
+        int documentCount = docInput.readInt();
+        List<Integer> deleteList = new ArrayList<Integer>();
+        //
+        for (int i = 0; i < documentCount; i++) {
+            if (deleteSet.isSet(i)) {
+                deleteList.add(i);
+            }
+        }
+        deleteIdList = new int[deleteList.size()];
+        for (int i = 0; i < deleteIdList.length; i++) {
+            deleteIdList[i] = deleteList.get(i);
+        }
+
+
         //색인된 키워드 갯수
         termLeft = lexiconInput.readInt();
         indexFieldOption = new IndexFieldOption(postingInput.readInt());

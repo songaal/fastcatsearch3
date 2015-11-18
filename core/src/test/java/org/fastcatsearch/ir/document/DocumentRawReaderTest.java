@@ -23,22 +23,20 @@ public class DocumentRawReaderTest {
             reader = new DocumentRawReader(dir);
             int alive = 0;
             int delete = 0;
-            DocumentNumberConverter converter = new DocumentNumberConverter(reader.deleteIdList());
             while (reader.read()) {
                 int docNo = reader.getDocNo();
                 if (reader.isAlive()) {
                     //기록.
                     byte[] buffer = reader.getBuffer();
                     int dataLength = reader.getDataLength();
-                    logger.debug("{}->{} len[{}]", docNo, converter.convert(docNo), dataLength);
+                    logger.debug("{} len[{}]", docNo, dataLength);
                     alive++;
                 } else {
-                    logger.debug("X {}->{}", docNo, converter.convert(docNo));
+                    logger.debug("X {}", docNo);
                     delete++;
                 }
             }
             logger.debug(">> Alive[{}] Delete[{}]", alive, delete);
-
         } finally {
             if (reader != null) {
                 reader.close();
