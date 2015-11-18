@@ -22,6 +22,7 @@ import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.io.BufferedFileInput;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.IndexInput;
+import org.fastcatsearch.ir.util.DocumentNumberConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,13 +59,21 @@ public class SearchPostingReader {
     private int docSize; //문서 갯수
     private int lastDocNo; //마지막 문서번호.
     private int prevDocNo; // 이전 문서번호. delta에 더하기 위해 필요.
+    private int offset; //머징시 앞의 세그먼트이후로 문서번호를 부여해야 하므로, offset 를 사용한다.
 
     private BitSet deleteSet;
     private int[] deleteIdList;
+    private int aliveDocumentCount;
+    private DocumentNumberConverter converter; //삭제문서를 제외하고 순차번호를 만들어주는 컨버터.
 
     public SearchPostingReader(int sequence, String indexId, File dir) throws IOException {
+        this(sequence, indexId, dir, 0);
+    }
+    public SearchPostingReader(int sequence, String indexId, File dir, int offset) throws IOException {
         this.sequence = sequence;
         this.indexId = indexId;
+        this.offset = offset;
+
         lexiconInput = new BufferedFileInput(dir, IndexFileNames.getSearchLexiconFileName(indexId));
         postingInput = new BufferedFileInput(dir, IndexFileNames.getSearchPostingFileName(indexId));
         deleteSet = new BitSet(dir, IndexFileNames.docDeleteSet);
@@ -89,14 +98,22 @@ public class SearchPostingReader {
         for (int i = 0; i < deleteIdList.length; i++) {
             deleteIdList[i] = deleteList.get(i);
         }
+        aliveDocumentCount = documentCount - deleteList.size();
+        converter = new DocumentNumberConverter(deleteIdList);
 
         //색인된 키워드 갯수
         termLeft = lexiconInput.readInt();
         indexFieldOption = new IndexFieldOption(postingInput.readInt());
+
+        logger.debug("SearchPostringReader[{}:{}] >> terms[{}] doc[{}] deletes[{}] alive[{}]", indexId, sequence, termLeft, documentCount, deleteList.size(), aliveDocumentCount);
     }
 
     public IndexFieldOption indexFieldOption() {
         return indexFieldOption;
+    }
+
+    public int getAliveDocumentCount() {
+        return aliveDocumentCount;
     }
 
     /**
@@ -181,4 +198,20 @@ public class SearchPostingReader {
         docPos++;
         return prevDocNo;
     }
+
+    public int getNewDocNo(int docNo) {
+        return converter.convert(docNo) + offset;
+    }
+
+//    public int readNewDocNo() throws IOException {
+//        int docNo = readDocNo();
+//        if(deleteSet.isSet(docNo)) {
+//            //삭제됨.
+//            return -1;
+//        }
+//        if(docNo != -1) {
+//            return converter.convert(docNo) + offset;
+//        }
+//        return -1;
+//    }
 }

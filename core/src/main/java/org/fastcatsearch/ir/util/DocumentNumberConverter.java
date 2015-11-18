@@ -6,6 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * 삭제문서를 제외하고 순차번호를 만들어주는 컨버터.
+ * input : 문서번호
+ * output : 새로운 문서번호
+ * 중간에 삭제문서존재시 새로운 문서번호는 삭제문서 갯수만큼 앞으로 shift된다.
  * Created by swsong on 2015. 11. 18..
  */
 public class DocumentNumberConverter {
@@ -13,24 +17,11 @@ public class DocumentNumberConverter {
 
     private int[] deleteIdList;
 
-    private int offset;
     private int size;
 
-
-    public DocumentNumberConverter(BitSet deleteSet) {
-        //TODO 변환한다.
-    }
     public DocumentNumberConverter(int[] deleteIdList) {
-        this(deleteIdList, 0);
-    }
-    public DocumentNumberConverter(int[] deleteIdList, int offset) {
         this.deleteIdList = deleteIdList;
         this.size = deleteIdList.length;
-        this.offset = offset;
-    }
-
-    public void setOffset(int offset) {
-        this.offset = offset;
     }
 
     public int convert(int docNo) {
@@ -42,7 +33,7 @@ public class DocumentNumberConverter {
 
     public int binSearch(int docNo){
         if(size == 0) {
-            return docNo + offset;
+            return docNo;
         }
 
         int left = 0;
@@ -69,8 +60,8 @@ public class DocumentNumberConverter {
 
         if(mid == -1) {
             //그대로.
-            return docNo + offset;
+            return docNo;
         }
-        return docNo - mid - 1 + offset;
+        return docNo - mid - 1;
     }
 }

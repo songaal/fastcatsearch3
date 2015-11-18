@@ -51,16 +51,19 @@ public class SearchIndexMerger {
     /**
      * 머징 대상이 되는 세그먼트 디렉토리들
      */
-    public void merge(File... files) throws IOException {
-        readerSize = files.length;
+    public void merge(File... dirs) throws IOException {
+        readerSize = dirs.length;
         if (readerSize <= 0) {
             return;
         }
         reader = new SearchPostingReader[readerSize];
         workingReaders = new SearchPostingReader[readerSize];
+        int prevSegmentAliveDocumentCount = 0;
         for (int i = 0; i < readerSize; i++) {
-            reader[i] = new SearchPostingReader(i, indexId, files[i]);
+            //여러 세그먼트를 순차적으로 머징시 이전 세그먼트의 문서갯수이후로 새 문서번호를 부여받을 것이므로 prevSegmentAliveDocumentCount를 알아야 한다.
+            reader[i] = new SearchPostingReader(i, indexId, dirs[i], prevSegmentAliveDocumentCount);
             reader[i].nextTerm();
+            prevSegmentAliveDocumentCount += reader[i].getAliveDocumentCount();
         }
 
         IndexFieldOption fieldIndexOption = reader[0].indexFieldOption();
@@ -75,7 +78,7 @@ public class SearchIndexMerger {
         lexiconOutput.writeInt(termCount);// termCount
         indexOutput.writeInt(indexTermCount);// indexTermCount
 
-        boolean termMade = false;
+
         CharVector cv = null;
         CharVector cvOld = null;
         CharVector term = new CharVector();
@@ -83,7 +86,9 @@ public class SearchIndexMerger {
 
         int totalCount = 0;
         int prevDocNo = -1;
+        int docCount = 0;
         while (true) {
+            boolean termMade = false;
             int idx = heap[1];
             cv = reader[idx].term();
             if (cv == null && cvOld == null) {
@@ -100,29 +105,26 @@ public class SearchIndexMerger {
                 for (int k = 0; k < workingReaderSize; k++) {
                     SearchPostingReader reader = workingReaders[k];
                     // count 와 lastNo를 읽어둔다.
-                    int count = reader.docSize();
-                    int lastDocNo = reader.lastDocNo();
-                    totalCount += count;
+//                    int count = reader.docSize();
+//                    int lastDocNo = reader.lastDocNo();
                     for (int i = 0; i < reader.docSize(); i++) {
-
-
-                        //TODO 삭제문서가 적용된 새로운 문서번호가 리턴된다.
-
-                        // i가 0,1,2 일때 각각 삭제문서를 제외한 총 문서 갯수가 필요하다
-                        // 그래야만, 다음 머징될 세그먼트에 새로운 문서번호를 부여할 수 있다.
-
                         int docNo = reader.readDocNo();
                         /*
                         * 여기서 실제 삭제가 이루어 진다.
                         * */
                         if (reader.isAlive(docNo)) {
+                            //삭제문서가 적용된 새로운 문서번호가 리턴된다.
+                            docNo = reader.getNewDocNo(docNo);
                             if (prevDocNo >= 0) {
                                 postingOutput.writeVInt(docNo - prevDocNo - 1);
                             } else {
                                 postingOutput.writeVInt(docNo);
                             }
+                            //기록한 문서번호만 prevDocNo로 셋팅해야 정확한 delta가 계산된다.
+                            prevDocNo = docNo;
+                            totalCount++;
                         }
-                        prevDocNo = docNo;
+
                     }
                 }
 
@@ -186,7 +188,7 @@ public class SearchIndexMerger {
         } else {
             // 이미 indexTermCount는 0으로 셋팅되어 있으므로 기록할 필요없음.
         }
-        logger.debug("## write index [{}] termCount[{}] indexTermCount[{}] indexInterval[{}]", indexId, termCount, indexTermCount, indexInterval);
+        logger.debug("## write index [{}] terms[{}] indexTerms[{}] indexInterval[{}]", indexId, totalCount, indexTermCount, indexInterval);
 
         lexiconOutput.flush();
         indexOutput.flush();
@@ -344,4 +346,5 @@ public class SearchIndexMerger {
 
         return term1.length() - term2.length();
     }
+
 }

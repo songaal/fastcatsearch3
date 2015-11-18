@@ -1,5 +1,6 @@
 package org.fastcatsearch.ir.index;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import java.io.File;
@@ -14,8 +15,11 @@ public class SearchIndexMergerTest {
     public void testMerge() throws IOException {
 
         String indexId = "PRODUCTNAME";
-        File dir = new File("/tmp/merge");
+        File dir = new File("/tmp/doc_merge");
         int indexInterval = 128;
+//        if(dir.exists()) {
+//            FileUtils.deleteDirectory(dir);
+//        }
         dir.mkdirs();
 
         File seg1 = new File("/Users/swsong/TEST_HOME/fastcatsearch-2.21.6/collections/volm/data/index0/a0");

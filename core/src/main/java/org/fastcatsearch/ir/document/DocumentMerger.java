@@ -31,9 +31,9 @@ public class DocumentMerger {
         positionOutput = new BufferedFileOutput(dir, IndexFileNames.docPosition);
     }
 
-    public void merge(File... files) throws IOException {
+    public void merge(File... dirs) throws IOException {
 
-        readerSize = files.length;
+        readerSize = dirs.length;
         if (readerSize <= 0) {
             return;
         }
@@ -45,7 +45,7 @@ public class DocumentMerger {
         try {
             for (int i = 0; i < readerSize; i++) {
 
-                reader[i] = new DocumentRawReader(files[i]);
+                reader[i] = new DocumentRawReader(dirs[i]);
 
                 while(reader[i].read()) {
                     int docNo = reader[i].getDocNo();
