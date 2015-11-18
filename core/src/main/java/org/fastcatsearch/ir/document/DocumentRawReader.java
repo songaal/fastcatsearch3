@@ -27,7 +27,7 @@ public class DocumentRawReader {
     private int documentCount;
     private long positionLimit;
 
-    private byte[] buffer = new byte[3 * 1024 * 1024];
+    private byte[] buffer = new byte[8192];
     private int dataLength;
     private int[] deleteIdList;
 
@@ -54,6 +54,9 @@ public class DocumentRawReader {
         logger.info("DocumentCount = {}", documentCount);
     }
 
+    public boolean hasDeletion() {
+        return deleteIdList.length > 0;
+    }
     public int[] deleteIdList() {
         return deleteIdList;
     }
@@ -68,7 +71,7 @@ public class DocumentRawReader {
 
         long positionOffset = docNo * IOUtil.SIZE_OF_LONG;
         if(deleteSet.isSet(docNo)) {
-            return true;
+            isAlive = false;
         } else {
             positionInput.seek(positionOffset);
             long pos = positionInput.readLong();

@@ -10,6 +10,11 @@ import java.io.File;
 import java.io.IOException;
 
 /**
+ * doc.position File
+ *   format : {long(docStore position)}
+ * doc.stored File
+ *   format : int(docCount), {int(compress data length), byte[](one document)}
+ *
  * Created by swsong on 2015. 11. 17..
  */
 public class DocumentMerger {
@@ -34,8 +39,12 @@ public class DocumentMerger {
         }
         reader = new DocumentRawReader[readerSize];
 
+        int totalCount = 0;
+        int deleteCount = 0;
+        docOutput.writeInt(totalCount);
         try {
             for (int i = 0; i < readerSize; i++) {
+
                 reader[i] = new DocumentRawReader(files[i]);
 
                 while(reader[i].read()) {
@@ -45,13 +54,20 @@ public class DocumentMerger {
                         //기록.
                         byte[] buffer = reader[i].getBuffer();
                         int dataLength = reader[i].getDataLength();
+                        long docPosition = docOutput.position();
+                        positionOutput.writeLong(docPosition);
+                        docOutput.writeInt(dataLength);
+                        docOutput.writeBytes(buffer, dataLength);
+                        totalCount++;
                     } else {
-
-
+                        deleteCount++;
                     }
                 }
-
             }
+
+            docOutput.seek(0);
+            docOutput.writeInt(totalCount);
+            logger.debug("Total Count[{}] Delete[{}]", totalCount, deleteCount);
         } finally {
             //CLOSE
             IOException exception = null;
