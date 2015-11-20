@@ -67,7 +67,7 @@ public class CSVFileReader extends AbstractFileReader {
                 logger.error("parsing error : line= " + line, e);
             }
         }
-        return null;
+        throw new IOException("EOF");
     }
 
     @Override
