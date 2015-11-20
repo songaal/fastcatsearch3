@@ -22,14 +22,9 @@ import org.slf4j.LoggerFactory;
 public class BytesBuffer {
 	protected static Logger logger = LoggerFactory.getLogger(BytesBuffer.class);
 	
-	/** The contents of the BytesRef. Should never be {@code null}. */
 	public byte[] bytes;
-
-	/** Offset of first valid byte. */
 	public int offset;
-
-	/** Length of used bytes. */
-	public int length;
+	public int limit;
 
 	public BytesBuffer(){ }
 	
@@ -43,26 +38,26 @@ public class BytesBuffer {
 		clear();
 	}
 
-	public BytesBuffer(byte[] buffer, int length) {
+	public BytesBuffer(byte[] buffer, int limit) {
 		this.bytes = buffer;
-		this.length = length;
+		this.limit = limit;
 	}
 
-	public BytesBuffer(byte[] buffer, int offset, int length) {
+	public BytesBuffer(byte[] buffer, int offset, int limit) {
 		this.bytes = buffer;
 		this.offset = offset;
-		this.length = length;
+		this.limit = limit;
 	}
 
-	public void init(byte[] buffer, int offset, int length) {
+	public void init(byte[] buffer, int offset, int limit) {
 		this.bytes = buffer;
 		this.offset = offset;
-		this.length = length;
+		this.limit = limit;
 	}
 
 	public void clear() {
 		offset = 0;
-		length = bytes.length;
+		limit = bytes.length;
 	}
 
 	public int size() {
@@ -70,7 +65,7 @@ public class BytesBuffer {
 	}
 
 	public BytesBuffer flip() {
-		length = offset;
+		limit = offset;
 		offset = 0;
 		return this;
 	}
@@ -92,7 +87,7 @@ public class BytesBuffer {
 	}
 
 	public int limit() {
-		return offset + length;
+		return limit;
 	}
 
 	public void pos(int pos) {
@@ -103,12 +98,12 @@ public class BytesBuffer {
 		this.offset += n;
 	}
 
-	public void limit(int length) {
-		this.length = length;
+	public void setLimit(int limit) {
+		this.limit = limit;
 	}
 
 	public int remaining() {
-		return length - offset;
+		return limit - offset;
 	}
 
 	public byte readByte() {
@@ -153,7 +148,7 @@ public class BytesBuffer {
 
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		for (int i = offset; i < length; i++) {
+		for (int i = offset; i < limit; i++) {
 			sb.append(bytes[i]);
 			sb.append(" ");
 		}
@@ -163,7 +158,7 @@ public class BytesBuffer {
 
 	public String toAlphaString() {
 		StringBuilder sb = new StringBuilder();
-		for (int i = offset; i < length; i++) {
+		for (int i = offset; i < limit; i++) {
 			sb.append((char) bytes[i]);
 		}
 
@@ -171,7 +166,7 @@ public class BytesBuffer {
 	}
 
 	public int length() {
-		return length - offset;
+		return limit - offset;
 	}
 
 	@Override
@@ -181,7 +176,7 @@ public class BytesBuffer {
 			return false;
 		}
 
-		for (int i = 0; i < length - offset; i++) {
+		for (int i = 0; i < limit - offset; i++) {
 			if (bytes[offset + i] != another.bytes[another.offset + i]) {
 				return false;
 			}
@@ -192,6 +187,6 @@ public class BytesBuffer {
 	
 	@Override
 	public BytesBuffer clone() {
-		return new BytesBuffer(bytes, offset, length);
+		return new BytesBuffer(bytes, offset, limit);
 	}
 }

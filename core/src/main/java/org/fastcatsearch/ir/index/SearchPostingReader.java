@@ -36,10 +36,10 @@ import java.util.List;
  * 세그먼트내 Search index 를 머징하기 위한 포스팅 reader.
  * <p/>
  * 1. Lexicon. 키워드는 알피벳 오름차순 정렬.
- * 포맷 : string(키워드), long(위치)
- * <p/>
+ *    포맷 : int(텀갯수), { string(키워드), long(위치) }
+ *
  * 2. Posting
- * 포맷 : vInt(데이터길이), int(갯수), int(마지막문서번호), vInt(문서번호delta)
+ *    포맷 : int(필드옵션), { vInt(포스팅 데이터길이), int(갯수), int(마지막문서번호), { vInt(문서번호 delta), vInt(출현횟수), [ { vInt(위치 delta) } ] } }
  *
  * @see SearchIndexMerger
  */
@@ -52,19 +52,17 @@ public class SearchPostingReader {
     private IndexInput lexiconInput;
     private IndexInput postingInput;
     private int termLeft;
-
-    private IndexFieldOption indexFieldOption;
-
-    private int docPos; //읽은 문서갯수.
-    private int docSize; //문서 갯수
-    private int lastDocNo; //마지막 문서번호.
-    private int prevDocNo; // 이전 문서번호. delta에 더하기 위해 필요.
     private int offset; //머징시 앞의 세그먼트이후로 문서번호를 부여해야 하므로, offset 를 사용한다.
+    private IndexFieldOption indexFieldOption;
 
     private BitSet deleteSet;
     private int[] deleteIdList;
     private int aliveDocumentCount;
     private DocumentNumberConverter converter; //삭제문서를 제외하고 순차번호를 만들어주는 컨버터.
+
+    private BytesRef currentBuffer; //현재선택된 버퍼
+    private BytesRef[] bufferPool; //더블 버퍼링 재사용 버퍼.
+    private int bufferPoolSelector; //재사용 버퍼 셀렉터.
 
     public SearchPostingReader(int sequence, String indexId, File dir) throws IOException {
         this(sequence, indexId, dir, 0);
@@ -105,6 +103,9 @@ public class SearchPostingReader {
         termLeft = lexiconInput.readInt();
         indexFieldOption = new IndexFieldOption(postingInput.readInt());
 
+        bufferPool = new BytesRef[2];
+        bufferPool[0] = new BytesRef(1024);
+        bufferPool[1] = new BytesRef(1024);
         logger.debug("SearchPostringReader[{}:{}] >> terms[{}] doc[{}] deletes[{}] alive[{}]", indexId, sequence, termLeft, documentCount, deleteList.size(), aliveDocumentCount);
     }
 
@@ -114,13 +115,6 @@ public class SearchPostingReader {
 
     public int getAliveDocumentCount() {
         return aliveDocumentCount;
-    }
-
-    /**
-     * 문서 삭제여부 판단.
-     */
-    public boolean isAlive(int docNo) {
-        return !deleteSet.isSet(docNo);
     }
 
     public void close() throws IOException {
@@ -144,10 +138,6 @@ public class SearchPostingReader {
     public boolean nextTerm() throws IOException {
         if (termLeft == 0) {
             term = null;
-
-            docSize = 0;
-            lastDocNo = -1;
-
             return false;
         }
 
@@ -165,15 +155,34 @@ public class SearchPostingReader {
         }
         int len = array.length;
         term = new CharVector(array, 0, len);
-        int bufLength = postingInput.readVInt();
-        docSize = postingInput.readInt();
-        lastDocNo = postingInput.readInt();
-        docPos = 0;
-        prevDocNo = 0;
+        int dataSize = postingInput.readVInt();
+
+        currentBuffer = borrowBuffer(dataSize);
+        postingInput.readBytes(currentBuffer);
+//        docSize = postingInput.readInt();
+//        lastDocNo = postingInput.readInt();
+//        docPos = 0;
+//        prevDocNo = -1;
+//        prevDocPosition = -1;
         termLeft--;
         return true;
     }
 
+    public SearchPostingBufferReader bufferReader() {
+        return new SearchPostingBufferReader(currentBuffer, offset, deleteSet, deleteIdList, converter);
+    }
+    //재사용 버퍼는 얻는다.
+    private BytesRef borrowBuffer(int minimumSize) {
+        bufferPoolSelector = (bufferPoolSelector + 1) % 2;
+        BytesRef buffer = bufferPool[bufferPoolSelector];
+        if(buffer.array().length < minimumSize) {
+            byte[] array = new byte[minimumSize];
+            buffer.init(array, 0, array.length);
+        }
+        buffer.pos(0);
+        buffer.setLength(minimumSize);
+        return buffer;
+    }
     public int left() {
         return termLeft;
     }
@@ -182,26 +191,18 @@ public class SearchPostingReader {
         return term;
     }
 
-    public int docSize() {
-        return docSize;
-    }
+//    public int readDocPosition() throws IOException {
+//        if(!isStorePosition) {
+//            return -1;
+//        }
+//        if(prevDocPosition == -1) {
+//            prevDocPosition = postingInput.readVInt();
+//        } else {
+//            prevDocPosition += (postingInput.readVInt() + 1);
+//        }
+//        return prevDocPosition;
+//    }
 
-    public int lastDocNo() {
-        return lastDocNo;
-    }
-
-    public int readDocNo() throws IOException {
-        if (docPos >= docSize) {
-            return -1;
-        }
-        prevDocNo += postingInput.readVInt();
-        docPos++;
-        return prevDocNo;
-    }
-
-    public int getNewDocNo(int docNo) {
-        return converter.convert(docNo) + offset;
-    }
 
 //    public int readNewDocNo() throws IOException {
 //        int docNo = readDocNo();

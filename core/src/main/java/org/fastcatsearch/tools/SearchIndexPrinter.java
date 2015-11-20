@@ -1,5 +1,6 @@
 package org.fastcatsearch.tools;
 
+import org.fastcatsearch.ir.index.SearchPostingBufferReader;
 import org.fastcatsearch.ir.index.SearchPostingReader;
 
 import java.io.File;
@@ -23,18 +24,19 @@ public class SearchIndexPrinter {
         System.out.println("Total Term Size = " + termSize);
         int c = 1;
         while(reader.nextTerm()) {
+            SearchPostingBufferReader bufferReader = reader.bufferReader();
             System.out.print(c++);
             System.out.print("] ");
             System.out.print(reader.term());
             System.out.print(" (");
-            System.out.print(reader.docSize());
+            System.out.print(bufferReader.docSize());
             System.out.print(" / ");
-            System.out.print(reader.lastDocNo());
+            System.out.print(bufferReader.lastDocNo());
             System.out.print(") >>");
-            for(int i = 0; i < reader.docSize(); i++) {
+            for(int i = 0; i < bufferReader.docSize(); i++) {
                 System.out.print(" ");
-                int docNo = reader.readDocNo();
-                System.out.print(reader.isAlive(docNo) ? "" : "(X)");
+                int docNo = bufferReader.readDocNo();
+                System.out.print(bufferReader.isAlive(docNo) ? "" : "(X)");
                 System.out.print(docNo);
             }
             System.out.println();

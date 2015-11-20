@@ -32,10 +32,17 @@ import org.fastcatsearch.ir.io.IOUtil;
  * {@code new String(bytes, offset, length)} to do this is <b>wrong</b>, as it does not respect the correct character set and may
  * return wrong results (depending on the platform's defaults)!
  */
-public final class BytesRef extends BytesBuffer implements Comparable<BytesRef>, Cloneable  {
+public final class BytesRef implements Comparable<BytesRef>, Cloneable  {
 	/** An empty byte array for convenience */
 	public static final byte[] EMPTY_BYTES = new byte[0];
+    /** The contents of the BytesRef. Should never be {@code null}. */
+    public byte[] bytes;
 
+    /** Offset of first valid byte. */
+    public int offset;
+
+    /** Length of used bytes. */
+    public int length;
 
 	/** Create a BytesRef with {@link #EMPTY_BYTES} */
 	public BytesRef() {
@@ -77,6 +84,10 @@ public final class BytesRef extends BytesBuffer implements Comparable<BytesRef>,
 		this();
 		copyChars(text);
 	}
+
+    public int length() {
+        return length;
+    }
 
 	public void reset(){
 		offset = 0;
@@ -234,8 +245,8 @@ public final class BytesRef extends BytesBuffer implements Comparable<BytesRef>,
 		System.arraycopy(this.bytes, this.offset, bytes, 0, length);
 		return new BytesRef(bytes, 0, length);
 	}
-	
-	
+
+
 	/**
 	 * Appends the bytes from the given {@link BytesRef}
 	 * <p>
@@ -254,7 +265,7 @@ public final class BytesRef extends BytesBuffer implements Comparable<BytesRef>,
 	}
 
 	public void append(byte[] other, int off, int len) {
-		int newLen = this.length + length;
+		int newLen = this.length + len;
 		if (bytes.length - offset < newLen) {
 			byte[] newBytes = new byte[newLen];
 			System.arraycopy(bytes, offset, newBytes, 0, length);

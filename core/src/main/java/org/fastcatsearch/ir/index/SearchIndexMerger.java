@@ -11,13 +11,13 @@ import java.io.IOException;
 
 /**
  * 1. Lexicon. 키워드는 알피벳 오름차순 정렬.
- *    포맷 : string(키워드), long(위치)
+ *    포맷 : int(텀갯수), { string(키워드), long(위치) }
  *
  * 2. Posting
- *    포맷 : vInt(데이터길이), int(갯수), int(마지막문서번호), vInt(문서번호delta)
+ *    포맷 : int(필드옵션), { vInt(포스팅 데이터길이), int(갯수), int(마지막문서번호), { vInt(문서번호 delta), vInt(출현횟수), [ { vInt(위치 delta) } ] } }
  *
  * 3. Index
- *    포맷 : string(색인키워드), long(가까운키워드위치), long(포스팅위치)
+ *    포맷 : int(텀갯수), { string(색인키워드), long(가까운키워드위치), long(포스팅위치) }
  *
  * @see SearchPostingReader
  * Created by swsong on 2015. 11. 17..
@@ -34,9 +34,8 @@ public class SearchIndexMerger {
     protected int[] heap;
     private int readerSize;
     private SearchPostingReader[] reader;
-    private SearchPostingReader[] workingReaders;
+    private SearchPostingBufferReader[] workingReaders;
     private int workingReaderSize;
-
     /**
      * 각 세그먼트의 indexId 를 머징한다. 출력 디렉토리는 dir.
      */
@@ -56,8 +55,9 @@ public class SearchIndexMerger {
         if (readerSize <= 0) {
             return;
         }
+
         reader = new SearchPostingReader[readerSize];
-        workingReaders = new SearchPostingReader[readerSize];
+        workingReaders = new SearchPostingBufferReader[readerSize];
         int prevSegmentAliveDocumentCount = 0;
         for (int i = 0; i < readerSize; i++) {
             //여러 세그먼트를 순차적으로 머징시 이전 세그먼트의 문서갯수이후로 새 문서번호를 부여받을 것이므로 prevSegmentAliveDocumentCount를 알아야 한다.
@@ -67,7 +67,7 @@ public class SearchIndexMerger {
         }
 
         IndexFieldOption fieldIndexOption = reader[0].indexFieldOption();
-
+        boolean isStorePosition = fieldIndexOption.isStorePosition();
         postingOutput.writeInt(fieldIndexOption.value());
 
         makeHeap(readerSize);
@@ -103,7 +103,7 @@ public class SearchIndexMerger {
                 prevDocNo = -1;
                 totalCount = 0;
                 for (int k = 0; k < workingReaderSize; k++) {
-                    SearchPostingReader reader = workingReaders[k];
+                    SearchPostingBufferReader reader = workingReaders[k];
                     // count 와 lastNo를 읽어둔다.
 //                    int count = reader.docSize();
 //                    int lastDocNo = reader.lastDocNo();
@@ -120,6 +120,10 @@ public class SearchIndexMerger {
                             } else {
                                 postingOutput.writeVInt(docNo);
                             }
+//                            postingOutput.writeVInt(reader.getFrequency());
+//                            if(isStorePosition) {
+                            reader.writePositionData(postingOutput);
+//                            }
                             //기록한 문서번호만 prevDocNo로 셋팅해야 정확한 delta가 계산된다.
                             prevDocNo = docNo;
                             totalCount++;
@@ -132,12 +136,11 @@ public class SearchIndexMerger {
                 term.init(cvOld.array(), cvOld.start(), cvOld.length());
 
                 workingReaderSize = 0;
-
             }
 
             if (workingReaderSize < workingReaders.length) {
                 try {
-                    workingReaders[workingReaderSize++] = reader[idx];
+                    workingReaders[workingReaderSize++] = reader[idx].bufferReader();
                 } catch (ArrayIndexOutOfBoundsException e) {
                     logger.info("### workingReaderSize= {}, workingReaders.len={}, idx={}, reader={}", workingReaderSize, workingReaders.length, idx, reader.length);
                     logger.error("dup terms", e);
