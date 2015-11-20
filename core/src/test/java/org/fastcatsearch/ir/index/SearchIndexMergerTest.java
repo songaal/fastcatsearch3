@@ -22,8 +22,8 @@ public class SearchIndexMergerTest {
 //        }
         dir.mkdirs();
 
-        File seg1 = new File("/Users/swsong/TEST_HOME/fastcatsearch-2.21.6/collections/volm/data/index0/a0");
-        File seg2 = new File("/Users/swsong/TEST_HOME/fastcatsearch-2.21.6/collections/volm/data/index0/a1");
+        File seg1 = new File("/Users/swsong/TEST_HOME/fastcatsearch-dynamic/collections/prod/data/index1/a0");
+        File seg2 = new File("/Users/swsong/TEST_HOME/fastcatsearch-dynamic/collections/prod/data/index1/a1");
         SearchIndexMerger merger = null;
         try {
             merger = new SearchIndexMerger(indexId, dir, indexInterval);

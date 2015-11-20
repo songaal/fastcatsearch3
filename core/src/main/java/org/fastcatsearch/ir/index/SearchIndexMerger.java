@@ -188,7 +188,7 @@ public class SearchIndexMerger {
         } else {
             // 이미 indexTermCount는 0으로 셋팅되어 있으므로 기록할 필요없음.
         }
-        logger.debug("## write index [{}] terms[{}] indexTerms[{}] indexInterval[{}]", indexId, totalCount, indexTermCount, indexInterval);
+        logger.debug("## write index [{}] terms[{}] indexTerms[{}] indexInterval[{}]", indexId, termCount, indexTermCount, indexInterval);
 
         lexiconOutput.flush();
         indexOutput.flush();

@@ -13,8 +13,8 @@ public class DocumentMergerTest {
 
     @Test
     public void test1() throws IOException {
-        File segment1Dir = new File("/Users/swsong/TEST_HOME/fastcatsearch-2.21.6/collections/volm/data/index0/a0");
-        File segment2Dir = new File("/Users/swsong/TEST_HOME/fastcatsearch-2.21.6/collections/volm/data/index0/a1");
+        File segment1Dir = new File("/Users/swsong/TEST_HOME/fastcatsearch-dynamic/collections/prod/data/index1/a0");
+        File segment2Dir = new File("/Users/swsong/TEST_HOME/fastcatsearch-dynamic/collections/prod/data/index1/a1");
         File newSegmentDir = new File("/tmp/doc_merge");
         if(newSegmentDir.exists()) {
             FileUtils.deleteDirectory(newSegmentDir);
