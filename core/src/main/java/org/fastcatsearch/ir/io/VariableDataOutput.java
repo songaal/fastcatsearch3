@@ -32,8 +32,8 @@ public class VariableDataOutput extends SequencialDataOutput {
 	@Override
 	public void writeBytes(BytesBuffer bytesBuffer) throws IOException{
 		positionOutput.writeLong(dataOutput.position());
-		dataOutput.writeVInt(bytesBuffer.length);
-		dataOutput.writeBytes(bytesBuffer.bytes, bytesBuffer.offset, bytesBuffer.length);
+		dataOutput.writeVInt(bytesBuffer.length());
+		dataOutput.writeBytes(bytesBuffer.bytes, bytesBuffer.offset, bytesBuffer.length());
 	}
 	
 	@Override

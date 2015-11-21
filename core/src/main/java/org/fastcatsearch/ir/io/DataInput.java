@@ -79,7 +79,7 @@ public abstract class DataInput extends InputStream implements Cloneable {
 	public abstract void readBytes(byte[] b, int offset, int len) throws IOException;
 
 	public void readBytes(BytesBuffer dst) throws IOException {
-		readBytes(dst.bytes, dst.offset, dst.length);
+		readBytes(dst.bytes, dst.offset, dst.length());
 	}
 
 	/**

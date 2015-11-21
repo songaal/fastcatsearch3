@@ -47,7 +47,7 @@ public class PostingBufferWithPosition extends PostingBuffer {
 			byte[] newbuffer = new byte[positionBuffer.size() * 2];
 			System.arraycopy(positionBuffer.bytes, 0, newbuffer, 0, positionBuffer.pos());
 			positionBuffer.bytes = newbuffer;
-			positionBuffer.length = newbuffer.length;
+			positionBuffer.limit = newbuffer.length;
 		}
 		
 		//동일한 문서번호면 freq를 올려준다.

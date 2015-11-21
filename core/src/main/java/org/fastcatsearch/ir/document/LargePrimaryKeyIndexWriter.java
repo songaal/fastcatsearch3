@@ -159,7 +159,7 @@ public class LargePrimaryKeyIndexWriter implements BytesToIntWriter, BytesToIntR
 	@Override
 	public int get(BytesBuffer buffer) throws IOException {
 
-		return get(buffer.bytes, buffer.offset, buffer.length);
+		return get(buffer.bytes, buffer.offset, buffer.length());
 	}
 
 	@Override
@@ -182,7 +182,7 @@ public class LargePrimaryKeyIndexWriter implements BytesToIntWriter, BytesToIntR
 
 	@Override
 	public int put(BytesBuffer buffer, int value) throws IOException {
-		return put(buffer.bytes, buffer.offset, buffer.length, value);
+		return put(buffer.bytes, buffer.offset, buffer.length(), value);
 	}
 
 	@Override

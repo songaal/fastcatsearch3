@@ -23,7 +23,7 @@ public class FixedDataOutput extends SequencialDataOutput {
 	
 	@Override
 	public void writeBytes(BytesBuffer bytesBuffer) throws IOException{
-		dataOutput.writeBytes(bytesBuffer.bytes, bytesBuffer.offset, bytesBuffer.length);
+		dataOutput.writeBytes(bytesBuffer.bytes, bytesBuffer.offset, bytesBuffer.length());
 	}
 	
 	@Override

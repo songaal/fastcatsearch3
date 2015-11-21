@@ -74,14 +74,14 @@ public class PrimaryKeyIndexMultipleMerger {
 			BytesBuffer key = keyValue.key();
 			// write pkmap index
 			if (indexInterval > 0 && termCount % indexInterval == 0) {
-				indexOutput.writeVInt(key.length);
-				indexOutput.writeBytes(key.bytes, key.offset, key.length);
+				indexOutput.writeVInt(key.length());
+				indexOutput.writeBytes(key.bytes, key.offset, key.length());
 				indexOutput.writeLong(output.position());
 				indexTermCount++;
 			}
 
-			output.writeVInt(key.length);
-			output.writeBytes(key.bytes, key.offset, key.length);
+			output.writeVInt(key.length());
+			output.writeBytes(key.bytes, key.offset, key.length());
 			output.writeInt(keyValue.value());
 
 			termCount++;

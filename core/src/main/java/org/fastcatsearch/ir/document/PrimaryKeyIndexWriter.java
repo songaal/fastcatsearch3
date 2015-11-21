@@ -274,7 +274,7 @@ public class PrimaryKeyIndexWriter {
 	}
 	
 	public int put(BytesBuffer buffer, int docNo) throws IOException {
-		return put(buffer.bytes, buffer.offset, buffer.length, docNo);
+		return put(buffer.bytes, buffer.offset, buffer.length(), docNo);
 	}
 	public int put(byte[] data, int offset, int dataLength, int docNo) throws IOException {
 		int hashValue = rsHash(data, offset, dataLength);
@@ -333,7 +333,7 @@ public class PrimaryKeyIndexWriter {
 		return old;
 	}
 	public int get(BytesBuffer buffer) {
-		return get(buffer.bytes, buffer.offset, buffer.length);
+		return get(buffer.bytes, buffer.offset, buffer.length());
 	}
 	public int get(byte[] data, int offset, int dataLength) {
 		int hashValue = rsHash(data, offset, dataLength);

@@ -252,7 +252,7 @@ public class MemoryPrimaryKeyIndex implements BytesToIntWriter, BytesToIntReader
 	
 	@Override
 	public int put(BytesBuffer buffer, int docNo) throws IOException {
-		return put(buffer.bytes, buffer.offset, buffer.length, docNo);
+		return put(buffer.bytes, buffer.offset, buffer.length(), docNo);
 	}
 	
 	@Override
@@ -305,7 +305,7 @@ public class MemoryPrimaryKeyIndex implements BytesToIntWriter, BytesToIntReader
 	
 	@Override
 	public int get(BytesBuffer buffer) {
-		return get(buffer.bytes, buffer.offset, buffer.length);
+		return get(buffer.bytes, buffer.offset, buffer.length());
 	}
 	@Override
 	public int get(byte[] data, int offset, int dataLength) {

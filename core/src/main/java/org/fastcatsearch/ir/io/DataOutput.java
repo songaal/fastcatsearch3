@@ -101,7 +101,7 @@ public abstract class DataOutput extends OutputStream {
 	public abstract void writeBytes(byte[] b, int offset, int length) throws IOException;
 
 	public void writeBytes(BytesBuffer dst) throws IOException {
-		writeBytes(dst.array(), dst.pos(), dst.remaining());
+		writeBytes(dst.array(), dst.pos(), dst.length());
 	}
 
 	/**

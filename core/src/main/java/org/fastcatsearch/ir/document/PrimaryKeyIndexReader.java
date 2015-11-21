@@ -110,7 +110,7 @@ public class PrimaryKeyIndexReader implements BytesToIntReader, Cloneable {
 
 	@Override
 	public int get(BytesBuffer bytesBuffer) throws IOException {
-		return get(bytesBuffer.bytes, bytesBuffer.offset, bytesBuffer.length);
+		return get(bytesBuffer.bytes, bytesBuffer.offset, bytesBuffer.remaining());
 	}
 
 	@Override

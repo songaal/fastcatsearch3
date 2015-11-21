@@ -54,7 +54,7 @@ public class FileInputOutput extends InputOutput{
 	}
 
 	public synchronized int readBytes(BytesBuffer dst) throws IOException {
-		int len = dst.length - dst.offset;
+		int len = dst.limit - dst.offset;
 		return raf.read(dst.bytes, dst.offset, len);
 	}
 
@@ -63,9 +63,9 @@ public class FileInputOutput extends InputOutput{
 	}
 
 	public synchronized int writeBytes(BytesBuffer dst) throws IOException {
-		int len = dst.length - dst.offset;
+		int len = dst.limit - dst.offset;
 		raf.write(dst.bytes, dst.offset, len);
-		dst.pos(dst.length);
+		dst.pos(dst.limit);
 		return len;
 	}
 

@@ -120,10 +120,11 @@ public class SearchIndexMerger {
                             } else {
                                 postingOutput.writeVInt(docNo);
                             }
-//                            postingOutput.writeVInt(reader.getFrequency());
-//                            if(isStorePosition) {
-                            reader.writePositionData(postingOutput);
-//                            }
+                            postingOutput.writeVInt(reader.getFrequency());
+                            //출현횟수와 출현위치(isStorePosition일때만)를 기록한다.
+                            if(isStorePosition) {
+                                reader.readPositionData(postingOutput);
+                            }
                             //기록한 문서번호만 prevDocNo로 셋팅해야 정확한 delta가 계산된다.
                             prevDocNo = docNo;
                             totalCount++;

@@ -58,11 +58,11 @@ public class PostingBuffer {
 			byte[] newbuffer = new byte[newAdditionalSize];
 			System.arraycopy(postingVector.bytes, 0, newbuffer, 0, postingVector.pos());
 			postingVector.bytes = newbuffer;
-			postingVector.length = newbuffer.length;
+			postingVector.limit = newbuffer.length;
 		}
 	}
 	public void addOne(int docNo, int position) throws IRException{
-//		logger.debug("add >> {}, {}", docNo, position);
+		logger.debug("Posting add >> {}, {}", docNo, position);
 		//동일한 문서번호면 freq를 올려준다.
 		if(docNo == lastDocNo){
 			lastDocFrequency++;

@@ -2,7 +2,11 @@ package org.fastcatsearch.tools;
 
 import org.fastcatsearch.ir.index.SearchPostingBufferReader;
 import org.fastcatsearch.ir.index.SearchPostingReader;
+import org.fastcatsearch.ir.io.ByteArrayIndexOutput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 
@@ -10,6 +14,7 @@ import java.io.IOException;
  * Created by swsong on 2015. 11. 17..
  */
 public class SearchIndexPrinter {
+    private static Logger logger = LoggerFactory.getLogger(SearchIndexPrinter.class);
     private String indexId;
     private File segmentDir;
     public SearchIndexPrinter(String indexId, String dir) {
@@ -21,25 +26,28 @@ public class SearchIndexPrinter {
         SearchPostingReader reader = new SearchPostingReader(0, indexId, segmentDir);
 
         int termSize = reader.left();
-        System.out.println("Total Term Size = " + termSize);
+        logger.debug("Total Term Size = {}", termSize);
         int c = 1;
         while(reader.nextTerm()) {
             SearchPostingBufferReader bufferReader = reader.bufferReader();
-            System.out.print(c++);
-            System.out.print("] ");
-            System.out.print(reader.term());
-            System.out.print(" (");
-            System.out.print(bufferReader.docSize());
-            System.out.print(" / ");
-            System.out.print(bufferReader.lastDocNo());
-            System.out.print(") >>");
+            StringBuffer sb = new StringBuffer();
+            sb.append(c++);
+            sb.append("] ");
+            sb.append(reader.term());
+            sb.append(" (");
+            sb.append(bufferReader.docSize());
+            sb.append(" / ");
+            sb.append(bufferReader.lastDocNo());
+            sb.append(") >>");
             for(int i = 0; i < bufferReader.docSize(); i++) {
-                System.out.print(" ");
+                sb.append(" ");
                 int docNo = bufferReader.readDocNo();
-                System.out.print(bufferReader.isAlive(docNo) ? "" : "(X)");
-                System.out.print(docNo);
+                int frequency = bufferReader.getFrequency();
+                sb.append(bufferReader.isAlive(docNo) ? "" : "(X)");
+                sb.append(docNo);
+                sb.append(":").append(frequency);
             }
-            System.out.println();
+            logger.debug(sb.toString());
         }
         System.out.println("-------------------");
         System.out.println("Total Term Size = " + termSize);

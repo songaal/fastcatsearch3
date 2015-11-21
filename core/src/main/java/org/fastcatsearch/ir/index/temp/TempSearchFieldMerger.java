@@ -23,11 +23,7 @@ import java.util.List;
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.index.IndexFieldOption;
-import org.fastcatsearch.ir.io.BufferedFileOutput;
-import org.fastcatsearch.ir.io.BytesDataOutput;
-import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.ir.io.IOUtil;
-import org.fastcatsearch.ir.io.IndexOutput;
+import org.fastcatsearch.ir.io.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +41,7 @@ public class TempSearchFieldMerger {
 	private CharVector cvOld;
 	protected int totalCount;
 	protected int prevDocNo;
-	private BytesRef[] buffers;
+	private BytesBuffer[] buffers;
 
 	public TempSearchFieldMerger(String indexId, List<Long> flushPosition, File tempFile) throws IOException {
 		this.indexId = indexId;
@@ -58,7 +54,7 @@ public class TempSearchFieldMerger {
 
 		tempPostingOutput = new BytesDataOutput(1024 * 1024);
 		// 동일한 단어는 최대 flush갯수 만큼 buffer 배열에 쌓이게 된다.
-		buffers = new BytesRef[flushCount];
+		buffers = new BytesBuffer[flushCount];
 	}
 
 	public void mergeAndMakeIndex(File baseDir, int indexInterval, IndexFieldOption fieldIndexOption) throws IOException {
@@ -201,7 +197,7 @@ public class TempSearchFieldMerger {
 				totalCount = 0;
                 logger.debug("Write term : {}", cv);
 				for (int k = 0; k < bufferCount; k++) {
-					BytesRef buf = buffers[k];
+                    BytesBuffer buf = buffers[k];
 					// buf.reset();
 
 					// count 와 lastNo를 읽어둔다.
@@ -214,10 +210,10 @@ public class TempSearchFieldMerger {
 						tempPostingOutput.writeBytes(buf.array(), buf.pos(), buf.remaining());
 					} else {
 						int firstNo = IOUtil.readVInt(buf);
-						int newDocNo = firstNo - prevDocNo - 1;
-						logger.debug("newDocNo={}, firstNo={}, prevDocNo={}", newDocNo, firstNo, prevDocNo);
+						int docDelta = firstNo - prevDocNo - 1;
+						logger.debug("docDelta={}, firstNo={}, prevDocNo={}", docDelta, firstNo, prevDocNo);
 
-						IOUtil.writeVInt(tempPostingOutput, newDocNo);
+						IOUtil.writeVInt(tempPostingOutput, docDelta);
 						tempPostingOutput.writeBytes(buf.array(), buf.pos(), buf.remaining());
 					}
 					prevDocNo = lastDocNo;

@@ -43,7 +43,7 @@ public class PrimaryKeyIndexBulkReader {
 			keyCount--;
 			
 		int len = input.readVInt();
-		buf.setLength(len);
+		buf.limit(len);
 		input.readBytes(buf);
 		int docNo = input.readInt();
 	

@@ -18,10 +18,7 @@ package org.fastcatsearch.ir.index;
 
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.common.IndexFileNames;
-import org.fastcatsearch.ir.io.BitSet;
-import org.fastcatsearch.ir.io.BufferedFileInput;
-import org.fastcatsearch.ir.io.CharVector;
-import org.fastcatsearch.ir.io.IndexInput;
+import org.fastcatsearch.ir.io.*;
 import org.fastcatsearch.ir.util.DocumentNumberConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,8 +57,8 @@ public class SearchPostingReader {
     private int aliveDocumentCount;
     private DocumentNumberConverter converter; //삭제문서를 제외하고 순차번호를 만들어주는 컨버터.
 
-    private BytesRef currentBuffer; //현재선택된 버퍼
-    private BytesRef[] bufferPool; //더블 버퍼링 재사용 버퍼.
+    private BytesBuffer currentBuffer; //현재선택된 버퍼
+    private BytesBuffer[] bufferPool; //더블 버퍼링 재사용 버퍼.
     private int bufferPoolSelector; //재사용 버퍼 셀렉터.
 
     public SearchPostingReader(int sequence, String indexId, File dir) throws IOException {
@@ -103,9 +100,9 @@ public class SearchPostingReader {
         termLeft = lexiconInput.readInt();
         indexFieldOption = new IndexFieldOption(postingInput.readInt());
 
-        bufferPool = new BytesRef[2];
-        bufferPool[0] = new BytesRef(1024);
-        bufferPool[1] = new BytesRef(1024);
+        bufferPool = new BytesBuffer[2];
+        bufferPool[0] = new BytesBuffer(1024);
+        bufferPool[1] = new BytesBuffer(1024);
         logger.debug("SearchPostringReader[{}:{}] >> terms[{}] doc[{}] deletes[{}] alive[{}]", indexId, sequence, termLeft, documentCount, deleteList.size(), aliveDocumentCount);
     }
 
@@ -169,18 +166,18 @@ public class SearchPostingReader {
     }
 
     public SearchPostingBufferReader bufferReader() {
-        return new SearchPostingBufferReader(currentBuffer, offset, deleteSet, deleteIdList, converter);
+        return new SearchPostingBufferReader(sequence, currentBuffer, offset, deleteSet, deleteIdList, converter);
     }
     //재사용 버퍼는 얻는다.
-    private BytesRef borrowBuffer(int minimumSize) {
+    private BytesBuffer borrowBuffer(int minimumSize) {
         bufferPoolSelector = (bufferPoolSelector + 1) % 2;
-        BytesRef buffer = bufferPool[bufferPoolSelector];
+        BytesBuffer buffer = bufferPool[bufferPoolSelector];
         if(buffer.array().length < minimumSize) {
             byte[] array = new byte[minimumSize];
             buffer.init(array, 0, array.length);
         }
         buffer.pos(0);
-        buffer.setLength(minimumSize);
+        buffer.limit = minimumSize;
         return buffer;
     }
     public int left() {
