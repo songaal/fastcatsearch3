@@ -14,7 +14,7 @@ import java.io.IOException;
  *    포맷 : int(텀갯수), { string(키워드), long(위치) }
  *
  * 2. Posting
- *    포맷 : int(필드옵션), { vInt(포스팅 데이터길이), int(갯수), int(마지막문서번호), { vInt(문서번호 delta), vInt(출현횟수), [ { vInt(위치 delta) } ] } }
+ *    포맷 : int(필드옵션), { int(포스팅 데이터길이), int(문서갯수), int(마지막문서번호), { vInt(문서번호 delta), vInt(출현횟수), [ { vInt(위치 delta) } ] } }
  *
  * 3. Index
  *    포맷 : int(텀갯수), { string(색인키워드), long(가까운키워드위치), long(포스팅위치) }
@@ -86,7 +86,6 @@ public class SearchIndexMerger {
 
         int totalCount = 0;
         int prevDocNo = -1;
-        int docCount = 0;
         while (true) {
             boolean termMade = false;
             int idx = heap[1];
@@ -97,16 +96,21 @@ public class SearchIndexMerger {
             }
             // cv == null일경우는 모든 reader가 종료되어 null이 된경우이며
             // cvOld 와 cv 가 다른 경우는 머징시 텀이 바뀐경우. cvOld를 기록해야한다.
+            logger.debug("cv[{}] old[{}]", cv, cvOld);
             if ((cv == null || !cv.equals(cvOld)) && cvOld != null) {
                 // merge workingReaders
                 postingBeforePosition = postingOutput.position();
+                //1. data Size
+                postingOutput.writeInt(0);
+                //2. 문서갯수
+                postingOutput.writeInt(0);
+                //3. last doc no
+                postingOutput.writeInt(0);
+
                 prevDocNo = -1;
                 totalCount = 0;
                 for (int k = 0; k < workingReaderSize; k++) {
                     SearchPostingBufferReader reader = workingReaders[k];
-                    // count 와 lastNo를 읽어둔다.
-//                    int count = reader.docSize();
-//                    int lastDocNo = reader.lastDocNo();
                     for (int i = 0; i < reader.docSize(); i++) {
                         int docNo = reader.readDocNo();
                         /*
@@ -143,8 +147,7 @@ public class SearchIndexMerger {
                 try {
                     workingReaders[workingReaderSize++] = reader[idx].bufferReader();
                 } catch (ArrayIndexOutOfBoundsException e) {
-                    logger.info("### workingReaderSize= {}, workingReaders.len={}, idx={}, reader={}", workingReaderSize, workingReaders.length, idx, reader.length);
-                    logger.error("dup terms", e);
+                    logger.error("### workingReaderSize= {}, workingReaders.len={}, idx={}, reader={}", workingReaderSize, workingReaders.length, idx, reader.length);
                 }
             } else {
                 logger.warn("wrong! {}", cv);
@@ -160,9 +163,9 @@ public class SearchIndexMerger {
             if (termMade) {
                 //1. Write Posting
                 long postingCurrentPosition = postingOutput.position();
-                int dataLength = (int) (postingCurrentPosition - postingBeforePosition);
+                int dataLength = (int) (postingCurrentPosition - postingBeforePosition - IOUtil.SIZE_OF_INT); //data Size 기록은 뺀다.
                 postingOutput.seek(postingBeforePosition);
-                postingOutput.writeVInt(dataLength);
+                postingOutput.writeInt(dataLength);
                 postingOutput.writeInt(totalCount);
                 postingOutput.writeInt(prevDocNo);
                 postingOutput.seek(postingCurrentPosition);
@@ -181,6 +184,7 @@ public class SearchIndexMerger {
                 }
 
                 termCount++;
+                logger.debug("Write Term-{} : {}", termCount, new String(term.array(), term.start(), term.length()));
             }
         } // while(true)
 
@@ -203,6 +207,7 @@ public class SearchIndexMerger {
     public void close() throws IOException {
         IOException exception = null;
         try {
+
             if (postingOutput != null) {
                 postingOutput.close();
             }

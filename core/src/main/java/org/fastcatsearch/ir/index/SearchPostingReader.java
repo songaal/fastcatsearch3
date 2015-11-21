@@ -103,7 +103,7 @@ public class SearchPostingReader {
         bufferPool = new BytesBuffer[2];
         bufferPool[0] = new BytesBuffer(1024);
         bufferPool[1] = new BytesBuffer(1024);
-        logger.debug("SearchPostringReader[{}:{}] >> terms[{}] doc[{}] deletes[{}] alive[{}]", indexId, sequence, termLeft, documentCount, deleteList.size(), aliveDocumentCount);
+        logger.debug("SearchPostingReader[{}:{}] >> terms[{}] doc[{}] deletes[{}] alive[{}]", indexId, sequence, termLeft, documentCount, deleteList.size(), aliveDocumentCount);
     }
 
     public IndexFieldOption indexFieldOption() {
@@ -152,8 +152,13 @@ public class SearchPostingReader {
         }
         int len = array.length;
         term = new CharVector(array, 0, len);
-        int dataSize = postingInput.readVInt();
+//        int dataSize = postingInput.readVInt();
+        /*
+        * 2015.11.21 데이터길이를 고정길이 int로 바꾼다. 머징이 끝나고, 재기록하기 위함.
+        * */
+        int dataSize = postingInput.readInt();
 
+        logger.debug("dataSize : {}, fileSize:{}, filePos:{}", dataSize, postingInput.length(), postingInput.position());
         currentBuffer = borrowBuffer(dataSize);
         postingInput.readBytes(currentBuffer);
 //        docSize = postingInput.readInt();
@@ -170,15 +175,16 @@ public class SearchPostingReader {
     }
     //재사용 버퍼는 얻는다.
     private BytesBuffer borrowBuffer(int minimumSize) {
-        bufferPoolSelector = (bufferPoolSelector + 1) % 2;
-        BytesBuffer buffer = bufferPool[bufferPoolSelector];
-        if(buffer.array().length < minimumSize) {
-            byte[] array = new byte[minimumSize];
-            buffer.init(array, 0, array.length);
-        }
-        buffer.pos(0);
-        buffer.limit = minimumSize;
-        return buffer;
+        return new BytesBuffer(minimumSize);
+//        bufferPoolSelector = (bufferPoolSelector + 1) % 2;
+//        BytesBuffer buffer = bufferPool[bufferPoolSelector];
+//        if(buffer.array().length < minimumSize) {
+//            byte[] array = new byte[minimumSize];
+//            buffer.init(array, 0, array.length);
+//        }
+//        buffer.pos(0);
+//        buffer.limit = minimumSize;
+//        return buffer;
     }
     public int left() {
         return termLeft;

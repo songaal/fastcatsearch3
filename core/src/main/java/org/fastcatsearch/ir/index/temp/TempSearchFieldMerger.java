@@ -93,18 +93,17 @@ public class TempSearchFieldMerger {
 
 				len -= sz;
 
-				int sz2 = IOUtil.lenVariableByte(firstDocNo);
-
 				long postingPosition = postingOutput.position();
 
-				int len2 = IOUtil.SIZE_OF_INT * 2 + sz2 + len;
-				if (len2 < 8)
-					throw new IOException("Terrible Error!! " + len2);
+				int len2 = IOUtil.SIZE_OF_INT * 2 + sz + len;
+				if (len2 < 8) {
+                    throw new IOException("Terrible Error!! " + len2);
+                }
 				
 				
 				//1. Write Posting
-				postingOutput.writeVInt(len2);
-				postingOutput.writeInt(count);
+				postingOutput.writeInt(len2);
+                postingOutput.writeInt(count);
 				postingOutput.writeInt(lastDocNo);
 				postingOutput.writeVInt(firstDocNo);
 				postingOutput.writeBytes(tempPostingOutput.array(), sz, len);
