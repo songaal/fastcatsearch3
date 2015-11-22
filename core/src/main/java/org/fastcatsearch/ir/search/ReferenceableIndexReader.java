@@ -12,7 +12,14 @@ import org.fastcatsearch.ir.io.StreamInputRef;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+/**
+ * field.필드명.index
+ *     멀티밸류 포맷 : { long(데이터시작위치) }
+ *     싱글밸류 포맷 : { byte[](문서별 고정길이 데이터) }
+ * field.필드명.index.mv
+ *     멀티밸류 포맷 : { vInt(멀티밸류갯수), { byte[](고정길이 멀티밸류 데이터) } }
+ *     싱글밸류 포맷 : 사용되지 않음.
+ * */
 public abstract class ReferenceableIndexReader implements ReferenceableReader {
 	protected static Logger logger = LoggerFactory.getLogger(ReferenceableIndexReader.class);
 	

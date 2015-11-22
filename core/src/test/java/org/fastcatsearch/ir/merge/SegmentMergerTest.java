@@ -1,15 +1,16 @@
-package org.fastcatsearch.ir.document;
+package org.fastcatsearch.ir.merge;
 
 import org.apache.commons.io.FileUtils;
+import org.fastcatsearch.ir.document.*;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 
 /**
- * Created by swsong on 2015. 11. 18..
+ * Created by swsong on 2015. 11. 22..
  */
-public class DocumentMergerTest {
+public class SegmentMergerTest {
 
     @Test
     public void test1() throws IOException {
@@ -20,10 +21,10 @@ public class DocumentMergerTest {
             FileUtils.deleteDirectory(newSegmentDir);
         }
         newSegmentDir.mkdirs();
-        DocumentMerger merger = null;
+        SegmentMerger merger = null;
 
         try {
-            merger = new DocumentMerger(newSegmentDir);
+            merger = new SegmentMerger(newSegmentDir);
             merger.merge(segment1Dir, segment2Dir);
         } finally {
             if(merger != null) {
