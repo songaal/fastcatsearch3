@@ -181,10 +181,10 @@ public class BooleanClause extends OperatedClause {
 				queryDepth ++;
 			} else {
 				if(type == Type.ALL){
-					operatedClause = new AndOperatedClause(operatedClause, clause, proximity);
+					operatedClause = new AndOperatedClause(clause, operatedClause, proximity);
 					queryDepth ++;
 				}else if(type == Type.ANY){
-					operatedClause = new OrOperatedClause(operatedClause, clause);
+					operatedClause = new OrOperatedClause(operatedClause, clause, proximity);
 					queryDepth ++;
 				}
 			}

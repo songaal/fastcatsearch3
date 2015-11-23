@@ -566,7 +566,28 @@ public class QueryParser {
             }
             return Term.Type.ALL;
         } else if (str.startsWith("ANY(")) {
-			term[0] = str.substring(4, str.length() - 1);
+//			term[0] = str.substring(4, str.length() - 1);
+            if(str.endsWith(")")) {
+                term[0] = str.substring(4, str.length() - 1);
+            } else {
+                int p = str.lastIndexOf(")");
+                if (str.length() > p + 2) {
+                    char ch = str.charAt(p + 1);
+                    if (ch == '~') {
+                        String proximityStr = str.substring(p + 2);
+                        proximityStr = proximityStr.trim();
+                        if(proximity.length == 0){
+                            throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Proximity cannot be empty.");
+                        }
+                        try {
+                            proximity[0] = Integer.parseInt(proximityStr);
+                        } catch (NumberFormatException e) {
+                            throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Proximity is not an integer number : " + proximityStr);
+                        }
+                    }
+                    term[0] = str.substring(4, p);
+                }
+            }
 			return Term.Type.ANY;
 		} else if (str.startsWith("EXT(")) {
 			term[0] = str.substring(4, str.length() - 1);
