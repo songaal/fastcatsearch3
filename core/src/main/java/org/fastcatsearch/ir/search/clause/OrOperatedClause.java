@@ -67,36 +67,41 @@ public class OrOperatedClause extends OperatedClause {
                             for (int p1 : pos1) {
                                 for (int p2 : pos2) {
 //                                    logger.debug("{}>>{}:{}", doc1, p1, p2);
+                                    //시작단어이면 점수 증가.
                                     if (proximity > 0) {
+                                        if(p1 == 0 || p2 == 0) {
+                                            score += 100000;
+                                        }
                                         //순서존재.
                                         int diff = p2 - p1;
                                         if (diff == 1) {
                                             //인접확인.
-                                            score *= 20; //정확히 1차이.
+                                            score += 1100000;; //정확히 1차이.
                                             break OUTER;
                                         } else if (diff >= 0 && diff <= proximity) {
-                                            score *= 10; //1이 아닌 0이나 2이상.
+                                            score += 1000000;; //1이 아닌 0이나 2이상.
                                             break OUTER;
                                         }
                                     } else {
+                                        //시작단어이면 점수 증가.
+                                        if(p1 == 0 || p2 == 0) {
+                                            score += 100000;
+                                        }
                                         //순서없음.
                                         int diff = p2 - p1;
                                         if(diff > 0) {
+                                            //순서올바로
                                             if(diff <= -proximity) {
-                                                score *= 10;
+                                                score += 1100000;
                                                 break OUTER;
                                             }
                                         } else if(diff <= 0) {
+                                            //순서바뀜.
                                             if(diff >= proximity) {
-                                                score *= 10; //순서바뀜.
+                                                score += 1000000;
                                                 break OUTER;
                                             }
                                         }
-//                                        if (diff >= proximity && diff <= -proximity) {
-//                                            //인접확인.
-//                                            score *= 50;
-//                                            break OUTER;
-//                                        }
                                     }
                                 }
                             }
