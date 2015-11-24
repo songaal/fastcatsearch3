@@ -58,6 +58,7 @@ public class OrOperatedClause extends OperatedClause {
 					rankInfo.explain(docInfo2);
 					hasNext2 = clause2.next(docInfo2);
 				}else {
+                    int hit = 0;
                     int score = docInfo1.score() + docInfo2.score();
                     if (proximity != 0) {
                         int[] pos1 = docInfo1.positions();
@@ -74,31 +75,59 @@ public class OrOperatedClause extends OperatedClause {
                                         }
                                         //순서존재.
                                         int diff = p2 - p1;
-                                        if (diff == 1) {
+                                        //diff 가 0이면 같은 단어이므로 추가점수를 주지 않는다.
+                                        if(diff == 0) {
+                                            //앞선 단어점수유지.
+                                            hit = docInfo1.hit();
+                                            break;
+                                        } else if (diff == 1) {
                                             //인접확인.
                                             score += 1100000;; //정확히 1차이.
+                                            hit = docInfo1.hit() + docInfo2.hit();
+                                            hit += 1; //추가점수.
                                             break OUTER;
-                                        } else if (diff >= 0 && diff <= proximity) {
+                                        } else if (diff > 0 && diff <= proximity) {
                                             score += 1000000;; //1이 아닌 0이나 2이상.
                                             break OUTER;
                                         }
                                     } else {
-                                        //시작단어이면 점수 증가.
-                                        if(p1 == 0 || p2 == 0) {
-                                            score += 100000;
-                                        }
                                         //순서없음.
                                         int diff = p2 - p1;
-                                        if(diff > 0) {
+                                        //diff 가 0이면 같은 단어이므로 추가점수를 주지 않는다.
+                                        if(diff == 0) {
+                                            hit = docInfo1.hit();
+                                            break;
+                                        } else if(diff > 0) {
                                             //순서올바로
-                                            if(diff <= -proximity) {
+                                            if (diff == 1) {
                                                 score += 1100000;
+                                                hit = docInfo1.hit() + docInfo2.hit();
+                                                hit += 1; //추가점수.
+                                                //시작단어이면 점수 증가.
+                                                if(p1 == 0 || p2 == 0) {
+                                                    hit += 2;
+                                                }
+                                                break OUTER;
+                                            } else if(diff <= -proximity) {
+                                                score += 1000000;
+                                                hit = docInfo1.hit() + docInfo2.hit();
+                                                if(p1 == 0 || p2 == 0) {
+                                                    hit += 1; //추가점수.
+                                                }
                                                 break OUTER;
                                             }
-                                        } else if(diff <= 0) {
+                                        } else if(diff < 0) {
                                             //순서바뀜.
-                                            if(diff >= proximity) {
+                                            if(diff == -1) {
                                                 score += 1000000;
+                                                hit = docInfo1.hit() + docInfo2.hit();
+                                                //페널티
+                                                hit -= 1;
+                                                break OUTER;
+                                            } else if(diff >= proximity) {
+                                                score += 1000000;
+                                                hit = docInfo1.hit() + docInfo2.hit();
+                                                hit -= 2;
                                                 break OUTER;
                                             }
                                         }
@@ -107,7 +136,10 @@ public class OrOperatedClause extends OperatedClause {
                             }
                         }
                     }
-                    rankInfo.init(doc1, score, docInfo1.hit() + docInfo2.hit(), docInfo2.positions());
+                    if(hit == 0) {
+                        hit = Math.max(docInfo1.hit(), docInfo2.hit());
+                    }
+                    rankInfo.init(doc1, score, hit, docInfo2.positions());
                     rankInfo.addMatchFlag(docInfo1.matchFlag());
                     rankInfo.addMatchFlag(docInfo2.matchFlag());
                     rankInfo.explain(docInfo1);

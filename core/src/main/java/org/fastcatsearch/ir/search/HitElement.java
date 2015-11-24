@@ -35,28 +35,28 @@ public class HitElement extends AbstractHitElement<HitElement> {
 	private DocIdList bundleDocIdList;
 	private int totalBundleSize;
 
-	public HitElement(int docNo, int score, List<RowExplanation> list){
-		this(-1, docNo, score, null, list);
+	public HitElement(int docNo, int score, int hit, List<RowExplanation> list){
+		this(-1, docNo, score, hit, null, list);
 	}
-	public HitElement(int docNo, int score, BytesRef[] dataList, List<RowExplanation> list){
-		this(-1, docNo, score, dataList, list);
+	public HitElement(int docNo, int score, int hit, BytesRef[] dataList, List<RowExplanation> list){
+		this(-1, docNo, score, hit, dataList, list);
 	}
 	//bundle
-	public HitElement(int docNo, int score, BytesRef[] dataList, List<RowExplanation> list, BytesRef bundleKey){
-		this(-1, docNo, score, dataList, list, bundleKey);
+	public HitElement(int docNo, int score, int hit, BytesRef[] dataList, List<RowExplanation> list, BytesRef bundleKey){
+		this(-1, docNo, score, hit, dataList, list, bundleKey);
 	}
-	public HitElement(int segmentSequence, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list){
-		super(segmentSequence, docNo, score, dataList, list);
+	public HitElement(int segmentSequence, int docNo, int score, int hit, BytesRef[] dataList, List<RowExplanation> list){
+		super(segmentSequence, docNo, score, hit, dataList, list);
 	}
-	public HitElement(int segmentSequence, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list, DocIdList bundleDocIdList, int totalBundleSize){
-		super(segmentSequence, docNo, score, dataList, list);
+	public HitElement(int segmentSequence, int docNo, int score, int hit, BytesRef[] dataList, List<RowExplanation> list, DocIdList bundleDocIdList, int totalBundleSize){
+		super(segmentSequence, docNo, score, hit, dataList, list);
 		this.bundleDocIdList = bundleDocIdList;
         this.totalBundleSize = totalBundleSize;
 	}
 
 	//bundle
-	public HitElement(int segmentSequence, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list, BytesRef bundleKey){
-		super(segmentSequence, docNo, score, dataList, list);
+	public HitElement(int segmentSequence, int docNo, int score, int hit, BytesRef[] dataList, List<RowExplanation> list, BytesRef bundleKey){
+		super(segmentSequence, docNo, score, hit, dataList, list);
 		this.bundleKey = bundleKey;
 	}
 

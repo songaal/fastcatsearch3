@@ -110,13 +110,13 @@ public class SortGenerator {
                 indexRef.read(ri.docNo());
 
                 BytesRef[] rankData = readRankData(ri);
-                result[i] = new HitElement(ri.docNo(), ri.score(), rankData, rankInfoList[i].rowExplanations());
+                result[i] = new HitElement(ri.docNo(), ri.score(), ri.hit(), rankData, rankInfoList[i].rowExplanations());
                 result[i].setDistance(ri.distance());
             }
         } else {
             for (int i = 0; i < n; i++) {
                 RankInfo ri = rankInfoList[i];
-                result[i] = new HitElement(ri.docNo(), ri.score(), null, rankInfoList[i].rowExplanations());
+                result[i] = new HitElement(ri.docNo(), ri.score(), ri.hit(), null, rankInfoList[i].rowExplanations());
                 result[i].setDistance(ri.distance());
             }
         }
@@ -131,13 +131,13 @@ public class SortGenerator {
                 indexRef.read(ri.docNo());
 
                 BytesRef[] rankData = readRankData(ri);
-                result[i] = new HitElement(ri.docNo(), ri.score(), rankData, rankInfoList[i].rowExplanations());
+                result[i] = new HitElement(ri.docNo(), ri.score(), ri.hit(), rankData, rankInfoList[i].rowExplanations());
                 result[i].setDistance(ri.distance());
             }
         } else {
             for (int i = 0; i < n; i++) {
                 RankInfo ri = rankInfoList[i];
-                result[i] = new HitElement(ri.docNo(), ri.score(), null, rankInfoList[i].rowExplanations());
+                result[i] = new HitElement(ri.docNo(), ri.score(), ri.hit(), null, rankInfoList[i].rowExplanations());
                 result[i].setDistance(ri.distance());
             }
         }

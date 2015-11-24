@@ -2,6 +2,7 @@ package org.fastcatsearch.http.writer;
 
 import org.fastcatsearch.ir.field.BundleSizeField;
 import org.fastcatsearch.ir.field.DistanceField;
+import org.fastcatsearch.ir.field.HitField;
 import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Result;
@@ -141,8 +142,10 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 	private void writeRowObject(Row row, int bundleSize) throws ResultWriterException{
 		for(int k = 0; k < fieldNames.length; k++) {
 			String fdata = null;
-			if(fieldNames[k].equalsIgnoreCase(ScoreField.fieldName)){
-				fdata = String.valueOf(row.getScore());
+			if(fieldNames[k].equalsIgnoreCase(ScoreField.fieldName)) {
+                fdata = String.valueOf(row.getScore());
+            } else if(fieldNames[k].equalsIgnoreCase(HitField.fieldName)){
+                fdata = String.valueOf(row.getHit());
 			}else if(fieldNames[k].equalsIgnoreCase(BundleSizeField.fieldName)){
 				fdata = String.valueOf(bundleSize);
             }else if(fieldNames[k].equalsIgnoreCase(DistanceField.fieldName)){

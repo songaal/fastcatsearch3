@@ -35,7 +35,7 @@ public abstract class AbstractHitElement<T> implements Comparable<T> {
 	protected int segmentSequence;
 	protected int docNo;
 	protected int score; //매칭점수
-
+    protected int hit;
 	protected BytesRef[] rankData; //필드값으로 정렬할 경우 필드값 데이터
 	protected List<RowExplanation> list;
 	
@@ -45,10 +45,11 @@ public abstract class AbstractHitElement<T> implements Comparable<T> {
 //	public AbstractHitElement(int docNo, int score, BytesRef[] dataList, List<RowExplanation> list){
 //		this(-1, docNo, score, dataList, list);
 //	}
-	public AbstractHitElement(int segmentSequence, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list){
+	public AbstractHitElement(int segmentSequence, int docNo, int score, int hit, BytesRef[] dataList, List<RowExplanation> list){
 		this.segmentSequence = segmentSequence;
 		this.docNo = docNo;
 		this.score = score;
+        this.hit = hit;
 		this.rankData = dataList;
 		this.list = list;
 	}
@@ -75,6 +76,10 @@ public abstract class AbstractHitElement<T> implements Comparable<T> {
 	public int score(){
 		return score;
 	}
+
+    public int hit() {
+        return hit;
+    }
 
 	public BytesRef[] rankData(){
 		return rankData;
@@ -107,6 +112,8 @@ public abstract class AbstractHitElement<T> implements Comparable<T> {
 		sb.append(docNo);
 		sb.append(":");
 		sb.append(score);
+        sb.append(":");
+        sb.append(hit);
 		sb.append(":");
 //		if(rankdata != null){
 //			for (int i = 0; i < dataLen; i++) {

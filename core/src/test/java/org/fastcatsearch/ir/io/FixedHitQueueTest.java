@@ -30,7 +30,7 @@ public class FixedHitQueueTest extends TestCase{
 		int SIZE = 10;
 		FixedHitQueue stack = new FixedHitQueue(SIZE);
 		for(int i=0;i<SIZE;i++){
-			stack.push(new HitElement(i,i,null));
+			stack.push(new HitElement(i, i, 3, null));
 		}
 		
 		for(int i=0;i<SIZE;i++){
@@ -45,7 +45,7 @@ public class FixedHitQueueTest extends TestCase{
 		FixedHitQueue stack = new FixedHitQueue(SIZE);
 		int REAL_SIZE = 5;
 		for(int i=0;i<REAL_SIZE;i++){
-			stack.push(new HitElement(i,i,null));
+			stack.push(new HitElement(i,i,3,null));
 		}
 		
 		for(int i=0;i<REAL_SIZE;i++){
@@ -59,7 +59,7 @@ public class FixedHitQueueTest extends TestCase{
 		int SIZE = 10;
 		FixedHitQueue queue = new FixedHitQueue(SIZE);
 		for (int i = 0; i < SIZE; i++) {
-			queue.push(new HitElement(i,i,null));
+			queue.push(new HitElement(i,i,3,null));
 		}
 		
 		FixedHitReader reader = queue.getReader();
@@ -78,7 +78,7 @@ public class FixedHitQueueTest extends TestCase{
 		FixedHitQueue queue = new FixedHitQueue(SIZE);
 		int REAL_SIZE = 5;
 		for (int i = 0; i < REAL_SIZE; i++) {
-			queue.push(new HitElement(i,i,null));
+			queue.push(new HitElement(i,i,3,null));
 		}
 		
 		FixedHitReader reader = queue.getReader();

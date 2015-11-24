@@ -170,6 +170,7 @@ public class ClusterSearchJob extends Job {
 			int[] collectionTags = new int[realSize]; // 해당 문서가 어느 collection에 속하는지 알려주는 항목.
 //			ArrayDeque<Integer>[] eachScores = new ArrayDeque[collectionIdList.length];
             int[] eachScores = new int[realSize];
+            int[] eachHits = new int[realSize];
             float[] eachDistance = new float[realSize];
             int[] bundleTotalSizeList = new int[realSize];
 			List<RowExplanation>[] rowExplanationsList = null;
@@ -202,6 +203,7 @@ public class ClusterSearchJob extends Job {
 				docIdList[collectionNo].add(el.segmentSequence(), el.docNo(), el.getBundleDocIdList());
 //				eachScores[collectionNo].add(el.score());
                 eachScores[idx] = el.score();
+                eachHits[idx] = el.hit();
                 eachDistance[idx] = el.distance();
                 bundleTotalSizeList[idx] = el.getTotalBundleSize();
 
@@ -270,6 +272,7 @@ public class ClusterSearchJob extends Job {
 //				int score = eachScores[collectionNo].pop();
                 int score = eachScores[i];
 				rows[i].setScore(score);
+                rows[i].setHit(eachHits[i]);
                 rows[i].setDistance(eachDistance[i]);
 				
 				documentResult.next();
