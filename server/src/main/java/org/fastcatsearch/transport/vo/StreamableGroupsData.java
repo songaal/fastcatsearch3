@@ -90,8 +90,12 @@ public class StreamableGroupsData implements Streamable {
 				// 2. group entry list
 				output.writeVInt(groupEntry.functionSize());
 				for (GroupingValue groupingValue : groupEntry.groupingValues()) {
-					Object result = groupingValue.get();
-					output.writeGenericValue(result);
+					if(groupingValue == null) {
+                        output.writeGenericValue("");
+                    } else {
+                        Object result = groupingValue.get();
+                        output.writeGenericValue(result);
+                    }
 				}
 			}
 

@@ -1,9 +1,11 @@
 package org.fastcatsearch.ir.io;
 
 import java.io.IOException;
+import java.util.Date;
 
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.settings.FieldSetting.Type;
+import org.fastcatsearch.ir.util.Formatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,6 +69,8 @@ public class DataRef {
 			return new String(bytesRef.bytes);
 		}else if(type == Type.STRING) {
 			return new String(bytesRef.toUCharArray());
+        }else if(type == Type.DATETIME) {
+            return Formatter.formatDate(new Date(bytesRef.toLongValue()));
 		}
 		
 		return null;
