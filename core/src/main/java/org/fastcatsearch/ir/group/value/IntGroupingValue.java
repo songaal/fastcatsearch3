@@ -67,7 +67,7 @@ public class IntGroupingValue extends GroupingValue<Integer> {
 	
 	@Override
 	public boolean isEmpty() {
-		return value == null;
-	}
+        return value == null || value == 0;
+    }
 
 }
