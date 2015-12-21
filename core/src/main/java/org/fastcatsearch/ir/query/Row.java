@@ -22,6 +22,7 @@ public class Row {
 	private char[][] row;
 	private int fieldCount;
 	private int score;
+    private int hit;
     private float distance;
 
 	//원문조회기능에서필요.
@@ -88,6 +89,14 @@ public class Row {
 	public void setScore(int score) {
 		this.score = score;
 	}
+
+    public int getHit() {
+        return hit;
+    }
+
+    public void setHit(int hit) {
+        this.hit = hit;
+    }
 
     public float getDistance(){
         return distance;

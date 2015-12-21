@@ -5,6 +5,7 @@ import java.io.Reader;
 
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
+import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 
 public class NGramWordTokenizer extends Tokenizer {
 	private int minGram;
@@ -17,6 +18,7 @@ public class NGramWordTokenizer extends Tokenizer {
 	private int nGram;
 	private int pos;
 	private final CharsRefTermAttribute termAttribute = addAttribute(CharsRefTermAttribute.class);
+    private final PositionIncrementAttribute positionAttribute = addAttribute(PositionIncrementAttribute.class);
 
 	public NGramWordTokenizer(Reader input) {
 		this(input, 1, 3);
@@ -119,6 +121,7 @@ public class NGramWordTokenizer extends Tokenizer {
 						}
 					}
 					termAttribute.setBuffer(charBuffer, pos, nGram);
+                    positionAttribute.setPositionIncrement(pos);
 					if (nGram == maxGram) {
 						nGram = minGram;
 						pos++;

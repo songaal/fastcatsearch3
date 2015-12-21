@@ -125,7 +125,7 @@ public class BooleanClause extends OperatedClause {
 		int queryDepth = 0;
 		
 		int queryPosition = 0;
-		
+
 		while (tokenStream.incrementToken()) {
 
 			//요청 타입이 존재할때 타입이 다르면 단어무시.
@@ -181,10 +181,10 @@ public class BooleanClause extends OperatedClause {
 				queryDepth ++;
 			} else {
 				if(type == Type.ALL){
-					operatedClause = new AndOperatedClause(operatedClause, clause, proximity);
+					operatedClause = new AndOperatedClause(clause, operatedClause, proximity);
 					queryDepth ++;
 				}else if(type == Type.ANY){
-					operatedClause = new OrOperatedClause(operatedClause, clause);
+					operatedClause = new OrOperatedClause(operatedClause, clause, proximity);
 					queryDepth ++;
 				}
 			}

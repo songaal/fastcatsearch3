@@ -29,7 +29,7 @@ public class FixedHitStackTest extends TestCase{
 		int SIZE = 10;
 		FixedHitStack stack = new FixedHitStack(SIZE);
 		for(int i=0;i<SIZE;i++){
-			stack.push(new HitElement(i,i,null));
+			stack.push(new HitElement(i,i,3,null));
 		}
 		
 		for(int i=0;i<SIZE;i++){
@@ -44,7 +44,7 @@ public class FixedHitStackTest extends TestCase{
 		FixedHitStack stack = new FixedHitStack(SIZE);
 		int REAL_SIZE = 5;
 		for(int i=0;i<REAL_SIZE;i++){
-			stack.push(new HitElement(i,i,null));
+			stack.push(new HitElement(i,i,3,null));
 		}
 		
 		for(int i=0;i<REAL_SIZE;i++){
@@ -59,7 +59,7 @@ public class FixedHitStackTest extends TestCase{
 		FixedHitStack stack = new FixedHitStack(SIZE);
 		for (int i = 0; i < SIZE; i++) {
 			int v = SIZE - i - 1;
-			stack.push(new HitElement(v,v,null));
+			stack.push(new HitElement(v,v,3,null));
 		}
 		
 		FixedHitReader reader = stack.getReader();
@@ -79,7 +79,7 @@ public class FixedHitStackTest extends TestCase{
 		int REAL_SIZE = 5;
 		for (int i = 0; i < REAL_SIZE; i++) {
 			int v = REAL_SIZE - i - 1;
-			stack.push(new HitElement(v,v,null));
+			stack.push(new HitElement(v,v,3,null));
 		}
 		
 		FixedHitReader reader = stack.getReader();

@@ -32,10 +32,10 @@ public abstract class AbstractHitElement<T> implements Comparable<T> {
 	protected static Logger logger = LoggerFactory.getLogger(AbstractHitElement.class);
 	
 	protected String collectionId; //transient. ShardSearchResult에서 정보를 가지고 있음. 
-	protected String segmentId;
+	protected int segmentSequence;
 	protected int docNo;
 	protected int score; //매칭점수
-
+    protected int hit;
 	protected BytesRef[] rankData; //필드값으로 정렬할 경우 필드값 데이터
 	protected List<RowExplanation> list;
 	
@@ -45,10 +45,11 @@ public abstract class AbstractHitElement<T> implements Comparable<T> {
 //	public AbstractHitElement(int docNo, int score, BytesRef[] dataList, List<RowExplanation> list){
 //		this(-1, docNo, score, dataList, list);
 //	}
-	public AbstractHitElement(String segmentId, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list){
-		this.segmentId = segmentId;
+	public AbstractHitElement(int segmentSequence, int docNo, int score, int hit, BytesRef[] dataList, List<RowExplanation> list){
+		this.segmentSequence = segmentSequence;
 		this.docNo = docNo;
 		this.score = score;
+        this.hit = hit;
 		this.rankData = dataList;
 		this.list = list;
 	}
@@ -58,23 +59,27 @@ public abstract class AbstractHitElement<T> implements Comparable<T> {
 	public void setCollectionId(String collectionId){
 		this.collectionId = collectionId;
 	}
-	public String segmentId(){
-		return segmentId;
+	public int segmentSequence(){
+		return segmentSequence;
 	}
 	public int docNo(){
 		return docNo;
 	}
-	public void setSegmentId(String segmentId){
-        this.segmentId = segmentId;
+	public void setSegmentSequence(int sequence){
+		segmentSequence = sequence;
 	}
 	
-	public void setDocNo(String segmentId, int docNo){
-		this.segmentId = segmentId;
+	public void setDocNo(int segmentSequence, int docNo){
+		this.segmentSequence = segmentSequence;
 		this.docNo = docNo;
 	}
 	public int score(){
 		return score;
 	}
+
+    public int hit() {
+        return hit;
+    }
 
 	public BytesRef[] rankData(){
 		return rankData;
@@ -102,11 +107,13 @@ public abstract class AbstractHitElement<T> implements Comparable<T> {
 	public String toString(){
 		StringBuffer sb = new StringBuffer();
 		sb.append("[seg#");
-		sb.append(segmentId);
+		sb.append(segmentSequence);
 		sb.append("]");
 		sb.append(docNo);
 		sb.append(":");
 		sb.append(score);
+        sb.append(":");
+        sb.append(hit);
 		sb.append(":");
 //		if(rankdata != null){
 //			for (int i = 0; i < dataLen; i++) {

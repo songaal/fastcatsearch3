@@ -9,10 +9,7 @@ import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupEntryList;
 import org.fastcatsearch.ir.group.GroupingValue;
-import org.fastcatsearch.ir.group.value.DoubleGroupingValue;
-import org.fastcatsearch.ir.group.value.FloatGroupingValue;
-import org.fastcatsearch.ir.group.value.IntGroupingValue;
-import org.fastcatsearch.ir.group.value.LongGroupingValue;
+import org.fastcatsearch.ir.group.value.*;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.slf4j.Logger;
@@ -58,7 +55,9 @@ public class StreamableGroupsData implements Streamable {
 						valueList[i] = new FloatGroupingValue((Float) obj);
 					}else if(obj instanceof Double){
 						valueList[i] = new DoubleGroupingValue((Double) obj);
-					}
+					}else if(obj instanceof String){
+                        valueList[i] = new StringGroupingValue((String) obj);
+                    }
 				}
 				entryList.add(new GroupEntry(key, valueList));
 			}
@@ -91,8 +90,12 @@ public class StreamableGroupsData implements Streamable {
 				// 2. group entry list
 				output.writeVInt(groupEntry.functionSize());
 				for (GroupingValue groupingValue : groupEntry.groupingValues()) {
-					Object result = groupingValue.get();
-					output.writeGenericValue(result);
+					if(groupingValue == null) {
+                        output.writeGenericValue("");
+                    } else {
+                        Object result = groupingValue.get();
+                        output.writeGenericValue(result);
+                    }
 				}
 			}
 

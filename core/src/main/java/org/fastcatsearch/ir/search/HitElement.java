@@ -35,28 +35,28 @@ public class HitElement extends AbstractHitElement<HitElement> {
 	private DocIdList bundleDocIdList;
 	private int totalBundleSize;
 
-	public HitElement(int docNo, int score, List<RowExplanation> list){
-		this(null, docNo, score, null, list);
+	public HitElement(int docNo, int score, int hit, List<RowExplanation> list){
+		this(-1, docNo, score, hit, null, list);
 	}
-	public HitElement(int docNo, int score, BytesRef[] dataList, List<RowExplanation> list){
-		this(null, docNo, score, dataList, list);
+	public HitElement(int docNo, int score, int hit, BytesRef[] dataList, List<RowExplanation> list){
+		this(-1, docNo, score, hit, dataList, list);
 	}
 	//bundle
-	public HitElement(int docNo, int score, BytesRef[] dataList, List<RowExplanation> list, BytesRef bundleKey){
-		this(null, docNo, score, dataList, list, bundleKey);
+	public HitElement(int docNo, int score, int hit, BytesRef[] dataList, List<RowExplanation> list, BytesRef bundleKey){
+		this(-1, docNo, score, hit, dataList, list, bundleKey);
 	}
-	public HitElement(String segmentId, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list){
-		super(segmentId, docNo, score, dataList, list);
+	public HitElement(int segmentSequence, int docNo, int score, int hit, BytesRef[] dataList, List<RowExplanation> list){
+		super(segmentSequence, docNo, score, hit, dataList, list);
 	}
-	public HitElement(String segmentId, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list, DocIdList bundleDocIdList, int totalBundleSize){
-		super(segmentId, docNo, score, dataList, list);
+	public HitElement(int segmentSequence, int docNo, int score, int hit, BytesRef[] dataList, List<RowExplanation> list, DocIdList bundleDocIdList, int totalBundleSize){
+		super(segmentSequence, docNo, score, hit, dataList, list);
 		this.bundleDocIdList = bundleDocIdList;
         this.totalBundleSize = totalBundleSize;
 	}
 
 	//bundle
-	public HitElement(String segmentId, int docNo, int score, BytesRef[] dataList, List<RowExplanation> list, BytesRef bundleKey){
-		super(segmentId, docNo, score, dataList, list);
+	public HitElement(int segmentSequence, int docNo, int score, int hit, BytesRef[] dataList, List<RowExplanation> list, BytesRef bundleKey){
+		super(segmentSequence, docNo, score, hit, dataList, list);
 		this.bundleKey = bundleKey;
 	}
 
@@ -79,14 +79,10 @@ public class HitElement extends AbstractHitElement<HitElement> {
 	
 	@Override
 	public int compareTo(HitElement other) {
-
-		if(segmentId == null || other.segmentId == null) {
-			logger.debug("segmentId[{}], other.segmentId[{}]", segmentId, other.segmentId);
-			logger.debug("11");
-		}
+		
 		//최신세그먼트 우선.
-		if(!segmentId.equals(other.segmentId)){
-			return other.segmentId.compareTo(segmentId);
+		if(segmentSequence != other.segmentSequence){
+			return other.segmentSequence - segmentSequence;
 		}
 		
 		//정렬 데이터가 모두 같다면 문서번호가 최신인걸 보여준다. 

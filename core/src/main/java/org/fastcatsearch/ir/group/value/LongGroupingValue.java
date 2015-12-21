@@ -66,7 +66,7 @@ public class LongGroupingValue extends GroupingValue<Long> {
 
 	@Override
 	public boolean isEmpty() {
-		return value == null || (Long) value == 0L;
+		return value == null;
 	}
 	
 }

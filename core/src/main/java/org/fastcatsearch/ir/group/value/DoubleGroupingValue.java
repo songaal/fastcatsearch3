@@ -66,7 +66,7 @@ public class DoubleGroupingValue extends GroupingValue<Double> {
 
 	@Override
 	public boolean isEmpty() {
-		return value == null || (Double) value == 0.0;
+		return value == null;
 	}
 
 }

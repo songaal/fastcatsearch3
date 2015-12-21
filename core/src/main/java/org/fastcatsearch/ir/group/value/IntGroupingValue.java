@@ -10,11 +10,13 @@ public class IntGroupingValue extends GroupingValue<Integer> {
 
 	@Override
 	public void add(Integer i) {
-		if (value == null) {
-			value = (Integer) i;
-		} else {
-			value = (Integer) value + (Integer) i;
-		}
+        if(i != null) {
+            if (value == null) {
+                value = i;
+            } else {
+                value += i;
+            }
+        }
 	}
 
 	@Override
@@ -23,7 +25,7 @@ public class IntGroupingValue extends GroupingValue<Integer> {
 			value = obj;
 		} else {
 			int o = obj;
-			int r = (Integer) value;
+			int r = value;
 			// 입력값이 기존 값보다 크면 교체한다.
 			if (o > r) {
 				value = o;
@@ -65,7 +67,7 @@ public class IntGroupingValue extends GroupingValue<Integer> {
 	
 	@Override
 	public boolean isEmpty() {
-		return value == null || (Integer) value == 0;
-	}
+        return value == null || value == 0;
+    }
 
 }

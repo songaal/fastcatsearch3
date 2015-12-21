@@ -63,8 +63,9 @@ public class TermOperatedClause extends OperatedClause {
 				float idf = (float) Math.log(documentCount / segmentDF);
 				score = (int) (tf * idf * SCORE_BASE);
 			}
-            //logger.debug("TermOP >> {} doc[{}] score[{}] tf[{}] pos[{}]", termString, postingDoc.docNo(), score, postingDoc.tf(), postingDoc.positions());
-			rankInfo.init(postingDoc.docNo(), score, postingDoc.tf(), postingDoc.positions());
+//            logger.debug("TermOP >> {} doc[{}] score[{}] hit[{}] pos[{}]", termString, postingDoc.docNo(), score, termString.length(), postingDoc.positions());
+//			rankInfo.init(postingDoc.docNo(), score, postingDoc.tf(), postingDoc.positions());
+            rankInfo.init(postingDoc.docNo(), score, termString.length() * 3, postingDoc.positions());
 			rankInfo.addMatchSequence(termSequence);
 			if(isExplain()){
 				rankInfo.explain(id, score, postingReader.term().toString());
