@@ -13,7 +13,10 @@ public class StringGroupingValue extends GroupingValue<String> {
 		if (value == null) {
 			value = (String) i;
 		} else {
-			value = (String) value + (String) i;
+            //이미 셋팅되어 있다면 그대로 둔다
+            //do nothing
+//			value = (String) value + (String) i;
+
 		}
 	}
 
