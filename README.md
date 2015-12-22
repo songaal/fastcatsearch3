@@ -1,4 +1,4 @@
-# Fastcatsearch
+# Fastcatsearch [![Build Status](https://travis-ci.org/fastcat-co/fastcatsearch.png)](https://travis-ci.org/fastcat-co/fastcatsearch)
 
 Fastcatsearch is an open-source distributed search engine. 
 
