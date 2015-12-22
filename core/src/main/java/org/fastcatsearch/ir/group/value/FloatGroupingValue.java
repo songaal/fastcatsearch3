@@ -2,66 +2,46 @@ package org.fastcatsearch.ir.group.value;
 
 import java.util.List;
 
+import org.fastcatsearch.ir.group.GroupFunctionType;
 import org.fastcatsearch.ir.group.GroupingValue;
 
 public class FloatGroupingValue extends GroupingValue<Float> {
 
-	public FloatGroupingValue(Float i) {
-		value = i;
+    public FloatGroupingValue(GroupFunctionType type) {
+        super(type);
+    }
+
+	public FloatGroupingValue(Float i, GroupFunctionType type) {
+		super(i, type);
 	}
 
 	@Override
 	public void add(Float i) {
 		if (value == null) {
-			value = (Float) i;
+			value = i;
 		} else {
-			value = (Float) value + (Float) i;
-		}
-	}
-
-	@Override
-	public void setIfMaxValue(Float obj) {
-		if (value == null) {
-			value = obj;
-		} else {
-			float o = obj;
-			float r = (Float) value;
-			// 입력값이 기존 값보다 크면 교체한다.
-			if (o > r) {
-				value = o;
-			}
-		}
-	}
-
-	@Override
-	public void setIfMinValue(Float obj) {
-		if (value == null) {
-			value = obj;
-		} else {
-			float o = obj;
-			float r = (Float) value;
-			// 입력값이 기존 값보다 작으면 교체한다.
-			if (o < r) {
-				value = o;
-			}
+			value = value + i;
 		}
 	}
 
 	@Override
 	public void increment() {
+        if(value == null) {
+            value = 0f;
+        }
 		value++;
 	}
 
 	@Override
 	public int compareTo(GroupingValue<Float> o) {
-		float cmp = value - (Float) o.get();
+		float cmp = value - o.get();
 		return cmp == 0f ? 0 : (cmp < 0 ? -1 : 1);
 	}
 
-	public static FloatGroupingValue[] createList(int groupKeySize) {
+	public static FloatGroupingValue[] createList(int groupKeySize, GroupFunctionType type) {
 		FloatGroupingValue[] list = new FloatGroupingValue[groupKeySize];
 		for (int i = 0; i < groupKeySize; i++) {
-			list[i] = new FloatGroupingValue(0.0f);
+			list[i] = new FloatGroupingValue(type);
 		}
 		return list;
 	}

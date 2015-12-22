@@ -17,7 +17,7 @@
 package org.fastcatsearch.ir.query;
 
 import org.fastcatsearch.ir.group.GroupFunction;
-import org.fastcatsearch.ir.group.function.CountGroupFunction;
+import org.fastcatsearch.ir.group.GroupFunctionType;
 
 public class Group {
 	
@@ -27,7 +27,7 @@ public class Group {
 	public static final int SORT_VALUE_ASC = 1 << 7;
 	public static final int SORT_VALUE_DESC = 1 << 8;
 	
-	public static final String DEFAULT_GROUP_FUNCTION_NAME = CountGroupFunction.FUNCTION_NAME;
+	public static final String DEFAULT_GROUP_FUNCTION_NAME = GroupFunctionType.COUNT.name();
 	
 	private String groupIndexId;
 	private GroupFunction[] functionList;

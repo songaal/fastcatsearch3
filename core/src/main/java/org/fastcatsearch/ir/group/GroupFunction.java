@@ -20,29 +20,33 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public abstract class GroupFunction {
+public class GroupFunction {
 	protected static Logger logger = LoggerFactory.getLogger(GroupFunction.class);
-	
-	protected int totalFrequencySum;
-	protected int inGroupCount; //임시변수.
-	protected int sortOrder;
-	protected String fieldId;
 
-	protected String functionName;
-	protected GroupingValue[] valueList; //그룹번호별로 데이터를 쌓아놓을 공간확보. 
+    private int sortOrder;
+    private String fieldId;
+
+    private GroupFunctionType type;
+    private GroupingValue[] valueList; //그룹번호별로 데이터를 쌓아놓을 공간확보.
 	
-	public GroupFunction(String functionName, int sortOrder, String fieldId){
-		this.functionName = functionName.toUpperCase();
+	public GroupFunction(GroupFunctionType type, int sortOrder, String fieldId){
+		this.type = type;
 		this.sortOrder = sortOrder;
 		this.fieldId = fieldId != null ? fieldId.toUpperCase() : null;
 	}
 	
 	public void init(GroupingValue[] valueList){
+        this.valueList = valueList;
 //		logger.debug("INIT GroupFunction size={}, {}", valueList.length, valueList);
-		this.valueList = valueList;
 	}
 	
-	public abstract String getHeaderName();
+	public String getHeaderName() {
+        if(type == GroupFunctionType.COUNT || type == GroupFunctionType.NONE) {
+            return type.name();
+        } else {
+            return type.name() + "_" + fieldId;
+        }
+    }
 		
 	public GroupingValue[] valueList() {
 		return valueList;
@@ -57,11 +61,22 @@ public abstract class GroupFunction {
 	}
 	
 	public String name(){
-		return functionName;
+		return type.name();
 	}
 	
-	public abstract void addValue(int groupNo, Object value);
+    public void addValue(int groupNo, Object value) {
+        valueList[groupNo].mergeValue(value);
+    }
 
-	public abstract void done();
+    public GroupFunctionType getType() {
+        return type;
+    }
+
+    public String getFieldId() {
+        return fieldId;
+    }
+
+    public void done() {
+    }
 		
 }

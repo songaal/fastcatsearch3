@@ -9,6 +9,7 @@ import org.fastcatsearch.common.BytesReference;
 import org.fastcatsearch.common.io.BytesStreamInput;
 import org.fastcatsearch.common.io.BytesStreamOutput;
 import org.fastcatsearch.common.io.StreamInput;
+import org.fastcatsearch.ir.group.GroupFunctionType;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupEntryList;
@@ -36,7 +37,7 @@ public class StreamableGroupDataTest {
 				String key = Integer.toString(r.nextInt(20));
 				int c = r.nextInt(20);
 				totalcount += c;
-				IntGroupingValue obj = new IntGroupingValue(r.nextInt(100));
+				IntGroupingValue obj = new IntGroupingValue(r.nextInt(100), GroupFunctionType.COUNT);
 				groupEntryList.add(new GroupEntry(key, obj));
 			}
 			
@@ -51,8 +52,7 @@ public class StreamableGroupDataTest {
 		BytesStreamOutput output = new BytesStreamOutput();
 		data.writeTo(output);
 		BytesReference ref = output.bytesReference();
-		//----------
-		
+
 		StreamInput intput = new BytesStreamInput(ref);
 		StreamableGroupsData actual = new StreamableGroupsData();
 		actual.readFrom(intput);

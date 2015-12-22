@@ -111,9 +111,6 @@ public class SimpleFileReader extends SingleSourceReader<Map<String,Object>> imp
 							record.put(fieldId[keyInx], value);
 						}
 						
-						if (sourceModifier != null) {
-							sourceModifier.modify(record);
-						}
 						this.record = record;
 						return record;
 					} else {

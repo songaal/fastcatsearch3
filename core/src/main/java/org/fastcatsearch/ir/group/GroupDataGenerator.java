@@ -27,8 +27,6 @@ import java.util.Set;
 
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.field.FieldDataStringer;
-import org.fastcatsearch.ir.group.function.CountGroupFunction;
-import org.fastcatsearch.ir.group.function.RangeCountGroupFunction;
 import org.fastcatsearch.ir.group.value.DoubleGroupingValue;
 import org.fastcatsearch.ir.group.value.FloatGroupingValue;
 import org.fastcatsearch.ir.group.value.IntGroupingValue;
@@ -121,36 +119,36 @@ public class GroupDataGenerator {
 					continue;
 				}
 				
-				if(groupFunction instanceof CountGroupFunction){
+				if(groupFunction.getType() == GroupFunctionType.COUNT){
 					//int로 만들어준다.
-					groupFunction.init(IntGroupingValue.createList(groupKeySize));
+					groupFunction.init(IntGroupingValue.createList(groupKeySize, groupFunction.getType()));
 //					logger.debug("groupFunction #{} valuelist = {}", i, groupFunction.valueList);
-				}else if(groupFunction instanceof RangeCountGroupFunction){
-					//범위 그룹핑은 COUNT와 동일하게 int형으로 생성. 
-					groupFunction.init(IntGroupingValue.createList(groupKeySize));
+//				}else if(groupFunction instanceof RangeCountGroupFunction){
+//					//범위 그룹핑은 COUNT와 동일하게 int형으로 생성.
+//					groupFunction.init(IntGroupingValue.createList(groupKeySize));
 				}else{
 					//
 					// sum, min, max 필드에 대한 그룹핑. 연산대상 fieldId가 필요하다.
 					//
-					if(groupFunction.fieldId != null){
+					if(groupFunction.getFieldId() != null){
 						
 						//동일한 필드를 여러번 function 수행할때는 함께 사용한다
 						
-						if(!paramFieldNameList.contains(groupFunction.fieldId)) {
-                            paramFieldNameList.add(groupFunction.fieldId);
+						if(!paramFieldNameList.contains(groupFunction.getFieldId())) {
+                            paramFieldNameList.add(groupFunction.getFieldId());
                         }
                         //fieldId 타입에 따라서 value를 만들어준다.
-                        FieldSetting fieldSetting = schema.fieldSettingMap().get(groupFunction.fieldId);
+                        FieldSetting fieldSetting = schema.fieldSettingMap().get(groupFunction.getFieldId());
                         if(fieldSetting.getType() == FieldSetting.Type.INT){
-                            groupFunction.init(IntGroupingValue.createList(groupKeySize));
+                            groupFunction.init(IntGroupingValue.createList(groupKeySize, groupFunction.getType()));
                         }else if(fieldSetting.getType() == FieldSetting.Type.LONG){
-                            groupFunction.init(LongGroupingValue.createList(groupKeySize));
+                            groupFunction.init(LongGroupingValue.createList(groupKeySize, groupFunction.getType()));
                         }else if(fieldSetting.getType() == FieldSetting.Type.FLOAT){
-                            groupFunction.init(FloatGroupingValue.createList(groupKeySize));
+                            groupFunction.init(FloatGroupingValue.createList(groupKeySize, groupFunction.getType()));
                         }else if(fieldSetting.getType() == FieldSetting.Type.DOUBLE){
-                            groupFunction.init(DoubleGroupingValue.createList(groupKeySize));
+                            groupFunction.init(DoubleGroupingValue.createList(groupKeySize, groupFunction.getType()));
                         }else{
-                            groupFunction.init(StringGroupingValue.createList(groupKeySize));
+                            groupFunction.init(StringGroupingValue.createList(groupKeySize, groupFunction.getType()));
                         }
 
 					}
@@ -203,8 +201,8 @@ public class GroupDataGenerator {
 							continue;
 						}
 						Object value = null;
-						if(groupFunction.fieldId != null){
-							DataRef dataRef = fieldBytesRefMap[i].get(groupFunction.fieldId);
+						if(groupFunction.getFieldId() != null){
+							DataRef dataRef = fieldBytesRefMap[i].get(groupFunction.getFieldId());
 							dataRef.reset();
 							while(dataRef.next()){
 								value = dataRef.getValue();

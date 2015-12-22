@@ -2,8 +2,11 @@ package org.fastcatsearch.http.writer;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.fastcatsearch.common.Strings;
+import org.fastcatsearch.ir.dic.HashSetDictionary;
 import org.fastcatsearch.ir.group.GroupEntry;
 import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;
@@ -68,7 +71,7 @@ public class GroupResultWriter extends AbstractSearchResultWriter {
     				resultStringer.value(functionName[k]);
     			}
     			resultStringer.endArray();
-    			
+
     			resultStringer.key("result").array("group_item");
 				int size = groupResult == null ? 0 : groupResult.size();
 				for (int k = 0; k < size; k++) {
@@ -77,10 +80,14 @@ public class GroupResultWriter extends AbstractSearchResultWriter {
 					
 					resultStringer.object()
 						.key("_KEY").value(keyData);
-					
+
+                    Set<String> dupSet = new HashSet<String>();
 					for (int j = 0; j < functionName.length; j++) {
-                        GroupingValue val = e.groupingValue(j);
-						resultStringer.key(functionName[j]).value(val != null ? val.toString() : "");
+                        //동일그룹기능에 동일컬럼으로 중복되게 호출했을 경우, 헤더이름이 동일해서 json에러가 발생할수 있다.
+                        if(dupSet.add(functionName[j])) {
+                            GroupingValue val = e.groupingValue(j);
+                            resultStringer.key(functionName[j]).value(val != null ? val.toString() : "");
+                        }
 					}
 					
 					resultStringer.endObject();

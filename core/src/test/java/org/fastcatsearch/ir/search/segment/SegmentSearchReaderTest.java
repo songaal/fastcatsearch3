@@ -24,13 +24,7 @@ import junit.framework.TestCase;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
-import org.fastcatsearch.ir.group.GroupsData;
-import org.fastcatsearch.ir.group.GroupDataMerger;
-import org.fastcatsearch.ir.group.GroupDataReader;
-import org.fastcatsearch.ir.group.GroupEntry;
-import org.fastcatsearch.ir.group.GroupEntryList;
-import org.fastcatsearch.ir.group.GroupFunction;
-import org.fastcatsearch.ir.group.function.CountGroupFunction;
+import org.fastcatsearch.ir.group.*;
 import org.fastcatsearch.ir.io.FixedHitQueue;
 import org.fastcatsearch.ir.io.FixedHitReader;
 import org.fastcatsearch.ir.io.FixedHitStack;
@@ -104,8 +98,8 @@ public class SegmentSearchReaderTest extends TestCase{
 		
 		//Group
 		Groups groups = new Groups();
-		groups.add(new Group("price", new GroupFunction[]{new CountGroupFunction(Group.SORT_VALUE_DESC, null)}, Group.SORT_KEY_ASC, 0));
-		groups.add(new Group("buyers", new GroupFunction[]{new CountGroupFunction(Group.SORT_VALUE_DESC, null)}, Group.SORT_VALUE_ASC, 0));
+		groups.add(new Group("price", new GroupFunction[]{new GroupFunction(GroupFunctionType.COUNT, Group.SORT_VALUE_DESC, null)}, Group.SORT_KEY_ASC, 0));
+		groups.add(new Group("buyers", new GroupFunction[]{new GroupFunction(GroupFunctionType.COUNT, Group.SORT_VALUE_DESC, null)}, Group.SORT_VALUE_ASC, 0));
 		q.setGroups(groups);
 		int groupSize = groups.size();
 		
@@ -133,6 +127,7 @@ public class SegmentSearchReaderTest extends TestCase{
 //			if(hitReader.next()){
 //				heap.push(hitReader);
 //			}
+
 //			//그룹결과 put
 //			for (int k = 0; k < groupFreq.groupSize(); k++) {
 //				frequencyMerger.put(k, groupFreq.getGroupDataReader(k));

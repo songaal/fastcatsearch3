@@ -66,7 +66,7 @@ public class GroupEntry {
 	
 	public void merge(GroupEntry entry) {
 		for (int i = 0; i < entry.functionSize(); i++) {
-			groupingValue[i].add(entry.groupingValue(i).get());
+            groupingValue[i].mergeValue(entry.groupingValue(i));
 		}
 		
 	}
