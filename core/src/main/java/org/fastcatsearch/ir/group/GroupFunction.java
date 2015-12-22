@@ -20,14 +20,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public abstract class GroupFunction {
+public class GroupFunction {
 	protected static Logger logger = LoggerFactory.getLogger(GroupFunction.class);
 
-	protected int sortOrder;
-	protected String fieldId;
+    private int sortOrder;
+    private String fieldId;
 
-	protected GroupFunctionType type;
-	protected GroupingValue[] valueList; //그룹번호별로 데이터를 쌓아놓을 공간확보. 
+    private GroupFunctionType type;
+    private GroupingValue[] valueList; //그룹번호별로 데이터를 쌓아놓을 공간확보.
 	
 	public GroupFunction(GroupFunctionType type, int sortOrder, String fieldId){
 		this.type = type;
@@ -36,8 +36,8 @@ public abstract class GroupFunction {
 	}
 	
 	public void init(GroupingValue[] valueList){
+        this.valueList = valueList;
 //		logger.debug("INIT GroupFunction size={}, {}", valueList.length, valueList);
-		this.valueList = valueList;
 	}
 	
 	public String getHeaderName() {
@@ -60,8 +60,19 @@ public abstract class GroupFunction {
 		return type.name();
 	}
 	
-	public abstract void addValue(int groupNo, Object value);
+    public void addValue(int groupNo, Object value) {
+        valueList[groupNo].mergeValue(value);
+    }
 
-	public abstract void done();
+    public GroupFunctionType getType() {
+        return type;
+    }
+
+    public String getFieldId() {
+        return fieldId;
+    }
+
+    public void done() {
+    }
 		
 }

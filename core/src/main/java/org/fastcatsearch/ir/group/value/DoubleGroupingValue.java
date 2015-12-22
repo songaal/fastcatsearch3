@@ -1,11 +1,12 @@
 package org.fastcatsearch.ir.group.value;
 
+import org.fastcatsearch.ir.group.GroupFunctionType;
 import org.fastcatsearch.ir.group.GroupingValue;
 
 public class DoubleGroupingValue extends GroupingValue<Double> {
 
-	public DoubleGroupingValue(Double i) {
-		value = i;
+	public DoubleGroupingValue(Double i, GroupFunctionType type) {
+        super(i, type);
 	}
 
 	@Override
@@ -14,34 +15,6 @@ public class DoubleGroupingValue extends GroupingValue<Double> {
 			value = (Double) i;
 		} else {
 			value = (Double) value + (Double) i;
-		}
-	}
-
-	@Override
-	public void setIfMaxValue(Double obj) {
-		if (value == null) {
-			value = obj;
-		} else {
-			double o = obj;
-			double r = (Double) value;
-			// 입력값이 기존 값보다 크면 교체한다.
-			if (o > r) {
-				value = o;
-			}
-		}
-	}
-
-	@Override
-	public void setIfMinValue(Double obj) {
-		if (value == null) {
-			value = obj;
-		} else {
-			double o = obj;
-			double r = (Double) value;
-			// 입력값이 기존 값보다 작으면 교체한다.
-			if (o < r) {
-				value = o;
-			}
 		}
 	}
 
@@ -56,10 +29,10 @@ public class DoubleGroupingValue extends GroupingValue<Double> {
 		return cmp == 0 ? 0 : (cmp < 0 ? -1 : 1);
 	}
 
-	public static DoubleGroupingValue[] createList(int groupKeySize) {
+	public static DoubleGroupingValue[] createList(int groupKeySize, GroupFunctionType type) {
 		DoubleGroupingValue[] list = new DoubleGroupingValue[groupKeySize];
 		for (int i = 0; i < groupKeySize; i++) {
-			list[i] = new DoubleGroupingValue(0.0);
+			list[i] = new DoubleGroupingValue(0.0, type);
 		}
 		return list;
 	}

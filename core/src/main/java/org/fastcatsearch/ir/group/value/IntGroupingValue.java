@@ -1,12 +1,13 @@
 package org.fastcatsearch.ir.group.value;
 
+import org.fastcatsearch.ir.group.GroupFunctionType;
 import org.fastcatsearch.ir.group.GroupingValue;
 
 public class IntGroupingValue extends GroupingValue<Integer> {
 
-	public IntGroupingValue(Integer i) {
-		value = i;
-	}
+	public IntGroupingValue(Integer i, GroupFunctionType type) {
+        super(i, type);
+    }
 
 	@Override
 	public void add(Integer i) {
@@ -20,34 +21,6 @@ public class IntGroupingValue extends GroupingValue<Integer> {
 	}
 
 	@Override
-	public void setIfMaxValue(Integer obj) {
-		if (value == null) {
-			value = obj;
-		} else {
-			int o = obj;
-			int r = value;
-			// 입력값이 기존 값보다 크면 교체한다.
-			if (o > r) {
-				value = o;
-			}
-		}
-	}
-
-	@Override
-	public void setIfMinValue(Integer obj) {
-		if (value == null) {
-			value = obj;
-		} else {
-			int o = obj;
-			int r = (Integer) value;
-			// 입력값이 기존 값보다 작으면 교체한다.
-			if (o < r) {
-				value = o;
-			}
-		}
-	}
-
-	@Override
 	public void increment() {
 		value++;
 	}
@@ -57,10 +30,10 @@ public class IntGroupingValue extends GroupingValue<Integer> {
 		return value - (Integer) o.get();
 	}
 
-	public static IntGroupingValue[] createList(int groupKeySize) {
+	public static IntGroupingValue[] createList(int groupKeySize, GroupFunctionType type) {
 		IntGroupingValue[] list = new IntGroupingValue[groupKeySize];
 		for (int i = 0; i < groupKeySize; i++) {
-			list[i] = new IntGroupingValue(0);
+			list[i] = new IntGroupingValue(0, type);
 		}
 		return list;
 	}

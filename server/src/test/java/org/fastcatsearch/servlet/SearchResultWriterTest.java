@@ -2,6 +2,7 @@ package org.fastcatsearch.servlet;
 
 import org.fastcatsearch.http.writer.SearchResultWriter;
 import org.fastcatsearch.ir.group.GroupEntry;
+import org.fastcatsearch.ir.group.GroupFunctionType;
 import org.fastcatsearch.ir.group.GroupResult;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.value.IntGroupingValue;
@@ -29,19 +30,19 @@ public class SearchResultWriterTest {
 		int totalSearchCount = 11200;
 		groupResults =  new GroupResults(groupSize, totalSearchCount);
 		GroupResult groupResult1 = new GroupResult("", headerNameList, 10000, 3);
-		groupResult1.setEntry(0, new GroupEntry("1", new IntGroupingValue(800)));
-		groupResult1.setEntry(1, new GroupEntry("2", new IntGroupingValue(150)));
-		groupResult1.setEntry(2, new GroupEntry("3", new IntGroupingValue(50)));
+		groupResult1.setEntry(0, new GroupEntry("1", new IntGroupingValue(800, GroupFunctionType.COUNT)));
+		groupResult1.setEntry(1, new GroupEntry("2", new IntGroupingValue(150, GroupFunctionType.COUNT)));
+		groupResult1.setEntry(2, new GroupEntry("3", new IntGroupingValue(50, GroupFunctionType.COUNT)));
 		groupResults.add(groupResult1);
 		GroupResult groupResult2 = new GroupResult("", headerNameList, 1000, 3);
-		groupResult2.setEntry(0, new GroupEntry("Korea", new IntGroupingValue(650)));
-		groupResult2.setEntry(1, new GroupEntry("Japan", new IntGroupingValue(250)));
-		groupResult2.setEntry(2, new GroupEntry("America", new IntGroupingValue(100)));
+		groupResult2.setEntry(0, new GroupEntry("Korea", new IntGroupingValue(650, GroupFunctionType.COUNT)));
+		groupResult2.setEntry(1, new GroupEntry("Japan", new IntGroupingValue(250, GroupFunctionType.COUNT)));
+		groupResult2.setEntry(2, new GroupEntry("America", new IntGroupingValue(100, GroupFunctionType.COUNT)));
 		groupResults.add(groupResult2);
 		GroupResult groupResult3 = new GroupResult("", headerNameList, 200, 3);
-		groupResult3.setEntry(0, new GroupEntry(new Date().toString(), new IntGroupingValue(100)));
-		groupResult3.setEntry(1, new GroupEntry(new Date().toString(), new IntGroupingValue(70)));
-		groupResult3.setEntry(2, new GroupEntry(new Date().toString(), new IntGroupingValue(30)));
+		groupResult3.setEntry(0, new GroupEntry(new Date().toString(), new IntGroupingValue(100, GroupFunctionType.COUNT)));
+		groupResult3.setEntry(1, new GroupEntry(new Date().toString(), new IntGroupingValue(70, GroupFunctionType.COUNT)));
+		groupResult3.setEntry(2, new GroupEntry(new Date().toString(), new IntGroupingValue(30, GroupFunctionType.COUNT)));
 		groupResults.add(groupResult3);
 		
 		Row[] data = new Row[2];

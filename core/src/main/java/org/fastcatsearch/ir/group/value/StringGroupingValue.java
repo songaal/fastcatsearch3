@@ -1,49 +1,24 @@
 package org.fastcatsearch.ir.group.value;
 
+import org.fastcatsearch.ir.group.GroupFunctionType;
 import org.fastcatsearch.ir.group.GroupingValue;
 
 public class StringGroupingValue extends GroupingValue<String> {
 
-	public StringGroupingValue(String i) {
-		value = i;
+	public StringGroupingValue(String i, GroupFunctionType type) {
+		super(i, type);
 	}
 
 	@Override
 	public void add(String i) {
 		if (value == null) {
-			value = (String) i;
+			value = i;
 		} else {
             //이미 셋팅되어 있다면 그대로 둔다
             //do nothing
-//			value = (String) value + (String) i;
-
 		}
 	}
 
-	@Override
-	public void setIfMaxValue(String obj) {
-		if (value == null) {
-			value = obj;
-		} else {
-			// 입력값이 기존 값보다 크면 교체한다.
-			if(obj.compareTo(value) > 0) {
-				value = obj;
-			}
-		}
-	}
-
-	@Override
-	public void setIfMinValue(String obj) {
-		if (value == null) {
-			value = obj;
-		} else {
-			// 입력값이 기존 값보다 작으면 교체한다.
-			if(obj.compareTo(value) < 0) {
-				value = obj;
-			}
-		}
-	}
-	
 	@Override
 	public void increment() { }
 
@@ -52,10 +27,10 @@ public class StringGroupingValue extends GroupingValue<String> {
 		return value.compareTo(o.get());
 	}
 
-	public static StringGroupingValue[] createList(int groupKeySize) {
+	public static StringGroupingValue[] createList(int groupKeySize, GroupFunctionType type) {
 		StringGroupingValue[] list = new StringGroupingValue[groupKeySize];
 		for (int i = 0; i < groupKeySize; i++) {
-			list[i] = new StringGroupingValue("");
+			list[i] = new StringGroupingValue("", type);
 		}
 		return list;
 	}

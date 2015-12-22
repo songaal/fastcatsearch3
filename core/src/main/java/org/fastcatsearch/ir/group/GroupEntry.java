@@ -66,16 +66,7 @@ public class GroupEntry {
 	
 	public void merge(GroupEntry entry) {
 		for (int i = 0; i < entry.functionSize(); i++) {
-
-            //TODO 여기는 add가 될수도 있고, setIfMax, setIfMin,  setIfFirst, setIfLast가 될수도 있다
-
-
-
-
-
-
-
-			groupingValue[i].add(entry.groupingValue(i).get());
+            groupingValue[i].mergeValue(entry.groupingValue(i));
 		}
 		
 	}

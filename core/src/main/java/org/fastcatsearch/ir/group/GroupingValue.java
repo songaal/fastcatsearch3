@@ -19,16 +19,18 @@ package org.fastcatsearch.ir.group;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class GroupingValue<T> implements Comparable<GroupingValue<T>> {
+public abstract class GroupingValue<T extends Comparable> implements Comparable<GroupingValue<T>> {
 	protected static Logger logger = LoggerFactory.getLogger(GroupingValue.class);
 	protected T value;
+    protected GroupFunctionType type;
 	protected boolean isSet;
 
 	public GroupingValue(){
 		
 	}
-	public GroupingValue(T value){
+	public GroupingValue(T value, GroupFunctionType type){
 		this.value = value;
+        this.type = type;
 	}
 	
 	public void set(T result) {
@@ -43,35 +45,46 @@ public abstract class GroupingValue<T> implements Comparable<GroupingValue<T>> {
 	
 	public abstract void add(T obj);
 	
-	public void setIfMax(T obj) {
-		if(isSet) {
-			setIfMaxValue(obj);
-		} else {
-			value = obj;
-			isSet = true;
-		}
-	}
-
-	public void setIfMin(T obj) {
-		if(isSet) {
-			setIfMinValue(obj);
-		} else {
-			value = obj;
-			isSet = true;
-		}
-	}
-
-	protected abstract void setIfMaxValue(T obj);
-
-	protected abstract void setIfMinValue(T obj);
-	
 	public abstract void increment();
 	
 	public void reset() {
 		value = null;
 	}
 
-	public String toString(){
+    public GroupFunctionType getType() {
+        return type;
+    }
+
+    public void setType(GroupFunctionType type) {
+        this.type = type;
+    }
+
+    public void mergeValue(Object v) {
+        //COUNT, SUM, MIN, MAX, FIRST, LAST
+        if (type == GroupFunctionType.COUNT) {
+            increment();
+        } else if(value == null) {
+            value = (T) v;
+        } else {
+            if (type == GroupFunctionType.SUM) {
+                add((T) v);
+            } else if (type == GroupFunctionType.MIN) {
+                if (value.compareTo(v) > 0) {
+                    value = (T) v;
+                }
+            } else if (type == GroupFunctionType.MAX) {
+                if (value.compareTo(v) < 0) {
+                    value = (T) v;
+                }
+            } else if (type == GroupFunctionType.FIRST) {
+                // 이미 value가 저 위에서 셋팅되었음.
+                // do nothing.
+            } else if (type == GroupFunctionType.LAST) {
+                value = (T) v;
+            }
+        }
+    }
+    public String toString(){
 		if(value != null){
 			return value.toString();
 		}else{

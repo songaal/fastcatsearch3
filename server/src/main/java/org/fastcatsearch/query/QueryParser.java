@@ -19,7 +19,7 @@ package org.fastcatsearch.query;
 import org.fastcatsearch.error.ServerErrorCode;
 import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.ir.group.GroupFunction;
-import org.fastcatsearch.ir.group.function.CountGroupFunction;
+import org.fastcatsearch.ir.group.GroupFunctionType;
 import org.fastcatsearch.ir.query.*;
 import org.fastcatsearch.ir.query.Term.Option;
 import org.fastcatsearch.ir.search.StoredProcedure;
@@ -220,27 +220,19 @@ public class QueryParser {
 						functionName = functionExpr;
 					}
 
-					GroupFunction groupFunction = null;
-					if (functionName.equalsIgnoreCase(Group.DEFAULT_GROUP_FUNCTION_NAME)) {
-						// 기본 클래스.
-						groupFunction = new CountGroupFunction(sortOrder, param);
-					} else {
-						// 사용자가 만든 XXXX_COUNT
-						String className = convertToClassName(functionName);
-						try {
-							groupFunction = DynamicClassLoader.loadObject(className, GroupFunction.class, new Class<?>[] { int.class, String.class },
-									new Object[] { sortOrder, param });
-						} catch (Exception e) {
-                            throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Cannot construct group function class '"+ className +"'.");
-						}
-					}
-					groupFunctions[j] = groupFunction;
-					if(groupFunction == null) {
+                    if(functionName != null) {
+                        functionName = functionName.toUpperCase();
+                    }
+                    try{
+                        GroupFunctionType groupFunctionType = GroupFunctionType.valueOf(functionName);
+                        groupFunctions[j] = new GroupFunction(groupFunctionType, sortOrder, param);
+                    } catch (Exception e) {
                         throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Unknown group function '"+ functionName +"'.");
 					}
-				}
 
-				g.add(new Group(field, groupFunctions, sortOrder, limit));
+                }
+
+                g.add(new Group(field, groupFunctions, sortOrder, limit));
 
 			}
 			query.setGroups(g);

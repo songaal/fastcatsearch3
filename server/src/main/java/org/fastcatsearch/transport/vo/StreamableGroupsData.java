@@ -5,10 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.fastcatsearch.common.io.Streamable;
-import org.fastcatsearch.ir.group.GroupsData;
-import org.fastcatsearch.ir.group.GroupEntry;
-import org.fastcatsearch.ir.group.GroupEntryList;
-import org.fastcatsearch.ir.group.GroupingValue;
+import org.fastcatsearch.ir.group.*;
 import org.fastcatsearch.ir.group.value.*;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
@@ -37,6 +34,7 @@ public class StreamableGroupsData implements Streamable {
 		int groupSize = input.readVInt();
 		List<GroupEntryList> groupEntryListArray = new ArrayList<GroupEntryList>(groupSize);
 
+        GroupFunctionType[] groupFunctionTypeList = GroupFunctionType.values();
 		for (int groupNum = 0; groupNum < groupSize; groupNum++) {
 			int totalCount = input.readVInt();
 			int count = input.readVInt();
@@ -46,17 +44,18 @@ public class StreamableGroupsData implements Streamable {
 				int functionSize = input.readVInt();
 				GroupingValue[] valueList = new GroupingValue[functionSize];
 				for (int i = 0; i < functionSize; i++) {
+                    GroupFunctionType type = groupFunctionTypeList[input.readVInt()];
 					Object obj = input.readGenericValue();
 					if(obj instanceof Integer){
-						valueList[i] = new IntGroupingValue((Integer) obj);
+						valueList[i] = new IntGroupingValue((Integer) obj, type);
 					}else if(obj instanceof Long){
-						valueList[i] = new LongGroupingValue((Long) obj);
+						valueList[i] = new LongGroupingValue((Long) obj, type);
 					}else if(obj instanceof Float){
-						valueList[i] = new FloatGroupingValue((Float) obj);
+						valueList[i] = new FloatGroupingValue((Float) obj, type);
 					}else if(obj instanceof Double){
-						valueList[i] = new DoubleGroupingValue((Double) obj);
+						valueList[i] = new DoubleGroupingValue((Double) obj, type);
 					}else if(obj instanceof String){
-                        valueList[i] = new StringGroupingValue((String) obj);
+                        valueList[i] = new StringGroupingValue((String) obj, type);
                     }
 				}
 				entryList.add(new GroupEntry(key, valueList));
@@ -91,9 +90,11 @@ public class StreamableGroupsData implements Streamable {
 				output.writeVInt(groupEntry.functionSize());
 				for (GroupingValue groupingValue : groupEntry.groupingValues()) {
 					if(groupingValue == null) {
+                        output.writeVInt(GroupFunctionType.NONE.ordinal());
                         output.writeGenericValue("");
                     } else {
                         Object result = groupingValue.get();
+                        output.writeVInt(groupingValue.getType().ordinal());
                         output.writeGenericValue(result);
                     }
 				}
