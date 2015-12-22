@@ -5,6 +5,10 @@ import org.fastcatsearch.ir.group.GroupingValue;
 
 public class DoubleGroupingValue extends GroupingValue<Double> {
 
+    public DoubleGroupingValue(GroupFunctionType type) {
+        super(type);
+    }
+
 	public DoubleGroupingValue(Double i, GroupFunctionType type) {
         super(i, type);
 	}
@@ -12,27 +16,30 @@ public class DoubleGroupingValue extends GroupingValue<Double> {
 	@Override
 	public void add(Double i) {
 		if (value == null) {
-			value = (Double) i;
+			value = i;
 		} else {
-			value = (Double) value + (Double) i;
+			value = value + i;
 		}
 	}
 
 	@Override
 	public void increment() {
+        if(value == null) {
+            value = 0d;
+        }
 		value++;
 	}
 
 	@Override
 	public int compareTo(GroupingValue<Double> o) {
-		double cmp = value - (Double) o.get();
+		double cmp = value - o.get();
 		return cmp == 0 ? 0 : (cmp < 0 ? -1 : 1);
 	}
 
 	public static DoubleGroupingValue[] createList(int groupKeySize, GroupFunctionType type) {
 		DoubleGroupingValue[] list = new DoubleGroupingValue[groupKeySize];
 		for (int i = 0; i < groupKeySize; i++) {
-			list[i] = new DoubleGroupingValue(0.0, type);
+			list[i] = new DoubleGroupingValue(type);
 		}
 		return list;
 	}

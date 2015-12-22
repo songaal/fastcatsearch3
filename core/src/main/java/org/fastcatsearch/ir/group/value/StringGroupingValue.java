@@ -5,6 +5,10 @@ import org.fastcatsearch.ir.group.GroupingValue;
 
 public class StringGroupingValue extends GroupingValue<String> {
 
+    public StringGroupingValue(GroupFunctionType type) {
+        super(type);
+    }
+
 	public StringGroupingValue(String i, GroupFunctionType type) {
 		super(i, type);
 	}
@@ -30,7 +34,7 @@ public class StringGroupingValue extends GroupingValue<String> {
 	public static StringGroupingValue[] createList(int groupKeySize, GroupFunctionType type) {
 		StringGroupingValue[] list = new StringGroupingValue[groupKeySize];
 		for (int i = 0; i < groupKeySize; i++) {
-			list[i] = new StringGroupingValue("", type);
+			list[i] = new StringGroupingValue(type);
 		}
 		return list;
 	}

@@ -7,6 +7,10 @@ import org.fastcatsearch.ir.group.GroupingValue;
 
 public class FloatGroupingValue extends GroupingValue<Float> {
 
+    public FloatGroupingValue(GroupFunctionType type) {
+        super(type);
+    }
+
 	public FloatGroupingValue(Float i, GroupFunctionType type) {
 		super(i, type);
 	}
@@ -14,27 +18,30 @@ public class FloatGroupingValue extends GroupingValue<Float> {
 	@Override
 	public void add(Float i) {
 		if (value == null) {
-			value = (Float) i;
+			value = i;
 		} else {
-			value = (Float) value + (Float) i;
+			value = value + i;
 		}
 	}
 
 	@Override
 	public void increment() {
+        if(value == null) {
+            value = 0f;
+        }
 		value++;
 	}
 
 	@Override
 	public int compareTo(GroupingValue<Float> o) {
-		float cmp = value - (Float) o.get();
+		float cmp = value - o.get();
 		return cmp == 0f ? 0 : (cmp < 0 ? -1 : 1);
 	}
 
 	public static FloatGroupingValue[] createList(int groupKeySize, GroupFunctionType type) {
 		FloatGroupingValue[] list = new FloatGroupingValue[groupKeySize];
 		for (int i = 0; i < groupKeySize; i++) {
-			list[i] = new FloatGroupingValue(0.0f, type);
+			list[i] = new FloatGroupingValue(type);
 		}
 		return list;
 	}

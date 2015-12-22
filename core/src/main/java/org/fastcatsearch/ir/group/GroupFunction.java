@@ -41,7 +41,11 @@ public class GroupFunction {
 	}
 	
 	public String getHeaderName() {
-        return type.name() + "_" + fieldId;
+        if(type == GroupFunctionType.COUNT || type == GroupFunctionType.NONE) {
+            return type.name();
+        } else {
+            return type.name() + "_" + fieldId;
+        }
     }
 		
 	public GroupingValue[] valueList() {

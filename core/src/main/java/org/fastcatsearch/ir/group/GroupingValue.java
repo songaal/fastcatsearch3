@@ -28,6 +28,9 @@ public abstract class GroupingValue<T extends Comparable> implements Comparable<
 	public GroupingValue(){
 		
 	}
+    public GroupingValue(GroupFunctionType type){
+        this.type = type;
+    }
 	public GroupingValue(T value, GroupFunctionType type){
 		this.value = value;
         this.type = type;

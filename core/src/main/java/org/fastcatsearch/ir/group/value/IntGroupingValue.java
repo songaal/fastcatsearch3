@@ -5,6 +5,10 @@ import org.fastcatsearch.ir.group.GroupingValue;
 
 public class IntGroupingValue extends GroupingValue<Integer> {
 
+    public IntGroupingValue(GroupFunctionType type) {
+        super(type);
+    }
+
 	public IntGroupingValue(Integer i, GroupFunctionType type) {
         super(i, type);
     }
@@ -22,18 +26,21 @@ public class IntGroupingValue extends GroupingValue<Integer> {
 
 	@Override
 	public void increment() {
+        if(value == null) {
+            value = 0;
+        }
 		value++;
 	}
 
 	@Override
 	public int compareTo(GroupingValue<Integer> o) {
-		return value - (Integer) o.get();
+		return value - o.get();
 	}
 
 	public static IntGroupingValue[] createList(int groupKeySize, GroupFunctionType type) {
 		IntGroupingValue[] list = new IntGroupingValue[groupKeySize];
 		for (int i = 0; i < groupKeySize; i++) {
-			list[i] = new IntGroupingValue(0, type);
+			list[i] = new IntGroupingValue(type);
 		}
 		return list;
 	}

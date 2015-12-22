@@ -5,6 +5,10 @@ import org.fastcatsearch.ir.group.GroupingValue;
 
 public class LongGroupingValue extends GroupingValue<Long> {
 
+    public LongGroupingValue(GroupFunctionType type) {
+        super(type);
+    }
+
 	public LongGroupingValue(Long i, GroupFunctionType type) {
 		super(i, type);
 	}
@@ -12,27 +16,30 @@ public class LongGroupingValue extends GroupingValue<Long> {
 	@Override
 	public void add(Long i) {
 		if (value == null) {
-			value = (Long) i;
+			value = i;
 		} else {
-			value = (Long) value + (Long) i;
+			value = value + i;
 		}
 	}
 
 	@Override
 	public void increment() {
+        if(value == null) {
+            value = 0L;
+        }
 		value++;
 	}
 
 	@Override
 	public int compareTo(GroupingValue<Long> o) {
-		long cmp = value - (Long) o.get();
+		long cmp = value - o.get();
 		return cmp == 0L ? 0 : (cmp < 0L ? -1 : 1);
 	}
 
 	public static LongGroupingValue[] createList(int groupKeySize, GroupFunctionType type) {
 		LongGroupingValue[] list = new LongGroupingValue[groupKeySize];
 		for (int i = 0; i < groupKeySize; i++) {
-			list[i] = new LongGroupingValue(0L, type);
+			list[i] = new LongGroupingValue(type);
 		}
 		return list;
 	}
