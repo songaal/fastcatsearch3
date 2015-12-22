@@ -102,9 +102,6 @@ public abstract class AbstractFileReader extends SingleSourceReader<Map<String,O
                         return;
                     }
 					Map<String, Object> record = parse(reader);
-					if (sourceModifier != null) {
-						sourceModifier.modify(record);
-					}
                     items.addLast(record);
                     readCount++;
 				} catch(IOException e) {

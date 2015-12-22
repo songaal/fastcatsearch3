@@ -135,10 +135,6 @@ public class DirectoryPathReader extends SingleSourceReader<Map<String,Object>> 
 				Map<String, Object> record = new HashMap<String, Object>();
 				String path = filePaths.remove(0);
 				record.put(fieldId, path);
-				
-				if (sourceModifier != null) {
-					sourceModifier.modify(record);
-				}
 				return record;
 			} else {
 				try {

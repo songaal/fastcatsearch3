@@ -94,9 +94,6 @@ public class JSONFileReader extends SingleSourceReader<Map<String,Object>> imple
 				if(items != null) {
 					if(pos  < items.size()) {
 						Map<String, Object> item = items.get(pos++);
-						if (sourceModifier != null) {
-							sourceModifier.modify(item);
-						}
 						return item;
 					}
 					items = null;
