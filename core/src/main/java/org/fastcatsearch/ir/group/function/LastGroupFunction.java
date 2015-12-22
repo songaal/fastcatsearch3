@@ -17,13 +17,12 @@
 package org.fastcatsearch.ir.group.function;
 
 import org.fastcatsearch.ir.group.GroupFunction;
+import org.fastcatsearch.ir.group.GroupFunctionType;
 
 public class LastGroupFunction extends GroupFunction {
 
-	private final static String FUNCTION_NAME = "LAST";
-
 	public LastGroupFunction(int sortOrder, String fieldId) {
-		super(FUNCTION_NAME, sortOrder, fieldId);
+		super(GroupFunctionType.LAST, sortOrder, fieldId);
 	}
 
 	@Override
@@ -32,13 +31,8 @@ public class LastGroupFunction extends GroupFunction {
 	}
 
 	@Override
-	public String getHeaderName() {
-		return FUNCTION_NAME + "_" + fieldId;
-	}
-
-	@Override
 	public void done() {
-		
+
 	}
 
 }

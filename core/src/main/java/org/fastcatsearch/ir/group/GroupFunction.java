@@ -22,17 +22,15 @@ import org.slf4j.LoggerFactory;
 
 public abstract class GroupFunction {
 	protected static Logger logger = LoggerFactory.getLogger(GroupFunction.class);
-	
-	protected int totalFrequencySum;
-	protected int inGroupCount; //임시변수.
+
 	protected int sortOrder;
 	protected String fieldId;
 
-	protected String functionName;
+	protected GroupFunctionType type;
 	protected GroupingValue[] valueList; //그룹번호별로 데이터를 쌓아놓을 공간확보. 
 	
-	public GroupFunction(String functionName, int sortOrder, String fieldId){
-		this.functionName = functionName.toUpperCase();
+	public GroupFunction(GroupFunctionType type, int sortOrder, String fieldId){
+		this.type = type;
 		this.sortOrder = sortOrder;
 		this.fieldId = fieldId != null ? fieldId.toUpperCase() : null;
 	}
@@ -42,7 +40,9 @@ public abstract class GroupFunction {
 		this.valueList = valueList;
 	}
 	
-	public abstract String getHeaderName();
+	public String getHeaderName() {
+        return type.name() + "_" + fieldId;
+    }
 		
 	public GroupingValue[] valueList() {
 		return valueList;
@@ -57,7 +57,7 @@ public abstract class GroupFunction {
 	}
 	
 	public String name(){
-		return functionName;
+		return type.name();
 	}
 	
 	public abstract void addValue(int groupNo, Object value);

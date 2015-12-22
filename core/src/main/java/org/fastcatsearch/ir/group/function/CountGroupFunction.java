@@ -17,23 +17,19 @@
 package org.fastcatsearch.ir.group.function;
 
 import org.fastcatsearch.ir.group.GroupFunction;
+import org.fastcatsearch.ir.group.GroupFunctionType;
 
 public class CountGroupFunction extends GroupFunction {
 
 	public final static String FUNCTION_NAME = "COUNT";
 
 	public CountGroupFunction(int sortOrder, String param) {
-		super(FUNCTION_NAME, sortOrder, param);
+		super(GroupFunctionType.COUNT, sortOrder, param);
 	}
 
 	@Override
 	public void addValue(int groupNo, Object value) {
 		valueList[groupNo].increment();
-	}
-
-	@Override
-	public String getHeaderName() {
-		return FUNCTION_NAME;
 	}
 
 	@Override

@@ -17,13 +17,12 @@
 package org.fastcatsearch.ir.group.function;
 
 import org.fastcatsearch.ir.group.GroupFunction;
+import org.fastcatsearch.ir.group.GroupFunctionType;
 
 public class SumGroupFunction extends GroupFunction {
 
-	private final static String FUNCTION_NAME = "SUM";
-
 	public SumGroupFunction(int sortOrder, String param) {
-		super(FUNCTION_NAME, sortOrder, param);
+		super(GroupFunctionType.SUM, sortOrder, param);
 	}
 
 	@Override
@@ -31,11 +30,6 @@ public class SumGroupFunction extends GroupFunction {
         if(value != null) {
             valueList[groupNo].add(value);
         }
-	}
-
-	@Override
-	public String getHeaderName() {
-		return FUNCTION_NAME + "_" + fieldId;
 	}
 
 	@Override

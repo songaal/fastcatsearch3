@@ -17,24 +17,18 @@
 package org.fastcatsearch.ir.group.function;
 
 import org.fastcatsearch.ir.group.GroupFunction;
+import org.fastcatsearch.ir.group.GroupFunctionType;
 
 public class MaxGroupFunction extends GroupFunction {
 
-	private final static String FUNCTION_NAME = "MAX";
-
 	public MaxGroupFunction(int sortOrder, String fieldId) {
-		super(FUNCTION_NAME, sortOrder, fieldId);
+		super(GroupFunctionType.MAX, sortOrder, fieldId);
 	}
 
 	@Override
 	public void addValue(int groupNo, Object value) {
 
 		valueList[groupNo].setIfMax(value);
-	}
-
-	@Override
-	public String getHeaderName() {
-		return FUNCTION_NAME + "_" + fieldId;
 	}
 
 	@Override

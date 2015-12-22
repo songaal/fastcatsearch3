@@ -17,13 +17,12 @@
 package org.fastcatsearch.ir.group.function;
 
 import org.fastcatsearch.ir.group.GroupFunction;
+import org.fastcatsearch.ir.group.GroupFunctionType;
 
 public class FirstGroupFunction extends GroupFunction {
 
-	private final static String FUNCTION_NAME = "FIRST";
-
 	public FirstGroupFunction(int sortOrder, String fieldId) {
-		super(FUNCTION_NAME, sortOrder, fieldId);
+		super(GroupFunctionType.FIRST, sortOrder, fieldId);
 	}
 
 	@Override
@@ -31,11 +30,6 @@ public class FirstGroupFunction extends GroupFunction {
 		if(valueList[groupNo].isEmpty()) {
 			valueList[groupNo].set(value);
 		}
-	}
-
-	@Override
-	public String getHeaderName() {
-		return FUNCTION_NAME + "_" + fieldId;
 	}
 
 	@Override
