@@ -62,14 +62,23 @@ public abstract class GroupingValue<T extends Comparable> implements Comparable<
         this.type = type;
     }
 
-    public void mergeValue(Object v) {
-        //COUNT, SUM, MIN, MAX, FIRST, LAST
+    //한 세그먼트내에서 그룹결과를 새로 만들때.
+    public void addValue(Object v) {
         if (type == GroupFunctionType.COUNT) {
             increment();
-        } else if(value == null) {
+        } else {
+            mergeValue(v);
+        }
+    }
+    //여러 세그먼트로 부터 만들어진 그룹결과를 합칠때
+    public void mergeValue(Object v) {
+        //COUNT, SUM, MIN, MAX, FIRST, LAST
+        if(value == null) {
             value = (T) v;
         } else {
-            if (type == GroupFunctionType.SUM) {
+            if (type == GroupFunctionType.COUNT) {
+                add((T) v);
+            } else if (type == GroupFunctionType.SUM) {
                 add((T) v);
             } else if (type == GroupFunctionType.MIN) {
                 if (value.compareTo(v) > 0) {
