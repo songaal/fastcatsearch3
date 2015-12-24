@@ -65,7 +65,7 @@ public class GroupFunction {
 	}
 	
     public void addValue(int groupNo, Object value) {
-        valueList[groupNo].mergeValue(value);
+        valueList[groupNo].addValue(value);
     }
 
     public GroupFunctionType getType() {

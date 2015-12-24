@@ -30,6 +30,7 @@ import org.fastcatsearch.ir.search.method.NormalSearchMethod;
 import org.fastcatsearch.ir.search.method.SearchMethod;
 import org.fastcatsearch.ir.settings.IndexRefSetting;
 import org.fastcatsearch.ir.settings.IndexSetting;
+import org.fastcatsearch.ir.util.CharVectorUtils;
 
 public class BooleanClause extends OperatedClause {
 
@@ -413,16 +414,43 @@ public class BooleanClause extends OperatedClause {
 				if(obj instanceof CharVector) {
 					CharVector localToken = (CharVector)obj;
 					localToken.setIgnoreCase();
-					SearchMethod localSearchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
-					PostingReader localPostingReader = localSearchMethod.search(indexId, localToken, queryPosition, weight);
-					OperatedClause localClause = new TermOperatedClause(indexId, localToken.toString(), localPostingReader, termSequence.getAndIncrement());
-					
-					if(synonymClause == null) {
-						synonymClause = localClause;
-					} else {
-						synonymClause = new OrOperatedClause(synonymClause, localClause);
-					}
-					
+                    if(localToken.hasWhitespaces()) {
+                        List<CharVector> synonyms = CharVectorUtils.splitByWhitespace(localToken);
+                        OperatedClause extractedClause = null;
+                        /*
+                         * 유사어에 공백이 포함된 경우 여러단어로 나누어 AND 관계로 추가한다.
+                         * '서울대 => 서울 대학교'
+                         * 와 같은 관계가 해당된다.
+                         */
+
+                        for(CharVector synonym : synonyms) {
+                            SearchMethod localSearchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
+                            PostingReader localPostingReader = localSearchMethod.search(indexId, synonym, queryPosition, weight);
+                            OperatedClause localClause = new TermOperatedClause(indexId, synonym.toString(), localPostingReader, termSequence.getAndIncrement());
+
+                            if(extractedClause == null) {
+                                extractedClause = localClause;
+                            } else {
+                                //공백구분 유사어는 AND 관계가 맞다. 15.12.24 swsong
+                                extractedClause = new AndOperatedClause(extractedClause, localClause);
+                            }
+                        }
+                        if(synonymClause == null) {
+                            synonymClause = extractedClause;
+                        } else {
+                            synonymClause = new OrOperatedClause(synonymClause, extractedClause);
+                        }
+                    } else {
+                        SearchMethod localSearchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
+                        PostingReader localPostingReader = localSearchMethod.search(indexId, localToken, queryPosition, weight);
+                        OperatedClause localClause = new TermOperatedClause(indexId, localToken.toString(), localPostingReader, termSequence.getAndIncrement());
+
+                        if (synonymClause == null) {
+                            synonymClause = localClause;
+                        } else {
+                            synonymClause = new OrOperatedClause(synonymClause, localClause);
+                        }
+                    }
 				} else if(obj instanceof List) {
 					@SuppressWarnings("unchecked")
 					List<CharVector>synonyms = (List<CharVector>)obj; 
@@ -437,12 +465,8 @@ public class BooleanClause extends OperatedClause {
 						if(extractedClause == null) {
 							extractedClause = localClause;
 						} else {
-							//원본 term의 Type을 보고 ANY 또는 ALL로 동일하게 사용한다.
-							if(type == Type.ALL){
-								extractedClause = new AndOperatedClause(extractedClause, localClause);
-							}else if(type == Type.ANY){
-								extractedClause = new OrOperatedClause(extractedClause, localClause);
-							}
+                            //공백구분 유사어는 AND 관계가 맞다. 15.12.24 swsong
+                            extractedClause = new AndOperatedClause(extractedClause, localClause);
 						}
 					}
 					if(synonymClause == null) {

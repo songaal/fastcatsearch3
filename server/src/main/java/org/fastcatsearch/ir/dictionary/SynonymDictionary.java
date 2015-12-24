@@ -6,6 +6,7 @@ import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.util.CharVectorHashSet;
+import org.fastcatsearch.ir.util.CharVectorUtils;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
 
 import java.io.File;
@@ -74,6 +75,11 @@ public class SynonymDictionary extends MapDictionary {
 			if (keyword.length() > 0) {
 				mainWord = new CharVector(keyword);
 				wordSet.add(mainWord);
+                if(mainWord.hasWhitespaces()) {
+                    for(CharVector w : CharVectorUtils.splitByWhitespace(mainWord)) {
+                        wordSet.add(w);
+                    }
+                }
 			}
 		}
 
@@ -91,6 +97,11 @@ public class SynonymDictionary extends MapDictionary {
 				CharVector word = new CharVector(synonym);
 				list.add(word);
 				wordSet.add(word);
+                if(word.hasWhitespaces()) {
+                    for(CharVector w : CharVectorUtils.splitByWhitespace(word)) {
+                        wordSet.add(w);
+                    }
+                }
 			}
 		}
 
