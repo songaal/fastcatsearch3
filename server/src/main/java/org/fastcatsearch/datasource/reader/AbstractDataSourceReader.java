@@ -16,7 +16,6 @@
 
 package org.fastcatsearch.datasource.reader;
 
-import org.fastcatsearch.datasource.SourceModifier;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.DeleteIdSet;
@@ -32,16 +31,15 @@ import java.util.List;
 /**
  * 데이터소스 리더.
  * 
- * TODO 고려사항 : DataSourceReader를 일반 class로 만들고 internalDataSourceReader를 받아서 처리하게 한다. internalDataSourceReader는 field별 데이터만 셋팅하게
- * 하고 DataSourceReader가 modify수행후 document를 만들어서 최종리턴을 한다. 내부 internalDataSourceReader 가 여러개이면 멀티소스리더같이 동작하게 된다.
+ * DataSourceReader는 SingleSourceReader를 받아서 처리한다.
+ * SingleSourceReader는 field별 데이터를 셋팅한뒤, modify 까지 수행후 document를 만들어서 최종리턴을 한다.
+ * 내부 SingleSourceReader 가 여러개이면 멀티소스리더같이 동작하게 된다.
  * */
 public abstract class AbstractDataSourceReader<DataType> implements DataSourceReader {
 
 	protected static Logger logger = LoggerFactory.getLogger(AbstractDataSourceReader.class);
 
 	protected List<FieldSetting> fieldSettingList;
-
-	protected SourceModifier<DataType> sourceModifier;
 
 	private DeleteIdSet deleteIdList;
 

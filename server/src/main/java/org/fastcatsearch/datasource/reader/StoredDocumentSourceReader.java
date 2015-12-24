@@ -14,7 +14,7 @@ import org.fastcatsearch.ir.search.SegmentIndexableDocumentReader;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 
 /**
- * 저장된 세그먼트의 문서를 읽어온다.
+ * 저장된 컬렉션하위 모든 세그먼트의 문서를 읽어온다.
  * */
 public class StoredDocumentSourceReader extends AbstractDataSourceReader<Document> {
 

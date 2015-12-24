@@ -42,19 +42,6 @@ public class SegmentIndexableDocumentReader {
 		limit = reader.getDocumentCount();
 	}
 
-//	public Document[] getDocumentList(int[] docNos) throws IOException {
-//		Document[] result = new Document[docNos.length];
-//		for (int i = 0; i < docNos.length; i++) {
-//			int docNo = docNos[i];
-//			result[i] = reader.readDocument(docNo);
-//		}
-//		return result;
-//	}
-//
-//	public Document getDocument(int docNo) throws IOException {
-//		return reader.readDocument(docNo);
-//	}
-
 	public Enumeration<Document> getEnumertion() {
 		return new SegmentDocumentEnumeration();
 	}
