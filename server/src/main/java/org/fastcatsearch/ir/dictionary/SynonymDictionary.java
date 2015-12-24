@@ -97,7 +97,7 @@ public class SynonymDictionary extends MapDictionary {
 				CharVector word = new CharVector(synonym);
 				list.add(word);
 				wordSet.add(word);
-                if(mainWord.hasWhitespaces()) {
+                if(word.hasWhitespaces()) {
                     for(CharVector w : CharVectorUtils.splitByWhitespace(word)) {
                         wordSet.add(w);
                     }
