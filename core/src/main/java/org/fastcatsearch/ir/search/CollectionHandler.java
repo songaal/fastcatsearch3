@@ -337,8 +337,13 @@ public class CollectionHandler {
 		return updateDocumentSize;
 	}
 
-	// 색인되어있는 세그먼트를 단순히 추가만한다. delete.set파일은 이미 수정되어있다고 가정한다.
-	public void addSegmentApplyCollection(SegmentInfo segmentInfo, File segmentDir) throws IOException, IRException {
+
+
+
+    //TODO 동기화 시킨다.
+    // TODO 머징과 증분색인이 동시에 추가될수 있기 때문에..
+    // 색인되어있는 세그먼트를 단순히 추가만한다. delete.set파일은 이미 수정되어있다고 가정한다.
+    public void addSegmentApplyCollection(SegmentInfo segmentInfo, File segmentDir) throws IOException, IRException {
 		//삭제문서 적용. 기존세그먼트.
 		for(SegmentReader segmentReader : segmentReaderMap.values()) {
 			segmentReader.loadDeleteSet();
