@@ -36,6 +36,7 @@ import java.util.List;
 
 /**
  *  세그먼트들의 상태를 보고 머징이 필요한지 판단하여, 머징을 수행한다.
+ *  인덱스노드에서 수행된다.
  * */
 public class CollectionMergingJob extends IndexingJob {
 

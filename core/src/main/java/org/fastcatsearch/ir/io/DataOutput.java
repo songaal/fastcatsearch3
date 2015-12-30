@@ -246,6 +246,13 @@ public abstract class DataOutput extends OutputStream {
 		}
 	}
 
+    public void writeAString(String str) throws IOException {
+        if(str == null){
+            //null이면 길이 0으로 기록.
+            str = "";
+        }
+        writeAString(str.toCharArray(), 0, str.length());
+    }
 	// 2byte로 기록한다.
 	public void writeString(String str) throws IOException {
 		if(str == null){

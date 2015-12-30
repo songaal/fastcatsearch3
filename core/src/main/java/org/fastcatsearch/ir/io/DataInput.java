@@ -405,7 +405,17 @@ public abstract class DataInput extends InputStream implements Cloneable {
 			readByte();
 		}
 	}
-	
+
+    public String readAStrings() throws IOException {
+        int len = readVInt();
+        char[] cs = new char[len];
+
+        for (int i = 0; i < len; i++)
+            cs[i] = (char) readByte();
+
+        return new String(cs);
+    }
+
 	public char[] readAString() throws IOException {
 		int len = readVInt();
 		char[] cs = new char[len];
