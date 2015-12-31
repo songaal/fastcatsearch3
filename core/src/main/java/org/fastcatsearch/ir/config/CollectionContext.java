@@ -181,6 +181,10 @@ public class CollectionContext {
 	public void updateSegmentInfo(SegmentInfo segmentInfo) {
 		dataInfo.updateSegmentInfo(segmentInfo);
 	}
+
+    public void removeSegmentInfo(String segmentId) {
+        dataInfo.removeSegmentInfo(segmentId);
+    }
 	public void addSegmentInfo(SegmentInfo segmentInfo) {
 		dataInfo.addSegmentInfo(segmentInfo);
 	}

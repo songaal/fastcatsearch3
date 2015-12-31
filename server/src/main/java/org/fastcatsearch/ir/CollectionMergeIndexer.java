@@ -27,6 +27,7 @@ public class CollectionMergeIndexer extends AbstractCollectionIndexer {
 	private CollectionHandler collectionHandler;
 
     private File[] segmentDirs;
+    private File segmentDir;
 
 	public CollectionMergeIndexer(CollectionHandler collectionHandler, File... segmentDirs) throws IRException {
 		super(collectionHandler.collectionContext(), collectionHandler.analyzerPoolManager());
@@ -35,7 +36,10 @@ public class CollectionMergeIndexer extends AbstractCollectionIndexer {
 		//증분색인시는 현재 스키마를 그대로 사용한다.
         init(collectionContext.schema());
 	}
-	
+	public File getSegmentDir() {
+        return segmentDir;
+    }
+
 	@Override
 	protected DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException{
         StoredSegmentSourceReader reader = new StoredSegmentSourceReader(segmentDirs, schemaSetting);
@@ -52,7 +56,7 @@ public class CollectionMergeIndexer extends AbstractCollectionIndexer {
 		// 증분색인이면 기존스키마그대로 사용.
         String newSegmentId = collectionHandler.nextSegmentId();
         workingSegmentInfo = new SegmentInfo(newSegmentId);
-        File segmentDir = indexFilePaths.file(workingSegmentInfo.getId());
+        this.segmentDir = indexFilePaths.file(workingSegmentInfo.getId());
         logger.debug("#색인시 세그먼트를 생성합니다. {}", workingSegmentInfo);
         try {
             CoreFileUtils.removeDirectoryCascade(segmentDir);

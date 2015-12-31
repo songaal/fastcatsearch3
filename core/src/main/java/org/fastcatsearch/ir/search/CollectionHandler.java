@@ -340,22 +340,45 @@ public class CollectionHandler {
 
 
 
+    private Object applyLock = new Object();
     //TODO 동기화 시킨다.
     // TODO 머징과 증분색인이 동시에 추가될수 있기 때문에..
     // 색인되어있는 세그먼트를 단순히 추가만한다. delete.set파일은 이미 수정되어있다고 가정한다.
     public void addSegmentApplyCollection(SegmentInfo segmentInfo, File segmentDir) throws IOException, IRException {
-		//삭제문서 적용. 기존세그먼트.
-		for(SegmentReader segmentReader : segmentReaderMap.values()) {
-			segmentReader.loadDeleteSet();
-		}
+        addSegmentApplyCollection(segmentInfo, segmentDir, null);
+    }
+    public void addSegmentApplyCollection(SegmentInfo segmentInfo, File segmentDir, List<String> segmentIdList) throws IOException, IRException {
+		synchronized (applyLock) {
+            //삭제문서 적용. 기존세그먼트.
+            for (SegmentReader segmentReader : segmentReaderMap.values()) {
+                segmentReader.loadDeleteSet();
+            }
 
-		SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager);
-		// segment reader 추가.
-		// collectionContext에는 segmentInfo를 추가하지 않는다.
-		// 색인이 끝나면서 이미 context에 segmentinfo가 추가되어있는 상태이다.
-		segmentReaderMap.put(segmentReader.segmentId(), segmentReader);
-		// info.xml 파일업데이트용.
-		collectionContext.updateSegmentInfo(segmentReader.segmentInfo());
+            //삭제할 세그먼트가 있다면 제거한다.
+            //FIXME 설정파일은 어떻게 하고?
+            if(segmentIdList != null) {
+                Iterator<String> iter = segmentIdList.iterator();
+                while(iter.hasNext()) {
+                    String segmentId = iter.next();
+                    if(segmentIdList.contains(segmentId)) {
+                        iter.remove();
+                        collectionContext.removeSegmentInfo(segmentId);
+                    }
+                }
+            }
+
+            for (SegmentReader segmentReader : segmentReaderMap.values()) {
+                segmentReader.loadDeleteSet();
+            }
+
+            SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager);
+            // segment reader 추가.
+            // collectionContext에는 segmentInfo를 추가하지 않는다.
+            // 색인이 끝나면서 이미 context에 segmentinfo가 추가되어있는 상태이다.
+            segmentReaderMap.put(segmentReader.segmentId(), segmentReader);
+            // info.xml 파일업데이트용.
+            collectionContext.updateSegmentInfo(segmentReader.segmentInfo());
+        }
 	}
 
 	public int segmentSize() {

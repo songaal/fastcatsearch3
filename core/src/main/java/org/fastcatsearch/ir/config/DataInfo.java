@@ -9,6 +9,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -82,6 +83,16 @@ public class DataInfo {
 		}
 	}
 
+    public void removeSegmentInfo(String segmentId) {
+        Iterator<SegmentInfo> iter = segmentInfoList.iterator();
+        while(iter.hasNext()) {
+            SegmentInfo si = iter.next();
+            if(si.getId().equals(segmentId)) {
+                iter.remove();
+            }
+        }
+    }
+
 	@XmlAttribute
 	public int getDocuments() {
 		return documents;
@@ -122,10 +133,6 @@ public class DataInfo {
 
 	public int getSegmentSize() {
 		return segmentInfoList.size();
-	}
-
-	public int getLastSegmentNumber() {
-		return segmentInfoList.size() - 1;
 	}
 
 	public SegmentInfo getLastSegmentInfo() {

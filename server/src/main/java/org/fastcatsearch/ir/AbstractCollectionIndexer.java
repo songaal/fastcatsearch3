@@ -60,7 +60,11 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
 	protected IndexWritable createIndexWriter(Schema schema, File segmentDir, SegmentInfo segmentInfo, IndexConfig indexConfig) throws IRException {
 		return new SegmentWriter(schema, segmentDir, segmentInfo, indexConfig, analyzerPoolManager, selectedIndexList);
 	}
-	
+
+    public SegmentInfo getSegmentInfo() {
+        return workingSegmentInfo;
+    }
+
 	public void init(Schema schema) throws IRException {
 
 		prepare();

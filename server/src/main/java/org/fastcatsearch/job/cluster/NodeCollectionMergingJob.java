@@ -142,51 +142,20 @@ public class NodeCollectionMergingJob extends Job implements Streamable {
 
                 //TODO mergeIdList 를 제거하고, 새로운 segment를 추가.
 
-                collectionHandler.addSegmentApplyCollection(segmentInfo, segmentDir);
+                //TODO
+                //삭제처리는 세그먼트를 apply할때 발생하므로,
+                //머징중 새로운세그먼트가 붙여질수 있으므로,
+                //머징이 끝나고 붙이기 직전 해당 세그먼트에 삭제문서가 추가되었는지 확인하여
+                //머징세그먼트에 삭제처리를 추가로 수행한다.
+                collectionHandler.addSegmentApplyCollection(mergeIndexer.getSegmentInfo(), mergeIndexer.getSegmentDir());
 
                 //TODO mergeIdList 를 제거 및 교체 메소드를 구현한다.
                 //collectionHandler.replaceSegmentApplyCollection(segmentInfo, segmentDir, mergeIdList);
 
-
+                CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
             } else {
                 //머징없음.
             }
-            //TODO
-            //삭제처리는 세그먼트를 apply할때 발생하므로,
-            //머징중 새로운세그먼트가 붙여질수 있으므로,
-            //머징이 끝나고 붙이기 직전 해당 세그먼트에 삭제문서가 추가되었는지 확인하여
-            //머징세그먼트에 삭제처리를 추가로 수행한다.
-
-
-            DataInfo.SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
-
-            File segmentDir = collectionContext.dataFilePaths().segmentFile(collectionContext.getIndexSequence(), segmentInfo.getId());
-//			int revision = segmentInfo.getRevision();
-//			File revisionDir = new File(segmentDir, Integer.toString(revision));
-
-//			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
-//			boolean revisionAppended = revisionInfo.getId() > 0;
-            boolean revisionHasInserts = segmentInfo.getInsertCount() > 0;
-            logger.debug("머징 실행! segmentInfo={}, hasInserts={}", segmentInfo, revisionHasInserts);
-
-            // sync파일을 append해준다.
-//			if(revisionAppended){
-//				if(revisionHasInserts){
-//					logger.debug("revision이 추가되어, mirror file 적용!");
-//					File mirrorSyncFile = new File(revisionDir, IndexFileNames.mirrorSync);
-//					new MirrorSynchronizer().applyMirrorSyncFile(mirrorSyncFile, revisionDir);
-//				}
-//			}
-
-            CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
-
-//			if(revisionAppended){
-//				logger.debug("revision이 추가되어, 세그먼트를 업데이트합니다.{}", segmentInfo);
-//				collectionHandler.updateSegmentApplyCollection(segmentInfo, segmentDir);
-//			}else{
-            logger.debug("segment가 추가되어, 추가 및 적용합니다.{}", segmentInfo);
-            collectionHandler.addSegmentApplyCollection(segmentInfo, segmentDir);
-//			}
 
 			/*
 			 * 캐시 클리어.
