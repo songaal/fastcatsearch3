@@ -208,14 +208,14 @@ public class CollectionHandler {
 			prevPkReaderList.add(new PrimaryKeyIndexReader(dir, IndexFileNames.primaryKeyMap));
 			prevDeleteSetList.add(new BitSet(dir, IndexFileNames.docDeleteSet));
 		}
-		// 1. applyPrimaryKeyToPrevSegments
-		// 신규 segment의 pk를 이전 segment의 pk와 비교하면서, 동일하면 삭제표시 한다.
-		// pk끼리 비교하면서 중복된 것은 deleteSet에 넣준다.
-		if (segmentReaderList.size() > 0) {
-			File pkFile = new File(segmentDir, IndexFileNames.primaryKeyMap);
-			int updateDocumentCount = applyPrimaryKeyToPrevSegment(pkFile, prevPkReaderList, prevDeleteSetList);
-			updateAndDelete[0] = updateDocumentCount;
-		}
+//		// 1. applyPrimaryKeyToPrevSegments
+//		// 신규 segment의 pk를 이전 segment의 pk와 비교하면서, 동일하면 삭제표시 한다.
+//		// pk끼리 비교하면서 중복된 것은 deleteSet에 넣준다.
+//		if (segmentReaderList.size() > 0) {
+//			File pkFile = new File(segmentDir, IndexFileNames.primaryKeyMap);
+//			int updateDocumentCount = applyPrimaryKeyToPrevSegment(pkFile, prevPkReaderList, prevDeleteSetList);
+//			updateAndDelete[0] = updateDocumentCount;
+//		}
 
 		// 2. applyDeleteIdSetToPrevSegments
 		// 색인시 수집된 deleteIdSet을 적용한다. 현재 세그먼트.revision과 이전 세그먼트에 모두적용.
@@ -345,38 +345,55 @@ public class CollectionHandler {
     /*
     * mergeIdList 를 제거하고, 새로운 segment를 추가.
     * 삭제처리는 세그먼트를 apply할때 발생하므로,
-    *  머징중 새로운세그먼트가 붙여질수 있으므로,
-    *  머징이 끝나고 붙이기 직전 해당 세그먼트에 삭제문서가 추가되었는지 확인하여
-    *  머징세그먼트에 삭제처리를 추가로 수행한다.
+    * 머징중 새로운세그먼트가 붙여질수 있으므로,
+    * 머징이 끝나고 붙이기 직전 해당 세그먼트에 삭제문서가 추가되었는지 확인하여
+    * 머징세그먼트에 삭제처리를 추가로 수행한다.
     * */
     private Object applyLock = new Object();
-    public void addSegmentApplyCollection(SegmentInfo segmentInfo, File segmentDir, List<String> segmentIdList) throws IOException, IRException {
+    public void addSegmentApplyCollection(SegmentInfo segmentInfo, File segmentDir, List<String> segmentIdRemoveList) throws IOException, IRException {
         /*
          * 머징과 증분색인이 동시에 추가될 수 있기 때문에 동기화 시킨다.
          */
 		synchronized (applyLock) {
-            //삭제문서 적용. 기존세그먼트.
+            /*
+             * TODO 1. 새로 만들어진 segment의 pk를 기존세그먼트들의 pk와 비교(머징대상은 제외)하여 delete 파일을 업데이트 해준다.
+             * applyPrimaryKeyToPrevSegment 참조.
+             */
+
+
+
+
+
+
+
+
+
+            /*
+            * 2. 수정된 delete 파일을 재로딩한다.
+            * */
             for (SegmentReader segmentReader : segmentReaderMap.values()) {
                 segmentReader.loadDeleteSet();
             }
 
-            //삭제할 세그먼트가 있다면 제거한다.
-            //FIXME 설정파일은 어떻게 하고?
-            if(segmentIdList != null) {
-                Iterator<String> iter = segmentIdList.iterator();
-                while(iter.hasNext()) {
-                    String segmentId = iter.next();
-                    if(segmentIdList.contains(segmentId)) {
-                        iter.remove();
-                        collectionContext.removeSegmentInfo(segmentId);
+            /*
+            * 3. 삭제할 세그먼트가 있다면 제거한다.
+            * */
+            if(segmentIdRemoveList != null) {
+                for(String removeSegmentId : segmentIdRemoveList) {
+                    SegmentReader segmentReader = segmentReaderMap.remove(removeSegmentId);
+                    if(segmentReader != null) {
+                        //설정파일도 수정한다.
+                        collectionContext.removeSegmentInfo(removeSegmentId);
                     }
+                    //TODO 레퍼런스가 없으면 닫도록 closeFuture를 구현한다.
+                    segmentReader.close();
+                    //segmentReader.closeFuture();
                 }
             }
 
-            for (SegmentReader segmentReader : segmentReaderMap.values()) {
-                segmentReader.loadDeleteSet();
-            }
-
+            /*
+             * 4. 머징완료된 신규세그먼트를 추가해준다.
+             * */
             SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager);
             // segment reader 추가.
             // collectionContext에는 segmentInfo를 추가하지 않는다.

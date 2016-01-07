@@ -18,6 +18,7 @@ import org.fastcatsearch.util.FilePaths;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * 컬렉션의 세그먼트 머징을 수행하는 indexer.
@@ -29,13 +30,17 @@ public class CollectionMergeIndexer extends AbstractCollectionIndexer {
     private File[] segmentDirs;
     private File segmentDir;
 
-	public CollectionMergeIndexer(CollectionHandler collectionHandler, File... segmentDirs) throws IRException {
+    private List<String> mergeSegmentIdList;
+
+	public CollectionMergeIndexer(CollectionHandler collectionHandler, File[] segmentDirs, List<String> mergeSegmentIdList) throws IRException {
 		super(collectionHandler.collectionContext(), collectionHandler.analyzerPoolManager());
 		this.collectionHandler = collectionHandler;
 		this.segmentDirs = segmentDirs;
-		//증분색인시는 현재 스키마를 그대로 사용한다.
+        this.mergeSegmentIdList = mergeSegmentIdList;
+		//머징색인시는 현재 스키마를 그대로 사용한다.
         init(collectionContext.schema());
 	}
+
 	public File getSegmentDir() {
         return segmentDir;
     }
@@ -91,7 +96,7 @@ public class CollectionMergeIndexer extends AbstractCollectionIndexer {
                     throw new IndexingStopException(collectionContext.collectionId() + " Merging is canceled due to no documents.");
                 }
 
-                collectionHandler.updateCollection(collectionContext, segmentInfo, segmentDir, deleteIdSet);
+                collectionHandler.addSegmentApplyCollection(segmentInfo, segmentDir, mergeSegmentIdList);
 
                 //status.xml 업데이트
                 collectionContext.updateCollectionStatus(IndexingType.ADD, segmentInfo, startTime, System.currentTimeMillis());

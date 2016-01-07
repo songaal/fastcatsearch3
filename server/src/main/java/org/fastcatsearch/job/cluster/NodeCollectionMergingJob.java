@@ -76,46 +76,46 @@ public class NodeCollectionMergingJob extends Job implements Streamable {
             }
 
             // 머징시 하위 구간을 모두 포함한다.
-            List<String> mergeIdList = new ArrayList<String>();
+            List<String> mergeSegmentIdList = new ArrayList<String>();
             if(mergeOver10M.size() >= 2) {
-                mergeIdList.addAll(mergeOver10M);
-                mergeIdList.addAll(merge10M);
-                mergeIdList.addAll(merge1M);
-                mergeIdList.addAll(merge100K);
-                mergeIdList.addAll(merge10K);
-                mergeIdList.addAll(merge100);
+                mergeSegmentIdList.addAll(mergeOver10M);
+                mergeSegmentIdList.addAll(merge10M);
+                mergeSegmentIdList.addAll(merge1M);
+                mergeSegmentIdList.addAll(merge100K);
+                mergeSegmentIdList.addAll(merge10K);
+                mergeSegmentIdList.addAll(merge100);
             } else if(merge10M.size() >= 2) {
-                mergeIdList.addAll(merge10M);
-                mergeIdList.addAll(merge1M);
-                mergeIdList.addAll(merge100K);
-                mergeIdList.addAll(merge10K);
-                mergeIdList.addAll(merge100);
+                mergeSegmentIdList.addAll(merge10M);
+                mergeSegmentIdList.addAll(merge1M);
+                mergeSegmentIdList.addAll(merge100K);
+                mergeSegmentIdList.addAll(merge10K);
+                mergeSegmentIdList.addAll(merge100);
             } else if(merge1M.size() >= 2) {
-                mergeIdList.addAll(merge1M);
-                mergeIdList.addAll(merge100K);
-                mergeIdList.addAll(merge10K);
-                mergeIdList.addAll(merge100);
+                mergeSegmentIdList.addAll(merge1M);
+                mergeSegmentIdList.addAll(merge100K);
+                mergeSegmentIdList.addAll(merge10K);
+                mergeSegmentIdList.addAll(merge100);
             } else if(merge100K.size() >= 2) {
-                mergeIdList.addAll(merge100K);
-                mergeIdList.addAll(merge10K);
-                mergeIdList.addAll(merge100);
+                mergeSegmentIdList.addAll(merge100K);
+                mergeSegmentIdList.addAll(merge10K);
+                mergeSegmentIdList.addAll(merge100);
             } else if(merge10K.size() >= 2) {
-                mergeIdList.addAll(merge10K);
-                mergeIdList.addAll(merge100);
+                mergeSegmentIdList.addAll(merge10K);
+                mergeSegmentIdList.addAll(merge100);
             } else if(merge100.size() >= 2) {
-                mergeIdList.addAll(merge100);
+                mergeSegmentIdList.addAll(merge100);
             }
 
-            if(mergeIdList.size() >= 2) {
+            if(mergeSegmentIdList.size() >= 2) {
                 ///머징한다.
                 IndexingTaskState indexingTaskState = new IndexingTaskState(IndexingType.MERGE, true);
 
                 //mergeIdList 를 File[]로 변환.
-                File[] segmentDirs = new File[mergeIdList.size()];
-                for (int i = 0; i < mergeIdList.size(); i++) {
-                    segmentDirs[i] = collectionContext.indexFilePaths().segmentFile(mergeIdList.get(i));
+                File[] segmentDirs = new File[mergeSegmentIdList.size()];
+                for (int i = 0; i < mergeSegmentIdList.size(); i++) {
+                    segmentDirs[i] = collectionContext.indexFilePaths().segmentFile(mergeSegmentIdList.get(i));
                 }
-                CollectionMergeIndexer mergeIndexer = new CollectionMergeIndexer(collectionHandler, segmentDirs);
+                CollectionMergeIndexer mergeIndexer = new CollectionMergeIndexer(collectionHandler, segmentDirs, mergeSegmentIdList);
                 boolean isIndexed = false;
                 mergeIndexer.setTaskState(indexingTaskState);
                 Throwable indexingThrowable = null;
@@ -142,8 +142,6 @@ public class NodeCollectionMergingJob extends Job implements Streamable {
                     //여기서 끝낸다.
                     throw new IndexingStopException();
                 }
-
-                collectionHandler.addSegmentApplyCollection(mergeIndexer.getSegmentInfo(), mergeIndexer.getSegmentDir(), mergeIdList);
 
                 CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
             } else {
