@@ -1,6 +1,7 @@
 package org.fastcatsearch.job.cluster;
 
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.env.SettingManager;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.CollectionAddIndexer;
 import org.fastcatsearch.ir.CollectionIndexerable;
@@ -105,13 +106,15 @@ public class NodeCollectionMergingJob extends Job implements Streamable {
                 mergeIdList.addAll(merge100);
             }
 
-            if(mergeIdList.size() > 0) {
+            if(mergeIdList.size() >= 2) {
                 ///머징한다.
                 IndexingTaskState indexingTaskState = new IndexingTaskState(IndexingType.MERGE, true);
 
-                //TODO mergeIdList 를 File[]로 변환.
-
-                File[] segmentDirs = new File[0];
+                //mergeIdList 를 File[]로 변환.
+                File[] segmentDirs = new File[mergeIdList.size()];
+                for (int i = 0; i < mergeIdList.size(); i++) {
+                    segmentDirs[i] = collectionContext.indexFilePaths().segmentFile(mergeIdList.get(i));
+                }
                 CollectionMergeIndexer mergeIndexer = new CollectionMergeIndexer(collectionHandler, segmentDirs);
                 boolean isIndexed = false;
                 mergeIndexer.setTaskState(indexingTaskState);
@@ -140,17 +143,7 @@ public class NodeCollectionMergingJob extends Job implements Streamable {
                     throw new IndexingStopException();
                 }
 
-                //TODO mergeIdList 를 제거하고, 새로운 segment를 추가.
-
-                //TODO
-                //삭제처리는 세그먼트를 apply할때 발생하므로,
-                //머징중 새로운세그먼트가 붙여질수 있으므로,
-                //머징이 끝나고 붙이기 직전 해당 세그먼트에 삭제문서가 추가되었는지 확인하여
-                //머징세그먼트에 삭제처리를 추가로 수행한다.
-                collectionHandler.addSegmentApplyCollection(mergeIndexer.getSegmentInfo(), mergeIndexer.getSegmentDir());
-
-                //TODO mergeIdList 를 제거 및 교체 메소드를 구현한다.
-                //collectionHandler.replaceSegmentApplyCollection(segmentInfo, segmentDir, mergeIdList);
+                collectionHandler.addSegmentApplyCollection(mergeIndexer.getSegmentInfo(), mergeIndexer.getSegmentDir(), mergeIdList);
 
                 CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
             } else {

@@ -58,12 +58,11 @@ public class FilePaths {
 		return file(indexDirPath(dataSequence));
 	}
 
-	public File segmentFile(Object dataSequence, Object segmentId) {
-		return file(indexDirPath(dataSequence), segmentId.toString());
+	public File segmentFile(Object dataSequence, String segmentId) {
+		return file(indexDirPath(dataSequence), segmentId);
 	}
-	
-	public File revisionFile(Object dataSequence, Object segmentId, Object revisionNumber) {
-		return file(indexDirPath(dataSequence), segmentId.toString(), revisionNumber.toString());
-	}
-	
+
+    public File segmentFile(String segmentId) {
+        return file(segmentId);
+    }
 }

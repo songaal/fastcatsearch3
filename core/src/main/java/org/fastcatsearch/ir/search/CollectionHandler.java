@@ -337,17 +337,23 @@ public class CollectionHandler {
 		return updateDocumentSize;
 	}
 
-
-
-
-    private Object applyLock = new Object();
-    //TODO 동기화 시킨다.
-    // TODO 머징과 증분색인이 동시에 추가될수 있기 때문에..
     // 색인되어있는 세그먼트를 단순히 추가만한다. delete.set파일은 이미 수정되어있다고 가정한다.
     public void addSegmentApplyCollection(SegmentInfo segmentInfo, File segmentDir) throws IOException, IRException {
         addSegmentApplyCollection(segmentInfo, segmentDir, null);
     }
+
+    /*
+    * mergeIdList 를 제거하고, 새로운 segment를 추가.
+    * 삭제처리는 세그먼트를 apply할때 발생하므로,
+    *  머징중 새로운세그먼트가 붙여질수 있으므로,
+    *  머징이 끝나고 붙이기 직전 해당 세그먼트에 삭제문서가 추가되었는지 확인하여
+    *  머징세그먼트에 삭제처리를 추가로 수행한다.
+    * */
+    private Object applyLock = new Object();
     public void addSegmentApplyCollection(SegmentInfo segmentInfo, File segmentDir, List<String> segmentIdList) throws IOException, IRException {
+        /*
+         * 머징과 증분색인이 동시에 추가될 수 있기 때문에 동기화 시킨다.
+         */
 		synchronized (applyLock) {
             //삭제문서 적용. 기존세그먼트.
             for (SegmentReader segmentReader : segmentReaderMap.values()) {
