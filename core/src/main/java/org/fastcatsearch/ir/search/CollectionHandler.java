@@ -357,6 +357,10 @@ public class CollectionHandler {
 		synchronized (applyLock) {
             /*
              * TODO 1. 새로 만들어진 segment의 pk를 기존세그먼트들의 pk와 비교(머징대상은 제외)하여 delete 파일을 업데이트 해준다.
+             * TODO 머징된 세그먼트는 여러 세그먼트중 마지막 세그먼트의 붙인시간을 사용한다.
+             * TODO 세그먼트 붙인 시간을 비교하여 최근 pk로 기존 pk의 id를 delete 표시한다.
+             * TODO deleteIdSet은 차후 머징세그먼트로 적용할수 있으므로, 파일로 가지고 있기로 한다.
+             * 2,3이 머징되어 4가 된다고 할때, 1-2-3-4-5 는 문제가 없지만, 1-2-3-5-4 이면, 머징하는중에 5가 붙은 경우이다. 이 경우는 5의 pk와 deleteid를 4에 적용해야한다.
              * applyPrimaryKeyToPrevSegment 참조.
              */
 
