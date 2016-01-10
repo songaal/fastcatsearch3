@@ -71,16 +71,21 @@ public class HttpServiceController {
 			contenType = Type.json;
 		}
 		
-		HttpAction actionObj = actionMap.get(standardURI);
-		if(actionObj == null) {
-			return null;
-		}
 		String method = request.getMethod().getName().toUpperCase();
-		ActionMethod actionMethod = ActionMethod.valueOf(method);
-		if(!actionObj.isMethod(actionMethod)){
+
+        /*
+        * 메소드를 앞에 붙여서 찾는다.
+        * */
+        HttpAction actionObj = actionMap.get(method + " " + standardURI);
+        if(actionObj == null) {
+            return null;
+        }
+
+//		ActionMethod actionMethod = ActionMethod.valueOf(method);
+//		if(!actionObj.isMethod(actionMethod)){
 			//허용 method가 아니면 null
-			return null;
-		}
+//			return null;
+//		}
 		ActionResponse actionResponse = new ActionResponse(httpChannel);
 		HttpSession httpSession = null;
 		if(actionObj instanceof AuthAction || actionObj instanceof LoginAction){

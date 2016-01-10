@@ -61,6 +61,9 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 
 	private void scanActions(Map<String, HttpAction> actionMap, String[] actionBasePackageList) {
 		for (String actionBasePackage : actionBasePackageList) {
+            logger.info("======================================================");
+            logger.info("======= Scan Action {} =========", actionBasePackage);
+            logger.info("======================================================");
 			scanActions(actionMap, actionBasePackage);
 		}
 	}
@@ -119,13 +122,23 @@ public class HttpRequestService extends AbstractService implements HttpServerAda
 							if (actionObj instanceof AuthAction) {
 								AuthAction authAction = (AuthAction) actionObj;
 								authAction.setAuthority(actionMapping.authority(), actionMapping.authorityLevel());
-								 logger.debug("ACTION path={}, action={}, method={}, authority={}, authorityLevel={}", path, actionObj, method, actionMapping.authority(),
-										 actionMapping.authorityLevel());
-							}else{
-								 logger.debug("ACTION path={}, action={}, method={}", path, actionObj, method);	
 							}
 
-							actionMap.put(path, actionObj);
+                            for(ActionMethod actionMethod : method) {
+                                /*
+                                * path 앞에 Method를 붙여준다.
+                                * */
+                                String actionPath = actionMethod.name().toUpperCase() + " " + path;
+                                if(actionMap.containsKey(actionPath)) {
+                                    continue;
+                                }
+                                actionMap.put(actionPath, actionObj);
+                                if (actionObj instanceof AuthAction) {
+                                    logger.debug("Register {}, action={}, authority={}, authorityLevel={}", actionPath, actionObj, actionMapping.authority(), actionMapping.authorityLevel());
+                                } else {
+                                    logger.debug("Register {}, action={}", actionPath, actionObj);
+                                }
+                            }
 
 						}
 

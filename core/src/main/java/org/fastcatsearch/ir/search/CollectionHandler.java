@@ -12,6 +12,7 @@ import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexBulkReader;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexReader;
 import org.fastcatsearch.ir.index.DeleteIdSet;
+import org.fastcatsearch.ir.index.DynamicIndexer;
 import org.fastcatsearch.ir.index.PrimaryKeys;
 import org.fastcatsearch.ir.index.SegmentIdGenerator;
 import org.fastcatsearch.ir.io.BitSet;
@@ -47,6 +48,8 @@ public class CollectionHandler {
 
     private SegmentIdGenerator segmentIdGenerator = new SegmentIdGenerator();
 
+    private DynamicIndexer dynamicIndexer;
+
 	public CollectionHandler(CollectionContext collectionContext, AnalyzerFactoryManager analyzerFactoryManager) throws IRException, SettingException {
 		this.collectionContext = collectionContext;
 		this.collectionId = collectionContext.collectionId();
@@ -64,6 +67,10 @@ public class CollectionHandler {
 		logger.info("Collection[{}] Loaded! {}", collectionId, collectionFilePaths.file().getAbsolutePath());
 		return this;
 	}
+
+    public DynamicIndexer dynamicIndexer() {
+        return dynamicIndexer;
+    }
 
 	@Deprecated
 	public void setAnalyzerPoolManager(AnalyzerPoolManager analyzerPoolManager) {

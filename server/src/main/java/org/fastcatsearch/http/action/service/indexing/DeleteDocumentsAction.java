@@ -1,5 +1,6 @@
 package org.fastcatsearch.http.action.service.indexing;
 
+import org.fastcatsearch.datasource.reader.JSONListFileReader;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.ActionMethod;
 import org.fastcatsearch.http.action.ActionException;
@@ -8,25 +9,23 @@ import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.ServiceAction;
 import org.fastcatsearch.ir.CollectionAddIndexer;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.IndexingScheduleConfig;
 import org.fastcatsearch.ir.document.Document;
+import org.fastcatsearch.ir.index.DynamicIndexer;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.SettingFileNames;
-import org.fastcatsearch.util.JAXBConfigs;
 import org.fastcatsearch.util.ResponseWriter;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
-import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Rest API를 통해 문서를 증분색인한다.
+ * Rest API를 통해 문서를 삭제한다.
  *
  * */
-@ActionMapping(value = "/service/indexing/documents", method = { ActionMethod.POST })
-public class AddDocumentsAction extends ServiceAction {
+@ActionMapping(value = "/service/index", method = { ActionMethod.DELETE })
+public class DeleteDocumentsAction extends ServiceAction {
 	@Override
 	public void doAction(ActionRequest request, ActionResponse response) throws Exception {
 
@@ -41,19 +40,16 @@ public class AddDocumentsAction extends ServiceAction {
         IRService irService = ServiceManager.getInstance().getService(IRService.class);
         CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
         if (collectionHandler != null) {
-            List<Document> documents = null;
-
-            //TOOD request의 json을 document로 바꾼다.
-
-            CollectionAddIndexer addIndexer = new CollectionAddIndexer(collectionHandler);
+            List<HashMap<String, Object>> jsonList = new JSONRequestReader().readJsonList(requestBody);
+            DynamicIndexer dynamicIndexer = collectionHandler.dynamicIndexer();
             try {
-                for (Document document : documents) {
-                    addIndexer.addDocument(document);
+                for (Map<String, Object> document : jsonList) {
+                    dynamicIndexer.deleteDocument(document);
                 }
             } catch (Exception e) {
                 logger.error("", e);
             } finally {
-                addIndexer.close();
+                dynamicIndexer.finish();
             }
 
             boolean result = false;

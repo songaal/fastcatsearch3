@@ -45,7 +45,7 @@ public class ActionRequest {
 				long len = HttpHeaders.getContentLength(request);
 				ChannelBuffer buffer = request.getContent();
 				requestBody = new String(buffer.toByteBuffer().array(), 0, (int) len);
-                if(!contentType.startsWith("text/plain")) {
+                if(contentType == null || !contentType.startsWith("text/plain")) {
                     if (requestBody != null) {
                         parse(requestBody);
                     }
