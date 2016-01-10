@@ -64,6 +64,7 @@ public class CollectionHandler {
 		this.collectionSearcher = new CollectionSearcher(this);
 		startedTime = System.currentTimeMillis();
 		isLoaded = true;
+        dynamicIndexer = new DynamicIndexer(this);
 		logger.info("Collection[{}] Loaded! {}", collectionId, collectionFilePaths.file().getAbsolutePath());
 		return this;
 	}
