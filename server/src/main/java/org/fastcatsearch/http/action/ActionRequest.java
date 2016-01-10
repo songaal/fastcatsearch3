@@ -19,21 +19,37 @@ public class ActionRequest {
 	private String uri;
 	private String queryString;
 	private Map<String, String> parameterMap;
+    private String requestBody;
 
 	public ActionRequest(String uri, HttpRequest request) {
 		this.uri = uri;
 		this.request = request;
-
+        String contentType = request.getHeader("Content-Type");
 		if (request != null) {
+            parameterMap = new HashMap<String, String>();
 			if (request.getMethod() == HttpMethod.GET) {
 				// logger.debug("URI:{} , {}, {}", request.getUri(), request.getUri().length(), uri.length());
 				if (request.getUri().length() > uri.length()) {
 					queryString = request.getUri().substring(uri.length() + 1); // 맨앞의 ?를 제거하기 위해 +1
+                    if (queryString != null) {
+                        parse();
+                    }
 				}
 			} else if (request.getMethod() == HttpMethod.POST) {
+                if (request.getUri().length() > uri.length()) {
+                    queryString = request.getUri().substring(uri.length() + 1); // 맨앞의 ?를 제거하기 위해 +1
+                    if (queryString != null) {
+                        parse();
+                    }
+                }
 				long len = HttpHeaders.getContentLength(request);
 				ChannelBuffer buffer = request.getContent();
-				queryString = new String(buffer.toByteBuffer().array(), 0, (int) len);
+				requestBody = new String(buffer.toByteBuffer().array(), 0, (int) len);
+                if(!contentType.startsWith("text/plain")) {
+                    if (requestBody != null) {
+                        parse(requestBody);
+                    }
+                }
 			} else {
 
 			}
@@ -44,13 +60,17 @@ public class ActionRequest {
 				}
 				logger.debug("action {}, param={}", uri, debugQueryString);
 			}
-	
-			parameterMap = new HashMap<String, String>();
-			if (queryString != null) {
-				parse();
-			}
+
+//            parameterMap = new HashMap<String, String>();
+//			if (queryString != null) {
+//				parse();
+//			}
 		}
 	}
+
+    public String getRequestBody() {
+        return requestBody;
+    }
 
 	public boolean isMethodGet() {
 		return request.getMethod() == HttpMethod.GET;
@@ -126,10 +146,14 @@ public class ActionRequest {
 	}
 
 	private void parse() {
-		parse(DEFAULT_CHARSET);
+		parse(queryString, DEFAULT_CHARSET);
 	}
 
-	private void parse(String charset) {
+    private void parse(String queryString) {
+        parse(queryString, DEFAULT_CHARSET);
+    }
+
+	private void parse(String queryString, String charset) {
 		for (String pair : queryString.split("&")) {
 			int eq = pair.indexOf("=");
 			if (eq < 0) {
