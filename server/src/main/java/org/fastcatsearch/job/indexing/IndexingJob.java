@@ -35,10 +35,9 @@ public abstract class IndexingJob extends Job implements Streamable {
 	protected IndexingType indexingType;
 	protected String indexingStep;
 
-	private ProcessLoggerService processLoggerService;
-	private NotificationService notificationService;
-
-	private TaskStateService taskStateService;
+    protected ProcessLoggerService processLoggerService;
+    protected NotificationService notificationService;
+    protected TaskStateService taskStateService;
 
 	protected IndexingTaskState indexingTaskState;
 	private long indexingStartTime;
