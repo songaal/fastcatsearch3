@@ -3,6 +3,8 @@ package org.fastcatsearch.http.action.service.indexing;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,6 +17,8 @@ import java.util.List;
  * Created by swsong on 2016. 1. 10..
  */
 public class JSONRequestReader {
+
+    private static Logger logger = LoggerFactory.getLogger(JSONRequestReader.class);
 
     public JSONRequestReader() { }
 
@@ -35,7 +39,11 @@ public class JSONRequestReader {
             ObjectMapper mapper = new ObjectMapper(jsonFactory);
             TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
             };
-            result.add(mapper.<HashMap<String, Object>>readValue(line, typeRef));
+            try {
+                result.add(mapper.<HashMap<String, Object>>readValue(line, typeRef));
+            }catch(Exception e) {
+                logger.error("error while convert text to json : " + line, e);
+            }
         }
         return result;
     }
