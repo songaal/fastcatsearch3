@@ -18,11 +18,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Rest API를 통해 문서를 삭제한다.
+ * Rest API를 통해 문서를 증분색인한다.
  *
  * */
-@ActionMapping(value = "/service/index", method = { ActionMethod.DELETE })
-public class DeleteDocumentsAction extends ServiceAction {
+@ActionMapping(value = "/service/index", method = { ActionMethod.PUT })
+public class UpdateDocumentsAction extends ServiceAction {
 	@Override
 	public void doAction(ActionRequest request, ActionResponse response) throws Exception {
 
@@ -41,7 +41,7 @@ public class DeleteDocumentsAction extends ServiceAction {
             DynamicIndexer dynamicIndexer = collectionHandler.dynamicIndexer();
             try {
                 for (Map<String, Object> document : jsonList) {
-                    dynamicIndexer.deleteDocument(document);
+                    dynamicIndexer.updateDocument(document);
                 }
             } catch (Exception e) {
                 logger.error("", e);
