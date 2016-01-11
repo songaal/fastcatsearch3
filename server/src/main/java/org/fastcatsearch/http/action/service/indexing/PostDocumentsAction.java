@@ -1,21 +1,17 @@
 package org.fastcatsearch.http.action.service.indexing;
 
+import org.fastcatsearch.control.JobService;
+import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.ActionMethod;
-import org.fastcatsearch.http.action.ActionException;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.ServiceAction;
-import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.index.DynamicIndexer;
-import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.job.indexing.MasterCollectionPostDocumentJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.Writer;
 
 /**
  * Rest API를 통해 문서를 증분색인한다.
@@ -27,43 +23,31 @@ public class PostDocumentsAction extends ServiceAction {
 	public void doAction(ActionRequest request, ActionResponse response) throws Exception {
 
         String collectionId = request.getParameter("collectionId");
-
         String requestBody = request.getRequestBody();
+        JobService jobService = ServiceManager.getInstance().getService(JobService.class);
 
-        if(collectionId == null) {
-            throw new ActionException("Collection id is empty.");
+        MasterCollectionPostDocumentJob masterCollectionPostDocumentJob = new MasterCollectionPostDocumentJob();
+        masterCollectionPostDocumentJob.setArgs(new String[]{collectionId, requestBody});
+
+        ResultFuture jobResult = jobService.offer(masterCollectionPostDocumentJob);
+        Object result = null;
+        if(jobResult != null) {
+            result = jobResult.take();
         }
 
-        IRService irService = ServiceManager.getInstance().getService(IRService.class);
-        CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
-        if (collectionHandler != null) {
-            List<HashMap<String, Object>> jsonList = new JSONRequestReader().readJsonList(requestBody);
-            DynamicIndexer dynamicIndexer = collectionHandler.dynamicIndexer();
-            try {
-                for (Map<String, Object> document : jsonList) {
-                    dynamicIndexer.addDocument(document);
-                }
-            } catch (Exception e) {
-                logger.error("", e);
-            } finally {
-                dynamicIndexer.finish();
-            }
+        Writer writer = response.getWriter();
+        ResponseWriter resultWriter = getDefaultResponseWriter(writer);
+        resultWriter
+                .object()
+                .key("collectionId").value(collectionId);
 
-            boolean result = false;
-
-            writeHeader(response);
-            response.setStatus(HttpResponseStatus.OK);
-            ResponseWriter resultWriter = getDefaultResponseWriter(response.getWriter());
-            resultWriter.object().key(collectionId).value(result).endObject();
-            resultWriter.done();
-        } else {
-            //컬렉션 없음.
-            response.setStatus(HttpResponseStatus.NOT_FOUND);
-            writeHeader(response);
-            ResponseWriter resultWriter = getDefaultResponseWriter(response.getWriter());
-            resultWriter.object().key(collectionId).value(false).endObject();
-            resultWriter.done();
+        if(result != null){
+            resultWriter.key("status").value("0");
+        }else{
+            resultWriter.key("status").value("1");
         }
+        resultWriter.endObject();
+        resultWriter.done();
 	}
 
 }

@@ -22,13 +22,14 @@ public class DocumentMerger {
 
     private IndexOutput docOutput;
     private IndexOutput positionOutput;
-
+    private PrimaryKeyIndexWriter primaryKeyIndexWriter;
     private int readerSize;
     private DocumentRawReader[] reader;
 
     public DocumentMerger(File dir) throws IOException {
         docOutput = new BufferedFileOutput(dir, IndexFileNames.docStored);
         positionOutput = new BufferedFileOutput(dir, IndexFileNames.docPosition);
+        primaryKeyIndexWriter = new PrimaryKeyIndexWriter()
     }
 
     public void merge(File... dirs) throws IOException {
