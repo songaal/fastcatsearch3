@@ -19,6 +19,7 @@ public class LimitTimeSizeLogger {
 	private List<String> memoryData;
     private Timer flushTimer;
     private long lastFlushTime;
+    private Queue<File> fileQueue;
 
 	public LimitTimeSizeLogger(File dir, int bufferSize, int flushDelay) {
 		this(dir, bufferSize, "utf-8", flushDelay);
@@ -35,12 +36,21 @@ public class LimitTimeSizeLogger {
 		if (!dir.exists()) {
 			dir.mkdirs();
 		}
+        fileQueue = new ArrayDeque<File>();
 	}
 
     public void close() {
-        flush();
         flushTimer.cancel();
+        flush();
     }
+
+    public File pollFile() {
+        return fileQueue.poll();
+    }
+    public int fileCount() {
+        return fileQueue.size();
+    }
+
 	public int size() {
 		return memoryData.size();
 	}
@@ -70,8 +80,11 @@ public class LimitTimeSizeLogger {
 		}
 		
 		Writer writer = null;
+        File file = null;
+        Exception ex = null;
 		try {
 			// append로 연다.
+            file = newFile();
 			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(newFile(), false), encoding));
 //			logger.debug("flush data > {} : {}", oldData, file.getAbsolutePath());
 			for (String data : memoryData) {
@@ -81,8 +94,10 @@ public class LimitTimeSizeLogger {
             this.memoryData = newMemoryData();
 		} catch (UnsupportedEncodingException e) {
 			logger.error("", e);
+            ex = e;
 		} catch (IOException e) {
 			logger.error("", e);
+            ex = e;
 		} finally {
 			if (writer != null) {
 				try {
@@ -91,6 +106,9 @@ public class LimitTimeSizeLogger {
 				}
 			}
             lastFlushTime = System.nanoTime();
+            if(ex == null && file != null) {
+                fileQueue.offer(file);
+            }
 		}
 	}
 
