@@ -36,7 +36,7 @@ public class DynamicIndexModule extends AbstractModule {
             File file = dataLogger.pollFile();
             //TODO file 을 증분색인하도록 요청한다.
             logger.debug("Found file to be indexed > {}", file.getAbsolutePath());
-            
+
         }
 
     }

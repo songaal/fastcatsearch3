@@ -608,6 +608,6 @@ public class IRService extends AbstractService {
 	}
 
     public DynamicIndexModule getDynamicIndexModule(String collectionId) {
-
+        return dynamicIndexModuleMap.get(collectionId);
     }
 }
