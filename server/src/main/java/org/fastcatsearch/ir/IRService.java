@@ -72,6 +72,7 @@ import org.fastcatsearch.util.JAXBConfigs;
 public class IRService extends AbstractService {
 
 	private Map<String, CollectionHandler> collectionHandlerMap;
+    private Map<String, DynamicIndexModule> dynamicIndexModuleMap;
 
 	// TODO 캐시방식을 변경하자.
 	private QueryCacheModule<String, Result> searchCache;
@@ -191,6 +192,7 @@ public class IRService extends AbstractService {
 			throw new FastcatSearchException("ERR-00320");
 		}
 
+        dynamicIndexModuleMap = new HashMap<String, DynamicIndexModule>();
 		return true;
 	}
 	
@@ -245,7 +247,12 @@ public class IRService extends AbstractService {
 					throw new IRException(e);
 				}
 			}
-			
+
+            //FIXME 셋팅으로.
+            int bulkSize = 10000;
+            DynamicIndexModule dynamicIndexModule = new DynamicIndexModule(environment, settings, collectionId, bulkSize);
+            dynamicIndexModuleMap.put(collectionId, dynamicIndexModule);
+
 			return collectionHandler;
 			
 		} catch(IRException e) {
@@ -599,4 +606,8 @@ public class IRService extends AbstractService {
 	public void updateSearchPageSettings(SearchPageSettings searchPageSettings){
 		this.searchPageSettings = searchPageSettings;
 	}
+
+    public DynamicIndexModule getDynamicIndexModule(String collectionId) {
+
+    }
 }

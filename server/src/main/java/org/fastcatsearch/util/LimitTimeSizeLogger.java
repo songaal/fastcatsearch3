@@ -21,8 +21,8 @@ public class LimitTimeSizeLogger {
     private long lastFlushTime;
     private Queue<File> fileQueue;
 
-	public LimitTimeSizeLogger(File dir, int bufferSize, int flushDelay) {
-		this(dir, bufferSize, "utf-8", flushDelay);
+	public LimitTimeSizeLogger(File dir, int bufferSize, int flushPeriod) {
+		this(dir, bufferSize, "utf-8", flushPeriod);
 	}
 
 	public LimitTimeSizeLogger(File dir, int bufferSize, String encoding, int flushPeriod) {

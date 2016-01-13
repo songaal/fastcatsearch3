@@ -15,6 +15,7 @@ import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.db.mapper.IndexingResultMapper.ResultStatus;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.http.action.service.indexing.JSONRequestReader;
+import org.fastcatsearch.ir.DynamicIndexModule;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
@@ -77,25 +78,13 @@ public class CollectionPostDocumentJob extends IndexingJob {
 		long startTime = System.currentTimeMillis();
 		try {
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-			
-			//find index node
-			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
-			CollectionContext collectionContext = irService.collectionContext(collectionId);
-			if(collectionContext == null) {
-				throw new FastcatSearchException("Collection [" + collectionId + "] is not exist.");
-			}
+            List<String> jsonList = new JSONRequestReader().readJsonList(documents);
 
-			List<HashMap<String, Object>> jsonList = new JSONRequestReader().readJsonList(documents);
-			DynamicIndexer dynamicIndexer = collectionHandler.dynamicIndexer();
-			try {
-				for (Map<String, Object> document : jsonList) {
-					dynamicIndexer.addDocument(document);
-				}
-			} catch (Exception e) {
-				logger.error("", e);
-			} finally {
-				dynamicIndexer.finish();
-			}
+            DynamicIndexModule indexModule = irService.getDynamicIndexModule(collectionId);
+            if(indexModule == null) {
+                throw new FastcatSearchException("Collection [" + collectionId + "] is not exist.");
+            }
+            indexModule.insertDocument(jsonList);
 
 			int duration = (int) (System.currentTimeMillis() - startTime);
 			
