@@ -29,7 +29,7 @@ public class DocumentMerger {
     public DocumentMerger(File dir) throws IOException {
         docOutput = new BufferedFileOutput(dir, IndexFileNames.docStored);
         positionOutput = new BufferedFileOutput(dir, IndexFileNames.docPosition);
-        primaryKeyIndexWriter = new PrimaryKeyIndexWriter()
+//        primaryKeyIndexWriter = new PrimaryKeyIndexWriter();
     }
 
     public void merge(File... dirs) throws IOException {
