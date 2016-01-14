@@ -111,6 +111,7 @@ public class IRService extends AbstractService {
 			ClusterAlertService.getInstance().alert(t);
 		}
 		collectionHandlerMap = new ConcurrentHashMap<String, CollectionHandler>();
+        dynamicIndexModuleMap = new HashMap<String, DynamicIndexModule>();
 		// collections 셋팅을 읽어온다.
 		collectionsRoot = environment.filePaths().getCollectionsRoot().file();
 
@@ -192,7 +193,6 @@ public class IRService extends AbstractService {
 			throw new FastcatSearchException("ERR-00320");
 		}
 
-        dynamicIndexModuleMap = new HashMap<String, DynamicIndexModule>();
 		return true;
 	}
 	
@@ -251,6 +251,7 @@ public class IRService extends AbstractService {
             //FIXME 셋팅으로.
             int bulkSize = 10000;
             DynamicIndexModule dynamicIndexModule = new DynamicIndexModule(environment, settings, collectionId, bulkSize);
+            dynamicIndexModule.load();
             dynamicIndexModuleMap.put(collectionId, dynamicIndexModule);
 
 			return collectionHandler;

@@ -35,7 +35,7 @@ public class ActionRequest {
                         parse();
                     }
 				}
-			} else if (request.getMethod() == HttpMethod.POST) {
+			} else if (request.getMethod() == HttpMethod.POST || request.getMethod() == HttpMethod.PUT || request.getMethod() == HttpMethod.DELETE ) {
                 if (request.getUri().length() > uri.length()) {
                     queryString = request.getUri().substring(uri.length() + 1); // 맨앞의 ?를 제거하기 위해 +1
                     if (queryString != null) {

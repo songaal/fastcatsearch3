@@ -85,7 +85,7 @@ public class LimitTimeSizeLogger {
 		try {
 			// append로 연다.
             file = newFile();
-			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(newFile(), false), encoding));
+			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false), encoding));
 //			logger.debug("flush data > {} : {}", oldData, file.getAbsolutePath());
 			for (String data : memoryData) {
 				writer.write(data);

@@ -38,7 +38,7 @@ import java.util.Map;
  *
  * JSON 문서를 각 노드에서 색인하고 적용한다.
  * */
-public class CollectionPostDocumentJob extends IndexingJob {
+public class CollectionInsertDocumentJob extends IndexingJob {
 
 	private static final long serialVersionUID = 7898036370433248984L;
 
