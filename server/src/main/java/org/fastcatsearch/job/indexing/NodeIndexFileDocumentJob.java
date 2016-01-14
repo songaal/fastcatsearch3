@@ -1,15 +1,12 @@
 package org.fastcatsearch.job.indexing;
 
 import org.fastcatsearch.common.io.Streamable;
-import org.fastcatsearch.datasource.reader.DefaultDataSourceReader;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.http.action.service.indexing.IndexDocumentsAction;
 import org.fastcatsearch.http.action.service.indexing.JSONRequestReader;
 import org.fastcatsearch.http.action.service.indexing.MapDocument;
-import org.fastcatsearch.ir.CollectionAddIndexer;
 import org.fastcatsearch.ir.CollectionDynamicIndexer;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
@@ -41,7 +38,6 @@ public class NodeIndexFileDocumentJob extends Job implements Streamable {
         try {
             IRService irService = ServiceManager.getInstance().getService(IRService.class);
             CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
-            DefaultDataSourceReader sourceReader = new DefaultDataSourceReader(collectionHandler.schema().schemaSetting());
             CollectionDynamicIndexer indexer = null;
             try {
                 indexer = new CollectionDynamicIndexer(collectionHandler);
@@ -50,14 +46,13 @@ public class NodeIndexFileDocumentJob extends Job implements Streamable {
                 for (MapDocument doc : jsonList) {
                     String type = String.valueOf(doc.getType());
                     Map<String, Object> sourceMap = doc.getsourceMap();
-                    Document document = sourceReader.createDocument(sourceMap);
 
                     if (type.equals(IndexDocumentsAction.INSERT_TYPE)) {
-                        indexer.addDocument(document);
+                        indexer.insertDocument(sourceMap);
                     } else if (type.equals(IndexDocumentsAction.UPDATE_TYPE)) {
-                        indexer.updateDocument(document);
+                        indexer.updateDocument(sourceMap);
                     } else if (type.equals(IndexDocumentsAction.DELETE_TYPE)) {
-                        indexer.deleteDocument(document);
+                        indexer.deleteDocument(sourceMap);
                     }
                 }
             } finally {

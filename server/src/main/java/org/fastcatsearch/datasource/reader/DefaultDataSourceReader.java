@@ -71,7 +71,6 @@ public class DefaultDataSourceReader extends AbstractDataSourceReader<Map<String
 					data = ((String) data).trim();
 				}
 
-
 //				logger.debug("Get {} : {}", key, data);
 				String multiValueDelimiter = fs.getMultiValueDelimiter();
 				Field f = fs.createIndexableField(data, multiValueDelimiter);

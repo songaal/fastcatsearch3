@@ -8,10 +8,7 @@ import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.document.Document;
-import org.fastcatsearch.ir.field.DocNoField;
-import org.fastcatsearch.ir.field.Field;
-import org.fastcatsearch.ir.field.ScoreField;
-import org.fastcatsearch.ir.field.UnknownField;
+import org.fastcatsearch.ir.field.*;
 import org.fastcatsearch.ir.filter.FilterException;
 import org.fastcatsearch.ir.group.GroupDataMerger;
 import org.fastcatsearch.ir.group.GroupHit;
@@ -61,6 +58,27 @@ public class CollectionSearcher {
         }
 	}
 
+    /*
+    * 결합 pk는 ;로 구분되어 있다.
+    * */
+    public Document searchPk(String pkValue) throws IOException, FieldDataParseException {
+        int segmentSize = collectionHandler.segmentSize();
+        if (segmentSize == 0) {
+            return null;
+        }
+
+        BytesDataOutput tempOutput = new BytesDataOutput();
+        //여러세그먼트에서 찾아본다.
+        for(SegmentReader segmentReader : collectionHandler.segmentReaders()) {
+            int docNo = segmentReader.newSearchIndexesReader().getPrimaryKeyIndexesReader().getDocNo(pkValue, tempOutput);
+            //삭제문서가 아니면 리턴한다.
+            if(!segmentReader.deleteSet().isSet(docNo)) {
+                return segmentReader.segmentSearcher().getDocument(docNo);
+            }
+        }
+
+        return null;
+    }
 	public GroupsData doGrouping(Query q) throws Exception {
 		
 		int segmentSize = collectionHandler.segmentSize();
