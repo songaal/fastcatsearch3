@@ -9,7 +9,7 @@ import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.ServiceAction;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.job.indexing.IndexCollectionDocumentJob;
+import org.fastcatsearch.job.indexing.IndexDocumentRequestJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
@@ -43,7 +43,7 @@ public abstract class IndexDocumentsAction extends ServiceAction {
         String indexNodeId = collectionContext.collectionConfig().getIndexNode();
         Node indexNode = nodeService.getNodeById(indexNodeId);
 
-        IndexCollectionDocumentJob indexCollectionDocumentJob = new IndexCollectionDocumentJob();
+        IndexDocumentRequestJob indexCollectionDocumentJob = new IndexDocumentRequestJob();
         String indexType = getType();
         indexCollectionDocumentJob.setArgs(new String[]{collectionId, indexType, requestBody});
         ResultFuture jobResult = nodeService.sendRequest(indexNode, indexCollectionDocumentJob);

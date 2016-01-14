@@ -14,7 +14,7 @@ import java.util.List;
  * 색인노드의 dynamicIndexModule에 문서를 기록한다.
  * 차후 indexModule에서 파일로그를 각 데이터노드에 색인요청으로 전달하게 된다.
  * */
-public class IndexCollectionDocumentJob extends Job {
+public class IndexDocumentRequestJob extends Job {
 	private static final long serialVersionUID = -9030366773507675894L;
 
 	@Override

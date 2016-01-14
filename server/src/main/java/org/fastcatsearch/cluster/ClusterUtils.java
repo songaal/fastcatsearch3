@@ -41,7 +41,7 @@ public class ClusterUtils {
 			ResultFuture resultFuture = nodeService.sendRequest(node, job);
 			if(resultFuture == null){
 				//네트워크 장애 등으로 전송실패.
-				logger.debug("{} 으로 전송하지 못햇습니다. ", nodeList.get(i));
+				logger.debug("{} 으로 전송하지 못했습니다.", nodeList.get(i));
 			}
 			resultFutureList.add(resultFuture);
 		}
@@ -49,7 +49,7 @@ public class ClusterUtils {
 			Node node = nodeList.get(i);
 			ResultFuture resultFuture = resultFutureList.get(i);
 			if(resultFuture != null){
-				Object obj = resultFuture.take();//1분안에 가져온다.
+				Object obj = resultFuture.take();
 				resultList[i] = new NodeJobResult(node, obj, resultFuture.isSuccess());
 			}else{
 				resultList[i] = new NodeJobResult(node, null, false);
