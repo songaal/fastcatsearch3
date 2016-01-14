@@ -151,6 +151,13 @@ public class PrimaryKeyIndexesWriter {
 		}
 	}
 
+    public void delete(BytesDataOutput pk) throws IOException {
+        int preDocNo = indexWriter.get(pk.array(), 0, (int) pk.position());
+        if (preDocNo >= 0) {
+            deleteSet.set(preDocNo);
+        }
+    }
+
 	public void close() throws IOException {
 		if(indexWriter != null){
 			indexWriter.close();

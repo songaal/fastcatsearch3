@@ -66,6 +66,15 @@ public class SegmentWriter extends SegmentIndexWriter implements WriteInfoLoggab
 		return docNo;
 	}
 
+    public int deleteDocument(Document document) throws IRException, IOException {
+//		 logger.debug("doc >> {}", document);
+        int docNo = documentWriter.write(document);
+        super.deleteDocument(document);
+
+        lastDocNo = docNo;
+        return docNo;
+    }
+
 	private void closeWriter() throws Exception {
 		boolean errorOccured = false;
 		Exception exception = null;

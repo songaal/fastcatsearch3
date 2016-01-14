@@ -8,6 +8,7 @@ import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexesWriter;
+import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.Formatter;
 
@@ -111,6 +112,12 @@ public class SegmentIndexWriter implements IndexWritable {
 		return docNo;
 	}
 
+    public void deleteDocument(BytesDataOutput pk) throws IOException {
+        if (primaryKeyIndexesWriter != null) {
+            primaryKeyIndexesWriter.delete(pk);
+        }
+
+    }
 	private void closeWriter() throws Exception {
 		boolean errorOccured = false;
 		Exception exception = null;

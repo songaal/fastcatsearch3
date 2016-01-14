@@ -52,7 +52,9 @@ public class CollectionDynamicIndexer {
 
     protected IndexWritable indexWriter;
     protected DataInfo.SegmentInfo workingSegmentInfo;
-    protected int count;
+    protected int insertCount;
+    protected int updateCount;
+    protected int deleteCount;
 
     protected boolean stopRequested;
 
@@ -61,6 +63,7 @@ public class CollectionDynamicIndexer {
 
     private Schema schema;
     private List<String> pkList;
+    private CollectionSearcher collectionSearcher;
 
     public CollectionDynamicIndexer(CollectionHandler collectionHandler) throws IRException {
         this.collectionContext = collectionHandler.collectionContext();
@@ -116,15 +119,13 @@ public class CollectionDynamicIndexer {
     public void insertDocument(Map<String, Object> source) throws IRException, IOException {
         Document document = documentFactory.createDocument(source);
         indexWriter.addDocument(document);
-        count++;
+        insertCount++;
         logger.debug("Insert doc > {}", source);
     }
 
     public void updateDocument(Map<String, Object> source) throws IRException, IOException {
 
         //1. pk를 뽑아내어 내부검색으로 이전 문서를 가져온다.
-        CollectionSearcher collectionSearcher = null;
-
         StringBuffer pkSb = new StringBuffer();
         for(String pkId : pkList) {
             Object o = source.get(pkId);
@@ -138,6 +139,9 @@ public class CollectionDynamicIndexer {
             }
         }
         String pkValue = pkSb.toString();
+        if(collectionSearcher == null) {
+            collectionSearcher = new CollectionSearcher(collectionHandler);
+        }
         Document document = collectionSearcher.searchPk(pkValue);
 
         //2. 들어온 문서에서 각 필드를 업데이트 한다.
@@ -166,7 +170,7 @@ public class CollectionDynamicIndexer {
         }
 
         indexWriter.addDocument(document);
-        count++;
+        updateCount++;
 
         logger.debug("Update {} doc > {}", pkValue, source);
 
@@ -174,8 +178,26 @@ public class CollectionDynamicIndexer {
     public void deleteDocument(Map<String, Object> source) throws IRException, IOException {
 
         //TODO 1. PK만 뽑아내어 현재 들어온 문서중에서 삭제후보가 있는지 찾아 현재 delete.set에 넣어준다.
+        //1. pk를 뽑아내어 내부검색으로 이전 문서를 가져온다.
+        StringBuffer pkSb = new StringBuffer();
+        for(String pkId : pkList) {
+            Object o = source.get(pkId);
+            if(o != null) {
+                if(pkSb.length() > 0) {
+                    pkSb.append(";");
+                }
+                pkSb.append(o.toString());
+            } else {
+                throw new IRException("Cannot find primary key : " + pkId);
+            }
+        }
+        String pkValue = pkSb.toString();
+        indexWriter.deleteDocument(pkValue);
+
 
         //TODO 2. 삭제pk만 기록해 놓은 delete.req 파일을 만들어 놓는다.
+
+        deleteCount++;
 
         logger.debug("Delete doc > {}", source);
 
