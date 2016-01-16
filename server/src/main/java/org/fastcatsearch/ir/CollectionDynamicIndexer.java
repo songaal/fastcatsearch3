@@ -4,6 +4,7 @@ import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.datasource.reader.DefaultDataSourceReader;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionContext;
@@ -12,16 +13,18 @@ import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.field.Field;
-import org.fastcatsearch.ir.index.*;
+import org.fastcatsearch.ir.field.FieldDataParseException;
+import org.fastcatsearch.ir.index.DeleteIdSet;
+import org.fastcatsearch.ir.index.SegmentWriter;
+import org.fastcatsearch.ir.io.BufferedFileOutput;
+import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.CollectionSearcher;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.Schema;
-import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.indexing.IndexingStopException;
-import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.CoreFileUtils;
 import org.fastcatsearch.util.FilePaths;
@@ -48,9 +51,9 @@ public class CollectionDynamicIndexer {
 
     protected long startTime;
 
-    protected DeleteIdSet deleteIdSet; //삭제문서리스트. 외부에서 source reader를 통해 셋팅된다.
+    protected DeleteIdSet deleteIdSet; //삭제문서리스트.
 
-    protected IndexWritable indexWriter;
+    protected SegmentWriter indexWriter;
     protected DataInfo.SegmentInfo workingSegmentInfo;
     protected int insertCount;
     protected int updateCount;
@@ -83,6 +86,7 @@ public class CollectionDynamicIndexer {
         for(RefSetting refSetting : schema.schemaSetting().getPrimaryKeySetting().getFieldList()) {
             pkList.add(refSetting.getRef().toUpperCase());
         }
+
 
         FilePaths indexFilePaths = collectionContext.indexFilePaths();
         // 증분색인이면 기존스키마그대로 사용.
@@ -148,22 +152,12 @@ public class CollectionDynamicIndexer {
         for(Map.Entry<String, Object> entry : source.entrySet()) {
             String fieldId = entry.getKey().toLowerCase();
             Object data = entry.getValue();
-            Integer idx = schema.fieldSequenceMap().get(fieldId);
-            FieldSetting fs = schema.fieldSettingMap().get(fieldId);
-            if (idx == null) {
 
+            Integer idx = schema.fieldSequenceMap().get(fieldId);
+            if (idx == null) {
                 //존재하지 않음.
             } else {
-                //null이면 공백문자로 치환.
-                if (data == null) {
-                    data = "";
-                } else if (data instanceof String) {
-                    data = ((String) data).trim();
-                }
-
-//				logger.debug("Get {} : {}", key, data);
-                String multiValueDelimiter = fs.getMultiValueDelimiter();
-                Field field = fs.createIndexableField(data, multiValueDelimiter);
+                Field field = makeField(fieldId, data);
                 //교체.
                 document.set(idx, field);
             }
@@ -175,37 +169,50 @@ public class CollectionDynamicIndexer {
         logger.debug("Update {} doc > {}", pkValue, source);
 
     }
+
+    private Field makeField(String fieldId, Object data) throws FieldDataParseException {
+        Integer idx = schema.fieldSequenceMap().get(fieldId);
+        FieldSetting fs = schema.fieldSettingMap().get(fieldId);
+        if (idx == null) {
+            //존재하지 않음.
+            return null;
+        } else {
+            //null이면 공백문자로 치환.
+            if (data == null) {
+                data = "";
+            } else if (data instanceof String) {
+                data = ((String) data).trim();
+            }
+
+//				logger.debug("Get {} : {}", key, data);
+            String multiValueDelimiter = fs.getMultiValueDelimiter();
+            Field field = fs.createIndexableField(data, multiValueDelimiter);
+            return field;
+        }
+    }
+
     public void deleteDocument(Map<String, Object> source) throws IRException, IOException {
 
-        //TODO 1. PK만 뽑아내어 현재 들어온 문서중에서 삭제후보가 있는지 찾아 현재 delete.set에 넣어준다.
+        //1. PK만 뽑아내어 현재 들어온 문서중에서 삭제후보가 있는지 찾아 현재 delete.set에 넣어준다.
         //1. pk를 뽑아내어 내부검색으로 이전 문서를 가져온다.
-        StringBuffer pkSb = new StringBuffer();
+        BytesDataOutput pkbaos = new BytesDataOutput();
         for(String pkId : pkList) {
-            Object o = source.get(pkId);
-            if(o != null) {
-                if(pkSb.length() > 0) {
-                    pkSb.append(";");
-                }
-                pkSb.append(o.toString());
+            Object data = source.get(pkId);
+            Field f = makeField(pkId, data);
+            if(f == null || f.isNull()){
+                throw new IOException("PK field value cannot be null. fieldId="+pkId+", field="+f);
             } else {
-                throw new IRException("Cannot find primary key : " + pkId);
+                f.writeFixedDataTo(pkbaos);
             }
         }
-        String pkValue = pkSb.toString();
-        indexWriter.deleteDocument(pkValue);
-
-
-        //TODO 2. 삭제pk만 기록해 놓은 delete.req 파일을 만들어 놓는다.
+        indexWriter.deleteDocument(pkbaos);
 
         deleteCount++;
-
         logger.debug("Delete doc > {}", source);
-
     }
 
     public boolean close() throws IRException, SettingException, IndexingStopException {
 
-//		RevisionInfo revisionInfo = workingSegmentInfo.getRevisionInfo();
         if (indexWriter != null) {
             try {
                 indexWriter.close();
@@ -261,6 +268,12 @@ public class CollectionDynamicIndexer {
                     logger.info("[{}] Indexing Canceled due to no documents.", collectionContext.collectionId());
                     throw new IndexingStopException(collectionContext.collectionId() + " Indexing Canceled due to no documents.");
                 }
+
+                //삭제ID만 기록해 놓은 delete.req 파일을 만들어 놓는다. (차후 세그먼트 병합시 사용됨)
+                File deleteIdFile = new File(segmentDir, IndexFileNames.docDeleteReq);
+                BufferedFileOutput deleteIdOutput = new BufferedFileOutput(deleteIdFile);
+                deleteIdSet.writeTo(deleteIdOutput);
+                deleteIdOutput.close();
 
                 collectionHandler.updateCollection(collectionContext, segmentInfo, segmentDir, deleteIdSet);
 

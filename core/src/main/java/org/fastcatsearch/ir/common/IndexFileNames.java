@@ -16,13 +16,12 @@
 
 package org.fastcatsearch.ir.common;
 
-import java.io.File;
-
 public class IndexFileNames {
 	
 	public static final String docStored = "document.stored";
 	public static final String docPosition = "document.position";
 	public static final String docDeleteSet = "delete.set"; //deleted docs in segment
+	public static final String docDeleteReq = "delete.req"; //실제삭제가 아닌 delete doc 으로 요청된 삭제문서 아이디 리스트.
 	public static final String primaryKeyMap = "primarykey.map";
 	
 	public static final String tempFile = "temp";

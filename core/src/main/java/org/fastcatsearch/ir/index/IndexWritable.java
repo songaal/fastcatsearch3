@@ -1,11 +1,11 @@
 package org.fastcatsearch.ir.index;
 
-import java.io.IOException;
-
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.document.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 public interface IndexWritable {
 	
@@ -14,6 +14,8 @@ public interface IndexWritable {
 	public int getDocumentCount();
 	
 	public int addDocument(Document document) throws IRException, IOException;
-	
+
+//	void deleteDocument(String pkVal) throws IRException, IOException;
+
 	public void close() throws IOException, IRException;
 }
