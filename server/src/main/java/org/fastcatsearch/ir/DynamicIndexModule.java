@@ -34,7 +34,7 @@ public class DynamicIndexModule extends AbstractModule {
         super(environment, settings);
         this.collectionId = collectionId;
         this.bulkSize = bulkSize;
-        dir = environment.filePaths().getCollectionsRoot().collectionFilePaths(collectionId).file("indexlog");
+        dir = environment.filePaths().collectionFilePaths(collectionId).file("indexlog");
     }
 
     class IndexFireTask extends TimerTask {

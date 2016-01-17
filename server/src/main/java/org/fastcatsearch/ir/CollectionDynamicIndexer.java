@@ -69,6 +69,7 @@ public class CollectionDynamicIndexer {
     private CollectionSearcher collectionSearcher;
 
     public CollectionDynamicIndexer(CollectionHandler collectionHandler) throws IRException {
+        this.collectionHandler = collectionHandler;
         this.collectionContext = collectionHandler.collectionContext();
         this.analyzerPoolManager = collectionHandler.analyzerPoolManager();
         this.schema = collectionContext.schema();
@@ -117,6 +118,7 @@ public class CollectionDynamicIndexer {
 
         documentFactory = new DefaultDataSourceReader(collectionHandler.schema().schemaSetting());
 
+        deleteIdSet = new DeleteIdSet();
         startTime = System.currentTimeMillis();
     }
 
@@ -275,11 +277,11 @@ public class CollectionDynamicIndexer {
                 deleteIdSet.writeTo(deleteIdOutput);
                 deleteIdOutput.close();
 
-                collectionHandler.updateCollection(collectionContext, segmentInfo, segmentDir, deleteIdSet);
-
-                //status.xml 업데이트
-                collectionContext.updateCollectionStatus(IndexingType.ADD, segmentInfo, startTime, System.currentTimeMillis());
-                collectionContext.indexStatus().setAddIndexStatus(indexStatus);
+//                collectionHandler.updateCollection(collectionContext, segmentInfo, segmentDir, deleteIdSet);
+//
+//                //status.xml 업데이트
+//                collectionContext.updateCollectionStatus(IndexingType.ADD, segmentInfo, startTime, System.currentTimeMillis());
+//                collectionContext.indexStatus().setAddIndexStatus(indexStatus);
 
             } else {
                 FileUtils.deleteDirectory(segmentDir);
