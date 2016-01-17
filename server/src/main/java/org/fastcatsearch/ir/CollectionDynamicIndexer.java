@@ -213,6 +213,10 @@ public class CollectionDynamicIndexer {
         logger.debug("Delete doc > {}", source);
     }
 
+    public DeleteIdSet getDeleteIdSet() {
+        return deleteIdSet;
+    }
+
     public boolean close() throws IRException, SettingException, IndexingStopException {
 
         if (indexWriter != null) {
@@ -238,20 +242,9 @@ public class CollectionDynamicIndexer {
         CollectionIndexStatus.IndexStatus indexStatus = new CollectionIndexStatus.IndexStatus(workingSegmentInfo.getDocumentCount(), workingSegmentInfo.getInsertCount(), workingSegmentInfo.getUpdateCount(), deleteCount,
                 Formatter.formatDate(new Date(startTime)), Formatter.formatDate(new Date(endTime)), Formatter.getFormatTime(endTime - startTime));
 
-        if(done(workingSegmentInfo, indexStatus)){
-            CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
-        }else{
-            //저장하지 않음.
-        }
-        return true;
-    }
-
-    protected boolean done(DataInfo.SegmentInfo segmentInfo, CollectionIndexStatus.IndexStatus indexStatus) throws IRException, IndexingStopException {
-
-        int insertCount = segmentInfo.getInsertCount();
-        int deleteCount = segmentInfo.getDeleteCount();
+        int insertCount = workingSegmentInfo.getInsertCount();
         FilePaths indexFilePaths = collectionContext.indexFilePaths();
-        File segmentDir = indexFilePaths.file(segmentInfo.getId());
+        File segmentDir = indexFilePaths.file(workingSegmentInfo.getId());
 
         try {
             if (!stopRequested) {
@@ -260,10 +253,10 @@ public class CollectionDynamicIndexer {
                     logger.debug("# 추가문서가 없으므로, segment를 삭제합니다. {}", segmentDir.getAbsolutePath());
                     FileUtils.deleteDirectory(segmentDir);
                     logger.info("delete segment dir ={}", segmentDir.getAbsolutePath());
-                    segmentInfo.resetCountInfo();
+                    workingSegmentInfo.resetCountInfo();
                 }
                 if (deleteCount > 0) {
-                    segmentInfo.setDeleteCount(deleteCount);
+                    workingSegmentInfo.setDeleteCount(deleteCount);
                 }
 
                 if (insertCount <= 0 && deleteCount <= 0) {
@@ -277,12 +270,13 @@ public class CollectionDynamicIndexer {
                 deleteIdSet.writeTo(deleteIdOutput);
                 deleteIdOutput.close();
 
-//                collectionHandler.updateCollection(collectionContext, segmentInfo, segmentDir, deleteIdSet);
+//                collectionHandler.updateCollection(collectionContext, workingSegmentInfo, segmentDir, deleteIdSet);
 //
 //                //status.xml 업데이트
-//                collectionContext.updateCollectionStatus(IndexingType.ADD, segmentInfo, startTime, System.currentTimeMillis());
+//                collectionContext.updateCollectionStatus(IndexingType.ADD, workingSegmentInfo, startTime, System.currentTimeMillis());
 //                collectionContext.indexStatus().setAddIndexStatus(indexStatus);
 
+//                CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
             } else {
                 FileUtils.deleteDirectory(segmentDir);
                 logger.info("delete segment dir ={}", segmentDir.getAbsolutePath());

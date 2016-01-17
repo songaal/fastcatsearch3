@@ -12,7 +12,9 @@ import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.util.FilePaths;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +61,9 @@ public class NodeIndexFileDocumentJob extends Job implements Streamable {
                 if (indexer != null) {
                     indexer.close();
                 }
+                FilePaths indexFilePaths = collectionHandler.collectionContext().indexFilePaths();
+                File segmentDir = indexFilePaths.file(indexer.getSegmentInfo().getId());
+                collectionHandler.updateCollection(collectionHandler.collectionContext(), indexer.getSegmentInfo(), segmentDir, indexer.getDeleteIdSet());
             }
         } catch (Exception e) {
             logger.error("node dynamic index error!", e);
