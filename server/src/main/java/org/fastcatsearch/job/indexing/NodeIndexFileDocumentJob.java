@@ -7,11 +7,14 @@ import org.fastcatsearch.http.action.service.indexing.JSONRequestReader;
 import org.fastcatsearch.http.action.service.indexing.MapDocument;
 import org.fastcatsearch.ir.CollectionDynamicIndexer;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.FilePaths;
 
 import java.io.File;
@@ -61,9 +64,18 @@ public class NodeIndexFileDocumentJob extends Job implements Streamable {
                 if (indexer != null) {
                     indexer.close();
                 }
-                FilePaths indexFilePaths = collectionHandler.collectionContext().indexFilePaths();
+
+                CollectionContext collectionContext = collectionHandler.collectionContext();
+                FilePaths indexFilePaths = collectionContext.indexFilePaths();
+                DataInfo.SegmentInfo segmentInfo = indexer.getSegmentInfo();
                 File segmentDir = indexFilePaths.file(indexer.getSegmentInfo().getId());
+
+//                collectionContext.updateCollectionStatus(IndexingType.ADD, workingSegmentInfo, startTime, System.currentTimeMillis());
+//                collectionContext.indexStatus().setAddIndexStatus(indexStatus);
+                collectionContext.addSegmentInfo(segmentInfo);
+
                 collectionHandler.updateCollection(collectionHandler.collectionContext(), indexer.getSegmentInfo(), segmentDir, indexer.getDeleteIdSet());
+                CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
             }
         } catch (Exception e) {
             logger.error("node dynamic index error!", e);
