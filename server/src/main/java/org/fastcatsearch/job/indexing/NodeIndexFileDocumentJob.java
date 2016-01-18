@@ -61,20 +61,24 @@ public class NodeIndexFileDocumentJob extends Job implements Streamable {
                     }
                 }
             } finally {
+                DataInfo.SegmentInfo segmentInfo = null;
                 if (indexer != null) {
-                    indexer.close();
+                    segmentInfo = indexer.close();
                 }
 
                 CollectionContext collectionContext = collectionHandler.collectionContext();
-                FilePaths indexFilePaths = collectionContext.indexFilePaths();
-                DataInfo.SegmentInfo segmentInfo = indexer.getSegmentInfo();
-                File segmentDir = indexFilePaths.file(indexer.getSegmentInfo().getId());
+                File segmentDir = indexer.getSegmentDir();
 
+                // 증분색인 관련 정보업데이트. 동적색인에선 일단 무시한다.
 //                collectionContext.updateCollectionStatus(IndexingType.ADD, workingSegmentInfo, startTime, System.currentTimeMillis());
 //                collectionContext.indexStatus().setAddIndexStatus(indexStatus);
+
+                /*
+                 * 컬렉션에 세그먼트를 적용한다.
+                 * */
                 collectionContext.addSegmentInfo(segmentInfo);
 
-                collectionHandler.updateCollection(collectionHandler.collectionContext(), indexer.getSegmentInfo(), segmentDir, indexer.getDeleteIdSet());
+                collectionHandler.updateCollection(collectionContext, indexer.getSegmentInfo(), segmentDir, indexer.getDeleteIdSet());
                 CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
             }
         } catch (Exception e) {

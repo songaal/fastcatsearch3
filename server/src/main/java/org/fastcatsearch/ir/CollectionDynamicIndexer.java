@@ -104,6 +104,10 @@ public class CollectionDynamicIndexer {
         return segmentInfo;
     }
 
+    public File getSegmentDir() {
+        return segmentDir;
+    }
+
     public void insertDocument(Map<String, Object> source) throws IRException, IOException {
         Document document = documentFactory.createDocument(source);
         indexWriter.addDocument(document);
