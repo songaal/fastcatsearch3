@@ -10,11 +10,13 @@ import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
+import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 
 public class GetIndexingDataInfoJob extends Job implements Streamable {
 
@@ -68,7 +70,7 @@ public class GetIndexingDataInfoJob extends Job implements Streamable {
 //			if(revisionInfo != null){
 //				createTime = revisionInfo.getCreateTime();
 //			}
-            createTime = segmentInfo.getCreateTime();
+            createTime = Formatter.formatDate(new Date(segmentInfo.getCreateTime()));
 		}
 		result.createTime = createTime;
 		

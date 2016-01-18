@@ -15,12 +15,14 @@ import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
 import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
 import java.io.File;
 import java.io.Writer;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 @ActionMapping(value = "/management/collections/collection-info-list", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.NONE)
@@ -104,7 +106,7 @@ public class GetCollectionInfoListAction extends AuthAction {
 //					if(revisionInfo != null){
 //						createTime = revisionInfo.getCreateTime();
 //					}
-                    createTime = segmentInfo.getCreateTime();
+                    createTime = Formatter.formatDate(new Date(segmentInfo.getCreateTime()));
 				}
 				responseWriter
 				.key("documentSize").value(documentSize)

@@ -179,7 +179,7 @@ public class SegmentIndexWriter implements IndexWritable {
 			}
             segmentInfo.setInsertCount(insertCount);
             segmentInfo.setUpdateCount(updateCount);
-            segmentInfo.setCreateTime(Formatter.formatDate());
+            segmentInfo.setCreateTime(System.currentTimeMillis());
 
 			logger.info("Segment [{}] Indexed, elapsed = {}, mem = {}, {}", segmentId, Formatter.getFormatTime(System.currentTimeMillis() - startTime),
 					Formatter.getFormatSize(Runtime.getRuntime().totalMemory()), segmentInfo);

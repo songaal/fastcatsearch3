@@ -12,11 +12,13 @@ import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
+import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
 import java.io.File;
 import java.io.Writer;
+import java.util.Date;
 
 @ActionMapping(value = "/management/collections/indexing-status", authority = ActionAuthority.Collections, authorityLevel = ActionAuthorityLevel.READABLE)
 public class GetIndexingStatusAction extends AuthAction {
@@ -64,7 +66,7 @@ public class GetIndexingStatusAction extends AuthAction {
 		int documentSize = collectionContext.dataInfo().getDocuments();
 		responseWriter.key("documentSize").value(documentSize);
 		
-		String createTime = "";
+		long createTime = 0;
 		SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
 		if(segmentInfo != null){
 //			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
@@ -73,7 +75,7 @@ public class GetIndexingStatusAction extends AuthAction {
 //			}
             createTime = segmentInfo.getCreateTime();
 		}
-		responseWriter.key("createTime").value(createTime);
+		responseWriter.key("createTime").value(Formatter.formatDate(new Date(createTime)));
 		
 		responseWriter.endObject();
 		
