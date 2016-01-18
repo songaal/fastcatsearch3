@@ -24,9 +24,7 @@ public class SegmentIndexWriter implements IndexWritable {
 	protected int count;
 	protected long startTime;
 
-	protected SelectedIndexList selectedIndexList;// 색인필드 선택사항.
 	protected PrimaryKeyIndexesWriter primaryKeyIndexesWriter;
-//	protected SearchIndexesAsyncWriter searchIndexesWriter;
 	protected SearchIndexesWriter searchIndexesWriter;
 	protected FieldIndexesWriter fieldIndexesWriter;
 	protected GroupIndexesWriter groupIndexesWriter;

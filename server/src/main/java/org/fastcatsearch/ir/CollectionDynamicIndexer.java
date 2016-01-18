@@ -5,10 +5,8 @@ import org.fastcatsearch.datasource.reader.DefaultDataSourceReader;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
-import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.CollectionIndexStatus;
 import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
@@ -23,10 +21,7 @@ import org.fastcatsearch.ir.search.CollectionSearcher;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.Schema;
-import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.indexing.IndexingStopException;
-import org.fastcatsearch.util.CollectionContextUtil;
-import org.fastcatsearch.util.CoreFileUtils;
 import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -49,17 +43,18 @@ public class CollectionDynamicIndexer {
     protected CollectionContext collectionContext;
     protected AnalyzerPoolManager analyzerPoolManager;
 
-    protected long startTime;
+    protected long createTime;
 
     protected DeleteIdSet deleteIdSet; //삭제문서리스트.
 
     protected SegmentWriter indexWriter;
-    protected DataInfo.SegmentInfo workingSegmentInfo;
+    protected DataInfo.SegmentInfo segmentInfo;
+    private File segmentDir;
     protected int insertCount;
     protected int updateCount;
     protected int deleteCount;
 
-    protected boolean stopRequested;
+//    protected boolean stopRequested;
 
     private CollectionHandler collectionHandler;
     private DefaultDataSourceReader documentFactory;
@@ -73,53 +68,40 @@ public class CollectionDynamicIndexer {
         this.collectionContext = collectionHandler.collectionContext();
         this.analyzerPoolManager = collectionHandler.analyzerPoolManager();
         this.schema = collectionContext.schema();
-        init();
-    }
+        String newSegmentId = collectionHandler.nextSegmentId();
+        this.segmentInfo = new DataInfo.SegmentInfo(newSegmentId);
 
-    public DataInfo.SegmentInfo getSegmentInfo() {
-        return workingSegmentInfo;
-    }
+        /*
+        * 세그먼트 디렉토리가 미리존재한다면 삭제.
+        * */
+        FilePaths indexFilePaths = collectionContext.indexFilePaths();
+        segmentDir = indexFilePaths.file(segmentInfo.getId());
+        logger.info("New Segment Dir = {}", segmentDir.getAbsolutePath());
+        try {
+            FileUtils.deleteDirectory(segmentDir);
+        } catch (IOException e) {
+            throw new IRException(e);
+        }
 
-    private void init() throws IRException {
-        //PK를 확인한다.
-
+        /*
+        * PK를 확인한다.
+        * */
         pkList =  new ArrayList<String>();
         for(RefSetting refSetting : schema.schemaSetting().getPrimaryKeySetting().getFieldList()) {
             pkList.add(refSetting.getRef().toUpperCase());
         }
 
-
-        FilePaths indexFilePaths = collectionContext.indexFilePaths();
-        // 증분색인이면 기존스키마그대로 사용.
-        String newSegmentId = collectionHandler.nextSegmentId();
-        workingSegmentInfo = new DataInfo.SegmentInfo(newSegmentId);
-        File segmentDir = indexFilePaths.file(workingSegmentInfo.getId());
-        logger.debug("#색인시 세그먼트를 생성합니다. {}", workingSegmentInfo);
-        try {
-            CoreFileUtils.removeDirectoryCascade(segmentDir);
-        } catch (IOException e) {
-            throw new IRException(e);
-        }
-
-        FilePaths dataFilePaths = collectionContext.collectionFilePaths().dataPaths();
-        int dataSequence = collectionContext.getIndexSequence();
-
         IndexConfig indexConfig = collectionContext.indexConfig();
-
-        logger.debug("WorkingSegmentInfo = {}", workingSegmentInfo);
-        String segmentId = workingSegmentInfo.getId();
-
-        segmentDir = dataFilePaths.segmentFile(dataSequence, segmentId);
-        logger.info("Segment Dir = {}", segmentDir.getAbsolutePath());
-
-        File filePath = collectionContext.collectionFilePaths().file();
-
-        indexWriter = new SegmentWriter(schema, segmentDir, workingSegmentInfo, indexConfig, analyzerPoolManager, null);
+        indexWriter = new SegmentWriter(schema, segmentDir, segmentInfo, indexConfig, analyzerPoolManager, null);
 
         documentFactory = new DefaultDataSourceReader(collectionHandler.schema().schemaSetting());
 
         deleteIdSet = new DeleteIdSet();
-        startTime = System.currentTimeMillis();
+        createTime = System.currentTimeMillis();
+    }
+
+    public DataInfo.SegmentInfo getSegmentInfo() {
+        return segmentInfo;
     }
 
     public void insertDocument(Map<String, Object> source) throws IRException, IOException {
@@ -217,7 +199,7 @@ public class CollectionDynamicIndexer {
         return deleteIdSet;
     }
 
-    public boolean close() throws IRException, SettingException, IndexingStopException {
+    public DataInfo.SegmentInfo close() throws IRException, SettingException, IndexingStopException {
 
         if (indexWriter != null) {
             try {
@@ -227,67 +209,36 @@ public class CollectionDynamicIndexer {
             }
         }
 
+        segmentInfo.setDocumentCount(insertCount + updateCount);
+        segmentInfo.setInsertCount(insertCount);
+        segmentInfo.setUpdateCount(updateCount);
+        segmentInfo.setDeleteCount(deleteCount);
 
-        logger.debug("##Indexer close {}", workingSegmentInfo);
-//        deleteIdSet = dataSourceReader.getDeleteList();
-        int deleteCount = 0;
-        if(deleteIdSet != null) {
-            deleteCount = deleteIdSet.size();
-        }
-
-        workingSegmentInfo.setDeleteCount(deleteCount);
-
-        long endTime = System.currentTimeMillis();
-
-        CollectionIndexStatus.IndexStatus indexStatus = new CollectionIndexStatus.IndexStatus(workingSegmentInfo.getDocumentCount(), workingSegmentInfo.getInsertCount(), workingSegmentInfo.getUpdateCount(), deleteCount,
-                Formatter.formatDate(new Date(startTime)), Formatter.formatDate(new Date(endTime)), Formatter.getFormatTime(endTime - startTime));
-
-        int insertCount = workingSegmentInfo.getInsertCount();
-        FilePaths indexFilePaths = collectionContext.indexFilePaths();
-        File segmentDir = indexFilePaths.file(workingSegmentInfo.getId());
+        logger.debug("##Indexer close {}", segmentInfo);
 
         try {
-            if (!stopRequested) {
-                if (insertCount <= 0) {
-                    // 세그먼트 증가시 segment디렉토리 삭제.
-                    logger.debug("# 추가문서가 없으므로, segment를 삭제합니다. {}", segmentDir.getAbsolutePath());
-                    FileUtils.deleteDirectory(segmentDir);
-                    logger.info("delete segment dir ={}", segmentDir.getAbsolutePath());
-                    workingSegmentInfo.resetCountInfo();
-                }
-                if (deleteCount > 0) {
-                    workingSegmentInfo.setDeleteCount(deleteCount);
-                }
-
-                if (insertCount <= 0 && deleteCount <= 0) {
-                    logger.info("[{}] Indexing Canceled due to no documents.", collectionContext.collectionId());
-                    throw new IndexingStopException(collectionContext.collectionId() + " Indexing Canceled due to no documents.");
-                }
-
-                //삭제ID만 기록해 놓은 delete.req 파일을 만들어 놓는다. (차후 세그먼트 병합시 사용됨)
-                File deleteIdFile = new File(segmentDir, IndexFileNames.docDeleteReq);
-                BufferedFileOutput deleteIdOutput = new BufferedFileOutput(deleteIdFile);
-                deleteIdSet.writeTo(deleteIdOutput);
-                deleteIdOutput.close();
-
-//                collectionHandler.updateCollection(collectionContext, workingSegmentInfo, segmentDir, deleteIdSet);
-//
-//                //status.xml 업데이트
-//                collectionContext.updateCollectionStatus(IndexingType.ADD, workingSegmentInfo, startTime, System.currentTimeMillis());
-//                collectionContext.indexStatus().setAddIndexStatus(indexStatus);
-
-//                CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
-            } else {
+            if(insertCount == 0 && updateCount == 0 && deleteCount == 0) {
+                logger.info("[{}] Delete segment dir due to no documents = {}", collectionContext.collectionId(), segmentDir.getAbsolutePath());
                 FileUtils.deleteDirectory(segmentDir);
-                logger.info("delete segment dir ={}", segmentDir.getAbsolutePath());
-                logger.info("[{}] Indexing Canceled due to Stop Requested!", collectionContext.collectionId());
-                throw new IndexingStopException(collectionContext.collectionId() + " Indexing Canceled due to Stop Requested");
+                return null;
+            } else {
+                if(deleteIdSet.size() > 0) {
+                    //삭제ID만 기록해 놓은 delete.req 파일을 만들어 놓는다. (차후 세그먼트 병합시 사용됨)
+                    File deleteIdFile = new File(segmentDir, IndexFileNames.docDeleteReq);
+                    BufferedFileOutput deleteIdOutput = null;
+                    try {
+                        deleteIdOutput = new BufferedFileOutput(deleteIdFile);
+                        deleteIdSet.writeTo(deleteIdOutput);
+                    } catch (Exception e) {
+                        if(deleteIdOutput != null) {
+                            deleteIdOutput.close();
+                        }
+                    }
+                }
+                return segmentInfo;
             }
         } catch (IOException e) {
             throw new IRException(e);
         }
-
-        return true;
     }
-
 }

@@ -167,7 +167,7 @@ public class CollectionHandler {
 		return segmentReaderMap.get(segmentId);
 	}
 
-    public String nextSegmentId() {
+    public synchronized String nextSegmentId() {
         Set segmentIdSet = segmentReaderMap.keySet();
         String id = null;
         do {
