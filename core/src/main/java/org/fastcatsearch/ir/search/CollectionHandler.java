@@ -252,7 +252,22 @@ public class CollectionHandler {
         return collectionContext;
     }
 
-    public void applyMergedSegment(SegmentInfo segmentInfo, File segmentDir, List<String> segmentIdRemoveList) throws IOException {
+    public synchronized CollectionContext applyMergedSegment(SegmentInfo segmentInfo, File segmentDir, List<String> segmentIdRemoveList) throws IOException {
+
+        long startTime = segmentInfo.getStartTime();
+
+        //이거보다 늦은 시간의 세그먼트가 있는지 확인.
+        List<SegmentReader> recentReaders = new ArrayList<SegmentReader>();
+        for(SegmentReader segmentReader : segmentReaderMap.values()) {
+            long creatTime = segmentReader.segmentInfo().getCreateTime();
+            if(creatTime > startTime) {
+                recentReaders.add(segmentReader);
+            }
+        }
+
+        //TODO recentReaders 로 부터 delete.req와 pk를 통해 삭제받는다.
+
+        
 
         collectionContext.addSegmentInfo(segmentInfo);
         for(String removeSegmentId : segmentIdRemoveList) {
@@ -264,6 +279,8 @@ public class CollectionHandler {
             //TODO 레퍼런스가 없으면 닫도록 closeFuture를 구현한다.
             segmentReader.closeFuture();
         }
+
+        return null;
     }
 
 	/**

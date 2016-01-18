@@ -159,7 +159,7 @@ public class DataInfo {
         private int insertCount;
         private int updateCount;
         private int deleteCount;
-        private String createTime;
+        private long createTime;
 
         private long startTime = System.currentTimeMillis();
 
@@ -171,7 +171,7 @@ public class DataInfo {
 			this.id = id;
 		}
 
-        public SegmentInfo(String id, String uuid, int documentCount, int insertCount, int updateCount, int deleteCount, String createTime) {
+        public SegmentInfo(String id, String uuid, int documentCount, int insertCount, int updateCount, int deleteCount, long createTime) {
             this.id = id;
             this.uuid = uuid;
             this.documentCount = documentCount;
@@ -297,11 +297,11 @@ public class DataInfo {
             this.deleteCount = deleteCount;
         }
 
-        public String getCreateTime() {
+        public long getCreateTime() {
             return createTime;
         }
 
-        public void setCreateTime(String createTime) {
+        public void setCreateTime(long createTime) {
             this.createTime = createTime;
         }
 
