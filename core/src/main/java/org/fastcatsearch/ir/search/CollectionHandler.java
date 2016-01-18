@@ -1,6 +1,7 @@
 package org.fastcatsearch.ir.search;
 
 import org.apache.lucene.util.BytesRef;
+import org.apache.tools.ant.taskdefs.Delete;
 import org.fastcatsearch.ir.analysis.AnalyzerFactoryManager;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
@@ -16,6 +17,7 @@ import org.fastcatsearch.ir.index.DynamicIndexer;
 import org.fastcatsearch.ir.index.PrimaryKeys;
 import org.fastcatsearch.ir.index.SegmentIdGenerator;
 import org.fastcatsearch.ir.io.BitSet;
+import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.settings.AnalyzerSetting;
 import org.fastcatsearch.ir.settings.Schema;
@@ -189,6 +191,81 @@ public class CollectionHandler {
         return segmentReaderMap.get(segmentId).segmentSearcher();
     }
 
+    public synchronized CollectionContext applyNewSegment(SegmentInfo segmentInfo, File segmentDir, DeleteIdSet deleteIdSet) throws IOException, IRException {
+
+        List<PrimaryKeyIndexReader> prevPkReaderList = new ArrayList<PrimaryKeyIndexReader>();
+        List<BitSet> prevDeleteSetList = new ArrayList<BitSet>();
+
+        int segmentSize = segmentReaderMap.size();
+        for(SegmentReader segmentReader : segmentReaderMap.values()) {
+            File dir = segmentReader.segmentDir();
+            prevPkReaderList.add(new PrimaryKeyIndexReader(dir, IndexFileNames.primaryKeyMap));
+            prevDeleteSetList.add(new BitSet(dir, IndexFileNames.docDeleteSet));
+        }
+
+        //세그먼트간의 삭제처리.
+        if (segmentSize > 0) {
+            /*
+            * 1. PK Update 적용
+            * */
+            File pkFile = new File(segmentDir, IndexFileNames.primaryKeyMap);
+            applyPrimaryKeyToPrevSegment(pkFile, prevPkReaderList, prevDeleteSetList);
+
+            /*
+            * 2. deleteIdSet 적용
+            * */
+            applyDeleteIdSetToPrevSegment(deleteIdSet, prevPkReaderList, prevDeleteSetList);
+        }
+
+
+        for (PrimaryKeyIndexReader pkReader : prevPkReaderList) {
+            pkReader.close();
+        }
+        for (BitSet deleteSet : prevDeleteSetList) {
+            deleteSet.save();
+            logger.debug("New delete.set saved. set={}", deleteSet);
+        }
+        for (SegmentReader segmentReader : segmentReaderMap.values()) {
+            segmentReader.loadDeleteSet();
+        }
+
+        // delete.req 파일은 머징중인 세그먼트의 데이터 일관성을 위함이다.
+        // TODO 머징중인 세그먼트가 없다면 delete.req 파일도 만들지 않는다.
+        if(deleteIdSet.size() > 0) {
+            //삭제ID만 기록해 놓은 delete.req 파일을 만들어 놓는다. (차후 세그먼트 병합시 사용됨)
+            File deleteIdFile = new File(segmentDir, IndexFileNames.docDeleteReq);
+            BufferedFileOutput deleteIdOutput = null;
+            try {
+                deleteIdOutput = new BufferedFileOutput(deleteIdFile);
+                deleteIdSet.writeTo(deleteIdOutput);
+            } catch (Exception e) {
+                if(deleteIdOutput != null) {
+                    deleteIdOutput.close();
+                }
+            }
+        }
+
+        SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager);
+        segmentReaderMap.put(segmentReader.segmentId(), segmentReader);
+        collectionContext.addSegmentInfo(segmentInfo);
+
+        return collectionContext;
+    }
+
+    public void applyMergedSegment(SegmentInfo segmentInfo, File segmentDir, List<String> segmentIdRemoveList) throws IOException {
+
+        collectionContext.addSegmentInfo(segmentInfo);
+        for(String removeSegmentId : segmentIdRemoveList) {
+            SegmentReader segmentReader = segmentReaderMap.remove(removeSegmentId);
+            if(segmentReader != null) {
+                //설정파일도 수정한다.
+                collectionContext.removeSegmentInfo(removeSegmentId);
+            }
+            //TODO 레퍼런스가 없으면 닫도록 closeFuture를 구현한다.
+            segmentReader.closeFuture();
+        }
+    }
+
 	/**
 	 * 증분색인후 호출하는 메소드이다. 1. 이전 세그먼트에 삭제 문서를 적용한다. 2. 해당 segment reader 재로딩 및 대체하기.
 	 * */
@@ -304,6 +381,46 @@ public class CollectionHandler {
 
 		return deleteDocumentSize;
 	}
+
+    private int applyDeleteIdSetToPrevSegment(DeleteIdSet deleteIdSet, List<PrimaryKeyIndexReader> prevPkReaderList,
+                                             List<BitSet> prevDeleteSetList) throws IOException {
+
+        int deleteDocumentSize = 0;
+
+        if (deleteIdSet == null) {
+            return deleteDocumentSize;
+        }
+        PrimaryKeysToBytesRef primaryKeysToBytesRef = new PrimaryKeysToBytesRef(schema);
+		/*
+		 * apply delete set. 이번 색인작업을 통해 삭제가 요청된 문서들을 삭제처리한다.
+		 */
+        Iterator<PrimaryKeys> iterator = deleteIdSet.iterator();
+        while (iterator.hasNext()) {
+
+            PrimaryKeys ids = iterator.next();
+            logger.debug("--- delete id = {}", ids);
+
+            BytesRef buf = primaryKeysToBytesRef.getBytesRef(ids);
+
+			//기존 색인 세그먼트들에서 찾아서 지운다.
+            int i = 0;
+            for (PrimaryKeyIndexReader pkReader : prevPkReaderList) {
+                int localDocNo = pkReader.get(buf);
+                if (localDocNo != -1) {
+                    BitSet deleteSet = prevDeleteSetList.get(i);
+                    if (!deleteSet.isSet(localDocNo)) {
+                        // add delete list
+                        deleteSet.set(localDocNo);
+                        deleteDocumentSize++;// deleteSize 증가
+                    }
+                }
+                i++;
+            }
+
+        }
+
+        return deleteDocumentSize;
+    }
 
 	private int applyPrimaryKeyToPrevSegment(File pkFile, List<PrimaryKeyIndexReader> prevPkReaderList, List<BitSet> prevDeleteSetList) throws IOException {
 

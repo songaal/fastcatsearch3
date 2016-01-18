@@ -81,22 +81,15 @@ public class SegmentReader implements Comparable {
 	};
 	
 	public SegmentReader(SegmentInfo segmentInfo, Schema schema, File segmentDir, AnalyzerPoolManager analyzerPoolManager) throws IOException, IRException {
-//		this(segmentInfo, schema, segmentDir, null, analyzerPoolManager);
-//	}
-//
-//	public SegmentReader(SegmentInfo segmentInfo, Schema schema, File segmentDir, BitSet bitset, AnalyzerPoolManager analyzerPoolManager) throws IOException, IRException {
-		this.segmentId = segmentInfo.getId();
+    	this.segmentId = segmentInfo.getId();
         this.schema = schema;
 		this.segmentDir = segmentDir;
 		this.segmentInfo = segmentInfo;
-//		int revision = segmentInfo.getRevisionInfo().getId();
-//		int ref = segmentInfo.getRevisionInfo().getRef();
-		
+
 		this.documentReader = new DocumentReader(schema.schemaSetting(), segmentDir);
 		int documentCount = documentReader.getDocumentCount();
 		
 		// reader들은 thread-safe하지 않다. clone해서 사용됨.
-//		this.searchIndexesReader = new SearchIndexesReader(schema, segmentDir, ref, analyzerPoolManager, documentCount);
         this.searchIndexesReader = new SearchIndexesReader(schema, segmentDir, analyzerPoolManager, documentCount);
 		
 		//field index
@@ -135,10 +128,6 @@ public class SegmentReader implements Comparable {
 		return segmentDir;
 	}
 	
-//	public File revisionDir(){
-//		return new File(segmentDir, Integer.toString(segmentInfo.getRevision()));
-//	}
-	
 	public SegmentInfo segmentInfo(){
 		return segmentInfo;
 	}
@@ -146,10 +135,6 @@ public class SegmentReader implements Comparable {
 	protected int docCount(){
 		return documentReader.getDocumentCount();
 	}
-	
-//	protected int baseDocNumber(){
-//		return documentReader.getBaseNumber();
-//	}
 	
 	public BitSet deleteSet(){
 		return deleteSet;
@@ -203,4 +188,11 @@ public class SegmentReader implements Comparable {
         return segmentId.compareTo(((SegmentReader)o).segmentId);
     }
 
+    // 사용중이지 않으면 닫기록 예약한다.
+    public void closeFuture() throws IOException {
+
+        //TODO
+        close();
+
+    }
 }

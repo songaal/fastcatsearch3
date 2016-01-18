@@ -220,29 +220,19 @@ public class CollectionDynamicIndexer {
 
         logger.debug("##Indexer close {}", segmentInfo);
 
-        try {
-            if(insertCount == 0 && updateCount == 0 && deleteCount == 0) {
-                logger.info("[{}] Delete segment dir due to no documents = {}", collectionContext.collectionId(), segmentDir.getAbsolutePath());
-                FileUtils.deleteDirectory(segmentDir);
-                return null;
-            } else {
-                if(deleteIdSet.size() > 0) {
-                    //삭제ID만 기록해 놓은 delete.req 파일을 만들어 놓는다. (차후 세그먼트 병합시 사용됨)
-                    File deleteIdFile = new File(segmentDir, IndexFileNames.docDeleteReq);
-                    BufferedFileOutput deleteIdOutput = null;
-                    try {
-                        deleteIdOutput = new BufferedFileOutput(deleteIdFile);
-                        deleteIdSet.writeTo(deleteIdOutput);
-                    } catch (Exception e) {
-                        if(deleteIdOutput != null) {
-                            deleteIdOutput.close();
-                        }
-                    }
-                }
-                return segmentInfo;
-            }
-        } catch (IOException e) {
-            throw new IRException(e);
-        }
+        return segmentInfo;
+
+//        try {
+//            if(insertCount == 0 && updateCount == 0 && deleteCount == 0) {
+//                logger.info("[{}] Delete segment dir due to no documents = {}", collectionContext.collectionId(), segmentDir.getAbsolutePath());
+//                FileUtils.deleteDirectory(segmentDir);
+//                return null;
+//            } else {
+//
+//                return segmentInfo;
+//            }
+//        } catch (IOException e) {
+//            throw new IRException(e);
+//        }
     }
 }

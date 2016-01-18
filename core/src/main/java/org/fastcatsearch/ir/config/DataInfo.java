@@ -154,13 +154,14 @@ public class DataInfo {
 	@XmlType(propOrder = { "createTime", "deleteCount", "updateCount", "insertCount", "documentCount", "uuid", "id" })
 	public static class SegmentInfo implements Comparable<SegmentInfo>{
 		private String id;
-//		private int baseNumber;
         private String uuid;
         private int documentCount;
         private int insertCount;
         private int updateCount;
         private int deleteCount;
         private String createTime;
+
+        private long startTime = System.currentTimeMillis();
 
         public SegmentInfo() {
 			this.id = "a0";
@@ -170,14 +171,8 @@ public class DataInfo {
 			this.id = id;
 		}
 
-//		public SegmentInfo(String id, int baseNumber) {
-//			this.id = id;
-//			this.baseNumber = baseNumber;
-//		}
-
         public SegmentInfo(String id, String uuid, int documentCount, int insertCount, int updateCount, int deleteCount, String createTime) {
             this.id = id;
-//            this.baseNumber = baseNumber;
             this.uuid = uuid;
             this.documentCount = documentCount;
             this.insertCount = insertCount;
@@ -194,7 +189,6 @@ public class DataInfo {
 
 		public SegmentInfo copy() {
 			SegmentInfo segmentInfo = new SegmentInfo(id);
-//			segmentInfo.baseNumber = baseNumber;
             segmentInfo.uuid = uuid;
             segmentInfo.documentCount = documentCount;
             segmentInfo.insertCount = insertCount;
@@ -318,7 +312,11 @@ public class DataInfo {
 			this.deleteCount += segmentInfo.deleteCount;
 		}
 
-//		public int getRevision() {
+        public long getStartTime() {
+            return startTime;
+        }
+
+        //		public int getRevision() {
 //			return revisionInfo.getId();
 //		}
 
