@@ -23,6 +23,30 @@ public class SegmentIdGenerator {
     private int firstPos = 0;
     private int secondPos = 0;
 
+    public SegmentIdGenerator() {}
+    /**
+     * resumeId 다음부터 재개한다.
+     * */
+    public SegmentIdGenerator(String resumeId) {
+
+        char char1 = resumeId.charAt(0);
+        char char2 = resumeId.charAt(1);
+
+        for (int i = 0; i < first.length; i++) {
+            if(first[i] == char1) {
+                firstPos = i;
+                break;
+            }
+        }
+
+        for (int i = 0; i < second.length; i++) {
+            if(second[i] == char2) {
+                secondPos = i;
+                break;
+            }
+        }
+    }
+
     public String nextId() {
         String id = new String(new char[]{first[firstPos], second[secondPos++]});
 
@@ -35,6 +59,10 @@ public class SegmentIdGenerator {
             firstPos = 0;
         }
         return id;
+    }
+
+    public String currentId() {
+        return new String(new char[]{first[firstPos], second[secondPos]});
     }
 
     //세그먼트 이름 부여를 처음부터 다시 시작하도록.

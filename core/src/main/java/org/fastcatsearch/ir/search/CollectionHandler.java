@@ -49,14 +49,22 @@ public class CollectionHandler {
 
 	private Counter queryCounter;
 
-    private SegmentIdGenerator segmentIdGenerator = new SegmentIdGenerator();
+    private SegmentIdGenerator segmentIdGenerator;
 
 	public CollectionHandler(CollectionContext collectionContext, AnalyzerFactoryManager analyzerFactoryManager) throws IRException, SettingException {
 		this.collectionContext = collectionContext;
 		this.collectionId = collectionContext.collectionId();
 		this.collectionFilePaths = collectionContext.collectionFilePaths();
 		this.analyzerFactoryManager = analyzerFactoryManager;
-
+        //현재 마지막 세그먼트 이름이후로 다시 시작한다.
+        SegmentInfo lastSegmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
+        if(lastSegmentInfo == null) {
+            this.segmentIdGenerator = new SegmentIdGenerator();
+        } else {
+            this.segmentIdGenerator = new SegmentIdGenerator(lastSegmentInfo.getId());
+            segmentIdGenerator.nextId(); //마지막에서 하나 증가시킨다.
+        }
+        logger.debug("## Segment Id start from {}", segmentIdGenerator.currentId());
 		queryCounter = new DummyCounter();
 	}
 
