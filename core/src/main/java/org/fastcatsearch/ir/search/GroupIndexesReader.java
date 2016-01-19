@@ -3,13 +3,14 @@ package org.fastcatsearch.ir.search;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.settings.GroupIndexSetting;
 import org.fastcatsearch.ir.settings.Schema;
 
 public class GroupIndexesReader extends SelectableIndexesReader<GroupIndexReader, GroupIndexSetting> {
-	
+
 	public GroupIndexesReader(){ }
 	
 	public GroupIndexesReader(Schema schema, File dir) throws IOException, IRException{
@@ -29,9 +30,11 @@ public class GroupIndexesReader extends SelectableIndexesReader<GroupIndexReader
 			}
 			readerList.add(reader);
 		}
-		
+        referenceCount = new AtomicInteger();
 	}
-	
+    public int getReferenceCount() {
+        return referenceCount.intValue();
+    }
 	@Override
 	public GroupIndexesReader clone(){
 		GroupIndexesReader reader = new GroupIndexesReader();
@@ -44,7 +47,8 @@ public class GroupIndexesReader extends SelectableIndexesReader<GroupIndexReader
     		}
     		reader.readerList.add(newReader);
 		}
-    	
+        reader.referenceCount = referenceCount;
+        referenceCount.incrementAndGet();
     	return reader;
     }
 	

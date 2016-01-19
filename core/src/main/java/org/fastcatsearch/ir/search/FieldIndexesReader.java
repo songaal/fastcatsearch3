@@ -3,6 +3,7 @@ package org.fastcatsearch.ir.search;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.settings.FieldIndexSetting;
@@ -29,9 +30,11 @@ public class FieldIndexesReader extends SelectableIndexesReader<FieldIndexReader
 			}
 			readerList.add(reader);
 		}
-
+        referenceCount = new AtomicInteger();
 	}
-
+    public int getReferenceCount() {
+        return referenceCount.intValue();
+    }
 	@Override
 	public FieldIndexesReader clone() {
 		FieldIndexesReader reader = new FieldIndexesReader();
@@ -44,7 +47,8 @@ public class FieldIndexesReader extends SelectableIndexesReader<FieldIndexReader
 			}
 			reader.readerList.add(newReader);
 		}
-
+        reader.referenceCount = referenceCount;
+        referenceCount.incrementAndGet();
 		return reader;
 	}
 

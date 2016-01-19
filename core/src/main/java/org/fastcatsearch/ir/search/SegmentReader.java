@@ -95,17 +95,9 @@ public class SegmentReader implements Comparable {
 		//field index
 		this.fieldIndexesReader = new FieldIndexesReader(schema, segmentDir);
 		
-//		// group index
-//		this.groupIndexesReader = new GroupIndexesReader(schema, segmentDir, ref);
         this.groupIndexesReader = new GroupIndexesReader(schema, segmentDir);
 
 		loadDeleteSet();
-
-//		if (bitset != null) {
-//			deleteSet = bitset;
-//		} else {
-//			loadDeleteSet();
-//		}
 	}
 
 	public void loadDeleteSet() throws IOException {
@@ -191,8 +183,31 @@ public class SegmentReader implements Comparable {
     // 사용중이지 않으면 닫기록 예약한다.
     public void closeFuture() throws IOException {
 
-        //TODO
-        close();
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    while(true) {
+                        logger.debug("Try Close Segment[{}] Future >> d[{}] s[{}] f[{}] g[{}]", segmentId, documentReader.getReferenceCount(), searchIndexesReader.getReferenceCount()
+                                , fieldIndexesReader.getReferenceCount(), groupIndexesReader.getReferenceCount());
 
+                        if (documentReader.getReferenceCount() <= 0 && searchIndexesReader.getReferenceCount() <= 0
+                                && fieldIndexesReader.getReferenceCount() <= 0 && groupIndexesReader.getReferenceCount() <= 0) {
+                            close();
+                            logger.debug("Closed Segment[{}]", segmentId);
+                            break;
+                        }
+                        try {
+                            Thread.sleep(3000);
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                } catch (IOException e) {
+                    //ignore
+                }
+            }
+        };
+        t.setDaemon(true);
+        t.start();
     }
 }

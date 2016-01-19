@@ -19,6 +19,7 @@ package org.fastcatsearch.ir.document;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
@@ -52,21 +53,17 @@ public class DocumentReader implements Cloneable {
 	private ByteRefArrayOutputStream inflaterOutput;
 	private byte[] workingBuffer;
 
-//	private int baseDocNo;
 	private int documentCount;
 	private int lastDocNo = -1;
 	private DataInput lastBai;
 	private long positionLimit;
-	
+
+    private AtomicInteger referenceCount;
+
 	public DocumentReader() {
 	}
 
 	public DocumentReader(SchemaSetting schemaSetting, File dir) throws IOException {
-//		this(schemaSetting, dir, 0);
-//	}
-//
-//	public DocumentReader(SchemaSetting schemaSetting, File dir, int baseDocNo) throws IOException {
-//		this.baseDocNo = baseDocNo;
 		fields = schemaSetting.getFieldSettingList();
 		docInput = new BufferedFileInput(dir, IndexFileNames.docStored);
 		positionInput = new BufferedFileInput(dir, IndexFileNames.docPosition);
@@ -76,16 +73,17 @@ public class DocumentReader implements Cloneable {
 
 		inflaterOutput = new ByteRefArrayOutputStream(INFLATE_BUFFER_INIT_SIZE); // 자동 증가됨. 초기 20KB으로 내림. 예전에는 3MB였음.
 		workingBuffer = new byte[1024];
+        referenceCount = new AtomicInteger();
 	}
 
-	public int getDocumentCount() {
+    public int getReferenceCount() {
+        return referenceCount.intValue();
+    }
+
+    public int getDocumentCount() {
 		return documentCount;
 	}
 
-//	public int getBaseNumber() {
-//		return baseDocNo;
-//	}
-	
 	// 내부 문서번호로 호출한다.
 	public Document readDocument(int docNo) throws IOException {
 		return readDocument(docNo, null);
@@ -97,11 +95,6 @@ public class DocumentReader implements Cloneable {
 		return readDocument(docNo, fieldSelectOption, false);
 	}
 	public Document readDocument(int docNo, boolean[] fieldSelectOption, boolean indexable) throws IOException {
-		// if(docNo < baseDocNo) throw new
-		// IOException("Request docNo cannot less than baseDocNo! docNo = "+docNo+", baseDocNo = "+baseDocNo);
-
-		// baseDocNo만큼 빼서 세그먼트별 내부문서번호를 만든다.
-		// docNo -= baseDocNo;
 
 		DataInput bai = null;
 
@@ -175,7 +168,6 @@ public class DocumentReader implements Cloneable {
 			document.add(f);
 		}
 		
-//		document.setDocId(docNo + baseDocNo);
 		document.setDocId(docNo);
 
 		return document;
@@ -187,17 +179,19 @@ public class DocumentReader implements Cloneable {
 		reader.fields = fields;
 		reader.docInput = docInput.clone();
 		reader.positionInput = positionInput.clone();
-//		reader.baseDocNo = baseDocNo;
 		reader.documentCount = documentCount;
 
 		reader.inflaterOutput = new ByteRefArrayOutputStream(INFLATE_BUFFER_INIT_SIZE); // 자동 증가됨.
 		reader.workingBuffer = new byte[1024];
 		reader.positionLimit = positionLimit;
+        reader.referenceCount = referenceCount;
+        referenceCount.incrementAndGet();
 		return reader;
 	}
 
 	public void close() throws IOException {
 		docInput.close();
 		positionInput.close();
+        referenceCount.decrementAndGet();
 	}
 }

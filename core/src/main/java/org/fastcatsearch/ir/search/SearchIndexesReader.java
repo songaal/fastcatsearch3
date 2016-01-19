@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 검색시 numeric field도 모두 string 형을 처리하기때문에, key는 123 1200 2 20000 31 과 같이 정렬되어 있다.
@@ -48,18 +49,14 @@ public class SearchIndexesReader implements Cloneable {
 	private PrimaryKeyIndexesReader primaryKeyIndexesReader;
 	private int segmentDocumentCount;
 
+    private AtomicInteger referenceCount;
+
 	public SearchIndexesReader() {
 	}
 
 	public SearchIndexesReader(Schema schema, File dir, AnalyzerPoolManager analyzerPoolManager, int segmentDocumentCount) throws IOException, IRException {
-//		this(schema, dir, 0, analyzerPoolManager, segmentDocumentCount);
-//	}
-//
-//	public SearchIndexesReader(Schema schema, File dir, int revision, AnalyzerPoolManager analyzerPoolManager, int segmentDocumentCount) throws IOException, IRException {
 		this.schema = schema;
 		this.segmentDocumentCount = segmentDocumentCount;
-//		logger.debug("schema > {}", schema);
-//		logger.debug("schema.schemaSetting > {}", schema.schemaSetting());
 		indexSettingList = schema.schemaSetting().getIndexSettingList();
 		int indexCount = indexSettingList == null ? 0 : indexSettingList.size();
 
@@ -79,7 +76,6 @@ public class SearchIndexesReader implements Cloneable {
 					throw new IRException("Query analyzer not found >> " + setting.getId() + " : " + queryAnalyzerName);
 				}
 				
-//				reader = new SearchIndexReader(setting, schema, dir, revision, queryAnalyzerPool, segmentDocumentCount);
                 reader = new SearchIndexReader(setting, schema, dir, queryAnalyzerPool, segmentDocumentCount);
 			} catch (Exception e) {
 				logger.error("색인Reader {}로딩중 에러 >> {}", setting.getId(), e);
@@ -91,11 +87,13 @@ public class SearchIndexesReader implements Cloneable {
 		}
 		PrimaryKeySetting primaryKeySetting = schema.schemaSetting().getPrimaryKeySetting();
 		if(primaryKeySetting.getFieldList() != null && primaryKeySetting.getFieldList().size() > 0) {
-//			primaryKeyIndexesReader = new PrimaryKeyIndexesReader(schema, dir, revision);
             primaryKeyIndexesReader = new PrimaryKeyIndexesReader(schema, dir);
 		}
+        referenceCount = new AtomicInteger();
 	}
-
+    public int getReferenceCount() {
+        return referenceCount.intValue();
+    }
 	@Override
 	public SearchIndexesReader clone() {
 
@@ -117,7 +115,8 @@ public class SearchIndexesReader implements Cloneable {
 		if(primaryKeyIndexesReader != null) {
 			reader.primaryKeyIndexesReader = primaryKeyIndexesReader.clone();
 		}
-		
+        reader.referenceCount = referenceCount;
+        referenceCount.incrementAndGet();
 		return reader;
 	}
 
@@ -194,5 +193,6 @@ public class SearchIndexesReader implements Cloneable {
 		if(primaryKeyIndexesReader != null) {
 			primaryKeyIndexesReader.close();
 		}
+        referenceCount.decrementAndGet();
 	}
 }

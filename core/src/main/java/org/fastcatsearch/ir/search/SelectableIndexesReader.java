@@ -3,6 +3,7 @@ package org.fastcatsearch.ir.search;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.fastcatsearch.error.CoreErrorCode;
 import org.fastcatsearch.error.SearchError;
@@ -12,6 +13,8 @@ import org.slf4j.LoggerFactory;
 
 public abstract class SelectableIndexesReader<T extends ReferenceableReader, S extends ReferencableFieldSetting> implements Cloneable {
 	protected static Logger logger = LoggerFactory.getLogger(SelectableIndexesReader.class);
+
+    protected AtomicInteger referenceCount;
 
 	protected List<T> readerList;
 	protected List<S> indexSettingList;
@@ -91,6 +94,7 @@ public abstract class SelectableIndexesReader<T extends ReferenceableReader, S e
 				}
 			}
 		}
+        referenceCount.decrementAndGet();
 	}
 
 }
