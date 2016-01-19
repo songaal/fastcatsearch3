@@ -19,6 +19,7 @@ package org.fastcatsearch.ir.search;
 import java.io.File;
 import java.io.IOException;
 
+import ch.qos.logback.core.util.TimeUtil;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
@@ -27,6 +28,7 @@ import org.fastcatsearch.ir.document.DocumentReader;
 import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.CloseableThreadLocal;
+import org.fastcatsearch.ir.util.Formatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -187,14 +189,15 @@ public class SegmentReader implements Comparable {
             @Override
             public void run() {
                 try {
+                    long startTime = System.currentTimeMillis();
                     while(true) {
-                        logger.debug("Try Close Segment[{}] Future >> d[{}] s[{}] f[{}] g[{}]", segmentId, documentReader.getReferenceCount(), searchIndexesReader.getReferenceCount()
+                        logger.debug("Try Close Segment[{}] Future for {} >> d[{}] s[{}] f[{}] g[{}]", segmentId, Formatter.getFormatTime(System.currentTimeMillis() - startTime), documentReader.getReferenceCount(), searchIndexesReader.getReferenceCount()
                                 , fieldIndexesReader.getReferenceCount(), groupIndexesReader.getReferenceCount());
 
                         if (documentReader.getReferenceCount() <= 0 && searchIndexesReader.getReferenceCount() <= 0
                                 && fieldIndexesReader.getReferenceCount() <= 0 && groupIndexesReader.getReferenceCount() <= 0) {
                             close();
-                            logger.debug("Closed Segment[{}]", segmentId);
+                            logger.debug("Closed Segment[{}] after {}", segmentId, Formatter.getFormatTime(System.currentTimeMillis() - startTime));
                             break;
                         }
                         try {
