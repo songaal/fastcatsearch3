@@ -22,11 +22,7 @@ import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.job.CacheServiceRestartJob;
-import org.fastcatsearch.job.cluster.NodeCollectionMergingJob;
-import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
@@ -78,7 +74,7 @@ public class CollectionMergingJob extends IndexingJob {
             List<Node> nodeList = new ArrayList<Node>(nodeService.getNodeById(collectionContext.collectionConfig().getDataNodeList()));
             //색인노드가 data node에 추가되어있다면 제거한다.
             nodeList.remove(nodeService.getMyNode());
-            NodeCollectionMergingJob nodeCollectionMergingJob = new NodeCollectionMergingJob();
+            NodeIndexMergingJob nodeCollectionMergingJob = new NodeIndexMergingJob();
             NodeJobResult[] nodeResultList = null;
             if(nodeList.size() > 0) {
                 nodeResultList = ClusterUtils.sendJobToNodeList(nodeCollectionMergingJob, nodeService, nodeList, false);

@@ -51,6 +51,8 @@ public class CollectionHandler {
 
     private SegmentIdGenerator segmentIdGenerator;
 
+    private boolean isMerging;
+
 	public CollectionHandler(CollectionContext collectionContext, AnalyzerFactoryManager analyzerFactoryManager) throws IRException, SettingException {
 		this.collectionContext = collectionContext;
 		this.collectionId = collectionContext.collectionId();
@@ -228,11 +230,13 @@ public class CollectionHandler {
             logger.debug("New delete.set saved. set={}", deleteSet);
         }
 
+        String segmentId = segmentIdGenerator.nextId();
+
         // delete.req 파일은 머징중인 세그먼트의 데이터 일관성을 위함이다.
-        // TODO 머징중인 세그먼트가 없다면 delete.req 파일도 만들지 않는다.
-        if(deleteIdSet.size() > 0) {
+        // 머징중인 세그먼트가 있을때에만 delete.req 파일을 만든다.
+        if(isMergingStatus() && deleteIdSet.size() > 0) {
             //삭제ID만 기록해 놓은 delete.req 파일을 만들어 놓는다. (차후 세그먼트 병합시 사용됨)
-            File deleteIdFile = new File(segmentDir.getParentFile(), segmentDir.getName() + "." + IndexFileNames.docDeleteReq);
+            File deleteIdFile = new File(segmentDir.getParentFile(), segmentId + "." + IndexFileNames.docDeleteReq);
             BufferedFileOutput deleteIdOutput = null;
             try {
                 deleteIdOutput = new BufferedFileOutput(deleteIdFile);
@@ -244,7 +248,6 @@ public class CollectionHandler {
             }
         }
 
-        String segmentId = segmentIdGenerator.nextId();
         File newSegmentDir = new File(segmentDir.getParentFile(), segmentId);
         FileUtils.moveDirectory(segmentDir, newSegmentDir);
         segmentInfo.setId(segmentId);
@@ -361,8 +364,11 @@ public class CollectionHandler {
             if(creatTime > startTime) {
                 File dir = segmentReader.segmentDir();
                 pkBulkReaderList.add(new PrimaryKeyIndexBulkReader(new File(dir, IndexFileNames.primaryKeyMap)));
-                deleteReqFileList.add(new File(dir.getParentFile(), dir.getName() + "." + IndexFileNames.docDeleteReq));
-                size++;
+                File deleteReqFile = new File(dir.getParentFile(), dir.getName() + "." + IndexFileNames.docDeleteReq);
+                if(deleteReqFile.exists()) {
+                    deleteReqFileList.add(deleteReqFile);
+                    size++;
+                }
             }
         }
 
@@ -381,6 +387,11 @@ public class CollectionHandler {
             * */
             applyDeleteIdSetFromSegments(deleteReqFileList, pkReader, deleteSet);
 
+            for(File f : deleteReqFileList) {
+                if(f.exists()) {
+                    FileUtils.deleteQuietly(f);
+                }
+            }
             pkReader.close();
             deleteSet.save();
         }
@@ -698,4 +709,15 @@ public class CollectionHandler {
 		return queryCounter;
 	}
 
+    public void startMergingStatus() {
+        isMerging = true;
+    }
+
+    public void endMergingStatus() {
+        isMerging = false;
+    }
+
+    public boolean isMergingStatus() {
+        return isMerging;
+    }
 }

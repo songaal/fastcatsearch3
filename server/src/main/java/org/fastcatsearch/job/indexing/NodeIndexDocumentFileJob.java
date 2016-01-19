@@ -26,16 +26,16 @@ import java.util.Map;
 /**
  * Created by swsong on 2016. 1. 14..
  */
-public class NodeIndexFileDocumentJob extends Job implements Streamable {
+public class NodeIndexDocumentFileJob extends Job implements Streamable {
 
     private String collectionId;
     private String documentId;
     private String documents;
 
-    public NodeIndexFileDocumentJob() {
+    public NodeIndexDocumentFileJob() {
     }
 
-    public NodeIndexFileDocumentJob(String collectionId, String documentId, String documents) {
+    public NodeIndexDocumentFileJob(String collectionId, String documentId, String documents) {
         this.collectionId = collectionId;
         this.documentId = documentId;
         this.documents = documents;

@@ -5,11 +5,9 @@ import org.fastcatsearch.cluster.ClusterUtils;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeJobResult;
 import org.fastcatsearch.cluster.NodeService;
-import org.fastcatsearch.control.JobService;
-import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.job.indexing.NodeIndexFileDocumentJob;
+import org.fastcatsearch.job.indexing.NodeIndexDocumentFileJob;
 import org.fastcatsearch.module.AbstractModule;
 import org.fastcatsearch.module.ModuleException;
 import org.fastcatsearch.service.ServiceManager;
@@ -61,7 +59,7 @@ public class DynamicIndexModule extends AbstractModule {
                     List<String> nodeIdList = new ArrayList<String>(nodeSet);
                     List<Node> nodeList = new ArrayList<Node>(nodeService.getNodeById(nodeIdList));
 
-                    NodeIndexFileDocumentJob indexFileDocumentJob = new NodeIndexFileDocumentJob(collectionId, documentId, documents);
+                    NodeIndexDocumentFileJob indexFileDocumentJob = new NodeIndexDocumentFileJob(collectionId, documentId, documents);
                     NodeJobResult[] nodeResultList = ClusterUtils.sendJobToNodeList(indexFileDocumentJob, nodeService, nodeList, true);
                     //여기서 색인이 끝날때 까지 블록킹해야 다음색인이 동시에 돌지 않게됨.
                     for(NodeJobResult result : nodeResultList) {

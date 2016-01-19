@@ -1,20 +1,29 @@
 package org.fastcatsearch.ir;
 
 import org.apache.commons.io.FileUtils;
-import org.fastcatsearch.datasource.reader.DataSourceReader;
-import org.fastcatsearch.datasource.reader.DefaultDataSourceReaderFactory;
-import org.fastcatsearch.datasource.reader.StoredDocumentSourceReader;
-import org.fastcatsearch.datasource.reader.StoredSegmentSourceReader;
+import org.fastcatsearch.datasource.reader.*;
+import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexingType;
+import org.fastcatsearch.ir.common.SettingException;
+import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
+import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.DataSourceConfig;
+import org.fastcatsearch.ir.config.IndexConfig;
+import org.fastcatsearch.ir.document.Document;
+import org.fastcatsearch.ir.index.DeleteIdSet;
+import org.fastcatsearch.ir.index.SegmentWriter;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
+import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.indexing.IndexingStopException;
 import org.fastcatsearch.util.CoreFileUtils;
 import org.fastcatsearch.util.FilePaths;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,97 +32,102 @@ import java.util.List;
 /**
  * 컬렉션의 세그먼트 머징을 수행하는 indexer.
  * */
-public class CollectionMergeIndexer extends AbstractCollectionIndexer {
-
-	private CollectionHandler collectionHandler;
+public class CollectionMergeIndexer {
+    protected static final Logger logger = LoggerFactory.getLogger(CollectionMergeIndexer.class);
+    protected CollectionContext collectionContext;
+    protected AnalyzerPoolManager analyzerPoolManager;
 
     private File[] segmentDirs;
     private File segmentDir;
 
     private List<String> mergeSegmentIdList;
 
-	public CollectionMergeIndexer(CollectionHandler collectionHandler, File[] segmentDirs, List<String> mergeSegmentIdList) throws IRException {
-		super(collectionHandler.collectionContext(), collectionHandler.analyzerPoolManager());
-		this.collectionHandler = collectionHandler;
-		this.segmentDirs = segmentDirs;
-        this.mergeSegmentIdList = mergeSegmentIdList;
+    protected DeleteIdSet deleteIdSet; //삭제문서리스트.
+
+    protected SegmentWriter indexWriter;
+    protected DataInfo.SegmentInfo segmentInfo;
+
+    private AbstractDataSourceReader dataSourceReader;
+
+    private Schema schema;
+    private long startTime;
+    private long lapTime;
+
+    private int count;
+
+	public CollectionMergeIndexer(String documentId, CollectionHandler collectionHandler, File[] segmentDirs, List<String> mergeSegmentIdList) throws IRException {
+        this.collectionContext = collectionHandler.collectionContext();
+        this.analyzerPoolManager = collectionHandler.analyzerPoolManager();
 		//머징색인시는 현재 스키마를 그대로 사용한다.
-        init(collectionContext.schema());
+        this.schema = collectionContext.schema();
+        this.segmentInfo = new DataInfo.SegmentInfo(documentId);
+        this.segmentDirs = segmentDirs;
+        this.mergeSegmentIdList = mergeSegmentIdList;
+        /*
+        * 세그먼트 디렉토리가 미리존재한다면 삭제.
+        * */
+        FilePaths indexFilePaths = collectionContext.indexFilePaths();
+        segmentDir = indexFilePaths.file(segmentInfo.getId());
+        logger.info("New Segment Dir = {}", segmentDir.getAbsolutePath());
+        try {
+            FileUtils.deleteDirectory(segmentDir);
+        } catch (IOException e) {
+            throw new IRException(e);
+        }
+        IndexConfig indexConfig = collectionContext.indexConfig();
+        indexWriter = new SegmentWriter(schema, segmentDir, segmentInfo, indexConfig, analyzerPoolManager, null);
+        deleteIdSet = new DeleteIdSet();
+
+        dataSourceReader = new StoredSegmentSourceReader(segmentDirs, schema.schemaSetting());
+        dataSourceReader.init();
 	}
 
 	public File getSegmentDir() {
         return segmentDir;
     }
 
-	@Override
-	protected DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException{
-        StoredSegmentSourceReader reader = new StoredSegmentSourceReader(segmentDirs, schemaSetting);
-        reader.init();
-        return reader;
-	}
-
-	/*
-	 * workingSegmentInfo 객체를 준비한다.
-	 * */
-	@Override
-	protected void prepare() throws IRException {
-		FilePaths indexFilePaths = collectionContext.indexFilePaths();
-		// 증분색인이면 기존스키마그대로 사용.
-        String newSegmentId = collectionHandler.nextSegmentId();
-        workingSegmentInfo = new SegmentInfo(newSegmentId);
-        this.segmentDir = indexFilePaths.file(workingSegmentInfo.getId());
-        logger.debug("#색인시 세그먼트를 생성합니다. {}", workingSegmentInfo);
-        try {
-            CoreFileUtils.removeDirectoryCascade(segmentDir);
-        } catch (IOException e) {
-            throw new IRException(e);
+    public void doIndexing() throws IRException, IOException {
+        startTime = System.currentTimeMillis();
+        lapTime = startTime;
+        while (dataSourceReader.hasNext()) {
+            Document document = dataSourceReader.nextDocument();
+//			logger.debug("doc >> {}", document);
+            addDocument(document);
         }
-	}
+    }
 
-	@Override
-	protected boolean done(SegmentInfo segmentInfo, IndexStatus indexStatus) throws IRException, IndexingStopException {
+    public void addDocument(Document document) throws IRException, IOException{
+        indexWriter.addDocument(document);
+        count++;
+        if (count % 10000 == 0) {
+            logger.info(
+                    "{} documents indexed, lap = {} ms, elapsed = {}, mem = {}",
+                    count, System.currentTimeMillis() - lapTime,
+                    Formatter.getFormatTime(System.currentTimeMillis() - startTime),
+                    Formatter.getFormatSize(Runtime.getRuntime().totalMemory()));
+            lapTime = System.currentTimeMillis();
+        }
+    }
 
-        int insertCount = segmentInfo.getInsertCount();
-        int deleteCount = segmentInfo.getDeleteCount();
-        FilePaths indexFilePaths = collectionContext.indexFilePaths();
-        File segmentDir = indexFilePaths.file(segmentInfo.getId());
+    public DataInfo.SegmentInfo close() throws IRException, SettingException, IndexingStopException {
 
-        try {
-            if (!stopRequested) {
-                if (insertCount <= 0) {
-                    // 세그먼트 증가시 segment디렉토리 삭제.
-                    logger.debug("# 머징문서가 없으므로, segment를 삭제합니다. {}", segmentDir.getAbsolutePath());
-                    FileUtils.deleteDirectory(segmentDir);
-                    logger.info("delete segment dir ={}", segmentDir.getAbsolutePath());
-                    segmentInfo.resetCountInfo();
-                }
-                if (deleteCount > 0) {
-                    segmentInfo.setDeleteCount(deleteCount);
-                }
-
-                if (insertCount <= 0 && deleteCount <= 0) {
-                    logger.info("[{}] Merging is canceled due to no documents.", collectionContext.collectionId());
-                    throw new IndexingStopException(collectionContext.collectionId() + " Merging is canceled due to no documents.");
-                }
-
-                collectionHandler.addSegmentApplyCollection(segmentInfo, segmentDir, mergeSegmentIdList);
-
-                //status.xml 업데이트
-                collectionContext.updateCollectionStatus(IndexingType.ADD, segmentInfo, startTime, System.currentTimeMillis());
-                collectionContext.indexStatus().setAddIndexStatus(indexStatus);
-
-            } else {
-                FileUtils.deleteDirectory(segmentDir);
-                logger.info("delete segment dir ={}", segmentDir.getAbsolutePath());
-                logger.info("[{}] Indexing Canceled due to Stop Requested!", collectionContext.collectionId());
-                throw new IndexingStopException(collectionContext.collectionId() + " Indexing Canceled due to Stop Requested");
+        if (indexWriter != null) {
+            try {
+                indexWriter.close();
+            } catch (IOException e) {
+                throw new IRException(e);
             }
-        } catch (IOException e) {
-            throw new IRException(e);
         }
 
-        return true;
-	}
+        segmentInfo.setDocumentCount(count);
+        segmentInfo.setInsertCount(count);
+        segmentInfo.setUpdateCount(0);
+        segmentInfo.setDeleteCount(0);
+
+        logger.debug("##Indexer close {}", segmentInfo);
+
+        return segmentInfo;
+    }
 	
 }
 

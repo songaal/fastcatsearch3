@@ -39,7 +39,7 @@ import java.util.Map;
  */
 public class CollectionDynamicIndexer {
 
-    protected static final Logger logger = LoggerFactory.getLogger(AbstractCollectionIndexer.class);
+    protected static final Logger logger = LoggerFactory.getLogger(CollectionDynamicIndexer.class);
     protected CollectionContext collectionContext;
     protected AnalyzerPoolManager analyzerPoolManager;
 
@@ -54,7 +54,6 @@ public class CollectionDynamicIndexer {
     protected int updateCount;
     protected int deleteCount;
 
-    private String documentId;
     private CollectionHandler collectionHandler;
     private DefaultDataSourceReader documentFactory;
 
@@ -63,7 +62,6 @@ public class CollectionDynamicIndexer {
     private CollectionSearcher collectionSearcher;
 
     public CollectionDynamicIndexer(String documentId, CollectionHandler collectionHandler) throws IRException {
-        this.documentId = documentId;
         this.collectionHandler = collectionHandler;
         this.collectionContext = collectionHandler.collectionContext();
         this.analyzerPoolManager = collectionHandler.analyzerPoolManager();
