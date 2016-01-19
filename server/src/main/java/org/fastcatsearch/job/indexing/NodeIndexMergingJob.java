@@ -44,7 +44,7 @@ public class NodeIndexMergingJob extends Job implements Streamable {
         IRService irService = ServiceManager.getInstance().getService(IRService.class);
         CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
         try {
-            //TODO 머징 시작표시..
+            // 머징 시작표시..
             collectionHandler.startMergingStatus();
 
             CollectionContext collectionContext = collectionHandler.collectionContext();
@@ -157,7 +157,7 @@ public class NodeIndexMergingJob extends Job implements Streamable {
             logger.error("", e);
             throw new FastcatSearchException("ERR-00525", e);
         } finally {
-            // TODO 머징 끝남표시..
+            // 머징 끝남표시..
             collectionHandler.endMergingStatus();
         }
     }

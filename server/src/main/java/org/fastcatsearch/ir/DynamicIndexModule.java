@@ -45,9 +45,8 @@ public class DynamicIndexModule extends AbstractModule {
                 logger.debug("Found file to be indexed > {}", file.getAbsolutePath());
 
                 String documentId = file.getName();
-                String documents = null;
                 try {
-                    documents = FileUtils.readFileToString(file, "utf-8");
+                    String documents = FileUtils.readFileToString(file, "utf-8");
                     NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
                     IRService irService = ServiceManager.getInstance().getService(IRService.class);
                     CollectionContext collectionContext = irService.collectionContext(collectionId);
