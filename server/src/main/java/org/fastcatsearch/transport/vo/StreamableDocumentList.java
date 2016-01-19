@@ -49,7 +49,7 @@ public class StreamableDocumentList implements Streamable {
 						field = (Field) constructor.newInstance(id, size);
 					} catch (NoSuchMethodException ignore) { }
 					field.readRawFrom(input);
-					document.set(fieldInx, field);
+					document.add(field);
 
 				} catch (Exception e) {
 					throw new IOException(e);

@@ -32,7 +32,7 @@ public class GetDocumentActionAction extends ServiceAction {
 		String collectionId = request.getParameter("collectionId");
 		int start = Integer.parseInt(request.getParameter("start", "0"));
 		int end = Integer.parseInt(request.getParameter("length", "10")) + start - 1;
-		String pkValue = request.getParameter("pkValue");
+		String pkValue = request.getParameter("pk");
 
         writeHeader(response);
         response.setStatus(HttpResponseStatus.OK);

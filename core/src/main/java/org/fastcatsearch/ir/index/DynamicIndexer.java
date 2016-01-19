@@ -134,7 +134,7 @@ public class DynamicIndexer {
 //				logger.debug("Get {} : {}", key, data);
                 String multiValueDelimiter = fs.getMultiValueDelimiter();
                 Field f = fs.createIndexableField(data, multiValueDelimiter);
-                document.set(i, f);
+                document.add(f);
 //				logger.debug("doc [{}]{}:{}", i, fs.getId(), f);
             }
             return document;

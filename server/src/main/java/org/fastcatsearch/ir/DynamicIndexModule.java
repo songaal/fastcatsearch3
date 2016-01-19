@@ -66,6 +66,7 @@ public class DynamicIndexModule extends AbstractModule {
                     for(NodeJobResult result : nodeResultList) {
                         logger.debug("Index file {} : Node {} > {}", file.getName(), result.node().id(), result.result());
                     }
+                    FileUtils.deleteQuietly(file);
                 } catch (Exception e) {
                     logger.error("", e);
                 }

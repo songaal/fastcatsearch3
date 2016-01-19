@@ -42,7 +42,7 @@ public class Document {
 	}
 	
 	public void set(int index, Field f){
-		fields.add(index, f);
+		fields.set(index, f);
 	}
 	
 	public Field get(int index){

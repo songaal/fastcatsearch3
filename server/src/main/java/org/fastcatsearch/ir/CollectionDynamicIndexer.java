@@ -134,11 +134,10 @@ public class CollectionDynamicIndexer {
         if(collectionSearcher == null) {
             collectionSearcher = new CollectionSearcher(collectionHandler);
         }
-        Document document = collectionSearcher.searchPk(pkValue);
-
+        Document document = collectionSearcher.getIndexableDocumentByPk(pkValue);
         //2. 들어온 문서에서 각 필드를 업데이트 한다.
         for(Map.Entry<String, Object> entry : source.entrySet()) {
-            String fieldId = entry.getKey().toLowerCase();
+            String fieldId = entry.getKey().toUpperCase();
             Object data = entry.getValue();
 
             Integer idx = schema.fieldSequenceMap().get(fieldId);
@@ -175,6 +174,7 @@ public class CollectionDynamicIndexer {
 //				logger.debug("Get {} : {}", key, data);
             String multiValueDelimiter = fs.getMultiValueDelimiter();
             Field field = fs.createIndexableField(data, multiValueDelimiter);
+
             return field;
         }
     }

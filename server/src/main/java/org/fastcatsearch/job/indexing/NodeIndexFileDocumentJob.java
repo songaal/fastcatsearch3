@@ -73,12 +73,6 @@ public class NodeIndexFileDocumentJob extends Job implements Streamable {
 //                collectionContext.updateCollectionStatus(IndexingType.ADD, workingSegmentInfo, startTime, System.currentTimeMillis());
 //                collectionContext.indexStatus().setAddIndexStatus(indexStatus);
 
-                /*
-                 * 컬렉션에 세그먼트를 적용한다.
-                 * */
-//                collectionContext.addSegmentInfo(segmentInfo);
-//                collectionHandler.updateCollection(collectionContext, indexer.getSegmentInfo(), segmentDir, indexer.getDeleteIdSet());
-//                CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
 
                 File segmentDir = indexer.getSegmentDir();
                 if(segmentInfo.getInsertCount() == 0 && segmentInfo.getUpdateCount() == 0 && segmentInfo.getDeleteCount() == 0) {

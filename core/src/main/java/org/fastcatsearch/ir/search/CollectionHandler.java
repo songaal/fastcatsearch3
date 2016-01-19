@@ -50,7 +50,6 @@ public class CollectionHandler {
 
     private SegmentIdGenerator segmentIdGenerator = new SegmentIdGenerator();
 
-    private DynamicIndexer dynamicIndexer;
 
 	public CollectionHandler(CollectionContext collectionContext, AnalyzerFactoryManager analyzerFactoryManager) throws IRException, SettingException {
 		this.collectionContext = collectionContext;
@@ -66,14 +65,10 @@ public class CollectionHandler {
 		this.collectionSearcher = new CollectionSearcher(this);
 		startedTime = System.currentTimeMillis();
 		isLoaded = true;
-        dynamicIndexer = new DynamicIndexer(this);
 		logger.info("Collection[{}] Loaded! {}", collectionId, collectionFilePaths.file().getAbsolutePath());
 		return this;
 	}
 
-    public DynamicIndexer dynamicIndexer() {
-        return dynamicIndexer;
-    }
 
 	@Deprecated
 	public void setAnalyzerPoolManager(AnalyzerPoolManager analyzerPoolManager) {

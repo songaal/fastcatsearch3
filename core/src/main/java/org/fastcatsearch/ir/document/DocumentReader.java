@@ -172,7 +172,7 @@ public class DocumentReader implements Cloneable {
 					throw new IOException(e);
 				}
 			}
-			document.set(i, f);
+			document.add(f);
 		}
 		
 //		document.setDocId(docNo + baseDocNo);

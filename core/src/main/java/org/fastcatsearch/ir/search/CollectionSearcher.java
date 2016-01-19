@@ -61,7 +61,7 @@ public class CollectionSearcher {
     /*
     * 결합 pk는 ;로 구분되어 있다.
     * */
-    public Document searchPk(String pkValue) throws IOException, FieldDataParseException {
+    public Document getIndexableDocumentByPk(String pkValue) throws IOException, FieldDataParseException {
         int segmentSize = collectionHandler.segmentSize();
         if (segmentSize == 0) {
             return null;
@@ -71,9 +71,12 @@ public class CollectionSearcher {
         //여러세그먼트에서 찾아본다.
         for(SegmentReader segmentReader : collectionHandler.segmentReaders()) {
             int docNo = segmentReader.newSearchIndexesReader().getPrimaryKeyIndexesReader().getDocNo(pkValue, tempOutput);
-            //삭제문서가 아니면 리턴한다.
-            if(!segmentReader.deleteSet().isSet(docNo)) {
-                return segmentReader.segmentSearcher().getDocument(docNo);
+            if(docNo != -1) {
+                //찾지못함.
+                //삭제문서가 아니면 리턴한다.
+                if (!segmentReader.deleteSet().isSet(docNo)) {
+                    return segmentReader.segmentSearcher().getIndexableDocument(docNo);
+                }
             }
         }
 

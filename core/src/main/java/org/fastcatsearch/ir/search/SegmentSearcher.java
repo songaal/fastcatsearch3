@@ -52,6 +52,13 @@ public class SegmentSearcher {
 		}
 		return documentReader.readDocument(docNo);
 	}
+
+    public Document getIndexableDocument(int docNo) throws IOException {
+        if (documentReader == null) {
+            documentReader = segmentReader.newDocumentReader();
+        }
+        return documentReader.readDocument(docNo, null, true);
+    }
 	
 	//true인 index의 필드값만 채워진다.
 	public Document getDocument(int docNo, boolean[] fieldSelectOption) throws IOException {
