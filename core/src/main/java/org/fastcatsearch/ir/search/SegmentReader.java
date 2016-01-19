@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 
 import ch.qos.logback.core.util.TimeUtil;
+import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
@@ -184,6 +185,9 @@ public class SegmentReader implements Comparable {
 
     // 사용중이지 않으면 닫기록 예약한다.
     public void closeFuture() throws IOException {
+        closeFuture(false);
+    }
+    public void closeFuture(final boolean deleteDirectory) throws IOException {
 
         Thread t = new Thread() {
             @Override
@@ -197,6 +201,9 @@ public class SegmentReader implements Comparable {
                         if (documentReader.getReferenceCount() <= 0 && searchIndexesReader.getReferenceCount() <= 0
                                 && fieldIndexesReader.getReferenceCount() <= 0 && groupIndexesReader.getReferenceCount() <= 0) {
                             close();
+                            if(deleteDirectory) {
+                                FileUtils.deleteQuietly(segmentDir);
+                            }
                             logger.debug("Closed Segment[{}] after {}", segmentId, Formatter.getFormatTime(System.currentTimeMillis() - startTime));
                             break;
                         }

@@ -258,7 +258,7 @@ public class CollectionHandler {
         }
         //신규 세그먼트 추가.
         SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, newSegmentDir, analyzerPoolManager);
-        segmentReaderMap.put(segmentReader.segmentId(), segmentReader);
+        segmentReaderMap.put(segmentId, segmentReader);
         collectionContext.addSegmentInfo(segmentInfo);
 
         return collectionContext;
@@ -400,16 +400,22 @@ public class CollectionHandler {
             pkBulkReader.close();
         }
 
-        SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager);
-        segmentReaderMap.put(segmentReader.segmentId(), segmentReader);
+        String segmentId = segmentIdGenerator.nextId();
+
+        File newSegmentDir = new File(segmentDir.getParentFile(), segmentId);
+        FileUtils.moveDirectory(segmentDir, newSegmentDir);
+        segmentInfo.setId(segmentId);
+
+        SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, newSegmentDir, analyzerPoolManager);
+        segmentReaderMap.put(segmentId, segmentReader);
         for(String removeSegmentId : segmentIdRemoveList) {
             SegmentReader removeSegmentReader = segmentReaderMap.remove(removeSegmentId);
             if(removeSegmentReader != null) {
                 //설정파일도 수정한다.
                 collectionContext.removeSegmentInfo(removeSegmentId);
             }
-            //TODO 레퍼런스가 없으면 닫도록 closeFuture를 구현한다.
-            removeSegmentReader.closeFuture();
+            //현재 사용중이면 차후에 다 쓰고 닫도록 closeFuture를 호출한다.
+            removeSegmentReader.closeFuture(true);
         }
         collectionContext.addSegmentInfo(segmentInfo);
 

@@ -151,12 +151,11 @@ public class NodeIndexMergingJob extends Job implements Streamable {
                  * 캐시 클리어.
                  */
                 getJobExecutor().offer(new CacheServiceRestartJob());
+                return new JobResult(true);
             } else {
                 //머징없음.
+                return new JobResult(false);
             }
-
-            return new JobResult(true);
-
         } catch (Throwable e) {
             logger.error("", e);
             throw new FastcatSearchException("ERR-00525", e);

@@ -5,6 +5,8 @@ import org.fastcatsearch.cluster.ClusterUtils;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeJobResult;
 import org.fastcatsearch.cluster.NodeService;
+import org.fastcatsearch.control.JobService;
+import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.job.indexing.NodeIndexDocumentFileJob;
@@ -80,22 +82,13 @@ public class DynamicIndexModule extends AbstractModule {
 
             String documentId = String.valueOf(System.nanoTime());
                 try {
-                    NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
-                    IRService irService = ServiceManager.getInstance().getService(IRService.class);
-                    CollectionContext collectionContext = irService.collectionContext(collectionId);
-
-                    Set<String> nodeSet = new HashSet<String>();
-                    nodeSet.addAll(collectionContext.collectionConfig().getDataNodeList());
-                    nodeSet.add(collectionContext.collectionConfig().getIndexNode());
-                    nodeSet.add(nodeService.getMasterNode().id());
-                    List<String> nodeIdList = new ArrayList<String>(nodeSet);
-                    List<Node> nodeList = new ArrayList<Node>(nodeService.getNodeById(nodeIdList));
-
-                    NodeIndexMergingJob indexFileDocumentJob = new NodeIndexMergingJob(collectionId, documentId);
-                    NodeJobResult[] nodeResultList = ClusterUtils.sendJobToNodeList(indexFileDocumentJob, nodeService, nodeList, true);
-                    //여기서 색인이 끝날때 까지 블록킹해야 다음색인이 동시에 돌지 않게됨.
-                    for(NodeJobResult result : nodeResultList) {
-                        logger.debug("Merging id {} : Node {} > {}", documentId, result.node().id(), result.result());
+                    JobService jobService = ServiceManager.getInstance().getService(JobService.class);
+                    ResultFuture resultFuture = jobService.offer(new NodeIndexMergingJob(collectionId, documentId));
+                    Object result = resultFuture.take();
+                    if(result instanceof Boolean && ((Boolean) result).booleanValue()) {
+                        logger.debug("Merging id {} : Node {}", documentId, environment.myNodeId());
+                    } else {
+                        //무시.
                     }
                 } catch (Exception e) {
                     logger.error("", e);
