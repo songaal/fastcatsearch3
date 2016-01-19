@@ -38,6 +38,10 @@ public class NodeIndexMergingJob extends Job implements Streamable {
     public NodeIndexMergingJob() {
     }
 
+    public NodeIndexMergingJob(String collectionId, String documentId) {
+        this.collectionId = collectionId;
+        this.documentId = documentId;
+    }
 
     @Override
     public JobResult doRun() throws FastcatSearchException {

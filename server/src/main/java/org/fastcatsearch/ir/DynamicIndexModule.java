@@ -8,6 +8,7 @@ import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.job.indexing.NodeIndexDocumentFileJob;
+import org.fastcatsearch.job.indexing.NodeIndexMergingJob;
 import org.fastcatsearch.module.AbstractModule;
 import org.fastcatsearch.module.ModuleException;
 import org.fastcatsearch.service.ServiceManager;
@@ -72,10 +73,41 @@ public class DynamicIndexModule extends AbstractModule {
         }
     }
 
+    class IndexMergeTask extends TimerTask {
+
+        @Override
+        public void run() {
+
+            String documentId = String.valueOf(System.nanoTime());
+                try {
+                    NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
+                    IRService irService = ServiceManager.getInstance().getService(IRService.class);
+                    CollectionContext collectionContext = irService.collectionContext(collectionId);
+
+                    Set<String> nodeSet = new HashSet<String>();
+                    nodeSet.addAll(collectionContext.collectionConfig().getDataNodeList());
+                    nodeSet.add(collectionContext.collectionConfig().getIndexNode());
+                    nodeSet.add(nodeService.getMasterNode().id());
+                    List<String> nodeIdList = new ArrayList<String>(nodeSet);
+                    List<Node> nodeList = new ArrayList<Node>(nodeService.getNodeById(nodeIdList));
+
+                    NodeIndexMergingJob indexFileDocumentJob = new NodeIndexMergingJob(collectionId, documentId);
+                    NodeJobResult[] nodeResultList = ClusterUtils.sendJobToNodeList(indexFileDocumentJob, nodeService, nodeList, true);
+                    //여기서 색인이 끝날때 까지 블록킹해야 다음색인이 동시에 돌지 않게됨.
+                    for(NodeJobResult result : nodeResultList) {
+                        logger.debug("Merging id {} : Node {} > {}", documentId, result.node().id(), result.result());
+                    }
+                } catch (Exception e) {
+                    logger.error("", e);
+                }
+        }
+    }
+
     @Override
     protected boolean doLoad() throws ModuleException {
         timer = new Timer();
         timer.schedule(new IndexFireTask(), 1000, 1000);
+        timer.schedule(new IndexMergeTask(), 5000, 5000);
         dataLogger = new LimitTimeSizeLogger(dir, bulkSize, flushPeriod);
         return true;
     }
