@@ -29,13 +29,15 @@ import java.util.Map;
 public class NodeIndexFileDocumentJob extends Job implements Streamable {
 
     private String collectionId;
+    private String documentId;
     private String documents;
 
     public NodeIndexFileDocumentJob() {
     }
 
-    public NodeIndexFileDocumentJob(String collectionId, String documents) {
+    public NodeIndexFileDocumentJob(String collectionId, String documentId, String documents) {
         this.collectionId = collectionId;
+        this.documentId = documentId;
         this.documents = documents;
     }
 
@@ -46,7 +48,7 @@ public class NodeIndexFileDocumentJob extends Job implements Streamable {
             CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
             CollectionDynamicIndexer indexer = null;
             try {
-                indexer = new CollectionDynamicIndexer(collectionHandler);
+                indexer = new CollectionDynamicIndexer(documentId, collectionHandler);
 
                 List<MapDocument> jsonList = new JSONRequestReader().readMapDocuments(documents);
                 for (MapDocument doc : jsonList) {
@@ -94,12 +96,14 @@ public class NodeIndexFileDocumentJob extends Job implements Streamable {
     @Override
     public void readFrom(DataInput input) throws IOException {
         collectionId = input.readString();
+        documentId = input.readString();
         documents = input.readString();
     }
 
     @Override
     public void writeTo(DataOutput output) throws IOException {
         output.writeString(collectionId);
+        output.writeString(documentId);
         output.writeString(documents);
     }
 }

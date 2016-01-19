@@ -1,5 +1,6 @@
 package org.fastcatsearch.ir.search;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.analysis.AnalyzerFactoryManager;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
@@ -49,7 +50,6 @@ public class CollectionHandler {
 	private Counter queryCounter;
 
     private SegmentIdGenerator segmentIdGenerator = new SegmentIdGenerator();
-
 
 	public CollectionHandler(CollectionContext collectionContext, AnalyzerFactoryManager analyzerFactoryManager) throws IRException, SettingException {
 		this.collectionContext = collectionContext;
@@ -219,9 +219,6 @@ public class CollectionHandler {
             deleteSet.save();
             logger.debug("New delete.set saved. set={}", deleteSet);
         }
-        for (SegmentReader segmentReader : segmentReaderMap.values()) {
-            segmentReader.loadDeleteSet();
-        }
 
         // delete.req 파일은 머징중인 세그먼트의 데이터 일관성을 위함이다.
         // TODO 머징중인 세그먼트가 없다면 delete.req 파일도 만들지 않는다.
@@ -239,7 +236,17 @@ public class CollectionHandler {
             }
         }
 
-        SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager);
+        String segmentId = segmentIdGenerator.nextId();
+        File newSegmentDir = new File(segmentDir.getParentFile(), segmentId);
+        FileUtils.moveDirectory(segmentDir, newSegmentDir);
+        segmentInfo.setId(segmentId);
+
+        //기존 세그먼트들 삭제리스트 재로딩
+        for (SegmentReader r : segmentReaderMap.values()) {
+            r.loadDeleteSet();
+        }
+        //신규 세그먼트 추가.
+        SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, newSegmentDir, analyzerPoolManager);
         segmentReaderMap.put(segmentReader.segmentId(), segmentReader);
         collectionContext.addSegmentInfo(segmentInfo);
 

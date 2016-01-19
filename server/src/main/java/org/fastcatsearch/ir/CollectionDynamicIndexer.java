@@ -54,8 +54,7 @@ public class CollectionDynamicIndexer {
     protected int updateCount;
     protected int deleteCount;
 
-//    protected boolean stopRequested;
-
+    private String documentId;
     private CollectionHandler collectionHandler;
     private DefaultDataSourceReader documentFactory;
 
@@ -63,13 +62,13 @@ public class CollectionDynamicIndexer {
     private List<String> pkList;
     private CollectionSearcher collectionSearcher;
 
-    public CollectionDynamicIndexer(CollectionHandler collectionHandler) throws IRException {
+    public CollectionDynamicIndexer(String documentId, CollectionHandler collectionHandler) throws IRException {
+        this.documentId = documentId;
         this.collectionHandler = collectionHandler;
         this.collectionContext = collectionHandler.collectionContext();
         this.analyzerPoolManager = collectionHandler.analyzerPoolManager();
         this.schema = collectionContext.schema();
-        String newSegmentId = collectionHandler.nextSegmentId();
-        this.segmentInfo = new DataInfo.SegmentInfo(newSegmentId);
+        this.segmentInfo = new DataInfo.SegmentInfo(documentId);
 
         /*
         * 세그먼트 디렉토리가 미리존재한다면 삭제.
@@ -221,18 +220,5 @@ public class CollectionDynamicIndexer {
         logger.debug("##Indexer close {}", segmentInfo);
 
         return segmentInfo;
-
-//        try {
-//            if(insertCount == 0 && updateCount == 0 && deleteCount == 0) {
-//                logger.info("[{}] Delete segment dir due to no documents = {}", collectionContext.collectionId(), segmentDir.getAbsolutePath());
-//                FileUtils.deleteDirectory(segmentDir);
-//                return null;
-//            } else {
-//
-//                return segmentInfo;
-//            }
-//        } catch (IOException e) {
-//            throw new IRException(e);
-//        }
     }
 }

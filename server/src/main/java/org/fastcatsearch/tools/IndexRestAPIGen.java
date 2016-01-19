@@ -64,7 +64,7 @@ public class IndexRestAPIGen {
     private static String[] ratingType = new String[]{"5 Star", "4 Star", "3 Star", "2 Star", "1 Star"};
 
     private static String makeJson(Random r) {
-        int id = r.nextInt();
+        int id = r.nextInt(Integer.MAX_VALUE - 1);
         String title = "title-" + id;
         String desc = "desc-" + id;
         String category = String.valueOf(r.nextInt(99) + 100);

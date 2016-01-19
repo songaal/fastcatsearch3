@@ -46,6 +46,7 @@ public class DynamicIndexModule extends AbstractModule {
                 //file 을 증분색인하도록 요청한다.
                 logger.debug("Found file to be indexed > {}", file.getAbsolutePath());
 
+                String documentId = file.getName();
                 String documents = null;
                 try {
                     documents = FileUtils.readFileToString(file, "utf-8");
@@ -60,7 +61,7 @@ public class DynamicIndexModule extends AbstractModule {
                     List<String> nodeIdList = new ArrayList<String>(nodeSet);
                     List<Node> nodeList = new ArrayList<Node>(nodeService.getNodeById(nodeIdList));
 
-                    NodeIndexFileDocumentJob indexFileDocumentJob = new NodeIndexFileDocumentJob(collectionId, documents);
+                    NodeIndexFileDocumentJob indexFileDocumentJob = new NodeIndexFileDocumentJob(collectionId, documentId, documents);
                     NodeJobResult[] nodeResultList = ClusterUtils.sendJobToNodeList(indexFileDocumentJob, nodeService, nodeList, true);
                     //여기서 색인이 끝날때 까지 블록킹해야 다음색인이 동시에 돌지 않게됨.
                     for(NodeJobResult result : nodeResultList) {
