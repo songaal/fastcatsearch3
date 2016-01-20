@@ -20,7 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.fastcatsearch.ir.field.Field;
-
+import org.json.JSONException;
+import org.json.JSONStringer;
+import org.json.JSONWriter;
 
 
 public class Document {
@@ -73,4 +75,16 @@ public class Document {
 		}
 		return sb.toString();
 	}
+
+    public String toJsonString() throws JSONException {
+
+        JSONStringer json =  new JSONStringer();
+
+        JSONWriter w = json.object();
+        for(Field f : fields) {
+            w.key(f.getId()).value(f.getDataString());
+        }
+        w.endObject();
+        return json.toString();
+    }
 }
