@@ -20,7 +20,7 @@ public class MapDocument {
         return type;
     }
 
-    public Map<String, Object> getsourceMap() {
+    public Map<String, Object> getSourceMap() {
         return sourceMap;
     }
 }

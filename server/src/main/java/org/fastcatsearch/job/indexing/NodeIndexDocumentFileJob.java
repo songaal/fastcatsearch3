@@ -15,7 +15,6 @@ import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.CollectionContextUtil;
-import org.fastcatsearch.util.FilePaths;
 import org.fastcatsearch.util.FileUtils;
 
 import java.io.File;
@@ -53,7 +52,7 @@ public class NodeIndexDocumentFileJob extends Job implements Streamable {
                 List<MapDocument> jsonList = new JSONRequestReader().readMapDocuments(documents);
                 for (MapDocument doc : jsonList) {
                     String type = String.valueOf(doc.getType());
-                    Map<String, Object> sourceMap = doc.getsourceMap();
+                    Map<String, Object> sourceMap = doc.getSourceMap();
 
                     if (type.equals(IndexDocumentsAction.INSERT_TYPE)) {
                         indexer.insertDocument(sourceMap);
