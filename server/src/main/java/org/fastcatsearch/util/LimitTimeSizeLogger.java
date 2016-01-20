@@ -37,8 +37,40 @@ public class LimitTimeSizeLogger {
 			dir.mkdirs();
 		}
         fileQueue = new ArrayDeque<File>();
+        TreeSet<File> sorter = new TreeSet<File>(new Comparator<File>() {
+            @Override
+            public int compare(File o1, File o2) {
+                long c = Long.parseLong(o1.getName()) - Long.parseLong(o2.getName());
+                return c > 0 ? 1 : c < 0 ? -1 : 0;
+            }
+        });
+        FilenameFilter filenameFilter =  new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                try {
+                    Long.parseLong(name);
+                    return true;
+                } catch(NumberFormatException e) {
+                    return false;
+                }
+            }
+        };
+
+        for(File f : dir.listFiles(filenameFilter)) {
+            sorter.add(f);
+        }
+
+        Iterator<File> iter = sorter.iterator();
+        while(iter.hasNext()) {
+            File f = iter.next();
+//            logger.info("index file = " + f.getName());
+            fileQueue.add(f);
+        }
 	}
 
+    public int getQueueSize() {
+        return fileQueue.size();
+    }
     public void close() {
         flushTimer.cancel();
         flush();

@@ -194,7 +194,7 @@ public class TempSearchFieldMerger {
 				// merge buffers
 				prevDocNo = -1;
 				totalCount = 0;
-                logger.debug("Write term : {}", cv);
+//                logger.debug("Write term : {}", cv);
 				for (int k = 0; k < bufferCount; k++) {
                     BytesBuffer buf = buffers[k];
 					// buf.reset();
@@ -210,7 +210,7 @@ public class TempSearchFieldMerger {
 					} else {
 						int firstNo = IOUtil.readVInt(buf);
 						int docDelta = firstNo - prevDocNo - 1;
-						logger.debug("docDelta={}, firstNo={}, prevDocNo={}", docDelta, firstNo, prevDocNo);
+//						logger.debug("docDelta={}, firstNo={}, prevDocNo={}", docDelta, firstNo, prevDocNo);
 
 						IOUtil.writeVInt(tempPostingOutput, docDelta);
 						tempPostingOutput.writeBytes(buf.array(), buf.pos(), buf.remaining());

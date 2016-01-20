@@ -1,5 +1,6 @@
 package org.fastcatsearch.tools;
 
+import org.fastcatsearch.ir.util.Formatter;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
@@ -11,6 +12,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.text.Format;
 import java.util.Random;
 
 /**
@@ -23,24 +25,72 @@ public class IndexRestAPIGen {
     private final String host;
 
     public static void main(String... args) {
+
+        boolean isBulk = true;
+        int p = 500;
+        if(args.length > 0) {
+            p = Integer.parseInt(args[0]);
+        }
         IndexRestAPIGen apigen = new IndexRestAPIGen("http://localhost:8090");
         String collection = "film";
         int LIMIT = 1000 * 1000;
         Random r = new Random(System.currentTimeMillis());
-        try {
+        int count = 0;
 
-            for (int i = 0; i < LIMIT; i++) {
+        if(!isBulk) {
+            try {
+                long lap = System.nanoTime();
+                for (int i = 0; i < LIMIT; i++) {
 
-                String data = makeJson(r);
-                System.out.println(data);
-                apigen.requestAPI(INDEX_API, collection, data);
+                    String data = makeJson(r);
+//                System.out.println(data);
+                    apigen.requestAPI(INDEX_API, collection, data);
+                    count++;
 
-                int pause = r.nextInt(500) + 50;
-                Thread.sleep(pause);
+                    if (count % 1000 == 0) {
+                        System.out.println("Called " + count + " reqs. lap = " + Formatter.getFormatTime((System.nanoTime() - lap) / 1000000));
+                        lap = System.nanoTime();
+                    }
+
+                    if (p > 0) {
+                        int pause = r.nextInt(p) + 50;
+                        Thread.sleep(pause);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {
+            try {
+                long lap = System.nanoTime();
+                StringBuffer datum = new StringBuffer();
 
+                for (int i = 0; i < LIMIT; i++) {
+
+                    if(datum.length() > 0) {
+                        datum.append("\n");
+                    }
+                    datum.append(makeJson(r));
+                    count++;
+
+                    if (count % 1000 == 0) {
+                        System.out.println("Called " + count + " reqs. lap = " + Formatter.getFormatTime((System.nanoTime() - lap) / 1000000));
+                        lap = System.nanoTime();
+                        String data = datum.toString();
+                        apigen.requestAPI(INDEX_API, collection, data);
+                        System.out.println("Bulk reqs. lap = " + Formatter.getFormatTime((System.nanoTime() - lap) / 1000000));
+                    }
+
+                    if (p > 0) {
+                        int pause = r.nextInt(p) + 50;
+                        Thread.sleep(pause);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+
+            }
         }
     }
 

@@ -33,6 +33,7 @@ public class GetDocumentActionAction extends ServiceAction {
 		int start = Integer.parseInt(request.getParameter("start", "0"));
 		int end = Integer.parseInt(request.getParameter("length", "10")) + start - 1;
 		String pkValue = request.getParameter("pk");
+        boolean includeDelete = request.getBooleanParameter("includeDelete");
 
         writeHeader(response);
         response.setStatus(HttpResponseStatus.OK);

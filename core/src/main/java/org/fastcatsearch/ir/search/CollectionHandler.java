@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -140,6 +141,21 @@ public class CollectionHandler {
             }
         } catch (IOException e) {
             throw new IRException(e);
+        }
+
+        //쓸데없는 세그먼트는 지운다.
+        File[] segmentDirList = dataDir.listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File f) {
+                return f.isDirectory();
+            }
+        });
+        for(File dir : segmentDirList) {
+            String name = dir.getName();
+            //세그먼트에 포함된 디렉토리가 아니면 지운다.
+            if(!segmentReaderMap.containsKey(name)) {
+                FileUtils.deleteQuietly(dir);
+            }
         }
 	}
 

@@ -62,7 +62,7 @@ public class PostingBuffer {
 		}
 	}
 	public void addOne(int docNo, int position) throws IRException{
-		logger.debug("Posting add >> {}, {}", docNo, position);
+//		logger.debug("Posting add >> {}, {}", docNo, position);
 		//동일한 문서번호면 freq를 올려준다.
 		if(docNo == lastDocNo){
 			lastDocFrequency++;

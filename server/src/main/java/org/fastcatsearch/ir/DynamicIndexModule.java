@@ -45,7 +45,7 @@ public class DynamicIndexModule extends AbstractModule {
             File file = dataLogger.pollFile();
             if(file != null) {
                 //file 을 증분색인하도록 요청한다.
-                logger.debug("Found file to be indexed > {}", file.getAbsolutePath());
+                logger.info("Found file to be indexed among {} files > {}", dataLogger.getQueueSize(), file.getAbsolutePath());
 
                 String documentId = file.getName();
                 try {
@@ -102,6 +102,7 @@ public class DynamicIndexModule extends AbstractModule {
         timer.schedule(new IndexFireTask(), 1000, 1000);
         timer.schedule(new IndexMergeTask(), 5000, 5000);
         dataLogger = new LimitTimeSizeLogger(dir, bulkSize, flushPeriod);
+        logger.info("[{}] To be indexed files = {}", collectionId, dataLogger.getQueueSize());
         return true;
     }
 
