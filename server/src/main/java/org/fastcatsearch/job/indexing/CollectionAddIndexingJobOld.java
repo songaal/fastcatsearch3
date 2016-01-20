@@ -45,7 +45,7 @@ import java.util.List;
  * index node가 아닌 노드에 전달되면 색인을 수행하지 않는다.
  *  
  * */
-public class CollectionAddIndexingJob extends IndexingJob {
+public class CollectionAddIndexingJobOld extends IndexingJob {
 
 	private static final long serialVersionUID = 7898036370433248984L;
 

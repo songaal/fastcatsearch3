@@ -13,7 +13,6 @@ import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexBulkReader;
 import org.fastcatsearch.ir.document.PrimaryKeyIndexReader;
 import org.fastcatsearch.ir.index.DeleteIdSet;
-import org.fastcatsearch.ir.index.DynamicIndexer;
 import org.fastcatsearch.ir.index.PrimaryKeys;
 import org.fastcatsearch.ir.index.SegmentIdGenerator;
 import org.fastcatsearch.ir.io.BitSet;

@@ -18,11 +18,8 @@ import org.fastcatsearch.http.action.service.indexing.JSONRequestReader;
 import org.fastcatsearch.ir.DynamicIndexModule;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IndexingType;
-import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.index.DynamicIndexer;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
-import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.state.TaskStateService;
 import org.fastcatsearch.notification.NotificationService;
 import org.fastcatsearch.processlogger.ProcessLoggerService;
@@ -30,9 +27,7 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  *
