@@ -205,9 +205,9 @@ public class SegmentReader implements Comparable {
 //                            logger.debug("Closed Segment[{}] after {}", segmentId, Formatter.getFormatTime(System.currentTimeMillis() - startTime));
 ////                            break;
 //                        }
-                    //5초후에 닫는다.
+                    //10초후에 닫는다.
                     try {
-                        Thread.sleep(5000);
+                        Thread.sleep(10000);
                     } catch (InterruptedException e) {
                     }
                     close();
