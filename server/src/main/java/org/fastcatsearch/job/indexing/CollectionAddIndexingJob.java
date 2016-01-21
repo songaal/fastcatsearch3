@@ -18,6 +18,7 @@ import org.fastcatsearch.datasource.reader.DefaultDataSourceReaderFactory;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.DynamicIndexModule;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.document.Document;
@@ -46,7 +47,9 @@ public class CollectionAddIndexingJob extends IndexingJob {
 
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
-		
+
+        prepare(IndexingType.ADD, "ALL");
+
 		Throwable throwable = null;
 		Object result = null;
 		try {

@@ -6,14 +6,16 @@
             <properties>
                 <property key="beforeSQL"></property>
                 <property key="dataSQL">SELECT
-   `film`.`film_id` AS `FID`,
-   `film`.`title` AS `title`,
-   `film`.`description` AS `description`,
-   `category`.`name` AS `category`,
-   `film`.`rental_rate` AS `price`,
-   `film`.`length` AS `length`,
-   `film`.`rating` AS `rating`,group_concat(concat(`actor`.`first_name`,_utf8' ',`actor`.`last_name`) separator ', ') AS `actors`
-FROM ((((`category` left join `film_category` on((`category`.`category_id` = `film_category`.`category_id`))) left join `film` on((`film_category`.`film_id` = `film`.`film_id`))) join `film_actor` on((`film`.`film_id` = `film_actor`.`film_id`))) join `actor` on((`film_actor`.`actor_id` = `actor`.`actor_id`))) group by `film`.`film_id`;</property>
+                    `film_id` AS `FID`,
+                    `title`,
+                    `description`,
+                    `release_year` AS `year`,
+                    `rental_rate` AS `price`,
+                    `length`,
+                    `rating`,
+                    `special_features` AS `features`,
+                    `last_update` AS `update_time`
+                    FROM `film`</property>
                 <property key="fetchSize">-1</property>
                 <property key="afterSQL"></property>
                 <property key="bulkSize">100</property>
