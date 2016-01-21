@@ -13,6 +13,7 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.text.Format;
+import java.util.Date;
 import java.util.Random;
 
 /**
@@ -78,13 +79,13 @@ public class IndexRestAPIGen {
                         System.out.println("Called " + count + " reqs. lap = " + Formatter.getFormatTime((System.nanoTime() - lap) / 1000000));
                         lap = System.nanoTime();
                         String data = datum.toString();
+                        datum = new StringBuffer();
                         apigen.requestAPI(INDEX_API, collection, data);
                         System.out.println("Bulk reqs. lap = " + Formatter.getFormatTime((System.nanoTime() - lap) / 1000000));
-                    }
-
-                    if (p > 0) {
-                        int pause = r.nextInt(p) + 50;
-                        Thread.sleep(pause);
+                        if (p > 0) {
+                            int pause = r.nextInt(p) + 50;
+                            Thread.sleep(pause);
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -111,25 +112,28 @@ public class IndexRestAPIGen {
         }
     }
 
-    private static String[] ratingType = new String[]{"5 Star", "4 Star", "3 Star", "2 Star", "1 Star"};
+    private static String[] ratingType = new String[]{"G", "NC-17", "PG", "PG-13", "R"};
+    private static String[] featureType = new String[]{"Behind the Scenes", "Commentaries", "Deleted Scenes", "Trailers"};
 
     private static String makeJson(Random r) {
         int id = r.nextInt(Integer.MAX_VALUE - 1);
         String title = "title-" + id;
         String desc = "desc-" + id;
-        String category = String.valueOf(r.nextInt(99) + 100);
         int price = (r.nextInt(300) + 50) * 100;
         String rating = ratingType[r.nextInt(5)];
-        String actors = "Actor-" + r.nextInt(20);
+        String feature = featureType[r.nextInt(4)];
+        String updateTime = Formatter.formatDate(new Date(r.nextInt(100000000)));
         JSONStringer o = new JSONStringer();
         try {
             o.object().key("FID").value(id)
                     .key("TITLE").value(title)
                     .key("DESCRIPTION").value(desc)
-                    .key("CATEGORY").value(category)
+                    .key("YEAR").value(r.nextInt(16) + 2000)
                     .key("PRICE").value(price)
+                    .key("LENGTH").value(r.nextInt(90)+60)
                     .key("RATING").value(rating)
-                    .key("ACTORS").value(actors)
+                    .key("FEATURES").value(feature)
+                    .key("UPDATE_TIME").value(updateTime)
                     .endObject();
         } catch (JSONException e) {
             e.printStackTrace();
