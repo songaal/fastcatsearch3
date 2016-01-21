@@ -68,22 +68,17 @@ public class NodeIndexDocumentFileJob extends Job implements Streamable {
                     segmentInfo = indexer.close();
                 }
 
-//                CollectionContext collectionContext = collectionHandler.collectionContext();
-
-                // 증분색인 관련 정보업데이트. 동적색인에선 일단 무시한다.
-//                collectionContext.updateCollectionStatus(IndexingType.ADD, workingSegmentInfo, startTime, System.currentTimeMillis());
-//                collectionContext.indexStatus().setAddIndexStatus(indexStatus);
-
-
                 File segmentDir = indexer.getSegmentDir();
-                if(segmentInfo.getInsertCount() == 0 && segmentInfo.getUpdateCount() == 0 && segmentInfo.getDeleteCount() == 0) {
+                if(segmentInfo.getInsertCount() == 0 && segmentInfo.getUpdateCount() == 0) {
                     logger.info("[{}] Delete segment dir due to no documents = {}", collectionHandler.collectionId(), segmentDir.getAbsolutePath());
                     FileUtils.deleteDirectory(segmentDir);
                     //세그먼트를 삭제하고 없던 일로 한다.
-                } else {
-                    CollectionContext collectionContext = collectionHandler.applyNewSegment(segmentInfo, segmentDir, indexer.getDeleteIdSet());
-                    CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
+                    segmentInfo = null;
                 }
+
+                CollectionContext collectionContext = collectionHandler.applyNewSegment(segmentInfo, segmentDir, indexer.getDeleteIdSet());
+                CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
+
             }
         } catch (Exception e) {
             logger.error("node dynamic index error!", e);

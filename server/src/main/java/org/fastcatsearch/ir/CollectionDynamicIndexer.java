@@ -93,7 +93,7 @@ public class CollectionDynamicIndexer {
 
         documentFactory = new DefaultDataSourceReader(collectionHandler.schema().schemaSetting());
 
-        deleteIdSet = new DeleteIdSet();
+        deleteIdSet = new DeleteIdSet(pkList.size());
         createTime = System.currentTimeMillis();
     }
 
@@ -134,27 +134,28 @@ public class CollectionDynamicIndexer {
         Document document = collectionSearcher.getIndexableDocumentByPk(pkValue);
         if(document == null) {
             //업데이트할 문서를 찾지 못함.
-            throw new IRException("Cannot find document : " + pkValue);
-        }
-        //2. 들어온 문서에서 각 필드를 업데이트 한다.
-        for(Map.Entry<String, Object> entry : source.entrySet()) {
-            String fieldId = entry.getKey().toUpperCase();
-            Object data = entry.getValue();
+            logger.error("Collection [{}] cannot find document : {}", collectionContext.collectionId(), pkValue);
+        } else {
+            //2. 들어온 문서에서 각 필드를 업데이트 한다.
+            for (Map.Entry<String, Object> entry : source.entrySet()) {
+                String fieldId = entry.getKey().toUpperCase();
+                Object data = entry.getValue();
 
-            Integer idx = schema.fieldSequenceMap().get(fieldId);
-            if (idx == null) {
-                //존재하지 않음.
-            } else {
-                Field field = makeField(fieldId, data);
-                //교체.
-                document.set(idx, field);
+                Integer idx = schema.fieldSequenceMap().get(fieldId);
+                if (idx == null) {
+                    //존재하지 않음.
+                } else {
+                    Field field = makeField(fieldId, data);
+                    //교체.
+                    document.set(idx, field);
+                }
             }
+
+            indexWriter.addDocument(document);
+            updateCount++;
+
+            logger.debug("Update {} doc > {}", pkValue, source);
         }
-
-        indexWriter.addDocument(document);
-        updateCount++;
-
-        logger.debug("Update {} doc > {}", pkValue, source);
 
     }
 
@@ -185,6 +186,8 @@ public class CollectionDynamicIndexer {
         //1. PK만 뽑아내어 현재 들어온 문서중에서 삭제후보가 있는지 찾아 현재 delete.set에 넣어준다.
         //1. pk를 뽑아내어 내부검색으로 이전 문서를 가져온다.
         BytesDataOutput pkbaos = new BytesDataOutput();
+        String[] pkArray = new String[pkList.size()];
+        int i = 0;
         for(String pkId : pkList) {
             Object data = source.get(pkId);
             Field f = makeField(pkId, data);
@@ -193,9 +196,10 @@ public class CollectionDynamicIndexer {
             } else {
                 f.writeFixedDataTo(pkbaos);
             }
+            pkArray[i++] = String.valueOf(data);
         }
         indexWriter.deleteDocument(pkbaos);
-
+        deleteIdSet.add(pkArray);
         deleteCount++;
         logger.debug("Delete doc > {}", source);
     }

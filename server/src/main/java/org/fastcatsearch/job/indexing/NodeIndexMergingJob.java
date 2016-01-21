@@ -20,6 +20,7 @@ import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableCollectionContext;
 import org.fastcatsearch.util.CollectionContextUtil;
+import org.fastcatsearch.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -144,13 +145,17 @@ public class NodeIndexMergingJob extends Job implements Streamable {
                     }
                 }
 
-                collectionContext = collectionHandler.applyMergedSegment(segmentInfo, mergeIndexer.getSegmentDir(), mergeSegmentIdList);
+                File segmentDir = mergeIndexer.getSegmentDir();
+                if(segmentInfo.getInsertCount() == 0) {
+                    logger.info("[{}] Delete segment dir due to no documents = {}", collectionHandler.collectionId(), segmentDir.getAbsolutePath());
+                    //세그먼트를 삭제하고 없던 일로 한다.
+                    FileUtils.deleteDirectory(segmentDir);
+                    collectionContext = collectionHandler.removeMergedSegment(mergeSegmentIdList);
+                } else {
+                    collectionContext = collectionHandler.applyMergedSegment(segmentInfo, mergeIndexer.getSegmentDir(), mergeSegmentIdList);
+                }
                 CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
 
-                /*
-                 * 캐시 클리어.
-                 */
-                getJobExecutor().offer(new CacheServiceRestartJob());
                 return new JobResult(true);
             } else {
                 //머징없음.

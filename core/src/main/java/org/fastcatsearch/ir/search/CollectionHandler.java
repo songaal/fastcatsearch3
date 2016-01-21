@@ -211,6 +211,9 @@ public class CollectionHandler {
         return segmentReaderMap.get(segmentId).segmentSearcher();
     }
 
+    /*
+    * segmentInfo 가 null이면 새로 추가된 문서없이 deleteIdSet만 존재하는것임.
+    * */
     public synchronized CollectionContext applyNewSegment(SegmentInfo segmentInfo, File segmentDir, DeleteIdSet deleteIdSet) throws IOException, IRException {
 
         List<PrimaryKeyIndexReader> pkReaderList = new ArrayList<PrimaryKeyIndexReader>();
@@ -228,9 +231,10 @@ public class CollectionHandler {
             /*
             * 1. PK Update 적용
             * */
-            File pkFile = new File(segmentDir, IndexFileNames.primaryKeyMap);
-            applyPrimaryKeyToSegments(pkFile, pkReaderList, deleteSetList);
-
+            if(segmentInfo != null) {
+                File pkFile = new File(segmentDir, IndexFileNames.primaryKeyMap);
+                applyPrimaryKeyToSegments(pkFile, pkReaderList, deleteSetList);
+            }
             /*
             * 2. deleteIdSet 적용
             * */
@@ -263,19 +267,21 @@ public class CollectionHandler {
             }
         }
 
-        File newSegmentDir = new File(segmentDir.getParentFile(), segmentId);
-        FileUtils.moveDirectory(segmentDir, newSegmentDir);
-        segmentInfo.setId(segmentId);
-
         //기존 세그먼트들 삭제리스트 재로딩
         for (SegmentReader r : segmentReaderMap.values()) {
             r.loadDeleteSet();
         }
-        //신규 세그먼트 추가.
-        SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, newSegmentDir, analyzerPoolManager);
-        segmentReaderMap.put(segmentId, segmentReader);
-        collectionContext.addSegmentInfo(segmentInfo);
 
+        if(segmentInfo != null) {
+            File newSegmentDir = new File(segmentDir.getParentFile(), segmentId);
+            FileUtils.moveDirectory(segmentDir, newSegmentDir);
+            segmentInfo.setId(segmentId);
+
+            //신규 세그먼트 추가.
+            SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, newSegmentDir, analyzerPoolManager);
+            segmentReaderMap.put(segmentId, segmentReader);
+            collectionContext.addSegmentInfo(segmentInfo);
+        }
         return collectionContext;
     }
 
@@ -363,6 +369,20 @@ public class CollectionHandler {
         }
 
         return deleteDocumentSize;
+    }
+
+    //머징시 문서가 모두 0가 될때사용.
+    public synchronized CollectionContext removeMergedSegment(List<String> segmentIdRemoveList) throws IOException, IRException {
+        for(String removeSegmentId : segmentIdRemoveList) {
+            SegmentReader removeSegmentReader = segmentReaderMap.remove(removeSegmentId);
+            if(removeSegmentReader != null) {
+                //설정파일도 수정한다.
+                collectionContext.removeSegmentInfo(removeSegmentId);
+            }
+            //현재 사용중이면 차후에 다 쓰고 닫도록 closeFuture를 호출한다.
+            removeSegmentReader.closeFuture(true);
+        }
+        return collectionContext;
     }
 
     public synchronized CollectionContext applyMergedSegment(SegmentInfo segmentInfo, File segmentDir, List<String> segmentIdRemoveList) throws IOException, IRException {
