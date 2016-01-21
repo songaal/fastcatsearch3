@@ -151,10 +151,9 @@ public class DataInfo {
 	 * updates="5" deletes="0" createTime="2013-06-15 15:20:00" /> </segment>
 	 * */
 	@XmlRootElement(name = "segment")
-	@XmlType(propOrder = { "createTime", "deleteCount", "updateCount", "insertCount", "documentCount", "uuid", "id" })
+	@XmlType(propOrder = { "createTime", "deleteCount", "updateCount", "insertCount", "documentCount", "id" })
 	public static class SegmentInfo implements Comparable<SegmentInfo>{
 		private String id;
-        private String uuid;
         private int documentCount;
         private int insertCount;
         private int updateCount;
@@ -173,7 +172,6 @@ public class DataInfo {
 
         public SegmentInfo(String id, String uuid, int documentCount, int insertCount, int updateCount, int deleteCount, long createTime) {
             this.id = id;
-            this.uuid = uuid;
             this.documentCount = documentCount;
             this.insertCount = insertCount;
             this.updateCount = updateCount;
@@ -189,7 +187,6 @@ public class DataInfo {
 
 		public SegmentInfo copy() {
 			SegmentInfo segmentInfo = new SegmentInfo(id);
-            segmentInfo.uuid = uuid;
             segmentInfo.documentCount = documentCount;
             segmentInfo.insertCount = insertCount;
             segmentInfo.updateCount = updateCount;
@@ -211,7 +208,6 @@ public class DataInfo {
 
 		public void update(SegmentInfo segmentInfo) {
 			this.id = segmentInfo.id;
-            this.uuid = segmentInfo.uuid = uuid;
             this.documentCount = segmentInfo.documentCount;
             this.insertCount = segmentInfo.insertCount;
             this.updateCount = segmentInfo.updateCount;
@@ -227,10 +223,6 @@ public class DataInfo {
 		public void setId(String id) {
 			this.id = id;
 		}
-
-        public String getUuid() {
-            return uuid;
-        }
 
         public int getDocumentCount() {
             return documentCount;

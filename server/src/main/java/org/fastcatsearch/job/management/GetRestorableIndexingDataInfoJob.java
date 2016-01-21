@@ -60,11 +60,7 @@ public class GetRestorableIndexingDataInfoJob extends Job implements Streamable 
 				dataInfo = JAXBConfigs.readConfig(dataInfoFile, DataInfo.class);
 				String revisionUUID = null;
 				SegmentInfo lastSegmentInfo = dataInfo.getLastSegmentInfo();
-				if(lastSegmentInfo != null){
-					revisionUUID = lastSegmentInfo.getUuid();
-				}else{
-					revisionUUID = "";
-				}
+                revisionUUID = "";
 				result.revisionUUID = revisionUUID;
 				
 				result.documentSize = dataInfo.getDocuments();

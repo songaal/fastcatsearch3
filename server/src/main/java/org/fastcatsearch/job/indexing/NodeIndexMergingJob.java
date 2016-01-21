@@ -87,29 +87,29 @@ public class NodeIndexMergingJob extends Job implements Streamable {
 
             // 머징시 하위 구간을 모두 포함한다.
             List<String> mergeSegmentIdList = new ArrayList<String>();
-            if (mergeOver10M.size() >= 2) {
+            if (mergeOver10M.size() >= 3) {
                 mergeSegmentIdList.addAll(mergeOver10M);
                 mergeSegmentIdList.addAll(merge10M);
                 mergeSegmentIdList.addAll(merge1M);
                 mergeSegmentIdList.addAll(merge100K);
                 mergeSegmentIdList.addAll(merge10K);
                 mergeSegmentIdList.addAll(merge100);
-            } else if (merge10M.size() >= 2) {
+            } else if (merge10M.size() >= 3) {
                 mergeSegmentIdList.addAll(merge10M);
                 mergeSegmentIdList.addAll(merge1M);
                 mergeSegmentIdList.addAll(merge100K);
                 mergeSegmentIdList.addAll(merge10K);
                 mergeSegmentIdList.addAll(merge100);
-            } else if (merge1M.size() >= 2) {
+            } else if (merge1M.size() >= 3) {
                 mergeSegmentIdList.addAll(merge1M);
                 mergeSegmentIdList.addAll(merge100K);
                 mergeSegmentIdList.addAll(merge10K);
                 mergeSegmentIdList.addAll(merge100);
-            } else if (merge100K.size() >= 2) {
+            } else if (merge100K.size() >= 3) {
                 mergeSegmentIdList.addAll(merge100K);
                 mergeSegmentIdList.addAll(merge10K);
                 mergeSegmentIdList.addAll(merge100);
-            } else if (merge10K.size() >= 2) {
+            } else if (merge10K.size() >= 3) {
                 mergeSegmentIdList.addAll(merge10K);
                 mergeSegmentIdList.addAll(merge100);
             } else if (merge100.size() >= 2) {

@@ -62,13 +62,8 @@ public class GetCollectionInfoListAction extends AuthAction {
 			boolean isActive = collectionHandler != null && collectionHandler.isLoaded();
 			CollectionConfig collectionConfig = collectionContext.collectionConfig();
 			DataInfo dataInfo = collectionContext.dataInfo();
-			String revisionUUID = null;
+			String revisionUUID = "";
 			SegmentInfo lastSegmentInfo = dataInfo.getLastSegmentInfo();
-			if(lastSegmentInfo != null){
-				revisionUUID = lastSegmentInfo.getUuid();
-			}else{
-				revisionUUID = "";
-			}
 			int sequence = collectionContext.indexStatus().getSequence();
 			
 			responseWriter.object();

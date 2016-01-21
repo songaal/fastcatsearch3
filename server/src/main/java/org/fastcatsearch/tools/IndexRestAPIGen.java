@@ -75,7 +75,7 @@ public class IndexRestAPIGen {
                     datum.append(makeJson(r));
                     count++;
 
-                    if (count % 1000 == 0) {
+                    if (count % 10000 == 0) {
                         System.out.println("Called " + count + " reqs. lap = " + Formatter.getFormatTime((System.nanoTime() - lap) / 1000000));
                         lap = System.nanoTime();
                         String data = datum.toString();

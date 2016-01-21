@@ -27,7 +27,8 @@ public class DynamicIndexModule extends AbstractModule {
     private String collectionId;
 
     private LimitTimeSizeLogger dataLogger;
-    private Timer timer;
+    private Timer indexTimer;
+    private Timer mergeTimer;
     private int bulkSize;
     private File dir;
     private int flushPeriod = 2;
@@ -98,9 +99,10 @@ public class DynamicIndexModule extends AbstractModule {
 
     @Override
     protected boolean doLoad() throws ModuleException {
-        timer = new Timer();
-        timer.schedule(new IndexFireTask(), 1000, 1000);
-        timer.schedule(new IndexMergeTask(), 5000, 5000);
+        indexTimer = new Timer();
+        mergeTimer = new Timer();
+        indexTimer.schedule(new IndexFireTask(), 1000, 1000);
+        mergeTimer.schedule(new IndexMergeTask(), 5000, 5000);
         dataLogger = new LimitTimeSizeLogger(dir, bulkSize, flushPeriod);
         logger.info("[{}] To be indexed files = {}", collectionId, dataLogger.getQueueSize());
         return true;
@@ -108,7 +110,8 @@ public class DynamicIndexModule extends AbstractModule {
 
     @Override
     protected boolean doUnload() throws ModuleException {
-        timer.cancel();
+        indexTimer.cancel();
+        mergeTimer.cancel();
         return true;
     }
 

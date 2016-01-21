@@ -41,11 +41,7 @@ public class GetIndexingDataInfoJob extends Job implements Streamable {
 		result.segmentSize = dataInfo.getSegmentSize();
 		String revisionUUID = null;
 		SegmentInfo lastSegmentInfo = dataInfo.getLastSegmentInfo();
-		if(lastSegmentInfo != null){
-			revisionUUID = lastSegmentInfo.getUuid();
-		}else{
-			revisionUUID = "";
-		}
+        revisionUUID = "";
 		result.revisionUUID = revisionUUID;
 		
 		int sequence = collectionContext.indexStatus().getSequence();

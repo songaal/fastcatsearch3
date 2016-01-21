@@ -41,12 +41,8 @@ public class GetIndexingStatusAction extends AuthAction {
 		int segmentSize = dataInfo.getSegmentSize();
 		String revisionUUID = null;
 		SegmentInfo lastSegmentInfo = dataInfo.getLastSegmentInfo();
-		if(lastSegmentInfo != null){
-			revisionUUID = lastSegmentInfo.getUuid();
-		}else{
-			revisionUUID = "";
-		}
-		
+        revisionUUID = "";
+
 		responseWriter.key("segmentSize").value(segmentSize)
 		.key("revisionUUID").value(revisionUUID);
 		
