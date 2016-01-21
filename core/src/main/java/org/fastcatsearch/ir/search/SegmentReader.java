@@ -194,24 +194,27 @@ public class SegmentReader implements Comparable {
             public void run() {
                 try {
                     long startTime = System.currentTimeMillis();
-                    while(true) {
-                        logger.debug("Try Close Segment[{}] Future for {} >> d[{}] s[{}] f[{}] g[{}]", segmentId, Formatter.getFormatTime(System.currentTimeMillis() - startTime), documentReader.getReferenceCount(), searchIndexesReader.getReferenceCount()
-                                , fieldIndexesReader.getReferenceCount(), groupIndexesReader.getReferenceCount());
-
-                        if (documentReader.getReferenceCount() <= 0 && searchIndexesReader.getReferenceCount() <= 0
-                                && fieldIndexesReader.getReferenceCount() <= 0 && groupIndexesReader.getReferenceCount() <= 0) {
-                            close();
-                            if(deleteDirectory) {
-                                FileUtils.deleteQuietly(segmentDir);
-                            }
-                            logger.debug("Closed Segment[{}] after {}", segmentId, Formatter.getFormatTime(System.currentTimeMillis() - startTime));
-                            break;
-                        }
-                        try {
-                            Thread.sleep(3000);
-                        } catch (InterruptedException e) {
-                        }
+//                    while(true) {
+//                        logger.debug("Try Close Segment[{}] Future for {} >> d[{}] s[{}] f[{}] g[{}]", segmentId, Formatter.getFormatTime(System.currentTimeMillis() - startTime), documentReader.getReferenceCount(), searchIndexesReader.getReferenceCount()
+//                                , fieldIndexesReader.getReferenceCount(), groupIndexesReader.getReferenceCount());
+//
+//                        if (documentReader.getReferenceCount() <= 0 && searchIndexesReader.getReferenceCount() <= 0
+//                                && fieldIndexesReader.getReferenceCount() <= 0 && groupIndexesReader.getReferenceCount() <= 0) {
+//                            close();
+//
+//                            logger.debug("Closed Segment[{}] after {}", segmentId, Formatter.getFormatTime(System.currentTimeMillis() - startTime));
+////                            break;
+//                        }
+                    //5초후에 닫는다.
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
                     }
+                    close();
+                    if(deleteDirectory) {
+                        FileUtils.deleteQuietly(segmentDir);
+                    }
+//                    }
                 } catch (IOException e) {
                     //ignore
                 }

@@ -54,27 +54,6 @@ public class MasterCollectionAddIndexingJob extends MasterNodeJob {
 			notificationService.sendNotification(indexingFinishNotification);
 		}
 
-        //
-        // 증분색인이 끝났으므로, 머징도 시작한다.
-        //
-        CollectionMergingJob collectionMergeIndexingJob = new CollectionMergingJob();
-        collectionIndexingJob.setArgs(collectionId);
-        logger.info("Request merge indexing job to index node[{}] >> {}", indexNodeId, indexNode);
-        ResultFuture mergeJobResult = nodeService.sendRequest(indexNode, collectionMergeIndexingJob);
-        if (mergeJobResult != null) {
-            Object obj = mergeJobResult.take();
-        } else {
-            long endTime = System.currentTimeMillis();
-            Streamable result = null;//new StreamableThrowable(t);
-            ProcessLoggerService processLoggerService = ServiceManager.getInstance().getService(ProcessLoggerService.class);
-            processLoggerService.log(IndexingProcessLogger.class, new IndexingFinishProcessLog(collectionId, IndexingType.MERGE, "ALL", ResultStatus.FAIL, indexingStartTime, endTime,
-                    isScheduled(), result));
-
-            NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
-            IndexingFailNotification indexingFinishNotification = new IndexingFailNotification(collectionId, IndexingType.MERGE, "ALL", ResultStatus.FAIL, indexingStartTime, endTime,
-                    result);
-            notificationService.sendNotification(indexingFinishNotification);
-        }
 		return new JobResult();
 	}
 

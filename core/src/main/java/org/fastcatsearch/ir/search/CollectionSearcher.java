@@ -70,13 +70,18 @@ public class CollectionSearcher {
         BytesDataOutput tempOutput = new BytesDataOutput();
         //여러세그먼트에서 찾아본다.
         for(SegmentReader segmentReader : collectionHandler.segmentReaders()) {
-            int docNo = segmentReader.newSearchIndexesReader().getPrimaryKeyIndexesReader().getDocNo(pkValue, tempOutput);
-            if(docNo != -1) {
-                //찾지못함.
-                //삭제문서가 아니면 리턴한다.
-                if (!segmentReader.deleteSet().isSet(docNo)) {
-                    return segmentReader.segmentSearcher().getIndexableDocument(docNo);
+            SearchIndexesReader searchIndexesReader = segmentReader.newSearchIndexesReader();
+            try {
+                int docNo = searchIndexesReader.getPrimaryKeyIndexesReader().getDocNo(pkValue, tempOutput);
+                if (docNo != -1) {
+                    //찾지못함.
+                    //삭제문서가 아니면 리턴한다.
+                    if (!segmentReader.deleteSet().isSet(docNo)) {
+                        return segmentReader.segmentSearcher().getIndexableDocument(docNo);
+                    }
                 }
+            } finally {
+                searchIndexesReader.close();
             }
         }
 
