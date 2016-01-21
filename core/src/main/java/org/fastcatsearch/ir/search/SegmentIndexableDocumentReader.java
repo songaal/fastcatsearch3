@@ -20,8 +20,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
 
+import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.document.DocumentReader;
+import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,9 +38,11 @@ public class SegmentIndexableDocumentReader {
 	private static Logger logger = LoggerFactory.getLogger(SegmentIndexableDocumentReader.class);
 	private final DocumentReader reader;
 	private final int limit;
-	
-	public SegmentIndexableDocumentReader(SchemaSetting schemaSetting, File segHomePath) throws IOException {
+    private final BitSet deleteSet;
+
+    public SegmentIndexableDocumentReader(SchemaSetting schemaSetting, File segHomePath) throws IOException {
 		reader = new DocumentReader(schemaSetting, segHomePath);
+        deleteSet = new BitSet(segHomePath, IndexFileNames.docDeleteSet);
 		limit = reader.getDocumentCount();
 	}
 
@@ -57,18 +61,34 @@ public class SegmentIndexableDocumentReader {
 	}
 
 	private class SegmentDocumentEnumeration implements Enumeration<Document> {
-		private int pos;
-		
+		private int docNo;
+		private int lastDocNo;
+
 		@Override
 		public boolean hasMoreElements() {
-			return pos < limit;
+			while(docNo < limit) {
+                if(!deleteSet.isSet(docNo)) {
+                    lastDocNo = docNo;
+                } else {
+                    logger.debug("doc {} is deleted and ignored for merging", docNo);
+                    lastDocNo = -1;
+                }
+                docNo++;
+                if(lastDocNo != -1) {
+                    return true;
+                }
+            }
+            return false;
 		}
 
 		@Override
 		public Document nextElement() {
 			try {
-				Document document =  reader.readIndexableDocument(pos++);
-				return document;
+                if(lastDocNo != -1) {
+                    return reader.readIndexableDocument(lastDocNo);
+                } else {
+                    return null;
+                }
 			} catch (IOException e) {
 				logger.error("", e);
 				return null;
