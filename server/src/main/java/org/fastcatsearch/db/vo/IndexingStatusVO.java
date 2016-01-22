@@ -12,8 +12,6 @@ public class IndexingStatusVO {
 	public String step;
 	public ResultStatus status;
 	public int docSize;
-	public int insertSize;
-	public int updateSize;
 	public int deleteSize;
 	public boolean isScheduled;
 	public Timestamp startTime;

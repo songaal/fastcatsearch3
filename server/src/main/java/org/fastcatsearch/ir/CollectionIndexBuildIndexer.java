@@ -56,15 +56,10 @@ public class CollectionIndexBuildIndexer extends AbstractCollectionIndexer {
 
 	@Override
 	protected boolean done(SegmentInfo segmentInfo, IndexStatus indexStatus) throws IRException, IndexingStopException {
-		int insertCount = segmentInfo.getInsertCount();
+		int insertCount = segmentInfo.getDocumentCount();
 
 		if (insertCount > 0 && !stopRequested) {
-			//이미 동일한 revinfo이므로 재셋팅필요없다.
-			//workingSegmentInfo.updateRevision(revisionInfo);
-			
-			//update index#/info.xml file
-			//addindexing의 updateCollection대신 호출.
-			collectionContext.addSegmentInfo(workingSegmentInfo);  
+			collectionContext.addSegmentInfo(workingSegmentInfo);
 			//update status.xml file
 			collectionContext.updateCollectionStatus(IndexingType.FULL, segmentInfo, startTime, System.currentTimeMillis());
 			collectionContext.indexStatus().setFullIndexStatus(indexStatus);

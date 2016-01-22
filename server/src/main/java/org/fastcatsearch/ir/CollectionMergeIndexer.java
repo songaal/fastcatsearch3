@@ -37,10 +37,7 @@ public class CollectionMergeIndexer {
     protected CollectionContext collectionContext;
     protected AnalyzerPoolManager analyzerPoolManager;
 
-    private File[] segmentDirs;
     private File segmentDir;
-
-    private List<String> mergeSegmentIdList;
 
     protected DeleteIdSet deleteIdSet; //삭제문서리스트.
 
@@ -55,14 +52,12 @@ public class CollectionMergeIndexer {
 
     private int count;
 
-	public CollectionMergeIndexer(String documentId, CollectionHandler collectionHandler, File[] segmentDirs, List<String> mergeSegmentIdList) throws IRException {
+	public CollectionMergeIndexer(String documentId, CollectionHandler collectionHandler, File[] segmentDirs) throws IRException {
         this.collectionContext = collectionHandler.collectionContext();
         this.analyzerPoolManager = collectionHandler.analyzerPoolManager();
 		//머징색인시는 현재 스키마를 그대로 사용한다.
         this.schema = collectionContext.schema();
         this.segmentInfo = new DataInfo.SegmentInfo(documentId);
-        this.segmentDirs = segmentDirs;
-        this.mergeSegmentIdList = mergeSegmentIdList;
         /*
         * 세그먼트 디렉토리가 미리존재한다면 삭제.
         * */
@@ -113,18 +108,12 @@ public class CollectionMergeIndexer {
 
         if (indexWriter != null) {
             try {
-                indexWriter.close();
+                segmentInfo = indexWriter.close();
+                logger.debug("##Indexer close {}", segmentInfo);
             } catch (IOException e) {
                 throw new IRException(e);
             }
         }
-
-        segmentInfo.setDocumentCount(count);
-        segmentInfo.setInsertCount(count);
-        segmentInfo.setUpdateCount(0);
-        segmentInfo.setDeleteCount(0);
-
-        logger.debug("##Indexer close {}", segmentInfo);
 
         return segmentInfo;
     }

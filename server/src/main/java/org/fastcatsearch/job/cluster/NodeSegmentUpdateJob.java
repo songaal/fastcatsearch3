@@ -43,7 +43,7 @@ public class NodeSegmentUpdateJob extends Job implements Streamable {
 
 //			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
 //			boolean revisionAppended = revisionInfo.getId() > 0;
-			boolean revisionHasInserts = segmentInfo.getInsertCount() > 0;
+			boolean revisionHasInserts = segmentInfo.getDocumentCount() > 0;
 			logger.debug("증분업데이트 실행! segmentInfo={}, hasInserts={}", segmentInfo, revisionHasInserts);
 			
 			// sync파일을 append해준다.

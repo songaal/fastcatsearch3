@@ -141,7 +141,7 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
 		
 		long endTime = System.currentTimeMillis();
 		
-		IndexStatus indexStatus = new IndexStatus(workingSegmentInfo.getDocumentCount(), workingSegmentInfo.getInsertCount(), workingSegmentInfo.getUpdateCount(), deleteCount,
+		IndexStatus indexStatus = new IndexStatus(workingSegmentInfo.getDocumentCount(), deleteCount,
 				Formatter.formatDate(new Date(startTime)), Formatter.formatDate(new Date(endTime)), Formatter.getFormatTime(endTime - startTime));
 		
 		if(done(workingSegmentInfo, indexStatus)){

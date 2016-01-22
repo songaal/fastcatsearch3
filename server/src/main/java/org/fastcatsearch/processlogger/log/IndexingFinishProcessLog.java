@@ -139,8 +139,6 @@ public class IndexingFinishProcessLog implements ProcessLog, IndexingLoggable {
 			vo.isScheduled = isScheduled();
 			if(indexingJobResult.indexStatus != null){
 				vo.docSize = indexingJobResult.indexStatus.getDocumentCount();
-				vo.insertSize = indexingJobResult.indexStatus.getInsertCount();
-				vo.updateSize = indexingJobResult.indexStatus.getUpdateCount();
 				vo.deleteSize = indexingJobResult.indexStatus.getDeleteCount();
 			}
 			vo.startTime = new Timestamp(getStartTime());

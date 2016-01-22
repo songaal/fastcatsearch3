@@ -27,7 +27,7 @@ public class IndexingSuccessNotification extends IndexingFinishNotification {
 
 		IndexingJobResult result2 = (IndexingJobResult) result;
 		if (result2.indexStatus != null) {
-			params[5] = "Inserts[" + Integer.toString(result2.indexStatus.getInsertCount()) + "] " + "Updates[" + Integer.toString(result2.indexStatus.getUpdateCount()) + "]"
+			params[5] = "Documents[" + Integer.toString(result2.indexStatus.getDocumentCount()) + "]"
 					+ "Deletes[" + Integer.toString(result2.indexStatus.getDeleteCount()) + "]";
 		} else {
 			params[5] = "Empty";

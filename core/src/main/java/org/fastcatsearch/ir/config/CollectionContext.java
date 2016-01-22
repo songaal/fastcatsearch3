@@ -144,8 +144,6 @@ public class CollectionContext {
 			}
 		}
 		indexStatus.setDocumentCount(segmentInfo.getDocumentCount());
-		indexStatus.setInsertCount(segmentInfo.getInsertCount());
-		indexStatus.setUpdateCount(segmentInfo.getUpdateCount());
 		indexStatus.setDeleteCount(segmentInfo.getDeleteCount());
 		indexStatus.setStartTime(Formatter.formatDate(new Date(startTime)));
 		indexStatus.setEndTime(Formatter.formatDate(new Date(endTime)));

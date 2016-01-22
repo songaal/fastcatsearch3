@@ -65,11 +65,9 @@ public class CollectionIndexStatus {
 		this.addIndexStatus = addIndexStatus;
 	}
 	
-	@XmlType(propOrder = { "duration", "endTime", "startTime", "deleteCount", "updateCount", "insertCount", "documentCount" })
+	@XmlType(propOrder = { "duration", "endTime", "startTime", "deleteCount", "documentCount" })
 	public static class IndexStatus {
 		private int documentCount;
-		private int insertCount;
-		private int updateCount;
 		private int deleteCount;
 		private String startTime;
 		private String endTime;
@@ -78,10 +76,8 @@ public class CollectionIndexStatus {
 		public IndexStatus(){
 		}
 		
-		public IndexStatus(int documentCount, int insertCount, int updateCount, int deleteCount, String startTime, String endTime, String duration){
+		public IndexStatus(int documentCount, int deleteCount, String startTime, String endTime, String duration){
 			this.documentCount = documentCount;
-			this.insertCount = insertCount;
-			this.updateCount = updateCount;
 			this.deleteCount = deleteCount;
 			this.startTime = startTime;
 			this.endTime = endTime;
@@ -91,8 +87,6 @@ public class CollectionIndexStatus {
 		public IndexStatus copy() {
 			IndexStatus indexStatus = new IndexStatus();
 			indexStatus.documentCount = documentCount;
-			indexStatus.insertCount = insertCount;
-			indexStatus.updateCount = updateCount;
 			indexStatus.deleteCount = deleteCount;
 			indexStatus.startTime = startTime;
 			indexStatus.endTime = endTime;
@@ -102,7 +96,7 @@ public class CollectionIndexStatus {
 
 		@Override
 		public String toString() {
-			return "[IndexStatus] docs[" + documentCount + "] inserts[" + insertCount  + "] updates[" + updateCount + "] deletes[" + deleteCount + "] start[" + startTime + "]"
+			return "[IndexStatus] docs[" + documentCount + "] deletes[" + deleteCount + "] start[" + startTime + "]"
 					+ "] end[" + endTime + "]" + "] duration[" + duration + "]";
 		}
 
@@ -113,24 +107,6 @@ public class CollectionIndexStatus {
 
 		public void setDocumentCount(int documentCount) {
 			this.documentCount = documentCount;
-		}
-
-		@XmlAttribute(name = "inserts")
-		public int getInsertCount() {
-			return insertCount;
-		}
-
-		public void setInsertCount(int insertCount) {
-			this.insertCount = insertCount;
-		}
-		
-		@XmlAttribute(name = "updates")
-		public int getUpdateCount() {
-			return updateCount;
-		}
-
-		public void setUpdateCount(int updateCount) {
-			this.updateCount = updateCount;
 		}
 
 		@XmlAttribute(name = "deletes")

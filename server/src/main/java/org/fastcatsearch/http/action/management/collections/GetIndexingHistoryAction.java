@@ -57,8 +57,6 @@ public class GetIndexingHistoryAction extends AuthAction {
 						.key("step").value(vo.step)
 						.key("status").value(vo.status.name())
 						.key("docSize").value(vo.docSize)
-						.key("insertSize").value(vo.insertSize)
-						.key("updateSize").value(vo.updateSize)
 						.key("deleteSize").value(vo.deleteSize)
 						.key("isScheduled").value(vo.isScheduled ? "Scheduled" : "Manual")
 						.key("startTime").value(vo.startTime)

@@ -61,14 +61,14 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
 	@Override
 	protected boolean done(SegmentInfo segmentInfo, IndexStatus indexStatus) throws IRException, IndexingStopException {
 
-        int insertCount = segmentInfo.getInsertCount();
+        int documentCount = segmentInfo.getDocumentCount();
         int deleteCount = segmentInfo.getDeleteCount();
         FilePaths indexFilePaths = collectionContext.indexFilePaths();
         File segmentDir = indexFilePaths.file(segmentInfo.getId());
 
         try {
             if (!stopRequested) {
-                if (insertCount <= 0) {
+                if (documentCount <= 0) {
                     // 세그먼트 증가시 segment디렉토리 삭제.
                     logger.debug("# 추가문서가 없으므로, segment를 삭제합니다. {}", segmentDir.getAbsolutePath());
                     FileUtils.deleteDirectory(segmentDir);
@@ -79,7 +79,7 @@ public class CollectionAddIndexer extends AbstractCollectionIndexer {
                     segmentInfo.setDeleteCount(deleteCount);
                 }
 
-                if (insertCount <= 0 && deleteCount <= 0) {
+                if (documentCount <= 0 && deleteCount <= 0) {
                     logger.info("[{}] Indexing Canceled due to no documents.", collectionContext.collectionId());
                     throw new IndexingStopException(collectionContext.collectionId() + " Indexing Canceled due to no documents.");
                 }

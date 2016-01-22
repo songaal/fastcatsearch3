@@ -122,7 +122,7 @@ public class NodeIndexMergingJob extends Job implements Streamable {
                 for (int i = 0; i < mergeSegmentIdList.size(); i++) {
                     segmentDirs[i] = collectionContext.indexFilePaths().segmentFile(mergeSegmentIdList.get(i));
                 }
-                CollectionMergeIndexer mergeIndexer = new CollectionMergeIndexer(documentId, collectionHandler, segmentDirs, mergeSegmentIdList);
+                CollectionMergeIndexer mergeIndexer = new CollectionMergeIndexer(documentId, collectionHandler, segmentDirs);
                 DataInfo.SegmentInfo segmentInfo = null;
                 Throwable indexingThrowable = null;
                 try {
@@ -146,7 +146,7 @@ public class NodeIndexMergingJob extends Job implements Streamable {
                 }
 
                 File segmentDir = mergeIndexer.getSegmentDir();
-                if(segmentInfo.getInsertCount() == 0) {
+                if(segmentInfo.getDocumentCount() == 0) {
                     logger.info("[{}] Delete segment dir due to no documents = {}", collectionHandler.collectionId(), segmentDir.getAbsolutePath());
                     //세그먼트를 삭제하고 없던 일로 한다.
                     FileUtils.deleteDirectory(segmentDir);

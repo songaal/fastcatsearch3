@@ -162,23 +162,18 @@ public class SegmentIndexWriter implements IndexWritable {
 		}
 	}
 
-	public void close() throws IOException, IRException {
+	public DataInfo.SegmentInfo close() throws IOException, IRException {
 		try {
 			closeWriter();
 
 			// 여기서는 동일 수집문서내 pk중복만 처리하고 삭제문서갯수는 알수 없다.
 			// 삭제문서는 DataSourceReader에서 알수 있으므로, 이 writer를 호출하는 class에서 처리한다.
             segmentInfo.setDocumentCount(count);
-			int updateCount = 0;
-			int insertCount = 0;
+			int deleteCount = 0;
 			if(primaryKeyIndexesWriter != null){
-				updateCount = primaryKeyIndexesWriter.getUpdateDocCount();
-				insertCount = count - updateCount;
-			}else{
-				insertCount = count;
+                deleteCount = primaryKeyIndexesWriter.getDeleteDocCount() + primaryKeyIndexesWriter.getUpdateDocCount() ;
 			}
-            segmentInfo.setInsertCount(insertCount);
-            segmentInfo.setUpdateCount(updateCount);
+            segmentInfo.setDeleteCount(deleteCount);
             segmentInfo.setCreateTime(System.currentTimeMillis());
 
 			logger.info("Segment [{}] Indexed, elapsed = {}, mem = {}, {}", segmentId, Formatter.getFormatTime(System.currentTimeMillis() - startTime),
@@ -189,6 +184,7 @@ public class SegmentIndexWriter implements IndexWritable {
 			throw new IRException(e);
 		}
 
+        return segmentInfo;
 	}
 	
 	public void getIndexWriteInfo(IndexWriteInfoList list) {

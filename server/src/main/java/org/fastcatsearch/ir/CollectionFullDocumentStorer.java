@@ -51,7 +51,7 @@ public class CollectionFullDocumentStorer extends AbstractCollectionIndexer {
 
 	@Override
 	protected boolean done(SegmentInfo segmentInfo, IndexStatus indexStatus) throws IRException, IndexingStopException {
-		int insertCount = segmentInfo.getInsertCount();
+		int insertCount = segmentInfo.getDocumentCount();
 
 		if (insertCount > 0 && !stopRequested) {
 			collectionContext.indexStatus().setFullIndexStatus(indexStatus);

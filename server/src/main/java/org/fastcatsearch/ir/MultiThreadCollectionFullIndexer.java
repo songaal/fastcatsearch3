@@ -77,7 +77,7 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 	}
 	
 	protected boolean done(SegmentInfo segmentInfo, IndexStatus indexStatus) throws IRException, IndexingStopException {
-		int insertCount = segmentInfo.getInsertCount();
+		int insertCount = segmentInfo.getDocumentCount();
 
 		if (insertCount > 0 && !stopRequested) {
 			SegmentInfo workingSegmentInfo = null;
@@ -214,7 +214,7 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 		
 		long endTime = System.currentTimeMillis();
 		
-		IndexStatus indexStatus = new IndexStatus(segmentInfo.getDocumentCount(), segmentInfo.getInsertCount(), segmentInfo.getUpdateCount(), deleteCount,
+		IndexStatus indexStatus = new IndexStatus(segmentInfo.getDocumentCount(), deleteCount,
 				Formatter.formatDate(new Date(startTime)), Formatter.formatDate(new Date(endTime)), Formatter.getFormatTime(endTime - startTime));
 		
 		if(done(segmentInfo, indexStatus)){

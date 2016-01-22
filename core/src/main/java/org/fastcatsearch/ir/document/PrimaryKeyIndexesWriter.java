@@ -50,17 +50,14 @@ public class PrimaryKeyIndexesWriter {
 	private BitSet deleteSet;
 	private LargePrimaryKeyIndexWriter indexWriter;
 	private int updateDocCount;
+    private int deleteDocCount;
 	private PrimaryKeySetting primaryKeySetting;
 	private int[] primaryKeyFieldIdList;
 
-	
 	int MEMORY_LIMIT = 64 * 1024 * 1024; //적절은 64M
 	int CHECK_COUNT = 100000;
 	int count;
 	public PrimaryKeyIndexesWriter(Schema schema, File dir, IndexConfig indexConfig) throws IOException, IRException {
-		String segmentId = dir.getName();
-//		boolean isAppend = revisionInfo.isAppend();
-//		File revisionDir = IndexFileNames.getRevisionDir(dir, revisionInfo.getId());
 		primaryKeySetting = schema.schemaSetting().getPrimaryKeySetting();
 		
 		if (primaryKeySetting != null &&  primaryKeySetting.getFieldList() != null) {
@@ -83,38 +80,23 @@ public class PrimaryKeyIndexesWriter {
 				return;
 			}
 		}
-		//
-		// 증분수집일 경우, pk를 나중에 쉽게 읽을 수 있도록 임시벌크파일 형태로 기록한다.
-		//
-//		if (isAppend) {
-//			indexWriter = new LargePrimaryKeyIndexWriter(revisionDir, IndexFileNames.getTempFileName(IndexFileNames.primaryKeyMap), indexConfig.getPkTermInterval(), indexConfig.getPkBucketSize());
-//		} else {
-			// 전체색인의 경우는 이후에 다시 작업할 일이 없으므로, 완전한 pk map파일로 기록한다.
-			indexWriter = new LargePrimaryKeyIndexWriter(dir, IndexFileNames.primaryKeyMap, indexConfig.getPkTermInterval(), indexConfig.getPkBucketSize());
-//		}
+
+        indexWriter = new LargePrimaryKeyIndexWriter(dir, IndexFileNames.primaryKeyMap, indexConfig.getPkTermInterval(), indexConfig.getPkBucketSize());
 
 		pkbaos = new BytesDataOutput(1024); //초기 1kb로 시작.
 		
-//		String docDeleteSetName = IndexFileNames.getSuffixFileName(IndexFileNames.docDeleteSet, segmentId);
-//		if (isAppend) {
-//			File prevRevisionDir = IndexFileNames.getRevisionDir(dir, revisionInfo.getRef());
-//			// copy prev revision's delete.set
-//			// 증분색인의 append일 경우에는 이전 revision의 deleteSet을 가져와서 사용한다.
-//			// DocumentWriter.close()시 이전 rev와 새 rev의 중복되는 문서를 delete처리해준다.
-//			File prevDelete = new File(prevRevisionDir, docDeleteSetName);
-//			//이전 리비전의 delete.set을 현재 리비전 dir로 가져와서 이어쓰도록 한다.
-//			FileUtils.copyFileToDirectory(prevDelete, revisionDir);
-//			deleteSet = new BitSet(revisionDir, docDeleteSetName);
-//		} else {
-			deleteSet = new BitSet(dir, IndexFileNames.docDeleteSet, true);
-//		}
+        deleteSet = new BitSet(dir, IndexFileNames.docDeleteSet, true);
 	}
 
 	public int getUpdateDocCount() {
 		return updateDocCount;
 	}
-	
-	public void write(Document document, int localDocNo) throws IOException, IRException {
+
+    public int getDeleteDocCount() {
+        return deleteDocCount;
+    }
+
+    public void write(Document document, int localDocNo) throws IOException, IRException {
 		
 		if(hasPrimaryKey){
 			pkbaos.reset();
@@ -146,8 +128,6 @@ public class PrimaryKeyIndexesWriter {
 					indexWriter.flush();
 				}
 			}
-			
-			
 		}
 	}
 
@@ -155,6 +135,7 @@ public class PrimaryKeyIndexesWriter {
         int preDocNo = indexWriter.get(pk.array(), 0, (int) pk.position());
         if (preDocNo >= 0) {
             deleteSet.set(preDocNo);
+            deleteDocCount++;
         }
     }
 

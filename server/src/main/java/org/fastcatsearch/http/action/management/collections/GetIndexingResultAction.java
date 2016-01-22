@@ -45,8 +45,6 @@ public class GetIndexingResultAction extends AuthAction {
 						.key("collectionId").value(vo.collectionId)
 						.key("status").value(vo.status.name())
 						.key("docSize").value(vo.docSize)
-						.key("insertSize").value(vo.insertSize)
-						.key("updateSize").value(vo.updateSize)
 						.key("deleteSize").value(vo.deleteSize)
 						.key("isScheduled").value(vo.isScheduled ? "Scheduled" : "Manual")
 						.key("startTime").value(Formatter.formatDate(new Date(vo.startTime.getTime())))

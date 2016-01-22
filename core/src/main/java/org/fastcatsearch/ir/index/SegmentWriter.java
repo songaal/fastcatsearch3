@@ -30,8 +30,6 @@ import java.io.IOException;
 
 public class SegmentWriter extends SegmentIndexWriter implements WriteInfoLoggable {
 
-	private int lastDocNo;
-
 	private DocumentWriter documentWriter;
 
 	public SegmentWriter(Schema schema, File targetDir, DataInfo.SegmentInfo segmentInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager) throws IRException {
@@ -41,7 +39,6 @@ public class SegmentWriter extends SegmentIndexWriter implements WriteInfoLoggab
 	public SegmentWriter(Schema schema, File targetDir, DataInfo.SegmentInfo segmentInfo, IndexConfig indexConfig, AnalyzerPoolManager analyzerPoolManager, SelectedIndexList selectedIndexList) throws IRException {
 		super(schema, targetDir, segmentInfo, indexConfig, analyzerPoolManager, selectedIndexList);
 		try {
-			lastDocNo = -1;
 			documentWriter = new DocumentWriter(schema.schemaSetting(), targetDir, indexConfig);
 		} catch (IOException e) {
 			try {
@@ -62,7 +59,6 @@ public class SegmentWriter extends SegmentIndexWriter implements WriteInfoLoggab
 		int docNo = documentWriter.write(document);
 		super.addDocument(document, docNo);
 
-		lastDocNo = docNo;
 		return docNo;
 	}
 
@@ -82,19 +78,15 @@ public class SegmentWriter extends SegmentIndexWriter implements WriteInfoLoggab
 		}
 	}
 
-	public void close() throws IOException, IRException {
+	public DataInfo.SegmentInfo close() throws IOException, IRException {
 		try {
 			closeWriter();
 		} catch (Exception e) {
-//			File revisionDir = IndexFileNames.getRevisionDir(targetDir, revisionInfo.getId());
-			//FileUtils.deleteDirectory(revisionDir);
 			FileUtils.forceDelete(targetDir);
 			throw new IRException(e);
 		} finally {
-			super.close();
+            return super.close();
 		}
-		
-
 	}
 
 	public void getIndexWriteInfo(IndexWriteInfoList list) {

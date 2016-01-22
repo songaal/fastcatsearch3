@@ -212,18 +212,12 @@ public class CollectionDynamicIndexer {
 
         if (indexWriter != null) {
             try {
-                indexWriter.close();
+                segmentInfo = indexWriter.close();
+                logger.debug("##Indexer close {}", segmentInfo);
             } catch (IOException e) {
                 throw new IRException(e);
             }
         }
-
-        segmentInfo.setDocumentCount(insertCount + updateCount);
-        segmentInfo.setInsertCount(insertCount);
-        segmentInfo.setUpdateCount(updateCount);
-        segmentInfo.setDeleteCount(deleteCount);
-
-        logger.debug("##Indexer close {}", segmentInfo);
 
         return segmentInfo;
     }
