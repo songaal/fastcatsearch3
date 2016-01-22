@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
+import org.fastcatsearch.ir.DynamicIndexModule;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
@@ -73,6 +74,10 @@ public class OperateCollectionJob extends Job implements Streamable {
 					errorMessage = "Collection [" + collectionId + "] is already stoped.";
 					return new JobResult(errorMessage);
 				}
+                DynamicIndexModule dynamicIndexModule = irService.getDynamicIndexModule(collectionId);
+                if(dynamicIndexModule != null) {
+                    dynamicIndexModule.unload();
+                }
 				collectionHandler.close();
 			} else if ("REMOVE".equalsIgnoreCase(command)) {
 				boolean isSuccess = irService.removeCollection(collectionId);
