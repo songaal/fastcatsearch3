@@ -3,6 +3,7 @@ package org.fastcatsearch.http.action.service.indexing;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.ResultFuture;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
@@ -30,6 +31,9 @@ public class GetDocumentActionAction extends ServiceAction {
 	public void doAction(ActionRequest request, ActionResponse response) throws Exception {
 
 		String collectionId = request.getParameter("collectionId");
+        if(collectionId == null || collectionId.length() == 0) {
+            throw new FastcatSearchException("collection cannot be empty!");
+        }
 		int start = Integer.parseInt(request.getParameter("start", "0"));
 		int end = Integer.parseInt(request.getParameter("length", "10")) + start - 1;
 		String pkValue = request.getParameter("pk");
