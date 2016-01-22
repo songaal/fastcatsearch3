@@ -458,9 +458,9 @@ public class CollectionHandler {
             if(removeSegmentReader != null) {
                 //설정파일도 수정한다.
                 collectionContext.removeSegmentInfo(removeSegmentId);
+                //현재 사용중이면 차후에 다 쓰고 닫도록 closeFuture를 호출한다.
+                removeSegmentReader.closeFuture(true);
             }
-            //현재 사용중이면 차후에 다 쓰고 닫도록 closeFuture를 호출한다.
-            removeSegmentReader.closeFuture(true);
         }
         collectionContext.addSegmentInfo(segmentInfo);
         collectionContext.dataInfo().updateAll();

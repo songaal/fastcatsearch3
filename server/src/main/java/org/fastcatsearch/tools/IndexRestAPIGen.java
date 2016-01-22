@@ -32,7 +32,7 @@ public class IndexRestAPIGen {
         if(args.length > 0) {
             p = Integer.parseInt(args[0]);
         }
-        IndexRestAPIGen apigen = new IndexRestAPIGen("http://localhost:8090");
+        IndexRestAPIGen apigen = new IndexRestAPIGen("http://52.79.96.71:8090");
         String collection = "film";
         int LIMIT = 50000 * 1000;
         Random r = new Random(System.currentTimeMillis());
