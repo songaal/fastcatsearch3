@@ -1,46 +1,47 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <schema>
     <field-list>
-        <field id="FID" type="INT" name="FID" multiValueDelimiter=""/>
-        <field id="TITLE" type="STRING" name="TITLE" multiValueDelimiter=""/>
-        <field id="DESCRIPTION" type="STRING" name="DESCRIPTION" multiValueDelimiter=""/>
-        <field id="CATEGORY" type="STRING" name="CATEGORY" multiValueDelimiter=""/>
-        <field id="PRICE" type="FLOAT" name="PRICE" multiValueDelimiter=""/>
-        <field id="LENGTH" type="INT" name="LENGTH" multiValueDelimiter=""/>
-        <field id="RATING" type="STRING" name="RATING" multiValueDelimiter=""/>
-        <field id="ACTORS" type="STRING" name="ACTORS" multiValue="true" multiValueDelimiter=","/>
+        <field multiValueDelimiter="" name="FID" type="INT" id="FID"/>
+        <field multiValueDelimiter="" name="TITLE" type="STRING" id="TITLE"/>
+        <field multiValueDelimiter="" name="DESCRIPTION" type="STRING" id="DESCRIPTION"/>
+        <field multiValueDelimiter="" name="YEAR" type="INT" id="YEAR"/>
+        <field multiValueDelimiter="" name="PRICE" type="FLOAT" id="PRICE"/>
+        <field multiValueDelimiter="" name="LENGTH" type="INT" id="LENGTH"/>
+        <field multiValueDelimiter="" name="RATING" type="STRING" id="RATING"/>
+        <field multiValueDelimiter="," multiValue="true" name="FEATURES" type="STRING" id="FEATURES"/>
+        <field multiValueDelimiter="" name="UPDATE_TIME" type="DATETIME" id="UPDATE_TIME"/>
     </field-list>
-    <primary-key>
+    <primary-key id="_PK">
         <field ref="FID"/>
     </primary-key>
     <index-list>
-        <index id="TITLE" name="TITLE" queryAnalyzer="STANDARD" ignoreCase="true">
+        <index ignoreCase="true" queryAnalyzer="STANDARD" name="TITLE" id="TITLE">
             <field indexAnalyzer="STANDARD" ref="TITLE"/>
         </index>
-        <index id="DESCRIPTION" name="DESCRIPTION" queryAnalyzer="STANDARD" ignoreCase="true">
+        <index ignoreCase="true" queryAnalyzer="STANDARD" name="DESCRIPTION" id="DESCRIPTION">
             <field indexAnalyzer="STANDARD" ref="DESCRIPTION"/>
         </index>
-        <index id="ACTORS" name="ACTORS" queryAnalyzer="STANDARD" ignoreCase="true">
-            <field indexAnalyzer="STANDARD" ref="ACTORS"/>
+        <index ignoreCase="true" queryAnalyzer="STANDARD" name="FEATURES" id="FEATURES">
+            <field indexAnalyzer="STANDARD" ref="FEATURES"/>
         </index>
-        <index id="TOTAL_INDEX" name="TOTAL_INDEX" queryAnalyzer="STANDARD" ignoreCase="true">
+        <index ignoreCase="true" queryAnalyzer="STANDARD" name="TOTAL_INDEX" id="TOTAL_INDEX">
             <field indexAnalyzer="STANDARD" ref="TITLE"/>
             <field indexAnalyzer="STANDARD" ref="DESCRIPTION"/>
-            <field indexAnalyzer="STANDARD" ref="CATEGORY"/>
-            <field indexAnalyzer="STANDARD" ref="ACTORS"/>
+            <field indexAnalyzer="STANDARD" ref="RATING"/>
+            <field indexAnalyzer="STANDARD" ref="FEATURES"/>
         </index>
     </index-list>
     <analyzer-list>
-        <analyzer id="STANDARD" corePoolSize="1" maximumPoolSize="5" className="BASIC.STANDARD"/>
+        <analyzer className="BASIC.STANDARD" maximumPoolSize="5" corePoolSize="1" id="STANDARD"/>
     </analyzer-list>
     <field-index-list>
-        <field-index id="CATEGORY" name="CATEGORY" ref="CATEGORY" size="15"/>
-        <field-index id="PRICE" name="PRICE" ref="PRICE"/>
-        <field-index id="LENGTH" name="LENGTH" ref="LENGTH"/>
+        <field-index ref="YEAR" name="YEAR" id="YEAR"/>
+        <field-index ref="PRICE" name="PRICE" id="PRICE"/>
+        <field-index ref="LENGTH" name="LENGTH" id="LENGTH"/>
     </field-index-list>
     <group-index-list>
-        <group-index id="ACTORS" name="ACTORS" ref="ACTORS"/>
-        <group-index id="CATEGORY" name="CATEGORY" ref="CATEGORY"/>
-        <group-index id="RATING" name="RATING" ref="RATING"/>
+        <group-index ref="FEATURES" name="FEATURES" id="FEATURES"/>
+        <group-index ref="YEAR" name="YEAR" id="YEAR"/>
+        <group-index ref="RATING" name="RATING" id="RATING"/>
     </group-index-list>
 </schema>

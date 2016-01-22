@@ -362,6 +362,10 @@ public class IRService extends AbstractService {
 			return false;
 		} else {
 			try {
+                DynamicIndexModule dynamicIndexModule = dynamicIndexModuleMap.remove(collectionId);
+                if(dynamicIndexModule != null) {
+                    dynamicIndexModule.unload();
+                }
 				CollectionHandler collectionHandler = collectionHandlerMap.remove(collectionId);
 				if(collectionHandler != null){
 					collectionHandler.close();
@@ -381,38 +385,6 @@ public class IRService extends AbstractService {
 			}
 		}
 	}
-	
-//	public CollectionHandler promoteCollection(CollectionHandler collectionHandler, String collectionId) throws IRException {
-//		Exception ex = null;
-//		try {
-//			String collectionTmp = collectionHandler.collectionId();
-//			File prevFile = collectionHandler.indexFilePaths().file();
-//			File newFile = environment.filePaths().collectionFilePaths(collectionId).file();
-//			collectionHandlerMap.remove(collectionHandler.collectionId());
-//			collectionHandler.close();
-//			
-//			collectionsConfig.removeCollection(collectionTmp);
-//			collectionsConfig.addCollection(collectionId);
-//			logger.trace("remove ok. {}", collectionTmp);
-//			JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.collections), collectionsConfig, CollectionsConfig.class);
-//			logger.trace("ok collection promoted {}->{}:{}", collectionTmp, collectionId, newFile.getAbsoluteFile());
-//			prevFile.renameTo(newFile);
-//			logger.trace("rename ok. {}", newFile);
-//			collectionHandler = loadCollectionHandler(collectionId);
-//			logger.trace("load ok. {}", collectionId);
-//			return collectionHandler;
-//		} catch (IOException e) { ex = e;
-//		} catch (JAXBException e) { ex = e;
-//		} catch (SettingException e) { ex = e;
-//		} finally {
-//			
-//			if(ex!=null) {
-//				logger.error("",ex);
-//				throw new IRException(ex);
-//			}
-//		}
-//		return null;
-//	}
 
 	public CollectionHandler removeCollectionHandler(String collectionId) {
 		realtimeQueryStatisticsModule.removeQueryCount(collectionId);

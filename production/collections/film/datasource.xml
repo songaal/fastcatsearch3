@@ -1,26 +1,53 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <datasource>
-    <add-indexing/>
-    <full-indexing>
-        <source name="DB Source" active="true">
+    <add-indexing>
+        <source active="true" name="film">
             <properties>
-                <property key="beforeSQL"></property>
+                <property key="bulkSize">100</property>
                 <property key="dataSQL">SELECT
-                    `film_id` AS `FID`,
-                    `title`,
-                    `description`,
-                    `release_year` AS `year`,
-                    `rental_rate` AS `price`,
-                    `length`,
-                    `rating`,
-                    `special_features` AS `features`,
-                    `last_update` AS `update_time`
-                    FROM `film`</property>
+   `film_id` AS `FID`,
+   `title`,
+   `description`,
+   `release_year` AS `year`,
+   `rental_rate` AS `price`,
+   `length`,
+   `rating`,
+   `special_features` AS `features`,
+   `last_update` AS `update_time`
+FROM `film`
+limit 5</property>
+                <property key="useBlobFile"></property>
                 <property key="fetchSize">-1</property>
                 <property key="afterSQL"></property>
-                <property key="bulkSize">100</property>
+                <property key="jdbcSourceId">SAKILA</property>
+                <property key="beforeSQL"></property>
                 <property key="deleteIdSQL"></property>
-                <property key="jdbcSourceId">sakila</property>
+            </properties>
+            <modifier></modifier>
+            <reader>org.fastcatsearch.datasource.reader.DBReader</reader>
+        </source>
+    </add-indexing>
+    <full-indexing>
+        <source active="true" name="DB Source">
+            <properties>
+                <property key="bulkSize">100</property>
+                <property key="dataSQL">SELECT
+   `film_id` AS `FID`,
+   `title`,
+   `description`,
+   `release_year` AS `year`,
+   `rental_rate` AS `price`,
+   `length`,
+   `rating`,
+   `special_features` AS `features`,
+   `last_update` AS `update_time`
+FROM `film`</property>
+                <property key="useBlobFile"></property>
+                <property key="fetchSize">-1</property>
+                <property key="afterSQL"></property>
+                <property key="jdbcSourceId">SAKILA</property>
+                <property key="beforeSQL"></property>
+                <property key="deleteIdSQL"></property>
             </properties>
             <modifier></modifier>
             <reader>org.fastcatsearch.datasource.reader.DBReader</reader>
