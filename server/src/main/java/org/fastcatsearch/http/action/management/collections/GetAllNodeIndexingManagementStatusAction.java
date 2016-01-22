@@ -142,20 +142,20 @@ public class GetAllNodeIndexingManagementStatusAction extends AuthAction {
 		if(indexingDataInfo != null){
 			responseWriter
 			.key("segmentSize").value(indexingDataInfo.segmentSize)
-			.key("revisionUUID").value(indexingDataInfo.revisionUUID)
 			.key("sequence").value(indexingDataInfo.sequence)
 			.key("dataPath").value(indexingDataInfo.dataPath)
 			.key("diskSize").value(indexingDataInfo.diskSize)
 			.key("documentSize").value(indexingDataInfo.documentSize)
+            .key("deleteSize").value(indexingDataInfo.deleteSize)
 			.key("createTime").value(indexingDataInfo.createTime);
 		}else{
 			responseWriter
 			.key("segmentSize").value(0)
-			.key("revisionUUID").value("")
 			.key("sequence").value(-1)
 			.key("dataPath").value("")
 			.key("diskSize").value("")
 			.key("documentSize").value(0)
+            .key("deleteSize").value(0)
 			.key("createTime").value("");
 		}
 		
@@ -171,18 +171,18 @@ public class GetAllNodeIndexingManagementStatusAction extends AuthAction {
 		
 		if(indexingDataInfo != null){
 			responseWriter
-			.key("revisionUUID").value(indexingDataInfo.revisionUUID)
 			.key("sequence").value(indexingDataInfo.sequence)
 			.key("dataPath").value(indexingDataInfo.dataPath)
 			.key("diskSize").value(indexingDataInfo.diskSize)
-			.key("documentSize").value(indexingDataInfo.documentSize);
+			.key("documentSize").value(indexingDataInfo.documentSize)
+            .key("deleteSize").value(indexingDataInfo.deleteSize);
 		}else{
-			responseWriter
-			.key("revisionUUID").value("")
+            responseWriter
 			.key("sequence").value(-1)
 			.key("dataPath").value("")
 			.key("diskSize").value("")
-			.key("documentSize").value(0);
+                    .key("documentSize").value(0)
+            .key("deleteSize").value(0);
 		}
 		
 		responseWriter.endObject();

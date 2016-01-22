@@ -23,6 +23,7 @@ public class DataInfo {
 	private int documents;
 	private int deletes;
 
+	// TODO id 순서대로 list에 추가되도록 adapter만들어야한다.
 	private List<SegmentInfo> segmentInfoList;
 
 	public DataInfo() {
@@ -62,9 +63,6 @@ public class DataInfo {
 			SegmentInfo prevSegmentInfo = segmentInfoList.get(index);
 			//마지막 세그먼트를 덮어쓴다.
 			prevSegmentInfo.update(segmentInfo);
-//			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
-			addUpdate(segmentInfo.getDocumentCount(),segmentInfo.getDeleteCount());
-			//존재할 경우 리비전만 업데이트한다.
 		} else {
 			addSegmentInfo(segmentInfo);
 		}
@@ -78,6 +76,17 @@ public class DataInfo {
                 iter.remove();
             }
         }
+    }
+
+    public void updateAll() {
+        int documents = 0;
+        int deletes = 0;
+        for (SegmentInfo segmentInfo : segmentInfoList) {
+            documents += segmentInfo.getDocumentCount();
+            deletes += segmentInfo.getDeleteCount();
+        }
+        this.documents = documents;
+        this.deletes = deletes;
     }
 
 	@XmlAttribute

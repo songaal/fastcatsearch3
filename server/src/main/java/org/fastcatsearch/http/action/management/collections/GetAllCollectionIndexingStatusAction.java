@@ -100,11 +100,11 @@ public class GetAllCollectionIndexingStatusAction extends AuthAction {
 		if(indexingDataInfo != null){
 			responseWriter
 			.key("segmentSize").value(indexingDataInfo.segmentSize)
-			.key("revisionUUID").value(indexingDataInfo.revisionUUID)
 			.key("sequence").value(indexingDataInfo.sequence)
 			.key("dataPath").value(indexingDataInfo.dataPath)
 			.key("diskSize").value(indexingDataInfo.diskSize)
 			.key("documentSize").value(indexingDataInfo.documentSize)
+            .key("deleteSize").value(indexingDataInfo.deleteSize)
 			.key("createTime").value(indexingDataInfo.createTime);
 		}
 		

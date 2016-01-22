@@ -135,7 +135,7 @@ public class BitSet {
             int count = 0;
             for (int i = 0; i < bitdata.length; i++) {
                 long bits = bitdata[i];
-                for(int p = 0; p < 16; p++) {
+                for(int p = 0; p < Long.SIZE; p++) {
                     if((bits & 1) > 0) {
                         count++;
                     }

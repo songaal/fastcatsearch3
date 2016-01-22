@@ -272,6 +272,10 @@ public class CollectionHandler {
             r.loadDeleteSet();
         }
 
+        for(SegmentReader segmentReader : segmentReaderMap.values()) {
+            segmentReader.syncDeleteCountToInfo();
+        }
+
         if(segmentInfo != null) {
             File newSegmentDir = new File(segmentDir.getParentFile(), segmentId);
             FileUtils.moveDirectory(segmentDir, newSegmentDir);
@@ -282,6 +286,7 @@ public class CollectionHandler {
             segmentReaderMap.put(segmentId, segmentReader);
             collectionContext.addSegmentInfo(segmentInfo);
         }
+        collectionContext.dataInfo().updateAll();
         return collectionContext;
     }
 
@@ -382,6 +387,7 @@ public class CollectionHandler {
             //현재 사용중이면 차후에 다 쓰고 닫도록 closeFuture를 호출한다.
             removeSegmentReader.closeFuture(true);
         }
+        collectionContext.dataInfo().updateAll();
         return collectionContext;
     }
 
@@ -435,6 +441,10 @@ public class CollectionHandler {
             pkBulkReader.close();
         }
 
+        for(SegmentReader segmentReader : segmentReaderMap.values()) {
+            segmentReader.syncDeleteCountToInfo();
+        }
+
         String segmentId = segmentIdGenerator.nextId();
 
         File newSegmentDir = new File(segmentDir.getParentFile(), segmentId);
@@ -453,7 +463,7 @@ public class CollectionHandler {
             removeSegmentReader.closeFuture(true);
         }
         collectionContext.addSegmentInfo(segmentInfo);
-
+        collectionContext.dataInfo().updateAll();
         return collectionContext;
     }
 
@@ -710,7 +720,7 @@ public class CollectionHandler {
                         //설정파일도 수정한다.
                         collectionContext.removeSegmentInfo(removeSegmentId);
                     }
-                    //TODO 레퍼런스가 없으면 닫도록 closeFuture를 구현한다.
+                    //레퍼런스가 없으면 닫도록 closeFuture를 호출한다.
                     segmentReader.close();
                     //segmentReader.closeFuture();
                 }

@@ -178,6 +178,10 @@ public class SegmentReader implements Comparable {
 		}
 	}
 
+    //세그먼트 추가에 의하여 deleteSet이 변경되었을때, info.xml 에 적용한다.
+    public void syncDeleteCountToInfo() {
+        segmentInfo.setDeleteCount(deleteSet.getOnCount());
+    }
     @Override
     public int compareTo(Object o) {
         return segmentId.compareTo(((SegmentReader)o).segmentId);

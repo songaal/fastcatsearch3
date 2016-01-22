@@ -58,12 +58,8 @@ public class GetRestorableIndexingDataInfoJob extends Job implements Streamable 
 		try{
 			if(dataInfoFile.exists()){
 				dataInfo = JAXBConfigs.readConfig(dataInfoFile, DataInfo.class);
-				String revisionUUID = null;
-				SegmentInfo lastSegmentInfo = dataInfo.getLastSegmentInfo();
-                revisionUUID = "";
-				result.revisionUUID = revisionUUID;
-				
 				result.documentSize = dataInfo.getDocuments();
+                result.deleteSize = dataInfo.getDeletes();
 			}
 			
 		}catch(JAXBException e){
@@ -88,28 +84,28 @@ public class GetRestorableIndexingDataInfoJob extends Job implements Streamable 
 	
 	
 	public static class IndexingDataShortInfo implements Streamable {
-		public String revisionUUID;
 		public int sequence;
 		public String dataPath;
 		public String diskSize;
 		public int documentSize;
+        public int deleteSize;
 		
 		@Override
 		public void readFrom(DataInput input) throws IOException {
-			revisionUUID = input.readString();
 			sequence = input.readInt();
 			dataPath = input.readString();
 			diskSize = input.readString();
 			documentSize = input.readInt();
+            deleteSize = input.readInt();
 		}
 
 		@Override
 		public void writeTo(DataOutput output) throws IOException {
-			output.writeString(revisionUUID);
 			output.writeInt(sequence);
 			output.writeString(dataPath);
 			output.writeString(diskSize);
 			output.writeInt(documentSize);
+            output.writeInt(deleteSize);
 		}
 		
 		

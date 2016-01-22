@@ -39,11 +39,7 @@ public class GetIndexingDataInfoJob extends Job implements Streamable {
 		DataInfo dataInfo = collectionContext.dataInfo();
 		
 		result.segmentSize = dataInfo.getSegmentSize();
-		String revisionUUID = null;
-		SegmentInfo lastSegmentInfo = dataInfo.getLastSegmentInfo();
-        revisionUUID = "";
-		result.revisionUUID = revisionUUID;
-		
+
 		int sequence = collectionContext.indexStatus().getSequence();
 		result.sequence = sequence;
 		File indexFileDir = collectionContext.dataFilePaths().indexDirFile(sequence);
@@ -58,14 +54,11 @@ public class GetIndexingDataInfoJob extends Job implements Streamable {
 		result.diskSize = diskSize;
 		
 		result.documentSize = collectionContext.dataInfo().getDocuments();
+        result.deleteSize = collectionContext.dataInfo().getDeletes();
 		
 		String createTime = "";
 		SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
 		if(segmentInfo != null){
-//			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
-//			if(revisionInfo != null){
-//				createTime = revisionInfo.getCreateTime();
-//			}
             createTime = Formatter.formatDate(new Date(segmentInfo.getCreateTime()));
 		}
 		result.createTime = createTime;
@@ -86,43 +79,37 @@ public class GetIndexingDataInfoJob extends Job implements Streamable {
 		output.writeString(getStringArgs());
 	}
 
-	
-	
-	
 	public static class IndexingDataInfo implements Streamable {
 		public int segmentSize;
-		public String revisionUUID;
 		public int sequence;
 		public String dataPath;
 		public String diskSize;
 		public int documentSize;
+        public int deleteSize;
 		public String createTime;
 		
 		@Override
 		public void readFrom(DataInput input) throws IOException {
 			segmentSize = input.readInt();
-			revisionUUID = input.readString();
 			sequence = input.readInt();
 			dataPath = input.readString();
 			diskSize = input.readString();
 			documentSize = input.readInt();
+            deleteSize = input.readInt();
 			createTime = input.readString();
 		}
 
 		@Override
 		public void writeTo(DataOutput output) throws IOException {
 			output.writeInt(segmentSize);
-			output.writeString(revisionUUID);
 			output.writeInt(sequence);
 			output.writeString(dataPath);
 			output.writeString(diskSize);
 			output.writeInt(documentSize);
+            output.writeInt(deleteSize);
 			output.writeString(createTime);
 		}
-		
-		
-		
-		
+
 	}
 
 }

@@ -13,8 +13,6 @@
 		step varchar(30),
 		status varchar(30),
 		docSize int,
-		insertSize int,
-		updateSize int,
 		deleteSize int,
 		isScheduled boolean,
 		startTime timestamp,
@@ -67,11 +65,11 @@
 
 	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.IndexingStatusVO" useGeneratedKeys="true">
 		insert into IndexingHistory ( 
-		collectionId, type, step, status, docSize, insertSize, updateSize, deleteSize, isScheduled,
+		collectionId, type, step, status, docSize, deleteSize, isScheduled,
 		startTime, endTime, duration) 
 		values (
-		#{collectionId}, #{type}, #{step}, #{status}, #{docSize}, #{insertSize}
-		, #{updateSize}, #{deleteSize}, #{isScheduled}, #{startTime}, #{endTime}, #{duration}
+		#{collectionId}, #{type}, #{step}, #{status}, #{docSize},
+		#{deleteSize}, #{isScheduled}, #{startTime}, #{endTime}, #{duration}
 		)
 	</insert>
 
