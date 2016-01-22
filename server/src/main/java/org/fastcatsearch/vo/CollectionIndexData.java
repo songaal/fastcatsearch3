@@ -12,6 +12,7 @@ public class CollectionIndexData implements Streamable {
 
 	private String collectionId;
 	private int documentSize;
+    private int deleteSize;
 	protected List<String> fieldList;
 	protected List<RowData> indexData;
 	protected List<Boolean> isDeletedList;
@@ -19,9 +20,10 @@ public class CollectionIndexData implements Streamable {
 	public CollectionIndexData() {
 	}
 
-	public CollectionIndexData(String collectionId, int documentSize, List<String> fieldList, List<RowData> indexData, List<Boolean> isDeletedList) {
+	public CollectionIndexData(String collectionId, int documentSize, int deleteSize, List<String> fieldList, List<RowData> indexData, List<Boolean> isDeletedList) {
 		this.collectionId = collectionId;
 		this.documentSize = documentSize;
+        this.deleteSize = deleteSize;
 		this.fieldList = fieldList;
 		this.indexData = indexData;
 		this.isDeletedList = isDeletedList;
@@ -35,7 +37,11 @@ public class CollectionIndexData implements Streamable {
 		return documentSize;
 	}
 
-	public List<String> getFieldList() {
+    public int getDeleteSize() {
+        return deleteSize;
+    }
+
+    public List<String> getFieldList() {
 		return fieldList;
 	}
 
@@ -51,6 +57,7 @@ public class CollectionIndexData implements Streamable {
 	public void readFrom(DataInput input) throws IOException {
 		collectionId = input.readString();
 		documentSize = input.readVInt();
+        deleteSize = input.readVInt();
 		int fieldSize = input.readVInt();
 		fieldList = new ArrayList<String>(fieldSize);
 		for (int i = 0; i < fieldSize; i++) {
@@ -80,6 +87,7 @@ public class CollectionIndexData implements Streamable {
 	public void writeTo(DataOutput output) throws IOException {
 		output.writeString(collectionId);
 		output.writeVInt(documentSize);
+        output.writeVInt(deleteSize);
 		if(fieldList != null) {
 			output.writeVInt(fieldList.size());
 			for(String fieldId : fieldList) {

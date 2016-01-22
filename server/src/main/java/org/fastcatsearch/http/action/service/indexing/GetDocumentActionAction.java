@@ -70,6 +70,7 @@ public class GetDocumentActionAction extends ServiceAction {
 			List<Boolean> isDeletedList = data.getIsDeletedList();
 			
 			resultWriter.key("documentSize").value(data.getDocumentSize());
+            resultWriter.key("deleteSize").value(data.getDeleteSize());
 			resultWriter.key("fieldList").array();
 			for(String fieldId : data.getFieldList()) {
 				resultWriter.value(fieldId);

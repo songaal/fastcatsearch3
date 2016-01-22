@@ -67,7 +67,7 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 
 		CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
 		if(collectionHandler == null || !collectionHandler.isLoaded()){
-			CollectionAnalyzedIndexData data = new CollectionAnalyzedIndexData(collectionId, 0, null, null, null, null, null);
+			CollectionAnalyzedIndexData data = new CollectionAnalyzedIndexData(collectionId, 0, 0, null, null, null, null, null);
 			return new JobResult(data);
 		}
 		
@@ -80,6 +80,7 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 		List<Boolean> isDeletedList = new ArrayList<Boolean>();
 		
 		int documentSize = 0;
+        int deleteSize = 0;
 		try{
 
 			Schema schema = collectionHandler.schema();
@@ -155,6 +156,7 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 					DocumentReader documentReader = reader.newDocumentReader();
 					int count = documentReader.getDocumentCount();
 					documentSize += count;
+                    deleteSize += reader.deleteSet().getOnCount();
 					segmentReaderList[segmentNumber] = reader;
 					segmentEndNumbers[segmentNumber] = documentSize - 1;
 					logger.debug("segmentEndNumbers[{}]={}", segmentNumber, segmentEndNumbers[segmentNumber]);
@@ -195,7 +197,7 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 			logger.error("", e);
 		}
 		
-		CollectionAnalyzedIndexData data = new CollectionAnalyzedIndexData(collectionId, documentSize, fieldList, pkDataList, indexDataList, analyzedDataList, isDeletedList);
+		CollectionAnalyzedIndexData data = new CollectionAnalyzedIndexData(collectionId, documentSize, deleteSize, fieldList, pkDataList, indexDataList, analyzedDataList, isDeletedList);
 		return new JobResult(data);
 	}
 	

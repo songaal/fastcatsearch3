@@ -27,23 +27,26 @@ public class IndexRestAPIGen {
 
     public static void main(String... args) {
 
-        boolean isBulk = true;
-        int p = 500;
+        int bulkSize = 5;
+        int p = 10000;
+        int idRange = 5; //Integer.MAX_VALUE;
+
         if(args.length > 0) {
             p = Integer.parseInt(args[0]);
         }
-        IndexRestAPIGen apigen = new IndexRestAPIGen("http://52.79.96.71:8090");
+//        IndexRestAPIGen apigen = new IndexRestAPIGen("http://52.79.96.71:8090");
+        IndexRestAPIGen apigen = new IndexRestAPIGen("http://localhost:8090");
         String collection = "film";
         int LIMIT = 50000 * 1000;
         Random r = new Random(System.currentTimeMillis());
         int count = 0;
 
-        if(!isBulk) {
+        if(bulkSize <= 0) {
             try {
                 long lap = System.nanoTime();
                 for (int i = 0; i < LIMIT; i++) {
 
-                    String data = makeJson(r);
+                    String data = makeJson(r, idRange);
 //                System.out.println(data);
                     apigen.requestAPI(INDEX_API, collection, data);
                     count++;
@@ -72,10 +75,10 @@ public class IndexRestAPIGen {
                     if(datum.length() > 0) {
                         datum.append("\n");
                     }
-                    datum.append(makeJson(r));
+                    datum.append(makeJson(r, idRange));
                     count++;
 
-                    if (count % 10000 == 0) {
+                    if (count % bulkSize == 0) {
                         System.out.println("Called " + count + " reqs. lap = " + Formatter.getFormatTime((System.nanoTime() - lap) / 1000000));
                         lap = System.nanoTime();
                         String data = datum.toString();
@@ -83,8 +86,9 @@ public class IndexRestAPIGen {
                         apigen.requestAPI(INDEX_API, collection, data);
                         System.out.println("Bulk reqs. lap = " + Formatter.getFormatTime((System.nanoTime() - lap) / 1000000));
                         if (p > 0) {
-                            int pause = r.nextInt(p) + 50;
-                            Thread.sleep(pause);
+//                            int pause = r.nextInt(p) + 50;
+//                            Thread.sleep(pause);
+                            Thread.sleep(p);
                         }
                     }
                 }
@@ -115,8 +119,8 @@ public class IndexRestAPIGen {
     private static String[] ratingType = new String[]{"G", "NC-17", "PG", "PG-13", "R"};
     private static String[] featureType = new String[]{"Behind the Scenes", "Commentaries", "Deleted Scenes", "Trailers"};
 
-    private static String makeJson(Random r) {
-        int id = r.nextInt(Integer.MAX_VALUE - 1);
+    private static String makeJson(Random r, int idRange) {
+        int id = r.nextInt(idRange - 1);
         String title = "title-" + id;
         String desc = "desc-" + id;
         int price = (r.nextInt(300) + 50) * 100;

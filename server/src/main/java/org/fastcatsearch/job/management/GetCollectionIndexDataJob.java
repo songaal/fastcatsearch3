@@ -46,7 +46,7 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 
 		CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
 		if(collectionHandler == null || !collectionHandler.isLoaded()){
-			CollectionIndexData data = new CollectionIndexData(collectionId, 0, new ArrayList<String>(), new ArrayList<RowData>(), new ArrayList<Boolean>());
+			CollectionIndexData data = new CollectionIndexData(collectionId, 0, 0, new ArrayList<String>(), new ArrayList<RowData>(), new ArrayList<Boolean>());
 			return new JobResult(data);
 		}
 		
@@ -56,6 +56,7 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 		List<Boolean> isDeletedList = new ArrayList<Boolean>();
 		
 		int documentSize = 0;
+        int deleteSize = 0;
 		try {
 			SchemaSetting schemaSetting = collectionHandler.schema().schemaSetting();
 			List<FieldSetting> fieldSettingList = schemaSetting.getFieldSettingList();
@@ -104,14 +105,14 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 				//이 배열의 index번호는 세그먼트번호.
 				SegmentReader[] segmentReaderList = new SegmentReader[segmentSize];
 				int[] segmentEndNumbers = new int[segmentSize];
-				TreeSet treeSet = new TreeSet<SegmentReader>(collectionHandler.segmentReaders());
-				//descendingIterator 로 세그먼트 이름 내림차순으로 최신문서순. 하지만 세그먼트 이름이 한바퀴 다 돌면 최신순이 아니다.
-				Iterator<SegmentReader> iterator = treeSet.descendingIterator();
-				for (int segmentNumber = 0; iterator.hasNext(); segmentNumber++) {
-					SegmentReader reader = iterator.next();
+
+                int segmentNumber = 0;
+                for(SegmentInfo segmentInfo : collectionHandler.collectionContext().dataInfo().getSegmentInfoList()) {
+                    SegmentReader reader = collectionHandler.segmentReader(segmentInfo.getId());
 					DocumentReader documentReader = reader.newDocumentReader();
 					int count = documentReader.getDocumentCount();
 					documentSize += count;
+                    deleteSize += reader.deleteSet().getOnCount();
 					segmentReaderList[segmentNumber] = reader;
 					segmentEndNumbers[segmentNumber] = documentSize - 1;
 					logger.debug("segmentEndNumbers[{}]={}", segmentNumber, segmentEndNumbers[segmentNumber]);
@@ -132,13 +133,12 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 						SegmentInfo segmentInfo = segmentReader.segmentInfo();
 //						String segmentId = segmentInfo.getId();
 						SegmentSearcher segmentSearcher = segmentReader.segmentSearcher();
-						
-						for (int docNo = startNo; docNo <= endNo; docNo++) {
-							
+
+                        for (int docNo = endNo; docNo >= startNo; docNo--) {
 							Document document = segmentSearcher.getDocument(docNo);
 							if(document == null){
 								//문서의 끝에 다다름.
-								break;
+								continue;
 							}
 							isDeletedList.add(segmentReader.deleteSet().isSet(docNo));
 							add(document, segmentReader.segmentInfo().getId(), indexDataList);
@@ -153,13 +153,13 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 			}
 			
 			
-			CollectionIndexData data = new CollectionIndexData(collectionId, documentSize, fieldList, indexDataList, isDeletedList);
+			CollectionIndexData data = new CollectionIndexData(collectionId, documentSize, deleteSize, fieldList, indexDataList, isDeletedList);
 			return new JobResult(data);
 			
 			
 		} catch (Throwable t) {
 			logger.error("", t);
-			CollectionIndexData data = new CollectionIndexData(collectionId, 0, null, null, null);
+			CollectionIndexData data = new CollectionIndexData(collectionId, 0, 0, null, null, null);
 			return new JobResult(data);
 		}
 		
