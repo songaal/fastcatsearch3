@@ -34,7 +34,7 @@ public class IndexRestAPIGen {
         }
         IndexRestAPIGen apigen = new IndexRestAPIGen("http://localhost:8090");
         String collection = "film";
-        int LIMIT = 1000 * 1000;
+        int LIMIT = 50000 * 1000;
         Random r = new Random(System.currentTimeMillis());
         int count = 0;
 

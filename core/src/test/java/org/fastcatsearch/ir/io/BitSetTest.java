@@ -26,6 +26,7 @@ import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.io.BitSet;
 
 import junit.framework.TestCase;
+import org.junit.Test;
 
 
 public class BitSetTest extends TestCase {
@@ -90,28 +91,19 @@ public class BitSetTest extends TestCase {
 		
 		new File(dir, filename).delete();
 	}
-	/*
-	public static void main(String[] args) throws IOException {
-		if(args.length < 1){
-			System.out.println("input : bitset filename");
-			System.exit(1);
-		}
-		BitSet set = new BitSet(new File(args[0]));
-		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-		System.out.println("started...");
-		System.out.println("file = "+args[0]);
-		String line = null;
-		System.out.println(">>");
-		while((line = reader.readLine()) != null){
-			if(line.equals("exit")){
-				System.out.println("exit...");
-				System.exit(0);
-			}
-			int i = Integer.parseInt(line);
-			System.out.println(set.isSet(i));
-			
-		}
-	}*/
+
+    @Test
+    public void testGetOnCount() throws IOException {
+        BitSet bitset = new BitSet(new File("/Users/swsong/TEST_HOME/fastcatsearch-segment/collections/film/data/index0/vy/delete.set"),false);
+        int onCount = bitset.getOnCount();
+        onCount = bitset.getOnCount();
+        onCount = bitset.getOnCount();
+        onCount = bitset.getOnCount();
+        onCount = bitset.getOnCount();
+        onCount = bitset.getOnCount();
+        System.out.println("onCount : " + onCount);
+
+    }
 	public static void main(String[] args) throws IOException {
 		String line = null;
 		System.out.println(">>");

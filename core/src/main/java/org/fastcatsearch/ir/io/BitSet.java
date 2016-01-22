@@ -29,7 +29,8 @@ public class BitSet {
 	protected long[] bitdata;
 	private File file;
 	
-	
+	private transient int onCount = -1;
+
 	public BitSet(){
 		bitdata = new long[DEFAULT_BIT_SIZE];
 	}
@@ -115,6 +116,9 @@ public class BitSet {
 		}
 		
 		bitdata[pos] |= mask;
+
+        //무효처리.
+        onCount = -1;
 	}
 	
 	public void save() throws IOException{
@@ -125,4 +129,21 @@ public class BitSet {
 		}
 		out.close();
 	}
+
+    public int getOnCount() {
+        if(onCount == -1) {
+            int count = 0;
+            for (int i = 0; i < bitdata.length; i++) {
+                long bits = bitdata[i];
+                for(int p = 0; p < 16; p++) {
+                    if((bits & 1) > 0) {
+                        count++;
+                    }
+                    bits >>>= 1;
+                }
+            }
+            onCount = count;
+        }
+        return onCount;
+    }
 }
