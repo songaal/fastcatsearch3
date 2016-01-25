@@ -23,10 +23,7 @@ import org.fastcatsearch.vo.CollectionIndexData;
 import org.fastcatsearch.vo.CollectionIndexData.RowData;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class GetCollectionIndexDataJob extends Job implements Streamable {
 
@@ -113,15 +110,18 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 				int[] segmentEndNumbers = new int[segmentSize];
 
                 int segmentNumber = 0;
-                for(SegmentInfo segmentInfo : collectionHandler.collectionContext().dataInfo().getSegmentInfoList()) {
+				List<SegmentInfo> segmentInfoList = new ArrayList<SegmentInfo>(collectionHandler.collectionContext().dataInfo().getSegmentInfoList());
+				Collections.reverse(segmentInfoList);
+				for(SegmentInfo segmentInfo : segmentInfoList) {
                     SegmentReader reader = collectionHandler.segmentReader(segmentInfo.getId());
 					DocumentReader documentReader = reader.newDocumentReader();
 					int count = documentReader.getDocumentCount();
 					documentSize += count;
                     deleteSize += reader.deleteSet().getOnCount();
 					segmentReaderList[segmentNumber] = reader;
-					segmentEndNumbers[segmentNumber] = documentSize - 1;
-					logger.debug("segmentEndNumbers[{}]={}", segmentNumber, segmentEndNumbers[segmentNumber]);
+//					segmentEndNumbers[segmentNumber] = documentSize - 1;
+					segmentEndNumbers[segmentNumber] = count;
+					logger.debug("segment[{}] EndNumbers[{}]={}", segmentInfo.getId(), segmentNumber, segmentEndNumbers[segmentNumber]);
 					segmentNumber++;
 				}
 				
@@ -183,19 +183,19 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 		indexDataList.add(rowData);
 	}
 	
-	private List<Integer[]> matchSegment(int[] segEndNums, int start, int rows) {
+	private List<Integer[]> matchSegment(int[] segDocSize, int start, int rows) {
 		// [][세그먼트번호,시작번호,끝번호]
 		ArrayList<Integer[]> list = new ArrayList<Integer[]>();
-		for (int i = 0; i < segEndNums.length; i++) {
-			if (start > segEndNums[i]) {
-				start = start - segEndNums[i] - 1;
+		for (int i = 0; i < segDocSize.length; i++) {
+			if (start > segDocSize[i]) {
+				start = start - segDocSize[i] - 1;
 			} else {
 				Integer[] res = new Integer[3];
-				int emptyCount = segEndNums[i] - start + 1;
+				int emptyCount = segDocSize[i] - start + 1;
 				res[0] = i;// 세그먼트번호
 				if (emptyCount < rows) {
 					res[1] = start;// 시작번호
-					res[2] = segEndNums[i];
+					res[2] = segDocSize[i];
 					start = 0;
 					rows = rows - emptyCount;
 					list.add(res);
