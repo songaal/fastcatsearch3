@@ -2,9 +2,7 @@ package org.fastcatsearch.tools;
 
 import org.fastcatsearch.ir.util.Formatter;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.json.JSONStringer;
-import org.mortbay.util.ajax.JSON;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -12,7 +10,6 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.text.Format;
 import java.util.Date;
 import java.util.Random;
 
@@ -121,7 +118,7 @@ public class IndexRestAPIGen {
 
     private static String makeJson(Random r, int idRange) {
         int id = r.nextInt(idRange - 1);
-        String title = "title-" + id;
+        String title = "제목-" + id;
         String desc = "desc-" + id;
         int price = (r.nextInt(300) + 50) * 100;
         String rating = ratingType[r.nextInt(5)];
