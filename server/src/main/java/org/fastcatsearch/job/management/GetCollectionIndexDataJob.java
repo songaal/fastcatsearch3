@@ -1,8 +1,5 @@
 package org.fastcatsearch.job.management;
 
-import java.io.IOException;
-import java.util.*;
-
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
@@ -16,11 +13,20 @@ import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentReader;
 import org.fastcatsearch.ir.search.SegmentSearcher;
-import org.fastcatsearch.ir.settings.*;
+import org.fastcatsearch.ir.settings.FieldSetting;
+import org.fastcatsearch.ir.settings.PrimaryKeySetting;
+import org.fastcatsearch.ir.settings.RefSetting;
+import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.vo.CollectionIndexData;
 import org.fastcatsearch.vo.CollectionIndexData.RowData;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class GetCollectionIndexDataJob extends Job implements Streamable {
 
@@ -116,6 +122,7 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 					segmentReaderList[segmentNumber] = reader;
 					segmentEndNumbers[segmentNumber] = documentSize - 1;
 					logger.debug("segmentEndNumbers[{}]={}", segmentNumber, segmentEndNumbers[segmentNumber]);
+					segmentNumber++;
 				}
 				
 				//여러세그먼트에 걸쳐있을 경우를 고려한다.
