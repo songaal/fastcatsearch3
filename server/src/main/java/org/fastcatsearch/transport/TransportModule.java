@@ -1,23 +1,6 @@
 package org.fastcatsearch.transport;
 
 
-
-import java.io.File;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.common.BytesReference;
@@ -29,31 +12,31 @@ import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.control.JobExecutor;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.job.DataJob;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.module.AbstractModule;
 import org.fastcatsearch.settings.Settings;
-import org.fastcatsearch.transport.common.ByteCounter;
-import org.fastcatsearch.transport.common.FileChannelHandler;
-import org.fastcatsearch.transport.common.FileTransportHandler;
-import org.fastcatsearch.transport.common.MessageChannelHandler;
-import org.fastcatsearch.transport.common.MessageCounter;
-import org.fastcatsearch.transport.common.ReadableFrameDecoder;
-import org.fastcatsearch.transport.common.SendFileResultFuture;
+import org.fastcatsearch.transport.common.*;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
-import org.jboss.netty.channel.ChannelHandler;
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.Channels;
+import org.jboss.netty.channel.*;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioWorkerPool;
 import org.jboss.netty.util.HashedWheelTimer;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class TransportModule extends AbstractModule {
 	
@@ -400,13 +383,14 @@ public class TransportModule extends AbstractModule {
 //    	}
         final long requestId = newRequestId();
         try {
+			boolean hasHeavyPayload = (job instanceof DataJob);
         	if (job.isNoResult()) {
-        		sendMessageRequest(node, requestId, job);
+        		sendMessageRequest(node, requestId, job, hasHeavyPayload);
         		return null;
         	}else{
 	        	ResultFuture resultFuture = new ResultFuture(requestId, resultFutureMap);
 	            resultFutureMap.put(requestId, resultFuture);
-	            sendMessageRequest(node, requestId, job);
+	            sendMessageRequest(node, requestId, job, hasHeavyPayload);
 	            
 	            return resultFuture;
         	}
@@ -464,9 +448,10 @@ public class TransportModule extends AbstractModule {
         return requestIds.getAndIncrement();
     }
     
-    private void sendMessageRequest(final Node node, long requestId, Job request) throws IOException, TransportException {
+    private void sendMessageRequest(final Node node, long requestId, Job request, boolean hasHeavyPayload) throws IOException, TransportException {
 		NodeChannels channels = getNodeChannels(node);
-		Channel targetChannel = channels.getHighChannel();
+		Channel targetChannel = hasHeavyPayload ? channels.getLowChannel() : channels.getHighChannel();
+
 		byte type = 0;
 		type = TransportOption.setTypeMessage(type);
         byte status = 0;
