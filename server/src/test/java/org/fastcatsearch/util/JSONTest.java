@@ -1,13 +1,11 @@
 package org.fastcatsearch.util;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONString;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.io.StringWriter;
-import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -36,6 +34,15 @@ public class JSONTest {
 
         System.out.println(sw.toString());
 
+    }
+
+    @Test
+    public void test1() throws IOException {
+        String json = "{\"Abc\":\"123\", \"DEF\":\"123\", \"ghF\":\"123\"}";
+        Map<String, Object> map = JsonUtil.json2ObjectWithLowercaseKey(json);
+        for(String key : map.keySet()) {
+            System.out.println(key);
+        }
     }
 
 }

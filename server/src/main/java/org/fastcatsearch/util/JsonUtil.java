@@ -1,8 +1,12 @@
 package org.fastcatsearch.util;
 
+
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.KeyDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -13,8 +17,28 @@ import java.util.Map;
  * Created by swsong on 2015. 8. 16..
  */
 public class JsonUtil {
+
+    public static final SimpleModule module = new SimpleModule();
+    static {
+        module.addKeyDeserializer(String.class, new KeyDeserializer() {
+            @Override
+            public Object deserializeKey(String key, DeserializationContext ctxt)
+            throws IOException
+            {
+                return key.toLowerCase();
+            }
+        });
+    }
+
     public static Map<String, Object> json2Object(String json) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
+        TypeReference<HashMap<String, Object>> typeReference = new TypeReference<HashMap<String, Object>>() { };
+        return objectMapper.readValue(json, typeReference);
+    }
+
+    public static Map<String, Object> json2ObjectWithLowercaseKey(String json) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(module);
         TypeReference<HashMap<String, Object>> typeReference = new TypeReference<HashMap<String, Object>>() { };
         return objectMapper.readValue(json, typeReference);
     }

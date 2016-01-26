@@ -1,9 +1,5 @@
 package org.fastcatsearch.http.action.service.indexing;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import org.fastcatsearch.util.JsonUtil;
@@ -14,9 +10,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by swsong on 2016. 1. 10..
@@ -67,7 +61,7 @@ public class JSONRequestReader {
             char type = line.charAt(0);
             String document = line.substring(2);
             try {
-                result.add(new MapDocument(type, JsonUtil.json2Object(document)));
+                result.add(new MapDocument(type, JsonUtil.json2ObjectWithLowercaseKey(document)));
             } catch (IOException e) {
                 logger.error("error while convert json to map : " + document, e);
             }
