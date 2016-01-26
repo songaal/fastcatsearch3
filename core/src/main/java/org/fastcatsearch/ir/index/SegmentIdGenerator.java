@@ -28,6 +28,9 @@ public class SegmentIdGenerator {
      * resumeId 다음부터 재개한다.
      * */
     public SegmentIdGenerator(String resumeId) {
+        if(resumeId.length() != 2) {
+            return;
+        }
 
         char char1 = resumeId.charAt(0);
         char char2 = resumeId.charAt(1);
