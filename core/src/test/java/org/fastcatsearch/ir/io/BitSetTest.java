@@ -104,6 +104,24 @@ public class BitSetTest extends TestCase {
         System.out.println("onCount : " + onCount);
 
     }
+
+    @Test
+    public void test10() {
+        BitSet set = new BitSet();
+        int S = 3000;
+        int E = 3100;
+        for (int i = S; i < E; i++) {
+            if(!set.isSet(i)) {
+                set.set(i);
+            }
+        }
+
+        for (int i = 0; i < E; i++) {
+            if(set.isSet(i)) {
+                System.out.println(i);
+            }
+        }
+    }
 	public static void main(String[] args) throws IOException {
 		String line = null;
 		System.out.println(">>");

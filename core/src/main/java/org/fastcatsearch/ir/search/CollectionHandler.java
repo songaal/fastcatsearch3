@@ -221,7 +221,9 @@ public class CollectionHandler {
     * */
     public synchronized CollectionContext applyNewSegment(SegmentInfo segmentInfo, File segmentDir, DeleteIdSet deleteIdSet) throws IOException, IRException {
 
-        segmentLogger.info("NewSegment start[{}] id[{}] doc[{}] del[{}]", segmentInfo.getStartTime(), segmentInfo.getId(), segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount());
+        if(segmentInfo != null) {
+            segmentLogger.info("NewSegment start[{}] id[{}] doc[{}] del[{}]", segmentInfo.getStartTime(), segmentInfo.getId(), segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount());
+        }
         List<PrimaryKeyIndexReader> pkReaderList = new ArrayList<PrimaryKeyIndexReader>();
         List<BitSet> deleteSetList = new ArrayList<BitSet>();
 
@@ -271,7 +273,9 @@ public class CollectionHandler {
                     deleteIdOutput.close();
                 }
             }
-            segmentLogger.info("NewSegment id[{}] delete.req[{}]", segmentInfo.getId(), deleteIdFile.getName());
+            if(segmentInfo != null) {
+                segmentLogger.info("NewSegment id[{}] delete.req[{}]", segmentInfo.getId(), deleteIdFile.getName());
+            }
         }
 
         //기존 세그먼트들 삭제리스트 재로딩
@@ -438,8 +442,8 @@ public class CollectionHandler {
         * 1. PK Update 적용
         * */
         if(pkBulkReaderList.size() > 0) {
-//            applyPrimaryKeyFromSegments(pkBulkReaderList, pkReader, deleteSet);
-//            segmentLogger.info("MergedSegment id[{}] <- {}", segmentInfo.getId(), tmpList);
+            int deleteCount = applyPrimaryKeyFromSegments(pkBulkReaderList, pkReader, deleteSet);
+            segmentLogger.info("MergedSegment id[{}] <- {} delete[{}]", segmentInfo.getId(), tmpList, deleteCount);
         }
         /*
         * 2. delete.req 적용
@@ -462,7 +466,8 @@ public class CollectionHandler {
         }
 
         for(SegmentReader segmentReader : segmentReaderMap.values()) {
-            segmentReader.syncDeleteCountToInfo();
+            int deleteCount = segmentReader.syncDeleteCountToInfo();
+
         }
 
         String segmentId = segmentIdGenerator.nextId();
@@ -471,8 +476,8 @@ public class CollectionHandler {
         FileUtils.moveDirectory(segmentDir, newSegmentDir);
         segmentLogger.info("MergedSegment move id[{}] <- {}", segmentId, segmentInfo.getId());
         segmentInfo.setId(segmentId);
-
         SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, newSegmentDir, analyzerPoolManager);
+        segmentReader.syncDeleteCountToInfo();
         segmentReaderMap.put(segmentId, segmentReader);
         for(String removeSegmentId : segmentIdRemoveList) {
             SegmentReader removeSegmentReader = segmentReaderMap.remove(removeSegmentId);
@@ -510,6 +515,7 @@ public class CollectionHandler {
                 int localDocNo = pkReader.get(buf);
                 // logger.debug("check "+new String(buf.array, 0, buf.limit));
                 if (localDocNo != -1) {
+                    segmentLogger.info("merge delete {}", localDocNo);
                     if (!deleteSet.isSet(localDocNo)) {
                         // add delete list
                         deleteSet.set(localDocNo);
@@ -519,6 +525,7 @@ public class CollectionHandler {
                 buf.clear();
             }
         }
+        segmentLogger.info("merge delete total size = {}", updateDocumentSize);
 
         return updateDocumentSize;
     }

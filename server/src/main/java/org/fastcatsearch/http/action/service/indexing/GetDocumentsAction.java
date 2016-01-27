@@ -26,7 +26,7 @@ import java.io.Writer;
 import java.util.List;
 
 @ActionMapping(value = "/service/index", method = { ActionMethod.GET })
-public class GetDocumentActionAction extends ServiceAction {
+public class GetDocumentsAction extends ServiceAction {
 
 	@Override
 	public void doAction(ActionRequest request, ActionResponse response) throws Exception {

@@ -32,9 +32,9 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 	private int start;
 	private int end;
 	private String pkValue;
-	
+
 	public GetCollectionIndexDataJob() {}
-	
+
 	public GetCollectionIndexDataJob(String collectionId, int start, int end, String pkValue) {
 		this.collectionId = collectionId;
 		this.start = start;

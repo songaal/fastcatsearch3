@@ -91,7 +91,8 @@ public class SegmentReader implements Comparable {
 
 		this.documentReader = new DocumentReader(schema.schemaSetting(), segmentDir);
 		int documentCount = documentReader.getDocumentCount();
-		
+        loadDeleteSet();
+
 		// reader들은 thread-safe하지 않다. clone해서 사용됨.
         this.searchIndexesReader = new SearchIndexesReader(schema, segmentDir, analyzerPoolManager, documentCount);
 		
@@ -99,12 +100,11 @@ public class SegmentReader implements Comparable {
 		this.fieldIndexesReader = new FieldIndexesReader(schema, segmentDir);
 		
         this.groupIndexesReader = new GroupIndexesReader(schema, segmentDir);
-
-		loadDeleteSet();
 	}
 
 	public void loadDeleteSet() throws IOException {
 		deleteSet = new BitSet(segmentDir, IndexFileNames.docDeleteSet);
+        logger.debug("DeleteCount = {}", deleteSet.getOnCount());
 	}
 
 	public SegmentSearcher segmentSearcher(){
@@ -179,8 +179,10 @@ public class SegmentReader implements Comparable {
 	}
 
     //세그먼트 추가에 의하여 deleteSet이 변경되었을때, info.xml 에 적용한다.
-    public void syncDeleteCountToInfo() {
-        segmentInfo.setDeleteCount(deleteSet.getOnCount());
+    public int syncDeleteCountToInfo() {
+        int deleteCount = deleteSet.getOnCount();
+        segmentInfo.setDeleteCount(deleteCount);
+        return deleteCount;
     }
     @Override
     public int compareTo(Object o) {

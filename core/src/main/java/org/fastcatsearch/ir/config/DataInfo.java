@@ -41,7 +41,7 @@ public class DataInfo {
 		return dataInfo;
 	}
 
-	public void update(int documents, int updates, int deletes) {
+	public void update(int documents, int deletes) {
 		this.documents = documents;
 		this.deletes = deletes;
 	}

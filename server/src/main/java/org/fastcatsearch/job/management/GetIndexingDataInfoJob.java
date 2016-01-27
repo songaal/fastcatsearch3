@@ -56,7 +56,7 @@ public class GetIndexingDataInfoJob extends Job implements Streamable {
         }catch(Exception e) {
             //머징으로 인해 갑자기 사라질수 있으니 에러무시.
         }
-		result.diskSize = FileUtils.byteCountToDisplaySize(byteCount);;
+		result.diskSize = FileUtils.byteCountToDisplaySize(byteCount);
 		
 		result.documentSize = collectionContext.dataInfo().getDocuments();
         result.deleteSize = collectionContext.dataInfo().getDeletes();

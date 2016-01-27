@@ -118,6 +118,9 @@ public class CollectionDynamicIndexer {
         StringBuffer pkSb = new StringBuffer();
         for(String pkId : pkList) {
             Object o = source.get(pkId);
+            if(o == null) {
+                o = source.get(pkId.toLowerCase());
+            }
             if(o != null) {
                 if(pkSb.length() > 0) {
                     pkSb.append(";");
@@ -190,6 +193,9 @@ public class CollectionDynamicIndexer {
         int i = 0;
         for(String pkId : pkList) {
             Object data = source.get(pkId);
+            if(data == null) {
+                data = source.get(pkId.toLowerCase());
+            }
             Field f = makeField(pkId, data);
             if(f == null || f.isNull()){
                 throw new IOException("PK field value cannot be null. fieldId="+pkId+", field="+f);

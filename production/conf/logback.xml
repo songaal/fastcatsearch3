@@ -66,6 +66,18 @@
 		</rollingPolicy>
 	</appender>
 
+    <appender name="segmentlog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.path}/segment.log</file>
+
+        <encoder>
+            <pattern>[%date] %m%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${log.path}/segment.%d{yyyy-MM-dd}.log</FileNamePattern>
+            <MaxHistory>7</MaxHistory>
+        </rollingPolicy>
+    </appender>
+
 	<logger name="SEARCH_LOG" level="INFO" additivity="false">
 		<appender-ref ref="searchlog" />
 	</logger>
@@ -82,6 +94,10 @@
 		<appender-ref ref="systemlog" />
 		<appender-ref ref="indexinglog" />
 	</logger>
+
+    <logger name="SEGMENT_LOG" level="INFO" additivity="false">
+        <appender-ref ref="segmentlog" />
+    </logger>
 
 	<logger name="org.mortbay" level="INFO" additivity="false">
 		<appender-ref ref="systemlog" />
