@@ -23,51 +23,42 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
 import java.io.File;
 /**
- * 1. 증분색인 스케쥴을 시작/정지한다.(셋팅까지 기록)
- * 2. 동적(REST API) 색인을 시작/정지한다
+ * 동적(REST API) 색인을 시작/정지한다
  * @See IndexingScheduleAction
  * */
-@ActionMapping(value = "/service/index/working", method = { ActionMethod.POST })
+@ActionMapping(value = "/service/indexing/dynamic", method = { ActionMethod.POST })
 public class DynamicIndexingControlAction extends ServiceAction {
-
-    private static final String FLAG_ON = "on";
-    private static final String FLAG_OFF = "off";
 
 	@Override
 	public void doAction(ActionRequest request, ActionResponse response) throws Exception {
-
         String collectionId = request.getParameter("collectionId");
         String flag = request.getParameter("flag");
+        if(flag == null) {
+            flag = "";
+        }
+        doAction0(response, collectionId, flag);
+	}
 
+    protected void doAction0(ActionResponse response, String collectionId, String flag) throws Exception {
         NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
         IRService irService = ServiceManager.getInstance().getService(IRService.class);
         CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
         if (collectionHandler != null) {
-            UpdateIndexingScheduleJob job = new UpdateIndexingScheduleJob(collectionId, "add", flag);
-            ResultFuture future = nodeService.sendRequest(nodeService.getMasterNode(), job);
-            //증분색인 스케쥴
-            Object r = future.take();
-            boolean result1 = false;
-            if(r instanceof Boolean) {
-                result1 = (Boolean) r;
-            }
-
             UpdateDynamicIndexingScheduleJob job2 = new UpdateDynamicIndexingScheduleJob(collectionId, flag);
             String indexNodeId = collectionHandler.collectionContext().collectionConfig().getIndexNode();
             Node indexNode = nodeService.getNodeById(indexNodeId);
             ResultFuture future2 = nodeService.sendRequest(indexNode, job2);
             //동적색인 스케쥴
-            r = future2.take();
-            boolean result2 = false;
+            Object r = future2.take();
+            boolean result = false;
             if(r instanceof Boolean) {
-                result2 = (Boolean) r;
+                result = (Boolean) r;
             }
 
             writeHeader(response);
             response.setStatus(HttpResponseStatus.OK);
             ResponseWriter resultWriter = getDefaultResponseWriter(response.getWriter());
-            resultWriter.object().key("collectionId").value(collectionId).key("incrementIndexing").value(result1 ? FLAG_ON : FLAG_OFF)
-                    .key("dynamicIndexing").value(result2 ? FLAG_ON : FLAG_OFF).endObject();
+            resultWriter.object().key(collectionId).value(result).endObject();
             resultWriter.done();
         } else {
             //컬렉션 없음.
@@ -77,6 +68,7 @@ public class DynamicIndexingControlAction extends ServiceAction {
             resultWriter.object().key(collectionId).value(false).endObject();
             resultWriter.done();
         }
-	}
-
+    }
 }
+
+
