@@ -20,6 +20,7 @@ public class LimitTimeSizeLogger {
     private Timer flushTimer;
     private long lastFlushTime;
     private Queue<File> fileQueue;
+    private Object lock = new Object();
 
 	public LimitTimeSizeLogger(File dir, int bufferSize, int flushPeriod) {
 		this(dir, bufferSize, "utf-8", flushPeriod);
@@ -66,7 +67,7 @@ public class LimitTimeSizeLogger {
 //            logger.info("index file = " + f.getName());
             fileQueue.add(f);
         }
-	}
+    }
 
     public int getQueueSize() {
         return fileQueue.size();
@@ -91,14 +92,12 @@ public class LimitTimeSizeLogger {
 		return new ArrayList<String>(bufferSize);
 	}
 
-    private File newFile() {
-        return new File(dir, String.valueOf(System.nanoTime()));
-    }
-
     public void log(String data) {
         if (data != null){
             if(data.length() > 0) {
-                memoryData.add(data);
+                synchronized (lock) {
+                    memoryData.add(data);
+                }
                 if (memoryData.size() >= bufferSize) {
                     logger.debug("flush MANUAL");
                     flush();
@@ -108,19 +107,22 @@ public class LimitTimeSizeLogger {
     }
 
 	private synchronized void flush() {
-		if (memoryData.size() == 0) {
+        if (memoryData.size() == 0) {
 			return;
 		}
-        List<String> oldData = memoryData;
-        this.memoryData = newMemoryData();
+        List<String> oldData = null;
+        synchronized (lock) {
+            oldData = memoryData;
+            this.memoryData = newMemoryData();
+        }
 		Writer writer = null;
         File file = null;
         Exception ex = null;
 		try {
 			// append로 연다.
-            file = newFile();
+            file = new File(dir, String.valueOf(System.nanoTime()));
 			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false), encoding));
-//			logger.debug("flush data > {} : {}", oldData, file.getAbsolutePath());
+			logger.debug("## flush docs > {}", oldData.size());
 			for (String data : oldData) {
 				writer.write(data);
                 writer.write("\n");
