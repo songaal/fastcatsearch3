@@ -2,6 +2,8 @@ package org.fastcatsearch.job.management.collections;
 
 import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.tools.ant.util.CollectionUtils;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.DynamicIndexModule;
@@ -11,6 +13,7 @@ import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.util.CollectionContextUtil;
 
 public class OperateCollectionJob extends Job implements Streamable {
 
@@ -82,6 +85,22 @@ public class OperateCollectionJob extends Job implements Streamable {
 			} else if ("REMOVE".equalsIgnoreCase(command)) {
 				boolean isSuccess = irService.removeCollection(collectionId);
 				return new JobResult(isSuccess);
+            } else if ("TRUNCATE".equalsIgnoreCase(command)) {
+                DynamicIndexModule dynamicIndexModule = irService.getDynamicIndexModule(collectionId);
+                if(dynamicIndexModule != null) {
+                    dynamicIndexModule.unload();
+                }
+                if(collectionHandler != null) {
+                    collectionHandler.close();
+                }
+                FileUtils.deleteDirectory(collectionHandler.collectionContext().dataFilePaths().file());
+                FileUtils.deleteDirectory(collectionHandler.collectionContext().indexLogPaths().file());
+
+                collectionHandler.collectionContext().indexStatus().clear();
+                CollectionContextUtil.saveCollectionAfterIndexing(collectionHandler.collectionContext());
+
+                irService.loadCollectionHandler(collectionId);
+                return new JobResult(true);
 			} else {
 				errorMessage = "Cannot understand command > " + command;
 				return new JobResult(errorMessage);

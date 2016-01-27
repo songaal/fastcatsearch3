@@ -70,6 +70,10 @@ public class CollectionContext {
 	public FilePaths dataFilePaths(){
 		return collectionFilePaths.dataPaths();
 	}
+
+    public FilePaths indexLogPaths(){
+        return collectionFilePaths.indexLogPaths();
+    }
 	
 	// data/index# 를 리턴한다.
 	public FilePaths indexFilePaths(){

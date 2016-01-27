@@ -2,6 +2,7 @@ package org.fastcatsearch.http.action.service.indexing;
 
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
+import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.http.ActionAuthority;
@@ -44,15 +45,9 @@ public class GetDocumentActionAction extends ServiceAction {
 		Writer writer = response.getWriter();
 		ResponseWriter resultWriter = getDefaultResponseWriter(writer);
 
-		IRService irService = ServiceManager.getInstance().getService(IRService.class);
-		CollectionContext collectionContext = irService.collectionContext(collectionId);
-		String indexNodeId = collectionContext.collectionConfig().getIndexNode();
-
-		NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
-		Node indexNode = nodeService.getNodeById(indexNodeId);
-
+        JobService jobService = ServiceManager.getInstance().getService(JobService.class);
 		GetCollectionIndexDataJob job = new GetCollectionIndexDataJob(collectionId, start, end, pkValue);
-		ResultFuture resultFuture = nodeService.sendRequest(indexNode, job);
+		ResultFuture resultFuture = jobService.offer(job);
 
 		CollectionIndexData data = null;
 

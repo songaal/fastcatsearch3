@@ -13,6 +13,7 @@ public class FilePaths {
 	private String id;
 	private static String dataRoot = "data";
 	private static String indexPrefix = "index";
+    private static String indexLogRoot = "indexlog";
 	
 	public FilePaths(File root){
 		this.root = root;
@@ -45,16 +46,20 @@ public class FilePaths {
 	private String indexDirPath(Object dataSequence) {
 		return indexPrefix + dataSequence.toString();
 	}
-	
+
 	public File dataFile() {
 		return file(dataRoot);
 	}
-	
+
+    public FilePaths indexLogPaths() {
+        return new FilePaths(file(indexLogRoot));
+    }
+
 	public FilePaths indexFilePaths(Object dataSequence) {
 		return new FilePaths(indexDirFile(dataSequence));
 	}
-	
-	public File indexDirFile(Object dataSequence) {
+
+    public File indexDirFile(Object dataSequence) {
 		return file(indexDirPath(dataSequence));
 	}
 
