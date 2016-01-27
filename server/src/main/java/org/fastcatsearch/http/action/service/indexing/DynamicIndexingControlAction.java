@@ -1,5 +1,8 @@
 package org.fastcatsearch.http.action.service.indexing;
 
+import org.fastcatsearch.cluster.Node;
+import org.fastcatsearch.cluster.NodeService;
+import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.ActionMethod;
 import org.fastcatsearch.http.action.ActionException;
@@ -10,6 +13,8 @@ import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.IndexingScheduleConfig;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.job.indexing.UpdateDynamicIndexingScheduleJob;
+import org.fastcatsearch.job.indexing.UpdateIndexingScheduleJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.util.JAXBConfigs;
@@ -34,36 +39,29 @@ public class DynamicIndexingControlAction extends ServiceAction {
         String collectionId = request.getParameter("collectionId");
         String flag = request.getParameter("flag");
 
+        NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
         IRService irService = ServiceManager.getInstance().getService(IRService.class);
         CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
         if (collectionHandler != null) {
-
-            CollectionContext collectionContext = irService.collectionContext(collectionId);
-            IndexingScheduleConfig indexingScheduleConfig = collectionContext.indexingScheduleConfig();
-
-            IndexingScheduleConfig.IndexingSchedule indexingSchedule = indexingScheduleConfig.getAddIndexingSchedule();
-
-            boolean result1 = false; //증분색인 스케쥴
-            boolean result2 = false; //동적색인 스케쥴
-            if(flag != null && (flag.equalsIgnoreCase(FLAG_ON) || flag.equalsIgnoreCase(FLAG_OFF))) {
-                boolean requestActive = flag.equalsIgnoreCase(FLAG_ON);
-
-                if (indexingSchedule.isActive() != requestActive) {
-                    indexingSchedule.setActive(requestActive);
-                    File scheduleConfigFile = collectionContext.collectionFilePaths().file(SettingFileNames.scheduleConfig);
-                    JAXBConfigs.writeConfig(scheduleConfigFile, indexingScheduleConfig, IndexingScheduleConfig.class);
-                    //해당 컬렉션의 스케쥴을 다시 로딩.
-                    irService.reloadSchedule(collectionId);
-                }
-
-                if(requestActive) {
-                    irService.getDynamicIndexModule(collectionId).startIndexingSchedule();
-                } else {
-                    irService.getDynamicIndexModule(collectionId).stopIndexingSchedule();
-                }
+            UpdateIndexingScheduleJob job = new UpdateIndexingScheduleJob(collectionId, "add", flag);
+            ResultFuture future = nodeService.sendRequest(nodeService.getMasterNode(), job);
+            //증분색인 스케쥴
+            Object r = future.take();
+            boolean result1 = false;
+            if(r instanceof Boolean) {
+                result1 = (Boolean) r;
             }
-            result1 = indexingSchedule.isActive();
-            result2 = irService.getDynamicIndexModule(collectionId).isIndexingScheduled();
+
+            UpdateDynamicIndexingScheduleJob job2 = new UpdateDynamicIndexingScheduleJob(collectionId, flag);
+            String indexNodeId = collectionHandler.collectionContext().collectionConfig().getIndexNode();
+            Node indexNode = nodeService.getNodeById(indexNodeId);
+            ResultFuture future2 = nodeService.sendRequest(indexNode, job2);
+            //동적색인 스케쥴
+            r = future2.take();
+            boolean result2 = false;
+            if(r instanceof Boolean) {
+                result2 = (Boolean) r;
+            }
 
             writeHeader(response);
             response.setStatus(HttpResponseStatus.OK);
