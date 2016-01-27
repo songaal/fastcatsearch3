@@ -18,6 +18,7 @@ import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.util.LimitTimeSizeLogger;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -31,12 +32,15 @@ public class DynamicIndexModule extends AbstractModule {
     private Timer mergeTimer;
     private int bulkSize;
     private File dir;
+    private File stopIndexingFlagFile;
     private int flushPeriod = 2;
+
     public DynamicIndexModule(Environment environment, Settings settings, String collectionId, int bulkSize) {
         super(environment, settings);
         this.collectionId = collectionId;
         this.bulkSize = bulkSize;
         dir = environment.filePaths().collectionFilePaths(collectionId).file("indexlog");
+        stopIndexingFlagFile = new File(environment.filePaths().collectionFilePaths(collectionId).file(), "indexlog.stop");
     }
 
     class IndexFireTask extends TimerTask {
@@ -99,9 +103,11 @@ public class DynamicIndexModule extends AbstractModule {
 
     @Override
     protected boolean doLoad() throws ModuleException {
-        indexTimer = new Timer();
         mergeTimer = new Timer();
-        indexTimer.schedule(new IndexFireTask(), 1000, 1000);
+        //stop 파일이 없어야만 시작한다.
+        if(!stopIndexingFlagFile.exists()) {
+            startIndexingSchedule();
+        }
         mergeTimer.schedule(new IndexMergeTask(), 5000, 5000);
         dataLogger = new LimitTimeSizeLogger(dir, bulkSize, flushPeriod);
         logger.info("[{}] To be indexed files = {}", collectionId, dataLogger.getQueueSize());
@@ -110,9 +116,44 @@ public class DynamicIndexModule extends AbstractModule {
 
     @Override
     protected boolean doUnload() throws ModuleException {
-        indexTimer.cancel();
+        if(indexTimer != null) {
+            indexTimer.cancel();
+        }
         mergeTimer.cancel();
+        if(dataLogger != null) {
+            dataLogger.close();
+        }
         return true;
+    }
+
+    public boolean isIndexingScheduled() {
+        return indexTimer != null && !stopIndexingFlagFile.exists();
+
+    }
+
+    public boolean stopIndexingSchedule() {
+        if(indexTimer != null) {
+            indexTimer.cancel();
+            indexTimer = null;
+        }
+
+        try {
+            stopIndexingFlagFile.createNewFile();
+        } catch (IOException e) {
+            logger.error("", e);
+        }
+        return true;
+    }
+
+    public boolean startIndexingSchedule() {
+        if(indexTimer == null) {
+            indexTimer = new Timer();
+            indexTimer.schedule(new IndexFireTask(), 1000, 1000);
+            return stopIndexingFlagFile.delete();
+        } else {
+            logger.info("Dynamic Indexing is running. Stop a indexing first before starting.");
+        }
+        return false;
     }
 
     public boolean insertDocument(List<String> jsonList) {

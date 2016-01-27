@@ -18,34 +18,19 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
 import java.io.File;
 /**
-* Use DynamicIndexingControlAction rather than this class.
-* */
-@Deprecated
-@ActionMapping(value = "/service/indexing/schedule", method = { ActionMethod.POST, ActionMethod.GET })
-public class IndexingScheduleAction extends ServiceAction {
-
-    private static final String TYPE_FULL = "FULL";
-    private static final String TYPE_ADD = "ADD";
+ * 1. 증분색인 스케쥴을 시작/정지한다.(셋팅까지 기록)
+ * 2. 동적(REST API) 색인을 시작/정지한다
+ * */
+@ActionMapping(value = "/service/index/control", method = { ActionMethod.POST })
+public class DynamicIndexingControlAction extends ServiceAction {
 
     private static final String FLAG_ON = "ON";
     private static final String FLAG_OFF = "OFF";
 
-    /**
-     * collectionId : 컬렉션아이디
-     * type : 색인타입 ( full | add)
-     * flag : 상태플래그 (ON | OFF)
-     * */
 	@Override
 	public void doAction(ActionRequest request, ActionResponse response) throws Exception {
 
         String collectionId = request.getParameter("collectionId");
-        String type = request.getParameter("type");
-        if(collectionId == null) {
-            throw new ActionException("Collection id is empty.");
-        }
-        if(type == null) {
-            throw new ActionException("Type is empty. Choose type in { FULL | ADD }");
-        }
         String flag = request.getParameter("flag");
 
         IRService irService = ServiceManager.getInstance().getService(IRService.class);
@@ -55,14 +40,10 @@ public class IndexingScheduleAction extends ServiceAction {
             CollectionContext collectionContext = irService.collectionContext(collectionId);
             IndexingScheduleConfig indexingScheduleConfig = collectionContext.indexingScheduleConfig();
 
-            IndexingScheduleConfig.IndexingSchedule indexingSchedule = null;
-            if(type.equalsIgnoreCase(TYPE_FULL)) {
-                indexingSchedule = indexingScheduleConfig.getFullIndexingSchedule();
-            } else if(type.equalsIgnoreCase(TYPE_ADD)) {
-                indexingSchedule = indexingScheduleConfig.getAddIndexingSchedule();
-            }
+            IndexingScheduleConfig.IndexingSchedule indexingSchedule = indexingScheduleConfig.getAddIndexingSchedule();
 
-            boolean result = false;
+            boolean result1 = false; //증분색인 스케쥴
+            boolean result2 = false; //동적색인 스케쥴
             if(flag != null && (flag.equalsIgnoreCase(FLAG_ON) || flag.equalsIgnoreCase(FLAG_OFF))) {
                 boolean requestActive = flag.equalsIgnoreCase(FLAG_ON);
 
@@ -72,16 +53,22 @@ public class IndexingScheduleAction extends ServiceAction {
                     JAXBConfigs.writeConfig(scheduleConfigFile, indexingScheduleConfig, IndexingScheduleConfig.class);
                     //해당 컬렉션의 스케쥴을 다시 로딩.
                     irService.reloadSchedule(collectionId);
-                    result = requestActive;
                 }
-            } else {
-                result = indexingSchedule.isActive();
+
+                if(requestActive) {
+                    irService.getDynamicIndexModule(collectionId).startIndexingSchedule();
+                } else {
+                    irService.getDynamicIndexModule(collectionId).stopIndexingSchedule();
+                }
             }
+            result1 = indexingSchedule.isActive();
+            result2 = irService.getDynamicIndexModule(collectionId).isIndexingScheduled();
 
             writeHeader(response);
             response.setStatus(HttpResponseStatus.OK);
             ResponseWriter resultWriter = getDefaultResponseWriter(response.getWriter());
-            resultWriter.object().key(collectionId).value(result).endObject();
+            resultWriter.object().key("collectionId").value(collectionId).key("incrementIndexing").value(result1 ? "on" : "off")
+                    .key("dynamicIndexing").value(result2 ? "on" : "off").endObject();
             resultWriter.done();
         } else {
             //컬렉션 없음.
