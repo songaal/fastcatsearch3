@@ -20,6 +20,7 @@ import java.io.File;
 /**
  * 1. 증분색인 스케쥴을 시작/정지한다.(셋팅까지 기록)
  * 2. 동적(REST API) 색인을 시작/정지한다
+ * @See IndexingScheduleAction
  * */
 @ActionMapping(value = "/service/index/working", method = { ActionMethod.POST })
 public class DynamicIndexingControlAction extends ServiceAction {

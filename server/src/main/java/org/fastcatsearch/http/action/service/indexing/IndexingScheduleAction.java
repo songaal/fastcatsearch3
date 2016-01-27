@@ -18,9 +18,9 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
 import java.io.File;
 /**
-* Use DynamicIndexingControlAction rather than this class.
+ * 컬렉션의 전체색인 및 증분색인의 스케쥴을 on/off 할 수 있다.
+ * @See DynamicIndexingControlAction
 * */
-@Deprecated
 @ActionMapping(value = "/service/indexing/schedule", method = { ActionMethod.POST, ActionMethod.GET })
 public class IndexingScheduleAction extends ServiceAction {
 
