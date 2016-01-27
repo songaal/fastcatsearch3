@@ -96,7 +96,7 @@ public class OperateCollectionJob extends Job implements Streamable {
                 FileUtils.deleteDirectory(collectionHandler.collectionContext().dataFilePaths().file());
                 FileUtils.deleteDirectory(collectionHandler.collectionContext().indexLogPaths().file());
 
-                collectionHandler.collectionContext().indexStatus().clear();
+                collectionHandler.collectionContext().clearDataInfoAndStatus();
                 CollectionContextUtil.saveCollectionAfterIndexing(collectionHandler.collectionContext());
 
                 irService.loadCollectionHandler(collectionId);

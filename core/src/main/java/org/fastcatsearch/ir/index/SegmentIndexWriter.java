@@ -174,7 +174,7 @@ public class SegmentIndexWriter implements IndexWritable {
                 deleteCount = primaryKeyIndexesWriter.getDeleteDocCount() + primaryKeyIndexesWriter.getUpdateDocCount() ;
 			}
             segmentInfo.setDeleteCount(deleteCount);
-            segmentInfo.setCreateTime(System.currentTimeMillis());
+//            segmentInfo.setCreateTime(System.currentTimeMillis());
 
 			logger.info("Segment [{}] Indexed, elapsed = {}, mem = {}, {}", segmentId, Formatter.getFormatTime(System.currentTimeMillis() - startTime),
 					Formatter.getFormatSize(Runtime.getRuntime().totalMemory()), segmentInfo);

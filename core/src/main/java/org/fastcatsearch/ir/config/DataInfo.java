@@ -151,7 +151,7 @@ public class DataInfo {
 			this.id = id;
 		}
 
-        public SegmentInfo(String id, String uuid, int documentCount, int insertCount, int updateCount, int deleteCount, long createTime) {
+        public SegmentInfo(String id, int documentCount, int deleteCount, long createTime) {
             this.id = id;
             this.documentCount = documentCount;
             this.deleteCount = deleteCount;

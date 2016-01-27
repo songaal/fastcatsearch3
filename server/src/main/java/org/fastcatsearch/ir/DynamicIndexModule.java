@@ -44,7 +44,7 @@ public class DynamicIndexModule extends AbstractModule {
         @Override
         public void run() {
             File file = dataLogger.pollFile();
-            if(file != null) {
+            if(file != null && file.exists()) {
                 //file 을 증분색인하도록 요청한다.
                 logger.info("Found file to be indexed among {} files > {}", dataLogger.getQueueSize(), file.getAbsolutePath());
 
@@ -68,7 +68,8 @@ public class DynamicIndexModule extends AbstractModule {
                     for(NodeJobResult result : nodeResultList) {
                         logger.debug("Index file {} : Node {} > {}", file.getName(), result.node().id(), result.result());
                     }
-                    FileUtils.deleteQuietly(file);
+                    //FIXME
+//                    FileUtils.deleteQuietly(file);
                 } catch (Exception e) {
                     logger.error("", e);
                 }

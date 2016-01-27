@@ -60,13 +60,15 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 	protected boolean done(SegmentInfo segmentInfo, IndexStatus indexStatus) throws IRException, IndexingStopException {
 		int insertCount = segmentInfo.getDocumentCount();
 
+        long endTime = System.currentTimeMillis();
+        segmentInfo.setCreateTime(endTime);
 		if(!stopRequested) {
 			if (insertCount > 0) {
 				//update index#/info.xml file
 				//addindexing의 updateCollection대신 호출.
 				collectionContext.addSegmentInfo(segmentInfo);
 				//update status.xml file
-				collectionContext.updateCollectionStatus(IndexingType.FULL, segmentInfo, startTime, System.currentTimeMillis());
+				collectionContext.updateCollectionStatus(IndexingType.FULL, segmentInfo, startTime, endTime);
 				collectionContext.indexStatus().setFullIndexStatus(indexStatus);
 				return true;
 			} else {

@@ -213,7 +213,7 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 //		revisionInfo.setDeleteCount(deleteCount);
 		
 		long endTime = System.currentTimeMillis();
-		
+        segmentInfo.setCreateTime(endTime);
 		IndexStatus indexStatus = new IndexStatus(segmentInfo.getDocumentCount(), deleteCount,
 				Formatter.formatDate(new Date(startTime)), Formatter.formatDate(new Date(endTime)), Formatter.getFormatTime(endTime - startTime));
 		

@@ -34,9 +34,9 @@ public class DataInfoConfigTest {
 		
 		DataInfo dataInfo = new DataInfo();
 		dataInfo.setSegmentInfoList(new ArrayList<SegmentInfo>());
-		SegmentInfo segmentInfo = new SegmentInfo("a0", "1234-5678", 200, 100, 10, 0, System.currentTimeMillis());
+		SegmentInfo segmentInfo = new SegmentInfo("a0", 10, 0, System.currentTimeMillis());
 		dataInfo.getSegmentInfoList().add(segmentInfo);
-		segmentInfo = new SegmentInfo("a1", "2345-6789", 400, 350, 20, 0, System.currentTimeMillis());
+		segmentInfo = new SegmentInfo("a1", 20, 0, System.currentTimeMillis());
 		dataInfo.getSegmentInfoList().add(segmentInfo);
 		
 		ByteArrayOutputStream os = new ByteArrayOutputStream();

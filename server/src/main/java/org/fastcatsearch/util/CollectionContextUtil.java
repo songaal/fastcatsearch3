@@ -98,7 +98,7 @@ public class CollectionContextUtil {
 			
 			File dataSourceConfigFile = collectionPath.file(SettingFileNames.datasourceConfig);
 			DataSourceConfig dataSourceConfig = null;
-			if (dataSourceConfigFile.exists()) {
+			if (dataSourceConfigFile.exists() && dataSourceConfigFile.length() > 0) {
 				dataSourceConfig = JAXBConfigs.readConfig(dataSourceConfigFile, DataSourceConfig.class);
 			} else {
 				dataSourceConfig = new DataSourceConfig();
@@ -116,7 +116,7 @@ public class CollectionContextUtil {
 			File dataInfoFile = indexFilePaths.file(SettingFileNames.dataInfo);
 			logger.debug("load dataInfoFile > {}", dataInfoFile.getAbsolutePath());
 			DataInfo dataInfo = null;
-			if(dataInfoFile.exists()){
+			if(dataInfoFile.exists() && dataInfoFile.length() > 0){
 				dataInfo = JAXBConfigs.readConfig(dataInfoFile, DataInfo.class);
 			}else{
 				dataInfo = new DataInfo();
@@ -125,7 +125,7 @@ public class CollectionContextUtil {
 			
 			File scheduleConfigFile = collectionPath.file(SettingFileNames.scheduleConfig);
 			IndexingScheduleConfig indexingScheduleConfig = null;
-			if (scheduleConfigFile.exists()) {
+			if (scheduleConfigFile.exists() && scheduleConfigFile.length() > 0) {
 				indexingScheduleConfig = JAXBConfigs.readConfig(scheduleConfigFile, IndexingScheduleConfig.class);
 			} else {
 				indexingScheduleConfig = new IndexingScheduleConfig();

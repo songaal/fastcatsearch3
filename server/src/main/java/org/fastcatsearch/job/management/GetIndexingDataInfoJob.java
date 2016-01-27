@@ -37,7 +37,7 @@ public class GetIndexingDataInfoJob extends Job implements Streamable {
 		}
 		
 		DataInfo dataInfo = collectionContext.dataInfo();
-		
+
 		result.segmentSize = dataInfo.getSegmentSize();
 
 		int sequence = collectionContext.indexStatus().getSequence();
@@ -45,13 +45,18 @@ public class GetIndexingDataInfoJob extends Job implements Streamable {
 		File indexFileDir = collectionContext.dataFilePaths().indexDirFile(sequence);
 		result.dataPath = new Path(collectionContext.collectionFilePaths().file()).relativise(indexFileDir).getPath();
 		
-		String diskSize = "";
-		
-		if(indexFileDir.exists()){
-			long byteCount = FileUtils.sizeOfDirectory(indexFileDir);
-			diskSize = FileUtils.byteCountToDisplaySize(byteCount);
-		}
-		result.diskSize = diskSize;
+        long byteCount = 0L;
+        try {
+            for(SegmentInfo info : dataInfo.getSegmentInfoList()) {
+                File segmentDir = new File(indexFileDir, info.getId());
+                if(segmentDir.exists()) {
+                    byteCount += FileUtils.sizeOfDirectory(segmentDir);
+                }
+            }
+        }catch(Exception e) {
+            //머징으로 인해 갑자기 사라질수 있으니 에러무시.
+        }
+		result.diskSize = FileUtils.byteCountToDisplaySize(byteCount);;
 		
 		result.documentSize = collectionContext.dataInfo().getDocuments();
         result.deleteSize = collectionContext.dataInfo().getDeletes();

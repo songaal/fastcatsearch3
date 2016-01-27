@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class CollectionHandler {
 	private static Logger logger = LoggerFactory.getLogger(CollectionHandler.class);
+    private static Logger segmentLogger = LoggerFactory.getLogger("SEGMENT_LOG");
 	private String collectionId;
 	private CollectionContext collectionContext;
 	private CollectionSearcher collectionSearcher;
@@ -136,7 +137,11 @@ public class CollectionHandler {
         try {
             for (SegmentInfo segmentInfo : collectionContext.dataInfo().getSegmentInfoList()) {
                 File segmentDir = dataPaths.segmentFile(dataSequence, segmentInfo.getId());
-                segmentReaderMap.put(segmentInfo.getId(), new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager));
+                if(segmentDir.exists()) {
+                    segmentReaderMap.put(segmentInfo.getId(), new SegmentReader(segmentInfo, schema, segmentDir, analyzerPoolManager));
+                } else {
+                    logger.error("[{}] Cannot find segment dir = {}", collectionId, segmentDir.getName());
+                }
             }
         } catch (IOException e) {
             throw new IRException(e);
@@ -216,6 +221,7 @@ public class CollectionHandler {
     * */
     public synchronized CollectionContext applyNewSegment(SegmentInfo segmentInfo, File segmentDir, DeleteIdSet deleteIdSet) throws IOException, IRException {
 
+        segmentLogger.info("NewSegment start[{}] id[{}] doc[{}] del[{}]", segmentInfo.getStartTime(), segmentInfo.getId(), segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount());
         List<PrimaryKeyIndexReader> pkReaderList = new ArrayList<PrimaryKeyIndexReader>();
         List<BitSet> deleteSetList = new ArrayList<BitSet>();
 
@@ -265,6 +271,7 @@ public class CollectionHandler {
                     deleteIdOutput.close();
                 }
             }
+            segmentLogger.info("NewSegment id[{}] delete.req[{}]", segmentInfo.getId(), deleteIdFile.getName());
         }
 
         //기존 세그먼트들 삭제리스트 재로딩
@@ -279,14 +286,19 @@ public class CollectionHandler {
         if(segmentInfo != null) {
             File newSegmentDir = new File(segmentDir.getParentFile(), segmentId);
             FileUtils.moveDirectory(segmentDir, newSegmentDir);
+            segmentLogger.info("NewSegment move id[{}] <- {}", segmentId, segmentInfo.getId());
             segmentInfo.setId(segmentId);
 
             //신규 세그먼트 추가.
             SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, newSegmentDir, analyzerPoolManager);
             segmentReaderMap.put(segmentId, segmentReader);
             collectionContext.addSegmentInfo(segmentInfo);
+            long createTime = System.currentTimeMillis();
+            segmentInfo.setCreateTime(createTime);
+            segmentLogger.info("NewSegment id[{}] create[{}]", segmentId, createTime);
         }
         collectionContext.dataInfo().updateAll();
+
         return collectionContext;
     }
 
@@ -393,16 +405,19 @@ public class CollectionHandler {
 
     public synchronized CollectionContext applyMergedSegment(SegmentInfo segmentInfo, File segmentDir, List<String> segmentIdRemoveList) throws IOException, IRException {
 
+        segmentLogger.info("MergedSegment start[{}] id[{}] doc[{}] del[{}] merged[{}]", segmentInfo.getStartTime(), segmentInfo.getId(), segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount(), segmentIdRemoveList);
         long startTime = segmentInfo.getStartTime();
 
         //이거보다 늦은 시간의 세그먼트가 있는지 확인.
         List<PrimaryKeyIndexBulkReader> pkBulkReaderList = new ArrayList<PrimaryKeyIndexBulkReader>();
         List<File> deleteReqFileList = new ArrayList<File>();
 
+        List<String> tmpList = new ArrayList<String>();
         int size = 0;
         for(SegmentReader segmentReader : segmentReaderMap.values()) {
-            long creatTime = segmentReader.segmentInfo().getCreateTime();
-            if(creatTime > startTime) {
+            long createTime = segmentReader.segmentInfo().getCreateTime();
+            if(createTime > startTime) {
+                tmpList.add(segmentReader.segmentId());
                 File dir = segmentReader.segmentDir();
                 pkBulkReaderList.add(new PrimaryKeyIndexBulkReader(new File(dir, IndexFileNames.primaryKeyMap)));
                 File deleteReqFile = new File(dir.getParentFile(), dir.getName() + "." + IndexFileNames.docDeleteReq);
@@ -416,26 +431,31 @@ public class CollectionHandler {
         /*
          * 기존 세그먼트의 delete.req와 pk를 통해 현 세그먼트를 삭제받는다.
          */
+
+        BitSet deleteSet = new BitSet(segmentDir, IndexFileNames.docDeleteSet);
+        PrimaryKeyIndexReader pkReader = new PrimaryKeyIndexReader(segmentDir, IndexFileNames.primaryKeyMap);
+        /*
+        * 1. PK Update 적용
+        * */
+        if(pkBulkReaderList.size() > 0) {
+//            applyPrimaryKeyFromSegments(pkBulkReaderList, pkReader, deleteSet);
+//            segmentLogger.info("MergedSegment id[{}] <- {}", segmentInfo.getId(), tmpList);
+        }
+        /*
+        * 2. delete.req 적용
+        * */
         if(size > 0) {
-            BitSet deleteSet = new BitSet(segmentDir, IndexFileNames.docDeleteSet);
-            PrimaryKeyIndexReader pkReader = new PrimaryKeyIndexReader(segmentDir, IndexFileNames.primaryKeyMap);
-            /*
-            * 1. PK Update 적용
-            * */
-            applyPrimaryKeyFromSegments(pkBulkReaderList, pkReader, deleteSet);
-            /*
-            * 2. delete.req 적용
-            * */
             applyDeleteIdSetFromSegments(deleteReqFileList, pkReader, deleteSet);
 
-            for(File f : deleteReqFileList) {
-                if(f.exists()) {
-                    FileUtils.deleteQuietly(f);
+            for (File f : deleteReqFileList) {
+                if (f.exists()) {
+                    //FIXME
+//                    FileUtils.deleteQuietly(f);
                 }
             }
-            pkReader.close();
-            deleteSet.save();
         }
+        pkReader.close();
+        deleteSet.save();
 
         for (PrimaryKeyIndexBulkReader pkBulkReader : pkBulkReaderList) {
             pkBulkReader.close();
@@ -449,6 +469,7 @@ public class CollectionHandler {
 
         File newSegmentDir = new File(segmentDir.getParentFile(), segmentId);
         FileUtils.moveDirectory(segmentDir, newSegmentDir);
+        segmentLogger.info("MergedSegment move id[{}] <- {}", segmentId, segmentInfo.getId());
         segmentInfo.setId(segmentId);
 
         SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, newSegmentDir, analyzerPoolManager);
@@ -463,7 +484,11 @@ public class CollectionHandler {
             }
         }
         collectionContext.addSegmentInfo(segmentInfo);
+        long createTime = System.currentTimeMillis();
+        segmentInfo.setCreateTime(createTime);
+        segmentLogger.info("MergedSegment id[{}] create[{}]", segmentId, createTime);
         collectionContext.dataInfo().updateAll();
+
         return collectionContext;
     }
 
