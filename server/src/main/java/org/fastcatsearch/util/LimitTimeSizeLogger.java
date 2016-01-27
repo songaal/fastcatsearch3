@@ -94,6 +94,7 @@ public class LimitTimeSizeLogger {
     private File newFile() {
         return new File(dir, String.valueOf(System.nanoTime()));
     }
+
     public void log(String data) {
         if (data != null){
             if(data.length() > 0) {
@@ -104,13 +105,14 @@ public class LimitTimeSizeLogger {
                 }
             }
         }
-
     }
+
 	private synchronized void flush() {
 		if (memoryData.size() == 0) {
 			return;
 		}
-		
+        List<String> oldData = memoryData;
+        this.memoryData = newMemoryData();
 		Writer writer = null;
         File file = null;
         Exception ex = null;
@@ -119,11 +121,10 @@ public class LimitTimeSizeLogger {
             file = newFile();
 			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false), encoding));
 //			logger.debug("flush data > {} : {}", oldData, file.getAbsolutePath());
-			for (String data : memoryData) {
+			for (String data : oldData) {
 				writer.write(data);
                 writer.write("\n");
 			}
-            this.memoryData = newMemoryData();
 		} catch (UnsupportedEncodingException e) {
 			logger.error("", e);
             ex = e;
