@@ -518,7 +518,7 @@ public class CollectionHandler {
                 int localDocNo = pkReader.get(buf);
                 // logger.debug("check "+new String(buf.array, 0, buf.limit));
                 if (localDocNo != -1) {
-                    segmentLogger.debug("merge delete {}", localDocNo);
+//                    segmentLogger.debug("merge delete {}", localDocNo);
                     if (!deleteSet.isSet(localDocNo)) {
                         // add delete list
                         deleteSet.set(localDocNo);
