@@ -221,8 +221,9 @@ public class CollectionHandler {
     * */
     public synchronized CollectionContext applyNewSegment(SegmentInfo segmentInfo, File segmentDir, DeleteIdSet deleteIdSet) throws IOException, IRException {
 
+        segmentLogger.info("[{}] -NewSegment-----", collectionId);
         if(segmentInfo != null) {
-            segmentLogger.info("NewSegment start[{}] id[{}] doc[{}] del[{}]", segmentInfo.getStartTime(), segmentInfo.getId(), segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount());
+            segmentLogger.info("[{}] NewSegment start[{}] id[{}] doc[{}] del[{}]", collectionId, segmentInfo.getStartTime(), segmentInfo.getId(), segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount());
         }
         List<PrimaryKeyIndexReader> pkReaderList = new ArrayList<PrimaryKeyIndexReader>();
         List<BitSet> deleteSetList = new ArrayList<BitSet>();
@@ -254,7 +255,7 @@ public class CollectionHandler {
         }
         for (BitSet deleteSet : deleteSetList) {
             deleteSet.save();
-            logger.debug("New delete.set saved. set={}", deleteSet);
+            logger.debug("[{}] New delete.set saved. set={}", collectionId, deleteSet);
         }
 
         String segmentId = segmentIdGenerator.nextId();
@@ -274,7 +275,7 @@ public class CollectionHandler {
                 }
             }
             if(segmentInfo != null) {
-                segmentLogger.info("NewSegment id[{}] delete.req[{}]", segmentInfo.getId(), deleteIdFile.getName());
+                segmentLogger.info("[{}] NewSegment id[{}] delete.req[{}]", collectionId, segmentInfo.getId(), deleteIdFile.getName());
             }
         }
 
@@ -290,7 +291,7 @@ public class CollectionHandler {
         if(segmentInfo != null) {
             File newSegmentDir = new File(segmentDir.getParentFile(), segmentId);
             FileUtils.moveDirectory(segmentDir, newSegmentDir);
-            segmentLogger.info("NewSegment move id[{}] <- {}", segmentId, segmentInfo.getId());
+            segmentLogger.info("[{}] NewSegment move id[{}] <- {}", collectionId, segmentId, segmentInfo.getId());
             segmentInfo.setId(segmentId);
 
             //신규 세그먼트 추가.
@@ -299,7 +300,7 @@ public class CollectionHandler {
             collectionContext.addSegmentInfo(segmentInfo);
             long createTime = System.currentTimeMillis();
             segmentInfo.setCreateTime(createTime);
-            segmentLogger.info("NewSegment id[{}] create[{}]", segmentId, createTime);
+            segmentLogger.info("[{}] NewSegment id[{}] create[{}]", collectionId, segmentId, createTime);
         }
         collectionContext.dataInfo().updateAll();
 
@@ -394,6 +395,7 @@ public class CollectionHandler {
 
     //머징시 문서가 모두 0가 될때사용.
     public synchronized CollectionContext removeMergedSegment(List<String> segmentIdRemoveList) throws IOException, IRException {
+        segmentLogger.info("[{}] -RemoveMergedSegment-----", collectionId);
         for(String removeSegmentId : segmentIdRemoveList) {
             SegmentReader removeSegmentReader = segmentReaderMap.remove(removeSegmentId);
             if(removeSegmentReader != null) {
@@ -409,7 +411,8 @@ public class CollectionHandler {
 
     public synchronized CollectionContext applyMergedSegment(SegmentInfo segmentInfo, File segmentDir, List<String> segmentIdRemoveList) throws IOException, IRException {
 
-        segmentLogger.info("MergedSegment start[{}] id[{}] doc[{}] del[{}] merged[{}]", segmentInfo.getStartTime(), segmentInfo.getId(), segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount(), segmentIdRemoveList);
+        segmentLogger.info("[{}] -MergedSegment-----", collectionId);
+        segmentLogger.info("[{}] MergedSegment start[{}] id[{}] doc[{}] del[{}] merged[{}]", collectionId, segmentInfo.getStartTime(), segmentInfo.getId(), segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount(), segmentIdRemoveList);
         long startTime = segmentInfo.getStartTime();
 
         //이거보다 늦은 시간의 세그먼트가 있는지 확인.
@@ -443,7 +446,7 @@ public class CollectionHandler {
         * */
         if(pkBulkReaderList.size() > 0) {
             int deleteCount = applyPrimaryKeyFromSegments(pkBulkReaderList, pkReader, deleteSet);
-            segmentLogger.info("MergedSegment id[{}] <- {} delete[{}]", segmentInfo.getId(), tmpList, deleteCount);
+            segmentLogger.info("[{}] MergedSegment id[{}] <- {} delete[{}]", collectionId, segmentInfo.getId(), tmpList, deleteCount);
         }
         /*
         * 2. delete.req 적용
@@ -474,7 +477,7 @@ public class CollectionHandler {
 
         File newSegmentDir = new File(segmentDir.getParentFile(), segmentId);
         FileUtils.moveDirectory(segmentDir, newSegmentDir);
-        segmentLogger.info("MergedSegment move id[{}] <- {}", segmentId, segmentInfo.getId());
+        segmentLogger.info("[{}] MergedSegment move id[{}] <- {}", collectionId, segmentId, segmentInfo.getId());
         segmentInfo.setId(segmentId);
         SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, newSegmentDir, analyzerPoolManager);
         segmentReader.syncDeleteCountToInfo();
@@ -491,7 +494,7 @@ public class CollectionHandler {
         collectionContext.addSegmentInfo(segmentInfo);
         long createTime = System.currentTimeMillis();
         segmentInfo.setCreateTime(createTime);
-        segmentLogger.info("MergedSegment id[{}] create[{}]", segmentId, createTime);
+        segmentLogger.info("[{}] MergedSegment id[{}] create[{}]", collectionId, segmentId, createTime);
         collectionContext.dataInfo().updateAll();
 
         return collectionContext;
@@ -515,7 +518,7 @@ public class CollectionHandler {
                 int localDocNo = pkReader.get(buf);
                 // logger.debug("check "+new String(buf.array, 0, buf.limit));
                 if (localDocNo != -1) {
-                    segmentLogger.info("merge delete {}", localDocNo);
+                    segmentLogger.debug("merge delete {}", localDocNo);
                     if (!deleteSet.isSet(localDocNo)) {
                         // add delete list
                         deleteSet.set(localDocNo);
