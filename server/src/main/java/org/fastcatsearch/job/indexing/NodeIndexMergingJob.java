@@ -1,24 +1,16 @@
 package org.fastcatsearch.job.indexing;
 
 import org.fastcatsearch.common.io.Streamable;
-import org.fastcatsearch.env.SettingManager;
 import org.fastcatsearch.exception.FastcatSearchException;
-import org.fastcatsearch.ir.CollectionAddIndexer;
-import org.fastcatsearch.ir.CollectionIndexerable;
 import org.fastcatsearch.ir.CollectionMergeIndexer;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.Job;
-import org.fastcatsearch.job.indexing.IndexingStopException;
-import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.transport.vo.StreamableCollectionContext;
 import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.FileUtils;
 
@@ -116,7 +108,18 @@ public class NodeIndexMergingJob extends Job implements Streamable {
                 mergeSegmentIdList.addAll(merge100);
             }
 
+
             if (mergeSegmentIdList.size() >= 2) {
+                logger.info("---------------------");
+                logger.info("segmentInfoList = {}", segmentInfoList);
+                logger.info("[{}] Check Merging 100 > {}", collectionId, merge100);
+                logger.info("[{}] Check Merging 10k > {}", collectionId, merge10K);
+                logger.info("[{}] Check Merging 100k > {}", collectionId, merge100K);
+                logger.info("[{}] Check Merging 1M > {}", collectionId, merge1M);
+                logger.info("[{}] Check Merging 10M > {}", collectionId, merge10M);
+                logger.info("[{}] Check Merging Over10M > {}", collectionId, mergeOver10M);
+                logger.info("[{}] Check Merging Total > {}", collectionId, mergeSegmentIdList);
+                logger.info("---------------------");
                 //mergeIdList 를 File[]로 변환.
                 File[] segmentDirs = new File[mergeSegmentIdList.size()];
                 for (int i = 0; i < mergeSegmentIdList.size(); i++) {
