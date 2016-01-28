@@ -8,7 +8,6 @@ import org.fastcatsearch.ir.config.IndexingScheduleConfig;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.MasterNodeJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.SettingFileNames;
@@ -16,7 +15,6 @@ import org.fastcatsearch.util.JAXBConfigs;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 
 /**
  * Created by swsong on 2016. 1. 27..
@@ -33,6 +31,9 @@ public class UpdateIndexingScheduleJob extends MasterNodeJob implements Streamab
     private String collectionId;
     private String type;
     private String flag;
+
+    public UpdateIndexingScheduleJob() {
+    }
 
     public UpdateIndexingScheduleJob(String collectionId, String type, String flag) {
         this.collectionId = collectionId;

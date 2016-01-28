@@ -4,17 +4,11 @@ import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.DynamicIndexModule;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.IndexingScheduleConfig;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
-import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.MasterNodeJob;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.SettingFileNames;
-import org.fastcatsearch.util.JAXBConfigs;
 
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -27,6 +21,9 @@ public class UpdateDynamicIndexingScheduleJob extends MasterNodeJob implements S
 
     private String collectionId;
     private String flag;
+
+    public UpdateDynamicIndexingScheduleJob() {
+    }
 
     public UpdateDynamicIndexingScheduleJob(String collectionId, String flag) {
         this.collectionId = collectionId;
