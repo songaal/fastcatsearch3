@@ -6,7 +6,7 @@ import org.fastcatsearch.ir.DynamicIndexModule;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
-import org.fastcatsearch.job.MasterNodeJob;
+import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
 
 import java.io.IOException;
@@ -14,7 +14,7 @@ import java.io.IOException;
 /**
  * Created by swsong on 2016. 1. 27..
  */
-public class UpdateDynamicIndexingScheduleJob extends MasterNodeJob implements Streamable{
+public class UpdateDynamicIndexingScheduleJob extends Job implements Streamable{
 
     private static final String FLAG_ON = "on";
     private static final String FLAG_OFF = "off";
