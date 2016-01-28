@@ -62,7 +62,6 @@ public class DynamicIndexModule extends AbstractModule {
                     Set<String> nodeSet = new HashSet<String>();
                     nodeSet.addAll(collectionContext.collectionConfig().getDataNodeList());
                     nodeSet.add(collectionContext.collectionConfig().getIndexNode());
-                    nodeSet.add(nodeService.getMasterNode().id());
                     List<String> nodeIdList = new ArrayList<String>(nodeSet);
                     List<Node> nodeList = new ArrayList<Node>(nodeService.getNodeById(nodeIdList));
 
