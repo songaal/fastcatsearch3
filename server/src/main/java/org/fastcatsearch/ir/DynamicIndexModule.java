@@ -33,7 +33,7 @@ public class DynamicIndexModule extends AbstractModule {
     private int bulkSize;
     private File dir;
     private File stopIndexingFlagFile;
-    private int flushPeriod = 2;
+    private int flushPeriod = 5; //5초.
 
     public DynamicIndexModule(Environment environment, Settings settings, String collectionId, int bulkSize) {
         super(environment, settings);
@@ -47,6 +47,10 @@ public class DynamicIndexModule extends AbstractModule {
 
         @Override
         public void run() {
+
+            //TODO 10만건이 될때까지 추가하여 가져온다
+
+
             File file = dataLogger.pollFile();
             if(file != null && file.exists()) {
                 //file 을 증분색인하도록 요청한다.
@@ -82,33 +86,37 @@ public class DynamicIndexModule extends AbstractModule {
 
     class IndexMergeTask extends TimerTask {
 
+        private int name = hashCode();
         @Override
         public void run() {
 
             String documentId = String.valueOf(System.nanoTime());
-                try {
-                    JobService jobService = ServiceManager.getInstance().getService(JobService.class);
-                    ResultFuture resultFuture = jobService.offer(new NodeIndexMergingJob(collectionId, documentId));
-                    Object result = resultFuture.take();
-                    if(result instanceof Boolean && ((Boolean) result).booleanValue()) {
-                        logger.debug("Merging id {} : Node {}", documentId, environment.myNodeId());
-                    } else {
-                        //무시.
-                    }
-                } catch (Exception e) {
-                    logger.error("", e);
+//            logger.debug("MergeCheckTask-{} col[{}] at {}", name, collectionId, documentId);
+            try {
+                JobService jobService = ServiceManager.getInstance().getService(JobService.class);
+                ResultFuture resultFuture = jobService.offer(new NodeIndexMergingJob(collectionId, documentId));
+                Object result = resultFuture.take();
+                if(result instanceof Boolean && ((Boolean) result).booleanValue()) {
+//                    logger.debug("Merging id {} : Node {}", documentId, environment.myNodeId());
+                } else {
+                    //무시.
                 }
+            } catch (Exception e) {
+                logger.error("", e);
+            }
         }
     }
 
     @Override
     protected boolean doLoad() throws ModuleException {
-        mergeTimer = new Timer();
+        mergeTimer = new Timer(true);
         //stop 파일이 없어야만 시작한다.
         if(!stopIndexingFlagFile.exists()) {
             startIndexingSchedule();
         }
-        mergeTimer.schedule(new IndexMergeTask(), 5000, 5000);
+        TimerTask indexMergeTask = new IndexMergeTask();
+        mergeTimer.schedule(indexMergeTask, 5000, 5000);
+        logger.info("[{}] Index Merger start scheduling! timer[{}] task[{}]", mergeTimer.hashCode(), indexMergeTask.hashCode());
         dataLogger = new LimitTimeSizeLogger(dir, bulkSize, flushPeriod);
         logger.info("[{}] To be indexed files = {}", collectionId, dataLogger.getQueueSize());
         return true;
@@ -147,8 +155,9 @@ public class DynamicIndexModule extends AbstractModule {
 
     public boolean startIndexingSchedule() {
         if(indexTimer == null) {
-            indexTimer = new Timer();
-            indexTimer.schedule(new IndexFireTask(), 1000, 1000);
+            indexTimer = new Timer(true);
+            TimerTask indexFireTask = new IndexFireTask();
+            indexTimer.schedule(indexFireTask, 5000, 1000);
             return stopIndexingFlagFile.delete();
         } else {
             logger.info("Dynamic Indexing is running. Stop a indexing first before starting.");

@@ -4,7 +4,6 @@ import org.fastcatsearch.env.Path;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.*;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
-import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.config.IndexingScheduleConfig.IndexingSchedule;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.settings.SchemaSetting;
@@ -237,17 +236,6 @@ public class CollectionContextUtil {
 				indexDir.mkdirs();
 				logger.debug("Save DataInfo >> {}", dataInfo);
 				JAXBConfigs.writeConfig(new File(indexDir, SettingFileNames.dataInfo), dataInfo, DataInfo.class);
-				
-				//리비전 xml을 각 리비전 디렉토리에 백업용을 남겨둔다.
-				SegmentInfo lastSegmentInfo = dataInfo.getLastSegmentInfo();
-				if(lastSegmentInfo != null) {
-					File segmentDir = dataFilePaths.segmentFile(collectionContext.getIndexSequence(), lastSegmentInfo.getId());
-//					RevisionInfo revisionInfo = lastSegmentInfo.getRevisionInfo();
-//					if (revisionInfo != null) {
-//						logger.debug("Save RevisionInfo >> {}, {}", revisionDir.getAbsolutePath(), revisionInfo);
-//						JAXBConfigs.writeConfig(new File(revisionDir, SettingFileNames.revisionInfo), revisionInfo, RevisionInfo.class);
-//					}
-				}
 			}
 			
 			File workSchemaFile = collectionFilePaths.file(SettingFileNames.workSchema);

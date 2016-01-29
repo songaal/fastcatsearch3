@@ -11,22 +11,6 @@
 
 package org.fastcatsearch.ir;
 
-import java.io.File;
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.xml.bind.JAXBException;
-
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.alert.ClusterAlertService;
 import org.fastcatsearch.cluster.NodeLoadBalancable;
@@ -38,15 +22,9 @@ import org.fastcatsearch.ir.analysis.AnalyzerFactoryManager;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.SettingException;
-import org.fastcatsearch.ir.config.CollectionConfig;
-import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.CollectionsConfig;
+import org.fastcatsearch.ir.config.*;
 import org.fastcatsearch.ir.config.CollectionsConfig.Collection;
-import org.fastcatsearch.ir.config.IndexingScheduleConfig;
 import org.fastcatsearch.ir.config.IndexingScheduleConfig.IndexingSchedule;
-import org.fastcatsearch.ir.config.JDBCSourceConfig;
-import org.fastcatsearch.ir.config.JDBCSourceInfo;
-import org.fastcatsearch.ir.config.JDBCSupportConfig;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.query.InternalSearchResult;
@@ -68,6 +46,15 @@ import org.fastcatsearch.settings.Settings;
 import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.FilePaths;
 import org.fastcatsearch.util.JAXBConfigs;
+
+import javax.xml.bind.JAXBException;
+import java.io.File;
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class IRService extends AbstractService {
 
@@ -248,11 +235,19 @@ public class IRService extends AbstractService {
 				}
 			}
 
+
+			/*
+			* DynamicIndexModule 을 로딩한다.
+			* */
             //FIXME 셋팅으로.
-            int bulkSize = 10000;
+            int bulkSize = 100000;
             DynamicIndexModule dynamicIndexModule = new DynamicIndexModule(environment, settings, collectionId, bulkSize);
-            dynamicIndexModule.load();
-            dynamicIndexModuleMap.put(collectionId, dynamicIndexModule);
+			dynamicIndexModule.load();
+
+			DynamicIndexModule prevDynamicIndexModule = dynamicIndexModuleMap.put(collectionId, dynamicIndexModule);
+			if(prevDynamicIndexModule != null) {
+				prevDynamicIndexModule.unload();
+			}
 
 			return collectionHandler;
 			

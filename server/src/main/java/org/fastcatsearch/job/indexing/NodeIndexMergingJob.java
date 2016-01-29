@@ -42,6 +42,9 @@ public class NodeIndexMergingJob extends Job implements Streamable {
         CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
         try {
             // 머징 시작표시..
+            if(collectionHandler.isMergingStatus()) {
+                return new JobResult(false);
+            }
             collectionHandler.startMergingStatus();
 
             CollectionContext collectionContext = collectionHandler.collectionContext();
