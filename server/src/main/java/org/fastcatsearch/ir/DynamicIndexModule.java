@@ -34,6 +34,7 @@ public class DynamicIndexModule extends AbstractModule {
     private File dir;
     private File stopIndexingFlagFile;
     private int flushPeriod = 2;
+    private long indexFileMaxSize = 10 * 1000 * 1000; //최소 10MB를 모아서 보낸다.
 
     public DynamicIndexModule(Environment environment, Settings settings, String collectionId, int bulkSize) {
         super(environment, settings);
@@ -47,14 +48,55 @@ public class DynamicIndexModule extends AbstractModule {
 
         @Override
         public void run() {
-            File file = dataLogger.pollFile();
-            if(file != null && file.exists()) {
-                //file 을 증분색인하도록 요청한다.
-                logger.info("Found file to be indexed among {} files > {}", dataLogger.getQueueSize(), file.getAbsolutePath());
+            List<File> fileList = new ArrayList<File>();
+            long totalSize = 0;
+            while(true) {
+                File file = dataLogger.pollFile();
+                if(file != null && file.exists()) {
+                    //존재하면 추가.
+                    fileList.add(file);
+                    totalSize += file.length();
+                    if (totalSize >= indexFileMaxSize) {
+                        break;
+                    }
+                } else {
+                    if(fileList.size() > 0) {
+                        //몇개라도 존재하면 계속진행.
+                        break;
+                    } else {
+                        //없으면 리턴.
+                        return;
+                    }
+                }
+            }
 
-                String documentId = file.getName();
+            if(fileList.size() > 0) {
+                List<String> fileNames = new ArrayList<String>();
+                for(File f : fileList) {
+                    fileNames.add(f.getName());
+                }
+                //file 을 증분색인하도록 요청한다.
+                logger.info("Indexing[{}] Remnants[{}] >> {}", fileList.size(), dataLogger.getQueueSize(), fileNames);
+
+                String documentId = null;
                 try {
-                    String documents = FileUtils.readFileToString(file, "utf-8");
+                    String documents = null;
+                    if(fileList.size() == 1) {
+                        File f = fileList.get(0);
+                        documentId = f.getName();
+                        documents = FileUtils.readFileToString(f, "utf-8");
+                    } else {
+                        StringBuffer documentsBuffer = new StringBuffer();
+                        documentId = fileList.get(0).getName() + "_" + fileList.get(fileList.size() - 1).getName();
+                        for(File f : fileList) {
+                            if(documentsBuffer.length() > 0) {
+                                documentsBuffer.append("\n");
+                            }
+                            documentsBuffer.append(FileUtils.readFileToString(f, "utf-8"));
+                        }
+                        documents = documentsBuffer.toString();
+                    }
+
                     NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
                     IRService irService = ServiceManager.getInstance().getService(IRService.class);
                     CollectionContext collectionContext = irService.collectionContext(collectionId);
@@ -62,7 +104,6 @@ public class DynamicIndexModule extends AbstractModule {
                     Set<String> nodeSet = new HashSet<String>();
                     nodeSet.addAll(collectionContext.collectionConfig().getDataNodeList());
                     nodeSet.add(collectionContext.collectionConfig().getIndexNode());
-//                    nodeSet.add(nodeService.getMasterNode().id());
                     List<String> nodeIdList = new ArrayList<String>(nodeSet);
                     List<Node> nodeList = new ArrayList<Node>(nodeService.getNodeById(nodeIdList));
 
@@ -70,9 +111,11 @@ public class DynamicIndexModule extends AbstractModule {
                     NodeJobResult[] nodeResultList = ClusterUtils.sendJobToNodeList(indexFileDocumentJob, nodeService, nodeList, true);
                     //여기서 색인이 끝날때 까지 블록킹해야 다음색인이 동시에 돌지 않게됨.
                     for(NodeJobResult result : nodeResultList) {
-                        logger.debug("Index file {} : Node {} > {}", file.getName(), result.node().id(), result.result());
+                        logger.debug("Index files {} : Node {} > {}", fileNames, result.node().id(), result.result());
                     }
-                    FileUtils.deleteQuietly(file);
+                    for(File f : fileList) {
+                        FileUtils.deleteQuietly(f);
+                    }
                 } catch (Exception e) {
                     logger.error("", e);
                 }
