@@ -27,7 +27,7 @@ public class BufferedPostingReader extends AbstractPostingReader {
 		
 		try {
 			postingInput.seek(inputOffset);
-			int len = postingInput.readVInt();
+			int len = postingInput.readInt();
 			this.postingCount = postingInput.readInt();
 			int lastDocNo = postingInput.readInt();
 		} catch (IOException e) {
