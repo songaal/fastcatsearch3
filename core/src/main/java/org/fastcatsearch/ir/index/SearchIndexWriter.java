@@ -65,7 +65,6 @@ public class SearchIndexWriter implements SingleIndexWriter {
 	private int[] indexFieldSequence; // index내에 색인할 필드가 여러개일 경우 필드 번호.
 	private int positionIncrementGap;
 
-//	private RevisionInfo revisionInfo;
 	private AnalyzerOption indexingAnalyzerOption;
 	
 	@Override
