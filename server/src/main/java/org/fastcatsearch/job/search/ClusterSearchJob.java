@@ -15,6 +15,7 @@ import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.io.FixedHitReader;
 import org.fastcatsearch.ir.query.*;
 import org.fastcatsearch.ir.search.*;
+import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.internal.InternalDocumentSearchJob;
@@ -206,6 +207,15 @@ public class ClusterSearchJob extends Job {
 			// document 요청을 보낸다.
 			resultFutureList = new ResultFuture[collectionIdList.length];
 			ViewContainer views = q.getViews();
+            if(views == null) {
+                views = new ViewContainer();
+            }
+            if(views.size() == 0) {
+                List<FieldSetting> list =schema.schemaSetting().getFieldSettingList();
+                if(list.size() > 0) {
+                    views.add(new View(list.get(0).getId()));
+                }
+            }
 			String[] tags = q.getMeta().tags();
 			for (int i = 0; i < collectionIdList.length; i++) {
 				String cid = collectionIdList[i];
