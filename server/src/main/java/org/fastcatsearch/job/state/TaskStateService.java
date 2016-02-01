@@ -83,7 +83,9 @@ public class TaskStateService extends AbstractService {
 	}
 
 	public void clearTaskMap(String nodeId) {
-		nodeTaskMap.remove(nodeId);
+        if(nodeTaskMap != null) {
+            nodeTaskMap.remove(nodeId);
+        }
 	}
 	
 	public TaskState getTaskState(TaskKey key) {
