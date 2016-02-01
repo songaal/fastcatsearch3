@@ -10,8 +10,8 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>co.fastcat</groupId>
 	<artifactId>fastcatsearch</artifactId>
-	<version>2.32.1-SNAPSHOT</version>
-	<name>fastcatsearch</name>
+	<version>3.0.0-SNAPSHOT</version>
+	<name>fastcatsearch3</name>
 	<description>fastcatsearch package</description>
 	<url>http://www.fastcat.co</url>
 	<packaging>pom</packaging>
