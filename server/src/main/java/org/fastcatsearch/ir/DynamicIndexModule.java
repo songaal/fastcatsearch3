@@ -33,7 +33,7 @@ public class DynamicIndexModule extends AbstractModule {
     private int bulkSize;
     private File dir;
     private File stopIndexingFlagFile;
-    private int flushPeriod = 2;
+    private int flushPeriod = 1;
     private long indexFileMaxSize = 10 * 1000 * 1000; //최소 10MB를 모아서 보낸다.
 
     public DynamicIndexModule(Environment environment, Settings settings, String collectionId, int bulkSize) {

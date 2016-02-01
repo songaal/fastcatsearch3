@@ -98,15 +98,11 @@ public class LimitTimeSizeLogger {
                 synchronized (lock) {
                     memoryData.add(data);
                 }
-                if (memoryData.size() >= bufferSize) {
-                    logger.debug("flush MANUAL");
-                    flush();
-                }
             }
         }
     }
 
-	private synchronized void flush() {
+	private void flush() {
         if (memoryData.size() == 0) {
 			return;
 		}
@@ -148,11 +144,10 @@ public class LimitTimeSizeLogger {
 	}
 
     class FlushCheckTask extends TimerTask {
-
         @Override
         public void run() {
             if (memoryData.size() > 0) {
-                if(System.nanoTime() - lastFlushTime > flushPeriodInNanoseconds) {
+                if (System.nanoTime() - lastFlushTime > flushPeriodInNanoseconds) {
                     logger.debug("flush task");
                     flush();
                 }
