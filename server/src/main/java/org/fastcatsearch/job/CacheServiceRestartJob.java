@@ -18,7 +18,7 @@ import org.fastcatsearch.service.ServiceManager;
 public class CacheServiceRestartJob extends Job{
 	private static final long serialVersionUID = -720747639860359291L;
 	private int delay;
-	
+	private static Object globalLock = new Object();
 	public CacheServiceRestartJob(){ 
 		delay = 1000; //1초.
 	}
@@ -30,32 +30,35 @@ public class CacheServiceRestartJob extends Job{
 	@Override
 	public JobResult doRun() {
 		try {
-			Thread.sleep(delay);
+			if(delay > 0) {
+				Thread.sleep(delay);
+			}
 		} catch (InterruptedException e) { }
 		
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		
 		boolean result = true;
-		
-		try {
-			result = irService.searchCache().unload() && result;
-		} catch (Exception e) {
-			logger.debug("ERROR Unloading Search Cache : {}", e.getMessage());
+
+		synchronized (globalLock) {
+			try {
+				result = irService.searchCache().unload() && result;
+			} catch (Exception e) {
+				logger.debug("ERROR Unloading Search Cache : {}", e.getMessage());
+			}
+			try {
+				result = irService.groupingCache().unload() && result;
+			} catch (Exception e) {
+				logger.debug("ERROR Unloading Grouping Cache : {}", e.getMessage());
+			}
+			try {
+				result = irService.documentCache().unload() && result;
+			} catch (Exception e) {
+				logger.debug("ERROR Unloading Document Cache : {}", e.getMessage());
+			}
+			result = irService.searchCache().load() && result;
+			result = irService.groupingCache().load() && result;
+			result = irService.documentCache().load() && result;
 		}
-		try {
-			result = irService.groupingCache().unload() && result;
-		} catch (Exception e) {
-			logger.debug("ERROR Unloading Grouping Cache : {}", e.getMessage());
-		}
-		try {
-			result = irService.documentCache().unload() && result;
-		} catch (Exception e) {
-			logger.debug("ERROR Unloading Document Cache : {}", e.getMessage());
-		}
-		result = irService.searchCache().load() && result;
-		result = irService.groupingCache().load() && result;
-		result = irService.documentCache().load() && result;
-		
 		return new JobResult(result);
 	}
 
