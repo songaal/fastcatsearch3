@@ -1,9 +1,6 @@
 package org.fastcatsearch.job.management.collections;
 
-import java.io.IOException;
-
 import org.apache.commons.io.FileUtils;
-import org.apache.tools.ant.util.CollectionUtils;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.DynamicIndexModule;
@@ -14,6 +11,8 @@ import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.CollectionContextUtil;
+
+import java.io.IOException;
 
 public class OperateCollectionJob extends Job implements Streamable {
 
@@ -93,8 +92,8 @@ public class OperateCollectionJob extends Job implements Streamable {
                 if(collectionHandler != null) {
                     collectionHandler.close();
                 }
-                FileUtils.deleteDirectory(collectionHandler.collectionContext().dataFilePaths().file());
-                FileUtils.deleteDirectory(collectionHandler.collectionContext().indexLogPaths().file());
+                FileUtils.deleteQuietly(collectionHandler.collectionContext().dataFilePaths().file());
+                FileUtils.deleteQuietly(collectionHandler.collectionContext().indexLogPaths().file());
 
                 collectionHandler.collectionContext().clearDataInfoAndStatus();
                 CollectionContextUtil.saveCollectionAfterIndexing(collectionHandler.collectionContext());
