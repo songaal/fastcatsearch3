@@ -12,6 +12,7 @@ import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.DataJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.CollectionContextUtil;
@@ -79,6 +80,7 @@ public class NodeIndexDocumentFileJob extends DataJob implements Streamable {
                 CollectionContext collectionContext = collectionHandler.applyNewSegment(segmentInfo, segmentDir, indexer.getDeleteIdSet());
                 CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
 
+                getJobExecutor().offer(new CacheServiceRestartJob(0));
             }
         } catch (Exception e) {
             logger.error("node dynamic index error!", e);
