@@ -17,7 +17,9 @@ import org.fastcatsearch.util.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 각 노드로 전달되어 색인머징을 수행하는 작업.
@@ -60,11 +62,13 @@ public class NodeIndexMergingJob extends Job implements Streamable {
             List<DataInfo.SegmentInfo> segmentInfoList = collectionContext.dataInfo().getSegmentInfoList();
             for (DataInfo.SegmentInfo segmentInfo : segmentInfoList) {
                 int docSize = segmentInfo.getDocumentCount();
+                int deleteSize = segmentInfo.getDeleteCount();
                 String segmentId = segmentInfo.getId();
 
                 //크기가 비슷한 것끼리 묶는다.
                 //100, 1만, 10만, 100만, 1000만, 그이상 구간을 둔다
                 // TODO 삭제문서까지 고려한 realSize기반으로 머징한다.
+
                 if (docSize <= 100) {
                     merge100.add(segmentId);
                 } else if (docSize <= 10 * 1000) {
@@ -78,10 +82,28 @@ public class NodeIndexMergingJob extends Job implements Streamable {
                 } else if (docSize > 10 * 1000 * 1000) {
                     mergeOver10M.add(segmentId);
                 }
+
+                //만약 삭제가 30% 이상이면 리스트에 segId를 2개 더 넣어주어서 최소 갯수이상이 되도록 맞춰준다.
+                if(deleteSize >= docSize * 0.3f) {
+                    if (docSize <= 100) {
+                        merge100.add(segmentId);
+                    } else if (docSize <= 10 * 1000) {
+                        merge10K.add(segmentId);merge10K.add(segmentId);
+                    } else if (docSize <= 100 * 1000) {
+                        merge100K.add(segmentId);merge100K.add(segmentId);
+                    } else if (docSize <= 1000 * 1000) {
+                        merge1M.add(segmentId);merge1M.add(segmentId);
+                    } else if (docSize <= 10 * 1000 * 1000) {
+                        merge10M.add(segmentId);merge10M.add(segmentId);
+                    } else if (docSize > 10 * 1000 * 1000) {
+                        mergeOver10M.add(segmentId);mergeOver10M.add(segmentId);
+                    }
+                }
             }
 
             // 머징시 하위 구간을 모두 포함한다.
-            List<String> mergeSegmentIdList = new ArrayList<String>();
+            Set<String> mergeSegmentIdList = new HashSet<String>();
+
             if (mergeOver10M.size() >= 3) {
                 mergeSegmentIdList.addAll(mergeOver10M);
                 mergeSegmentIdList.addAll(merge10M);
@@ -113,20 +135,21 @@ public class NodeIndexMergingJob extends Job implements Streamable {
 
 
             if (mergeSegmentIdList.size() >= 2) {
-                logger.info("---------------------");
-                logger.info("segmentInfoList = {}", segmentInfoList);
-                logger.info("[{}] Check Merging 100 > {}", collectionId, merge100);
-                logger.info("[{}] Check Merging 10k > {}", collectionId, merge10K);
-                logger.info("[{}] Check Merging 100k > {}", collectionId, merge100K);
-                logger.info("[{}] Check Merging 1M > {}", collectionId, merge1M);
-                logger.info("[{}] Check Merging 10M > {}", collectionId, merge10M);
-                logger.info("[{}] Check Merging Over10M > {}", collectionId, mergeOver10M);
-                logger.info("[{}] Check Merging Total > {}", collectionId, mergeSegmentIdList);
-                logger.info("---------------------");
+                logger.debug("---------------------");
+                logger.debug("segmentInfoList = {}", segmentInfoList);
+                logger.debug("[{}] Check Merging 100 > {}", collectionId, merge100);
+                logger.debug("[{}] Check Merging 10k > {}", collectionId, merge10K);
+                logger.debug("[{}] Check Merging 100k > {}", collectionId, merge100K);
+                logger.debug("[{}] Check Merging 1M > {}", collectionId, merge1M);
+                logger.debug("[{}] Check Merging 10M > {}", collectionId, merge10M);
+                logger.debug("[{}] Check Merging Over10M > {}", collectionId, mergeOver10M);
+                logger.debug("[{}] Check Merging Total > {}", collectionId, mergeSegmentIdList);
+                logger.debug("---------------------");
                 //mergeIdList 를 File[]로 변환.
                 File[] segmentDirs = new File[mergeSegmentIdList.size()];
-                for (int i = 0; i < mergeSegmentIdList.size(); i++) {
-                    segmentDirs[i] = collectionContext.indexFilePaths().segmentFile(mergeSegmentIdList.get(i));
+                int i = 0;
+                for (String mergeSegmentId : mergeSegmentIdList) {
+                    segmentDirs[i++] = collectionContext.indexFilePaths().segmentFile(mergeSegmentId);
                 }
                 CollectionMergeIndexer mergeIndexer = new CollectionMergeIndexer(documentId, collectionHandler, segmentDirs);
                 DataInfo.SegmentInfo segmentInfo = null;

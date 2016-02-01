@@ -259,7 +259,7 @@ public class SearchIndexWriter implements SingleIndexWriter {
 			return;
 		}
 
-		logger.info("[{}] Flush#{} [documents {}th..]", indexId, flushPosition.size() + 1, count);
+		logger.debug("[{}] Flush#{} [documents {}th..]", indexId, flushPosition.size() + 1, count);
 
 		try {
 			flushPosition.add(memoryPosting.save(tempOutput));

@@ -394,7 +394,7 @@ public class CollectionHandler {
     }
 
     //머징시 문서가 모두 0가 될때사용.
-    public synchronized CollectionContext removeMergedSegment(List<String> segmentIdRemoveList) throws IOException, IRException {
+    public synchronized CollectionContext removeMergedSegment(Set<String> segmentIdRemoveList) throws IOException, IRException {
         segmentLogger.info("[{}] -RemoveMergedSegment-----", collectionId);
         for(String removeSegmentId : segmentIdRemoveList) {
             SegmentReader removeSegmentReader = segmentReaderMap.remove(removeSegmentId);
@@ -409,7 +409,7 @@ public class CollectionHandler {
         return collectionContext;
     }
 
-    public synchronized CollectionContext applyMergedSegment(SegmentInfo segmentInfo, File segmentDir, List<String> segmentIdRemoveList) throws IOException, IRException {
+    public synchronized CollectionContext applyMergedSegment(SegmentInfo segmentInfo, File segmentDir, Set<String> segmentIdRemoveList) throws IOException, IRException {
 
         segmentLogger.info("[{}] -MergedSegment-----", collectionId);
         segmentLogger.info("[{}] MergedSegment start[{}] id[{}] doc[{}] del[{}] merged[{}]", collectionId, segmentInfo.getStartTime(), segmentInfo.getId(), segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount(), segmentIdRemoveList);
