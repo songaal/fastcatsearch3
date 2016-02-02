@@ -21,14 +21,14 @@ public class LimitTimeSizeLogger {
     private Queue<File> fileQueue;
     private Object lock = new Object();
 
-	public LimitTimeSizeLogger(File dir, int flushPeriod) {
-		this(dir, "utf-8", flushPeriod);
+	public LimitTimeSizeLogger(File dir, int flushPeriodInSeconds) {
+		this(dir, "utf-8", flushPeriodInSeconds);
 	}
 
-	public LimitTimeSizeLogger(File dir, String encoding, int flushPeriod) {
+	public LimitTimeSizeLogger(File dir, String encoding, int flushPeriodInSeconds) {
 		this.bufferSize = 10000;
 		this.encoding = encoding;
-        this.flushPeriodInNanoseconds = flushPeriod * 1000 * 1000 * 1000;
+        this.flushPeriodInNanoseconds = flushPeriodInSeconds * 1000 * 1000 * 1000;
 		this.memoryData = newMemoryData();
         flushTimer = new Timer();
         long flushCheckPeriod = 500;

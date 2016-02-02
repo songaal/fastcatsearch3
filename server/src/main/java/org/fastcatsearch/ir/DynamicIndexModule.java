@@ -32,7 +32,7 @@ public class DynamicIndexModule extends AbstractModule {
     private Timer mergeTimer;
     private File dir;
     private File stopIndexingFlagFile;
-    private int flushPeriod;
+    private int flushPeriodInSeconds;
     private long indexFileMaxSize;
     private long mergePeriod;
     private long indexingPeriod;
@@ -42,10 +42,12 @@ public class DynamicIndexModule extends AbstractModule {
         this.collectionId = collectionId;
         dir = environment.filePaths().collectionFilePaths(collectionId).file("indexlog");
         stopIndexingFlagFile = new File(environment.filePaths().collectionFilePaths(collectionId).file(), "indexlog.stop");
-        flushPeriod = settings.getInt("indexing.dynamic.log_flush_period_SEC", 1); //1초마다.
+        flushPeriodInSeconds = settings.getInt("indexing.dynamic.log_flush_period_SEC", 1); //1초마다.
         indexFileMaxSize = settings.getLong("indexing.dynamic.min_log_size_MB", 10L) * 1000 * 1000; //최소 10MB를 모아서 보낸다.
-        mergePeriod = settings.getInt("indexing.dynamic.merge_period_SEC", 5); //5초마다.
-        indexingPeriod = settings.getInt("indexing.dynamic.indexing_period_SEC", 1); //1초마다.
+        mergePeriod = settings.getInt("indexing.dynamic.merge_period_SEC", 5) * 1000; //5초마다.
+        indexingPeriod = settings.getInt("indexing.dynamic.indexing_period_SEC", 1) * 1000; //1초마다.
+        logger.debug("DynamicIndexModule flushPeriodInSeconds[{}] indexFileMaxSize[{}] mergePeriod[{}] indexingPeriod[{}]",
+                flushPeriodInSeconds, indexFileMaxSize, mergePeriod, indexingPeriod);
     }
 
     class IndexFireTask extends TimerTask {
@@ -160,7 +162,7 @@ public class DynamicIndexModule extends AbstractModule {
         TimerTask indexMergeTask = new IndexMergeTask();
         mergeTimer.schedule(indexMergeTask, 5000, mergePeriod);
         logger.info("[{}] Index Merger start scheduling! timer[{}] task[{}]", mergeTimer.hashCode(), indexMergeTask.hashCode());
-        dataLogger = new LimitTimeSizeLogger(dir, flushPeriod);
+        dataLogger = new LimitTimeSizeLogger(dir, flushPeriodInSeconds);
         logger.info("[{}] To be indexed files = {}", collectionId, dataLogger.getQueueSize());
         return true;
     }

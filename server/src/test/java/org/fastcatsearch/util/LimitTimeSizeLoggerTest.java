@@ -12,9 +12,8 @@ public class LimitTimeSizeLoggerTest {
     @Test
     public void test1() {
         File dir = new File("/tmp/test");
-        int bufferSize = 10000;
         int flushDelay = 1; //1초
-        LimitTimeSizeLogger logger = new LimitTimeSizeLogger(dir, bufferSize, flushDelay);
+        LimitTimeSizeLogger logger = new LimitTimeSizeLogger(dir, flushDelay);
         for (int i = 0; i < 1000000; i++) {
             String data = String.valueOf(i);
             logger.log(data);
