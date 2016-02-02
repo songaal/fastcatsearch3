@@ -16,13 +16,13 @@
 
 package org.fastcatsearch.ir.document;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.fastcatsearch.ir.field.Field;
 import org.json.JSONException;
 import org.json.JSONStringer;
 import org.json.JSONWriter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class Document {
@@ -82,7 +82,7 @@ public class Document {
 
         JSONWriter w = json.object();
         for(Field f : fields) {
-            w.key(f.getId()).value(f.getDataString());
+            w.key(f.getId()).value(f.toString());
         }
         w.endObject();
         return json.toString();
