@@ -39,9 +39,7 @@ public class GetIndexingStatusAction extends AuthAction {
 		DataInfo dataInfo = collectionContext.dataInfo();
 		
 		int segmentSize = dataInfo.getSegmentSize();
-		String revisionUUID = null;
-		SegmentInfo lastSegmentInfo = dataInfo.getLastSegmentInfo();
-        revisionUUID = "";
+		String revisionUUID = "";
 
 		responseWriter.key("segmentSize").value(segmentSize)
 		.key("revisionUUID").value(revisionUUID);
@@ -61,17 +59,10 @@ public class GetIndexingStatusAction extends AuthAction {
 		
 		int documentSize = collectionContext.dataInfo().getDocuments();
 		responseWriter.key("documentSize").value(documentSize);
-		
-		long createTime = 0;
-		SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
-		if(segmentInfo != null){
-//			RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
-//			if(revisionInfo != null){
-//				createTime = revisionInfo.getCreateTime();
-//			}
-            createTime = segmentInfo.getCreateTime();
-		}
-		responseWriter.key("createTime").value(Formatter.formatDate(new Date(createTime)));
+
+		SegmentInfo lastSegmentInfo = collectionContext.dataInfo().getLatestSegmentInfo();
+		String createTime = Formatter.formatDate(new Date(lastSegmentInfo.getCreateTime()));
+		responseWriter.key("createTime").value(createTime);
 		
 		responseWriter.endObject();
 		

@@ -60,13 +60,9 @@ public class GetIndexingDataInfoJob extends Job implements Streamable {
 		
 		result.documentSize = collectionContext.dataInfo().getDocuments();
         result.deleteSize = collectionContext.dataInfo().getDeletes();
-		
-		String createTime = "";
-		SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
-		if(segmentInfo != null){
-            createTime = Formatter.formatDate(new Date(segmentInfo.getCreateTime()));
-		}
-		result.createTime = createTime;
+
+		SegmentInfo lastSegmentInfo = dataInfo.getLatestSegmentInfo();
+		result.createTime = Formatter.formatDate(new Date(lastSegmentInfo.getCreateTime()));
 		
 		
 		return new JobResult(result);

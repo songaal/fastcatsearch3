@@ -11,13 +11,6 @@
 
 package org.fastcatsearch.job.indexing;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.fastcatsearch.cluster.ClusterUtils;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeJobResult;
@@ -38,9 +31,6 @@ import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
-import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.ir.util.Counter;
-import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.cluster.NodeCollectionReloadJob;
 import org.fastcatsearch.job.cluster.NodeDirectoryCleanJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
@@ -48,8 +38,14 @@ import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableCollectionContext;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
-import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.FilePaths;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * 특정 collection의 index node에서 수행되는 job.
@@ -144,8 +140,9 @@ public class CollectionFullIndexingJob extends IndexingJob {
 			 * 색인파일 원격복사.
 			 */
 			indexingTaskState.setStep(IndexingTaskState.STEP_FILECOPY);
-			
-			SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
+
+			//전체색인후에는 하나의 세그먼트만 존재한다.
+			SegmentInfo segmentInfo = collectionContext.dataInfo().getSegmentInfoList().get(0);
 			if (segmentInfo != null) {
 				String segmentId = segmentInfo.getId();
 				logger.debug("Transfer index data collection[{}] >> {}", collectionId);

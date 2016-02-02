@@ -37,6 +37,7 @@ public class DataInfo {
 		for (SegmentInfo segmentInfo : segmentInfoList) {
 			dataInfo.segmentInfoList.add(segmentInfo.copy());
 		}
+		dataInfo.segmentInfoList = Collections.synchronizedList(dataInfo.segmentInfoList);
 		return dataInfo;
 	}
 
@@ -69,23 +70,28 @@ public class DataInfo {
 
     public void removeSegmentInfo(String segmentId) {
         Iterator<SegmentInfo> iter = segmentInfoList.iterator();
-        while(iter.hasNext()) {
-            SegmentInfo si = iter.next();
-            if(si.getId().equals(segmentId)) {
-                iter.remove();
-            }
-        }
+		synchronized (segmentInfoList) {
+			while (iter.hasNext()) {
+				SegmentInfo si = iter.next();
+				if (si.getId().equals(segmentId)) {
+					iter.remove();
+				}
+			}
+		}
     }
 
     public void updateAll() {
         int documents = 0;
         int deletes = 0;
-        for (SegmentInfo segmentInfo : segmentInfoList) {
-            documents += segmentInfo.getDocumentCount();
-            deletes += segmentInfo.getDeleteCount();
-        }
-        this.documents = documents;
-        this.deletes = deletes;
+		synchronized (segmentInfoList) {
+			for (SegmentInfo segmentInfo : segmentInfoList) {
+				documents += segmentInfo.getDocumentCount();
+				deletes += segmentInfo.getDeleteCount();
+			}
+
+			this.documents = documents;
+			this.deletes = deletes;
+		}
     }
 
 	@XmlAttribute
@@ -119,11 +125,23 @@ public class DataInfo {
 		return segmentInfoList.size();
 	}
 
-	public SegmentInfo getLastSegmentInfo() {
+	public SegmentInfo getLatestSegmentInfo() {
 		if (segmentInfoList.size() == 0) {
 			return null;
 		}
-		return segmentInfoList.get(segmentInfoList.size() - 1);
+
+		SegmentInfo lastSegmentInfo = null;
+		synchronized (segmentInfoList) {
+			long maxCreateTime = 0;
+			for (SegmentInfo segmentInfo : segmentInfoList) {
+				if (maxCreateTime < segmentInfo.getCreateTime()) {
+					maxCreateTime = segmentInfo.getCreateTime();
+					lastSegmentInfo = segmentInfo;
+				}
+			}
+		}
+
+		return lastSegmentInfo;
 	}
 
 	public String toString() {

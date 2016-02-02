@@ -21,8 +21,7 @@ import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.settings.AnalyzerSetting;
 import org.fastcatsearch.ir.settings.Schema;
-import org.fastcatsearch.ir.util.Counter;
-import org.fastcatsearch.ir.util.DummyCounter;
+import org.fastcatsearch.ir.util.*;
 import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +60,8 @@ public class CollectionHandler {
 		this.collectionFilePaths = collectionContext.collectionFilePaths();
 		this.analyzerFactoryManager = analyzerFactoryManager;
         //현재 마지막 세그먼트 이름이후로 다시 시작한다.
-        SegmentInfo lastSegmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
+
+        SegmentInfo lastSegmentInfo = collectionContext.dataInfo().getLatestSegmentInfo();
         if(lastSegmentInfo == null) {
             this.segmentIdGenerator = new SegmentIdGenerator();
         } else {

@@ -63,7 +63,6 @@ public class GetCollectionInfoListAction extends AuthAction {
 			CollectionConfig collectionConfig = collectionContext.collectionConfig();
 			DataInfo dataInfo = collectionContext.dataInfo();
 			String revisionUUID = "";
-			SegmentInfo lastSegmentInfo = dataInfo.getLastSegmentInfo();
 			int sequence = collectionContext.indexStatus().getSequence();
 			
 			responseWriter.object();
@@ -94,15 +93,8 @@ public class GetCollectionInfoListAction extends AuthAction {
 					diskSize = FileUtils.byteCountToDisplaySize(byteCount);
 				}
 				String dataPath = new Path(collectionContext.collectionFilePaths().file()).relativise(indexFileDir).getPath();
-				String createTime = "";
-				SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
-				if(segmentInfo != null){
-//					RevisionInfo revisionInfo = segmentInfo.getRevisionInfo();
-//					if(revisionInfo != null){
-//						createTime = revisionInfo.getCreateTime();
-//					}
-                    createTime = Formatter.formatDate(new Date(segmentInfo.getCreateTime()));
-				}
+				SegmentInfo lastSegmentInfo = collectionContext.dataInfo().getLatestSegmentInfo();
+				String createTime = Formatter.formatDate(new Date(lastSegmentInfo.getCreateTime()));
 				responseWriter
 				.key("documentSize").value(documentSize)
 				.key("segmentSize").value(segmentSize)

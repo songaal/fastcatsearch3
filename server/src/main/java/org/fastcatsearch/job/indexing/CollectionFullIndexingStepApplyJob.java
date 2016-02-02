@@ -11,12 +11,6 @@
 
 package org.fastcatsearch.job.indexing;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.fastcatsearch.cluster.ClusterUtils;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeJobResult;
@@ -32,16 +26,19 @@ import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.ir.util.Counter;
-import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.cluster.NodeCollectionReloadJob;
 import org.fastcatsearch.job.cluster.NodeDirectoryCleanJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
-import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.FilePaths;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * 특정 collection의 index node에서 수행되는 전파 및 적용 job.
@@ -95,7 +92,7 @@ public class CollectionFullIndexingStepApplyJob extends IndexingJob {
 			 */
 			indexingTaskState.setStep(IndexingTaskState.STEP_FILECOPY);
 			
-			SegmentInfo segmentInfo = collectionContext.dataInfo().getLastSegmentInfo();
+			SegmentInfo segmentInfo = collectionContext.dataInfo().getSegmentInfoList().get(0);
 			if (segmentInfo != null) {
 				logger.debug("Transfer index data collection[{}] >> {}", collectionId);
 
