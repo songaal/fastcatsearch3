@@ -33,7 +33,7 @@ public class DynamicIndexModule extends AbstractModule {
     private File dir;
     private File stopIndexingFlagFile;
     private int flushPeriodInSeconds;
-    private long indexFileMaxSize;
+    private long indexFileMinSize;
     private long mergePeriod;
     private long indexingPeriod;
 
@@ -43,11 +43,11 @@ public class DynamicIndexModule extends AbstractModule {
         dir = environment.filePaths().collectionFilePaths(collectionId).file("indexlog");
         stopIndexingFlagFile = new File(environment.filePaths().collectionFilePaths(collectionId).file(), "indexlog.stop");
         flushPeriodInSeconds = settings.getInt("indexing.dynamic.log_flush_period_SEC", 1); //1초마다.
-        indexFileMaxSize = settings.getLong("indexing.dynamic.min_log_size_MB", 10L) * 1000 * 1000; //최소 10MB를 모아서 보낸다.
+        indexFileMinSize = settings.getLong("indexing.dynamic.min_log_size_MB", 10L) * 1000 * 1000; //최소 10MB를 모아서 보낸다.
         mergePeriod = settings.getInt("indexing.dynamic.merge_period_SEC", 5) * 1000; //5초마다.
         indexingPeriod = settings.getInt("indexing.dynamic.indexing_period_SEC", 1) * 1000; //1초마다.
-        logger.debug("DynamicIndexModule flushPeriodInSeconds[{}] indexFileMaxSize[{}] mergePeriod[{}] indexingPeriod[{}]",
-                flushPeriodInSeconds, indexFileMaxSize, mergePeriod, indexingPeriod);
+        logger.debug("DynamicIndexModule flushPeriodInSeconds[{}] indexFileMinSize[{}] mergePeriod[{}] indexingPeriod[{}]",
+                flushPeriodInSeconds, indexFileMinSize, mergePeriod, indexingPeriod);
     }
 
     class IndexFireTask extends TimerTask {
@@ -62,7 +62,7 @@ public class DynamicIndexModule extends AbstractModule {
                     //존재하면 추가.
                     fileList.add(file);
                     totalSize += file.length();
-                    if (totalSize >= indexFileMaxSize) {
+                    if (totalSize >= indexFileMinSize) {
                         break;
                     }
                 } else {
