@@ -94,7 +94,12 @@ public class GetCollectionInfoListAction extends AuthAction {
 				}
 				String dataPath = new Path(collectionContext.collectionFilePaths().file()).relativise(indexFileDir).getPath();
 				SegmentInfo lastSegmentInfo = collectionContext.dataInfo().getLatestSegmentInfo();
-				String createTime = Formatter.formatDate(new Date(lastSegmentInfo.getCreateTime()));
+				String createTime = null;
+				if(lastSegmentInfo != null) {
+					createTime = Formatter.formatDate(new Date(lastSegmentInfo.getCreateTime()));
+				} else {
+					createTime = "";
+				}
 				responseWriter
 				.key("documentSize").value(documentSize)
 				.key("segmentSize").value(segmentSize)

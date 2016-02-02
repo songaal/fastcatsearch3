@@ -61,7 +61,12 @@ public class GetIndexingStatusAction extends AuthAction {
 		responseWriter.key("documentSize").value(documentSize);
 
 		SegmentInfo lastSegmentInfo = collectionContext.dataInfo().getLatestSegmentInfo();
-		String createTime = Formatter.formatDate(new Date(lastSegmentInfo.getCreateTime()));
+		String createTime = null;
+		if(lastSegmentInfo != null) {
+			createTime = Formatter.formatDate(new Date(lastSegmentInfo.getCreateTime()));
+		} else {
+			createTime = "";
+		}
 		responseWriter.key("createTime").value(createTime);
 		
 		responseWriter.endObject();
