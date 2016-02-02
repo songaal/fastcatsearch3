@@ -16,10 +16,6 @@
 
 package org.fastcatsearch.ir.search;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Enumeration;
-
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.document.DocumentReader;
@@ -27,6 +23,10 @@ import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Enumeration;
 
 /**
  * 각 세그먼트별 문서를 색인가능하도록 읽어온다.
@@ -70,7 +70,7 @@ public class SegmentIndexableDocumentReader {
                 if(!deleteSet.isSet(docNo)) {
                     lastDocNo = docNo;
                 } else {
-                    logger.debug("doc {} is deleted and ignored for merging", docNo);
+                    logger.trace("doc {} is deleted and ignored for merging", docNo);
                     lastDocNo = -1;
                 }
                 docNo++;
