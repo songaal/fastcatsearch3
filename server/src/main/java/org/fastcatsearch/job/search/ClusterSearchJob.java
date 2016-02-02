@@ -216,12 +216,6 @@ public class ClusterSearchJob extends Job {
                     views.add(new View(list.get(0).getId()));
                 }
             }
-			//FIXME
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
 			String[] tags = q.getMeta().tags();
 			for (int i = 0; i < collectionIdList.length; i++) {
 				String cid = collectionIdList[i];
