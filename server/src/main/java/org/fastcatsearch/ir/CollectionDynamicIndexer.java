@@ -4,7 +4,6 @@ import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.datasource.reader.DefaultDataSourceReader;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo;
@@ -14,7 +13,6 @@ import org.fastcatsearch.ir.field.Field;
 import org.fastcatsearch.ir.field.FieldDataParseException;
 import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.index.SegmentWriter;
-import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.CollectionSearcher;
@@ -109,7 +107,7 @@ public class CollectionDynamicIndexer {
         Document document = documentFactory.createDocument(source);
         indexWriter.addDocument(document);
         insertCount++;
-        logger.debug("Insert doc > {}", source);
+        logger.trace("Insert doc > {}", source);
     }
 
     public void updateDocument(Map<String, Object> source) throws IRException, IOException {
