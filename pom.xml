@@ -10,7 +10,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>co.fastcat</groupId>
 	<artifactId>fastcatsearch</artifactId>
-	<version>3.0.2</version>
+	<version>3.0.3-SNAPSHOT</version>
 	<name>fastcatsearch3</name>
 	<description>fastcatsearch3 package</description>
 	<url>http://www.fastcat.co</url>
@@ -238,7 +238,7 @@
         <connection>scm:git:https://github.com/fastcat-co/fastcatsearch3</connection>
         <developerConnection>scm:git:https://github.com/fastcat-co/fastcatsearch3</developerConnection>
         <url>scm:git:https://github.com/fastcat-co/fastcatsearch3</url>
-      <tag>v3.0.2</tag>
+      <tag>HEAD</tag>
     </scm>
 
 </project>
