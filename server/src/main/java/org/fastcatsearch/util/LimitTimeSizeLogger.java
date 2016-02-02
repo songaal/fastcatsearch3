@@ -11,7 +11,6 @@ import java.util.*;
  * */
 public class LimitTimeSizeLogger {
 	private static final Logger logger = LoggerFactory.getLogger(LimitTimeSizeLogger.class);
-    private long flushCheckPeriod = 200;
     private long flushPeriodInNanoseconds;
 	private int bufferSize;
 	private File dir;
@@ -22,16 +21,17 @@ public class LimitTimeSizeLogger {
     private Queue<File> fileQueue;
     private Object lock = new Object();
 
-	public LimitTimeSizeLogger(File dir, int bufferSize, int flushPeriod) {
-		this(dir, bufferSize, "utf-8", flushPeriod);
+	public LimitTimeSizeLogger(File dir, int flushPeriod) {
+		this(dir, "utf-8", flushPeriod);
 	}
 
-	public LimitTimeSizeLogger(File dir, int bufferSize, String encoding, int flushPeriod) {
-		this.bufferSize = bufferSize;
+	public LimitTimeSizeLogger(File dir, String encoding, int flushPeriod) {
+		this.bufferSize = 10000;
 		this.encoding = encoding;
         this.flushPeriodInNanoseconds = flushPeriod * 1000 * 1000 * 1000;
 		this.memoryData = newMemoryData();
         flushTimer = new Timer();
+        long flushCheckPeriod = 500;
         flushTimer.schedule(new FlushCheckTask(), flushCheckPeriod, flushCheckPeriod);
 		this.dir = dir;
 		if (!dir.exists()) {

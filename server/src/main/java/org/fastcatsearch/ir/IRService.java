@@ -239,9 +239,7 @@ public class IRService extends AbstractService {
 			/*
 			* DynamicIndexModule 을 로딩한다.
 			* */
-            //FIXME 셋팅으로.
-            int bulkSize = 100000;
-            DynamicIndexModule dynamicIndexModule = new DynamicIndexModule(environment, settings, collectionId, bulkSize);
+            DynamicIndexModule dynamicIndexModule = new DynamicIndexModule(environment, settings, collectionId);
 			dynamicIndexModule.load();
 
 			DynamicIndexModule prevDynamicIndexModule = dynamicIndexModuleMap.put(collectionId, dynamicIndexModule);

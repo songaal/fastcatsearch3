@@ -30,18 +30,22 @@ public class DynamicIndexModule extends AbstractModule {
     private LimitTimeSizeLogger dataLogger;
     private Timer indexTimer;
     private Timer mergeTimer;
-    private int bulkSize;
     private File dir;
     private File stopIndexingFlagFile;
-    private int flushPeriod = 1;
-    private long indexFileMaxSize = 10 * 1000 * 1000; //최소 10MB를 모아서 보낸다.
+    private int flushPeriod;
+    private long indexFileMaxSize;
+    private long mergePeriod;
+    private long indexingPeriod;
 
-    public DynamicIndexModule(Environment environment, Settings settings, String collectionId, int bulkSize) {
+    public DynamicIndexModule(Environment environment, Settings settings, String collectionId) {
         super(environment, settings);
         this.collectionId = collectionId;
-        this.bulkSize = bulkSize;
         dir = environment.filePaths().collectionFilePaths(collectionId).file("indexlog");
         stopIndexingFlagFile = new File(environment.filePaths().collectionFilePaths(collectionId).file(), "indexlog.stop");
+        flushPeriod = settings.getInt("indexing.dynamic.log_flush_period_SEC", 1); //1초마다.
+        indexFileMaxSize = settings.getLong("indexing.dynamic.min_log_size_MB", 10L) * 1000 * 1000; //최소 10MB를 모아서 보낸다.
+        mergePeriod = settings.getInt("indexing.dynamic.merge_period_SEC", 5); //5초마다.
+        indexingPeriod = settings.getInt("indexing.dynamic.indexing_period_SEC", 1); //1초마다.
     }
 
     class IndexFireTask extends TimerTask {
@@ -154,9 +158,9 @@ public class DynamicIndexModule extends AbstractModule {
             startIndexingSchedule();
         }
         TimerTask indexMergeTask = new IndexMergeTask();
-        mergeTimer.schedule(indexMergeTask, 5000, 5000);
+        mergeTimer.schedule(indexMergeTask, 5000, mergePeriod);
         logger.info("[{}] Index Merger start scheduling! timer[{}] task[{}]", mergeTimer.hashCode(), indexMergeTask.hashCode());
-        dataLogger = new LimitTimeSizeLogger(dir, bulkSize, flushPeriod);
+        dataLogger = new LimitTimeSizeLogger(dir, flushPeriod);
         logger.info("[{}] To be indexed files = {}", collectionId, dataLogger.getQueueSize());
         return true;
     }
@@ -196,7 +200,7 @@ public class DynamicIndexModule extends AbstractModule {
         if(indexTimer == null) {
             indexTimer = new Timer(true);
             TimerTask indexFireTask = new IndexFireTask();
-            indexTimer.schedule(indexFireTask, 5000, 1000);
+            indexTimer.schedule(indexFireTask, 5000, indexingPeriod);
             return stopIndexingFlagFile.delete();
         } else {
             logger.info("Dynamic Indexing is running. Stop a indexing first before starting.");
