@@ -151,6 +151,13 @@ public class CollectionSearcher {
 			throw new SearchError(CoreErrorCode.COLLECTION_NOT_INDEXED, collectionId);
 		}
 
+		/*
+		 * 중요!! 레퍼런스를 복사하여 세그먼트가 검색도중 동적으로 삭제되어도 문제없도록 한다.
+		 * 2016-2-2 swsong
+		 */
+		TreeSet<SegmentReader> segmentReaders = new TreeSet<SegmentReader>(collectionHandler.segmentReaders());
+		segmentSize = segmentReaders.size();
+
 //		logger.debug("searchInternal incrementCount > {} ", q);
 		collectionHandler.queryCounter().incrementCount();
 		
@@ -204,11 +211,10 @@ public class CollectionSearcher {
         HybridHashSet bundleKeySet = new HybridHashSet(bundleMemMaxCountLimit, bundleHashBucketSize, keySize);
 		List<Explanation> explanationList = null;
 		BitSet[] segmentDocHitSetList = null;
+
 		try {
-            TreeSet treeSet = new TreeSet<SegmentReader>(collectionHandler.segmentReaders());
-            int size = treeSet.size();
-            segmentDocHitSetList = new BitSet[size];
-            Iterator<SegmentReader> iterator = treeSet.iterator();
+            segmentDocHitSetList = new BitSet[segmentSize];
+            Iterator<SegmentReader> iterator = segmentReaders.iterator();
 
 			for(int i = 0; iterator.hasNext(); i++) {
 				// segment 의 모든 결과를 보아야 중복체크가 가능하므로 reader를 받아오도록 한다.
@@ -311,7 +317,7 @@ public class CollectionSearcher {
 		Bundle bundle = q.getBundle();
 		if(bundle != null) {
 			//검색결과의 hit내에서만 검색되도록 해야하므로, bitSet으로 filtering한다.
-			fillBundleResult(schema, hitElementList, realSize, bundle, segmentDocHitSetList);
+			fillBundleResult(schema, segmentReaders, hitElementList, realSize, bundle, segmentDocHitSetList);
 		}
 		return new InternalSearchResult(collectionId, hitElementList, realSize, totalSize, groupData, highlightInfo, explanationList);
 	}
@@ -319,7 +325,7 @@ public class CollectionSearcher {
 	/*
 	 * 번들 문서를 찾아온다.
 	 * */
-	private void fillBundleResult(Schema schema, HitElement[] hitElementList, int size, Bundle bundle, BitSet[] segmentDocFilterList) throws IRException{
+	private void fillBundleResult(Schema schema, TreeSet<SegmentReader> segmentReaders, HitElement[] hitElementList, int size, Bundle bundle, BitSet[] segmentDocFilterList) throws IRException{
 		/*
 		 * el의 bundlekey를 보고 하위 묶음문서가 몇개가 있는지 확인한다.
 		 * 2개 이상일 경우만 저장하고 나머지는 버린다.
@@ -336,9 +342,7 @@ public class CollectionSearcher {
 		
 		try {
 
-			int segmentSize = collectionHandler.segmentReaders().size();
-            TreeSet treeSet = new TreeSet<SegmentReader>(collectionHandler.segmentReaders());
-//            Iterator<SegmentReader> iterator = treeSet.iterator();
+			int segmentSize = segmentReaders.size();
 			for (int k = 0; k < size; k++) {
 				int totalSize = 0;
 				//bundleKey로 clause생성한다.
@@ -356,10 +360,22 @@ public class CollectionSearcher {
 				Clause bundleClause = new Clause(new Term(fieldIndexId, bundleStringKey));
 				Hit[] segmentHitList = new Hit[segmentSize];
 
-                Iterator<SegmentReader> iterator = treeSet.iterator();
+                Iterator<SegmentReader> iterator = segmentReaders.iterator();
                 for(int i = 0; iterator.hasNext(); i++) {
 					//bundle key 별로 결과를 모은다.
-					segmentHitList[i] = iterator.next().segmentSearcher().searchIndex(bundleClause, bundleSorts, bundleStart, bundleRows, segmentDocFilterList[i]);
+					try {
+						segmentHitList[i] = iterator.next().segmentSearcher().searchIndex(bundleClause, bundleSorts, bundleStart, bundleRows, segmentDocFilterList[i]);
+					} catch (Throwable e) {
+						logger.error("bundle search error", e);
+						logger.error("---- [{}]", i);
+						for(SegmentReader r : segmentReaders) {
+							logger.error("> {}", r.segmentId());
+						}
+						logger.error("segmentReaders size = {} >> {}", segmentReaders.size(), segmentReaders);
+						logger.error("segmentSize = {}", segmentSize);
+						logger.error("segmentHitList.len = {}", segmentHitList.length);
+						logger.error("segmentDocFilterList.len = {}", segmentDocFilterList.length);
+					}
 					totalSize += segmentHitList[i].totalCount();
 				}
 				
@@ -423,8 +439,6 @@ public class CollectionSearcher {
 				
 				
 			}
-		} catch (ClauseException e) {
-			throw new IRException(e);
 		} catch (IOException e) {
 			throw new IRException(e);
 		}
@@ -463,10 +477,6 @@ public class CollectionSearcher {
 
 		Document[] eachDocList = new Document[realSize];
 		Document[][] eachBundleDocList = null;
-		
-		//SegmentSearcher를 재사용하기 위한 array. Lazy-loading되며, segmentSequence가 array 첨자가 된다.
-		//처음에는 길이 5로 만들어놓고 나중에 더 필요하면, grow시킨다.
-//		SegmentSearcher[] segmentSearcherList = new SegmentSearcher[5];
 
         Map<String, SegmentSearcher> segmentSearchMap = new HashMap<String, SegmentSearcher>();
 		int idx = 0;
@@ -474,21 +484,25 @@ public class CollectionSearcher {
 			String segmentId = list.segmentId(i);
 			int docNo = list.docNo(i);
 			DocIdList bundleDocIdList = list.bundleDocIdList(i);
-//			int size = segmentSearcherList.length;
-			
-			//기존 범위를 벗어나는 세그먼트 요청이 있을 때 grow한다. 
-//			if(segmentSequence >= size){
-//				while(segmentSequence >= size){
-//					size += 5;
-//				}
-//				SegmentSearcher[] newSegmentSearcherList = new SegmentSearcher[size];
-//				System.arraycopy(segmentSearcherList, 0, newSegmentSearcherList, 0, segmentSearcherList.length);
-//				segmentSearcherList = newSegmentSearcherList;
-//			}
+
             SegmentSearcher segmentSearcher = segmentSearchMap.get(segmentId);
 			if(segmentSearcher == null) {
-                segmentSearcher = collectionHandler.segmentReader(segmentId).segmentSearcher();
-                segmentSearchMap.put(segmentId, segmentSearcher);
+				SegmentReader segmentReader = collectionHandler.segmentReader(segmentId);
+				if(segmentReader != null) {
+					segmentSearcher = segmentReader.segmentSearcher();
+				} else {
+					segmentReader = collectionHandler.getTmpSegmentReader(segmentId);
+					if(segmentReader != null) {
+						segmentSearcher = segmentReader.segmentSearcher();
+					}
+				}
+				if(segmentSearcher != null) {
+					segmentSearchMap.put(segmentId, segmentSearcher);
+				} else {
+					//찾지못함.
+					throw new IOException("Cannot find segment = " + segmentId);
+				}
+
 			}
 			Document doc = segmentSearcher.getDocument(docNo, fieldSelectOption);
 			eachDocList[idx] = doc;
@@ -502,7 +516,27 @@ public class CollectionSearcher {
 				for (int j = 0; j < bundleDocIdList.size(); j++) {
 					String bundleSegmentId = bundleDocIdList.segmentId(j);
 					int bundleDocNo = bundleDocIdList.docNo(j);
-					Document bundleDoc = collectionHandler.segmentReader(bundleSegmentId).segmentSearcher().getDocument(bundleDocNo, fieldSelectOption);
+
+					segmentSearcher = segmentSearchMap.get(bundleSegmentId);
+					if(segmentSearcher == null) {
+						SegmentReader segmentReader = collectionHandler.segmentReader(bundleSegmentId);
+						if(segmentReader != null) {
+							segmentSearcher = segmentReader.segmentSearcher();
+						} else {
+							segmentReader = collectionHandler.getTmpSegmentReader(bundleSegmentId);
+							if(segmentReader != null) {
+								segmentSearcher = segmentReader.segmentSearcher();
+							}
+						}
+						if(segmentSearcher != null) {
+							segmentSearchMap.put(bundleSegmentId, segmentSearcher);
+						} else {
+							//찾지못함.
+							throw new IOException("Cannot find bundled segment = " + bundleSegmentId);
+						}
+					}
+
+					Document bundleDoc = segmentSearcher.getDocument(bundleDocNo, fieldSelectOption);
 					bundleDoclist[j] = bundleDoc;
 				}
 				eachBundleDocList[idx] = bundleDoclist;

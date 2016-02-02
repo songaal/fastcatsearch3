@@ -9,10 +9,13 @@ import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,6 +30,8 @@ import java.util.Set;
  */
 public class NodeIndexMergingJob extends Job implements Streamable {
 
+    protected static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
+
     private String collectionId;
     private String documentId;
 
@@ -40,6 +45,7 @@ public class NodeIndexMergingJob extends Job implements Streamable {
 
     @Override
     public JobResult doRun() throws FastcatSearchException {
+        long startTime = System.currentTimeMillis();
         IRService irService = ServiceManager.getInstance().getService(IRService.class);
         CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
         try {
@@ -184,7 +190,8 @@ public class NodeIndexMergingJob extends Job implements Streamable {
                     collectionContext = collectionHandler.applyMergedSegment(segmentInfo, mergeIndexer.getSegmentDir(), mergeSegmentIdList);
                 }
                 CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
-
+                long elapsed = System.currentTimeMillis() - startTime;
+                indexingLogger.info("[{}] Merge Indexing Done. Inserts[{}] Deletes[{}] Elapsed[{}]", collectionId, segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount(), Formatter.getFormatTime(elapsed));
                 return new JobResult(true);
             } else {
                 //머징없음.

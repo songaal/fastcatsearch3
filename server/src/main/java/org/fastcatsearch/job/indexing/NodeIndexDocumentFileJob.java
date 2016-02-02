@@ -12,11 +12,14 @@ import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.CacheServiceRestartJob;
 import org.fastcatsearch.job.DataJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.CollectionContextUtil;
 import org.fastcatsearch.util.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,6 +30,8 @@ import java.util.Map;
  * Created by swsong on 2016. 1. 14..
  */
 public class NodeIndexDocumentFileJob extends DataJob implements Streamable {
+
+    protected static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 
     private String collectionId;
     private String documentId;
@@ -46,6 +51,7 @@ public class NodeIndexDocumentFileJob extends DataJob implements Streamable {
         try {
             IRService irService = ServiceManager.getInstance().getService(IRService.class);
             CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
+            long startTime = System.currentTimeMillis();
             CollectionDynamicIndexer indexer = null;
             try {
                 indexer = new CollectionDynamicIndexer(documentId, collectionHandler);
@@ -79,7 +85,8 @@ public class NodeIndexDocumentFileJob extends DataJob implements Streamable {
 
                 CollectionContext collectionContext = collectionHandler.applyNewSegment(segmentInfo, segmentDir, indexer.getDeleteIdSet());
                 CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
-
+                long elapsed = System.currentTimeMillis() - startTime;
+                indexingLogger.info("[{}] Dynamic Indexing Done. Inserts[{}] Deletes[{}] Elapsed[{}]", collectionId, segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount(), Formatter.getFormatTime(elapsed));
                 getJobExecutor().offer(new CacheServiceRestartJob(0));
             }
         } catch (Exception e) {

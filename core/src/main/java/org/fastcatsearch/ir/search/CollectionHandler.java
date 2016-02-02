@@ -40,6 +40,7 @@ public class CollectionHandler {
 	private CollectionContext collectionContext;
 	private CollectionSearcher collectionSearcher;
 	private Map<String, SegmentReader> segmentReaderMap;
+    private Map<String, SegmentReader> tmpSegmentReaderMap;
 	private Schema schema;
 	private long startedTime;
 	private boolean isLoaded;
@@ -133,6 +134,7 @@ public class CollectionHandler {
 
 		// 색인기록이 있다면 세그먼트를 로딩한다.
 		segmentReaderMap = new ConcurrentHashMap<String, SegmentReader>();
+        tmpSegmentReaderMap = new ConcurrentHashMap<String, SegmentReader>();
 
         try {
             for (SegmentInfo segmentInfo : collectionContext.dataInfo().getSegmentInfoList()) {
@@ -193,6 +195,11 @@ public class CollectionHandler {
 	public SegmentReader segmentReader(String segmentId) {
 		return segmentReaderMap.get(segmentId);
 	}
+
+    //머징되서 삭제된 세그먼트를 잠시동안 유지한다.
+    public SegmentReader getTmpSegmentReader(String segmentId) {
+        return tmpSegmentReaderMap.get(segmentId);
+    }
 
     public synchronized String nextSegmentId() {
         Set segmentIdSet = segmentReaderMap.keySet();
@@ -401,9 +408,13 @@ public class CollectionHandler {
             if(removeSegmentReader != null) {
                 //설정파일도 수정한다.
                 collectionContext.removeSegmentInfo(removeSegmentId);
+                /*
+                * 중요! 삭제된 세그먼트 리더를 tmp 맵에 임시로 넣어둔다. 차후 10초후에 제거되고 close된다..
+                * */
+                tmpSegmentReaderMap.put(removeSegmentId, removeSegmentReader);
+                //현재 사용중이면 차후에 다 쓰고 닫도록 closeFuture를 호출한다.
+                removeSegmentReader.closeFuture(true, tmpSegmentReaderMap);
             }
-            //현재 사용중이면 차후에 다 쓰고 닫도록 closeFuture를 호출한다.
-            removeSegmentReader.closeFuture(true);
         }
         collectionContext.dataInfo().updateAll();
         return collectionContext;
@@ -454,10 +465,10 @@ public class CollectionHandler {
         if(size > 0) {
             applyDeleteIdSetFromSegments(deleteReqFileList, pkReader, deleteSet);
 
+            //적용처리한 파일은 삭제한다.
             for (File f : deleteReqFileList) {
                 if (f.exists()) {
-                    //FIXME
-//                    FileUtils.deleteQuietly(f);
+                    FileUtils.deleteQuietly(f);
                 }
             }
         }
@@ -487,8 +498,12 @@ public class CollectionHandler {
             if(removeSegmentReader != null) {
                 //설정파일도 수정한다.
                 collectionContext.removeSegmentInfo(removeSegmentId);
+                /*
+                * 중요! 삭제된 세그먼트 리더를 tmp 맵에 임시로 넣어둔다. 차후 10초후에 제거되고 close된다..
+                * */
+                tmpSegmentReaderMap.put(removeSegmentId, removeSegmentReader);
                 //현재 사용중이면 차후에 다 쓰고 닫도록 closeFuture를 호출한다.
-                removeSegmentReader.closeFuture(true);
+                removeSegmentReader.closeFuture(true, tmpSegmentReaderMap);
             }
         }
         collectionContext.addSegmentInfo(segmentInfo);

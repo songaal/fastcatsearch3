@@ -16,10 +16,6 @@
 
 package org.fastcatsearch.ir.search;
 
-import java.io.File;
-import java.io.IOException;
-
-import ch.qos.logback.core.util.TimeUtil;
 import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
@@ -29,9 +25,12 @@ import org.fastcatsearch.ir.document.DocumentReader;
 import org.fastcatsearch.ir.io.BitSet;
 import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.ir.util.CloseableThreadLocal;
-import org.fastcatsearch.ir.util.Formatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * Singleton, Thread-safe 하다. 각 세그먼트에서 검색을 하고 필터링, 그룹핑을 수행한 결과 문서리스트를 리턴한다.
@@ -191,9 +190,9 @@ public class SegmentReader implements Comparable {
 
     // 사용중이지 않으면 닫기록 예약한다.
     public void closeFuture() throws IOException {
-        closeFuture(false);
+        closeFuture(false, null);
     }
-    public void closeFuture(final boolean deleteDirectory) throws IOException {
+    public void closeFuture(final boolean deleteDirectory, final Map<String, SegmentReader> tmpSegmentReaderMap) throws IOException {
 
         Thread t = new Thread() {
             @Override
@@ -216,7 +215,10 @@ public class SegmentReader implements Comparable {
                         Thread.sleep(10000);
                     } catch (InterruptedException e) {
                     }
-                    close();
+					if(tmpSegmentReaderMap != null) {
+						tmpSegmentReaderMap.remove(segmentId);
+					}
+					close();
                     if(deleteDirectory) {
                         FileUtils.deleteQuietly(segmentDir);
                     }
