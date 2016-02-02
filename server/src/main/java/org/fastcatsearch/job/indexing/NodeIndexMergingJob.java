@@ -73,7 +73,6 @@ public class NodeIndexMergingJob extends Job implements Streamable {
 
                 //크기가 비슷한 것끼리 묶는다.
                 //100, 1만, 10만, 100만, 1000만, 그이상 구간을 둔다
-                // TODO 삭제문서까지 고려한 realSize기반으로 머징한다.
 
                 if (docSize <= 100) {
                     merge100.add(segmentId);

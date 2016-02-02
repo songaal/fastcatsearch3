@@ -23,11 +23,10 @@ public class DataInfo {
 	private int documents;
 	private int deletes;
 
-	// TODO id 순서대로 list에 추가되도록 adapter만들어야한다.
 	private List<SegmentInfo> segmentInfoList;
 
 	public DataInfo() {
-		segmentInfoList = new ArrayList<SegmentInfo>();
+		segmentInfoList = Collections.synchronizedList(new ArrayList<SegmentInfo>());
 	}
 
 	public DataInfo copy() {
@@ -113,9 +112,7 @@ public class DataInfo {
 	}
 
 	public void setSegmentInfoList(List<SegmentInfo> segmentInfoList) {
-		//여기서 id가 0,1,2,순으로 정렬이 보장되야한다.
-		Collections.sort(segmentInfoList);
-		this.segmentInfoList = segmentInfoList;
+		this.segmentInfoList = Collections.synchronizedList(segmentInfoList);
 	}
 
 	public int getSegmentSize() {
