@@ -35,16 +35,20 @@ public class DeleteIdSet extends HashSet<PrimaryKeys> implements Streamable {
 
     @Override
     public void readFrom(DataInput input) throws IOException {
+        int size = input.readInt();
         keySize = input.readInt();
-        PrimaryKeys keys = new PrimaryKeys(keySize);
-        for (int i = 0; i < keySize; i++) {
-            keys.set(i, input.readString());
+        for (int k = 0; k < size; k++) {
+            PrimaryKeys keys = new PrimaryKeys(keySize);
+            for (int i = 0; i < keySize; i++) {
+                keys.set(i, input.readString());
+            }
+            super.add(keys);
         }
-        super.add(keys);
     }
 
     @Override
     public void writeTo(DataOutput output) throws IOException {
+        output.writeInt(this.size());
         output.writeInt(keySize);
         for (PrimaryKeys keys : this) {
             for (int i = 0; i < keySize; i++) {

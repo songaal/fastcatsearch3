@@ -13,8 +13,8 @@ import org.fastcatsearch.ir.filter.FilterException;
 import org.fastcatsearch.ir.group.GroupDataMerger;
 import org.fastcatsearch.ir.group.GroupHit;
 import org.fastcatsearch.ir.group.GroupsData;
-import org.fastcatsearch.ir.io.*;
 import org.fastcatsearch.ir.io.BitSet;
+import org.fastcatsearch.ir.io.*;
 import org.fastcatsearch.ir.query.*;
 import org.fastcatsearch.ir.query.Term.Option;
 import org.fastcatsearch.ir.search.clause.Clause;
@@ -27,7 +27,6 @@ import org.fastcatsearch.ir.util.Formatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -312,7 +311,7 @@ public class CollectionSearcher {
 		Bundle bundle = q.getBundle();
 		if(bundle != null) {
 			//검색결과의 hit내에서만 검색되도록 해야하므로, bitSet으로 filtering한다.
-			fillBundleResult(schema, segmentSize, hitElementList, realSize, bundle, segmentDocHitSetList);
+			fillBundleResult(schema, hitElementList, realSize, bundle, segmentDocHitSetList);
 		}
 		return new InternalSearchResult(collectionId, hitElementList, realSize, totalSize, groupData, highlightInfo, explanationList);
 	}
@@ -320,7 +319,7 @@ public class CollectionSearcher {
 	/*
 	 * 번들 문서를 찾아온다.
 	 * */
-	private void fillBundleResult(Schema schema, int segmentSize, HitElement[] hitElementList, int size, Bundle bundle, BitSet[] segmentDocFilterList) throws IRException{
+	private void fillBundleResult(Schema schema, HitElement[] hitElementList, int size, Bundle bundle, BitSet[] segmentDocFilterList) throws IRException{
 		/*
 		 * el의 bundlekey를 보고 하위 묶음문서가 몇개가 있는지 확인한다.
 		 * 2개 이상일 경우만 저장하고 나머지는 버린다.
@@ -337,6 +336,7 @@ public class CollectionSearcher {
 		
 		try {
 
+			int segmentSize = collectionHandler.segmentReaders().size();
             TreeSet treeSet = new TreeSet<SegmentReader>(collectionHandler.segmentReaders());
 //            Iterator<SegmentReader> iterator = treeSet.iterator();
 			for (int k = 0; k < size; k++) {
