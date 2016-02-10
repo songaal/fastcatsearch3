@@ -82,7 +82,7 @@ public class DynamicIndexModule extends AbstractModule {
                     fileNames.add(f.getName());
                 }
                 //file 을 증분색인하도록 요청한다.
-                logger.info("Indexing[{}] Remnants[{}] >> {}", fileList.size(), dataLogger.getQueueSize(), fileNames);
+                logger.info("[{}] Indexing[{}] Remnants[{}] >> {}", fileList.size(), collectionId, dataLogger.getQueueSize(), fileNames);
 
                 String documentId = null;
                 try {
@@ -114,10 +114,12 @@ public class DynamicIndexModule extends AbstractModule {
                     List<Node> nodeList = new ArrayList<Node>(nodeService.getNodeById(nodeIdList));
 
                     NodeIndexDocumentFileJob indexFileDocumentJob = new NodeIndexDocumentFileJob(collectionId, documentId, documents);
+                    long st = System.nanoTime();
                     NodeJobResult[] nodeResultList = ClusterUtils.sendJobToNodeList(indexFileDocumentJob, nodeService, nodeList, true);
+                    logger.debug("[{}] Index files send time : {}ms", collectionId, (System.nanoTime() - st) / 1000000);
                     //여기서 색인이 끝날때 까지 블록킹해야 다음색인이 동시에 돌지 않게됨.
                     for(NodeJobResult result : nodeResultList) {
-                        logger.debug("Index files {} : Node {} > {}", fileNames, result.node().id(), result.result());
+                        logger.debug("[{}] Index files {} : Node {} > {}", collectionId, fileNames, result.node().id(), result.result());
                     }
                     for(File f : fileList) {
                         FileUtils.deleteQuietly(f);
@@ -136,7 +138,7 @@ public class DynamicIndexModule extends AbstractModule {
         public void run() {
 
             String documentId = String.valueOf(System.nanoTime());
-//            logger.debug("MergeCheckTask-{} col[{}] at {}", name, collectionId, documentId);
+            logger.debug("MergeCheckTask-{} col[{}] at {}", name, collectionId, documentId);
             try {
                 JobService jobService = ServiceManager.getInstance().getService(JobService.class);
                 ResultFuture resultFuture = jobService.offer(new NodeIndexMergingJob(collectionId, documentId));
@@ -161,7 +163,7 @@ public class DynamicIndexModule extends AbstractModule {
         }
         TimerTask indexMergeTask = new IndexMergeTask();
         mergeTimer.schedule(indexMergeTask, 5000, mergePeriod);
-        logger.info("[{}] Index Merger start scheduling! timer[{}] task[{}]", mergeTimer.hashCode(), indexMergeTask.hashCode());
+        logger.info("[{}][{}] Index Merger start scheduling! timer[{}] task[{}]", collectionId, mergeTimer.hashCode(), indexMergeTask.hashCode());
         dataLogger = new LimitTimeSizeLogger(dir, flushPeriodInSeconds);
         logger.info("[{}] To be indexed files = {}", collectionId, dataLogger.getQueueSize());
         return true;
@@ -205,7 +207,7 @@ public class DynamicIndexModule extends AbstractModule {
             indexTimer.schedule(indexFireTask, 5000, indexingPeriod);
             return stopIndexingFlagFile.delete();
         } else {
-            logger.info("Dynamic Indexing is running. Stop a indexing first before starting.");
+            logger.info("[{}] Dynamic Indexing is running. Stop a indexing first before starting.", collectionId);
         }
         return false;
     }

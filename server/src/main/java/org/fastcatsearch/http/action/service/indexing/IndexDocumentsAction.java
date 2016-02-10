@@ -8,6 +8,7 @@ import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.ServiceAction;
 import org.fastcatsearch.ir.IRService;
+import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.job.indexing.IndexDocumentRequestJob;
 import org.fastcatsearch.service.ServiceManager;
@@ -43,6 +44,9 @@ public abstract class IndexDocumentsAction extends ServiceAction {
         String indexNodeId = collectionContext.collectionConfig().getIndexNode();
         Node indexNode = nodeService.getNodeById(indexNodeId);
 
+        if(indexNode == null) {
+            throw new IRException("Cannot find index node. Indexing fail! collectionId=" + collectionId);
+        }
         IndexDocumentRequestJob indexCollectionDocumentJob = new IndexDocumentRequestJob();
         String indexType = getType();
         indexCollectionDocumentJob.setArgs(new String[]{collectionId, indexType, requestBody});

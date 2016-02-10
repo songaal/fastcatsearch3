@@ -190,7 +190,7 @@ public class NodeIndexMergingJob extends Job implements Streamable {
                 }
                 CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
                 long elapsed = System.currentTimeMillis() - startTime;
-                indexingLogger.info("[{}] Merge Indexing Done. Inserts[{}] Deletes[{}] Elapsed[{}]", collectionId, segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount(), Formatter.getFormatTime(elapsed));
+                indexingLogger.info("[{}] Merge Indexing Done. Inserts[{}] Deletes[{}] Elapsed[{}] Segments[{}] SegIds{} ", collectionId, segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount(), Formatter.getFormatTime(elapsed), mergeSegmentIdList.size(), mergeSegmentIdList);
                 return new JobResult(true);
             } else {
                 //머징없음.
