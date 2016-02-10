@@ -62,7 +62,6 @@ public class NodeIndexDocumentFileJob extends DataJob implements Streamable {
 //                for(MapDocument doc : docList) {
                     String type = String.valueOf(doc.getType());
                     Map<String, Object> sourceMap = doc.getSourceMap();
-
                     if (type.equals(IndexDocumentsAction.INSERT_TYPE)) {
                         indexer.insertDocument(sourceMap);
                     } else if (type.equals(IndexDocumentsAction.UPDATE_TYPE)) {
