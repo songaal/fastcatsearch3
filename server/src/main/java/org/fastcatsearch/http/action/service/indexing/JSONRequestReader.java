@@ -19,10 +19,39 @@ public class JSONRequestReader {
 
     private static Logger logger = LoggerFactory.getLogger(JSONRequestReader.class);
 
+    private BufferedReader reader;
     public JSONRequestReader() {
     }
+    public JSONRequestReader(String source) {
+        reader = new BufferedReader(new StringReader(source), 1024 * 1024);
+    }
 
-    public List<String> readJsonList(String requestBody) throws IOException {
+    public MapDocument readAsMapDocument() throws IOException {
+
+        String line = reader.readLine();
+        if(line == null) {
+            return null;
+        }
+        line = line.trim();
+        if (line.length() == 0) {
+            return null;
+        }
+
+        char type = line.charAt(0);
+        String document = line.substring(2);
+        try {
+            return new MapDocument(type, JsonUtil.json2ObjectWithLowercaseKey(document));
+        } catch (IOException e) {
+            logger.error("error while convert json to map : " + document, e);
+        }
+        return null;
+    }
+
+    public void close() {
+
+    }
+
+    public static List<String> readJsonList(String requestBody) throws IOException {
         BufferedReader reader = new BufferedReader(new StringReader(requestBody));
         String line = null;
         List<String> result = new ArrayList<String>();
@@ -45,7 +74,7 @@ public class JSONRequestReader {
         return result;
     }
 
-    public List<MapDocument> readMapDocuments(String requestBody) throws IOException {
+    public static List<MapDocument> readMapDocuments(String requestBody) throws IOException {
         BufferedReader reader = new BufferedReader(new StringReader(requestBody));
         String line = null;
         List<MapDocument> result = new ArrayList<MapDocument>();

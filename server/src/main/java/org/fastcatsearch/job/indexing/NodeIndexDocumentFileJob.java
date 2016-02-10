@@ -55,9 +55,11 @@ public class NodeIndexDocumentFileJob extends DataJob implements Streamable {
             CollectionDynamicIndexer indexer = null;
             try {
                 indexer = new CollectionDynamicIndexer(documentId, collectionHandler);
-
-                List<MapDocument> jsonList = new JSONRequestReader().readMapDocuments(documents);
-                for (MapDocument doc : jsonList) {
+                JSONRequestReader jsonReader = new JSONRequestReader(documents);
+//                List<MapDocument> docList = JSONRequestReader.readMapDocuments(documents);
+                MapDocument doc = null;
+                while((doc = jsonReader.readAsMapDocument()) != null) {
+//                for(MapDocument doc : docList) {
                     String type = String.valueOf(doc.getType());
                     Map<String, Object> sourceMap = doc.getSourceMap();
 
@@ -74,7 +76,6 @@ public class NodeIndexDocumentFileJob extends DataJob implements Streamable {
                 if (indexer != null) {
                     segmentInfo = indexer.close();
                 }
-
                 File segmentDir = indexer.getSegmentDir();
                 if(segmentInfo.getDocumentCount() == 0) {
                     logger.info("[{}] Delete segment dir due to no documents = {}", collectionHandler.collectionId(), segmentDir.getAbsolutePath());
