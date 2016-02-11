@@ -2,6 +2,8 @@ package org.fastcatsearch.http.action.service.indexing;
 
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import net.minidev.json.parser.ParseException;
+import org.fastcatsearch.util.JSONParser;
 import org.fastcatsearch.util.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,10 +22,15 @@ public class JSONRequestReader {
     private static Logger logger = LoggerFactory.getLogger(JSONRequestReader.class);
 
     private BufferedReader reader;
+    private JSONParser jsonParser;
+
     public JSONRequestReader() {
+        jsonParser = new JSONParser();
     }
+
     public JSONRequestReader(String source) {
         reader = new BufferedReader(new StringReader(source), 1024 * 1024);
+        jsonParser = new JSONParser();
     }
 
     public MapDocument readAsMapDocument() throws IOException {
@@ -40,8 +47,8 @@ public class JSONRequestReader {
         char type = line.charAt(0);
         String document = line.substring(2);
         try {
-            return new MapDocument(type, JsonUtil.json2ObjectWithLowercaseKey(document));
-        } catch (IOException e) {
+            return new MapDocument(type, jsonParser.parse(document));
+        } catch (ParseException e) {
             logger.error("error while convert json to map : " + document, e);
         }
         return null;
@@ -51,7 +58,7 @@ public class JSONRequestReader {
 
     }
 
-    public static List<String> readJsonList(String requestBody) throws IOException {
+    public List<String> readJsonList(String requestBody) throws IOException {
         BufferedReader reader = new BufferedReader(new StringReader(requestBody));
         String line = null;
         List<String> result = new ArrayList<String>();
@@ -65,16 +72,16 @@ public class JSONRequestReader {
             }
             try {
                 //에러가 없다면 넣는다.
-                new JsonParser().parse(line);
+                jsonParser.parse(line);
                 result.add(line);
-            } catch (JsonSyntaxException e) {
+            } catch (ParseException e) {
                 logger.error("error while convert text to json : " + line, e);
             }
         }
         return result;
     }
 
-    public static List<MapDocument> readMapDocuments(String requestBody) throws IOException {
+    public List<MapDocument> readMapDocuments(String requestBody) throws IOException {
         BufferedReader reader = new BufferedReader(new StringReader(requestBody));
         String line = null;
         List<MapDocument> result = new ArrayList<MapDocument>();
@@ -90,8 +97,8 @@ public class JSONRequestReader {
             char type = line.charAt(0);
             String document = line.substring(2);
             try {
-                result.add(new MapDocument(type, JsonUtil.json2ObjectWithLowercaseKey(document)));
-            } catch (IOException e) {
+                result.add(new MapDocument(type, jsonParser.parse(document)));
+            } catch (ParseException e) {
                 logger.error("error while convert json to map : " + document, e);
             }
         }

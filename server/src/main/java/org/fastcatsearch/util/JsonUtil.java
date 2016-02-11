@@ -7,11 +7,19 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.KeyDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import net.minidev.json.JSONAwareEx;
+import net.minidev.json.parser.JSONParser;
+import net.minidev.json.writer.JsonReader;
+import net.minidev.json.writer.JsonReaderI;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static net.minidev.json.parser.JSONParser.MODE_JSON_SIMPLE;
 
 /**
  * Created by swsong on 2015. 8. 16..
@@ -60,4 +68,5 @@ public class JsonUtil {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.readTree(json);
     }
+
 }
