@@ -154,6 +154,8 @@ public class DemoSearchAction extends ServiceAction {
 		*
 		* 2016-02-15 전제현
 		* 재수정
+		*
+		* 커밋 테스트
 		* */
 		if(keyword != null) {
 			if (keyword.contains("$")) {
