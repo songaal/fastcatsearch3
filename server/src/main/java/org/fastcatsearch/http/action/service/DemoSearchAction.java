@@ -17,9 +17,7 @@ import org.fastcatsearch.util.ResponseWriter;
 import org.fastcatsearch.util.ResultWriterException;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -143,42 +141,11 @@ public class DemoSearchAction extends ServiceAction {
 		responseWriter.endObject();
 	}
 	
-	private String replaceKeyword(String tagetString, String keyword) throws UnsupportedEncodingException {
+	private String replaceKeyword(String tagetString, String keyword) {
 		if(tagetString == null){
 			return null;
 		}
 
-		/*
-		* 2016-01-20 전제현
-		* 검색 시 $, \ 등을 사용할 경우 오류사항 수정
-		*
-		* 2016-02-15 전제현
-		* 재수정
-		*
-		* 커밋 테스트
-		* */
-		if(keyword != null) {
-			if (keyword.contains("$")) {
-				String encodingCharacter = URLEncoder.encode("$", "UTF-8");
-				keyword = keyword.replace("$", encodingCharacter);
-			}
-
-			if (keyword.contains("\\")) {
-				String encodingCharacter = URLEncoder.encode("\\", "UTF-8");
-				keyword = keyword.replace("\\", encodingCharacter);
-			}
-
-			if (keyword.contains("&")) {
-				String encodingCharacter = URLEncoder.encode("&", "UTF-8");
-				keyword = keyword.replace("&", encodingCharacter);
-			}
-
-			/*if (keyword.contains(":")) {
-				String encodingCharacter = "";
-				keyword = keyword.replace(":", encodingCharacter);
-			}*/
-		}
-		
 		return tagetString.replaceAll("#keyword", keyword);
 	}
 	
