@@ -20,6 +20,7 @@ import org.fastcatsearch.util.LimitTimeSizeLogger;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Semaphore;
 
 /**
  * Created by swsong on 2016. 1. 13..
@@ -36,6 +37,9 @@ public class DynamicIndexModule extends AbstractModule {
     private long indexFileMinSize;
     private long mergePeriod;
     private long indexingPeriod;
+
+    private Semaphore indexingMutex = new Semaphore(1);
+    private Semaphore mergingMutex = new Semaphore(1);
 
     public DynamicIndexModule(Environment environment, Settings settings, String collectionId) {
         super(environment, settings);
@@ -54,78 +58,84 @@ public class DynamicIndexModule extends AbstractModule {
 
         @Override
         public void run() {
-            List<File> fileList = new ArrayList<File>();
-            long totalSize = 0;
-            while(true) {
-                File file = dataLogger.pollFile();
-                if(file != null && file.exists()) {
-                    //존재하면 추가.
-                    fileList.add(file);
-                    totalSize += file.length();
-                    if (totalSize >= indexFileMinSize) {
-                        break;
-                    }
-                } else {
-                    if(fileList.size() > 0) {
-                        //몇개라도 존재하면 계속진행.
-                        break;
-                    } else {
-                        //없으면 리턴.
-                        return;
-                    }
-                }
-            }
-
-            if(fileList.size() > 0) {
-                List<String> fileNames = new ArrayList<String>();
-                for(File f : fileList) {
-                    fileNames.add(f.getName());
-                }
-                //file 을 증분색인하도록 요청한다.
-                logger.info("[{}] Indexing[{}] Remnants[{}] >> {}", fileList.size(), collectionId, dataLogger.getQueueSize(), fileNames);
-
-                String documentId = null;
+            if(indexingMutex.tryAcquire()) {
                 try {
-                    String documents = null;
-                    if(fileList.size() == 1) {
-                        File f = fileList.get(0);
-                        documentId = f.getName();
-                        documents = FileUtils.readFileToString(f, "utf-8");
-                    } else {
-                        StringBuffer documentsBuffer = new StringBuffer();
-                        documentId = fileList.get(0).getName() + "_" + fileList.get(fileList.size() - 1).getName();
-                        for(File f : fileList) {
-                            if(documentsBuffer.length() > 0) {
-                                documentsBuffer.append("\n");
+                    List<File> fileList = new ArrayList<File>();
+                    long totalSize = 0;
+                    while (true) {
+                        File file = dataLogger.pollFile();
+                        if (file != null && file.exists()) {
+                            //존재하면 추가.
+                            fileList.add(file);
+                            totalSize += file.length();
+                            if (totalSize >= indexFileMinSize) {
+                                break;
                             }
-                            documentsBuffer.append(FileUtils.readFileToString(f, "utf-8"));
+                        } else {
+                            if (fileList.size() > 0) {
+                                //몇개라도 존재하면 계속진행.
+                                break;
+                            } else {
+                                //없으면 리턴.
+                                return;
+                            }
                         }
-                        documents = documentsBuffer.toString();
                     }
 
-                    NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
-                    IRService irService = ServiceManager.getInstance().getService(IRService.class);
-                    CollectionContext collectionContext = irService.collectionContext(collectionId);
+                    if (fileList.size() > 0) {
+                        List<String> fileNames = new ArrayList<String>();
+                        for (File f : fileList) {
+                            fileNames.add(f.getName());
+                        }
+                        //file 을 증분색인하도록 요청한다.
+                        logger.info("[{}] Indexing[{}] Remnants[{}] >> {}", fileList.size(), collectionId, dataLogger.getQueueSize(), fileNames);
 
-                    Set<String> nodeSet = new HashSet<String>();
-                    nodeSet.addAll(collectionContext.collectionConfig().getDataNodeList());
-                    nodeSet.add(collectionContext.collectionConfig().getIndexNode());
-                    List<String> nodeIdList = new ArrayList<String>(nodeSet);
-                    List<Node> nodeList = new ArrayList<Node>(nodeService.getNodeById(nodeIdList));
+                        String documentId = null;
+                        try {
+                            String documents = null;
+                            if (fileList.size() == 1) {
+                                File f = fileList.get(0);
+                                documentId = f.getName();
+                                documents = FileUtils.readFileToString(f, "utf-8");
+                            } else {
+                                StringBuffer documentsBuffer = new StringBuffer();
+                                documentId = fileList.get(0).getName() + "_" + fileList.get(fileList.size() - 1).getName();
+                                for (File f : fileList) {
+                                    if (documentsBuffer.length() > 0) {
+                                        documentsBuffer.append("\n");
+                                    }
+                                    documentsBuffer.append(FileUtils.readFileToString(f, "utf-8"));
+                                }
+                                documents = documentsBuffer.toString();
+                            }
 
-                    NodeIndexDocumentFileJob indexFileDocumentJob = new NodeIndexDocumentFileJob(collectionId, documentId, documents);
-                    long st = System.nanoTime();
-                    NodeJobResult[] nodeResultList = ClusterUtils.sendJobToNodeList(indexFileDocumentJob, nodeService, nodeList, true);
-                    logger.debug("[{}] Index files send time : {}ms", collectionId, (System.nanoTime() - st) / 1000000);
-                    //여기서 색인이 끝날때 까지 블록킹해야 다음색인이 동시에 돌지 않게됨.
-                    for(NodeJobResult result : nodeResultList) {
-                        logger.debug("[{}] Index files {} : Node {} > {}", collectionId, fileNames, result.node().id(), result.result());
+                            NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
+                            IRService irService = ServiceManager.getInstance().getService(IRService.class);
+                            CollectionContext collectionContext = irService.collectionContext(collectionId);
+
+                            Set<String> nodeSet = new HashSet<String>();
+                            nodeSet.addAll(collectionContext.collectionConfig().getDataNodeList());
+                            nodeSet.add(collectionContext.collectionConfig().getIndexNode());
+                            List<String> nodeIdList = new ArrayList<String>(nodeSet);
+                            List<Node> nodeList = new ArrayList<Node>(nodeService.getNodeById(nodeIdList));
+
+                            NodeIndexDocumentFileJob indexFileDocumentJob = new NodeIndexDocumentFileJob(collectionId, documentId, documents);
+                            long st = System.nanoTime();
+                            NodeJobResult[] nodeResultList = ClusterUtils.sendJobToNodeList(indexFileDocumentJob, nodeService, nodeList, true);
+                            logger.debug("[{}] Index files send time : {}ms", collectionId, (System.nanoTime() - st) / 1000000);
+                            //여기서 색인이 끝날때 까지 블록킹해야 다음색인이 동시에 돌지 않게됨.
+                            for (NodeJobResult result : nodeResultList) {
+                                logger.debug("[{}] Index files {} : Node {} > {}", collectionId, fileNames, result.node().id(), result.result());
+                            }
+                            for (File f : fileList) {
+                                FileUtils.deleteQuietly(f);
+                            }
+                        } catch (Exception e) {
+                            logger.error("", e);
+                        }
                     }
-                    for(File f : fileList) {
-                        FileUtils.deleteQuietly(f);
-                    }
-                } catch (Exception e) {
-                    logger.error("", e);
+                } finally {
+                    indexingMutex.release();
                 }
             }
         }
@@ -137,19 +147,31 @@ public class DynamicIndexModule extends AbstractModule {
         @Override
         public void run() {
 
-            String documentId = String.valueOf(System.nanoTime());
-            logger.debug("MergeCheckTask-{} col[{}] at {}", name, collectionId, documentId);
-            try {
-                JobService jobService = ServiceManager.getInstance().getService(JobService.class);
-                ResultFuture resultFuture = jobService.offer(new NodeIndexMergingJob(collectionId, documentId));
-                Object result = resultFuture.take();
-                if(result instanceof Boolean && ((Boolean) result).booleanValue()) {
+            if(mergingMutex.tryAcquire()) {
+                try {
+                    String documentId = String.valueOf(System.nanoTime());
+                    logger.debug("MergeCheckTask-{} col[{}] at {}", name, collectionId, documentId);
+                    try {
+                        JobService jobService = ServiceManager.getInstance().getService(JobService.class);
+                        ResultFuture resultFuture = jobService.offer(new NodeIndexMergingJob(collectionId, documentId));
+                        Object result = resultFuture.take();
+                        if (result instanceof Boolean && ((Boolean) result).booleanValue()) {
 //                    logger.debug("Merging id {} : Node {}", documentId, environment.myNodeId());
-                } else {
-                    //무시.
+                        } else {
+                            //무시.
+                        }
+                    } catch (Exception e) {
+                        logger.error("", e);
+                    }
+
+                    //머징이 즉시 시작하는 것을 방지하기 위해 1초정도 여유를 둠.
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ignore) {
+                    }
+                } finally {
+                    mergingMutex.release();
                 }
-            } catch (Exception e) {
-                logger.error("", e);
             }
         }
     }

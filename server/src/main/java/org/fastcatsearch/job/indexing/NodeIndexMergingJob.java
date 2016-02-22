@@ -48,11 +48,14 @@ public class NodeIndexMergingJob extends Job implements Streamable {
         long startTime = System.currentTimeMillis();
         IRService irService = ServiceManager.getInstance().getService(IRService.class);
         CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
+
+        // 머징 시작표시..
+        if(collectionHandler.isMergingStatus()) {
+            return new JobResult(false);
+        }
+
         try {
-            // 머징 시작표시..
-            if(collectionHandler.isMergingStatus()) {
-                return new JobResult(false);
-            }
+
             collectionHandler.startMergingStatus();
 
             CollectionContext collectionContext = collectionHandler.collectionContext();
@@ -191,6 +194,7 @@ public class NodeIndexMergingJob extends Job implements Streamable {
                 CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
                 long elapsed = System.currentTimeMillis() - startTime;
                 indexingLogger.info("[{}] Merge Indexing Done. Inserts[{}] Deletes[{}] Elapsed[{}] Segments[{}] SegIds{} ", collectionId, segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount(), Formatter.getFormatTime(elapsed), mergeSegmentIdList.size(), mergeSegmentIdList);
+
                 return new JobResult(true);
             } else {
                 //머징없음.
