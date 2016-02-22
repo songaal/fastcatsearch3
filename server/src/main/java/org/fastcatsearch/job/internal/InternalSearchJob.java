@@ -25,49 +25,49 @@ import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableInternalSearchResult;
 
 public class InternalSearchJob extends Job implements Streamable {
-	private static final long serialVersionUID = 4998297114497342795L;
-	private QueryMap queryMap;
-	private boolean forMerging;
-	
-	public InternalSearchJob(){}
-	
-	public InternalSearchJob(QueryMap queryMap){
-		this.queryMap = queryMap;
-	}
-	
-	public InternalSearchJob(QueryMap queryMap, boolean forMerging){
-		this.queryMap = queryMap;
-		this.forMerging = forMerging;
-	}
-	
-	@Override
-	public JobResult doRun() throws FastcatSearchException {
-		
-		Query q = QueryParser.getInstance().parseQuery(queryMap);
+    private static final long serialVersionUID = 4998297114497342795L;
+    private QueryMap queryMap;
+    private boolean forMerging;
 
-		String collectionId = queryMap.collectionId();
-		try {
-			Metadata meta = q.getMeta();
-			QueryModifier queryModifier = meta.queryModifier();
-			//쿼리모디파이.
-			if (queryModifier != null) {
-				q = queryModifier.modify(collectionId, q);
-				meta = q.getMeta();
-			}
-			logger.debug("q > {}", q);
-			InternalSearchResult result = null;
-			
-			IRService irService = ServiceManager.getInstance().getService(IRService.class);
-			
-			//Not Exist in Cache
-			if(result == null){
-				CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
-				if(collectionHandler == null){
+    public InternalSearchJob(){}
+
+    public InternalSearchJob(QueryMap queryMap){
+        this.queryMap = queryMap;
+    }
+
+    public InternalSearchJob(QueryMap queryMap, boolean forMerging){
+        this.queryMap = queryMap;
+        this.forMerging = forMerging;
+    }
+
+    @Override
+    public JobResult doRun() throws FastcatSearchException {
+
+        Query q = QueryParser.getInstance().parseQuery(queryMap);
+
+        String collectionId = queryMap.collectionId();
+        try {
+            Metadata meta = q.getMeta();
+            QueryModifier queryModifier = meta.queryModifier();
+            //쿼리모디파이.
+            if (queryModifier != null) {
+                q = queryModifier.modify(collectionId, q);
+                meta = q.getMeta();
+            }
+            logger.debug("q > {}", q);
+            InternalSearchResult result = null;
+
+            IRService irService = ServiceManager.getInstance().getService(IRService.class);
+
+            //Not Exist in Cache
+            if(result == null){
+                CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
+                if(collectionHandler == null){
                     throw new SearchError(ServerErrorCode.COLLECTION_NOT_FOUND, collectionId);
-				}
-				Query boostQuery = q.getBoostQuery();
-				PkScoreList pkScoreList = null;
-				if(boostQuery != null) {
+                }
+                Query boostQuery = q.getBoostQuery();
+                PkScoreList pkScoreList = null;
+                if(boostQuery != null) {
                     try {
                         String boostKeyword = boostQuery.getMeta().getUserData("KEYWORD");
                         pkScoreList = new PkScoreList(boostKeyword);
@@ -81,42 +81,36 @@ public class InternalSearchJob extends Job implements Streamable {
                             }
                             //FIXME 첫번째 필드가 id이다.
                             logger.debug("e.docNo() > {}", e.docNo());
-                            logger.debug("field > {}", boostCollectionSearcher.requestDocument(e.docNo()).get(1));
-                            String id = boostCollectionSearcher.requestDocument(e.docNo()).get(1).toString();
+                            logger.debug("field > {}", boostCollectionSearcher.requestDocument(e.segmentId(), e.docNo()).get(1));
+                            String id = boostCollectionSearcher.requestDocument(e.segmentId(), e.docNo()).get(1).toString();
                             int score = e.score();
                             pkScoreList.add(new PkScore(id, score));
                         }
                     } catch(Throwable t) {
                         logger.error("error while boosting query > " + boostQuery, t);
                     }
-						String id = boostCollectionSearcher.requestDocument(e.segmentId(), e.docNo()).get(1).toString();
-                        logger.debug("e.segmentId[{}] e.docNo[{}] > {}", e.segmentId(), e.docNo());
-                        logger.debug("field > {}", id);
-						int score = e.score();
-						pkScoreList.add(new PkScore(id, score));
-					}
-				}
-				result = collectionHandler.searcher().searchInternal(q, forMerging, pkScoreList);
-			}
+                }
+                result = collectionHandler.searcher().searchInternal(q, forMerging, pkScoreList);
+            }
 
-			return new JobResult(new StreamableInternalSearchResult(result));
+            return new JobResult(new StreamableInternalSearchResult(result));
 
         } catch (SearchError e){
             throw e;
-		} catch(Exception e){
-			throw new FastcatSearchException(e);
-		}
+        } catch(Exception e){
+            throw new FastcatSearchException(e);
+        }
 
-	}
-	@Override
-	public void readFrom(DataInput input) throws IOException {
-		this.queryMap = new QueryMap();
-		queryMap.readFrom(input);
-		this.forMerging = input.readBoolean();
-	}
-	@Override
-	public void writeTo(DataOutput output) throws IOException {
-		queryMap.writeTo(output);
-		output.writeBoolean(forMerging);
-	}
+    }
+    @Override
+    public void readFrom(DataInput input) throws IOException {
+        this.queryMap = new QueryMap();
+        queryMap.readFrom(input);
+        this.forMerging = input.readBoolean();
+    }
+    @Override
+    public void writeTo(DataOutput output) throws IOException {
+        queryMap.writeTo(output);
+        output.writeBoolean(forMerging);
+    }
 }
