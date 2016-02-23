@@ -9,6 +9,7 @@ import org.fastcatsearch.ir.CollectionDynamicIndexer;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo;
+import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
@@ -23,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -82,12 +82,18 @@ public class NodeIndexDocumentFileJob extends DataJob implements Streamable {
                     //세그먼트를 삭제하고 없던 일로 한다.
                     segmentInfo = null;
                 }
-
-                CollectionContext collectionContext = collectionHandler.applyNewSegment(segmentInfo, segmentDir, indexer.getDeleteIdSet());
-                CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
+                DeleteIdSet deleteIdSet = indexer.getDeleteIdSet();
+                //추가문서가 있거나, 또는 삭제문서가 있어야 적용을 한다.
+                if(segmentInfo != null || deleteIdSet.size() > 0) {
+                    CollectionContext collectionContext = collectionHandler.applyNewSegment(segmentInfo, segmentDir, deleteIdSet);
+                    CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
+                    getJobExecutor().offer(new CacheServiceRestartJob(0));
+                }
                 long elapsed = System.currentTimeMillis() - startTime;
-                indexingLogger.info("[{}] Dynamic Indexing Done. Inserts[{}] Deletes[{}] Elapsed[{}]", collectionId, segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount(), Formatter.getFormatTime(elapsed));
-                getJobExecutor().offer(new CacheServiceRestartJob(0));
+
+                int inserts = segmentInfo != null ? segmentInfo.getDocumentCount() : 0;
+                int deletes = segmentInfo != null ? segmentInfo.getDeleteCount() : 0;
+                indexingLogger.info("[{}] Dynamic Indexing Done. Inserts[{}] Deletes[{}] Elapsed[{}]", collectionId, inserts, deletes, Formatter.getFormatTime(elapsed));
             }
         } catch (Exception e) {
             logger.error("node dynamic index error!", e);
