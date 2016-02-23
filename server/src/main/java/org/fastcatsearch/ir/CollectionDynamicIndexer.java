@@ -135,7 +135,7 @@ public class CollectionDynamicIndexer {
         Document document = collectionSearcher.getIndexableDocumentByPk(pkValue);
         if(document == null) {
             //업데이트할 문서를 찾지 못함.
-            logger.error("Collection [{}] cannot find document : {}", collectionContext.collectionId(), pkValue);
+            logger.debug("Collection [{}] cannot find document : {}", collectionContext.collectionId(), pkValue);
         } else {
             //2. 들어온 문서에서 각 필드를 업데이트 한다.
             for (Map.Entry<String, Object> entry : source.entrySet()) {
