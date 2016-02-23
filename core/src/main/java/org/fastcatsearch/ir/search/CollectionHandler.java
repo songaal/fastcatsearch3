@@ -201,14 +201,14 @@ public class CollectionHandler {
         return tmpSegmentReaderMap.get(segmentId);
     }
 
-    public synchronized String nextSegmentId() {
-        Set segmentIdSet = segmentReaderMap.keySet();
-        String id = null;
-        do {
-            id = segmentIdGenerator.nextId();
-        } while (segmentIdSet.contains(id));
-        return id;
-    }
+//    public synchronized String nextSegmentId() {
+//        Set segmentIdSet = segmentReaderMap.keySet();
+//        String id = null;
+//        do {
+//            id = segmentIdGenerator.nextId();
+//        } while (segmentIdSet.contains(id));
+//        return id;
+//    }
 
 	public SegmentSearcher segmentSearcher(String segmentId) {
         return segmentReaderMap.get(segmentId).segmentSearcher();
@@ -276,7 +276,7 @@ public class CollectionHandler {
                 if (!tmpSegmentDir.exists()) {
                     break;
                 }
-                segmentLogger.info("[{}] {} is exists. find next id.", collectionId, segmentId);
+                segmentLogger.info("[{}] NewSegment [{}] is exists. find next id.", collectionId, segmentId);
             }
 
             // delete.req 파일은 머징중인 세그먼트의 데이터 일관성을 위함이다.
@@ -501,10 +501,20 @@ public class CollectionHandler {
 
         for(SegmentReader segmentReader : segmentReaderMap.values()) {
             int deleteCount = segmentReader.syncDeleteCountToInfo();
-
         }
 
-        String segmentId = segmentIdGenerator.nextId();
+        String segmentId = null;
+
+        while (true) {
+            segmentId = segmentIdGenerator.nextId();
+
+            //세그먼트 디렉토리가 없을때 까지 찾는다.
+            File tmpSegmentDir = new File(segmentDir.getParentFile(), segmentId);
+            if (!tmpSegmentDir.exists()) {
+                break;
+            }
+            segmentLogger.info("[{}] MergedSegment [{}] is exists. find next id.", collectionId, segmentId);
+        }
 
         File newSegmentDir = new File(segmentDir.getParentFile(), segmentId);
         FileUtils.moveDirectory(segmentDir, newSegmentDir);

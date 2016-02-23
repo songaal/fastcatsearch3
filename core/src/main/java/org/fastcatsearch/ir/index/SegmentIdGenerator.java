@@ -50,7 +50,7 @@ public class SegmentIdGenerator {
         }
     }
 
-    public String nextId() {
+    public synchronized String nextId() {
         String id = new String(new char[]{first[firstPos], second[secondPos++]});
 
         if (secondPos == second.length) {
@@ -64,12 +64,12 @@ public class SegmentIdGenerator {
         return id;
     }
 
-    public String currentId() {
+    public synchronized String currentId() {
         return new String(new char[]{first[firstPos], second[secondPos]});
     }
 
     //세그먼트 이름 부여를 처음부터 다시 시작하도록.
-    public void reset() {
+    public synchronized void reset() {
         firstPos = 0;
         secondPos = 0;
     }
