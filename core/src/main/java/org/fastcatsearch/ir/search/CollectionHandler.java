@@ -451,7 +451,6 @@ public class CollectionHandler {
         List<File> deleteReqFileList = new ArrayList<File>();
 
         List<String> tmpList = new ArrayList<String>();
-        int size = 0;
         for(SegmentReader segmentReader : segmentReaderMap.values()) {
             long createTime = segmentReader.segmentInfo().getCreateTime();
             if(createTime > startTime) {
@@ -461,7 +460,6 @@ public class CollectionHandler {
                 File deleteReqFile = new File(dir.getParentFile(), dir.getName() + "." + IndexFileNames.docDeleteReq);
                 if(deleteReqFile.exists()) {
                     deleteReqFileList.add(deleteReqFile);
-                    size++;
                 }
             }
         }
@@ -482,7 +480,7 @@ public class CollectionHandler {
         /*
         * 2. delete.req 적용
         * */
-        if(size > 0) {
+        if(deleteReqFileList.size() > 0) {
             applyDeleteIdSetFromSegments(deleteReqFileList, pkReader, deleteSet);
 
             //적용처리한 파일은 삭제한다.
