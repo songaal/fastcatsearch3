@@ -101,9 +101,6 @@ public class DynamicIndexModule extends AbstractModule {
                                 StringBuffer documentsBuffer = new StringBuffer();
                                 documentId = fileList.get(0).getName() + "_" + fileList.get(fileList.size() - 1).getName();
                                 for (File f : fileList) {
-                                    if (documentsBuffer.length() > 0) {
-                                        documentsBuffer.append("\n");
-                                    }
                                     documentsBuffer.append(FileUtils.readFileToString(f, "utf-8"));
                                 }
                                 documents = documentsBuffer.toString();
