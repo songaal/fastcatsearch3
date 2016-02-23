@@ -228,89 +228,109 @@ public class CollectionHandler {
     * */
     public synchronized CollectionContext applyNewSegment(SegmentInfo segmentInfo, File segmentDir, DeleteIdSet deleteIdSet) throws IOException, IRException {
 
-        segmentLogger.info("[{}] -NewSegment-----", collectionId);
-        if(segmentInfo != null) {
-            segmentLogger.info("[{}] NewSegment start[{}] id[{}] doc[{}] del[{}]", collectionId, segmentInfo.getStartTime(), segmentInfo.getId(), segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount());
-        }
-        List<PrimaryKeyIndexReader> pkReaderList = new ArrayList<PrimaryKeyIndexReader>();
-        List<BitSet> deleteSetList = new ArrayList<BitSet>();
+        try {
+            segmentLogger.info("[{}] -NewSegment-----", collectionId);
+            if (segmentInfo != null) {
+                segmentLogger.info("[{}] NewSegment start[{}] id[{}] doc[{}] del[{}]", collectionId, segmentInfo.getStartTime(), segmentInfo.getId(), segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount());
+            }
+            List<PrimaryKeyIndexReader> pkReaderList = new ArrayList<PrimaryKeyIndexReader>();
+            List<BitSet> deleteSetList = new ArrayList<BitSet>();
 
-        int segmentSize = segmentReaderMap.size();
-        for(SegmentReader segmentReader : segmentReaderMap.values()) {
-            File dir = segmentReader.segmentDir();
-            pkReaderList.add(new PrimaryKeyIndexReader(dir, IndexFileNames.primaryKeyMap));
-            deleteSetList.add(new BitSet(dir, IndexFileNames.docDeleteSet));
-        }
+            int segmentSize = segmentReaderMap.size();
+            for (SegmentReader segmentReader : segmentReaderMap.values()) {
+                File dir = segmentReader.segmentDir();
+                pkReaderList.add(new PrimaryKeyIndexReader(dir, IndexFileNames.primaryKeyMap));
+                deleteSetList.add(new BitSet(dir, IndexFileNames.docDeleteSet));
+            }
 
-        //세그먼트간의 삭제처리.
-        if (segmentSize > 0) {
+            //세그먼트간의 삭제처리.
+            if (segmentSize > 0) {
             /*
             * 1. PK Update 적용
             * */
-            if(segmentInfo != null) {
-                File pkFile = new File(segmentDir, IndexFileNames.primaryKeyMap);
-                applyPrimaryKeyToSegments(pkFile, pkReaderList, deleteSetList);
-            }
+                if (segmentInfo != null) {
+                    File pkFile = new File(segmentDir, IndexFileNames.primaryKeyMap);
+                    applyPrimaryKeyToSegments(pkFile, pkReaderList, deleteSetList);
+                }
             /*
             * 2. deleteIdSet 적용
             * */
-            applyDeleteIdSetToSegments(deleteIdSet, pkReaderList, deleteSetList);
-        }
+                applyDeleteIdSetToSegments(deleteIdSet, pkReaderList, deleteSetList);
+            }
 
-        for (PrimaryKeyIndexReader pkReader : pkReaderList) {
-            pkReader.close();
-        }
-        for (BitSet deleteSet : deleteSetList) {
-            deleteSet.save();
-            logger.debug("[{}] New delete.set saved. set={}", collectionId, deleteSet);
-        }
+            for (PrimaryKeyIndexReader pkReader : pkReaderList) {
+                pkReader.close();
+            }
+            for (BitSet deleteSet : deleteSetList) {
+                deleteSet.save();
+                logger.debug("[{}] New delete.set saved. set={}", collectionId, deleteSet);
+            }
 
-        String segmentId = segmentIdGenerator.nextId();
+            String segmentId = null;
 
-        // delete.req 파일은 머징중인 세그먼트의 데이터 일관성을 위함이다.
-        // 머징중인 세그먼트가 있을때에만 delete.req 파일을 만든다.
-        if(isMergingStatus() && deleteIdSet.size() > 0) {
-            //삭제ID만 기록해 놓은 delete.req 파일을 만들어 놓는다. (차후 세그먼트 병합시 사용됨)
-            File deleteIdFile = new File(segmentDir.getParentFile(), segmentId + "." + IndexFileNames.docDeleteReq);
-            BufferedFileOutput deleteIdOutput = null;
-            try {
-                deleteIdOutput = new BufferedFileOutput(deleteIdFile);
-                deleteIdSet.writeTo(deleteIdOutput);
-            } catch (Exception e) {
-                if(deleteIdOutput != null) {
-                    deleteIdOutput.close();
+            while (true) {
+                segmentId = segmentIdGenerator.nextId();
+
+                //세그먼트 디렉토리가 없을때 까지 찾는다.
+                File tmpSegmentDir = new File(segmentDir.getParentFile(), segmentId);
+                if (!tmpSegmentDir.exists()) {
+                    break;
                 }
+                segmentLogger.info("[{}] {} is exists. find next id.", collectionId, segmentId);
             }
-            if(segmentInfo != null) {
-                segmentLogger.info("[{}] NewSegment id[{}] delete.req[{}]", collectionId, segmentInfo.getId(), deleteIdFile.getName());
+
+            // delete.req 파일은 머징중인 세그먼트의 데이터 일관성을 위함이다.
+            // 머징중인 세그먼트가 있을때에만 delete.req 파일을 만든다.
+            if (isMergingStatus() && deleteIdSet.size() > 0) {
+                //삭제ID만 기록해 놓은 delete.req 파일을 만들어 놓는다. (차후 세그먼트 병합시 사용됨)
+                File deleteIdFile = new File(segmentDir.getParentFile(), segmentId + "." + IndexFileNames.docDeleteReq);
+                BufferedFileOutput deleteIdOutput = null;
+                try {
+                    deleteIdOutput = new BufferedFileOutput(deleteIdFile);
+                    deleteIdSet.writeTo(deleteIdOutput);
+                } catch (Exception e) {
+                    logger.error("error while write delete id file = " + deleteIdFile.getName(), e);
+                } finally {
+                    if (deleteIdOutput != null) {
+                        deleteIdOutput.close();
+                    }
+                }
+                segmentLogger.info("[{}] NewSegment id[{}] delete.req[{}]", collectionId, segmentInfo != null ? segmentInfo.getId() : "EMPTY", deleteIdFile.getName());
             }
+
+            //기존 세그먼트들 삭제리스트 재로딩
+            for (SegmentReader r : segmentReaderMap.values()) {
+                r.loadDeleteSet();
+            }
+
+            for (SegmentReader segmentReader : segmentReaderMap.values()) {
+                segmentReader.syncDeleteCountToInfo();
+            }
+
+            if (segmentInfo != null) {
+                File newSegmentDir = new File(segmentDir.getParentFile(), segmentId);
+                FileUtils.moveDirectory(segmentDir, newSegmentDir);
+                segmentLogger.info("[{}] NewSegment move id[{}] <- {}", collectionId, segmentId, segmentInfo.getId());
+                segmentInfo.setId(segmentId);
+
+                //신규 세그먼트 추가.
+                SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, newSegmentDir, analyzerPoolManager);
+                segmentReaderMap.put(segmentId, segmentReader);
+                collectionContext.addSegmentInfo(segmentInfo);
+                long createTime = System.currentTimeMillis();
+                segmentInfo.setCreateTime(createTime);
+                segmentLogger.info("[{}] NewSegment id[{}] create[{}]", collectionId, segmentId, createTime);
+            }
+            collectionContext.dataInfo().updateAll();
+
+            int documentSize = collectionContext.dataInfo().getDocuments();
+            int deleteSize = collectionContext.dataInfo().getDeletes();
+            int liveSize = documentSize - deleteSize;
+
+            segmentLogger.info("[{}] NewSegment live[{}] doc[{}] del[{}]", collectionId, liveSize, documentSize, deleteSize);
+        }catch (Throwable t) {
+            segmentLogger.error("에러발생", t);
         }
-
-        //기존 세그먼트들 삭제리스트 재로딩
-        for (SegmentReader r : segmentReaderMap.values()) {
-            r.loadDeleteSet();
-        }
-
-        for(SegmentReader segmentReader : segmentReaderMap.values()) {
-            segmentReader.syncDeleteCountToInfo();
-        }
-
-        if(segmentInfo != null) {
-            File newSegmentDir = new File(segmentDir.getParentFile(), segmentId);
-            FileUtils.moveDirectory(segmentDir, newSegmentDir);
-            segmentLogger.info("[{}] NewSegment move id[{}] <- {}", collectionId, segmentId, segmentInfo.getId());
-            segmentInfo.setId(segmentId);
-
-            //신규 세그먼트 추가.
-            SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, newSegmentDir, analyzerPoolManager);
-            segmentReaderMap.put(segmentId, segmentReader);
-            collectionContext.addSegmentInfo(segmentInfo);
-            long createTime = System.currentTimeMillis();
-            segmentInfo.setCreateTime(createTime);
-            segmentLogger.info("[{}] NewSegment id[{}] create[{}]", collectionId, segmentId, createTime);
-        }
-        collectionContext.dataInfo().updateAll();
-
         return collectionContext;
     }
 
@@ -512,6 +532,10 @@ public class CollectionHandler {
         segmentLogger.info("[{}] MergedSegment id[{}] create[{}]", collectionId, segmentId, createTime);
         collectionContext.dataInfo().updateAll();
 
+        int documentSize = collectionContext.dataInfo().getDocuments();
+        int deleteSize = collectionContext.dataInfo().getDeletes();
+        int liveSize = documentSize - deleteSize;
+        segmentLogger.info("[{}] MergedSegment live[{}] doc[{}] del[{}]", collectionId, liveSize, documentSize, deleteSize);
         return collectionContext;
     }
 
