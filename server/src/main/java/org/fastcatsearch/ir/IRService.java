@@ -30,9 +30,11 @@ import org.fastcatsearch.ir.group.GroupsData;
 import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.search.SegmentDelayedClose;
 import org.fastcatsearch.ir.settings.AnalyzerSetting;
 import org.fastcatsearch.job.PriorityScheduledJob;
 import org.fastcatsearch.job.ScheduledJobEntry;
+import org.fastcatsearch.job.SegmentDelayCloseScheduleJob;
 import org.fastcatsearch.job.indexing.MasterCollectionAddIndexingJob;
 import org.fastcatsearch.job.indexing.MasterCollectionFullIndexingJob;
 import org.fastcatsearch.module.ModuleException;
@@ -55,10 +57,12 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.DelayQueue;
 
 public class IRService extends AbstractService {
 
-	private Map<String, CollectionHandler> collectionHandlerMap;
+    private static final String SEGMENT_DELAY_CLOSE_SCHED_KEY = "SEGMENT_DELAY_CLOSE_SCHED";
+    private Map<String, CollectionHandler> collectionHandlerMap;
     private Map<String, DynamicIndexModule> dynamicIndexModuleMap;
 
 	// TODO 캐시방식을 변경하자.
@@ -79,7 +83,10 @@ public class IRService extends AbstractService {
 	private AnalyzerFactoryManager analyzerFactoryManager;
 	
 	private Set<String> dataNodeCollectionIdSet; //이 노드가 데이터노드인 컬렉션세트. 쿼리 count집계시 사용된다.
-	
+
+    //검색중인 세그먼트를 바로 닫으면 문제가 생기므로, 사용이 끝날때까지 기다렸다 close할수 있도록 저장하는 Q.
+    private DelayQueue<SegmentDelayedClose> segmentDelayCloseQueue;
+
 	public IRService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
 		realtimeQueryStatisticsModule = new RealtimeQueryCountModule(environment, settings);
@@ -144,7 +151,8 @@ public class IRService extends AbstractService {
 		}
 
 		dataNodeCollectionIdSet = new HashSet<String>();
-		
+        segmentDelayCloseQueue = new DelayQueue<SegmentDelayedClose>();
+
 		List<Collection> collectionList = collectionsConfig.getCollectionList();
 		for (int collectionInx = 0 ; collectionInx < collectionList.size(); collectionInx++) {
 			Collection collection = collectionList.get(collectionInx);
@@ -180,6 +188,8 @@ public class IRService extends AbstractService {
 			throw new FastcatSearchException("ERR-00320");
 		}
 
+        //segment close 스케쥴시작.
+        JobService.getInstance().schedule(new SegmentDelayCloseScheduleJob(SEGMENT_DELAY_CLOSE_SCHED_KEY, segmentDelayCloseQueue));
 		return true;
 	}
 	
@@ -214,7 +224,7 @@ public class IRService extends AbstractService {
 			} else {
 				collectionHandler = new CollectionHandler(collectionContext, analyzerFactoryManager);
 				collectionHandler.setQueryCounter(realtimeQueryStatisticsModule.getQueryCounter(collectionId));
-				
+                collectionHandler.setSegmentDelayedCloseQueue(segmentDelayCloseQueue);
 				if(collectionContext.collectionConfig().getDataNodeList() != null 
 					&& collectionContext.collectionConfig().getDataNodeList().contains(environment.myNodeId())){
 					dataNodeCollectionIdSet.add(collectionId);
@@ -328,8 +338,9 @@ public class IRService extends AbstractService {
 			JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.collections), collectionsConfig, CollectionsConfig.class);
 			CollectionHandler collectionHandler = new CollectionHandler(collectionContext, analyzerFactoryManager);
 			collectionHandlerMap.put(collectionId, collectionHandler);
-
 			realtimeQueryStatisticsModule.registerQueryCount(collectionId);
+            collectionHandler.setQueryCounter(realtimeQueryStatisticsModule.getQueryCounter(collectionId));
+            collectionHandler.setSegmentDelayedCloseQueue(segmentDelayCloseQueue);
 			return collectionHandler;
 		} catch (IRException e) {
 			throw e;
@@ -398,12 +409,20 @@ public class IRService extends AbstractService {
 	}
 
 	public CollectionHandler loadCollectionHandler(CollectionContext collectionContext) throws IRException, SettingException {
-		return new CollectionHandler(collectionContext, analyzerFactoryManager).load();
+		CollectionHandler collectionHandler = new CollectionHandler(collectionContext, analyzerFactoryManager);
+        collectionHandler.setSegmentDelayedCloseQueue(segmentDelayCloseQueue);
+        return collectionHandler.load();
 	}
 
 	protected boolean doStop() throws FastcatSearchException {
+        JobService.getInstance().cancelSchedule(SEGMENT_DELAY_CLOSE_SCHED_KEY);
 		realtimeQueryStatisticsModule.unload();
 
+        Iterator<SegmentDelayedClose> segmentCloseIter = segmentDelayCloseQueue.iterator();
+        while(segmentCloseIter.hasNext()) {
+            SegmentDelayedClose segmentClose = segmentCloseIter.next();
+            segmentClose.closeReader();
+        }
 		Iterator<Entry<String, CollectionHandler>> iter = collectionHandlerMap.entrySet().iterator();
 		while (iter.hasNext()) {
 			Entry<String, CollectionHandler> entry = iter.next();
@@ -418,6 +437,7 @@ public class IRService extends AbstractService {
 				throw new FastcatSearchException("IRService 종료중 에러발생.", e);
 			}
 		}
+
 		searchCache.unload();
 		shardSearchCache.unload();
 		groupingCache.unload();
@@ -432,6 +452,7 @@ public class IRService extends AbstractService {
 	protected boolean doClose() throws FastcatSearchException {
 		collectionHandlerMap = null;
 		realtimeQueryStatisticsModule = null;
+        segmentDelayCloseQueue = null;
 		return true;
 	}
 

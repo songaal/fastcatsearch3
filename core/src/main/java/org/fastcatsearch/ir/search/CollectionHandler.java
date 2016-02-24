@@ -31,6 +31,7 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.DelayQueue;
 
 public class CollectionHandler {
 	private static Logger logger = LoggerFactory.getLogger(CollectionHandler.class);
@@ -53,8 +54,9 @@ public class CollectionHandler {
     private SegmentIdGenerator segmentIdGenerator;
 
     private boolean isMerging;
+    private DelayQueue<SegmentDelayedClose> segmentDelayedCloseQueue;
 
-	public CollectionHandler(CollectionContext collectionContext, AnalyzerFactoryManager analyzerFactoryManager) throws IRException, SettingException {
+    public CollectionHandler(CollectionContext collectionContext, AnalyzerFactoryManager analyzerFactoryManager) throws IRException, SettingException {
 		this.collectionContext = collectionContext;
 		this.collectionId = collectionContext.collectionId();
 		this.collectionFilePaths = collectionContext.collectionFilePaths();
@@ -172,6 +174,13 @@ public class CollectionHandler {
 				segmentReader.close();
 			}
 		}
+        segmentReaderMap.clear();
+        if (tmpSegmentReaderMap != null) {
+            for (SegmentReader segmentReader : tmpSegmentReaderMap.values()) {
+                segmentReader.close();
+            }
+        }
+        tmpSegmentReaderMap.clear();
 		collectionSearcher = null;
 		isLoaded = false;
 	}
@@ -431,9 +440,13 @@ public class CollectionHandler {
                 /*
                 * 중요! 삭제된 세그먼트 리더를 tmp 맵에 임시로 넣어둔다. 차후 10초후에 제거되고 close된다..
                 * */
-                tmpSegmentReaderMap.put(removeSegmentId, removeSegmentReader);
-                //현재 사용중이면 차후에 다 쓰고 닫도록 closeFuture를 호출한다.
-                removeSegmentReader.closeFuture(true, tmpSegmentReaderMap);
+                SegmentReader oldSegmentReader = tmpSegmentReaderMap.put(removeSegmentId, removeSegmentReader);
+                if(oldSegmentReader != null) {
+                    try {
+                        oldSegmentReader.close();
+                    } catch(Exception ignore) { }
+                }
+                segmentDelayedCloseQueue.put(new SegmentDelayedClose(collectionId, removeSegmentId, tmpSegmentReaderMap, true));
             }
         }
         collectionContext.dataInfo().updateAll();
@@ -529,9 +542,14 @@ public class CollectionHandler {
                 /*
                 * 중요! 삭제된 세그먼트 리더를 tmp 맵에 임시로 넣어둔다. 차후 10초후에 제거되고 close된다..
                 * */
-                tmpSegmentReaderMap.put(removeSegmentId, removeSegmentReader);
+                SegmentReader oldSegmentReader = tmpSegmentReaderMap.put(removeSegmentId, removeSegmentReader);
+                if(oldSegmentReader != null) {
+                    try {
+                        oldSegmentReader.close();
+                    } catch(Exception ignore) { }
+                }
                 //현재 사용중이면 차후에 다 쓰고 닫도록 closeFuture를 호출한다.
-                removeSegmentReader.closeFuture(true, tmpSegmentReaderMap);
+                segmentDelayedCloseQueue.put(new SegmentDelayedClose(collectionId, removeSegmentId, tmpSegmentReaderMap, true));
             }
         }
         collectionContext.addSegmentInfo(segmentInfo);
@@ -663,5 +681,9 @@ public class CollectionHandler {
 
     public boolean isMergingStatus() {
         return isMerging;
+    }
+
+    public void setSegmentDelayedCloseQueue(DelayQueue<SegmentDelayedClose> segmentDelayedCloseQueue) {
+        this.segmentDelayedCloseQueue = segmentDelayedCloseQueue;
     }
 }

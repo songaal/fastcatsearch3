@@ -177,6 +177,14 @@ public class SegmentReader implements Comparable {
 		}
 	}
 
+    public void closeAndDelete() throws IOException {
+        try {
+            close();
+        } finally {
+            FileUtils.deleteQuietly(segmentDir);
+        }
+    }
+
     //세그먼트 추가에 의하여 deleteSet이 변경되었을때, info.xml 에 적용한다.
     public int syncDeleteCountToInfo() {
         int deleteCount = deleteSet.getOnCount();
@@ -186,49 +194,5 @@ public class SegmentReader implements Comparable {
     @Override
     public int compareTo(Object o) {
         return segmentId.compareTo(((SegmentReader)o).segmentId);
-    }
-
-    // 사용중이지 않으면 닫기록 예약한다.
-    public void closeFuture() throws IOException {
-        closeFuture(false, null);
-    }
-    public void closeFuture(final boolean deleteDirectory, final Map<String, SegmentReader> tmpSegmentReaderMap) throws IOException {
-
-        Thread t = new Thread() {
-            @Override
-            public void run() {
-                try {
-                    long startTime = System.currentTimeMillis();
-//                    while(true) {
-//                        logger.debug("Try Close Segment[{}] Future for {} >> d[{}] s[{}] f[{}] g[{}]", segmentId, Formatter.getFormatTime(System.currentTimeMillis() - startTime), documentReader.getReferenceCount(), searchIndexesReader.getReferenceCount()
-//                                , fieldIndexesReader.getReferenceCount(), groupIndexesReader.getReferenceCount());
-//
-//                        if (documentReader.getReferenceCount() <= 0 && searchIndexesReader.getReferenceCount() <= 0
-//                                && fieldIndexesReader.getReferenceCount() <= 0 && groupIndexesReader.getReferenceCount() <= 0) {
-//                            close();
-//
-//                            logger.debug("Closed Segment[{}] after {}", segmentId, Formatter.getFormatTime(System.currentTimeMillis() - startTime));
-////                            break;
-//                        }
-                    //10초후에 닫는다.
-                    try {
-                        Thread.sleep(10000);
-                    } catch (InterruptedException e) {
-                    }
-					if(tmpSegmentReaderMap != null) {
-						tmpSegmentReaderMap.remove(segmentId);
-					}
-					close();
-                    if(deleteDirectory) {
-                        FileUtils.deleteQuietly(segmentDir);
-                    }
-//                    }
-                } catch (IOException e) {
-                    //ignore
-                }
-            }
-        };
-        t.setDaemon(true);
-        t.start();
     }
 }
