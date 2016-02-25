@@ -28,7 +28,7 @@ public class LimitTimeSizeLogger {
 	public LimitTimeSizeLogger(File dir, String encoding, int flushPeriodInSeconds) {
 		this.bufferSize = 10000;
 		this.encoding = encoding;
-        this.flushPeriodInNanoseconds = flushPeriodInSeconds * 1000 * 1000 * 1000;
+        this.flushPeriodInNanoseconds = ((long) flushPeriodInSeconds) * 1000 * 1000 * 1000;
 		this.memoryData = newMemoryData();
         flushTimer = new Timer();
         long flushCheckPeriod = 500;
