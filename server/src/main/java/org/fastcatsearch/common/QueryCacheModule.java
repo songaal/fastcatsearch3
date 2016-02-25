@@ -26,11 +26,12 @@ public class QueryCacheModule<K, V> extends AbstractModule {
 	public QueryCacheModule(Environment environment, Settings settings) {
 		super(environment, settings);
 	}
+    private int maxCacheSize;
 
 	@Override
 	protected boolean doLoad() throws ModuleException {
-		int maxCacheSize = settings.getInt("search-cache-size", 1000);
-		lruCache = new LRUCache<K, V>(maxCacheSize);
+        maxCacheSize = settings.getInt("search-cache-size", 1000);
+        reset();
 		return true;
 	}
 
@@ -40,6 +41,13 @@ public class QueryCacheModule<K, V> extends AbstractModule {
 		return true;
 	}
 
+    public void reset() {
+        LRUCache<K, V> oldLruCache = this.lruCache;
+        lruCache = new LRUCache<K, V>(maxCacheSize);
+        if(oldLruCache != null) {
+            oldLruCache.close();
+        }
+    }
 	public void put(K key, V value) {
 		lruCache.put(key, value);
 	}

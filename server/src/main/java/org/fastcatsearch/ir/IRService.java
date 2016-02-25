@@ -67,7 +67,6 @@ public class IRService extends AbstractService {
 
 	// TODO 캐시방식을 변경하자.
 	private QueryCacheModule<String, Result> searchCache;
-	private QueryCacheModule<String, InternalSearchResult> shardSearchCache;
 	private QueryCacheModule<String, GroupResults> groupingCache;
 	private QueryCacheModule<String, GroupsData> groupingDataCache;
 	private QueryCacheModule<String, Result> documentCache;
@@ -173,13 +172,11 @@ public class IRService extends AbstractService {
 		}
 
 		searchCache = new QueryCacheModule<String, Result>(environment, settings);
-		shardSearchCache = new QueryCacheModule<String, InternalSearchResult>(environment, settings);
 		groupingCache = new QueryCacheModule<String, GroupResults>(environment, settings);
 		groupingDataCache = new QueryCacheModule<String, GroupsData>(environment, settings);
 		documentCache = new QueryCacheModule<String, Result>(environment, settings);
 		try {
 			searchCache.load();
-			shardSearchCache.load();
 			groupingCache.load();
 			groupingDataCache.load();
 			documentCache.load();
@@ -439,7 +436,6 @@ public class IRService extends AbstractService {
 		}
 
 		searchCache.unload();
-		shardSearchCache.unload();
 		groupingCache.unload();
 		groupingDataCache.unload();
 		documentCache.unload();

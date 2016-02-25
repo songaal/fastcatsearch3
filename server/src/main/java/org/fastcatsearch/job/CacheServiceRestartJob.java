@@ -37,29 +37,24 @@ public class CacheServiceRestartJob extends Job{
 		
 		IRService irService = ServiceManager.getInstance().getService(IRService.class);
 		
-		boolean result = true;
-
 		synchronized (globalLock) {
 			try {
-				result = irService.searchCache().unload() && result;
+				irService.searchCache().reset();
 			} catch (Exception e) {
 				logger.debug("ERROR Unloading Search Cache : {}", e.getMessage());
 			}
 			try {
-				result = irService.groupingCache().unload() && result;
+				irService.groupingCache().reset();
 			} catch (Exception e) {
 				logger.debug("ERROR Unloading Grouping Cache : {}", e.getMessage());
 			}
 			try {
-				result = irService.documentCache().unload() && result;
+				irService.documentCache().reset();
 			} catch (Exception e) {
 				logger.debug("ERROR Unloading Document Cache : {}", e.getMessage());
 			}
-			result = irService.searchCache().load() && result;
-			result = irService.groupingCache().load() && result;
-			result = irService.documentCache().load() && result;
 		}
-		return new JobResult(result);
+		return new JobResult(true);
 	}
 
 }
