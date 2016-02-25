@@ -37,7 +37,7 @@ public class MasterCollectionAddIndexingJob extends MasterNodeJob {
 
 		CollectionAddIndexingJob collectionIndexingJob = new CollectionAddIndexingJob();
 		collectionIndexingJob.setArgs(collectionId);
-		logger.info("Request add indexing job to index node[{}] >> {}", indexNodeId, indexNode);
+		logger.debug("Request add indexing job to index node[{}] >> {}", indexNodeId, indexNode);
 		ResultFuture jobResult = nodeService.sendRequest(indexNode, collectionIndexingJob);
 		if (jobResult != null) {
 			Object obj = jobResult.take();

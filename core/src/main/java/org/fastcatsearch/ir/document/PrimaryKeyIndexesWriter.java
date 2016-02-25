@@ -116,7 +116,7 @@ public class PrimaryKeyIndexesWriter {
 			count++;
 			if (count % CHECK_COUNT == 0) {
 				long memorySize = indexWriter.checkWorkingMemorySize();
-				logger.info("PK check #{} pk mem {}", count, Formatter.getFormatSize(memorySize));
+				logger.debug("PK check #{} pk mem {}", count, Formatter.getFormatSize(memorySize));
 				if (memorySize > MEMORY_LIMIT) {
 					indexWriter.flush();
 				}
