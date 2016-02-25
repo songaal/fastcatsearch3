@@ -26,6 +26,7 @@ import java.util.Date;
 
 public abstract class AbstractCollectionIndexer implements CollectionIndexerable {
 	protected static final Logger logger = LoggerFactory.getLogger(AbstractCollectionIndexer.class);
+    protected static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 	protected CollectionContext collectionContext;
 	protected AnalyzerPoolManager analyzerPoolManager;
 	
@@ -95,9 +96,9 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
 		indexWriter.addDocument(document);
 		count++;
 		if (count % 10000 == 0) {
-			logger.info(
-					"{} documents indexed, lap = {} ms, elapsed = {}, mem = {}",
-					count, System.currentTimeMillis() - lapTime,
+            indexingLogger.info(
+					"[{}] Full Indexing {} ... lap = {} ms, elapsed = {}, mem = {}",
+					collectionContext.collectionId(), count, System.currentTimeMillis() - lapTime,
 							Formatter.getFormatTime(System.currentTimeMillis() - startTime),
 							Formatter.getFormatSize(Runtime.getRuntime().totalMemory()));
 			lapTime = System.currentTimeMillis();
@@ -108,7 +109,7 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
 	}
 	@Override
 	public void requestStop(){
-		logger.info("Collection [{}] Indexer Stop Requested! ", collectionContext.collectionId());
+        indexingLogger.info("[{}] Indexer Stop Requested! ", collectionContext.collectionId());
 		
 		stopRequested = true;
 	}

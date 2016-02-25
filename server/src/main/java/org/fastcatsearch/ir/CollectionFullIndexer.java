@@ -72,11 +72,11 @@ public class CollectionFullIndexer extends AbstractCollectionIndexer {
 				collectionContext.indexStatus().setFullIndexStatus(indexStatus);
 				return true;
 			} else {
-				logger.info("[{}] Indexing Canceled due to no documents.", collectionContext.collectionId());
+                indexingLogger.info("[{}] Indexing Canceled due to no documents.", collectionContext.collectionId());
 				throw new IndexingStopException(collectionContext.collectionId()+" Indexing Canceled due to no documents.");
 			}
 		} else {
-			logger.info("[{}] Indexing Canceled due to Stop Requested!", collectionContext.collectionId());
+            indexingLogger.info("[{}] Indexing Canceled due to Stop Requested!", collectionContext.collectionId());
 			throw new IndexingStopException(collectionContext.collectionId()+" Indexing Canceled due to Stop Requested");
 		}
 	}
