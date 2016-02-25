@@ -175,6 +175,7 @@ public class DynamicIndexModule extends AbstractModule {
 
     @Override
     protected boolean doLoad() throws ModuleException {
+        dataLogger = new LimitTimeSizeLogger(dir, flushPeriodInSeconds);
         mergeTimer = new Timer(true);
         //stop 파일이 없어야만 시작한다.
         if(!stopIndexingFlagFile.exists()) {
@@ -183,7 +184,6 @@ public class DynamicIndexModule extends AbstractModule {
         TimerTask indexMergeTask = new IndexMergeTask();
         mergeTimer.schedule(indexMergeTask, 5000, mergePeriod);
         logger.info("[{}][{}] Index Merger start scheduling! timer[{}] task[{}]", collectionId, mergeTimer.hashCode(), indexMergeTask.hashCode());
-        dataLogger = new LimitTimeSizeLogger(dir, flushPeriodInSeconds);
         logger.info("[{}] To be indexed files = {}", collectionId, dataLogger.getQueueSize());
         return true;
     }
@@ -224,7 +224,8 @@ public class DynamicIndexModule extends AbstractModule {
             indexTimer = new Timer(true);
             TimerTask indexFireTask = new IndexFireTask();
             indexTimer.schedule(indexFireTask, 5000, indexingPeriod);
-            return stopIndexingFlagFile.delete();
+            stopIndexingFlagFile.delete();
+            return true;
         } else {
             logger.info("[{}] Dynamic Indexing is running. Stop a indexing first before starting.", collectionId);
         }
