@@ -68,6 +68,13 @@ public class BitSet {
 			save();
 		}
 	}
+
+    public void setFile(File f) {
+        this.file = f;
+    }
+    public void init(BitSet another) {
+        this.bitdata = another.bitdata;
+    }
 	
 	public String toString(){
 		return "[BitSet] "+file.getAbsolutePath();

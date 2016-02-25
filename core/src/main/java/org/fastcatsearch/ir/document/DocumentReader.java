@@ -69,7 +69,7 @@ public class DocumentReader implements Cloneable {
 		positionInput = new BufferedFileInput(dir, IndexFileNames.docPosition);
 		positionLimit = positionInput.length();
 		documentCount = docInput.readInt();
-		logger.info("DocumentCount = {}", documentCount);
+		logger.debug("DocumentCount = {}", documentCount);
 
 		inflaterOutput = new ByteRefArrayOutputStream(INFLATE_BUFFER_INIT_SIZE); // 자동 증가됨. 초기 20KB으로 내림. 예전에는 3MB였음.
 		workingBuffer = new byte[1024];

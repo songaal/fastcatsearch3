@@ -71,7 +71,7 @@ public class CollectionDynamicIndexer {
         * */
         FilePaths indexFilePaths = collectionContext.indexFilePaths();
         segmentDir = indexFilePaths.file(segmentInfo.getId());
-        logger.info("New Segment Dir = {}", segmentDir.getAbsolutePath());
+        logger.debug("New Segment Dir = {}", segmentDir.getAbsolutePath());
         try {
             FileUtils.deleteDirectory(segmentDir);
         } catch (IOException e) {

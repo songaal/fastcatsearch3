@@ -88,7 +88,7 @@ public class DynamicIndexModule extends AbstractModule {
                             fileNames.add(f.getName());
                         }
                         //file 을 증분색인하도록 요청한다.
-                        logger.info("[{}] Indexing[{}] Remnants[{}] >> {}", fileList.size(), collectionId, dataLogger.getQueueSize(), fileNames);
+                        logger.debug("[{}] Indexing[{}] Remnants[{}] >> {}", fileList.size(), collectionId, dataLogger.getQueueSize(), fileNames);
 
                         String documentId = null;
                         try {

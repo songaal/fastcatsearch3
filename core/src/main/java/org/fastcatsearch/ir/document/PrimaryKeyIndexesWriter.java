@@ -49,8 +49,6 @@ public class PrimaryKeyIndexesWriter {
 	private BytesDataOutput pkbaos;
 	private BitSet deleteSet;
 	private LargePrimaryKeyIndexWriter indexWriter;
-	private int updateDocCount;
-    private int deleteDocCount;
 	private PrimaryKeySetting primaryKeySetting;
 	private int[] primaryKeyFieldIdList;
 
@@ -88,12 +86,8 @@ public class PrimaryKeyIndexesWriter {
         deleteSet = new BitSet(dir, IndexFileNames.docDeleteSet, true);
 	}
 
-	public int getUpdateDocCount() {
-		return updateDocCount;
-	}
-
     public int getDeleteDocCount() {
-        return deleteDocCount;
+        return deleteSet.getOnCount();
     }
 
     public void write(Document document, int localDocNo) throws IOException, IRException {
@@ -117,7 +111,6 @@ public class PrimaryKeyIndexesWriter {
 					logger.debug("PK updated! >> newDocNo[{}] docNo[{}] pk[{}]", localDocNo, preDocNo, new String(pkbaos.array(), 0, (int) pkbaos.position()));
 				}
 				deleteSet.set(preDocNo);
-				updateDocCount++;// 수집시 데이터내에 서로 중복된 문서가 발견된 경우 count증가.
 			}
 			
 			count++;
@@ -135,7 +128,6 @@ public class PrimaryKeyIndexesWriter {
         int preDocNo = indexWriter.get(pk.array(), 0, (int) pk.position());
         if (preDocNo >= 0) {
             deleteSet.set(preDocNo);
-            deleteDocCount++;
         }
     }
 

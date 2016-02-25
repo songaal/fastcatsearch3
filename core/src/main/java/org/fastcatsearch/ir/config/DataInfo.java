@@ -84,13 +84,17 @@ public class DataInfo {
         int documents = 0;
         int deletes = 0;
 		synchronized (segmentInfoList) {
+            logger.debug("---------------------------------------------");
 			for (SegmentInfo segmentInfo : segmentInfoList) {
+                logger.debug("seg[{}] : doc[{}] del[{}] live[{}]", segmentInfo.getId(), segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount(), segmentInfo.getLiveCount());
 				documents += segmentInfo.getDocumentCount();
 				deletes += segmentInfo.getDeleteCount();
 			}
 
 			this.documents = documents;
 			this.deletes = deletes;
+            logger.debug("Total  : doc[{}] del[{}] live[{}]", documents, deletes, documents - deletes);
+            logger.debug("---------------------------------------------");
 		}
     }
 
@@ -226,6 +230,10 @@ public class DataInfo {
 
         public void setDeleteCount(int deleteCount) {
             this.deleteCount = deleteCount;
+        }
+
+        public int getLiveCount() {
+            return documentCount - deleteCount;
         }
 
         public long getCreateTime() {
