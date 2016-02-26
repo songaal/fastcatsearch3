@@ -194,8 +194,7 @@ public class CollectionContextUtil {
 	/**
 	 * status.xml 저장.
 	 * data#//info.xml 저장.
-	 * data#/{revision}/revision.xml 저장.
-	 * 
+	 *
 	 * */
 	public static void saveCollectionAfterIndexing(CollectionContext collectionContext) throws SettingException {
 		FilePaths collectionFilePaths = collectionContext.collectionFilePaths();
@@ -233,7 +232,9 @@ public class CollectionContextUtil {
 			DataInfo dataInfo = collectionContext.dataInfo();
 			if (dataInfo != null) {
 				File indexDir = dataFilePaths.indexDirFile(collectionContext.getIndexSequence());
-				indexDir.mkdirs();
+                if(!indexDir.exists()) {
+                    indexDir.mkdirs();
+                }
 				logger.debug("Save DataInfo >> {}", dataInfo);
 				JAXBConfigs.writeConfig(new File(indexDir, SettingFileNames.dataInfo), dataInfo, DataInfo.class);
 			}
@@ -246,5 +247,24 @@ public class CollectionContextUtil {
 			throw new SettingException("색인후 CollectionContext 저장중 에러발생", e);
 		}
 	}
+
+    public static void saveCollectionAfterDynamicIndexing(CollectionContext collectionContext) throws SettingException {
+        FilePaths collectionFilePaths = collectionContext.collectionFilePaths();
+
+        FilePaths dataFilePaths = collectionFilePaths.dataPaths();
+        try {
+            DataInfo dataInfo = collectionContext.dataInfo();
+            if (dataInfo != null) {
+                File indexDir = dataFilePaths.indexDirFile(collectionContext.getIndexSequence());
+                if(!indexDir.exists()) {
+                    indexDir.mkdirs();
+                }
+                logger.debug("Save DataInfo >> {}", dataInfo);
+                JAXBConfigs.writeConfig(new File(indexDir, SettingFileNames.dataInfo), dataInfo, DataInfo.class);
+            }
+        } catch (JAXBException e) {
+            throw new SettingException("동적색인후 CollectionContext 저장중 에러발생", e);
+        }
+    }
 	
 }
