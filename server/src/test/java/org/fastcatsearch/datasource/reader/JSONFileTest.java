@@ -3,12 +3,12 @@ package org.fastcatsearch.datasource.reader;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.minidev.json.parser.ParseException;
+import org.fastcatsearch.util.JSONParser;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 /**
  * @author Sang Wook, Song
@@ -43,4 +43,33 @@ public class JSONFileTest {
 			ex.printStackTrace();
 		}
 	}
+    @Test
+    public void testUniq() throws IOException, ParseException {
+        String path = "/Users/swsong/dev/bug-source.txt";
+        File f = new File(path);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
+
+        JSONParser jsonParser = new JSONParser();
+        int i = 0;
+        String line = null;
+        Set<String> set = new HashSet();
+        while((line = reader.readLine()) != null) {
+//            System.out.println(line);
+            Map map = jsonParser.parse(line);
+//            System.out.println(map.keySet());
+            Object val = (Object) map.get("id");
+
+            String id = val.toString();
+
+            if(!set.add(id)) {
+                System.out.println(">>>>>> " + id);
+            } else {
+                System.out.println(id);
+            }
+            i++;
+        }
+
+        System.out.println("----------");
+        System.out.println("put = " + set.size() +" / " + i);
+    }
 }
