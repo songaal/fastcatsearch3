@@ -85,8 +85,11 @@ public class NodeIndexDocumentFileJob extends DataJob implements Streamable {
                 int totalLiveDocs = 0;
                 if(segmentInfo.getLiveCount() > 0 || deleteIdSet.size() > 0) {
                     CollectionContext collectionContext = collectionHandler.applyNewSegment(segmentInfo, segmentDir, deleteIdSet);
-                    CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
+                    CollectionContextUtil.saveCollectionAfterDynamicIndexing(collectionContext);
                     getJobExecutor().offer(new CacheServiceRestartJob(0));
+                    totalLiveDocs = collectionContext.dataInfo().getDocuments() - collectionContext.dataInfo().getDeletes();
+                } else {
+                    CollectionContext collectionContext = collectionHandler.collectionContext();
                     totalLiveDocs = collectionContext.dataInfo().getDocuments() - collectionContext.dataInfo().getDeletes();
                 }
                 long elapsed = System.currentTimeMillis() - startTime;
