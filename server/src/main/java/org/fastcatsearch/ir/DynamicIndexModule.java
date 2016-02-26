@@ -35,6 +35,7 @@ public class DynamicIndexModule extends AbstractModule {
     private File stopIndexingFlagFile;
     private int flushPeriodInSeconds;
     private long indexFileMinSize;
+    private int indexFileMinCount;
     private long mergePeriod;
     private long indexingPeriod;
 
@@ -48,6 +49,7 @@ public class DynamicIndexModule extends AbstractModule {
         stopIndexingFlagFile = new File(environment.filePaths().collectionFilePaths(collectionId).file(), "indexlog.stop");
         flushPeriodInSeconds = settings.getInt("indexing.dynamic.log_flush_period_SEC", 1); //1초마다.
         indexFileMinSize = settings.getLong("indexing.dynamic.min_log_size_MB", 10L) * 1000 * 1000; //최소 10MB를 모아서 보낸다.
+        indexFileMinCount = settings.getInt("indexing.dynamic.min_log_count", 20000);//최소 2만개 를 모아서 보낸다
         mergePeriod = settings.getInt("indexing.dynamic.merge_period_SEC", 5) * 1000; //5초마다.
         indexingPeriod = settings.getInt("indexing.dynamic.indexing_period_SEC", 1) * 1000; //1초마다.
         logger.debug("DynamicIndexModule flushPeriodInSeconds[{}] indexFileMinSize[{}] mergePeriod[{}] indexingPeriod[{}]",
@@ -93,6 +95,12 @@ public class DynamicIndexModule extends AbstractModule {
                         String documentId = null;
                         try {
                             String documents = null;
+
+                            //TODO 증분색인시 flush 주기가 길면, 다수의 문서가 들어와서 파일이 몇백 MB가 될수 있으므로, OOM우려됨.
+
+                            // TODO 파일을 일정크기로 잘라 읽어서 여러번 전달하도록 처리필요.
+                            // TODO 필요하면 gzip으로 압축해도 될듯..
+
                             if (fileList.size() == 1) {
                                 File f = fileList.get(0);
                                 documentId = f.getName();
