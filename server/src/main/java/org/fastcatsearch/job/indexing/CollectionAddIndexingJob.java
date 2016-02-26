@@ -45,6 +45,7 @@ public class CollectionAddIndexingJob extends IndexingJob {
 
 	private static final long serialVersionUID = 7898036370433248984L;
 
+    private static final int BULK_INDEX_SIZE = 10000;
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
 
@@ -98,7 +99,7 @@ public class CollectionAddIndexingJob extends IndexingJob {
                         continue;
                     }
 
-                    if(jsonList.size() == 10000) {
+                    if(jsonList.size() == BULK_INDEX_SIZE) {
                         dynamicIndexModule.insertDocument(jsonList);
                         jsonList.clear();
                     }
@@ -122,7 +123,7 @@ public class CollectionAddIndexingJob extends IndexingJob {
                     }
                     w.endObject();
                     jsonList.add(w.toString());
-                    if(jsonList.size() == 10000) {
+                    if(jsonList.size() == BULK_INDEX_SIZE) {
                         dynamicIndexModule.deleteDocument(jsonList);
                         jsonList.clear();
                     }
