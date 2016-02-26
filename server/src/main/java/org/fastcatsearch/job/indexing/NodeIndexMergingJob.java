@@ -191,9 +191,10 @@ public class NodeIndexMergingJob extends Job implements Streamable {
                 } else {
                     collectionContext = collectionHandler.applyMergedSegment(segmentInfo, mergeIndexer.getSegmentDir(), mergeSegmentIdList);
                 }
-                CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
+                CollectionContextUtil.saveCollectionAfterDynamicIndexing(collectionContext);
+                int totalLiveDocs = collectionContext.dataInfo().getDocuments() - collectionContext.dataInfo().getDeletes();
                 long elapsed = System.currentTimeMillis() - startTime;
-                indexingLogger.info("[{}] Merge Indexing Done. Inserts[{}] Deletes[{}] Elapsed[{}] Segments[{}] SegIds{} ", collectionId, segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount(), Formatter.getFormatTime(elapsed), mergeSegmentIdList.size(), mergeSegmentIdList);
+                indexingLogger.info("[{}] Merge Indexing Done. Inserts[{}] Deletes[{}] Elapsed[{}] TotalLive[{}] Segments[{}] SegIds{} ", collectionId, segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount(), Formatter.getFormatTime(elapsed), totalLiveDocs, mergeSegmentIdList.size(), mergeSegmentIdList);
 
                 return new JobResult(true);
             } else {
