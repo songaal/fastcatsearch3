@@ -242,7 +242,7 @@ public class CollectionHandler {
         try {
             int liveDocumentSize = segmentInfo.getLiveCount();
             segmentLogger.info("[{}] -NewSegment-----", collectionId);
-            segmentLogger.info("[{}] NewSegment start[{}] id[{}] doc[{}] del[{}]", collectionId, segmentInfo.getStartTime(), segmentInfo.getId(), segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount());
+            segmentLogger.info("[{}] NewSegment start[{}] id[{}] doc[{}] del[{}] delReq[{}]", collectionId, segmentInfo.getStartTime(), segmentInfo.getId(), segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount(), deleteIdSet.size());
             List<PrimaryKeyIndexReader> pkReaderList = new ArrayList<PrimaryKeyIndexReader>();
             List<BitSet> deleteSetList = new ArrayList<BitSet>();
 
@@ -265,7 +265,9 @@ public class CollectionHandler {
                 /*
                 * 2. deleteIdSet 적용
                 * */
-                applyDeleteIdSetToSegments(deleteIdSet, pkReaderList, deleteSetList);
+                if(deleteIdSet.size() > 0) {
+                    applyDeleteIdSetToSegments(deleteIdSet, pkReaderList, deleteSetList);
+                }
             }
 
             for (PrimaryKeyIndexReader pkReader : pkReaderList) {
