@@ -35,6 +35,7 @@ public class PrimaryKeyIndexReader implements BytesToIntReader, Cloneable {
 	private int count; // key 갯수
 	private long limit;
 
+    private File dir;
 	private PrimaryKeyIndexReader() {
 	}
 
@@ -47,6 +48,7 @@ public class PrimaryKeyIndexReader implements BytesToIntReader, Cloneable {
 //	}
 
 	public PrimaryKeyIndexReader(File dir, String filename) throws IOException {
+        this.dir = dir;
 		String pkIndexFilename = IndexFileNames.getIndexFileName(filename);
 
 		input = new BufferedFileInput(dir, filename);
@@ -96,7 +98,11 @@ public class PrimaryKeyIndexReader implements BytesToIntReader, Cloneable {
 
 	}
 
-	public int count() {
+    public File getDir() {
+        return dir;
+    }
+
+    public int count() {
 		return count;
 	}
 

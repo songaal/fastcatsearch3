@@ -386,13 +386,16 @@ public class CollectionHandler {
                 int i = 0;
                 for (PrimaryKeyIndexReader pkReader : prevPkReaderList) {
                     int localDocNo = pkReader.get(buf);
-                    // logger.debug("check "+new String(buf.array, 0, buf.limit));
                     if (localDocNo != -1) {
+
                         BitSet deleteSet = prevDeleteSetList.get(i);
                         if (!deleteSet.isSet(localDocNo)) {
                             // add delete list
                             deleteSet.set(localDocNo);
                             updateDocumentSize++;// updateSize 증가
+                            segmentLogger.info("DEL_1 {} [{}] {}", pkReader.getDir().getName(), localDocNo, new String(buf.array(), 0, buf.limit));
+                        } else {
+                            segmentLogger.info("DEL_0 {} [{}] {}", pkReader.getDir().getName(), localDocNo, new String(buf.array(), 0, buf.limit));
                         }
                     }
                     i++;
@@ -594,7 +597,7 @@ public class CollectionHandler {
         SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, newSegmentDir, analyzerPoolManager);
         segmentReader.syncDeleteCountToInfo();
         segmentReaderMap.put(segmentId, segmentReader);
-
+        collectionContext.addSegmentInfo(segmentInfo);
         for(String removeSegmentId : segmentIdRemoveList) {
             SegmentReader removeSegmentReader = segmentReaderMap.remove(removeSegmentId);
             if(removeSegmentReader != null) {
@@ -613,7 +616,7 @@ public class CollectionHandler {
                 segmentDelayedCloseQueue.put(new SegmentDelayedClose(collectionId, removeSegmentId, tmpSegmentReaderMap, true));
             }
         }
-        collectionContext.addSegmentInfo(segmentInfo);
+
         long createTime = System.currentTimeMillis();
         segmentInfo.setCreateTime(createTime);
         segmentLogger.info("[{}] MergedSegment id[{}] create[{}]", collectionId, segmentId, createTime);
@@ -643,8 +646,6 @@ public class CollectionHandler {
         for(PrimaryKeyIndexBulkReader pkBulkReader : pkBulkReaderList) {
             // 새로 추가된 pk가 이전 세그먼트에 존재하면 update된 것이다.
             while (pkBulkReader.next(buf) != -1) {
-                // backward matching
-                int i = 0;
                 int localDocNo = pkReader.get(buf);
                 // logger.debug("check "+new String(buf.array, 0, buf.limit));
                 if (localDocNo != -1) {
@@ -653,6 +654,9 @@ public class CollectionHandler {
                         // add delete list
                         deleteSet.set(localDocNo);
                         updateDocumentSize++;
+                        segmentLogger.info("DEL_1 {} [{}] {}", pkBulkReader.getFile().getParentFile().getName(), localDocNo, new String(buf.array(), 0, buf.limit));
+                    } else {
+                        segmentLogger.info("DEL_0 {} [{}] {}", pkBulkReader.getFile().getParentFile().getName(), localDocNo, new String(buf.array(), 0, buf.limit));
                     }
                 }
                 buf.clear();

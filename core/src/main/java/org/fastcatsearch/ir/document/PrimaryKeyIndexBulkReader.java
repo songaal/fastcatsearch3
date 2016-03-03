@@ -30,8 +30,10 @@ public class PrimaryKeyIndexBulkReader {
 	
 	private BufferedFileInput input;
 	private int keyCount;
+    private File file;
 	
 	public PrimaryKeyIndexBulkReader(File file) throws IOException{
+        this.file = file;
 		input  = new BufferedFileInput(file);
 		keyCount = input.readInt();
 	}
@@ -49,8 +51,12 @@ public class PrimaryKeyIndexBulkReader {
 	
 		return docNo;
 	}
-	
-	public void close() throws IOException{
+
+    public File getFile() {
+        return file;
+    }
+
+    public void close() throws IOException{
 		input.close();
 	}
 }
