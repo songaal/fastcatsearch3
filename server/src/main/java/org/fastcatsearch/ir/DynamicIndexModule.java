@@ -184,7 +184,7 @@ public class DynamicIndexModule extends AbstractModule {
     @Override
     protected boolean doLoad() throws ModuleException {
         dataLogger = new LimitTimeSizeLogger(dir, flushPeriodInSeconds);
-        mergeTimer = new Timer(true);
+        mergeTimer = new Timer("DynamicMergeTimer", true);
         //stop 파일이 없어야만 시작한다.
         if(!stopIndexingFlagFile.exists()) {
             startIndexingSchedule();
@@ -229,7 +229,7 @@ public class DynamicIndexModule extends AbstractModule {
 
     public boolean startIndexingSchedule() {
         if(indexTimer == null) {
-            indexTimer = new Timer(true);
+            indexTimer = new Timer("DynamicIndexTimer", true);
             TimerTask indexFireTask = new IndexFireTask();
             indexTimer.schedule(indexFireTask, 5000, indexingPeriod);
             stopIndexingFlagFile.delete();
