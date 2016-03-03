@@ -276,6 +276,7 @@ public class CollectionHandler {
 
             String segmentId = null;
             if (liveDocumentSize > 0) {
+                int idTry = 0;
                 while (true) {
                     segmentId = segmentIdGenerator.nextId();
 
@@ -284,12 +285,22 @@ public class CollectionHandler {
                     if (!tmpSegmentDir.exists()) {
                         break;
                     }
-                    segmentLogger.info("[{}] NewSegment [{}] is exists. find next id.", collectionId, segmentId);
+                    segmentLogger.warn("[{}] NewSegment [{}] is exists. find next id.", collectionId, segmentId);
+                    idTry++;
+                    if(idTry > 100) {
+                        //100번이상 시도했으면, 머징실패.
+                        segmentLogger.error("[{}] NewSegment cannot proceed indexing.", collectionId);
+                        throw new IRException("Too many segment error!");
+                    }
                 }
             }
 
             // delete.req 파일은 머징중인 세그먼트의 데이터 일관성을 위함이다.
             // 머징중인 세그먼트가 있을때에만 delete.req 파일을 만든다.
+
+            //FIXME 나중에 필요없어짐.
+            // 머징중인 각 세그먼트의 delete.set을 직접건드리면 되므로, 따로 기록해놓을 필요가 없다.
+
             if (isMergingStatus() && deleteIdSet.size() > 0) {
                 //삭제ID만 기록해 놓은 delete.req 파일을 만들어 놓는다. (차후 세그먼트 병합시 사용됨)
                 File deleteIdFile = new File(segmentDir.getParentFile(), segmentInfo.getId() + "." + IndexFileNames.docDeleteReq);
@@ -346,6 +357,9 @@ public class CollectionHandler {
             int liveSize = dataInfo.getDocuments() - dataInfo.getDeletes();
 
             segmentLogger.info("[{}] NewSegment live[{}] doc[{}] del[{}] segSize[{}] tmpSegSize[{}]", collectionId, liveSize, dataInfo.getDocuments(), dataInfo.getDeletes(), segmentReaderMap.size(), tmpSegmentReaderMap.size());
+            for(SegmentInfo info : dataInfo.getSegmentInfoList()) {
+                segmentLogger.info("[{}] [{}] Segment live[{}] doc[{}] del[{}]", collectionId, info.getId(), info.getLiveCount(), info.getDocumentCount(), info.getDeleteCount());
+            }
         }catch (Throwable t) {
             segmentLogger.error("에러발생", t);
         }
@@ -461,10 +475,14 @@ public class CollectionHandler {
         }
         collectionContext.dataInfo().updateAll();
 
-        int documentSize = collectionContext.dataInfo().getDocuments();
-        int deleteSize = collectionContext.dataInfo().getDeletes();
+        DataInfo dataInfo = collectionContext.dataInfo();
+        int documentSize = dataInfo.getDocuments();
+        int deleteSize = dataInfo.getDeletes();
         int liveSize = documentSize - deleteSize;
         segmentLogger.info("[{}] RemoveMergedSegment live[{}] doc[{}] del[{}] segSize[{}] tmpSegSize[{}]", collectionId, liveSize, documentSize, deleteSize, segmentReaderMap.size(), tmpSegmentReaderMap.size());
+        for(SegmentInfo info : dataInfo.getSegmentInfoList()) {
+            segmentLogger.info("[{}] [{}] Segment live[{}] doc[{}] del[{}]", collectionId, info.getId(), info.getLiveCount(), info.getDocumentCount(), info.getDeleteCount());
+        }
         return collectionContext;
     }
 
@@ -475,6 +493,9 @@ public class CollectionHandler {
         long startTime = segmentInfo.getStartTime();
 
         //이거보다 늦은 시간의 세그먼트가 있는지 확인.
+
+        //TODO 이렇게 체크하지 말고, 실제 segment 디렉토리에서 pk와 최종 delete.set을 읽어서 삭제가 제대로 이루어 졌는지 최종확인한다.
+
         List<PrimaryKeyIndexBulkReader> pkBulkReaderList = new ArrayList<PrimaryKeyIndexBulkReader>();
 
         List<String> tmpList = new ArrayList<String>();
@@ -543,6 +564,7 @@ public class CollectionHandler {
 
         String segmentId = null;
 
+        int idTry = 0;
         while (true) {
             segmentId = segmentIdGenerator.nextId();
 
@@ -551,7 +573,13 @@ public class CollectionHandler {
             if (!tmpSegmentDir.exists()) {
                 break;
             }
-            segmentLogger.info("[{}] MergedSegment [{}] is exists. find next id.", collectionId, segmentId);
+            segmentLogger.warn("[{}] MergedSegment [{}] is exists. find next id.", collectionId, segmentId);
+            idTry++;
+            if(idTry > 100) {
+                //100번이상 시도했으면, 머징실패.
+                segmentLogger.error("[{}] MergedSegment cannot proceed merging.", collectionId);
+                throw new IRException("Too many segment error!");
+            }
         }
 
         File newSegmentDir = new File(segmentDir.getParentFile(), segmentId);
@@ -591,10 +619,14 @@ public class CollectionHandler {
         segmentLogger.info("[{}] MergedSegment id[{}] create[{}]", collectionId, segmentId, createTime);
         collectionContext.dataInfo().updateAll();
 
-        int documentSize = collectionContext.dataInfo().getDocuments();
-        int deleteSize = collectionContext.dataInfo().getDeletes();
+        DataInfo dataInfo = collectionContext.dataInfo();
+        int documentSize = dataInfo.getDocuments();
+        int deleteSize = dataInfo.getDeletes();
         int liveSize = documentSize - deleteSize;
         segmentLogger.info("[{}] MergedSegment live[{}] doc[{}] del[{}] segSize[{}] tmpSegSize[{}]", collectionId, liveSize, documentSize, deleteSize, segmentReaderMap.size(), tmpSegmentReaderMap.size());
+        for(SegmentInfo info : dataInfo.getSegmentInfoList()) {
+            segmentLogger.info("[{}] [{}] Segment live[{}] doc[{}] del[{}]", collectionId, info.getId(), info.getLiveCount(), info.getDocumentCount(), info.getDeleteCount());
+        }
         return collectionContext;
     }
 
