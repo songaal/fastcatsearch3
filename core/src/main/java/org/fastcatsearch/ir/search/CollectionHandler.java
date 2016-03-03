@@ -299,7 +299,7 @@ public class CollectionHandler {
             // 머징중인 세그먼트가 있을때에만 delete.req 파일을 만든다.
 
             //FIXME 나중에 필요없어짐.
-            // 머징중인 각 세그먼트의 delete.set을 직접건드리면 되므로, 따로 기록해놓을 필요가 없다.
+            // 머징중인 각 세그먼트의 delete.set을 기반으로 삭제문서를 재확인할 것이므로, 따로 기록해놓을 필요가 없다.
 
             if (isMergingStatus() && deleteIdSet.size() > 0) {
                 //삭제ID만 기록해 놓은 delete.req 파일을 만들어 놓는다. (차후 세그먼트 병합시 사용됨)
@@ -317,6 +317,9 @@ public class CollectionHandler {
                 }
                 segmentLogger.info("[{}] NewSegment id[{}] delete.req[{}]", collectionId, segmentInfo.getId(), deleteIdFile.getName());
             }
+            /////////////
+            //FIXME 여기까지.
+            /////////////
 
             /*
              * 먼저 추가된 세그먼트를 붙이고 나서 삭제를 수행
@@ -498,7 +501,7 @@ public class CollectionHandler {
         //이거보다 늦은 시간의 세그먼트가 있는지 확인.
 
         //TODO 이렇게 체크하지 말고, 실제 segment 디렉토리에서 pk와 최종 delete.set을 읽어서 삭제가 제대로 이루어 졌는지 최종확인한다.
-
+        //삭제한다.
         List<PrimaryKeyIndexBulkReader> pkBulkReaderList = new ArrayList<PrimaryKeyIndexBulkReader>();
 
         List<String> tmpList = new ArrayList<String>();
@@ -516,13 +519,20 @@ public class CollectionHandler {
                 return name.endsWith(IndexFileNames.docDeleteReq);
             }
         });
+        ///<-여기까지 삭제.
 
         /*
          * 기존 세그먼트의 delete.req와 pk를 통해 현 세그먼트를 삭제받는다.
          */
 
-        BitSet deleteSet = new BitSet();
         PrimaryKeyIndexReader pkReader = new PrimaryKeyIndexReader(segmentDir, IndexFileNames.primaryKeyMap);
+        BitSet deleteSet = new BitSet();
+
+        //TODO checkMergeSegmentDeletion 를 적용한다.
+//        deleteSet = checkMergeSegmentDeletion(pkReader, segmentIdRemoveList);
+
+
+        ///삭제한다.
         /*
         * 1. PK Update 적용
         * */
@@ -550,6 +560,7 @@ public class CollectionHandler {
                 }
             }
         }
+        ///<-여기까지 삭제.
 
         pkReader.close();
 
@@ -633,6 +644,52 @@ public class CollectionHandler {
         return collectionContext;
     }
 
+    /*
+     * 머징도중에 삭제문서가 추가될수도 있으므로, 머징된 세그먼트들의 삭제문서를 보고, 최종세그먼트의 삭제문서를 다시 한번 처리한다.
+     */
+    private BitSet checkMergeSegmentDeletion(PrimaryKeyIndexReader pkReader, Set<String> segmentIdRemoveList) throws IOException {
+        BytesBuffer buf = new BytesBuffer(1024);
+        BitSet deleteSet = new BitSet();
+        for(String mergedSegmentId : segmentIdRemoveList) {
+            SegmentReader mergedSegmentReader = segmentReaderMap.get(mergedSegmentId);
+
+            File dir = mergedSegmentReader.segmentDir();
+            PrimaryKeyIndexBulkReader mergedKeyBulkReader = null;
+            try {
+                mergedKeyBulkReader = new PrimaryKeyIndexBulkReader(new File(dir, IndexFileNames.primaryKeyMap));
+                BitSet mergedDeleteSet = new BitSet(dir, IndexFileNames.docDeleteSet);
+                // 제약조건: pk 크기는 1k를 넘지않는다.
+                    // 새로 추가된 pk가 이전 세그먼트에 존재하면 update된 것이다.
+                int mergedDocNo = -1;
+                while ((mergedDocNo = mergedKeyBulkReader.next(buf)) != -1) {
+                    if(mergedDeleteSet.isSet(mergedDocNo)) {
+                        //중요!! 삭제된것이므로, 머징후 세그먼트에서도 삭제를 다시한번 체크한다.
+                        int docNo = pkReader.get(buf);
+                        if (docNo != -1) {
+                            deleteSet.set(docNo);
+                            segmentLogger.info("DEL_1 {} [{}] {}", dir.getName(), docNo, new String(buf.array(), 0, buf.limit));
+//                            if (!deleteSet.isSet(docNo)) {
+//                                //삭제안된 것이므로, 삭제처리한다.
+//                                deleteSet.set(docNo);
+//                                segmentLogger.info("DEL_1 {} [{}] {}", dir.getName(), docNo, new String(buf.array(), 0, buf.limit));
+//                            } else {
+//                                //이미 삭제가 됨. 어떤 이유인지는 알수 없음.
+//                                segmentLogger.info("DEL_0 {} [{}] {}", dir.getName(), docNo, new String(buf.array(), 0, buf.limit));
+//                            }
+                        } else {
+                            //존재하지 않는 문서이므로, 이미 머징시 삭제처리된것이다.
+                        }
+                    }
+                    buf.clear();
+                }
+            } finally {
+                if(mergedKeyBulkReader != null) {
+                    mergedKeyBulkReader.close();
+                }
+            }
+        }
+        return deleteSet;
+    }
     /*
     * 머징색인 pk update
     * */
