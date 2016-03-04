@@ -11,6 +11,7 @@ import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo;
+import org.fastcatsearch.ir.util.*;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.indexing.NodeIndexDocumentFileJob;
 import org.fastcatsearch.job.indexing.NodeIndexMergingJob;
@@ -99,7 +100,7 @@ public class DynamicIndexModule extends AbstractModule {
                             fileNames.add(f.getName());
                         }
                         //file 을 증분색인하도록 요청한다.
-                        logger.debug("[{}] Indexing[{}] Remnants[{}] >> {}", fileList.size(), collectionId, dataLogger.getQueueSize(), fileNames);
+                        logger.debug("[{}] Indexing size[{}] count[{}] remnant[{}] >> {}", collectionId, org.fastcatsearch.ir.util.Formatter.getFormatSize(totalSize), fileList.size(), dataLogger.getQueueSize(), fileNames);
 
                         String documentId = null;
                         try {
