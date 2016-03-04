@@ -4,30 +4,23 @@ import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.datasource.reader.*;
 import org.fastcatsearch.ir.analysis.AnalyzerPoolManager;
 import org.fastcatsearch.ir.common.IRException;
-import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.common.SettingException;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.CollectionIndexStatus.IndexStatus;
 import org.fastcatsearch.ir.config.DataInfo;
-import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
-import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.DeleteIdSet;
 import org.fastcatsearch.ir.index.SegmentWriter;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.settings.Schema;
-import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.indexing.IndexingStopException;
-import org.fastcatsearch.util.CoreFileUtils;
 import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * 컬렉션의 세그먼트 머징을 수행하는 indexer.
@@ -74,7 +67,7 @@ public class CollectionMergeIndexer {
         indexWriter = new SegmentWriter(schema, segmentDir, segmentInfo, indexConfig, analyzerPoolManager, null);
         deleteIdSet = new DeleteIdSet();
 
-        dataSourceReader = new StoredSegmentSourceReader(segmentDirs, schema.schemaSetting());
+        dataSourceReader = new SegmentSourceReader(segmentDirs, schema.schemaSetting());
         dataSourceReader.init();
 	}
 

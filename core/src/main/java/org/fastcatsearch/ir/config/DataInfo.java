@@ -16,7 +16,7 @@ import java.util.List;
  * */
 
 @XmlRootElement(name = "data-info")
-@XmlType(propOrder = { "segmentInfoList", "deletes", "documents" })
+@XmlType(propOrder = {"documents", "deletes", "segmentInfoList"})
 public class DataInfo {
 	private static Logger logger = LoggerFactory.getLogger(DataInfo.class);
 
@@ -153,7 +153,7 @@ public class DataInfo {
 	}
 
 	@XmlRootElement(name = "segment")
-	@XmlType(propOrder = { "createTime", "deleteCount", "documentCount", "id" })
+	@XmlType(propOrder = { "id", "documentCount", "createTime", "deleteCount", "merged" })
 	public static class SegmentInfo implements Comparable<SegmentInfo>{
 		private String id;
         private int documentCount;
@@ -161,6 +161,7 @@ public class DataInfo {
         private long createTime;
 
         private long startTime = System.currentTimeMillis();
+        private boolean merged;
 
         public SegmentInfo() {
 			this.id = "a0";
@@ -253,11 +254,22 @@ public class DataInfo {
             return startTime;
         }
 
+        public void setMerged(boolean merged) {
+            this.merged = merged;
+        }
+
+        @XmlAttribute
+        public boolean isMerged() {
+            return merged;
+        }
+
 		@Override
 		public int compareTo(SegmentInfo o) {
 			return id.compareTo(o.id);
 		}
-	}
+
+
+    }
 
 
 }

@@ -64,11 +64,13 @@ public class SegmentIndexableDocumentReader {
 		private int docNo;
 		private int lastDocNo;
 
+        private transient int validDocs;
 		@Override
 		public boolean hasMoreElements() {
 			while(docNo < limit) {
                 if(!deleteSet.isSet(docNo)) {
                     lastDocNo = docNo;
+                    validDocs++;
                 } else {
                     logger.trace("doc {} is deleted and ignored for merging", docNo);
                     lastDocNo = -1;
@@ -78,6 +80,7 @@ public class SegmentIndexableDocumentReader {
                     return true;
                 }
             }
+            lastDocNo = -1;
             return false;
 		}
 
@@ -95,6 +98,9 @@ public class SegmentIndexableDocumentReader {
 			}
 		}
 
-	}
+        public int getValidDocs() {
+            return validDocs;
+        }
+    }
 
 }
