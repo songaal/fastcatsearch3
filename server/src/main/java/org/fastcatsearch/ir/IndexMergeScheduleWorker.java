@@ -163,7 +163,7 @@ public class IndexMergeScheduleWorker extends Thread {
         LocalIndexMergingJob mergingJob = new LocalIndexMergingJob(collectionId, documentId, mergeSegmentIdSet, this);
         mergingJob.setNoResult();
         putMerging(mergeSegmentIdSet);
-        logger.info("start merging job {} {} total merging on {}", collectionId, mergeSegmentIdSet, mergingSegmentSet);
+        logger.debug("start merging job {} {} total merging on {}", collectionId, mergeSegmentIdSet, mergingSegmentSet);
         ServiceManager.getInstance().getService(JobService.class).offer(mergingJob);
     }
 }

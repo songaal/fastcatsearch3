@@ -22,7 +22,8 @@ import org.fastcatsearch.ir.io.BufferedFileOutput;
 import org.fastcatsearch.ir.io.BytesBuffer;
 import org.fastcatsearch.ir.settings.AnalyzerSetting;
 import org.fastcatsearch.ir.settings.Schema;
-import org.fastcatsearch.ir.util.*;
+import org.fastcatsearch.ir.util.Counter;
+import org.fastcatsearch.ir.util.DummyCounter;
 import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -620,53 +621,6 @@ public class CollectionHandler {
         return segmentId;
     }
 
-    /*
-     * 머징도중에 삭제문서가 추가될수도 있으므로, 머징된 세그먼트들의 삭제문서를 보고, 최종세그먼트의 삭제문서를 다시 한번 처리한다.
-     */
-    @Deprecated
-    private BitSet checkMergeSegmentDeletion(PrimaryKeyIndexReader pkReader, Set<String> segmentIdRemoveList) throws IOException {
-        BytesBuffer buf = new BytesBuffer(1024);
-        BitSet deleteSet = new BitSet();
-        for(String mergedSegmentId : segmentIdRemoveList) {
-            SegmentReader mergedSegmentReader = segmentReaderMap.get(mergedSegmentId);
-
-            File dir = mergedSegmentReader.segmentDir();
-            PrimaryKeyIndexBulkReader mergedKeyBulkReader = null;
-            try {
-                mergedKeyBulkReader = new PrimaryKeyIndexBulkReader(new File(dir, IndexFileNames.primaryKeyMap));
-                BitSet mergedDeleteSet = new BitSet(dir, IndexFileNames.docDeleteSet);
-                // 제약조건: pk 크기는 1k를 넘지않는다.
-                    // 새로 추가된 pk가 이전 세그먼트에 존재하면 update된 것이다.
-                int mergedDocNo = -1;
-                while ((mergedDocNo = mergedKeyBulkReader.next(buf)) != -1) {
-                    if(mergedDeleteSet.isSet(mergedDocNo)) {
-                        //중요!! 삭제된것이므로, 머징후 세그먼트에서도 삭제를 다시한번 체크한다.
-                        int docNo = pkReader.get(buf);
-                        if (docNo != -1) {
-                            deleteSet.set(docNo);
-                            segmentLogger.info("DEL_1 {} [{}] {}", dir.getName(), docNo, new String(buf.array(), 0, buf.limit));
-//                            if (!deleteSet.isSet(docNo)) {
-//                                //삭제안된 것이므로, 삭제처리한다.
-//                                deleteSet.set(docNo);
-//                                segmentLogger.info("DEL_1 {} [{}] {}", dir.getName(), docNo, new String(buf.array(), 0, buf.limit));
-//                            } else {
-//                                //이미 삭제가 됨. 어떤 이유인지는 알수 없음.
-//                                segmentLogger.info("DEL_0 {} [{}] {}", dir.getName(), docNo, new String(buf.array(), 0, buf.limit));
-//                            }
-                        } else {
-                            //존재하지 않는 문서이므로, 이미 머징시 삭제처리된것이다.
-                        }
-                    }
-                    buf.clear();
-                }
-            } finally {
-                if(mergedKeyBulkReader != null) {
-                    mergedKeyBulkReader.close();
-                }
-            }
-        }
-        return deleteSet;
-    }
     /*
     * 머징색인 pk update
     * */

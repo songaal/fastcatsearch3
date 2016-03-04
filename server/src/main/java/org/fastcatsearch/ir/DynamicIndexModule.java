@@ -207,7 +207,7 @@ public class DynamicIndexModule extends AbstractModule {
             stopIndexingFlagFile.delete();
             return true;
         } else {
-            logger.info("[{}] Dynamic Indexing is running. Stop a indexing first before starting.", collectionId);
+            logger.warn("[{}] Dynamic Indexing is running. Stop a indexing first before starting.", collectionId);
         }
         return false;
     }

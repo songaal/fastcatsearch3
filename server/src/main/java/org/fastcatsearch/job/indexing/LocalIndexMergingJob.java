@@ -73,10 +73,6 @@ public class LocalIndexMergingJob extends Job {
                 if (mergeIndexer != null) {
                     try {
                         segmentInfo = mergeIndexer.close();
-
-
-                        //FIXME test!!!
-                        Thread.sleep(20000);
                     } catch (Throwable closeThrowable) {
                         // 이전에 이미 발생한 에러가 있다면 close 중에 발생한 에러보다 이전 에러를 throw한다.
                         if (indexingThrowable == null) {
