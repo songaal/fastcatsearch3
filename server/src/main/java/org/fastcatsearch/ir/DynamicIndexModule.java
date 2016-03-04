@@ -8,7 +8,10 @@ import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.config.DataInfo;
+import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.indexing.NodeIndexDocumentFileJob;
 import org.fastcatsearch.job.indexing.NodeIndexMergingJob;
 import org.fastcatsearch.module.AbstractModule;
@@ -20,7 +23,10 @@ import org.fastcatsearch.util.LimitTimeSizeLogger;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.RunnableFuture;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by swsong on 2016. 1. 13..
@@ -30,7 +36,6 @@ public class DynamicIndexModule extends AbstractModule {
 
     private LimitTimeSizeLogger dataLogger;
     private Timer indexTimer;
-    private Timer mergeTimer;
     private File dir;
     private File stopIndexingFlagFile;
     private int flushPeriodInSeconds;
@@ -40,9 +45,11 @@ public class DynamicIndexModule extends AbstractModule {
     private long indexingPeriod;
 
     private Semaphore indexingMutex = new Semaphore(1);
-    private Semaphore mergingMutex = new Semaphore(1);
 
-    public DynamicIndexModule(Environment environment, Settings settings, String collectionId) {
+    private IndexMergeScheduleWorker indexMergeScheduleWorker;
+
+
+    public DynamicIndexModule(Environment environment, Settings settings, String collectionId, ScheduledExecutorService scheduleService) {
         super(environment, settings);
         this.collectionId = collectionId;
         dir = environment.filePaths().collectionFilePaths(collectionId).file("indexlog");
@@ -54,6 +61,8 @@ public class DynamicIndexModule extends AbstractModule {
         indexingPeriod = settings.getInt("indexing.dynamic.indexing_period_SEC", 1) * 1000; //1초마다.
         logger.debug("DynamicIndexModule flushPeriodInSeconds[{}] indexFileMinSize[{}] mergePeriod[{}] indexingPeriod[{}]",
                 flushPeriodInSeconds, indexFileMinSize, mergePeriod, indexingPeriod);
+
+        indexMergeScheduleWorker = new IndexMergeScheduleWorker(collectionId, mergePeriod);
     }
 
     class IndexFireTask extends TimerTask {
@@ -146,52 +155,15 @@ public class DynamicIndexModule extends AbstractModule {
         }
     }
 
-    class IndexMergeTask extends TimerTask {
-
-        private int name = hashCode();
-        @Override
-        public void run() {
-
-            if(mergingMutex.tryAcquire()) {
-                try {
-                    String documentId = String.valueOf(System.nanoTime());
-                    logger.debug("MergeCheckTask-{} col[{}] at {}", name, collectionId, documentId);
-                    try {
-                        JobService jobService = ServiceManager.getInstance().getService(JobService.class);
-                        ResultFuture resultFuture = jobService.offer(new NodeIndexMergingJob(collectionId, documentId));
-                        Object result = resultFuture.take();
-                        if (result instanceof Boolean && ((Boolean) result).booleanValue()) {
-//                    logger.debug("Merging id {} : Node {}", documentId, environment.myNodeId());
-                        } else {
-                            //무시.
-                        }
-                    } catch (Exception e) {
-                        logger.error("", e);
-                    }
-
-                    //머징이 즉시 시작하는 것을 방지하기 위해 1초정도 여유를 둠.
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException ignore) {
-                    }
-                } finally {
-                    mergingMutex.release();
-                }
-            }
-        }
-    }
-
     @Override
     protected boolean doLoad() throws ModuleException {
         dataLogger = new LimitTimeSizeLogger(dir, flushPeriodInSeconds);
-        mergeTimer = new Timer("DynamicMergeTimer", true);
         //stop 파일이 없어야만 시작한다.
         if(!stopIndexingFlagFile.exists()) {
             startIndexingSchedule();
         }
-        TimerTask indexMergeTask = new IndexMergeTask();
-        mergeTimer.schedule(indexMergeTask, 5000, mergePeriod);
-        logger.info("[{}][{}] Index Merger start scheduling! timer[{}] task[{}]", collectionId, mergeTimer.hashCode(), indexMergeTask.hashCode());
+        indexMergeScheduleWorker.start();
+        logger.info("[{}] Index Merger start scheduling!", collectionId);
         logger.info("[{}] To be indexed files = {}", collectionId, dataLogger.getQueueSize());
         return true;
     }
@@ -201,7 +173,7 @@ public class DynamicIndexModule extends AbstractModule {
         if(indexTimer != null) {
             indexTimer.cancel();
         }
-        mergeTimer.cancel();
+        indexMergeScheduleWorker.requestCancel();
         if(dataLogger != null) {
             dataLogger.close();
         }
