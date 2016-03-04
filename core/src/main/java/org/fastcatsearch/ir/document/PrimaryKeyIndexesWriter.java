@@ -107,8 +107,8 @@ public class PrimaryKeyIndexesWriter {
 			int preDocNo = indexWriter.put(pkbaos.array(), 0, (int) pkbaos.position(), localDocNo);
 			
 			if (preDocNo >= 0) {
-				if(logger.isDebugEnabled()) {
-					logger.debug("PK updated! >> newDocNo[{}] docNo[{}] pk[{}]", localDocNo, preDocNo, new String(pkbaos.array(), 0, (int) pkbaos.position()));
+				if(logger.isTraceEnabled()) {
+					logger.trace("PK updated! >> newDocNo[{}] docNo[{}] pk[{}]", localDocNo, preDocNo, new String(pkbaos.array(), 0, (int) pkbaos.position()));
 				}
 				deleteSet.set(preDocNo);
 			}
@@ -116,7 +116,9 @@ public class PrimaryKeyIndexesWriter {
 			count++;
 			if (count % CHECK_COUNT == 0) {
 				long memorySize = indexWriter.checkWorkingMemorySize();
-				logger.debug("PK check #{} pk mem {}", count, Formatter.getFormatSize(memorySize));
+                if(logger.isTraceEnabled()) {
+                    logger.trace("PK check #{} pk mem {}", count, Formatter.getFormatSize(memorySize));
+                }
 				if (memorySize > MEMORY_LIMIT) {
 					indexWriter.flush();
 				}

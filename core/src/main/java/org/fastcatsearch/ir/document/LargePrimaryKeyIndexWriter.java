@@ -200,7 +200,7 @@ public class LargePrimaryKeyIndexWriter implements BytesToIntWriter, BytesToIntR
 				}
 			}
 		} else {
-			logger.debug("found {} at DYNAMIC", oldValue);
+			logger.trace("found {} at DYNAMIC", oldValue);
 		}
 		return oldValue;
 	}

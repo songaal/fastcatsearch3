@@ -155,7 +155,7 @@ public class CollectionDynamicIndexer {
             indexWriter.addDocument(document);
             updateCount++;
 
-            logger.debug("Update {} doc > {}", pkValue, source);
+            logger.trace("Update {} doc > {}", pkValue, source);
         }
 
     }
