@@ -103,6 +103,8 @@ public class CollectionMergeIndexer {
         if (indexWriter != null) {
             try {
                 segmentInfo = indexWriter.close();
+                //머징된 세그먼트 임을 표시한다.
+                segmentInfo.setMerged(true);
                 logger.debug("##Indexer close {}", segmentInfo);
             } catch (IOException e) {
                 throw new IRException(e);
