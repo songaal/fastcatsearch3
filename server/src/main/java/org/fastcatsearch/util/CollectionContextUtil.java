@@ -18,7 +18,7 @@ import java.util.ArrayList;
 public class CollectionContextUtil {
 	private static final Logger logger = LoggerFactory.getLogger(CollectionContextUtil.class);
 
-	public static CollectionContext create(CollectionConfig collectionConfig, FilePaths collectionFilePaths) throws SettingException {
+	public synchronized static CollectionContext create(CollectionConfig collectionConfig, FilePaths collectionFilePaths) throws SettingException {
 		try {
 			Path collectionDir = new Path(collectionFilePaths.file());
 			//collection config.xml
@@ -61,7 +61,7 @@ public class CollectionContextUtil {
 	}
 	
 
-	public static boolean writeConfigFile(Object configObject, FilePaths collectionFilePaths) {
+	public synchronized static boolean writeConfigFile(Object configObject, FilePaths collectionFilePaths) {
 		if(!collectionFilePaths.file().exists()) {
 			collectionFilePaths.file().mkdirs();
 		}
@@ -83,7 +83,7 @@ public class CollectionContextUtil {
 	}
 	
 	
-	public static CollectionContext load(Collection collection, FilePaths collectionFilePaths) throws SettingException {
+	public synchronized static CollectionContext load(Collection collection, FilePaths collectionFilePaths) throws SettingException {
 		try {
 			String collectionId = collection.getId();
 			Path collectionPath = new Path(collectionFilePaths.file());
@@ -140,7 +140,7 @@ public class CollectionContextUtil {
 		}
 	}
 
-	public static void write(CollectionContext collectionContext) throws SettingException {
+	public synchronized static void write(CollectionContext collectionContext) throws SettingException {
 		try {
 			FilePaths collectionFilePaths = collectionContext.collectionFilePaths();
 
@@ -196,7 +196,7 @@ public class CollectionContextUtil {
 	 * data#//info.xml 저장.
 	 *
 	 * */
-	public static void saveCollectionAfterIndexing(CollectionContext collectionContext) throws SettingException {
+	public synchronized static void saveCollectionAfterIndexing(CollectionContext collectionContext) throws SettingException {
 		FilePaths collectionFilePaths = collectionContext.collectionFilePaths();
 		
 		FilePaths dataFilePaths = collectionFilePaths.dataPaths();
@@ -248,7 +248,7 @@ public class CollectionContextUtil {
 		}
 	}
 
-    public static void saveCollectionAfterDynamicIndexing(CollectionContext collectionContext) throws SettingException {
+    public synchronized static void saveCollectionAfterDynamicIndexing(CollectionContext collectionContext) throws SettingException {
         FilePaths collectionFilePaths = collectionContext.collectionFilePaths();
 
         FilePaths dataFilePaths = collectionFilePaths.dataPaths();
