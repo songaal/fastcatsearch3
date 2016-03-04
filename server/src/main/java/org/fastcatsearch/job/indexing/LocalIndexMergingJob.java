@@ -36,16 +36,13 @@ public class LocalIndexMergingJob extends Job {
     private String documentId;
     private Set<String> mergingSegmentIdSet;
 
-    private IndexMergeScheduleWorker mergeScheduleWorker;
-
     public LocalIndexMergingJob() {
     }
 
-    public LocalIndexMergingJob(String collectionId, String documentId, Set<String> mergingSegmentIdSet, IndexMergeScheduleWorker mergeScheduleWorker) {
+    public LocalIndexMergingJob(String collectionId, String documentId, Set<String> mergingSegmentIdSet) {
         this.collectionId = collectionId;
         this.documentId = documentId;
         this.mergingSegmentIdSet = mergingSegmentIdSet;
-        this.mergeScheduleWorker = mergeScheduleWorker;
     }
 
     @Override
@@ -118,10 +115,6 @@ public class LocalIndexMergingJob extends Job {
         } catch (Throwable e) {
             logger.error("", e);
             throw new FastcatSearchException("ERR-00525", e);
-        } finally {
-            // 머징 끝남표시..
-//            collectionHandler.endMergingStatus();
-            mergeScheduleWorker.finishMerging(mergingSegmentIdSet);
         }
     }
 }

@@ -28,17 +28,17 @@ import java.util.Set;
  * 각 노드로 전달되어 색인머징을 수행하는 작업.
  * Created by swsong on 2015. 12. 24..
  */
-public class NodeIndexMergingJob extends Job implements Streamable {
+public class Delete_NodeIndexMergingJob extends Job implements Streamable {
 
     protected static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
 
     private String collectionId;
     private String documentId;
 
-    public NodeIndexMergingJob() {
+    public Delete_NodeIndexMergingJob() {
     }
 
-    public NodeIndexMergingJob(String collectionId, String documentId) {
+    public Delete_NodeIndexMergingJob(String collectionId, String documentId) {
         this.collectionId = collectionId;
         this.documentId = documentId;
     }
@@ -49,14 +49,14 @@ public class NodeIndexMergingJob extends Job implements Streamable {
         IRService irService = ServiceManager.getInstance().getService(IRService.class);
         CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
 
-        // 머징 시작표시..
-        if(collectionHandler.isMergingStatus()) {
-            return new JobResult(false);
-        }
+//        // 머징 시작표시..
+//        if(collectionHandler.isMergingStatus()) {
+//            return new JobResult(false);
+//        }
 
         try {
 
-            collectionHandler.startMergingStatus();
+//            collectionHandler.startMergingStatus();
 
             CollectionContext collectionContext = collectionHandler.collectionContext();
 
@@ -206,7 +206,7 @@ public class NodeIndexMergingJob extends Job implements Streamable {
             throw new FastcatSearchException("ERR-00525", e);
         } finally {
             // 머징 끝남표시..
-            collectionHandler.endMergingStatus();
+//            collectionHandler.endMergingStatus();
         }
     }
 

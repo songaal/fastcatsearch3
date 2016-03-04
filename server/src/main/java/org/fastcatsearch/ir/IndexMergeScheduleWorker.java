@@ -6,7 +6,6 @@ import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentReader;
 import org.fastcatsearch.job.indexing.LocalIndexMergingJob;
-import org.fastcatsearch.job.indexing.NodeIndexMergingJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +25,9 @@ public class IndexMergeScheduleWorker extends Thread {
 
     private long scheduleDelayInMS;
 
-    private Map<String, String> mergingSegmentSet;
     private static float DELETE_ALLOW_RATIO = 0.4f;
+
+    private CollectionHandler collectionHandler;
 
     public void requestCancel() {
         this.interrupt();
@@ -39,31 +39,13 @@ public class IndexMergeScheduleWorker extends Thread {
         setDaemon(true);
         this.collectionId = collectionId;
         this.scheduleDelayInMS = scheduleDelayInMS;
-        mergingSegmentSet = new ConcurrentHashMap<String, String>();
     }
-
-    private void putMerging(Set<String> segmentIdSet) {
-        for(String segmentId : segmentIdSet) {
-            mergingSegmentSet.put(segmentId, segmentId);
-        }
-    }
-
-    private boolean isMerging(String segmentId) {
-        return mergingSegmentSet.containsKey(segmentId);
-    }
-
-    public void finishMerging(Set<String> segmentIdSet) {
-        for(String segmentId : segmentIdSet) {
-            mergingSegmentSet.remove(segmentId);
-        }
-    }
-
 
     @Override
     public void run() {
 
         IRService irService = ServiceManager.getInstance().getService(IRService.class);
-        CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
+        collectionHandler = irService.collectionHandler(collectionId);
         while(!isCanceled) {
             try {
                 Collection<SegmentReader> segmentReaders = collectionHandler.segmentReaders();
@@ -82,7 +64,7 @@ public class IndexMergeScheduleWorker extends Thread {
                     String segmentId = segmentInfo.getId();
 
                     //이미 머징중인 세그먼트라면 통과한다.
-                    if (isMerging(segmentId)) {
+                    if (collectionHandler.isMerging(segmentId)) {
                         continue;
                     }
 
@@ -159,11 +141,10 @@ public class IndexMergeScheduleWorker extends Thread {
 
     private void startMergingJob(Set<String> mergeSegmentIdSet) {
         String documentId = String.valueOf(System.nanoTime());
-        //끝나면 finish Merging()을 호출하도록 this를 전달한다.
-        LocalIndexMergingJob mergingJob = new LocalIndexMergingJob(collectionId, documentId, mergeSegmentIdSet, this);
+        LocalIndexMergingJob mergingJob = new LocalIndexMergingJob(collectionId, documentId, mergeSegmentIdSet);
         mergingJob.setNoResult();
-        putMerging(mergeSegmentIdSet);
-        logger.debug("start merging job {} {} total merging on {}", collectionId, mergeSegmentIdSet, mergingSegmentSet);
+        collectionHandler.putMerging(mergeSegmentIdSet);
+        logger.debug("start merging job {} {}", collectionId, mergeSegmentIdSet);
         ServiceManager.getInstance().getService(JobService.class).offer(mergingJob);
     }
 }

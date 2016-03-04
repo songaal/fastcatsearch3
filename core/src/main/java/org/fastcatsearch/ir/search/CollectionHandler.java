@@ -56,8 +56,9 @@ public class CollectionHandler {
 
     private SegmentIdGenerator segmentIdGenerator;
 
-    private boolean isMerging;
     private DelayQueue<SegmentDelayedClose> segmentDelayedCloseQueue;
+
+    private Map<String, String> mergingSegmentSet;
 
     public CollectionHandler(CollectionContext collectionContext, AnalyzerFactoryManager analyzerFactoryManager) throws IRException, SettingException {
 		this.collectionContext = collectionContext;
@@ -137,6 +138,8 @@ public class CollectionHandler {
 
 		logger.debug("Load CollectionHandler [{}] data >> {}", collectionId, dataDir.getAbsolutePath());
 
+        mergingSegmentSet = new ConcurrentHashMap<String, String>();
+
 		// 색인기록이 있다면 세그먼트를 로딩한다.
 		segmentReaderMap = new ConcurrentHashMap<String, SegmentReader>();
         tmpSegmentReaderMap = new ConcurrentHashMap<String, SegmentReader>();
@@ -213,15 +216,6 @@ public class CollectionHandler {
         return tmpSegmentReaderMap.get(segmentId);
     }
 
-//    public synchronized String nextSegmentId() {
-//        Set segmentIdSet = segmentReaderMap.keySet();
-//        String id = null;
-//        do {
-//            id = segmentIdGenerator.nextId();
-//        } while (segmentIdSet.contains(id));
-//        return id;
-//    }
-
 	public SegmentSearcher segmentSearcher(String segmentId) {
         return segmentReaderMap.get(segmentId).segmentSearcher();
     }
@@ -233,6 +227,20 @@ public class CollectionHandler {
     public SegmentSearcher getFirstSegmentSearcher() {
         String segmentId = segmentReaderMap.keySet().iterator().next();
         return segmentReaderMap.get(segmentId).segmentSearcher();
+    }
+
+
+    /////////////////
+    // 머징 관련 메소드
+    /////////////////
+    public void putMerging(Set<String> segmentIdSet) {
+        for(String segmentId : segmentIdSet) {
+            mergingSegmentSet.put(segmentId, segmentId);
+        }
+    }
+
+    public boolean isMerging(String segmentId) {
+        return mergingSegmentSet.containsKey(segmentId);
     }
 
     /*
@@ -280,7 +288,7 @@ public class CollectionHandler {
             // 머징중인 세그먼트가 있을때에만 delete.req 파일을 만든다.
 
             // 머징중인 각 세그먼트의 delete.set을 기반으로 삭제문서를 재확인할 것이므로, 따로 기록해놓을 필요가 없다.
-            if (isMergingStatus() && deleteIdSet.size() > 0) {
+            if (mergingSegmentSet.size() > 0 && deleteIdSet.size() > 0) {
                 //삭제ID만 기록해 놓은 delete.req 파일을 만들어 놓는다. (차후 세그먼트 병합시 사용됨)
                 File deleteIdFile = new File(segmentDir.getParentFile(), tempSegmentId + "." + IndexFileNames.docDeleteReq);
                 BufferedFileOutput deleteIdOutput = null;
@@ -564,6 +572,7 @@ public class CollectionHandler {
         segmentReaderMap.put(segmentId, segmentReader);
         collectionContext.addSegmentInfo(segmentInfo);
         for(String removeSegmentId : segmentIdRemoveList) {
+            mergingSegmentSet.remove(removeSegmentId);
             SegmentReader removeSegmentReader = segmentReaderMap.remove(removeSegmentId);
             if(removeSegmentReader != null) {
                 //설정파일도 수정한다.
@@ -726,18 +735,6 @@ public class CollectionHandler {
 	public Counter queryCounter() {
 		return queryCounter;
 	}
-
-    public void startMergingStatus() {
-        isMerging = true;
-    }
-
-    public void endMergingStatus() {
-        isMerging = false;
-    }
-
-    public boolean isMergingStatus() {
-        return isMerging;
-    }
 
     public void setSegmentDelayedCloseQueue(DelayQueue<SegmentDelayedClose> segmentDelayedCloseQueue) {
         this.segmentDelayedCloseQueue = segmentDelayedCloseQueue;
