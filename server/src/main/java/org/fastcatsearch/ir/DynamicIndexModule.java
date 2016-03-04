@@ -5,16 +5,9 @@ import org.fastcatsearch.cluster.ClusterUtils;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeJobResult;
 import org.fastcatsearch.cluster.NodeService;
-import org.fastcatsearch.control.JobService;
-import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.env.Environment;
-import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.DataInfo;
-import org.fastcatsearch.ir.util.*;
-import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.indexing.NodeIndexDocumentFileJob;
-import org.fastcatsearch.job.indexing.NodeIndexMergingJob;
 import org.fastcatsearch.module.AbstractModule;
 import org.fastcatsearch.module.ModuleException;
 import org.fastcatsearch.service.ServiceManager;
@@ -24,10 +17,7 @@ import org.fastcatsearch.util.LimitTimeSizeLogger;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.RunnableFuture;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by swsong on 2016. 1. 13..
@@ -50,7 +40,7 @@ public class DynamicIndexModule extends AbstractModule {
     private IndexMergeScheduleWorker indexMergeScheduleWorker;
 
 
-    public DynamicIndexModule(Environment environment, Settings settings, String collectionId, ScheduledExecutorService scheduleService) {
+    public DynamicIndexModule(Environment environment, Settings settings, String collectionId) {
         super(environment, settings);
         this.collectionId = collectionId;
         dir = environment.filePaths().collectionFilePaths(collectionId).file("indexlog");
