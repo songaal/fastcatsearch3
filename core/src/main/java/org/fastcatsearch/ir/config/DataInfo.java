@@ -198,7 +198,7 @@ public class DataInfo {
 		}
 
 		public String toString() {
-			return "[SegmentInfo] id[" + id + "]";
+			return "[SegmentInfo] id[" + id + "] doc[" + documentCount + "] del[" + deleteCount + "] merged[" + merged + "]";
 		}
 
 		public void update(SegmentInfo segmentInfo) {
