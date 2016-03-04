@@ -15,6 +15,7 @@ import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.alert.ClusterAlertService;
 import org.fastcatsearch.cluster.NodeLoadBalancable;
 import org.fastcatsearch.common.QueryCacheModule;
+import org.fastcatsearch.common.ThreadPoolFactory;
 import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
@@ -58,6 +59,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.DelayQueue;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class IRService extends AbstractService {
 
@@ -85,6 +87,8 @@ public class IRService extends AbstractService {
 
     //검색중인 세그먼트를 바로 닫으면 문제가 생기므로, 사용이 끝날때까지 기다렸다 close할수 있도록 저장하는 Q.
     private DelayQueue<SegmentDelayedClose> segmentDelayCloseQueue;
+
+    private ScheduledExecutorService scheduleService;
 
 	public IRService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
@@ -151,6 +155,7 @@ public class IRService extends AbstractService {
 
 		dataNodeCollectionIdSet = new HashSet<String>();
         segmentDelayCloseQueue = new DelayQueue<SegmentDelayedClose>();
+        scheduleService = ThreadPoolFactory.newScheduledDaemonThreadPool("IRService.schedulePool");
 
 		List<Collection> collectionList = collectionsConfig.getCollectionList();
 		for (int collectionInx = 0 ; collectionInx < collectionList.size(); collectionInx++) {
@@ -246,7 +251,7 @@ public class IRService extends AbstractService {
 			/*
 			* DynamicIndexModule 을 로딩한다.
 			* */
-            DynamicIndexModule dynamicIndexModule = new DynamicIndexModule(environment, settings, collectionId);
+            DynamicIndexModule dynamicIndexModule = new DynamicIndexModule(environment, settings, collectionId, scheduleService);
 			dynamicIndexModule.load();
 
 			DynamicIndexModule prevDynamicIndexModule = dynamicIndexModuleMap.put(collectionId, dynamicIndexModule);
@@ -434,7 +439,7 @@ public class IRService extends AbstractService {
 				throw new FastcatSearchException("IRService 종료중 에러발생.", e);
 			}
 		}
-
+        scheduleService.shutdown();
 		searchCache.unload();
 		groupingCache.unload();
 		groupingDataCache.unload();
