@@ -56,7 +56,7 @@ public class Delete_NodeIndexMergingJob extends Job implements Streamable {
 
         try {
 
-//            collectionHandler.startMergingStatus();
+//            collectionHandler.prepareMergingDeletion();
 
             CollectionContext collectionContext = collectionHandler.collectionContext();
 
@@ -206,7 +206,7 @@ public class Delete_NodeIndexMergingJob extends Job implements Streamable {
             throw new FastcatSearchException("ERR-00525", e);
         } finally {
             // 머징 끝남표시..
-//            collectionHandler.endMergingStatus();
+//            collectionHandler.takeMergingDeletion();
         }
     }
 

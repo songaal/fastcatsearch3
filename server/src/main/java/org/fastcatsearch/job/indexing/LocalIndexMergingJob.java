@@ -1,14 +1,10 @@
 package org.fastcatsearch.job.indexing;
 
-import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.CollectionMergeIndexer;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.IndexMergeScheduleWorker;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo;
-import org.fastcatsearch.ir.io.DataInput;
-import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.Job;
@@ -19,9 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -51,6 +45,7 @@ public class LocalIndexMergingJob extends Job {
         IRService irService = ServiceManager.getInstance().getService(IRService.class);
         CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
 
+        collectionHandler.prepareMergingDeletion(documentId);
         try {
             CollectionContext collectionContext = collectionHandler.collectionContext();
             //mergeIdList 를 File[]로 변환.
@@ -64,6 +59,7 @@ public class LocalIndexMergingJob extends Job {
             DataInfo.SegmentInfo segmentInfo = null;
 
             if(segmentDirs.size() == 0) {
+                collectionHandler.takeMergingDeletion(documentId);
                 collectionHandler.removeMergedSegment(mergingSegmentIdSet);
                 long elapsed = System.currentTimeMillis() - startTime;
                 indexingLogger.info("[{}] Merge Indexing Done. Inserts[{}] Deletes[{}] Elapsed[{}] TotalLive[{}] Segments[{}] SegIds{} "
@@ -98,6 +94,7 @@ public class LocalIndexMergingJob extends Job {
                     logger.info("[{}] Delete segment dir due to no documents = {}", collectionHandler.collectionId(), segmentDir.getAbsolutePath());
                     //세그먼트를 삭제하고 없던 일로 한다.
                     FileUtils.deleteDirectory(segmentDir);
+                    collectionHandler.takeMergingDeletion(documentId);
                     collectionContext = collectionHandler.removeMergedSegment(mergingSegmentIdSet);
                 } else {
                     collectionContext = collectionHandler.applyMergedSegment(segmentInfo, mergeIndexer.getSegmentDir(), mergingSegmentIdSet);
