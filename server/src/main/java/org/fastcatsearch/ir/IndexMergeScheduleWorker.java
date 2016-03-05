@@ -1,7 +1,6 @@
 package org.fastcatsearch.ir;
 
 import org.fastcatsearch.control.JobService;
-import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentReader;
@@ -11,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by swsong on 2016. 3. 4..
@@ -48,8 +46,10 @@ public class IndexMergeScheduleWorker extends Thread {
         collectionHandler = irService.collectionHandler(collectionId);
         while(!isCanceled) {
             try {
+                logger.info("[{}] Check merging....", collectionId);
                 Collection<SegmentReader> segmentReaders = collectionHandler.segmentReaders();
                 List<String> merge100 = new ArrayList<String>();
+                List<String> merge1K = new ArrayList<String>();
                 List<String> merge10K = new ArrayList<String>();
                 List<String> merge100K = new ArrayList<String>();
                 List<String> merge1M = new ArrayList<String>();
@@ -73,8 +73,11 @@ public class IndexMergeScheduleWorker extends Thread {
                     if (liveSize < 100) {
                         // 1~100
                         merge100.add(segmentId);
+                    } else if (liveSize < 1000) {
+                        // 100 ~ 1000
+                        merge1K.add(segmentId);
                     } else if (liveSize < 10 * 1000) {
-                        // 100 ~ 1만
+                        // 1000 ~ 1만
                         merge10K.add(segmentId);
                     } else if (liveSize < 100 * 1000) {
                         // 1만 ~ 10만
@@ -124,7 +127,13 @@ public class IndexMergeScheduleWorker extends Thread {
                     startMergingJob(mergeSegmentIdSet);
                 }
 
-                if (merge100.size() >= 3) {
+                if (merge1K.size() >= 3) {
+                    Set<String> mergeSegmentIdSet = new HashSet<String>();
+                    mergeSegmentIdSet.addAll(merge1K);
+                    //100도 함께 추가한다.
+                    mergeSegmentIdSet.addAll(merge100);
+                    startMergingJob(mergeSegmentIdSet);
+                } else if (merge100.size() >= 3) {
                     Set<String> mergeSegmentIdSet = new HashSet<String>();
                     mergeSegmentIdSet.addAll(merge100);
                     startMergingJob(mergeSegmentIdSet);
@@ -144,7 +153,7 @@ public class IndexMergeScheduleWorker extends Thread {
         LocalIndexMergingJob mergingJob = new LocalIndexMergingJob(collectionId, documentId, mergeSegmentIdSet);
         mergingJob.setNoResult();
         collectionHandler.putMerging(mergeSegmentIdSet);
-        logger.debug("start merging job {} {}", collectionId, mergeSegmentIdSet);
+        logger.info("[{}] start merging job {}", collectionId, mergeSegmentIdSet);
         ServiceManager.getInstance().getService(JobService.class).offer(mergingJob);
     }
 }
