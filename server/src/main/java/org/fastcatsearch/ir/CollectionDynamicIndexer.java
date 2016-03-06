@@ -19,6 +19,7 @@ import org.fastcatsearch.ir.search.CollectionSearcher;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.Schema;
+import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.indexing.IndexingStopException;
 import org.fastcatsearch.util.FilePaths;
 import org.slf4j.Logger;
@@ -36,7 +37,7 @@ import java.util.Map;
  * API를 통해 단발적으로 들어는 문서들을 색인하는 동적인덱서
  */
 public class CollectionDynamicIndexer {
-
+    protected static Logger indexingLogger = LoggerFactory.getLogger("INDEXING_LOG");
     protected static final Logger logger = LoggerFactory.getLogger(CollectionDynamicIndexer.class);
     protected CollectionContext collectionContext;
     protected AnalyzerPoolManager analyzerPoolManager;
@@ -51,6 +52,7 @@ public class CollectionDynamicIndexer {
     protected int insertCount;
     protected int updateCount;
     protected int deleteCount;
+    private int count;
 
     private CollectionHandler collectionHandler;
     private DefaultDataSourceReader documentFactory;
@@ -58,6 +60,7 @@ public class CollectionDynamicIndexer {
     private Schema schema;
     private List<String> pkList;
     private CollectionSearcher collectionSearcher;
+    private long lapTime;
 
     public CollectionDynamicIndexer(String documentId, CollectionHandler collectionHandler) throws IRException {
         this.collectionHandler = collectionHandler;
@@ -93,6 +96,8 @@ public class CollectionDynamicIndexer {
 
         deleteIdSet = new DeleteIdSet(pkList.size());
         createTime = System.currentTimeMillis();
+
+        lapTime = createTime;
     }
 
     public DataInfo.SegmentInfo getSegmentInfo() {
@@ -107,6 +112,10 @@ public class CollectionDynamicIndexer {
         Document document = documentFactory.createDocument(source);
         indexWriter.addDocument(document);
         insertCount++;
+        count++;
+        if (count % 10000 == 0) {
+            printIndexingInfo();
+        }
         logger.trace("Insert doc > {}", source);
     }
 
@@ -154,7 +163,10 @@ public class CollectionDynamicIndexer {
 
             indexWriter.addDocument(document);
             updateCount++;
-
+            count++;
+            if (count % 10000 == 0) {
+                printIndexingInfo();
+            }
             logger.trace("Update {} doc > {}", pkValue, source);
         }
 
@@ -205,7 +217,20 @@ public class CollectionDynamicIndexer {
         indexWriter.deleteDocument(pkbaos);
         deleteIdSet.add(pkArray);
         deleteCount++;
+        count++;
+        if (count % 10000 == 0) {
+            printIndexingInfo();
+        }
         logger.debug("Delete doc > {}", source);
+    }
+
+    private void printIndexingInfo() {
+        indexingLogger.info(
+                "[{}] Dynamic Indexing {} ... lap = {} ms, elapsed = {}, mem = {}",
+                collectionContext.collectionId(), count, System.currentTimeMillis() - lapTime,
+                Formatter.getFormatTime(System.currentTimeMillis() - createTime),
+                Formatter.getFormatSize(Runtime.getRuntime().totalMemory()));
+        lapTime = System.currentTimeMillis();
     }
 
     public DeleteIdSet getDeleteIdSet() {
