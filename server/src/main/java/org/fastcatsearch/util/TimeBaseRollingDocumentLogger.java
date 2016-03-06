@@ -5,6 +5,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  *
@@ -20,10 +23,10 @@ public class TimeBaseRollingDocumentLogger {
     private Timer flushTimer;
     private long lastFlushTime;
     private long fileOpenTime;
-    private Queue<File> fileQueue;
+    private BlockingQueue<LogFileStatus> fileQueue;
     private Object lock = new Object();
     private Writer logWriter;
-
+    private LogFileStatus currentLogFileStatus;
 	public TimeBaseRollingDocumentLogger(File dir, int flushPeriodInSeconds, int rollingPeriodInSeconds) {
 		this(dir, "utf-8", flushPeriodInSeconds, rollingPeriodInSeconds);
 	}
@@ -41,7 +44,7 @@ public class TimeBaseRollingDocumentLogger {
 		if (!dir.exists()) {
 			dir.mkdirs();
 		}
-        fileQueue = new ArrayDeque<File>();
+        fileQueue = new LinkedBlockingQueue<LogFileStatus>();
         TreeSet<File> sorter = new TreeSet<File>(new Comparator<File>() {
             @Override
             public int compare(File o1, File o2) {
@@ -69,7 +72,7 @@ public class TimeBaseRollingDocumentLogger {
         while(iter.hasNext()) {
             File f = iter.next();
 //            logger.info("index file = " + f.getName());
-            fileQueue.add(f);
+            fileQueue.add(new LogFileStatus(f));
         }
 
         lastFlushTime = System.nanoTime();
@@ -85,11 +88,8 @@ public class TimeBaseRollingDocumentLogger {
         closeFile();
     }
 
-    public File pollFile() {
-        return fileQueue.poll();
-    }
-    public int fileCount() {
-        return fileQueue.size();
+    public BlockingQueue<LogFileStatus> getFileQueue() {
+        return fileQueue;
     }
 
 	public int size() {
@@ -142,7 +142,8 @@ public class TimeBaseRollingDocumentLogger {
 		} finally {
             lastFlushTime = System.nanoTime();
             if(isCreated && ex == null && file != null) {
-                fileQueue.offer(file);
+                currentLogFileStatus = new LogFileStatus(file);
+                fileQueue.add(currentLogFileStatus);
             }
         }
 	}
@@ -152,6 +153,9 @@ public class TimeBaseRollingDocumentLogger {
         if(logWriter != null) {
             try {
                 logWriter.close();
+                if(currentLogFileStatus != null) {
+                    currentLogFileStatus.setIsClosed(true);
+                }
             } catch (IOException e) {
                 logger.error("", e);
             }
@@ -177,6 +181,31 @@ public class TimeBaseRollingDocumentLogger {
                 }
             }
         }
+    }
 
+    public static class LogFileStatus {
+        private File f;
+        private boolean isClosed;
+
+        public LogFileStatus(File f, boolean isClosed) {
+            this.f = f;
+            this.isClosed = isClosed;
+        }
+
+        public LogFileStatus(File f) {
+            this.f = f;
+        }
+
+        public File getFile() {
+            return f;
+        }
+
+        public boolean isClosed() {
+            return isClosed;
+        }
+
+        public void setIsClosed(boolean isClosed) {
+            this.isClosed = isClosed;
+        }
     }
 }

@@ -35,10 +35,12 @@ public class DynamicIndexModule extends AbstractModule {
     private int indexFileMinCount;
     private long mergePeriod;
     private long indexingPeriod;
+    private Queue<File> fileQueue;
 
     private Semaphore indexingMutex = new Semaphore(1);
 
     private IndexMergeScheduleWorker indexMergeScheduleWorker;
+    private IndexFireScheduleWorker indexFireScheduleWorker;
 
 
     public DynamicIndexModule(Environment environment, Settings settings, String collectionId) {
@@ -193,8 +195,9 @@ public class DynamicIndexModule extends AbstractModule {
     }
 
     public boolean startIndexingSchedule() {
-        if(indexTimer == null) {
-            indexTimer = new Timer("DynamicIndexTimer", true);
+        if(indexFireScheduleWorker == null) {
+            indexFireScheduleWorker = new IndexFireScheduleWorker(collectionId, dataLogger.getFileQueue());
+//            indexTimer = new Timer("DynamicIndexTimer", true);
             TimerTask indexFireTask = new IndexFireTask();
             indexTimer.schedule(indexFireTask, 5000, indexingPeriod);
             stopIndexingFlagFile.delete();
