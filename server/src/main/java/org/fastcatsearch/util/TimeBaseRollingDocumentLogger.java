@@ -9,26 +9,30 @@ import java.util.*;
 /**
  *
  * */
-public class LimitTimeSizeLogger {
-	private static final Logger logger = LoggerFactory.getLogger(LimitTimeSizeLogger.class);
+public class TimeBaseRollingDocumentLogger {
+	private static final Logger logger = LoggerFactory.getLogger(TimeBaseRollingDocumentLogger.class);
     private long flushPeriodInNanoseconds;
+    private long rollingPeriodInNanoseconds;
 	private int bufferSize;
 	private File dir;
 	private String encoding;
 	private List<String> memoryData;
     private Timer flushTimer;
     private long lastFlushTime;
+    private long fileOpenTime;
     private Queue<File> fileQueue;
     private Object lock = new Object();
+    private Writer logWriter;
 
-	public LimitTimeSizeLogger(File dir, int flushPeriodInSeconds) {
-		this(dir, "utf-8", flushPeriodInSeconds);
+	public TimeBaseRollingDocumentLogger(File dir, int flushPeriodInSeconds, int rollingPeriodInSeconds) {
+		this(dir, "utf-8", flushPeriodInSeconds, rollingPeriodInSeconds);
 	}
 
-	public LimitTimeSizeLogger(File dir, String encoding, int flushPeriodInSeconds) {
+	public TimeBaseRollingDocumentLogger(File dir, String encoding, int flushPeriodInSeconds, int rollingPeriodInSeconds) {
 		this.bufferSize = 10000;
 		this.encoding = encoding;
         this.flushPeriodInNanoseconds = ((long) flushPeriodInSeconds) * 1000 * 1000 * 1000;
+        this.rollingPeriodInNanoseconds = ((long) rollingPeriodInSeconds) * 1000 * 1000 * 1000;
 		this.memoryData = newMemoryData();
         flushTimer = new Timer();
         long flushCheckPeriod = 500;
@@ -67,6 +71,9 @@ public class LimitTimeSizeLogger {
 //            logger.info("index file = " + f.getName());
             fileQueue.add(f);
         }
+
+        lastFlushTime = System.nanoTime();
+        fileOpenTime = System.nanoTime();
     }
 
     public int getQueueSize() {
@@ -75,6 +82,7 @@ public class LimitTimeSizeLogger {
     public void close() {
         flushTimer.cancel();
         flush();
+        closeFile();
     }
 
     public File pollFile() {
@@ -111,37 +119,44 @@ public class LimitTimeSizeLogger {
             oldData = memoryData;
             this.memoryData = newMemoryData();
         }
-		Writer writer = null;
+
         File file = null;
         Exception ex = null;
-		try {
-			// append로 연다.
-            file = new File(dir, String.valueOf(System.nanoTime()));
-			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false), encoding));
+        boolean isCreated = false;
+        try {
+            if(logWriter == null) {
+                fileOpenTime = System.nanoTime();
+                file = new File(dir, String.valueOf(fileOpenTime));
+                logWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false), encoding));
+                isCreated = true;
+            }
 			logger.debug("## flush docs > {}", oldData.size());
 			for (String data : oldData) {
-				writer.write(data);
-                writer.write("\n");
+                logWriter.write(data);
+                logWriter.write("\n");
 			}
-		} catch (UnsupportedEncodingException e) {
-			logger.error("", e);
-            ex = e;
 		} catch (IOException e) {
 			logger.error("", e);
             ex = e;
 		} finally {
-			if (writer != null) {
-				try {
-					writer.close();
-				} catch (IOException ignore) {
-				}
-			}
             lastFlushTime = System.nanoTime();
-            if(ex == null && file != null) {
+            if(isCreated && ex == null && file != null) {
                 fileQueue.offer(file);
             }
-		}
+        }
 	}
+
+    //롤링시간이 지나면 파일을 닫아준다.
+    private void closeFile() {
+        if(logWriter != null) {
+            try {
+                logWriter.close();
+            } catch (IOException e) {
+                logger.error("", e);
+            }
+        }
+        logWriter = null;
+    }
 
     class FlushCheckTask extends TimerTask {
         @Override
@@ -150,6 +165,14 @@ public class LimitTimeSizeLogger {
                 if (System.nanoTime() - lastFlushTime > flushPeriodInNanoseconds) {
                     logger.debug("flush task");
                     flush();
+                }
+            }
+
+            //flush 가 한번이라도 되어야 파일을 rolling한다.
+            if(logWriter != null) {
+                if (System.nanoTime() - fileOpenTime > rollingPeriodInNanoseconds) {
+                    logger.debug("rolling task");
+                    closeFile();
                 }
             }
         }
