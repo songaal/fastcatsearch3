@@ -400,10 +400,18 @@ public class CollectionHandler {
                 r.loadDeleteSet();
             }
 
+
+            //2016-3-6 swsong 삭제문서를 적용하여 갯수가 0이 되버린 세그먼트는 제거해버린다.
+            Set<String> removeSegmentIdSet = new HashSet<String>();
             for (SegmentReader segmentReader : segmentReaderMap.values()) {
                 segmentReader.syncDeleteCountToInfo();
+                SegmentInfo si  =segmentReader.segmentInfo();
+                if(si.getLiveCount() == 0) {
+                    //삭제한다.
+                    removeSegmentIdSet.add(si.getId());
+                }
             }
-
+            removeSegments(removeSegmentIdSet);
             collectionContext.dataInfo().updateAll();
 
             DataInfo dataInfo = collectionContext.dataInfo();
@@ -514,6 +522,21 @@ public class CollectionHandler {
     //머징시 문서가 모두 0가 될때사용.
     public synchronized CollectionContext removeMergedSegment(Set<String> segmentIdRemoveList) throws IOException, IRException {
         segmentLogger.info("[{}] -RemoveMergedSegment-----", collectionId);
+        segmentLogger.info("[{}] RemoveMergedSegment remove segments {}", collectionId, segmentIdRemoveList);
+        removeSegments(segmentIdRemoveList);
+        collectionContext.dataInfo().updateAll();
+
+        DataInfo dataInfo = collectionContext.dataInfo();
+        int documentSize = dataInfo.getDocuments();
+        int deleteSize = dataInfo.getDeletes();
+        int liveSize = documentSize - deleteSize;
+        segmentLogger.info("[{}] RemoveMergedSegment live[{}] doc[{}] del[{}] segSize[{}] tmpSegSize[{}]", collectionId, liveSize, documentSize, deleteSize, segmentReaderMap.size(), tmpSegmentReaderMap.size());
+        for(SegmentInfo info : dataInfo.getSegmentInfoList()) {
+            segmentLogger.info("[{}] [{}] Segment live[{}] doc[{}] del[{}]", collectionId, info.getId(), info.getLiveCount(), info.getDocumentCount(), info.getDeleteCount());
+        }
+        return collectionContext;
+    }
+    private void removeSegments(Set<String> segmentIdRemoveList) {
         for(String removeSegmentId : segmentIdRemoveList) {
             SegmentReader removeSegmentReader = segmentReaderMap.remove(removeSegmentId);
             if(removeSegmentReader != null) {
@@ -531,17 +554,6 @@ public class CollectionHandler {
                 segmentDelayedCloseQueue.put(new SegmentDelayedClose(collectionId, removeSegmentId, tmpSegmentReaderMap, true));
             }
         }
-        collectionContext.dataInfo().updateAll();
-
-        DataInfo dataInfo = collectionContext.dataInfo();
-        int documentSize = dataInfo.getDocuments();
-        int deleteSize = dataInfo.getDeletes();
-        int liveSize = documentSize - deleteSize;
-        segmentLogger.info("[{}] RemoveMergedSegment live[{}] doc[{}] del[{}] segSize[{}] tmpSegSize[{}]", collectionId, liveSize, documentSize, deleteSize, segmentReaderMap.size(), tmpSegmentReaderMap.size());
-        for(SegmentInfo info : dataInfo.getSegmentInfoList()) {
-            segmentLogger.info("[{}] [{}] Segment live[{}] doc[{}] del[{}]", collectionId, info.getId(), info.getLiveCount(), info.getDocumentCount(), info.getDeleteCount());
-        }
-        return collectionContext;
     }
 
     public synchronized CollectionContext applyMergedSegment(SegmentInfo segmentInfo, File segmentDir, Set<String> segmentIdRemoveList) throws IOException, IRException {
@@ -585,8 +597,7 @@ public class CollectionHandler {
         BitSet deleteSet = new BitSet();
 
 
-        //TODO createdSegmentIdList 의 아이디를 가지고, 삭제를 확인한다. id.pk.lst 파일에 업데이트된 pk가 모두 들어있다.
-
+        // createdSegmentIdList 의 아이디를 가지고, 삭제를 확인한다. id.pk.lst 파일에 업데이트된 pk가 모두 들어있다.
         BytesBuffer buf = new BytesBuffer(1024);
         for(String deleteReqId : createdSegmentIdList) {
             File f = new File(segmentDir.getParentFile(), deleteReqId + "." + IndexFileNames.docDeleteReq);
@@ -671,9 +682,9 @@ public class CollectionHandler {
 //            }
 //        }
 
-        for(SegmentReader segmentReader : segmentReaderMap.values()) {
-            int deleteCount = segmentReader.syncDeleteCountToInfo();
-        }
+//        for(SegmentReader segmentReader : segmentReaderMap.values()) {
+//            int deleteCount = segmentReader.syncDeleteCountToInfo();
+//        }
 
         String segmentId = getNextSegmentId(segmentDir.getParentFile(), 100);
 
@@ -690,30 +701,16 @@ public class CollectionHandler {
         segmentReader.syncDeleteCountToInfo();
         segmentReaderMap.put(segmentId, segmentReader);
         collectionContext.addSegmentInfo(segmentInfo);
+
         for(String removeSegmentId : segmentIdRemoveList) {
             finishMerging(removeSegmentId);
-            SegmentReader removeSegmentReader = segmentReaderMap.remove(removeSegmentId);
-            if(removeSegmentReader != null) {
-                //설정파일도 수정한다.
-                collectionContext.removeSegmentInfo(removeSegmentId);
-                /*
-                * 중요! 삭제된 세그먼트 리더를 tmp 맵에 임시로 넣어둔다. 차후 10초후에 제거되고 close된다..
-                * */
-                SegmentReader oldSegmentReader = tmpSegmentReaderMap.put(removeSegmentId, removeSegmentReader);
-                if(oldSegmentReader != null) {
-                    try {
-                        oldSegmentReader.close();
-                    } catch(Exception ignore) { }
-                }
-                //현재 사용중이면 차후에 다 쓰고 닫도록 closeFuture를 호출한다.
-                segmentDelayedCloseQueue.put(new SegmentDelayedClose(collectionId, removeSegmentId, tmpSegmentReaderMap, true));
-            }
         }
+        removeSegments(segmentIdRemoveList);
+        collectionContext.dataInfo().updateAll();
 
         long createTime = System.currentTimeMillis();
         segmentInfo.setCreateTime(createTime);
         segmentLogger.info("[{}] MergedSegment id[{}] create[{}]", collectionId, segmentId, createTime);
-        collectionContext.dataInfo().updateAll();
 
         DataInfo dataInfo = collectionContext.dataInfo();
         int documentSize = dataInfo.getDocuments();
