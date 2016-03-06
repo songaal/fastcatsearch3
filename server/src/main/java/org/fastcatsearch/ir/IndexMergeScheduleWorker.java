@@ -96,7 +96,7 @@ public class IndexMergeScheduleWorker extends Thread {
                         }
                     }
                 }
-
+                logger.info("[{}] Check merging start....", collectionId);
                 if (mergeOver5M.size() > 0) {
                     Set<String> mergeSegmentIdSet = new HashSet<String>();
                     mergeSegmentIdSet.addAll(mergeOver5M);
@@ -138,7 +138,7 @@ public class IndexMergeScheduleWorker extends Thread {
                     mergeSegmentIdSet.addAll(merge100);
                     startMergingJob(mergeSegmentIdSet);
                 }
-
+                logger.info("[{}] Check merging end....", collectionId);
                 Thread.sleep(scheduleDelayInMS);
             } catch (InterruptedException e) {
                 //ignore
