@@ -12,7 +12,7 @@ import org.fastcatsearch.module.AbstractModule;
 import org.fastcatsearch.module.ModuleException;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
-import org.fastcatsearch.util.LimitTimeSizeLogger;
+import org.fastcatsearch.util.TimeBaseRollingDocumentLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,11 +25,12 @@ import java.util.concurrent.Semaphore;
 public class DynamicIndexModule extends AbstractModule {
     private String collectionId;
 
-    private LimitTimeSizeLogger dataLogger;
+    private TimeBaseRollingDocumentLogger dataLogger;
     private Timer indexTimer;
     private File dir;
     private File stopIndexingFlagFile;
     private int flushPeriodInSeconds;
+    private int rollingPeriodInSeconds;
     private long indexFileMinSize;
     private int indexFileMinCount;
     private long mergePeriod;
@@ -45,7 +46,8 @@ public class DynamicIndexModule extends AbstractModule {
         this.collectionId = collectionId;
         dir = environment.filePaths().collectionFilePaths(collectionId).file("indexlog");
         stopIndexingFlagFile = new File(environment.filePaths().collectionFilePaths(collectionId).file(), "indexlog.stop");
-        flushPeriodInSeconds = settings.getInt("indexing.dynamic.log_flush_period_SEC", 1); //1초마다.
+        flushPeriodInSeconds = settings.getInt("indexing.dynamic.log_flush_period_SEC", 1); //1초마다 flush.
+        rollingPeriodInSeconds = settings.getInt("indexing.dynamic.log_rolling_period_SEC", 30); //30초마다 파일변경.
         indexFileMinSize = settings.getLong("indexing.dynamic.min_log_size_MB", 10L) * 1000 * 1000; //최소 10MB를 모아서 보낸다.
         indexFileMinCount = settings.getInt("indexing.dynamic.min_log_count", 20000);//최소 2만개 를 모아서 보낸다
         mergePeriod = settings.getInt("indexing.dynamic.merge_period_SEC", 5) * 1000; //5초마다.
@@ -148,7 +150,7 @@ public class DynamicIndexModule extends AbstractModule {
 
     @Override
     protected boolean doLoad() throws ModuleException {
-        dataLogger = new LimitTimeSizeLogger(dir, flushPeriodInSeconds);
+        dataLogger = new TimeBaseRollingDocumentLogger(dir, flushPeriodInSeconds, rollingPeriodInSeconds);
         //stop 파일이 없어야만 시작한다.
         if(!stopIndexingFlagFile.exists()) {
             startIndexingSchedule();
