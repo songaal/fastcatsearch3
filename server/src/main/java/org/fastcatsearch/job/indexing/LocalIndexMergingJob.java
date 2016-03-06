@@ -60,7 +60,8 @@ public class LocalIndexMergingJob extends Job {
 
             if(segmentDirs.size() == 0) {
                 collectionHandler.takeMergingDeletion(documentId);
-                collectionHandler.removeMergedSegment(mergingSegmentIdSet);
+                collectionContext = collectionHandler.removeMergedSegment(mergingSegmentIdSet);
+                CollectionContextUtil.saveCollectionAfterDynamicIndexing(collectionContext);
                 long elapsed = System.currentTimeMillis() - startTime;
                 indexingLogger.info("[{}] Merge Indexing Done. Inserts[{}] Deletes[{}] Elapsed[{}] TotalLive[{}] Segments[{}] SegIds{} "
                         , collectionId, 0, 0, Formatter.getFormatTime(elapsed)
