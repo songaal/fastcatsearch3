@@ -135,6 +135,7 @@ public class TimeBaseRollingDocumentLogger {
                 logWriter.write(data);
                 logWriter.write("\n");
 			}
+            logWriter.flush();
 		} catch (IOException e) {
 			logger.error("", e);
             ex = e;
