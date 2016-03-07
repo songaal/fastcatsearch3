@@ -370,6 +370,9 @@ public class CollectionHandler {
                 } catch (Exception e) {
                     logger.error("error while write delete id file = " + deleteIdFile.getName(), e);
                 } finally {
+                    if(pkBulkReader != null) {
+                        pkBulkReader.close();
+                    }
                     if (deleteIdOutput != null) {
                         deleteIdOutput.seek(0);
                         deleteIdOutput.writeInt(size);
@@ -573,32 +576,6 @@ public class CollectionHandler {
         List<String> createdSegmentIdList = takeMergingDeletion(tempSegmentId);
         segmentLogger.info("[{}] -MergedSegment-----", collectionId);
         segmentLogger.info("[{}] MergedSegment start[{}] id[{}] doc[{}] del[{}] merged[{}]", collectionId, segmentInfo.getStartTime(), tempSegmentId, segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount(), segmentIdRemoveList);
-        long startTime = segmentInfo.getStartTime();
-
-        //이거보다 늦은 시간의 세그먼트가 있는지 확인. 대신 merge type의 세그먼트는 확인하지 않는다. 머징세그먼트는 이미 삭제처리가 완료된 상태이므로.
-//        List<PrimaryKeyIndexBulkReader> pkBulkReaderList = new ArrayList<PrimaryKeyIndexBulkReader>();
-//
-//        List<String> tmpList = new ArrayList<String>();
-//        for(SegmentReader segmentReader : segmentReaderMap.values()) {
-//            SegmentInfo tmpSegmentInfo = segmentReader.segmentInfo();
-//            if(tmpSegmentInfo.isMerged()) {
-//                continue;
-//            }
-//            long createTime = tmpSegmentInfo.getCreateTime();
-//            if(createTime > startTime) {
-//                tmpList.add(segmentReader.segmentId());
-//                File dir = segmentReader.segmentDir();
-//                pkBulkReaderList.add(new PrimaryKeyIndexBulkReader(new File(dir, IndexFileNames.primaryKeyMap)));
-//            }
-//        }
-//        File[] deleteReqFileList = segmentDir.getParentFile().listFiles(new FilenameFilter() {
-//            @Override
-//            public boolean accept(File dir, String name) {
-//                return name.endsWith(IndexFileNames.docDeleteReq);
-//            }
-//        });
-
-
 
         /*
          * 기존 세그먼트의 delete.req와 pk를 통해 현 세그먼트를 삭제받는다.
@@ -606,7 +583,6 @@ public class CollectionHandler {
 
         PrimaryKeyIndexReader pkReader = new PrimaryKeyIndexReader(segmentDir, IndexFileNames.primaryKeyMap);
         BitSet deleteSet = new BitSet();
-
 
         // createdSegmentIdList 의 아이디를 가지고, 삭제를 확인한다. id.pk.lst 파일에 업데이트된 pk가 모두 들어있다.
         BytesBuffer buf = new BytesBuffer(1024);
@@ -622,9 +598,7 @@ public class CollectionHandler {
                     buf.limit(limit);
                     input.read(buf.array(), 0, limit);
                     int localDocNo = pkReader.get(buf);
-                    // logger.debug("check "+new String(buf.array, 0, buf.limit));
                     if (localDocNo != -1) {
-//                    segmentLogger.debug("merge delete {}", localDocNo);
                         if (!deleteSet.isSet(localDocNo)) {
                             // add delete list
                             deleteSet.set(localDocNo);
@@ -653,49 +627,7 @@ public class CollectionHandler {
             }
         }
 
-//        /*
-//        * 1. PK Update 적용
-//        * */
-//        if(pkBulkReaderList.size() > 0) {
-//            int deleteCount = applyPrimaryKeyFromSegments(pkBulkReaderList, pkReader, deleteSet);
-//            segmentLogger.info("[{}] MergedSegment id[{}] <- {} delete[{}]", collectionId, tempSegmentId, tmpList, deleteCount);
-//        }
-//        /*
-//        * 2. delete.req 적용
-//        * */
-//        if(deleteReqFileList.length > 0) {
-//            List<String> deleteReqFilenameList = new ArrayList<String>();
-//            for(File f : deleteReqFileList) {
-//                deleteReqFilenameList.add(f.getName());
-//            }
-//            int deleteCount = applyDeleteIdSetFromSegments(deleteReqFileList, pkReader, deleteSet);
-//            segmentLogger.info("[{}] MergedSegment id[{}] delete[{}] from {}", collectionId, segmentInfo.getId(), deleteCount, deleteReqFilenameList);
-//            //적용처리한 파일은 삭제한다.
-//            for (File f : deleteReqFileList) {
-//                if (f.exists()) {
-//                    FileUtils.deleteQuietly(f);
-//                    segmentLogger.info("[{}] MergedSegment id[{}] delete file[{}]", collectionId, segmentInfo.getId(), f.getName());
-//
-//
-//                }
-//            }
-//        }
-
         pkReader.close();
-
-
-
-//        for (PrimaryKeyIndexBulkReader pkBulkReader : pkBulkReaderList) {
-//            try {
-//                pkBulkReader.close();
-//            } catch(Exception e) {
-//                logger.error("", e);
-//            }
-//        }
-
-//        for(SegmentReader segmentReader : segmentReaderMap.values()) {
-//            int deleteCount = segmentReader.syncDeleteCountToInfo();
-//        }
 
         String segmentId = getNextSegmentId(segmentDir.getParentFile(), 100);
 
