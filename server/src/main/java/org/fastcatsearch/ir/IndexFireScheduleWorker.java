@@ -84,6 +84,7 @@ public class IndexFireScheduleWorker extends Thread {
                     currentFileStatus = logFileStatus;
                 }
 
+                int tryCount = 0;
                 while (!isCanceled) {
                     String docRequest = currentReader.readLine();
                     if (docRequest == null) {
@@ -98,10 +99,19 @@ public class IndexFireScheduleWorker extends Thread {
                             //다음 파일을 확인한다.
                             break;
                         } else {
+                            //파일이 닫힐때 까지 무한 대기 할수 없으므로, 2초이내 안들어오면 보낸다.
                             logger.info("[{}] reading retry..", collectionId);
                             try {
+                                tryCount++;
                                 Thread.sleep(500);
                             } catch (InterruptedException ignore) {
+                            }
+
+                            if(tryCount >= 4) {
+                                if (documentsBuilder != null && documentsBuilder.length() > 0) {
+                                    logger.info("[{}] sendDocuments3 count[{}] size[{}]", collectionId, count, org.fastcatsearch.ir.util.Formatter.getFormatSize(totalSize));
+                                    return documentsBuilder.toString();
+                                }
                             }
                         }
                     } else {
@@ -109,8 +119,10 @@ public class IndexFireScheduleWorker extends Thread {
                             documentsBuilder = new StringBuilder();
                         }
                         documentsBuilder.append(docRequest);
+                        logger.info(">> {}", docRequest);
                         totalSize += docRequest.length() * 2;
                         count++;
+                        tryCount = 0;
                         //보낼 사이즈가 찼다면..
                         if ((indexFileMaxSize > 0 && totalSize >= indexFileMaxSize) || (indexFileMaxCount > 0 && count >= indexFileMaxCount)) {
                             logger.info("[{}] sendDocuments1 count[{}] size[{}]", collectionId, count, org.fastcatsearch.ir.util.Formatter.getFormatSize(totalSize));
