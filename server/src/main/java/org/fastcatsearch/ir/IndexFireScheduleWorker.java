@@ -6,16 +6,17 @@ import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeJobResult;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.util.*;
 import org.fastcatsearch.job.indexing.NodeIndexDocumentFileJob;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.util.TimeBaseRollingDocumentLogger;
 import org.fastcatsearch.util.TimeBaseRollingDocumentLogger.LogFileStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
 /**
@@ -53,6 +54,8 @@ public class IndexFireScheduleWorker extends Thread {
         }
     }
 
+
+    StringBuilder remnant = new StringBuilder();
     public String makeDocuments(List<File> toBeDeleted) {
 
         long totalSize = 0;
@@ -87,7 +90,7 @@ public class IndexFireScheduleWorker extends Thread {
                 int tryCount = 0;
                 while (!isCanceled) {
                     String docRequest = currentReader.readLine();
-                    if (docRequest == null) {
+                    if (docRequest == null || docRequest.length() == 0) {
                         //쓰고 있는 중인지, 닫힌건지 판단필요.
                         if (currentFileStatus.isClosed()) {
                             //Writer가 파일을 닫았으므로, reader도 닫는다.
@@ -115,12 +118,31 @@ public class IndexFireScheduleWorker extends Thread {
                             }
                         }
                     } else {
+
+                        //Logger에서 bufferedWriter.flush를 해도 실제로 fileSystem에서 기록되는 것은 보장되지 않으므로 json이 끊어질 수 있다.
+                        //그렇기 때문에 이어 붙여준다.
+                        char lastChar = docRequest.charAt(docRequest.length() - 1);
+                        if(lastChar != '}') {
+                            if(remnant != null) {
+                                remnant.append(docRequest);
+                            } else {
+                                remnant = new StringBuilder(docRequest);
+                            }
+                            //닫히지 않은 JSON은 다시 읽어서 붙여준다.
+                            continue;
+                        } else {
+                            if(remnant != null) {
+                                remnant.append(docRequest);
+                                docRequest = remnant.toString();
+                                remnant = null;
+                            }
+                        }
+
                         if (documentsBuilder == null) {
                             documentsBuilder = new StringBuilder();
                         }
-                        documentsBuilder.append(docRequest);
-                        logger.info(">> {}", docRequest);
-                        totalSize += docRequest.length() * 2;
+                        documentsBuilder.append(docRequest).append('\n');
+                        totalSize += (docRequest.length() + 1)* 2;
                         count++;
                         tryCount = 0;
                         //보낼 사이즈가 찼다면..
