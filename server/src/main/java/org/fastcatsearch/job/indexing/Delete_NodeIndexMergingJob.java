@@ -187,7 +187,7 @@ public class Delete_NodeIndexMergingJob extends Job implements Streamable {
                     logger.info("[{}] Delete segment dir due to no documents = {}", collectionHandler.collectionId(), segmentDir.getAbsolutePath());
                     //세그먼트를 삭제하고 없던 일로 한다.
                     FileUtils.deleteDirectory(segmentDir);
-                    collectionContext = collectionHandler.removeMergedSegment(mergeSegmentIdList);
+                    collectionContext = collectionHandler.removeZeroSegment(mergeSegmentIdList);
                 } else {
                     collectionContext = collectionHandler.applyMergedSegment(segmentInfo, mergeIndexer.getSegmentDir(), mergeSegmentIdList);
                 }

@@ -6,6 +6,7 @@ import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.search.SegmentReader;
 import org.fastcatsearch.ir.util.Formatter;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
@@ -51,7 +52,11 @@ public class LocalIndexMergingJob extends Job {
             //mergeIdList 를 File[]로 변환.
             List<File> segmentDirs = new ArrayList<File>();
             for (String mergeSegmentId : mergingSegmentIdSet) {
-                if(collectionHandler.segmentReader(mergeSegmentId).segmentInfo().getLiveCount() > 0) {
+                SegmentReader segmentReader = collectionHandler.segmentReader(mergeSegmentId);
+                if(segmentReader == null) {
+                    continue;
+                }
+                if(segmentReader.segmentInfo().getLiveCount() > 0) {
                     segmentDirs.add(collectionContext.indexFilePaths().segmentFile(mergeSegmentId));
                 }
             }
@@ -60,7 +65,7 @@ public class LocalIndexMergingJob extends Job {
 
             if(segmentDirs.size() == 0) {
                 collectionHandler.takeMergingDeletion(documentId);
-                collectionContext = collectionHandler.removeMergedSegment(mergingSegmentIdSet);
+                collectionContext = collectionHandler.removeZeroSegment(mergingSegmentIdSet);
                 CollectionContextUtil.saveCollectionAfterDynamicIndexing(collectionContext);
                 long elapsed = System.currentTimeMillis() - startTime;
                 indexingLogger.info("[{}] Merge Indexing Done. Inserts[{}] Deletes[{}] Elapsed[{}] TotalLive[{}] Segments[{}] SegIds{} "
@@ -96,7 +101,7 @@ public class LocalIndexMergingJob extends Job {
                     //세그먼트를 삭제하고 없던 일로 한다.
                     FileUtils.deleteDirectory(segmentDir);
                     collectionHandler.takeMergingDeletion(documentId);
-                    collectionContext = collectionHandler.removeMergedSegment(mergingSegmentIdSet);
+                    collectionContext = collectionHandler.removeZeroSegment(mergingSegmentIdSet);
                 } else {
                     collectionContext = collectionHandler.applyMergedSegment(segmentInfo, mergeIndexer.getSegmentDir(), mergingSegmentIdSet);
                 }

@@ -4,6 +4,7 @@ import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.ir.search.SegmentReader;
+import org.fastcatsearch.job.indexing.LocalDocZeroDeleteJob;
 import org.fastcatsearch.job.indexing.LocalIndexMergingJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.slf4j.Logger;
@@ -50,6 +51,7 @@ public class IndexMergeScheduleWorker extends Thread {
             try {
                 logger.info("[{}] Check merging....", collectionId);
                 Collection<SegmentReader> segmentReaders = collectionHandler.segmentReaders();
+                List<String> zeroDocs = new ArrayList<String>();
                 List<String> merge100 = new ArrayList<String>();
                 List<String> merge1K = new ArrayList<String>();
                 List<String> merge10K = new ArrayList<String>();
@@ -72,33 +74,43 @@ public class IndexMergeScheduleWorker extends Thread {
 
                     //크기가 비슷한 것끼리 묶는다.
                     //100, 1만, 10만, 100만, 1000만, 그이상 구간을 둔다
-                    if (liveSize < 100) {
-                        // 1~100
-                        merge100.add(segmentId);
-                    } else if (liveSize < 1000) {
-                        // 100 ~ 1000
-                        merge1K.add(segmentId);
-                    } else if (liveSize < 10 * 1000) {
-                        // 1000 ~ 1만
-                        merge10K.add(segmentId);
-                    } else if (liveSize < 100 * 1000) {
-                        // 1만 ~ 10만
-                        merge100K.add(segmentId);
-                    } else if (liveSize < 1000 * 1000) {
-                        // 10만 ~ 100만
-                        merge1M.add(segmentId);
-                    } else if (liveSize < 5 * 1000 * 1000) {
-                        // 100만 ~ 500만
-                        merge5M.add(segmentId);
-                    } else if (liveSize >= 5 * 1000 * 1000) {
-                        // 500만 이상
-                        if (deleteSize >= docSize * DELETE_ALLOW_RATIO) {
-                            //삭제가 40%이상일때만 머징.
-                            mergeOver5M.add(segmentId);
+                    //머징은 문서갯수가 0보다 큰넘만..
+                    if(liveSize <= 0) {
+                        zeroDocs.add(segmentId);
+                    } else {
+                        if (liveSize < 100) {
+                            // 1~100
+                            merge100.add(segmentId);
+                        } else if (liveSize < 1000) {
+                            // 100 ~ 1000
+                            merge1K.add(segmentId);
+                        } else if (liveSize < 10 * 1000) {
+                            // 1000 ~ 1만
+                            merge10K.add(segmentId);
+                        } else if (liveSize < 100 * 1000) {
+                            // 1만 ~ 10만
+                            merge100K.add(segmentId);
+                        } else if (liveSize < 1000 * 1000) {
+                            // 10만 ~ 100만
+                            merge1M.add(segmentId);
+                        } else if (liveSize < 5 * 1000 * 1000) {
+                            // 100만 ~ 500만
+                            merge5M.add(segmentId);
+                        } else if (liveSize >= 5 * 1000 * 1000) {
+                            // 500만 이상
+                            if (deleteSize >= docSize * DELETE_ALLOW_RATIO) {
+                                //삭제가 40%이상일때만 머징.
+                                mergeOver5M.add(segmentId);
+                            }
                         }
                     }
                 }
                 logger.info("[{}] Check merging start....", collectionId);
+                if(zeroDocs.size() > 0) {
+                    Set<String> zeroSegmentIdSet = new HashSet<String>();
+                    zeroSegmentIdSet.addAll(zeroDocs);
+                    startRemoveJob(zeroSegmentIdSet);
+                }
                 if (mergeOver5M.size() > 0) {
                     Set<String> mergeSegmentIdSet = new HashSet<String>();
                     mergeSegmentIdSet.addAll(mergeOver5M);
@@ -148,6 +160,13 @@ public class IndexMergeScheduleWorker extends Thread {
                 logger.error("", t);
             }
         }
+    }
+
+    private void startRemoveJob(Set<String> zeroSegmentIdSet) {
+        LocalDocZeroDeleteJob deleteJob = new LocalDocZeroDeleteJob(collectionId, zeroSegmentIdSet);
+        deleteJob.setNoResult();
+        logger.info("[{}] start remove segment job {}", collectionId, deleteJob);
+        ServiceManager.getInstance().getService(JobService.class).offer(deleteJob);
     }
 
     private void startMergingJob(Set<String> mergeSegmentIdSet) {

@@ -412,20 +412,14 @@ public class CollectionHandler {
             //기존 세그먼트들 삭제리스트 재로딩
             for (SegmentReader r : segmentReaderMap.values()) {
                 r.loadDeleteSet();
+                r.syncDeleteCountToInfo();
             }
 
+            /*
+             * 업데이트되어 문서가 0인 세그먼트는 여기서 처리하지 않는다.
+             * 머징중일수도 있기때문에, 머징 스케쥴러가 LocalDocZeroDeleteJob 를 태워서 처리하도록 한다.
+             */
 
-            //2016-3-6 swsong 삭제문서를 적용하여 갯수가 0이 되버린 세그먼트는 제거해버린다.
-            Set<String> removeSegmentIdSet = new HashSet<String>();
-            for (SegmentReader segmentReader : segmentReaderMap.values()) {
-                segmentReader.syncDeleteCountToInfo();
-                SegmentInfo si  =segmentReader.segmentInfo();
-                if(si.getLiveCount() == 0) {
-                    //삭제한다.
-                    removeSegmentIdSet.add(si.getId());
-                }
-            }
-            removeSegments(removeSegmentIdSet);
             collectionContext.dataInfo().updateAll();
 
             DataInfo dataInfo = collectionContext.dataInfo();
@@ -534,9 +528,9 @@ public class CollectionHandler {
     }
 
     //머징시 문서가 모두 0가 될때사용.
-    public synchronized CollectionContext removeMergedSegment(Set<String> segmentIdRemoveList) throws IOException, IRException {
-        segmentLogger.info("[{}] -RemoveMergedSegment-----", collectionId);
-        segmentLogger.info("[{}] RemoveMergedSegment remove segments {}", collectionId, segmentIdRemoveList);
+    public synchronized CollectionContext removeZeroSegment(Set<String> segmentIdRemoveList) throws IOException, IRException {
+        segmentLogger.info("[{}] -RemoveSegment-----", collectionId);
+        segmentLogger.info("[{}] RemoveSegment remove segments {}", collectionId, segmentIdRemoveList);
         removeSegments(segmentIdRemoveList);
         collectionContext.dataInfo().updateAll();
 
@@ -544,14 +538,15 @@ public class CollectionHandler {
         int documentSize = dataInfo.getDocuments();
         int deleteSize = dataInfo.getDeletes();
         int liveSize = documentSize - deleteSize;
-        segmentLogger.info("[{}] RemoveMergedSegment live[{}] doc[{}] del[{}] segSize[{}] tmpSegSize[{}]", collectionId, liveSize, documentSize, deleteSize, segmentReaderMap.size(), tmpSegmentReaderMap.size());
+        segmentLogger.info("[{}] RemoveSegment live[{}] doc[{}] del[{}] segSize[{}] tmpSegSize[{}]", collectionId, liveSize, documentSize, deleteSize, segmentReaderMap.size(), tmpSegmentReaderMap.size());
         for(SegmentInfo info : dataInfo.getSegmentInfoList()) {
             segmentLogger.info("[{}] [{}] Segment live[{}] doc[{}] del[{}]", collectionId, info.getId(), info.getLiveCount(), info.getDocumentCount(), info.getDeleteCount());
         }
         return collectionContext;
     }
+
     private void removeSegments(Set<String> segmentIdRemoveList) {
-        for(String removeSegmentId : segmentIdRemoveList) {
+        for (String removeSegmentId : segmentIdRemoveList) {
             SegmentReader removeSegmentReader = segmentReaderMap.remove(removeSegmentId);
             if(removeSegmentReader != null) {
                 //설정파일도 수정한다.
