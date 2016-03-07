@@ -103,11 +103,11 @@ public class IndexFireScheduleWorker extends Thread {
                             //다음 파일을 확인한다.
                             break;
                         } else {
-                            //파일이 닫힐때 까지 무한 대기 할수 없으므로, 2초이내 안들어오면 보낸다.
+                            //파일이 닫힐때 까지 무한 대기 할수 없으므로, 1초이내 안들어오면 보낸다.
                             logger.info("[{}] reading retry..", collectionId);
                             try {
                                 tryCount++;
-                                Thread.sleep(500);
+                                Thread.sleep(250);
                             } catch (InterruptedException ignore) {
                             }
 
@@ -145,7 +145,8 @@ public class IndexFireScheduleWorker extends Thread {
                         documentsBuilder.append(docRequest).append('\n');
                         totalSize += (docRequest.length() + 1)* 2;
                         count++;
-                        tryCount = 0;
+                        //0으로 만들어 주니 너무 많이 길어진다.
+//                        tryCount = 0;
                         //보낼 사이즈가 찼다면..
                         if ((indexFileMaxSize > 0 && totalSize >= indexFileMaxSize) || (indexFileMaxCount > 0 && count >= indexFileMaxCount)) {
                             logger.info("[{}] sendDocuments1 count[{}] size[{}]", collectionId, count, org.fastcatsearch.ir.util.Formatter.getFormatSize(totalSize));
