@@ -26,18 +26,14 @@ public class DynamicIndexModule extends AbstractModule {
     private String collectionId;
 
     private TimeBaseRollingDocumentLogger dataLogger;
-    private Timer indexTimer;
     private File dir;
     private File stopIndexingFlagFile;
     private int flushPeriodInSeconds;
     private int rollingPeriodInSeconds;
-    private long indexFileMinSize;
-    private int indexFileMinCount;
+    private int indexFileMaxCount;
+    private long indexFileMaxSize;
     private long mergePeriod;
     private long indexingPeriod;
-    private Queue<File> fileQueue;
-
-    private Semaphore indexingMutex = new Semaphore(1);
 
     private IndexMergeScheduleWorker indexMergeScheduleWorker;
     private IndexFireScheduleWorker indexFireScheduleWorker;
@@ -50,104 +46,15 @@ public class DynamicIndexModule extends AbstractModule {
         stopIndexingFlagFile = new File(environment.filePaths().collectionFilePaths(collectionId).file(), "indexlog.stop");
         flushPeriodInSeconds = settings.getInt("indexing.dynamic.log_flush_period_SEC", 1); //1초마다 flush.
         rollingPeriodInSeconds = settings.getInt("indexing.dynamic.log_rolling_period_SEC", 30); //30초마다 파일변경.
-        indexFileMinSize = settings.getLong("indexing.dynamic.min_log_size_MB", 10L) * 1000 * 1000; //최소 10MB를 모아서 보낸다.
-        indexFileMinCount = settings.getInt("indexing.dynamic.min_log_count", 20000);//최소 2만개 를 모아서 보낸다
+        indexFileMaxCount = settings.getInt("indexing.dynamic.max_log_count", 10000);//최소 1만개 를 모아서 보낸다
+        indexFileMaxSize = settings.getLong("indexing.dynamic.max_log_size_MB", 20L) * 1000 * 1000; //최소 20MB를 모아서 보낸다.
         mergePeriod = settings.getInt("indexing.dynamic.merge_period_SEC", 5) * 1000; //5초마다.
         indexingPeriod = settings.getInt("indexing.dynamic.indexing_period_SEC", 1) * 1000; //1초마다.
-        logger.debug("DynamicIndexModule flushPeriodInSeconds[{}] indexFileMinSize[{}] mergePeriod[{}] indexingPeriod[{}]",
-                flushPeriodInSeconds, indexFileMinSize, mergePeriod, indexingPeriod);
+        logger.debug("[{}] DynamicIndexModule flushPeriodInSeconds[{}] indexFileMaxCount[{}] indexFileMaxSize[{}] mergePeriod[{}] indexingPeriod[{}]",
+                collectionId, flushPeriodInSeconds, indexFileMaxCount, indexFileMaxSize, mergePeriod, indexingPeriod);
 
         indexMergeScheduleWorker = new IndexMergeScheduleWorker(collectionId, mergePeriod);
-    }
-
-    class IndexFireTask extends TimerTask {
-
-        @Override
-        public void run() {
-            if(indexingMutex.tryAcquire()) {
-                try {
-                    List<File> fileList = new ArrayList<File>();
-                    long totalSize = 0;
-                    while (true) {
-                        File file = dataLogger.pollFile();
-                        if (file != null && file.exists()) {
-                            //존재하면 추가.
-                            fileList.add(file);
-                            totalSize += file.length();
-                            if (totalSize >= indexFileMinSize) {
-                                break;
-                            }
-                        } else {
-                            if (fileList.size() > 0) {
-                                //몇개라도 존재하면 계속진행.
-                                break;
-                            } else {
-                                //없으면 리턴.
-                                return;
-                            }
-                        }
-                    }
-
-                    if (fileList.size() > 0) {
-                        List<String> fileNames = new ArrayList<String>();
-                        for (File f : fileList) {
-                            fileNames.add(f.getName());
-                        }
-                        //file 을 증분색인하도록 요청한다.
-                        logger.debug("[{}] Indexing size[{}] count[{}] remnant[{}] >> {}", collectionId, org.fastcatsearch.ir.util.Formatter.getFormatSize(totalSize), fileList.size(), dataLogger.getQueueSize(), fileNames);
-
-                        String documentId = null;
-                        try {
-                            String documents = null;
-
-                            //TODO 증분색인시 flush 주기가 길면, 다수의 문서가 들어와서 파일이 몇백 MB가 될수 있으므로, OOM우려됨.
-
-                            // TODO 파일을 일정크기로 잘라 읽어서 여러번 전달하도록 처리필요.
-                            // TODO 필요하면 gzip으로 압축해도 될듯..
-
-                            if (fileList.size() == 1) {
-                                File f = fileList.get(0);
-                                documentId = f.getName();
-                                documents = FileUtils.readFileToString(f, "utf-8");
-                            } else {
-                                StringBuffer documentsBuffer = new StringBuffer();
-                                documentId = fileList.get(0).getName() + "_" + fileList.get(fileList.size() - 1).getName();
-                                for (File f : fileList) {
-                                    documentsBuffer.append(FileUtils.readFileToString(f, "utf-8"));
-                                }
-                                documents = documentsBuffer.toString();
-                            }
-
-                            NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
-                            IRService irService = ServiceManager.getInstance().getService(IRService.class);
-                            CollectionContext collectionContext = irService.collectionContext(collectionId);
-
-                            Set<String> nodeSet = new HashSet<String>();
-                            nodeSet.addAll(collectionContext.collectionConfig().getDataNodeList());
-                            nodeSet.add(collectionContext.collectionConfig().getIndexNode());
-                            List<String> nodeIdList = new ArrayList<String>(nodeSet);
-                            List<Node> nodeList = new ArrayList<Node>(nodeService.getNodeById(nodeIdList));
-
-                            NodeIndexDocumentFileJob indexFileDocumentJob = new NodeIndexDocumentFileJob(collectionId, documentId, documents);
-                            long st = System.nanoTime();
-                            NodeJobResult[] nodeResultList = ClusterUtils.sendJobToNodeList(indexFileDocumentJob, nodeService, nodeList, true);
-                            logger.debug("[{}] Index files send time : {}ms", collectionId, (System.nanoTime() - st) / 1000000);
-                            //여기서 색인이 끝날때 까지 블록킹해야 다음색인이 동시에 돌지 않게됨.
-                            for (NodeJobResult result : nodeResultList) {
-                                logger.debug("[{}] Index files {} : Node {} > {}", collectionId, fileNames, result.node().id(), result.result());
-                            }
-                            for (File f : fileList) {
-                                FileUtils.deleteQuietly(f);
-                            }
-                        } catch (Exception e) {
-                            logger.error("", e);
-                        }
-                    }
-                } finally {
-                    indexingMutex.release();
-                }
-            }
-        }
+        indexMergeScheduleWorker.setDaemon(true);
     }
 
     @Override
@@ -165,25 +72,27 @@ public class DynamicIndexModule extends AbstractModule {
 
     @Override
     protected boolean doUnload() throws ModuleException {
-        if(indexTimer != null) {
-            indexTimer.cancel();
-        }
-        indexMergeScheduleWorker.requestCancel();
         if(dataLogger != null) {
             dataLogger.close();
         }
+
+        if(indexFireScheduleWorker != null) {
+            indexFireScheduleWorker.requestCancel();
+        }
+        indexMergeScheduleWorker.requestCancel();
+
         return true;
     }
 
     public boolean isIndexingScheduled() {
-        return indexTimer != null && !stopIndexingFlagFile.exists();
+        return indexFireScheduleWorker != null && !stopIndexingFlagFile.exists();
 
     }
 
     public boolean stopIndexingSchedule() {
-        if(indexTimer != null) {
-            indexTimer.cancel();
-            indexTimer = null;
+        if(indexFireScheduleWorker != null) {
+            indexFireScheduleWorker.requestCancel();
+            indexFireScheduleWorker = null;
         }
 
         try {
@@ -196,10 +105,9 @@ public class DynamicIndexModule extends AbstractModule {
 
     public boolean startIndexingSchedule() {
         if(indexFireScheduleWorker == null) {
-            indexFireScheduleWorker = new IndexFireScheduleWorker(collectionId, dataLogger.getFileQueue());
-//            indexTimer = new Timer("DynamicIndexTimer", true);
-            TimerTask indexFireTask = new IndexFireTask();
-            indexTimer.schedule(indexFireTask, 5000, indexingPeriod);
+            indexFireScheduleWorker = new IndexFireScheduleWorker(collectionId, dataLogger.getFileQueue(), indexingPeriod, indexFileMaxCount, indexFileMaxSize);
+            indexFireScheduleWorker.setDaemon(true);
+            indexFireScheduleWorker.start();
             stopIndexingFlagFile.delete();
             return true;
         } else {

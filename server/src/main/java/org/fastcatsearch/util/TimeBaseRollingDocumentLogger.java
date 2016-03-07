@@ -71,8 +71,8 @@ public class TimeBaseRollingDocumentLogger {
         Iterator<File> iter = sorter.iterator();
         while(iter.hasNext()) {
             File f = iter.next();
-//            logger.info("index file = " + f.getName());
-            fileQueue.add(new LogFileStatus(f));
+            logger.info("[{}] indexlog file = {}", dir.getParentFile().getName(), f.getName());
+            fileQueue.add(new LogFileStatus(f, true)); //문서가 닫힘으로 읽어들인다.
         }
 
         lastFlushTime = System.nanoTime();
