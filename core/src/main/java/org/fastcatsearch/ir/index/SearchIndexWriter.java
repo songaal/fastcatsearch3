@@ -168,7 +168,11 @@ public class SearchIndexWriter implements SingleIndexWriter {
 		if(value == null){
 			return;
 		}
-		char[] fieldValue = value.toString().toCharArray();
+        String val = value.toString();
+        if(val.length() == 0) {
+            return;
+        }
+		char[] fieldValue = val.toCharArray();
 		TokenStream tokenStream = indexAnalyzerList[i].tokenStream(indexId, new CharArrayReader(fieldValue), indexingAnalyzerOption);
 		tokenStream.reset();
 		CharsRefTermAttribute termAttribute = null;
