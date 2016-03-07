@@ -33,6 +33,8 @@ public class IndexFireScheduleWorker extends Thread {
     private BufferedReader currentReader;
     private LogFileStatus currentFileStatus;
 
+    private StringBuilder remnant; //쪼개진 json의 일부 
+
     public IndexFireScheduleWorker(String collectionId, BlockingQueue<LogFileStatus> fileQueue, long indexingPeriod, int indexFileMaxCount, long indexFileMaxSize) {
         super("IndexFireScheduler-" + collectionId);
         this.collectionId = collectionId;
@@ -55,7 +57,6 @@ public class IndexFireScheduleWorker extends Thread {
     }
 
 
-    StringBuilder remnant = new StringBuilder();
     public String makeDocuments(List<File> toBeDeleted) {
 
         long totalSize = 0;
