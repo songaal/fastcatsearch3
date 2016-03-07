@@ -25,6 +25,8 @@ public class IndexMergeScheduleWorker extends Thread {
 
     private static float DELETE_ALLOW_RATIO = 0.4f;
 
+    private static final int MERGE_MIN_SIZE = 4;
+
     private CollectionHandler collectionHandler;
 
     public void requestCancel() {
@@ -103,37 +105,37 @@ public class IndexMergeScheduleWorker extends Thread {
                     startMergingJob(mergeSegmentIdSet);
                 }
 
-                if (merge5M.size() >= 3) {
+                if (merge5M.size() >= MERGE_MIN_SIZE) {
                     Set<String> mergeSegmentIdSet = new HashSet<String>();
                     mergeSegmentIdSet.addAll(merge5M);
                     startMergingJob(mergeSegmentIdSet);
                 }
 
-                if (merge1M.size() >= 3) {
+                if (merge1M.size() >= MERGE_MIN_SIZE) {
                     Set<String> mergeSegmentIdSet = new HashSet<String>();
                     mergeSegmentIdSet.addAll(merge1M);
                     startMergingJob(mergeSegmentIdSet);
                 }
 
-                if (merge100K.size() >= 3) {
+                if (merge100K.size() >= MERGE_MIN_SIZE) {
                     Set<String> mergeSegmentIdSet = new HashSet<String>();
                     mergeSegmentIdSet.addAll(merge100K);
                     startMergingJob(mergeSegmentIdSet);
                 }
 
-                if (merge10K.size() >= 3) {
+                if (merge10K.size() >= MERGE_MIN_SIZE) {
                     Set<String> mergeSegmentIdSet = new HashSet<String>();
                     mergeSegmentIdSet.addAll(merge10K);
                     startMergingJob(mergeSegmentIdSet);
                 }
 
-                if (merge1K.size() >= 3) {
+                if (merge1K.size() >= MERGE_MIN_SIZE) {
                     Set<String> mergeSegmentIdSet = new HashSet<String>();
                     mergeSegmentIdSet.addAll(merge1K);
                     //100도 함께 추가한다.
                     mergeSegmentIdSet.addAll(merge100);
                     startMergingJob(mergeSegmentIdSet);
-                } else if (merge100.size() >= 3) {
+                } else if (merge100.size() >= MERGE_MIN_SIZE) {
                     Set<String> mergeSegmentIdSet = new HashSet<String>();
                     mergeSegmentIdSet.addAll(merge100);
                     startMergingJob(mergeSegmentIdSet);
