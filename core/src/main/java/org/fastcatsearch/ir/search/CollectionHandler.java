@@ -176,6 +176,17 @@ public class CollectionHandler {
                 FileUtils.deleteQuietly(dir);
             }
         }
+
+        //쓸데없는 req파일은 지운다.
+        File[] reqList = dataDir.listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File f) {
+                return f.getName().endsWith(IndexFileNames.docDeleteReq);
+            }
+        });
+        for(File dir : reqList) {
+            FileUtils.deleteQuietly(dir);
+        }
 	}
 
 	public void close() throws IOException {
