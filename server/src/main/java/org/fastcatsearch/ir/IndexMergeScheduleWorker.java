@@ -49,7 +49,7 @@ public class IndexMergeScheduleWorker extends Thread {
         collectionHandler = irService.collectionHandler(collectionId);
         while(!isCanceled) {
             try {
-                logger.info("[{}] Check merging....", collectionId);
+                logger.trace("[{}] Check merging....", collectionId);
                 Collection<SegmentReader> segmentReaders = collectionHandler.segmentReaders();
                 List<String> zeroDocs = new ArrayList<String>();
                 List<String> merge100 = new ArrayList<String>();
@@ -105,7 +105,7 @@ public class IndexMergeScheduleWorker extends Thread {
                         }
                     }
                 }
-                logger.info("[{}] Check merging start....", collectionId);
+                logger.trace("[{}] Check merging start....", collectionId);
                 if(zeroDocs.size() > 0) {
                     Set<String> zeroSegmentIdSet = new HashSet<String>();
                     zeroSegmentIdSet.addAll(zeroDocs);
@@ -152,7 +152,7 @@ public class IndexMergeScheduleWorker extends Thread {
                     mergeSegmentIdSet.addAll(merge100);
                     startMergingJob(mergeSegmentIdSet);
                 }
-                logger.info("[{}] Check merging end....", collectionId);
+                logger.trace("[{}] Check merging end....", collectionId);
                 Thread.sleep(scheduleDelayInMS);
             } catch (InterruptedException e) {
                 //ignore
