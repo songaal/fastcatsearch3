@@ -68,6 +68,8 @@ public class NodeIndexDocumentFileJob extends DataJob implements Streamable {
                         indexer.updateDocument(sourceMap);
                     } else if (type.equals(IndexDocumentsAction.DELETE_TYPE)) {
                         indexer.deleteDocument(sourceMap);
+                    } else {
+                        logger.error("Unknown doctype[{}] {}", doc.getType(), sourceMap);
                     }
                 }
             } finally {
