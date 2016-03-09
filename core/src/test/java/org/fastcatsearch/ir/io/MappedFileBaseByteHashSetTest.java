@@ -59,6 +59,19 @@ public class MappedFileBaseByteHashSetTest {
         }
     }
 
+    /*
+    * int LIMIT = 10,000,000;
+    * int bucketSize = 10000000;
+    * -Xmx2g -Xms2g
+    * File Time : 7.398s
+    * File Size : 801 MB
+    * Memory Size : 346 MB
+    * --------------------------
+    * int LIMIT = 1,000,000;
+    * File Time : 0.836s
+    * File Size : 419 MB
+    * Memory Size : 235 MB
+    * */
     @Test
     public void testRandom() {
         int LIMIT = 10000000;
@@ -74,13 +87,25 @@ public class MappedFileBaseByteHashSetTest {
             set.add(key);
         }
         System.out.println("File Time : " + (System.nanoTime() - st) / 1000 / 1000 / 1000.0 + "s");
+        long mem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
         System.out.println("File Size : " + f.length() / 1024 / 1024 + " MB");
+        System.out.println("Memory Size : " + mem / 1024 / 1024 + " MB");
         set.clean();
     }
 
     @Test
+    /*
+    * int LIMIT = 10,000,000;
+    * -Xmx2g -Xms2g
+    * Memory Time : 10.229s
+    * Memory Size : 1137 MB
+    * --------------------------
+    * int LIMIT = 1,000,000;
+    * Memory Time : 0.86s
+    * Memory Size : 172 MB
+    */
     public void testRandomMemory() {
-        int LIMIT = 10000000;
+        int LIMIT = 1000000;
 //        int LIMIT = 100000;
         HashSet<BytesRef> set = new HashSet();
         int keySize = 32;
