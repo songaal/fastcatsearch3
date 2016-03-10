@@ -1,5 +1,6 @@
 package org.fastcatsearch.http.action.service.indexing;
 
+import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.http.ActionMapping;
@@ -12,6 +13,7 @@ import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.IndexingScheduleConfig;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.job.indexing.UpdateDynamicIndexingScheduleJob;
 import org.fastcatsearch.job.indexing.UpdateIndexingScheduleJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.SettingFileNames;
@@ -41,30 +43,52 @@ public class IndexingScheduleAction extends ServiceAction {
             throw new ActionException("Collection id is empty.");
         }
         if(type == null) {
-            throw new ActionException("Type is empty. Choose type in { FULL | ADD }");
+            throw new ActionException("Type is empty. Choose type in { FULL | ADD | DYNAMIC }");
         }
         String flag = request.getParameter("flag");
 
         IRService irService = ServiceManager.getInstance().getService(IRService.class);
         CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
+        NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
         if (collectionHandler != null) {
-            UpdateIndexingScheduleJob job = new UpdateIndexingScheduleJob(collectionId, type, flag);
-            NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
-            ResultFuture future = nodeService.sendRequest(nodeService.getMasterNode(), job);
-            Object result = future.take();
-            writeHeader(response);
-            response.setStatus(HttpResponseStatus.OK);
-            ResponseWriter resultWriter = getDefaultResponseWriter(response.getWriter());
-            resultWriter.object().key(collectionId).value(result).endObject();
-            resultWriter.done();
-        } else {
-            //컬렉션 없음.
-            response.setStatus(HttpResponseStatus.NOT_FOUND);
-            writeHeader(response);
-            ResponseWriter resultWriter = getDefaultResponseWriter(response.getWriter());
-            resultWriter.object().key(collectionId).value(false).endObject();
-            resultWriter.done();
+
+            if (UpdateIndexingScheduleJob.TYPE_FULL.equalsIgnoreCase(flag)
+                    || UpdateIndexingScheduleJob.TYPE_ADD.equalsIgnoreCase(flag)) {
+                UpdateIndexingScheduleJob job = new UpdateIndexingScheduleJob(collectionId, type, flag);
+                ResultFuture future = nodeService.sendRequest(nodeService.getMasterNode(), job);
+                Object result = future.take();
+                writeHeader(response);
+                response.setStatus(HttpResponseStatus.OK);
+                ResponseWriter resultWriter = getDefaultResponseWriter(response.getWriter());
+                resultWriter.object().key(collectionId).value(result).endObject();
+                resultWriter.done();
+                return;
+            } else if (UpdateIndexingScheduleJob.TYPE_DYNAMIC.equalsIgnoreCase(flag)) {
+                UpdateDynamicIndexingScheduleJob job = new UpdateDynamicIndexingScheduleJob(collectionId, flag);
+                String indexNodeId = collectionHandler.collectionContext().collectionConfig().getIndexNode();
+                Node indexNode = nodeService.getNodeById(indexNodeId);
+                ResultFuture future2 = nodeService.sendRequest(indexNode, job);
+                Object r = future2.take();
+                boolean result = false;
+                if (r instanceof Boolean) {
+                    result = (Boolean) r;
+                }
+
+                writeHeader(response);
+                response.setStatus(HttpResponseStatus.OK);
+                ResponseWriter resultWriter = getDefaultResponseWriter(response.getWriter());
+                resultWriter.object().key(collectionId).value(result).endObject();
+                resultWriter.done();
+                return;
+            }
         }
+
+        //컬렉션 없음.
+        response.setStatus(HttpResponseStatus.NOT_FOUND);
+        writeHeader(response);
+        ResponseWriter resultWriter = getDefaultResponseWriter(response.getWriter());
+        resultWriter.object().key(collectionId).value(false).endObject();
+        resultWriter.done();
 	}
 
 }

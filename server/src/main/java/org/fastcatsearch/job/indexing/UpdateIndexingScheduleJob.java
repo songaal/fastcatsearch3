@@ -21,8 +21,9 @@ import java.io.IOException;
  */
 public class UpdateIndexingScheduleJob extends MasterNodeJob implements Streamable{
 
-    private static final String TYPE_FULL = "FULL";
-    private static final String TYPE_ADD = "ADD";
+    public static final String TYPE_FULL = "FULL";
+    public static final String TYPE_ADD = "ADD";
+    public static final String TYPE_DYNAMIC = "DYNAMIC";
 
     private static final String FLAG_ON = "ON";
     private static final String FLAG_OFF = "OFF";
