@@ -45,7 +45,7 @@ public class IndexDocumentRequestJob extends Job implements Streamable {
             throw new FastcatSearchException(e);
 		}
 
-		return new JobResult();
+		return new JobResult(true);
 	}
 
     @Override
