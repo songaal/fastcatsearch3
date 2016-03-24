@@ -5,6 +5,7 @@ import net.minidev.json.parser.ParseException;
 import net.minidev.json.writer.JsonReader;
 import net.minidev.json.writer.JsonReaderI;
 
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +31,10 @@ public class JSONParser {
     }
     public Map<String, Object> parse(String jsonString) throws ParseException {
         return parser.parse(jsonString, mapper);
+    }
+
+    public Map<String, Object> parse(Reader reader) throws ParseException {
+        return parser.parse(reader, mapper);
     }
     class JsonMapperLowerKey extends JsonReaderI<Map<String, Object>> {
 

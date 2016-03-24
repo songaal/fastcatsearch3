@@ -10,18 +10,12 @@ import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.ServiceAction;
 import org.fastcatsearch.ir.IRService;
-import org.fastcatsearch.ir.config.CollectionContext;
-import org.fastcatsearch.ir.config.IndexingScheduleConfig;
 import org.fastcatsearch.ir.search.CollectionHandler;
 import org.fastcatsearch.job.indexing.UpdateDynamicIndexingScheduleJob;
 import org.fastcatsearch.job.indexing.UpdateIndexingScheduleJob;
 import org.fastcatsearch.service.ServiceManager;
-import org.fastcatsearch.settings.SettingFileNames;
-import org.fastcatsearch.util.JAXBConfigs;
 import org.fastcatsearch.util.ResponseWriter;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-
-import java.io.File;
 /**
  * 컬렉션의 전체색인 및 증분색인의 스케쥴을 on/off 할 수 있다.
  * @See DynamicIndexingControlAction
@@ -52,8 +46,8 @@ public class IndexingScheduleAction extends ServiceAction {
         NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
         if (collectionHandler != null) {
 
-            if (UpdateIndexingScheduleJob.TYPE_FULL.equalsIgnoreCase(flag)
-                    || UpdateIndexingScheduleJob.TYPE_ADD.equalsIgnoreCase(flag)) {
+            if (UpdateIndexingScheduleJob.TYPE_FULL.equalsIgnoreCase(type)
+                    || UpdateIndexingScheduleJob.TYPE_ADD.equalsIgnoreCase(type)) {
                 UpdateIndexingScheduleJob job = new UpdateIndexingScheduleJob(collectionId, type, flag);
                 ResultFuture future = nodeService.sendRequest(nodeService.getMasterNode(), job);
                 Object result = future.take();
@@ -63,7 +57,7 @@ public class IndexingScheduleAction extends ServiceAction {
                 resultWriter.object().key(collectionId).value(result).endObject();
                 resultWriter.done();
                 return;
-            } else if (UpdateIndexingScheduleJob.TYPE_DYNAMIC.equalsIgnoreCase(flag)) {
+            } else if (UpdateIndexingScheduleJob.TYPE_DYNAMIC.equalsIgnoreCase(type)) {
                 UpdateDynamicIndexingScheduleJob job = new UpdateDynamicIndexingScheduleJob(collectionId, flag);
                 String indexNodeId = collectionHandler.collectionContext().collectionConfig().getIndexNode();
                 Node indexNode = nodeService.getNodeById(indexNodeId);
