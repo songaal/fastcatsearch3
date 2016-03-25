@@ -41,7 +41,31 @@ public abstract class Job implements Runnable, Serializable {
 	private long startTime;
 	private long endTime;
 
-	public void setEnvironment(Environment environment) {
+    private Thread currentThread;
+
+    private long timeout; //timeout 이 지나면 인터럽트가 발생한다.
+
+    public void interruptJob() {
+
+        if(currentThread != null) {
+            logger.info("Request killing job > {}", this);
+            currentThread.interrupt();
+        }
+    }
+
+    public void setCurrentThread(Thread currentThread) {
+        this.currentThread = currentThread;
+    }
+
+    public long getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(long timeout) {
+        this.timeout = timeout;
+    }
+
+    public void setEnvironment(Environment environment) {
 		this.environment = environment;
 	}
 

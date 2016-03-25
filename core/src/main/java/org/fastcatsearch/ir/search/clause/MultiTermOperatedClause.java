@@ -47,11 +47,11 @@ public class MultiTermOperatedClause extends OperatedClause {
 		termDocTreeReader = new TermDocTreeReader();
 	}
 
-	public void addTerm(PostingReader postingReader) {
+	public void addTerm(PostingReader postingReader) throws IOException {
 		addTerm(postingReader, null);
 	}
 
-	public void addTerm(PostingReader postingReader, List<PostingDocs> synonymList) {
+	public void addTerm(PostingReader postingReader, List<PostingDocs> synonymList) throws IOException {
 
 		if (postingReader != null) {
 			termDocTreeReader.addNode(new PostingDocsTreeNode(postingReader));
@@ -73,7 +73,7 @@ public class MultiTermOperatedClause extends OperatedClause {
 
 	}
 
-	protected boolean nextDoc(RankInfo docInfo) {
+	protected boolean nextDoc(RankInfo docInfo) throws IOException {
 		if (termDocCollector == null) {
 			termDocCollector = new TermDocCollector(termCount);
 		}

@@ -23,30 +23,23 @@ public abstract class ServiceAction extends HttpAction {
 
 	@Override
 	public void runAction(ActionRequest request, ActionResponse response) throws Exception {
+        Writer writer = response.getWriter();
 		try {
 			doAction(request, response);
         } catch (ActionException t) {
             writeHeader(response);
-            Writer writer = response.getWriter();
-            try {
-                ResponseWriter resultWriter = getDefaultResponseWriter(writer);
-                resultWriter.object().key("success").value(false).key("errorMessage").value(t.toString()).endObject();
-                resultWriter.done();
-            } finally {
-                writer.close();
-            }
+            ResponseWriter resultWriter = getDefaultResponseWriter(writer);
+            resultWriter.object().key("success").value(false).key("errorMessage").value(t.toString()).endObject();
+            resultWriter.done();
 		} catch (Throwable t) {
 			logger.error("ServiceAction Error!", t);
 			writeHeader(response);
-			Writer writer = response.getWriter();
-			try {
-				ResponseWriter resultWriter = getDefaultResponseWriter(writer);
-				resultWriter.object().key("success").value(false).key("errorMessage").value(t.toString()).endObject();
-				resultWriter.done();
-			} finally {
-				writer.close();
-			}
-		}
+            ResponseWriter resultWriter = getDefaultResponseWriter(writer);
+            resultWriter.object().key("success").value(false).key("errorMessage").value(t.toString()).endObject();
+            resultWriter.done();
+		} finally {
+            writer.close();
+        }
 	}
 
 	protected void writeHeader(ActionResponse response) {

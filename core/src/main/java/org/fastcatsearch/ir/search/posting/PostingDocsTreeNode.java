@@ -4,6 +4,8 @@ import org.fastcatsearch.ir.search.PostingDoc;
 import org.fastcatsearch.ir.search.PostingReader;
 import org.fastcatsearch.ir.search.TermDocCollector;
 
+import java.io.IOException;
+
 public class PostingDocsTreeNode extends NodeReader {
 
 	private PostingReader postingReader;
@@ -20,7 +22,7 @@ public class PostingDocsTreeNode extends NodeReader {
 	}
 
 	@Override
-	public int next() {
+	public int next() throws IOException {
 		if(postingReader.hasNext()){
 			postingDoc = postingReader.next();
 			return postingDoc.docNo();

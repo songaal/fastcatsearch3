@@ -70,6 +70,7 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 
 	@Override
 	public void readFrom(DataInput input) throws IOException {
+        setTimeout(input.readLong());
 		collectionId = input.readString();
 
 		// DocIdList
@@ -112,6 +113,7 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
+        output.writeLong(getTimeout());
 		output.writeString(collectionId);
 
 		// DocIdList

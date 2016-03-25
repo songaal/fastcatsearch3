@@ -48,7 +48,7 @@ public class AndOperatedClause extends OperatedClause {
         this.needsPositions = needsPositions;
     }
 
-    protected boolean nextDoc(RankInfo rankInfo) {
+    protected boolean nextDoc(RankInfo rankInfo) throws IOException {
         while(true) {
             if(needsPositions) {
                 docInfo1.clearOccurrence();
@@ -118,7 +118,7 @@ public class AndOperatedClause extends OperatedClause {
     }
 
     @Override
-    protected void initClause(boolean explain) {
+    protected void initClause(boolean explain) throws IOException {
         docInfo1 = new RankInfo(explain);
         docInfo2 = new RankInfo(explain);
         if(clause1 != null) {

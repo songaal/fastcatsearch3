@@ -5,10 +5,12 @@ import static org.junit.Assert.*;
 import org.fastcatsearch.ir.query.RankInfo;
 import org.junit.Test;
 
+import java.io.IOException;
+
 public class BooleanClauseTest {
 
 	@Test
-	public void test() {
+	public void test() throws IOException {
 		
 		BooleanClause booleanClause = null;//new BooleanClause();
 		

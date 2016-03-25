@@ -3,8 +3,8 @@ package org.fastcatsearch.job.search;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.ResultFuture;
-import org.fastcatsearch.error.ServerErrorCode;
 import org.fastcatsearch.error.SearchError;
+import org.fastcatsearch.error.ServerErrorCode;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IRException;
@@ -20,6 +20,7 @@ import org.fastcatsearch.ir.settings.Schema;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.job.internal.InternalDocumentSearchJob;
 import org.fastcatsearch.job.internal.InternalSearchJob;
+import org.fastcatsearch.job.internal.InternalSearchLongTestJob;
 import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
@@ -31,15 +32,15 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * 검색을 수행하여 병합까지 마치는 broker 검색작업.
+ * 테스트 용도로 검색이 무제한 길어 끝나지 않도록 만든 JOB
  * */
-public class ClusterSearchJob extends Job {
+public class ClusterSearchLongTestJob extends Job {
 
 	private static final long serialVersionUID = 2375551165135599911L;
 	protected static Logger searchLogger = LoggerFactory.getLogger("SEARCH_LOG");
 
-	@Override
-	public JobResult doRun() throws FastcatSearchException {
+    @Override
+    public JobResult doRun() throws FastcatSearchException {
 
 		long st = System.nanoTime();
 		QueryMap queryMap = (QueryMap) getArgs();
@@ -118,7 +119,7 @@ public class ClusterSearchJob extends Job {
 				newQueryMap.setId(id);
 				logger.debug("query-{} {} >> {}", i, id, newQueryMap);
 				// collectionId가 하나이상이면 머징을 해야한다.
-				InternalSearchJob job = new InternalSearchJob(newQueryMap, forMerging);
+                InternalSearchLongTestJob job = new InternalSearchLongTestJob(newQueryMap, forMerging);
                 job.setTimeout(getTimeout());
 				resultFutureList[i] = nodeService.sendRequest(dataNode, job);
                 // 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
@@ -131,7 +132,7 @@ public class ClusterSearchJob extends Job {
 			HighlightInfo highlightInfo = null;
 
 			for (int i = 0; i < collectionIdList.length; i++) {
-				Object obj = resultFutureList[i].take();
+				Object obj = resultFutureList[i].pollInMillis(getTimeout());
 				if (!resultFutureList[i].isSuccess()) {
                     if (obj instanceof SearchError) {
                         throw (SearchError) obj;
@@ -212,7 +213,7 @@ public class ClusterSearchJob extends Job {
                 views = new ViewContainer();
             }
             if(views.size() == 0) {
-                List<FieldSetting> list =schema.schemaSetting().getFieldSettingList();
+                List<FieldSetting> list = schema.schemaSetting().getFieldSettingList();
                 if(list.size() > 0) {
                     views.add(new View(list.get(0).getId()));
                 }
@@ -239,7 +240,7 @@ public class ClusterSearchJob extends Job {
 
 			for (int i = 0; i < collectionIdList.length; i++) {
 				String cid = collectionIdList[i];
-				Object obj = resultFutureList[i].take();
+				Object obj = resultFutureList[i].pollInMillis(documentTimeout);
 				if (!resultFutureList[i].isSuccess()) {
                     if (obj instanceof SearchError) {
                         throw (SearchError) obj;

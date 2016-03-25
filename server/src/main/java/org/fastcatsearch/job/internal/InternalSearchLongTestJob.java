@@ -1,7 +1,5 @@
 package org.fastcatsearch.job.internal;
 
-import java.io.IOException;
-
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.error.ServerErrorCode;
@@ -13,29 +11,27 @@ import org.fastcatsearch.ir.query.InternalSearchResult;
 import org.fastcatsearch.ir.query.Metadata;
 import org.fastcatsearch.ir.query.Query;
 import org.fastcatsearch.ir.query.QueryModifier;
-import org.fastcatsearch.ir.search.CollectionHandler;
-import org.fastcatsearch.ir.search.CollectionSearcher;
-import org.fastcatsearch.ir.search.HitElement;
-import org.fastcatsearch.ir.search.PkScore;
-import org.fastcatsearch.ir.search.PkScoreList;
+import org.fastcatsearch.ir.search.*;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableInternalSearchResult;
 
-public class InternalSearchJob extends Job implements Streamable {
+import java.io.IOException;
+
+public class InternalSearchLongTestJob extends Job implements Streamable {
     private static final long serialVersionUID = 4998297114497342795L;
     private QueryMap queryMap;
     private boolean forMerging;
 
-    public InternalSearchJob(){}
+    public InternalSearchLongTestJob(){}
 
-    public InternalSearchJob(QueryMap queryMap){
+    public InternalSearchLongTestJob(QueryMap queryMap){
         this.queryMap = queryMap;
     }
 
-    public InternalSearchJob(QueryMap queryMap, boolean forMerging){
+    public InternalSearchLongTestJob(QueryMap queryMap, boolean forMerging){
         this.queryMap = queryMap;
         this.forMerging = forMerging;
     }
@@ -90,7 +86,13 @@ public class InternalSearchJob extends Job implements Streamable {
                         logger.error("error while boosting query > " + boostQuery, t);
                     }
                 }
-                result = collectionHandler.searcher().searchInternal(q, forMerging, pkScoreList);
+                int LIMIT = 100000;
+                for(int i = 0; i < LIMIT; i++) {
+                    result = collectionHandler.searcher().searchInternal(q, forMerging, pkScoreList);
+                    if(i % 1000 == 0) {
+                        logger.info("search long i = {} / {}", i, LIMIT);
+                    }
+                }
             }
 
             return new JobResult(new StreamableInternalSearchResult(result));

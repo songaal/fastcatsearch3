@@ -17,6 +17,7 @@
 package org.fastcatsearch.ir.search.clause;
 
 
+import java.io.IOException;
 import java.util.Random;
 
 import org.fastcatsearch.ir.query.RankInfo;
@@ -29,7 +30,7 @@ import junit.framework.TestCase;
 
 public class WeightedOperatedClauseTest extends TestCase{
 	
-	public void testFixed(){
+	public void testFixed() throws IOException {
 		int[] docs1 = new int[]{3,5,7,9,10};
 		int[] docs1Score = new int[]{2,5,7,9,10};
 		int[] docs2 = new int[]{3,7,8};
@@ -48,7 +49,7 @@ public class WeightedOperatedClauseTest extends TestCase{
 		}
 	}
 	
-	public void testEmpty(){
+	public void testEmpty() throws IOException {
 		int[] docs1 = new int[]{};
 		int[] docs1Score = new int[]{};
 		int[] docs2 = new int[]{3,7,8};
@@ -68,7 +69,7 @@ public class WeightedOperatedClauseTest extends TestCase{
 	}
 	
 	
-	public void testRandom(){
+	public void testRandom() throws IOException {
 		int count1 = 100;
 		int[] docs1 = new int[count1];
 		int[] score1 = new int[count1];

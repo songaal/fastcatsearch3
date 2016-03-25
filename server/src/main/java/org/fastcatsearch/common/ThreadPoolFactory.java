@@ -1,31 +1,28 @@
 package org.fastcatsearch.common;
 
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import org.fastcatsearch.job.Job;
+
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ThreadPoolFactory {
 	public static ThreadPoolExecutor newCachedThreadPool(String poolName, int max){
-		return new ThreadPoolExecutor(0, max,
+		return new JobThreadPoolExecutor(0, max,
                 60L, TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>(), new DefaultThreadFactory(poolName, false), new ThreadPoolExecutor.AbortPolicy());
 	}
 	public static ThreadPoolExecutor newCachedDaemonThreadPool(String poolName, int max){
-		return new ThreadPoolExecutor(0, max,
+		return new JobThreadPoolExecutor(0, max,
                 60L, TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>(), new DefaultThreadFactory(poolName, true), new ThreadPoolExecutor.AbortPolicy());
 	}
 	public static ThreadPoolExecutor newUnlimitedCachedThreadPool(String poolName){
-		return new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+		return new JobThreadPoolExecutor(0, Integer.MAX_VALUE,
                 60L, TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>(), new DefaultThreadFactory(poolName, false));
 	}
 	public static ThreadPoolExecutor newUnlimitedCachedDaemonThreadPool(String poolName){
-		return new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+		return new JobThreadPoolExecutor(0, Integer.MAX_VALUE,
                 60L, TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>(), new DefaultThreadFactory(poolName, true));
 	}
@@ -60,5 +57,31 @@ public class ThreadPoolFactory {
                 t.setPriority(Thread.NORM_PRIORITY);
             return t;
         }
+    }
+
+    static class JobThreadPoolExecutor extends ThreadPoolExecutor {
+
+        public JobThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue) {
+            super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
+        }
+
+        public JobThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory) {
+            super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory);
+        }
+
+        public JobThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, RejectedExecutionHandler handler) {
+            super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, handler);
+        }
+
+        public JobThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory, RejectedExecutionHandler handler) {
+            super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
+        }
+
+        protected void beforeExecute(Thread t, Runnable r) {
+            if(r instanceof Job) {
+                ((Job) r).setCurrentThread(t);
+            }
+        }
+
     }
 }

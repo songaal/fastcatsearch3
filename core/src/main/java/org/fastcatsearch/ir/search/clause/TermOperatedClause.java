@@ -59,7 +59,7 @@ public class TermOperatedClause extends OperatedClause {
         termOccurrence = new TermOccurrences(termString, synonymOf, termSequence);
     }
 
-    protected boolean nextDoc(RankInfo rankInfo) {
+    protected boolean nextDoc(RankInfo rankInfo) throws IOException {
         if (postingReader == null) {
             rankInfo.setEmpty();
             return false;

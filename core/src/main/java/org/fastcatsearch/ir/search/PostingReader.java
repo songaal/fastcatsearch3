@@ -4,6 +4,8 @@ import org.fastcatsearch.ir.io.CharVector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 /**
  * 스트림으로 부터 포스팅을 순차적으로 읽는다.
  * */
@@ -14,9 +16,9 @@ public interface PostingReader {
 
 	public int weight();
 	
-	public boolean hasNext();
+	public boolean hasNext() throws IOException;
 
-	public PostingDoc next();
+	public PostingDoc next() throws IOException;
 
 	public void close();
 

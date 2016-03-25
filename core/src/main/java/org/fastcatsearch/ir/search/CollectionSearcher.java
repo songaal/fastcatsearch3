@@ -262,8 +262,6 @@ public class CollectionSearcher {
 				}
 			}
 			
-		} catch (IOException e) {
-			throw new IRException(e);
         } catch (FilterException e) {
             throw new IRException(e);
 		} catch (ClauseException e) {
@@ -325,7 +323,7 @@ public class CollectionSearcher {
 	/*
 	 * 번들 문서를 찾아온다.
 	 * */
-	private void fillBundleResult(Schema schema, TreeSet<SegmentReader> segmentReaders, HitElement[] hitElementList, int size, Bundle bundle, BitSet[] segmentDocFilterList) throws IRException{
+	private void fillBundleResult(Schema schema, TreeSet<SegmentReader> segmentReaders, HitElement[] hitElementList, int size, Bundle bundle, BitSet[] segmentDocFilterList) throws IRException, IOException {
 		/*
 		 * el의 bundlekey를 보고 하위 묶음문서가 몇개가 있는지 확인한다.
 		 * 2개 이상일 경우만 저장하고 나머지는 버린다.
@@ -340,110 +338,105 @@ public class CollectionSearcher {
 		FieldSetting bundleFieldSetting = schema.getFieldSetting(bundle.getFieldIndexId());
 		Type bundleFieldType = bundleFieldSetting.getType();
 		
-		try {
 
-			int segmentSize = segmentReaders.size();
-			for (int k = 0; k < size; k++) {
-				int totalSize = 0;
-				//bundleKey로 clause생성한다.
-                int mainDocNo = hitElementList[k].docNo();
-				BytesRef bundleKey = hitElementList[k].getBundleKey();
-				if(bundleKey == null) {
-					continue;
-				}
-				String bundleStringKey = Formatter.getContentString(bundleKey, bundleFieldType);
-				
-				if(bundleStringKey == null) {
-					continue;
-				}
-				
-				Clause bundleClause = new Clause(new Term(fieldIndexId, bundleStringKey));
-				Hit[] segmentHitList = new Hit[segmentSize];
+        int segmentSize = segmentReaders.size();
+        for (int k = 0; k < size; k++) {
+            int totalSize = 0;
+            //bundleKey로 clause생성한다.
+            int mainDocNo = hitElementList[k].docNo();
+            BytesRef bundleKey = hitElementList[k].getBundleKey();
+            if(bundleKey == null) {
+                continue;
+            }
+            String bundleStringKey = Formatter.getContentString(bundleKey, bundleFieldType);
 
-                Iterator<SegmentReader> iterator = segmentReaders.iterator();
-                for(int i = 0; iterator.hasNext(); i++) {
-					//bundle key 별로 결과를 모은다.
-					try {
-						segmentHitList[i] = iterator.next().segmentSearcher().searchIndex(bundleClause, bundleSorts, bundleStart, bundleRows, segmentDocFilterList[i]);
-					} catch (Throwable e) {
-						logger.error("bundle search error", e);
-						logger.error("---- [{}]", i);
-						for(SegmentReader r : segmentReaders) {
-							logger.error("> {}", r.segmentId());
-						}
-						logger.error("segmentReaders size = {} >> {}", segmentReaders.size(), segmentReaders);
-						logger.error("segmentSize = {}", segmentSize);
-						logger.error("segmentHitList.len = {}", segmentHitList.length);
-						logger.error("segmentDocFilterList.len = {}", segmentDocFilterList.length);
-					}
-					totalSize += segmentHitList[i].totalCount();
-				}
-				
-				//2이상이어야만 번들이 유효하다.
-				if(totalSize > 1) {
-					
-					FixedMinHeap<FixedHitReader> hitMerger = null;
-					if (bundleSorts != null) {
-						hitMerger = bundleSorts.createMerger(schema, segmentSize);
-					} else {
-						hitMerger = new FixedMinHeap<FixedHitReader>(segmentSize);
-					}
-					
-					for (int i = 0; i < segmentSize; i++) {
-						FixedHitReader hitReader = segmentHitList[i].hitStack().getReader();
-	//					// posting data
-						if (hitReader.next()) {
-							hitMerger.push(hitReader);
-						}
-					}
-					
-					int realSize = Math.min(bundleRows, totalSize);
-					DocIdList bundleDocIdList = new DocIdList(realSize);
-					int c = 1, n = 0;
-					while (hitMerger.size() > 0) {
-						FixedHitReader r = hitMerger.peek();
-						HitElement el = r.read();
+            if(bundleStringKey == null) {
+                continue;
+            }
 
-                        //mainDocNo 와 동일한 문서는 제외한다.
-                        //group 문서들에서 그룹대표 문서와 동일한 것은 보여주지 않는다.
-                        //단, 대표문서를 포함옵션이 있다면 추가한다.
-						if(isParentInclude || el.docNo() != mainDocNo) {
-                            if (c >= bundleStart) {
-                                bundleDocIdList.add(el.segmentId(), el.docNo());
-                                n++;
-                                //logger.debug("[{}] {}", el.segmentSequence() ,el.docNo());
-                            }
-                            c++;
+            Clause bundleClause = new Clause(new Term(fieldIndexId, bundleStringKey));
+            Hit[] segmentHitList = new Hit[segmentSize];
 
-                        }
-
-                        // 결과가 만들어졌으면 일찍 끝낸다.
-                        if (n == bundleRows) {
-                            break;
-                        }
-
-						if (!r.next()) {
-							// 다 읽은 것은 버린다.
-							hitMerger.pop();
-						}
-						hitMerger.heapify();
-					}
-
-                    //대표가 포함되지 않으면, 갯수를 줄인다.
-                    if(!isParentInclude) {
-                        totalSize--;
+            Iterator<SegmentReader> iterator = segmentReaders.iterator();
+            for(int i = 0; iterator.hasNext(); i++) {
+                //bundle key 별로 결과를 모은다.
+                try {
+                    segmentHitList[i] = iterator.next().segmentSearcher().searchIndex(bundleClause, bundleSorts, bundleStart, bundleRows, segmentDocFilterList[i]);
+                } catch (Throwable e) {
+                    logger.error("bundle search error", e);
+                    logger.error("---- [{}]", i);
+                    for(SegmentReader r : segmentReaders) {
+                        logger.error("> {}", r.segmentId());
                     }
-					hitElementList[k].setBundleDocIdList(bundleDocIdList);
-                    hitElementList[k].setTotalBundleSize(totalSize);
-				}
-				
-				
-			}
-		} catch (IOException e) {
-			throw new IRException(e);
-		}
-		
-		
+                    logger.error("segmentReaders size = {} >> {}", segmentReaders.size(), segmentReaders);
+                    logger.error("segmentSize = {}", segmentSize);
+                    logger.error("segmentHitList.len = {}", segmentHitList.length);
+                    logger.error("segmentDocFilterList.len = {}", segmentDocFilterList.length);
+                }
+                totalSize += segmentHitList[i].totalCount();
+            }
+
+            //2이상이어야만 번들이 유효하다.
+            if(totalSize > 1) {
+
+                FixedMinHeap<FixedHitReader> hitMerger = null;
+                if (bundleSorts != null) {
+                    hitMerger = bundleSorts.createMerger(schema, segmentSize);
+                } else {
+                    hitMerger = new FixedMinHeap<FixedHitReader>(segmentSize);
+                }
+
+                for (int i = 0; i < segmentSize; i++) {
+                    FixedHitReader hitReader = segmentHitList[i].hitStack().getReader();
+//					// posting data
+                    if (hitReader.next()) {
+                        hitMerger.push(hitReader);
+                    }
+                }
+
+                int realSize = Math.min(bundleRows, totalSize);
+                DocIdList bundleDocIdList = new DocIdList(realSize);
+                int c = 1, n = 0;
+                while (hitMerger.size() > 0) {
+                    FixedHitReader r = hitMerger.peek();
+                    HitElement el = r.read();
+
+                    //mainDocNo 와 동일한 문서는 제외한다.
+                    //group 문서들에서 그룹대표 문서와 동일한 것은 보여주지 않는다.
+                    //단, 대표문서를 포함옵션이 있다면 추가한다.
+                    if(isParentInclude || el.docNo() != mainDocNo) {
+                        if (c >= bundleStart) {
+                            bundleDocIdList.add(el.segmentId(), el.docNo());
+                            n++;
+                            //logger.debug("[{}] {}", el.segmentSequence() ,el.docNo());
+                        }
+                        c++;
+
+                    }
+
+                    // 결과가 만들어졌으면 일찍 끝낸다.
+                    if (n == bundleRows) {
+                        break;
+                    }
+
+                    if (!r.next()) {
+                        // 다 읽은 것은 버린다.
+                        hitMerger.pop();
+                    }
+                    hitMerger.heapify();
+                }
+
+                //대표가 포함되지 않으면, 갯수를 줄인다.
+                if(!isParentInclude) {
+                    totalSize--;
+                }
+                hitElementList[k].setBundleDocIdList(bundleDocIdList);
+                hitElementList[k].setTotalBundleSize(totalSize);
+            }
+
+
+        }
+
 	}
 
 	public DocumentResult searchDocument(DocIdList list, ViewContainer views, String[] tags, HighlightInfo highlightInfo) throws IOException {

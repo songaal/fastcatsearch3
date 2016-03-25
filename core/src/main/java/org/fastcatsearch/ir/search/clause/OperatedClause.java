@@ -39,11 +39,11 @@ public abstract class OperatedClause {
 	}
 	
 	// 사용하기전에 호출한다.
-	public void init() {
+	public void init() throws IOException {
 		init(null);
 	}
 	
-	public void init(ClauseExplanation explanation) {
+	public void init(ClauseExplanation explanation) throws IOException {
 		if(isReady){
 			return;
 		}
@@ -59,7 +59,7 @@ public abstract class OperatedClause {
 		isReady = true;
 	}
 	
-	protected abstract void initClause(boolean explain);
+	protected abstract void initClause(boolean explain) throws IOException;
 
 	public boolean isExplain(){
 		return explanation != null;
@@ -79,7 +79,7 @@ public abstract class OperatedClause {
 	 * @param rankInfo
 	 * @return RankInfo를 올바로 읽었는지 여부. 
 	 */
-	public boolean next(RankInfo rankInfo) {
+	public boolean next(RankInfo rankInfo) throws IOException {
 		
 		//explain정보를 채우기전에 clear한다. 
 		if(explanation != null){
@@ -100,7 +100,7 @@ public abstract class OperatedClause {
 		}
 	}
 	
-	protected abstract boolean nextDoc(RankInfo docInfo);
+	protected abstract boolean nextDoc(RankInfo docInfo) throws IOException;
 	
 	public abstract void close();
 	

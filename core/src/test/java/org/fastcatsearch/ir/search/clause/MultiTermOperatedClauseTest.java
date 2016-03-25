@@ -2,6 +2,7 @@ package org.fastcatsearch.ir.search.clause;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.util.Random;
 
 import org.fastcatsearch.ir.io.CharVector;
@@ -17,7 +18,7 @@ import org.slf4j.LoggerFactory;
 public class MultiTermOperatedClauseTest {
 	protected static Logger logger = LoggerFactory.getLogger(NodeReader.class);
 	@Test
-	public void test() {
+	public void test() throws IOException {
 		MultiTermOperatedClause multiTermOperatedClause = new MultiTermOperatedClause();
 
 		int queryPosition = 0;

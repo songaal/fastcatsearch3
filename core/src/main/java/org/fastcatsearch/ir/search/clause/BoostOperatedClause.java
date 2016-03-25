@@ -40,7 +40,7 @@ public class BoostOperatedClause extends OperatedClause {
 		this.boostClause = boostClause;
 	}
 
-	protected boolean nextDoc(RankInfo rankInfo) {
+	protected boolean nextDoc(RankInfo rankInfo) throws IOException {
 		
 		int newScore = 0;
 		while(mainClause.next(docInfo1)){
@@ -84,7 +84,7 @@ public class BoostOperatedClause extends OperatedClause {
 	}
 
 	@Override
-	protected void initClause(boolean explain) {
+	protected void initClause(boolean explain) throws IOException {
 		mainClause.init(explanation != null ? explanation.createSubExplanation() : null);
 		boostClause.init(explanation != null ? explanation.createSubExplanation() : null);
 		boostClause.next(docInfo2);

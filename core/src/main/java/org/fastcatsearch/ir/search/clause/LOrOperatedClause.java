@@ -50,7 +50,7 @@ public class LOrOperatedClause extends OperatedClause {
 		this.clause2 = clause2;
 	}
 	
-	protected boolean nextDoc(RankInfo rankInfo) {
+	protected boolean nextDoc(RankInfo rankInfo) throws IOException {
 		if(hasNext1 || hasNext2){
 			int doc1 = docInfo1.docNo();
 			int doc2 = docInfo2.docNo();
@@ -117,7 +117,7 @@ public class LOrOperatedClause extends OperatedClause {
 	}
 
 	@Override
-	protected void initClause(boolean explain) {
+	protected void initClause(boolean explain) throws IOException {
 		docInfo1 = new RankInfo(explain);
 		docInfo2 = new RankInfo(explain);
 		

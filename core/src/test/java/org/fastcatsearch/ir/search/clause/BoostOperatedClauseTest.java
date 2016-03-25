@@ -17,6 +17,7 @@
 package org.fastcatsearch.ir.search.clause;
 
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -31,7 +32,7 @@ import org.junit.Test;
 public class BoostOperatedClauseTest {
 	
 	@Test
-	public void __testFixed(){
+	public void __testFixed() throws IOException {
 		int[] docs1 = new int[]{2,5,7};
 		
 		int[] docs2 = new int[]{3};
@@ -52,7 +53,7 @@ public class BoostOperatedClauseTest {
 	}
 	
 	@Test
-	public void testRandom(){
+	public void testRandom() throws IOException {
 		int count1 = 1000;
 		int[] docs1 = new int[count1];
 		int[] weight1 = new int[count1];

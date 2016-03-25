@@ -21,7 +21,7 @@ public class DefaultOperatedClause extends OperatedClause {
 	}
 	
 	@Override
-	protected boolean nextDoc(RankInfo docInfo) {
+	protected boolean nextDoc(RankInfo docInfo) throws IOException {
 		if(operatedClause == null){
 			return false;
 		}
@@ -44,7 +44,7 @@ public class DefaultOperatedClause extends OperatedClause {
 	}
 
 	@Override
-	protected void initClause(boolean explain) {
+	protected void initClause(boolean explain) throws IOException {
 		operatedClause.init(explanation != null ? explanation.createSubExplanation() : null);
 	}
 

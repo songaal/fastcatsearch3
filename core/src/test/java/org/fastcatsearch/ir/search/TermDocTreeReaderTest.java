@@ -3,6 +3,7 @@ package org.fastcatsearch.ir.search;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.util.Random;
 
 import org.fastcatsearch.ir.io.CharVector;
@@ -12,7 +13,7 @@ import org.junit.Test;
 public class TermDocTreeReaderTest {
 
 	@Test
-	public void test() {
+	public void test() throws IOException {
 		
 		int COUNT = 100000;
 		

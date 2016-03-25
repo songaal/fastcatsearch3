@@ -208,6 +208,9 @@ public class BufferedFileInput extends IndexInput implements Cloneable {
 
 	protected void readInternal(byte[] b, int offset, int len) throws IOException {
 
+        if(Thread.currentThread().isInterrupted()) {
+            throw new IOException("Got request to kill reading.");
+        }
 		final ByteBuffer bb;
 
 		// Determine the ByteBuffer we should use

@@ -21,8 +21,10 @@ import org.fastcatsearch.ir.search.clause.AllDocumentOperatedClause;
 
 import junit.framework.TestCase;
 
+import java.io.IOException;
+
 public class AllDocumentOperatedClauseTest extends TestCase {
-	public void test1(){
+	public void test1() throws IOException {
 		int baseDocNo = 10;
 		int docCount = 99;
 		AllDocumentOperatedClause c = new AllDocumentOperatedClause(docCount);

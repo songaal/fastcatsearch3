@@ -180,7 +180,7 @@ public class JobService extends AbstractService implements JobExecutor {
 			return new ResultFuture();
 		}
 		long myJobId = jobIdIncrement.getAndIncrement();
-		ResultFuture resultFuture = new ResultFuture(myJobId, resultFutureMap);
+		ResultFuture resultFuture = new ResultFuture(myJobId, resultFutureMap, job);
 		resultFutureMap.put(myJobId, resultFuture);
 		job.setId(myJobId);
 		sequencialJobQueue.offer(job);
@@ -210,7 +210,7 @@ public class JobService extends AbstractService implements JobExecutor {
 			jobQueue.offer(job);
 			return null;
 		} else {
-			ResultFuture resultFuture = new ResultFuture(myJobId, resultFutureMap);
+			ResultFuture resultFuture = new ResultFuture(myJobId, resultFutureMap, job);
 			resultFutureMap.put(myJobId, resultFuture);
 			job.setId(myJobId);
 			jobQueue.offer(job);

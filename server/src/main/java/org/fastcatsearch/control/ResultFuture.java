@@ -16,6 +16,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import org.fastcatsearch.job.Job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +29,7 @@ public class ResultFuture {
 	protected long startTime;
 	protected Object result;
 	private static NullResult NULL_RESULT = new NullResult();
-	
+	private Job job;
 	private static class NullResult { }
 	
 	/**
@@ -38,12 +39,16 @@ public class ResultFuture {
 		requestId = -1;
 		result = NULL_RESULT;
 	}
-	
-	public ResultFuture(long requestId, Map<Long, ? extends ResultFuture> resultFutureMap) {
+
+    public ResultFuture(long requestId, Map<Long, ? extends ResultFuture> resultFutureMap) {
+        this(requestId, resultFutureMap, null);
+    }
+	public ResultFuture(long requestId, Map<Long, ? extends ResultFuture> resultFutureMap, Job job) {
 		this.requestId = requestId;
 		this.resultFutureMap = resultFutureMap;
 		this.startTime = System.currentTimeMillis();
 		queue = new LinkedBlockingQueue<Object>();
+        this.job = job;
 	}
 
 	public long getElapsedTimeMilis(){
@@ -96,8 +101,12 @@ public class ResultFuture {
 			return null;
 		}
 	}
-	
-	public Object poll(int timeInSecond) {
+
+    public Object poll(int timeInSecond) {
+        return pollInMillis(timeInSecond * 1000);
+    }
+
+	public Object pollInMillis(long time) {
 		if(result != null){
 			if(result == NULL_RESULT){
 				return null;
@@ -105,13 +114,16 @@ public class ResultFuture {
 				return result;
 			}
 		}
-		long remainMilisecondTime = timeInSecond * 1000 - (System.currentTimeMillis() - startTime);
+		long remainMilisecondTime = time - (System.currentTimeMillis() - startTime);
 		try {
 			if(remainMilisecondTime > 0){
 				Object result = queue.poll(remainMilisecondTime, TimeUnit.MILLISECONDS);
 				if(result == null){
 					//결과가 아직도착하지 않아서 받지못하거나, 네트워크 문제로 인해 전달이 안될수도 있으므로 불필요한 객체를 map에서 제거한다.
 					resultFutureMap.remove(requestId);
+                    if(job != null) {
+                        job.interruptJob();
+                    }
 				}else if(result == NULL_RESULT){
 					return null;
 				}

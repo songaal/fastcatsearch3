@@ -41,10 +41,10 @@ public class BooleanClause extends OperatedClause {
     private OperatedClause operatedClause;
     private int weight;
 
-    public BooleanClause(SearchIndexReader searchIndexReader, Term term, HighlightInfo highlightInfo) {
+    public BooleanClause(SearchIndexReader searchIndexReader, Term term, HighlightInfo highlightInfo) throws IOException {
         this(searchIndexReader, term, highlightInfo, null);
     }
-    public BooleanClause(SearchIndexReader searchIndexReader, Term term, HighlightInfo highlightInfo, String requestTypeAttribute) {
+    public BooleanClause(SearchIndexReader searchIndexReader, Term term, HighlightInfo highlightInfo, String requestTypeAttribute) throws IOException {
         super(searchIndexReader.indexId());
         this.searchIndexReader = searchIndexReader;
         String indexId = searchIndexReader.indexId();
@@ -75,7 +75,7 @@ public class BooleanClause extends OperatedClause {
 //            printTrace(writer, 4, 0);
 //            logger.debug(">>> {}", writer.toString());
         } catch (IOException e) {
-            logger.error("", e);
+            throw e;
         } finally {
             searchIndexReader.releaseQueryAnalyzerToPool(analyzer);
         }
@@ -360,7 +360,7 @@ public class BooleanClause extends OperatedClause {
         return sb.toString();
     }
     @Override
-    protected boolean nextDoc(RankInfo rankInfo) {
+    protected boolean nextDoc(RankInfo rankInfo) throws IOException {
         if (operatedClause == null) {
             return false;
         }
@@ -374,7 +374,7 @@ public class BooleanClause extends OperatedClause {
         }
     }
     @Override
-    protected void initClause(boolean explain) {
+    protected void initClause(boolean explain) throws IOException {
         if (operatedClause != null) {
             operatedClause.init(explanation != null ? explanation.createSubExplanation() : null);
         }

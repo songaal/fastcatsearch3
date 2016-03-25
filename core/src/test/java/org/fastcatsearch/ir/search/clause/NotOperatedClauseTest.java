@@ -17,6 +17,7 @@
 package org.fastcatsearch.ir.search.clause;
 
 
+import java.io.IOException;
 import java.util.Random;
 
 import org.fastcatsearch.ir.query.RankInfo;
@@ -31,7 +32,7 @@ import junit.framework.TestCase;
 public class NotOperatedClauseTest {
 	
 	@Test
-	public void testFixed(){
+	public void testFixed() throws IOException {
 		int[] docs1 = new int[]{2,5,7,9,13,18,27,31,37,45};
 		int[] weight1 = new int[]{100,200,100,200,100,200,100,200,300,100};
 		
@@ -54,7 +55,7 @@ public class NotOperatedClauseTest {
 	}
 	
 	@Test
-	public void testFixedEmptyClause2(){
+	public void testFixedEmptyClause2() throws IOException {
 		int[] docs1 = new int[]{2,5,7,9,13,18,27,31,37,45};
 		int[] weight1 = new int[]{100,200,100,200,100,200,100,200,300,100};
 		
@@ -77,7 +78,7 @@ public class NotOperatedClauseTest {
 	}
 	
 	@Test
-	public void testRandom(){
+	public void testRandom() throws IOException {
 		int count1 = 100;
 		int[] docs1 = new int[count1];
 		makeDocs(count1, docs1);

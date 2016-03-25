@@ -42,7 +42,7 @@ public abstract class AbstractSearchAction extends ServiceAction {
 		long searchTime = 0;
 		long st = System.nanoTime();
 		Job searchJob = createSearchJob(queryMap);
-
+        searchJob.setTimeout(timeout * 1000L);
 		ResultFuture jobResult = JobService.getInstance().offer(searchJob);
 		Object obj = jobResult.poll(timeout);
 		searchTime = (System.nanoTime() - st) / 1000000;
@@ -61,7 +61,7 @@ public abstract class AbstractSearchAction extends ServiceAction {
 			logger.error("", e);
 		}
 
-		writer.close();
+//		writer.close();
 
 		return obj;
 	}
@@ -92,7 +92,7 @@ public abstract class AbstractSearchAction extends ServiceAction {
 		try {
 			obj = doSearch(requestId, queryMap, timeout, writer);
 		} finally {
-			writer.close();
+//			writer.close();
 			requestLogger.info("end request id:{}",requestId);
 		}
 

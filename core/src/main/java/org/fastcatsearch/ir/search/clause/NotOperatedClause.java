@@ -39,7 +39,7 @@ public class NotOperatedClause extends OperatedClause {
 		this.clause2 = clause2;
 	}
 
-	protected boolean nextDoc(RankInfo rankInfo) {
+	protected boolean nextDoc(RankInfo rankInfo) throws IOException {
 		if(!hasNext1)
 			return false;
 		
@@ -88,7 +88,7 @@ public class NotOperatedClause extends OperatedClause {
 	}
 
 	@Override
-	protected void initClause(boolean explain) {
+	protected void initClause(boolean explain) throws IOException {
 		docInfo1 = new RankInfo(explain);
 		docInfo2 = new RankInfo(explain);
 		

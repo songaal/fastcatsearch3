@@ -2,6 +2,8 @@ package org.fastcatsearch.ir.search;
 
 import org.fastcatsearch.ir.io.CharVector;
 
+import java.io.IOException;
+
 public class DataPostingReader extends AbstractPostingReader {
 
 	private int postingPointer;
@@ -23,12 +25,12 @@ public class DataPostingReader extends AbstractPostingReader {
 	}
 
 	@Override
-	public boolean hasNext() {
+	public boolean hasNext() throws IOException {
 		return postingPointer < dataLength;
 	}
 
 	@Override
-	public PostingDoc next() {
+	public PostingDoc next() throws IOException {
 		if(postingPointer < dataLength){
 			return dataList[postingPointer++];
 		}

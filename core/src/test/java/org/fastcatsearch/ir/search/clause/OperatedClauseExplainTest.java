@@ -2,6 +2,7 @@ package org.fastcatsearch.ir.search.clause;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.util.Random;
 
 import org.fastcatsearch.ir.query.RankInfo;
@@ -13,7 +14,7 @@ public class OperatedClauseExplainTest {
 	private Random r = new Random(System.currentTimeMillis());
 	
 	@Test
-	public void test() {
+	public void test() throws IOException {
 		
 		int count1 = 100;
 		int[] docs1 = new int[count1];

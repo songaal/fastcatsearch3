@@ -8,6 +8,8 @@ import org.fastcatsearch.ir.search.PostingReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 public abstract class AbstractSearchMethod implements SearchMethod {
 	
 	protected static Logger logger = LoggerFactory.getLogger(AbstractSearchMethod.class);
@@ -55,10 +57,10 @@ public abstract class AbstractSearchMethod implements SearchMethod {
 		return len1 - len2;
 	}
 	
-	protected abstract PostingReader doSearch(String indexId, CharVector term, int termPosition, int weight, int segmentDocumentCount);
+	protected abstract PostingReader doSearch(String indexId, CharVector term, int termPosition, int weight, int segmentDocumentCount) throws IOException;
 		
 	@Override
-	public PostingReader search(String indexId, CharVector term, int termPosition, int weight) {
+	public PostingReader search(String indexId, CharVector term, int termPosition, int weight) throws IOException {
 		try{
 			return doSearch(indexId, term, termPosition, weight, segmentDocumentCount);
 		}finally{

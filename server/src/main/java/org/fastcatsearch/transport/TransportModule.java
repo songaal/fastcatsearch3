@@ -388,7 +388,7 @@ public class TransportModule extends AbstractModule {
         		sendMessageRequest(node, requestId, job, hasHeavyPayload);
         		return null;
         	}else{
-	        	ResultFuture resultFuture = new ResultFuture(requestId, resultFutureMap);
+	        	ResultFuture resultFuture = new ResultFuture(requestId, resultFutureMap, job);
 	            resultFutureMap.put(requestId, resultFuture);
 	            sendMessageRequest(node, requestId, job, hasHeavyPayload);
 	            

@@ -10,7 +10,7 @@ import org.fastcatsearch.ir.search.PostingReader;
 public class NormalSearchMethod extends AbstractSearchMethod {
 
 	@Override
-	public PostingReader doSearch(String indexId, CharVector term, int termPosition, int weight, int segmentDocumentCount) {
+	public PostingReader doSearch(String indexId, CharVector term, int termPosition, int weight, int segmentDocumentCount) throws IOException {
 
 		if (memoryLexicon.size() == 0) {
 			return null;
@@ -55,7 +55,7 @@ public class NormalSearchMethod extends AbstractSearchMethod {
 			}
 		} catch (IOException e) {
 			logger.error("error while search index", e);
-			return null;
+			throw e;
 		}
 		if (inputOffset >= 0) {
 			return new BufferedPostingReader(term, termPosition, weight, segmentDocumentCount, indexFieldOption, postingInput, inputOffset);

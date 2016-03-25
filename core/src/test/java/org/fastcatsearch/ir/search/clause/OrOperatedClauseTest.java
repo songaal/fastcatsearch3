@@ -17,6 +17,7 @@
 package org.fastcatsearch.ir.search.clause;
 
 
+import java.io.IOException;
 import java.util.Random;
 
 import org.fastcatsearch.ir.query.RankInfo;
@@ -29,7 +30,7 @@ import junit.framework.TestCase;
 
 public class OrOperatedClauseTest extends TestCase{
 	
-	public void __testFixed(){
+	public void __testFixed() throws IOException {
 		int[] docs1 = new int[]{2,5,7};
 		
 		int[] docs2 = new int[]{3};
@@ -50,7 +51,7 @@ public class OrOperatedClauseTest extends TestCase{
 	}
 	
 	
-	public void testRandom(){
+	public void testRandom() throws IOException {
 		int count1 = 1000;
 		int[] docs1 = new int[count1];
 		makeDocs(count1, docs1);

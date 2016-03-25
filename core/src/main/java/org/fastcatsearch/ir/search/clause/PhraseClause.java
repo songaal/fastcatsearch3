@@ -162,7 +162,7 @@ public class PhraseClause extends OperatedClause {
 
 
     @Override
-    protected boolean nextDoc(RankInfo rankInfo) {
+    protected boolean nextDoc(RankInfo rankInfo) throws IOException {
         if (operatedClause == null) {
             return false;
         }
@@ -176,7 +176,7 @@ public class PhraseClause extends OperatedClause {
         }
     }
     @Override
-    protected void initClause(boolean explain) {
+    protected void initClause(boolean explain) throws IOException {
         if (operatedClause != null) {
             operatedClause.init(explanation != null ? explanation.createSubExplanation() : null);
         }

@@ -2,11 +2,13 @@ package org.fastcatsearch.ir.search;
 
 import org.fastcatsearch.ir.search.posting.NodeReader;
 
+import java.io.IOException;
+
 public class TermDocTreeReader {
 
 	private NodeReader root;
 
-	public void addNode(NodeReader node) {
+	public void addNode(NodeReader node) throws IOException {
 		
 		
 		if (root == null) {
@@ -17,7 +19,7 @@ public class TermDocTreeReader {
 	}
 
 	
-	public int next(TermDocCollector termDocCollector) {
+	public int next(TermDocCollector termDocCollector) throws IOException {
 		
 		if(root == null){
 			return -1;
@@ -43,7 +45,7 @@ public class TermDocTreeReader {
 
 		private TermDocCollector tempTermDocCollector;
 
-		public BigramTreeNode(NodeReader node1, NodeReader node2) {
+		public BigramTreeNode(NodeReader node1, NodeReader node2) throws IOException {
 			this.node1 = node1;
 			this.node2 = node2;
 
@@ -55,7 +57,7 @@ public class TermDocTreeReader {
 		}
 
 		@Override
-		public int next() {
+		public int next() throws IOException {
 			tempTermDocCollector.clear();
 			if (docNo1 == -1 && docNo2 == -1) {
 				return -1;

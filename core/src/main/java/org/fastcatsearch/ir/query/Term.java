@@ -25,6 +25,7 @@ import org.fastcatsearch.ir.search.clause.PhraseClause;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.List;
 
 
@@ -190,7 +191,7 @@ public class Term {
 		}
 	}
 
-	public OperatedClause createOperatedClause(SearchIndexReader searchIndexReader, HighlightInfo highlightInfo) {
+	public OperatedClause createOperatedClause(SearchIndexReader searchIndexReader, HighlightInfo highlightInfo) throws IOException {
 		if(termsEntryList != null) {
             return new AnalyzedBooleanClause(searchIndexReader, this, highlightInfo);
         }

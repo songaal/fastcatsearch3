@@ -50,7 +50,7 @@ public class BufferedPostingReader extends AbstractPostingReader {
 	}
 
 	@Override
-	public boolean hasNext() {
+	public boolean hasNext() throws IOException {
 		if(!ensureFilled()){
 			return false;
 		}
@@ -58,15 +58,15 @@ public class BufferedPostingReader extends AbstractPostingReader {
 		return bufferPointer < bufferSize;
 	}
 
-	private boolean ensureFilled(){
+	private boolean ensureFilled() throws IOException {
 		if (bufferPointer == bufferSize) {
 			try {
 				fill();
 				return true;
 			} catch (IOException e) {
 				logger.error("error while fill posting buffer", e);
+                throw e;
 			}
-			return false;
 		}
 		return true;
 	}
@@ -111,7 +111,7 @@ public class BufferedPostingReader extends AbstractPostingReader {
 	}
 
 	@Override
-	public PostingDoc next() {
+	public PostingDoc next() throws IOException {
 		if(!ensureFilled()){
 			return null;
 		}
