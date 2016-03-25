@@ -101,7 +101,7 @@ public abstract class SingleSourceReader<SourceType> {
 	
 	private void fillParameters(Map<String, String> map) {
 		// xml에서 읽어들인 파리미터들을 객체에 채워넣는다.
-		logger.debug("map:{}", map);
+//		logger.debug("map:{}", map);
 		if(map!=null) {
 			for (Entry<String, String> entry : map.entrySet()) {
 				String key = entry.getKey();
