@@ -16,7 +16,10 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import org.fastcatsearch.error.SearchError;
+import org.fastcatsearch.error.ServerErrorCode;
 import org.fastcatsearch.job.Job;
+import org.fastcatsearch.job.search.ClusterSearchJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +93,13 @@ public class ResultFuture {
 		}
 		
 		try {
-			result = queue.take();
+            long timeout = job.getTimeout();
+            if(timeout > 0) {
+                result = pollInMillis(timeout);
+            } else {
+                result = queue.take();
+            }
+//			result = queue.take();
 			if(result == NULL_RESULT){
 				return null;
 			}
@@ -124,6 +133,11 @@ public class ResultFuture {
                     if(job != null) {
                         job.interruptJob();
                     }
+                    if(job instanceof ClusterSearchJob) {
+                        result = new SearchError(ServerErrorCode.SEARCH_TIMEOUT_ERROR, String.valueOf(time));
+                    } else {
+                        result = new SearchError(ServerErrorCode.JOB_TIMEOUT_ERROR, String.valueOf(time));
+                    }
 				}else if(result == NULL_RESULT){
 					return null;
 				}
@@ -133,6 +147,9 @@ public class ResultFuture {
 				if(result == null){
 					//시간초과에 따른 제거일수도 있으므로, 
 					resultFutureMap.remove(requestId);
+                    if(job != null) {
+                        job.interruptJob();
+                    }
 				}else if(result == NULL_RESULT){
 					return null;
 				}

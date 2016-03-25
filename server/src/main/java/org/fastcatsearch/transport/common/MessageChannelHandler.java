@@ -212,12 +212,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
 				} else {
 					ResultFuture resultFuture = jobExecutor.offer(job);
                     long timeout = job.getTimeout();
-                    Object obj = null;
-                    if(timeout > 0) {
-                        obj = resultFuture.pollInMillis(timeout);
-                    } else {
-                        obj = resultFuture.take();
-                    }
+                    Object obj = resultFuture.take();
 					// logger.debug("## RequestHandler {} result >> {}", job.getClass().getSimpleName(), obj);
 					if (obj instanceof Streamable) {
 						Streamable result = (Streamable) obj;
