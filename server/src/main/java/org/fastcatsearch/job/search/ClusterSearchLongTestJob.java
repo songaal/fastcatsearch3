@@ -120,7 +120,7 @@ public class ClusterSearchLongTestJob extends Job {
 				logger.debug("query-{} {} >> {}", i, id, newQueryMap);
 				// collectionId가 하나이상이면 머징을 해야한다.
                 InternalSearchLongTestJob job = new InternalSearchLongTestJob(newQueryMap, forMerging);
-                job.setTimeout(getTimeout());
+                job.setTimeout(getTimeout(), true);
 				resultFutureList[i] = nodeService.sendRequest(dataNode, job);
                 // 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
                 if (resultFutureList[i] == null) {
@@ -228,7 +228,7 @@ public class ClusterSearchLongTestJob extends Job {
 				logger.debug("collection [{}] search at {}", cid, dataNode);
 
 				InternalDocumentSearchJob job = new InternalDocumentSearchJob(cid, docIdList[i], views, tags, highlightInfo);
-                job.setTimeout(documentTimeout);
+                job.setTimeout(documentTimeout, true);
 				resultFutureList[i] = nodeService.sendRequest(dataNode, job);
                 if (resultFutureList[i] == null) {
                     throw new SearchError(ServerErrorCode.DATA_NODE_CONNECTION_ERROR, dataNode.toString() );

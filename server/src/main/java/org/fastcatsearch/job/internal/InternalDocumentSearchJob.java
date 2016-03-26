@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.error.SearchAbortError;
 import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.error.ServerErrorCode;
 import org.fastcatsearch.exception.FastcatSearchException;
@@ -16,6 +17,7 @@ import org.fastcatsearch.ir.query.HighlightInfo;
 import org.fastcatsearch.ir.query.View;
 import org.fastcatsearch.ir.query.ViewContainer;
 import org.fastcatsearch.ir.search.CollectionHandler;
+import org.fastcatsearch.ir.search.CollectionSearcher;
 import org.fastcatsearch.ir.search.DocIdList;
 import org.fastcatsearch.ir.search.DocumentResult;
 import org.fastcatsearch.job.Job;
@@ -36,6 +38,8 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 	private String[] tags;
 	private HighlightInfo highlightInfo;
 
+    private CollectionSearcher documentCollectionSearcher;
+
 	public InternalDocumentSearchJob() {
 	}
 
@@ -47,7 +51,13 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 		this.highlightInfo = highlightInfo;
 	}
 
-	@Override
+    protected void whenAborted() {
+        if (documentCollectionSearcher != null) {
+            documentCollectionSearcher.abort();
+        }
+    }
+
+    @Override
 	public JobResult doRun() throws FastcatSearchException {
 
         IRService irService = ServiceManager.getInstance().getService(IRService.class);
@@ -59,7 +69,12 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 
         DocumentResult documentResult = null;
         try {
-            documentResult = collectionHandler.searcher().searchDocument(docIdList, views, tags, highlightInfo);
+            documentCollectionSearcher = collectionHandler.searcher();
+            documentResult = documentCollectionSearcher.searchDocument(docIdList, views, tags, highlightInfo);
+        } catch (SearchError e){
+            throw e;
+        } catch (SearchAbortError e){
+            throw e;
         } catch (IOException e) {
             throw new FastcatSearchException(e);
         }
@@ -70,7 +85,7 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 
 	@Override
 	public void readFrom(DataInput input) throws IOException {
-        setTimeout(input.readLong());
+        setTimeout(input.readLong(), input.readBoolean());
 		collectionId = input.readString();
 
 		// DocIdList
@@ -114,6 +129,7 @@ public class InternalDocumentSearchJob extends Job implements Streamable {
 	@Override
 	public void writeTo(DataOutput output) throws IOException {
         output.writeLong(getTimeout());
+        output.writeBoolean(isForceAbortWhenTimeout());
 		output.writeString(collectionId);
 
 		// DocIdList

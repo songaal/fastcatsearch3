@@ -3,6 +3,7 @@ package org.fastcatsearch.job.internal;
 import java.io.IOException;
 
 import org.fastcatsearch.common.io.Streamable;
+import org.fastcatsearch.error.SearchAbortError;
 import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.error.ServerErrorCode;
 import org.fastcatsearch.exception.FastcatSearchException;
@@ -29,6 +30,9 @@ public class InternalSearchJob extends Job implements Streamable {
     private QueryMap queryMap;
     private boolean forMerging;
 
+    private CollectionSearcher boostCollectionSearcher;
+    private CollectionSearcher mainCollectionSearcher;
+
     public InternalSearchJob(){}
 
     public InternalSearchJob(QueryMap queryMap){
@@ -38,6 +42,15 @@ public class InternalSearchJob extends Job implements Streamable {
     public InternalSearchJob(QueryMap queryMap, boolean forMerging){
         this.queryMap = queryMap;
         this.forMerging = forMerging;
+    }
+
+    protected void whenAborted() {
+        if(boostCollectionSearcher != null) {
+            boostCollectionSearcher.abort();
+        }
+        if(mainCollectionSearcher != null) {
+            mainCollectionSearcher.abort();
+        }
     }
 
     @Override
@@ -73,7 +86,7 @@ public class InternalSearchJob extends Job implements Streamable {
                         pkScoreList = new PkScoreList(boostKeyword);
                         String boostCollectionId = boostQuery.getMeta().collectionId();
                         CollectionHandler boostCollectionHandler = irService.collectionHandler(boostCollectionId);
-                        CollectionSearcher boostCollectionSearcher = boostCollectionHandler.searcher();
+                        boostCollectionSearcher = boostCollectionHandler.searcher();
                         InternalSearchResult r = boostCollectionSearcher.searchInternal(boostQuery, forMerging);
                         for (HitElement e : r.getHitElementList()) {
                             if (e == null) {
@@ -90,12 +103,15 @@ public class InternalSearchJob extends Job implements Streamable {
                         logger.error("error while boosting query > " + boostQuery, t);
                     }
                 }
-                result = collectionHandler.searcher().searchInternal(q, forMerging, pkScoreList);
+                mainCollectionSearcher = collectionHandler.searcher();
+                result = mainCollectionSearcher.searchInternal(q, forMerging, pkScoreList);
             }
 
             return new JobResult(new StreamableInternalSearchResult(result));
 
         } catch (SearchError e){
+            throw e;
+        } catch (SearchAbortError e){
             throw e;
         } catch(Exception e){
             throw new FastcatSearchException(e);
@@ -104,7 +120,7 @@ public class InternalSearchJob extends Job implements Streamable {
     }
     @Override
     public void readFrom(DataInput input) throws IOException {
-        setTimeout(input.readLong()); //타임아웃.
+        setTimeout(input.readLong(), input.readBoolean()); //타임아웃.
         this.queryMap = new QueryMap();
         queryMap.readFrom(input);
         this.forMerging = input.readBoolean();
@@ -112,6 +128,7 @@ public class InternalSearchJob extends Job implements Streamable {
     @Override
     public void writeTo(DataOutput output) throws IOException {
         output.writeLong(getTimeout());
+        output.writeBoolean(isForceAbortWhenTimeout());
         queryMap.writeTo(output);
         output.writeBoolean(forMerging);
     }

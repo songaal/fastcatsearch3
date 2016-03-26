@@ -70,26 +70,10 @@ public class SegmentSearcher {
 		return document;
 	}
 
-//	public Hit searchHit(Query query) throws ClauseException, IOException, IRException {
-//		return searchHit(query, null);
-//	}
-//	public Hit searchHit(Query query, PkScoreList boostList) throws ClauseException, IOException, IRException {
-////		QueryModifier queryModifier = query.getMeta().queryModifier();
-////		if(queryModifier != null){
-////			query = queryModifier.modify(query);
-////		}
-//		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), query.getGroupFilters(), query.getSorts(), query.getBundle(), boostList);
-//		return new Hit(rankHitList(), makeGroupData(), totalCount, highlightInfo, explanation);
-//	}
 	public HitReader searchHitReader(Query query, PkScoreList boostList) throws ClauseException, IOException, IRException {
-//		QueryModifier queryModifier = query.getMeta().queryModifier();
-//		if(queryModifier != null){
-//			query = queryModifier.modify(query);
-//		}
 		return searchHitReader(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), query.getGroupFilters(), query.getSorts(), query.getBundle(), boostList);
 	}
 	
-
 	public GroupHit searchGroupHit(Query query) throws ClauseException, IOException, IRException {
 		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), null, null, null, null);
 		return new GroupHit(makeGroupData(), totalCount);

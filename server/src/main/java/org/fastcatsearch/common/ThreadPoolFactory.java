@@ -78,9 +78,9 @@ public class ThreadPoolFactory {
         }
 
         protected void beforeExecute(Thread t, Runnable r) {
-            if(r instanceof Job) {
-                ((Job) r).setCurrentThread(t);
-            }
+//            if(r instanceof Job) {
+//                ((Job) r).setCurrentThread(t);
+//            }
         }
 
     }

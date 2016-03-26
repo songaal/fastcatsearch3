@@ -208,9 +208,9 @@ public class BufferedFileInput extends IndexInput implements Cloneable {
 
 	protected void readInternal(byte[] b, int offset, int len) throws IOException {
 
-        if(Thread.currentThread().isInterrupted()) {
-            throw new IOException("Got request to kill reading.");
-        }
+//        if(Thread.currentThread().isInterrupted()) {
+//            throw new IOException("Got request to kill reading.");
+//        }
 		final ByteBuffer bb;
 
 		// Determine the ByteBuffer we should use
@@ -245,6 +245,10 @@ public class BufferedFileInput extends IndexInput implements Cloneable {
 					limit = readOffset + readLength;
 				}
 				bb.limit(limit);
+
+//                if(!channel.isOpen()) {
+//                    logger.error("Channel is closed! f={}, chan={}", f.getName(), channel);
+//                }
 				int i = channel.read(bb, pos);
 				pos += i;
 				readOffset += i;
@@ -267,7 +271,6 @@ public class BufferedFileInput extends IndexInput implements Cloneable {
 	@Override
 	public void close() throws IOException {
 		if (!isClone) {
-//			logger.debug("File close {}", f.getAbsolutePath());
 			file.close();
 		}
 	}

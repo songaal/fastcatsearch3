@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.fastcatsearch.alert.ClusterAlertService;
 import org.fastcatsearch.control.JobExecutor;
 import org.fastcatsearch.env.Environment;
+import org.fastcatsearch.error.SearchAbortError;
 import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.service.ServiceManager;
@@ -41,28 +42,32 @@ public abstract class Job implements Runnable, Serializable {
 	private long startTime;
 	private long endTime;
 
-    private Thread currentThread;
+    private long timeout; //타임아웃.
+    private boolean forceAbortWhenTimeout; //timeout 이 지나면 강제로 abort시킨다. abort프로세스는 job에서 구현필요.
 
-    private long timeout; //timeout 이 지나면 인터럽트가 발생한다.
+    protected boolean isAborted;
 
-    public void interruptJob() {
-
-        if(currentThread != null) {
-            logger.info("Request killing job > {}", this);
-            currentThread.interrupt();
-        }
+    public void abortJob() {
+        logger.debug("Request abort job > {}", this);
+        isAborted = true;
+        whenAborted();
     }
 
-    public void setCurrentThread(Thread currentThread) {
-        this.currentThread = currentThread;
+    protected void whenAborted() {
+        //필요한 job에서만 구현한다.
     }
 
     public long getTimeout() {
         return timeout;
     }
 
-    public void setTimeout(long timeout) {
+    public void setTimeout(long timeout, boolean forceAbortWhenTimeout) {
         this.timeout = timeout;
+        this.forceAbortWhenTimeout = forceAbortWhenTimeout;
+    }
+
+    public boolean isForceAbortWhenTimeout() {
+        return forceAbortWhenTimeout;
     }
 
     public void setEnvironment(Environment environment) {
@@ -172,6 +177,10 @@ public abstract class Job implements Runnable, Serializable {
 				logger.error("## 결과에 jobId가 없습니다. job={}, result={}", this, jobResult);
 				throw new FastcatSearchException("ERR-00110");
 			}
+        } catch (SearchAbortError e) {
+            result = e;
+            isSuccess = false;
+            logger.debug("search aborted by timeout " + getClass().getName() + " " + (args != null ? args : ""));
         } catch (SearchError e) {
             //검색에러는 따로 시스템에러 처리하지 않는다.
             result = e;
@@ -179,7 +188,6 @@ public abstract class Job implements Runnable, Serializable {
 		} catch (Throwable e) {
 			result = e;
 			isSuccess = false;
-			
 			logger.error("error at " + getClass().getName() + " " + args, e);
 			ClusterAlertService clusterAlertService = ServiceManager.getInstance().getService(ClusterAlertService.class);
 			clusterAlertService.alert(e);

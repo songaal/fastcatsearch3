@@ -3,6 +3,7 @@ package org.fastcatsearch.ir.search;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.error.CoreErrorCode;
+import org.fastcatsearch.error.SearchAbortError;
 import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.common.IRException;
@@ -30,7 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.*;
 
-public class CollectionSearcher {
+public class CollectionSearcher implements Cloneable {
 	private static Logger logger = LoggerFactory.getLogger(CollectionSearcher.class);
 
 	private String collectionId;
@@ -40,6 +41,8 @@ public class CollectionSearcher {
 
     private int bundleMemMaxCountLimit = 10 * 10000;
     private int bundleHashBucketSize = 100 * 10000;
+
+    private boolean isAborted;
 
 	public CollectionSearcher(CollectionHandler collectionHandler) {
 		this.collectionId = collectionHandler.collectionId();
@@ -57,6 +60,30 @@ public class CollectionSearcher {
         }
 	}
 
+    public void abort() {
+        isAborted = true;
+    }
+
+    private void checkAborted() throws SearchAbortError {
+        if(isAborted) {
+            throw new SearchAbortError();
+        }
+    }
+    private void checkAborted(String message) throws SearchAbortError {
+        if(isAborted) {
+            throw new SearchAbortError(message);
+        }
+    }
+    public CollectionSearcher clone() {
+        try {
+            CollectionSearcher searcher = (CollectionSearcher) super.clone();
+            searcher.isAborted = false;
+            return searcher;
+        } catch (CloneNotSupportedException e) {
+            logger.error("", e);
+        }
+        return null;
+    }
     /*
     * 결합 pk는 ;로 구분되어 있다.
     * */
@@ -150,7 +177,7 @@ public class CollectionSearcher {
 		if (segmentSize == 0) {
 			throw new SearchError(CoreErrorCode.COLLECTION_NOT_INDEXED, collectionId);
 		}
-
+        checkAborted();
 		/*
 		 * 중요!! 레퍼런스를 복사하여 세그먼트가 검색도중 동적으로 삭제되어도 문제없도록 한다.
 		 * 2016-2-2 swsong
@@ -173,22 +200,13 @@ public class CollectionSearcher {
 			resultRows = sortMaxSize;
 		}
 
-		
-//		if(collectionId == null){
-//			collectionId = meta.collectionId();
-//		}
 		Groups groups = q.getGroups();
 
 		Sorts sorts = q.getSorts();
-//		FixedMinHeap<FixedHitReader> hitMerger = null;
 		FixedMaxPriorityQueue<HitElement> ranker = null;
 		if (sorts == null) {
-//			hitMerger = sorts.createMerger(schema, segmentSize);
-			//TODO 
-			//BundleDefaultRanker (fieldIndexesReader, bundle)
 			ranker = new DefaultRanker(sortMaxSize);
 		} else {
-//			hitMerger = new FixedMinHeap<FixedHitReader>(segmentSize);
 			// ranker에 정렬 로직이 담겨있다.
 			// ranker 안에는 필드타입과 정렬옵션을 확인하여 적합한 byte[] 비교를 수행한다.
 			ranker = sorts.createRanker(schema, sortMaxSize);
@@ -217,6 +235,9 @@ public class CollectionSearcher {
             Iterator<SegmentReader> iterator = segmentReaders.iterator();
 
 			for(int i = 0; iterator.hasNext(); i++) {
+
+                checkAborted();
+
 				// segment 의 모든 결과를 보아야 중복체크가 가능하므로 reader를 받아오도록 한다.
 				HitReader hitReader = iterator.next().segmentSearcher().searchHitReader(q, boostList);
 				//
@@ -231,6 +252,9 @@ public class CollectionSearcher {
 				// posting data
 				HitElement e = null;
 				while ((e = hitReader.next()) != null) {
+
+                    checkAborted();
+
 					if (e.getBundleKey() != null) {
                         if(keySize == 0) {
                             keySize = e.getBundleKey().length();
@@ -286,6 +310,7 @@ public class CollectionSearcher {
 		FixedHitReader fixedHitReader = hitStack.getReader();
 		FixedHitQueue totalHit = new FixedHitQueue(resultRows);
 		while(fixedHitReader.next()) {
+            checkAborted();
 			HitElement el = fixedHitReader.read();
 //			logger.debug("{} rank hit seg#{} {}", c, el.segmentSequence(), el.docNo(), el.score(), el.rowExplanations());
 			
@@ -300,7 +325,8 @@ public class CollectionSearcher {
 			}
 			c++;
 		}
-		
+
+        checkAborted();
 
 		GroupsData groupData = null;
 		if (dataMerger != null) {
@@ -324,6 +350,9 @@ public class CollectionSearcher {
 	 * 번들 문서를 찾아온다.
 	 * */
 	private void fillBundleResult(Schema schema, TreeSet<SegmentReader> segmentReaders, HitElement[] hitElementList, int size, Bundle bundle, BitSet[] segmentDocFilterList) throws IRException, IOException {
+
+        checkAborted();
+
 		/*
 		 * el의 bundlekey를 보고 하위 묶음문서가 몇개가 있는지 확인한다.
 		 * 2개 이상일 경우만 저장하고 나머지는 버린다.
@@ -341,6 +370,9 @@ public class CollectionSearcher {
 
         int segmentSize = segmentReaders.size();
         for (int k = 0; k < size; k++) {
+
+            checkAborted();
+
             int totalSize = 0;
             //bundleKey로 clause생성한다.
             int mainDocNo = hitElementList[k].docNo();
@@ -359,6 +391,9 @@ public class CollectionSearcher {
 
             Iterator<SegmentReader> iterator = segmentReaders.iterator();
             for(int i = 0; iterator.hasNext(); i++) {
+
+                checkAborted();
+
                 //bundle key 별로 결과를 모은다.
                 try {
                     segmentHitList[i] = iterator.next().segmentSearcher().searchIndex(bundleClause, bundleSorts, bundleStart, bundleRows, segmentDocFilterList[i]);
@@ -398,6 +433,9 @@ public class CollectionSearcher {
                 DocIdList bundleDocIdList = new DocIdList(realSize);
                 int c = 1, n = 0;
                 while (hitMerger.size() > 0) {
+
+                    checkAborted();
+
                     FixedHitReader r = hitMerger.peek();
                     HitElement el = r.read();
 
@@ -474,6 +512,9 @@ public class CollectionSearcher {
         Map<String, SegmentSearcher> segmentSearchMap = new HashMap<String, SegmentSearcher>();
 		int idx = 0;
 		for (int i = 0; i < list.size(); i++) {
+
+            checkAborted();
+
 			String segmentId = list.segmentId(i);
 			int docNo = list.docNo(i);
 			DocIdList bundleDocIdList = list.bundleDocIdList(i);
@@ -507,6 +548,9 @@ public class CollectionSearcher {
 				}
 				Document[] bundleDoclist = new Document[bundleDocIdList.size()];
 				for (int j = 0; j < bundleDocIdList.size(); j++) {
+
+                    checkAborted();
+
 					String bundleSegmentId = bundleDocIdList.segmentId(j);
 					int bundleDocNo = bundleDocIdList.docNo(j);
 
@@ -655,6 +699,5 @@ public class CollectionSearcher {
 		}
 		return text;
 	}
-
 
 }

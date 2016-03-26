@@ -3,6 +3,7 @@ package org.fastcatsearch.job.search;
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.control.ResultFuture;
+import org.fastcatsearch.error.SearchAbortError;
 import org.fastcatsearch.error.ServerErrorCode;
 import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.exception.FastcatSearchException;
@@ -41,6 +42,7 @@ public class ClusterSearchJob extends Job {
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
 
+        String errorMsg = null;
 		long st = System.nanoTime();
 		QueryMap queryMap = (QueryMap) getArgs();
 		boolean noCache = false;
@@ -119,7 +121,7 @@ public class ClusterSearchJob extends Job {
 				logger.debug("query-{} {} >> {}", i, id, newQueryMap);
 				// collectionId가 하나이상이면 머징을 해야한다.
 				InternalSearchJob job = new InternalSearchJob(newQueryMap, forMerging);
-                job.setTimeout(getTimeout());
+                job.setTimeout(getTimeout(), isForceAbortWhenTimeout());
 				resultFutureList[i] = nodeService.sendRequest(dataNode, job);
                 // 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
                 if (resultFutureList[i] == null) {
@@ -227,7 +229,7 @@ public class ClusterSearchJob extends Job {
 				logger.debug("collection [{}] search at {}", cid, dataNode);
 
 				InternalDocumentSearchJob job = new InternalDocumentSearchJob(cid, docIdList[i], views, tags, highlightInfo);
-                job.setTimeout(documentTimeout);
+                job.setTimeout(documentTimeout, isForceAbortWhenTimeout());
 				resultFutureList[i] = nodeService.sendRequest(dataNode, job);
                 if (resultFutureList[i] == null) {
                     throw new SearchError(ServerErrorCode.DATA_NODE_CONNECTION_ERROR, dataNode.toString() );
@@ -308,9 +310,16 @@ public class ClusterSearchJob extends Job {
 			return new JobResult(searchResult);
 		}catch(IRException e){
 			throw new FastcatSearchException(e);
+        }catch(SearchError e){
+            errorMsg = e.getMessage();
+            if(e.getErrorCode() == ServerErrorCode.SEARCH_TIMEOUT_ERROR) {
+                throw new SearchAbortError("SearchAborted");
+            } else {
+                throw e;
+            }
 		} finally {
 			//로깅은 반드시 수행한다.
-			writeSearchLog(collectionId, searchKeyword, searchResult, (System.nanoTime() - st) / 1000000, isCache);
+			writeSearchLog(collectionId, searchKeyword, searchResult, (System.nanoTime() - st) / 1000000, isCache, errorMsg);
 		}
 	}
 
@@ -326,11 +335,11 @@ public class ClusterSearchJob extends Job {
 		}
 	}
 	
-	private static String LOG_DELIMITER = "\t";
-	private static String CACHE = "[cache]";
-	private static String NOCACHE = "[nocache]";
+	private static String CACHE = "CACHE";
+	private static String NOCACHE = "NOCACHE";
+    private static String ERROR = "ERROR";
 	
-	protected void writeSearchLog(String collectionId, String searchKeyword, Object obj, long searchTime, boolean isCache) {
+	protected void writeSearchLog(String collectionId, String searchKeyword, Object obj, long searchTime, boolean isCache, String errorMsg) {
 		int count = -1;
 		int totalCount = -1;
 		GroupResults groupResults = null;
@@ -342,36 +351,24 @@ public class ClusterSearchJob extends Job {
 			groupResults = result.getGroupResult();
 		}
 
-		StringBuffer logBuffer = new StringBuffer();
+        StringBuilder groupBuilder = null;
+        if (groupResults != null) {
+            groupBuilder = new StringBuilder();
+            int groupSize = groupResults.groupSize();
+            for (int i = 0; i < groupSize; i++) {
+                GroupResult groupResult = groupResults.getGroupResult(i);
+                if (i > 0) {
+                    groupBuilder.append(";");
+                }
+                groupBuilder.append(groupResult.size());
+            }
+        }
 
-		logBuffer.append(isCache ? CACHE : NOCACHE);
-		logBuffer.append(LOG_DELIMITER);
-		
-		logBuffer.append(collectionId);
-		logBuffer.append(LOG_DELIMITER);
+        String header = errorMsg != null ? ERROR : isCache ? CACHE : NOCACHE;
 
-		logBuffer.append(searchKeyword);
-		logBuffer.append(LOG_DELIMITER);
+        searchLogger.info("[{}]\t{}\t{}\t{} ms\t{}\t{}\t{}\t[{}]", header, collectionId, searchKeyword
+                , searchTime, count, totalCount
+                , groupBuilder != null ? groupBuilder.toString() : "NOGROUP", errorMsg != null ? errorMsg : "OK");
 
-		logBuffer.append(searchTime);
-		logBuffer.append(LOG_DELIMITER);
-
-		logBuffer.append(count);
-		logBuffer.append(LOG_DELIMITER);
-
-		logBuffer.append(totalCount);
-
-		if (groupResults != null) {
-			logBuffer.append(LOG_DELIMITER);
-			int groupSize = groupResults.groupSize();
-			for (int i = 0; i < groupSize; i++) {
-				GroupResult groupResult = groupResults.getGroupResult(i);
-				if (i > 0) {
-					logBuffer.append(";");
-				}
-				logBuffer.append(groupResult.size());
-			}
-		}
-		searchLogger.info(logBuffer.toString());
 	}
 }

@@ -106,7 +106,7 @@ public class InternalSearchLongTestJob extends Job implements Streamable {
     }
     @Override
     public void readFrom(DataInput input) throws IOException {
-        setTimeout(input.readLong()); //타임아웃.
+        setTimeout(input.readLong(), isForceAbortWhenTimeout()); //타임아웃.
         this.queryMap = new QueryMap();
         queryMap.readFrom(input);
         this.forMerging = input.readBoolean();

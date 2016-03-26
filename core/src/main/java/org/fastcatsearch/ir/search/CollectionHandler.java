@@ -118,7 +118,7 @@ public class CollectionHandler {
 	}
 
 	public CollectionSearcher searcher() {
-		return collectionSearcher;
+		return collectionSearcher.clone();
 	}
 
 	public boolean isLoaded() {

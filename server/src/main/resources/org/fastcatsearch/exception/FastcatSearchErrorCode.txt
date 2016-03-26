@@ -38,6 +38,7 @@ ERR-00553: {0} 컬렉션 문서리스트검색시 에러발생.
 ERR-00554: {0} 컬렉션 문서검색시 에러발생.
 ERR-00555: {0} 컬렉션 그룹핑검색시 에러발생.
 ERR-00556: {0} 컬렉션 검색시 에러발생.
+ERR-00560: Search timeout aborted.
 ERR-00600: Cannot send message to node {0}
 
 ERR-00700: 파일전송실패 {0}

@@ -165,6 +165,7 @@ public class DocumentReader implements Cloneable {
 					throw new IOException(e);
 				}
 			}
+//            logger.debug("{}>> {} : {}", i, f.getId(), f.rawString());
 			document.add(f);
 		}
 		

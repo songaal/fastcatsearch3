@@ -30,6 +30,7 @@ public abstract class AbstractSearchAction extends ServiceAction {
 	private static AtomicLong taskSeq = new AtomicLong();
 	
 	public static final int DEFAULT_TIMEOUT = 5; // 5초.
+    public static final boolean DEFAULT_ABORT_WHEN_TIMEOUT = false; // 타임아웃이 발생해도 죽이지 않는다.
 
 	protected abstract Job createSearchJob(QueryMap queryMap);
 
@@ -37,12 +38,12 @@ public abstract class AbstractSearchAction extends ServiceAction {
 		return new SearchResultWriter(getSearchResultWriter(writer, isFieldLowercase, noUnicode));
 	}
 
-	public Object doSearch(long requestId, QueryMap queryMap, int timeout, Writer writer) throws Exception {
+	public Object doSearch(long requestId, QueryMap queryMap, int timeout, boolean forceAbortWhenTimeout, Writer writer) throws Exception {
 
 		long searchTime = 0;
 		long st = System.nanoTime();
 		Job searchJob = createSearchJob(queryMap);
-        searchJob.setTimeout(timeout * 1000L);
+        searchJob.setTimeout(timeout * 1000L, forceAbortWhenTimeout);
 		ResultFuture jobResult = JobService.getInstance().offer(searchJob);
 		Object obj = jobResult.poll(timeout);
 		searchTime = (System.nanoTime() - st) / 1000000;
@@ -78,11 +79,13 @@ public abstract class AbstractSearchAction extends ServiceAction {
 		QueryMap queryMap = new QueryMap(request.getParameterMap());
 		logger.debug("queryMap tostring>> {}", queryMap);
 		Integer timeout = request.getIntParameter("timeout", DEFAULT_TIMEOUT);
+        boolean forceAbort = request.getBooleanParameter("forceAbort", DEFAULT_ABORT_WHEN_TIMEOUT);
 		String responseCharset = request.getParameter("responseCharset", DEFAULT_CHARSET);
 		writeHeader(response, responseCharset);
 
 		logger.debug("queryMap = {}", queryMap);
 		logger.debug("timeout = {} s", timeout);
+        logger.debug("forceAbort = {} s", forceAbort);
 		if (timeout == null) {
 			timeout = DEFAULT_TIMEOUT;
 		}
@@ -90,7 +93,7 @@ public abstract class AbstractSearchAction extends ServiceAction {
 		response.setStatus(HttpResponseStatus.OK);
 		Object obj = null;
 		try {
-			obj = doSearch(requestId, queryMap, timeout, writer);
+			obj = doSearch(requestId, queryMap, timeout, forceAbort, writer);
 		} finally {
 //			writer.close();
 			requestLogger.info("end request id:{}",requestId);
