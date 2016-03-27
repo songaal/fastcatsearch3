@@ -74,7 +74,14 @@ public abstract class AbstractSearchAction extends ServiceAction {
 	@Override
 	public void doAction(ActionRequest request, ActionResponse response) throws Exception {
 		long requestId = getRequestId();
-		requestLogger.info("request id:{} uri:{} param:{}", requestId, request.uri(), request.getParameterString());
+        if(request.isMethodGet()) {
+            //GET방식의 경우.
+            requestLogger.info("request id:{} uri:{} param:{}", requestId, request.uri(), request.getParameterString());
+        } else {
+            //POST방식의 경우.
+            requestLogger.info("request id:{} uri:{} param:{}", requestId, request.uri(), request.getRequestBody());
+        }
+
 		logger.debug("request.getParameterMap() >> {}", request.getParameterMap());
 		QueryMap queryMap = new QueryMap(request.getParameterMap());
 		logger.debug("queryMap tostring>> {}", queryMap);
@@ -101,7 +108,13 @@ public abstract class AbstractSearchAction extends ServiceAction {
 
 		if(obj instanceof Exception) {
 			Exception e = (Exception) obj;
-			searchErrorLogger.error("REQ-{} URL: {}?{}", requestId, request.uri(), request.getParameterString());
+            if(request.isMethodGet()) {
+                //GET방식의 경우.
+                searchErrorLogger.error("REQ-{} URL: {}?{}", requestId, request.uri(), request.getParameterString());
+            } else {
+                //POST방식의 경우.
+                searchErrorLogger.error("REQ-{} URL: {}?{}", requestId, request.uri(), request.getRequestBody());
+            }
             if(e instanceof SearchError) {
                 searchErrorLogger.error("RES-{} : {}", requestId, e.getMessage());
             } else {
