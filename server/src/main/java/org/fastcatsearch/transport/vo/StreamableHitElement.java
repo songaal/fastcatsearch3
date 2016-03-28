@@ -63,7 +63,7 @@ public class StreamableHitElement implements Streamable {
 			if(bundleDocIdSize > 0) {
 				bundleDocIdList = new DocIdList(bundleDocIdSize);
 				for (int i = 0; i < bundleDocIdSize; i++) {
-					bundleDocIdList.add(input.readString(), input.readVInt());
+					bundleDocIdList.add(input.readAStrings(), input.readVInt());
 				}
                 totalBundleSize = input.readVInt();
 			}
