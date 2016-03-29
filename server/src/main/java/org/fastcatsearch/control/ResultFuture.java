@@ -11,11 +11,6 @@
 
 package org.fastcatsearch.control;
 
-import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-
 import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.error.ServerErrorCode;
 import org.fastcatsearch.job.Job;
@@ -24,6 +19,11 @@ import org.fastcatsearch.job.internal.InternalSearchJob;
 import org.fastcatsearch.job.search.ClusterSearchJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public class ResultFuture {
 	private static Logger logger = LoggerFactory.getLogger(ResultFuture.class);
@@ -95,7 +95,11 @@ public class ResultFuture {
 		}
 		
 		try {
-            long timeout = job.getTimeout();
+            long timeout = 0;
+			if(job != null) {
+				timeout = job.getTimeout();
+			}
+
             if(timeout > 0) {
                 result = pollInMillis(timeout);
             } else {
@@ -135,7 +139,7 @@ public class ResultFuture {
                     if(job != null && job.isForceAbortWhenTimeout()) {
                         job.abortJob();
                     }
-                    if(job instanceof ClusterSearchJob || job instanceof InternalSearchJob || job instanceof InternalDocumentSearchJob) {
+                    if(job != null && (job instanceof ClusterSearchJob || job instanceof InternalSearchJob || job instanceof InternalDocumentSearchJob)) {
                         result = new SearchError(ServerErrorCode.SEARCH_TIMEOUT_ERROR, String.valueOf(time));
                     } else {
                         result = new SearchError(ServerErrorCode.JOB_TIMEOUT_ERROR, String.valueOf(time));
