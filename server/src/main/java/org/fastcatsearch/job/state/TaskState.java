@@ -34,6 +34,10 @@ public abstract class TaskState implements Streamable {
 		this.isScheduled = isScheduled;
 	}
 
+    public String toString() {
+        return "[TaskState]" + state + "/" + step + "/" + isScheduled + "/" + getStartTime() + "~" + getEndTime();
+    }
+
 	public boolean isScheduled() {
 		return isScheduled;
 	}

@@ -48,4 +48,9 @@ public abstract class TaskKey implements Streamable {
 	}
 
 	public abstract String getSummary();
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "[" + key + "]";
+    }
 }

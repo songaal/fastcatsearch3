@@ -73,11 +73,12 @@ public class TaskStateService extends AbstractService {
 		TaskState prevTaskState = map.get(key);
 		if(prevTaskState != null) {
 			//이전 상태가 남아있을때, 종료 상태가 아니면 동일한 작업을 시작하지 못한다.
+            logger.debug("Task previous {} > {}", key, prevTaskState);
 			if(!prevTaskState.isFinished()){
 				return;
 			}
 		}
-		
+		logger.debug("Task registered {} > {}", key, taskState);
 //		TaskState taskState = key.createState(isScheduled);
 		map.put(key, taskState);
 	}
