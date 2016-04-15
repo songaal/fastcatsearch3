@@ -12,8 +12,6 @@ import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +20,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static net.minidev.json.parser.JSONParser.MODE_JSON_SIMPLE;
 
 /**
  * Created by 전제현 on 2016-02-22.
@@ -123,8 +123,8 @@ public class WebPageConfigFileSourceReader extends SingleSourceReader<Map<String
             try {
                 jsonReader = new BufferedReader((new InputStreamReader(new FileInputStream(configFile))));
 
+                net.minidev.json.parser.JSONParser parser = new net.minidev.json.parser.JSONParser(MODE_JSON_SIMPLE);
                 while ((line = jsonReader.readLine()) != null) {
-                    JSONParser parser = new JSONParser();
                     Map listObj = (Map) parser.parse(line);
                     sourceList.add(listObj);
                 }
@@ -133,7 +133,7 @@ public class WebPageConfigFileSourceReader extends SingleSourceReader<Map<String
                 logger.error("WebPageConfigFileSourceReader Error ", e);
             } catch (IOException e) {
                 logger.error("WebPageConfigFileSourceReader Error ", e);
-            } catch (ParseException e) {
+            } catch (net.minidev.json.parser.ParseException e) {
                 logger.error("WebPageConfigFileSourceReader Error ", e);
             } finally {
                 try {
