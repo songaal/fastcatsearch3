@@ -20,9 +20,26 @@ import org.apache.lucene.util.BytesRef;
 
 public class NumericDescSortFunction extends SortFunction {
 
-	@Override
-	public int compare(BytesRef one, BytesRef two) {
-		return two.compareNumberTo(one);
+	public NumericDescSortFunction() {
+		super();
 	}
 
+	public NumericDescSortFunction(boolean isShuffle) {
+		super(isShuffle);
+	}
+
+	@Override
+	public int compare(BytesRef one, BytesRef two) {
+		int ret = two.compareNumberTo(one);
+		if(isShuffle && ret == 0) {
+			// desc_shuffle의 경우 desc 정렬된 값 내에서 동일한 값 중에서는 랜덤으로 정렬한다.
+			if(r.nextBoolean()) {
+				return 1;
+			} else {
+				return -1;
+			}
+		} else {
+			return ret;
+		}
+	}
 }
