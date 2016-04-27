@@ -154,4 +154,8 @@ public class BufferedFileOutput extends IndexOutput {
 	public IndexWriteInfo getWriteInfo() {
 		return writeInfo;
 	}
+
+    public RandomAccessFile getRaf() {
+        return raf;
+    }
 }

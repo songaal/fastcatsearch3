@@ -126,6 +126,9 @@ public class PrimaryKeyIndexesWriter {
 		}
 	}
 
+    public int getDocNo(BytesDataOutput pk) throws IOException {
+        return indexWriter.get(pk.array(), 0, (int) pk.position());
+    }
     public void delete(BytesDataOutput pk) throws IOException {
         int preDocNo = indexWriter.get(pk.array(), 0, (int) pk.position());
         if (preDocNo >= 0) {

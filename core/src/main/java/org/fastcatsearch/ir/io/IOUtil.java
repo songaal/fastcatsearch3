@@ -236,4 +236,16 @@ public final class IOUtil {
 		}
 	}
 
+
+    public static byte readByte(RandomAccessFile raf) throws IOException {
+        return raf.readByte();
+    }
+
+    public static int readInt(RandomAccessFile raf) throws IOException {
+        return ((readByte(raf) & 0xFF) << 24) | ((readByte(raf) & 0xFF) << 16) | ((readByte(raf) & 0xFF) << 8) | (readByte(raf) & 0xFF);
+    }
+
+    public static long readLong(RandomAccessFile raf) throws IOException {
+        return (((long) readInt(raf)) << 32) | (readInt(raf) & 0xFFFFFFFFL);
+    }
 }

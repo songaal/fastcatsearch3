@@ -16,14 +16,16 @@
 
 package org.fastcatsearch.ir.document;
 
+import org.apache.commons.io.input.BoundedInputStream;
+import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.common.IndexFileNames;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.field.Field;
+import org.fastcatsearch.ir.field.FieldDataParseException;
 import org.fastcatsearch.ir.index.IndexWriteInfoList;
 import org.fastcatsearch.ir.index.WriteInfoLoggable;
-import org.fastcatsearch.ir.io.BufferedFileOutput;
-import org.fastcatsearch.ir.io.BytesDataOutput;
+import org.fastcatsearch.ir.io.*;
 import org.fastcatsearch.ir.settings.FieldSetting;
 import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.slf4j.Logger;
@@ -31,8 +33,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.nio.channels.Channels;
 import java.util.List;
 import java.util.zip.Deflater;
+import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
 
 
 /**
@@ -59,7 +66,11 @@ public class DocumentWriter implements WriteInfoLoggable {
 	private int totalCount;  //누적문서갯수.
 	private Deflater compressor;
 	private int count; //현 색인시 추가문서갯수.
-	
+
+    private static final int INFLATE_BUFFER_INIT_SIZE = 20 * 1024;
+    private ByteRefArrayOutputStream inflaterOutput;
+
+
 	public DocumentWriter(SchemaSetting schemaSetting, File dir, IndexConfig indexConfig) throws IOException, IRException {
 		
 		compressor = new Deflater(Deflater.BEST_SPEED);
@@ -70,14 +81,9 @@ public class DocumentWriter implements WriteInfoLoggable {
 
 		fbaos = new BytesDataOutput(3 * 1024 * 1024); //초기 3Mb로 시작.
 		workingBuffer = new byte[1024];
+		docOutput.writeInt(0); // document count
 
-//		if (isAppend) {
-//			IndexInput docInput = new BufferedFileInput(dir, IndexFileNames.docStored);
-//			totalCount = docInput.readInt();
-//			docInput.close();
-//		} else {
-			docOutput.writeInt(0); // document count
-//		}
+        inflaterOutput = new ByteRefArrayOutputStream(INFLATE_BUFFER_INIT_SIZE);
 
 	}
 
@@ -124,6 +130,72 @@ public class DocumentWriter implements WriteInfoLoggable {
 		count++;
 		return totalCount++;
 	}
+
+    public Document readDocument(int docNo) throws IOException, IRException {
+        long prevPosPos = positionOutput.position();
+        long docPos = -1;
+        try {
+            long positionOffset = ((long) docNo) * IOUtil.SIZE_OF_LONG;
+            positionOutput.seek(positionOffset);
+            docPos = IOUtil.readLong(positionOutput.getRaf());
+        } finally {
+            positionOutput.seek(prevPosPos);
+        }
+
+        // find a document block
+        long prevDocPos = docOutput.position();
+        try {
+            docOutput.seek(docPos);
+            RandomAccessFile raf = docOutput.getRaf();
+            int len = IOUtil.readInt(raf);
+            long n = raf.getFilePointer();
+            InputStream docInput = Channels.newInputStream(docOutput.getRaf().getChannel().position(n));
+            //2014-11-26 검색요청이 많아서 working 버퍼가 너무 빠르게 많이 생길경우 GC 되기전에 OOM 발생할수 있음.
+            // Stream으로 바꾸어 해결.
+            InflaterInputStream decompressInputStream = null;
+            inflaterOutput.reset();
+            int count = -1;
+            try {
+                BoundedInputStream boundedInputStream = new BoundedInputStream(docInput, len);
+                boundedInputStream.setPropagateClose(false);//하위 docInput 를 닫지않는다.
+                decompressInputStream = new InflaterInputStream(boundedInputStream, new Inflater(), 512);
+                while ((count = decompressInputStream.read(workingBuffer)) != -1) {
+                    inflaterOutput.write(workingBuffer, 0, count);
+                }
+            } finally {
+                decompressInputStream.close();
+            }
+        } finally {
+            docOutput.seek(prevDocPos);
+        }
+
+        BytesRef bytesRef = inflaterOutput.getBytesRef();
+        DataInput bai = new BytesDataInput(bytesRef.bytes, 0, bytesRef.length);
+
+        Document document = new Document(fields.size());
+        for (int i = 0; i < fields.size(); i++) {
+            FieldSetting fs = fields.get(i);
+            Field f = null;
+            boolean hasValue = bai.readBoolean();
+            if (hasValue) {
+                f = fs.createEmptyField();
+                f.readRawFrom(bai);
+            }else{
+                f = fs.createEmptyField();
+            }
+            if(f != null){
+                String multiValueDelimiter = fs.getMultiValueDelimiter();
+                try {
+                    f.parseIndexable(multiValueDelimiter);
+                } catch (FieldDataParseException e) {
+                    throw new IOException(e);
+                }
+            }
+            document.add(f);
+        }
+        document.setDocId(docNo);
+        return document;
+    }
 
 	public int totalCount(){
 		return totalCount;

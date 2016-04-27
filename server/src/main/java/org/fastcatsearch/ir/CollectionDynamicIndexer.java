@@ -122,11 +122,18 @@ public class CollectionDynamicIndexer {
     public void updateDocument(Map<String, Object> source) throws IRException, IOException {
 
         //1. pk를 뽑아내어 내부검색으로 이전 문서를 가져온다.
+        BytesDataOutput pkbaos = new BytesDataOutput();
         StringBuffer pkSb = new StringBuffer();
         for(String pkId : pkList) {
             Object o = source.get(pkId);
             if(o == null) {
                 o = source.get(pkId.toLowerCase());
+            }
+            Field f = makeField(pkId, o);
+            if(f == null || f.isNull()){
+                throw new IOException("PK field value cannot be null. fieldId="+pkId+", field="+f);
+            } else {
+                f.writeFixedDataTo(pkbaos);
             }
             if(o != null) {
                 if(pkSb.length() > 0) {
@@ -138,10 +145,19 @@ public class CollectionDynamicIndexer {
             }
         }
         String pkValue = pkSb.toString();
-        if(collectionSearcher == null) {
-            collectionSearcher = new CollectionSearcher(collectionHandler);
+
+        /*
+         * 2016.4 swsong
+         * 먼저 현재색인중인 세그먼트내에서 문서를 찾는다.
+         */
+        Document document = indexWriter.getDocumentByPk(pkbaos);
+        if(document == null) {
+            if(collectionSearcher == null) {
+                collectionSearcher = new CollectionSearcher(collectionHandler);
+            }
+            document = collectionSearcher.getIndexableDocumentByPk(pkValue);
         }
-        Document document = collectionSearcher.getIndexableDocumentByPk(pkValue);
+
         if(document == null) {
             //업데이트할 문서를 찾지 못함.
             logger.debug("Collection [{}] cannot find document : {}", collectionContext.collectionId(), pkValue);

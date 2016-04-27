@@ -23,6 +23,7 @@ import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.IndexConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.document.DocumentWriter;
+import org.fastcatsearch.ir.io.BytesDataOutput;
 import org.fastcatsearch.ir.settings.Schema;
 
 import java.io.File;
@@ -93,4 +94,12 @@ public class SegmentWriter extends SegmentIndexWriter implements WriteInfoLoggab
 		documentWriter.getIndexWriteInfo(list);
 		super.getIndexWriteInfo(list);
 	}
+
+    public Document getDocumentByPk(BytesDataOutput pkbaos) throws IOException, IRException {
+        int docNo = primaryKeyIndexesWriter.getDocNo(pkbaos);
+        if(docNo >= 0) {
+            return documentWriter.readDocument(docNo);
+        }
+        return null;
+    }
 }
