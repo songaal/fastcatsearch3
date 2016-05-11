@@ -396,7 +396,7 @@ public class CollectionSearcher implements Cloneable {
 
                 //bundle key 별로 결과를 모은다.
                 try {
-                    segmentHitList[i] = iterator.next().segmentSearcher().searchIndex(bundleClause, bundleSorts, bundleStart, bundleRows, segmentDocFilterList[i]);
+                    segmentHitList[i] = iterator.next().segmentSearcher().searchBundleIndex(bundleClause, bundleSorts, bundleStart, bundleRows, segmentDocFilterList[i]);
                 } catch (Throwable e) {
                     logger.error("bundle search error", e);
                     logger.error("---- [{}]", i);

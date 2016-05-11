@@ -75,12 +75,11 @@ public class SegmentSearcher {
 	}
 	
 	public GroupHit searchGroupHit(Query query) throws ClauseException, IOException, IRException {
-		search(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups(), null, null, null, null);
+        searchGroupHit(query.getMeta(), query.getClause(), query.getFilters(), query.getGroups());
 		return new GroupHit(makeGroupData(), totalCount);
 	}
 
-    @Deprecated
-	public void search(Metadata meta, Clause clause, Filters filters, Groups groups, Filters groupFilters, Sorts sorts, Bundle bundle, PkScoreList boostList) throws ClauseException,
+	private void searchGroupHit(Metadata meta, Clause clause, Filters filters, Groups groups) throws ClauseException,
 			IOException, IRException {
 		FieldIndexesReader fieldIndexesReader = null;
 		int sortMaxSize = meta.start() + meta.rows() - 1;
@@ -93,12 +92,6 @@ public class SegmentSearcher {
 			operatedClause = new AllDocumentOperatedClause(docCount);
 		} else {
 			operatedClause = clause.getOperatedClause(docCount, segmentReader.newSearchIndexesReader(), highlightInfo);
-		}
-		//BOOST
-		if(boostList != null) {
-			// pk를 내부 docNo로 바뀐 opclause가 리턴된다.
-			OperatedClause boostClause = new PkScoreOperatedClause("pk boost", boostList, segmentReader.newSearchIndexesReader());
-			operatedClause = new BoostOperatedClause(operatedClause, boostClause);
 		}
 		// filter
 		if (filters != null) {
@@ -115,26 +108,11 @@ public class SegmentSearcher {
 				fieldIndexesReader = segmentReader.newFieldIndexesReader();
 			}
 			groupGenerator = groups.getGroupDataGenerator(schema, segmentReader.newGroupIndexesReader(), fieldIndexesReader);
-			if (groupFilters != null) {
-				groupHitFilter = groupFilters.getHitFilter(schema, fieldIndexesReader, BULK_SIZE);
-			}
 		}
 
 		// sort
-		// Sorts sorts = q.getSorts();
-		SortGenerator sortGenerator = null;
-		if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
-			ranker = new DefaultRanker(sortMaxSize);
-			sortGenerator = new SortGenerator();
-		} else {
-			if(fieldIndexesReader == null){
-				fieldIndexesReader = segmentReader.newFieldIndexesReader();
-			}
-			// ranker에 정렬 로직이 담겨있다.
-			// ranker 안에는 필드타입과 정렬옵션을 확인하여 적합한 byte[] 비교를 수행한다.
-			ranker = sorts.createRanker(schema, sortMaxSize);
-			sortGenerator = sorts.getSortGenerator(schema, fieldIndexesReader, bundle);
-		}
+        ranker = new DefaultRanker(sortMaxSize);
+        SortGenerator sortGenerator = new SortGenerator();
 
 		RankInfo[] rankInfoList = new RankInfo[BULK_SIZE];
 		boolean exausted = false;
@@ -203,10 +181,6 @@ public class SegmentSearcher {
 			// group
 			if (groups != null) {
 				groupGenerator.insert(rankInfoList, nread);
-				// group filter
-				if (groupFilters != null) {
-					nread = groupHitFilter.filtering(rankInfoList, nread);
-				}
 			}
 
             HitElement[] e = sortGenerator.getHitElement(rankInfoList, nread);
@@ -230,17 +204,13 @@ public class SegmentSearcher {
 	IOException, IRException {
 		return new HitReader(segmentReader, meta, clause, filters, groups, groupFilters, sorts, bundle, boostList);
 	}
-
-	public Hit searchIndex(Clause clause, Sorts sorts, int start, int length) throws ClauseException,
-		IOException, IRException {
-		return searchIndex(clause, sorts, start, length, null);
-	}
 	
 	/**
+     * 번들 검색은 내부적으로
 	 * @param docFilter 결과 문서를 제한하기 위한 필터로써, 한번 검색된 필터를 가지고 있다가 전달해주면, 이 필터내의 문서에서만 결과를 만들도록 한다.
-	 * 
+	 *
 	 * */
-	public Hit searchIndex(Clause clause, Sorts sorts, int start, int length, BitSet docFilter) throws ClauseException,
+	public Hit searchBundleIndex(Clause clause, Sorts sorts, int start, int length, BitSet docFilter) throws ClauseException,
 		IOException, IRException {
 		
 		int totalCount = 0;
@@ -250,7 +220,7 @@ public class SegmentSearcher {
 		OperatedClause operatedClause = clause.getOperatedClause(0, segmentReader.newSearchIndexesReader(), null);
 		// sort
 		FixedMaxPriorityQueue<HitElement> ranker = null;
-		 SortGenerator sortGenerator = null;
+        SortGenerator sortGenerator = null;
 		if (sorts == null || sorts == Sorts.DEFAULT_SORTS) {
 			ranker = new DefaultRanker(sortMaxSize);
 			sortGenerator = new SortGenerator();
@@ -262,6 +232,7 @@ public class SegmentSearcher {
 			// ranker에 정렬 로직이 담겨있다.
 			// ranker 안에는 필드타입과 정렬옵션을 확인하여 적합한 byte[] 비교를 수행한다.
 			ranker = sorts.createRanker(schema, sortMaxSize);
+            //번들내부검색에서는 번들키로 모으지 않는다. 이미 모아진 결과의 하위 결과를 검색하는 것이므로 bundle=null 로 보낸다.
 			sortGenerator = sorts.getSortGenerator(schema, fieldIndexesReader, null);
 		}
         
