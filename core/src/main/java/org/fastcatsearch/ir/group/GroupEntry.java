@@ -57,7 +57,10 @@ public class GroupEntry {
 	}
 	
 	public int functionSize(){
-		return groupingValue.length;
+        if(groupingValue == null){
+            return 0;
+        }
+        return groupingValue.length;
 	}
 	
 	public String getGroupingObjectResultString(int i){
@@ -66,7 +69,17 @@ public class GroupEntry {
 	
 	public void merge(GroupEntry entry) {
 		for (int i = 0; i < entry.functionSize(); i++) {
-            groupingValue[i].mergeValue(entry.groupingValue(i).get());
+            if(groupingValue[i] != null) {
+                if(entry.groupingValue(i) != null) {
+                    groupingValue[i].mergeValue(entry.groupingValue(i).get());
+                }
+                //우측이 null이면 스킵.
+            } else {
+                if(entry.groupingValue(i) != null) {
+                    groupingValue[i] = entry.groupingValue(i);
+                }
+                //둘다 null이면 스킵.
+            }
 		}
 		
 	}
