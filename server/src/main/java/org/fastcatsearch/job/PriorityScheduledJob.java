@@ -61,6 +61,7 @@ public class PriorityScheduledJob extends ScheduledJob {
 			try {
 				ScheduledJobEntry entry = priorityJobQueue.poll();
 				Job actualJob = entry.getJob();
+                int periodInSecond = entry.getPeriodInSecond();
 				long timeToWait = getTimeToWaitInMillisecond(entry);
 				if (timeToWait < 0) {
 					// 이미 지났을 경우.
@@ -95,7 +96,15 @@ public class PriorityScheduledJob extends ScheduledJob {
 						// ignore
 						logger.debug("Scheduled job {} is ignored.", actualJob);
 					} else {
-						result = resultFuture.take();
+//						result = resultFuture.take();
+                        /*
+                        * 2016.5.24 swsong
+                        * 중요! period 만큼만 대기한다.
+                        * 이전 작업이 끝나지 않아도 예정된 시간에 시작한다.
+                        * 중복작업에 대한 배타성은 job 자체 또는 jobService에서 구현해야 한다.
+                        * 색인작업은 jobService에 이미 배타적으로 수행되게끔 구현되어 있음.(색인서버의 JobService에서 instanceof IndexJob 을 체크하여 mutex 체크)
+                        * */
+                        result = resultFuture.poll(periodInSecond);
 						logger.debug("Scheduled Job Finished. {} > {}, execution[{}]", actualJob, result, entry.executeInfo());
 					}
 				} finally {
