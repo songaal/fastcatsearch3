@@ -298,7 +298,12 @@ public class ClusterSearchJob extends Job {
 
 			ResultModifier resultModifier = meta.resultModifier();
 			if(resultModifier != null){
-				searchResult = resultModifier.modify(searchResult);
+				/*
+				* 2016-05-27 전제현
+				* 결과모디파이어 modify 사용 시 키워드, 컬렉션명, 하이라이팅 태그를 매개변수로 받도록 수정
+				* (별도로 모디파이어를 작성하여 사용하지 않으면 이전과 달라지지 않음)
+				* */
+				searchResult = resultModifier.modify(searchResult, searchKeyword, queryMap.get("cn"), queryMap.get("ht"));
 			}
 			
 			if(!noCache && realSize > 0){

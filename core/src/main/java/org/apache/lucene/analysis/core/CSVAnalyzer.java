@@ -67,6 +67,7 @@ final class CSVTokenizer extends Tokenizer {
 	@Override
 	public void setReader(Reader input) throws IOException {
 		super.setReader(input);
+		lastReaded = 0;
 		currentPos = 0;
 		baseOffset = 0;
 		nextOffset = 0;
