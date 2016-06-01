@@ -195,14 +195,16 @@ public class CollectionHandler {
 			for (SegmentReader segmentReader : segmentReaderMap.values()) {
 				segmentReader.close();
 			}
+            segmentReaderMap.clear();
 		}
-        segmentReaderMap.clear();
+
         if (tmpSegmentReaderMap != null) {
             for (SegmentReader segmentReader : tmpSegmentReaderMap.values()) {
                 segmentReader.close();
             }
+            tmpSegmentReaderMap.clear();
         }
-        tmpSegmentReaderMap.clear();
+
 		collectionSearcher = null;
 		isLoaded = false;
 	}
