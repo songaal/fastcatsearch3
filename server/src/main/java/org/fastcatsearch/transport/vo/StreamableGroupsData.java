@@ -91,7 +91,7 @@ public class StreamableGroupsData implements Streamable {
 				for (GroupingValue groupingValue : groupEntry.groupingValues()) {
 					if(groupingValue == null) {
                         output.writeVInt(GroupFunctionType.NONE.ordinal());
-                        output.writeGenericValue("");
+                        output.writeGenericValue(null);
                     } else {
                         Object result = groupingValue.get();
                         output.writeVInt(groupingValue.getType().ordinal());
