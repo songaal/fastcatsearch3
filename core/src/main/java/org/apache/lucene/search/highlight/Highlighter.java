@@ -308,11 +308,12 @@ public class Highlighter {
 			ArrayList<TextFragment> docFrags, TextFragment currentFrag, boolean isDistinct)
 			throws InvalidTokenOffsetsException {
 		
-		logger.trace("text:{}", termAtt);
-		
-		if ((offsetAtt.endOffset() > text.length()) || (offsetAtt.startOffset() > text.length())) {
-			throw new InvalidTokenOffsetsException("Token " + termAtt.toString() + " exceeds length of provided text sized " + text.length());
-		}
+        logger.trace("text:{} / {}~{}", termAtt, startOffset[0], endOffset[0]);
+
+        if ((offsetAtt.endOffset() > text.length()) || (offsetAtt.startOffset() > text.length())) {
+            throw new InvalidTokenOffsetsException("Token " + termAtt.toString() + " exceeds length of provided text sized " + text.length() + " / for offset " + offsetAtt.startOffset() + "~" + offsetAtt.endOffset() );
+        }
+
 		logger.trace("numTokens:{} / distinct:{}", tokenGroup.numTokens, tokenGroup.isDistinct());
 		if (tokenGroup.numTokens > 0) {
 			// the current token is distinct from previous tokens -
