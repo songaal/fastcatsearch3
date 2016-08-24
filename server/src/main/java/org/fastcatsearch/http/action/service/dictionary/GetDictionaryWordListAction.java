@@ -1,18 +1,14 @@
-package org.fastcatsearch.http.action.management.dictionary;
-
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+package org.fastcatsearch.http.action.service.dictionary;
 
 import org.fastcatsearch.db.dao.DictionaryDAO;
 import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
+import org.fastcatsearch.http.ActionMethod;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
-import org.fastcatsearch.http.action.service.dictionary.GetDictionaryWordListBase;
+import org.fastcatsearch.http.action.ServiceAction;
 import org.fastcatsearch.plugin.Plugin;
 import org.fastcatsearch.plugin.PluginService;
 import org.fastcatsearch.plugin.analysis.AnalysisPlugin;
@@ -22,14 +18,21 @@ import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.DictionarySetting
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 
-@ActionMapping(value="/management/dictionary/list", authority=ActionAuthority.Dictionary, authorityLevel=ActionAuthorityLevel.READABLE)
-public class GetDictionaryWordListAction extends AuthAction {
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+@ActionMapping(value="/service/dictionary/list", method = { ActionMethod.GET })
+public class GetDictionaryWordListAction extends ServiceAction {
 
     @Override
-    public void doAuthAction(ActionRequest request, ActionResponse response) throws Exception {
+    public void doAction(ActionRequest request, ActionResponse response) throws Exception {
+
+        writeHeader(response);
+
         Writer writer = response.getWriter();
         ResponseWriter resultWriter = getDefaultResponseWriter(writer);
         new GetDictionaryWordListBase().doAction(request, resultWriter);
     }
-
 }
