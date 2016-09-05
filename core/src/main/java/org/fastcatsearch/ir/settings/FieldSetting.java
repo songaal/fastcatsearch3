@@ -256,6 +256,14 @@ public class FieldSetting {
 		}
 
 		Field field = null;
+        if (type == FieldSetting.Type.INT || type == FieldSetting.Type.LONG || type == FieldSetting.Type.FLOAT || type == FieldSetting.Type.DOUBLE) {
+            if(data != null){
+                if(data.length() == 0) {
+                    data = null;
+                }
+            }
+        }
+
 		if (type == FieldSetting.Type.INT) {
 			if (multiValue) {
 				field = new IntMvField(id, data);
