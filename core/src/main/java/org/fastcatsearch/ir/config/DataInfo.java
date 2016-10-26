@@ -52,9 +52,11 @@ public class DataInfo {
 	}
 
 	public void addSegmentInfo(SegmentInfo segmentInfo) {
-		logger.debug("#### addSegmentInfo >> {}", segmentInfo);
-		segmentInfoList.add(segmentInfo);
-		addUpdate(segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount());
+		synchronized (segmentInfoList) {
+			logger.debug("#### addSegmentInfo >> {}", segmentInfo);
+			segmentInfoList.add(segmentInfo);
+			addUpdate(segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount());
+		}
 	}
 
 	public void updateSegmentInfo(SegmentInfo segmentInfo) {
@@ -69,8 +71,8 @@ public class DataInfo {
 	}
 
     public void removeSegmentInfo(String segmentId) {
-        Iterator<SegmentInfo> iter = segmentInfoList.iterator();
 		synchronized (segmentInfoList) {
+			Iterator<SegmentInfo> iter = segmentInfoList.iterator();
 			while (iter.hasNext()) {
 				SegmentInfo si = iter.next();
 				if (si.getId().equals(segmentId)) {
