@@ -640,11 +640,16 @@ public class CollectionHandler {
         SegmentReader segmentReader = new SegmentReader(segmentInfo, schema, newSegmentDir, analyzerPoolManager);
         segmentReader.syncDeleteCountToInfo();
         segmentReaderMap.put(segmentId, segmentReader);
+
         collectionContext.addSegmentInfo(segmentInfo);
 
         for(String removeSegmentId : segmentIdRemoveList) {
             finishMerging(removeSegmentId);
         }
+
+        //2016.10.26 swsong 이부분에서 동기화 에러가 발생한듯.. 머징후에 머징된 서그먼트들을 지우는 작업이 동반되는데.
+        // 지속적인 실시간 색인후 dataInfo 를 파일에 기록하다가, 머징작업후 removeSegment 부분과 dataInfo.segmentInfoList 수정코드와 겹쳐서 동기화 문제발생.
+        // iteration 이전에 동기화블럭을 잡도록수정.
         removeSegments(segmentIdRemoveList);
         collectionContext.dataInfo().updateAll();
 
