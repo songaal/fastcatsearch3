@@ -1,10 +1,7 @@
 package org.fastcatsearch.http;
 
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.fastcatsearch.http.action.ActionResponse;
@@ -132,13 +129,26 @@ public class HttpSessionManager {
 		@Override
 		public void run() {
 			long now = System.currentTimeMillis();
-			for(Entry<String, HttpSession> entry : sessionObjMap.entrySet()){
-//				logger.debug("entry > {}", entry.getValue());
+			Iterator<Map.Entry<String, HttpSession>> iter = sessionObjMap.entrySet().iterator();
+			/*
+			 * Map.entrySet() 메소스 설명에 보면 map을 entrySet으로 받아서 직접지우면 map이 망가질수 있다고 함.
+			 * 반드시 삭제시는 iterator 를 받아서 진행해야함.
+			 *
+			 * If the map is modified
+			 * while an iteration over the set is in progress (except through
+			 * the iterator's own <tt>remove</tt> operation, or through the
+			 * <tt>setValue</tt> operation on a map entry returned by the
+			 * iterator) the results of the iteration are undefined.  The set
+			 * supports element removal, which removes the corresponding
+			 * mapping from the map, via the <tt>Iterator.remove</tt>,
+			* */
+			while(iter.hasNext()) {
+				Entry <String, HttpSession> entry = iter.next();
 				if(now - entry.getValue().getLastTime() > expireTimeInMiliseconds){
-					sessionObjMap.remove(entry.getKey());
+					iter.remove();
 				}
 			}
 		}
-		
+
 	}
 }
