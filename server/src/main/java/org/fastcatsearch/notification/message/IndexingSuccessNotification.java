@@ -18,7 +18,7 @@ public class IndexingSuccessNotification extends IndexingFinishNotification {
 
 	@Override
 	public String toMessageString() {
-		Object[] params = new Object[6];
+		String[] params = new String[6];
 		params[0] = collectionId;
 		params[1] = indexingType.toString();
 		params[2] = indexingStep;

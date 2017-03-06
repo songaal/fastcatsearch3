@@ -17,7 +17,7 @@ public class IndexingCancelNotification extends IndexingFinishNotification {
 
 	@Override
 	public String toMessageString() {
-		Object[] params = new Object[5];
+		String[] params = new String[5];
 		params[0] = collectionId;
 		params[1] = indexingType.toString();
 		params[2] = indexingStep;

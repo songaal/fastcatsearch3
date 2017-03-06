@@ -31,7 +31,7 @@ public class DiskUsageNotification extends Notification {
 
 	@Override
 	public String toMessageString() {
-		return getFormattedMessage(origin.id(), diskUsage);
+		return getFormattedMessage(origin.id(), String.valueOf(diskUsage));
 	}
 
 }

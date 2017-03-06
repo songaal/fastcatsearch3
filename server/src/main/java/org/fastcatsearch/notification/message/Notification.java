@@ -65,7 +65,7 @@ public abstract class Notification implements Streamable {
 
 	public abstract String toMessageString();
 
-	protected String getFormattedMessage(Object... params) {
+	protected String getFormattedMessage(String... params) {
 		if (formatResourceBundle != null) {
 			try {
 				return MessageFormat.format(formatResourceBundle.getString(messageCode), params);
