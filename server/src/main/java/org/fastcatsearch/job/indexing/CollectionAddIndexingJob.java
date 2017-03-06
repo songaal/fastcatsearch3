@@ -23,6 +23,7 @@ import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.CollectionIndexStatus;
+import org.fastcatsearch.ir.config.DataInfo;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.DeleteIdSet;
@@ -34,6 +35,7 @@ import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableThrowable;
+import org.fastcatsearch.util.CollectionContextUtil;
 import org.json.JSONException;
 import org.json.JSONStringer;
 import org.json.JSONWriter;
@@ -155,7 +157,8 @@ public class CollectionAddIndexingJob extends IndexingJob {
             }
 
             indexingTaskState.setStep(IndexingTaskState.STEP_FINALIZE);
-            int duration = (int) (System.currentTimeMillis() - startTime);
+            long endTime = System.currentTimeMillis();
+            int duration = (int) (endTime - startTime);
 
             CollectionIndexStatus.IndexStatus indexStatus = collectionContext.indexStatus().getAddIndexStatus();
             if(indexStatus == null) {
@@ -168,6 +171,10 @@ public class CollectionAddIndexingJob extends IndexingJob {
             result = new IndexingJobResult(collectionId, indexStatus, duration);
             resultStatus = ResultStatus.SUCCESS;
             indexingTaskState.setStep(IndexingTaskState.STEP_END);
+
+            collectionContext.updateCollectionStatus(IndexingType.ADD, documentSize, deleteSize, startTime, endTime);
+            CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
+
 			return new JobResult(result);
         } catch (Throwable e) {
 			indexingLogger.error("[" + collectionId + "] Indexing", e);

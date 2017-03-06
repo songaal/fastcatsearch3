@@ -129,8 +129,12 @@ public class CollectionContext {
 		}
 		return null;
 	}
-	
+
 	public void updateCollectionStatus(IndexingType indexingType, SegmentInfo segmentInfo, long startTime, long endTime){
+		updateCollectionStatus(indexingType, segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount(), startTime, endTime);
+	}
+
+	public void updateCollectionStatus(IndexingType indexingType, int documentCount, int deleteCount, long startTime, long endTime){
 		IndexStatus indexStatus = null;
 		if(indexingType == IndexingType.FULL){
 			indexStatus = collectionIndexStatus.getFullIndexStatus();
@@ -147,8 +151,8 @@ public class CollectionContext {
 				collectionIndexStatus.setAddIndexStatus(indexStatus);
 			}
 		}
-		indexStatus.setDocumentCount(segmentInfo.getDocumentCount());
-		indexStatus.setDeleteCount(segmentInfo.getDeleteCount());
+		indexStatus.setDocumentCount(documentCount);
+		indexStatus.setDeleteCount(deleteCount);
 		indexStatus.setStartTime(Formatter.formatDate(new Date(startTime)));
 		indexStatus.setEndTime(Formatter.formatDate(new Date(endTime)));
 		indexStatus.setDuration(Formatter.getFormatTime(endTime - startTime));
