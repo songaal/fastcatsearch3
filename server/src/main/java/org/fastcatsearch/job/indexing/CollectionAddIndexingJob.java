@@ -113,6 +113,7 @@ public class CollectionAddIndexingJob extends IndexingJob {
                         String jsonString = document.toJsonString();
                         jsonList.add(jsonString);
                         documentSize++;
+                        indexingTaskState.incrementDocumentCount();
                     } catch(JSONException e) {
                         logger.error("error make json document", e);
                         continue;
