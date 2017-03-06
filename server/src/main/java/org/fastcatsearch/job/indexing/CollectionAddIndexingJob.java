@@ -13,13 +13,16 @@ package org.fastcatsearch.job.indexing;
 
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
+import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.datasource.reader.DataSourceReader;
 import org.fastcatsearch.datasource.reader.DefaultDataSourceReaderFactory;
+import org.fastcatsearch.db.mapper.IndexingResultMapper.ResultStatus;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.DynamicIndexModule;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IndexingType;
 import org.fastcatsearch.ir.config.CollectionContext;
+import org.fastcatsearch.ir.config.CollectionIndexStatus;
 import org.fastcatsearch.ir.config.DataSourceConfig;
 import org.fastcatsearch.ir.document.Document;
 import org.fastcatsearch.ir.index.DeleteIdSet;
@@ -27,7 +30,10 @@ import org.fastcatsearch.ir.index.PrimaryKeys;
 import org.fastcatsearch.ir.settings.PrimaryKeySetting;
 import org.fastcatsearch.ir.settings.RefSetting;
 import org.fastcatsearch.ir.settings.Schema;
+import org.fastcatsearch.job.result.IndexingJobResult;
+import org.fastcatsearch.job.state.IndexingTaskState;
 import org.fastcatsearch.service.ServiceManager;
+import org.fastcatsearch.transport.vo.StreamableThrowable;
 import org.json.JSONException;
 import org.json.JSONStringer;
 import org.json.JSONWriter;
@@ -52,7 +58,9 @@ public class CollectionAddIndexingJob extends IndexingJob {
         prepare(IndexingType.ADD, "ALL");
 
 		Throwable throwable = null;
+        ResultStatus resultStatus = ResultStatus.RUNNING;
 		Object result = null;
+        long startTime = System.currentTimeMillis();
 		try {
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			CollectionContext collectionContext = irService.collectionContext(collectionId);
@@ -68,12 +76,20 @@ public class CollectionAddIndexingJob extends IndexingJob {
 				throw new RuntimeException("Invalid index node collection[" + collectionId + "] node[" + indexNodeId + "]");
 			}
 
+            if(!updateIndexingStatusStart()) {
+                logger.error("Cannot start indexing job. {} : {}", collectionId, indexNodeId);
+                resultStatus = ResultStatus.CANCEL;
+                return new JobResult();
+            }
+
+            int documentSize = 0;
+            int deleteSize = 0;
+
             try {
                 DynamicIndexModule dynamicIndexModule = irService.getDynamicIndexModule(collectionId);
                 if (dynamicIndexModule == null) {
                     throw new FastcatSearchException("Collection [" + collectionId + "] is not exist.");
                 }
-
 
                 DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
                 String lastIndexTime = collectionContext.getLastIndexTime();
@@ -94,6 +110,7 @@ public class CollectionAddIndexingJob extends IndexingJob {
                     try {
                         String jsonString = document.toJsonString();
                         jsonList.add(jsonString);
+                        documentSize++;
                     } catch(JSONException e) {
                         logger.error("error make json document", e);
                         continue;
@@ -115,6 +132,7 @@ public class CollectionAddIndexingJob extends IndexingJob {
                 PrimaryKeySetting primaryKeySetting = schema.schemaSetting().getPrimaryKeySetting();
                 List<RefSetting> list = primaryKeySetting.getFieldList();
                 DeleteIdSet deleteIdSet = dataSourceReader.getDeleteList();
+                deleteSize = deleteIdSet != null ? deleteIdSet.size() : 0;
                 for (PrimaryKeys pks : deleteIdSet) {
                     JSONStringer json = new JSONStringer();
                     JSONWriter w = json.object();
@@ -136,12 +154,36 @@ public class CollectionAddIndexingJob extends IndexingJob {
                 throw new FastcatSearchException(e);
             }
 
+            indexingTaskState.setStep(IndexingTaskState.STEP_FINALIZE);
+            int duration = (int) (System.currentTimeMillis() - startTime);
+
+            CollectionIndexStatus.IndexStatus indexStatus = collectionContext.indexStatus().getAddIndexStatus();
+            if(indexStatus == null) {
+                indexStatus = new CollectionIndexStatus.IndexStatus();
+            }
+            indexStatus.setDocumentCount(documentSize);
+            indexStatus.setDeleteCount(deleteSize);
+            indexingLogger.info("[{}] Collection Add Indexing Finished! time = {}", collectionId, duration);
+
+            result = new IndexingJobResult(collectionId, indexStatus, duration);
+            resultStatus = ResultStatus.SUCCESS;
+            indexingTaskState.setStep(IndexingTaskState.STEP_END);
 			return new JobResult(result);
-		} catch (Throwable e) {
+        } catch (Throwable e) {
 			indexingLogger.error("[" + collectionId + "] Indexing", e);
 			throwable = e;
+            resultStatus = ResultStatus.FAIL;
 			throw new FastcatSearchException("ERR-00501", throwable, collectionId); // 색인실패.
-		}
+		} finally {
+            Streamable streamableResult = null;
+            if (throwable != null) {
+                streamableResult = new StreamableThrowable(throwable);
+            } else if (result instanceof Streamable) {
+                streamableResult = (Streamable) result;
+            }
+
+            updateIndexingStatusFinish(resultStatus, streamableResult);
+        }
 
 	}
 
