@@ -40,6 +40,7 @@ public class Filter {
     public static final int GEO_RADIUS = 1 << 11;
     public static final int GEO_RADIUS_BOOST = 1 << 12;
 	public static final int EMPTY = 1 << 13;
+	public static final int SECTION_EXCLUDE = 1 << 14;
 
 	private Object fieldIndexId;
 	private int function;
@@ -144,6 +145,8 @@ public class Filter {
             return new GeoRadiusFilter(this, fieldIndexSetting, fieldSetting, true);
 		case EMPTY:
 			return new EmptyFilter(this, fieldIndexSetting, fieldSetting);
+		case SECTION_EXCLUDE:
+			return new SectionExcludeFilter(this, fieldIndexSetting, fieldSetting);
 
 		}
 		throw new NotSupportedFilterFunctionException("지원하지 않는 필터기능입니다. function=" + function);

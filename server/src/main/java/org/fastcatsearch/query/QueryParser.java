@@ -714,10 +714,25 @@ public class QueryParser {
                 Filter filter = new Filter(fieldList, Filter.GEO_RADIUS_BOOST, functionParamList, parameterList, boostScore);
                 f.add(filter);
 			} else if (function.equalsIgnoreCase("EMPTY")) {
-				f.add(new Filter(field, Filter.EMPTY, functionParamList, parameterList, boostScore));
+				f.add(new Filter(field, Filter.EMPTY, functionParamList, parameterList));
+			} else if (function.equalsIgnoreCase("SECTION_EXCLUDE")) {
+				String[] patList = new String[parameterList.length];
+				String[] endPatList = new String[parameterList.length];
+
+				for (int i = 0; i < parameterList.length; i++) {
+					String[] range = parameterList[i].split(RANGE_SEPARATOR);
+					patList[i] = range[0];
+					if (range.length >= 2) {
+						endPatList[i] = range[1];
+						logger.debug("[" + patList[i] + "~" + endPatList[i] + "]");
+					} else {
+						endPatList[i] = "";
+						logger.debug("[" + patList[i] + "~]");
+					}
+				}
+				f.add(new Filter(field, Filter.SECTION_EXCLUDE, functionParamList, patList, endPatList));
 			} else {
                 throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Filter method '" + function + "' is unknown.");
-
 			}
 
 		}
