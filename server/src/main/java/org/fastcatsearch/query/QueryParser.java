@@ -713,6 +713,8 @@ public class QueryParser {
 				//다중 필드지원.
                 Filter filter = new Filter(fieldList, Filter.GEO_RADIUS_BOOST, functionParamList, parameterList, boostScore);
                 f.add(filter);
+			} else if (function.equalsIgnoreCase("EMPTY")) {
+				f.add(new Filter(field, Filter.EMPTY, functionParamList, parameterList, boostScore));
 			} else {
                 throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "Filter method '" + function + "' is unknown.");
 
