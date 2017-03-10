@@ -34,18 +34,17 @@ public class EmptyFilter extends PatternFilterFunction {
 
         boolean empty = false;
         boolean noEmpty = true;
+        BytesRef pattern = patternList[0];
+        byte check = pattern.bytes[1];
 
         while (dataRef.next()) {
-
-            BytesRef bytesRef = dataRef.bytesRef();
-            BytesRef pattern = patternList[0];
-
-            byte check = pattern.bytes[1];
 
             if (check == YES1 || check == YES2) {
                 empty = true;
                 noEmpty = false;
             }
+            
+            BytesRef bytesRef = dataRef.bytesRef();
 
             for (int bufInx = 0; bufInx < bytesRef.length(); bufInx++) {
                 if (bytesRef.bytes[bufInx] != 0) {
