@@ -72,7 +72,7 @@ public class GetCollectionIndexDataJob extends Job implements Streamable {
 			}
 			if(pkValue != null && pkValue.length() > 0) {
 				if(primaryKeyIdList != null && primaryKeyIdList.size() > 0) {
-					String[] pkList = pkValue.split("\\W");
+					String[] pkList = pkValue.split("\\s");
 					BytesDataOutput tempOutput = new BytesDataOutput();
 					int count = 0;
 					Set<String> dupSet = new HashSet<String>();

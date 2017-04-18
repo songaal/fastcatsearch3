@@ -141,6 +141,9 @@ public class PrimaryKeyIndexesReader implements Cloneable {
 		} else {
 			pkValues = new String[] { pkValue };
 		}
+		if(pkFieldSettingList.length != pkValues.length) {
+			return -1;
+		}
 		for (int j = 0; j < pkFieldSettingList.length; j++) {
 			FieldSetting fieldSetting = pkFieldSettingList[j];
 			Field field = fieldSetting.createIndexableField(pkValues[j]);

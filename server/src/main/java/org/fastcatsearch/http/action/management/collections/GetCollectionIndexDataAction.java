@@ -71,18 +71,20 @@ public class GetCollectionIndexDataAction extends AuthAction {
 			resultWriter.endArray();
 			
 			resultWriter.key("indexData").array();
-			for(int i = 0; i < indexDataList.size(); i++) {
-				RowData rowData = indexDataList.get(i);
-				resultWriter.object();
+			if(indexDataList != null) {
+				for (int i = 0; i < indexDataList.size(); i++) {
+					RowData rowData = indexDataList.get(i);
+					resultWriter.object();
 					resultWriter.key("segmentId").value(rowData.getSegmentId());
 					resultWriter.key("row").object();
 					String[][] fieldData = rowData.getFieldData();
-					for(int k = 0; k < fieldData.length; k++) {
+					for (int k = 0; k < fieldData.length; k++) {
 						resultWriter.key(fieldData[k][0]).value(fieldData[k][1]);
 					}
 					resultWriter.key("isDeleted").value(isDeletedList.get(i));
 					resultWriter.endObject();
-				resultWriter.endObject();
+					resultWriter.endObject();
+				}
 			}
 			resultWriter.endArray();
 		}
