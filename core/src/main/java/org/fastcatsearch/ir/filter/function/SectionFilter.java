@@ -159,7 +159,7 @@ public class SectionFilter extends PatternFilterFunction {
 			}
 		}
 
-		for (int inx = 1; inx < lsize; inx++) {
+		for (int inx = 0; inx < lsize; inx++) {
 			if ((lval.get(inx) & 0xff) > (rval.get(inx) & 0xff)) {
 				return 1 * direction;
 			} else if ((lval.get(inx) & 0xff) < (rval.get(inx) & 0xff)) {
