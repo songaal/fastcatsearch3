@@ -9,14 +9,14 @@ import java.util.Properties;
 /**
  * Created by 전제현 on 2017. 4. 25..
  */
-public abstract class TelegramSender {
-    private static Logger logger = LoggerFactory.getLogger(TelegramSender.class);
+public abstract class SlackSender {
+    private static Logger logger = LoggerFactory.getLogger(SlackSender.class);
     protected Properties properties;
 
-    public TelegramSender(Properties properties) {
+    public SlackSender(Properties properties) {
         this.properties = properties;
     }
 
-    public abstract void send(List<String> telegramToList, String messageString);
+    public abstract void send(List<String> slackToList, String messageString);
 
 }

@@ -7,11 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.fastcatsearch.common.EmailSender;
+import org.fastcatsearch.common.*;
 import org.fastcatsearch.common.EmailSender.MailProperties;
-import org.fastcatsearch.common.SMSSender;
-import org.fastcatsearch.common.Sendmail;
-import org.fastcatsearch.common.TelegramSender;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.InternalDBModule.MapperSession;
@@ -81,6 +78,7 @@ public class NotificationJob extends Job implements Streamable {
 		List<String> emailToList = new ArrayList<String>();
 		List<String> smsToList = new ArrayList<String>();
 		List<String> telegramToList = new ArrayList<String>();
+		List<String> slackToList = new ArrayList<String>();
 
 		if (config != null) {
 			String alertTo = config.getAlertTo();
@@ -98,39 +96,43 @@ public class NotificationJob extends Job implements Streamable {
 								String userId = kv[1].trim();
 
 								UserAccountVO userAccountVO = userAccountMapper.getEntryByUserId(userId);
-								if(userAccountVO == null){
-									logger.warn("Cannot find user [{}] for notification.", userId);
-									continue;
-								}
-								String email = userAccountVO.email;
-								String sms = userAccountVO.sms;
-								String telegramInfo = userAccountVO.telegram;
-								if (type.equalsIgnoreCase("EMAIL")) {
-									if (email != null && email.length() > 0) {
-										email = email.trim();
-										if (email.length() > 0) {
-											emailToList.add(email);
-										}
-									}else{
-										logger.warn("Notification user [{}] do not have email address.", userId);
+								if (type.equalsIgnoreCase("SLACK")) {
+									slackToList.add(userId);
+								} else {
+									if (userAccountVO == null) {
+										logger.warn("Cannot find user [{}] for notification.", userId);
+										continue;
 									}
-								} else if (type.equalsIgnoreCase("SMS")) {
-									if (sms != null && sms.length() > 0) {
-										sms = sms.trim();
-										if (sms.length() > 0) {
-											smsToList.add(sms);
+									String email = userAccountVO.email;
+									String sms = userAccountVO.sms;
+									String telegramInfo = userAccountVO.telegram;
+									if (type.equalsIgnoreCase("EMAIL")) {
+										if (email != null && email.length() > 0) {
+											email = email.trim();
+											if (email.length() > 0) {
+												emailToList.add(email);
+											}
+										} else {
+											logger.warn("Notification user [{}] do not have email address.", userId);
 										}
-									}else{
-										logger.warn("Notification user [{}] do not have SMS number.", userId);
-									}
-								} else if (type.equalsIgnoreCase("TELEGRAM")) {
-									if (telegramInfo != null && telegramInfo.length() > 0) {
-										telegramInfo = telegramInfo.trim();
-										if (telegramInfo.length() > 0) {
-											telegramToList.add(telegramInfo);
+									} else if (type.equalsIgnoreCase("SMS")) {
+										if (sms != null && sms.length() > 0) {
+											sms = sms.trim();
+											if (sms.length() > 0) {
+												smsToList.add(sms);
+											}
+										} else {
+											logger.warn("Notification user [{}] do not have SMS number.", userId);
 										}
-									}else{
-										logger.warn("Notification user [{}] do not have Telegram ID.", userId);
+									} else if (type.equalsIgnoreCase("TELEGRAM")) {
+										if (telegramInfo != null && telegramInfo.length() > 0) {
+											telegramInfo = telegramInfo.trim();
+											if (telegramInfo.length() > 0) {
+												telegramToList.add(telegramInfo);
+											}
+										} else {
+											logger.warn("Notification user [{}] do not have Telegram ID.", userId);
+										}
 									}
 								}
 							}
@@ -227,6 +229,24 @@ public class NotificationJob extends Job implements Streamable {
 				}
 			} catch (Exception e) {
 				logger.error("error while sending Telegram Message", e);
+			}
+		}
+
+		// 슬랙 봇을 통해 알람 구현
+		if (slackToList.size() > 0) {
+			Properties properties = systemSettings.getStartsWith("slack-config");
+			try {
+				String className = properties.getProperty("class");
+				if (className != null) {
+					className = className.trim();
+					if (className.length() > 0) {
+						SlackSender slackSender = DynamicClassLoader.loadObject(className, SlackSender.class, new Class<?>[]{Properties.class}, new Object[]{properties});
+						slackSender.send(slackToList, messageString);
+						logger.debug("SlackSender sent notification message successfully {} to Slack Groups", notification.messageCode());
+					}
+				}
+			} catch (Exception e) {
+				logger.error("error while sending Slack Message", e);
 			}
 		}
 	}
