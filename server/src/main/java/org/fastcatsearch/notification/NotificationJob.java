@@ -11,6 +11,7 @@ import org.fastcatsearch.common.EmailSender;
 import org.fastcatsearch.common.EmailSender.MailProperties;
 import org.fastcatsearch.common.SMSSender;
 import org.fastcatsearch.common.Sendmail;
+import org.fastcatsearch.common.TelegramSender;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.db.DBService;
 import org.fastcatsearch.db.InternalDBModule.MapperSession;
@@ -79,6 +80,7 @@ public class NotificationJob extends Job implements Streamable {
 
 		List<String> emailToList = new ArrayList<String>();
 		List<String> smsToList = new ArrayList<String>();
+		List<String> telegramToList = new ArrayList<String>();
 
 		if (config != null) {
 			String alertTo = config.getAlertTo();
@@ -102,6 +104,7 @@ public class NotificationJob extends Job implements Streamable {
 								}
 								String email = userAccountVO.email;
 								String sms = userAccountVO.sms;
+								String telegramInfo = userAccountVO.telegram;
 								if (type.equalsIgnoreCase("EMAIL")) {
 									if (email != null && email.length() > 0) {
 										email = email.trim();
@@ -119,6 +122,15 @@ public class NotificationJob extends Job implements Streamable {
 										}
 									}else{
 										logger.warn("Notification user [{}] do not have SMS number.", userId);
+									}
+								} else if (type.equalsIgnoreCase("TELEGRAM")) {
+									if (telegramInfo != null && telegramInfo.length() > 0) {
+										telegramInfo = telegramInfo.trim();
+										if (telegramInfo.length() > 0) {
+											telegramToList.add(telegramInfo);
+										}
+									}else{
+										logger.warn("Notification user [{}] do not have Telegram ID.", userId);
 									}
 								}
 							}
@@ -198,7 +210,24 @@ public class NotificationJob extends Job implements Streamable {
 			} catch (Exception e) {
 				logger.error("error while sending SMS", e);
 			}
+		}
 
+		// 텔레그램 봇을 통해 알람 구현
+		if (telegramToList.size() > 0) {
+			Properties properties = systemSettings.getStartsWith("telegram-config");
+			try {
+				String className = properties.getProperty("class");
+				if (className != null) {
+					className = className.trim();
+					if(className.length() > 0){
+						TelegramSender telegramSender = DynamicClassLoader.loadObject(className, TelegramSender.class, new Class<?>[] { Properties.class }, new Object[] { properties });
+						telegramSender.send(telegramToList, messageString);
+						logger.debug("TelegramSender sent notification message successfully {} to {}", notification.messageCode(), smsToList);
+					}
+				}
+			} catch (Exception e) {
+				logger.error("error while sending Telegram Message", e);
+			}
 		}
 	}
 

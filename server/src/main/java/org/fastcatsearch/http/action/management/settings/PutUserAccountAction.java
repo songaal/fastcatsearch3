@@ -46,6 +46,7 @@ public class PutUserAccountAction extends AuthAction {
 					String confirmPassword = request.getParameter("confirmPassword");
 					String email = request.getParameter("email");
 					String sms = request.getParameter("sms");
+					String telegram = request.getParameter("telegram");
 					int groupId = request.getIntParameter("groupId", 0);
 
 					UserAccountVO vo = null;
@@ -78,6 +79,7 @@ public class PutUserAccountAction extends AuthAction {
 						}
 						vo.email = email;
 						vo.sms = sms;
+						vo.telegram = telegram;
 						vo.groupId = groupId;
 
 						if (updateMode == MODE_UPDATE) {

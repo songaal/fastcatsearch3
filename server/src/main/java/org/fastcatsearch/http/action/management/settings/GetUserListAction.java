@@ -55,6 +55,7 @@ public class GetUserListAction extends AuthAction {
 							.key("userId").value(user.userId)
 							.key("email").value(user.email)
 							.key("sms").value(user.sms)
+							.key("telegram").value(user.telegram)
 							.key("groupId").value(user.groupId)
 							.endObject();
 					}
@@ -73,6 +74,7 @@ public class GetUserListAction extends AuthAction {
 									.key("userId").value(vo.userId)
 									.key("email").value(vo.email)
 									.key("sms").value(vo.sms)
+									.key("telegram").value(vo.telegram)
 									.key("groupId").value(vo.groupId)
 								.endObject()
 							.endArray().endObject();

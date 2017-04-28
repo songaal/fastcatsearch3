@@ -12,6 +12,7 @@ public class UserAccountVO {
 	public String password;
 	public String email;
 	public String sms;
+	public String telegram;
 	public int groupId;
 	
 	public UserAccountVO(){ }
@@ -21,8 +22,20 @@ public class UserAccountVO {
 		this.userId = userId;
 		this.email = email;
 		this.sms = sms;
+		this.telegram = "";
 		this.groupId = groupId;
 		
+		setEncryptedPassword(password);
+	}
+
+	public UserAccountVO(String name, String userId, String password, String email, String sms, String telegram, int groupId) {
+		this.name = name;
+		this.userId = userId;
+		this.email = email;
+		this.sms = sms;
+		this.telegram = telegram;
+		this.groupId = groupId;
+
 		setEncryptedPassword(password);
 	}
 	

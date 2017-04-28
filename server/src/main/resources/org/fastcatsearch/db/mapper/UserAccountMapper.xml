@@ -13,6 +13,7 @@
 		password varchar(200),
 		email varchar(60),
 		sms varchar(60),
+		telegram varchar(60),
 		groupId int,
 		primary key (id)
 		)
@@ -24,7 +25,7 @@
 	
 	
 	<select id="validateTable" parameterType="map" resultType="map">
-		select id, name, userId, password, sms, groupId
+		select id, name, userId, password, sms, groupId, telegram
 		from UserAccount 
 		fetch first 1 rows only
 	</select>
@@ -64,16 +65,16 @@
 
 	<insert id="putEntry" parameterType="org.fastcatsearch.db.vo.UserAccountVO" useGeneratedKeys="true" keyProperty="id">
 		insert into UserAccount ( 
-		name,userId,password,email,sms,groupId
+		name,userId,password,email,sms,groupId,telegram
 		)
 		values (
-		#{name},#{userId},#{password},#{email},#{sms},#{groupId}
+		#{name},#{userId},#{password},#{email},#{sms},#{groupId},#{telegram}
 		)
 	</insert>
 	
 	<update id="updateEntry" parameterType="org.fastcatsearch.db.vo.UserAccountVO">
 		update UserAccount 
-		set name=#{name}, password=#{password}, email=#{email}, sms=#{sms}, groupId=#{groupId}
+		set name=#{name}, password=#{password}, email=#{email}, sms=#{sms}, groupId=#{groupId}, telegram=#{telegram}
 		where id=#{id}
 	</update>
 	
