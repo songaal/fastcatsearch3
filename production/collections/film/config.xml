@@ -13,4 +13,6 @@
         <segment-document-limit>2000000</segment-document-limit>
         <data-sequence-cycle>2</data-sequence-cycle>
     </data-plan>
+    <full-indexing-alert-timeout>0</full-indexing-alert-timeout>
+    <add-indexing-alert-timeout>0</add-indexing-alert-timeout>
 </collection-config>

@@ -16,7 +16,6 @@ import javax.xml.bind.annotation.XmlType;
  * 
  <collection-config>
 	<name>샘플</name>
- 	<full-indexing-alert-timeout>60</full-indexing-alert-timeout>
 	<index-node>node1</index-node>
 	<search-node-list>
     	<node id="node1"/>
@@ -30,11 +29,13 @@ import javax.xml.bind.annotation.XmlType;
 		<segment-document-limit>2000000</segment-document-limit>
 		<segment-revision-backup-size>2</segment-revision-backup-size>
 	</data-plan>
+	<full-indexing-alert-timeout>0</full-indexing-alert-timeout>
+	<add-indexing-alert-timeout>0</add-indexing-alert-timeout>
 </collection-config>
  * */
 
 @XmlRootElement(name = "collection-config")
-@XmlType(propOrder = { "name", "fullIndexingAlertTimeout", "indexNode", "searchNodeList", "dataNodeList", "dataPlanConfig", "fullIndexingSegmentSize" })
+@XmlType(propOrder = { "name", "indexNode", "searchNodeList", "dataNodeList", "dataPlanConfig", "fullIndexingSegmentSize", "fullIndexingAlertTimeout", "addIndexingAlertTimeout" })
 public class CollectionConfig {
 
 	private String name;
@@ -43,7 +44,8 @@ public class CollectionConfig {
 	private List<String> dataNodeList;
 	private DataPlanConfig dataPlanConfig;
 	private Integer fullIndexingSegmentSize;
-	private Integer fullIndexingAlertTimeout
+	private Integer fullIndexingAlertTimeout;
+	private Integer addIndexingAlertTimeout;
 
 	public CollectionConfig(){
 		searchNodeList = new ArrayList<String>();
@@ -57,8 +59,9 @@ public class CollectionConfig {
 		this.dataNodeList = dataNodeList;
 		this.dataPlanConfig = dataPlanConfig;
 		this.fullIndexingSegmentSize = 1;
+		this.fullIndexingAlertTimeout = 0;
+		this.addIndexingAlertTimeout = 0;
 	}
-	
 
 	@XmlElement(name="name")
 	public String getName() {
@@ -143,8 +146,16 @@ public class CollectionConfig {
 		return fullIndexingAlertTimeout != null ? fullIndexingAlertTimeout : 0;
 	}
 
-	public Integer getAddIndexingAlertTimeout() {
-		return -1;
+	public void setFullIndexingAlertTimeout(Integer fullIndexingAlertTimeout) {
+		this.fullIndexingAlertTimeout = fullIndexingAlertTimeout;
 	}
-	//TODO set 메서드
+
+	@XmlElement(name="add-indexing-alert-timeout")
+	public Integer getAddIndexingAlertTimeout() {
+		return addIndexingAlertTimeout != null ? addIndexingAlertTimeout : 0;
+	}
+
+	public void setAddIndexingAlertTimeout(Integer addIndexingAlertTimeout) {
+		this.addIndexingAlertTimeout = addIndexingAlertTimeout;
+	}
 }

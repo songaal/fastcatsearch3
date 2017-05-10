@@ -70,7 +70,7 @@ public class MasterCollectionFullIndexingJob extends MasterNodeJob {
 						break;
 					}
 				}
-			}else {
+			} else {
 				obj = jobResult.take();
 			}
 

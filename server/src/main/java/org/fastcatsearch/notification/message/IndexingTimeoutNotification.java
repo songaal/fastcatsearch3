@@ -19,7 +19,7 @@ public class IndexingTimeoutNotification extends Notification {
 	}
 
 	public IndexingTimeoutNotification(String collectionId, IndexingType indexingType, long startTime, boolean isScheduled, int timeoutInSecond) {
-		super("MSG-01000");
+		super("MSG-01004");
 		this.collectionId = collectionId;
 		this.indexingType = indexingType;
 		this.startTime = startTime;
@@ -34,7 +34,7 @@ public class IndexingTimeoutNotification extends Notification {
 		indexingType = IndexingType.valueOf(input.readString());
 		startTime = input.readLong();
 		isScheduled = input.readBoolean();
-		//todo timeout
+		timeout = input.readInt();
 	}
 
 	@Override
@@ -44,12 +44,12 @@ public class IndexingTimeoutNotification extends Notification {
 		output.writeString(indexingType.name());
 		output.writeLong(startTime);
 		output.writeBoolean(isScheduled);
-		//todo timeout
+		output.writeInt(timeout);
 	}
 
 	@Override
 	public String toString() {
-		return "Indexing Started : collectionId[" + collectionId + "] type[" + indexingType + "] isScheduled[" + isScheduled
+		return "Indexing Timeout : collectionId[" + collectionId + "] type[" + indexingType + "] isScheduled[" + isScheduled
 				+ "] timeout" + timeout;
 	}
 
