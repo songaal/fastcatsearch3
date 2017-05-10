@@ -1,9 +1,6 @@
 package org.fastcatsearch.job;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -37,12 +34,34 @@ public class PriorityScheduledJobTest {
 		Date startTime = new Date();
 		int period1 = 13;
 		int period2 = 2;
-		
+
 		List<ScheduledJobEntry> list = new ArrayList<ScheduledJobEntry>();
 		list.add(new ScheduledJobEntry(new TestTaskJob("MUST", 2), startTime, period1, true));
 		list.add(new ScheduledJobEntry(new TestTaskJob("00", 2), startTime, period2));
 		list.add(new ScheduledJobEntry(new TestTaskJob("01", 2), startTime, period2));
 		list.add(new ScheduledJobEntry(new TestTaskJob("02", 1), startTime, period2));
+		PriorityScheduledJob scheduledJob = new PriorityScheduledJob(key, list);
+		ResultFuture resultFuture = jobExecutor.offer(scheduledJob);
+		resultFuture.take();
+	}
+
+	@Test
+	public void test2() {
+		TestJobExecutor jobExecutor = new TestJobExecutor();
+		String key = "schedule";
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DATE, -5);
+		Date startTime1 = cal.getTime();
+		cal.add(Calendar.DATE, 3);
+		Date startTime2 = cal.getTime();
+		System.out.println(startTime1);
+		System.out.println(startTime2);
+		int period1 = 30;
+		int period2 = 10;
+
+		List<ScheduledJobEntry> list = new ArrayList<ScheduledJobEntry>();
+		list.add(new ScheduledJobEntry(new TestTaskJob("FULL", 5), startTime1, period1, true));
+		list.add(new ScheduledJobEntry(new TestTaskJob("ADD", 2), startTime2, period2));
 		PriorityScheduledJob scheduledJob = new PriorityScheduledJob(key, list);
 		ResultFuture resultFuture = jobExecutor.offer(scheduledJob);
 		resultFuture.take();
@@ -101,6 +120,7 @@ class TestTaskJob extends Job {
 	String name;
 	int executeTime;
 	public TestTaskJob(String name, int executeTime){
+		setArgs(name);
 		this.name = name;
 		this.executeTime = executeTime * 1000;
 	}

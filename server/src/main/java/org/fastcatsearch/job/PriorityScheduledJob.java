@@ -1,11 +1,6 @@
 package org.fastcatsearch.job;
 
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Queue;
+import java.util.*;
 
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.exception.FastcatSearchException;
@@ -13,8 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 입력된 여러 스케쥴은 한번에 하나씩만 수행된다. 스케쥴 시간이 겹치는 경우, guarantee job이 우선하고, 
- * guarantee job끼리 시간이 겹치는 경우는 어느것이 먼저 실행될지 알수없으나, 모두 실행되는 것이 보장된다. 
+ * 입력된 여러 스케쥴은 한번에 하나씩만 수행된다. 스케쥴 시간이 겹치는 경우, guarantee job이 우선하고,
+ * guarantee job끼리 시간이 겹치는 경우는 어느것이 먼저 실행될지 알수없으나, 모두 실행되는 것이 보장된다.
  * */
 public class PriorityScheduledJob extends ScheduledJob {
 
@@ -83,7 +78,7 @@ public class PriorityScheduledJob extends ScheduledJob {
 						wait(timeToWait);
 					}
 				}
-				
+
 				if (isCanceled) {
 					break;
 				}
@@ -170,17 +165,55 @@ class ScheduledJobEntryComparator implements Comparator<ScheduledJobEntry> {
 	public int compare(ScheduledJobEntry o1, ScheduledJobEntry o2) {
 //		logger.debug("1>>{}", o1);
 //		logger.debug("2>>{}", o2);
-		int c = o1.getStartTime().compareTo(o2.getStartTime());
-		if(c == 0){
-			if(o1.isExecuteGuarantee()){
+		Calendar now = Calendar.getInstance();
+		long nowTime = now.getTimeInMillis();
+
+		Calendar cal1 = Calendar.getInstance();
+		cal1.setTime(o1.getStartTime());
+		long p1 = o1.getPeriodInSecond() * 1000;
+		long diff1 = nowTime - cal1.getTimeInMillis();
+		long r1 = 0;
+		if(diff1 > 0) {
+			//과거시작 : 다음 주기와 현재와의 차이
+			r1 = p1 - (diff1 % p1);
+		} else if (diff1 < 0){
+			//미래시작 : 시작시각와 현재와의 차이
+			r1 = -diff1;
+		} else {
+			//현재시각 : 다음주기로..
+			r1 = p1;
+		}
+
+		Calendar cal2 = Calendar.getInstance();
+		cal2.setTime(o2.getStartTime());
+		long p2 = o2.getPeriodInSecond() * 1000;
+		long diff2 = nowTime - cal2.getTimeInMillis();
+		long r2 = 0;
+		if(diff2 > 0) {
+			//과거시작 : 다음 주기와 현재와의 차이
+			r2 = p2 - (diff2 % p2);
+		} else if (diff2 < 0){
+			//미래시작 : 시작시각와 현재와의 차이
+			r2 = -diff2;
+		} else {
+			//현재시각 : 다음주기로..
+			r2 = p2;
+		}
+
+		long c = r1 - r2;
+//		logger.debug("c>>{}", c);
+		if (c == 0) {
+			if (o1.isExecuteGuarantee()) {
 				return -1;
-			}else if(o2.isExecuteGuarantee()){
+			} else if (o2.isExecuteGuarantee()) {
 				return 1;
 			}
-			
+
 			return 0;
-		}else{
-			return c;
+		} else if (c > 0){
+			return 1;
+		} else {
+			return -1;
 		}
 	}
 
