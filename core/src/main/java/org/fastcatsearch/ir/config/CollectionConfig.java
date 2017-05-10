@@ -142,4 +142,9 @@ public class CollectionConfig {
 	public Integer getFullIndexingAlertTimeout() {
 		return fullIndexingAlertTimeout != null ? fullIndexingAlertTimeout : 0;
 	}
+
+	public Integer getAddIndexingAlertTimeout() {
+		return -1;
+	}
+	//TODO set 메서드
 }
