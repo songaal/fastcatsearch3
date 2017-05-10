@@ -15,6 +15,9 @@ import org.fastcatsearch.job.MasterNodeJob;
 import org.fastcatsearch.job.result.IndexingJobResult;
 import org.fastcatsearch.notification.NotificationService;
 import org.fastcatsearch.notification.message.IndexingFailNotification;
+import org.fastcatsearch.notification.message.IndexingStartNotification;
+import org.fastcatsearch.notification.message.IndexingTimeoutNotification;
+import org.fastcatsearch.notification.message.Notification;
 import org.fastcatsearch.processlogger.IndexingProcessLogger;
 import org.fastcatsearch.processlogger.ProcessLoggerService;
 import org.fastcatsearch.processlogger.log.IndexingFinishProcessLog;
@@ -54,7 +57,23 @@ public class MasterCollectionFullIndexingJob extends MasterNodeJob {
 		logger.info("Request full indexing job to index node[{}] >> {}, isScheduled={}", indexNodeId, indexNode, isScheduled);
 		ResultFuture jobResult = nodeService.sendRequest(indexNode, collectionIndexingJob);
 		if (jobResult != null) {
-			Object obj = jobResult.take();
+			Object obj = null;
+			int alertTimeout = collectionContext.collectionConfig().getFullIndexingAlertTimeout();
+			if(alertTimeout > 0) {
+				while (true) {
+					obj = jobResult.poll(alertTimeout * 60);
+					if (obj == null) {
+						//noti 처리.
+						NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
+						notificationService.sendNotification(new IndexingTimeoutNotification(collectionId, IndexingType.FULL, jobStartTime(), isScheduled(), alertTimeout));
+					} else {
+						break;
+					}
+				}
+			}else {
+				obj = jobResult.take();
+			}
+
 			logger.debug("CollectionFullIndexingJob result = {}", obj);
 			if (obj != null && obj instanceof IndexingJobResult) {
 				IndexingJobResult indexingJobResult = (IndexingJobResult) obj;

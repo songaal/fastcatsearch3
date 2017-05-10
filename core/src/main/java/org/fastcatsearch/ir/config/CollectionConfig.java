@@ -16,6 +16,7 @@ import javax.xml.bind.annotation.XmlType;
  * 
  <collection-config>
 	<name>샘플</name>
+ 	<full-indexing-alert-timeout>60</full-indexing-alert-timeout>
 	<index-node>node1</index-node>
 	<search-node-list>
     	<node id="node1"/>
@@ -33,7 +34,7 @@ import javax.xml.bind.annotation.XmlType;
  * */
 
 @XmlRootElement(name = "collection-config")
-@XmlType(propOrder = { "name", "indexNode", "searchNodeList", "dataNodeList", "dataPlanConfig", "fullIndexingSegmentSize" })
+@XmlType(propOrder = { "name", "fullIndexingAlertTimeout", "indexNode", "searchNodeList", "dataNodeList", "dataPlanConfig", "fullIndexingSegmentSize" })
 public class CollectionConfig {
 
 	private String name;
@@ -42,7 +43,8 @@ public class CollectionConfig {
 	private List<String> dataNodeList;
 	private DataPlanConfig dataPlanConfig;
 	private Integer fullIndexingSegmentSize;
-	
+	private Integer fullIndexingAlertTimeout
+
 	public CollectionConfig(){
 		searchNodeList = new ArrayList<String>();
 		dataNodeList = new ArrayList<String>();
@@ -136,4 +138,8 @@ public class CollectionConfig {
 		this.fullIndexingSegmentSize = fullIndexingSegmentSize;
 	}
 
+	@XmlElement(name="full-indexing-alert-timeout")
+	public Integer getFullIndexingAlertTimeout() {
+		return fullIndexingAlertTimeout != null ? fullIndexingAlertTimeout : 0;
+	}
 }

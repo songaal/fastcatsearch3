@@ -42,6 +42,10 @@ public class MasterCollectionAddIndexingJob extends MasterNodeJob {
 		ResultFuture jobResult = nodeService.sendRequest(indexNode, collectionIndexingJob);
 		if (jobResult != null) {
 			Object obj = jobResult.take();
+			//TODO 똑같이 수정되야함 IndexingType.ADD
+
+
+
 		} else {
 			long endTime = System.currentTimeMillis();
 			Streamable result = null;//new StreamableThrowable(t);

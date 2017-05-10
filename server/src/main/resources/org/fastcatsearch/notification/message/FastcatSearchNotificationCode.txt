@@ -7,5 +7,6 @@ MSG-01000: Collection indexing start
 MSG-01001: Collection indexing finish successfully 
 MSG-01002: Collection indexing fail
 MSG-01003: Collection indexing cancel
+MSG-01004: Collection indexing timeout
 
 MSG-02000: Collection load fail
