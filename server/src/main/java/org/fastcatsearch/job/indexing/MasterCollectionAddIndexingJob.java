@@ -50,7 +50,7 @@ public class MasterCollectionAddIndexingJob extends MasterNodeJob {
 					if (obj == null) {
 						//noti 처리.
 						NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
-						notificationService.sendNotification(new IndexingTimeoutNotification(collectionId, IndexingType.FULL, jobStartTime(), isScheduled(), alertTimeout));
+						notificationService.sendNotification(new IndexingTimeoutNotification(collectionId, IndexingType.ADD, jobStartTime(), isScheduled(), alertTimeout));
 					} else {
 						break;
 					}
