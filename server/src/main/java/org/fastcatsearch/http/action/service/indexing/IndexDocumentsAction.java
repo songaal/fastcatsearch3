@@ -2,6 +2,7 @@ package org.fastcatsearch.http.action.service.indexing;
 
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
+import org.fastcatsearch.control.JobService;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.http.action.ActionRequest;
@@ -50,7 +51,11 @@ public abstract class IndexDocumentsAction extends ServiceAction {
         IndexDocumentRequestJob indexCollectionDocumentJob = new IndexDocumentRequestJob();
         String indexType = getType();
         indexCollectionDocumentJob.setArgs(new String[]{collectionId, indexType, requestBody});
-        ResultFuture jobResult = nodeService.sendRequest(indexNode, indexCollectionDocumentJob);
+//        ResultFuture jobResult = nodeService.sendRequest(indexNode, indexCollectionDocumentJob);
+        /*
+        * 2017.5.16 색인노드의 의존성 제거를 위해 index노드가 아닌 명령을 받은 노드에서 동적색인을 수행한다.
+        * */
+        ResultFuture jobResult = JobService.getInstance().offer(indexCollectionDocumentJob);
         Object result = null;
         if(jobResult != null) {
             result = jobResult.take();
