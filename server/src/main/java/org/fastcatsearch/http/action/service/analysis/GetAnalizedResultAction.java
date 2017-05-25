@@ -1,16 +1,13 @@
-package org.fastcatsearch.http.action.service.anaysis;
+package org.fastcatsearch.http.action.service.analysis;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.core.AnalyzerOption;
 import org.apache.lucene.analysis.tokenattributes.*;
-import org.fastcatsearch.http.ActionAuthority;
-import org.fastcatsearch.http.ActionAuthorityLevel;
 import org.fastcatsearch.http.ActionMapping;
 import org.fastcatsearch.http.ActionMethod;
 import org.fastcatsearch.http.action.ActionRequest;
 import org.fastcatsearch.http.action.ActionResponse;
-import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.http.action.ServiceAction;
 import org.fastcatsearch.ir.analysis.AnalyzerPool;
 import org.fastcatsearch.ir.io.CharVector;
