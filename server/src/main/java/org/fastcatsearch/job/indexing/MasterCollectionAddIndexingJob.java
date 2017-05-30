@@ -5,6 +5,7 @@ import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.control.ResultFuture;
 import org.fastcatsearch.db.mapper.IndexingResultMapper.ResultStatus;
+import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.common.IndexingType;
@@ -45,9 +46,21 @@ public class MasterCollectionAddIndexingJob extends MasterNodeJob {
 			Object obj = null;
 			int alertTimeout = collectionContext.collectionConfig().getAddIndexingAlertTimeout();
 			if(alertTimeout > 0) {
-				obj = jobResult.poll(alertTimeout * 60);
-				NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
-				notificationService.sendNotification(new IndexingTimeoutNotification(collectionId, IndexingType.FULL, jobStartTime(), isScheduled(), alertTimeout));
+				while (true) {
+					obj = jobResult.poll(alertTimeout * 60);
+					if (obj == null) {
+						//noti 처리.
+						NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
+						notificationService.sendNotification(new IndexingTimeoutNotification(collectionId, IndexingType.ADD, jobStartTime(), isScheduled(), alertTimeout));
+						break;
+					} else if (obj instanceof SearchError) {
+						//noti 처리.
+						NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
+						notificationService.sendNotification(new IndexingTimeoutNotification(collectionId, IndexingType.ADD, jobStartTime(), isScheduled(), alertTimeout));
+					} else {
+						break;
+					}
+				}
 			} else {
 				obj = jobResult.take();
 			}
