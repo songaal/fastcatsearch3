@@ -223,6 +223,12 @@ public abstract class AnalysisPlugin<T, P> extends Plugin {
                         dictionary.appendAdditionalNounEntry(invertMapDictionary.map().keySet(), tokenType);
                     }
                     sourceDictionary = invertMapDictionary;
+				}else if(type == Type.COMPOUND){
+					CompoundDictionary compoundDictionary = new CompoundDictionary(dictFile, isIgnoreCase);
+					if(tokenType != null){
+						dictionary.appendAdditionalNounEntry(compoundDictionary.map().keySet(), tokenType);
+					}
+					sourceDictionary = compoundDictionary;
 				}else if(type == Type.SYSTEM){
 					//ignore
 				}else{
@@ -276,6 +282,10 @@ public abstract class AnalysisPlugin<T, P> extends Plugin {
 				CustomDictionary newDictionary = (CustomDictionary) newCommonDictionary.getDictionary(dictionaryId);
 				customDictionary.setMap(newDictionary.map());
 				customDictionary.setWordSet(newDictionary.getWordSet());
+			}else if(dictionary.getClass().isAssignableFrom(CompoundDictionary.class)){
+				CompoundDictionary compoundDictionary = (CompoundDictionary) dictionary;
+				CompoundDictionary newDictionary = (CompoundDictionary) newCommonDictionary.getDictionary(dictionaryId);
+				compoundDictionary.setMap(newDictionary.map());
 			}
 			logger.info("Dictionary {} is updated!", dictionaryId);
 			
@@ -369,7 +379,9 @@ public abstract class AnalysisPlugin<T, P> extends Plugin {
 							dictionaryType = new CustomDictionary(isIgnoreCase);
 						} else if (type == Type.INVERT_MAP) {
                             dictionaryType = new InvertMapDictionary(isIgnoreCase);
-                        }
+                        } else if (type == Type.COMPOUND) {
+							dictionaryType = new CompoundDictionary(isIgnoreCase);
+						}
 
 						try {
 							count = DAOSourceDictionaryCompiler.compile(targetFile, dictionaryDAO, dictionaryType, columnSettingList);
