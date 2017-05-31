@@ -14,6 +14,7 @@ package org.fastcatsearch.control;
 import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.error.ServerErrorCode;
 import org.fastcatsearch.job.Job;
+import org.fastcatsearch.job.indexing.IndexingJob;
 import org.fastcatsearch.job.internal.InternalDocumentSearchJob;
 import org.fastcatsearch.job.internal.InternalSearchJob;
 import org.fastcatsearch.job.search.ClusterSearchJob;
@@ -134,14 +135,14 @@ public class ResultFuture {
 			if(remainMilisecondTime > 0){
 				Object result = queue.poll(remainMilisecondTime, TimeUnit.MILLISECONDS);
 				if(result == null){
-					//결과가 아직도착하지 않아서 받지못하거나, 네트워크 문제로 인해 전달이 안될수도 있으므로 불필요한 객체를 map에서 제거한다.
-					resultFutureMap.remove(requestId);
                     if(job != null && job.isForceAbortWhenTimeout()) {
                         job.abortJob();
                     }
                     if(job != null && (job instanceof ClusterSearchJob || job instanceof InternalSearchJob || job instanceof InternalDocumentSearchJob)) {
-                        result = new SearchError(ServerErrorCode.SEARCH_TIMEOUT_ERROR, String.valueOf(time));
-                    } else {
+						//결과가 아직도착하지 않아서 받지못하거나, 네트워크 문제로 인해 전달이 안될수도 있으므로 불필요한 객체를 map에서 제거한다.
+						resultFutureMap.remove(requestId);
+						result = new SearchError(ServerErrorCode.SEARCH_TIMEOUT_ERROR, String.valueOf(time));
+					} else {
                         result = new SearchError(ServerErrorCode.JOB_TIMEOUT_ERROR, String.valueOf(time));
                     }
 				}else if(result == NULL_RESULT){
