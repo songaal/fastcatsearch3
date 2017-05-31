@@ -60,18 +60,16 @@ public class MasterCollectionFullIndexingJob extends MasterNodeJob {
 		if (jobResult != null) {
 			Object obj = null;
 			int alertTimeout = collectionContext.collectionConfig().getFullIndexingAlertTimeout();
+			int count = 1;
 			if(alertTimeout > 0) {
 				while (true) {
-					obj = jobResult.poll(alertTimeout * 60);
+					obj = jobResult.poll(alertTimeout * 60 * count);
 					if (obj == null) {
-						//noti 처리.
-						NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
-						notificationService.sendNotification(new IndexingTimeoutNotification(collectionId, IndexingType.FULL, jobStartTime(), isScheduled(), alertTimeout));
-						break;
 					} else if (obj instanceof SearchError) {
 						//noti 처리.
 						NotificationService notificationService = ServiceManager.getInstance().getService(NotificationService.class);
-						notificationService.sendNotification(new IndexingTimeoutNotification(collectionId, IndexingType.FULL, jobStartTime(), isScheduled(), alertTimeout));
+						notificationService.sendNotification(new IndexingTimeoutNotification(collectionId, IndexingType.FULL, jobStartTime(), isScheduled(), alertTimeout * count));
+						count++;
 					} else {
 						break;
 					}
