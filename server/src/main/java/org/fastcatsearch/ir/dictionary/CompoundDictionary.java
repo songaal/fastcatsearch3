@@ -5,168 +5,194 @@ import org.apache.lucene.store.OutputStreamDataOutput;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
-import org.fastcatsearch.ir.util.CharVectorHashMap;
+import org.fastcatsearch.ir.util.CharVectorHashSet;
+import org.fastcatsearch.ir.util.CharVectorUtils;
 import org.fastcatsearch.plugin.analysis.AnalysisPluginSetting.ColumnSetting;
 
-import java.io.*;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.*;
 
-/*
- * 복합명사 범용 사전.
- * CharVector : CharVector[] pair이다.
- * 키는 공백이 없는 모두 붙여쓴 단어가 되고 value 는 공백을 포함한 여러 단어이다
- *
- * */
-public class CompoundDictionary extends SourceDictionary {
+public class CompoundDictionary extends MapDictionary {
 
-	protected Map<CharVector, CharVector[]> map;
+	private Set<CharVector> mainWordSet;
+	private Set<CharVector> wordSet;
 
-	public CompoundDictionary() {
+	public CompoundDictionary(){
 		this(false);
 	}
-
-	public CompoundDictionary(boolean ignoreCase) {
-		super(ignoreCase);
-		map = new CharVectorHashMap<CharVector[]>(ignoreCase);
-	}
-
-	public CompoundDictionary(CharVectorHashMap<CharVector[]> map) {
-		super(map.isIgnoreCase());
-		this.map = map;
-	}
-
-	public CompoundDictionary(File file, boolean ignoreCase) {
-		super(ignoreCase);
-		if (!file.exists()) {
-			map = new CharVectorHashMap<CharVector[]>();
-			logger.error("사전파일이 존재하지 않습니다. file={}", file.getAbsolutePath());
-			return;
+	public CompoundDictionary(boolean isIgnoreCase) {
+		super(isIgnoreCase);
+		if(mainWordSet == null) {
+			mainWordSet = new CharVectorHashSet(isIgnoreCase);
 		}
-		InputStream is = null;
-		try {
-			is = new FileInputStream(file);
-			readFrom(is);
-			is.close();
-		} catch (IOException e) {
-			logger.error("", e);
+		if(wordSet == null) {
+			wordSet = new CharVectorHashSet(isIgnoreCase);
 		}
 	}
 
-	public CompoundDictionary(InputStream is, boolean ignoreCase) {
-		super(ignoreCase);
-		try {
-			readFrom(is);
-		} catch (IOException e) {
-			logger.error("", e);
+	public CompoundDictionary(File file, boolean isIgnoreCase) {
+		super(file, isIgnoreCase);
+		if(mainWordSet == null) {
+			mainWordSet = new CharVectorHashSet(isIgnoreCase);
 		}
+		if(wordSet == null) {
+			wordSet = new CharVectorHashSet(isIgnoreCase);
+		}
+	}
+
+	public CompoundDictionary(InputStream is, boolean isIgnoreCase) {
+		super(is, isIgnoreCase);
+		if(mainWordSet == null) {
+			mainWordSet = new CharVectorHashSet(isIgnoreCase);
+		}
+		if(wordSet == null) {
+			wordSet = new CharVectorHashSet(isIgnoreCase);
+		}
+	}
+
+	public Set<CharVector> getWordSet() {
+		return wordSet;
+	}
+	
+	public void setWordSet(Set<CharVector> wordSet) {
+		this.wordSet = wordSet;
+	}
+
+	public Set<CharVector> getMainWordSet() {
+		return mainWordSet;
+	}
+
+	public void setMainWordSet(Set<CharVector> mainWordSet) {
+		this.mainWordSet = mainWordSet;
+	}
+
+	public Set<CharVector> getUnmodifiableWordSet() {
+		return Collections.unmodifiableSet(wordSet);
+	}
+	public Set<CharVector> getUnmodifiableMainWordSet() {
+		return Collections.unmodifiableSet(mainWordSet);
 	}
 
 	@Override
-	public void addEntry(String keyword, Object[] values, List<ColumnSetting> columnList) {
-        if (keyword == null) {
-            return;
-        }
-        keyword = keyword.trim();
-        if(keyword.length() == 0) {
-            return;
-        }
+	public void addEntry(String keyword, Object[] values, List<ColumnSetting> columnSettingList) {
 
-		CharVector[] list = new CharVector[values.length];
-		for (int i = 0; i < values.length; i++) {
-			String value = values[i].toString();
-			list[i] = new CharVector(value);
+		ArrayList<CharVector> list = new ArrayList<CharVector>(4);
+
+		CharVector mainWord = null;
+		if (keyword == null) {
+			logger.error("Compound main keyword is null.");
+			return;
 		}
-		
-		CharVector cv = new CharVector(keyword).removeWhitespaces();
-		map.put(cv, list);
+		if (values == null) {
+			logger.error("Compound dictionary value is null.");
+			return;
+		}
+		if (values.length == 0) {
+			logger.error("Compound dictionary value is empty.");
+			return;
+		}
+		keyword = keyword.trim();
+		if (keyword.length() == 0) {
+			logger.error("Compound main keyword is empty.");
+			return;
+		}
+		mainWord = new CharVector(keyword);
+		mainWordSet.add(mainWord);
+
+		// 0번째에 복합명사들이 컴마 단위로 모두 입력되어 있으므로 [0]만 확인하면 된다.
+		String valueString = values[0].toString();
+		// 중복제거.
+		String[] nouns = valueString.split(",");
+		dedup(nouns);
+		for (int k = 0; k < nouns.length; k++) {
+			String noun = nouns[k].trim();
+			if (noun.length() > 0) {
+				CharVector word = new CharVector(noun);
+				list.add(word);
+				wordSet.add(word);
+			}
+		}
+
+		CharVector[] value = new CharVector[list.size()];
+		int idx = 0;
+		for (int j = 0; j < value.length; j++) {
+			CharVector word = list.get(j);
+			if (!mainWord.equals(word)) {
+				// 다른것만 value로 넣는다.
+				value[idx++] = word;
+			}
+		}
+		if (idx < value.length) {
+			value = Arrays.copyOf(value, idx);
+		}
+		if (value.length > 0) {
+			map.put(mainWord, value);
+		}
 	}
 
-	public Map<CharVector, CharVector[]> getUnmodifiableMap() {
-		return Collections.unmodifiableMap(map);
-	}
-
-	public Map<CharVector, CharVector[]> map() {
-		return map;
-	}
-	
-	public void setMap(Map<CharVector, CharVector[]> map) {
-		this.map = map;
-	}
-	
-	
-	public boolean containsKey(CharVector key){
-		return map.containsKey(key);
-	}
-	
-	public CharVector[] get(CharVector key){
-		return map.get(key);
+	// 중복제거한다. 중복이 발견되면 "" 로 치환한다.
+	private void dedup(String[] list) {
+		if (list == null || list.length < 2) {
+			return;
+		}
+		for (int i = 0; i < list.length; i++) {
+			for (int j = i + 1; j < list.length; j++) {
+				if (list[j].length() != 0 && list[i].equals(list[j])) {
+					list[j] = "";
+				}
+			}
+		}
+		return;
 	}
 
 	@Override
 	public void writeTo(OutputStream out) throws IOException {
-
+		super.writeTo(out);
 		DataOutput output = new OutputStreamDataOutput(out);
-		Iterator<CharVector> keySet = map.keySet().iterator();
-		// write size of map
-		output.writeVInt(map.size());
-		// write key and value map
-		for (; keySet.hasNext();) {
-			// write key
-			CharVector key = keySet.next();
-			output.writeUString(key.array(), key.start(), key.length());
-			// write values
-			CharVector[] values = map.get(key);
-			output.writeVInt(values.length);
-			for (CharVector value : values) {
-				output.writeUString(value.array(), value.start(), value.length());
-			}
+		// write size of synonyms
+		output.writeVInt(mainWordSet.size());
+		// write synonyms
+		Iterator<CharVector> mainWordIter = mainWordSet.iterator();
+		while (mainWordIter.hasNext()) {
+			CharVector value = mainWordIter.next();
+			output.writeUString(value.array(), value.start(), value.length());
 		}
-
+		// write size of synonyms
+		output.writeVInt(wordSet.size());
+		// write synonyms
+		Iterator<CharVector> wordIter = wordSet.iterator();
+		while (wordIter.hasNext()) {
+			CharVector value = wordIter.next();
+			output.writeUString(value.array(), value.start(), value.length());
+		}
 	}
 
 	@Override
 	public void readFrom(InputStream in) throws IOException {
+		super.readFrom(in);
 		DataInput input = new InputStreamDataInput(in);
-
-		map = new CharVectorHashMap<CharVector[]>(ignoreCase);
-
+		mainWordSet = new CharVectorHashSet(ignoreCase);
+		int mainWordSize = input.readVInt();
+		for (int entryInx = 0; entryInx < mainWordSize; entryInx++) {
+			mainWordSet.add(new CharVector(input.readUString()));
+		}
+		wordSet = new CharVectorHashSet(ignoreCase);
 		int size = input.readVInt();
 		for (int entryInx = 0; entryInx < size; entryInx++) {
-			CharVector key = new CharVector(input.readUString());
-
-			int valueLength = input.readVInt();
-
-			CharVector[] values = new CharVector[valueLength];
-
-			for (int valueInx = 0; valueInx < valueLength; valueInx++) {
-				values[valueInx] = new CharVector(input.readUString());
-			}
-			map.put(key, values);
-		}
-
-	}
-
-	@Override
-	public void addSourceLineEntry(String line) {
-		String[] kv = line.split("\t");
-		if (kv.length == 1) {
-			String value = kv[0].trim();
-			addEntry(null, new String[] { value }, null);
-		} else if (kv.length == 2) {
-			String keyword = kv[0].trim();
-			String value = kv[1].trim();
-			addEntry(keyword, new String[] { value }, null);
+			wordSet.add(new CharVector(input.readUString()));
 		}
 	}
-
+	
 	@Override
 	public void reload(Object object) throws IllegalArgumentException {
 		if(object != null && object instanceof CompoundDictionary){
-			CompoundDictionary mapDictionary = (CompoundDictionary) object;
-			this.map = mapDictionary.map();
+			super.reload(object);
+			CompoundDictionary compoundDictionary = (CompoundDictionary) object;
+			this.mainWordSet = compoundDictionary.getMainWordSet();
+			this.wordSet = compoundDictionary.getWordSet();
 			
 		}else{
 			throw new IllegalArgumentException("Reload dictionary argument error. argument = " + object);
