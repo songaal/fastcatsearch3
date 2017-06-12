@@ -16,6 +16,12 @@ import org.fastcatsearch.job.indexing.UpdateIndexingScheduleJob;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 /**
  * 컬렉션의 전체색인 및 증분색인의 스케쥴을 on/off 할 수 있다.
  * @See DynamicIndexingControlAction
@@ -59,19 +65,37 @@ public class IndexingScheduleAction extends ServiceAction {
                 return;
             } else if (UpdateIndexingScheduleJob.TYPE_DYNAMIC.equalsIgnoreCase(type)) {
                 UpdateDynamicIndexingScheduleJob job = new UpdateDynamicIndexingScheduleJob(collectionId, flag);
-                String indexNodeId = collectionHandler.collectionContext().collectionConfig().getIndexNode();
-                Node indexNode = nodeService.getNodeById(indexNodeId);
-                ResultFuture future2 = nodeService.sendRequest(indexNode, job);
-                Object r = future2.take();
-                boolean result = false;
-                if (r instanceof Boolean) {
-                    result = (Boolean) r;
+                Set<String> nodeIdSet = collectionHandler.collectionContext().collectionConfig().getCollectionNodeIDSet();
+                //master 노드 추가.
+                nodeIdSet.add(nodeService.getMasterNode().id());
+                List<ResultFuture> resultList = new ArrayList<ResultFuture>();
+                List<Node> nodeList = new ArrayList<Node>();
+                for(String nodeId : nodeIdSet) {
+                    Node node = nodeService.getNodeById(nodeId);
+                    ResultFuture future = nodeService.sendRequest(node, job);
+                    nodeList.add(node);
+                    resultList.add(future);
                 }
-
+                Boolean result = null;
+                int i = 0;
+                for(ResultFuture future : resultList) {
+                    Object r = future.take();
+                    Node node = nodeList.get(i++);
+                    logger.debug("Update Dynamic Schedule result [{}] => [{}]", node, r);
+                    if (r instanceof Boolean) {
+                        Boolean tempResult = (Boolean) r;
+                        if(result == null) {
+                            result = tempResult;
+                        } else {
+                            //모두 참이어야 결과가 참이 된다.
+                            result = result & tempResult;
+                        }
+                    }
+                }
                 writeHeader(response);
                 response.setStatus(HttpResponseStatus.OK);
                 ResponseWriter resultWriter = getDefaultResponseWriter(response.getWriter());
-                resultWriter.object().key(collectionId).value(result).endObject();
+                resultWriter.object().key(collectionId).value(result == null ? false : result.booleanValue()).endObject();
                 resultWriter.done();
                 return;
             }
