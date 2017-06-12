@@ -157,6 +157,12 @@ public class IndexFireScheduleWorker extends Thread {
             }
         } catch (IOException e) {
             logger.error("", e);
+        } finally {
+            //currentFileStatus 가 null 이 아니라는 것은 toBeDeleted 에 추가되지 않았다는 것이므로, 지워지지 않을것임.
+            // 그러므로, 다시한번 fileQueue 에 넣어서 실시간 동적색인을 진행하도록 유도.
+            if(currentFileStatus != null) {
+                fileQueue.add(currentFileStatus);
+            }
         }
         //IO 에러시에는 null을 리턴한다.
         return null;
