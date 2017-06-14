@@ -1,6 +1,6 @@
 #!/bin/bash
 #-------------------------------------------------------------------------------
-# Copyright (C) 2011 WebSquared Inc. http://websqrd.com
+# Copyright (C) 2011 Fastcat Team. http://www.fastcat.co
 #-------------------------------------------------------------------------------
 #Fastcat start script
 
@@ -97,7 +97,7 @@ print_option() {
 }
 
 if [ "$1" = "run" ] ; then
-	"$java_path" -Dserver.home=$server_home $JVM_OPTS $JAVA_OPTS -classpath $LIB/fastcatsearch-server-bootstrap.jar org.fastcatsearch.server.Bootstrap start
+	"$java_path" -Dserver.home=$server_home $JVM_OPTS $JAVA_OPTS $ADDITIONAL_OPTS -classpath $LIB/fastcatsearch-server-bootstrap.jar org.fastcatsearch.server.Bootstrap start 2>&1
 
 elif [ "$1" = "start" ] || [ "$1" = "debug" ] || [ "$1" = "profile" ] ; then
 	if(start_daemon)
