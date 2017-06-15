@@ -55,7 +55,7 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
 		this.selectedIndexList = selectedIndexList;
 	}
 	
-	protected abstract DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException;
+	protected abstract DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException, IOException;
 	protected abstract void prepare() throws IRException;
 	protected abstract boolean done(SegmentInfo segmentInfo, IndexStatus indexStatus) throws IRException, IndexingStopException;
 	protected IndexWritable createIndexWriter(Schema schema, File segmentDir, SegmentInfo segmentInfo, IndexConfig indexConfig) throws IRException {
@@ -66,7 +66,7 @@ public abstract class AbstractCollectionIndexer implements CollectionIndexerable
         return workingSegmentInfo;
     }
 
-	public void init(Schema schema) throws IRException {
+	public void init(Schema schema) throws IRException, IOException {
 
 		prepare();
 		

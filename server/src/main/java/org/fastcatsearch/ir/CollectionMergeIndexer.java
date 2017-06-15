@@ -46,7 +46,7 @@ public class CollectionMergeIndexer {
 
     private int count;
 
-	public CollectionMergeIndexer(String documentId, CollectionHandler collectionHandler, File[] segmentDirs) throws IRException {
+	public CollectionMergeIndexer(String documentId, CollectionHandler collectionHandler, File[] segmentDirs) throws IRException, IOException {
         this.collectionContext = collectionHandler.collectionContext();
         this.analyzerPoolManager = collectionHandler.analyzerPoolManager();
 		//머징색인시는 현재 스키마를 그대로 사용한다.

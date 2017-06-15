@@ -1,6 +1,7 @@
 package org.fastcatsearch.datasource.reader;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,11 +34,11 @@ public abstract class SingleSourceReader<SourceType> {
 
 	protected int maxRows;
 	
-	public abstract void init() throws IRException; // 초기화. 파일을 여는등의 작업.
+	public abstract void init() throws IRException, IOException; // 초기화. 파일을 여는등의 작업.
 
-	public abstract boolean hasNext() throws IRException;
+	public abstract boolean hasNext() throws IRException, IOException;
 
-	protected abstract SourceType next() throws IRException;
+	protected abstract SourceType next() throws IRException, IOException;
 
 	public void close() throws IRException {
 		if(sourceModifier != null){
@@ -66,6 +67,21 @@ public abstract class SingleSourceReader<SourceType> {
 			String lastIndexTime) {
 		this.collectionId = collectionId;
 		this.filePath = new Path(filePath);
+		this.singleSourceConfig = singleSourceConfig;
+		this.lastIndexTime = lastIndexTime;
+		this.sourceModifier = sourceModifier;
+		if(sourceModifier != null){
+			sourceModifier.setSourceReader(this);
+			sourceModifier.init();
+		}
+		initParameters();
+		fillParameters(singleSourceConfig.getProperties());
+	}
+
+	public SingleSourceReader(String collectionId, SingleSourceConfig singleSourceConfig, SourceModifier<SourceType> sourceModifier,
+							  String lastIndexTime) {
+		this.collectionId = collectionId;
+		this.filePath = null;
 		this.singleSourceConfig = singleSourceConfig;
 		this.lastIndexTime = lastIndexTime;
 		this.sourceModifier = sourceModifier;
@@ -122,7 +138,7 @@ public abstract class SingleSourceReader<SourceType> {
 		}
 	}
 
-	protected SourceType nextElement() throws IRException {
+	protected SourceType nextElement() throws IRException, IOException {
 
 		// modifier를 태운다.
 		SourceType source = next();

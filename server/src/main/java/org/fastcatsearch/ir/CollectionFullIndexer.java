@@ -21,14 +21,14 @@ import java.io.IOException;
  * */
 public class CollectionFullIndexer extends AbstractCollectionIndexer {
 	
-	public CollectionFullIndexer(CollectionContext collectionContext, AnalyzerPoolManager analyzerPoolManager) throws IRException {
+	public CollectionFullIndexer(CollectionContext collectionContext, AnalyzerPoolManager analyzerPoolManager) throws IRException, IOException {
 		super(collectionContext, analyzerPoolManager);
 
 		init(collectionContext.schema());
 	}
 
 	@Override
-	protected DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException{
+	protected DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException, IOException {
 		DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
 		
 		return DefaultDataSourceReaderFactory.createFullIndexingSourceReader(super.collectionContext.collectionId(),filePath, schemaSetting, dataSourceConfig);

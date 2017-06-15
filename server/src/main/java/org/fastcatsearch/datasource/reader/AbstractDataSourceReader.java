@@ -25,6 +25,7 @@ import org.fastcatsearch.ir.settings.SchemaSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,7 +61,7 @@ public abstract class AbstractDataSourceReader<DataType> implements DataSourceRe
 		singleSourceReaderList = new ArrayList<SingleSourceReader<DataType>>();
 	}
 
-	private void nextReader() throws IRException {
+	private void nextReader() throws IRException, IOException {
 		while (readerPos < singleSourceReaderList.size()) {
 			currentReader = singleSourceReaderList.get(readerPos++);
 			if (!currentReader.isActive()) {
@@ -86,7 +87,7 @@ public abstract class AbstractDataSourceReader<DataType> implements DataSourceRe
 		singleSourceReaderList.add(sourceReader);
 	}
 
-	public void init() throws IRException {
+	public void init() throws IRException, IOException {
 		nextReader();
 	}
 	public boolean hasNext() throws IRException {
@@ -111,7 +112,7 @@ public abstract class AbstractDataSourceReader<DataType> implements DataSourceRe
 		}
 	}
 
-	public Document nextDocument() throws IRException {
+	public Document nextDocument() throws IRException, IOException {
 		return createDocument(currentReader.nextElement());
 	}
 

@@ -60,10 +60,10 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 	private List<SegmentIndexWriteConsumer> consumerList;
 	
 	
-	public MultiThreadCollectionFullIndexer(CollectionContext collectionContext, AnalyzerPoolManager analyzerPoolManager) throws IRException {
+	public MultiThreadCollectionFullIndexer(CollectionContext collectionContext, AnalyzerPoolManager analyzerPoolManager) throws IRException, IOException {
 		this(collectionContext, analyzerPoolManager, null);
 	}
-	public MultiThreadCollectionFullIndexer(CollectionContext collectionContext, AnalyzerPoolManager analyzerPoolManager, SelectedIndexList selectedIndexList) throws IRException {
+	public MultiThreadCollectionFullIndexer(CollectionContext collectionContext, AnalyzerPoolManager analyzerPoolManager, SelectedIndexList selectedIndexList) throws IRException, IOException {
 		this.collectionContext = collectionContext;
 		this.analyzerPoolManager = analyzerPoolManager;
 		this.selectedIndexList = selectedIndexList;
@@ -71,7 +71,7 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 		init(collectionContext.schema());
 	}
 	
-	protected DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException{
+	protected DataSourceReader createDataSourceReader(File filePath, SchemaSetting schemaSetting) throws IRException, IOException {
 		DataSourceConfig dataSourceConfig = collectionContext.dataSourceConfig();
 		return DefaultDataSourceReaderFactory.createFullIndexingSourceReader(collectionContext.collectionId(), filePath, schemaSetting, dataSourceConfig);
 	}
@@ -115,7 +115,7 @@ public class MultiThreadCollectionFullIndexer implements CollectionIndexerable {
 		return new SegmentWriter(schema, segmentDir, segmentInfo, indexConfig, analyzerPoolManager, selectedIndexList);
 	}
 	
-	public void init(Schema schema) throws IRException {
+	public void init(Schema schema) throws IRException, IOException {
 
 		prepare();
 		

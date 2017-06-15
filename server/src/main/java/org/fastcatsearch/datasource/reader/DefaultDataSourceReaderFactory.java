@@ -21,12 +21,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 public class DefaultDataSourceReaderFactory {
 	private static Logger logger = LoggerFactory.getLogger(DefaultDataSourceReaderFactory.class);
 
-	public static AbstractDataSourceReader<Map<String, Object>> createFullIndexingSourceReader(String collectionId, File filePath, SchemaSetting schemaSetting, DataSourceConfig dataSourceConfig) throws IRException {
+	public static AbstractDataSourceReader<Map<String, Object>> createFullIndexingSourceReader(String collectionId, File filePath, SchemaSetting schemaSetting, DataSourceConfig dataSourceConfig) throws IRException, IOException {
 
 		AbstractDataSourceReader<Map<String, Object>> dataSourceReader = new DefaultDataSourceReader(schemaSetting);
 		logger.debug("dataSourceConfig > {}", dataSourceConfig);
@@ -46,7 +47,7 @@ public class DefaultDataSourceReaderFactory {
 		return dataSourceReader;
 	}
 	
-	public static AbstractDataSourceReader<Map<String, Object>> createAddIndexingSourceReader(String collectionId, File filePath, SchemaSetting schemaSetting, DataSourceConfig dataSourceConfig, String lastIndexTime) throws IRException {
+	public static AbstractDataSourceReader<Map<String, Object>> createAddIndexingSourceReader(String collectionId, File filePath, SchemaSetting schemaSetting, DataSourceConfig dataSourceConfig, String lastIndexTime) throws IRException, IOException {
 
 		AbstractDataSourceReader<Map<String, Object>> dataSourceReader = new DefaultDataSourceReader(schemaSetting);
 		logger.debug("dataSourceConfig > {}", dataSourceConfig);

@@ -53,6 +53,8 @@ public class StoredDocumentSourceReaderTest {
 					
 					} catch (IRException e) {
 						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
 					}
 					latch.countDown();
 				}
