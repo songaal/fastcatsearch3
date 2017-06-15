@@ -6,6 +6,7 @@ import org.fastcatsearch.ir.common.IRException;
 import org.fastcatsearch.ir.config.SingleSourceConfig;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,9 +26,9 @@ public class HDFSCSVFileReader extends AbstractHDFSFileReader {
     public HDFSCSVFileReader() {
     }
 
-    public HDFSCSVFileReader(String collectionId, SingleSourceConfig singleSourceConfig, SourceModifier<Map<String, Object>> sourceModifier, String lastIndexTime)
+    public HDFSCSVFileReader(String collectionId, File file, SingleSourceConfig singleSourceConfig, SourceModifier<Map<String, Object>> sourceModifier, String lastIndexTime)
             throws IRException, IOException {
-        super(collectionId, singleSourceConfig, sourceModifier, lastIndexTime);
+        super(collectionId, file, singleSourceConfig, sourceModifier, lastIndexTime);
     }
 
     @Override
@@ -53,11 +54,16 @@ public class HDFSCSVFileReader extends AbstractHDFSFileReader {
             Map<String, Object> record = new HashMap<String, Object>();
             try {
                 String[] els = line.split(",");
-
                 for (int i = 0; i < fieldIndexList.size(); i++) {
                     Integer index = fieldIndexList.get(i);
                     if (index != -1) {
-                        record.put(fieldNameList.get(i), els[index]);
+                        String val;
+                        if(index >= els.length) {
+                            val = "";
+                        } else {
+                            val = els[index];
+                        }
+                        record.put(fieldNameList.get(i), val);
                     }
                 }
                 //정상이면 리턴.

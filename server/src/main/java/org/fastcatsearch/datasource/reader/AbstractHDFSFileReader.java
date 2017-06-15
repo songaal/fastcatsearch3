@@ -32,10 +32,10 @@ public abstract class AbstractHDFSFileReader extends SingleSourceReader<Map<Stri
 		super();
 	}
 
-	public AbstractHDFSFileReader(String collectionId, SingleSourceConfig singleSourceConfig
+	public AbstractHDFSFileReader(String collectionId, File file, SingleSourceConfig singleSourceConfig
             , SourceModifier sourceModifier, String lastIndexTime)
 			throws IRException, IOException {
-		super(collectionId, singleSourceConfig, sourceModifier, lastIndexTime);
+		super(collectionId, file, singleSourceConfig, sourceModifier, lastIndexTime);
 	}
 
 	@Override
@@ -47,6 +47,13 @@ public abstract class AbstractHDFSFileReader extends SingleSourceReader<Map<Stri
 		conf = new Configuration();
 		conf.set(DEFAULTFS, hdfsUrl);
 
+		bufferSize = getConfigInt("bufferSize", DEFAULT_BUFFER_SIZE);
+		limitSize = getConfigInt("limitSize");
+		if(bufferSize < DEFAULT_BUFFER_SIZE) {
+			bufferSize = DEFAULT_BUFFER_SIZE;
+		}
+
+		encoding = getConfigString("encoding", "utf-8");
         items = new LinkedList<Map<String, Object>>();
 		filePaths = new LinkedList<Path>();
         String[] pathList = filePathStr.split(",");

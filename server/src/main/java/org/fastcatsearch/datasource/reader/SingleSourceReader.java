@@ -78,21 +78,6 @@ public abstract class SingleSourceReader<SourceType> {
 		fillParameters(singleSourceConfig.getProperties());
 	}
 
-	public SingleSourceReader(String collectionId, SingleSourceConfig singleSourceConfig, SourceModifier<SourceType> sourceModifier,
-							  String lastIndexTime) {
-		this.collectionId = collectionId;
-		this.filePath = null;
-		this.singleSourceConfig = singleSourceConfig;
-		this.lastIndexTime = lastIndexTime;
-		this.sourceModifier = sourceModifier;
-		if(sourceModifier != null){
-			sourceModifier.setSourceReader(this);
-			sourceModifier.init();
-		}
-		initParameters();
-		fillParameters(singleSourceConfig.getProperties());
-	}
-
 	protected void registerParameter(SourceReaderParameter parameter) {
 		if (sourceReaderParameterList == null) {
 			sourceReaderParameterList = new ArrayList<SourceReaderParameter>();
