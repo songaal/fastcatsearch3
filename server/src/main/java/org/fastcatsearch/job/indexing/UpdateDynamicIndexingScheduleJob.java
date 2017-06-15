@@ -36,9 +36,9 @@ public class UpdateDynamicIndexingScheduleJob extends Job implements Streamable{
         DynamicIndexModule dynamicIndexModule = irService.getDynamicIndexModule(collectionId);
         if (dynamicIndexModule != null) {
 
-            if(flag.equalsIgnoreCase(FLAG_ON)) {
+            if(FLAG_ON.equalsIgnoreCase(flag)) {
                 dynamicIndexModule.startIndexingSchedule();
-            } else if (flag.equalsIgnoreCase(FLAG_OFF)) {
+            } else if (FLAG_OFF.equalsIgnoreCase(flag)) {
                 dynamicIndexModule.stopIndexingSchedule();
             }
 

@@ -11,7 +11,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>co.fastcat</groupId>
 	<artifactId>fastcatsearch</artifactId>
-	<version>3.14.2-SNAPSHOT</version>
+	<version>3.14.3-SNAPSHOT</version>
 	<name>fastcatsearch3</name>
 	<description>fastcatsearch3 package</description>
 	<url>http://www.fastcat.co</url>
