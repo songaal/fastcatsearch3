@@ -10,6 +10,8 @@ import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 2017-06-15 지앤클라우드 전제현
@@ -41,11 +43,11 @@ public abstract class AbstractHDFSFileReader extends SingleSourceReader<Map<Stri
 	@Override
 	public void init() throws IRException, IOException {
 
-		String hdfsUrl = getConfigString("hdfsReadUrl");
+		String defaultfs = getConfigString("fs.defaultFS");
 		String filePathStr = getConfigString("filePath");
 
 		conf = new Configuration();
-		conf.set(DEFAULTFS, hdfsUrl);
+		conf.set(DEFAULTFS, defaultfs);
 
 		bufferSize = getConfigInt("bufferSize", DEFAULT_BUFFER_SIZE);
 		limitSize = getConfigInt("limitSize");
@@ -60,12 +62,20 @@ public abstract class AbstractHDFSFileReader extends SingleSourceReader<Map<Stri
         for(String path : pathList) {
 			FileSystem fs = FileSystem.get(conf);
 
+			// 현재 바라보고 있는 경로가 CSV 확장자 파일인지를 확인한다.
             String rootPath = filePath.makePath(path).file().getAbsolutePath();
+			String allowPattern = ".+\\.(csv)$";
+			boolean check = false;
+			Pattern p = Pattern.compile(allowPattern);
+			Matcher m = p.matcher(rootPath);
+			check = m.matches();
+
 			Path filePath = new Path(rootPath);
 			FileStatus rootFile = fs.getFileStatus(filePath);
-			if(rootFile.isDirectory()) {
+			if (rootFile.isDirectory()) {
 				getFilePathList(rootFile);
-			} else {
+			} else if (check) {
+				// CSV 확장자가 아닌 파일은 제외한다.
 				filePaths.add(rootFile.getPath());
 			}
 
@@ -76,8 +86,8 @@ public abstract class AbstractHDFSFileReader extends SingleSourceReader<Map<Stri
 	
 	@Override
 	protected void initParameters() {
-        registerParameter(new SourceReaderParameter("hdfsReadUrl", "HDFS Read URL", "..."
-                , SourceReaderParameter.TYPE_STRING_LONG, true, null));
+		registerParameter(new SourceReaderParameter("fs.defaultFS", "Default File System Name", "The name of the HDFS default file system."
+				, SourceReaderParameter.TYPE_STRING_LONG, true, null));
 		registerParameter(new SourceReaderParameter("filePath", "File or Dir Path", "File path for reading source file. Absolute path or relative path for collection home directory. Multiple paths are allowed with commas."
 				, SourceReaderParameter.TYPE_STRING_LONG, true, null));
 		registerParameter(new SourceReaderParameter("encoding", "Encoding", "File encoding"
@@ -213,10 +223,18 @@ public abstract class AbstractHDFSFileReader extends SingleSourceReader<Map<Stri
 
 		for (int cnt = 0; cnt < fsStatus.length; cnt++) {
 			FileStatus status = fsStatus[cnt];
+			// 현재 바라보고 있는 경로가 CSV 확장자 파일인지를 확인한다.
+			String allowPattern = ".+\\.(csv)$";
+			boolean check = false;
+			Pattern p = Pattern.compile(allowPattern);
+			Matcher m = p.matcher(status.getPath().toString());
+			check = m.matches();
+
 			if (status.isDirectory()) {
 				// 여기서 하위 디렉토리의 파일들의 리스트를 다시 가져와서 파일 내용을 읽어야 한다.
 				getFilePathList(status);
-			} else {
+			} else if (check) {
+				// CSV 확장자가 아닌 파일은 제외한다.
 				Path path = status.getPath();
 				filePaths.add(path);
 			}
