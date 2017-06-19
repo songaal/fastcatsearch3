@@ -54,7 +54,7 @@ public class HDFSCSVFileReader extends AbstractHDFSFileReader {
         while ((line = reader.readLine()) != null) {
             Map<String, Object> record = new HashMap<String, Object>();
             try {
-                String[] els = line.split(",");
+                String[] els = line.split(",", fieldList.size());
                 for (int i = 0; i < fieldIndexList.size(); i++) {
                     Integer index = fieldIndexList.get(i);
                     if (index != -1) {
