@@ -29,6 +29,7 @@ public class HDFSCSVFileReader extends AbstractHDFSFileReader {
     public HDFSCSVFileReader(String collectionId, File file, SingleSourceConfig singleSourceConfig, SourceModifier<Map<String, Object>> sourceModifier, String lastIndexTime)
             throws IRException, IOException {
         super(collectionId, file, singleSourceConfig, sourceModifier, lastIndexTime);
+        reader_file_type = "CSV";
     }
 
     @Override

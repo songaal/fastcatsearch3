@@ -29,6 +29,10 @@ public abstract class AbstractHDFSFileReader extends SingleSourceReader<Map<Stri
     private static final int DEFAULT_BUFFER_SIZE = 100;
 	private static final String DEFAULTFS = "fs.defaultFS";
     private int readCount;
+	protected String reader_file_type;
+	private String allowPattern;
+	private String PATTERN_CSV = ".+\\.(csv)$";
+	private String PATTERN_JSON = ".+\\.(json)$";
 
 	public AbstractHDFSFileReader() {
 		super();
@@ -62,9 +66,13 @@ public abstract class AbstractHDFSFileReader extends SingleSourceReader<Map<Stri
         for(String path : pathList) {
 			FileSystem fs = FileSystem.get(conf);
 
-			// 현재 바라보고 있는 경로가 CSV 확장자 파일인지를 확인한다.
+			// 현재 바라보고 있는 경로가 소스 리더에서 요구하고 있는 확장자 파일인지를 확인한다.
             String rootPath = filePath.makePath(path).file().getAbsolutePath();
-			String allowPattern = ".+\\.(csv)$";
+			if (reader_file_type.equalsIgnoreCase("CSV")) {
+				allowPattern = PATTERN_CSV;
+			} else {
+				allowPattern = PATTERN_JSON;
+			}
 			boolean check = false;
 			Pattern p = Pattern.compile(allowPattern);
 			Matcher m = p.matcher(rootPath);
@@ -223,8 +231,6 @@ public abstract class AbstractHDFSFileReader extends SingleSourceReader<Map<Stri
 
 		for (int cnt = 0; cnt < fsStatus.length; cnt++) {
 			FileStatus status = fsStatus[cnt];
-			// 현재 바라보고 있는 경로가 CSV 확장자 파일인지를 확인한다.
-			String allowPattern = ".+\\.(csv)$";
 			boolean check = false;
 			Pattern p = Pattern.compile(allowPattern);
 			Matcher m = p.matcher(status.getPath().toString());

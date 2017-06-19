@@ -31,8 +31,7 @@ public class HDFSJSONFileReader extends SingleSourceReader<Map<String,Object>> {
 			throws IRException {
 		super(collectionId, filePath, singleSourceConfig, sourceModifier, lastIndexTime);
 	}
-	
-	//String rootPath;
+
 	String encoding;
 	String[] fieldId;
 	String delimiter;
