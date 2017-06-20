@@ -67,7 +67,7 @@ public class IndexFireScheduleWorker extends Thread {
             while (!isCanceled) {
 
                 if (currentReader == null) {
-                    LogFileStatus logFileStatus = fileQueue.poll();
+                    LogFileStatus logFileStatus = fileQueue.peek();
 
                     if (logFileStatus == null) {
                         //더이상 들어온 파일이 없다면 만들어둔 문서만 보낸다.
@@ -81,6 +81,7 @@ public class IndexFireScheduleWorker extends Thread {
                     File file = logFileStatus.getFile();
                     if (!file.exists()) {
                         //존재하지 않는다면 누군가 지운것임. 다음 파일을 확인한다.
+                        fileQueue.poll(); //버린다
                         continue;
                     }
                     currentReader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
@@ -99,6 +100,7 @@ public class IndexFireScheduleWorker extends Thread {
                             currentReader = null;
                             //다쓴 파일은 삭제한다.
                             toBeDeleted.add(currentFileStatus.getFile());
+                            fileQueue.poll(); //뽑아서 버린다
                             currentFileStatus = null;
                             //다음 파일을 확인한다.
                             break;
@@ -111,7 +113,7 @@ public class IndexFireScheduleWorker extends Thread {
                             } catch (InterruptedException ignore) {
                             }
 
-                            if(tryCount >= 4) {
+                            if (tryCount >= 4) {
                                 if (documentsBuilder != null && documentsBuilder.length() > 0) {
                                     logger.debug("[{}] sendDocuments3 count[{}] size[{}]", collectionId, count, org.fastcatsearch.ir.util.Formatter.getFormatSize(totalSize));
                                     return documentsBuilder.toString();
@@ -123,8 +125,8 @@ public class IndexFireScheduleWorker extends Thread {
                         //Logger에서 bufferedWriter.flush를 해도 실제로 fileSystem에서 기록되는 것은 보장되지 않으므로 json이 끊어질 수 있다.
                         //그렇기 때문에 이어 붙여준다.
                         char lastChar = docRequest.charAt(docRequest.length() - 1);
-                        if(lastChar != '}') {
-                            if(remnant != null) {
+                        if (lastChar != '}') {
+                            if (remnant != null) {
                                 remnant.append(docRequest);
                             } else {
                                 remnant = new StringBuilder(docRequest);
@@ -132,7 +134,7 @@ public class IndexFireScheduleWorker extends Thread {
                             //닫히지 않은 JSON은 다시 읽어서 붙여준다.
                             continue;
                         } else {
-                            if(remnant != null) {
+                            if (remnant != null) {
                                 remnant.append(docRequest);
                                 docRequest = remnant.toString();
                                 remnant = null;
@@ -143,7 +145,7 @@ public class IndexFireScheduleWorker extends Thread {
                             documentsBuilder = new StringBuilder();
                         }
                         documentsBuilder.append(docRequest).append('\n');
-                        totalSize += (docRequest.length() + 1)* 2;
+                        totalSize += (docRequest.length() + 1) * 2;
                         count++;
                         //0으로 만들어 주니 너무 많이 길어진다.
 //                        tryCount = 0;
@@ -157,12 +159,6 @@ public class IndexFireScheduleWorker extends Thread {
             }
         } catch (IOException e) {
             logger.error("", e);
-        } finally {
-            //currentFileStatus 가 null 이 아니라는 것은 toBeDeleted 에 추가되지 않았다는 것이므로, 지워지지 않을것임.
-            // 그러므로, 다시한번 fileQueue 에 넣어서 실시간 동적색인을 진행하도록 유도.
-            if(currentFileStatus != null) {
-                fileQueue.add(currentFileStatus);
-            }
         }
         //IO 에러시에는 null을 리턴한다.
         return null;
@@ -181,7 +177,7 @@ public class IndexFireScheduleWorker extends Thread {
                 if (documents != null) {
                     sendDocuments(documents);
                 }
-                for(File f : toBeDeletedFiles) {
+                for (File f : toBeDeletedFiles) {
                     //전송이 잘 되었다면 실제로 지운다.
                     FileUtils.deleteQuietly(f);
                 }
