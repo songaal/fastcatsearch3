@@ -2,22 +2,36 @@ FROM openjdk:8-jre
 
 ENV FASTCATSEARCH_HOME /usr/local/fastcatsearch3
 ENV PATH $FASTCATSEARCH_HOME/bin:$PATH
-RUN mkdir -p "$FASTCATSEARCH_HOME"
-WORKDIR $FASTCATSEARCH_HOME
 
 RUN set -x \
 	&& apt-get update
 
-ARG GNCLOUD_REPOSITORY
-ENV FASTCATSEARCH_VERSION 3.14.2
-ENV FASTCATSEARCH_TGZ_URL $GNCLOUD_REPOSITORY/fastcatsearch/fastcatsearch-$FASTCATSEARCH_VERSION.tar.gz
+ARG LIB
+ARG FASTCATSEARCH_VERSION=3.14.3
+ARG KOREAN_VERSION=2.21.5
+ARG PRODUCT_VERSION=2.23.2
+
+WORKDIR /usr/local/
+
+COPY $LIB/fastcatsearch-$FASTCATSEARCH_VERSION.tar.gz /usr/local/
 
 RUN set -x \
 	\
-	&& wget -O fastcatsearch3.tar.gz "$FASTCATSEARCH_TGZ_URL" \
-	&& tar -xvf fastcatsearch3.tar.gz --strip-components=1
+	&& tar -xzvf fastcatsearch-$FASTCATSEARCH_VERSION.tar.gz --strip-components=1 \
+	&& mv fastcatsearch-$FASTCATSEARCH_VERSION fastcatsearch3
 
-VOLUME $FASTCATSEARCH_HOME/collections
+COPY $LIB/analyzer-korean-$KOREAN_VERSION.tar.gz $LIB/analyzer-product-$PRODUCT_VERSION.tar.gz $FASTCATSEARCH_HOME/plugin/analysis/
+
+WORKDIR $FASTCATSEARCH_HOME/plugin/analysis/
+
+RUN set -x \
+	\
+	&& tar -xzvf analyzer-korean-$KOREAN_VERSION.tar.gz --strip-components=1 \
+	&& tar -xzvf analyzer-product-$PRODUCT_VERSION.tar.gz --strip-components=1 \
+
+WORKDIR $FASTCATSEARCH_HOME
+
+#VOLUME $FASTCATSEARCH_HOME/collections
 
 EXPOSE 8090
 ENTRYPOINT ["/bin/fastcatsearch3"]
