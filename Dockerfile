@@ -1,4 +1,4 @@
-FROM openjdk:8-jre
+FROM openjdk:8-jdk
 
 ENV FASTCATSEARCH_HOME /usr/local/fastcatsearch3
 ENV PATH $FASTCATSEARCH_HOME/bin:$PATH
