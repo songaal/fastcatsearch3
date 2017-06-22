@@ -34,12 +34,8 @@ RUN set -x \
 
 WORKDIR $FASTCATSEARCH_HOME
 
-RUN sed 's/<!-- appender-ref ref="STDOUT" \/-->/<appender-ref ref="STDOUT" \/>/' conf/logback.xml > logback.xml
-RUN mv ./logback.xml conf/logback.xml
-RUN sed 's/root level="debug"/root level="info"/' conf/logback.xml > logback.xml
-RUN mv ./logback.xml conf/logback.xml
-
-#VOLUME $FASTCATSEARCH_HOME/collections
+# logback.conf의 loglevel을 info로 변경하고, 표준출력을 활성화 시킨다.
+RUN sed -i 's/<!-- appender-ref ref="STDOUT" \/-->/<appender-ref ref="STDOUT" \/>/; s/root level="debug"/root level="info"/' conf/logback.xml
 
 EXPOSE 8090
 ENTRYPOINT ["/bin/bash", "bin/fastcatsearch"]
