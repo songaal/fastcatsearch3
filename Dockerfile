@@ -10,7 +10,7 @@ RUN mkdir -p "$FASTCATSEARCH_HOME"
 
 # ARG GNCLOUD_REPOSITORY
 ARG LIB
-ARG FASTCATSEARCH_VERSION=3.14.3
+ARG FASTCATSEARCH_VERSION=3.14.5
 ARG KOREAN_VERSION=2.21.5
 ARG PRODUCT_VERSION=2.23.2
 
@@ -21,16 +21,21 @@ COPY $LIB/fastcatsearch-$FASTCATSEARCH_VERSION.tar.gz "$FASTCATSEARCH_HOME"
 RUN set -x \
 	\
 	&& tar -xzvf fastcatsearch-$FASTCATSEARCH_VERSION.tar.gz --strip-components=1 \
-	&& ls && echo `pwd`
+	&& rm -f astcatsearch-$FASTCATSEARCH_VERSION.tar.gz
 
 WORKDIR $FASTCATSEARCH_HOME/plugin/analysis/
+
+RUN set -x \
+	&& mkdir -p $FASTCATSEARCH_HOME/plugin/analysis/Korean $FASTCATSEARCH_HOME/plugin/analysis/Product
 
 COPY $LIB/analyzer-korean-$KOREAN_VERSION.tar.gz $LIB/analyzer-product-$PRODUCT_VERSION.tar.gz ./
 
 RUN set -x \
 	\
-	&& tar -xzvf analyzer-korean-$KOREAN_VERSION.tar.gz --strip-components=1 \
-	&& tar -xzvf analyzer-product-$PRODUCT_VERSION.tar.gz --strip-components=1
+	&& tar -xzvf analyzer-korean-$KOREAN_VERSION.tar.gz -C ./Korean --strip-components=1 \
+	&& tar -xzvf analyzer-product-$PRODUCT_VERSION.tar.gz -C ./Product --strip-components=1 \
+	&& rm -f analyzer-korean-$KOREAN_VERSION.tar.gz \
+	&& rm -f analyzer-product-$PRODUCT_VERSION.tar.gz
 
 WORKDIR $FASTCATSEARCH_HOME
 
