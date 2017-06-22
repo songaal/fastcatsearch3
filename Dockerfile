@@ -21,7 +21,7 @@ COPY $LIB/fastcatsearch-$FASTCATSEARCH_VERSION.tar.gz "$FASTCATSEARCH_HOME"
 RUN set -x \
 	\
 	&& tar -xzvf fastcatsearch-$FASTCATSEARCH_VERSION.tar.gz --strip-components=1 \
-	&& rm -f astcatsearch-$FASTCATSEARCH_VERSION.tar.gz
+	&& rm -f fastcatsearch-$FASTCATSEARCH_VERSION.tar.gz
 
 WORKDIR $FASTCATSEARCH_HOME/plugin/analysis/
 
