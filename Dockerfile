@@ -34,6 +34,11 @@ RUN set -x \
 
 WORKDIR $FASTCATSEARCH_HOME
 
+RUN sed 's/<!-- appender-ref ref="STDOUT" \/-->/<appender-ref ref="STDOUT" \/>/' conf/logback.xml > logback.xml
+RUN mv ./logback.xml conf/logback.xml
+RUN sed 's/root level="debug"/root level="info"/' conf/logback.xml > logback.xml
+RUN mv ./logback.xml conf/logback.xml
+
 #VOLUME $FASTCATSEARCH_HOME/collections
 
 EXPOSE 8090
