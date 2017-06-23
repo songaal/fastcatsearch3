@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@ActionMapping(value="/service/dictionary/list", method = { ActionMethod.GET })
+@ActionMapping(value="/service/dictionary/list", method = { ActionMethod.GET, ActionMethod.POST })
 public class GetDictionaryWordListAction extends ServiceAction {
 
     @Override
