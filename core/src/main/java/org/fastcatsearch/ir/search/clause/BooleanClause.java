@@ -11,14 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.core.AnalyzerOption;
-import org.apache.lucene.analysis.tokenattributes.AdditionalTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
-import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
-import org.apache.lucene.analysis.tokenattributes.StopwordAttribute;
-import org.apache.lucene.analysis.tokenattributes.SynonymAttribute;
-import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
+import org.apache.lucene.analysis.tokenattributes.*;
 import org.apache.lucene.util.CharsRef;
 import org.fastcatsearch.ir.io.CharVector;
 import org.fastcatsearch.ir.query.HighlightInfo;
@@ -92,6 +85,7 @@ public class BooleanClause extends OperatedClause {
         StopwordAttribute stopwordAttribute = null;
         TypeAttribute typeAttribute = null;
         AdditionalTermAttribute additionalTermAttribute = null;
+        CompoundTermAttribute compoundTermAttribute = null;
 
         SynonymAttribute synonymAttribute = null;
         OffsetAttribute offsetAttribute = null;
@@ -116,6 +110,9 @@ public class BooleanClause extends OperatedClause {
         }
         if (tokenStream.hasAttribute(AdditionalTermAttribute.class)) {
             additionalTermAttribute = tokenStream.getAttribute(AdditionalTermAttribute.class);
+        }
+        if (tokenStream.hasAttribute(CompoundTermAttribute.class)) {
+            compoundTermAttribute = tokenStream.getAttribute(CompoundTermAttribute.class);
         }
         if (tokenStream.hasAttribute(SynonymAttribute.class)) {
             synonymAttribute = tokenStream.getAttribute(SynonymAttribute.class);

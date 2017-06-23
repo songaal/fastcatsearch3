@@ -2,9 +2,12 @@
 
 echo '++++++++++ Fastcatsearch Environment ++++++++++'
 
-heap_memory_size=768m
 java_path=
 daemon_account=fastcat
+
+if [ -z "$heap_memory_size" ]; then
+    heap_memory_size=768m
+fi
 
 current=$( dirname "$0" )
 
@@ -19,4 +22,4 @@ export java_path
 export daemon_account
 
 echo server_home = "$server_home"
-
+echo heap_memory_size = "$heap_memory_size"
