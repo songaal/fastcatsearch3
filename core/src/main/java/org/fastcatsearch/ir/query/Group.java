@@ -26,6 +26,8 @@ public class Group {
 	public static final int SORT_KEY_DESC = 1 << 6;
 	public static final int SORT_VALUE_ASC = 1 << 7;
 	public static final int SORT_VALUE_DESC = 1 << 8;
+	public static final int SORT_KEY_NUMERIC_ASC = 1 << 9;
+	public static final int SORT_KEY_NUMERIC_DESC = 1 << 10;
 	
 	public static final String DEFAULT_GROUP_FUNCTION_NAME = GroupFunctionType.COUNT.name();
 	

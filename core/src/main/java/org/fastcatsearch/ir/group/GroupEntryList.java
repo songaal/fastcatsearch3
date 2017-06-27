@@ -127,6 +127,60 @@ public class GroupEntryList {
 		}
 	};
 
+	/**
+	 * 기존 정렬 방식에서 Key를 String이 아니라 Integer 기준으로 정렬
+	 * */
+	public static Comparator<GroupEntry> KeyNumericAscendingComparator = new Comparator<GroupEntry>(){
+		@Override
+		public int compare(GroupEntry o1, GroupEntry o2) {
+			if(o1.key == null || o2.key == null) {
+				return 0;
+			} else if(o1.key == null) {
+				return 1;
+			} else if(o2.key == null) {
+				return -1;
+			}
+
+			if (isStringDouble(o1.key) && isStringDouble(o2.key)) {
+				double o1num = Double.parseDouble(o1.key);
+				double o2num = Double.parseDouble(o2.key);
+				return Double.compare(o1num, o2num);
+			} else if (isStringInteger(o1.key) && isStringDouble(o2.key)) {
+				int o1num = Integer.parseInt(o1.key);
+				int o2num = Integer.parseInt(o2.key);
+				return Integer.compare(o1num, o2num);
+			} else {
+				// 정수값이 아닐 경우 KEY_DESC와 동일하게 정렬
+				return o1.key.compareTo(o2.key);
+			}
+		}
+	};
+	public static Comparator<GroupEntry> KeyNumericDescendingComparator = new Comparator<GroupEntry>(){
+		@Override
+		public int compare(GroupEntry o1, GroupEntry o2) {
+			if(o1.key == null || o2.key == null) {
+				return 0;
+			} else if(o1.key == null) {
+				return 1;
+			} else if(o2.key == null) {
+				return -1;
+			}
+
+			if (isStringDouble(o1.key) && isStringDouble(o2.key)) {
+				double o1num = Double.parseDouble(o1.key);
+				double o2num = Double.parseDouble(o2.key);
+				return Double.compare(o2num, o1num);
+			} else if (isStringInteger(o1.key) && isStringDouble(o2.key)) {
+				int o1num = Integer.parseInt(o1.key);
+				int o2num = Integer.parseInt(o2.key);
+				return Integer.compare(o2num, o1num);
+			} else {
+				// 정수값이 아닐 경우 KEY_DESC와 동일하게 정렬
+				return o2.key.compareTo(o1.key);
+			}
+		}
+	};
+
 	public void sort(int sortOrder) {
 		if(entryList == null){
 			return;
@@ -138,8 +192,36 @@ public class GroupEntryList {
 			Collections.sort(entryList, GroupEntryList.KeyDescendingComparator);
 		}else if(sortOrder == Group.SORT_VALUE_ASC){
 			Collections.sort(entryList, GroupEntryList.ValueAscendingComparator);
-		}else if(sortOrder == Group.SORT_VALUE_DESC){
+		}else if(sortOrder == Group.SORT_VALUE_DESC) {
 			Collections.sort(entryList, GroupEntryList.ValueDescendingComparator);
+		}else if(sortOrder == Group.SORT_KEY_NUMERIC_ASC){
+			Collections.sort(entryList, GroupEntryList.KeyNumericAscendingComparator);
+		}else if(sortOrder == Group.SORT_KEY_NUMERIC_DESC){
+			Collections.sort(entryList, GroupEntryList.KeyNumericDescendingComparator);
+		}
+	}
+
+	/*
+	* String이 Integer 형식으로 변환이 가능한지 체크한다.
+	* */
+	public static boolean isStringInteger(String str) {
+		try {
+			Integer.parseInt(str);
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}
+	}
+
+	/*
+	* String이 Double 형식으로 변환이 가능한지 체크한다.
+	* */
+	public static boolean isStringDouble(String str) {
+		try {
+			Double.parseDouble(str);
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
 		}
 	}
 	

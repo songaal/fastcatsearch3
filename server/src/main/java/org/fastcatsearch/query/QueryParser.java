@@ -411,6 +411,10 @@ public class QueryParser {
 			return Group.SORT_VALUE_ASC;
 		} else if (string.equalsIgnoreCase("COUNT_DESC") || string.equalsIgnoreCase("VALUE_DESC")) {
 			return Group.SORT_VALUE_DESC;
+		} else if (string.equalsIgnoreCase("KEY_NUMERIC_ASC") || string.equalsIgnoreCase("KEY_NUM_ASC")) {
+			return Group.SORT_KEY_NUMERIC_ASC;
+		} else if (string.equalsIgnoreCase("KEY_NUMERIC_DESC") || string.equalsIgnoreCase("KEY_NUM_DESC")) {
+			return Group.SORT_KEY_NUMERIC_DESC;
 		}
 		return 0;
 	}
