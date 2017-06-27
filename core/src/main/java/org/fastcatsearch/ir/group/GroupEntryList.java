@@ -128,7 +128,7 @@ public class GroupEntryList {
 	};
 
 	/**
-	 * 기존 정렬 방식에서 Key를 String이 아니라 Integer 기준으로 정렬
+	 * 기존 정렬 방식에서 Key를 String이 아니라 숫자 기준으로 정렬
 	 * */
 	public static Comparator<GroupEntry> KeyNumericAscendingComparator = new Comparator<GroupEntry>(){
 		@Override
@@ -145,10 +145,18 @@ public class GroupEntryList {
 				double o1num = Double.parseDouble(o1.key);
 				double o2num = Double.parseDouble(o2.key);
 				return Double.compare(o1num, o2num);
-			} else if (isStringInteger(o1.key) && isStringDouble(o2.key)) {
+			} else if (isStringInteger(o1.key) && isStringInteger(o2.key)) {
 				int o1num = Integer.parseInt(o1.key);
 				int o2num = Integer.parseInt(o2.key);
 				return Integer.compare(o1num, o2num);
+			} else if (isStringFloat(o1.key) && isStringFloat(o2.key)) {
+				Float o1num = Float.parseFloat(o1.key);
+				Float o2num = Float.parseFloat(o2.key);
+				return Float.compare(o1num, o2num);
+			} else if (isStringLong(o1.key) && isStringLong(o2.key)) {
+				Long o1num = Long.parseLong(o1.key);
+				Long o2num = Long.parseLong(o2.key);
+				return Long.compare(o1num, o2num);
 			} else {
 				// 정수값이 아닐 경우 KEY_DESC와 동일하게 정렬
 				return o1.key.compareTo(o2.key);
@@ -170,10 +178,18 @@ public class GroupEntryList {
 				double o1num = Double.parseDouble(o1.key);
 				double o2num = Double.parseDouble(o2.key);
 				return Double.compare(o2num, o1num);
-			} else if (isStringInteger(o1.key) && isStringDouble(o2.key)) {
+			} else if (isStringInteger(o1.key) && isStringInteger(o2.key)) {
 				int o1num = Integer.parseInt(o1.key);
 				int o2num = Integer.parseInt(o2.key);
 				return Integer.compare(o2num, o1num);
+			} else if (isStringFloat(o1.key) && isStringFloat(o2.key)) {
+				Float o1num = Float.parseFloat(o1.key);
+				Float o2num = Float.parseFloat(o2.key);
+				return Float.compare(o2num, o1num);
+			} else if (isStringLong(o1.key) && isStringLong(o2.key)) {
+				Long o1num = Long.parseLong(o1.key);
+				Long o2num = Long.parseLong(o2.key);
+				return Float.compare(o2num, o1num);
 			} else {
 				// 정수값이 아닐 경우 KEY_DESC와 동일하게 정렬
 				return o2.key.compareTo(o1.key);
@@ -224,5 +240,28 @@ public class GroupEntryList {
 			return false;
 		}
 	}
-	
+
+	/*
+	* String이 Float 형식으로 변환이 가능한지 체크한다.
+	* */
+	public static boolean isStringFloat(String str) {
+		try {
+			Float.parseFloat(str);
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}
+	}
+
+	/*
+	* String이 Long 형식으로 변환이 가능한지 체크한다.
+	* */
+	public static boolean isStringLong(String str) {
+		try {
+			Long.parseLong(str);
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}
+	}
 }
