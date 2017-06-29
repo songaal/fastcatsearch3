@@ -60,7 +60,7 @@ public class FieldSetting {
 	private String multiValueDelimiter;
 
 	public static enum Type {
-		UNKNOWN, ASTRING, STRING, INT, LONG, FLOAT, DOUBLE, DATETIME, _SCORE, _HIT, _DOCNO, _BUNDLESIZE, _DISTANCE
+		UNKNOWN, ASTRING, STRING, INT, LONG, FLOAT, DOUBLE, DATETIME, _SCORE, _HIT, _DOCNO, _BUNDLESIZE, _DISTANCE, _MATCH_ORDER
 	}
 
 	// JAXB를 위해서는 default 생성자가 꼭 필요하다.
@@ -363,7 +363,7 @@ public class FieldSetting {
 	public boolean isNumericField() {
 		return type == FieldSetting.Type.INT || type == FieldSetting.Type.LONG || type == FieldSetting.Type.FLOAT || type == FieldSetting.Type.DOUBLE
 				|| type == FieldSetting.Type.DATETIME || type == FieldSetting.Type._HIT || type == FieldSetting.Type._SCORE
-				|| type == FieldSetting.Type._DOCNO || type == Type._DISTANCE;
+				|| type == FieldSetting.Type._DOCNO || type == Type._DISTANCE || type == Type._MATCH_ORDER;
 	}
 
 }

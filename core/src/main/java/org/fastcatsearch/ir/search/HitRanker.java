@@ -24,6 +24,7 @@ import org.fastcatsearch.error.CoreErrorCode;
 import org.fastcatsearch.error.SearchError;
 import org.fastcatsearch.ir.field.DistanceField;
 import org.fastcatsearch.ir.field.HitField;
+import org.fastcatsearch.ir.field.MatchOrderField;
 import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.io.FixedMaxPriorityQueue;
 import org.fastcatsearch.ir.query.Sort;
@@ -63,6 +64,8 @@ public class HitRanker extends FixedMaxPriorityQueue<HitElement>{
 					sortFunctions[i] = sort.createSortFunction(HitField.field);
                 }else if(fieldIndexId.equalsIgnoreCase(DistanceField.fieldName)){
                     sortFunctions[i] = sort.createSortFunction(DistanceField.field);
+				}else if(fieldIndexId.equalsIgnoreCase(MatchOrderField.fieldName)) {
+					sortFunctions[i] = sort.createSortFunction(MatchOrderField.field);
 				}else{
 					throw new SearchError(CoreErrorCode.FIELD_INDEX_NOT_EXIST, fieldIndexId);
 				}
@@ -73,7 +76,7 @@ public class HitRanker extends FixedMaxPriorityQueue<HitElement>{
 				sortFunctions[i] = sort.createSortFunction(fieldSetting);
 			}
 			
-			logger.debug("sortFunctions[{}]=[{}]=", i, sortFunctions[i]);
+ 			logger.debug("sortFunctions[{}]=[{}]=", i, sortFunctions[i]);
 		}
 	}
 	

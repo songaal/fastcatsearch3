@@ -661,6 +661,8 @@ public class QueryParser {
 			}
 			if (function.equalsIgnoreCase("MATCH")) {
 				f.add(new Filter(field, Filter.MATCH, functionParamList, parameterList));
+			} else if (function.equalsIgnoreCase("MATCH_ORDER")) {
+				f.add(new Filter(field, Filter.MATCH_ORDER, functionParamList, parameterList));
 			} else if (function.equalsIgnoreCase("SECTION")) {
 				String[] patList = new String[parameterList.length];
 				String[] endPatList = new String[parameterList.length];

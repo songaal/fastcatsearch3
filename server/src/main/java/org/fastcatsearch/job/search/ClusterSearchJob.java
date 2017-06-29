@@ -176,6 +176,7 @@ public class ClusterSearchJob extends Job {
             int[] eachScores = new int[realSize];
             int[] eachHits = new int[realSize];
             float[] eachDistance = new float[realSize];
+			int[] eachFilterMatchOrder = new int[realSize];
             int[] bundleTotalSizeList = new int[realSize];
 			List<RowExplanation>[] rowExplanationsList = null;
 
@@ -198,6 +199,7 @@ public class ClusterSearchJob extends Job {
                 eachScores[idx] = el.score();
                 eachHits[idx] = el.hit();
                 eachDistance[idx] = el.distance();
+				eachFilterMatchOrder[idx] = el.filterMatchOrder();
                 bundleTotalSizeList[idx] = el.getTotalBundleSize();
 
 				collectionTags[idx] = collectionNo;
@@ -279,6 +281,7 @@ public class ClusterSearchJob extends Job {
 				rows[i].setScore(score);
                 rows[i].setHit(eachHits[i]);
                 rows[i].setDistance(eachDistance[i]);
+				rows[i].setFilterMatchOrder(eachFilterMatchOrder[i]);
 				
 				documentResult.next();
 			}

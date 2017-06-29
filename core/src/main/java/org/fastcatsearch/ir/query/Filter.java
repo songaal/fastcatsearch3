@@ -41,6 +41,7 @@ public class Filter {
     public static final int GEO_RADIUS_BOOST = 1 << 12;
 	public static final int EMPTY = 1 << 13;
 	public static final int SECTION_EXCLUDE = 1 << 14;
+	public static final int MATCH_ORDER = 1 << 15;
 
 	private Object fieldIndexId;
 	private int function;
@@ -121,6 +122,8 @@ public class Filter {
 			return new MatchFilter(this, fieldIndexSetting, fieldSetting);
 		case MATCH_BOOST:
 			return new MatchFilter(this, fieldIndexSetting, fieldSetting, true);
+		case MATCH_ORDER:
+			return new MatchOrderFilter(this, fieldIndexSetting, fieldSetting);
 		case SECTION:
 			return new SectionFilter(this, fieldIndexSetting, fieldSetting);
 		case SECTION_BOOST:

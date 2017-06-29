@@ -1,9 +1,6 @@
 package org.fastcatsearch.http.writer;
 
-import org.fastcatsearch.ir.field.BundleSizeField;
-import org.fastcatsearch.ir.field.DistanceField;
-import org.fastcatsearch.ir.field.HitField;
-import org.fastcatsearch.ir.field.ScoreField;
+import org.fastcatsearch.ir.field.*;
 import org.fastcatsearch.ir.group.GroupResults;
 import org.fastcatsearch.ir.query.Result;
 import org.fastcatsearch.ir.query.Row;
@@ -149,7 +146,9 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 			}else if(fieldNames[k].equalsIgnoreCase(BundleSizeField.fieldName)){
 				fdata = String.valueOf(bundleSize);
             }else if(fieldNames[k].equalsIgnoreCase(DistanceField.fieldName)){
-                    fdata = String.valueOf(row.getDistance());
+				fdata = String.valueOf(row.getDistance());
+			}else if(fieldNames[k].equalsIgnoreCase(MatchOrderField.fieldName)){
+				fdata = String.valueOf(row.getFilterMatchOrder());
 			}else{
 				char[] f = row.get(k);
 				fdata = new String(f).trim();

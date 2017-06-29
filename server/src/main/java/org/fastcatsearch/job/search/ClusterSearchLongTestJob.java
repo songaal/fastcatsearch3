@@ -175,6 +175,7 @@ public class ClusterSearchLongTestJob extends Job {
             int[] eachScores = new int[realSize];
             int[] eachHits = new int[realSize];
             float[] eachDistance = new float[realSize];
+			int[] eachFilterMatchOrder = new int[realSize];
             int[] bundleTotalSizeList = new int[realSize];
 			List<RowExplanation>[] rowExplanationsList = null;
 
@@ -278,6 +279,7 @@ public class ClusterSearchLongTestJob extends Job {
 				rows[i].setScore(score);
                 rows[i].setHit(eachHits[i]);
                 rows[i].setDistance(eachDistance[i]);
+				rows[i].setFilterMatchOrder(eachFilterMatchOrder[i]);
 				
 				documentResult.next();
 			}

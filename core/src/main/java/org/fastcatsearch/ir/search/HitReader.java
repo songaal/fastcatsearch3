@@ -203,6 +203,7 @@ public class HitReader {
 				for (int i = 0; i < nread; i++) {
 					hitElementBuffer[i] = new HitElement(rankInfoList[i].docNo(), rankInfoList[i].score(), rankInfoList[i].hit(), rankInfoList[i].rowExplanations());
                     hitElementBuffer[i].setDistance(rankInfoList[i].distance());
+					hitElementBuffer[i].setFilterMatchOrder(rankInfoList[i].filterMatchOrder());
 				}
 			}
 		} else {

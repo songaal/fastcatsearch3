@@ -16,9 +16,11 @@
 
 package org.fastcatsearch.ir.search;
 
+import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.field.DistanceField;
 import org.fastcatsearch.ir.field.HitField;
+import org.fastcatsearch.ir.field.MatchOrderField;
 import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.io.IOUtil;
 import org.fastcatsearch.ir.query.RankInfo;
@@ -77,6 +79,8 @@ public class SortGenerator {
 //					dataSize += HitField.fieldSize;
                     } else if (fieldId.equalsIgnoreCase(DistanceField.fieldName)) {
                         fieldIndex[i] = DistanceField.fieldNumber;
+                    } else if (fieldId.equalsIgnoreCase(MatchOrderField.fieldName)) {
+                        fieldIndex[i] = MatchOrderField.fieldNumber;
                     } else {
                         throw new IOException("Unknown sort field name = " + fieldId);
                     }
@@ -112,12 +116,14 @@ public class SortGenerator {
                 BytesRef[] rankData = readRankData(ri);
                 result[i] = new HitElement(ri.docNo(), ri.score(), ri.hit(), rankData, rankInfoList[i].rowExplanations());
                 result[i].setDistance(ri.distance());
+                result[i].setFilterMatchOrder(ri.filterMatchOrder());
             }
         } else {
             for (int i = 0; i < n; i++) {
                 RankInfo ri = rankInfoList[i];
                 result[i] = new HitElement(ri.docNo(), ri.score(), ri.hit(), null, rankInfoList[i].rowExplanations());
                 result[i].setDistance(ri.distance());
+                result[i].setFilterMatchOrder(ri.filterMatchOrder());
             }
         }
 		return result;
@@ -133,12 +139,14 @@ public class SortGenerator {
                 BytesRef[] rankData = readRankData(ri);
                 result[i] = new HitElement(ri.docNo(), ri.score(), ri.hit(), rankData, rankInfoList[i].rowExplanations());
                 result[i].setDistance(ri.distance());
+                result[i].setFilterMatchOrder(ri.filterMatchOrder());
             }
         } else {
             for (int i = 0; i < n; i++) {
                 RankInfo ri = rankInfoList[i];
                 result[i] = new HitElement(ri.docNo(), ri.score(), ri.hit(), null, rankInfoList[i].rowExplanations());
                 result[i].setDistance(ri.distance());
+                result[i].setFilterMatchOrder(ri.filterMatchOrder());
             }
         }
 	}
@@ -159,10 +167,13 @@ public class SortGenerator {
                 rankData[j] = new BytesRef(DistanceField.fieldSize);
                 IOUtil.writeInt(rankData[j], Float.floatToIntBits(ri.distance()));
                 rankData[j].flip();
-			}else{
+			}else if(fieldIndex[j] == MatchOrderField.fieldNumber) {
+                rankData[j] = new BytesRef(MatchOrderField.fieldSize);
+                IOUtil.writeInt(rankData[j], ri.filterMatchOrder());
+                rankData[j].flip();
+            } else {
 //				BytesRef bytesRef = indexRef.getDataRef(j).bytesRef();
 //				rankData[j] = bytesRef.duplicate();
-				
 				rankData[j] = dataList[j].duplicate();
 			}
 		}

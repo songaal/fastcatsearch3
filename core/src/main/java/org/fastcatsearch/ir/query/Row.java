@@ -23,7 +23,8 @@ public class Row {
 	private int fieldCount;
 	private int score;
     private int hit;
-    private float distance;
+	private float distance;
+	private int filterMatchOrder;
 
 	//원문조회기능에서필요.
 	private boolean isDeleted;
@@ -98,12 +99,20 @@ public class Row {
         this.hit = hit;
     }
 
-    public float getDistance(){
-        return distance;
-    }
+	public float getDistance(){
+		return distance;
+	}
 
-    public void setDistance(float distance) {
-        this.distance = distance;
-    }
+	public void setDistance(float distance) {
+		this.distance = distance;
+	}
+
+	public int getFilterMatchOrder(){
+		return filterMatchOrder;
+	}
+
+	public void setFilterMatchOrder(int filterMatchOrder) {
+		this.filterMatchOrder = filterMatchOrder;
+	}
 }
 

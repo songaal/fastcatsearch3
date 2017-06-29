@@ -43,6 +43,7 @@ public class RankInfo {
 	private List<RowExplanation> rowExplanations;
 
     private float distance;
+	private int filterMatchOrder; // 필터 MATCH 시 MATCH값 나열 순서
 
     public RankInfo() {
 	}
@@ -62,10 +63,19 @@ public class RankInfo {
         this.matchFlag = 0;
 	}
 
+	public void init(int docNo, int score, int hit, int filterMatchOrder) {
+		this.docNo = docNo;
+		this.score = score;
+		this.hit = hit;
+		this.filterMatchOrder = filterMatchOrder;
+		this.matchFlag = 0;
+	}
+
     public void init(RankInfo another) {
         this.docNo = another.docNo;
         this.score = another.score;
         this.hit = another.hit;
+		this.filterMatchOrder = another.filterMatchOrder;
         this.matchFlag = another.matchFlag;
         explain(another);
         if(another.termOccurrencesList != null) {
@@ -77,6 +87,7 @@ public class RankInfo {
         this.score = 0;
         this.hit = 0;
         this.matchFlag = 0;
+		this.filterMatchOrder = -1;
     }
 
 	public boolean isExplain(){
@@ -102,7 +113,6 @@ public class RankInfo {
 	public void addHit(int add) {
 		hit += add;
 	}
-
 	public void multiplyScore(float mul) {
 		score *= mul;
 	}
@@ -119,11 +129,17 @@ public class RankInfo {
         return distance;
     }
 
+	public int filterMatchOrder() { return filterMatchOrder; }
+
+	public void filterMatchOrder(int rank) {
+		filterMatchOrder = rank;
+	}
+
     public void distance(float distance) {
         this.distance = distance;
     }
 	public String toString() {
-		return "docNo=" + docNo + ",score=" + score + ",hit=" + hit + ",distance=" + distance;
+		return "docNo=" + docNo + ",score=" + score + ",hit=" + hit + ",filterMatchOrder=" + filterMatchOrder + ",distance=" + distance;
 	}
 
 	public int matchFlag() {

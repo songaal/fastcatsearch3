@@ -29,6 +29,7 @@ import java.util.List;
 public class HitElement extends AbstractHitElement<HitElement> {
 
     protected float distance;
+	protected int filterMatchOrder;
 	//bundleKey는 타 노드로 전송할 필요없음. 즉, 한 컬렉션 내에서만 묶고, 컬렉션끼리의 병합시에는 묶지 않음. 
 	private BytesRef bundleKey;
 	
@@ -67,6 +68,14 @@ public class HitElement extends AbstractHitElement<HitElement> {
     public void setDistance(float distance) {
         this.distance = distance;
     }
+
+	public int filterMatchOrder() {
+		return filterMatchOrder;
+	}
+
+	public void setFilterMatchOrder(int filterMatchOrder) {
+		this.filterMatchOrder = filterMatchOrder;
+	}
 
 	@Override
 	public String toString(){

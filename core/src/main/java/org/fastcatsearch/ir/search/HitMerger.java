@@ -22,6 +22,7 @@ import java.util.List;
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.field.DistanceField;
 import org.fastcatsearch.ir.field.HitField;
+import org.fastcatsearch.ir.field.MatchOrderField;
 import org.fastcatsearch.ir.field.ScoreField;
 import org.fastcatsearch.ir.io.FixedHitReader;
 import org.fastcatsearch.ir.io.FixedMinHeap;
@@ -65,6 +66,8 @@ public class HitMerger extends FixedMinHeap<FixedHitReader> {
 					sortFunctions[i] = sort.createSortFunction(HitField.field);
                 }else if(fieldIndexId.equalsIgnoreCase(DistanceField.fieldName)){
                     sortFunctions[i] = sort.createSortFunction(DistanceField.field);
+				}else if(fieldIndexId.equalsIgnoreCase(MatchOrderField.fieldName)){
+					sortFunctions[i] = sort.createSortFunction(MatchOrderField.field);
 				}else{
 					throw new IOException("Unknown sort field name = "+fieldIndexId);
 				}
