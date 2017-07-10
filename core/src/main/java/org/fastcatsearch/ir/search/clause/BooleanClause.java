@@ -85,7 +85,6 @@ public class BooleanClause extends OperatedClause {
         StopwordAttribute stopwordAttribute = null;
         TypeAttribute typeAttribute = null;
         AdditionalTermAttribute additionalTermAttribute = null;
-        CompoundTermAttribute compoundTermAttribute = null;
 
         SynonymAttribute synonymAttribute = null;
         OffsetAttribute offsetAttribute = null;
@@ -110,9 +109,6 @@ public class BooleanClause extends OperatedClause {
         }
         if (tokenStream.hasAttribute(AdditionalTermAttribute.class)) {
             additionalTermAttribute = tokenStream.getAttribute(AdditionalTermAttribute.class);
-        }
-        if (tokenStream.hasAttribute(CompoundTermAttribute.class)) {
-            compoundTermAttribute = tokenStream.getAttribute(CompoundTermAttribute.class);
         }
         if (tokenStream.hasAttribute(SynonymAttribute.class)) {
             synonymAttribute = tokenStream.getAttribute(SynonymAttribute.class);
