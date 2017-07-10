@@ -7,6 +7,7 @@ import java.util.*;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.core.AnalyzerOption;
+import org.apache.lucene.analysis.tokenattributes.AdditionalTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.CharsRefTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
@@ -256,6 +257,7 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 					CharsRefTermAttribute refTermAttribute = null;
 					PositionIncrementAttribute positionAttribute = null;
 					CharTermAttribute termAttribute = null;
+					AdditionalTermAttribute addTermAttribute = null;
 					if(tokenStream.hasAttribute(CharsRefTermAttribute.class)){
 						refTermAttribute = tokenStream.getAttribute(CharsRefTermAttribute.class);
 					}
@@ -264,6 +266,9 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 					}
 					if (tokenStream.hasAttribute(CharTermAttribute.class)) {
 						termAttribute = tokenStream.getAttribute(CharTermAttribute.class);
+					}
+					if (tokenStream.hasAttribute(AdditionalTermAttribute.class)) {
+						addTermAttribute = tokenStream.getAttribute(AdditionalTermAttribute.class);
 					}
 					
 					while(tokenStream.incrementToken()){
@@ -282,6 +287,22 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 							analyzedBuffer.append(", ");
 						}
 						analyzedBuffer.append(value);
+						if (addTermAttribute != null) {
+							Iterator<String> addTerms = addTermAttribute.iterateAdditionalTerms();
+							if(addTerms.hasNext()) {
+								analyzedBuffer.append(" (");
+								int j = 0;
+								while (addTerms.hasNext()) {
+									String addTerm = addTerms.next();
+									if (j > 0) {
+										analyzedBuffer.append(", ");
+									}
+									analyzedBuffer.append(addTerm);
+									j++;
+								}
+								analyzedBuffer.append(") ");
+							}
+						}
 						if(position != -1){
 							analyzedBuffer.append(" [");
 							analyzedBuffer.append(position);
