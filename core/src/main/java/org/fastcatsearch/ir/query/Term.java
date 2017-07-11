@@ -52,7 +52,9 @@ public class Term {
 
     private List<TermsEntry> termsEntryList;
     private int proximity;
-	
+
+	private String analyzeType;
+
 	public Term(){}
 	public Term(String indexFieldId, String termString){
 		this(new String[]{indexFieldId}, termString, -1, Type.ALL);
@@ -144,6 +146,10 @@ public class Term {
         this.termsEntryList = termsEntryList;
     }
 
+	public void setAnalyzeType(String analyzeType) {
+		this.analyzeType = analyzeType;
+	}
+
     public static class Option {
 		private int optionValue;
 		
@@ -196,7 +202,7 @@ public class Term {
             return new AnalyzedBooleanClause(searchIndexReader, this, highlightInfo);
         }
 		if(type == Type.ALL || type == Type.ANY){
-			return new BooleanClause(searchIndexReader, this, highlightInfo, null);
+			return new BooleanClause(searchIndexReader, this, highlightInfo, analyzeType);
 		}else if(type == Type.PHRASE){
 			return new PhraseClause(searchIndexReader, this, highlightInfo);
 		}
