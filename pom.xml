@@ -20,11 +20,11 @@
 	<distributionManagement>
         <repository>
             <id>releases</id>
-            <url>http://nexus.gnclouds.com/content/repositories/releases/</url>
+            <url>http://nexus.gncloud.co/content/repositories/releases/</url>
         </repository>
         <snapshotRepository>
             <id>snapshots</id>
-            <url>http://nexus.gnclouds.com/content/repositories/snapshots/</url>
+            <url>http://nexus.gncloud.co/content/repositories/snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 	
@@ -201,7 +201,7 @@
                 <version>2.5</version>
                 <configuration>
                     <tagNameFormat>v@{project.version}</tagNameFormat>
-                    <tagBase>https://github.com/fastcat-co/fastcatsearch3/tags</tagBase>
+                    <tagBase>https://github.com/gncloud/fastcatsearch3/tags</tagBase>
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                     <goals>deploy</goals>
                 </configuration>
@@ -218,9 +218,9 @@
 	</build>
 
     <scm>
-        <connection>scm:git:https://github.com/fastcat-co/fastcatsearch3</connection>
-        <developerConnection>scm:git:https://github.com/fastcat-co/fastcatsearch3</developerConnection>
-        <url>scm:git:https://github.com/fastcat-co/fastcatsearch3</url>
+        <connection>scm:git:https://github.com/gncloud/fastcatsearch3</connection>
+        <developerConnection>scm:git:https://github.com/gncloud/fastcatsearch3</developerConnection>
+        <url>scm:git:https://github.com/gncloud/fastcatsearch3</url>
       <tag>HEAD</tag>
     </scm>
 
