@@ -231,6 +231,7 @@ public class GetCollectionAnalyzedIndexDataJob extends Job implements Streamable
 			boolean isIgnoreCase = indexSetting.isIgnoreCase();
 			boolean isStorePosition = indexSetting.isStorePosition();
 			int positionIncrementGap = indexSetting.getPositionIncrementGap();
+			boolean noAdditional = indexSetting.isNoAdditional();
 			int gapOffset = 0;
 			
 			StringBuffer allFieldData = new StringBuffer();

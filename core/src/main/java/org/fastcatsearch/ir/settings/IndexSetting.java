@@ -24,7 +24,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-@XmlType(propOrder = { "positionIncrementGap", "storePosition", "ignoreCase", "queryAnalyzer", "fieldList", "name", "id"} )
+@XmlType(propOrder = { "noAdditional", "positionIncrementGap", "storePosition", "ignoreCase", "queryAnalyzer", "fieldList", "name", "id"} )
 @XmlRootElement(name = "index")
 public class IndexSetting {
 
@@ -36,7 +36,8 @@ public class IndexSetting {
 	private boolean ignoreCase;
 	private boolean storePosition;
 	private int positionIncrementGap;
-	
+	private boolean noAdditional; //분석결과에서 additional term 발생시 추가로 색인하지 않는 필드로 지정
+
 	public IndexSetting() { }
 	
 	public IndexSetting(String id){
@@ -49,7 +50,7 @@ public class IndexSetting {
 	}
 	
 	public String toString(){
-		return "[index="+id+":"+name+":"+fieldList+":"+queryAnalyzer+":"+ignoreCase+":"+storePosition+"]";
+		return "[index="+id+":"+name+":"+fieldList+":"+queryAnalyzer+":"+ignoreCase+":"+storePosition+":"+positionIncrementGap+":"+noAdditional+"]";
 	}
 
 	@XmlAttribute(required = true)
@@ -116,6 +117,16 @@ public class IndexSetting {
 
 	public void setStorePosition(Boolean storePosition) {
 		this.storePosition = storePosition;
+	}
+
+	@XmlAttribute
+	@XmlJavaTypeAdapter(OptionalBooleanFalseAdapter.class)
+	public Boolean isNoAdditional() {
+		return noAdditional;
+	}
+
+	public void setNoAdditional(Boolean noAdditional) {
+		this.noAdditional = noAdditional;
 	}
 	
 }

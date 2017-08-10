@@ -270,6 +270,7 @@ public class SchemaSettingUtil {
 				setting.setStorePosition("true".equals(data.optString("storePosition")));
 				setting.setIgnoreCase("true".equals(data.optString("ignoreCase")));
 				setting.setPositionIncrementGap(data.optInt("pig"));
+                setting.setNoAdditional("true".equals(data.optString("noAdditional")));
 
 				List<IndexRefSetting> fieldList = new ArrayList<IndexRefSetting>();
 				String[] refArray = data.optString("refList").split("\n");
