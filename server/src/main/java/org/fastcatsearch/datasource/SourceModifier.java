@@ -16,6 +16,7 @@
 
 package org.fastcatsearch.datasource;
 
+import org.fastcatsearch.datasource.reader.DocumentSkipException;
 import org.fastcatsearch.datasource.reader.SingleSourceReader;
 import org.fastcatsearch.ir.common.IRException;
 import org.slf4j.Logger;

@@ -128,8 +128,19 @@ public abstract class SingleSourceReader<SourceType> {
 		// modifier를 태운다.
 		SourceType source = next();
 		if (sourceModifier != null) {
-			sourceModifier.modify(source);
+			while(true) {
+				try {
+					sourceModifier.modify(source);
+					break;
+				} catch (DocumentSkipException e) {
+					source = next();
+					if(source == null) {
+						break;
+					}
+				}
+			}
 		}
+
 		return source;
 	}
 
