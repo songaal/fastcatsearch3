@@ -135,19 +135,23 @@ public class CollectionAddIndexingJob extends IndexingJob {
                 PrimaryKeySetting primaryKeySetting = schema.schemaSetting().getPrimaryKeySetting();
                 List<RefSetting> list = primaryKeySetting.getFieldList();
                 DeleteIdSet deleteIdSet = dataSourceReader.getDeleteList();
-                deleteSize = deleteIdSet != null ? deleteIdSet.size() : 0;
-                for (PrimaryKeys pks : deleteIdSet) {
-                    JSONStringer json = new JSONStringer();
-                    JSONWriter w = json.object();
-                    for (int i = 0; i < list.size(); i++) {
-                        w.key(list.get(i).getRef()).value(pks.getKey(i));
+                if(deleteIdSet != null) {
+                    deleteSize = deleteIdSet.size();
+                    for (PrimaryKeys pks : deleteIdSet) {
+                        JSONStringer json = new JSONStringer();
+                        JSONWriter w = json.object();
+                        for (int i = 0; i < list.size(); i++) {
+                            w.key(list.get(i).getRef()).value(pks.getKey(i));
+                        }
+                        w.endObject();
+                        jsonList.add(w.toString());
+                        if (jsonList.size() == BULK_INDEX_SIZE) {
+                            dynamicIndexModule.deleteDocument(jsonList);
+                            jsonList.clear();
+                        }
                     }
-                    w.endObject();
-                    jsonList.add(w.toString());
-                    if(jsonList.size() == BULK_INDEX_SIZE) {
-                        dynamicIndexModule.deleteDocument(jsonList);
-                        jsonList.clear();
-                    }
+                } else {
+                    deleteSize = 0;
                 }
                 if(jsonList.size() > 0) {
                     dynamicIndexModule.deleteDocument(jsonList);
