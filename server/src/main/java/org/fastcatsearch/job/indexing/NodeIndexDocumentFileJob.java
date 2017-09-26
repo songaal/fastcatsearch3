@@ -76,27 +76,28 @@ public class NodeIndexDocumentFileJob extends DataJob implements Streamable {
                 DataInfo.SegmentInfo segmentInfo = null;
                 if (indexer != null) {
                     segmentInfo = indexer.close();
-                }
-                File segmentDir = indexer.getSegmentDir();
-                if(segmentInfo.getDocumentCount() == 0 || segmentInfo.getLiveCount() <= 0) {
-                    logger.info("[{}] Delete segment dir due to no documents = {}", collectionHandler.collectionId(), segmentDir.getAbsolutePath());
-                    FileUtils.deleteDirectory(segmentDir);
-                }
-                DeleteIdSet deleteIdSet = indexer.getDeleteIdSet();
-                //추가문서가 있거나, 또는 삭제문서가 있어야 적용을 한다.
-                int totalLiveDocs = 0;
-                if(segmentInfo.getLiveCount() > 0 || deleteIdSet.size() > 0) {
-                    CollectionContext collectionContext = collectionHandler.applyNewSegment(segmentInfo, segmentDir, deleteIdSet);
-                    CollectionContextUtil.saveCollectionAfterDynamicIndexing(collectionContext);
-                    getJobExecutor().offer(new CacheServiceRestartJob(0));
-                    totalLiveDocs = collectionContext.dataInfo().getDocuments() - collectionContext.dataInfo().getDeletes();
-                } else {
-                    CollectionContext collectionContext = collectionHandler.collectionContext();
-                    totalLiveDocs = collectionContext.dataInfo().getDocuments() - collectionContext.dataInfo().getDeletes();
-                }
-                long elapsed = System.currentTimeMillis() - startTime;
 
-                indexingLogger.info("[{}] Dynamic Indexing Done. Inserts[{}] Deletes[{}] Elapsed[{}] TotalLive[{}]", collectionId, segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount(), Formatter.getFormatTime(elapsed), totalLiveDocs);
+                    File segmentDir = indexer.getSegmentDir();
+                    if(segmentInfo.getDocumentCount() == 0 || segmentInfo.getLiveCount() <= 0) {
+                        logger.info("[{}] Delete segment dir due to no documents = {}", collectionHandler.collectionId(), segmentDir.getAbsolutePath());
+                        FileUtils.deleteDirectory(segmentDir);
+                    }
+                    DeleteIdSet deleteIdSet = indexer.getDeleteIdSet();
+                    //추가문서가 있거나, 또는 삭제문서가 있어야 적용을 한다.
+                    int totalLiveDocs = 0;
+                    if(segmentInfo.getLiveCount() > 0 || deleteIdSet.size() > 0) {
+                        CollectionContext collectionContext = collectionHandler.applyNewSegment(segmentInfo, segmentDir, deleteIdSet);
+                        CollectionContextUtil.saveCollectionAfterDynamicIndexing(collectionContext);
+                        getJobExecutor().offer(new CacheServiceRestartJob(0));
+                        totalLiveDocs = collectionContext.dataInfo().getDocuments() - collectionContext.dataInfo().getDeletes();
+                    } else {
+                        CollectionContext collectionContext = collectionHandler.collectionContext();
+                        totalLiveDocs = collectionContext.dataInfo().getDocuments() - collectionContext.dataInfo().getDeletes();
+                    }
+                    long elapsed = System.currentTimeMillis() - startTime;
+
+                    indexingLogger.info("[{}] Dynamic Indexing Done. Inserts[{}] Deletes[{}] Elapsed[{}] TotalLive[{}]", collectionId, segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount(), Formatter.getFormatTime(elapsed), totalLiveDocs);
+                }
             }
         } catch (Exception e) {
             logger.error("node dynamic index error!", e);

@@ -85,8 +85,11 @@ public class CollectionDynamicIndexer {
         * PK를 확인한다.
         * */
         pkList =  new ArrayList<String>();
-        for(RefSetting refSetting : schema.schemaSetting().getPrimaryKeySetting().getFieldList()) {
-            pkList.add(refSetting.getRef().toUpperCase());
+        //PK가 없을경우 에러나는 버그수정.
+        if(schema.schemaSetting().getPrimaryKeySetting().getFieldList() != null) {
+            for (RefSetting refSetting : schema.schemaSetting().getPrimaryKeySetting().getFieldList()) {
+                pkList.add(refSetting.getRef().toUpperCase());
+            }
         }
 
         IndexConfig indexConfig = collectionContext.indexConfig();
