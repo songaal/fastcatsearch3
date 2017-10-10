@@ -697,6 +697,12 @@ public class CollectionSearcher implements Cloneable {
 				}
 			}
 		}
+
+		if (searchOption.useForceHighlight()) {
+			text = text.replaceAll(queryString, tags[0] + queryString + tags[1]);
+			text = text.replaceAll(tags[0] + tags[0] + queryString + tags[1] + tags[1], tags[0] + queryString + tags[1]);
+		}
+
 		return text;
 	}
 
