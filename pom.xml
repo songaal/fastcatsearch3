@@ -11,7 +11,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>co.fastcat</groupId>
 	<artifactId>fastcatsearch</artifactId>
-	<version>3.17.2-SNAPSHOT</version>
+	<version>3.17.2</version>
 	<name>fastcatsearch3</name>
 	<description>fastcatsearch3 package</description>
 	<url>http://www.fastcat.co</url>
@@ -221,7 +221,7 @@
         <connection>scm:git:https://github.com/gncloud/fastcatsearch3</connection>
         <developerConnection>scm:git:https://github.com/gncloud/fastcatsearch3</developerConnection>
         <url>scm:git:https://github.com/gncloud/fastcatsearch3</url>
-      <tag>HEAD</tag>
+      <tag>v3.17.2</tag>
     </scm>
 
 </project>
