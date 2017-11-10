@@ -702,7 +702,9 @@ public class CollectionSearcher implements Cloneable {
 			String[] queryStringArr = queryString.split(" ");
 			HashSet<String> queryStringList = new HashSet<String>();
 			for (String temp : queryStringArr) {
-				queryStringList.add(temp);
+				if (temp.trim().length() != 0) {
+					queryStringList.add(temp);
+				}
 			}
 			for (String temp : queryStringList) {
 				text = text.replaceAll(temp, tags[0] + temp + tags[1]);
