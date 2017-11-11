@@ -200,10 +200,17 @@ public class BooleanClause extends OperatedClause {
                     postingReader = searchMethod.search(indexId, localToken, queryPosition, weight);
                     clause = new TermOperatedClause(indexId, localToken.toString(), postingReader, termSequence.getAndIncrement());
 
-                    if(synonymAttribute!=null) {
-                        clause = this.applySynonym(clause, searchIndexReader, synonymAttribute, indexId, queryPosition, termSequence, type);
-                    }
-                    if ((offsetAttribute.startOffset() == 0 &&
+                    //2017-11-09 swsong 추가 단어들의 유사어가 아닌, 원 단어의 유사어를 추가단어에 붙여주고 있으므로 결과가 동일한 아무의미없는 쿼리임.
+//                    if(synonymAttribute!=null) {
+//                        clause = this.applySynonym(clause, searchIndexReader, synonymAttribute, indexId, queryPosition, termSequence, type);
+//                    }
+
+                    //복합명사 타입. 예를들어 유아동->유아,아동 으로 분리될때 "유아" 와 "아동" 이 이곳으로 들어온다.
+                    boolean isCompoundNoun = typeAttribute != null && typeAttribute.type().equals("<COMPOUND>");
+
+                    //복합명사의 경우, 원래 단어의 start, length를 가지기 때문에 복합명사 개별의 start, length 정보는 없다.
+                    //전제단어로 나올리도 없고, 판단할수도 없다.
+                    if (!isCompoundNoun && (offsetAttribute.startOffset() == 0 &&
                             offsetAttribute.endOffset() == fullTerm.length())) {
                         //전체단어동의어 확장어
                         finalClause = clause;
@@ -213,7 +220,16 @@ public class BooleanClause extends OperatedClause {
                         if(additionalClause == null) {
                             additionalClause = clause;
                         } else {
-                            additionalClause = new OrOperatedClause(additionalClause, clause);
+
+                            /*
+                            * 2017.11.11 swsong
+                            * 복합명사의 경우 서로 and 로 연결해야 한다.
+                            * */
+                            if(isCompoundNoun){
+                                additionalClause = new AndOperatedClause(additionalClause, clause);
+                            } else {
+                                additionalClause = new OrOperatedClause(additionalClause, clause);
+                            }
                         }
                     }
                 }
