@@ -240,7 +240,9 @@ public class BooleanClause extends OperatedClause {
                 if(additionalClause != null) {
                     int subSize = additionalTermAttribute.subSize();
                     logger.trace("additional term subSize:{}/{} : {}", subSize, queryDepth, additionalTermAttribute);
-                    if( subSize > 0) {
+                    if(subSize <= 0) {
+                        operatedClause = new OrOperatedClause(operatedClause, additionalClause);
+                    } else if(subSize > 0) {
                         //추가텀이 가진 서브텀의 갯수만큼 거슬러 올라가야 한다.
                         for(int inx=0;inx<subSize-1; inx++) {
                             OperatedClause[] subClause = operatedClause.children();
