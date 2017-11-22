@@ -688,7 +688,24 @@ public class CollectionSearcher implements Cloneable {
 			
 			if (indexAnalyzer != null && queryAnalyzer != null) {
 				try {
-					text = has.highlight(fieldId, indexAnalyzer, queryAnalyzer, text, queryString, tags, view.snippetSize(), view.fragmentSize(), searchOption);
+					if (searchOption.useForceHighlight()) {
+						String[] queryStringArr = queryString.split(" ");
+						HashSet<String> queryStringList = new HashSet<String>();
+						for (String temp : queryStringArr) {
+							if (temp.trim().length() != 0) {
+								queryStringList.add(temp);
+							}
+						}
+
+						//text = text.replaceAll(tags[0], "");
+						//text = text.replaceAll(tags[1], "");
+						for (String temp : queryStringList) {
+							text = text.replaceAll(temp, tags[0] + temp + tags[1]);
+							text = text.replaceAll(tags[0] + tags[0] + temp + tags[1] + tags[1], tags[0] + temp + tags[1]);
+						}
+					} else {
+						text = has.highlight(fieldId, indexAnalyzer, queryAnalyzer, text, queryString, tags, view.snippetSize(), view.fragmentSize(), searchOption);
+					}
 				} finally {
 					if(!isSamePool){
 						indexAnalyzerPool.releaseToPool(indexAnalyzer);
@@ -698,21 +715,6 @@ public class CollectionSearcher implements Cloneable {
 			}
 		}
 
-		if (searchOption.useForceHighlight()) {
-			String[] queryStringArr = queryString.split(" ");
-			HashSet<String> queryStringList = new HashSet<String>();
-			for (String temp : queryStringArr) {
-				if (temp.trim().length() != 0) {
-					queryStringList.add(temp);
-				}
-			}
-			for (String temp : queryStringList) {
-				text = text.replaceAll(temp, tags[0] + temp + tags[1]);
-				text = text.replaceAll(tags[0] + tags[0] + temp + tags[1] + tags[1], tags[0] + temp + tags[1]);
-			}
-		}
-
 		return text;
 	}
-
 }
