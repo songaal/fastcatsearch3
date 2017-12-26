@@ -223,8 +223,10 @@ public class NotificationJob extends Job implements Streamable {
 					className = className.trim();
 					if(className.length() > 0){
 						TelegramSender telegramSender = DynamicClassLoader.loadObject(className, TelegramSender.class, new Class<?>[] { Properties.class }, new Object[] { properties });
-						telegramSender.send(telegramToList, messageString);
-						logger.debug("TelegramSender sent notification message successfully {} to {}", notification.messageCode(), smsToList);
+						if (telegramSender != null) {
+							telegramSender.send(telegramToList, messageString);
+							logger.debug("TelegramSender sent notification message successfully {} to {}", notification.messageCode(), smsToList);
+						}
 					}
 				}
 			} catch (Exception e) {
@@ -241,8 +243,10 @@ public class NotificationJob extends Job implements Streamable {
 					className = className.trim();
 					if (className.length() > 0) {
 						SlackSender slackSender = DynamicClassLoader.loadObject(className, SlackSender.class, new Class<?>[]{Properties.class}, new Object[]{properties});
-						slackSender.send(slackToList, messageString);
-						logger.debug("SlackSender sent notification message successfully {} to Slack Groups", notification.messageCode());
+						if (slackSender != null) {
+							slackSender.send(slackToList, messageString);
+							logger.debug("SlackSender sent notification message successfully {} to Slack Groups", notification.messageCode());
+						}
 					}
 				}
 			} catch (Exception e) {
