@@ -33,12 +33,17 @@ public class GetServerInfoListAction extends AuthAction {
 			if(!(nodeId==null || nodeId.equals(node.id()))) {
 				continue;
 			}
-			
+
+			String dataAddress = new String();
+			if (node.dataAddress() != null && node.dataAddress().getAddress() != null ){
+				dataAddress = node.dataAddress().getAddress().getHostAddress();
+			}
+
 			responseWriter.object()
 			.key("id").value(node.id())
 			.key("name").value(node.name())
 			.key("host").value(node.address().getAddress().getHostAddress())
-			.key("dataHost").value(node.dataAddress() == null ? null : node.dataAddress().getAddress().getHostAddress())
+			.key("dataHost").value(dataAddress)
 			.key("port").value(node.port())
 			.key("servicePort").value(node.servicePort())
 			.key("enabled").value(node.isEnabled())
