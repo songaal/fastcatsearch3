@@ -124,11 +124,20 @@ public class SystemInfoHandler {
 			// OperatingSystemMXBean은 벤더와 버전에 제약이 있다.
 			// if ((vmVendor.startsWith("Oracle") || vmVendor.startsWith("Sun")) &&
 			// vmVersion < 21.0f) {
-//			if (vmVersion < 21.0f && ManagementFactory.getOperatingSystemMXBean() instanceof com.sun.management.OperatingSystemMXBean) {
-			if (ManagementFactory.getOperatingSystemMXBean() instanceof com.sun.management.OperatingSystemMXBean) {
+
+			Class sunOsMxbeanClass = Class.forName("com.sun.management.OperatingSystemMXBean");
+
+			if(sunOsMxbeanClass != null) {
+				sunOsMXBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+			}
+			//jdk 1.8 이상. 2018.4.30 swsong
+			if (vmVersion >= 25.0f && sunOsMxbeanClass != null) {
+				totalPhysicalMemorySize = (int) (sunOsMXBean.getTotalPhysicalMemorySize() / MEGABITE_UNIT);
+			}
+
+			if (vmVersion < 21.0f && sunOsMxbeanClass != null) {
 				// sun MXBean에서는 getCpuTime을 제공하여 1.5과 1.6에서는 cpu사용률을 직접구현해야한다.
 				isSunVmLowVersion = true;
-				sunOsMXBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
 				initCpuForSunLowVersion();
 				isJvmCpuInfoSupported = true;
 				// 1.7이상일 경우 표준 OperatingSystemMXBean을 사용한다.
