@@ -35,6 +35,7 @@ public class UpdateServerInfoAction extends AuthAction {
 			String nodeId = request.getParameter("id");
 			String name = request.getParameter("name");
 			String address = request.getParameter("host");
+			String dataAddress = request.getParameter("dataHost");
 			int port = request.getIntParameter("port",0);
 			boolean enable = "true".equals(request.getParameter("enable"));
 			
@@ -46,6 +47,7 @@ public class UpdateServerInfoAction extends AuthAction {
 			settings.setId(nodeId);
 			settings.setName(name);
 			settings.setAddress(address);
+			settings.setDataAddress(dataAddress);
 			settings.setPort(port);
 			settings.setEnabled(enable);
 			

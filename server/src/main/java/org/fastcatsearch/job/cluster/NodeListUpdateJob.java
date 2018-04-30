@@ -49,6 +49,7 @@ public class NodeListUpdateJob extends Job implements Streamable {
 			setting.setId(new String(input.readAString()));
 			setting.setName(new String(input.readUString()));
 			setting.setAddress(new String(input.readAString()));
+			setting.setDataAddress(new String(input.readAString()));
 			setting.setPort(input.readInt());
 			setting.setEnabled(input.readBoolean());
 			settings.add(setting);
@@ -69,11 +70,13 @@ public class NodeListUpdateJob extends Job implements Streamable {
 				String id = setting.getId();
 				String name = setting.getName();
 				String address = setting.getAddress();
+				String dataAddress = setting.getDataAddress();
 				int port = setting.getPort();
 				boolean enabled = setting.isEnabled();
 				output.writeAString(id.toCharArray(),0,id.length());
 				output.writeUString(name.toCharArray(),0,name.length());
 				output.writeAString(address.toCharArray(),0,address.length());
+				output.writeAString(dataAddress.toCharArray(),0,dataAddress.length());
 				output.writeInt(port);
 				output.writeBoolean(enabled);
 			}
