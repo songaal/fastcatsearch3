@@ -11,6 +11,9 @@
 
 package org.fastcatsearch.management;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
@@ -19,9 +22,6 @@ import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Method;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SystemInfoHandler {
 	private static Logger logger = LoggerFactory.getLogger(SystemInfoHandler.class);
@@ -124,7 +124,8 @@ public class SystemInfoHandler {
 			// OperatingSystemMXBean은 벤더와 버전에 제약이 있다.
 			// if ((vmVendor.startsWith("Oracle") || vmVendor.startsWith("Sun")) &&
 			// vmVersion < 21.0f) {
-			if (vmVersion < 21.0f && ManagementFactory.getOperatingSystemMXBean() instanceof com.sun.management.OperatingSystemMXBean) {
+//			if (vmVersion < 21.0f && ManagementFactory.getOperatingSystemMXBean() instanceof com.sun.management.OperatingSystemMXBean) {
+			if (ManagementFactory.getOperatingSystemMXBean() instanceof com.sun.management.OperatingSystemMXBean) {
 				// sun MXBean에서는 getCpuTime을 제공하여 1.5과 1.6에서는 cpu사용률을 직접구현해야한다.
 				isSunVmLowVersion = true;
 				sunOsMXBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
