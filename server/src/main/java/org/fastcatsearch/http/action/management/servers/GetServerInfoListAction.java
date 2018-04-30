@@ -1,7 +1,5 @@
 package org.fastcatsearch.http.action.management.servers;
 
-import java.util.List;
-
 import org.fastcatsearch.cluster.Node;
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.http.ActionAuthority;
@@ -12,6 +10,8 @@ import org.fastcatsearch.http.action.ActionResponse;
 import org.fastcatsearch.http.action.AuthAction;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.util.ResponseWriter;
+
+import java.util.List;
 
 @ActionMapping(value = "/management/servers/list", authority = ActionAuthority.Servers, authorityLevel = ActionAuthorityLevel.NONE)
 public class GetServerInfoListAction extends AuthAction {
@@ -38,6 +38,7 @@ public class GetServerInfoListAction extends AuthAction {
 			.key("id").value(node.id())
 			.key("name").value(node.name())
 			.key("host").value(node.address().getAddress().getHostAddress())
+			.key("dataHost").value(node.dataAddress() == null ? null : node.dataAddress().getAddress().getHostAddress())
 			.key("port").value(node.port())
 			.key("servicePort").value(node.servicePort())
 			.key("enabled").value(node.isEnabled())
