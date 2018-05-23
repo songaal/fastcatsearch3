@@ -50,6 +50,7 @@ public class ClusterSearchJob extends Job {
 		String searchKeyword = null;
 		boolean isCache = false;
 		Result searchResult = null;
+		String tagString = null;
 		try {
             Query q = QueryParser.getInstance().parseQuery(queryMap);
 
@@ -67,6 +68,21 @@ public class ClusterSearchJob extends Job {
 				throw new SearchError(ServerErrorCode.QUERY_SYNTAX_ERROR, "cn cannot be empty.");
 			}
 			searchKeyword = meta.getUserData("KEYWORD");
+
+			Map<String, String> userDataMap = meta.userData();
+			if(userDataMap != null) {
+				StringBuilder sb = new StringBuilder();
+				for(Map.Entry<String, String> e : userDataMap.entrySet()) {
+					if(! "KEYWORD".equals(e.getKey())) {
+						if(sb.length() > 0) {
+							sb.append(",");
+						}
+						sb.append(e.getKey()).append("=").append(e.getValue());
+					}
+				}
+
+				tagString = sb.toString();
+			}
 			// no cache 옵션이 없으면 캐시를 확인한다.
 			if (meta.isSearchOption(Query.SEARCH_OPT_NOCACHE)) {
 				noCache = true;
@@ -327,7 +343,7 @@ public class ClusterSearchJob extends Job {
             }
 		} finally {
 			//로깅은 반드시 수행한다.
-			writeSearchLog(collectionId, searchKeyword, searchResult, (System.nanoTime() - st) / 1000000, isCache, errorMsg);
+			writeSearchLog(collectionId, searchKeyword, searchResult, (System.nanoTime() - st) / 1000000, isCache, errorMsg, tagString);
 		}
 	}
 
@@ -347,7 +363,7 @@ public class ClusterSearchJob extends Job {
 	private static String NOCACHE = "NOCACHE";
     private static String ERROR = "ERROR";
 	
-	protected void writeSearchLog(String collectionId, String searchKeyword, Object obj, long searchTime, boolean isCache, String errorMsg) {
+	protected void writeSearchLog(String collectionId, String searchKeyword, Object obj, long searchTime, boolean isCache, String errorMsg, String tagString) {
 		int count = -1;
 		int totalCount = -1;
 		GroupResults groupResults = null;
@@ -374,9 +390,9 @@ public class ClusterSearchJob extends Job {
 
         String header = errorMsg != null ? ERROR : isCache ? CACHE : NOCACHE;
 
-        searchLogger.info("[{}]\t{}\t{}\t{} ms\t{}\t{}\t{}\t[{}]", header, collectionId, searchKeyword
+        searchLogger.info("[{}]\t{}\t{}\t{} ms\t{}\t{}\t{}\t[{}]\t{}", header, collectionId, searchKeyword
                 , searchTime, count, totalCount
-                , groupBuilder != null ? groupBuilder.toString() : "NOGROUP", errorMsg != null ? errorMsg : "OK");
+                , groupBuilder != null ? groupBuilder.toString() : "NOGROUP", errorMsg != null ? errorMsg : "OK", tagString);
 
 	}
 }
