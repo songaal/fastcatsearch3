@@ -1,14 +1,14 @@
 package org.fastcatsearch.cluster;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.settings.NodeListSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
 
 public class Node implements Streamable {
 
@@ -51,7 +51,7 @@ public class Node implements Streamable {
 		this.isEnabled = settings.isEnabled();
 		this.socketAddress = new InetSocketAddress(settings.getAddress(), settings.getPort());
         logger.debug("#####SOCKETADDRESS > {}:{}", settings.getAddress(), settings.getPort());
-		if(settings.getDataAddress() != null) {
+		if(settings.getDataAddress() != null && !"".equals(settings.getDataAddress())) {
 			this.dataSocketAddress = new InetSocketAddress(settings.getDataAddress(), settings.getPort());
             logger.debug("#####DATA_SOCKETADDRESS > {}:{}", settings.getDataAddress(), settings.getPort());
 		}

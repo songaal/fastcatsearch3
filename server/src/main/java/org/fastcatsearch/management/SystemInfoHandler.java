@@ -118,13 +118,12 @@ public class SystemInfoHandler {
 			}
 			float vmVersion = Float.parseFloat(vmVersionStr);
 	
-			logger.debug("VmVendor() = " + vmVendor);
-			logger.debug("VmVersion() = " + vmVersionStr);
+			logger.info("VmVendor() = " + vmVendor);
+			logger.info("VmVersion() = " + vmVersionStr);
 	
 			// OperatingSystemMXBean은 벤더와 버전에 제약이 있다.
 			// if ((vmVendor.startsWith("Oracle") || vmVendor.startsWith("Sun")) &&
 			// vmVersion < 21.0f) {
-
 			Class sunOsMxbeanClass = Class.forName("com.sun.management.OperatingSystemMXBean");
 
 			if(sunOsMxbeanClass != null) {
@@ -133,6 +132,7 @@ public class SystemInfoHandler {
 			//jdk 1.8 이상. 2018.4.30 swsong
 			if (vmVersion >= 25.0f && sunOsMxbeanClass != null) {
 				totalPhysicalMemorySize = (int) (sunOsMXBean.getTotalPhysicalMemorySize() / MEGABITE_UNIT);
+				System.out.println("totalPhysicalMemorySize, " + totalPhysicalMemorySize);
 			}
 
 			if (vmVersion < 21.0f && sunOsMxbeanClass != null) {
