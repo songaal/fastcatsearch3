@@ -132,7 +132,7 @@ public class SystemInfoHandler {
 			//jdk 1.8 이상. 2018.4.30 swsong
 			if (vmVersion >= 25.0f && sunOsMxbeanClass != null) {
 				totalPhysicalMemorySize = (int) (sunOsMXBean.getTotalPhysicalMemorySize() / MEGABITE_UNIT);
-				System.out.println("totalPhysicalMemorySize, " + totalPhysicalMemorySize);
+				logger.info("totalPhysicalMemorySize = " + totalPhysicalMemorySize);
 			}
 
 			if (vmVersion < 21.0f && sunOsMxbeanClass != null) {
