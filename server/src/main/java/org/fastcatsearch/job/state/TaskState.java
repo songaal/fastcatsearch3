@@ -1,12 +1,12 @@
 package org.fastcatsearch.job.state;
 
-import java.io.IOException;
-import java.util.Date;
-
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.ir.util.Formatter;
+
+import java.io.IOException;
+import java.util.Date;
 
 public abstract class TaskState implements Streamable {
 	public static final String STATE_NOT_STARTED = "NOT STARTED";
@@ -65,11 +65,11 @@ public abstract class TaskState implements Streamable {
 	}
 
 	public boolean isRunning() {
-		return state == STATE_RUNNING;
+		return STATE_RUNNING.equalsIgnoreCase(state);
 	}
 	
 	public boolean isFinished() {
-		return state == STATE_SUCCESS || state == STATE_FAIL || state == STATE_CANCEL;
+		return STATE_SUCCESS.equalsIgnoreCase(state) || STATE_FAIL.equalsIgnoreCase(state) || STATE_CANCEL.equalsIgnoreCase(state);
 	}
 
 	public void setStep(String step) {
