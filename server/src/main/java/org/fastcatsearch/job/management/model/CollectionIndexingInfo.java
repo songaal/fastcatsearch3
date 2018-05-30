@@ -26,6 +26,18 @@ public class CollectionIndexingInfo implements Streamable {
     @Override
     public void readFrom(DataInput input) throws IOException {
         collectionId = input.readString();
+        isActive = input.readBoolean();
+        name = input.readString();
+        sequence = input.readInt();
+        revisionUUID = input.readString();
+        indexNode = input.readString();
+        dataNodeList = input.readString();
+        searchNodeList = input.readString();
+        documentSize = input.readInt();
+        segmentSize = input.readInt();
+        diskSize = input.readString();
+        dataPath = input.readString();
+        createTime = input.readString();
     }
 
     @Override

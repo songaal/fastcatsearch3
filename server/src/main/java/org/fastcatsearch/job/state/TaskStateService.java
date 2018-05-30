@@ -1,14 +1,5 @@
 package org.fastcatsearch.job.state;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.fastcatsearch.cluster.NodeService;
 import org.fastcatsearch.env.Environment;
 import org.fastcatsearch.exception.FastcatSearchException;
@@ -18,13 +9,17 @@ import org.fastcatsearch.service.AbstractService;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.Settings;
 
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class TaskStateService extends AbstractService {
 
 	private NodeService nodeService;
 	private boolean isMasterNode;
 	private Map<String, Map<TaskKey, TaskState>> nodeTaskMap;
 
-	private Timer reportTimer; // master노드로 현 task를 주기적으로 보낸다.
+	private Timer stateTimer; // master노드로 현 task를 주기적으로 보낸다.
 
 	public TaskStateService(Environment environment, Settings settings, ServiceManager serviceManager) {
 		super(environment, settings, serviceManager);
@@ -39,9 +34,11 @@ public class TaskStateService extends AbstractService {
 		isMasterNode = nodeService.isMaster();
 
 		// master가 아니면 현 task 상태를 주기적으로 master에 보낸다.
+		stateTimer = new Timer("TaskStateTimer", true);
 		if (!isMasterNode) {
-			reportTimer = new Timer("TaskStateReportTimer", true);
-			reportTimer.schedule(new TaskStateReportTask(), 1000, 1000);
+			stateTimer.schedule(new TaskStateReportTask(), 5000, 5000);
+		} else {
+			stateTimer.schedule(new OldTaskStateClearTask(), 60*1000, (10 * 60000));
 		}
 		return true;
 	}
@@ -54,8 +51,8 @@ public class TaskStateService extends AbstractService {
 			nodeService.sendRequestToMaster(clearJob);
 		}
 		
-		if (reportTimer != null) {
-			reportTimer.cancel();
+		if (stateTimer != null) {
+			stateTimer.cancel();
 		}
 		nodeTaskMap.clear();
 		return true;
@@ -64,7 +61,7 @@ public class TaskStateService extends AbstractService {
 	@Override
 	protected boolean doClose() throws FastcatSearchException {
 		nodeTaskMap = null;
-		reportTimer = null;
+		stateTimer = null;
 		return true;
 	}
 
@@ -156,7 +153,7 @@ public class TaskStateService extends AbstractService {
 			//my node의 task를 master node 로 보낸다.
 			Map<TaskKey, TaskState> taskMap = getMyNodeTaskMap();
 			if (taskMap.size() > 0) {
-				UpdateNodeTaskStateJob reportJob = new UpdateNodeTaskStateJob();
+				UpdateNodeTaskStateJob reportJob = new UpdateNodeTaskStateJob(environment.myNodeId());
 				reportJob.setRunningTaskMap(taskMap);
 				nodeService.sendRequestToMaster(reportJob);
 				
@@ -171,6 +168,24 @@ public class TaskStateService extends AbstractService {
 			}
 			
 			
+		}
+
+	}
+
+	class OldTaskStateClearTask extends TimerTask {
+
+		@Override
+		public void run() {
+			// 상태 finished, 1시간 지나면 삭제
+			Iterator<Entry<String, Map<TaskKey, TaskState>>> iterator = nodeTaskMap.entrySet().iterator();
+			while(iterator.hasNext()) {
+				Iterator<Entry<TaskKey, TaskState>> taskState = iterator.next().getValue().entrySet().iterator();
+				while (taskState.hasNext()) {
+					if (taskState.next().getValue().isOldTask()) {
+						taskState.remove();
+					}
+				}
+			}
 		}
 
 	}

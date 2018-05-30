@@ -56,7 +56,7 @@ public class GetCollectionInfoListAction extends AuthAction {
 			}
 
 			String indexNodeId = collectionContext.collectionConfig().getIndexNode();
-
+			logger.debug("indexNodeId", indexNodeId);
 			Job job = new GetIndexingInfoJob(collectionId);
 
 			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);

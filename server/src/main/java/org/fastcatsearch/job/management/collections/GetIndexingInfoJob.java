@@ -22,7 +22,7 @@ import java.util.Date;
 import java.util.List;
 
 public class GetIndexingInfoJob extends Job implements Streamable {
-
+    private static org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(GetIndexingInfoJob.class);
     private String collectionId;
 
     public GetIndexingInfoJob() {}
@@ -33,12 +33,12 @@ public class GetIndexingInfoJob extends Job implements Streamable {
 
     @Override
     public void readFrom(DataInput input) throws IOException {
-
+        collectionId = input.readString();
     }
 
     @Override
     public void writeTo(DataOutput output) throws IOException {
-
+        output.writeString(collectionId);
     }
 
     /**
@@ -47,7 +47,7 @@ public class GetIndexingInfoJob extends Job implements Streamable {
      */
     @Override
     public JobResult doRun() throws FastcatSearchException {
-
+        logger.info("collectionId: {}", collectionId);
         IRService irService = ServiceManager.getInstance().getService(IRService.class);
 
         CollectionContext collectionContext = irService.collectionContext(collectionId);

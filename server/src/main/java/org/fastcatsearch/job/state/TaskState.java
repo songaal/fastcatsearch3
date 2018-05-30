@@ -72,6 +72,10 @@ public abstract class TaskState implements Streamable {
 		return STATE_SUCCESS.equalsIgnoreCase(state) || STATE_FAIL.equalsIgnoreCase(state) || STATE_CANCEL.equalsIgnoreCase(state);
 	}
 
+	public boolean isOldTask() {
+		return endTime > 0 && (System.currentTimeMillis() - endTime >= 3600000);
+	}
+
 	public void setStep(String step) {
 		this.step = step;
 	}
