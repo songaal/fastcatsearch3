@@ -131,8 +131,7 @@ public class Environment {
                 while(inetEnum.hasMoreElements()) {
                     InetAddress inet = inetEnum.nextElement();
                     if(logger.isTraceEnabled()) {
-                        logger.trace("InetAddress {} valid : [{}:{}]", ni.getName(), !inet.isAnyLocalAddress(),
-                                inet.isReachable(100));
+                        logger.trace("InetAddress {} valid : !inet.isAnyLocalAddress()={}, ", ni.getName(), !inet.isAnyLocalAddress());
                     }
 
                     if(inet.isAnyLocalAddress()) {
