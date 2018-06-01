@@ -205,6 +205,13 @@ public class OrOperatedClause extends OperatedClause {
     }
 
     @Override
+    public String toString(){
+        return "["+getClass().getSimpleName()+"]"
+                + (clause1!= null?clause1.toString():"null") + " / "
+                + (clause2!= null?clause2.toString():"null");
+    }
+
+    @Override
     public void close() {
         if(clause1 != null){
             clause1.close();

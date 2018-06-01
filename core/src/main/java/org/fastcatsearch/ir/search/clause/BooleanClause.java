@@ -176,21 +176,13 @@ public class BooleanClause extends OperatedClause {
                 logger.debug(">>>>>>>>>>>>> [Synonym] {}", synonymAttribute.getSynonyms());
                 clause = applySynonym(clause, searchIndexReader, synonymAttribute, indexId, queryPosition, termSequence, type);
             }
-            if (operatedClause == null) {
-                operatedClause = clause;
-                queryDepth ++;
-            } else {
-                if(type == Type.ALL){
-                    operatedClause = new AndOperatedClause(operatedClause, clause, proximity);
-                    queryDepth ++;
-                }else if(type == Type.ANY){
-                    operatedClause = new OrOperatedClause(operatedClause, clause, proximity);
-                    queryDepth ++;
-                }
-            }
 
             //추가 확장 단어들.
-            if(additionalTermAttribute != null) {
+            if(additionalTermAttribute != null && additionalTermAttribute.size() > 0) {
+                int subSize = additionalTermAttribute.subSize();
+                if(subSize > 0) {
+                    logger.debug("subSize={}, additionalTermAttribute={}", subSize, additionalTermAttribute);
+                }
                 Iterator<String> termIter = additionalTermAttribute.iterateAdditionalTerms();
                 OperatedClause additionalClause = null;
                 while(termIter.hasNext()) {
@@ -198,7 +190,7 @@ public class BooleanClause extends OperatedClause {
                     queryPosition = positionAttribute != null ? positionAttribute.getPositionIncrement() : 0;
                     searchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
                     postingReader = searchMethod.search(indexId, localToken, queryPosition, weight);
-                    clause = new TermOperatedClause(indexId, localToken.toString(), postingReader, termSequence.getAndIncrement());
+                    OperatedClause termClause = new TermOperatedClause(indexId, localToken.toString(), postingReader, termSequence.getAndIncrement());
 
                     //2017-11-09 swsong 추가 단어들의 유사어가 아닌, 원 단어의 유사어를 추가단어에 붙여주고 있으므로 결과가 동일한 아무의미없는 쿼리임.
 //                    if(synonymAttribute!=null) {
@@ -213,12 +205,12 @@ public class BooleanClause extends OperatedClause {
                     if (!isCompoundNoun && (offsetAttribute.startOffset() == 0 &&
                             offsetAttribute.endOffset() == fullTerm.length())) {
                         //전체단어동의어 확장어
-                        finalClause = clause;
+                        finalClause = termClause;
                     } else {
                         //일반확장단어들
 
                         if(additionalClause == null) {
-                            additionalClause = clause;
+                            additionalClause = termClause;
                         } else {
 
                             /*
@@ -226,7 +218,7 @@ public class BooleanClause extends OperatedClause {
                             * 복합명사의 경우 서로 and 로 연결해야 한다.
                             * */
                             if(isCompoundNoun){
-                                additionalClause = new AndOperatedClause(additionalClause, clause);
+                                additionalClause = new AndOperatedClause(additionalClause, termClause);
                             } else {
                                 additionalClause = new OrOperatedClause(additionalClause, clause);
                             }
@@ -234,62 +226,90 @@ public class BooleanClause extends OperatedClause {
                     }
                 }
 
-                if(logger.isTraceEnabled()) {
-                    logger.trace("clause:{}", dumpClause(operatedClause));
-                }
+                /**
+                 * swsong 2018.6.1  additionalClause 은 해당 단어에 바로 붙여준다.
+                 */
                 if(additionalClause != null) {
-                    int subSize = additionalTermAttribute.subSize();
-                    logger.trace("additional term subSize:{}/{} : {}", subSize, queryDepth, additionalTermAttribute);
-                    if(subSize <= 0) {
-                        operatedClause = new OrOperatedClause(operatedClause, additionalClause);
-                    } else if(subSize > 0) {
-                        //추가텀이 가진 서브텀의 갯수만큼 거슬러 올라가야 한다.
-                        for(int inx=0;inx<subSize-1; inx++) {
-                            OperatedClause[] subClause = operatedClause.children();
+                    clause = new OrOperatedClause(clause, additionalClause);
+                }
 
-                            if(subClause!=null && subClause.length == 2) {
-                                OperatedClause clause1 = subClause[0]; //
-                                OperatedClause clause2 = subClause[1];
-                                if( operatedClause instanceof AndOperatedClause ) {
-                                    if(clause1 instanceof AndOperatedClause) {
-                                        OperatedClause[] subClause2 = clause1.children();
-                                        OperatedClause clause3 = subClause2[0]; //
-                                        OperatedClause clause4 = subClause2[1];
+                /**
+                 * swsong 2018.6.1 하단의 코드는 너무 복잡하고 이해하기 어려워서 주석처리함.
+                 * 추가텀이 여러 단어에 영향을 미치는 경우 묶어서 추가텀을 적용하는 로직인듯하나, 바로 위의 코드를 수정하여 더 이상 쓸수 없음.
+                 * 필요시 단순 로직으로 재구현 필요.
+                 */
+//                if(logger.isTraceEnabled()) {
+//                    logger.trace("clause:{}", dumpClause(operatedClause));
+//                }
+//                if(additionalClause != null) {
+//                    int subSize = additionalTermAttribute.subSize();
+//                    logger.trace("additional term subSize:{}/{} : {}", subSize, queryDepth, additionalTermAttribute);
+//                    if(subSize <= 0) {
+//                        operatedClause = new OrOperatedClause(operatedClause, additionalClause);
+//                    } else if(subSize > 0) {
+//                        //추가텀이 가진 서브텀의 갯수만큼 거슬러 올라가야 한다.
+//                        for(int inx=0;inx<subSize-1; inx++) {
+//                            OperatedClause[] subClause = operatedClause.children();
+//
+//                            if(subClause!=null && subClause.length == 2) {
+//                                OperatedClause clause1 = subClause[0]; //
+//                                OperatedClause clause2 = subClause[1];
+//                                if( operatedClause instanceof AndOperatedClause ) {
+//                                    if(clause1 instanceof AndOperatedClause) {
+//                                        OperatedClause[] subClause2 = clause1.children();
+//                                        OperatedClause clause3 = subClause2[0]; //
+//                                        OperatedClause clause4 = subClause2[1];
+//
+//                                        operatedClause = new AndOperatedClause(
+//                                                clause3, new AndOperatedClause(clause4, clause2));
+//                                        if(logger.isTraceEnabled()) {
+//                                            logger.trace("clause:{}", dumpClause(operatedClause));
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//
+//                        if(operatedClause instanceof AndOperatedClause) {
+//                            OperatedClause[] subClause = operatedClause.children();
+//                            OperatedClause clause1 = subClause[0];
+//                            OperatedClause clause2 = subClause[1];
+//
+//                            //괄호 우선 순위상 최초 추가텀만 따로 처리해 주어야 한다.
+//                            //첫머리에서 발견되는 추가텀은 마지막 괄호에 적용해야 하나
+//                            //두번째 이후 위치에서 발견되는 추가텀 부터는 지역 괄호에 적용해야 함.
+//                            if(subSize == queryDepth) {
+//                                clause2 = new AndOperatedClause(clause1, clause2);
+//                                operatedClause = new OrOperatedClause(clause2, additionalClause);
+//                            } else {
+//                                clause2 = new OrOperatedClause(clause2, additionalClause);
+//                                operatedClause = new AndOperatedClause(clause1, clause2);
+//                            }
+//                        } else if(operatedClause instanceof OrOperatedClause) {
+//                            //simply append in or-operated clause.
+//                            operatedClause = new OrOperatedClause(operatedClause, additionalClause);
+//                        }
+//
+//                        if(logger.isTraceEnabled()) {
+//                            logger.trace("clause:{}", dumpClause(operatedClause));
+//                        }
+//                    }
+//                }
+            }
 
-                                        operatedClause = new AndOperatedClause(
-                                                clause3, new AndOperatedClause(clause4, clause2));
-                                        if(logger.isTraceEnabled()) {
-                                            logger.trace("clause:{}", dumpClause(operatedClause));
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        if(operatedClause instanceof AndOperatedClause) {
-                            OperatedClause[] subClause = operatedClause.children();
-                            OperatedClause clause1 = subClause[0];
-                            OperatedClause clause2 = subClause[1];
-
-                            //괄호 우선 순위상 최초 추가텀만 따로 처리해 주어야 한다.
-                            //첫머리에서 발견되는 추가텀은 마지막 괄호에 적용해야 하나
-                            //두번째 이후 위치에서 발견되는 추가텀 부터는 지역 괄호에 적용해야 함.
-                            if(subSize == queryDepth) {
-                                clause2 = new AndOperatedClause(clause1, clause2);
-                                operatedClause = new OrOperatedClause(clause2, additionalClause);
-                            } else {
-                                clause2 = new OrOperatedClause(clause2, additionalClause);
-                                operatedClause = new AndOperatedClause(clause1, clause2);
-                            }
-                        } else if(operatedClause instanceof OrOperatedClause) {
-                            //simply append in or-operated clause.
-                            operatedClause = new OrOperatedClause(operatedClause, additionalClause);
-                        }
-
-                        if(logger.isTraceEnabled()) {
-                            logger.trace("clause:{}", dumpClause(operatedClause));
-                        }
-                    }
+            /**
+             * swsong 2018.6.1 예전에는 이 로직이 추가텀 보다 먼저 나왔으나 추가텀을 해당 단어에 먼저 OR로 적용하고 전체 clause 에 붙이도록 함.
+             */
+            if (operatedClause == null) {
+                operatedClause = clause;
+                queryDepth ++;
+            } else {
+                if(type == Type.ALL){
+                    operatedClause = new AndOperatedClause(operatedClause, clause, proximity);
+                    queryDepth ++;
+                }else if(type == Type.ANY){
+                    operatedClause = new OrOperatedClause(operatedClause, clause, proximity);
+                    queryDepth ++;
                 }
             }
         }
@@ -317,28 +337,32 @@ public class BooleanClause extends OperatedClause {
                 if(clause instanceof AndOperatedClause) {
                     sb.append("(");
                     if(children[0] instanceof TermOperatedClause) {
-                        sb.append(((TermOperatedClause)children[0]).term());
+                        sb.append(children[0].term());
                     } else if(children[0].children()!=null) {
                         sb.append(dumpClause(children[0]));
                     }
-                    sb.append(" and ");
-                    if(children[1] instanceof TermOperatedClause) {
-                        sb.append(((TermOperatedClause)children[1]).term());
-                    } else if(children[1].children()!=null) {
+
+                    if(children[1] != null && children[1] instanceof TermOperatedClause) {
+                        sb.append(" and ");
+                        sb.append(children[1].term());
+                    } else if(children[1] != null && children[1].children()!=null) {
+                        sb.append(" and ");
                         sb.append(dumpClause(children[1]));
                     }
                     sb.append(")");
                 } else if(clause instanceof OrOperatedClause) {
                     sb.append("(");
                     if(children[0] instanceof TermOperatedClause) {
-                        sb.append(((TermOperatedClause)children[0]).term());
+                        sb.append(children[0].term());
                     } else if(children[0].children()!=null) {
                         sb.append(dumpClause(children[0]));
                     }
-                    sb.append(" or ");
-                    if(children[1] instanceof TermOperatedClause) {
-                        sb.append(((TermOperatedClause)children[1]).term());
-                    } else if(children[1].children()!=null) {
+
+                    if(children[1] != null && children[1] instanceof TermOperatedClause) {
+                        sb.append(" or ");
+                        sb.append(children[1].term());
+                    } else if(children[1] != null && children[1].children()!=null) {
+                        sb.append(" or ");
                         sb.append(dumpClause(children[1]));
                     }
                     sb.append(")");
@@ -351,9 +375,9 @@ public class BooleanClause extends OperatedClause {
                         sb.append(dumpClause(children[0]));
                     }
                     sb.append(" ? ");
-                    if(children[1] instanceof TermOperatedClause) {
+                    if(children[1] != null && children[1] instanceof TermOperatedClause) {
                         sb.append(((TermOperatedClause)children[1]).term());
-                    } else if(children[1].children()!=null) {
+                    } else if(children[1] != null && children[1].children()!=null) {
                         sb.append(dumpClause(children[1]));
                     }
                     sb.append(")");

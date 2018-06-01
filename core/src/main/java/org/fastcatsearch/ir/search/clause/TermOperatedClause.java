@@ -97,7 +97,7 @@ public class TermOperatedClause extends OperatedClause {
         if (postingReader != null) {
             return "[" + getClass().getSimpleName() + "]" + postingReader.term() + ":" + postingReader.size();
         } else {
-            return "[" + getClass().getSimpleName() + "] null";
+            return "[" + getClass().getSimpleName() + "] " + termString;
         }
     }
 

@@ -41,6 +41,7 @@ public class AdditionalTermAttributeImpl extends AttributeImpl implements
 		this.additionalTerms.clear();
 		this.types.clear();
 		this.offsets.clear();
+		this.subLength = 0;
 	}
 	
 	@Override
@@ -48,6 +49,7 @@ public class AdditionalTermAttributeImpl extends AttributeImpl implements
 		this.additionalTerms.clear();
 		this.types.clear();
 		this.offsets.clear();
+		this.subLength = 0;
 	}
 
 	@Override
