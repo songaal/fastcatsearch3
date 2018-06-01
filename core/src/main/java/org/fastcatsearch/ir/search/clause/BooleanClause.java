@@ -177,12 +177,10 @@ public class BooleanClause extends OperatedClause {
                 clause = applySynonym(clause, searchIndexReader, synonymAttribute, indexId, queryPosition, termSequence, type);
             }
 
+
+            OperatedClause multipleAdditionalClause = null;
             //추가 확장 단어들.
             if(additionalTermAttribute != null && additionalTermAttribute.size() > 0) {
-                int subSize = additionalTermAttribute.subSize();
-                if(subSize > 0) {
-                    logger.debug("subSize={}, additionalTermAttribute={}", subSize, additionalTermAttribute);
-                }
                 Iterator<String> termIter = additionalTermAttribute.iterateAdditionalTerms();
                 OperatedClause additionalClause = null;
                 while(termIter.hasNext()) {
@@ -229,8 +227,19 @@ public class BooleanClause extends OperatedClause {
                 /**
                  * swsong 2018.6.1  additionalClause 은 해당 단어에 바로 붙여준다.
                  */
+                int subSize = additionalTermAttribute.subSize();
+                if(subSize > 0) {
+                    logger.debug("subSize={}, additionalTermAttribute={}", subSize, additionalTermAttribute);
+                }
+
+                ///TODO subSize > 0 이면 해당 텀이 아닌 operatedClause에 붙여준다.
                 if(additionalClause != null) {
-                    clause = new OrOperatedClause(clause, additionalClause);
+                    if(subSize > 0) {
+                        multipleAdditionalClause = additionalClause;
+                    } else {
+                        clause = new OrOperatedClause(clause, additionalClause);
+                    }
+
                 }
 
                 /**
@@ -311,6 +320,11 @@ public class BooleanClause extends OperatedClause {
                     operatedClause = new OrOperatedClause(operatedClause, clause, proximity);
                     queryDepth ++;
                 }
+            }
+
+            //TODO 무조건 붙여도 되는지 확인. "전파탐지기abc12345"
+            if(multipleAdditionalClause != null) {
+                operatedClause = new OrOperatedClause(operatedClause, multipleAdditionalClause, proximity);
             }
         }
 
