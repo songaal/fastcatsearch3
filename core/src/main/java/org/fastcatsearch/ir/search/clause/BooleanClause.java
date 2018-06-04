@@ -247,22 +247,21 @@ public class BooleanClause extends OperatedClause {
                     c = new OrOperatedClause(c, additionalClause);
                     clauseDeque.addLast(c);
                 }
-//                logger.debug("subSize={}, additionalTermAttribute={}", subSize, additionalTermAttribute);
             }
+        }
 
-            /**
-             * swsong 2018.6.1 예전에는 이 로직이 추가텀 보다 먼저 나왔으나 추가텀을 해당 단어에 먼저 적용하고 전체 clause 에 붙이도록 함.
-             * 여기까지 왔다면 clauseDeque 에 op 들이 모두 들어있다.
-             */
-            for(int i = 0; i < clauseDeque.size(); i++) {
-                if(operatedClause == null) {
-                    operatedClause = clauseDeque.poll();
-                } else {
-                    if(type == Type.ALL){
-                        operatedClause = new AndOperatedClause(operatedClause, clauseDeque.poll(), proximity);
-                    }else if(type == Type.ANY) {
-                        operatedClause = new OrOperatedClause(operatedClause, clauseDeque.poll(), proximity);
-                    }
+        /**
+         * swsong 2018.6.1 예전에는 이 로직이 추가텀 보다 먼저 나왔으나 추가텀을 해당 단어에 먼저 적용하고 전체 clause 에 붙이도록 함.
+         * 여기까지 왔다면 clauseDeque 에 op 들이 모두 들어있다.
+         */
+        while(clauseDeque.size() > 0) {
+            if(operatedClause == null) {
+                operatedClause = clauseDeque.poll();
+            } else {
+                if(type == Type.ALL){
+                    operatedClause = new AndOperatedClause(operatedClause, clauseDeque.poll(), proximity);
+                }else if(type == Type.ANY) {
+                    operatedClause = new OrOperatedClause(operatedClause, clauseDeque.poll(), proximity);
                 }
             }
         }

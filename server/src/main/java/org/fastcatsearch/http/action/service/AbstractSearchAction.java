@@ -108,18 +108,20 @@ public abstract class AbstractSearchAction extends ServiceAction {
 
 		if(obj instanceof Exception) {
 			Exception e = (Exception) obj;
-            if(request.isMethodGet()) {
-                //GET방식의 경우.
-                searchErrorLogger.error("REQ-{} URL: {}?{}", requestId, request.uri(), request.getParameterString());
-            } else {
-                //POST방식의 경우.
-                searchErrorLogger.error("REQ-{} URL: {}?{}", requestId, request.uri(), request.getRequestBody());
+			String paramString = null;
+			if(request.isMethodGet()) {
+				//GET방식의 경우.
+				paramString = request.getParameterString();
+			} else {
+				paramString = request.getRequestBody();
             }
+            String errorString = null;
             if(e instanceof SearchError) {
-                searchErrorLogger.error("RES-{} : {}", requestId, e.getMessage());
-            } else {
-                searchErrorLogger.error("RES-" + requestId, e);
-            }
+				errorString = e.getMessage();
+			} else {
+				errorString = e.toString();
+			}
+			searchErrorLogger.error("REQ-{}\tURL: {}?{}\tERROR: {}", requestId, request.uri(), paramString, errorString);
 		}
 
 	}
