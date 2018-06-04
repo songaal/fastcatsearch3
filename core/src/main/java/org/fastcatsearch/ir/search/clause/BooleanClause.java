@@ -4,8 +4,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -121,10 +120,9 @@ public class BooleanClause extends OperatedClause {
         CharVector token = null;
         AtomicInteger termSequence = new AtomicInteger();
 
-        int queryDepth = 0;
-
         int queryPosition = 0;
 
+        Deque<OperatedClause> clauseDeque = new ArrayDeque<OperatedClause>();
         while (tokenStream.incrementToken()) {
 
             //요청 타입이 존재할때 타입이 다르면 단어무시.
@@ -177,8 +175,8 @@ public class BooleanClause extends OperatedClause {
                 clause = applySynonym(clause, searchIndexReader, synonymAttribute, indexId, queryPosition, termSequence, type);
             }
 
+            clauseDeque.addLast(clause);
 
-            OperatedClause multipleAdditionalClause = null;
             //추가 확장 단어들.
             if(additionalTermAttribute != null && additionalTermAttribute.size() > 0) {
                 Iterator<String> termIter = additionalTermAttribute.iterateAdditionalTerms();
@@ -189,11 +187,6 @@ public class BooleanClause extends OperatedClause {
                     searchMethod = searchIndexReader.createSearchMethod(new NormalSearchMethod());
                     postingReader = searchMethod.search(indexId, localToken, queryPosition, weight);
                     OperatedClause termClause = new TermOperatedClause(indexId, localToken.toString(), postingReader, termSequence.getAndIncrement());
-
-                    //2017-11-09 swsong 추가 단어들의 유사어가 아닌, 원 단어의 유사어를 추가단어에 붙여주고 있으므로 결과가 동일한 아무의미없는 쿼리임.
-//                    if(synonymAttribute!=null) {
-//                        clause = this.applySynonym(clause, searchIndexReader, synonymAttribute, indexId, queryPosition, termSequence, type);
-//                    }
 
                     //복합명사 타입. 예를들어 유아동->유아,아동 으로 분리될때 "유아" 와 "아동" 이 이곳으로 들어온다.
                     boolean isCompoundNoun = typeAttribute != null && typeAttribute.type().equals("<COMPOUND>");
@@ -218,129 +211,69 @@ public class BooleanClause extends OperatedClause {
                             if(isCompoundNoun){
                                 additionalClause = new AndOperatedClause(additionalClause, termClause);
                             } else {
-                                additionalClause = new OrOperatedClause(additionalClause, clause);
+                                additionalClause = new OrOperatedClause(additionalClause, termClause);
                             }
                         }
                     }
                 }
 
                 /**
-                 * swsong 2018.6.1  additionalClause 은 해당 단어에 바로 붙여준다.
+                 * swsong 2018.6.5  additionalClause 가 여러단어에 연결될수도 있으므로 deque 를 도입하여
+                 * 엮어준다.
                  */
                 int subSize = additionalTermAttribute.subSize();
-                if(subSize > 0) {
-                    logger.debug("subSize={}, additionalTermAttribute={}", subSize, additionalTermAttribute);
-                }
-
-                ///TODO subSize > 0 이면 해당 텀이 아닌 operatedClause에 붙여준다.
-                if(additionalClause != null) {
-                    if(subSize > 0) {
-                        multipleAdditionalClause = additionalClause;
-                    } else {
-                        clause = new OrOperatedClause(clause, additionalClause);
+                //2개 이상의 단어에 연결되었는지 확인.
+                if(subSize == 1) {
+                    //원 단어에 or 로 연결.
+                    OperatedClause c = clauseDeque.pollLast();
+                    c = new OrOperatedClause(c, additionalClause);
+                    clauseDeque.addLast(c);
+                } else if(subSize > 1) {
+                    OperatedClause c = null;
+                    for (int i = 0; i < subSize; i++) {
+                        if(c == null) {
+                            //처음에는 그냥 지나감
+                            c = clauseDeque.pollLast();
+                        } else {
+                            //앞에 하나더 빼내서 all, any 로 엮어준다음 다시 넣어준다.
+                            OperatedClause b = clauseDeque.pollLast();
+                            if(type == Type.ALL){
+                                c = new AndOperatedClause(b, c, proximity);
+                            }else if(type == Type.ANY){
+                                c = new OrOperatedClause(b, c, proximity);
+                            }
+                        }
                     }
-
+                    c = new OrOperatedClause(c, additionalClause);
+                    clauseDeque.addLast(c);
                 }
-
-                /**
-                 * swsong 2018.6.1 하단의 코드는 너무 복잡하고 이해하기 어려워서 주석처리함.
-                 * 추가텀이 여러 단어에 영향을 미치는 경우 묶어서 추가텀을 적용하는 로직인듯하나, 바로 위의 코드를 수정하여 더 이상 쓸수 없음.
-                 * 필요시 단순 로직으로 재구현 필요.
-                 */
-//                if(logger.isTraceEnabled()) {
-//                    logger.trace("clause:{}", dumpClause(operatedClause));
-//                }
-//                if(additionalClause != null) {
-//                    int subSize = additionalTermAttribute.subSize();
-//                    logger.trace("additional term subSize:{}/{} : {}", subSize, queryDepth, additionalTermAttribute);
-//                    if(subSize <= 0) {
-//                        operatedClause = new OrOperatedClause(operatedClause, additionalClause);
-//                    } else if(subSize > 0) {
-//                        //추가텀이 가진 서브텀의 갯수만큼 거슬러 올라가야 한다.
-//                        for(int inx=0;inx<subSize-1; inx++) {
-//                            OperatedClause[] subClause = operatedClause.children();
-//
-//                            if(subClause!=null && subClause.length == 2) {
-//                                OperatedClause clause1 = subClause[0]; //
-//                                OperatedClause clause2 = subClause[1];
-//                                if( operatedClause instanceof AndOperatedClause ) {
-//                                    if(clause1 instanceof AndOperatedClause) {
-//                                        OperatedClause[] subClause2 = clause1.children();
-//                                        OperatedClause clause3 = subClause2[0]; //
-//                                        OperatedClause clause4 = subClause2[1];
-//
-//                                        operatedClause = new AndOperatedClause(
-//                                                clause3, new AndOperatedClause(clause4, clause2));
-//                                        if(logger.isTraceEnabled()) {
-//                                            logger.trace("clause:{}", dumpClause(operatedClause));
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-//
-//                        if(operatedClause instanceof AndOperatedClause) {
-//                            OperatedClause[] subClause = operatedClause.children();
-//                            OperatedClause clause1 = subClause[0];
-//                            OperatedClause clause2 = subClause[1];
-//
-//                            //괄호 우선 순위상 최초 추가텀만 따로 처리해 주어야 한다.
-//                            //첫머리에서 발견되는 추가텀은 마지막 괄호에 적용해야 하나
-//                            //두번째 이후 위치에서 발견되는 추가텀 부터는 지역 괄호에 적용해야 함.
-//                            if(subSize == queryDepth) {
-//                                clause2 = new AndOperatedClause(clause1, clause2);
-//                                operatedClause = new OrOperatedClause(clause2, additionalClause);
-//                            } else {
-//                                clause2 = new OrOperatedClause(clause2, additionalClause);
-//                                operatedClause = new AndOperatedClause(clause1, clause2);
-//                            }
-//                        } else if(operatedClause instanceof OrOperatedClause) {
-//                            //simply append in or-operated clause.
-//                            operatedClause = new OrOperatedClause(operatedClause, additionalClause);
-//                        }
-//
-//                        if(logger.isTraceEnabled()) {
-//                            logger.trace("clause:{}", dumpClause(operatedClause));
-//                        }
-//                    }
-//                }
+//                logger.debug("subSize={}, additionalTermAttribute={}", subSize, additionalTermAttribute);
             }
 
             /**
-             * swsong 2018.6.1 예전에는 이 로직이 추가텀 보다 먼저 나왔으나 추가텀을 해당 단어에 먼저 OR로 적용하고 전체 clause 에 붙이도록 함.
+             * swsong 2018.6.1 예전에는 이 로직이 추가텀 보다 먼저 나왔으나 추가텀을 해당 단어에 먼저 적용하고 전체 clause 에 붙이도록 함.
+             * 여기까지 왔다면 clauseDeque 에 op 들이 모두 들어있다.
              */
-            if (operatedClause == null) {
-                operatedClause = clause;
-                queryDepth ++;
-            } else {
-                if(type == Type.ALL){
-                    operatedClause = new AndOperatedClause(operatedClause, clause, proximity);
-                    queryDepth ++;
-                }else if(type == Type.ANY){
-                    operatedClause = new OrOperatedClause(operatedClause, clause, proximity);
-                    queryDepth ++;
+            for(int i = 0; i < clauseDeque.size(); i++) {
+                if(operatedClause == null) {
+                    operatedClause = clauseDeque.poll();
+                } else {
+                    if(type == Type.ALL){
+                        operatedClause = new AndOperatedClause(operatedClause, clauseDeque.poll(), proximity);
+                    }else if(type == Type.ANY) {
+                        operatedClause = new OrOperatedClause(operatedClause, clauseDeque.poll(), proximity);
+                    }
                 }
-            }
-
-            //TODO 무조건 붙여도 되는지 확인. "전파탐지기abc12345"
-            if(multipleAdditionalClause != null) {
-                operatedClause = new OrOperatedClause(operatedClause, multipleAdditionalClause, proximity);
             }
         }
 
-        if(finalClause!=null) {
+        if (finalClause != null) {
             operatedClause = new OrOperatedClause(operatedClause, finalClause);
         }
         if(logger.isTraceEnabled()) {
             logger.trace("clause:{}", dumpClause(operatedClause));
         }
 
-//		if(logger.isTraceEnabled() && operatedClause!=null) {
-//			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//			PrintStream traceStream = new PrintStream(baos);
-//			operatedClause.printTrace(traceStream, 0);
-//			logger.trace("OperatedClause stack >> \n{}", baos.toString());
-//		}
         return operatedClause;
     }
     public static String dumpClause(OperatedClause clause) {
