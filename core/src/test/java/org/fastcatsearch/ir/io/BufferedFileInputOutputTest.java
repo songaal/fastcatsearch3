@@ -18,11 +18,10 @@ package org.fastcatsearch.ir.io;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channel;
+import java.nio.channels.FileChannel;
 import java.util.Random;
 
 import org.junit.Test;
@@ -257,7 +256,10 @@ public class BufferedFileInputOutputTest {
 		f.delete();
 		
 	}
-	
+
+	/**
+	 * @throws IOException
+	 */
 	@Test
 	public void testWriteAndRead2() throws IOException {
 		byte[] data = new byte[] { 0, 1, 2, 3, 4, -1, 6 };
@@ -288,5 +290,47 @@ public class BufferedFileInputOutputTest {
 		in.close();
 		f.delete();
 		
+	}
+
+	@Test
+	public void testOpenTooMany() throws IOException {
+		File f = new File("/tmp/field.BUNDLEKEY.index");
+		RandomAccessFile file = new RandomAccessFile(f, "r");
+		ByteBuffer byteBuf = ByteBuffer.allocate(128);
+		int i = 0;
+		while(true) {
+			FileChannel channel = file.getChannel();
+			int n = channel.read(byteBuf, 0);
+			i++;
+			System.out.println(i + "] Read from channel " +  n + ", isOpen: " + channel.isOpen() + ", channel: " + channel.hashCode());
+			byteBuf.clear();
+//			channel.close();
+//			System.out.println("1");
+		}
+
+	}
+
+	@Test
+	public void testOpenClose() throws IOException {
+		File f = new File("/tmp/field.BUNDLEKEY.index");
+		ByteBuffer byteBuf = ByteBuffer.allocate(128);
+		int i = 0;
+		long st = System.nanoTime();
+		RandomAccessFile file = new RandomAccessFile(f, "r");
+		while(true) {
+			FileChannel channel = file.getChannel();
+			int n = channel.read(byteBuf, 0);
+			i++;
+//			System.out.println(i + "] Read from channel " +  n + ", isOpen: " + channel.isOpen() + ", channel: " + channel.hashCode());
+			byteBuf.clear();
+//			channel.close();
+//			System.out.println("1");
+//			file.close();
+			if(i % 100000 == 0) {
+				System.out.println(i + ".. elapsed : "+ (System.nanoTime() - st)/ 1000000 + "ms");
+				st = System.nanoTime();
+			}
+		}
+
 	}
 }
