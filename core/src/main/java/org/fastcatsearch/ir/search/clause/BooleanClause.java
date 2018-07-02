@@ -195,7 +195,12 @@ public class BooleanClause extends OperatedClause {
                     //전제단어로 나올리도 없고, 판단할수도 없다.
                     if (!isCompoundNoun && (offsetAttribute.startOffset() == 0 &&
                             offsetAttribute.endOffset() == fullTerm.length())) {
-                        //전체단어동의어 확장어
+                        // 풀텀에 대한 유사어 확장. 2018.7.2 swsong
+                        // 풀텀이 additionalTermAttribute 로 들어오므로, 풀텀이 확인되면 유사어확장을 한다.
+                        if(synonymAttribute != null && synonymAttribute.getSynonyms() != null && synonymAttribute.getSynonyms().size() > 0) {
+                            logger.debug(">>>>>>>>>>>>> [Synonym] {}", synonymAttribute.getSynonyms());
+                            termClause = applySynonym(termClause, searchIndexReader, synonymAttribute, indexId, queryPosition, termSequence, type);
+                        }
                         finalClause = termClause;
                     } else {
                         //일반확장단어들
