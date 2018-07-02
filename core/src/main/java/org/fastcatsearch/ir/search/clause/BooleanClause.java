@@ -223,12 +223,7 @@ public class BooleanClause extends OperatedClause {
                  */
                 int subSize = additionalTermAttribute.subSize();
                 //2개 이상의 단어에 연결되었는지 확인.
-                if(subSize == 1) {
-                    //원 단어에 or 로 연결.
-                    OperatedClause c = clauseDeque.pollLast();
-                    c = new OrOperatedClause(c, additionalClause);
-                    clauseDeque.addLast(c);
-                } else if(subSize > 1) {
+                if(subSize > 1) {
                     OperatedClause c = null;
                     for (int i = 0; i < subSize; i++) {
                         if(c == null) {
@@ -244,6 +239,11 @@ public class BooleanClause extends OperatedClause {
                             }
                         }
                     }
+                    c = new OrOperatedClause(c, additionalClause);
+                    clauseDeque.addLast(c);
+                } else {
+                    //원 단어에 or 로 연결.
+                    OperatedClause c = clauseDeque.pollLast();
                     c = new OrOperatedClause(c, additionalClause);
                     clauseDeque.addLast(c);
                 }
@@ -276,7 +276,12 @@ public class BooleanClause extends OperatedClause {
         return operatedClause;
     }
     public static String dumpClause(OperatedClause clause) {
+        if (clause == null)
+            return null;
+
         StringBuilder sb = new StringBuilder();
+        sb.append(clause.toString());
+        sb.append("\n");
         OperatedClause[] children = clause.children();
         if(children!=null) {
             if(children.length == 2) {
