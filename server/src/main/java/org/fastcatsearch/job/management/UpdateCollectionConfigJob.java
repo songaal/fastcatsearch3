@@ -88,7 +88,7 @@ public class UpdateCollectionConfigJob extends Job implements Streamable {
 		Exception ex = null;
 		try {
 			if(!collectionExists) {
-				irService.createCollection(collectionId, collectionConfig);
+				irService.createCollection(collectionId, collectionConfig, true);
 			}
 			isSuccess = CollectionContextUtil.writeConfigFile(collectionConfig, collectionFilePaths);
 		} catch (IRException e) {

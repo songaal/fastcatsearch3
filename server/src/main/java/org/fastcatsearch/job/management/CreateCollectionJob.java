@@ -87,10 +87,11 @@ public class CreateCollectionJob extends Job implements Streamable {
 			IRService irService = ServiceManager.getInstance().getService(IRService.class);
 			
 			CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
+			// 이미 컬렉션 데이터가 존재한다면, 그대로 로딩한다.
 			if(collectionHandler == null) {
 				CollectionConfig collectionConfig = new CollectionConfig(collectionName, indexNode, searchNodeList, dataNodeList, DataPlanConfig.DefaultDataPlanConfig);
 	
-				collectionHandler = irService.createCollection(collectionId, collectionConfig);
+				collectionHandler = irService.createCollection(collectionId, collectionConfig, true);
 				
 				isSuccess = (collectionHandler != null);
 			}else{

@@ -66,8 +66,6 @@ public class IRService extends AbstractService {
     private static final String SEGMENT_DELAY_CLOSE_SCHED_KEY = "SEGMENT_DELAY_CLOSE_SCHED";
     private Map<String, CollectionHandler> collectionHandlerMap;
     private Map<String, DynamicIndexModule> dynamicIndexModuleMap;
-
-	// TODO 캐시방식을 변경하자.
 	private QueryCacheModule<String, Result> searchCache;
 	private QueryCacheModule<String, GroupResults> groupingCache;
 	private QueryCacheModule<String, GroupsData> groupingDataCache;
@@ -319,32 +317,41 @@ public class IRService extends AbstractService {
 		return collectionsConfig.getCollectionList();
 	}
 
-	public CollectionHandler createCollection(String collectionId, CollectionConfig collectionConfig) throws IRException, SettingException {
+	public CollectionHandler createCollection(String collectionId, CollectionConfig collectionConfig, boolean loadIfExists) throws IRException, SettingException {
 
 		if (collectionsConfig.contains(collectionId)) {
 			// 이미 컬렉션 존재.
 			throw new SettingException("Collection id already exists. " + collectionId);
 		}
 
+		FilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
+		File collectionDir = collectionFilePaths.file();
+
 		try {
-			FilePaths collectionFilePaths = environment.filePaths().collectionFilePaths(collectionId);
-			collectionFilePaths.file().mkdirs();
+			if (loadIfExists && collectionDir.exists()) {
 
-			CollectionContext collectionContext = CollectionContextUtil.create(collectionConfig, collectionFilePaths);
+				CollectionHandler collectionHandler = loadCollectionHandler(collectionId, new Collection(collectionId));
+				collectionsConfig.addCollection(collectionId);
+				JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.collections), collectionsConfig, CollectionsConfig.class);
+				return collectionHandler;
+			} else {
+				collectionDir.mkdirs();
 
-			
-			collectionsConfig.addCollection(collectionId);
-			JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.collections), collectionsConfig, CollectionsConfig.class);
-			CollectionHandler collectionHandler = new CollectionHandler(collectionContext, analyzerFactoryManager);
-			collectionHandlerMap.put(collectionId, collectionHandler);
-			realtimeQueryStatisticsModule.registerQueryCount(collectionId);
-            collectionHandler.setQueryCounter(realtimeQueryStatisticsModule.getQueryCounter(collectionId));
-            collectionHandler.setSegmentDelayedCloseQueue(segmentDelayCloseQueue);
-			return collectionHandler;
+				CollectionContext collectionContext = CollectionContextUtil.create(collectionConfig, collectionFilePaths);
+				collectionsConfig.addCollection(collectionId);
+				JAXBConfigs.writeConfig(new File(collectionsRoot, SettingFileNames.collections), collectionsConfig, CollectionsConfig.class);
+				CollectionHandler collectionHandler = new CollectionHandler(collectionContext, analyzerFactoryManager);
+				collectionHandlerMap.put(collectionId, collectionHandler);
+				realtimeQueryStatisticsModule.registerQueryCount(collectionId);
+				collectionHandler.setQueryCounter(realtimeQueryStatisticsModule.getQueryCounter(collectionId));
+				collectionHandler.setSegmentDelayedCloseQueue(segmentDelayCloseQueue);
+				return collectionHandler;
+			}
+
 		} catch (IRException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error("Error while create collection", e);
+			logger.error("Error while create/load collection", e);
 			throw new SettingException(e);
 		}
 	}
