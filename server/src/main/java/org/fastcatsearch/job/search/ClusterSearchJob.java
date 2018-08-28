@@ -26,6 +26,7 @@ import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableDocumentResult;
 import org.fastcatsearch.transport.vo.StreamableInternalSearchResult;
+import org.fastcatsearch.util.SearchLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +38,6 @@ import java.util.*;
 public class ClusterSearchJob extends Job {
 
 	private static final long serialVersionUID = 2375551165135599911L;
-	protected static Logger searchLogger = LoggerFactory.getLogger("SEARCH_LOG");
 
 	@Override
 	public JobResult doRun() throws FastcatSearchException {
@@ -343,7 +343,7 @@ public class ClusterSearchJob extends Job {
             }
 		} finally {
 			//로깅은 반드시 수행한다.
-			writeSearchLog(collectionId, searchKeyword, searchResult, (System.nanoTime() - st) / 1000000, isCache, errorMsg, tagString);
+			SearchLogger.writeSearchLog(collectionId, searchKeyword, searchResult, (System.nanoTime() - st) / 1000000, isCache, errorMsg, tagString);
 		}
 	}
 
@@ -357,42 +357,5 @@ public class ClusterSearchJob extends Job {
 			collectionId[index] = collectionId[i];
 			collectionId[i] = t;
 		}
-	}
-	
-	private static String CACHE = "CACHE";
-	private static String NOCACHE = "NOCACHE";
-    private static String ERROR = "ERROR";
-	
-	protected void writeSearchLog(String collectionId, String searchKeyword, Object obj, long searchTime, boolean isCache, String errorMsg, String tagString) {
-		int count = -1;
-		int totalCount = -1;
-		GroupResults groupResults = null;
-
-		if (obj instanceof Result) {
-			Result result = (Result) obj;
-			count = result.getCount();
-			totalCount = result.getTotalCount();
-			groupResults = result.getGroupResult();
-		}
-
-        StringBuilder groupBuilder = null;
-        if (groupResults != null) {
-            groupBuilder = new StringBuilder();
-            int groupSize = groupResults.groupSize();
-            for (int i = 0; i < groupSize; i++) {
-                GroupResult groupResult = groupResults.getGroupResult(i);
-                if (i > 0) {
-                    groupBuilder.append(";");
-                }
-                groupBuilder.append(groupResult.size());
-            }
-        }
-
-        String header = errorMsg != null ? ERROR : isCache ? CACHE : NOCACHE;
-
-        searchLogger.info("[{}]\t{}\t{}\t{} ms\t{}\t{}\t{}\t[{}]\t{}", header, collectionId, searchKeyword
-                , searchTime, count, totalCount
-                , groupBuilder != null ? groupBuilder.toString() : "NOGROUP", errorMsg != null ? errorMsg : "OK", tagString);
-
 	}
 }

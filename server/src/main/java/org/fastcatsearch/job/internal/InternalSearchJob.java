@@ -24,6 +24,7 @@ import org.fastcatsearch.query.QueryMap;
 import org.fastcatsearch.query.QueryParser;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.transport.vo.StreamableInternalSearchResult;
+import org.fastcatsearch.util.SearchLogger;
 
 public class InternalSearchJob extends Job implements Streamable {
     private static final long serialVersionUID = 4998297114497342795L;
@@ -56,19 +57,22 @@ public class InternalSearchJob extends Job implements Streamable {
     @Override
     public JobResult doRun() throws FastcatSearchException {
 
+        long st = System.nanoTime();
         Query q = QueryParser.getInstance().parseQuery(queryMap);
-
         String collectionId = queryMap.collectionId();
+        Metadata meta = q.getMeta();
+        String searchKeyword = meta.getUserData("KEYWORD");
+        InternalSearchResult result = null;
+        boolean isCache = false;
+        String tagString = "";
+        String errorMsg = null;
         try {
-            Metadata meta = q.getMeta();
             QueryModifier queryModifier = meta.queryModifier();
             //쿼리모디파이.
             if (queryModifier != null) {
                 q = queryModifier.modify(collectionId, q);
-                meta = q.getMeta();
             }
             logger.debug("q > {}", q);
-            InternalSearchResult result = null;
 
             IRService irService = ServiceManager.getInstance().getService(IRService.class);
 
@@ -110,14 +114,19 @@ public class InternalSearchJob extends Job implements Streamable {
             return new JobResult(new StreamableInternalSearchResult(result));
 
         } catch (SearchError e){
+            errorMsg = e.getMessage();
             throw e;
         } catch (SearchAbortError e){
+            errorMsg = e.getMessage();
             throw e;
         } catch(Exception e){
             throw new FastcatSearchException(e);
+        } finally {
+            SearchLogger.writeSearchLog(collectionId, searchKeyword, result, (System.nanoTime() - st) / 1000000, isCache, errorMsg, tagString);
         }
 
     }
+
     @Override
     public void readFrom(DataInput input) throws IOException {
         setTimeout(input.readLong(), input.readBoolean()); //타임아웃.
