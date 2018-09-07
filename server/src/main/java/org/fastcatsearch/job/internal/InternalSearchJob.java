@@ -96,10 +96,12 @@ public class InternalSearchJob extends Job implements Streamable {
                             if (e == null) {
                                 continue;
                             }
-                            //FIXME 첫번째 필드가 id이다.
-                            logger.debug("e.docNo() > {}", e.docNo());
-                            logger.debug("field > {}", boostCollectionSearcher.requestDocument(e.segmentId(), e.docNo()).get(1));
+                            /**
+                             * 첫번째 필드가 ID 이어야 한다.
+                             */
+//                            logger.debug("e.docNo() > {}", e.docNo());
                             String id = boostCollectionSearcher.requestDocument(e.segmentId(), e.docNo()).get(1).toString();
+//                            logger.debug("field > {}", id);
                             int score = e.score();
                             pkScoreList.add(new PkScore(id, score));
                         }
@@ -109,6 +111,10 @@ public class InternalSearchJob extends Job implements Streamable {
                 }
                 mainCollectionSearcher = collectionHandler.searcher();
                 result = mainCollectionSearcher.searchInternal(q, forMerging, pkScoreList);
+                long elapsed = (System.nanoTime() - st) / 1000000;
+                if(elapsed > getTimeout()) {
+                    throw new SearchError(ServerErrorCode.SEARCH_TIMEOUT_ERROR, String.valueOf(getTimeout()));
+                }
             }
 
             return new JobResult(new StreamableInternalSearchResult(result));
