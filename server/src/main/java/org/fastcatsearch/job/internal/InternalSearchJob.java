@@ -1,6 +1,7 @@
 package org.fastcatsearch.job.internal;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.error.SearchAbortError;
@@ -73,6 +74,21 @@ public class InternalSearchJob extends Job implements Streamable {
                 q = queryModifier.modify(collectionId, q);
             }
             logger.debug("q > {}", q);
+
+            Map<String, String> userDataMap = meta.userData();
+            if(userDataMap != null) {
+                StringBuilder sb = new StringBuilder();
+                for(Map.Entry<String, String> e : userDataMap.entrySet()) {
+                    if(! "KEYWORD".equals(e.getKey())) {
+                        if(sb.length() > 0) {
+                            sb.append(",");
+                        }
+                        sb.append(e.getKey()).append("=").append(e.getValue());
+                    }
+                }
+
+                tagString = sb.toString();
+            }
 
             IRService irService = ServiceManager.getInstance().getService(IRService.class);
 

@@ -52,7 +52,18 @@ public class ClusterSearchJob extends Job {
 		Result searchResult = null;
 		String tagString = null;
 		try {
-            Query q = QueryParser.getInstance().parseQuery(queryMap);
+			
+			//------- 쿼리 userdata에 _SEQ 를 넣음으로써 분산검색쿼리들의 키로 사용할수 있다.
+//			String ud = queryMap.get("ud");
+//			if(ud.length() > 0) {
+//				ud += (",_SEQ:" +  jobId);
+//			} else {
+//				ud = ("_SEQ:" +  jobId);
+//			}
+//			queryMap.put("ud", ud);
+			//----------------------------
+
+			Query q = QueryParser.getInstance().parseQuery(queryMap);
 
 			Metadata meta = q.getMeta();
 			QueryModifier queryModifier = meta.queryModifier();
@@ -69,20 +80,6 @@ public class ClusterSearchJob extends Job {
 			}
 			searchKeyword = meta.getUserData("KEYWORD");
 
-			Map<String, String> userDataMap = meta.userData();
-			if(userDataMap != null) {
-				StringBuilder sb = new StringBuilder();
-				for(Map.Entry<String, String> e : userDataMap.entrySet()) {
-					if(! "KEYWORD".equals(e.getKey())) {
-						if(sb.length() > 0) {
-							sb.append(",");
-						}
-						sb.append(e.getKey()).append("=").append(e.getValue());
-					}
-				}
-
-				tagString = sb.toString();
-			}
 			// no cache 옵션이 없으면 캐시를 확인한다.
 			if (meta.isSearchOption(Query.SEARCH_OPT_NOCACHE)) {
 				noCache = true;
@@ -98,7 +95,22 @@ public class ClusterSearchJob extends Job {
 					return new JobResult(result);
 				}
 			}
-			
+
+			Map<String, String> userDataMap = meta.userData();
+			if(userDataMap != null) {
+				StringBuilder sb = new StringBuilder();
+				for(Map.Entry<String, String> e : userDataMap.entrySet()) {
+					if(! "KEYWORD".equals(e.getKey())) {
+						if(sb.length() > 0) {
+							sb.append(",");
+						}
+						sb.append(e.getKey()).append("=").append(e.getValue());
+					}
+				}
+
+				tagString = sb.toString();
+			}
+
 			NodeService nodeService = ServiceManager.getInstance().getService(NodeService.class);
 
 			Groups groups = q.getGroups();
