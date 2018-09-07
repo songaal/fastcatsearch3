@@ -52,16 +52,6 @@ public class ClusterSearchJob extends Job {
 		Result searchResult = null;
 		String tagString = null;
 		try {
-			
-			//------- 쿼리 userdata에 _SEQ 를 넣음으로써 분산검색쿼리들의 키로 사용할수 있다.
-//			String ud = queryMap.get("ud");
-//			if(ud.length() > 0) {
-//				ud += (",_SEQ:" +  jobId);
-//			} else {
-//				ud = ("_SEQ:" +  jobId);
-//			}
-//			queryMap.put("ud", ud);
-			//----------------------------
 
 			Query q = QueryParser.getInstance().parseQuery(queryMap);
 
