@@ -91,13 +91,18 @@ public class CollectionFullIndexingStepBuildJob extends IndexingJob {
 			 * Do indexing!!
 			 */
 			//////////////////////////////////////////////////////////////////////////////////////////
-			
-			boolean isIndexed = false; 
+			boolean isIndexed = false;
 			MultiThreadCollectionFullIndexer collectionFullIndexer = new MultiThreadCollectionFullIndexer(collectionContext, analyzerPoolManager);
 			indexer = collectionFullIndexer;
 			collectionFullIndexer.setTaskState(indexingTaskState);
 			Throwable indexingThrowable = null;
 			try {
+
+				if(stopRequested){
+					//여기서 끝낸다.
+					throw new IndexingStopException();
+				}
+
 				collectionFullIndexer.doIndexing();
 			}catch(Throwable e){
 				indexingThrowable = e;
