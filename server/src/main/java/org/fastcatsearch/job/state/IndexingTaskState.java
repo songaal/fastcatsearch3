@@ -13,6 +13,7 @@ public class IndexingTaskState extends TaskState {
 	
 	public static final String STEP_INDEXING = "INDEXING";
 	public static final String STEP_FILECOPY = "COPY FILE TO REMOTE NODE";
+	public static final String STEP_RELOAD = "RELOAD INDEX";
 	public static final String STEP_FINALIZE = "FINALIZE";
 	
 	public static final String STEP_DOCUMENT_STORE = "DOCUMENT STORE"; // 문서저장 색인작업.
