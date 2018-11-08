@@ -61,7 +61,7 @@ public class BooleanClause extends OperatedClause {
             analyzerOption.useSynonym(searchOption.useSynonym());
             analyzerOption.setForQuery();
 
-            operatedClause = search(indexId, fullTerm, term.getProximity(), term.type(), indexSetting, analyzer, analyzerOption, requestTypeAttribute);
+            operatedClause = search(indexId, fullTerm, term.getProximity(), term.type(), indexSetting, analyzer, analyzerOption, requestTypeAttribute, term.isDisableAdditionalTerm());
 
 //            StringWriter writer = new StringWriter();
 //            printTrace(writer, 4, 0);
@@ -73,7 +73,8 @@ public class BooleanClause extends OperatedClause {
         }
     }
 
-    private OperatedClause search(String indexId, CharVector fullTerm, int proximity, Type type, IndexSetting indexSetting, Analyzer analyzer, AnalyzerOption analyzerOption, String requestTypeAttribute) throws IOException {
+    private OperatedClause search(String indexId, CharVector fullTerm, int proximity, Type type, IndexSetting indexSetting,
+                                  Analyzer analyzer, AnalyzerOption analyzerOption, String requestTypeAttribute, boolean disableaAditionalTerm) throws IOException {
         logger.debug("############ search Term > {}", fullTerm);
         OperatedClause operatedClause = null;
         OperatedClause finalClause = null;
@@ -178,7 +179,7 @@ public class BooleanClause extends OperatedClause {
             clauseDeque.addLast(clause);
 
             //추가 확장 단어들.
-            if(additionalTermAttribute != null && additionalTermAttribute.size() > 0) {
+            if(!disableaAditionalTerm && additionalTermAttribute != null && additionalTermAttribute.size() > 0) {
                 Iterator<String> termIter = additionalTermAttribute.iterateAdditionalTerms();
                 OperatedClause additionalClause = null;
                 while(termIter.hasNext()) {
@@ -204,22 +205,21 @@ public class BooleanClause extends OperatedClause {
                         finalClause = termClause;
                     } else {
                         //일반확장단어들
-
-                        if(additionalClause == null) {
+                        if (additionalClause == null) {
                             additionalClause = termClause;
                         } else {
 
                             /*
-                            * 2017.11.11 swsong
-                            * 복합명사의 경우 서로 and 로 연결해야 한다.
-                            * */
-                            if(isCompoundNoun){
+                             * 2017.11.11 swsong
+                             * 복합명사의 경우 서로 and 로 연결해야 한다.
+                             * */
+                            if (isCompoundNoun) {
                                 additionalClause = new AndOperatedClause(additionalClause, termClause);
                             } else {
                                 additionalClause = new OrOperatedClause(additionalClause, termClause);
                             }
                         }
-                    }
+                }
                 }
 
                 /**

@@ -41,7 +41,7 @@ public class Term {
 	public static int WILDCARD = 1 << 4; 
 	public static int BOOLEAN = 1 << 5; //불린검색. 검색텀에서 대문자 AND OR NOT을 허용한다.
 	public static int HIGHLIGHT_FORCE = 1 << 6; //강제 하이라이팅. 최적의 분석 결과와는 상관없이 무조건 검색 결과를 하이라이팅한다.
-	
+
 	public static final Option OPTION_DEFAULT = new Option(SYNONYM | STOPWORD); //기본 옵션.
 	
 	private String[] indexFieldId;
@@ -55,6 +55,10 @@ public class Term {
     private int proximity;
 
 	private String analyzeType;
+	// 2018-11-8 swsong
+	// 추가단어를 허용할지 여부. 디폴트로는 사용한다. 사용못하게 하려면 query 로는 안되고 programmatic 하게 설정해야함.
+	//복합명사 허용때문에 만들었는데, 전체적으로 추가단어에 대해서 사용하면 좋을듯..
+	private boolean disableAdditionalTerm;
 
 	public Term(){}
 	public Term(String indexFieldId, String termString){
@@ -84,7 +88,15 @@ public class Term {
 		this.option = option;
 	}
 
-    public int getProximity() {
+	public boolean isDisableAdditionalTerm() {
+		return disableAdditionalTerm;
+	}
+
+	public void setDisableAdditionalTerm(boolean disableAdditionalTerm) {
+		this.disableAdditionalTerm = disableAdditionalTerm;
+	}
+
+	public int getProximity() {
         return proximity;
     }
 
