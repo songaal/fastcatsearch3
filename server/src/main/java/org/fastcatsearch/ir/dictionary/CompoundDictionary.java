@@ -104,9 +104,7 @@ public class CompoundDictionary extends MapDictionary {
 
 		// 0번째에 복합명사들이 컴마 단위로 모두 입력되어 있으므로 [0]만 확인하면 된다.
 		String valueString = values[0].toString();
-		// 중복제거.
 		String[] nouns = valueString.split(",");
-		dedup(nouns);
 		for (int k = 0; k < nouns.length; k++) {
 			String noun = nouns[k].trim();
 			if (noun.length() > 0) {
@@ -117,35 +115,13 @@ public class CompoundDictionary extends MapDictionary {
 		}
 
 		CharVector[] value = new CharVector[list.size()];
-		int idx = 0;
 		for (int j = 0; j < value.length; j++) {
 			CharVector word = list.get(j);
-			if (!mainWord.equals(word)) {
-				// 다른것만 value로 넣는다.
-				value[idx++] = word;
-			}
-		}
-		if (idx < value.length) {
-			value = Arrays.copyOf(value, idx);
+			value[j] = word;
 		}
 		if (value.length > 0) {
 			map.put(mainWord, value);
 		}
-	}
-
-	// 중복제거한다. 중복이 발견되면 "" 로 치환한다.
-	private void dedup(String[] list) {
-		if (list == null || list.length < 2) {
-			return;
-		}
-		for (int i = 0; i < list.length; i++) {
-			for (int j = i + 1; j < list.length; j++) {
-				if (list[j].length() != 0 && list[i].equals(list[j])) {
-					list[j] = "";
-				}
-			}
-		}
-		return;
 	}
 
 	@Override
