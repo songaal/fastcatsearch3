@@ -17,6 +17,12 @@ import java.util.List;
 public class SearchResultWriter extends AbstractSearchResultWriter {
 	
 	private String[] fieldNames;
+
+	/**
+	 * 결과값이 없을때 빈결과값을 리턴해야 하는 경우 사용
+	 */
+	private static final Result BLANK_RESULT = 
+		new Result(new Row[0], new Row[0][0], new int[0], null, new String[0], 0, 0, 0, null, null);
 	 
 	public SearchResultWriter(ResponseWriter resultStringer) {
 		super(resultStringer);
@@ -38,7 +44,9 @@ public class SearchResultWriter extends AbstractSearchResultWriter {
 				.key("error_msg").value(errorMsg).endObject();
 		}else{
 			Result result = (Result)obj;
-			
+			if (result == null) {
+				result = BLANK_RESULT;
+			}
 			fieldNames = result.getFieldNameList();
 			resultWriter.object()
 			.key("status").value(0)
