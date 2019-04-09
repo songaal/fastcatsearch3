@@ -119,7 +119,6 @@ public class ClusterSearchJob extends Job {
 			Node[] selectedNodeList = new Node[collectionIdList.length];
 
 			boolean forMerging = collectionIdList.length > 1;
-			int errorCount = 0;
 			for (int i = 0; i < collectionIdList.length; i++) {
 				String id = collectionIdList[i];
 				if(irService.collectionHandler(id) == null) {
@@ -144,13 +143,7 @@ public class ClusterSearchJob extends Job {
 				resultFutureList[i] = nodeService.sendRequest(dataNode, job);
                 // 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
                 if (resultFutureList[i] == null) {
-					if (meta.isSearchOption(Query.SEARCH_OPT_STOPONERROR)
-						|| errorCount == collectionIdList.length) {
-						throw new SearchError(ServerErrorCode.DATA_NODE_CONNECTION_ERROR, 
-						dataNode.toString() );
-					}
-					collectionIdList[i] = null;
-					errorCount++;
+                    throw new SearchError(ServerErrorCode.DATA_NODE_CONNECTION_ERROR, dataNode.toString() );
                 }
 			}
 
@@ -158,26 +151,25 @@ public class ClusterSearchJob extends Job {
 			HighlightInfo highlightInfo = null;
 
 			for (int i = 0; i < collectionIdList.length; i++) {
-				if (resultFutureList[i] != null) {
-					Object obj = resultFutureList[i].take();
-					if (!resultFutureList[i].isSuccess()) {
-						if (obj instanceof SearchError) {
-							throw (SearchError) obj;
-						} else if (obj instanceof Throwable) {
-							throw new FastcatSearchException((Throwable) obj);
-						} else {
-							throw new FastcatSearchException("Error while searching.", obj);
-						}
-					}
-
-					StreamableInternalSearchResult obj2 = (StreamableInternalSearchResult) obj;
-					InternalSearchResult internalSearchResult = obj2.getInternalSearchResult();
-					internalSearchResult.setNodeId(selectedNodeList[i].id());
-					resultList.add(internalSearchResult);
-
-					// TODO highlightInfo 들을 머지해야하나?
-					highlightInfo = internalSearchResult.getHighlightInfo();
+				Object obj = resultFutureList[i].take();
+				if (!resultFutureList[i].isSuccess()) {
+                    if (obj instanceof SearchError) {
+                        throw (SearchError) obj;
+                    } else if (obj instanceof Throwable) {
+                        throw new FastcatSearchException((Throwable) obj);
+                    } else {
+                        throw new FastcatSearchException("Error while searching.", obj);
+                    }
 				}
+
+				StreamableInternalSearchResult obj2 = (StreamableInternalSearchResult) obj;
+				InternalSearchResult internalSearchResult = obj2.getInternalSearchResult();
+				internalSearchResult.setNodeId(selectedNodeList[i].id());
+				resultList.add(internalSearchResult);
+
+				// TODO highlightInfo 들을 머지해야하나?
+				highlightInfo = internalSearchResult.getHighlightInfo();
+
 			}
 
 			//
@@ -250,26 +242,18 @@ public class ClusterSearchJob extends Job {
 
             long documentTimeout = getTimeout() / 2;
 			String[] tags = q.getMeta().tags();
-			errorCount = 0;
 			for (int i = 0; i < collectionIdList.length; i++) {
 				String cid = collectionIdList[i];
-				if (cid != null) {
-					Node dataNode = selectedNodeList[i];
+				Node dataNode = selectedNodeList[i];
 
-					logger.debug("collection [{}] search at {}", cid, dataNode);
+				logger.debug("collection [{}] search at {}", cid, dataNode);
 
-					InternalDocumentSearchJob job = new InternalDocumentSearchJob(cid, docIdList[i], views, tags, highlightInfo);
-					job.setTimeout(documentTimeout, isForceAbortWhenTimeout());
-					resultFutureList[i] = nodeService.sendRequest(dataNode, job);
-					if (resultFutureList[i] == null) {
-						if (meta.isSearchOption(Query.SEARCH_OPT_STOPONERROR)
-							|| errorCount == collectionIdList.length) {
-							throw new SearchError(ServerErrorCode.DATA_NODE_CONNECTION_ERROR, 
-							dataNode.toString() );
-						}
-						errorCount++;
-					}
-				}
+				InternalDocumentSearchJob job = new InternalDocumentSearchJob(cid, docIdList[i], views, tags, highlightInfo);
+                job.setTimeout(documentTimeout, isForceAbortWhenTimeout());
+				resultFutureList[i] = nodeService.sendRequest(dataNode, job);
+                if (resultFutureList[i] == null) {
+                    throw new SearchError(ServerErrorCode.DATA_NODE_CONNECTION_ERROR, dataNode.toString() );
+                }
 			}
 
 			// document 결과를 받는다.
@@ -277,36 +261,26 @@ public class ClusterSearchJob extends Job {
 
 			for (int i = 0; i < collectionIdList.length; i++) {
 				String cid = collectionIdList[i];
-				if (cid!= null && resultFutureList[i] != null) {
-					Object obj = resultFutureList[i].take();
-					if (!resultFutureList[i].isSuccess()) {
-						if (obj instanceof SearchError) {
-							throw (SearchError) obj;
-						} else if (obj instanceof Throwable) {
-							throw new FastcatSearchException((Throwable) obj);
-						} else {
-							throw new FastcatSearchException("Error while searching.", obj);
-						}
-					}
+				Object obj = resultFutureList[i].take();
+				if (!resultFutureList[i].isSuccess()) {
+                    if (obj instanceof SearchError) {
+                        throw (SearchError) obj;
+                    } else if (obj instanceof Throwable) {
+                        throw new FastcatSearchException((Throwable) obj);
+                    } else {
+                        throw new FastcatSearchException("Error while searching.", obj);
+                    }
+				}
 
-					StreamableDocumentResult obj2 = (StreamableDocumentResult) obj;
-					DocumentResult documentResult = obj2.documentResult();
-					if (documentResult != null) {
-						docResultList[i] = documentResult;
-					} else {
-						logger.warn("{}의 documentList가 null입니다.", cid);
-					}
+				StreamableDocumentResult obj2 = (StreamableDocumentResult) obj;
+				DocumentResult documentResult = obj2.documentResult();
+				if (documentResult != null) {
+					docResultList[i] = documentResult;
+				} else {
+					logger.warn("{}의 documentList가 null입니다.", cid);
 				}
 			}
-			
-			String[] fieldIdList = null;
-			for (DocumentResult result : docResultList) {
-				if (result != null) {
-					fieldIdList = result.fieldIdList();
-					break;
-				}
-			}
-			
+			String[] fieldIdList = docResultList[0].fieldIdList();
 			Row[] rows = new Row[realSize];
 			Row[][] bundleRows = null;
 			for (int i = 0; i < realSize; i++) {

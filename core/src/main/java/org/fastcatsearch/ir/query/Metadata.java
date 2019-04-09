@@ -120,9 +120,6 @@ public class Metadata {
         if (value.contains("nounicode")) {
             option |= Query.SEARCH_OPT_NOUNICODE;
         }
-		if (value.contains("stoponerror")) {
-			option |= Query.SEARCH_OPT_STOPONERROR;
-		}
 	}
 	public boolean isSearchOption(int value){
 		return (option & value) > 0;
