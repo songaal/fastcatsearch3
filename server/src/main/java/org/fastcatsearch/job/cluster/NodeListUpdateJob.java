@@ -76,10 +76,7 @@ public class NodeListUpdateJob extends Job implements Streamable {
 				output.writeAString(id.toCharArray(),0,id.length());
 				output.writeUString(name.toCharArray(),0,name.length());
 				output.writeAString(address.toCharArray(),0,address.length());
-				if (dataAddress == null) {
-					dataAddress = "";
-				}
-				output.writeAString(dataAddress.toCharArray(), 0, dataAddress.length());
+				output.writeAString(dataAddress);
 				output.writeInt(port);
 				output.writeBoolean(enabled);
 			}

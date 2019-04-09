@@ -1,18 +1,14 @@
 package org.fastcatsearch.env;
 
 import org.fastcatsearch.settings.NodeListSettings;
-import org.fastcatsearch.settings.SettingFileNames;
 import org.fastcatsearch.util.JAXBConfigs;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBException;
-import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
-
-import static org.fastcatsearch.settings.SettingFileNames.nodeListSettings;
 
 public class JAXBTest {
 
