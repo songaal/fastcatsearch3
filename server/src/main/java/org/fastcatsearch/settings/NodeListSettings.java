@@ -71,6 +71,9 @@ public class NodeListSettings {
 
 		@XmlAttribute(required = false)
 		public String getDataAddress() {
+			if ("".equals(dataAddress)) {
+				return null;
+			}
 			return dataAddress;
 		}
 		public void setDataAddress(String dataAddress) {
