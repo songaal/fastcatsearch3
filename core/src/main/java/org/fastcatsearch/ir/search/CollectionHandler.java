@@ -434,9 +434,9 @@ public class CollectionHandler {
         }catch (Throwable t) {
             segmentLogger.error("에러발생", t);
         }
-        logger.info("[{}] mergingSegmentSet > {}", collectionId, mergingSegmentSet);
-        logger.info("[{}]deletionForMergingMap > {}", collectionId, deletionForMergingMap);
-        logger.info("[{}]deletionIdRefCounter > {}", collectionId, deletionIdRefCounter);
+        logger.debug("[{}] mergingSegmentSet > {}", collectionId, mergingSegmentSet);
+        logger.debug("[{}]deletionForMergingMap > {}", collectionId, deletionForMergingMap);
+        logger.debug("[{}]deletionIdRefCounter > {}", collectionId, deletionIdRefCounter);
         return collectionContext;
     }
 
@@ -518,7 +518,7 @@ public class CollectionHandler {
                         // add delete list
                         deleteSet.set(localDocNo);
                         deleteDocumentSize++;// deleteSize 증가
-                        logger.info("[{}] Mark deleted ids[{}] as docNo[{}]", collectionId, ids, localDocNo);
+                        logger.debug("[{}] Mark deleted ids[{}] as docNo[{}]", collectionId, ids, localDocNo);
                     }
                 }
                 i++;
