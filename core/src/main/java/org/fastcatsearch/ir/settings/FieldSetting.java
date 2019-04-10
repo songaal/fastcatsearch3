@@ -178,6 +178,9 @@ public class FieldSetting {
 
 	@XmlAttribute
 	public String getMultiValueDelimiter() {
+		if ("".equals(multiValueDelimiter)) {
+			return null;
+		}
 		return multiValueDelimiter;
 	}
 
