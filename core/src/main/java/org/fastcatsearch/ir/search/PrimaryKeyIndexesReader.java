@@ -18,6 +18,8 @@ package org.fastcatsearch.ir.search;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import org.fastcatsearch.ir.common.IRException;
@@ -123,6 +125,13 @@ public class PrimaryKeyIndexesReader implements Cloneable {
 			}
 		}
 
+
+		// 2019.4.10 @swsong termDocList 가 docNo 순으로 정렬되어 있어야 한다. 하지만 int key의 경우 문자열 정렬을 수행하므로 키 순서와 docNo 순서가 일치하지 않는다.
+		// 그러므로 여기서 docNo 순으로 정렬하여 posting reader 로 만들어준다.
+		if (m > 1) {
+			Arrays.sort(termDocList, termDocComparator);
+		}
+
 		OperatedClause idOperatedClause = null;
 		if (m > 0) {
 			idOperatedClause = new TermOperatedClause(PrimaryKeySetting.ID, termString, new DataPostingReader(new CharVector(termString), 0, weight, termDocList, m));
@@ -133,7 +142,15 @@ public class PrimaryKeyIndexesReader implements Cloneable {
 		return idOperatedClause;
 
 	}
+	private static TermDocComparator termDocComparator = new TermDocComparator();
 
+	private static class TermDocComparator implements Comparator<PostingDoc> {
+
+		@Override
+		public int compare(PostingDoc o1, PostingDoc o2) {
+			return o1.docNo() - o2.docNo();
+		}
+	}
 	public int getDocNo(String pkValue, BytesDataOutput pkOutput) throws FieldDataParseException, IOException {
 		pkOutput.reset();
 		String[] pkValues = null;
