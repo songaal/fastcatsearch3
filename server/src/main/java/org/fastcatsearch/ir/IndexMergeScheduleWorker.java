@@ -165,7 +165,7 @@ public class IndexMergeScheduleWorker extends Thread {
     private void startRemoveJob(Set<String> zeroSegmentIdSet) {
         LocalDocZeroDeleteJob deleteJob = new LocalDocZeroDeleteJob(collectionId, zeroSegmentIdSet);
         deleteJob.setNoResult();
-        logger.info("[{}] start remove segment job {}", collectionId, deleteJob);
+        logger.debug("[{}] start remove segment job {}", collectionId, deleteJob);
         ServiceManager.getInstance().getService(JobService.class).offer(deleteJob);
     }
 
@@ -174,7 +174,7 @@ public class IndexMergeScheduleWorker extends Thread {
         LocalIndexMergingJob mergingJob = new LocalIndexMergingJob(collectionId, documentId, mergeSegmentIdSet);
         mergingJob.setNoResult();
         collectionHandler.putMerging(mergeSegmentIdSet);
-        logger.info("[{}] start merging job {}", collectionId, mergeSegmentIdSet);
+        logger.debug("[{}] start merging job {}", collectionId, mergeSegmentIdSet);
         ServiceManager.getInstance().getService(JobService.class).offer(mergingJob);
     }
 }
