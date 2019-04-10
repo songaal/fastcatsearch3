@@ -65,12 +65,14 @@ public class LocalIndexMergingJob extends Job {
 
             if (segmentDirs.size() == 0) {
                 collectionHandler.takeMergingDeletion(documentId);
-                collectionContext = collectionHandler.removeZeroSegment(mergingSegmentIdSet);
-                CollectionContextUtil.saveCollectionAfterDynamicIndexing(collectionContext);
-                long elapsed = System.currentTimeMillis() - startTime;
-                indexingLogger.info("[{}] Merge Indexing Done. Inserts[{}] Deletes[{}] Elapsed[{}] TotalLive[{}] Segments[{}] SegIds{} "
-                        , collectionId, 0, 0, Formatter.getFormatTime(elapsed)
-                        , 0, mergingSegmentIdSet.size(), mergingSegmentIdSet);
+                synchronized (collectionHandler) {
+                    collectionContext = collectionHandler.removeZeroSegment(mergingSegmentIdSet);
+                    CollectionContextUtil.saveCollectionAfterDynamicIndexing(collectionContext);
+                    long elapsed = System.currentTimeMillis() - startTime;
+                    indexingLogger.info("[{}] Merge Indexing Done. Inserts[{}] Deletes[{}] Elapsed[{}] TotalLive[{}] Segments[{}] SegIds{} "
+                            , collectionId, 0, 0, Formatter.getFormatTime(elapsed)
+                            , 0, mergingSegmentIdSet.size(), mergingSegmentIdSet);
+                }
             } else {
                 CollectionMergeIndexer mergeIndexer = new CollectionMergeIndexer(documentId, collectionHandler, segmentDirs.toArray(new File[0]));
 
@@ -96,21 +98,24 @@ public class LocalIndexMergingJob extends Job {
                 }
 
                 File segmentDir = mergeIndexer.getSegmentDir();
-                if (segmentInfo.getDocumentCount() == 0 || segmentInfo.getLiveCount() <= 0) {
-                    logger.info("[{}] Delete segment dir due to no documents = {}", collectionHandler.collectionId(), segmentDir.getAbsolutePath());
-                    //세그먼트를 삭제하고 없던 일로 한다.
-                    FileUtils.deleteDirectory(segmentDir);
-                    collectionHandler.takeMergingDeletion(documentId);
-                    collectionContext = collectionHandler.removeZeroSegment(mergingSegmentIdSet);
-                } else {
-                    collectionContext = collectionHandler.applyMergedSegment(segmentInfo, mergeIndexer.getSegmentDir(), mergingSegmentIdSet);
+                //2019.4.10 @swsong 한번에 묶자.
+                synchronized (collectionHandler) {
+                    if (segmentInfo.getDocumentCount() == 0 || segmentInfo.getLiveCount() <= 0) {
+                        logger.info("[{}] Delete segment dir due to no documents = {}", collectionHandler.collectionId(), segmentDir.getAbsolutePath());
+                        //세그먼트를 삭제하고 없던 일로 한다.
+                        FileUtils.deleteDirectory(segmentDir);
+                        collectionHandler.takeMergingDeletion(documentId);
+                        collectionContext = collectionHandler.removeZeroSegment(mergingSegmentIdSet);
+                    } else {
+                        collectionContext = collectionHandler.applyMergedSegment(segmentInfo, mergeIndexer.getSegmentDir(), mergingSegmentIdSet);
+                    }
+                    CollectionContextUtil.saveCollectionAfterDynamicIndexing(collectionContext);
+                    int totalLiveDocs = collectionContext.dataInfo().getDocuments() - collectionContext.dataInfo().getDeletes();
+                    long elapsed = System.currentTimeMillis() - startTime;
+                    indexingLogger.info("[{}] Merge Indexing Done. Inserts[{}] Deletes[{}] Elapsed[{}] TotalLive[{}] Segments[{}] SegIds{} "
+                            , collectionId, segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount(), Formatter.getFormatTime(elapsed)
+                            , totalLiveDocs, mergingSegmentIdSet.size(), mergingSegmentIdSet);
                 }
-                CollectionContextUtil.saveCollectionAfterDynamicIndexing(collectionContext);
-                int totalLiveDocs = collectionContext.dataInfo().getDocuments() - collectionContext.dataInfo().getDeletes();
-                long elapsed = System.currentTimeMillis() - startTime;
-                indexingLogger.info("[{}] Merge Indexing Done. Inserts[{}] Deletes[{}] Elapsed[{}] TotalLive[{}] Segments[{}] SegIds{} "
-                        , collectionId, segmentInfo.getDocumentCount(), segmentInfo.getDeleteCount(), Formatter.getFormatTime(elapsed)
-                        , totalLiveDocs, mergingSegmentIdSet.size(), mergingSegmentIdSet);
             }
 
             return new JobResult(true);
