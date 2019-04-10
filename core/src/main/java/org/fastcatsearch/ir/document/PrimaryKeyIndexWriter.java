@@ -248,6 +248,7 @@ public class PrimaryKeyIndexWriter {
 		
 		for (int i = 0; i < length; i++) {
 			if(array[pos+i] != array[pos2+i])
+//				return (array[pos+i] & 0xFF) - (array[pos2+i] & 0xFF);
 				return array[pos+i] - array[pos2+i];
 		}
 		

@@ -198,7 +198,8 @@ public class PrimaryKeyIndexReader implements BytesToIntReader, Cloneable {
 		// logger.debug("keyLen={}, length={}", keyLen, length);
 		for (int i = 0; i < len; i++) {
 			if (key[i] != data[offset + i]) {
-				// logger.debug("cmp >> {}:{}", key[i], data[offset + i]);
+//				 logger.debug("cmp >> {}:{}", key[i], data[offset + i]);
+//				return (key[i] & 0xFF) - (data[offset + i] & 0xFF);
 				return key[i] - data[offset + i];
 			}
 		}
