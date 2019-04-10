@@ -271,7 +271,7 @@ public class CollectionHandler {
 
     public void prepareMergingDeletion(String documentId) {
         deletionForMergingMap.put(documentId, new ArrayList<String>());
-        logger.info("[{}] deletionForMergingMap Prepare {}", collectionId, documentId);
+        logger.debug("[{}] deletionForMergingMap Prepare {}", collectionId, documentId);
     }
 
     public boolean needMergingDeletion() {
@@ -279,12 +279,12 @@ public class CollectionHandler {
     }
 
     public List<String> takeMergingDeletion(String documentId) {
-        logger.info("[{}] deletionForMergingMap Remove {}", collectionId, documentId);
+        logger.debug("[{}] deletionForMergingMap Remove {}", collectionId, documentId);
         return deletionForMergingMap.remove(documentId);
     }
 
     public void addMergingDeletion(String segmentId) {
-        logger.info("[{}] deletionForMergingMap Add {} to {}", collectionId, segmentId, deletionForMergingMap.keySet());
+        logger.debug("[{}] deletionForMergingMap Add {} to {}", collectionId, segmentId, deletionForMergingMap.keySet());
         ///갯수.
         deletionIdRefCounter.put(segmentId, new AtomicInteger(deletionForMergingMap.size()));
         for(Map.Entry<String, List<String>> entry : deletionForMergingMap.entrySet()) {
@@ -341,7 +341,7 @@ public class CollectionHandler {
                 //삭제ID만 기록해 놓은 delete.req 파일을 만들어 놓는다. (차후 세그먼트 병합시 사용됨)
                 File deleteIdFile = new File(segmentDir.getParentFile(), tempSegmentId + "." + IndexFileNames.docDeleteReq);
 
-                logger.info("create {}", deleteIdFile.getName());
+                logger.debug("create {}", deleteIdFile.getName());
                 ///1. pk를 모두 기록..
                 PrimaryKeyIndexBulkReader pkBulkReader = new PrimaryKeyIndexBulkReader(new File(segmentDir, IndexFileNames.primaryKeyMap));
                 BytesBuffer buf = new BytesBuffer(1024);
@@ -381,7 +381,7 @@ public class CollectionHandler {
                         deleteIdOutput.close();
                     }
                 }
-                logger.info("create {} size[{}]", deleteIdFile.getName(), size);
+                logger.debug("create {} size[{}]", deleteIdFile.getName(), size);
                 addMergingDeletion(tempSegmentId);
                 segmentLogger.info("[{}] NewSegment id[{}] created {}.{}", collectionId, tempSegmentId, tempSegmentId, IndexFileNames.docDeleteReq);
             }
@@ -585,7 +585,7 @@ public class CollectionHandler {
         BytesBuffer buf = new BytesBuffer(1024);
         for(String deleteReqId : createdSegmentIdList) {
             File f = new File(segmentDir.getParentFile(), deleteReqId + "." + IndexFileNames.docDeleteReq);
-            logger.info("try delete file {}", f.getName());
+            logger.debug("try delete file {}", f.getName());
             BufferedFileInput input = null;
             try {
                 input = new BufferedFileInput(f);
@@ -615,11 +615,11 @@ public class CollectionHandler {
             }
             AtomicInteger count = deletionIdRefCounter.get(deleteReqId);
             int referenceCount = count.decrementAndGet();
-            logger.info("check ref {} > {}", deleteReqId, referenceCount);
+            logger.debug("check ref {} > {}", deleteReqId, referenceCount);
             if(referenceCount == 0) {
                 //지운다.
                 deletionIdRefCounter.remove(deleteReqId);
-                logger.info("delete file {}", f.getName());
+                logger.debug("delete file {}", f.getName());
                 f.delete();
             }
         }
@@ -666,9 +666,9 @@ public class CollectionHandler {
             segmentLogger.info("[{}] [{}] Segment live[{}] doc[{}] del[{}]", collectionId, info.getId(), info.getLiveCount(), info.getDocumentCount(), info.getDeleteCount());
         }
 
-        logger.info("[{}] mergingSegmentSet > {}", collectionId, mergingSegmentSet);
-        logger.info("[{}]deletionForMergingMap > {}", collectionId, deletionForMergingMap);
-        logger.info("[{}]deletionIdRefCounter > {}", collectionId, deletionIdRefCounter);
+        logger.debug("[{}] mergingSegmentSet > {}", collectionId, mergingSegmentSet);
+        logger.debug("[{}]deletionForMergingMap > {}", collectionId, deletionForMergingMap);
+        logger.debug("[{}]deletionIdRefCounter > {}", collectionId, deletionIdRefCounter);
         return collectionContext;
     }
 
