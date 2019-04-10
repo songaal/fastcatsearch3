@@ -53,21 +53,19 @@ public class LocalIndexMergingJob extends Job {
             List<File> segmentDirs = new ArrayList<File>();
             for (String mergeSegmentId : mergingSegmentIdSet) {
                 SegmentReader segmentReader = collectionHandler.segmentReader(mergeSegmentId);
-                if(segmentReader == null) {
+                if (segmentReader == null) {
                     continue;
                 }
-                if(segmentReader.segmentInfo().getLiveCount() > 0) {
+                if (segmentReader.segmentInfo().getLiveCount() > 0) {
                     segmentDirs.add(collectionContext.indexFilePaths().segmentFile(mergeSegmentId));
                 }
             }
 
             DataInfo.SegmentInfo segmentInfo = null;
 
-            if(segmentDirs.size() == 0) {
+            if (segmentDirs.size() == 0) {
                 collectionHandler.takeMergingDeletion(documentId);
-                synchronized (CollectionContextUtil.class) {
-                    collectionContext = collectionHandler.removeZeroSegment(mergingSegmentIdSet);
-                }
+                collectionContext = collectionHandler.removeZeroSegment(mergingSegmentIdSet);
                 CollectionContextUtil.saveCollectionAfterDynamicIndexing(collectionContext);
                 long elapsed = System.currentTimeMillis() - startTime;
                 indexingLogger.info("[{}] Merge Indexing Done. Inserts[{}] Deletes[{}] Elapsed[{}] TotalLive[{}] Segments[{}] SegIds{} "
@@ -103,13 +101,9 @@ public class LocalIndexMergingJob extends Job {
                     //세그먼트를 삭제하고 없던 일로 한다.
                     FileUtils.deleteDirectory(segmentDir);
                     collectionHandler.takeMergingDeletion(documentId);
-                    synchronized (CollectionContextUtil.class) {
-                        collectionContext = collectionHandler.removeZeroSegment(mergingSegmentIdSet);
-                    }
+                    collectionContext = collectionHandler.removeZeroSegment(mergingSegmentIdSet);
                 } else {
-                    synchronized (CollectionContextUtil.class) {
-                        collectionContext = collectionHandler.applyMergedSegment(segmentInfo, mergeIndexer.getSegmentDir(), mergingSegmentIdSet);
-                    }
+                    collectionContext = collectionHandler.applyMergedSegment(segmentInfo, mergeIndexer.getSegmentDir(), mergingSegmentIdSet);
                 }
                 CollectionContextUtil.saveCollectionAfterDynamicIndexing(collectionContext);
                 int totalLiveDocs = collectionContext.dataInfo().getDocuments() - collectionContext.dataInfo().getDeletes();
