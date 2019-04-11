@@ -54,12 +54,12 @@ public class SampleDataGenerator implements Runnable {
                 request = r;
             } else {
                 int type = r.nextInt(10);
-                if (type > 6) {
+                if (type > 16) {
                     //insert
                     HttpPost r = new HttpPost(endpoint);
                     r.setEntity(requestEntity);
                     request = r;
-                } else if (type > 3) {
+                } else if (type > 13) {
                     //update
                     HttpPut r = new HttpPut(endpoint);
                     r.setEntity(requestEntity);
