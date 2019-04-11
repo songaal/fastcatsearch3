@@ -383,6 +383,7 @@ public class CollectionHandler {
                     }
                 } catch (Exception e) {
                     logger.error("error while write delete id file = " + deleteIdFile.getName(), e);
+                    throw e;
                 } finally {
                     if (deleteIdOutput != null) {
                         deleteIdOutput.seek(0);
@@ -442,6 +443,7 @@ public class CollectionHandler {
             }
         }catch (Throwable t) {
             logger.error("에러발생", t);
+            throw new IRException("applyNewSegment 에러발생.", t);
         }
         logger.debug("[{}] mergingSegmentSet > {}", collectionId, mergingSegmentSet);
         logger.debug("[{}]deletionForMergingMap > {}", collectionId, deletionForMergingMap);

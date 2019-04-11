@@ -101,7 +101,8 @@ public class NodeIndexDocumentFileJob extends DataJob implements Streamable {
                 }
             }
         } catch (Exception e) {
-            logger.error("node dynamic index error!", e);
+            logger.error(collectionId + " node dynamic index error!", e);
+            logger.error("[{}] Dynamic index error documents >>\n{}", collectionId, documents);
         }
 
         return new JobResult();
