@@ -42,11 +42,11 @@ public class LocalDocZeroDeleteJob extends Job {
         try {
             IRService irService = ServiceManager.getInstance().getService(IRService.class);
             CollectionHandler collectionHandler = irService.collectionHandler(collectionId);
-            synchronized (collectionHandler) {
+//            synchronized (collectionHandler) {
                 CollectionContext collectionContext = collectionHandler.collectionContext();
                 collectionHandler.removeZeroSegment(zeroSegmentIdSet);
                 CollectionContextUtil.saveCollectionAfterDynamicIndexing(collectionContext);
-            }
+//            }
             return new JobResult(true);
         } catch (Throwable e) {
             logger.error("", e);
