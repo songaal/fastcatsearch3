@@ -341,20 +341,32 @@ public class CollectionHandler {
                 //삭제ID만 기록해 놓은 delete.req 파일을 만들어 놓는다. (차후 세그먼트 병합시 사용됨)
                 File deleteIdFile = new File(segmentDir.getParentFile(), tempSegmentId + "." + IndexFileNames.docDeleteReq);
 
-                logger.debug("create {}", deleteIdFile.getName());
-                ///1. pk를 모두 기록..
-                PrimaryKeyIndexBulkReader pkBulkReader = new PrimaryKeyIndexBulkReader(new File(segmentDir, IndexFileNames.primaryKeyMap));
-                BytesBuffer buf = new BytesBuffer(1024);
+                logger.debug("create deleteIdFile {}", deleteIdFile.getName());
+
                 BufferedFileOutput deleteIdOutput = null;
                 int size = 0;
                 try {
                     deleteIdOutput = new BufferedFileOutput(deleteIdFile);
                     deleteIdOutput.writeInt(0);
-                    while (pkBulkReader.next(buf) != -1) {
-                        deleteIdOutput.writeVInt(buf.length());
-                        deleteIdOutput.write(buf.array(), buf.offset, buf.length());
-                        logger.debug(new String(buf.array(), buf.offset, buf.length()));
-                        size++;
+
+                    ///1. pk를 모두 기록..
+                    File newSegmentPkFile = new File(segmentDir, IndexFileNames.primaryKeyMap);
+                    if (newSegmentPkFile.exists()) {
+                        PrimaryKeyIndexBulkReader pkBulkReader = new PrimaryKeyIndexBulkReader(newSegmentPkFile);
+                        try {
+                            BytesBuffer buf = new BytesBuffer(1024);
+
+                            while (pkBulkReader.next(buf) != -1) {
+                                deleteIdOutput.writeVInt(buf.length());
+                                deleteIdOutput.write(buf.array(), buf.offset, buf.length());
+                                logger.debug("deleteId#1: {}", new String(buf.array(), buf.offset, buf.length()));
+                                size++;
+                            }
+                        } finally {
+                            if(pkBulkReader != null) {
+                                pkBulkReader.close();
+                            }
+                        }
                     }
                     // 2. deleteset을 모두기록..
                     if(deleteIdSet.size() > 0) {
@@ -365,16 +377,13 @@ public class CollectionHandler {
                             BytesRef ref = primaryKeysToBytesRef.getBytesRef(ids);
                             deleteIdOutput.writeVInt(ref.length());
                             deleteIdOutput.write(ref.array(), ref.offset, ref.limit - ref.offset);
-                            logger.debug(new String(ref.array(), ref.offset, ref.limit - ref.offset));
+                            logger.debug("deleteId#2: {}", new String(ref.array(), ref.offset, ref.limit - ref.offset));
                             size++;
                         }
                     }
                 } catch (Exception e) {
                     logger.error("error while write delete id file = " + deleteIdFile.getName(), e);
                 } finally {
-                    if(pkBulkReader != null) {
-                        pkBulkReader.close();
-                    }
                     if (deleteIdOutput != null) {
                         deleteIdOutput.seek(0);
                         deleteIdOutput.writeInt(size);
@@ -432,7 +441,7 @@ public class CollectionHandler {
                 segmentLogger.info("[{}] [{}] Segment live[{}] doc[{}] del[{}]", collectionId, info.getId(), info.getLiveCount(), info.getDocumentCount(), info.getDeleteCount());
             }
         }catch (Throwable t) {
-            segmentLogger.error("에러발생", t);
+            logger.error("에러발생", t);
         }
         logger.debug("[{}] mergingSegmentSet > {}", collectionId, mergingSegmentSet);
         logger.debug("[{}]deletionForMergingMap > {}", collectionId, deletionForMergingMap);
@@ -698,87 +707,87 @@ public class CollectionHandler {
     /*
     * 머징색인 pk update
     * */
-    private int applyPrimaryKeyFromSegments(List<PrimaryKeyIndexBulkReader> pkBulkReaderList, PrimaryKeyIndexReader pkReader, BitSet deleteSet) throws IOException {
-
-        // 이전 모든 세그먼트를 통틀어 업데이트되고 삭제된 문서수.
-        int updateDocumentSize = 0; // 이번 pk와 이전 pk가 동일할 경우
-
-        // 제약조건: pk 크기는 1k를 넘지않는다.
-        BytesBuffer buf = new BytesBuffer(1024);
-        for(PrimaryKeyIndexBulkReader pkBulkReader : pkBulkReaderList) {
-            // 새로 추가된 pk가 이전 세그먼트에 존재하면 update된 것이다.
-            while (pkBulkReader.next(buf) != -1) {
-                int localDocNo = pkReader.get(buf);
-                // logger.debug("check "+new String(buf.array, 0, buf.limit));
-                if (localDocNo != -1) {
-//                    segmentLogger.debug("merge delete {}", localDocNo);
-                    if (!deleteSet.isSet(localDocNo)) {
-                        // add delete list
-                        deleteSet.set(localDocNo);
-                        updateDocumentSize++;
-                        segmentLogger.info("DEL_1 {} [{}] {}", pkBulkReader.getFile().getParentFile().getName(), localDocNo, new String(buf.array(), 0, buf.limit));
-                    } else {
-                        segmentLogger.info("DEL_0 {} [{}] {}", pkBulkReader.getFile().getParentFile().getName(), localDocNo, new String(buf.array(), 0, buf.limit));
-                    }
-                }
-                buf.clear();
-            }
-        }
-
-        return updateDocumentSize;
-    }
+//    private int applyPrimaryKeyFromSegments(List<PrimaryKeyIndexBulkReader> pkBulkReaderList, PrimaryKeyIndexReader pkReader, BitSet deleteSet) throws IOException {
+//
+//        // 이전 모든 세그먼트를 통틀어 업데이트되고 삭제된 문서수.
+//        int updateDocumentSize = 0; // 이번 pk와 이전 pk가 동일할 경우
+//
+//        // 제약조건: pk 크기는 1k를 넘지않는다.
+//        BytesBuffer buf = new BytesBuffer(1024);
+//        for(PrimaryKeyIndexBulkReader pkBulkReader : pkBulkReaderList) {
+//            // 새로 추가된 pk가 이전 세그먼트에 존재하면 update된 것이다.
+//            while (pkBulkReader.next(buf) != -1) {
+//                int localDocNo = pkReader.get(buf);
+//                // logger.debug("check "+new String(buf.array, 0, buf.limit));
+//                if (localDocNo != -1) {
+////                    segmentLogger.debug("merge delete {}", localDocNo);
+//                    if (!deleteSet.isSet(localDocNo)) {
+//                        // add delete list
+//                        deleteSet.set(localDocNo);
+//                        updateDocumentSize++;
+//                        segmentLogger.info("DEL_1 {} [{}] {}", pkBulkReader.getFile().getParentFile().getName(), localDocNo, new String(buf.array(), 0, buf.limit));
+//                    } else {
+//                        segmentLogger.info("DEL_0 {} [{}] {}", pkBulkReader.getFile().getParentFile().getName(), localDocNo, new String(buf.array(), 0, buf.limit));
+//                    }
+//                }
+//                buf.clear();
+//            }
+//        }
+//
+//        return updateDocumentSize;
+//    }
 
     /*
     * 머징색인 delete 적용.
     * */
-    private int applyDeleteIdSetFromSegments(File[] deleteReqFileList, PrimaryKeyIndexReader pkReader, BitSet deleteSet) throws IOException {
-
-        int deleteDocumentSize = 0;
-
-        PrimaryKeysToBytesRef primaryKeysToBytesRef = new PrimaryKeysToBytesRef(schema);
-		/*
-		 * apply delete set. 이번 색인작업을 통해 삭제가 요청된 문서들을 삭제처리한다.
-		 */
-        for(File deleteReqFile : deleteReqFileList) {
-            if(!deleteReqFile.exists()) {
-                continue;
-            }
-
-            DeleteIdSet deleteReq = new DeleteIdSet();
-            BufferedFileInput deleteIdInput = null;
-            try {
-                deleteIdInput = new BufferedFileInput(deleteReqFile);
-                deleteReq.readFrom(deleteIdInput);
-            } catch (Exception e) {
-                logger.error("", e);
-            } finally {
-                if(deleteIdInput != null) {
-                    deleteIdInput.close();
-                }
-            }
-
-            Iterator<PrimaryKeys> iterator = deleteReq.iterator();
-            while (iterator.hasNext()) {
-
-                PrimaryKeys ids = iterator.next();
-                logger.debug("--- delete id = {}", ids);
-
-                BytesRef buf = primaryKeysToBytesRef.getBytesRef(ids);
-
-                //기존 색인 세그먼트들에서 찾아서 지운다.
-                int localDocNo = pkReader.get(buf);
-                if (localDocNo != -1) {
-                    if (!deleteSet.isSet(localDocNo)) {
-                        // add delete list
-                        deleteSet.set(localDocNo);
-                        deleteDocumentSize++;// deleteSize 증가
-                    }
-                }
-            }
-        }
-
-        return deleteDocumentSize;
-    }
+//    private int applyDeleteIdSetFromSegments(File[] deleteReqFileList, PrimaryKeyIndexReader pkReader, BitSet deleteSet) throws IOException {
+//
+//        int deleteDocumentSize = 0;
+//
+//        PrimaryKeysToBytesRef primaryKeysToBytesRef = new PrimaryKeysToBytesRef(schema);
+//		/*
+//		 * apply delete set. 이번 색인작업을 통해 삭제가 요청된 문서들을 삭제처리한다.
+//		 */
+//        for(File deleteReqFile : deleteReqFileList) {
+//            if(!deleteReqFile.exists()) {
+//                continue;
+//            }
+//
+//            DeleteIdSet deleteReq = new DeleteIdSet();
+//            BufferedFileInput deleteIdInput = null;
+//            try {
+//                deleteIdInput = new BufferedFileInput(deleteReqFile);
+//                deleteReq.readFrom(deleteIdInput);
+//            } catch (Exception e) {
+//                logger.error("", e);
+//            } finally {
+//                if(deleteIdInput != null) {
+//                    deleteIdInput.close();
+//                }
+//            }
+//
+//            Iterator<PrimaryKeys> iterator = deleteReq.iterator();
+//            while (iterator.hasNext()) {
+//
+//                PrimaryKeys ids = iterator.next();
+//                logger.debug("--- delete id = {}", ids);
+//
+//                BytesRef buf = primaryKeysToBytesRef.getBytesRef(ids);
+//
+//                //기존 색인 세그먼트들에서 찾아서 지운다.
+//                int localDocNo = pkReader.get(buf);
+//                if (localDocNo != -1) {
+//                    if (!deleteSet.isSet(localDocNo)) {
+//                        // add delete list
+//                        deleteSet.set(localDocNo);
+//                        deleteDocumentSize++;// deleteSize 증가
+//                    }
+//                }
+//            }
+//        }
+//
+//        return deleteDocumentSize;
+//    }
 
 	public int segmentSize() {
 		return segmentReaderMap.size();
