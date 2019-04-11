@@ -8,7 +8,7 @@
     <update id="createTable">
 		create table ExceptionHistory (
 		id int GENERATED ALWAYS AS IDENTITY,
-		node varchar(50),
+		node varchar(100),
 		message varchar(3000),
 		trace varchar(30000),
 		regtime timestamp,
