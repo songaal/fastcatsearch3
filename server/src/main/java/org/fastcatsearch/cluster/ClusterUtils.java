@@ -41,7 +41,7 @@ public class ClusterUtils {
 			ResultFuture resultFuture = nodeService.sendRequest(node, job);
 			if(resultFuture == null){
 				//네트워크 장애 등으로 전송실패.
-				logger.debug("{} 으로 전송하지 못했습니다.", nodeList.get(i));
+				logger.error("{} 으로 전송하지 못했습니다.", nodeList.get(i));
 			}
 			resultFutureList.add(resultFuture);
 		}

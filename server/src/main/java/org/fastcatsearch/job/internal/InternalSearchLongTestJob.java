@@ -90,7 +90,7 @@ public class InternalSearchLongTestJob extends Job implements Streamable {
                 for(int i = 0; i < LIMIT; i++) {
                     result = collectionHandler.searcher().searchInternal(q, forMerging, pkScoreList);
                     if(i % 1000 == 0) {
-                        logger.info("search long i = {} / {}", i, LIMIT);
+                        logger.debug("search long i = {} / {}", i, LIMIT);
                     }
                 }
             }

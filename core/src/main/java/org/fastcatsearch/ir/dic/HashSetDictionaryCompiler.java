@@ -37,7 +37,7 @@ public class HashSetDictionaryCompiler {
 		String splitByWhitespaceValue = System.getProperty("splitByWhitespace");
 		if (splitByWhitespaceValue != null && splitByWhitespaceValue.equalsIgnoreCase("true")) {
 			c.splitByWhitespace = true;
-			logger.info("Use splitByWhitespace");
+			logger.debug("Use splitByWhitespace");
 		}
 		
 		if (args.length == 3) {
@@ -49,7 +49,7 @@ public class HashSetDictionaryCompiler {
 
 	public void compile(File[] inputList, String charset, File output) throws IRException {
 		try {
-			logger.info("Dictionary compile2 start! {}", charset);
+			logger.debug("Dictionary compile2 start! {}", charset);
 			DirBufferedReader br = new DirBufferedReader(inputList, charset);
 			int bucketSize = getEstimatedBucketSize(inputList, charset);
 			compile0(br, output, bucketSize);
@@ -65,7 +65,7 @@ public class HashSetDictionaryCompiler {
 
 	public void compile(File input, String charset, File output) throws IRException {
 		try {
-			logger.info("Dictionary compile start! {}", charset);
+			logger.debug("Dictionary compile start! {}", charset);
 			int bucketSize = getEstimatedBucketSize(input, charset);
 			DirBufferedReader br = new DirBufferedReader(input, charset);
 			compile0(br, output, bucketSize);
@@ -161,7 +161,7 @@ public class HashSetDictionaryCompiler {
 			}
 		}
 		dic.save(output);
-		logger.info("Dictionary compile done.. total {} words. putTerm={} {}ms", new Object[]{dic.count(), cnt, System.currentTimeMillis() - st});
+		logger.debug("Dictionary compile done.. total {} words. putTerm={} {}ms", new Object[]{dic.count(), cnt, System.currentTimeMillis() - st});
 	}
 	
 	//

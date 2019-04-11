@@ -78,11 +78,12 @@ public class NodeIndexDocumentFileJob extends DataJob implements Streamable {
                     segmentInfo = indexer.close();
 
                     File segmentDir = indexer.getSegmentDir();
+                    DeleteIdSet deleteIdSet = indexer.getDeleteIdSet();
                     if(segmentInfo.getDocumentCount() == 0 || segmentInfo.getLiveCount() <= 0) {
-                        logger.info("[{}] Delete segment dir due to no documents = {}", collectionHandler.collectionId(), segmentDir.getAbsolutePath());
+                        indexingLogger.info("[{}] Delete segment dir due to no documents = {}, deleteIdSet = {}", collectionHandler.collectionId(), segmentDir.getAbsolutePath(), deleteIdSet.size());
                         FileUtils.deleteDirectory(segmentDir);
                     }
-                    DeleteIdSet deleteIdSet = indexer.getDeleteIdSet();
+
                     //추가문서가 있거나, 또는 삭제문서가 있어야 적용을 한다.
                     int totalLiveDocs = 0;
                     if (segmentInfo.getLiveCount() > 0 || deleteIdSet.size() > 0) {

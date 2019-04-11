@@ -155,7 +155,7 @@ public abstract class FixedMaxPriorityQueue<T> {
 	
 	public void print(){
 		for (int i = 0; i < size; i++) {
-			logger.info("{}", heap[i + 1]);
+			logger.debug("{}", heap[i + 1]);
 		}
 	}
 	private void upHeap() {

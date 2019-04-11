@@ -229,12 +229,12 @@ public class TempSearchFieldMerger {
 				try {
 					buffers[bufferCount++] = reader[idx].buffer();
 				} catch (ArrayIndexOutOfBoundsException e) {
-					logger.info("### bufferCount= {}, buffers.len={}, idx={}, reader={}", bufferCount, buffers.length, idx, reader.length);
+					logger.error("### bufferCount= {}, buffers.len={}, idx={}, reader={}", bufferCount, buffers.length, idx, reader.length);
 					logger.error("dup terms", e);
 				}
 			}else{
 				logger.warn("wrong! {}", cv);
-				logger.info("### bufferCount= {}, buffers.len={}, idx={}, reader={}", bufferCount, buffers.length, idx, reader.length);
+				logger.debug("### bufferCount= {}, buffers.len={}, idx={}, reader={}", bufferCount, buffers.length, idx, reader.length);
 			}
 			// backup cv to old
 			cvOld = cv;

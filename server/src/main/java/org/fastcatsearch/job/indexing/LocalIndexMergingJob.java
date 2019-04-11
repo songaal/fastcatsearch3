@@ -97,7 +97,7 @@ public class LocalIndexMergingJob extends Job {
 
                 File segmentDir = mergeIndexer.getSegmentDir();
                 if (segmentInfo.getDocumentCount() == 0 || segmentInfo.getLiveCount() <= 0) {
-                    logger.info("[{}] Delete segment dir due to no documents = {}", collectionHandler.collectionId(), segmentDir.getAbsolutePath());
+                    indexingLogger.info("[{}] Delete segment dir due to no documents = {}", collectionHandler.collectionId(), segmentDir.getAbsolutePath());
                     //세그먼트를 삭제하고 없던 일로 한다.
                     FileUtils.deleteDirectory(segmentDir);
                     collectionHandler.takeMergingDeletion(documentId);

@@ -84,14 +84,14 @@ public class SearchIndexesWriter {
 			int workingMemorySize = checkWorkingMemorySize();
 			logger.debug("SearchField Memory = {}, limit = {}", Formatter.getFormatSize(workingMemorySize), Formatter.getFormatSize(workMemoryLimit));
 			if (workingMemorySize > workMemoryLimit) {
-				logger.info("Write memory used = {}", count + 1, workingMemorySize);
+				logger.debug("Write memory used = {}", count + 1, workingMemorySize);
 				flush();
 			}
 		}else if ((count + 1) % 1000 == 0) {
 			//1000개씩 확인해본다.
 			int workingMemorySize = checkWorkingMemorySize();
 			if (workingMemorySize > workMemoryLimit) {
-				logger.info("[{}] documents write memory used = {}", count + 1, workingMemorySize);
+				logger.debug("[{}] documents write memory used = {}", count + 1, workingMemorySize);
 				flush();
 			}
 		}

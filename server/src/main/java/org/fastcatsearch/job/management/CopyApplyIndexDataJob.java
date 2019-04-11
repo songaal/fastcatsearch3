@@ -115,7 +115,7 @@ public class CopyApplyIndexDataJob extends Job implements Streamable {
 					NodeJobResult r = nodeResultList[i];
 					logger.debug("node#{} >> {}", i, r);
 					if (r.isSuccess()) {
-						logger.info("{} Collection reload OK.", r.node());
+						logger.debug("{} Collection reload OK.", r.node());
 					}else{
 						logger.warn("{} Collection reload Fail.", r.node());
 					}

@@ -35,7 +35,7 @@ public class NodeDirectoryCleanJob extends Job implements Streamable {
 			
 //			FileUtils.deleteDirectory(directoryFile);
 			//연이은 디렉토리도 함께 제거. 1이면 2,3,4,도 만약존재시 제거.
-			logger.info("Delete Directory >> {}", directoryFile.getAbsolutePath());
+			logger.debug("Delete Directory >> {}", directoryFile.getAbsolutePath());
 			CoreFileUtils.removeDirectoryCascade(directoryFile);
 			
 			return new JobResult(true);

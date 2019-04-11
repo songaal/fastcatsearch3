@@ -228,7 +228,7 @@ public class CollectionFullIndexingJob extends IndexingJob {
 					NodeJobResult r = nodeResultList[i];
 					logger.debug("node#{} >> {}", i, r);
 					if (r.isSuccess()) {
-						logger.info("{} Collection reload OK.", r.node());
+						indexingLogger.info("{} Collection reload OK.", r.node());
 					}else{
 						logger.warn("{} Collection reload Fail.", r.node());
 					}

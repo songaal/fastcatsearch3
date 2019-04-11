@@ -137,7 +137,7 @@ public class CollectionFullIndexingStepBuildJob extends IndexingJob {
 			collectionHandler.setQueryCounter(queryCounter);
 			CollectionHandler oldCollectionHandler = irService.putCollectionHandler(collectionId, collectionHandler);
 			if (oldCollectionHandler != null) {
-				logger.info("## [{}] Close Previous Collection Handler", collectionContext.collectionId());
+				indexingLogger.info("## [{}] Close Previous Collection Handler", collectionContext.collectionId());
 				oldCollectionHandler.close();
 			}
 			
@@ -150,9 +150,9 @@ public class CollectionFullIndexingStepBuildJob extends IndexingJob {
 
 			IndexStatus indexStatus = collectionContext.indexStatus().getFullIndexStatus();
 			indexingLogger.info("[{}] Collection Full Indexing Finished! {} time = {}", collectionId, indexStatus, duration);
-			logger.info("== SegmentStatus ==");
+			logger.debug("== SegmentStatus ==");
 			collectionHandler.printSegmentStatus();
-			logger.info("===================");
+			logger.debug("===================");
 			
 			result = new IndexingJobResult(collectionId, indexStatus, duration);
 			resultStatus = ResultStatus.SUCCESS;

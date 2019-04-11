@@ -41,7 +41,7 @@ public class SegmentDelayCloseScheduleJob extends ScheduledJob {
                 //ignore
             }
         }
-        logger.info("Segment delay closer finished!");
+        logger.debug("Segment delay closer finished!");
         return new JobResult();
     }
 }

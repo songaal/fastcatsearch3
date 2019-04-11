@@ -39,7 +39,7 @@ public class HashMapDictionaryCompiler {
 	
 	public void compile(File input, String charset, File output) throws IRException{
 		try {
-			logger.info("Dictionary compile start!");
+			logger.debug("Dictionary compile start!");
 			HashMapDictionary dic = new HashMapDictionary(BUCKET_SIZE);
 			DirBufferedReader br = new DirBufferedReader(input, charset);
 			String line = null;
@@ -83,7 +83,7 @@ public class HashMapDictionaryCompiler {
 				}
 			}
 			dic.save(output);
-			logger.info("Dictionary compile done.. total {} word. {}ms", cnt, System.currentTimeMillis() - st);
+			logger.debug("Dictionary compile done.. total {} word. {}ms", cnt, System.currentTimeMillis() - st);
 		} catch (FileNotFoundException e) {
 			logger.error("FileNotFoundException",e);
 			throw new IRException(e);

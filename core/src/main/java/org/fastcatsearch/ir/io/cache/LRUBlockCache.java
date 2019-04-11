@@ -116,7 +116,7 @@ public class LRUBlockCache {
 	
 	public synchronized void reduce(){
 		int targetCount = (int) (count * 0.9);
-		logger.info("Reduce "+targetCount);
+		logger.debug("Reduce {}", targetCount);
 		for (; count > targetCount; count--) {
 			CachedBlock data = head.after;
 			if(data != null){

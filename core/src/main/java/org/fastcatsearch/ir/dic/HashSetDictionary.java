@@ -107,7 +107,7 @@ public class HashSetDictionary {
 			}
 			input.close();
 			
-			logger.info("Load dictionary done! {}, entry = {}, time = {}ms", new Object[]{file.getAbsolutePath(), count, (System.currentTimeMillis() - st)});
+			logger.debug("Load dictionary done! {}, entry = {}, time = {}ms", new Object[]{file.getAbsolutePath(), count, (System.currentTimeMillis() - st)});
 		} catch (IOException e) {
 			logger.error("IOException",e);
 			throw new IRException(e);
@@ -141,7 +141,7 @@ public class HashSetDictionary {
 			output.close();
 
 //			logger.info("Wrote {}, {}", Formatter.getFormatSize(output.size()), file.getAbsolutePath());			
-			logger.info("Wrote {}, {}", file.length(), file.getAbsolutePath());
+			logger.debug("Wrote {}, {}", file.length(), file.getAbsolutePath());
 		} catch (IOException e) {
 			logger.error("IOException",e);
 			throw new IRException(e);

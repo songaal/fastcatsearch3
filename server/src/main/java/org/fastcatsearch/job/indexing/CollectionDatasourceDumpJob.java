@@ -82,7 +82,7 @@ public class CollectionDatasourceDumpJob extends Job implements Streamable {
 				Document document = dataSourceReader.nextDocument();
 				count++;
 				if (count % 1000 == 0) {
-					logger.info(
+					logger.debug(
 							"{} documents indexed, lap = {} ms, elapsed = {}, mem = {}",
 							new Object[] { count, System.currentTimeMillis() - lapTime,
 									Formatter.getFormatTime(System.currentTimeMillis() - startTime),

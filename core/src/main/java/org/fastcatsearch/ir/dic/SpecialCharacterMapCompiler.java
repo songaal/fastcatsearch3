@@ -41,7 +41,7 @@ public class SpecialCharacterMapCompiler {
 	public void compile(File input, String charset, File output) throws IRException{
 		long st = System.currentTimeMillis();
 		try {
-			logger.info("SpecialCharacterMap compile start!");
+			logger.debug("SpecialCharacterMap compile start!");
 			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(input),charset));
 			IndexOutput out = new BufferedFileOutput(output);
 			String line = null;
@@ -68,7 +68,7 @@ public class SpecialCharacterMapCompiler {
 			out.flush();
 			out.close();
 			br.close();
-			logger.info("SpecialCharacterMap compile done.. total {} word. {}", cnt, Formatter.getFormatTime(System.currentTimeMillis() - st));
+			logger.debug("SpecialCharacterMap compile done.. total {} word. {}", cnt, Formatter.getFormatTime(System.currentTimeMillis() - st));
 		} catch (FileNotFoundException e) {
 			logger.error("FileNotFoundException",e);
 			throw new IRException(e);

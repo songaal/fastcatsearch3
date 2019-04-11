@@ -221,7 +221,7 @@ public class CollectionHandler {
 	public void printSegmentStatus() {
 		int i = 0;
 		for (SegmentReader segmentReader : segmentReaderMap.values()) {
-			logger.info("SEG#{} >> {}", i++, segmentReader.segmentInfo());
+			logger.debug("SEG#{} >> {}", i++, segmentReader.segmentInfo());
 		}
 	}
 

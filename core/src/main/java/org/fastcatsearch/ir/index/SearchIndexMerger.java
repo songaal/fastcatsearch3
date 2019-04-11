@@ -151,7 +151,7 @@ public class SearchIndexMerger {
                 }
             } else {
                 logger.warn("wrong! {}", cv);
-                logger.info("### workingReaderSize= {}, workingReaders.len={}, idx={}, reader={}", workingReaderSize, workingReaders.length, idx, reader.length);
+                logger.debug("### workingReaderSize= {}, workingReaders.len={}, idx={}, reader={}", workingReaderSize, workingReaders.length, idx, reader.length);
             }
             // backup cv to old
             cvOld = cv;

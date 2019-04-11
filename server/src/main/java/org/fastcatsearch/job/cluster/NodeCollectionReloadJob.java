@@ -53,11 +53,11 @@ public class NodeCollectionReloadJob extends Job implements Streamable {
 			
 			CollectionContextUtil.saveCollectionAfterIndexing(collectionContext);
 			CollectionHandler collectionHandler = irService.loadCollectionHandler(collectionId);
-			logger.info("== [{}] SegmentStatus ==", collectionId);
+			logger.debug("== [{}] SegmentStatus ==", collectionId);
 			collectionHandler.printSegmentStatus();
-			logger.info("===================");
+			logger.debug("===================");
 			IndexStatus indexStatus = collectionContext.indexStatus().getFullIndexStatus();
-			logger.info("[{}] Collection Index Status > {}", collectionId, indexStatus);
+			logger.debug("[{}] Collection Index Status > {}", collectionId, indexStatus);
 			
 			nodeService.updateLoadBalance(collectionId, dataNodeList);
 

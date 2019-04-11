@@ -36,7 +36,7 @@ public class VariableDataBlockReader {
 		input = new BufferedFileInput(dir, filename);
 		this.blockSize = blockSize;
 		cache = new LRUBlockCache();
-		logger.info("VariableDataBlockReader "+filename+", blockSize="+blockSize);
+		logger.debug("VariableDataBlockReader "+filename+", blockSize="+blockSize);
 	}
 
 	public void get(long position, byte[] data, int offset, int length) throws IOException {

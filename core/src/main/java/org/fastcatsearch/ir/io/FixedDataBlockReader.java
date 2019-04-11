@@ -42,7 +42,7 @@ public class FixedDataBlockReader {
 		int newBlockSize = dataPerBlock * dataSize;
 		this.blockSize = newBlockSize;
 		cache = new LRUBlockCache();
-		logger.info("FixedDataBlockReader "+filename+", blockSize="+newBlockSize);
+		logger.debug("FixedDataBlockReader={}, blockSize={}", filename, newBlockSize);
 	}
 
 	public void get(int docNo, byte[] data, int offset) throws IOException {
