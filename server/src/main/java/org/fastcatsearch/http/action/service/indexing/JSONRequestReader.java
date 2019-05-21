@@ -49,6 +49,9 @@ public class JSONRequestReader {
         try {
             return new MapDocument(type, jsonParser.parse(document));
         } catch (ParseException e) {
+            if (document.length() > 1000) {
+                document = document.substring(0, 1000) + "...";
+            }
             logger.error("error while convert json to map : " + document, e);
         }
         return null;
@@ -75,6 +78,9 @@ public class JSONRequestReader {
                 jsonParser.parse(line);
                 result.add(line);
             } catch (ParseException e) {
+                if (line.length() > 1000) {
+                    line = line.substring(0, 1000) + "...";
+                }
                 logger.error("error while convert text to json : " + line, e);
             }
         }
