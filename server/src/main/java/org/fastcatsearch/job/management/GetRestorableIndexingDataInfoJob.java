@@ -1,24 +1,22 @@
 package org.fastcatsearch.job.management;
 
-import java.io.File;
-import java.io.IOException;
-
-import javax.xml.bind.JAXBException;
-
-import org.apache.commons.io.FileUtils;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.env.Path;
 import org.fastcatsearch.exception.FastcatSearchException;
 import org.fastcatsearch.ir.IRService;
 import org.fastcatsearch.ir.config.CollectionContext;
 import org.fastcatsearch.ir.config.DataInfo;
-import org.fastcatsearch.ir.config.DataInfo.SegmentInfo;
 import org.fastcatsearch.ir.io.DataInput;
 import org.fastcatsearch.ir.io.DataOutput;
 import org.fastcatsearch.job.Job;
 import org.fastcatsearch.service.ServiceManager;
 import org.fastcatsearch.settings.SettingFileNames;
+import org.fastcatsearch.util.FileUtils;
 import org.fastcatsearch.util.JAXBConfigs;
+
+import javax.xml.bind.JAXBException;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * 현재 loading중인 seq의 색인정보가 아닌 restore시 사용될 색인정보. index#/info.xml의 정보를 이용한다.
@@ -48,7 +46,7 @@ public class GetRestorableIndexingDataInfoJob extends Job implements Streamable 
 		result.dataPath = new Path(collectionContext.collectionFilePaths().file()).relativise(prevIndexFileDir).getPath();
 		
 		if(prevIndexFileDir.exists()){
-			long byteCount = FileUtils.sizeOfDirectory(prevIndexFileDir);
+			long byteCount = FileUtils.sizeOfDirectorySafe(prevIndexFileDir);
 			result.diskSize = FileUtils.byteCountToDisplaySize(byteCount);
 		}
 		

@@ -1,48 +1,39 @@
 package org.fastcatsearch.util;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
 
 public class FileUtils extends org.apache.commons.io.FileUtils {
 
-	
-	public static void copyPrefixFileToDirectory(final String pattern, File sourceDir, File targetDir) throws IOException{
-		File[] sourceFileList = sourceDir.listFiles(new FileFilter() {
+	public static long sizeOfDirectorySafe(File directory) {
+		String message;
+		if (!directory.exists()) {
+			return 0;
+		} else if (!directory.isDirectory()) {
+			return 0;
+		} else {
+			long size = 0L;
+			File[] files = directory.listFiles();
+			if (files == null) {
+				return 0L;
+			} else {
+				File[] arr = files;
+				int len$ = files.length;
 
-			@Override
-			public boolean accept(File file) {
-				if (file.getName().startsWith(pattern) && !file.isDirectory()) {
-					return true;
+				for(int i = 0; i < len$; ++i) {
+					File file = arr[i];
+					size += sizeOfSafe(file);
 				}
-				return false;
-			}
 
-		});
-		
-		for (File srcFile : sourceFileList) {
-			copyFileToDirectory(srcFile, targetDir);
+				return size;
+			}
 		}
 	}
-	
-	public static void cleanCollectionDataDirectorys(File collectionDir) throws IOException {
 
-		File[] dataDirList = collectionDir.listFiles(new FileFilter() {
-
-			@Override
-			public boolean accept(File pathname) {
-				if (pathname.getName().startsWith("data") && pathname.isDirectory()) {
-					return true;
-				}
-				return false;
-			}
-
-		});
-
-		for (File dataDir : dataDirList) {
-			//deleteDirectory(dataDir);
-			forceDelete(dataDir);
+	public static long sizeOfSafe(File file) {
+		if (!file.exists()) {
+			return 0;
+		} else {
+			return file.isDirectory() ? sizeOfDirectorySafe(file) : file.length();
 		}
-
 	}
 }

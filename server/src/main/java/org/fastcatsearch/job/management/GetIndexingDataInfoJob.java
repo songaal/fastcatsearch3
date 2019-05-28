@@ -1,6 +1,6 @@
 package org.fastcatsearch.job.management;
 
-import org.apache.commons.io.FileUtils;
+import org.fastcatsearch.util.FileUtils;
 import org.fastcatsearch.common.io.Streamable;
 import org.fastcatsearch.env.Path;
 import org.fastcatsearch.exception.FastcatSearchException;
@@ -50,7 +50,7 @@ public class GetIndexingDataInfoJob extends Job implements Streamable {
             for(SegmentInfo info : dataInfo.getSegmentInfoList()) {
                 File segmentDir = new File(indexFileDir, info.getId());
                 if(segmentDir.exists()) {
-                    byteCount += FileUtils.sizeOfDirectory(segmentDir);
+                    byteCount += FileUtils.sizeOfDirectorySafe(segmentDir);
                 }
             }
         }catch(Exception e) {

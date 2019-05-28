@@ -1,6 +1,6 @@
 package org.fastcatsearch.http.action.management.collections;
 
-import org.apache.commons.io.FileUtils;
+import org.fastcatsearch.util.FileUtils;
 import org.fastcatsearch.env.Path;
 import org.fastcatsearch.http.ActionAuthority;
 import org.fastcatsearch.http.ActionAuthorityLevel;
@@ -52,7 +52,7 @@ public class GetIndexingStatusAction extends AuthAction {
 		String diskSize = "";
 		
 		if(indexFileDir.exists()){
-			long byteCount = FileUtils.sizeOfDirectory(indexFileDir);
+			long byteCount = FileUtils.sizeOfDirectorySafe(indexFileDir);
 			diskSize = FileUtils.byteCountToDisplaySize(byteCount);
 		}
 		responseWriter.key("diskSize").value(diskSize);
