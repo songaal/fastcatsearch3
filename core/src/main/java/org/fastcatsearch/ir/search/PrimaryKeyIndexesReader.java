@@ -128,8 +128,9 @@ public class PrimaryKeyIndexesReader implements Cloneable {
 
 		// 2019.4.10 @swsong termDocList 가 docNo 순으로 정렬되어 있어야 한다. 하지만 int key의 경우 문자열 정렬을 수행하므로 키 순서와 docNo 순서가 일치하지 않는다.
 		// 그러므로 여기서 docNo 순으로 정렬하여 posting reader 로 만들어준다.
+		// 2019.5.30 0~m 까지만 정렬한다. 전체정렬시 null 에러발생.
 		if (m > 1) {
-			Arrays.sort(termDocList, termDocComparator);
+			Arrays.sort(termDocList, 0, m, termDocComparator);
 		}
 
 		OperatedClause idOperatedClause = null;
