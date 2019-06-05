@@ -119,7 +119,7 @@ public class ClusterSearchJob extends Job {
 			Node[] selectedNodeList = new Node[collectionIdList.length];
 
 			boolean forMerging = collectionIdList.length > 1;
-			for (int i = 0; i < collectionIdList.length; i++) {
+			for (int i = 0, errorCount = 0; i < collectionIdList.length; i++) {
 				String id = collectionIdList[i];
 				if(irService.collectionHandler(id) == null) {
 					throw new SearchError(ServerErrorCode.COLLECTION_NOT_FOUND, id);
@@ -143,33 +143,55 @@ public class ClusterSearchJob extends Job {
 				resultFutureList[i] = nodeService.sendRequest(dataNode, job);
                 // 노드 접속불가일경우 resultFutureList[i]가 null로 리턴됨.
                 if (resultFutureList[i] == null) {
-                    throw new SearchError(ServerErrorCode.DATA_NODE_CONNECTION_ERROR, dataNode.toString() );
+					errorCount++;
+					if (meta.isSearchOption(Query.SEARCH_OPT_STOPONERROR)
+						|| errorCount == collectionIdList.length) {
+						throw new SearchError(ServerErrorCode.DATA_NODE_CONNECTION_ERROR, 
+						dataNode.toString() );
+					}
+					collectionIdList[i] = null;
                 }
 			}
 
 			List<InternalSearchResult> resultList = new ArrayList<InternalSearchResult>(collectionIdList.length);
 			HighlightInfo highlightInfo = null;
 
-			for (int i = 0; i < collectionIdList.length; i++) {
-				Object obj = resultFutureList[i].take();
-				if (!resultFutureList[i].isSuccess()) {
-                    if (obj instanceof SearchError) {
-                        throw (SearchError) obj;
-                    } else if (obj instanceof Throwable) {
-                        throw new FastcatSearchException((Throwable) obj);
-                    } else {
-                        throw new FastcatSearchException("Error while searching.", obj);
-                    }
+			for (int i = 0, errorCount = 0; i < collectionIdList.length; i++) {
+				if (resultFutureList[i] != null) {
+					Object obj = resultFutureList[i].take();
+					if (!resultFutureList[i].isSuccess()) {
+						FastcatSearchException exception = null;
+						if (obj instanceof SearchError) {
+							SearchError err = (SearchError) obj;
+							if (err.getErrorCode().getNumber() == 1101) {
+								exception = new FastcatSearchException(err);
+							} else {
+								throw err;
+							}
+						} else if (obj instanceof Throwable) {
+							exception = new FastcatSearchException( (Throwable) obj);
+							resultFutureList[i] = null;
+						} else {
+							exception = new FastcatSearchException("Error while searching.", obj);
+						}
+						errorCount++;
+						if (exception != null && (
+							meta.isSearchOption(Query.SEARCH_OPT_STOPONERROR)
+							|| errorCount == collectionIdList.length)) {
+							throw exception;
+						} else {
+							continue;
+						}
+					}
+
+					StreamableInternalSearchResult obj2 = (StreamableInternalSearchResult) obj;
+					InternalSearchResult internalSearchResult = obj2.getInternalSearchResult();
+					internalSearchResult.setNodeId(selectedNodeList[i].id());
+					resultList.add(internalSearchResult);
+
+					// TODO highlightInfo 들을 머지해야하나?
+					highlightInfo = internalSearchResult.getHighlightInfo();
 				}
-
-				StreamableInternalSearchResult obj2 = (StreamableInternalSearchResult) obj;
-				InternalSearchResult internalSearchResult = obj2.getInternalSearchResult();
-				internalSearchResult.setNodeId(selectedNodeList[i].id());
-				resultList.add(internalSearchResult);
-
-				// TODO highlightInfo 들을 머지해야하나?
-				highlightInfo = internalSearchResult.getHighlightInfo();
-
 			}
 
 			//
@@ -242,45 +264,71 @@ public class ClusterSearchJob extends Job {
 
             long documentTimeout = getTimeout() / 2;
 			String[] tags = q.getMeta().tags();
-			for (int i = 0; i < collectionIdList.length; i++) {
+			for (int i = 0, errorCount = 0; i < collectionIdList.length; i++) {
 				String cid = collectionIdList[i];
-				Node dataNode = selectedNodeList[i];
+				if (cid != null) {
+					Node dataNode = selectedNodeList[i];
 
-				logger.debug("collection [{}] search at {}", cid, dataNode);
+					logger.debug("collection [{}] search at {}", cid, dataNode);
 
-				InternalDocumentSearchJob job = new InternalDocumentSearchJob(cid, docIdList[i], views, tags, highlightInfo);
-                job.setTimeout(documentTimeout, isForceAbortWhenTimeout());
-				resultFutureList[i] = nodeService.sendRequest(dataNode, job);
-                if (resultFutureList[i] == null) {
-                    throw new SearchError(ServerErrorCode.DATA_NODE_CONNECTION_ERROR, dataNode.toString() );
-                }
+					InternalDocumentSearchJob job = new InternalDocumentSearchJob(cid, docIdList[i], views, tags, highlightInfo);
+					job.setTimeout(documentTimeout, isForceAbortWhenTimeout());
+					resultFutureList[i] = nodeService.sendRequest(dataNode, job);
+					if (resultFutureList[i] == null) {
+						errorCount++;
+						if (meta.isSearchOption(Query.SEARCH_OPT_STOPONERROR)
+							|| errorCount == collectionIdList.length) {
+							throw new SearchError(ServerErrorCode.DATA_NODE_CONNECTION_ERROR, 
+							dataNode.toString() );
+						}
+					}
+				}
 			}
 
 			// document 결과를 받는다.
 			DocumentResult[] docResultList = new DocumentResult[collectionIdList.length];
 
-			for (int i = 0; i < collectionIdList.length; i++) {
+			for (int i = 0, errorCount = 0; i < collectionIdList.length; i++) {
 				String cid = collectionIdList[i];
-				Object obj = resultFutureList[i].take();
-				if (!resultFutureList[i].isSuccess()) {
-                    if (obj instanceof SearchError) {
-                        throw (SearchError) obj;
-                    } else if (obj instanceof Throwable) {
-                        throw new FastcatSearchException((Throwable) obj);
-                    } else {
-                        throw new FastcatSearchException("Error while searching.", obj);
-                    }
-				}
+				if (cid!= null && resultFutureList[i] != null) {
+					Object obj = resultFutureList[i].take();
+					FastcatSearchException exception = null;
+					if (!resultFutureList[i].isSuccess()) {
+						if (obj instanceof SearchError) {
+							exception = new FastcatSearchException((SearchError) obj);
+						} else if (obj instanceof Throwable) {
+							exception = new FastcatSearchException((Throwable) obj);
+						} else {
+							exception = new FastcatSearchException("Error while searching.", obj);
+						}
+						errorCount++;
+						if (exception != null && (
+							meta.isSearchOption(Query.SEARCH_OPT_STOPONERROR)
+							|| errorCount == collectionIdList.length)) {
+							throw exception;
+						} else {
+							continue;
+						}
+					}
 
-				StreamableDocumentResult obj2 = (StreamableDocumentResult) obj;
-				DocumentResult documentResult = obj2.documentResult();
-				if (documentResult != null) {
-					docResultList[i] = documentResult;
-				} else {
-					logger.warn("{}의 documentList가 null입니다.", cid);
+					StreamableDocumentResult obj2 = (StreamableDocumentResult) obj;
+					DocumentResult documentResult = obj2.documentResult();
+					if (documentResult != null) {
+						docResultList[i] = documentResult;
+					} else {
+						logger.warn("{}의 documentList가 null입니다.", cid);
+					}
 				}
 			}
-			String[] fieldIdList = docResultList[0].fieldIdList();
+			
+			String[] fieldIdList = null;
+			for (DocumentResult result : docResultList) {
+				if (result != null) {
+					fieldIdList = result.fieldIdList();
+					break;
+				}
+			}
+			
 			Row[] rows = new Row[realSize];
 			Row[][] bundleRows = null;
 			for (int i = 0; i < realSize; i++) {
