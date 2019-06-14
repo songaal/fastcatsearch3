@@ -112,7 +112,19 @@ public class ClusterSearchJob extends Job {
 			
 			// CollectionContext collectionContext = irService.collectionContext(collectionId);
 			// 무조건 첫번째 context사용. 모든 컬렉션이 동일하다고 가정.
-			CollectionContext collectionContext = irService.collectionContext(collectionIdList[0]);
+			CollectionContext collectionContext = null;
+			for(String id : collectionIdList) {
+				collectionContext = irService.collectionContext(id);
+				if (collectionContext != null) {
+					break;
+				}
+			}
+
+			if(collectionContext == null) {
+				//모든 컬렉션이 모르는 컬렉션..
+				String unknownCollectionList = Arrays.toString(collectionIdList);
+				throw new SearchError(ServerErrorCode.COLLECTION_NOT_FOUND, unknownCollectionList);
+			}
 
 			ResultFuture[] resultFutureList = new ResultFuture[collectionIdList.length];
 			Map<String, Integer> collectionNumberMap = new HashMap<String, Integer>();
@@ -122,7 +134,12 @@ public class ClusterSearchJob extends Job {
 			for (int i = 0, errorCount = 0; i < collectionIdList.length; i++) {
 				String id = collectionIdList[i];
 				if(irService.collectionHandler(id) == null) {
-					throw new SearchError(ServerErrorCode.COLLECTION_NOT_FOUND, id);
+					errorCount++;
+					if (meta.isSearchOption(Query.SEARCH_OPT_STOPONERROR)
+							|| errorCount == collectionIdList.length) {
+						throw new SearchError(ServerErrorCode.COLLECTION_NOT_FOUND, id);
+					}
+					collectionIdList[i] = null;
 				}
 				collectionNumberMap.put(id, i);
 
@@ -146,8 +163,7 @@ public class ClusterSearchJob extends Job {
 					errorCount++;
 					if (meta.isSearchOption(Query.SEARCH_OPT_STOPONERROR)
 						|| errorCount == collectionIdList.length) {
-						throw new SearchError(ServerErrorCode.DATA_NODE_CONNECTION_ERROR, 
-						dataNode.toString() );
+						throw new SearchError(ServerErrorCode.DATA_NODE_CONNECTION_ERROR, dataNode.toString() );
 					}
 					collectionIdList[i] = null;
                 }
@@ -158,27 +174,29 @@ public class ClusterSearchJob extends Job {
 
 			for (int i = 0, errorCount = 0; i < collectionIdList.length; i++) {
 				if (resultFutureList[i] != null) {
-					Object obj = resultFutureList[i].take();
+					/* 2019.6.13 swsong 부분 검색결과는 타임아웃시 포기. 총 시간의 80%를 검색에 사용한다고 가정. */
+					Object obj = resultFutureList[i].pollInMillis((long) (getTimeout() * 0.8));
+
 					if (!resultFutureList[i].isSuccess()) {
-						FastcatSearchException exception = null;
+						Exception exception = null;
 						if (obj instanceof SearchError) {
 							SearchError err = (SearchError) obj;
-							if (err.getErrorCode().getNumber() == 1101) {
-								exception = new FastcatSearchException(err);
-							} else {
-								throw err;
-							}
+							exception = err;
 						} else if (obj instanceof Throwable) {
-							exception = new FastcatSearchException( (Throwable) obj);
+							exception = new FastcatSearchException((Throwable) obj);
 							resultFutureList[i] = null;
 						} else {
 							exception = new FastcatSearchException("Error while searching.", obj);
 						}
 						errorCount++;
 						if (exception != null && (
-							meta.isSearchOption(Query.SEARCH_OPT_STOPONERROR)
-							|| errorCount == collectionIdList.length)) {
-							throw exception;
+								meta.isSearchOption(Query.SEARCH_OPT_STOPONERROR)
+										|| errorCount == collectionIdList.length)) {
+							if (obj instanceof SearchError) {
+								throw (SearchError) exception;
+							} else {
+								throw (FastcatSearchException) exception;
+							}
 						} else {
 							continue;
 						}
@@ -278,8 +296,7 @@ public class ClusterSearchJob extends Job {
 						errorCount++;
 						if (meta.isSearchOption(Query.SEARCH_OPT_STOPONERROR)
 							|| errorCount == collectionIdList.length) {
-							throw new SearchError(ServerErrorCode.DATA_NODE_CONNECTION_ERROR, 
-							dataNode.toString() );
+							throw new SearchError(ServerErrorCode.DATA_NODE_CONNECTION_ERROR, dataNode.toString() );
 						}
 					}
 				}
@@ -292,10 +309,10 @@ public class ClusterSearchJob extends Job {
 				String cid = collectionIdList[i];
 				if (cid!= null && resultFutureList[i] != null) {
 					Object obj = resultFutureList[i].take();
-					FastcatSearchException exception = null;
+					Exception exception = null;
 					if (!resultFutureList[i].isSuccess()) {
 						if (obj instanceof SearchError) {
-							exception = new FastcatSearchException((SearchError) obj);
+							exception = (SearchError) obj;
 						} else if (obj instanceof Throwable) {
 							exception = new FastcatSearchException((Throwable) obj);
 						} else {
@@ -305,7 +322,11 @@ public class ClusterSearchJob extends Job {
 						if (exception != null && (
 							meta.isSearchOption(Query.SEARCH_OPT_STOPONERROR)
 							|| errorCount == collectionIdList.length)) {
-							throw exception;
+							if (obj instanceof SearchError) {
+								throw (SearchError) exception;
+							} else {
+								throw (FastcatSearchException) exception;
+							}
 						} else {
 							continue;
 						}
