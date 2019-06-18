@@ -32,6 +32,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+import static org.fastcatsearch.error.ServerErrorCode.SEARCH_TIMEOUT_ERROR;
+
 /**
  * 검색을 수행하여 병합까지 마치는 broker 검색작업.
  * */
@@ -174,13 +176,18 @@ public class ClusterSearchJob extends Job {
 
 			for (int i = 0, errorCount = 0; i < collectionIdList.length; i++) {
 				if (resultFutureList[i] != null) {
-					/* 2019.6.13 swsong 부분 검색결과는 타임아웃시 포기. 총 시간의 80%를 검색에 사용한다고 가정. */
-					Object obj = resultFutureList[i].pollInMillis((long) (getTimeout() * 0.8));
+					/* 2019.6.18 swsong 타임아웃 시간을 넘기면 해당 결과는 포기.
+					* 결국 이 전체결과는 만들어져도 타임아웃으로 사용이 안 될것이다. */
+					Object obj = resultFutureList[i].pollInMillis(getTimeout());
 
 					if (!resultFutureList[i].isSuccess()) {
 						Exception exception = null;
 						if (obj instanceof SearchError) {
 							SearchError err = (SearchError) obj;
+							//타임아웃이 걸리면 더 볼것없이 예외를 던진다.
+							if(err.getErrorCode() == SEARCH_TIMEOUT_ERROR) {
+								throw err;
+							}
 							exception = err;
 						} else if (obj instanceof Throwable) {
 							exception = new FastcatSearchException((Throwable) obj);
@@ -407,7 +414,7 @@ public class ClusterSearchJob extends Job {
 			throw new FastcatSearchException(e);
         }catch(SearchError e){
             errorMsg = e.getMessage();
-            if(e.getErrorCode() == ServerErrorCode.SEARCH_TIMEOUT_ERROR) {
+            if(e.getErrorCode() == SEARCH_TIMEOUT_ERROR) {
                 throw new SearchAbortError("SearchAborted");
             } else {
                 throw e;
