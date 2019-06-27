@@ -129,7 +129,7 @@ public class JAXBConfigs {
 	public static <T> void writeRawConfig(OutputStream os, Object jaxbConfig, Class<T> jaxbConfigClass) throws JAXBException {
 		writeRawConfig(os, jaxbConfig, jaxbConfigClass, false);
 	}
-	public static <T> void writeRawConfig(OutputStream os, Object jaxbConfig, Class<T> jaxbConfigClass, boolean removeXmlDeclaration) throws JAXBException {
+	public synchronized static <T> void writeRawConfig(OutputStream os, Object jaxbConfig, Class<T> jaxbConfigClass, boolean removeXmlDeclaration) throws JAXBException {
 		JAXBContext context = JAXBContext.newInstance(jaxbConfigClass);
 		Marshaller marshaller = context.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_ENCODING, DEFAULT_CHARSET);
@@ -152,7 +152,7 @@ public class JAXBConfigs {
 	public static <T> void writeRawConfig(Writer writer, Object jaxbConfig, Class<T> jaxbConfigClass) throws JAXBException {
 		writeRawConfig(writer, jaxbConfig, jaxbConfigClass, false);
 	}
-	public static <T> void writeRawConfig(Writer writer, Object jaxbConfig, Class<T> jaxbConfigClass, boolean removeXmlDeclaration) throws JAXBException {
+	public synchronized static <T> void writeRawConfig(Writer writer, Object jaxbConfig, Class<T> jaxbConfigClass, boolean removeXmlDeclaration) throws JAXBException {
 		JAXBContext context = JAXBContext.newInstance(jaxbConfigClass);
 		Marshaller marshaller = context.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_ENCODING, DEFAULT_CHARSET);
