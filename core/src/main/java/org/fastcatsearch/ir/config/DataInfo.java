@@ -34,8 +34,11 @@ public class DataInfo {
 		dataInfo.documents = this.documents;
 		dataInfo.deletes = this.deletes;
 		dataInfo.segmentInfoList = new ArrayList<SegmentInfo>();
-		for (SegmentInfo segmentInfo : segmentInfoList) {
-			dataInfo.segmentInfoList.add(segmentInfo.copy());
+		// 복사할때도 modification exception을 피하기 위해 동기화 적용.
+		synchronized (segmentInfoList) {
+			for (SegmentInfo segmentInfo : segmentInfoList) {
+				dataInfo.segmentInfoList.add(segmentInfo.copy());
+			}
 		}
 		dataInfo.segmentInfoList = Collections.synchronizedList(dataInfo.segmentInfoList);
 		return dataInfo;
@@ -191,6 +194,8 @@ public class DataInfo {
             segmentInfo.documentCount = documentCount;
             segmentInfo.deleteCount = deleteCount;
             segmentInfo.createTime = createTime;
+			segmentInfo.startTime = startTime;
+			segmentInfo.merged = merged;
 			return segmentInfo;
 		}
 

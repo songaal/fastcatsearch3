@@ -259,6 +259,8 @@ public class CollectionContextUtil {
                 if(!indexDir.exists()) {
                     indexDir.mkdirs();
                 }
+                /* 2019.6.27 swsong: 설정을 저장하는도중에 세그먼트 정보가 수시로 변경될수 있으므로, 복사본을 만들어서 저장한다.*/
+				dataInfo = dataInfo.copy();
                 logger.debug("Save DataInfo >> {}", dataInfo);
                 JAXBConfigs.writeConfig(new File(indexDir, SettingFileNames.dataInfo), dataInfo, DataInfo.class);
             }
