@@ -214,8 +214,16 @@ public class ClusterSearchJob extends Job {
 					internalSearchResult.setNodeId(selectedNodeList[i].id());
 					resultList.add(internalSearchResult);
 
-					// TODO highlightInfo 들을 머지해야하나?
-					highlightInfo = internalSearchResult.getHighlightInfo();
+					/*
+					 * highlightInfo 를 택1 한다.
+					 */
+//					highlightInfo = internalSearchResult.getHighlightInfo();
+					HighlightInfo highlightInfo2 = internalSearchResult.getHighlightInfo();
+					if (highlightInfo == null || highlightInfo.fieldIndexAnalyzerMap().size() < highlightInfo2.fieldIndexAnalyzerMap().size()) {
+						// highlightInfo가 없거나
+						// 필드가 더 많은 것으로 대체한다.
+						highlightInfo = highlightInfo2;
+					}
 				}
 			}
 
