@@ -219,10 +219,20 @@ public class ClusterSearchJob extends Job {
 					 */
 //					highlightInfo = internalSearchResult.getHighlightInfo();
 					HighlightInfo highlightInfo2 = internalSearchResult.getHighlightInfo();
-					if (highlightInfo == null || highlightInfo.fieldIndexAnalyzerMap().size() < highlightInfo2.fieldIndexAnalyzerMap().size()) {
+					if (highlightInfo == null) {
 						// highlightInfo가 없거나
 						// 필드가 더 많은 것으로 대체한다.
 						highlightInfo = highlightInfo2;
+					} else {
+						if (highlightInfo.fieldIndexAnalyzerMap() == null && highlightInfo2.fieldIndexAnalyzerMap() != null) {
+							// 기존에 하이라이팅 정보가 없고, 신규로는 정보가 있을 경우.
+							highlightInfo = highlightInfo2;
+						} else if (highlightInfo.fieldIndexAnalyzerMap() != null && highlightInfo2.fieldIndexAnalyzerMap() != null) {
+							// 모두 하이라이팅 정보가 있고, 신규정보의 갯수가 더 많으면 덮어쓴다.
+							if (highlightInfo.fieldIndexAnalyzerMap().size() < highlightInfo2.fieldIndexAnalyzerMap().size()) {
+								highlightInfo = highlightInfo2;
+							}
+						}
 					}
 				}
 			}
