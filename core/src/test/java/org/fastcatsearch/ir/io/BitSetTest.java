@@ -122,6 +122,18 @@ public class BitSetTest extends TestCase {
             }
         }
     }
+
+	@Test
+    public void testEmptyBitSet() {
+		try {
+			File dir = new File("/tmp");
+			BitSet deleteSet = new BitSet(dir, IndexFileNames.docDeleteSet, false);
+			deleteSet.save();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	public static void main(String[] args) throws IOException {
 		String line = null;
 		System.out.println(">>");

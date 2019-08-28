@@ -32,11 +32,13 @@ public class SegmentSourceReader extends AbstractDataSourceReader<Document> {
 		for (int i = 0; i < segmentPaths.length; i++) {
 			String segmentId = segmentPaths[i].getName();
 			try {
+			    //swsong 2019.8.28 생성자에서 에러발생시 catch 되므로, addSourceReader가 안되고 그냥 넘어가게 됨.
 				SingleSourceReader<Document> sourceReader = new SegmentDocumentSourceReader(schemaSetting, segmentPaths[i]);
 				logger.debug("SegmentDocumentSourceReader {} >> {}", segmentId, sourceReader);
 				addSourceReader(sourceReader);
 			} catch (IOException e) {
 				logger.error("", e);
+				throw new IRException(e);
 			}
 		}
 
@@ -62,7 +64,14 @@ public class SegmentSourceReader extends AbstractDataSourceReader<Document> {
 
             this.segHomePath = segHomePath;
             reader = new DocumentReader(schemaSetting, segHomePath);
-            deleteSet = new BitSet(segHomePath, IndexFileNames.docDeleteSet);
+            //swsong 2019.8.28 deleteset 파일이 없는 경우가 생기므로, 존재여부 확인후 접근.
+            File deleteFile = new File(segHomePath, IndexFileNames.docDeleteSet);
+            if (deleteFile.exists()) {
+                deleteSet = new BitSet(deleteFile);
+            } else {
+                //존재하지 않으면 빈 set 사용.
+                deleteSet = new BitSet();
+            }
             limit = reader.getDocumentCount();
 
             logger.debug("[{}] segment document reader start. total[{}] delete[{}] ", segHomePath.getName(), limit, deleteSet.getOnCount());
