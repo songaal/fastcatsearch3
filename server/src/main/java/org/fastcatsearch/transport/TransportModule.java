@@ -110,8 +110,13 @@ public class TransportModule extends AbstractModule {
         this.cachedQueueSize = (int) settings.getInt("send_file_cache_queue_size", 10);
         logger.debug("Transport setting worker_count[{}], port[{}], connect_timeout[{}]",
                 new Object[]{workerCount, port, connectTimeout});
-        
-		this.executorService = ThreadPoolFactory.newUnlimitedCachedDaemonThreadPool("transport-pool");
+
+        /**
+		 * 내부 메시지 전송이 너무 많아질것을 대비하여 쓰레드는 최대 1000개로 제한.
+		 * */
+		int poolSize = settings.getInt("execute_pool_size", 1000);
+//		this.executorService = ThreadPoolFactory.newUnlimitedCachedDaemonThreadPool("transport-pool");
+		this.executorService = ThreadPoolFactory.newCachedDaemonThreadPool("transport-pool", poolSize);
 		/*
 		 * Client
 		 * */
