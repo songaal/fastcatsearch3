@@ -197,6 +197,7 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
 	class RequestHandler implements Runnable {
 		private final Job job;
 		private final TransportChannel transportChannel;
+		private long MAX_TIMEOUT = 30_000;
 
 		public RequestHandler(Job job, TransportChannel transportChannel) {
 			// logger.debug("Request Job >> {}", job.getClass().getName());
@@ -212,7 +213,12 @@ public class MessageChannelHandler extends SimpleChannelUpstreamHandler {
 				} else {
 					ResultFuture resultFuture = jobExecutor.offer(job);
                     long timeout = job.getTimeout();
-                    Object obj = resultFuture.take();
+                    /**
+					 *  요청이 너무 많이 들어와서 처리가 안되는 상황에서 쓰레드가 block 상태로 과다 생성되는 현상발생.
+					 *  timeout 을 30초로 제한.
+					 *  2019.11.22 swsong
+					 *  */
+                    Object obj = resultFuture.pollInMillis(timeout > MAX_TIMEOUT ? timeout : MAX_TIMEOUT);
 					// logger.debug("## RequestHandler {} result >> {}", job.getClass().getSimpleName(), obj);
 					if (obj instanceof Streamable) {
 						Streamable result = (Streamable) obj;

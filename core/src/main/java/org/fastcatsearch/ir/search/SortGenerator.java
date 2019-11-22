@@ -16,7 +16,6 @@
 
 package org.fastcatsearch.ir.search;
 
-import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
 import org.apache.lucene.util.BytesRef;
 import org.fastcatsearch.ir.field.DistanceField;
 import org.fastcatsearch.ir.field.HitField;
